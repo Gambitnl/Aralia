@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import { PlayerCharacter, EquipmentSlotType, Item, ArmorCategory } from '../types';
-import Tooltip from './Tooltip';
+import Tooltip from './Tooltip'; 
 
 // Import default icon components
 import HeadIcon from '../assets/icons/HeadIcon';
@@ -28,47 +28,47 @@ import { getCharacterMaxArmorProficiency, getArmorCategoryHierarchy, getAbilityM
 
 interface EquipmentMannequinProps {
   character: PlayerCharacter;
-  onSlotClick?: (slot: EquipmentSlotType, item?: Item) => void;
+  onSlotClick?: (slot: EquipmentSlotType, item?: Item) => void; 
 }
 
 interface SlotDisplayInfo {
   id: EquipmentSlotType;
   label: string;
   defaultIcon: React.ReactElement;
-  gridArea: string;
-  isArmorSlot?: boolean;
+  gridArea: string; 
+  isArmorSlot?: boolean; 
   isShieldSlot?: boolean;
 }
 
 const equipmentSlots: SlotDisplayInfo[] = [
-  { id: 'Head', label: 'Head', defaultIcon: <HeadIcon />, gridArea: 'head', isArmorSlot: true },
-  { id: 'Neck', label: 'Neck', defaultIcon: <NeckIcon />, gridArea: 'neck' },
-  { id: 'Torso', label: 'Torso', defaultIcon: <TorsoIcon />, gridArea: 'torso', isArmorSlot: true },
-  { id: 'Cloak', label: 'Cloak', defaultIcon: <CloakIcon />, gridArea: 'cloak' },
-  { id: 'Belt', label: 'Belt', defaultIcon: <BeltIcon />, gridArea: 'belt' },
-  { id: 'MainHand', label: 'Main Hand', defaultIcon: <MainHandIcon />, gridArea: 'mainhand' },
-  { id: 'OffHand', label: 'Off Hand', defaultIcon: <OffHandIcon />, gridArea: 'offhand', isShieldSlot: true },
-  { id: 'Wrists', label: 'Wrists', defaultIcon: <WristsIcon />, gridArea: 'wrists', isArmorSlot: true },
-  { id: 'Legs', label: 'Legs', defaultIcon: <LegsIcon />, gridArea: 'legs', isArmorSlot: true },
-  { id: 'Hands', label: 'Hands', defaultIcon: <HandsIcon />, gridArea: 'hands', isArmorSlot: true },
-  { id: 'Ring1', label: 'Ring 1', defaultIcon: <RingIcon />, gridArea: 'ring1' },
-  { id: 'Ring2', label: 'Ring 2', defaultIcon: <RingIcon />, gridArea: 'ring2' },
-  { id: 'Feet', label: 'Feet', defaultIcon: <FeetIcon />, gridArea: 'feet', isArmorSlot: true },
+  { id: 'Head',     label: 'Head',     defaultIcon: <HeadIcon />,     gridArea: 'head',     isArmorSlot: true },
+  { id: 'Neck',     label: 'Neck',     defaultIcon: <NeckIcon />,     gridArea: 'neck' },
+  { id: 'Torso',    label: 'Torso',    defaultIcon: <TorsoIcon />,    gridArea: 'torso',    isArmorSlot: true },
+  { id: 'Cloak',    label: 'Cloak',    defaultIcon: <CloakIcon />,    gridArea: 'cloak' },
+  { id: 'Belt',     label: 'Belt',     defaultIcon: <BeltIcon />,     gridArea: 'belt' },
+  { id: 'MainHand', label: 'Main Hand',defaultIcon: <MainHandIcon />, gridArea: 'mainhand' },
+  { id: 'OffHand',  label: 'Off Hand', defaultIcon: <OffHandIcon />,  gridArea: 'offhand',  isShieldSlot: true },
+  { id: 'Wrists',   label: 'Wrists',   defaultIcon: <WristsIcon />,   gridArea: 'wrists',   isArmorSlot: true },
+  { id: 'Legs',     label: 'Legs',     defaultIcon: <LegsIcon />,     gridArea: 'legs',     isArmorSlot: true },
+  { id: 'Hands',    label: 'Hands',    defaultIcon: <HandsIcon />,    gridArea: 'hands',    isArmorSlot: true },
+  { id: 'Ring1',    label: 'Ring 1',   defaultIcon: <RingIcon />,     gridArea: 'ring1' },
+  { id: 'Ring2',    label: 'Ring 2',   defaultIcon: <RingIcon />,     gridArea: 'ring2' },
+  { id: 'Feet',     label: 'Feet',     defaultIcon: <FeetIcon />,     gridArea: 'feet',     isArmorSlot: true },
 ];
 
 /**
  * A subtle SVG silhouette to go behind the slots, giving context to the "empty" spaces.
  */
 const MannequinSilhouette = () => (
-  <svg
-    viewBox="0 0 200 300"
-    className="absolute inset-0 w-full h-full text-gray-800 opacity-50 pointer-events-none"
+  <svg 
+    viewBox="0 0 200 300" 
+    className="absolute inset-0 w-full h-full text-gray-800 opacity-50 pointer-events-none" 
     preserveAspectRatio="xMidYMid meet"
   >
-    <path
-      fill="currentColor"
-      d="M100,20 C115,20 125,35 125,50 C125,65 115,75 100,75 C85,75 75,65 75,50 C75,35 85,20 100,20 Z 
-           M100,80 C130,80 150,90 160,110 L150,160 C145,170 135,170 130,160 L125,130 L125,200 C125,210 130,220 130,250 L125,290 L105,290 L105,220 L95,220 L95,290 L75,290 L70,250 C70,220 75,210 75,200 L75,130 L70,160 C65,170 55,170 50,160 L40,110 C50,90 70,80 100,80 Z"
+    <path 
+        fill="currentColor" 
+        d="M100,20 C115,20 125,35 125,50 C125,65 115,75 100,75 C85,75 75,65 75,50 C75,35 85,20 100,20 Z 
+           M100,80 C130,80 150,90 160,110 L150,160 C145,170 135,170 130,160 L125,130 L125,200 C125,210 130,220 130,250 L125,290 L105,290 L105,220 L95,220 L95,290 L75,290 L70,250 C70,220 75,210 75,200 L75,130 L70,160 C65,170 55,170 50,160 L40,110 C50,90 70,80 100,80 Z" 
     />
   </svg>
 );
@@ -80,17 +80,17 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
   return (
     <div className="flex flex-col items-center">
       <h3 className="text-xl font-semibold text-amber-400 mb-2 font-cinzel">Equipment</h3>
-
+      
       {/* Mannequin Container */}
       <div className="relative w-[320px] h-[440px] bg-gray-900/50 rounded-xl border border-gray-700 shadow-2xl overflow-hidden">
-
+        
         {/* Background Silhouette */}
         <div className="absolute inset-0 flex items-center justify-center top-4">
-          <MannequinSilhouette />
+            <MannequinSilhouette />
         </div>
 
         {/* Grid Overlay */}
-        <div
+        <div 
           className="relative z-10 grid gap-3 p-4 h-full place-items-center"
           style={{
             gridTemplateAreas: `
@@ -130,59 +130,40 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
                     mismatchReason = `Character max proficiency is ${characterMaxProficiencyLevel}, item requires ${equippedItem.armorCategory}.`;
                   }
                 }
+              } else if (equippedItem.type === 'weapon' && equippedItem.damageDice) {
+                  const { finalAbilityScores } = character;
+                  const strMod = getAbilityModifierValue(finalAbilityScores.Strength);
+                  const dexMod = getAbilityModifierValue(finalAbilityScores.Dexterity);
+                  
+                  const isRanged = equippedItem.properties?.includes('Ammunition');
+                  const hasFinesse = equippedItem.properties?.includes('Finesse');
+                  
+                  let abilityMod = strMod;
+                  if (isRanged && !hasFinesse) {
+                      abilityMod = dexMod;
+                  } else if (hasFinesse) {
+                      abilityMod = Math.max(strMod, dexMod);
+                  }
+                  
+                  const bonusString = abilityMod !== 0 ? ` ${abilityMod > 0 ? '+' : '−'} ${Math.abs(abilityMod)}` : '';
+                  damageDisplay = `${equippedItem.damageDice}${bonusString}`;
               }
-
-              // Check general requirements
-              if (equippedItem.requirements) {
-                const { requirements } = equippedItem;
-                if (requirements.minLevel && (character.level || 1) < requirements.minLevel) {
-                  proficiencyMismatch = true;
-                  mismatchReason = `Requires Level ${requirements.minLevel}.`;
-                }
-                if (requirements.classId && !requirements.classId.includes(character.class.id)) {
-                  proficiencyMismatch = true;
-                  mismatchReason = `Class restricted.`;
-                }
-                if (requirements.minStrength && character.finalAbilityScores.Strength < requirements.minStrength) {
-                  proficiencyMismatch = true;
-                  mismatchReason = `Requires ${requirements.minStrength} Strength.`;
-                }
-                // ... (add other stat checks if needed for display, though usually blocked at equip time)
+              
+              if (proficiencyMismatch) {
+                  slotStyle = "bg-red-900/20 border-red-500 ring-1 ring-red-500";
               }
-            } else if (equippedItem.type === 'weapon' && equippedItem.damageDice) {
-              const { finalAbilityScores } = character;
-              const strMod = getAbilityModifierValue(finalAbilityScores.Strength);
-              const dexMod = getAbilityModifierValue(finalAbilityScores.Dexterity);
-
-              const isRanged = equippedItem.properties?.includes('Ammunition');
-              const hasFinesse = equippedItem.properties?.includes('Finesse');
-
-              let abilityMod = strMod;
-              if (isRanged && !hasFinesse) {
-                abilityMod = dexMod;
-              } else if (hasFinesse) {
-                abilityMod = Math.max(strMod, dexMod);
-              }
-
-              const bonusString = abilityMod !== 0 ? ` ${abilityMod > 0 ? '+' : '−'} ${Math.abs(abilityMod)}` : '';
-              damageDisplay = `${equippedItem.damageDice}${bonusString}`;
             }
 
-            if (proficiencyMismatch) {
-              slotStyle = "bg-red-900/20 border-red-500 ring-1 ring-red-500";
-            }
-          }
+            const buttonTitle = equippedItem 
+              ? `${equippedItem.name} (In ${slotInfo.label})${proficiencyMismatch ? ` - Proficiency Mismatch! ${mismatchReason}` : ''}${damageDisplay ? ` | Damage: ${damageDisplay}`: ''}${onSlotClick ? ' - Click to Unequip' : ''}` 
+              : `Empty ${slotInfo.label} Slot (Max Armor: ${characterMaxProficiencyLevel})`;
 
-            const buttonTitle = equippedItem
-          ? `${equippedItem.name} (In ${slotInfo.label})${proficiencyMismatch ? ` - Proficiency Mismatch! ${mismatchReason}` : ''}${damageDisplay ? ` | Damage: ${damageDisplay}` : ''}${onSlotClick ? ' - Click to Unequip' : ''}`
-          : `Empty ${slotInfo.label} Slot (Max Armor: ${characterMaxProficiencyLevel})`;
-
-          return (
-          <Tooltip key={slotInfo.id} content={buttonTitle}>
-            <button
-              onClick={() => onSlotClick?.(slotInfo.id, equippedItem)}
-              style={{ gridArea: slotInfo.gridArea }}
-              className={`
+            return (
+              <Tooltip key={slotInfo.id} content={buttonTitle}>
+                <button
+                  onClick={() => onSlotClick?.(slotInfo.id, equippedItem)}
+                  style={{ gridArea: slotInfo.gridArea }}
+                  className={`
                     relative flex flex-col items-center justify-center
                     w-20 h-20 rounded-lg border-2
                     transition-all duration-200
@@ -190,47 +171,47 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
                     ${onSlotClick && equippedItem ? 'hover:border-amber-400 hover:shadow-[0_0_10px_rgba(251,191,36,0.3)] cursor-pointer' : 'cursor-default'}
                     ${!equippedItem ? 'hover:border-gray-500' : ''}
                   `}
-              aria-label={buttonTitle}
-              disabled={!onSlotClick && !equippedItem}
-            >
-              {/* Inner content container */}
-              <div className="w-full h-full p-2 flex flex-col items-center justify-center overflow-hidden">
-                {equippedItem?.icon ? (
-                  // Check if it's a complex SVG string or a character/emoji
-                  equippedItem.icon.startsWith('data:image/svg+xml') || equippedItem.icon.includes('<svg') || equippedItem.icon.endsWith('.svg') ? (
-                    <img src={equippedItem.icon} alt={equippedItem.name} className="w-10 h-10 object-contain drop-shadow-md" onError={(e) => (e.currentTarget.style.display = 'none')} />
-                  ) : (
-                    <span className="text-3xl filter drop-shadow-lg">{equippedItem.icon}</span>
-                  )
-                ) : equippedItem?.name ? (
-                  <span className="text-xs font-bold text-center break-words w-full leading-tight text-amber-100">{equippedItem.name}</span>
-                ) : (
-                  <div className={`w-10 h-10 opacity-40 ${iconColor}`}>
-                    <DynamicMannequinSlotIcon
-                      characterProficiency={characterMaxProficiencyLevel}
-                      slotType={slotInfo.id}
-                      fallbackIcon={slotInfo.defaultIcon}
-                    />
+                  aria-label={buttonTitle}
+                  disabled={!onSlotClick && !equippedItem}
+                >
+                  {/* Inner content container */}
+                  <div className="w-full h-full p-2 flex flex-col items-center justify-center overflow-hidden">
+                      {equippedItem?.icon ? (
+                           // Check if it's a complex SVG string or a character/emoji
+                           equippedItem.icon.startsWith('data:image/svg+xml') || equippedItem.icon.includes('<svg') || equippedItem.icon.endsWith('.svg') ? (
+                              <img src={equippedItem.icon} alt={equippedItem.name} className="w-10 h-10 object-contain drop-shadow-md" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                           ) : (
+                              <span className="text-3xl filter drop-shadow-lg">{equippedItem.icon}</span>
+                           )
+                      ) : equippedItem?.name ? (
+                          <span className="text-xs font-bold text-center break-words w-full leading-tight text-amber-100">{equippedItem.name}</span>
+                      ) : (
+                         <div className={`w-10 h-10 opacity-40 ${iconColor}`}>
+                             <DynamicMannequinSlotIcon 
+                               characterProficiency={characterMaxProficiencyLevel}
+                               slotType={slotInfo.id}
+                               fallbackIcon={slotInfo.defaultIcon}
+                             />
+                         </div>
+                      )}
                   </div>
-                )}
-              </div>
-
-              {/* Slot Label (Bottom Right) */}
-              {!equippedItem && (
-                <span className="absolute bottom-1 right-1 text-[9px] text-gray-600 uppercase font-bold tracking-wider pointer-events-none">
-                  {slotInfo.label}
-                </span>
-              )}
-
-              {/* Stats Overlay (if equipped) */}
-              {damageDisplay && (
-                <div className="absolute -bottom-2 bg-black/80 text-amber-300 text-[10px] px-1.5 py-0.5 rounded border border-amber-900/50 shadow-sm font-mono">
-                  {damageDisplay}
-                </div>
-              )}
-            </button>
-          </Tooltip>
-          );
+                  
+                  {/* Slot Label (Bottom Right) */}
+                  {!equippedItem && (
+                      <span className="absolute bottom-1 right-1 text-[9px] text-gray-600 uppercase font-bold tracking-wider pointer-events-none">
+                          {slotInfo.label}
+                      </span>
+                  )}
+                  
+                  {/* Stats Overlay (if equipped) */}
+                  {damageDisplay && (
+                     <div className="absolute -bottom-2 bg-black/80 text-amber-300 text-[10px] px-1.5 py-0.5 rounded border border-amber-900/50 shadow-sm font-mono">
+                         {damageDisplay}
+                     </div>
+                  )}
+                </button>
+              </Tooltip>
+            );
           })}
         </div>
       </div>
