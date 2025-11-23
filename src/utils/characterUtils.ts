@@ -3,7 +3,7 @@
  * This file contains utility functions related to player characters,
  * such as calculating ability score modifiers, armor class, and equipment rules.
  */
-import { PlayerCharacter, Race, Item, ArmorCategory, ArmorProficiencyLevel, TempPartyMember, AbilityScores, Class as CharClass, DraconicAncestryInfo } from '../types';
+import { PlayerCharacter, Race, Item, ArmorCategory, ArmorProficiencyLevel, TempPartyMember, AbilityScores, Class as CharClass, DraconicAncestryInfo, EquipmentSlotType } from '../types';
 import { RACES_DATA, GIANT_ANCESTRIES, TIEFLING_LEGACIES, CLASSES_DATA, DRAGONBORN_ANCESTRIES } from '../constants';
 
 /**
@@ -13,6 +13,35 @@ import { RACES_DATA, GIANT_ANCESTRIES, TIEFLING_LEGACIES, CLASSES_DATA, DRAGONBO
  */
 export const getAbilityModifierValue = (score: number): number => {
   return Math.floor((score - 10) / 2);
+};
+
+/**
+ * Calculates the final ability scores for a character, including racial bonuses and equipment bonuses.
+ * @param {AbilityScores} baseScores - The character's base ability scores.
+ * @param {Race} race - The character's race.
+ * @param {Partial<Record<EquipmentSlotType, Item>>} equippedItems - The character's equipped items.
+ * @returns {AbilityScores} The final calculated ability scores.
+ */
+export const calculateFinalAbilityScores = (
+  baseScores: AbilityScores,
+  race: Race,
+  equippedItems: Partial<Record<EquipmentSlotType, Item>>
+): AbilityScores => {
+  // 1. Start with base scores + racial bonuses
+  const scores = calculateFixedRacialBonuses(baseScores, race);
+
+  // 2. Add bonuses from equipped items
+  Object.values(equippedItems).forEach(item => {
+    if (item && item.statBonuses) {
+      (Object.keys(item.statBonuses) as Array<keyof AbilityScores>).forEach(stat => {
+        if (item.statBonuses![stat]) {
+          scores[stat] += item.statBonuses![stat]!;
+        }
+      });
+    }
+  });
+
+  return scores;
 };
 
 /**
@@ -37,32 +66,32 @@ export function getCharacterRaceDisplayString(character: PlayerCharacter): strin
   if (!race) return 'Unknown Race';
 
   const getSelectionName = (data: any[] | undefined, id: string | undefined, nameKey: string, suffixToRemove: string): string | null => {
-      if (!id || !data) return null;
-      const found = data.find(item => item.id === id);
-      return found ? found[nameKey].replace(suffixToRemove, '').trim() : null;
+    if (!id || !data) return null;
+    const found = data.find(item => item.id === id);
+    return found ? found[nameKey].replace(suffixToRemove, '').trim() : null;
   }
 
   switch (race.id) {
     case 'elf': {
-        const lineageName = getSelectionName(RACES_DATA.elf?.elvenLineages, racialSelections?.['elf']?.choiceId, 'name', 'Lineage');
-        return lineageName ? `${lineageName}` : race.name;
+      const lineageName = getSelectionName(RACES_DATA.elf?.elvenLineages, racialSelections?.['elf']?.choiceId, 'name', 'Lineage');
+      return lineageName ? `${lineageName}` : race.name;
     }
     case 'dragonborn': {
-        const ancestryId = racialSelections?.['dragonborn']?.choiceId;
-        const ancestry = ancestryId ? (DRAGONBORN_ANCESTRIES as Record<string, DraconicAncestryInfo>)[ancestryId] : null;
-        return ancestry ? `${ancestry.type} ${race.name}` : race.name;
+      const ancestryId = racialSelections?.['dragonborn']?.choiceId;
+      const ancestry = ancestryId ? (DRAGONBORN_ANCESTRIES as Record<string, DraconicAncestryInfo>)[ancestryId] : null;
+      return ancestry ? `${ancestry.type} ${race.name}` : race.name;
     }
     case 'gnome': {
-        const subraceName = getSelectionName(RACES_DATA.gnome?.gnomeSubraces, racialSelections?.['gnome']?.choiceId, 'name', '');
-        return subraceName ? subraceName : race.name;
+      const subraceName = getSelectionName(RACES_DATA.gnome?.gnomeSubraces, racialSelections?.['gnome']?.choiceId, 'name', '');
+      return subraceName ? subraceName : race.name;
     }
     case 'goliath': {
-        const ancestryName = getSelectionName(GIANT_ANCESTRIES, racialSelections?.['goliath']?.choiceId, 'id', '');
-        return ancestryName ? `${ancestryName} ${race.name}` : race.name;
+      const ancestryName = getSelectionName(GIANT_ANCESTRIES, racialSelections?.['goliath']?.choiceId, 'id', '');
+      return ancestryName ? `${ancestryName} ${race.name}` : race.name;
     }
     case 'tiefling': {
-       const legacyName = getSelectionName(TIEFLING_LEGACIES, racialSelections?.['tiefling']?.choiceId, 'name', 'Legacy');
-       return legacyName ? `${legacyName} ${race.name}` : race.name;
+      const legacyName = getSelectionName(TIEFLING_LEGACIES, racialSelections?.['tiefling']?.choiceId, 'name', 'Legacy');
+      return legacyName ? `${legacyName} ${race.name}` : race.name;
     }
     default:
       return race.name;
@@ -106,9 +135,9 @@ export const getCharacterMaxArmorProficiency = (character: PlayerCharacter): Arm
 export const calculateArmorClass = (character: PlayerCharacter): number => {
   let baseAc = 10;
   let dexBonus = getAbilityModifierValue(character.finalAbilityScores.Dexterity);
-  
+
   const armor = character.equippedItems.Torso;
-  
+
   if (armor && armor.type === 'armor' && armor.baseArmorClass) {
     baseAc = armor.baseArmorClass;
     if (armor.addsDexterityModifier) {
@@ -119,13 +148,13 @@ export const calculateArmorClass = (character: PlayerCharacter): number => {
       dexBonus = 0;
     }
   } else { // Unarmored
-      if (character.class.id === 'barbarian') {
-          baseAc = 10 + dexBonus + getAbilityModifierValue(character.finalAbilityScores.Constitution);
-          dexBonus = 0; // Already included in baseAc calculation
-      } else if (character.class.id === 'monk') {
-          baseAc = 10 + dexBonus + getAbilityModifierValue(character.finalAbilityScores.Wisdom);
-          dexBonus = 0; // Already included
-      }
+    if (character.class.id === 'barbarian') {
+      baseAc = 10 + dexBonus + getAbilityModifierValue(character.finalAbilityScores.Constitution);
+      dexBonus = 0; // Already included in baseAc calculation
+    } else if (character.class.id === 'monk') {
+      baseAc = 10 + dexBonus + getAbilityModifierValue(character.finalAbilityScores.Wisdom);
+      dexBonus = 0; // Already included
+    }
   }
 
 
@@ -146,7 +175,7 @@ export const canEquipItem = (character: PlayerCharacter, item: Item): { can: boo
     if (item.strengthRequirement && character.finalAbilityScores.Strength < item.strengthRequirement) {
       return { can: false, reason: `Requires ${item.strengthRequirement} Strength.` };
     }
-    
+
     if (item.armorCategory) {
       const charMaxProf = getCharacterMaxArmorProficiency(character);
       if (item.armorCategory === 'Shield') {
@@ -162,7 +191,37 @@ export const canEquipItem = (character: PlayerCharacter, item: Item): { can: boo
       }
     }
   }
-  
+
+  if (item.requirements) {
+    const { requirements } = item;
+    if (requirements.minLevel && (character.level || 1) < requirements.minLevel) {
+      return { can: false, reason: `Requires Level ${requirements.minLevel}.` };
+    }
+    if (requirements.classId && !requirements.classId.includes(character.class.id)) {
+      return { can: false, reason: `Class restricted.` };
+    }
+    // Check stat requirements against BASE or CURRENT stats? 
+    // Usually current final stats.
+    if (requirements.minStrength && character.finalAbilityScores.Strength < requirements.minStrength) {
+      return { can: false, reason: `Requires ${requirements.minStrength} Strength.` };
+    }
+    if (requirements.minDexterity && character.finalAbilityScores.Dexterity < requirements.minDexterity) {
+      return { can: false, reason: `Requires ${requirements.minDexterity} Dexterity.` };
+    }
+    if (requirements.minConstitution && character.finalAbilityScores.Constitution < requirements.minConstitution) {
+      return { can: false, reason: `Requires ${requirements.minConstitution} Constitution.` };
+    }
+    if (requirements.minIntelligence && character.finalAbilityScores.Intelligence < requirements.minIntelligence) {
+      return { can: false, reason: `Requires ${requirements.minIntelligence} Intelligence.` };
+    }
+    if (requirements.minWisdom && character.finalAbilityScores.Wisdom < requirements.minWisdom) {
+      return { can: false, reason: `Requires ${requirements.minWisdom} Wisdom.` };
+    }
+    if (requirements.minCharisma && character.finalAbilityScores.Charisma < requirements.minCharisma) {
+      return { can: false, reason: `Requires ${requirements.minCharisma} Charisma.` };
+    }
+  }
+
   return { can: true };
 };
 

@@ -363,6 +363,17 @@ export interface Item {
   shelfLife?: string;
   nutritionValue?: number;
   perishable?: boolean;
+  statBonuses?: Partial<AbilityScores>;
+  requirements?: {
+    minLevel?: number;
+    classId?: string[];
+    minStrength?: number;
+    minDexterity?: number;
+    minConstitution?: number;
+    minIntelligence?: number;
+    minWisdom?: number;
+    minCharisma?: number;
+  };
 }
 
 export interface LocationDynamicNpcConfig {
