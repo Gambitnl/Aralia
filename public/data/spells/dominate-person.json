@@ -1,0 +1,16 @@
+
+{
+  "id": "dominate-person",
+  "name": "Dominate Person",
+  "level": 5,
+  "school": "Enchantment",
+  "castingTime": "1 Action",
+  "range": "60 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "You attempt to beguile a humanoid that you can see within range. It must succeed on a Wisdom saving throw or be charmed by you for the duration."
+}

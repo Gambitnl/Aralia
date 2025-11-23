@@ -1,0 +1,16 @@
+
+{
+  "id": "ottos-irresistible-dance",
+  "name": "Otto's Irresistible Dance",
+  "level": 6,
+  "school": "Enchantment",
+  "castingTime": "1 Action",
+  "range": "30 feet",
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "Choose one creature that you can see within range. The target begins a comic dance in place: shuffling, tapping its feet, and capering for the duration."
+}

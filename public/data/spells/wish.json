@@ -1,0 +1,16 @@
+
+{
+  "id": "wish",
+  "name": "Wish",
+  "level": 9,
+  "school": "Conjuration",
+  "castingTime": "1 Action",
+  "range": "Self",
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": "Instantaneous",
+  "description": "Wish is the mightiest spell a mortal creature can cast. By simply speaking aloud, you can alter the very foundations of reality in accord with your desires."
+}

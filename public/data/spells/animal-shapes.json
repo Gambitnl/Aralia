@@ -1,0 +1,16 @@
+
+{
+  "id": "animal-shapes",
+  "name": "Animal Shapes",
+  "level": 8,
+  "school": "Transmutation",
+  "castingTime": "1 Action",
+  "range": "30 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Concentration, up to 24 hours",
+  "description": "You turn any number of willing creatures that you can see within range into beasts of a challenge rating of 4 or lower."
+}

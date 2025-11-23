@@ -1,0 +1,16 @@
+
+{
+  "id": "awaken",
+  "name": "Awaken",
+  "level": 5,
+  "school": "Transmutation",
+  "castingTime": "8 Hours",
+  "range": "Touch",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Instantaneous",
+  "description": "You touch a Huge or smaller beast or plant. It gains an Intelligence of 10 and the ability to speak one language you know."
+}

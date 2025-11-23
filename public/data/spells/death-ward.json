@@ -1,0 +1,16 @@
+
+{
+  "id": "death-ward",
+  "name": "Death Ward",
+  "level": 4,
+  "school": "Abjuration",
+  "castingTime": "1 Action",
+  "range": "Touch",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "8 Hours",
+  "description": "You touch a creature and grant it a measure of protection from death. The first time the target would drop to 0 hit points as a result of taking damage, the target instead drops to 1 hit point, and the spell ends."
+}

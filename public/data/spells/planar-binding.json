@@ -1,0 +1,16 @@
+
+{
+  "id": "planar-binding",
+  "name": "Planar Binding",
+  "level": 5,
+  "school": "Abjuration",
+  "castingTime": "1 Hour",
+  "range": "60 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "24 Hours",
+  "description": "With this spell, you attempt to bind a celestial, an elemental, a fey, or a fiend to your service."
+}

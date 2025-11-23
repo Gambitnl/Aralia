@@ -1,0 +1,12 @@
+{
+  "index_files": [
+    "/data/glossary/index/actions.json",
+    "/data/glossary/index/conditions.json",
+    "/data/glossary/index/d20_test.json",
+    "/data/glossary/index/exploration.json",
+    "/data/glossary/index/expertise.json",
+    "/data/glossary/index/proficiency.json",
+    "/data/glossary/index/speed.json",
+    "/data/glossary/index/spells_overview.json"
+  ]
+}

@@ -1,0 +1,16 @@
+
+{
+  "id": "skywrite",
+  "name": "Skywrite",
+  "level": 2,
+  "school": "Transmutation",
+  "castingTime": "1 Action",
+  "range": "Sight",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Concentration, up to 1 hour",
+  "description": "You cause clouds to form into writing in the sky. The writing appears to be made of clouds and remains in place for the spell's duration, readable from up to 50 miles away."
+}

@@ -1,0 +1,16 @@
+
+{
+  "id": "disintegrate",
+  "name": "Disintegrate",
+  "level": 6,
+  "school": "Transmutation",
+  "castingTime": "1 Action",
+  "range": "60 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Instantaneous",
+  "description": "A thin green ray springs from your pointing finger to a target that you can see within range. The target can be a creature, an object, or a creation of magical force."
+}

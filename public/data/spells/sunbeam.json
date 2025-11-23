@@ -1,0 +1,16 @@
+
+{
+  "id": "sunbeam",
+  "name": "Sunbeam",
+  "level": 6,
+  "school": "Evocation",
+  "castingTime": "1 Action",
+  "range": "Self (60-foot line)",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "A beam of brilliant light flashes out from your hand in a 5-foot-wide, 60-foot-long line. Each creature in the line must make a Constitution saving throw. On a failed save, a creature takes 6d8 radiant damage and is blinded until your next turn."
+}

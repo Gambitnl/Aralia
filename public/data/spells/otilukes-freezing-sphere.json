@@ -1,0 +1,16 @@
+
+{
+  "id": "otilukes-freezing-sphere",
+  "name": "Otiluke's Freezing Sphere",
+  "level": 6,
+  "school": "Evocation",
+  "castingTime": "1 Action",
+  "range": "300 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Instantaneous",
+  "description": "A frigid globe of cold energy streaks from your fingertips to a point of your choice within range, where it explodes in a 60-foot-radius sphere."
+}

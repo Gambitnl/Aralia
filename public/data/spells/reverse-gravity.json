@@ -1,0 +1,16 @@
+
+{
+  "id": "reverse-gravity",
+  "name": "Reverse Gravity",
+  "level": 7,
+  "school": "Transmutation",
+  "castingTime": "1 Action",
+  "range": "100 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "This spell reverses gravity in a 50-foot-radius, 100-foot high cylinder centered on a point within range."
+}

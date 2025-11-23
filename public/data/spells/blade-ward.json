@@ -1,0 +1,16 @@
+
+{
+  "id": "blade-ward",
+  "name": "Blade Ward",
+  "level": 0,
+  "school": "Abjuration",
+  "castingTime": "1 Action",
+  "range": "Self",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "1 Round",
+  "description": "You extend your hand and trace a sigil of warding in the air. Until the end of your next turn, you have resistance against bludgeoning, piercing, and slashing damage dealt by weapon attacks."
+}

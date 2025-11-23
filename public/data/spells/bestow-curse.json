@@ -1,0 +1,16 @@
+
+{
+  "id": "bestow-curse",
+  "name": "Bestow Curse",
+  "level": 3,
+  "school": "Necromancy",
+  "castingTime": "1 Action",
+  "range": "Touch",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "You touch a creature, and that creature must succeed on a Wisdom saving throw or become cursed for the duration of the spell."
+}

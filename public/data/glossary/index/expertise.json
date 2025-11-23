@@ -1,0 +1,12 @@
+[
+  {
+    "id": "expertise",
+    "title": "Expertise",
+    "category": "Rules Glossary",
+    "tags": ["rules", "skill", "proficiency bonus", "ability check"],
+    "excerpt": "A feature that doubles your proficiency bonus for chosen skills or tools, representing exceptional mastery in those areas.",
+    "aliases": ["skill expertise", "tool expertise"],
+    "seeAlso": ["proficiency_bonus", "proficiency"],
+    "filePath": "/data/glossary/entries/rules/expertise.md"
+  }
+]

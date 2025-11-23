@@ -1,0 +1,94 @@
+[
+  {
+    "id": "spells_chapter",
+    "title": "Spells (Chapter Overview)",
+    "category": "Rules Glossary",
+    "tags": [ "rules", "magic", "spellcasting", "core mechanic" ],
+    "excerpt": "A general introduction to how spells function in the game, covering fundamental concepts. Detailed rules are found in sub-entries under 'Spellcasting Mechanics'.",
+    "aliases": [ "spell rules", "magic rules", "spellcasting overview" ],
+    "seeAlso": [ "gaining_spells", "spell_level_slots", "school_of_magic", "casting_time_rules", "spell_range_rules", "spell_components_rules", "spell_duration_rules", "spell_effects_rules", "spell_scroll", "magic_action" ],
+    "filePath": "/data/glossary/entries/rules/spells_overview.md",
+    "subEntries": [
+        {
+          "id": "gaining_spells",
+          "title": "Gaining and Preparing Spells",
+          "category": "Spellcasting Mechanics",
+          "tags": ["rules", "spellcasting", "spell preparation", "known spells"],
+          "excerpt": "Details how characters learn new spells and prepare them for casting, including rules for always-prepared spells and changing prepared spells.",
+          "aliases": ["learning spells", "preparing spells"],
+          "seeAlso": ["spells_chapter", "spell_level_slots", "class_spell_lists"],
+          "filePath": "/data/glossary/entries/rules/spells/gaining_spells.md"
+        },
+        {
+          "id": "spell_level_slots",
+          "title": "Spell Level & Slots",
+          "category": "Spellcasting Mechanics",
+          "tags": ["rules", "spellcasting", "spell level", "spell slot", "cantrip", "ritual"],
+          "excerpt": "Explains spell levels as an indicator of power and spell slots as the resource for casting level 1+ spells, including rules for casting without slots and using higher-level slots.",
+          "aliases": ["spell power", "spell resources"],
+          "seeAlso": ["spells_chapter", "gaining_spells", "casting_time_rules"],
+          "filePath": "/data/glossary/entries/rules/spells/spell_level_slots.md"
+        },
+        {
+          "id": "school_of_magic",
+          "title": "Schools of Magic",
+          "category": "Spellcasting Mechanics",
+          "tags": ["rules", "spellcasting", "magic school", "abjuration", "conjuration", "divination", "enchantment", "evocation", "illusion", "necromancy", "transmutation"],
+          "excerpt": "Describes the eight schools of magic (Abjuration, Conjuration, etc.) that categorize spells based on their typical effects.",
+          "aliases": ["magic schools", "spell schools"],
+          "seeAlso": ["spells_chapter", "class_spell_lists"],
+          "filePath": "/data/glossary/entries/rules/spells/school_of_magic.md"
+        },
+        {
+          "id": "casting_time_rules",
+          "title": "Casting Time Rules",
+          "category": "Spellcasting Mechanics",
+          "tags": ["rules", "spellcasting", "casting time", "action", "bonus action", "reaction", "ritual"],
+          "excerpt": "Details the rules for spell casting times, including Magic action, Bonus Action, Reaction, longer casting times, and the one spell slot per turn rule.",
+          "aliases": ["spell casting time"],
+          "seeAlso": ["spells_chapter", "magic_action", "bonus_action", "reaction", "ritual", "concentration"],
+          "filePath": "/data/glossary/entries/rules/spells/casting_time_rules.md"
+        },
+        {
+          "id": "spell_range_rules",
+          "title": "Spell Range Rules",
+          "category": "Spellcasting Mechanics",
+          "tags": ["rules", "spellcasting", "spell range", "touch", "self"],
+          "excerpt": "Explains how a spell's range (Distance, Touch, Self) determines where its effect can originate.",
+          "aliases": ["range of spell"],
+          "seeAlso": ["spells_chapter", "spell_effects_rules"],
+          "filePath": "/data/glossary/entries/rules/spells/spell_range_rules.md"
+        },
+        {
+          "id": "spell_components_rules",
+          "title": "Spell Components (V, S, M)",
+          "category": "Spellcasting Mechanics",
+          "tags": ["rules", "spellcasting", "spell component", "verbal", "somatic", "material", "spellcasting focus", "component pouch"],
+          "excerpt": "Details the physical requirements for casting spells: Verbal (V), Somatic (S), and Material (M) components, including spellcasting focuses and component pouches.",
+          "aliases": ["V S M", "verbal somatic material"],
+          "seeAlso": ["spells_chapter", "spellcasting_focus", "component_pouch"],
+          "filePath": "/data/glossary/entries/rules/spells/spell_components_rules.md"
+        },
+        {
+          "id": "spell_duration_rules",
+          "title": "Spell Duration Rules",
+          "category": "Spellcasting Mechanics",
+          "tags": ["rules", "spellcasting", "spell duration", "concentration", "instantaneous"],
+          "excerpt": "Explains how long a spell's effects persist, covering Concentration, Instantaneous durations, and fixed Time Spans (rounds, minutes, hours).",
+          "aliases": ["duration of spell"],
+          "seeAlso": ["spells_chapter", "concentration"],
+          "filePath": "/data/glossary/entries/rules/spells/spell_duration_rules.md"
+        },
+        {
+          "id": "spell_effects_rules",
+          "title": "Spell Effects (Targets, Saves, Attacks)",
+          "category": "Spellcasting Mechanics",
+          "tags": ["rules", "spellcasting", "spell effect", "target", "saving throw", "attack roll", "area of effect"],
+          "excerpt": "Details how spell effects are determined, including targeting rules (clear path, self, AoE), saving throws, attack rolls, and combining spell effects.",
+          "aliases": ["spell targeting", "spell saving throws", "spell attack rolls"],
+          "seeAlso": ["spells_chapter", "saving_throw", "attack_roll", "area_of_effect", "total_cover"],
+          "filePath": "/data/glossary/entries/rules/spells/spell_effects_rules.md"
+        }
+    ]
+  }
+]

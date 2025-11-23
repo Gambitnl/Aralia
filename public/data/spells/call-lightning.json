@@ -1,0 +1,16 @@
+
+{
+  "id": "call-lightning",
+  "name": "Call Lightning",
+  "level": 3,
+  "school": "Conjuration",
+  "castingTime": "1 Action",
+  "range": "120 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Concentration, up to 10 minutes",
+  "description": "A storm cloud appears in the shape of a cylinder that is 10 feet tall with a 60-foot radius, centered on a point you can see 100 feet directly above you."
+}

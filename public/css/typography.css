@@ -1,0 +1,136 @@
+/* Typography & Prose Overrides */
+
+.font-cinzel {
+  font-family: 'Cinzel Decorative', cursive;
+}
+
+/* Enhanced Prose Styles for Markdown Content */
+.prose h1 { 
+  font-size: 2.5rem !important; 
+  font-weight: 700 !important; 
+  margin-bottom: 1.5rem !important; 
+  color: #fde68a !important; /* Lighter Amber for H1 */
+}
+.prose h2 { 
+  font-size: 1.75rem !important; 
+  margin-top: 2.5rem !important; 
+  margin-bottom: 1rem !important; 
+  color: #fde68a !important; /* Lighter Amber for H2 */
+}
+.prose h3 { /* Default H3 style for general use */
+  font-size: 1.25rem !important;
+  margin-top: 2rem !important;
+  margin-bottom: .75rem !important;
+  color: #fcd34d; /* amber-300 */
+  position: relative;
+  padding-left: 0; 
+  border-bottom: 1px solid rgba(252, 211, 77, 0.2); 
+  padding-bottom: 0.25rem;
+}
+.prose h4 {
+  color: #fde047; /* yellow-400 for H4 */
+  margin-top: 1.5rem !important;
+  margin-bottom: 0.5rem !important;
+  font-weight: 600; /* semibold */
+}
+
+/* Standard Element Styling (Ensuring visibility/spacing if plugin defaults vary) */
+.prose p {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  line-height: 1.6;
+  color: #d1d5db; /* gray-300 */
+}
+
+.prose ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose li {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+  color: #d1d5db; /* gray-300 */
+}
+
+/* Style for strong tags within prose */
+.prose strong {
+  color: #c084fc; /* purple-400 */
+}
+
+.prose a {
+  color: #38bdf8; /* sky-400 */
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+/* Styles for Markdown tables within .prose scope */
+.prose table {
+  width: 100%;
+  border-collapse: collapse; 
+  border-width: 1px;
+  border-color: #4a5568; /* Tailwind gray-600 */
+  border-radius: 0.5rem; 
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  margin-top: 1.5rem; 
+  margin-bottom: 1.5rem;
+}
+.prose thead {
+  background-color: rgba(55, 65, 81, 0.7); /* Tailwind gray-700 with 70% opacity */
+}
+.prose th {
+  padding: 0.75rem 1rem !important; 
+  text-align: left;
+  font-size: 0.75rem; 
+  font-weight: 500; 
+  color: #bae6fd; /* Tailwind sky-300 */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom-width: 1px;
+  border-color: #4a5568; /* Tailwind gray-600 */
+  position: sticky; 
+  top: 0;
+  background: rgb(30,30,30); 
+  z-index: 1;
+}
+.prose tbody {
+  background-color: rgba(31, 41, 55, 0.7); /* Tailwind gray-800 with 70% opacity */
+  divide-y: 1px;
+  divide-color: #374151; 
+}
+.prose tbody tr:nth-child(odd) {
+  background-color: rgba(255, 255, 255, 0.03); 
+}
+.prose tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.07) !important; 
+  transition-property: background-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.prose td {
+  padding: 0.75rem 1rem !important;
+  font-size: 0.875rem; 
+  color: #d1d5db; /* Tailwind gray-300 */
+  vertical-align: top; 
+}
+.prose td:first-child {
+  font-weight: 500; 
+  color: #fcd34d; /* Tailwind amber-300 */
+}
+
+/* Styles for horizontal rules (<hr>) within .prose scope */
+.prose hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(252, 211, 77, 0.5), transparent); 
+  margin: 3rem 0 !important; 
+}

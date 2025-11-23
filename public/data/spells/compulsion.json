@@ -1,0 +1,16 @@
+
+{
+  "id": "compulsion",
+  "name": "Compulsion",
+  "level": 4,
+  "school": "Enchantment",
+  "castingTime": "1 Action",
+  "range": "30 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "Creatures of your choice that you can see within range and that can see and hear you must make a Wisdom saving throw."
+}

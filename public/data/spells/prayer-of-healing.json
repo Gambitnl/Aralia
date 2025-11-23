@@ -1,0 +1,15 @@
+{
+  "id": "prayer-of-healing",
+  "name": "Prayer of Healing",
+  "level": 2,
+  "school": "Evocation",
+  "castingTime": "10 Minutes",
+  "range": "30 feet",
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": "Instantaneous",
+  "description": "Up to six creatures of your choice that you can see within range each regain hit points equal to 2d8 + your spellcasting ability modifier."
+}

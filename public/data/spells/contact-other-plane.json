@@ -1,0 +1,16 @@
+
+{
+  "id": "contact-other-plane",
+  "name": "Contact Other Plane",
+  "level": 5,
+  "school": "Divination",
+  "castingTime": "1 Minute",
+  "range": "Self",
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": "1 Minute",
+  "description": "You mentally contact a demigod, the spirit of a long-dead sage, or some other mysterious entity from another plane."
+}

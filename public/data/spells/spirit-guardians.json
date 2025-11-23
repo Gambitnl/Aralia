@@ -1,0 +1,16 @@
+
+{
+  "id": "spirit-guardians",
+  "name": "Spirit Guardians",
+  "level": 3,
+  "school": "Conjuration",
+  "castingTime": "1 Action",
+  "range": "Self (15-foot radius)",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 10 minutes",
+  "description": "You call forth spirits to protect you. They flit around you to a distance of 15 feet for the duration. You choose whether the spirits are angelic or demonic. When a creature enters the area for the first time on a turn or starts its turn there, it must make a Wisdom saving throw. It takes 3d8 radiant (good) or necrotic (evil) damage on a failed save."
+}

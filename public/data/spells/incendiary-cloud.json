@@ -1,0 +1,16 @@
+
+{
+  "id": "incendiary-cloud",
+  "name": "Incendiary Cloud",
+  "level": 8,
+  "school": "Conjuration",
+  "castingTime": "1 Action",
+  "range": "150 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "A swirling cloud of smoke shot through with white-hot embers appears in a 20-foot-radius sphere centered on a point within range."
+}

@@ -1,0 +1,16 @@
+
+{
+  "id": "dispel-evil-and-good",
+  "name": "Dispel Evil and Good",
+  "level": 5,
+  "school": "Abjuration",
+  "castingTime": "1 Action",
+  "range": "Self",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "Shimmering energy surrounds and protects you from fey, undead, and creatures originating from beyond the Material Plane."
+}

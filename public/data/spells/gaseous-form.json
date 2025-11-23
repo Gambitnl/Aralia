@@ -1,0 +1,16 @@
+
+{
+  "id": "gaseous-form",
+  "name": "Gaseous Form",
+  "level": 3,
+  "school": "Transmutation",
+  "castingTime": "1 Action",
+  "range": "Touch",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 1 hour",
+  "description": "You transform a willing creature you touch, along with everything it's wearing and carrying, into a misty cloud for the duration."
+}

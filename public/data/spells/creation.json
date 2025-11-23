@@ -1,0 +1,16 @@
+
+{
+  "id": "creation",
+  "name": "Creation",
+  "level": 5,
+  "school": "Illusion",
+  "castingTime": "1 Minute",
+  "range": "30 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Special",
+  "description": "You pull wisps of shadow material from the Shadowfell to create a nonliving object of vegetable matter within range: soft goods, rope, wood, or something similar."
+}

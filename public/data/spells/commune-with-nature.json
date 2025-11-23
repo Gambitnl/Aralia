@@ -1,0 +1,16 @@
+
+{
+  "id": "commune-with-nature",
+  "name": "Commune with Nature",
+  "level": 5,
+  "school": "Divination",
+  "castingTime": "1 Minute",
+  "range": "Self",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Instantaneous",
+  "description": "You become one with nature for a moment and gain knowledge of the surrounding territory."
+}

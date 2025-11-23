@@ -1,0 +1,57 @@
+{
+  "id": "burning-hands",
+  "name": "Burning Hands",
+  "level": 1,
+  "school": "Evocation",
+  "classes": [
+    "SORCERER",
+    "WIZARD",
+    "WARLOCK - FIEND PATRON",
+    "CLERIC - LIGHT DOMAIN"
+  ],
+  "tags": [
+    "DAMAGE",
+    "FIRE",
+    "AOE"
+  ],
+  "castingTime": {
+    "value": 1,
+    "unit": "Action"
+  },
+  "range": {
+    "type": "Self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": null
+  },
+  "duration": {
+    "value": null,
+    "unit": "Instantaneous",
+    "concentration": false
+  },
+  "ritual": false,
+  "description": "As you hold your hands with thumbs touching and fingers spread, a thin sheet of flames shoots forth from your outstretched fingertips. Each creature in a 15-foot Cone must make a Dexterity saving throw. A creature takes 3d6 Fire damage on a failed save, or half as much damage on a successful one. The fire ignites any flammable objects in the area that aren't being worn or carried.",
+  "higherLevelsDescription": "When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d6 for each slot level above 1st.",
+  "effects": [
+    {
+      "type": "Damage",
+      "saveRequired": "Dexterity",
+      "damage": {
+        "dice": "3d6",
+        "type": "Fire"
+      },
+      "areaOfEffect": {
+        "shape": "Cone",
+        "size": 15
+      },
+      "special": "Ignites flammable objects."
+    }
+  ],
+  "engineHook": {
+    "isImplemented": true,
+    "notes": "AoE damage with save for half."
+  }
+}

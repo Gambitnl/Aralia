@@ -1,0 +1,171 @@
+[
+  {
+    "id": "d20_test",
+    "title": "D20 Tests",
+    "category": "Rules Glossary",
+    "tags": [ "rules", "d20", "ability check", "saving throw", "attack roll", "advantage", "disadvantage", "core mechanic" ],
+    "excerpt": "The core mechanic for determining the outcome of an uncertain action, encompassing ability checks, saving throws, and attack rolls.",
+    "seeAlso": [ "ability_check", "saving_throw", "attack_roll", "advantage_disadvantage" ],
+    "filePath": "/data/glossary/entries/rules/d20_test.md",
+    "subEntries": [
+      {
+        "id": "ability_check",
+        "title": "Ability Checks",
+        "category": "Rules Glossary",
+        "excerpt": "A D20 Test representing a creature's effort to overcome a challenge.",
+        "seeAlso": [ "d20_test" ],
+        "filePath": "/data/glossary/entries/rules/ability_check.md",
+        "subEntries": [
+          {
+            "id": "ability_check_modifier",
+            "title": "Ability Modifier",
+            "category": "Rules Glossary",
+            "excerpt": "An ability check is named for the ability modifier it uses.",
+            "filePath": "/data/glossary/entries/rules/ability_check_modifier.md",
+            "subEntries": [
+              {
+                "id": "ability_check_examples",
+                "title": "Ability Check Examples",
+                "category": "Rules Glossary",
+                "excerpt": "Examples of what each ability check is used for.",
+                "filePath": "/data/glossary/entries/rules/ability_check_examples.md"
+              }
+            ]
+          },
+          {
+            "id": "ability_check_proficiency",
+            "title": "Proficiency Bonus",
+            "category": "Rules Glossary",
+            "excerpt": "How to add your Proficiency Bonus to an ability check.",
+            "filePath": "/data/glossary/entries/rules/ability_check_proficiency.md"
+          },
+          {
+            "id": "ability_check_dc",
+            "title": "Difficulty Class",
+            "category": "Rules Glossary",
+            "excerpt": "Represents the task’s difficulty for an ability check.",
+            "filePath": "/data/glossary/entries/rules/ability_check_dc.md"
+          }
+        ]
+      },
+      {
+        "id": "saving_throw",
+        "title": "Saving Throws",
+        "category": "Rules Glossary",
+        "excerpt": "A D20 Test representing an attempt to evade or resist a threat.",
+        "seeAlso": [ "d20_test" ],
+        "filePath": "/data/glossary/entries/rules/saving_throw.md",
+        "subEntries": [
+          {
+            "id": "saving_throw_modifier",
+            "title": "Ability Modifier",
+            "category": "Rules Glossary",
+            "excerpt": "Saving throws are named for the ability modifiers they use.",
+            "filePath": "/data/glossary/entries/rules/saving_throw_modifier.md",
+            "subEntries": [
+              {
+                "id": "saving_throw_examples",
+                "title": "Saving Throw Examples",
+                "category": "Rules Glossary",
+                "excerpt": "Examples of what each saving throw is used for.",
+                "filePath": "/data/glossary/entries/rules/saving_throw_examples.md"
+              }
+            ]
+          },
+          {
+            "id": "saving_throw_proficiency",
+            "title": "Proficiency Bonus",
+            "category": "Rules Glossary",
+            "excerpt": "How to add your Proficiency Bonus to a saving throw.",
+            "filePath": "/data/glossary/entries/rules/saving_throw_proficiency.md"
+          },
+          {
+            "id": "saving_throw_dc",
+            "title": "Difficulty Class",
+            "category": "Rules Glossary",
+            "excerpt": "How the DC for a saving throw is determined.",
+            "filePath": "/data/glossary/entries/rules/saving_throw_dc.md"
+          }
+        ]
+      },
+      {
+        "id": "attack_roll",
+        "title": "Attack Rolls",
+        "category": "Rules Glossary",
+        "excerpt": "A D20 Test that determines whether an attack hits a target.",
+        "seeAlso": [ "d20_test" ],
+        "filePath": "/data/glossary/entries/rules/attack_roll.md",
+        "subEntries": [
+          {
+            "id": "attack_roll_modifier",
+            "title": "Ability Modifier",
+            "category": "Rules Glossary",
+            "excerpt": "Which ability modifier to use for different types of attack rolls.",
+            "filePath": "/data/glossary/entries/rules/attack_roll_modifier.md",
+            "subEntries": [
+              {
+                "id": "attack_roll_abilities",
+                "title": "Attack Roll Abilities",
+                "category": "Rules Glossary",
+                "excerpt": "Table showing which ability modifier to use.",
+                "filePath": "/data/glossary/entries/rules/attack_roll_abilities.md"
+              }
+            ]
+          },
+          {
+            "id": "attack_roll_proficiency",
+            "title": "Proficiency Bonus",
+            "category": "Rules Glossary",
+            "excerpt": "How to add your Proficiency Bonus to an attack roll.",
+            "filePath": "/data/glossary/entries/rules/attack_roll_proficiency.md"
+          },
+          {
+            "id": "armor_class",
+            "title": "Armor Class",
+            "category": "Rules Glossary",
+            "excerpt": "Represents how well a creature avoids being wounded.",
+            "filePath": "/data/glossary/entries/rules/armor_class.md"
+          },
+          {
+            "id": "rolling_20_or_1",
+            "title": "Rolling 20 or 1",
+            "category": "Rules Glossary",
+            "excerpt": "The special rules for rolling a natural 20 or natural 1 on an attack roll.",
+            "filePath": "/data/glossary/entries/rules/rolling_20_or_1.md"
+          }
+        ]
+      },
+      {
+        "id": "advantage_disadvantage",
+        "title": "Advantage and Disadvantage",
+        "category": "Rules Glossary",
+        "excerpt": "A rule that modifies a D20 Test by rolling two dice instead of one.",
+        "seeAlso": [ "d20_test" ],
+        "filePath": "/data/glossary/entries/rules/advantage_disadvantage.md",
+        "subEntries": [
+          {
+            "id": "advantage_disadvantage_roll_two",
+            "title": "Roll Two D20s",
+            "category": "Rules Glossary",
+            "excerpt": "How to roll with Advantage or Disadvantage.",
+            "filePath": "/data/glossary/entries/rules/advantage_disadvantage_roll_two.md"
+          },
+          {
+            "id": "advantage_disadvantage_stacking",
+            "title": "They Don't Stack",
+            "category": "Rules Glossary",
+            "excerpt": "Rules for when multiple circumstances grant advantage or disadvantage.",
+            "filePath": "/data/glossary/entries/rules/advantage_disadvantage_stacking.md"
+          },
+          {
+            "id": "advantage_disadvantage_rerolls",
+            "title": "Interactions with Rerolls",
+            "category": "Rules Glossary",
+            "excerpt": "How reroll abilities interact with advantage and disadvantage.",
+            "filePath": "/data/glossary/entries/rules/advantage_disadvantage_rerolls.md"
+          }
+        ]
+      }
+    ]
+  }
+]

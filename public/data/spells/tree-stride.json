@@ -1,0 +1,16 @@
+
+{
+  "id": "tree-stride",
+  "name": "Tree Stride",
+  "level": 5,
+  "school": "Conjuration",
+  "castingTime": "1 Action",
+  "range": "Self",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "You gain the ability to enter a tree and move from inside it to inside another tree of the same kind within 500 feet."
+}

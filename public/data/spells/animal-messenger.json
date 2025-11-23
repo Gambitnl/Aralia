@@ -1,0 +1,16 @@
+
+{
+  "id": "animal-messenger",
+  "name": "Animal Messenger",
+  "level": 2,
+  "school": "Enchantment",
+  "castingTime": "1 Action",
+  "range": "30 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "24 Hours",
+  "description": "You use a Tiny beast to deliver a message. The beast travels to a location you describe and delivers the message to a creature you designate."
+}

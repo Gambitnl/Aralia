@@ -1,0 +1,16 @@
+
+{
+  "id": "dancing-lights",
+  "name": "Dancing Lights",
+  "level": 0,
+  "school": "Evocation",
+  "castingTime": "1 Action",
+  "range": "120 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "You create up to four torch-sized lights within range, making them fly about, wink, or remain stationary."
+}

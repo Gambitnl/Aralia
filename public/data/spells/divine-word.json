@@ -1,0 +1,16 @@
+
+{
+  "id": "divine-word",
+  "name": "Divine Word",
+  "level": 7,
+  "school": "Evocation",
+  "castingTime": "1 Bonus Action",
+  "range": "30 feet",
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": "Instantaneous",
+  "description": "You utter a divine word, imbued with the power that shaped the world at the dawn of creation. Choose any number of creatures you can see within range."
+}

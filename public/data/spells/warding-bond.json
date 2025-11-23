@@ -1,0 +1,16 @@
+
+{
+  "id": "warding-bond",
+  "name": "Warding Bond",
+  "level": 2,
+  "school": "Abjuration",
+  "castingTime": "1 Action",
+  "range": "Touch",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "1 Hour",
+  "description": "This spell wards a willing creature you touch and creates a mystic connection between you and the target until the spell ends. While the target is within 60 feet of you, it gains a +1 bonus to AC and saving throws, and it has resistance to all damage. Also, each time it takes damage, you take the same amount of damage."
+}

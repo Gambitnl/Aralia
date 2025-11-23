@@ -1,0 +1,16 @@
+
+{
+  "id": "mass-heal",
+  "name": "Mass Heal",
+  "level": 9,
+  "school": "Evocation",
+  "castingTime": "1 Action",
+  "range": "60 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Instantaneous",
+  "description": "A flood of healing energy flows from you into injured creatures around you. You restore up to 700 hit points, divided as you choose among any number of creatures that you can see within range."
+}

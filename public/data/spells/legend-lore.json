@@ -1,0 +1,16 @@
+
+{
+  "id": "legend-lore",
+  "name": "Legend Lore",
+  "level": 5,
+  "school": "Divination",
+  "castingTime": "10 Minutes",
+  "range": "Self",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Instantaneous",
+  "description": "You name or describe a person, place, or object. The spell brings to your mind a brief, summary statement of the significant lore about the thing you named."
+}

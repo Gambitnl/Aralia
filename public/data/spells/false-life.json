@@ -1,0 +1,53 @@
+{
+  "id": "false-life",
+  "name": "False Life",
+  "level": 1,
+  "school": "Necromancy",
+  "classes": [
+    "SORCERER",
+    "WIZARD",
+    "ARTIFICER",
+    "ROGUE - ARCANE TRICKSTER",
+    "FIGHTER - ELDRITCH KNIGHT"
+  ],
+  "tags": [
+    "BUFF",
+    "NECROMANCY",
+    "HEALING",
+    "TEMP_HP"
+  ],
+  "castingTime": {
+    "value": 1,
+    "unit": "Action"
+  },
+  "range": {
+    "type": "Self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a small amount of alcohol or distilled spirits"
+  },
+  "duration": {
+    "value": 1,
+    "unit": "Hour",
+    "concentration": false
+  },
+  "ritual": false,
+  "description": "Bolstering yourself with a necromantic facsimile of life, you gain 1d4 + 4 temporary hit points for the duration.",
+  "higherLevelsDescription": "When you cast this spell using a spell slot of 2nd level or higher, you gain 5 additional temporary hit points for each slot level above 1st.",
+  "effects": [
+    {
+      "type": "Buff",
+      "healing": {
+        "dice": "1d4+4",
+        "special": "Temporary Hit Points"
+      }
+    }
+  ],
+  "engineHook": {
+    "isImplemented": false,
+    "notes": "Requires Temporary HP mechanic."
+  }
+}

@@ -1,0 +1,54 @@
+
+{
+  "id": "speak-with-animals",
+  "name": "Speak with Animals",
+  "level": 1,
+  "school": "Divination",
+  "classes": [
+    "BARD",
+    "DRUID",
+    "RANGER",
+    "WARLOCK",
+    "PALADIN - OATH OF THE ANCIENTS"
+  ],
+  "tags": [
+    "COMMUNICATION",
+    "SOCIAL",
+    "UTILITY"
+  ],
+  "castingTime": {
+    "value": 1,
+    "unit": "Action"
+  },
+  "range": {
+    "type": "Self",
+    "distance": 0
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": null
+  },
+  "duration": {
+    "value": 10,
+    "unit": "Minute",
+    "concentration": false
+  },
+  "ritual": true,
+  "description": "For the duration, you can comprehend and verbally communicate with Beasts, and you can use any of the Influence action's skill options with them. The knowledge and awareness of many beasts is limited by their intelligence, but at a minimum, a beast can give you information about nearby locations and monsters, including whatever it has perceived within the past day.",
+  "higherLevelsDescription": null,
+  "effects": [
+    {
+      "type": "Utility",
+      "attack": {
+        "type": "None"
+      },
+      "special": "Grants the ability to speak with and understand Beasts for 10 minutes."
+    }
+  ],
+  "engineHook": {
+    "isImplemented": false,
+    "notes": "No specific game mechanic for animal communication is implemented. This spell is currently for flavor and narrative purposes."
+  }
+}

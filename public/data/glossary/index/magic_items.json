@@ -1,0 +1,13 @@
+
+[
+  {
+    "id": "spell_scroll",
+    "title": "Spell Scroll",
+    "category": "Magic Items",
+    "tags": ["magic item", "spell", "consumable"],
+    "excerpt": "A magical scroll bearing the words of a single spell, allowing a caster to use it without expending a spell slot if the spell is on their class list.",
+    "aliases": ["scroll"],
+    "seeAlso": ["spell_level_slots", "spells_chapter", "magic_items", "casting_time_rules", "spell_components_rules"],
+    "filePath": "/data/glossary/entries/magic_items/spell_scroll.md"
+  }
+]

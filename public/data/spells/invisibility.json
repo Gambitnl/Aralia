@@ -1,0 +1,16 @@
+
+{
+  "id": "invisibility",
+  "name": "Invisibility",
+  "level": 2,
+  "school": "Illusion",
+  "castingTime": "1 Action",
+  "range": "Touch",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 1 hour",
+  "description": "A creature you touch becomes invisible until the spell ends."
+}

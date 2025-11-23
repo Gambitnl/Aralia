@@ -1,0 +1,16 @@
+
+{
+  "id": "word-of-recall",
+  "name": "Word of Recall",
+  "level": 6,
+  "school": "Conjuration",
+  "castingTime": "1 Action",
+  "range": "5 feet",
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": "Instantaneous",
+  "description": "You and up to five willing creatures within 5 feet of you instantly teleport to a previously designated sanctuary. You and any creatures that teleport with you appear in the nearest unoccupied space to the spot you designated when you prepared your sanctuary."
+}

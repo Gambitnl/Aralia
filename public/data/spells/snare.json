@@ -1,0 +1,16 @@
+
+{
+  "id": "snare",
+  "name": "Snare",
+  "level": 1,
+  "school": "Abjuration",
+  "castingTime": "1 Minute",
+  "range": "Touch",
+  "components": {
+    "verbal": false,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "8 Hours",
+  "description": "You create a magical trap by weaving a rope into a circle on the ground. When a Small, Medium, or Large creature steps in the circle, it must succeed on a Dexterity saving throw or be hoisted into the air."
+}

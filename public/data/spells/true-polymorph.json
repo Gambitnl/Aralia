@@ -1,0 +1,16 @@
+
+{
+  "id": "true-polymorph",
+  "name": "True Polymorph",
+  "level": 9,
+  "school": "Transmutation",
+  "castingTime": "1 Action",
+  "range": "30 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 1 hour",
+  "description": "Choose one creature or nonmagical object that you can see within range. You transform the creature into a different creature, the creature into an object, or the object into a creature. The transformation lasts for the duration, or until the target drops to 0 hit points or dies."
+}

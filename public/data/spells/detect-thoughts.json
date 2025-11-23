@@ -1,0 +1,16 @@
+
+{
+  "id": "detect-thoughts",
+  "name": "Detect Thoughts",
+  "level": 2,
+  "school": "Divination",
+  "castingTime": "1 Action",
+  "range": "Self",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "For the duration, you can read the thoughts of certain creatures."
+}

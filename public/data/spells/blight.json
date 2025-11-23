@@ -1,0 +1,16 @@
+
+{
+  "id": "blight",
+  "name": "Blight",
+  "level": 4,
+  "school": "Necromancy",
+  "castingTime": "1 Action",
+  "range": "30 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Instantaneous",
+  "description": "Necromantic energy washes over a creature of your choice that you can see within range, draining moisture and vitality from it. The target must make a Constitution saving throw."
+}

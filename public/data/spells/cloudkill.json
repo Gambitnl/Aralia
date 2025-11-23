@@ -1,0 +1,16 @@
+
+{
+  "id": "cloudkill",
+  "name": "Cloudkill",
+  "level": 5,
+  "school": "Conjuration",
+  "castingTime": "1 Action",
+  "range": "120 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Concentration, up to 10 minutes",
+  "description": "You create a 20-foot-radius sphere of poisonous, yellow-green fog centered on a point you choose within range."
+}

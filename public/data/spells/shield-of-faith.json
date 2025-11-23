@@ -1,0 +1,50 @@
+{
+  "id": "shield-of-faith",
+  "name": "Shield of Faith",
+  "level": 1,
+  "school": "Abjuration",
+  "classes": [
+    "Cleric",
+    "Paladin"
+  ],
+  "tags": [
+    "Buff",
+    "Warding",
+    "Concentration"
+  ],
+  "castingTime": {
+    "value": 1,
+    "unit": "Bonus Action"
+  },
+  "range": {
+    "type": "Feet",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a small piece of parchment with a bit of holy text written on it"
+  },
+  "duration": {
+    "value": 10,
+    "unit": "Minute",
+    "concentration": true
+  },
+  "ritual": false,
+  "description": "A shimmering field appears and surrounds a creature of your choice within range, granting it a +2 bonus to AC for the duration.",
+  "higherLevelsDescription": null,
+  "effects": [
+    {
+      "type": "Buff",
+      "attack": {
+        "type": "None"
+      },
+      "special": "Target gains a +2 bonus to AC for the duration."
+    }
+  ],
+  "engineHook": {
+    "isImplemented": true,
+    "notes": "Applies a temporary +2 AC bonus to the target character's AC stat."
+  }
+}

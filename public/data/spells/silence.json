@@ -1,0 +1,16 @@
+
+{
+  "id": "silence",
+  "name": "Silence",
+  "level": 2,
+  "school": "Illusion",
+  "castingTime": "1 Action",
+  "range": "120 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Concentration, up to 10 minutes",
+  "description": "For the duration, no sound can be created within or pass through a 20-foot-radius sphere centered on a point you choose within range."
+}

@@ -1,0 +1,16 @@
+
+{
+  "id": "astral-projection",
+  "name": "Astral Projection",
+  "level": 9,
+  "school": "Necromancy",
+  "castingTime": "1 Hour",
+  "range": "10 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Special",
+  "description": "You and up to eight willing creatures within range project your astral bodies into the Astral Plane."
+}

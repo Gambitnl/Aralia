@@ -1,0 +1,13 @@
+/* 
+ * public/styles.css
+ *
+ * This file contains all custom, non-utility CSS for the Aralia RPG application.
+ * It aggregates modular CSS files located in /css/.
+ */
+
+@import "css/base.css";
+@import "css/typography.css";
+@import "css/components/glossary.css";
+@import "css/components/spell-card.css";
+@import "css/components/spellbook.css";
+@import "css/animations.css";

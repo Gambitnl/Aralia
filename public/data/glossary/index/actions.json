@@ -1,0 +1,41 @@
+[
+  {
+    "id": "actions",
+    "title": "Actions",
+    "category": "Rules Glossary",
+    "tags": ["rules", "action", "combat", "turn"],
+    "excerpt": "The main actions a character can take on their turn, such as Attack, Dash, Disengage, and more.",
+    "aliases": [],
+    "seeAlso": ["one_thing_at_a_time", "bonus_actions", "reactions", "combat"],
+    "filePath": "/data/glossary/entries/rules/actions.md",
+    "subEntries": [
+      {
+        "id": "one_thing_at_a_time",
+        "title": "One Thing at a Time",
+        "category": "Rules Glossary",
+        "tags": ["rules", "action", "action economy", "combat"],
+        "excerpt": "The game uses actions to govern how much you can do at one time. You can take only one action at a time. This principle is most important in combat.",
+        "seeAlso": ["actions", "bonus_actions", "reactions"],
+        "filePath": "/data/glossary/entries/rules/one_thing_at_a_time.md"
+      },
+      {
+        "id": "bonus_actions",
+        "title": "Bonus Actions",
+        "category": "Rules Glossary",
+        "tags": ["rules", "action", "bonus action", "action economy", "combat"],
+        "excerpt": "An additional action on your turn, which can only be taken when a special ability, spell, or other feature says you can.",
+        "seeAlso": ["actions", "reactions"],
+        "filePath": "/data/glossary/entries/rules/bonus_actions.md"
+      },
+      {
+        "id": "reactions",
+        "title": "Reactions",
+        "category": "Rules Glossary",
+        "tags": ["rules", "action", "reaction", "action economy", "combat", "opportunity attack"],
+        "excerpt": "An instant response to a trigger of some kind, which can occur on your turn or on someone else’s.",
+        "seeAlso": ["actions", "bonus_actions", "opportunity_attack"],
+        "filePath": "/data/glossary/entries/rules/reactions.md"
+      }
+    ]
+  }
+]

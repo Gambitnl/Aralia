@@ -1,0 +1,16 @@
+
+{
+  "id": "delayed-blast-fireball",
+  "name": "Delayed Blast Fireball",
+  "level": 7,
+  "school": "Evocation",
+  "castingTime": "1 Action",
+  "range": "150 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "A beam of yellow light flashes from your pointing finger, then condenses to linger at a chosen point within range as a glowing bead for the duration."
+}

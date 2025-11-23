@@ -1,0 +1,16 @@
+
+{
+  "id": "lightning-lure",
+  "name": "Lightning Lure",
+  "level": 0,
+  "school": "Evocation",
+  "castingTime": "1 Action",
+  "range": "Self (15-foot radius)",
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": "Instantaneous",
+  "description": "You create a lash of lightning energy that strikes at one creature of your choice that you can see within 15 feet of you."
+}

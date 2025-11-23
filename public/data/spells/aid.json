@@ -1,0 +1,16 @@
+
+{
+  "id": "aid",
+  "name": "Aid",
+  "level": 2,
+  "school": "Abjuration",
+  "castingTime": "1 Action",
+  "range": "30 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "8 Hours",
+  "description": "Up to three creatures of your choice within range have their hit point maximum and current hit points increase by 5 for the duration."
+}

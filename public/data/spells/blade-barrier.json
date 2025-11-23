@@ -1,0 +1,16 @@
+
+{
+  "id": "blade-barrier",
+  "name": "Blade Barrier",
+  "level": 6,
+  "school": "Evocation",
+  "castingTime": "1 Action",
+  "range": "90 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Concentration, up to 10 minutes",
+  "description": "You create a vertical wall of whirling, razor-sharp blades made of magical energy."
+}

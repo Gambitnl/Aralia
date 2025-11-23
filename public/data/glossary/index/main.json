@@ -1,0 +1,13 @@
+
+{
+  "index_files": [
+    "/data/glossary/index/character_classes.json",
+    "/data/glossary/index/character_races.json",
+    "/data/glossary/index/developer.json",
+    "/data/glossary/index/equipment.json",
+    "/data/glossary/index/magic_items.json",
+    "/data/glossary/index/rules_glossary.json",
+    "/data/glossary/index/spellcasting_mechanics.json",
+    "/data/glossary/index/spells.json"
+  ]
+}

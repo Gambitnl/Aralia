@@ -1,0 +1,16 @@
+
+{
+  "id": "mirage-arcane",
+  "name": "Mirage Arcane",
+  "level": 7,
+  "school": "Illusion",
+  "castingTime": "10 Minutes",
+  "range": "Sight",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "10 Days",
+  "description": "You make terrain in an area up to 1 mile square look, sound, smell, and even feel like some other sort of terrain."
+}

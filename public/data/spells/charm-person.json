@@ -1,0 +1,16 @@
+
+{
+  "id": "charm-person",
+  "name": "Charm Person",
+  "level": 1,
+  "school": "Enchantment",
+  "castingTime": "1 Action",
+  "range": "30 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "1 Hour",
+  "description": "You attempt to charm a humanoid you can see within range. It must make a Wisdom saving throw, and does so with advantage if you or your companions are fighting it."
+}

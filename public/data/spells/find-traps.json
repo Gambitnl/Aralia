@@ -1,0 +1,16 @@
+
+{
+  "id": "find-traps",
+  "name": "Find Traps",
+  "level": 2,
+  "school": "Divination",
+  "castingTime": "1 Action",
+  "range": "120 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Instantaneous",
+  "description": "You sense the presence of any trap within range that is within line of sight."
+}

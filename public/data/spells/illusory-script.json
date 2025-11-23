@@ -1,0 +1,16 @@
+
+{
+  "id": "illusory-script",
+  "name": "Illusory Script",
+  "level": 1,
+  "school": "Illusion",
+  "castingTime": "1 Minute",
+  "range": "Touch",
+  "components": {
+    "verbal": false,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "10 Days",
+  "description": "You write on parchment, paper, or some other suitable writing material and imbue it with a potent illusion that lasts for the duration."
+}

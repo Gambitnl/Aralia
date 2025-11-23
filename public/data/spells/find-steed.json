@@ -1,0 +1,16 @@
+
+{
+  "id": "find-steed",
+  "name": "Find Steed",
+  "level": 2,
+  "school": "Conjuration",
+  "castingTime": "10 Minutes",
+  "range": "30 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Instantaneous",
+  "description": "You summon a spirit that assumes the form of a loyal, majestic steed."
+}

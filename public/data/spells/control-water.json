@@ -1,0 +1,16 @@
+
+{
+  "id": "control-water",
+  "name": "Control Water",
+  "level": 4,
+  "school": "Transmutation",
+  "castingTime": "1 Action",
+  "range": "300 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 10 minutes",
+  "description": "You choose an area of water that you can see within range and that fits within a 100-foot cube. You can choose from several effects, such as parting the water or creating a whirlpool."
+}

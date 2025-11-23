@@ -1,0 +1,16 @@
+
+{
+  "id": "crown-of-madness",
+  "name": "Crown of Madness",
+  "level": 2,
+  "school": "Enchantment",
+  "castingTime": "1 Action",
+  "range": "120 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "One humanoid of your choice that you can see within range must succeed on a Wisdom saving throw or become charmed by you for the duration."
+}

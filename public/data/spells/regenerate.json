@@ -1,0 +1,16 @@
+
+{
+  "id": "regenerate",
+  "name": "Regenerate",
+  "level": 7,
+  "school": "Transmutation",
+  "castingTime": "1 Minute",
+  "range": "Touch",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "1 Hour",
+  "description": "You touch a creature and stimulate its natural healing ability. The target regains 4d8 + 15 hit points."
+}

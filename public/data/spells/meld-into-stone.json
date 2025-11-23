@@ -1,0 +1,16 @@
+
+{
+  "id": "meld-into-stone",
+  "name": "Meld into Stone",
+  "level": 3,
+  "school": "Transmutation",
+  "castingTime": "1 Action",
+  "range": "Touch",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "8 Hours",
+  "description": "You step into a stone object or surface large enough to fully contain your body, melding yourself and all the equipment you carry with the stone for the duration."
+}

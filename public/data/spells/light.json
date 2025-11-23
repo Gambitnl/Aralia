@@ -1,0 +1,57 @@
+
+{
+  "id": "light",
+  "name": "Light",
+  "level": 0,
+  "school": "Evocation",
+  "classes": [
+    "ARTIFICER",
+    "BARD",
+    "CLERIC",
+    "SORCERER",
+    "WIZARD",
+    "WARLOCK - CELESTIAL PATRON"
+  ],
+  "tags": [
+    "UTILITY",
+    "CREATION"
+  ],
+  "castingTime": {
+    "value": 1,
+    "unit": "Action"
+  },
+  "range": {
+    "type": "Touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": true,
+    "materialDescription": "a firefly or phosphorescent moss"
+  },
+  "duration": {
+    "value": 1,
+    "unit": "Hour",
+    "concentration": false
+  },
+  "ritual": false,
+  "description": "You touch one Large or smaller object that isn't being worn or carried by someone else. Until the spell ends, the object sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet. The light can be colored as you like. Covering the object with something opaque blocks the light. The spell ends if you cast it again.",
+  "higherLevelsDescription": null,
+  "effects": [
+    {
+      "type": "Utility",
+      "attack": {
+        "type": "None"
+      },
+      "areaOfEffect": {
+        "shape": "Sphere",
+        "size": 20
+      },
+      "special": "Object sheds 20ft bright light and an additional 20ft of dim light."
+    }
+  ],
+  "engineHook": {
+    "isImplemented": false,
+    "notes": "No game mechanic for dynamic light sources exists yet."
+  }
+}

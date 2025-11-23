@@ -1,0 +1,16 @@
+
+{
+  "id": "conjure-animals",
+  "name": "Conjure Animals",
+  "level": 3,
+  "school": "Conjuration",
+  "castingTime": "1 Action",
+  "range": "60 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Concentration, up to 1 hour",
+  "description": "You summon fey spirits that take the form of beasts and appear in unoccupied spaces that you can see within range."
+}

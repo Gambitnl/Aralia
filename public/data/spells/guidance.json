@@ -1,0 +1,50 @@
+{
+  "id": "guidance",
+  "name": "Guidance",
+  "level": 0,
+  "school": "Divination",
+  "classes": [
+    "ARTIFICER",
+    "CLERIC",
+    "DRUID"
+  ],
+  "tags": [
+    "BUFF",
+    "UTILITY",
+    "CONCENTRATION"
+  ],
+  "castingTime": {
+    "value": 1,
+    "unit": "Action"
+  },
+  "range": {
+    "type": "Touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": null
+  },
+  "duration": {
+    "value": 1,
+    "unit": "Minute",
+    "concentration": true
+  },
+  "ritual": false,
+  "description": "You touch a willing creature and choose a skill. Until the spell ends, the creature adds 1d4 to any ability check using the chosen skill.",
+  "higherLevelsDescription": null,
+  "effects": [
+    {
+      "type": "Buff",
+      "attack": {
+        "type": "None"
+      },
+      "special": "Target chooses a skill and adds 1d4 to any ability check using that skill for the duration."
+    }
+  ],
+  "engineHook": {
+    "isImplemented": false,
+    "notes": "Requires UI to select a skill and a system to apply a temporary d4 bonus to specific ability checks."
+  }
+}

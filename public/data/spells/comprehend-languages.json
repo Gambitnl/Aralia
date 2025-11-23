@@ -1,0 +1,16 @@
+
+{
+  "id": "comprehend-languages",
+  "name": "Comprehend Languages",
+  "level": 1,
+  "school": "Divination",
+  "castingTime": "1 Action",
+  "range": "Self",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "1 Hour",
+  "description": "For the duration, you understand the literal meaning of any spoken language that you hear. You also understand any written language you see, but you must be touching the surface on which the words are written."
+}

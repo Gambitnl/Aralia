@@ -1,0 +1,16 @@
+
+{
+  "id": "hail-of-thorns",
+  "name": "Hail of Thorns",
+  "level": 1,
+  "school": "Conjuration",
+  "castingTime": "1 Bonus Action",
+  "range": "Self",
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "The next time you hit a creature with a ranged weapon attack before the spell ends, this spell creates a rain of thorns that sprouts from your ranged weapon or ammunition."
+}

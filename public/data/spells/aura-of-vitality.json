@@ -1,0 +1,16 @@
+
+{
+  "id": "aura-of-vitality",
+  "name": "Aura of Vitality",
+  "level": 3,
+  "school": "Evocation",
+  "castingTime": "1 Action",
+  "range": "Self (30-foot radius)",
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "Healing energy radiates from you in a 30-foot radius. For the duration, as a bonus action on your turn, you can cause one creature in the aura (including you) to regain 2d6 hit points."
+}

@@ -1,0 +1,16 @@
+
+{
+  "id": "flame-strike",
+  "name": "Flame Strike",
+  "level": 5,
+  "school": "Evocation",
+  "castingTime": "1 Action",
+  "range": "60 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Instantaneous",
+  "description": "A vertical column of divine fire roars down from the heavens in a location you specify. Each creature in a 10-foot-radius, 40-foot-high cylinder centered on a point within range must make a Dexterity saving throw."
+}

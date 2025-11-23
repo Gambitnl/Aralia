@@ -1,0 +1,16 @@
+
+{
+  "id": "animal-friendship",
+  "name": "Animal Friendship",
+  "level": 1,
+  "school": "Enchantment",
+  "castingTime": "1 Action",
+  "range": "30 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "24 Hours",
+  "description": "You convince a beast that you mean it no harm. It must succeed on a Wisdom saving throw or be charmed by you for the duration."
+}

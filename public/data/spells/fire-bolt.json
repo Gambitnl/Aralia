@@ -1,0 +1,55 @@
+
+{
+  "id": "fire-bolt",
+  "name": "Fire Bolt",
+  "level": 0,
+  "school": "Evocation",
+  "classes": [
+    "ARTIFICER",
+    "SORCERER",
+    "WIZARD"
+  ],
+  "tags": [
+    "DAMAGE",
+    "CANTRIP",
+    "FIRE"
+  ],
+  "castingTime": {
+    "value": 1,
+    "unit": "Action"
+  },
+  "range": {
+    "type": "Feet",
+    "distance": 120
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": null
+  },
+  "duration": {
+    "value": null,
+    "unit": "Instantaneous",
+    "concentration": false
+  },
+  "ritual": false,
+  "description": "You hurl a mote of fire at a creature or an object within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Fire damage. A flammable object hit by this spell starts burning if it isn’t being worn or carried.",
+  "higherLevelsDescription": "The damage increases by 1d10 when you reach levels 5 (2d10), 11 (3d10), and 17 (4d10).",
+  "effects": [
+    {
+      "type": "Damage",
+      "attack": {
+        "type": "Ranged Spell"
+      },
+      "damage": {
+        "dice": "1d10",
+        "type": "Fire"
+      }
+    }
+  ],
+  "engineHook": {
+    "isImplemented": false,
+    "notes": "Requires ranged spell attack roll and damage application. Also needs a check for flammable objects."
+  }
+}

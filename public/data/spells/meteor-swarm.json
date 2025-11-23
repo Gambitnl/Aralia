@@ -1,0 +1,16 @@
+
+{
+  "id": "meteor-swarm",
+  "name": "Meteor Swarm",
+  "level": 9,
+  "school": "Evocation",
+  "castingTime": "1 Action",
+  "range": "1 mile",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Instantaneous",
+  "description": "Blazing orbs of fire plummet to the ground at four different points you can see within range. Each creature in a 40-foot-radius sphere centered on each point you choose must make a Dexterity saving throw."
+}

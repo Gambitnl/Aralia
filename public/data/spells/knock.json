@@ -1,0 +1,16 @@
+
+{
+  "id": "knock",
+  "name": "Knock",
+  "level": 2,
+  "school": "Transmutation",
+  "castingTime": "1 Action",
+  "range": "60 feet",
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": "Instantaneous",
+  "description": "Choose an object that you can see within range. The object can be a door, a box, a chest, a set of manacles, a padlock, or another object that contains a mundane or magical means that prevents access."
+}

@@ -1,0 +1,16 @@
+
+{
+  "id": "daylight",
+  "name": "Daylight",
+  "level": 3,
+  "school": "Evocation",
+  "castingTime": "1 Action",
+  "range": "60 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "1 Hour",
+  "description": "A 60-foot-radius sphere of light spreads out from a point you choose within range. The sphere is bright light and sheds dim light for an additional 60 feet."
+}

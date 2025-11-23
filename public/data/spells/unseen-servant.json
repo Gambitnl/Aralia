@@ -1,0 +1,16 @@
+
+{
+  "id": "unseen-servant",
+  "name": "Unseen Servant",
+  "level": 1,
+  "school": "Conjuration",
+  "castingTime": "1 Action",
+  "range": "60 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "1 Hour",
+  "description": "This spell creates an invisible, mindless, shapeless force that performs simple tasks at your command until the spell ends."
+}

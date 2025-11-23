@@ -1,0 +1,759 @@
+[
+  {
+    "id": "spell_level_0",
+    "title": "Cantrips (Level 0)",
+    "category": "Spells",
+    "excerpt": "Spells that can be cast at will, without using a spell slot.",
+    "filePath": null,
+    "subEntries": [
+      {
+        "id": "acid-splash",
+        "title": "Acid Splash",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "evocation",
+          "acid",
+          "damage",
+          "aoe"
+        ],
+        "excerpt": "You create an acidic bubble at a point within range, where it explodes in a 5-foot-radius Sphere. Each creature in that Sphere must succeed on a Dexterity saving throw or take 1d6 Acid damage.",
+        "seeAlso": [
+          "dexterity_saving_throw",
+          "acid_damage",
+          "area_of_effect",
+          "sphere_area",
+          "artificer",
+          "sorcerer",
+          "wizard"
+        ],
+        "filePath": "/data/glossary/entries/spells/acid_splash.md"
+      },
+      {
+        "id": "druidcraft",
+        "title": "Druidcraft",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "transmutation",
+          "utility",
+          "druid"
+        ],
+        "excerpt": "Whispering to the spirits of nature, you create one of several minor, harmless sensory effects within range.",
+        "seeAlso": [
+          "prestidigitation",
+          "thaumaturgy",
+          "elementalism"
+        ],
+        "filePath": "/data/glossary/entries/spells/druidcraft.md"
+      },
+      {
+        "id": "elementalism",
+        "title": "Elementalism",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "transmutation",
+          "utility",
+          "druid",
+          "sorcerer",
+          "wizard"
+        ],
+        "excerpt": "You exert control over the elements, creating one of several minor, instantaneous effects within range.",
+        "seeAlso": [
+          "druid",
+          "sorcerer",
+          "wizard",
+          "prestidigitation",
+          "druidcraft"
+        ],
+        "filePath": "/data/glossary/entries/spells/elementalism.md"
+      },
+      {
+        "id": "fire-bolt",
+        "title": "Fire Bolt",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "evocation",
+          "damage",
+          "fire",
+          "artificer",
+          "sorcerer",
+          "wizard"
+        ],
+        "excerpt": "You hurl a mote of fire at a creature or an object within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Fire damage.",
+        "seeAlso": [
+          "ray-of-frost",
+          "eldritch-blast",
+          "chill-touch"
+        ],
+        "filePath": "/data/glossary/entries/spells/fire_bolt.md"
+      },
+      {
+        "id": "guidance",
+        "title": "Guidance",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "divination",
+          "utility",
+          "buff",
+          "concentration"
+        ],
+        "excerpt": "You touch a willing creature and choose a skill, granting a d4 bonus to ability checks with that skill.",
+        "seeAlso": [
+          "ability_check",
+          "concentration"
+        ],
+        "filePath": "/data/glossary/entries/spells/guidance.md"
+      },
+      {
+        "id": "light",
+        "title": "Light",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "evocation",
+          "utility",
+          "creation"
+        ],
+        "excerpt": "You touch an object and make it shed bright light in a 20-foot radius and dim light for an additional 20 feet.",
+        "seeAlso": [
+          "bright_light",
+          "dim_light",
+          "spell_components_rules"
+        ],
+        "filePath": "/data/glossary/entries/spells/light.md"
+      },
+      {
+        "id": "mage-hand",
+        "title": "Mage Hand",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "conjuration",
+          "utility",
+          "bard",
+          "sorcerer",
+          "warlock",
+          "wizard",
+          "artificer"
+        ],
+        "excerpt": "A spectral, floating hand appears at a point you choose within range. The hand lasts for the duration.",
+        "seeAlso": [
+          "unseen_servant",
+          "prestidigitation",
+          "minor_illusion"
+        ],
+        "filePath": "/data/glossary/entries/spells/mage_hand.md"
+      },
+      {
+        "id": "mending",
+        "title": "Mending",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "transmutation",
+          "utility",
+          "repair"
+        ],
+        "excerpt": "This spell repairs a single break or tear in an object you touch, leaving no trace of the former damage.",
+        "seeAlso": [
+          "artificer",
+          "bard",
+          "cleric",
+          "druid",
+          "sorcerer",
+          "wizard"
+        ],
+        "filePath": "/data/glossary/entries/spells/mending.md"
+      },
+      {
+        "id": "message",
+        "title": "Message",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "transmutation",
+          "communication",
+          "social",
+          "bard",
+          "druid",
+          "sorcerer",
+          "wizard",
+          "artificer"
+        ],
+        "excerpt": "Point at a creature and whisper a message that only they can hear, allowing them to reply in a whisper only you can hear.",
+        "seeAlso": [
+          "mage_hand",
+          "friends",
+          "vicious_mockery"
+        ],
+        "filePath": "/data/glossary/entries/spells/message.md"
+      },
+      {
+        "id": "poison-spray",
+        "title": "Poison Spray",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "necromancy",
+          "damage",
+          "poison",
+          "artificer",
+          "druid",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ],
+        "excerpt": "You spray toxic mist at a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d12 Poison damage.",
+        "seeAlso": [
+          "chill-touch",
+          "acid-splash",
+          "fire-bolt"
+        ],
+        "filePath": "/data/glossary/entries/spells/poison-spray.md"
+      },
+      {
+        "id": "produce-flame",
+        "title": "Produce Flame",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "conjuration",
+          "damage",
+          "fire",
+          "druid"
+        ],
+        "excerpt": "A flickering flame appears in your hand, shedding light and allowing you to hurl it at enemies.",
+        "seeAlso": [
+          "druidcraft",
+          "fire-bolt",
+          "light"
+        ],
+        "filePath": "/data/glossary/entries/spells/produce-flame.md"
+      },
+      {
+        "id": "resistance",
+        "title": "Resistance",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "abjuration",
+          "buff",
+          "concentration",
+          "damage reduction"
+        ],
+        "excerpt": "Touch a willing creature to grant them the ability to reduce incoming damage of a chosen type by 1d4 once per turn.",
+        "seeAlso": [
+          "concentration",
+          "damage_resistance",
+          "artificer",
+          "cleric",
+          "druid"
+        ],
+        "filePath": "/data/glossary/entries/spells/resistance.md"
+      },
+      {
+        "id": "sacred-flame",
+        "title": "Sacred Flame",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "evocation",
+          "damage",
+          "radiant",
+          "cleric",
+          "warlock"
+        ],
+        "excerpt": "Flame-like radiance descends on a creature, ignoring cover bonuses for its saving throw.",
+        "seeAlso": [
+          "guiding_bolt",
+          "toll_the_dead",
+          "cleric",
+          "celestial_patron_subclass"
+        ],
+        "filePath": "/data/glossary/entries/spells/sacred_flame.md"
+      },
+      {
+        "id": "shillelagh",
+        "title": "Shillelagh",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "transmutation",
+          "damage",
+          "buff",
+          "druid"
+        ],
+        "excerpt": "Imbue a club or quarterstaff with nature's power, allowing you to use your spellcasting ability for attacks and increasing its damage.",
+        "seeAlso": [
+          "druidcraft",
+          "thorn-whip",
+          "club",
+          "quarterstaff"
+        ],
+        "filePath": "/data/glossary/entries/spells/shillelagh.md"
+      },
+      {
+        "id": "shocking-grasp",
+        "title": "Shocking Grasp",
+        "category": "Spells",
+        "tags": ["cantrip", "evocation", "damage", "lightning", "control"],
+        "excerpt": "A melee spell attack that deals 1d8 lightning damage and prevents the target from taking reactions.",
+        "seeAlso": ["lightning_damage", "reactions", "opportunity_attack"],
+        "filePath": "/data/glossary/entries/spells/shocking-grasp.md"
+      },
+      {
+        "id": "spare-the-dying",
+        "title": "Spare the Dying",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "necromancy",
+          "utility",
+          "healing",
+          "stable"
+        ],
+        "excerpt": "Choose a creature within range that has 0 Hit Points and isn't dead. The creature becomes Stable.",
+        "seeAlso": [
+          "stable_condition",
+          "hit_points",
+          "cleric",
+          "druid",
+          "artificer"
+        ],
+        "filePath": "/data/glossary/entries/spells/spare-the-dying.md"
+      },
+      {
+        "id": "starry-wisp",
+        "title": "Starry Wisp",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "evocation",
+          "radiant",
+          "damage",
+          "bard",
+          "druid"
+        ],
+        "excerpt": "Launch a mote of light that deals radiant damage and prevents a target from being invisible.",
+        "seeAlso": [
+          "eldritch_blast",
+          "fire_bolt",
+          "guidance",
+          "druidcraft"
+        ],
+        "filePath": "/data/glossary/entries/spells/starry-wisp.md"
+      },
+      {
+        "id": "thorn-whip",
+        "title": "Thorn Whip",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "transmutation",
+          "damage",
+          "control",
+          "druid",
+          "artificer"
+        ],
+        "excerpt": "Create a vine-like whip to lash out, dealing piercing damage and pulling a creature closer.",
+        "seeAlso": [
+          "shillelagh",
+          "produce-flame",
+          "elementalism"
+        ],
+        "filePath": "/data/glossary/entries/spells/thorn-whip.md"
+      },
+      {
+        "id": "thunderclap",
+        "title": "Thunderclap",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "evocation",
+          "damage",
+          "aoe",
+          "thunder",
+          "artificer",
+          "bard",
+          "druid",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ],
+        "excerpt": "You create a burst of thunderous sound that can be heard up to 100 feet away. Each creature within 5 feet of you must make a Constitution saving throw or take 1d6 thunder damage.",
+        "seeAlso": [
+          "fire-bolt",
+          "toll-the-dead",
+          "word-of-radiance"
+        ],
+        "filePath": "/data/glossary/entries/spells/thunderclap.md"
+      },
+      {
+        "id": "toll-the-dead",
+        "title": "Toll the Dead",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "necromancy",
+          "damage",
+          "necrotic",
+          "saving throw"
+        ],
+        "excerpt": "Point at a creature and a dolorous bell sound fills the air, dealing necrotic damage unless they make a Wisdom saving throw. Damage is greater if the target is already wounded.",
+        "seeAlso": [
+          "necrotic_damage",
+          "wisdom_saving_throw",
+          "cantrip",
+          "cleric",
+          "warlock",
+          "wizard"
+        ],
+        "filePath": "/data/glossary/entries/spells/toll-the-dead.md"
+      },
+      {
+        "id": "word-of-radiance",
+        "title": "Word of Radiance",
+        "category": "Spells",
+        "tags": [
+          "cantrip",
+          "evocation",
+          "radiant",
+          "damage",
+          "cleric"
+        ],
+        "excerpt": "Burning radiance erupts from you in a 5-foot Emanation. Each creature of your choice that you can see in it must succeed on a Constitution saving throw or take 1d6 Radiant damage.",
+        "seeAlso": [
+          "constitution_saving_throw",
+          "radiant_damage",
+          "emanation_area"
+        ],
+        "filePath": "/data/glossary/entries/spells/word-of-radiance.md"
+      }
+    ]
+  },
+  {
+    "id": "spell_level_1",
+    "title": "Level 1 Spells",
+    "category": "Spells",
+    "excerpt": "Spells cast using a 1st-level spell slot.",
+    "filePath": null,
+    "subEntries": [
+      {
+        "id": "cure_wounds",
+        "title": "Cure Wounds",
+        "category": "Spells",
+        "tags": [
+          "level 1",
+          "evocation",
+          "healing"
+        ],
+        "excerpt": "A creature you touch regains a number of hit points equal to 1d8 + your spellcasting ability modifier.",
+        "seeAlso": [
+          "healing_word",
+          "spellcasting_ability"
+        ],
+        "filePath": "/data/glossary/entries/spells/cure_wounds.md"
+      },
+      {
+        "id": "detect_magic",
+        "title": "Detect Magic",
+        "category": "Spells",
+        "tags": [ "level 1", "divination", "utility", "ritual" ],
+        "excerpt": "For the duration, you sense the presence of magic within 30 feet of you.",
+        "seeAlso": [ "school_of_magic", "ritual" ],
+        "filePath": "/data/glossary/entries/spells/detect_magic.md"
+      },
+      {
+        "id": "disguise-self",
+        "title": "Disguise Self",
+        "category": "Spells",
+        "tags": [
+          "level 1",
+          "illusion",
+          "utility",
+          "deception"
+        ],
+        "excerpt": "You make yourself look different for 1 hour, including clothing, armor, and weapons.",
+        "seeAlso": [
+          "alter_self",
+          "invisibility"
+        ],
+        "filePath": "/data/glossary/entries/spells/disguise-self.md"
+      },
+      {
+        "id": "feather-fall",
+        "title": "Feather Fall",
+        "category": "Spells",
+        "tags": [
+          "level 1",
+          "transmutation",
+          "utility",
+          "reaction"
+        ],
+        "excerpt": "Slows the rate of descent of up to five falling creatures, preventing fall damage.",
+        "seeAlso": [
+          "reaction",
+          "falling",
+          "spell_duration_rules"
+        ],
+        "filePath": "/data/glossary/entries/spells/feather-fall.md"
+      },
+      {
+        "id": "healing-word",
+        "title": "Healing Word",
+        "category": "Spells",
+        "tags": [
+          "level 1",
+          "evocation",
+          "healing",
+          "bonus action"
+        ],
+        "excerpt": "A creature of your choice that you can see within range regains hit points equal to 1d4 + your spellcasting ability modifier.",
+        "seeAlso": [
+          "cure_wounds",
+          "bonus_actions",
+          "spellcasting_ability"
+        ],
+        "filePath": "/data/glossary/entries/spells/healing-word.md"
+      },
+      {
+        "id": "inflict_wounds",
+        "title": "Inflict Wounds",
+        "category": "Spells",
+        "tags": [
+          "level 1",
+          "necromancy",
+          "damage",
+          "necrotic",
+          "touch"
+        ],
+        "excerpt": "A creature you touch makes a Constitution saving throw, taking 2d10 Necrotic damage on a failed save or half as much on a successful one.",
+        "seeAlso": [
+          "constitution_saving_throw",
+          "necrotic_damage",
+          "cleric"
+        ],
+        "filePath": "/data/glossary/entries/spells/inflict-wounds.md"
+      },
+      {
+        "id": "magic_missile",
+        "title": "Magic Missile",
+        "category": "Spells",
+        "tags": [
+          "level 1",
+          "evocation",
+          "damage",
+          "force"
+        ],
+        "excerpt": "Create three glowing darts of magical force that automatically hit their targets.",
+        "seeAlso": [
+          "force_damage",
+          "shield_spell"
+        ],
+        "filePath": "/data/glossary/entries/spells/magic_missile.md"
+      },
+      {
+        "id": "protection-from-evil-and-good",
+        "title": "Protection from Evil and Good",
+        "category": "Spells",
+        "tags": [
+          "level 1",
+          "abjuration",
+          "buff",
+          "warding",
+          "protection",
+          "concentration"
+        ],
+        "excerpt": "Protect a willing creature against aberrations, celestials, elementals, fey, fiends, and undead.",
+        "aliases": [],
+        "seeAlso": [
+          "charmed_condition",
+          "frightened_condition"
+        ],
+        "filePath": "/data/glossary/entries/spells/protection-from-evil-and-good.md"
+      },
+      {
+        "id": "purify_food_and_drink",
+        "title": "Purify Food and Drink",
+        "category": "Spells",
+        "tags": [
+          "level 1",
+          "transmutation",
+          "utility",
+          "ritual"
+        ],
+        "excerpt": "You remove poison and rot from nonmagical food and drink in a 5-foot-radius Sphere.",
+        "seeAlso": [
+          "artificer",
+          "cleric",
+          "druid",
+          "paladin",
+          "ritual"
+        ],
+        "filePath": "/data/glossary/entries/spells/purify_food_and_drink.md"
+      },
+      {
+        "id": "sanctuary",
+        "title": "Sanctuary",
+        "category": "Spells",
+        "tags": [
+          "level 1",
+          "abjuration",
+          "buff",
+          "warding",
+          "protection"
+        ],
+        "excerpt": "You ward a creature within range against attack. Any creature who targets the warded creature must first make a Wisdom saving throw.",
+        "seeAlso": [
+          "wisdom_saving_throw",
+          "attack_action",
+          "area_of_effect"
+        ],
+        "filePath": "/data/glossary/entries/spells/sanctuary.md"
+      },
+      {
+        "id": "shield",
+        "title": "Shield",
+        "category": "Spells",
+        "tags": [
+          "level 1",
+          "abjuration",
+          "reaction",
+          "defense",
+          "ac"
+        ],
+        "excerpt": "An invisible barrier of magical force appears and protects you, granting a bonus to AC.",
+        "seeAlso": [
+          "reaction",
+          "armor_class",
+          "magic_missile"
+        ],
+        "filePath": "/data/glossary/entries/spells/shield.md"
+      },
+      {
+        "id": "shield_of_faith",
+        "title": "Shield of Faith",
+        "category": "Spells",
+        "tags": [
+          "level 1",
+          "abjuration",
+          "buff",
+          "concentration"
+        ],
+        "excerpt": "A shimmering field surrounds a creature of your choice within range, granting it a +2 bonus to AC for the duration.",
+        "aliases": [],
+        "seeAlso": [
+          "concentration",
+          "armor_class"
+        ],
+        "filePath": "/data/glossary/entries/spells/shield_of_faith.md"
+      },
+      {
+        "id": "speak-with-animals",
+        "title": "Speak with Animals",
+        "category": "Spells",
+        "tags": [
+          "level 1",
+          "divination",
+          "utility",
+          "communication",
+          "social",
+          "ritual"
+        ],
+        "excerpt": "For the duration, you can comprehend and verbally communicate with Beasts. The knowledge and awareness of many beasts is limited by their intelligence, but at a minimum, beasts can give you information about nearby locations and monsters.",
+        "seeAlso": [
+          "ritual",
+          "influence_action"
+        ],
+        "filePath": "/data/glossary/entries/spells/speak-with-animals.md"
+      }
+    ]
+  },
+  {
+    "id": "spell_level_2",
+    "title": "Level 2 Spells",
+    "category": "Spells",
+    "excerpt": "Spells cast using a 2nd-level spell slot.",
+    "filePath": null,
+    "subEntries": [
+      {
+        "id": "levitate",
+        "title": "Levitate",
+        "category": "Spells",
+        "tags": ["level 2", "transmutation", "control", "movement", "concentration"],
+        "excerpt": "One creature or loose object of your choice that you can see within range rises vertically up to 20 feet and remains suspended there for the duration.",
+        "seeAlso": ["concentration", "constitution_saving_throw", "magic_action"],
+        "filePath": "/data/glossary/entries/spells/levitate.md"
+      }
+    ]
+  },
+  {
+    "id": "spell_level_3",
+    "title": "Level 3 Spells",
+    "category": "Spells",
+    "excerpt": "Spells cast using a 3rd-level spell slot.",
+    "filePath": null,
+    "subEntries": [
+      {
+        "id": "fireball",
+        "title": "Fireball",
+        "category": "Spells",
+        "tags": [
+          "level 3",
+          "evocation",
+          "damage",
+          "fire",
+          "aoe"
+        ],
+        "excerpt": "A bright streak flashes from your finger and blossoms into an explosion of flame.",
+        "seeAlso": [
+          "dexterity_saving_throw",
+          "area_of_effect"
+        ],
+        "filePath": "/data/glossary/entries/spells/fireball.md"
+      },
+      {
+        "id": "lightning_bolt",
+        "title": "Lightning Bolt",
+        "category": "Spells",
+        "tags": [
+          "level 3",
+          "evocation",
+          "damage",
+          "lightning",
+          "aoe",
+          "line"
+        ],
+        "excerpt": "A stroke of lightning forming a line 100 feet long blasts out from you.",
+        "seeAlso": [
+          "dexterity_saving_throw",
+          "area_of_effect"
+        ],
+        "filePath": "/data/glossary/entries/spells/lightning_bolt.md"
+      },
+      {
+        "id": "nondetection",
+        "title": "Nondetection",
+        "category": "Spells",
+        "tags": [
+          "level 3",
+          "abjuration",
+          "utility",
+          "warding",
+          "deception"
+        ],
+        "excerpt": "You hide a target that you touch from Divination spells and magical scrying sensors for 8 hours.",
+        "seeAlso": [
+          "divination_school",
+          "scrying",
+          "spell_components_rules"
+        ],
+        "filePath": "/data/glossary/entries/spells/nondetection.md"
+      }
+    ]
+  }
+]

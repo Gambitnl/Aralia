@@ -1,0 +1,180 @@
+[
+  {
+    "id": "dev_test_entry",
+    "title": "Developer Test Entry (Hierarchical Demo - 4 Levels)",
+    "category": "Developer",
+    "tags": [
+      "test",
+      "dev",
+      "styling",
+      "hierarchy",
+      "expandable",
+      "multi-level",
+      "4-level"
+    ],
+    "excerpt": "Test entry demonstrating a 4-level expandable navigation structure with Gnome and Elf race/subrace/lineage examples.",
+    "aliases": [
+      "test entry",
+      "dev entry",
+      "4-level test"
+    ],
+    "seeAlso": [
+      "elf",
+      "gnome"
+    ],
+    "filePath": "/data/glossary/entries/dev/test_entry.md",
+    "subEntries": [
+      {
+        "id": "dev_sub_gnome_race_main",
+        "title": "Gnome (Race Content - Test Links)",
+        "category": "Developer",
+        "excerpt": "Main content for the Gnome race, expandable to show subrace categories that link to unique test files.",
+        "filePath": "/data/glossary/entries/races/gnome.md",
+        "tags": [
+          "sub-entry",
+          "gnome",
+          "race",
+          "expandable",
+          "test-links"
+        ],
+        "subEntries": [
+          {
+            "id": "dev_sub_gnome_subraces_category",
+            "title": "Gnome Subraces (Test Links)",
+            "category": "Developer",
+            "excerpt": "Container for specific Gnome subraces, linking to unique test files.",
+            "filePath": "/data/glossary/entries/races/gnome.md",
+            "tags": [
+              "sub-entry",
+              "gnome",
+              "subrace-category",
+              "expandable",
+              "test-links"
+            ],
+            "subEntries": [
+              {
+                "id": "dev_sub_forest_gnome_details",
+                "title": "Forest Gnome (Details - Test File)",
+                "category": "Developer",
+                "excerpt": "Test details for the Forest Gnome subrace from a unique file.",
+                "filePath": "/data/glossary/entries/races/gnome_subraces/forest_gnome_test_detail.md",
+                "tags": [
+                  "sub-entry",
+                  "gnome",
+                  "forest gnome",
+                  "subrace",
+                  "lineage-equivalent",
+                  "test-file"
+                ]
+              },
+              {
+                "id": "dev_sub_rock_gnome_details",
+                "title": "Rock Gnome (Details - Test File)",
+                "category": "Developer",
+                "excerpt": "Test details for the Rock Gnome subrace from a unique file.",
+                "filePath": "/data/glossary/entries/races/gnome_subraces/rock_gnome_test_detail.md",
+                "tags": [
+                  "sub-entry",
+                  "gnome",
+                  "rock gnome",
+                  "subrace",
+                  "lineage-equivalent",
+                  "test-file"
+                ]
+              },
+              {
+                "id": "dev_sub_deep_gnome_details",
+                "title": "Deep Gnome (Details - Test File)",
+                "category": "Developer",
+                "excerpt": "Test details for the Deep Gnome (Svirfneblin) subrace from a unique file.",
+                "filePath": "/data/glossary/entries/races/gnome_subraces/deep_gnome_test_detail.md",
+                "tags": [
+                  "sub-entry",
+                  "gnome",
+                  "deep gnome",
+                  "svirfneblin",
+                  "subrace",
+                  "test-file"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "dev_sub_elf_race_main",
+        "title": "Elf (Race Content - Test Links)",
+        "category": "Developer",
+        "excerpt": "Main content for the Elf race, expandable to show lineage categories that link to unique test files.",
+        "filePath": "/data/glossary/entries/races/elf.md",
+        "tags": [
+          "sub-entry",
+          "elf",
+          "race",
+          "expandable",
+          "test-links"
+        ],
+        "subEntries": [
+          {
+            "id": "dev_sub_elf_lineages_category",
+            "title": "Elf Lineages (Test Links)",
+            "category": "Developer",
+            "excerpt": "Container for specific Elf lineages, linking to unique test files.",
+            "filePath": "/data/glossary/entries/races/elf.md",
+            "tags": [
+              "sub-entry",
+              "elf",
+              "lineage-category",
+              "expandable",
+              "test-links"
+            ],
+            "subEntries": [
+              {
+                "id": "dev_sub_drow_elf_details",
+                "title": "Drow Elf (Lineage Details - Test File)",
+                "category": "Developer",
+                "excerpt": "Test details for the Drow Elf lineage from a unique file.",
+                "filePath": "/data/glossary/entries/races/elf_lineages/drow_elf_test_detail.md",
+                "tags": [
+                  "sub-entry",
+                  "elf",
+                  "drow",
+                  "lineage",
+                  "test-file"
+                ]
+              },
+              {
+                "id": "dev_sub_high_elf_details",
+                "title": "High Elf (Lineage Details - Test File)",
+                "category": "Developer",
+                "excerpt": "Test details for the High Elf lineage from a unique file.",
+                "filePath": "/data/glossary/entries/races/elf_lineages/high_elf_test_detail.md",
+                "tags": [
+                  "sub-entry",
+                  "elf",
+                  "high elf",
+                  "lineage",
+                  "test-file"
+                ]
+              },
+              {
+                "id": "dev_sub_wood_elf_details",
+                "title": "Wood Elf (Lineage Details - Test File)",
+                "category": "Developer",
+                "excerpt": "Test details for the Wood Elf lineage from a unique file.",
+                "filePath": "/data/glossary/entries/races/elf_lineages/wood_elf_test_detail.md",
+                "tags": [
+                  "sub-entry",
+                  "elf",
+                  "wood elf",
+                  "lineage",
+                  "test-file"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

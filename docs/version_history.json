@@ -1,0 +1,217 @@
+{
+  "System & Documentation": [
+    {
+      "version": "v0.2.5",
+      "date": "2025-07-13T19:37:42Z",
+      "feature": "System & Documentation",
+      "feature_version": "v1.3.0",
+      "description": "Major refactor of the action handling system into a modular, hook-based architecture. Updated all relevant documentation, including creating new READMEs for each action handler."
+    },
+    {
+      "version": "v0.2.3",
+      "date": "2025-07-06T23:00:00Z",
+      "feature": "System & Documentation",
+      "feature_version": "v1.2.1",
+      "description": "Added documentation for the new visual styling classes (`.glossary-intro-quote`, etc.) to the `GLOSSARY_ENTRY_DESIGN_GUIDE.md`."
+    },
+    {
+      "version": "v0.2.1",
+      "date": "2025-07-06T21:23:54Z",
+      "feature": "System & Documentation",
+      "feature_version": "v1.2.0",
+      "description": "Created a comprehensive, hierarchical rules glossary for D20 Tests, including Ability Checks, Saving Throws, and Attack Rolls. Refactored rules into multiple focused entries."
+    },
+    {
+      "version": "v0.1.38",
+      "date": "2025-07-05T03:00:00Z",
+      "feature": "System & Documentation",
+      "feature_version": "v1.1.0",
+      "description": "Refactored `version_history.json` to be grouped by feature. Updated `AI_PROMPT_GUIDE.md` to reflect the new structure."
+    },
+    {
+      "version": "v0.1.36",
+      "date": "2025-07-05T01:00:00Z",
+      "feature": "System & Documentation",
+      "feature_version": "v1.0.0",
+      "description": "Introduced a version_history.json file to track feature changes and their specific versions. Updated AI_PROMPT_GUIDE.md to explain the new system."
+    }
+  ],
+  "Glossary Content": [
+    {
+      "version": "v0.2.2",
+      "date": "2025-07-06T22:00:00Z",
+      "feature": "Glossary Content",
+      "feature_version": "v0.3.0",
+      "description": "Added a new 'Exploration' section to the Rules Glossary, including a deep hierarchy for vision, light, objects, travel, and more."
+    },
+    {
+      "version": "v0.2.1",
+      "date": "2025-07-06T21:23:54Z",
+      "feature": "Glossary Content",
+      "feature_version": "v0.2.0",
+      "description": "Created a comprehensive, hierarchical rules glossary for D20 Tests, including Ability Checks, Saving Throws, and Attack Rolls. Refactored rules into multiple focused entries."
+    },
+    {
+      "version": "v0.1.31",
+      "date": "2025-07-04T19:00:00Z",
+      "feature": "Glossary Content",
+      "feature_version": "v0.1.0",
+      "description": "Added a new 'Spells' category to the glossary, organized hierarchically by level. Created initial Markdown files for several spells."
+    }
+  ],
+  "Glossary UI": [
+    {
+      "version": "v0.2.5",
+      "date": "2025-07-13T19:37:42Z",
+      "feature": "Glossary UI",
+      "feature_version": "v0.3.0",
+      "description": "Refactored the glossary data structure to support nested index files, allowing for a more scalable and organized rules section."
+    },
+    {
+      "version": "v0.2.3",
+      "date": "2025-07-06T23:00:00Z",
+      "feature": "Glossary UI",
+      "feature_version": "v0.2.0",
+      "description": "Applied enhanced visual styling (`.glossary-intro-quote`, `.glossary-example-list`, `.glossary-callout`) to several entries in the Rules Glossary for improved readability."
+    },
+    {
+      "version": "v0.1.35",
+      "date": "2025-07-04T23:00:00Z",
+      "feature": "Glossary UI",
+      "feature_version": "v0.1.1",
+      "description": "Updated all spell entries to use a more visually appealing 'stat block' design with individual 'chiclet' blocks for properties, and added corresponding CSS."
+    }
+  ],
+  "Spell Data Model": [
+    {
+      "version": "v0.2.61",
+      "date": "2025-07-10T13:00:00Z",
+      "feature": "Spell Data Model",
+      "feature_version": "v1.0.12",
+      "description": "Added the 'Levitate' spell to the game's data files, class spell lists, and glossary."
+    },
+    {
+      "version": "v0.2.60",
+      "date": "2025-07-10T12:00:00Z",
+      "feature": "Spell Data Model",
+      "feature_version": "v1.0.11",
+      "description": "Added the 'Feather Fall' spell to the game's data files, class spell lists, and glossary."
+    },
+    {
+      "version": "v0.2.59",
+      "date": "2025-07-10T11:00:00Z",
+      "feature": "Spell Data Model",
+      "feature_version": "v1.0.10",
+      "description": "Added the 'Shocking Grasp' cantrip to the game's data files, class spell lists, and glossary."
+    },
+    {
+      "version": "v0.2.49",
+      "date": "2025-07-09T07:00:00Z",
+      "feature": "Spell Data Model",
+      "feature_version": "v1.0.9",
+      "description": "Added the 'Acid Splash' cantrip to the game's data files and glossary. Also added the Sorcerer class to the game data, as it was listed on the spell card."
+    },
+    {
+      "version": "v0.2.48",
+      "date": "2025-07-09T06:00:00Z",
+      "feature": "Spell Data Model",
+      "feature_version": "v1.0.8",
+      "description": "Added the 'Resistance' cantrip to the game's data files and glossary, based on its updated functionality."
+    },
+    {
+      "version": "v0.2.47",
+      "date": "2025-07-09T05:00:00Z",
+      "feature": "Spell Data Model",
+      "feature_version": "v1.0.7",
+      "description": "Added the 'Word of Radiance' cantrip to the game's data files, class lists, and glossary."
+    },
+    {
+      "version": "v0.2.46",
+      "date": "2025-07-09T04:00:00Z",
+      "feature": "Spell Data Model",
+      "feature_version": "v1.0.5",
+      "description": "Added the 'Spare the Dying' cantrip to the game's data files, class lists, and glossary."
+    },
+    {
+      "version": "v0.2.45",
+      "date": "2025-07-09T03:00:00Z",
+      "feature": "Spell Data Model",
+      "feature_version": "v1.0.4",
+      "description": "Added the 'Toll the Dead' cantrip to the game's data files, class lists, and glossary."
+    },
+    {
+      "version": "v0.2.44",
+      "date": "2025-07-09T02:00:00Z",
+      "feature": "Spell Data Model",
+      "feature_version": "v1.0.3",
+      "description": "Added the 'Healing Word' spell to the game's data files, class lists, and glossary."
+    },
+    {
+      "version": "v0.2.43",
+      "date": "2025-07-09T01:00:00Z",
+      "feature": "Spell Data Model",
+      "feature_version": "v1.0.2",
+      "description": "Added the 'Inflict Wounds' spell data and glossary entry based on the provided spell card."
+    },
+    {
+      "version": "v0.2.42",
+      "date": "2025-07-09T00:00:00Z",
+      "feature": "Spell Data Model",
+      "feature_version": "v1.0.1",
+      "description": "Added the 'Light' cantrip data and glossary entry."
+    },
+    {
+      "version": "v0.2.0",
+      "date": "2025-07-06T18:00:00Z",
+      "feature": "Spell Data Model",
+      "feature_version": "v1.0.0",
+      "description": "Completed Phase 1 of spell data refactor. Migrated all spell definitions from `constants.ts` to individual JSON files in `public/data/spells/`. Created a `SpellProvider` to dynamically load this data. Refactored all components to use the new context-based data source instead of static imports."
+    },
+    {
+      "version": "v0.1.37",
+      "date": "2025-07-05T02:00:00Z",
+      "feature": "Spell Data Model",
+      "feature_version": "v0.3.0",
+      "description": "Migrated to the new unified spell data template. Updated the `Spell` interface in `src/types.ts` and refactored `constants.ts` to use the new structure for all spells, including the new detailed examples for fireball, alarm, and alter-self."
+    },
+    {
+      "version": "v0.1.32",
+      "date": "2025-07-04T20:00:00Z",
+      "feature": "Spell Data Model",
+      "feature_version": "v0.2.0",
+      "description": "Added 'availableTo' property to the Spell data model to track which classes can learn each spell and at what level. Updated relevant JSON and Markdown files."
+    }
+  ],
+  "Glossary Search": [
+    {
+      "version": "v0.1.34",
+      "date": "2025-07-04T22:00:00Z",
+      "feature": "Glossary Search",
+      "feature_version": "v0.04",
+      "description": "Fixed an issue preventing manual collapsing of categories during an active search and an issue that caused auto-scrolling to the top of the glossary."
+    },
+    {
+      "version": "v0.1.33",
+      "date": "2025-07-04T21:00:00Z",
+      "feature": "Glossary Search",
+      "feature_version": "v0.03",
+      "description": "Fixed a critical UI bug where the search input field would lose focus after typing a single character, by refactoring state updates into a useEffect hook."
+    }
+  ],
+  "Battle Map": [
+    {
+      "version": "v0.2.4",
+      "date": "2025-07-08T15:22:25Z",
+      "feature": "Battle Map",
+      "feature_version": "v0.0.6",
+      "description": "Synced 'Your Party' composition with the main game state, replacing the hardcoded development party."
+    },
+    {
+      "version": "v0.0.5",
+      "date": "2025-06-29T11:32:34Z",
+      "feature": "Battle Map",
+      "feature_version": "v0.0.5",
+      "description": "Refactored combat system to a D&D 5e-style action economy (Action, Bonus Action, Movement) from the previous AP system."
+    }
+  ]
+}

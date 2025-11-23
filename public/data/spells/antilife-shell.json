@@ -1,0 +1,16 @@
+
+{
+  "id": "antilife-shell",
+  "name": "Antilife Shell",
+  "level": 5,
+  "school": "Abjuration",
+  "castingTime": "1 Action",
+  "range": "Self (10-foot radius)",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Concentration, up to 1 hour",
+  "description": "A shimmering barrier extends from you in a 10-foot radius and moves with you, remaining centered on you and hedging out most creatures."
+}

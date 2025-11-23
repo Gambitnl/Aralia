@@ -1,0 +1,16 @@
+
+{
+  "id": "synaptic-static",
+  "name": "Synaptic Static",
+  "level": 5,
+  "school": "Enchantment",
+  "castingTime": "1 Action",
+  "range": "120 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Instantaneous",
+  "description": "You choose a point within range and cause psychic energy to explode there. Each creature in a 20-foot-radius sphere centered on that point must make an Intelligence saving throw. A creature with an Intelligence score of 2 or lower can't be affected by this spell."
+}

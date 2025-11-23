@@ -1,0 +1,54 @@
+
+{
+  "id": "purify-food-and-drink",
+  "name": "Purify Food and Drink",
+  "level": 1,
+  "school": "Transmutation",
+  "classes": [
+    "Artificer",
+    "Cleric",
+    "Druid",
+    "Paladin"
+  ],
+  "tags": [
+    "UTILITY",
+    "RITUAL"
+  ],
+  "castingTime": {
+    "value": 1,
+    "unit": "Action"
+  },
+  "range": {
+    "type": "Feet",
+    "distance": 10
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "unit": "Instantaneous",
+    "concentration": false
+  },
+  "ritual": true,
+  "description": "You remove poison and rot from nonmagical food and drink in a 5-foot-radius Sphere centered on a point within range.",
+  "higherLevelsDescription": null,
+  "effects": [
+    {
+      "type": "Utility",
+      "attack": {
+        "type": "None"
+      },
+      "areaOfEffect": {
+        "shape": "Sphere",
+        "size": 5
+      },
+      "special": "Purifies nonmagical food and drink, removing poison and rot."
+    }
+  ],
+  "engineHook": {
+    "isImplemented": false,
+    "notes": "No game mechanic for poisoned/rotten food exists yet."
+  }
+}

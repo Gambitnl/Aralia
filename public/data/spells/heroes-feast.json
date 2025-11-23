@@ -1,0 +1,16 @@
+
+{
+  "id": "heroes-feast",
+  "name": "Heroes' Feast",
+  "level": 6,
+  "school": "Conjuration",
+  "castingTime": "10 Minutes",
+  "range": "30 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Instantaneous",
+  "description": "You bring forth a great feast, including magnificent food and drink. The feast takes 1 hour to consume and disappears at the end of that time, and the beneficial effects don't set in until this hour is over."
+}

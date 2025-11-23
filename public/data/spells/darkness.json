@@ -1,0 +1,16 @@
+
+{
+  "id": "darkness",
+  "name": "Darkness",
+  "level": 2,
+  "school": "Evocation",
+  "castingTime": "1 Action",
+  "range": "60 feet",
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": true
+  },
+  "duration": "Concentration, up to 10 minutes",
+  "description": "Magical darkness spreads from a point you choose within range to fill a 15-foot-radius sphere for the duration."
+}

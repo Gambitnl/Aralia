@@ -1,0 +1,16 @@
+
+{
+  "id": "dimension-door",
+  "name": "Dimension Door",
+  "level": 4,
+  "school": "Conjuration",
+  "castingTime": "1 Action",
+  "range": "500 feet",
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": "Instantaneous",
+  "description": "You teleport yourself from your current location to any other spot within range."
+}

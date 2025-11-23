@@ -1,0 +1,16 @@
+
+{
+  "id": "plant-growth",
+  "name": "Plant Growth",
+  "level": 3,
+  "school": "Transmutation",
+  "castingTime": "1 Action or 8 Hours",
+  "range": "150 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Instantaneous",
+  "description": "This spell channels vitality into plants within a specific area. There are two possible uses for the spell, granting either immediate or long-term benefits."
+}

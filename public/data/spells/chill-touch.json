@@ -1,0 +1,16 @@
+
+{
+  "id": "chill-touch",
+  "name": "Chill Touch",
+  "level": 0,
+  "school": "Necromancy",
+  "castingTime": "1 Action",
+  "range": "120 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "1 Round",
+  "description": "You create a ghostly, skeletal hand in the space of a creature within range. Make a ranged spell attack against the creature to assail it with the chill of the grave."
+}

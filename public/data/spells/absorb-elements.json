@@ -1,0 +1,16 @@
+
+{
+  "id": "absorb-elements",
+  "name": "Absorb Elements",
+  "level": 1,
+  "school": "Abjuration",
+  "castingTime": "1 Reaction",
+  "range": "Self",
+  "components": {
+    "verbal": false,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "1 Round",
+  "description": "Take half damage from the triggering acid, cold, fire, lightning, or thunder damage. The first time you hit with a melee attack on your next turn, deal an extra 1d6 damage of the absorbed type."
+}

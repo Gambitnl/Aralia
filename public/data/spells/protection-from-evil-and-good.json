@@ -1,0 +1,40 @@
+{
+  "id": "protection-from-evil-and-good",
+  "name": "Protection from Evil and Good",
+  "level": 1,
+  "school": "Abjuration",
+  "classes": ["Cleric", "Paladin", "Warlock", "Wizard"],
+  "tags": ["Buff", "Warding", "Protection", "Concentration"],
+  "castingTime": {
+    "value": 1,
+    "unit": "Action"
+  },
+  "range": {
+    "type": "Touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a flask of Holy Water worth 25+ GP, which the spell consumes"
+  },
+  "duration": {
+    "value": 10,
+    "unit": "Minute",
+    "concentration": true
+  },
+  "ritual": false,
+  "description": "Until the spell ends, one willing creature you touch is protected against creatures that are Aberrations, Celestials, Elementals, Fey, Fiends, or Undead. The protection grants several benefits. Creatures of those types have Disadvantage on attack rolls against the target. The target also can’t be possessed by or gain the Charmed or Frightened conditions from them. If the target is already possessed, Charmed, or Frightened by such a creature, the target has Advantage on any new saving throw against the relevant effect.",
+  "higherLevelsDescription": null,
+  "effects": [{
+    "type": "Buff",
+    "attack": {
+      "type": "None"
+    },
+    "special": "Protection against Aberrations, Celestials, Elementals, Fey, Fiends, and Undead."
+  }],
+  "engineHook": {
+    "isImplemented": false,
+    "notes": "Requires logic to check attacker type and apply disadvantage, and to grant advantage on saves against specific conditions from those creature types."
+  }
+}

@@ -1,0 +1,16 @@
+
+{
+  "id": "wall-of-thorns",
+  "name": "Wall of Thorns",
+  "level": 6,
+  "school": "Conjuration",
+  "castingTime": "1 Action",
+  "range": "120 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 10 minutes",
+  "description": "You create a wall of tough, pliable, tangled thorns bristling with needle-sharp spines. The wall appears within range on a solid surface and lasts for the duration."
+}

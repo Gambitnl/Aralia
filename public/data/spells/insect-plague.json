@@ -1,0 +1,16 @@
+
+{
+  "id": "insect-plague",
+  "name": "Insect Plague",
+  "level": 5,
+  "school": "Conjuration",
+  "castingTime": "1 Action",
+  "range": "300 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 10 minutes",
+  "description": "Swarming, biting locusts fill a 20-foot-radius sphere centered on a point you choose within range."
+}

@@ -1,0 +1,8 @@
+---
+id: "topple_mastery_property"
+title: "Topple"
+category: "Rules Glossary"
+filePath: "/data/glossary/entries/rules/equipment/weapons/mastery_properties/topple.md"
+---
+# Topple Mastery
+If you hit a creature with this weapon, you can force the creature to make a Constitution saving throw (DC 8 plus the ability modifier used to make the attack roll and your Proficiency Bonus). On a failed save, the creature has the Prone condition.

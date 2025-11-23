@@ -1,0 +1,16 @@
+
+{
+  "id": "teleportation-circle",
+  "name": "Teleportation Circle",
+  "level": 5,
+  "school": "Conjuration",
+  "castingTime": "1 Minute",
+  "range": "10 feet",
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": true
+  },
+  "duration": "1 Round",
+  "description": "As you cast the spell, you draw a 10-foot-diameter circle on the ground inscribed with sigils that link your location to a permanent teleportation circle of your choice whose sigil sequence you know."
+}

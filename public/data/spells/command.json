@@ -1,0 +1,16 @@
+
+{
+  "id": "command",
+  "name": "Command",
+  "level": 1,
+  "school": "Enchantment",
+  "castingTime": "1 Action",
+  "range": "60 feet",
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": "1 Round",
+  "description": "You speak a one-word command to a creature you can see within range. The target must succeed on a Wisdom saving throw or follow the command on its next turn."
+}

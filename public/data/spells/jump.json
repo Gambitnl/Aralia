@@ -1,0 +1,16 @@
+
+{
+  "id": "jump",
+  "name": "Jump",
+  "level": 1,
+  "school": "Transmutation",
+  "castingTime": "1 Action",
+  "range": "Touch",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "1 Minute",
+  "description": "You touch a creature. The creature's jump distance is tripled until the spell ends."
+}

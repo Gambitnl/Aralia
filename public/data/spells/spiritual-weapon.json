@@ -1,0 +1,16 @@
+
+{
+  "id": "spiritual-weapon",
+  "name": "Spiritual Weapon",
+  "level": 2,
+  "school": "Evocation",
+  "castingTime": "1 Bonus Action",
+  "range": "60 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "1 Minute",
+  "description": "You create a floating, spectral weapon within range that lasts for the duration or until you cast this spell again. When you cast the spell, you can make a melee spell attack against a creature within 5 feet of the weapon."
+}

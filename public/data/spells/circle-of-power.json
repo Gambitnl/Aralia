@@ -1,0 +1,16 @@
+
+{
+  "id": "circle-of-power",
+  "name": "Circle of Power",
+  "level": 5,
+  "school": "Abjuration",
+  "castingTime": "1 Action",
+  "range": "Self (30-foot radius)",
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": "Concentration, up to 10 minutes",
+  "description": "Divine energy radiates from you, warding you and your allies from harm. For the duration, each friendly creature in a 30-foot radius (including you) has advantage on saving throws against spells and other magical effects."
+}

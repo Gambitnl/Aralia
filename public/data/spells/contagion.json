@@ -1,0 +1,16 @@
+
+{
+  "id": "contagion",
+  "name": "Contagion",
+  "level": 5,
+  "school": "Necromancy",
+  "castingTime": "1 Action",
+  "range": "Touch",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "7 Days",
+  "description": "Your touch inflicts disease. Make a melee spell attack against a creature within your reach. On a hit, you afflict the creature with a disease of your choice from several options."
+}

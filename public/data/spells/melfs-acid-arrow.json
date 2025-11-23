@@ -1,0 +1,16 @@
+
+{
+  "id": "melfs-acid-arrow",
+  "name": "Melf's Acid Arrow",
+  "level": 2,
+  "school": "Evocation",
+  "castingTime": "1 Action",
+  "range": "90 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Instantaneous",
+  "description": "A shimmering green arrow streaks toward a target within range and bursts in a spray of acid. Make a ranged spell attack against the target. On a hit, the target takes 4d4 acid damage immediately and 2d4 acid damage at the end of its next turn."
+}

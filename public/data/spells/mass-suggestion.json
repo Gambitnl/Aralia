@@ -1,0 +1,16 @@
+
+{
+  "id": "mass-suggestion",
+  "name": "Mass Suggestion",
+  "level": 6,
+  "school": "Enchantment",
+  "castingTime": "1 Action",
+  "range": "60 feet",
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": true
+  },
+  "duration": "24 Hours",
+  "description": "You suggest a course of activity (limited to a sentence or two) and magically influence up to twelve creatures of your choice that you can see within range and that can hear and understand you."
+}

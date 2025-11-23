@@ -1,0 +1,15 @@
+{
+  "id": "detect-poison-and-disease",
+  "name": "Detect Poison and Disease",
+  "level": 1,
+  "school": "Divination",
+  "castingTime": "1 Action",
+  "range": "Self",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 10 minutes",
+  "description": "For the duration, you can sense the presence and location of poisons, poisonous creatures, and diseases within 30 feet of you."
+}

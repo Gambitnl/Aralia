@@ -1,0 +1,16 @@
+
+{
+  "id": "prismatic-spray",
+  "name": "Prismatic Spray",
+  "level": 7,
+  "school": "Evocation",
+  "castingTime": "1 Action",
+  "range": "Self (60-foot cone)",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Instantaneous",
+  "description": "Eight multicolored rays of light flash from your hand. Each ray is a different color and has a different power and purpose. Each creature in a 60-foot cone must make a Dexterity saving throw."
+}

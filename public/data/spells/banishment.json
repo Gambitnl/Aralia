@@ -1,0 +1,16 @@
+
+{
+  "id": "banishment",
+  "name": "Banishment",
+  "level": 4,
+  "school": "Abjuration",
+  "castingTime": "1 Action",
+  "range": "60 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "You attempt to send one creature that you can see within range to another plane of existence. The target must succeed on a Charisma saving throw or be banished."
+}

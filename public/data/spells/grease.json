@@ -1,0 +1,16 @@
+
+{
+  "id": "grease",
+  "name": "Grease",
+  "level": 1,
+  "school": "Conjuration",
+  "castingTime": "1 Action",
+  "range": "60 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "1 Minute",
+  "description": "A greasy slick covers the ground in a 10-foot square centered on a point within range and turns it into difficult terrain for the duration."
+}

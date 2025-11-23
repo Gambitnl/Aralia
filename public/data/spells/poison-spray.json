@@ -1,0 +1,56 @@
+{
+  "id": "poison-spray",
+  "name": "Poison Spray",
+  "level": 0,
+  "school": "Necromancy",
+  "classes": [
+    "DRUID",
+    "SORCERER",
+    "WARLOCK",
+    "WIZARD",
+    "ARTIFICER"
+  ],
+  "tags": [
+    "DAMAGE",
+    "CANTRIP",
+    "POISON"
+  ],
+  "castingTime": {
+    "value": 1,
+    "unit": "Action"
+  },
+  "range": {
+    "type": "Feet",
+    "distance": 30
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": null
+  },
+  "duration": {
+    "value": null,
+    "unit": "Instantaneous",
+    "concentration": false
+  },
+  "ritual": false,
+  "description": "You spray toxic mist at a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d12 Poison damage.",
+  "higherLevelsDescription": "The damage increases by 1d12 when you reach levels 5 (2d12), 11 (3d12), and 17 (4d12).",
+  "effects": [
+    {
+      "type": "Damage",
+      "attack": {
+        "type": "Ranged Spell"
+      },
+      "damage": {
+        "dice": "1d12",
+        "type": "Poison"
+      }
+    }
+  ],
+  "engineHook": {
+    "isImplemented": false,
+    "notes": "Requires ranged spell attack roll and damage application."
+  }
+}

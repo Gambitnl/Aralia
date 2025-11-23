@@ -1,0 +1,16 @@
+
+{
+  "id": "elemental-weapon",
+  "name": "Elemental Weapon",
+  "level": 3,
+  "school": "Transmutation",
+  "castingTime": "1 Action",
+  "range": "Touch",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": "Concentration, up to 1 hour",
+  "description": "A nonmagical weapon you touch becomes a magic weapon. Choose one of the following damage types: acid, cold, fire, lightning, or thunder."
+}

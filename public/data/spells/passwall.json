@@ -1,0 +1,16 @@
+
+{
+  "id": "passwall",
+  "name": "Passwall",
+  "level": 5,
+  "school": "Transmutation",
+  "castingTime": "1 Action",
+  "range": "30 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "1 Hour",
+  "description": "A passage appears at a point of your choice that you can see on a wooden, plaster, or stone surface (such as a wall, a ceiling, or a floor) within range, and lasts for the duration."
+}

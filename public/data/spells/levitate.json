@@ -1,0 +1,49 @@
+{
+  "id": "levitate",
+  "name": "Levitate",
+  "level": 2,
+  "school": "Transmutation",
+  "classes": [
+    "ARTIFICER",
+    "SORCERER",
+    "WIZARD"
+  ],
+  "tags": [
+    "CONTROL",
+    "MOVEMENT",
+    "CONCENTRATION"
+  ],
+  "castingTime": {
+    "value": 1,
+    "unit": "Action"
+  },
+  "range": {
+    "type": "Feet",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a metal spring"
+  },
+  "duration": {
+    "value": 10,
+    "unit": "Minute",
+    "concentration": true
+  },
+  "ritual": false,
+  "description": "One creature or loose object of your choice that you can see within range rises vertically up to 20 feet and remains suspended there for the duration. The spell can levitate an object that weighs up to 500 pounds. An unwilling creature that succeeds on a Constitution saving throw is unaffected.",
+  "higherLevelsDescription": null,
+  "effects": [
+    {
+      "type": "Control",
+      "saveRequired": "Constitution",
+      "special": "Target rises vertically up to 20 feet and is suspended. Unwilling creatures can make a CON save to negate the effect."
+    }
+  ],
+  "engineHook": {
+    "isImplemented": false,
+    "notes": "Requires logic for vertical movement, suspension, and handling willing/unwilling targets with a save."
+  }
+}

@@ -1,0 +1,16 @@
+
+{
+  "id": "fear",
+  "name": "Fear",
+  "level": 3,
+  "school": "Illusion",
+  "castingTime": "1 Action",
+  "range": "Self (30-foot cone)",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "You project a phantasmal image of a creature's worst fears. Each creature in a 30-foot cone must succeed on a Wisdom saving throw or drop whatever it is holding and become frightened for the duration."
+}

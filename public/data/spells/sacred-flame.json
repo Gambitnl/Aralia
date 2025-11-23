@@ -1,0 +1,53 @@
+
+{
+  "id": "sacred-flame",
+  "name": "Sacred Flame",
+  "level": 0,
+  "school": "Evocation",
+  "classes": [
+    "CLERIC",
+    "WARLOCK - CELESTIAL PATRON"
+  ],
+  "tags": [
+    "DAMAGE",
+    "RADIANT",
+    "CANTRIP"
+  ],
+  "castingTime": {
+    "value": 1,
+    "unit": "Action"
+  },
+  "range": {
+    "type": "Feet",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": null
+  },
+  "duration": {
+    "value": null,
+    "unit": "Instantaneous",
+    "concentration": false
+  },
+  "ritual": false,
+  "description": "Flame-like radiance descends on a creature that you can see within range. The target must succeed on a Dexterity saving throw or take 1d8 radiant damage. The target gains no benefit from Half Cover or Three-Quarters Cover for this save.",
+  "higherLevelsDescription": "The damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).",
+  "effects": [
+    {
+      "type": "Damage",
+      "saveRequired": "Dexterity",
+      "damage": {
+        "dice": "1d8",
+        "type": "Radiant"
+      },
+      "special": "Target gains no benefit from cover for this saving throw."
+    }
+  ],
+  "engineHook": {
+    "isImplemented": false,
+    "notes": "Requires save-for-damage mechanic and logic to bypass cover bonuses to Dexterity saves."
+  }
+}

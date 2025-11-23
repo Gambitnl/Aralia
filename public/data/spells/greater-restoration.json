@@ -1,0 +1,15 @@
+{
+  "id": "greater-restoration",
+  "name": "Greater Restoration",
+  "level": 5,
+  "school": "Abjuration",
+  "castingTime": "1 Action",
+  "range": "Touch",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Instantaneous",
+  "description": "You imbue a creature you touch with positive energy to undo a debilitating effect. You can reduce the target's exhaustion level by one, or end one of several magical effects."
+}

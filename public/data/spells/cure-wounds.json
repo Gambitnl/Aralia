@@ -1,0 +1,48 @@
+{
+  "id": "cure-wounds",
+  "name": "Cure Wounds",
+  "level": 1,
+  "school": "Evocation",
+  "classes": [
+    "Artificer",
+    "Bard",
+    "Cleric",
+    "Druid",
+    "Paladin",
+    "Ranger"
+  ],
+  "tags": [
+    "Healing"
+  ],
+  "castingTime": {
+    "value": 1,
+    "unit": "Action"
+  },
+  "range": {
+    "type": "Touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": null
+  },
+  "duration": {
+    "value": null,
+    "unit": "Instantaneous",
+    "concentration": false
+  },
+  "ritual": false,
+  "description": "A creature you touch regains a number of hit points equal to 1d8 + your spellcasting ability modifier. This spell has no effect on undead or constructs.",
+  "higherLevelsDescription": "When you cast this spell using a spell slot of 2nd level or higher, the healing increases by 1d8 for each slot level above 1st.",
+  "effects": [
+    {
+      "type": "Healing",
+      "special": "Heals 1d8 + spellcasting ability modifier hit points."
+    }
+  ],
+  "engineHook": {
+    "isImplemented": true,
+    "notes": "Healing mechanic exists and is applied in useAbilitySystem or similar."
+  }
+}

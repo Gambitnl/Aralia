@@ -1,0 +1,16 @@
+
+{
+  "id": "earthquake",
+  "name": "Earthquake",
+  "level": 8,
+  "school": "Evocation",
+  "castingTime": "1 Action",
+  "range": "500 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "You create a seismic disturbance at a point on the ground that you can see within range."
+}

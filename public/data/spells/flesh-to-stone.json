@@ -1,0 +1,16 @@
+
+{
+  "id": "flesh-to-stone",
+  "name": "Flesh to Stone",
+  "level": 6,
+  "school": "Transmutation",
+  "castingTime": "1 Action",
+  "range": "60 feet",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 1 minute",
+  "description": "You attempt to turn one creature that you can see within range into stone. If the target's body is made of flesh, the creature must make a Constitution saving throw."
+}

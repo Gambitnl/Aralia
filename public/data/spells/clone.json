@@ -1,0 +1,16 @@
+
+{
+  "id": "clone",
+  "name": "Clone",
+  "level": 8,
+  "school": "Necromancy",
+  "castingTime": "1 Hour",
+  "range": "Touch",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Instantaneous",
+  "description": "This spell grows an inert duplicate of a living creature as a safeguard against death. This clone forms inside a sealed vessel and grows to full size and maturity in 120 days."
+}

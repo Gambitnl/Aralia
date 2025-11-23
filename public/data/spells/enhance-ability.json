@@ -1,0 +1,16 @@
+
+{
+  "id": "enhance-ability",
+  "name": "Enhance Ability",
+  "level": 2,
+  "school": "Transmutation",
+  "castingTime": "1 Action",
+  "range": "Touch",
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true
+  },
+  "duration": "Concentration, up to 1 hour",
+  "description": "You touch a creature and bestow upon it a magical enhancement. Choose one of the following effects; the target gains that effect for the duration."
+}
