@@ -45,7 +45,7 @@ const ActionButton: React.FC<{
   else if (action.type === 'ANALYZE_SITUATION') colorClasses = "btn-indigo";
   else if (action.type === 'TOGGLE_DISCOVERY_LOG') colorClasses = "btn-lime";
   else if (action.type === 'TOGGLE_LOGBOOK') colorClasses = "btn-amber";
-  else if (action.type === 'TOGGLE_QUEST_LOG') colorClasses = "btn-amber"; // Using btn-amber for Quest Log too
+  else if (action.type === 'TOGGLE_QUEST_LOG') colorClasses = "btn-amber";
   else if (action.type === 'TOGGLE_GLOSSARY_VISIBILITY') colorClasses = "btn-indigo-dark";
   else if (action.type === 'TOGGLE_GAME_GUIDE') colorClasses = "btn-blue";
 
