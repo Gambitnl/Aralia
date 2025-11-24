@@ -5,7 +5,7 @@
  */
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { CombatCharacter, TurnState, CombatAction, CombatLogEntry, BattleMapData, DamageNumber } from '../../types/combat';
-import { generateId, getActionMessage } from '../../utils/combatUtils';
+import { createDamageNumber, generateId, getActionMessage } from '../../utils/combatUtils';
 import { useActionEconomy } from './useActionEconomy';
 import { evaluateCombatTurn } from '../../utils/combat/combatAI';
 
@@ -42,20 +42,14 @@ export const useTurnManager = ({
   const { canAfford, consumeAction, resetEconomy } = useActionEconomy();
 
   const addDamageNumber = useCallback((value: number, position: {x: number, y: number}, type: 'damage' | 'heal' | 'miss') => {
-      const newDn: DamageNumber = {
-          id: generateId(),
-          value,
-          position,
-          type,
-          startTime: Date.now(),
-          duration: 1500
-      };
+      // Build a normalized payload so overlays animate consistently no matter the source.
+      const newDn: DamageNumber = createDamageNumber(value, position, type);
       setDamageNumbers(prev => [...prev, newDn]);
 
-      // Auto-remove after duration
+      // Auto-remove after duration to avoid a stale overlay queue lingering across turns.
       setTimeout(() => {
           setDamageNumbers(prev => prev.filter(dn => dn.id !== newDn.id));
-      }, 1500);
+      }, newDn.duration);
   }, []);
 
   const rollInitiative = (character: CombatCharacter): number => {

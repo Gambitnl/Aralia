@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DamageNumber, Position } from '../../types/combat';
+import { DamageNumber } from '../../types/combat';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
 
@@ -25,7 +25,8 @@ const DamageNumberOverlay: React.FC<DamageNumberOverlayProps> = ({ damageNumbers
                 opacity: 0
             }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
+            // Use the payload's duration so all callers share the same fade timing.
+            transition={{ duration: dn.duration / 1000, ease: "easeOut" }}
             className={`absolute font-bold text-2xl drop-shadow-md flex items-center justify-center transform -translate-x-1/2`}
             style={{
                  color: dn.type === 'heal' ? '#4ade80' : dn.type === 'miss' ? '#9ca3af' : '#ef4444',

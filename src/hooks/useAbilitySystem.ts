@@ -3,11 +3,11 @@
  * Manages ability selection, targeting, and execution logic for combat.
  */
 import { useState, useCallback } from 'react';
-import { 
-  CombatCharacter, 
-  Ability, 
-  Position, 
-  AreaOfEffect, 
+import {
+  CombatCharacter,
+  Ability,
+  Position,
+  AreaOfEffect,
   CombatAction,
   BattleMapData
 } from '../types/combat';
@@ -136,7 +136,8 @@ export const useAbilitySystem = ({
     caster: CombatCharacter,
     target: CombatCharacter
   ) => {
-    let modifiedTarget = {...target};
+    // Clone once so we can safely layer mutations in this pass.
+    let modifiedTarget = { ...target, statusEffects: [...target.statusEffects] };
     ability.effects.forEach(effect => {
       switch (effect.type) {
         case 'damage':
@@ -149,6 +150,19 @@ export const useAbilitySystem = ({
           modifiedTarget.currentHP = Math.min(modifiedTarget.maxHP, modifiedTarget.currentHP + healAmount);
           if (onAbilityEffect) onAbilityEffect(healAmount, target.position, 'heal');
           break;
+        case 'status': {
+          // Apply buffs/debuffs and extend duration if provided on the effect payload.
+          const statusEffect = effect.statusEffect;
+          if (statusEffect) {
+            const effectDuration = effect.duration ?? statusEffect.duration ?? 1;
+            modifiedTarget.statusEffects.push({
+              ...statusEffect,
+              duration: effectDuration,
+              id: statusEffect.id || generateId(),
+            });
+          }
+          break;
+        }
       }
     });
     onCharacterUpdate(modifiedTarget);
