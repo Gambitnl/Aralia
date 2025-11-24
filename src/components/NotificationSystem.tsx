@@ -1,3 +1,7 @@
+/**
+ * Lightweight toast system that replaces browser alerts and provides
+ * non-blocking feedback to the player.
+ */
 import React, { useEffect, useState } from 'react';
 import { Notification } from '../types';
 
@@ -67,6 +71,7 @@ const NotificationToast: React.FC<{ notification: Notification; onDismiss: (id: 
 };
 
 export const NotificationSystem: React.FC<NotificationSystemProps> = ({ notifications, dispatch }) => {
+  // Mounted at the App root so every pane can dispatch notifications instead of using blocking alerts.
   return (
     <div
       aria-live="assertive"

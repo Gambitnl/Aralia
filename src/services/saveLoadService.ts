@@ -1,8 +1,10 @@
 /**
  * @file saveLoadService.ts
  * This service handles saving and loading game state to/from Local Storage.
+ * All user feedback has been routed through the global NotificationSystem (via
+ * an optional callback) instead of relying on intrusive `alert()` calls.
  */
-import { GameState, GamePhase } from '../types';
+import { GameState, GamePhase, NotificationType } from '../types';
 
 const SAVE_GAME_VERSION = "0.1.0"; // Current version of the save format
 const DEFAULT_SAVE_SLOT = 'aralia_rpg_default_save';
@@ -13,13 +15,20 @@ export interface SaveLoadResult {
   data?: GameState;
 }
 
+// Optional notifier empowers calling layers to surface status through NotificationSystem.
+type NotifyFn = (params: { message: string; type: NotificationType }) => void;
+
 /**
  * Saves the current game state to Local Storage.
  * @param {GameState} gameState - The current game state to save.
  * @param {string} [slotName=DEFAULT_SAVE_SLOT] - The name of the save slot.
  * @returns {Promise<SaveLoadResult>} Result object with success status and message.
  */
-export async function saveGame(gameState: GameState, slotName: string = DEFAULT_SAVE_SLOT): Promise<SaveLoadResult> {
+export async function saveGame(
+  gameState: GameState,
+  slotName: string = DEFAULT_SAVE_SLOT,
+  notify?: NotifyFn,
+): Promise<SaveLoadResult> {
   try {
     const stateToSave: GameState = {
       ...gameState,
@@ -41,14 +50,20 @@ export async function saveGame(gameState: GameState, slotName: string = DEFAULT_
     const serializedState = JSON.stringify(stateToSave);
     localStorage.setItem(slotName, serializedState);
     console.log(`Game saved to slot: ${slotName} at ${new Date(stateToSave.saveTimestamp!).toLocaleString()}`);
-    return { success: true, message: "Game saved successfully." };
+    const result = { success: true, message: "Game saved successfully." } as const;
+    notify?.({ message: result.message, type: 'success' });
+    return result;
   } catch (error) {
     console.error("Error saving game:", error);
     // Handle potential errors like Local Storage being full
     if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.code === 22)) {
-      return { success: false, message: "Failed to save: Local storage is full." };
+      const failure = { success: false, message: "Failed to save: Local storage is full." } as const;
+      notify?.({ message: failure.message, type: 'error' });
+      return failure;
     } else {
-      return { success: false, message: "Failed to save game. See console." };
+      const failure = { success: false, message: "Failed to save game. See console." } as const;
+      notify?.({ message: failure.message, type: 'error' });
+      return failure;
     }
   }
 }
@@ -58,18 +73,22 @@ export async function saveGame(gameState: GameState, slotName: string = DEFAULT_
  * @param {string} [slotName=DEFAULT_SAVE_SLOT] - The name of the save slot.
  * @returns {Promise<SaveLoadResult>} Result object with success status, message, and loaded data.
  */
-export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT): Promise<SaveLoadResult> {
+export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: NotifyFn): Promise<SaveLoadResult> {
   try {
     const serializedState = localStorage.getItem(slotName);
     if (!serializedState) {
       console.log(`No save game found in slot: ${slotName}`);
-      return { success: false, message: "No save game found." };
+      const result = { success: false, message: "No save game found." } as const;
+      notify?.({ message: result.message, type: 'info' });
+      return result;
     }
     const loadedState: GameState = JSON.parse(serializedState);
 
     if (loadedState.saveVersion !== SAVE_GAME_VERSION) {
       console.warn(`Save game version mismatch. Expected ${SAVE_GAME_VERSION}, found ${loadedState.saveVersion}. Load aborted.`);
-      return { success: false, message: `Save file incompatible (v${loadedState.saveVersion}). Expected v${SAVE_GAME_VERSION}.` };
+      const failure = { success: false, message: `Save file incompatible (v${loadedState.saveVersion}). Expected v${SAVE_GAME_VERSION}.` } as const;
+      notify?.({ message: failure.message, type: 'warning' });
+      return failure;
     }
     
     // Ensure transient states are reset for the loaded game
@@ -91,10 +110,14 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT): Promise<Sa
     loadedState.notifications = []; // Reset notifications
 
     console.log(`Game loaded from slot: ${slotName}, saved at ${new Date(loadedState.saveTimestamp!).toLocaleString()}`);
-    return { success: true, message: "Game loaded successfully.", data: loadedState };
+    const result = { success: true, message: "Game loaded successfully.", data: loadedState } as const;
+    notify?.({ message: result.message, type: 'success' });
+    return result;
   } catch (error) {
     console.error("Error loading game:", error);
-    return { success: false, message: "Failed to load game. Data corrupted." };
+    const failure = { success: false, message: "Failed to load game. Data corrupted." } as const;
+    notify?.({ message: failure.message, type: 'error' });
+    return failure;
   }
 }
 

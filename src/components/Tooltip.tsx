@@ -18,7 +18,7 @@ const Tooltip: React.FC<TooltipProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
-  const triggerRef = useRef<HTMLElement>(null); 
+  const triggerRef = useRef<HTMLElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
   const ARROW_HEIGHT = 0; 
@@ -40,27 +40,30 @@ const Tooltip: React.FC<TooltipProps> = ({
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
-    let newTop: number;
-    let newLeft: number;
+    // Decide whether to place the tooltip above or below based on available space.
+    const spaceAbove = triggerRect.top - TOOLTIP_MARGIN;
+    const spaceBelow = viewportHeight - triggerRect.bottom - TOOLTIP_MARGIN;
+    const preferAbove = spaceAbove > spaceBelow;
 
-    newTop = triggerRect.top - tooltipRect.height - ARROW_HEIGHT - TOOLTIP_MARGIN;
-    
-    if (newTop < 0) {
-      newTop = triggerRect.bottom + ARROW_HEIGHT + TOOLTIP_MARGIN;
-      if (newTop + tooltipRect.height > viewportHeight) {
-        newTop = viewportHeight - tooltipRect.height - TOOLTIP_MARGIN;
-      }
+    let newTop = preferAbove
+      ? triggerRect.top - tooltipRect.height - ARROW_HEIGHT - TOOLTIP_MARGIN
+      : triggerRect.bottom + ARROW_HEIGHT + TOOLTIP_MARGIN;
+
+    // Clamp vertically to viewport to avoid clipping if both spaces are tight.
+    if (preferAbove && newTop < TOOLTIP_MARGIN) {
+      newTop = Math.max(TOOLTIP_MARGIN, triggerRect.bottom + ARROW_HEIGHT + TOOLTIP_MARGIN);
+    }
+    if (!preferAbove && newTop + tooltipRect.height > viewportHeight - TOOLTIP_MARGIN) {
+      const fallBackTop = triggerRect.top - tooltipRect.height - ARROW_HEIGHT - TOOLTIP_MARGIN;
+      newTop = Math.max(TOOLTIP_MARGIN, Math.min(fallBackTop, viewportHeight - tooltipRect.height - TOOLTIP_MARGIN));
     }
 
-    newLeft = triggerRect.left + (triggerRect.width / 2) - (tooltipRect.width / 2);
+    // Horizontal centering with clamping ensures long tooltips do not overflow left/right edges.
+    const triggerCenter = triggerRect.left + triggerRect.width / 2;
+    const unclampedLeft = triggerCenter - tooltipRect.width / 2;
+    const maxLeft = viewportWidth - tooltipRect.width - TOOLTIP_MARGIN;
+    const newLeft = Math.min(Math.max(TOOLTIP_MARGIN, unclampedLeft), Math.max(TOOLTIP_MARGIN, maxLeft));
 
-    if (newLeft < TOOLTIP_MARGIN) {
-      newLeft = TOOLTIP_MARGIN;
-    }
-    if (newLeft + tooltipRect.width + TOOLTIP_MARGIN > viewportWidth) {
-      newLeft = viewportWidth - tooltipRect.width - TOOLTIP_MARGIN;
-    }
-    
     // For fixed positioning, we use viewport coordinates directly.
     setCoords({ top: newTop, left: newLeft });
 
@@ -73,7 +76,17 @@ const Tooltip: React.FC<TooltipProps> = ({
             calculateAndSetPosition();
         }
       });
-      return () => cancelAnimationFrame(animationFrameId);
+
+      // Keep the tooltip anchored on viewport resizes/scrolls to avoid clipping on edges.
+      const handleViewportChange = () => calculateAndSetPosition();
+      window.addEventListener('resize', handleViewportChange);
+      window.addEventListener('scroll', handleViewportChange, true);
+
+      return () => {
+        cancelAnimationFrame(animationFrameId);
+        window.removeEventListener('resize', handleViewportChange);
+        window.removeEventListener('scroll', handleViewportChange, true);
+      };
     } else {
       setCoords(null);
     }
