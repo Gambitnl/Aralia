@@ -3,7 +3,7 @@
  * @file src/utils/combatUtils.ts
  * Utility functions for the combat system.
  */
-import { CombatAction, CombatCharacter, Position, CharacterStats, Ability } from '../types/combat';
+import { CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect } from '../types/combat';
 import { PlayerCharacter, Monster, Spell } from '../types';
 import { CLASSES_DATA, MONSTERS_DATA } from '../constants';
 import { createAbilityFromSpell } from './spellAbilityFactory';
@@ -47,6 +47,45 @@ export function calculateDamage(baseDamage: number, caster: CombatCharacter, tar
     // In a real system, we would check for resistance/vulnerability here
     // based on damageType vs target.stats or target.tags
     return baseDamage;
+}
+
+/**
+ * Builds a DamageNumber payload that the BattleMap overlay can consume.
+ * Centralizing this logic ensures all floating numbers share timing and styling metadata.
+ */
+export function createDamageNumber(
+  value: number,
+  position: Position,
+  type: DamageNumber['type']
+): DamageNumber {
+  return {
+    id: generateId(),
+    value,
+    position,
+    type,
+    startTime: Date.now(),
+    duration: 1500,
+  };
+}
+
+/**
+ * Returns a consistent icon for a status effect so the UI can visualize buffs/debuffs.
+ * If a custom icon is provided on the effect we prefer that, otherwise fallback emojis.
+ */
+export function getStatusEffectIcon(effect: StatusEffect): string {
+  if (effect.icon) return effect.icon;
+  switch (effect.type) {
+    case 'buff':
+      return '✨';
+    case 'debuff':
+      return '☠️';
+    case 'dot':
+      return '🔥';
+    case 'hot':
+      return '➕';
+    default:
+      return '◼️';
+  }
 }
 
 /**

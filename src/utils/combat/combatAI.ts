@@ -1,16 +1,16 @@
-
 import { CombatCharacter, CombatAction, BattleMapData, Ability, Position, BattleMapTile } from '../../types/combat';
 import { getDistance, generateId } from '../../utils/combatUtils';
 import { hasLineOfSight } from '../../utils/lineOfSight';
 
-// Scoring weights for decision making
+// Scoring weights used throughout the planner. Tweakable knobs to steer priorities.
 const WEIGHTS = {
-  KILL_TARGET: 100,
+  KILL_TARGET: 120,
   DAMAGE: 1,
-  HEAL: 1.5, // Healing is prioritized slightly over damage
-  SELF_PRESERVATION: 2,
+  HEAL: 1.6, // Healing is prioritized slightly over damage
+  SELF_PRESERVATION: 4,
   DISTANCE_PENALTY: -0.1, // Slight penalty for moving far
-  FOCUS_FIRE_BONUS: 5, // Bonus for attacking a target already damaged
+  FOCUS_FIRE_BONUS: 6, // Bonus for attacking a target already damaged
+  SAFETY_DISTANCE: 0.4, // Reward for keeping distance when low HP
 };
 
 interface AIPlan {
@@ -24,294 +24,438 @@ interface AIPlan {
 
 /**
  * Evaluates the combat state and returns the best action for the given AI character.
- * @param character The AI character taking the turn.
- * @param characters All combat characters on the map.
- * @param mapData The current state of the battle map.
- * @returns A CombatAction object representing the chosen action.
+ * The evaluator is intentionally greedy but aware of positioning: it will move into
+ * range/LoS for a high-value cast, heal allies, or retreat when threatened.
  */
 export function evaluateCombatTurn(
   character: CombatCharacter,
   characters: CombatCharacter[],
   mapData: BattleMapData
 ): CombatAction {
-
   // 1. Identify Potential Targets
   const enemies = characters.filter(c => c.team !== character.team && c.currentHP > 0);
   const allies = characters.filter(c => c.team === character.team && c.currentHP > 0);
 
   if (enemies.length === 0) {
-      return createEndTurnAction(character);
+    return createEndTurnAction(character);
   }
+
+  // Pre-compute reachability once so scoring can reuse it.
+  const reachableTiles = buildReachableTileMap(character, mapData);
 
   // 2. Evaluate Possible Actions
   const possiblePlans: AIPlan[] = [];
 
-  // Consider all abilities
+  // Consider all abilities with simple action-economy checks.
   for (const ability of character.abilities) {
     if (ability.currentCooldown && ability.currentCooldown > 0) continue;
-
-    // Check cost (simplified check, real check should use canAfford)
     if (!canAffordIdeally(character, ability)) continue;
 
     // Identify targets based on ability type
     if (ability.targeting === 'self') {
-        const score = evaluateSelfAbility(character, ability);
-        possiblePlans.push({
-            actionType: 'ability',
-            abilityId: ability.id,
-            targetPosition: character.position,
-            targetCharacterIds: [character.id],
-            score,
-            description: `Use ${ability.name} on self`
-        });
+      const score = evaluateSelfAbility(character, ability);
+      possiblePlans.push({
+        actionType: 'ability',
+        abilityId: ability.id,
+        targetPosition: character.position,
+        targetCharacterIds: [character.id],
+        score,
+        description: `Use ${ability.name} on self`,
+      });
     } else if (ability.targeting === 'single_enemy') {
-        for (const target of enemies) {
-            const plan = evaluateAttackPlan(character, target, ability, mapData);
-            if (plan) possiblePlans.push(plan);
-        }
+      for (const target of enemies) {
+        const plan = evaluateAttackPlan(character, target, ability, mapData, reachableTiles);
+        if (plan) possiblePlans.push(plan);
+      }
     } else if (ability.targeting === 'single_ally') {
-        for (const target of allies) {
-             const plan = evaluateSupportPlan(character, target, ability, mapData);
-             if (plan) possiblePlans.push(plan);
-        }
+      for (const target of allies) {
+        const plan = evaluateSupportPlan(character, target, ability, mapData, reachableTiles);
+        if (plan) possiblePlans.push(plan);
+      }
     }
     // TODO: Add support for AoE targeting
   }
 
+  // Evaluate pure repositioning for survival when low HP.
+  const safeRetreat = evaluateRetreatPlan(character, enemies, mapData, reachableTiles);
+  if (safeRetreat) {
+    possiblePlans.push(safeRetreat);
+  }
+
   // Sort plans by score descending
   possiblePlans.sort((a, b) => b.score - a.score);
-
   const bestPlan = possiblePlans[0];
 
   if (bestPlan && bestPlan.score > 0) {
-      // If the plan involves movement to a target position that isn't the current position,
-      // AND the action type is 'ability', we might need to move first.
-      // However, the turn manager handles one action at a time.
-      // The AI needs to decide: "Do I need to move to get in range?"
-
-      // If the plan is an ability, check if we are in range.
-      if (bestPlan.actionType === 'ability' && bestPlan.targetPosition) {
-           const dist = getDistance(character.position, bestPlan.targetPosition);
-           const ability = character.abilities.find(a => a.id === bestPlan.abilityId);
-           if (ability && dist > ability.range) {
-               // We need to move towards the target position
-               // Find a tile closer to target within movement range
-               const moveAction = planMovement(character, bestPlan.targetPosition, ability.range, mapData);
-               if (moveAction) return moveAction;
-           }
+    // If the plan is an ability but we are currently out of range/LoS, perform the movement leg first.
+    if (bestPlan.actionType === 'ability' && bestPlan.targetPosition) {
+      const dist = getDistance(character.position, bestPlan.targetPosition);
+      const ability = character.abilities.find(a => a.id === bestPlan.abilityId);
+      const inRange = ability ? dist <= ability.range : true;
+      if (ability && (!inRange || !hasClearShot(character.position, bestPlan.targetPosition, mapData))) {
+        const moveAction = planMovement(character, bestPlan.targetPosition, ability.range, mapData, reachableTiles);
+        if (moveAction) return moveAction;
       }
+    }
 
-      return {
-          id: generateId(),
-          characterId: character.id,
-          type: bestPlan.actionType,
-          abilityId: bestPlan.abilityId,
-          targetPosition: bestPlan.targetPosition,
-          targetCharacterIds: bestPlan.targetCharacterIds,
-          cost: character.abilities.find(a => a.id === bestPlan.abilityId)?.cost || { type: 'free' }, // Fallback cost
-          timestamp: Date.now()
-      };
+    return {
+      id: generateId(),
+      characterId: character.id,
+      type: bestPlan.actionType,
+      abilityId: bestPlan.abilityId,
+      targetPosition: bestPlan.targetPosition,
+      targetCharacterIds: bestPlan.targetCharacterIds,
+      cost: character.abilities.find(a => a.id === bestPlan.abilityId)?.cost || { type: 'free' }, // Fallback cost
+      timestamp: Date.now(),
+    };
   }
 
   // Fallback: Move towards nearest enemy if no ability is useful
   const nearestEnemy = getNearestEnemy(character, enemies);
   if (nearestEnemy) {
-       const moveAction = planMovement(character, nearestEnemy.position, 1, mapData);
-       if (moveAction) return moveAction;
+    const moveAction = planMovement(character, nearestEnemy.position, 1, mapData, reachableTiles);
+    if (moveAction) return moveAction;
   }
 
   return createEndTurnAction(character);
 }
 
 function createEndTurnAction(character: CombatCharacter): CombatAction {
-    return {
-        id: generateId(),
-        characterId: character.id,
-        type: 'end_turn',
-        cost: { type: 'free' },
-        timestamp: Date.now()
-    };
+  return {
+    id: generateId(),
+    characterId: character.id,
+    type: 'end_turn',
+    cost: { type: 'free' },
+    timestamp: Date.now(),
+  };
 }
 
 function canAffordIdeally(character: CombatCharacter, ability: Ability): boolean {
-    const cost = ability.cost;
-    const eco = character.actionEconomy;
+  const cost = ability.cost;
+  const eco = character.actionEconomy;
 
-    // Check Action Type availability
-    if (cost.type === 'action' && eco.action.used) return false;
-    if (cost.type === 'bonus' && eco.bonusAction.used) return false;
-    // ... other checks
-    return true;
+  // Check Action Type availability
+  if (cost.type === 'action' && eco.action.used) return false;
+  if (cost.type === 'bonus' && eco.bonusAction.used) return false;
+  if (cost.type === 'movement-only' && eco.movement.used >= eco.movement.total) return false;
+  // ... other checks
+  return true;
 }
 
 function evaluateSelfAbility(caster: CombatCharacter, ability: Ability): number {
-    let score = 0;
-    // Heuristic: If low health and ability heals
-    const isHeal = ability.effects.some(e => e.type === 'heal');
-    if (isHeal) {
-        const missingHP = caster.maxHP - caster.currentHP;
-        const healAmount = ability.effects.find(e => e.type === 'heal')?.value || 0;
-        // Only heal if we are missing health, score based on efficiency
-        if (missingHP > 0) {
-            score += Math.min(missingHP, healAmount) * WEIGHTS.HEAL;
-             // Bonus if critical health
-            if (caster.currentHP < caster.maxHP * 0.3) score += 20;
-        }
+  let score = 0;
+  // Heuristic: If low health and ability heals
+  const isHeal = ability.effects.some(e => e.type === 'heal');
+  if (isHeal) {
+    const missingHP = caster.maxHP - caster.currentHP;
+    const healAmount = ability.effects.find(e => e.type === 'heal')?.value || 0;
+    // Only heal if we are missing health, score based on efficiency
+    if (missingHP > 0) {
+      score += Math.min(missingHP, healAmount) * WEIGHTS.HEAL;
+      // Bonus if critical health
+      if (caster.currentHP < caster.maxHP * 0.3) score += 30;
     }
-    // Heuristic: Buffs
-    const isBuff = ability.effects.some(e => e.type === 'status' && e.statusEffect?.type === 'buff');
-    if (isBuff) {
-        score += 10; // Base value for buffs
-    }
-    return score;
+  }
+  // Heuristic: Buffs
+  const isBuff = ability.effects.some(e => e.type === 'status' && e.statusEffect?.type === 'buff');
+  if (isBuff) {
+    score += 12; // Base value for buffs
+  }
+  return score;
 }
 
-function evaluateAttackPlan(caster: CombatCharacter, target: CombatCharacter, ability: Ability, mapData: BattleMapData): AIPlan | null {
-    const dist = getDistance(caster.position, target.position);
+function evaluateAttackPlan(
+  caster: CombatCharacter,
+  target: CombatCharacter,
+  ability: Ability,
+  mapData: BattleMapData,
+  reachableTiles: Map<string, { tile: BattleMapTile; cost: number }>
+): AIPlan | null {
+  const dist = getDistance(caster.position, target.position);
 
-    // Check if reachable within move + range
-    const moveRange = caster.actionEconomy.movement.total - caster.actionEconomy.movement.used;
-    if (dist > ability.range + moveRange) return null; // Too far
+  // Check if reachable within move + range
+  const moveRange = caster.actionEconomy.movement.total - caster.actionEconomy.movement.used;
+  if (dist > ability.range + moveRange) return null; // Too far
 
-    // Line of Sight check (simplified: assumes if we can move into range, we can get LoS)
-    // For a rigorous check, we'd simulate the move position and check LoS from there.
+  let score = 0;
 
-    let score = 0;
+  // Damage potential
+  const damageEffect = ability.effects.find(e => e.type === 'damage');
+  if (damageEffect) {
+    const damage = damageEffect.value || 0;
+    score += damage * WEIGHTS.DAMAGE;
 
-    // Damage potential
-    const damageEffect = ability.effects.find(e => e.type === 'damage');
-    if (damageEffect) {
-        const damage = damageEffect.value || 0;
-        score += damage * WEIGHTS.DAMAGE;
-
-        // Kill potential
-        if (target.currentHP <= damage) {
-            score += WEIGHTS.KILL_TARGET;
-        }
-
-        // Focus fire bonus (lower HP % is better target)
-        score += (1 - target.currentHP / target.maxHP) * WEIGHTS.FOCUS_FIRE_BONUS;
+    // Kill potential
+    if (target.currentHP <= damage) {
+      score += WEIGHTS.KILL_TARGET;
     }
 
-    // Distance penalty (prefer closer targets to save movement)
-    score += (ability.range - dist) * 0.1;
+    // Focus fire bonus (lower HP % is better target)
+    score += (1 - target.currentHP / target.maxHP) * WEIGHTS.FOCUS_FIRE_BONUS;
+  }
 
+  // Distance bonus when already in range (saves actions)
+  score += (ability.range - dist) * 0.1;
+
+  const inRange = dist <= ability.range && hasClearShot(caster.position, target.position, mapData);
+
+  if (inRange) {
     return {
-        actionType: 'ability',
-        abilityId: ability.id,
-        targetPosition: target.position,
-        targetCharacterIds: [target.id],
-        score,
-        description: `Attack ${target.name} with ${ability.name}`
+      actionType: 'ability',
+      abilityId: ability.id,
+      targetPosition: target.position,
+      targetCharacterIds: [target.id],
+      score,
+      description: `Attack ${target.name} with ${ability.name}`,
     };
+  }
+
+  // If out of range, look for a reachable tile that puts us in range + LoS.
+  const moveTile = findCastPosition(reachableTiles, target.position, ability, mapData);
+  if (moveTile) {
+    return {
+      actionType: 'move',
+      targetPosition: moveTile.coordinates,
+      score: score + WEIGHTS.DISTANCE_PENALTY * moveTile.movementCost,
+      description: `Reposition to cast ${ability.name} on ${target.name}`,
+    };
+  }
+
+  return null;
 }
 
-function evaluateSupportPlan(caster: CombatCharacter, target: CombatCharacter, ability: Ability, mapData: BattleMapData): AIPlan | null {
-     // Similar to attack but for heals/buffs on allies
-     const dist = getDistance(caster.position, target.position);
-     const moveRange = caster.actionEconomy.movement.total - caster.actionEconomy.movement.used;
-     if (dist > ability.range + moveRange) return null;
+function evaluateSupportPlan(
+  caster: CombatCharacter,
+  target: CombatCharacter,
+  ability: Ability,
+  mapData: BattleMapData,
+  reachableTiles: Map<string, { tile: BattleMapTile; cost: number }>
+): AIPlan | null {
+  // Similar to attack but for heals/buffs on allies
+  const dist = getDistance(caster.position, target.position);
+  const moveRange = caster.actionEconomy.movement.total - caster.actionEconomy.movement.used;
+  if (dist > ability.range + moveRange) return null;
 
-     let score = 0;
-     const isHeal = ability.effects.some(e => e.type === 'heal');
-     if (isHeal) {
-         const missingHP = target.maxHP - target.currentHP;
-         const healAmount = ability.effects.find(e => e.type === 'heal')?.value || 0;
-         if (missingHP > 0) {
-             score += Math.min(missingHP, healAmount) * WEIGHTS.HEAL;
-             if (target.currentHP < target.maxHP * 0.3) score += 20; // Save ally
-         }
-     }
+  let score = 0;
+  const isHeal = ability.effects.some(e => e.type === 'heal');
+  if (isHeal) {
+    const missingHP = target.maxHP - target.currentHP;
+    const healAmount = ability.effects.find(e => e.type === 'heal')?.value || 0;
+    if (missingHP > 0) {
+      score += Math.min(missingHP, healAmount) * WEIGHTS.HEAL;
+      if (target.currentHP < target.maxHP * 0.3) score += 25; // Save ally
+    }
+  }
 
-     if (score <= 0) return null;
+  // Buffs keep allies safe/efficient
+  const isBuff = ability.effects.some(e => e.type === 'status' && e.statusEffect?.type === 'buff');
+  if (isBuff) {
+    score += 8;
+  }
 
-     return {
-        actionType: 'ability',
-        abilityId: ability.id,
-        targetPosition: target.position,
-        targetCharacterIds: [target.id],
-        score,
-        description: `Heal/Buff ${target.name} with ${ability.name}`
+  if (score <= 0) return null;
+
+  const inRange = dist <= ability.range && hasClearShot(caster.position, target.position, mapData);
+  if (inRange) {
+    return {
+      actionType: 'ability',
+      abilityId: ability.id,
+      targetPosition: target.position,
+      targetCharacterIds: [target.id],
+      score,
+      description: `Heal/Buff ${target.name} with ${ability.name}`,
     };
+  }
+
+  const moveTile = findCastPosition(reachableTiles, target.position, ability, mapData);
+  if (moveTile) {
+    return {
+      actionType: 'move',
+      targetPosition: moveTile.coordinates,
+      score: score + WEIGHTS.DISTANCE_PENALTY * moveTile.movementCost,
+      description: `Advance to support ${target.name} with ${ability.name}`,
+    };
+  }
+
+  return null;
 }
 
 function getNearestEnemy(character: CombatCharacter, enemies: CombatCharacter[]): CombatCharacter | null {
-    let nearest: CombatCharacter | null = null;
-    let minDist = Infinity;
+  let nearest: CombatCharacter | null = null;
+  let minDist = Infinity;
 
-    for (const enemy of enemies) {
-        const dist = getDistance(character.position, enemy.position);
-        if (dist < minDist) {
-            minDist = dist;
-            nearest = enemy;
-        }
+  for (const enemy of enemies) {
+    const dist = getDistance(character.position, enemy.position);
+    if (dist < minDist) {
+      minDist = dist;
+      nearest = enemy;
     }
-    return nearest;
+  }
+  return nearest;
 }
 
-function planMovement(character: CombatCharacter, targetPos: Position, rangeNeeded: number, mapData: BattleMapData): CombatAction | null {
-    // A simplified pathfinding to move towards target
-    // We want to get within 'rangeNeeded' of 'targetPos'
+function planMovement(
+  character: CombatCharacter,
+  targetPos: Position,
+  rangeNeeded: number,
+  mapData: BattleMapData,
+  reachableTiles?: Map<string, { tile: BattleMapTile; cost: number }>
+): CombatAction | null {
+  // We want to get within 'rangeNeeded' of 'targetPos'
+  const startTile = mapData.tiles.get(`${character.position.x}-${character.position.y}`);
+  if (!startTile) return null;
 
-    // BFS to find reachable tiles
-    const startTile = mapData.tiles.get(`${character.position.x}-${character.position.y}`);
-    if (!startTile) return null;
+  // If already in range, don't move
+  if (getDistance(character.position, targetPos) <= rangeNeeded) return null;
 
-    // If already in range, don't move
-    if (getDistance(character.position, targetPos) <= rangeNeeded) return null;
+  const availableMovement = character.actionEconomy.movement.total - character.actionEconomy.movement.used;
+  if (availableMovement <= 0) return null;
 
-    const availableMovement = character.actionEconomy.movement.total - character.actionEconomy.movement.used;
-    if (availableMovement <= 0) return null;
+  const searchTiles = reachableTiles || buildReachableTileMap(character, mapData);
 
-    // Find best tile to move to: closest to targetPos, within availableMovement
-    let bestTile: BattleMapTile | null = null;
-    let minDistToTarget = Infinity;
+  let bestTile: BattleMapTile | null = null;
+  let minDistToTarget = Infinity;
+  let bestCost = 0;
 
-    // Simple exhaustive search of reachable area (BFS)
-    const queue: { tile: BattleMapTile; cost: number }[] = [{ tile: startTile, cost: 0 }];
-    const visited = new Set<string>([startTile.id]);
-
-    while (queue.length > 0) {
-        const { tile, cost } = queue.shift()!;
-
-        const distToTarget = getDistance(tile.coordinates, targetPos);
-
-        // If this tile is valid end spot (within range of target)
-        // Or just closer than what we have found so far
-        if (distToTarget < minDistToTarget) {
-            minDistToTarget = distToTarget;
-            bestTile = tile;
-        }
-
-        // Explore neighbors
-        if (cost < availableMovement) {
-             for (let dx = -1; dx <= 1; dx++) {
-                for (let dy = -1; dy <= 1; dy++) {
-                    if (dx === 0 && dy === 0) continue;
-                    const neighborId = `${tile.coordinates.x + dx}-${tile.coordinates.y + dy}`;
-                    const neighbor = mapData.tiles.get(neighborId);
-                    if (neighbor && !neighbor.blocksMovement && !visited.has(neighborId)) {
-                        const newCost = cost + neighbor.movementCost;
-                        if (newCost <= availableMovement) {
-                            visited.add(neighborId);
-                            queue.push({ tile: neighbor, cost: newCost });
-                        }
-                    }
-                }
-            }
-        }
+  // Choose the reachable tile that gets us as close as possible to desired range while avoiding blockers.
+  searchTiles.forEach(({ tile, cost }) => {
+    const distToTarget = getDistance(tile.coordinates, targetPos);
+    if (distToTarget < minDistToTarget) {
+      minDistToTarget = distToTarget;
+      bestTile = tile;
+      bestCost = cost;
     }
+  });
 
-    if (bestTile && bestTile.id !== startTile.id) {
-         return {
-            id: generateId(),
-            characterId: character.id,
-            type: 'move',
-            cost: { type: 'movement-only', movementCost: availableMovement }, // Simplify cost calc for now
-            targetPosition: bestTile.coordinates,
-            timestamp: Date.now()
-        };
+  if (bestTile && bestTile.id !== startTile.id) {
+    return {
+      id: generateId(),
+      characterId: character.id,
+      type: 'move',
+      cost: { type: 'movement-only', movementCost: bestCost },
+      targetPosition: bestTile.coordinates,
+      timestamp: Date.now(),
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Builds a map of all reachable tiles and their cost using a BFS flood fill.
+ * This is reused by many scoring functions to avoid redundant map scans.
+ */
+function buildReachableTileMap(
+  character: CombatCharacter,
+  mapData: BattleMapData
+): Map<string, { tile: BattleMapTile; cost: number }> {
+  const reachable = new Map<string, { tile: BattleMapTile; cost: number }>();
+  const startTile = mapData.tiles.get(`${character.position.x}-${character.position.y}`);
+  if (!startTile) return reachable;
+
+  const availableMovement = character.actionEconomy.movement.total - character.actionEconomy.movement.used;
+  const queue: { tile: BattleMapTile; cost: number }[] = [{ tile: startTile, cost: 0 }];
+  const visited = new Set<string>([startTile.id]);
+
+  while (queue.length > 0) {
+    const { tile, cost } = queue.shift()!;
+    reachable.set(tile.id, { tile, cost });
+
+    if (cost >= availableMovement) continue;
+
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        if (dx === 0 && dy === 0) continue;
+        const neighborId = `${tile.coordinates.x + dx}-${tile.coordinates.y + dy}`;
+        const neighbor = mapData.tiles.get(neighborId);
+        if (neighbor && !neighbor.blocksMovement && !visited.has(neighborId)) {
+          const newCost = cost + neighbor.movementCost;
+          if (newCost <= availableMovement) {
+            visited.add(neighborId);
+            queue.push({ tile: neighbor, cost: newCost });
+          }
+        }
+      }
     }
+  }
 
-    return null;
+  return reachable;
+}
+
+/**
+ * Finds a reachable tile from which an ability can be cast at the target position.
+ * The search prioritizes minimal movement and valid line of sight.
+ */
+function findCastPosition(
+  reachableTiles: Map<string, { tile: BattleMapTile; cost: number }>,
+  targetPos: Position,
+  ability: Ability,
+  mapData: BattleMapData
+): BattleMapTile | null {
+  let bestTile: BattleMapTile | null = null;
+  let bestCost = Infinity;
+
+  reachableTiles.forEach(({ tile, cost }) => {
+    const distance = getDistance(tile.coordinates, targetPos);
+    const targetTile = mapData.tiles.get(`${targetPos.x}-${targetPos.y}`);
+    const hasLos = targetTile ? hasLineOfSight(tile, targetTile, mapData) : false;
+    if (distance <= ability.range && hasLos) {
+      if (cost < bestCost) {
+        bestCost = cost;
+        bestTile = tile;
+      }
+    }
+  });
+
+  return bestTile;
+}
+
+/**
+ * Returns true if the straight line between origin and target is unobstructed.
+ * This reuses the tile-aware line of sight helper for clarity.
+ */
+function hasClearShot(origin: Position, target: Position, mapData: BattleMapData): boolean {
+  const startTile = mapData.tiles.get(`${origin.x}-${origin.y}`);
+  const targetTile = mapData.tiles.get(`${target.x}-${target.y}`);
+  if (!startTile || !targetTile) return false;
+  return hasLineOfSight(startTile, targetTile, mapData);
+}
+
+/**
+ * When low on HP, try to step away from the closest threat while staying within movement.
+ */
+function evaluateRetreatPlan(
+  caster: CombatCharacter,
+  enemies: CombatCharacter[],
+  mapData: BattleMapData,
+  reachableTiles: Map<string, { tile: BattleMapTile; cost: number }>
+): AIPlan | null {
+  const healthPct = caster.currentHP / caster.maxHP;
+  if (healthPct > 0.35) return null; // Only retreat when actually threatened.
+
+  const closestEnemy = getNearestEnemy(caster, enemies);
+  if (!closestEnemy) return null;
+
+  let safestTile: BattleMapTile | null = null;
+  let bestScore = -Infinity;
+
+  reachableTiles.forEach(({ tile }) => {
+    const distance = getDistance(tile.coordinates, closestEnemy.position);
+    const safetyScore = distance * WEIGHTS.SAFETY_DISTANCE;
+    if (safetyScore > bestScore) {
+      bestScore = safetyScore;
+      safestTile = tile;
+    }
+  });
+
+  if (safestTile && bestScore > 0) {
+    return {
+      actionType: 'move',
+      targetPosition: safestTile.coordinates,
+      score: bestScore + WEIGHTS.SELF_PRESERVATION,
+      description: `Retreat to safety from ${closestEnemy.name}`,
+    };
+  }
+
+  return null;
 }

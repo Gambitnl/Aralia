@@ -6,6 +6,7 @@ import React from 'react';
 import { CombatCharacter } from '../../types/combat';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
 import Tooltip from '../Tooltip';
+import { getStatusEffectIcon } from '../../utils/combatUtils';
 
 interface CharacterTokenProps {
   character: CombatCharacter;
@@ -63,7 +64,7 @@ const CharacterToken: React.FC<CharacterTokenProps> = ({ character, position, is
   const icon = getClassIcon(character.class.id);
 
   return (
-    <div style={style} className="flex items-center justify-center pointer-events-auto" onClick={onClick}>
+    <div style={style} className="relative flex items-center justify-center pointer-events-auto" onClick={onClick}>
       <Tooltip content={`${character.name} (AC: ${character.class.id === 'fighter' ? 18 : 12}, HP: ${character.currentHP}/${character.maxHP})`}>
         <div
           style={tokenStyle}
@@ -73,6 +74,22 @@ const CharacterToken: React.FC<CharacterTokenProps> = ({ character, position, is
           {icon}
         </div>
       </Tooltip>
+
+      {/* Status effect badges hover near the token to visualize buffs/debuffs without opening a sheet. */}
+      {character.statusEffects.length > 0 && (
+        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+          {character.statusEffects.map((effect, idx) => (
+            <Tooltip key={`${effect.id}-${idx}`} content={`${effect.name} (${effect.duration}t)`}>
+              <span
+                className="w-6 h-6 rounded-full bg-gray-900 border border-white/40 flex items-center justify-center text-xs"
+                style={{ boxShadow: '0 2px 6px rgba(0,0,0,0.45)' }}
+              >
+                {getStatusEffectIcon(effect)}
+              </span>
+            </Tooltip>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
