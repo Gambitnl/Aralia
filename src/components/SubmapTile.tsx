@@ -83,7 +83,9 @@ const SubmapTile: React.FC<SubmapTileProps> = React.memo(({
   // but here we mostly render what we are told). 
   
   if (isInteractiveResource) {
-      dynamicClasses += ' hover:ring-2 hover:ring-green-400 cursor-pointer';
+      // Optimized: replaced ring with box-shadow or brightness filter to avoid layout shifts if possible,
+      // but ring is usually okay. Removed 'transition-all' from base class to avoid heavy paints on hover.
+      dynamicClasses += ' hover:brightness-125 cursor-pointer';
   }
   
   if (isInQuickTravelPath) {
@@ -94,7 +96,7 @@ const SubmapTile: React.FC<SubmapTileProps> = React.memo(({
       if (isBlockedForTravel) {
           dynamicClasses += ' cursor-not-allowed bg-red-800/30';
       } else {
-          dynamicClasses += ' cursor-pointer';
+          dynamicClasses += ' cursor-pointer hover:bg-white/10'; // Lighter hover effect
       }
   }
   
@@ -111,7 +113,8 @@ const SubmapTile: React.FC<SubmapTileProps> = React.memo(({
       <div
         role="gridcell"
         aria-label={`Tile at ${c},${r}. ${typeof tooltipContent === 'string' ? tooltipContent : 'Visual detail.'}`}
-        className={`w-full h-full flex items-center justify-center text-center text-sm relative transition-all duration-150 border border-black/10 ${dynamicClasses}`}
+        // Optimized: Removed 'transition-all duration-150' to prevent layout thrashing during rapid mouse movement over grid
+        className={`w-full h-full flex items-center justify-center text-center text-sm relative border border-black/10 ${dynamicClasses}`}
         style={{ ...visuals.style, zIndex: visuals.zIndex, userSelect: 'none' }}
         onMouseEnter={handleMouseEnter}
         onClick={handleClick}

@@ -70,6 +70,7 @@ import MissingChoiceModal from './components/MissingChoiceModal'; // New Import
 import LoadGameTransition from './components/LoadGameTransition';
 import { NotificationSystem } from './components/NotificationSystem';
 import QuestLog from './components/QuestLog';
+import Minimap from './components/Minimap';
 
 
 const App: React.FC = () => {
@@ -617,10 +618,17 @@ const App: React.FC = () => {
           </ErrorBoundary>
         </div>
 
-        <div className="md:w-3/5 lg:w-2/3 flex flex-col gap-2 sm:gap-4 min-h-0">
+        <div className="md:w-3/5 lg:w-2/3 flex flex-col gap-2 sm:gap-4 min-h-0 relative">
           <ErrorBoundary fallbackMessage="Error in World Pane.">
             <WorldPane messages={gameState.messages} />
           </ErrorBoundary>
+          <Minimap
+              mapData={gameState.mapData}
+              currentLocationCoords={currentLocationData.mapCoordinates}
+              submapCoords={gameState.subMapCoordinates}
+              visible={true} // Always visible in this layout
+              toggleMap={() => processAction({ type: 'toggle_map', label: 'Open Map' })}
+          />
         </div>
       </div>
     );

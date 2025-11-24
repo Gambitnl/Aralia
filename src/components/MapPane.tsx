@@ -19,7 +19,15 @@ interface MapPaneProps {
 const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
   const { gridSize, tiles } = mapData;
   const [focusedCoords, setFocusedCoords] = useState<{ x: number; y: number } | null>(null);
+
+  // New state for pan and zoom
+  const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
   const gridRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null); // Ref for the close button
 
   // Set initial focus when map opens
@@ -41,44 +49,97 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
     }
   }, [focusedCoords]);
 
-  const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (!focusedCoords) return;
+  // Handle mouse wheel for zooming
+  const handleWheel = (e: React.WheelEvent) => {
+      e.preventDefault();
+      const zoomSensitivity = 0.1;
+      const delta = -Math.sign(e.deltaY) * zoomSensitivity;
+      const newScale = Math.min(Math.max(0.5, scale + delta), 3); // Limit zoom between 0.5x and 3x
+      setScale(newScale);
+  };
 
-    let { x, y } = focusedCoords;
+  // Handle mouse down for panning
+  const handleMouseDown = (e: React.MouseEvent) => {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
+  };
+
+  // Handle mouse move for panning
+  const handleMouseMove = (e: React.MouseEvent) => {
+      if (!isDragging) return;
+      setOffset({
+          x: e.clientX - dragStart.x,
+          y: e.clientY - dragStart.y
+      });
+  };
+
+  // Handle mouse up to stop panning
+  const handleMouseUp = () => {
+      setIsDragging(false);
+  };
+
+  const handleRecenter = () => {
+      setOffset({ x: 0, y: 0 });
+      setScale(1);
+  };
+
+
+  const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
+    // If modifier key is pressed, don't interfere (allows browser shortcuts)
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+    let { x, y } = focusedCoords || { x: 0, y: 0 }; // Default to 0,0 if null
     let newX = x;
     let newY = y;
+    let handled = false;
 
     switch (event.key) {
       case 'ArrowUp':
-        event.preventDefault();
+        handled = true;
         newY = Math.max(0, y - 1);
         break;
       case 'ArrowDown':
-        event.preventDefault();
+        handled = true;
         newY = Math.min(gridSize.rows - 1, y + 1);
         break;
       case 'ArrowLeft':
-        event.preventDefault();
+        handled = true;
         newX = Math.max(0, x - 1);
         break;
       case 'ArrowRight':
-        event.preventDefault();
+        handled = true;
         newX = Math.min(gridSize.cols - 1, x + 1);
         break;
       case 'Enter':
       case ' ': 
-        event.preventDefault();
+        handled = true;
         const currentTile = tiles[y]?.[x];
         if (currentTile && (currentTile.discovered || currentTile.isPlayerCurrent)) {
           onTileClick(x, y, currentTile);
         }
-        return; 
+        break;
       case 'Escape':
-        event.preventDefault();
+        handled = true;
         onClose();
-        return;
-      default:
-        return; 
+        break;
+      case '+':
+      case '=':
+        handled = true;
+        setScale(s => Math.min(3, s + 0.1));
+        break;
+      case '-':
+      case '_':
+        handled = true;
+        setScale(s => Math.max(0.5, s - 0.1));
+        break;
+      case '0':
+        handled = true;
+        handleRecenter();
+        break;
+    }
+
+    if (handled) {
+        event.preventDefault();
     }
 
     if (newX !== x || newY !== y) {
@@ -167,16 +228,23 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
         </div>
 
         <div 
-            className="overflow-auto scrollable-content flex-grow p-2 bg-black bg-opacity-10 rounded"
-            ref={gridRef}
+            className="overflow-hidden flex-grow p-2 bg-black bg-opacity-10 rounded relative cursor-grab active:cursor-grabbing"
+            ref={containerRef}
+            onWheel={handleWheel}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
         >
           <div 
-            className="grid gap-0.5" 
+            className="grid gap-0.5 transition-transform duration-75 ease-out origin-center"
             style={{ 
               gridTemplateColumns: `repeat(${gridSize.cols}, minmax(0, 1fr))`,
               gridTemplateRows: `repeat(${gridSize.rows}, minmax(0, 1fr))`,
+              transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
             }}
             role="grid" 
+            ref={gridRef}
           >
             {tiles.flat().map((tile, index) => {
               const biome = BIOMES[tile.biomeId];
@@ -213,9 +281,16 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
               );
             })}
           </div>
+
+          {/* Controls Overlay */}
+          <div className="absolute bottom-4 right-4 flex flex-col gap-2">
+              <button onClick={() => setScale(s => Math.min(3, s + 0.2))} className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded shadow" aria-label="Zoom In">+</button>
+              <button onClick={handleRecenter} className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded shadow" aria-label="Reset View">⟲</button>
+              <button onClick={() => setScale(s => Math.max(0.5, s - 0.2))} className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded shadow" aria-label="Zoom Out">-</button>
+          </div>
         </div>
         <GlossaryDisplay items={mapGlossaryItems} title="Map Legend" />
-        <p className="text-xs text-center mt-2 text-gray-700">Use Tab to focus the grid, Arrow Keys to navigate, Enter/Space to select a tile. Esc to close.</p>
+        <p className="text-xs text-center mt-2 text-gray-700">Use Tab to focus the grid, Arrow Keys to navigate, +/- to zoom, drag to pan. Esc to close.</p>
       </div>
     </div>
   );
