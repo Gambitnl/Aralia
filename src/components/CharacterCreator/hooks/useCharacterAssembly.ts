@@ -224,7 +224,9 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
     const assembledCharacter: PlayerCharacter = {
       id: `${Date.now()}-${(currentName || "char").replace(/\s+/g, '-')}`,
       name: currentName || "Adventurer",
+      age: currentState.characterAge,
       level: 1,
+      xp: 0,
       proficiencyBonus: 2,
       race: selectedRace,
       class: finalClass,
@@ -238,6 +240,7 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       darkvisionRange: calculateCharacterDarkvision(selectedRace, racialSelections['elf']?.choiceId as 'drow' | 'high_elf' | 'wood_elf' | undefined, racialSelections['gnome']?.choiceId as 'forest_gnome' | 'rock_gnome' | 'deep_gnome' | undefined),
       transportMode: 'foot',
       selectedWeaponMasteries: currentState.selectedWeaponMasteries || [],
+      feats: currentState.selectedFeat ? [currentState.selectedFeat] : [],
       equippedItems: {}, 
       ...castingProperties,
       selectedFightingStyle: currentState.selectedFightingStyle || undefined,

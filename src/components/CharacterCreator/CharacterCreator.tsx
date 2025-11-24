@@ -29,6 +29,7 @@ import {
   RACES_DATA,
   CLASSES_DATA,
 } from '../../constants';
+import { FEATS_DATA } from '../../data/feats/featsData';
 import RaceSelection from './Race/RaceSelection';
 import ClassSelection from './ClassSelection';
 import AbilityScoreAllocation from './AbilityScoreAllocation';
@@ -45,6 +46,7 @@ import BardFeatureSelection from './Class/BardFeatureSelection';
 import DruidFeatureSelection from './Class/DruidFeatureSelection';
 import WarlockFeatureSelection from './Class/WarlockFeatureSelection';
 import WeaponMasterySelection from './WeaponMasterySelection';
+import FeatSelection from './FeatSelection';
 import DragonbornAncestrySelection from './Race/DragonbornAncestrySelection';
 import ElfLineageSelection from './Race/ElvenLineageSelection';
 import GnomeSubraceSelection from './Race/GnomeSubraceSelection';
@@ -176,10 +178,18 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
     dispatch({ type: 'SELECT_WEAPON_MASTERIES', payload: weaponIds });
   }, []);
 
+  const handleFeatSelect = useCallback((featId: string) => {
+    dispatch({ type: 'SELECT_FEAT', payload: featId });
+  }, []);
+
   const handleNameAndReviewSubmit = useCallback((name: string) => {
     dispatch({type: 'SET_CHARACTER_NAME', payload: name});
     assembleAndSubmitCharacter(state, name);
   }, [state, assembleAndSubmitCharacter, dispatch]);
+
+  const handleAgeChange = useCallback((age: number) => {
+      dispatch({ type: 'SET_CHARACTER_AGE', payload: age });
+  }, [dispatch]);
 
   const goBack = useCallback(() => {
     dispatch({ type: 'GO_BACK' });
@@ -274,6 +284,8 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
       case CreationStep.WeaponMastery:
          if (!selectedClass) { dispatch({type: 'SET_STEP', payload: CreationStep.Class }); return null; }
          return <WeaponMasterySelection charClass={selectedClass} onMasteriesSelect={handleWeaponMasteriesSelect} onBack={goBack} />
+      case CreationStep.FeatSelection:
+         return <FeatSelection availableFeats={FEATS_DATA} selectedFeatId={state.selectedFeat || undefined} onSelectFeat={handleFeatSelect} onBack={goBack} />;
       case CreationStep.NameAndReview:
         const characterToPreview: PlayerCharacter | null = generatePreviewCharacter(state, state.characterName);
         if (!characterToPreview) {
@@ -281,7 +293,16 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
             dispatch({ type: 'SET_STEP', payload: CreationStep.Race });
             return <p className="text-red-400">Error: Missing critical character data. Returning to start.</p>;
         }
-        return <NameAndReview characterPreview={characterToPreview} onConfirm={handleNameAndReviewSubmit} initialName={state.characterName} onBack={goBack} />;
+        return (
+            <NameAndReview
+                characterPreview={characterToPreview}
+                onConfirm={handleNameAndReviewSubmit}
+                initialName={state.characterName}
+                initialAge={state.characterAge}
+                onAgeChange={handleAgeChange}
+                onBack={goBack}
+            />
+        );
       default:
         return <p>Unknown character creation step.</p>;
     }

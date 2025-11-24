@@ -3,7 +3,7 @@
  * Defines the dummy character data for development and testing purposes.
  */
 import { PlayerCharacter, Race, Class as CharClass, AbilityScores, Skill, FightingStyle, Item, EquipmentSlotType, Spell, LimitedUses, SpellSlots, SpellbookData } from '../../types';
-import { getAbilityModifierValue, calculateArmorClass, calculateFixedRacialBonuses } from '../../utils/characterUtils'; // Import centralized utility
+import { getAbilityModifierValue, calculateArmorClass, calculateFixedRacialBonuses } from '../../utils/statUtils';
 
 // --- DUMMY CHARACTER FOR DEVELOPMENT ---
 
@@ -53,7 +53,8 @@ export function initializeDummyCharacterData(
     const tempFighter: PlayerCharacter = {
         id: 'dev_dummy_fighter',
         name: "Dev Fighter",
-        level: 1, proficiencyBonus: 2,
+        age: 25,
+        level: 1, proficiencyBonus: 2, xp: 0,
         race: dummyFighterRace, class: dummyFighterClass,
         abilityScores: DUMMY_FIGHTER_BASE_SCORES, finalAbilityScores: DUMMY_FIGHTER_FINAL_SCORES,
         skills: DUMMY_FIGHTER_SKILLS, hp: DUMMY_FIGHTER_MAX_HP, maxHp: DUMMY_FIGHTER_MAX_HP,
@@ -97,7 +98,8 @@ export function initializeDummyCharacterData(
     const tempCleric: PlayerCharacter = {
         id: 'dev_dummy_cleric',
         name: "Dev Cleric",
-        level: 1, proficiencyBonus: 2,
+        age: 55,
+        level: 1, proficiencyBonus: 2, xp: 0,
         race: dummyClericRace, class: dummyClericClass,
         abilityScores: DUMMY_CLERIC_BASE_SCORES, finalAbilityScores: DUMMY_CLERIC_FINAL_SCORES,
         skills: DUMMY_CLERIC_SKILLS, hp: DUMMY_CLERIC_MAX_HP, maxHp: DUMMY_CLERIC_MAX_HP,
