@@ -134,6 +134,19 @@ export interface Feat {
   };
 }
 
+export interface FeatPrerequisiteContext {
+  level: number;
+  abilityScores: AbilityScores;
+  raceId?: string;
+  classId?: string;
+  knownFeats?: string[];
+}
+
+export interface LevelUpChoices {
+  abilityScoreIncreases?: Partial<AbilityScores>;
+  featId?: string;
+}
+
 export interface Race {
   id: string;
   name: string;
@@ -324,6 +337,7 @@ export interface PlayerCharacter {
   finalAbilityScores: AbilityScores;
   skills: Skill[];
   feats?: string[]; // IDs of selected feats
+  initiativeBonus?: number;
   hp: number;
   maxHp: number;
   armorClass: number;

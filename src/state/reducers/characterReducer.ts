@@ -3,9 +3,9 @@
  * @file src/state/reducers/characterReducer.ts
  * A slice reducer that handles character-related state changes (party, inventory, actions).
  */
-import { GameState, LimitedUseAbility, SpellSlots, DiscoveryType, Item, RacialSelectionData } from '../../types';
+import { GameState, LimitedUseAbility, SpellSlots, DiscoveryType, Item, RacialSelectionData, LevelUpChoices } from '../../types';
 import { AppAction } from '../actionTypes';
-import { calculateArmorClass, createPlayerCharacterFromTemp, calculateFinalAbilityScores, getAbilityModifierValue } from '../../utils/characterUtils';
+import { calculateArmorClass, createPlayerCharacterFromTemp, calculateFinalAbilityScores, getAbilityModifierValue, applyXpAndHandleLevelUps, canLevelUp, performLevelUp } from '../../utils/characterUtils';
 import { LOCATIONS, ITEMS, CLASSES_DATA } from '../../constants';
 
 // Helper for resetting limited uses
@@ -319,7 +319,31 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             const charIndex = state.party.findIndex(c => c.id === characterId);
             if (charIndex === -1) return {};
 
-            const charToUpdate = { ...state.party[charIndex] };
+            let charToUpdate = { ...state.party[charIndex] };
+
+            // Level up handling uses a generic choiceType so UI flows can supply XP gains
+            // and the desired ASI/feat selection without adding a new action type.
+            if (choiceType === 'level_up') {
+                const levelChoices = (secondaryValue?.choices || secondaryValue) as LevelUpChoices | undefined;
+                const xpGain = typeof secondaryValue?.xpGained === 'number' ? secondaryValue.xpGained : 0;
+
+                if (xpGain !== 0) {
+                    charToUpdate = applyXpAndHandleLevelUps(charToUpdate, xpGain, levelChoices);
+                } else if (canLevelUp(charToUpdate)) {
+                    charToUpdate = performLevelUp(charToUpdate, levelChoices);
+                }
+
+                // Always refresh AC in case ability scores shifted.
+                charToUpdate.armorClass = calculateArmorClass(charToUpdate);
+                const leveledParty = [...state.party];
+                leveledParty[charIndex] = charToUpdate;
+
+                const leveledCharacterSheetState = state.characterSheetModal.isOpen && state.characterSheetModal.character?.id === characterId
+                    ? { ...state.characterSheetModal, character: charToUpdate }
+                    : state.characterSheetModal;
+
+                return { party: leveledParty, characterSheetModal: leveledCharacterSheetState };
+            }
 
             // Handle Class Feature Updates
             if (choiceType === 'fighting_style') {

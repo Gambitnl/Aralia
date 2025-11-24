@@ -17,7 +17,7 @@ import {
 } from '../../../types';
 import { SKILLS_DATA, WEAPONS_DATA, RACES_DATA, TIEFLING_LEGACIES } from '../../../constants';
 import { CharacterCreationState } from '../state/characterCreatorState'; 
-import { getAbilityModifierValue } from '../../../utils/characterUtils';
+import { getAbilityModifierValue, applyAllFeats } from '../../../utils/characterUtils';
 
 // --- Helper Functions for Character Assembly ---
 function validateAllSelectionsMade(state: CharacterCreationState): boolean {
@@ -221,7 +221,7 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
     
     const castingProperties = assembleCastingProperties(currentState);
     
-    const assembledCharacter: PlayerCharacter = {
+    let assembledCharacter: PlayerCharacter = {
       id: `${Date.now()}-${(currentName || "char").replace(/\s+/g, '-')}`,
       name: currentName || "Adventurer",
       age: currentState.characterAge,
@@ -249,7 +249,12 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       selectedWarlockPatron: currentState.selectedWarlockPatron || undefined,
       racialSelections: currentState.racialSelections,
     };
-    
+
+    // Apply feat benefits after the baseline character is assembled so derived stats update.
+    if (assembledCharacter.feats && assembledCharacter.feats.length > 0) {
+      assembledCharacter = applyAllFeats(assembledCharacter, assembledCharacter.feats);
+    }
+
     return assembledCharacter;
 
   }, []);
