@@ -102,4 +102,9 @@ export type AppAction =
   // Quest Actions
   | { type: 'ACCEPT_QUEST'; payload: Quest }
   | { type: 'UPDATE_QUEST_OBJECTIVE'; payload: { questId: string; objectiveId: string; isCompleted: boolean } }
-  | { type: 'COMPLETE_QUEST'; payload: { questId: string } };
+  | { type: 'COMPLETE_QUEST'; payload: { questId: string } }
+  // Notification Actions
+  | { type: 'ADD_NOTIFICATION'; payload: { type: 'success' | 'error' | 'info' | 'warning'; message: string; duration?: number } }
+  | { type: 'REMOVE_NOTIFICATION'; payload: { id: string } }
+  // Quest UI Actions
+  | { type: 'TOGGLE_QUEST_LOG' };

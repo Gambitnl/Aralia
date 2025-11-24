@@ -56,7 +56,7 @@ export const WEAPONS_DATA: Record<string, Item> = {
 export const ITEMS: Record<string, Item> = {
   // --- Consumables & Other Items ---
   'healing_potion': {
-    id: 'healing_potion', name: 'Healing Potion', icon: '🧪', description: 'A vial of glowing red liquid. Looks restorative.', type: 'consumable', effect: 'heal_25', weight: 0.5, cost: "50 GP"
+    id: 'healing_potion', name: 'Healing Potion', icon: '🧪', description: 'A vial of glowing red liquid. Looks restorative.', type: 'consumable', effect: { type: 'heal', value: 25, dice: '4d4+4' }, weight: 0.5, cost: "50 GP"
   },
   'old_map_fragment': {
     id: 'old_map_fragment', name: 'Old Map Fragment', icon: '📜', description: 'A piece of parchment with faded markings. It seems to show a path leading east.', type: 'note', weight: 0.1,

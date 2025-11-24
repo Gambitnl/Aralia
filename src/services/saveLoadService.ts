@@ -7,13 +7,19 @@ import { GameState, GamePhase } from '../types';
 const SAVE_GAME_VERSION = "0.1.0"; // Current version of the save format
 const DEFAULT_SAVE_SLOT = 'aralia_rpg_default_save';
 
+export interface SaveLoadResult {
+  success: boolean;
+  message?: string;
+  data?: GameState;
+}
+
 /**
  * Saves the current game state to Local Storage.
  * @param {GameState} gameState - The current game state to save.
  * @param {string} [slotName=DEFAULT_SAVE_SLOT] - The name of the save slot.
- * @returns {Promise<boolean>} True if saving was successful, false otherwise.
+ * @returns {Promise<SaveLoadResult>} Result object with success status and message.
  */
-export async function saveGame(gameState: GameState, slotName: string = DEFAULT_SAVE_SLOT): Promise<boolean> {
+export async function saveGame(gameState: GameState, slotName: string = DEFAULT_SAVE_SLOT): Promise<SaveLoadResult> {
   try {
     const stateToSave: GameState = {
       ...gameState,
@@ -30,41 +36,40 @@ export async function saveGame(gameState: GameState, slotName: string = DEFAULT_
       isDevMenuVisible: false,
       isGeminiLogViewerVisible: false,
       characterSheetModal: { isOpen: false, character: null },
+      notifications: [], // Don't save transient notifications
     };
     const serializedState = JSON.stringify(stateToSave);
     localStorage.setItem(slotName, serializedState);
     console.log(`Game saved to slot: ${slotName} at ${new Date(stateToSave.saveTimestamp!).toLocaleString()}`);
-    return true;
+    return { success: true, message: "Game saved successfully." };
   } catch (error) {
     console.error("Error saving game:", error);
     // Handle potential errors like Local Storage being full
     if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.code === 22)) {
-      alert("Failed to save game: Local storage is full. Please free up space or try a different browser.");
+      return { success: false, message: "Failed to save: Local storage is full." };
     } else {
-      alert("Failed to save game. See console for details.");
+      return { success: false, message: "Failed to save game. See console." };
     }
-    return false;
   }
 }
 
 /**
  * Loads game state from Local Storage.
  * @param {string} [slotName=DEFAULT_SAVE_SLOT] - The name of the save slot.
- * @returns {Promise<GameState | null>} The loaded game state or null if loading failed or no save exists.
+ * @returns {Promise<SaveLoadResult>} Result object with success status, message, and loaded data.
  */
-export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT): Promise<GameState | null> {
+export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT): Promise<SaveLoadResult> {
   try {
     const serializedState = localStorage.getItem(slotName);
     if (!serializedState) {
       console.log(`No save game found in slot: ${slotName}`);
-      return null;
+      return { success: false, message: "No save game found." };
     }
     const loadedState: GameState = JSON.parse(serializedState);
 
     if (loadedState.saveVersion !== SAVE_GAME_VERSION) {
       console.warn(`Save game version mismatch. Expected ${SAVE_GAME_VERSION}, found ${loadedState.saveVersion}. Load aborted.`);
-      alert(`Failed to load game: Save file is from an incompatible version (v${loadedState.saveVersion}). Expected v${SAVE_GAME_VERSION}. Please start a new game.`);
-      return null;
+      return { success: false, message: `Save file incompatible (v${loadedState.saveVersion}). Expected v${SAVE_GAME_VERSION}.` };
     }
     
     // Ensure transient states are reset for the loaded game
@@ -83,14 +88,13 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT): Promise<Ga
     // Initialize new fields if loading an older save that might not have them
     loadedState.discoveryLog = loadedState.discoveryLog || [];
     loadedState.unreadDiscoveryCount = loadedState.unreadDiscoveryCount || 0;
-
+    loadedState.notifications = []; // Reset notifications
 
     console.log(`Game loaded from slot: ${slotName}, saved at ${new Date(loadedState.saveTimestamp!).toLocaleString()}`);
-    return loadedState;
+    return { success: true, message: "Game loaded successfully.", data: loadedState };
   } catch (error) {
     console.error("Error loading game:", error);
-    alert("Failed to load game: The save data might be corrupted. See console for details.");
-    return null;
+    return { success: false, message: "Failed to load game. Data corrupted." };
   }
 }
 
@@ -132,6 +136,5 @@ export function deleteSaveGame(slotName: string = DEFAULT_SAVE_SLOT): void {
     console.log(`Save game deleted from slot: ${slotName}`);
   } catch (error) {
     console.error("Error deleting save game:", error);
-    alert("Failed to delete save game. See console for details.");
   }
 }

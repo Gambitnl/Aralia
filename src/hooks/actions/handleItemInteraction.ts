@@ -10,6 +10,7 @@ import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
 import { ITEMS, LOCATIONS, SKILLS_DATA } from '../../constants';
 import * as GeminiService from '../../services/geminiService';
 import { getAbilityModifierValue } from '../../utils/characterUtils';
+import { INITIAL_QUESTS } from '../../data/quests';
 
 interface HandleTakeItemProps {
   action: Action;
@@ -62,6 +63,20 @@ export async function handleTakeItem({
         } 
     });
     addMessage(`You take the ${itemToTake.name}.`, 'system');
+
+    // Check for quest triggers based on item ID
+    if (action.targetId === 'old_map_fragment') {
+       // Trigger 'The Lost Map' quest if not already active/completed
+       const questId = 'lost_map';
+       const quest = INITIAL_QUESTS[questId];
+       if (quest && !gameState.questLog.some(q => q.id === questId)) {
+           dispatch({ type: 'ACCEPT_QUEST', payload: quest });
+           // Also immediately complete the objective "find_map"
+           dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: { questId, objectiveId: 'find_map', isCompleted: true } });
+       } else if (gameState.questLog.some(q => q.id === questId)) {
+           dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: { questId, objectiveId: 'find_map', isCompleted: true } });
+       }
+    }
   } else {
     addMessage(`Cannot take ${ITEMS[action.targetId]?.name || action.targetId}. It's not here or doesn't exist.`, 'system');
   }

@@ -7,8 +7,8 @@
  */
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Location, Action, NPC, Item } from '../types';
 import { Menu, X } from 'lucide-react';
+import { Location, Action, NPC, Item } from '../types';
 
 interface ActionPaneProps {
   currentLocation: Location;
@@ -45,6 +45,7 @@ const ActionButton: React.FC<{
   else if (action.type === 'ANALYZE_SITUATION') colorClasses = "btn-indigo";
   else if (action.type === 'TOGGLE_DISCOVERY_LOG') colorClasses = "btn-lime";
   else if (action.type === 'TOGGLE_LOGBOOK') colorClasses = "btn-amber";
+  else if (action.type === 'TOGGLE_QUEST_LOG') colorClasses = "btn-amber";
   else if (action.type === 'TOGGLE_GLOSSARY_VISIBILITY') colorClasses = "btn-indigo-dark";
   else if (action.type === 'TOGGLE_GAME_GUIDE') colorClasses = "btn-blue";
 
@@ -136,9 +137,14 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   
   // Move actions for named exits (standard non-compass moves)
   if (currentLocation.exits) {
-    Object.entries(currentLocation.exits).forEach(([direction, locationId]) => {
+    Object.entries(currentLocation.exits).forEach(([direction, exit]) => {
        if (!['North', 'South', 'East', 'West', 'NorthEast', 'NorthWest', 'SouthEast', 'SouthWest'].includes(direction)) {
-        generalActions.push({ type: 'move', label: `Go ${direction}`, targetId: String(locationId) });
+        // Handle exit being string (legacy) or object
+        const targetId = typeof exit === 'string' ? exit : exit.targetId;
+        // Optionally verify exit is visible if it's an object
+        if (typeof exit === 'string' || !exit.isHidden) {
+             generalActions.push({ type: 'move', label: `Go ${direction}`, targetId: targetId });
+        }
       }
     });
   }
@@ -245,6 +251,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
                 className="absolute bottom-full right-0 mb-2 w-56 bg-gray-800 border border-gray-600 rounded-lg shadow-xl overflow-hidden z-20 flex flex-col p-2 gap-2"
               >
                  <ActionButton className="w-full text-left" action={{ type: 'TOGGLE_DISCOVERY_LOG', label: 'Journal' }} onClick={(a) => { onAction(a); setIsMenuOpen(false); }} disabled={disabled} badgeCount={unreadDiscoveryCount} />
+                 <ActionButton className="w-full text-left" action={{ type: 'TOGGLE_QUEST_LOG', label: 'Quests' }} onClick={(a) => { onAction(a); setIsMenuOpen(false); }} disabled={disabled} />
                  <ActionButton className="w-full text-left" action={{ type: 'TOGGLE_LOGBOOK', label: 'Logbook' }} onClick={(a) => { onAction(a); setIsMenuOpen(false); }} disabled={disabled} />
                  <ActionButton className="w-full text-left" action={{ type: 'toggle_party_overlay', label: 'Party' }} onClick={(a) => { onAction(a); setIsMenuOpen(false); }} disabled={disabled} />
                  <ActionButton className="w-full text-left" action={{ type: 'TOGGLE_GAME_GUIDE', label: 'Game Guide' }} onClick={(a) => { onAction(a); setIsMenuOpen(false); }} disabled={disabled} />

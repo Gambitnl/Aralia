@@ -121,6 +121,9 @@ export const initialGameState: GameState = {
 
   // Quest System
   questLog: [],
+
+  // Notification System
+  notifications: [],
 };
 
 
@@ -183,6 +186,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 loadingMessage: null,
                 gold: 0,
                 questLog: [],
+                notifications: [],
             };
 
         case 'START_GAME_FOR_DUMMY': {
@@ -209,6 +213,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 isLoading: false, 
                 loadingMessage: null,
                 questLog: [],
+                isQuestLogVisible: false,
+                notifications: [],
             };
         }
 
@@ -243,6 +249,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 isLoading: false, 
                 loadingMessage: null,
                 questLog: [],
+                isQuestLogVisible: false,
+                notifications: [],
             };
         }
 
@@ -301,6 +309,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 locationResidues: loadedState.locationResidues || {},
                 merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
                 questLog: loadedState.questLog || [],
+                isQuestLogVisible: false,
+                notifications: [],
             };
         }
 
@@ -335,6 +345,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 currentLocationActiveDynamicNpcIds: action.payload.initialActiveDynamicNpcIds,
                 gameTime: createInitialGameTime(),
                 questLog: [],
+                isQuestLogVisible: false,
+                notifications: [],
             };
 
         case 'APPLY_TAKE_ITEM_UPDATE': {

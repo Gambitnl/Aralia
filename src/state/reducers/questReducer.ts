@@ -1,9 +1,8 @@
-
 /**
  * @file src/state/reducers/questReducer.ts
- * A slice reducer that handles Quest-related state changes.
+ * Reducer for managing quest state.
  */
-import { GameState, QuestStatus } from '../../types';
+import { GameState, QuestStatus, Quest } from '../../types';
 import { AppAction } from '../actionTypes';
 
 export function questReducer(state: GameState, action: AppAction): Partial<GameState> {
@@ -16,48 +15,94 @@ export function questReducer(state: GameState, action: AppAction): Partial<GameS
       }
       return {
         questLog: [...state.questLog, newQuest],
+        notifications: [...state.notifications, {
+             id: crypto.randomUUID(),
+             type: 'info',
+             message: `Quest Accepted: ${newQuest.title}`,
+             duration: 4000
+        }]
       };
     }
 
     case 'UPDATE_QUEST_OBJECTIVE': {
       const { questId, objectiveId, isCompleted } = action.payload;
       
-      const updatedQuestLog = state.questLog.map(quest => {
-        if (quest.id === questId) {
-          const updatedObjectives = quest.objectives.map(obj => 
-            obj.id === objectiveId ? { ...obj, isCompleted } : obj
-          );
-          return { ...quest, objectives: updatedObjectives };
-        }
-        return quest;
-      });
+      const questIndex = state.questLog.findIndex(q => q.id === questId);
+      if (questIndex === -1) return {};
 
-      return { questLog: updatedQuestLog };
+      const quest = state.questLog[questIndex];
+      const objectiveIndex = quest.objectives.findIndex(o => o.id === objectiveId);
+
+      if (objectiveIndex === -1) return {};
+
+      // If no change, return
+      if (quest.objectives[objectiveIndex].isCompleted === isCompleted) return {};
+
+      const updatedObjectives = [...quest.objectives];
+      updatedObjectives[objectiveIndex] = {
+        ...updatedObjectives[objectiveIndex],
+        isCompleted
+      };
+
+      const updatedQuest = {
+        ...quest,
+        objectives: updatedObjectives
+      };
+
+      const newQuestLog = [...state.questLog];
+      newQuestLog[questIndex] = updatedQuest;
+
+      return {
+        questLog: newQuestLog,
+         notifications: [...state.notifications, {
+             id: crypto.randomUUID(),
+             type: 'success',
+             message: `Quest Updated: ${quest.title}`,
+             duration: 3000
+        }]
+      };
     }
 
     case 'COMPLETE_QUEST': {
       const { questId } = action.payload;
+      const questIndex = state.questLog.findIndex(q => q.id === questId);
+      if (questIndex === -1) return {};
 
-      const updatedQuestLog = state.questLog.map(quest => {
-        if (quest.id === questId) {
-          return { 
-            ...quest, 
-            status: QuestStatus.Completed, 
-            dateCompleted: Date.now() 
-          };
-        }
-        return quest;
-      });
+      const quest = state.questLog[questIndex];
+      if (quest.status === QuestStatus.Completed) return {};
+
+      const updatedQuest = {
+        ...quest,
+        status: QuestStatus.Completed,
+        dateCompleted: Date.now()
+      };
+
+      const newQuestLog = [...state.questLog];
+      newQuestLog[questIndex] = updatedQuest;
       
-      // Logic to add rewards (gold, XP, items) could be handled here or dispatched as separate actions
-      // For simplicity, let's handle basic gold reward here if present in the quest
-      const completedQuest = state.questLog.find(q => q.id === questId);
-      let goldUpdate = {};
-      if (completedQuest && completedQuest.rewards?.gold) {
-          goldUpdate = { gold: state.gold + completedQuest.rewards.gold };
+      let newState: Partial<GameState> = {
+          questLog: newQuestLog,
+          notifications: [...state.notifications, {
+             id: crypto.randomUUID(),
+             type: 'success',
+             message: `Quest Completed: ${quest.title}`,
+             duration: 5000
+        }]
+      };
+
+      // Apply rewards
+      if (quest.rewards) {
+          if (quest.rewards.gold) {
+              newState.gold = (state.gold || 0) + quest.rewards.gold;
+          }
+          if (quest.rewards.xp) {
+             // TODO: Add XP to characters
+             // For now just notify
+          }
+          // Items handling would go here, needing item lookup
       }
 
-      return { questLog: updatedQuestLog, ...goldUpdate };
+      return newState;
     }
 
     default:
