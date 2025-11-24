@@ -3,7 +3,7 @@ from playwright.sync_api import Page, expect, sync_playwright
 import time
 
 def test_quest_log_and_notification(page: Page):
-    # 1. Navigate to the app (using port 3001 as seen in logs)
+    # 1. Navigate to the app
     page.goto("http://localhost:3001")
 
     # Take a screenshot to debug where we are
@@ -24,17 +24,26 @@ def test_quest_log_and_notification(page: Page):
         print(f"Exception during startup: {e}")
 
     # Check if we are in game
+    # With new menu, Save Game is hidden under "System"
+    # So we look for "System" button
     try:
-        save_btn = page.get_by_role("button", name="Save Game")
-        expect(save_btn).to_be_visible(timeout=10000)
-        print("Found Save Game button")
+        system_btn = page.get_by_role("button", name="System")
+        expect(system_btn).to_be_visible(timeout=10000)
+        print("Found System button")
+        system_btn.click() # Open menu
     except Exception as e:
-        print(f"Could not find Save Game button. Taking debug screenshot.")
+        print(f"Could not find System button. Taking debug screenshot.")
         page.screenshot(path="/home/jules/verification/debug_failed_load.png")
         raise e
 
     # 3. Trigger a Notification (Save Game)
+    # Now inside the menu
+    save_btn = page.get_by_role("button", name="Save Game")
+    expect(save_btn).to_be_visible()
     save_btn.click()
+
+    # Menu might close or stay open depending on implementation.
+    # My implementation: `onClick={(a) => { onAction(a); setIsMenuOpen(false); }}` -> Closes.
 
     time.sleep(0.5)
 
@@ -48,9 +57,12 @@ def test_quest_log_and_notification(page: Page):
         except Exception as e:
             print("Could not find success notification. Taking screenshot.")
             page.screenshot(path="/home/jules/verification/debug_failed_notification.png")
-            # Do not fail here, continue to quest log test
+            # Do not fail here
 
     # 4. Open Quest Log
+    # Need to open System menu again
+    system_btn.click()
+
     try:
         quests_btn = page.get_by_role("button", name="Quests")
         quests_btn.click()
