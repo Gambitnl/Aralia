@@ -61,7 +61,8 @@ const Tooltip: React.FC<TooltipProps> = ({
       newLeft = viewportWidth - tooltipRect.width - TOOLTIP_MARGIN;
     }
     
-    setCoords({ top: newTop + window.scrollY, left: newLeft + window.scrollX });
+    // For fixed positioning, we use viewport coordinates directly.
+    setCoords({ top: newTop, left: newLeft });
 
   }, []);
 
