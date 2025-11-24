@@ -374,6 +374,16 @@ export interface Item {
   effect?: ItemEffect;
   mastery?: string;
   category?: string;
+  /** Optional pointer to the container/bag this item currently resides in. */
+  containerId?: string;
+  /** When true, this item behaves like a container capable of holding other items. */
+  isContainer?: boolean;
+  /** Slot capacity limit if the item is a container. */
+  capacitySlots?: number;
+  /** Weight capacity limit if the item is a container. */
+  capacityWeight?: number;
+  /** Restrict what item types can be placed in this container. */
+  allowedItemTypes?: Item['type'][];
   armorCategory?: ArmorCategory;
   baseArmorClass?: number;
   addsDexterityModifier?: boolean;
@@ -570,7 +580,33 @@ export interface Quest {
   rewards?: QuestReward;
   dateStarted: number;
   dateCompleted?: number;
+  /** Optional world-region hint for UI grouping */
+  regionHint?: string;
+  /** Narrative tag such as "Main", "Side", "Guild" for filtering */
+  questType?: 'Main' | 'Side' | 'Guild' | 'Dynamic';
 }
+
+export interface QuestTemplate extends Omit<Quest, 'status' | 'objectives' | 'dateStarted' | 'dateCompleted'> {
+  objectives: Array<Omit<QuestObjective, 'isCompleted'>>;
+  repeatable?: boolean;
+}
+
+/**
+ * ItemContainer is a specialization of Item that can hold other items.
+ * It keeps the base Item contract intact so existing inventory logic can
+ * treat containers as regular items while UI-specific code can read the
+ * additional metadata to build hierarchies.
+ */
+export interface ItemContainer extends Item {
+  isContainer: true;
+  capacitySlots?: number;
+  capacityWeight?: number;
+  allowedItemTypes?: Item['type'][];
+  contents?: Item[];
+}
+
+/** Helper discriminated union for any inventory entry (bag or loose item). */
+export type InventoryEntry = Item | ItemContainer;
 
 export interface GeminiLogEntry {
   timestamp: Date;

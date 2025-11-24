@@ -4,8 +4,8 @@
  * This component displays a list of inventory items with their details and actions.
  * It's used within the CharacterSheetModal.
  */
-import React, { useMemo } from 'react';
-import { PlayerCharacter, Item, Action } from '../types';
+import React, { useEffect, useMemo, useState } from 'react';
+import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry } from '../types';
 import { canEquipItem } from '../utils/characterUtils';
 import Tooltip from './Tooltip';
 
@@ -15,6 +15,15 @@ interface InventoryListProps {
   character: PlayerCharacter;
   onAction: (action: Action) => void;
 }
+
+/**
+ * Lightweight discriminated type-guard used throughout the UI to
+ * determine if an inventory entry can behave like a bag/container.
+ */
+const isContainerItem = (item: InventoryEntry): item is ItemContainer =>
+  (item as ItemContainer).isContainer === true ||
+  typeof (item as ItemContainer).capacitySlots === 'number' ||
+  typeof (item as ItemContainer).capacityWeight === 'number';
 
 const getItemTooltipContent = (item: Item): React.ReactNode => {
   let details = `${item.description}\nType: ${item.type}`;
@@ -71,7 +80,14 @@ const CoinDisplay: React.FC<{ label: string, amount: number, color: string, icon
   </Tooltip>
 );
 
+const ROOT_CONTAINER_ID = 'root-backpack';
+
 const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, character, onAction }) => {
+  /**
+   * The weight computation still sums the raw inventory to keep parity
+   * with the existing encumbrance rules while the nested UI only affects
+   * presentation.
+   */
   const totalInventoryWeight = useMemo(() => {
     return inventory.reduce((total, item) => total + (item.weight || 0), 0).toFixed(2);
   }, [inventory]);
@@ -114,6 +130,188 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
     return inventory.filter(item => !coinIds.includes(item.id));
   }, [inventory]);
 
+  /**
+   * Containers introduce a hierarchy. Because duplicate items are allowed,
+   * we fabricate a stable instanceId for rendering and for in-component
+   * grouping state. The grouping state lives locally because reducers have
+   * not yet been expanded to persist container assignments globally.
+   */
+  const inventoryInstances = useMemo(() => {
+    return nonCoinInventory.map((item, index) => ({ ...item, instanceId: `${item.id}-${index}` }));
+  }, [nonCoinInventory]);
+
+  const [containerAssignments, setContainerAssignments] = useState<Record<string, string>>({});
+  const [collapsedContainers, setCollapsedContainers] = useState<Record<string, boolean>>({});
+
+  // Keep local container assignments in sync with incoming inventory payloads
+  useEffect(() => {
+    setContainerAssignments(prev => {
+      const nextAssignments: Record<string, string> = {};
+      inventoryInstances.forEach(instance => {
+        nextAssignments[instance.instanceId] = prev[instance.instanceId] || instance.containerId || ROOT_CONTAINER_ID;
+      });
+      return nextAssignments;
+    });
+  }, [inventoryInstances]);
+
+  const containerEntries = useMemo(() => inventoryInstances.filter(isContainerItem), [inventoryInstances]);
+
+  type ContainerBucket = { containerItem?: InventoryEntry & { instanceId: string }; children: (InventoryEntry & { instanceId: string })[] };
+
+  const containerBuckets = useMemo(() => {
+    const buckets = new Map<string, ContainerBucket>();
+    buckets.set(ROOT_CONTAINER_ID, { children: [] });
+
+    // Ensure every container has a bucket, then place all entries into their bucket.
+    inventoryInstances.forEach(instance => {
+      if (isContainerItem(instance)) {
+        buckets.set(instance.instanceId, { containerItem: instance, children: [] });
+      }
+    });
+
+    inventoryInstances.forEach(instance => {
+      const assignedContainerId = containerAssignments[instance.instanceId] || instance.containerId || ROOT_CONTAINER_ID;
+      const targetBucket = buckets.get(assignedContainerId) || buckets.get(ROOT_CONTAINER_ID)!;
+      targetBucket.children.push(instance);
+    });
+
+    return buckets;
+  }, [containerAssignments, inventoryInstances]);
+
+  const calculateContainedWeight = (containerId: string, visited: Set<string> = new Set()): number => {
+    // Defensive recursion guard against accidental self-assignment cycles.
+    if (visited.has(containerId)) return 0;
+    visited.add(containerId);
+
+    const bucket = containerBuckets.get(containerId);
+    if (!bucket) return 0;
+
+    return bucket.children.reduce((total, entry) => {
+      const childWeight = (entry.weight || 0) + (isContainerItem(entry) ? calculateContainedWeight(entry.instanceId, visited) : 0);
+      return total + childWeight;
+    }, 0);
+  };
+
+  const handleMoveToContainer = (itemInstanceId: string, containerId: string) => {
+    setContainerAssignments(prev => ({ ...prev, [itemInstanceId]: containerId }));
+  };
+
+  const renderContainer = (bucketId: string, depth = 0): React.ReactNode => {
+    const bucket = containerBuckets.get(bucketId);
+    if (!bucket) return null;
+
+    const containerItem = bucket.containerItem as (InventoryEntry & { instanceId: string }) | undefined;
+    const containerName = containerItem ? containerItem.name : 'Backpack';
+    const isCollapsed = collapsedContainers[bucketId];
+    const availableCapacitySlots = containerItem?.capacitySlots;
+    const availableCapacityWeight = containerItem?.capacityWeight;
+    const usedWeight = calculateContainedWeight(bucketId);
+
+    return (
+      <div className={`${depth === 0 ? '' : 'mt-2'} bg-gray-800/70 rounded border border-gray-700/60 p-3`}>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            {containerItem ? (
+              <button
+                className="text-xs text-amber-400 hover:text-amber-200"
+                onClick={() => setCollapsedContainers(prev => ({ ...prev, [bucketId]: !prev[bucketId] }))}
+                aria-label={`Toggle ${containerName} contents`}
+              >
+                {isCollapsed ? '▶' : '▼'}
+              </button>
+            ) : null}
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold text-amber-200">{containerName}</span>
+              <span className="text-[10px] text-gray-500">{bucket.children.length} item(s)</span>
+            </div>
+          </div>
+          <div className="flex gap-2 text-[10px] text-gray-400">
+            {availableCapacitySlots !== undefined && (
+              <span className={bucket.children.length > availableCapacitySlots ? 'text-red-300' : ''}>
+                Slots: {bucket.children.length}/{availableCapacitySlots}
+              </span>
+            )}
+            {availableCapacityWeight !== undefined && (
+              <span className={usedWeight > availableCapacityWeight ? 'text-red-300' : ''}>
+                Weight: {usedWeight.toFixed(2)} / {availableCapacityWeight}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {!isCollapsed && (
+          <ul className="mt-2 space-y-1.5">
+            {bucket.children.map(child => {
+              const key = child.instanceId;
+              const { can: canBeEquipped, reason: cantEquipReason } =
+                (child.type === 'armor' || child.type === 'weapon') && child.slot ?
+                  canEquipItem(character, child) : { can: false, reason: undefined };
+
+              const isFood = child.type === 'food_drink';
+              const isExpired = false; // Placeholder logic for now
+              const childIsContainer = isContainerItem(child);
+
+              return (
+                <React.Fragment key={key}>
+                  <li className="p-2 bg-gray-700/70 rounded-md border border-gray-600/40 flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {child.icon && <span className="text-xl w-6 text-center flex-shrink-0 filter drop-shadow-sm">{child.icon}</span>}
+                      <Tooltip content={getItemTooltipContent(child)}>
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-medium text-amber-200 text-sm cursor-help truncate" title={child.name}>{child.name}</span>
+                          {child.perishable && <span className="text-[10px] text-orange-300">Expires: {child.shelfLife || 'Unknown'}</span>}
+                        </div>
+                      </Tooltip>
+                    </div>
+                    <div className="flex gap-1.5 items-center">
+                      {containerEntries.length > 0 && (
+                        <select
+                          className="text-xs bg-gray-800 border border-gray-600 text-gray-200 rounded px-1 py-0.5"
+                          value={containerAssignments[child.instanceId] || ROOT_CONTAINER_ID}
+                          onChange={e => handleMoveToContainer(child.instanceId, e.target.value)}
+                        >
+                          <option value={ROOT_CONTAINER_ID}>Backpack</option>
+                          {containerEntries.map(container => (
+                            <option key={container.instanceId} value={container.instanceId} disabled={container.instanceId === child.instanceId}>
+                              {container.name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      {(child.type === 'consumable' || isFood) && (
+                        <button onClick={() => onAction({ type: 'use_item', label: isFood ? `Eat ${child.name}` : `Use ${child.name}`, payload: { itemId: child.id, characterId: character.id! } })}
+                          disabled={isExpired}
+                          className="text-xs bg-green-700 hover:bg-green-600 text-white px-2 py-1 rounded disabled:bg-gray-600 transition-colors shadow-sm">
+                          {isFood ? 'Eat' : 'Use'}
+                        </button>
+                      )}
+                      {(child.type === 'armor' || child.type === 'weapon') && child.slot && (
+                        <Tooltip content={canBeEquipped ? `Equip ${child.name}` : (cantEquipReason || "Cannot equip")}>
+                          <button onClick={() => onAction({ type: 'EQUIP_ITEM', label: `Equip ${child.name}`, payload: { itemId: child.id, characterId: character.id! } })}
+                            disabled={!canBeEquipped}
+                            className="text-xs bg-sky-700 hover:bg-sky-600 text-white px-2 py-1 rounded disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors shadow-sm">
+                            Equip
+                          </button>
+                        </Tooltip>
+                      )}
+                      <button onClick={() => onAction({ type: 'DROP_ITEM', label: `Drop ${child.name}`, payload: { itemId: child.id, characterId: character.id! } })}
+                        className="text-xs bg-red-800 hover:bg-red-700 text-white px-2 py-1 rounded transition-colors shadow-sm">Drop</button>
+                    </div>
+                  </li>
+                  {childIsContainer && (
+                    <div className="mt-2 ml-4">
+                      {renderContainer(child.instanceId, depth + 1)}
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col h-full">
 
@@ -136,52 +334,9 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
       </div>
 
       {nonCoinInventory.length > 0 ? (
-        <ul className="space-y-1.5 max-h-[calc(100vh-300px)] overflow-y-auto scrollable-content pr-1">
-          {nonCoinInventory.map((item, index) => {
-            // Using index in key because duplicate items are allowed
-            const key = `${item.id}-${index}`;
-            const { can: canBeEquipped, reason: cantEquipReason } =
-              (item.type === 'armor' || item.type === 'weapon') && item.slot ?
-                canEquipItem(character, item) : { can: false, reason: undefined };
-
-            const isFood = item.type === 'food_drink';
-            const isExpired = false; // Placeholder logic for now
-
-            return (
-              <li key={key} className="p-2.5 bg-gray-700/70 rounded-md shadow-sm border border-gray-600/50 flex items-center justify-between hover:bg-gray-600/70 transition-colors group">
-                <div className="flex items-center flex-grow min-w-0">
-                  {item.icon && <span className="text-xl mr-3 w-6 text-center flex-shrink-0 filter drop-shadow-sm">{item.icon}</span>}
-                  <Tooltip content={getItemTooltipContent(item)}>
-                    <div className="flex flex-col">
-                      <span className="font-medium text-amber-200 text-sm cursor-help truncate group-hover:text-white transition-colors" title={item.name}>{item.name}</span>
-                      {item.perishable && <span className="text-[10px] text-orange-300">Expires: {item.shelfLife || 'Unknown'}</span>}
-                    </div>
-                  </Tooltip>
-                </div>
-                <div className="flex gap-1.5 flex-shrink-0 ml-2">
-                  {(item.type === 'consumable' || isFood) && (
-                    <button onClick={() => onAction({ type: 'use_item', label: isFood ? `Eat ${item.name}` : `Use ${item.name}`, payload: { itemId: item.id, characterId: character.id! } })}
-                      disabled={isExpired}
-                      className="text-xs bg-green-700 hover:bg-green-600 text-white px-2 py-1 rounded disabled:bg-gray-600 transition-colors shadow-sm">
-                      {isFood ? 'Eat' : 'Use'}
-                    </button>
-                  )}
-                  {(item.type === 'armor' || item.type === 'weapon') && item.slot && (
-                    <Tooltip content={canBeEquipped ? `Equip ${item.name}` : (cantEquipReason || "Cannot equip")}>
-                      <button onClick={() => onAction({ type: 'EQUIP_ITEM', label: `Equip ${item.name}`, payload: { itemId: item.id, characterId: character.id! } })}
-                        disabled={!canBeEquipped}
-                        className="text-xs bg-sky-700 hover:bg-sky-600 text-white px-2 py-1 rounded disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors shadow-sm">
-                        Equip
-                      </button>
-                    </Tooltip>
-                  )}
-                  <button onClick={() => onAction({ type: 'DROP_ITEM', label: `Drop ${item.name}`, payload: { itemId: item.id, characterId: character.id! } })}
-                    className="text-xs bg-red-800 hover:bg-red-700 text-white px-2 py-1 rounded transition-colors shadow-sm">Drop</button>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto scrollable-content pr-1">
+          {renderContainer(ROOT_CONTAINER_ID)}
+        </div>
       ) : <p className="text-sm text-gray-500 italic p-4 text-center border border-dashed border-gray-700 rounded">Backpack is empty.</p>}
     </div>
   );
