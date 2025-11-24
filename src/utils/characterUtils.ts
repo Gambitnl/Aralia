@@ -3,9 +3,9 @@
  * This file contains utility functions related to player characters,
  * such as calculating ability score modifiers, armor class, and equipment rules.
  */
-import { PlayerCharacter, Race, Item, ArmorCategory, ArmorProficiencyLevel, TempPartyMember, AbilityScores, Class as CharClass, DraconicAncestryInfo, EquipmentSlotType } from '../types';
-import { RACES_DATA, GIANT_ANCESTRIES, TIEFLING_LEGACIES, CLASSES_DATA, DRAGONBORN_ANCESTRIES } from '../constants';
-import { XP_THRESHOLDS_BY_LEVEL } from '../data/dndData';
+import { PlayerCharacter, Race, Item, ArmorCategory, ArmorProficiencyLevel, TempPartyMember, AbilityScores, Class as CharClass, DraconicAncestryInfo, EquipmentSlotType, Feat, FeatPrerequisiteContext, LevelUpChoices, AbilityScoreName } from '../types';
+import { RACES_DATA, GIANT_ANCESTRIES, TIEFLING_LEGACIES, CLASSES_DATA, DRAGONBORN_ANCESTRIES, SKILLS_DATA } from '../constants';
+import { FEATS_DATA } from '../data/feats/featsData';
 
 /**
  * Calculates the D&D ability score modifier as a number.
@@ -242,33 +242,257 @@ export const canLevelUp = (character: PlayerCharacter): boolean => {
 };
 
 /**
- * Performs a basic level up on a character, returning the updated character object.
- * Note: This only handles automatic stat updates (Level, HP, Proficiency Bonus).
- * Feature selections must be handled separately.
- * @param {PlayerCharacter} character - The character to level up.
- * @returns {PlayerCharacter} The updated character.
+ * Evaluates whether a feat meets the provided prerequisite context.
+ * Returns both a boolean flag and a human-readable list of unmet reasons
+ * to surface in the UI.
  */
-export const performLevelUp = (character: PlayerCharacter): PlayerCharacter => {
+export const evaluateFeatPrerequisites = (
+  feat: Feat,
+  context: FeatPrerequisiteContext,
+): { isEligible: boolean; unmet: string[] } => {
+  const unmet: string[] = [];
+  const { prerequisites } = feat;
+
+  if (prerequisites?.minLevel && context.level < prerequisites.minLevel) {
+    unmet.push(`Requires level ${prerequisites.minLevel}+`);
+  }
+
+  if (prerequisites?.raceId && prerequisites.raceId !== context.raceId) {
+    unmet.push('Restricted to a specific race');
+  }
+
+  if (prerequisites?.classId && prerequisites.classId !== context.classId) {
+    unmet.push('Restricted to a specific class');
+  }
+
+  if (prerequisites?.abilityScores) {
+    Object.entries(prerequisites.abilityScores).forEach(([ability, required]) => {
+      const score = context.abilityScores[ability as AbilityScoreName] ?? 0;
+      if (required && score < required) {
+        unmet.push(`${ability} ${required}+`);
+      }
+    });
+  }
+
+  const alreadyTaken = context.knownFeats?.includes(feat.id);
+  if (alreadyTaken) unmet.push('Already learned');
+
+  return { isEligible: unmet.length === 0, unmet };
+};
+
+/**
+ * Calculates any repeatable HP-per-level bonus from the provided feat list.
+ * Tough and Durable style feats use this path to keep HP math consolidated.
+ */
+const getHpBonusPerLevelFromFeats = (featIds: string[]): number => featIds.reduce((bonus, featId) => {
+  const feat = FEATS_DATA.find(f => f.id === featId);
+  const perLevel = feat?.benefits?.hpMaxIncreasePerLevel ?? 0;
+  return bonus + perLevel;
+}, 0);
+
+/**
+ * Applies a single feat to the character and returns a cloned, updated object.
+ * This helper centralizes stat mutations so the creator and level-up paths
+ * stay consistent.
+ */
+export const applyFeatToCharacter = (character: PlayerCharacter, feat: Feat, options?: { applyHpBonus?: boolean }): PlayerCharacter => {
+  const updated: PlayerCharacter = { ...character };
+  const applyHpBonus = options?.applyHpBonus ?? true;
+
+  if (!updated.feats) updated.feats = [];
+  if (!updated.feats.includes(feat.id)) {
+    updated.feats = [...updated.feats, feat.id];
+  }
+
+  const benefit = feat.benefits;
+  if (benefit?.abilityScoreIncrease) {
+    const nextBase = { ...updated.abilityScores };
+    Object.entries(benefit.abilityScoreIncrease).forEach(([ability, increase]) => {
+      const key = ability as AbilityScoreName;
+      nextBase[key] = Math.min(20, (nextBase[key] || 0) + (increase || 0));
+    });
+    updated.abilityScores = nextBase;
+  }
+
+  if (benefit?.skillProficiencies) {
+    const newSkills = new Map(updated.skills.map(s => [s.id, s]));
+    benefit.skillProficiencies.forEach(skillId => {
+      const skill = SKILLS_DATA[skillId];
+      if (skill) newSkills.set(skillId, skill);
+    });
+    updated.skills = Array.from(newSkills.values());
+  }
+
+  if (benefit?.speedIncrease) {
+    updated.speed = (updated.speed || 0) + benefit.speedIncrease;
+  }
+
+  if (benefit?.initiativeBonus) {
+    updated.initiativeBonus = (updated.initiativeBonus || 0) + benefit.initiativeBonus;
+  }
+
+  if (benefit?.hpMaxIncreasePerLevel && applyHpBonus) {
+    const hpBonus = benefit.hpMaxIncreasePerLevel * (updated.level || 1);
+    updated.maxHp = (updated.maxHp || 0) + hpBonus;
+    updated.hp = Math.min(updated.maxHp, (updated.hp || updated.maxHp) + hpBonus);
+  }
+
+  // Recalculate derived properties when ability scores change.
+  updated.finalAbilityScores = calculateFinalAbilityScores(updated.abilityScores, updated.race, updated.equippedItems);
+  updated.armorClass = calculateArmorClass(updated);
+
+  return updated;
+};
+
+/**
+ * Applies many feats in order. Useful for the character creator preview where
+ * the final sheet should reflect chosen feats.
+ */
+export const applyAllFeats = (character: PlayerCharacter, featIds: string[]): PlayerCharacter => {
+  return featIds.reduce((char, featId) => {
+    const feat = FEATS_DATA.find(f => f.id === featId);
+    return feat ? applyFeatToCharacter(char, feat) : char;
+  }, { ...character });
+};
+
+const ABILITY_SCORE_IMPROVEMENT_LEVELS = [4, 8, 12, 16, 19];
+
+export const getAbilityScoreImprovementBudget = (level: number): number => (
+  ABILITY_SCORE_IMPROVEMENT_LEVELS.includes(level) ? 2 : 0
+);
+
+const clampAbilityScores = (scores: AbilityScores): AbilityScores => {
+  const clamped: AbilityScores = { ...scores };
+  (Object.keys(clamped) as AbilityScoreName[]).forEach(key => {
+    clamped[key] = Math.min(20, Math.max(1, clamped[key]));
+  });
+  return clamped;
+};
+
+const applyAbilityScoreIncreases = (
+  baseScores: AbilityScores,
+  increases: Partial<AbilityScores>,
+  budget: number,
+): AbilityScores => {
+  const updated = { ...baseScores };
+  let spent = 0;
+
+  (Object.keys(increases) as AbilityScoreName[]).forEach(key => {
+    const inc = increases[key] || 0;
+    if (inc <= 0 || spent >= budget) return;
+    const applied = Math.min(inc, budget - spent);
+    updated[key] = (updated[key] || 0) + applied;
+    spent += applied;
+  });
+
+  return clampAbilityScores(updated);
+};
+
+const buildAutomaticAbilityScoreChoice = (character: PlayerCharacter, budget: number): Partial<AbilityScores> => {
+  // Prioritize class primary abilities, then highest scores that have room below 20.
+  const focusList: AbilityScoreName[] = character.class.primaryAbility as AbilityScoreName[];
+  const increases: Partial<AbilityScores> = {};
+  let remaining = budget;
+
+  const sortedAbilities = focusList
+    .concat((Object.keys(character.abilityScores) as AbilityScoreName[]))
+    .filter((value, index, array) => array.indexOf(value) === index);
+
+  sortedAbilities.forEach(ability => {
+    if (remaining <= 0) return;
+    if (character.abilityScores[ability] >= 20) return;
+    const bump = Math.min(2, 20 - character.abilityScores[ability], remaining);
+    if (bump > 0) {
+      increases[ability] = (increases[ability] || 0) + bump;
+      remaining -= bump;
+    }
+  });
+
+  return increases;
+};
+
+/**
+ * Performs a full level up on a character, honoring ability score improvements
+ * and optional feat selections. Defaults to an auto-allocation when no choice
+ * data is supplied so simulation loops can still progress.
+ */
+export const performLevelUp = (
+  character: PlayerCharacter,
+  choices?: LevelUpChoices,
+): PlayerCharacter => {
   if (!canLevelUp(character)) return character;
 
-  const currentLevel = character.level || 1;
-  const newLevel = currentLevel + 1;
+  const previousLevel = character.level || 1;
+  const newLevel = previousLevel + 1;
 
-  // Calculate HP increase (Average of Hit Die + Con Mod)
-  // Hit Die is typically 6, 8, 10, or 12. Average is (HitDie / 2) + 1.
-  const hitDie = character.class.hitDie;
-  const hpIncreaseBase = (hitDie / 2) + 1;
-  const conMod = getAbilityModifierValue(character.finalAbilityScores.Constitution);
-  const hpIncrease = Math.max(1, hpIncreaseBase + conMod); // Min 1 HP gain
+  const asiBudget = getAbilityScoreImprovementBudget(newLevel);
+  const featChosen = choices?.featId;
+  const abilityIncreaseChoice = choices?.abilityScoreIncreases ||
+    (!featChosen && asiBudget > 0 ? buildAutomaticAbilityScoreChoice(character, asiBudget) : undefined);
+  const appliedBudget = asiBudget > 0
+    ? asiBudget
+    : (abilityIncreaseChoice ? Object.values(abilityIncreaseChoice).reduce((sum, v) => sum + (v || 0), 0) : 0);
 
-  // Calculate new Proficiency Bonus
-  const newProficiencyBonus = Math.floor((newLevel - 1) / 4) + 2;
+  // Apply ability score improvements (or leave as-is if none selected).
+  const updatedBaseScores = abilityIncreaseChoice
+    ? applyAbilityScoreIncreases(character.abilityScores, abilityIncreaseChoice, appliedBudget)
+    : character.abilityScores;
 
-  return {
+  const updatedFeats = featChosen ? [...(character.feats || []), featChosen] : (character.feats || []);
+  let updatedCharacter: PlayerCharacter = {
     ...character,
     level: newLevel,
-    maxHp: character.maxHp + hpIncrease,
-    hp: character.hp + hpIncrease, // Heals the new amount? Or just max increases? Usually max increases and current stays, but for video games usually both.
-    proficiencyBonus: newProficiencyBonus,
+    abilityScores: updatedBaseScores,
+    feats: updatedFeats,
   };
+
+  if (featChosen) {
+    const feat = FEATS_DATA.find(f => f.id === featChosen);
+    if (feat) {
+      updatedCharacter = applyFeatToCharacter(updatedCharacter, feat, { applyHpBonus: false });
+    }
+  }
+
+  // Recalculate derived scores after ASI/feat adjustments.
+  updatedCharacter.finalAbilityScores = calculateFinalAbilityScores(updatedCharacter.abilityScores, updatedCharacter.race, updatedCharacter.equippedItems);
+
+  // Calculate HP increase (Average of Hit Die + Con Mod) plus any feat bonuses.
+  const hitDie = updatedCharacter.class.hitDie;
+  const hpIncreaseBase = (hitDie / 2) + 1;
+  const conMod = getAbilityModifierValue(updatedCharacter.finalAbilityScores.Constitution);
+  const hpBonusPerLevel = getHpBonusPerLevelFromFeats(updatedCharacter.feats || []);
+  const hpGainThisLevel = Math.max(1, hpIncreaseBase + conMod + hpBonusPerLevel);
+
+  // Retroactively apply new Con modifier and per-level bonuses to existing levels.
+  const previousConMod = getAbilityModifierValue(character.finalAbilityScores.Constitution);
+  const retroactiveConAdjustment = (conMod - previousConMod) * previousLevel;
+  const retroactiveFeatAdjustment = hpBonusPerLevel * previousLevel;
+
+  updatedCharacter.maxHp = character.maxHp + hpGainThisLevel + retroactiveConAdjustment + retroactiveFeatAdjustment;
+  updatedCharacter.hp = Math.min(updatedCharacter.maxHp, character.hp + hpGainThisLevel + retroactiveConAdjustment + retroactiveFeatAdjustment);
+
+  // Calculate new Proficiency Bonus
+  updatedCharacter.proficiencyBonus = Math.floor((newLevel - 1) / 4) + 2;
+  updatedCharacter.armorClass = calculateArmorClass(updatedCharacter);
+
+  return updatedCharacter;
+};
+
+/**
+ * Adds XP and processes level ups until the character no longer qualifies.
+ */
+export const applyXpAndHandleLevelUps = (
+  character: PlayerCharacter,
+  xpGained: number,
+  choices?: LevelUpChoices,
+): PlayerCharacter => {
+  let updatedCharacter = { ...character, xp: (character.xp || 0) + xpGained };
+  let safetyCounter = 0;
+
+  while (canLevelUp(updatedCharacter) && safetyCounter < 20) {
+    updatedCharacter = performLevelUp(updatedCharacter, choices);
+    safetyCounter += 1;
+  }
+
+  return updatedCharacter;
 };

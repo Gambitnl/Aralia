@@ -145,18 +145,22 @@ const getResetStateForNewRace = (): Partial<CharacterCreationState> => {
   return { ...resettableFields, racialSelections: {} };
 };
 
-const getFieldsToResetOnGoBack = (exitedStep: CreationStep): Partial<CharacterCreationState> => {
+const getFieldsToResetOnGoBack = (state: CharacterCreationState, exitedStep: CreationStep): Partial<CharacterCreationState> => {
     const resetFields: Partial<CharacterCreationState> = {};
+    const pruneRacialSelection = (key: string) => {
+        const nextSelections = { ...state.racialSelections };
+        delete nextSelections[key];
+        resetFields.racialSelections = nextSelections;
+    };
+
     switch (exitedStep) {
-        case CreationStep.DragonbornAncestry:
-        case CreationStep.ElvenLineage:
-        case CreationStep.GnomeSubrace:
-        case CreationStep.GiantAncestry:
-        case CreationStep.TieflingLegacy:
-        case CreationStep.CentaurNaturalAffinitySkill:
-        case CreationStep.ChangelingInstincts:
-            resetFields.racialSelections = {}; // Simplest approach: clear all on going back to race
-            break;
+        case CreationStep.DragonbornAncestry: pruneRacialSelection('dragonborn'); break;
+        case CreationStep.ElvenLineage: pruneRacialSelection('elf'); break;
+        case CreationStep.GnomeSubrace: pruneRacialSelection('gnome'); break;
+        case CreationStep.GiantAncestry: pruneRacialSelection('goliath'); break;
+        case CreationStep.TieflingLegacy: pruneRacialSelection('tiefling'); break;
+        case CreationStep.CentaurNaturalAffinitySkill: pruneRacialSelection('centaur'); break;
+        case CreationStep.ChangelingInstincts: pruneRacialSelection('changeling'); break;
         case CreationStep.Class:
             resetFields.selectedClass = null;
             break;
@@ -165,7 +169,7 @@ const getFieldsToResetOnGoBack = (exitedStep: CreationStep): Partial<CharacterCr
             resetFields.finalAbilityScores = null;
             break;
         case CreationStep.HumanSkillChoice:
-            // This specific selection is now inside racialSelections
+            pruneRacialSelection('human');
             break;
         case CreationStep.Skills:
             resetFields.selectedSkills = [];
@@ -363,16 +367,10 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       const currentStep = state.step;
       if (currentStep === CreationStep.Race) return state;
       const targetPrevStep = stepDefinitions[currentStep]?.previousStep(state) ?? CreationStep.Race;
-      const fieldsToReset = getFieldsToResetOnGoBack(currentStep);
-      // Only reset fields if going back from a selection that would invalidate them is too complex for this reducer structure.
-      // However, the task requests fixing destructive "Back" button behavior.
-      // Simply commenting out the reset logic or making it selective:
-      // Current logic: wipes all subsequent state.
-      // New logic: Only reset if the user *changes* the selection (which happens in the SELECT_... actions).
-      // So here, on GO_BACK, we should NOT reset anything. Just change the step.
-
-      // return { ...state, ...fieldsToReset, step: targetPrevStep };
-      return { ...state, step: targetPrevStep };
+      const fieldsToReset = getFieldsToResetOnGoBack(state, currentStep);
+      // Reset only the data captured on the step we are leaving while leaving
+      // subsequent choices intact for a non-destructive review.
+      return { ...state, ...fieldsToReset, step: targetPrevStep };
     }
     default:
       return state;
