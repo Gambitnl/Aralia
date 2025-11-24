@@ -113,6 +113,27 @@ export interface RacialSpell {
   spellId: string;
 }
 
+export interface Feat {
+  id: string;
+  name: string;
+  description: string;
+  prerequisites?: {
+    minLevel?: number;
+    abilityScores?: Partial<AbilityScores>;
+    raceId?: string;
+    classId?: string;
+  };
+  benefits?: {
+    abilityScoreIncrease?: Partial<AbilityScores>;
+    skillProficiencies?: string[];
+    savingThrowProficiencies?: AbilityScoreName[];
+    speedIncrease?: number;
+    initiativeBonus?: number;
+    hpMaxIncreasePerLevel?: number;
+    resistance?: string[];
+  };
+}
+
 export interface Race {
   id: string;
   name: string;
@@ -293,13 +314,16 @@ export type TransportMode = 'foot' | 'mounted';
 export interface PlayerCharacter {
   id?: string;
   name: string;
+  age?: number;
   level?: number;
+  xp?: number;
   proficiencyBonus?: number;
   race: Race;
   class: Class;
   abilityScores: AbilityScores;
   finalAbilityScores: AbilityScores;
   skills: Skill[];
+  feats?: string[]; // IDs of selected feats
   hp: number;
   maxHp: number;
   armorClass: number;

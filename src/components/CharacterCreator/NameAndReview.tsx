@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { PlayerCharacter, AbilityScoreName, Spell, Item, DraconicAncestryInfo } from '../../types';
 import { RACES_DATA, WEAPONS_DATA, MASTERY_DATA, DRAGONBORN_ANCESTRIES } from '../../constants'; // For lineage/subrace name & item names
+import { FEATS_DATA } from '../../data/feats/featsData';
 import { getCharacterSpells } from '../../utils/spellUtils';
 import { getAbilityModifierString, getCharacterRaceDisplayString } from '../../utils/characterUtils';
 import SpellContext from '../../context/SpellContext'; // Import the new context
@@ -17,14 +18,18 @@ interface NameAndReviewProps {
   onConfirm: (name: string) => void; // Callback when character is confirmed
   onBack: () => void; // Function to go back to the previous step
   initialName?: string; // Optional initial name for the input field
+  initialAge?: number;
+  onAgeChange?: (age: number) => void;
 }
 
 /**
  * NameAndReview component.
  * Allows final review of character details and naming before creation.
  */
-const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfirm, onBack, initialName = '' }) => {
+const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfirm, onBack, initialName = '', initialAge = 25, onAgeChange }) => {
   const [name, setName] = useState(initialName);
+  const [age, setAge] = useState(initialAge);
+
   const { 
     race, 
     class: charClass, 
@@ -36,7 +41,8 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
     selectedWarlockPatron,
     racialSelections,
     selectedWeaponMasteries,
-    speed
+    speed,
+    feats
   } = characterPreview;
 
   const allSpells = useContext(SpellContext);
@@ -48,6 +54,16 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
   useEffect(() => {
     setName(initialName);
   }, [initialName]);
+
+  useEffect(() => {
+      setAge(initialAge);
+  }, [initialAge]);
+
+  const handleAgeChangeLocal = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = parseInt(e.target.value);
+      setAge(val);
+      if (onAgeChange) onAgeChange(val);
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,6 +140,23 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
             <strong>Skills:</strong> {skills.length > 0 ? skills.map(s => `${s.name} (${s.ability.substring(0,3)})`).join(', ') : 'None selected'}
         </div>
         {selectedFightingStyle && <p><strong>Fighting Style:</strong> {selectedFightingStyle.name}</p>}
+        {feats && feats.length > 0 && (
+            <div className="my-2">
+                <strong>Feats:</strong>
+                <ul className="list-disc list-inside ml-4 text-sm">
+                    {feats.map(featId => {
+                        const feat = FEATS_DATA.find(f => f.id === featId);
+                        return feat ? (
+                            <li key={featId}>
+                                <Tooltip content={feat.description}>
+                                    <span className="cursor-help underline decoration-dotted">{feat.name}</span>
+                                </Tooltip>
+                            </li>
+                        ) : null;
+                    })}
+                </ul>
+            </div>
+        )}
         {selectedWeaponMasteries && selectedWeaponMasteries.length > 0 && (
           <div className="my-2">
             <strong>Weapon Masteries:</strong>
@@ -181,6 +214,22 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
             aria-required="true"
             aria-label="Enter your character's name"
           />
+        </div>
+
+        <div>
+            <label htmlFor="characterAge" className="block text-md font-medium text-gray-300 mb-1">
+                Character Age:
+            </label>
+            <input
+                type="number"
+                id="characterAge"
+                value={age}
+                onChange={handleAgeChangeLocal}
+                min={1}
+                max={9999}
+                className="w-full px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+                aria-label="Enter your character's age"
+            />
         </div>
         
         <div className="flex gap-4 pt-2">

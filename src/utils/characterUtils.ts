@@ -5,54 +5,15 @@
  */
 import { PlayerCharacter, Race, Item, ArmorCategory, ArmorProficiencyLevel, TempPartyMember, AbilityScores, Class as CharClass, DraconicAncestryInfo, EquipmentSlotType } from '../types';
 import { RACES_DATA, GIANT_ANCESTRIES, TIEFLING_LEGACIES, CLASSES_DATA, DRAGONBORN_ANCESTRIES } from '../constants';
+import { XP_THRESHOLDS_BY_LEVEL } from '../data/dndData';
 
 /**
  * Calculates the D&D ability score modifier as a number.
  * @param {number} score - The ability score.
  * @returns {number} The numerical modifier (e.g., 2, -1, 0).
  */
-export const getAbilityModifierValue = (score: number): number => {
-  return Math.floor((score - 10) / 2);
-};
-
-/**
- * Calculates the final ability scores for a character, including racial bonuses and equipment bonuses.
- * @param {AbilityScores} baseScores - The character's base ability scores.
- * @param {Race} race - The character's race.
- * @param {Partial<Record<EquipmentSlotType, Item>>} equippedItems - The character's equipped items.
- * @returns {AbilityScores} The final calculated ability scores.
- */
-export const calculateFinalAbilityScores = (
-  baseScores: AbilityScores,
-  race: Race,
-  equippedItems: Partial<Record<EquipmentSlotType, Item>>
-): AbilityScores => {
-  // 1. Start with base scores + racial bonuses
-  const scores = calculateFixedRacialBonuses(baseScores, race);
-
-  // 2. Add bonuses from equipped items
-  Object.values(equippedItems).forEach(item => {
-    if (item && item.statBonuses) {
-      (Object.keys(item.statBonuses) as Array<keyof AbilityScores>).forEach(stat => {
-        if (item.statBonuses![stat]) {
-          scores[stat] += item.statBonuses![stat]!;
-        }
-      });
-    }
-  });
-
-  return scores;
-};
-
-/**
- * Calculates the D&D ability score modifier and returns it as a string.
- * @param {number} score - The ability score.
- * @returns {string} The modifier string (e.g., "+2", "-1", "0").
- */
-export const getAbilityModifierString = (score: number): string => {
-  const mod = getAbilityModifierValue(score);
-  return mod >= 0 ? `+${mod}` : `${mod}`;
-};
+export { getAbilityModifierValue, calculateFinalAbilityScores, getAbilityModifierString } from './statUtils';
+import { getAbilityModifierValue, calculateFinalAbilityScores, calculateFixedRacialBonuses, calculateArmorClass } from './statUtils';
 
 /**
  * Generates a descriptive race display string for a character.
@@ -127,42 +88,7 @@ export const getCharacterMaxArmorProficiency = (character: PlayerCharacter): Arm
   return 'unarmored';
 };
 
-/**
- * Calculates a character's Armor Class based on their equipped items and stats.
- * @param {PlayerCharacter} character - The character object.
- * @returns {number} The calculated Armor Class.
- */
-export const calculateArmorClass = (character: PlayerCharacter): number => {
-  let baseAc = 10;
-  let dexBonus = getAbilityModifierValue(character.finalAbilityScores.Dexterity);
-
-  const armor = character.equippedItems.Torso;
-
-  if (armor && armor.type === 'armor' && armor.baseArmorClass) {
-    baseAc = armor.baseArmorClass;
-    if (armor.addsDexterityModifier) {
-      if (armor.maxDexterityBonus !== undefined) {
-        dexBonus = Math.min(dexBonus, armor.maxDexterityBonus);
-      }
-    } else {
-      dexBonus = 0;
-    }
-  } else { // Unarmored
-    if (character.class.id === 'barbarian') {
-      baseAc = 10 + dexBonus + getAbilityModifierValue(character.finalAbilityScores.Constitution);
-      dexBonus = 0; // Already included in baseAc calculation
-    } else if (character.class.id === 'monk') {
-      baseAc = 10 + dexBonus + getAbilityModifierValue(character.finalAbilityScores.Wisdom);
-      dexBonus = 0; // Already included
-    }
-  }
-
-
-  const shield = character.equippedItems.OffHand;
-  const shieldBonus = (shield && shield.type === 'armor' && shield.armorCategory === 'Shield' && shield.armorClassBonus) ? shield.armorClassBonus : 0;
-
-  return baseAc + dexBonus + shieldBonus;
-};
+export { calculateArmorClass };
 
 /**
  * Checks if a character can equip a given item based on proficiencies and requirements.
@@ -225,21 +151,7 @@ export const canEquipItem = (character: PlayerCharacter, item: Item): { can: boo
   return { can: true };
 };
 
-/**
- * Applies fixed racial bonuses to a set of base ability scores.
- * @param {AbilityScores} baseScores - The base scores before racial bonuses.
- * @param {Race | null} race - The character's race.
- * @returns {AbilityScores} The final scores after fixed bonuses are applied.
- */
-export const calculateFixedRacialBonuses = (baseScores: AbilityScores, race: Race | null): AbilityScores => {
-  const finalScores: AbilityScores = { ...baseScores };
-  if (race && race.abilityBonuses) {
-    race.abilityBonuses.forEach(bonus => {
-      finalScores[bonus.ability] = (finalScores[bonus.ability] || 0) + bonus.bonus;
-    });
-  }
-  return finalScores;
-};
+export { calculateFixedRacialBonuses };
 
 /**
  * Creates a full PlayerCharacter object from a simplified TempPartyMember object.
@@ -257,6 +169,7 @@ export const createPlayerCharacterFromTemp = (tempMember: TempPartyMember): Play
     id: tempMember.id,
     name: `${classData.name} ${tempMember.level}`,
     level: tempMember.level,
+    xp: 0,
     race: raceData,
     class: classData,
     abilityScores: baseAbilityScores,
@@ -273,4 +186,89 @@ export const createPlayerCharacterFromTemp = (tempMember: TempPartyMember): Play
   };
   newChar.armorClass = calculateArmorClass(newChar);
   return newChar;
+};
+
+/**
+ * Returns the XP required to reach the next level.
+ * @param {number} currentLevel - The character's current level.
+ * @returns {number | null} The XP required, or null if max level.
+ */
+export const getXpRequiredForNextLevel = (currentLevel: number): number | null => {
+  if (currentLevel >= 20) return null;
+  // D&D 5e XP cumulative thresholds are usually:
+  // 1->2: 300, 2->3: 900, 3->4: 2700...
+  // The provided XP_THRESHOLDS_BY_LEVEL seems to be encounter thresholds (Easy, Medium, Hard, Deadly), NOT leveling thresholds.
+  // I need to use standard D&D 5e leveling XP.
+
+  // Standard 5e XP Table (Cumulative)
+  const LEVEL_XP: Record<number, number> = {
+      1: 0,
+      2: 300,
+      3: 900,
+      4: 2700,
+      5: 6500,
+      6: 14000,
+      7: 23000,
+      8: 34000,
+      9: 48000,
+      10: 64000,
+      11: 85000,
+      12: 100000,
+      13: 120000,
+      14: 140000,
+      15: 165000,
+      16: 195000,
+      17: 225000,
+      18: 265000,
+      19: 305000,
+      20: 355000
+  };
+
+  return LEVEL_XP[currentLevel + 1] || null;
+};
+
+/**
+ * Checks if a character has enough XP to level up.
+ * @param {PlayerCharacter} character - The character.
+ * @returns {boolean} True if eligible for level up.
+ */
+export const canLevelUp = (character: PlayerCharacter): boolean => {
+  const currentLevel = character.level || 1;
+  const currentXp = character.xp || 0;
+  const nextLevelXp = getXpRequiredForNextLevel(currentLevel);
+
+  if (nextLevelXp === null) return false;
+  return currentXp >= nextLevelXp;
+};
+
+/**
+ * Performs a basic level up on a character, returning the updated character object.
+ * Note: This only handles automatic stat updates (Level, HP, Proficiency Bonus).
+ * Feature selections must be handled separately.
+ * @param {PlayerCharacter} character - The character to level up.
+ * @returns {PlayerCharacter} The updated character.
+ */
+export const performLevelUp = (character: PlayerCharacter): PlayerCharacter => {
+  if (!canLevelUp(character)) return character;
+
+  const currentLevel = character.level || 1;
+  const newLevel = currentLevel + 1;
+
+  // Calculate HP increase (Average of Hit Die + Con Mod)
+  // Hit Die is typically 6, 8, 10, or 12. Average is (HitDie / 2) + 1.
+  const hitDie = character.class.hitDie;
+  const hpIncreaseBase = (hitDie / 2) + 1;
+  const conMod = getAbilityModifierValue(character.finalAbilityScores.Constitution);
+  const hpIncrease = Math.max(1, hpIncreaseBase + conMod); // Min 1 HP gain
+
+  // Calculate new Proficiency Bonus
+  const newProficiencyBonus = Math.floor((newLevel - 1) / 4) + 2;
+
+  return {
+    ...character,
+    level: newLevel,
+    maxHp: character.maxHp + hpIncrease,
+    hp: character.hp + hpIncrease, // Heals the new amount? Or just max increases? Usually max increases and current stays, but for video games usually both.
+    proficiencyBonus: newProficiencyBonus,
+  };
 };

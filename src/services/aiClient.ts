@@ -7,17 +7,19 @@
 import { GoogleGenAI } from "@google/genai";
 
 // Ensure API_KEY is available from the environment.
+let aiInstance: GoogleGenAI | null = null;
+
 if (!process.env.API_KEY) {
   const errorMessage =
     "Gemini API Key (API_KEY) is not set in the environment. " +
     "AI features will not work, and the application cannot initialize the AI client.";
   console.error(errorMessage);
-  // This error will halt further script execution if the key is missing,
-  // preventing the services from attempting to use an uninitialized client.
-  throw new Error(errorMessage);
+  // Do not throw here to prevent app crash. Instead, aiInstance remains null.
+} else {
+    aiInstance = new GoogleGenAI({ apiKey: process.env.API_KEY });
 }
 
 /**
  * The shared GoogleGenAI client instance.
  */
-export const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+export const ai = aiInstance as GoogleGenAI; // Cast to allow usage, but might be null if checked at runtime or if we mock it.
