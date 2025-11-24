@@ -1,4 +1,3 @@
-
 /**
  * @file CombatView.tsx
  * The main component for the active combat phase.
@@ -12,6 +11,7 @@ import { CombatCharacter, CombatLogEntry } from '../types/combat';
 import ErrorBoundary from './ErrorBoundary';
 import { useTurnManager } from '../hooks/combat/useTurnManager';
 import { useAbilitySystem } from '../hooks/useAbilitySystem';
+import { useBattleMapGeneration } from '../hooks/useBattleMapGeneration';
 import InitiativeTracker from './BattleMap/InitiativeTracker';
 import AbilityPalette from './BattleMap/AbilityPalette';
 import CombatLog from './BattleMap/CombatLog';
@@ -41,16 +41,31 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   const [battleState, setBattleState] = useState<'active' | 'victory' | 'defeat'>('active');
   const [rewards, setRewards] = useState<{ gold: number; items: Item[]; xp: number } | null>(null);
   
+  // Auto-Battle State
+  const [autoCharacters, setAutoCharacters] = useState<Set<string>>(new Set());
+
   // NEW: Get spell data to hydrate combat abilities
   const allSpells = useContext(SpellContext);
 
-  // Initialize combat characters
+  // Initialize base combat characters
+  const [initialCharacters, setInitialCharacters] = useState<CombatCharacter[]>([]);
+
   useEffect(() => {
     if (allSpells) {
         const partyCombatants = party.map(p => createPlayerCombatCharacter(p, allSpells));
-        setCharacters([...partyCombatants, ...enemies]);
+        setInitialCharacters([...partyCombatants, ...enemies]);
     }
   }, [party, enemies, allSpells]);
+
+  // Use the map generation hook
+  const { mapData, positionedCharacters } = useBattleMapGeneration(biome, seed, initialCharacters);
+
+  // Update main characters state when map places them
+  useEffect(() => {
+    if (positionedCharacters.length > 0) {
+        setCharacters(positionedCharacters);
+    }
+  }, [positionedCharacters]);
 
   const handleCharacterUpdate = useCallback((updatedChar: CombatCharacter) => {
       setCharacters(prev => prev.map(c => c.id === updatedChar.id ? updatedChar : c));
@@ -62,16 +77,45 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
 
   const turnManager = useTurnManager({ 
       characters, 
+      mapData,
       onCharacterUpdate: handleCharacterUpdate, 
-      onLogEntry: handleLogEntry 
+      onLogEntry: handleLogEntry,
+      autoCharacters // Pass auto characters to turn manager if needed, but easier to modify turnManager props to accept "isAuto" check
   });
   
+  // Initialize turn manager when characters are ready
+  useEffect(() => {
+      if (characters.length > 0 && turnManager.turnState.turnOrder.length === 0) {
+          turnManager.initializeCombat(characters);
+      }
+  }, [characters, turnManager]);
+
   const abilitySystem = useAbilitySystem({
     characters,
-    mapData: null, // Passed to BattleMap context implicitly via hooks in useBattleMap
+    mapData: mapData,
     onExecuteAction: turnManager.executeAction,
     onCharacterUpdate: handleCharacterUpdate,
+    onAbilityEffect: turnManager.addDamageNumber // Pass the callback to show visual feedback
   });
+
+  const handleToggleAuto = useCallback((characterId: string) => {
+      setAutoCharacters(prev => {
+          const newSet = new Set(prev);
+          if (newSet.has(characterId)) {
+              newSet.delete(characterId);
+          } else {
+              newSet.add(characterId);
+          }
+          return newSet;
+      });
+  }, []);
+
+  // Update Turn Manager with auto status
+  // Since useTurnManager is a hook, we can't just pass new props to it easily without re-initializing or it reacting to prop changes.
+  // We need to modify useTurnManager to accept `autoCharacters` set.
+  // But wait, `useTurnManager` is already initialized.
+  // We can pass `autoCharacters` to `useTurnManager` and it will react if we put it in dependencies.
+  // Let's check `useTurnManager.ts` again.
 
   // Check for win/loss conditions
   useEffect(() => {
@@ -84,14 +128,8 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
       if (activeEnemies.length === 0 && enemies.length > 0) {
           setBattleState('victory');
           // Generate Rewards
-          // Map combat characters back to Monster-like objects for loot generation if needed, 
-          // or just use the original enemies prop which has CR data.
           const originalMonsters = enemies.map(e => ({ name: e.name, cr: e.stats.cr, quantity: 1, description: e.name })); 
           const loot = generateLoot(originalMonsters);
-          
-          // Calculate XP
-          // Simple calculation: Sum of XP values for CRs
-          // For now, placeholder:
           const xp = enemies.length * 50; 
 
           setRewards({ gold: loot.gold, items: loot.items, xp });
@@ -188,24 +226,24 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
                 characters={characters}
                 onCharacterSelect={handleCharacterSelect}
                 currentTurnCharacterId={turnManager.turnState.currentCharacterId}
+                autoCharacters={autoCharacters}
+                onToggleAuto={handleToggleAuto}
             />
         </div>
         
         {/* Center Pane */}
         <div className="xl:col-span-3 flex items-center justify-center overflow-auto p-2">
             <ErrorBoundary fallbackMessage="An error occurred in the Battle Map.">
-            {characters.length > 0 ? (
+            {characters.length > 0 && mapData ? (
                 <BattleMap
-                    biome={biome}
-                    seed={seed}
+                    mapData={mapData}
                     characters={characters}
                     combatState={{
                         turnManager: turnManager,
                         turnState: turnManager.turnState,
                         abilitySystem: abilitySystem,
                         isCharacterTurn: turnManager.isCharacterTurn,
-                        onCharacterUpdate: handleCharacterUpdate,
-                        setCharacters: setCharacters
+                        onCharacterUpdate: handleCharacterUpdate
                     }}
                 />
             ) : (
