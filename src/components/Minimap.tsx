@@ -1,7 +1,9 @@
 
-import React, { useEffect, useRef, useMemo } from 'react';
-import { MapData, MapTile, Biome } from '../types';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { MapData, MapMarker } from '../types';
 import { BIOMES } from '../constants';
+import { POIS } from '../data/world/pois';
+import { buildPoiMarkers, isCoordinateWithinMap } from '../utils/locationUtils';
 
 interface MinimapProps {
   mapData: MapData | null;
@@ -23,6 +25,14 @@ const Minimap: React.FC<MinimapProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  /**
+   * Derive static map markers from the POI table, flagging which ones should
+   * be visible based on discovered tiles. Using useMemo keeps the canvas draw
+   * cycle lean and ensures the coordinates are recalculated only when mapData
+   * changes (i.e., discovery updates or a new map is loaded).
+   */
+  const poiMarkers: MapMarker[] = useMemo(() => buildPoiMarkers(POIS, mapData), [mapData]);
+
   useEffect(() => {
     if (!visible || !mapData || !canvasRef.current) return;
 
@@ -40,7 +50,10 @@ const Minimap: React.FC<MinimapProps> = ({
     const tileSize = MINIMAP_SIZE / VIEWPORT_TILES;
     const halfViewport = Math.floor(VIEWPORT_TILES / 2);
 
-    // Calculate render bounds based on current location
+    // Calculate render bounds based on current location. All map math happens
+    // in tile space first (startX/startY) and only converts to pixels when
+    // we know a tile is actually on the minimap viewport. This keeps both the
+    // minimap and the main map aligned to the same coordinate system.
     const startX = currentLocationCoords.x - halfViewport;
     const startY = currentLocationCoords.y - halfViewport;
 
@@ -49,13 +62,8 @@ const Minimap: React.FC<MinimapProps> = ({
         const mapX = startX + x;
         const mapY = startY + y;
 
-        // Check bounds
-        if (
-          mapX >= 0 &&
-          mapX < mapData.gridSize.cols &&
-          mapY >= 0 &&
-          mapY < mapData.gridSize.rows
-        ) {
+        // Check bounds once to avoid array access errors when the camera pans
+        if (isCoordinateWithinMap({ x: mapX, y: mapY }, mapData)) {
           const tile = mapData.tiles[mapY][mapX];
           if (tile.discovered) {
             const biome = BIOMES[tile.biomeId];
@@ -68,6 +76,30 @@ const Minimap: React.FC<MinimapProps> = ({
         }
       }
     }
+
+    // Draw discovered POI markers that fall inside the viewport. Marker math
+    // mirrors the tile loop: we translate from tile coordinates to canvas
+    // pixels using the same startX/startY offsets so the icons stay perfectly
+    // aligned with the grid squares.
+    poiMarkers.forEach(marker => {
+      if (!marker.isDiscovered) return;
+      const deltaX = marker.coordinates.x - startX;
+      const deltaY = marker.coordinates.y - startY;
+      if (deltaX < 0 || deltaX >= VIEWPORT_TILES || deltaY < 0 || deltaY >= VIEWPORT_TILES) return;
+
+      const centerX = deltaX * tileSize + tileSize / 2;
+      const centerY = deltaY * tileSize + tileSize / 2;
+
+      ctx.font = `${Math.max(10, tileSize * 0.6)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#111';
+      ctx.strokeStyle = '#FBBF24';
+      ctx.lineWidth = 3;
+      // Stroke a soft glow under the icon to keep it legible over noisy biomes
+      ctx.strokeText(marker.icon, centerX, centerY);
+      ctx.fillText(marker.icon, centerX, centerY);
+    });
 
     // Draw player marker
     const centerX = halfViewport * tileSize + tileSize / 2;
@@ -86,7 +118,7 @@ const Minimap: React.FC<MinimapProps> = ({
     ctx.lineWidth = 2;
     ctx.strokeRect(0, 0, MINIMAP_SIZE, MINIMAP_SIZE);
 
-  }, [mapData, currentLocationCoords, visible]);
+  }, [mapData, currentLocationCoords, visible, poiMarkers]);
 
   if (!visible || !mapData) return null;
 

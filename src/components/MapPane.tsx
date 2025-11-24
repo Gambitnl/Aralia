@@ -5,10 +5,12 @@
  * their location and travel to discovered areas. It now features enhanced
  * keyboard navigation using arrow keys and roving tabindex, and an icon glossary.
  */
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { MapData, MapTile, Biome, GlossaryDisplayItem } from '../types'; // Changed GlossaryItem to GlossaryDisplayItem
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { MapData, MapTile, Biome, GlossaryDisplayItem, MapMarker } from '../types'; // Changed GlossaryItem to GlossaryDisplayItem
 import { BIOMES, LOCATIONS } from '../constants'; // To get biome details like color and icon
 import GlossaryDisplay from './GlossaryDisplay'; // Import the new component
+import { POIS } from '../data/world/pois';
+import { buildPoiMarkers } from '../utils/locationUtils';
 
 interface MapPaneProps {
   mapData: MapData;
@@ -19,6 +21,27 @@ interface MapPaneProps {
 const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
   const { gridSize, tiles } = mapData;
   const [focusedCoords, setFocusedCoords] = useState<{ x: number; y: number } | null>(null);
+
+  /**
+   * Precompute POI markers using shared logic so both the main map and
+   * minimap stay in sync. Using a memo keeps re-renders cheap even when
+   * the grid is large or when panning triggers fast updates.
+   */
+  const poiMarkers: MapMarker[] = useMemo(() => buildPoiMarkers(POIS, mapData), [mapData]);
+
+  // Quick lookup map: "x-y" => markers sitting on that tile
+  const markersByCoordinate = useMemo(() => {
+    const map = new Map<string, MapMarker[]>();
+    poiMarkers.forEach(marker => {
+      if (!marker.isDiscovered) return; // Only draw known POIs on the big map
+      const key = `${marker.coordinates.x}-${marker.coordinates.y}`;
+      if (!map.has(key)) {
+        map.set(key, []);
+      }
+      map.get(key)?.push(marker);
+    });
+    return map;
+  }, [poiMarkers]);
 
   // New state for pan and zoom
   const [scale, setScale] = useState(1);
@@ -172,15 +195,15 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
     if (!tile.discovered) {
       return `Undiscovered area (${tile.x}, ${tile.y}). Potential biome: ${biome?.name || 'Unknown'}.`;
     }
-    
+
     let tooltip = `${biome?.name || 'Unknown Area'} (${tile.x}, ${tile.y})`;
-    
+
     if (tile.locationId && LOCATIONS[tile.locationId]) {
       tooltip += ` - ${LOCATIONS[tile.locationId].name}.`;
     } else {
       tooltip += "."; // Add a period if no location name
     }
-    
+
     if (biome?.description) {
         tooltip += ` ${biome.description}`;
     }
@@ -188,19 +211,46 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
     if (tile.isPlayerCurrent) {
       tooltip += ' (Your current world map area)';
     }
+
+    const markers = markersByCoordinate.get(`${tile.x}-${tile.y}`);
+    if (markers?.length) {
+      const poiLabels = markers.map(marker => marker.label).join(', ');
+      tooltip += ` Points of interest: ${poiLabels}.`;
+    }
     return tooltip;
   };
 
-  const mapGlossaryItems: GlossaryDisplayItem[] = Object.values(BIOMES) // Changed GlossaryItem to GlossaryDisplayItem
-    .filter(biome => biome.icon)
-    .map(biome => ({
-      icon: biome.icon!,
-      meaning: biome.name,
-      category: 'Biome'
-    }));
-  
-  mapGlossaryItems.push({ icon: '📍', meaning: 'Your Current World Map Area', category: 'Player'});
-  mapGlossaryItems.push({ icon: '?', meaning: 'Undiscovered Area', category: 'Map State'});
+  const mapGlossaryItems: GlossaryDisplayItem[] = useMemo(() => {
+    const items: GlossaryDisplayItem[] = Object.values(BIOMES)
+      .filter(biome => biome.icon)
+      .map(biome => ({
+        icon: biome.icon!,
+        meaning: biome.name,
+        category: 'Biome'
+      }));
+
+    items.push({ icon: '📍', meaning: 'Your Current World Map Area', category: 'Player'});
+    items.push({ icon: '?', meaning: 'Undiscovered Area', category: 'Map State'});
+
+    // Surface each unique POI category in the legend using the first icon we encounter for that class of marker.
+    const poiCategoryToIcon = new Map<string, string>();
+    poiMarkers.forEach(marker => {
+      if (!marker.category) return;
+      if (!poiCategoryToIcon.has(marker.category)) {
+        poiCategoryToIcon.set(marker.category, marker.icon);
+      }
+    });
+
+    poiCategoryToIcon.forEach((icon, category) => {
+      items.push({
+        icon,
+        meaning: `${category.charAt(0).toUpperCase()}${category.slice(1)} point of interest`,
+        category: 'Points of Interest'
+      });
+    });
+
+    return items;
+  }, [poiMarkers]);
 
 
   return (
@@ -257,16 +307,16 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
                   data-x={tile.x}
                   data-y={tile.y}
                   onClick={() => isClickable && onTileClick(tile.x, tile.y, tile)}
-                  className={`flex items-center justify-center text-lg focus:outline-none transition-all duration-150
+                  className={`relative flex items-center justify-center text-lg focus:outline-none transition-all duration-150
                     ${isFocused ? 'ring-2 ring-offset-1 ring-offset-gray-800 ring-sky-400' : ''}
                   `}
                   style={getTileStyle(tile)}
-                  disabled={!isClickable} 
-                  tabIndex={isFocused ? 0 : -1} 
-                  role="gridcell" 
+                  disabled={!isClickable}
+                  tabIndex={isFocused ? 0 : -1}
+                  role="gridcell"
                   aria-label={tooltipText}
                   title={tooltipText} // Use title attribute for basic tooltip
-                  aria-selected={isFocused} 
+                  aria-selected={isFocused}
                 >
                   {tile.discovered && biome?.icon && (
                     <span role="img" aria-label={biome.name} className="text-base sm:text-xl pointer-events-none">{biome.icon}</span>
@@ -274,6 +324,17 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
                   {tile.isPlayerCurrent && (
                      <span role="img" aria-label="Player Location" className="absolute text-xl text-red-500 pointer-events-none">📍</span>
                   )}
+                  {markersByCoordinate.get(`${tile.x}-${tile.y}`)?.map(marker => (
+                    <span
+                      key={marker.id}
+                      role="img"
+                      aria-label={marker.label}
+                      className="absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 text-lg pointer-events-none drop-shadow"
+                      title={marker.label}
+                    >
+                      {marker.icon}
+                    </span>
+                  ))}
                   {!tile.discovered && (
                     <span className="text-gray-500 pointer-events-none">?</span>
                   )}

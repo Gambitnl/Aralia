@@ -542,6 +542,40 @@ export interface MapData {
   tiles: MapTile[][];
 }
 
+export interface PointOfInterest {
+  /** Unique ID to reference this POI within UI elements. */
+  id: string;
+  /** Human readable name shown inside tooltips and legends. */
+  name: string;
+  /** Short description for hover tooltips. */
+  description: string;
+  /** World-map aligned coordinates (tile space, not pixels). */
+  coordinates: { x: number; y: number };
+  /** Emoji or small string icon used on the map surface. */
+  icon: string;
+  /** Category helps the legend group similar markers. */
+  category: 'settlement' | 'landmark' | 'ruin' | 'cave' | 'wilderness';
+  /** Optional link back to a formal Location entry. */
+  locationId?: string;
+}
+
+export interface MapMarker {
+  /** ID of the originating POI or generated marker. */
+  id: string;
+  /** Tile-space coordinates where the marker should render. */
+  coordinates: { x: number; y: number };
+  /** Icon rendered on both the minimap canvas and the large map grid. */
+  icon: string;
+  /** Text label shown in tooltips or alongside the icon. */
+  label: string;
+  /** Optional grouping used by the legend to style or describe the marker. */
+  category?: string;
+  /** Whether the marker should render as "known" (tile discovered or player present). */
+  isDiscovered: boolean;
+  /** Associated Location ID, if any, to aid tooltips. */
+  relatedLocationId?: string;
+}
+
 export enum QuestStatus {
   Active = 'Active',
   Completed = 'Completed',
