@@ -19,13 +19,15 @@ interface UseAbilitySystemProps {
   mapData: BattleMapData | null;
   onExecuteAction: (action: CombatAction) => boolean;
   onCharacterUpdate: (character: CombatCharacter) => void;
+  onAbilityEffect?: (value: number, position: Position, type: 'damage' | 'heal' | 'miss') => void;
 }
 
 export const useAbilitySystem = ({
   characters,
   mapData,
   onExecuteAction,
-  onCharacterUpdate
+  onCharacterUpdate,
+  onAbilityEffect
 }: UseAbilitySystemProps) => {
   const [selectedAbility, setSelectedAbility] = useState<Ability | null>(null);
   const [targetingMode, setTargetingMode] = useState<boolean>(false);
@@ -140,15 +142,17 @@ export const useAbilitySystem = ({
         case 'damage':
           const damage = calculateDamage(effect.value || 0, caster, target);
           modifiedTarget.currentHP = Math.max(0, modifiedTarget.currentHP - damage);
+          if (onAbilityEffect) onAbilityEffect(damage, target.position, 'damage');
           break;
         case 'heal':
           const healAmount = effect.value || 0;
           modifiedTarget.currentHP = Math.min(modifiedTarget.maxHP, modifiedTarget.currentHP + healAmount);
+          if (onAbilityEffect) onAbilityEffect(healAmount, target.position, 'heal');
           break;
       }
     });
     onCharacterUpdate(modifiedTarget);
-  }, [onCharacterUpdate]);
+  }, [onCharacterUpdate, onAbilityEffect]);
   
   const executeAbility = useCallback((
     ability: Ability,
