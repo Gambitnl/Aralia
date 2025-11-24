@@ -332,6 +332,14 @@ export interface Mastery {
   description: string;
 }
 
+export type ItemEffect =
+  | { type: 'heal'; value: number; dice?: string }
+  | { type: 'buff'; stat: AbilityScoreName; value: number; duration?: number }
+  | { type: 'damage'; damageType: string; dice: string }
+  | { type: 'restore_resource'; resource: string; amount: number }
+  | { type: 'utility'; description: string }
+  | string; // For backward compatibility temporarily
+
 export interface Item {
   id: string;
   name: string;
@@ -339,7 +347,7 @@ export interface Item {
   type: 'weapon' | 'armor' | 'accessory' | 'clothing' | 'consumable' | 'potion' | 'food_drink' | 'poison_toxin' | 'tool' | 'light_source' | 'ammunition' | 'trap' | 'note' | 'book' | 'map' | 'scroll' | 'key' | 'spell_component' | 'crafting_material' | 'treasure';
   icon?: string;
   slot?: EquipmentSlotType;
-  effect?: string;
+  effect?: ItemEffect;
   mastery?: string;
   category?: string;
   armorCategory?: ArmorCategory;
@@ -382,11 +390,19 @@ export interface LocationDynamicNpcConfig {
   baseSpawnChance: number;
 }
 
+export interface Exit {
+  direction: string;
+  targetId: string;
+  travelTime?: number;
+  description?: string;
+  isHidden?: boolean;
+}
+
 export interface Location {
   id: string;
   name: string;
   baseDescription: string;
-  exits: { [direction: string]: string };
+  exits: { [direction: string]: string | Exit }; // Allow both string (legacy) and Exit object
   itemIds?: string[];
   npcIds?: string[];
   dynamicNpcConfig?: LocationDynamicNpcConfig;
@@ -756,6 +772,17 @@ export interface GameState {
   };
 
   questLog: Quest[];
+  isQuestLogVisible: boolean;
+  notifications: Notification[];
+}
+
+export type NotificationType = 'success' | 'error' | 'info' | 'warning';
+
+export interface Notification {
+  id: string;
+  message: string;
+  type: NotificationType;
+  duration?: number;
 }
 
 export interface InspectSubmapTilePayload {

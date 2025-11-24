@@ -3,11 +3,25 @@
  * @file src/state/reducers/uiReducer.ts
  * A slice reducer that handles UI-related state changes.
  */
-import { GameState, GamePhase } from '../../types';
+import { GameState, GamePhase, Notification } from '../../types';
 import { AppAction } from '../actionTypes';
 
 export function uiReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
+    case 'ADD_NOTIFICATION': {
+      const newNotification: Notification = {
+        id: crypto.randomUUID(),
+        message: action.payload.message,
+        type: action.payload.type,
+        duration: action.payload.duration,
+      };
+      return { notifications: [...state.notifications, newNotification] };
+    }
+
+    case 'REMOVE_NOTIFICATION': {
+      return { notifications: state.notifications.filter(n => n.id !== action.payload.id) };
+    }
+
     case 'SET_LOADING':
       return {
         isLoading: action.payload.isLoading,
@@ -60,7 +74,10 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
       return { isDiscoveryLogVisible: !state.isDiscoveryLogVisible, isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false } };
       
     case 'TOGGLE_LOGBOOK':
-      return { isLogbookVisible: !state.isLogbookVisible, isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isDiscoveryLogVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false } };
+      return { isLogbookVisible: !state.isLogbookVisible, isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isDiscoveryLogVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isQuestLogVisible: false };
+
+    case 'TOGGLE_QUEST_LOG':
+      return { isQuestLogVisible: !state.isQuestLogVisible, isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isDiscoveryLogVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isLogbookVisible: false };
 
     case 'TOGGLE_GLOSSARY_VISIBILITY': {
       const openingGlossary = !state.isGlossaryVisible;

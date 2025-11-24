@@ -21,11 +21,13 @@ export async function handleSaveGame({
   addMessage,
 }: Omit<HandleSystemAndUiProps, 'action'>): Promise<void> {
   dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Saving your progress..." } });
-  const success = await SaveLoadService.saveGame(gameState);
-  if (success) {
+  const result = await SaveLoadService.saveGame(gameState);
+  if (result.success) {
     addMessage("Game Saved!", 'system');
+    dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'success', message: result.message || "Game saved successfully." } });
   } else {
     addMessage("Failed to save game. Check console or try again later.", 'system');
+    dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'error', message: result.message || "Failed to save game." } });
   }
   dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
   dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
@@ -38,7 +40,10 @@ export async function handleGoToMainMenu({
 }: Omit<HandleSystemAndUiProps, 'action'>): Promise<void> {
   addMessage("Returning to Main Menu...", 'system');
   if (!USE_DUMMY_CHARACTER_FOR_DEV) {
-    await handleSaveGame({ gameState, dispatch, addMessage });
+    const result = await SaveLoadService.saveGame(gameState);
+    if (!result.success) {
+         dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'error', message: "Failed to save game on exit." } });
+    }
   }
   dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU });
 }

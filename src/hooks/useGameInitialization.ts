@@ -85,12 +85,14 @@ export function useGameInitialization({
 
   const handleLoadGameFlow = useCallback(async () => {
     dispatch({ type: 'SET_LOADING', payload: { isLoading: true } });
-    const loadedState = await SaveLoadService.loadGame();
-    if (loadedState) {
-        dispatch({ type: 'LOAD_GAME_SUCCESS', payload: loadedState });
+    const result = await SaveLoadService.loadGame();
+    if (result.success && result.data) {
+        dispatch({ type: 'LOAD_GAME_SUCCESS', payload: result.data });
         addMessage("Game loaded successfully.", "system");
+        dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'success', message: result.message || "Game loaded successfully." } });
     } else {
-        addMessage("Failed to load game. No save data found or data corrupted.", "system");
+        addMessage(result.message || "Failed to load game.", "system");
+        dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'error', message: result.message || "Failed to load game." } });
         dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU });
     }
     dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });

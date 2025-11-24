@@ -120,9 +120,14 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   
   // Move actions for named exits (standard non-compass moves)
   if (currentLocation.exits) {
-    Object.entries(currentLocation.exits).forEach(([direction, locationId]) => {
+    Object.entries(currentLocation.exits).forEach(([direction, exit]) => {
        if (!['North', 'South', 'East', 'West', 'NorthEast', 'NorthWest', 'SouthEast', 'SouthWest'].includes(direction)) {
-        generalActions.push({ type: 'move', label: `Go ${direction}`, targetId: String(locationId) });
+        // Handle exit being string (legacy) or object
+        const targetId = typeof exit === 'string' ? exit : exit.targetId;
+        // Optionally verify exit is visible if it's an object
+        if (typeof exit === 'string' || !exit.isHidden) {
+             generalActions.push({ type: 'move', label: `Go ${direction}`, targetId: targetId });
+        }
       }
     });
   }
@@ -208,6 +213,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
       {/* System/Menu Actions */}
       <div className="mt-6 pt-4 border-t border-gray-700 grid grid-cols-2 gap-2">
          <ActionButton action={{ type: 'TOGGLE_DISCOVERY_LOG', label: 'Journal' }} onClick={onAction} disabled={disabled} badgeCount={unreadDiscoveryCount} />
+         <ActionButton action={{ type: 'TOGGLE_QUEST_LOG', label: 'Quests' }} onClick={onAction} disabled={disabled} />
          <ActionButton action={{ type: 'TOGGLE_LOGBOOK', label: 'Logbook' }} onClick={onAction} disabled={disabled} />
          <ActionButton action={{ type: 'toggle_party_overlay', label: 'Party' }} onClick={onAction} disabled={disabled} />
          <ActionButton action={{ type: 'TOGGLE_GAME_GUIDE', label: 'Game Guide' }} onClick={onAction} disabled={disabled} />

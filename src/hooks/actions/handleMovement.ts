@@ -13,6 +13,7 @@ import { DIRECTION_VECTORS, SUBMAP_DIMENSIONS } from '../../config/mapConfig';
 import { determineActiveDynamicNpcsForLocation } from '../../utils/locationUtils';
 import { handleGossipEvent } from './handleWorldEvents';
 import { getSubmapTileInfo } from '../../utils/submapUtils';
+import { INITIAL_QUESTS } from '../../data/quests';
 
 interface HandleMovementProps {
   action: Action;
@@ -73,6 +74,11 @@ export async function handleMovement({
   let baseDescriptionForFallback = "You arrive at the new location.";
 
   if (!DIRECTION_VECTORS[directionKey]) { // Moving to a named exit (or teleporting)
+    // Handle named exits or direct teleports
+    // The targetId is the ID of the destination location.
+    // We need to find if this targetId corresponds to an exit in the current location to check for travel time/description/etc.
+    // But standard 'move' action usually just passes the destination ID as targetId.
+
     const targetLocation = LOCATIONS[action.targetId];
     if (targetLocation) {
       if (action.targetId === 'aralia_town_center') {
@@ -122,6 +128,23 @@ export async function handleMovement({
       }
       geminiFunctionName = 'generateLocationDescription';
       descriptionGenerationFn = () => GeminiService.generateLocationDescription(targetLocation.name, `Player (${playerContext}) enters ${targetLocation.name}.`, gameState.devModelOverride);
+
+      // Quest Triggers for named locations
+      if (action.targetId === 'ancient_ruins_entrance' || action.targetId === 'ruins_courtyard') {
+         const questId = 'explore_ruins';
+         const quest = INITIAL_QUESTS[questId];
+         // Auto-accept if not present
+         if (quest && !gameState.questLog.some(q => q.id === questId)) {
+             dispatch({ type: 'ACCEPT_QUEST', payload: quest });
+         }
+
+         if (action.targetId === 'ancient_ruins_entrance') {
+             dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: { questId, objectiveId: 'find_ruins', isCompleted: true } });
+         } else if (action.targetId === 'ruins_courtyard') {
+             dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: { questId, objectiveId: 'enter_courtyard', isCompleted: true } });
+         }
+      }
+
     } else {
       addMessage(`Cannot move to ${action.targetId}. Location does not exist.`, 'system');
       dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });

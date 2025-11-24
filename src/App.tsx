@@ -68,6 +68,8 @@ import MerchantModal from './components/MerchantModal';
 import GameGuideModal from './components/GameGuideModal';
 import MissingChoiceModal from './components/MissingChoiceModal'; // New Import
 import LoadGameTransition from './components/LoadGameTransition';
+import { NotificationSystem } from './components/NotificationSystem';
+import QuestLog from './components/QuestLog';
 
 
 const App: React.FC = () => {
@@ -481,6 +483,7 @@ const App: React.FC = () => {
     !gameState.isEncounterModalVisible &&
     !gameState.isNpcTestModalVisible &&
     !gameState.isLogbookVisible &&
+    !gameState.isQuestLogVisible &&
     !gameState.isGameGuideVisible &&
     !gameState.merchantModal.isOpen &&
     !missingChoiceModal.isOpen;
@@ -495,6 +498,7 @@ const App: React.FC = () => {
     gameState.isGlossaryVisible ||
     gameState.isNpcTestModalVisible ||
     gameState.isLogbookVisible ||
+    gameState.isQuestLogVisible ||
     gameState.isGameGuideVisible ||
     gameState.merchantModal.isOpen ||
     missingChoiceModal.isOpen;
@@ -635,6 +639,7 @@ const App: React.FC = () => {
     <GlossaryProvider>
       <SpellProvider>
         <div className="App min-h-screen bg-gray-900">
+          <NotificationSystem notifications={gameState.notifications} dispatch={dispatch} />
           <AnimatePresence>
             {(gameState.isLoading || gameState.isImageLoading) && <LoadingSpinner message={gameState.loadingMessage || (gameState.isImageLoading ? "A vision forms in the æther..." : "Aralia is weaving fate...")} />}
           </AnimatePresence>
@@ -652,6 +657,15 @@ const App: React.FC = () => {
                   mapData={gameState.mapData}
                   onTileClick={handleTileClick}
                   onClose={() => processAction({ type: 'toggle_map', label: 'Close Map' })}
+                />
+              </ErrorBoundary>
+            )}
+            {gameState.isQuestLogVisible && (
+              <ErrorBoundary fallbackMessage="Error in Quest Log.">
+                <QuestLog
+                  isOpen={gameState.isQuestLogVisible}
+                  onClose={() => dispatch({ type: 'TOGGLE_QUEST_LOG' })}
+                  quests={gameState.questLog}
                 />
               </ErrorBoundary>
             )}

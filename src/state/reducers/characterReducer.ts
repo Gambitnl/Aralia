@@ -155,11 +155,21 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             if (!itemToUse || itemToUse.type !== 'consumable' || !itemToUse.effect) return {};
 
             let playerAfterEffect = { ...charToUpdate };
-            if (itemToUse.effect.startsWith('heal_')) {
-                const healAmount = parseInt(itemToUse.effect.split('_')[1]);
-                if (!isNaN(healAmount)) {
-                    playerAfterEffect.hp = Math.min(playerAfterEffect.maxHp, playerAfterEffect.hp + healAmount);
+
+            // Handle legacy string effects
+            if (typeof itemToUse.effect === 'string') {
+                if (itemToUse.effect.startsWith('heal_')) {
+                    const healAmount = parseInt(itemToUse.effect.split('_')[1]);
+                    if (!isNaN(healAmount)) {
+                        playerAfterEffect.hp = Math.min(playerAfterEffect.maxHp, playerAfterEffect.hp + healAmount);
+                    }
                 }
+            } else {
+                // Handle new structured ItemEffect
+                if (itemToUse.effect.type === 'heal') {
+                     playerAfterEffect.hp = Math.min(playerAfterEffect.maxHp, playerAfterEffect.hp + itemToUse.effect.value);
+                }
+                // Add logic for other effect types (buffs, etc.) here in the future
             }
 
             const newParty = [...state.party];
