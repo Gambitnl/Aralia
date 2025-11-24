@@ -17,3 +17,59 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+@layer components {
+  /* Base Button Style */
+  .btn {
+    @apply font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-150 ease-in-out transform focus:outline-none focus:ring-2 focus:ring-opacity-75 relative;
+  }
+
+  /* Button Variants */
+  .btn-primary {
+    @apply bg-sky-600 hover:bg-sky-500 disabled:bg-gray-600 text-white focus:ring-sky-400;
+  }
+
+  .btn-green {
+    @apply bg-green-600 hover:bg-green-500 text-white focus:ring-green-400;
+  }
+
+  .btn-yellow {
+    @apply bg-yellow-500 hover:bg-yellow-400 disabled:bg-gray-600 text-gray-900 focus:ring-yellow-300;
+  }
+
+  .btn-red {
+    @apply bg-red-600 hover:bg-red-500 disabled:bg-gray-600 text-white focus:ring-red-400;
+  }
+
+  .btn-orange {
+    @apply bg-orange-500 hover:bg-orange-400 disabled:bg-gray-600 text-white focus:ring-orange-300;
+  }
+
+  .btn-teal {
+    @apply bg-teal-600 hover:bg-teal-500 disabled:bg-gray-600 text-white focus:ring-teal-400;
+  }
+
+  .btn-purple {
+    @apply bg-purple-600 hover:bg-purple-500 disabled:bg-gray-600 text-white focus:ring-purple-400;
+  }
+
+  .btn-indigo {
+    @apply bg-indigo-500 hover:bg-indigo-400 disabled:bg-gray-600 text-white focus:ring-indigo-300;
+  }
+
+  .btn-indigo-dark {
+    @apply bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-600 text-white focus:ring-indigo-400;
+  }
+
+  .btn-lime {
+    @apply bg-lime-600 hover:bg-lime-500 disabled:bg-gray-600 text-white focus:ring-lime-400;
+  }
+
+  .btn-amber {
+    @apply bg-amber-600 hover:bg-amber-500 disabled:bg-gray-600 text-white focus:ring-amber-400;
+  }
+
+  .btn-blue {
+    @apply bg-blue-700 hover:bg-blue-600 disabled:bg-gray-600 text-white focus:ring-blue-500;
+  }
+}
