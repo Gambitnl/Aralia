@@ -1,0 +1,4 @@
+- Add a banner when the feat step is skipped automatically so players understand why they bypassed that screen.
+- Highlight the first unaffordable ability score in point-buy feedback to reduce scanning when points remain.
+- Expand exhaustive-deps coverage across CharacterCreator callbacks to keep lint noise low and dependencies explicit.
+- Add a UI confirmation toast after using the Skip control to show that the feat choice was intentionally cleared.

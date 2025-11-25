@@ -22,7 +22,8 @@ import {
 import {
   RACES_DATA,
 } from '../../../constants';
-import { calculateFixedRacialBonuses } from '../../../utils/characterUtils';
+import { FEATS_DATA } from '../../../data/feats/featsData';
+import { calculateFixedRacialBonuses, evaluateFeatPrerequisites } from '../../../utils/characterUtils';
 
 // --- Enums and Types ---
 export enum CreationStep {
@@ -101,6 +102,7 @@ export type CharacterCreatorAction =
   | ClassFeatureFinalSelectionAction
   | { type: 'SELECT_WEAPON_MASTERIES'; payload: string[] }
   | { type: 'SELECT_FEAT'; payload: string }
+  | { type: 'CONFIRM_FEAT_STEP' }
   | { type: 'SET_CHARACTER_NAME'; payload: string }
   | { type: 'SET_CHARACTER_AGE'; payload: number }
   | { type: 'GO_BACK' };
@@ -145,6 +147,33 @@ const getResetStateForNewRace = (): Partial<CharacterCreationState> => {
   return { ...resettableFields, racialSelections: {} };
 };
 
+// Determine whether the feat step should even appear for the current snapshot of the character.
+// We compute this in the reducer so navigation/backtracking logic can skip the screen entirely when nothing qualifies.
+const canOfferFeatAtLevelOne = (state: CharacterCreationState): boolean => {
+  if (!state.selectedRace || !state.selectedClass || !state.finalAbilityScores) {
+    return false;
+  }
+
+  return FEATS_DATA.some(feat => {
+    const eligibility = evaluateFeatPrerequisites(feat, {
+      level: 1,
+      abilityScores: state.finalAbilityScores!,
+      raceId: state.selectedRace!.id,
+      classId: state.selectedClass!.id,
+      // Avoid treating the in-progress choice as already learned; we only want to filter out
+      // feats that fail real prerequisites for this snapshot of the character.
+      knownFeats: [],
+    });
+    return eligibility.isEligible;
+  });
+};
+
+const getFeatStepOrReview = (state: CharacterCreationState): CreationStep => {
+  return canOfferFeatAtLevelOne(state) || !!state.selectedFeat
+    ? CreationStep.FeatSelection
+    : CreationStep.NameAndReview;
+};
+
 const getFieldsToResetOnGoBack = (state: CharacterCreationState, exitedStep: CreationStep): Partial<CharacterCreationState> => {
     const resetFields: Partial<CharacterCreationState> = {};
     const pruneRacialSelection = (key: string) => {
@@ -161,6 +190,11 @@ const getFieldsToResetOnGoBack = (state: CharacterCreationState, exitedStep: Cre
         case CreationStep.TieflingLegacy: pruneRacialSelection('tiefling'); break;
         case CreationStep.CentaurNaturalAffinitySkill: pruneRacialSelection('centaur'); break;
         case CreationStep.ChangelingInstincts: pruneRacialSelection('changeling'); break;
+        case CreationStep.RacialSpellAbilityChoice:
+            // Clearing the spell ability ensures the dropdown re-validates against updated ability scores when the user revisits
+            // the step (for example after adjusting point-buy totals) instead of silently reusing stale data.
+            if (state.selectedRace) { pruneRacialSelection(state.selectedRace.id); }
+            break;
         case CreationStep.Class:
             resetFields.selectedClass = null;
             break;
@@ -195,6 +229,13 @@ const getFieldsToResetOnGoBack = (state: CharacterCreationState, exitedStep: Cre
     return resetFields;
 };
 
+// Centralizes the step that immediately precedes the feat screen so we can reuse the same logic for back navigation from review.
+const getPreviousStepBeforeFeat = (state: CharacterCreationState): CreationStep => {
+  return (state.selectedClass?.weaponMasterySlots ?? 0) > 0
+    ? CreationStep.WeaponMastery
+    : (state.selectedClass?.fightingStyles || state.selectedClass?.spellcasting ? CreationStep.ClassFeatures : CreationStep.Skills);
+};
+
 interface StepDefinition {
   previousStep: (state: CharacterCreationState) => CreationStep;
 }
@@ -224,24 +265,13 @@ const stepDefinitions: Record<CreationStep, StepDefinition> = {
   },
   [CreationStep.ClassFeatures]: { previousStep: () => CreationStep.Skills },
   [CreationStep.WeaponMastery]: { previousStep: (state) => (state.selectedClass?.fightingStyles || state.selectedClass?.spellcasting ? CreationStep.ClassFeatures : CreationStep.Skills) },
-  [CreationStep.FeatSelection]: { previousStep: (state) => (state.selectedClass?.weaponMasterySlots ?? 0) > 0 ? CreationStep.WeaponMastery : (state.selectedClass?.fightingStyles || state.selectedClass?.spellcasting ? CreationStep.ClassFeatures : CreationStep.Skills) },
+  [CreationStep.FeatSelection]: { previousStep: (state) => getPreviousStepBeforeFeat(state) },
   [CreationStep.NameAndReview]: {
     previousStep: (state) => {
-      // Logic reversed from forward flow
-      // If Human Variant existed, we'd check for that. For now, we are adding Feat Selection as a general step for testing/future use,
-      // but strictly following the prompt, "Item #6... no mechanical feat system yet".
-      // I will insert Feat Selection right before NameAndReview if the user chose it (e.g. Variant Human) or if we want to expose it.
-      // For now, I'll make it reachable if 'feat' capability is detected, or I'll just insert it as a standard step to fulfill "Implement feature selection".
-      // Let's assume we want it for everyone for now as a "Bonus Feat" house rule or just to show it working, or simpler:
-      // Since I need to implement the *system*, I will add the step but maybe only trigger it if a flag is set.
-      // Actually, let's just make it always appear for now to demonstrate it, or check a flag.
-      // To be safe and minimal, I'll only show it if a specific condition is met, but for this task I need to verify it works.
-      // Let's say we show it if the user is Human (as a proxy for Variant Human "Versatile").
-      if (state.selectedRace?.id === 'human') return CreationStep.FeatSelection;
-
-      if ((state.selectedClass?.weaponMasterySlots ?? 0) > 0) return CreationStep.WeaponMastery;
-      if (state.selectedClass?.fightingStyles || state.selectedClass?.spellcasting) return CreationStep.ClassFeatures;
-      return CreationStep.Skills;
+      // Only surface the feat screen when it actually applies; otherwise drop to the step that would have fed it.
+      return (canOfferFeatAtLevelOne(state) || state.selectedFeat)
+        ? CreationStep.FeatSelection
+        : getPreviousStepBeforeFeat(state);
     },
   },
 };
@@ -255,24 +285,36 @@ function isClassFeatureFinalSelectionAction(action: CharacterCreatorAction): act
 }
 
 function handleClassFeatureFinalSelectionAction(state: CharacterCreationState, action: ClassFeatureFinalSelectionAction): CharacterCreationState {
-   const nextStep = (state.selectedClass?.weaponMasterySlots ?? 0) > 0 
-    ? CreationStep.WeaponMastery 
-    : (state.selectedRace?.id === 'human' ? CreationStep.FeatSelection : CreationStep.NameAndReview);
+  const resolveStepAfterFeature = (candidate: CharacterCreationState): CreationStep => {
+    return (state.selectedClass?.weaponMasterySlots ?? 0) > 0
+      ? CreationStep.WeaponMastery
+      : getFeatStepOrReview(candidate);
+  };
 
-   switch (action.type) {
-    case 'SELECT_FIGHTER_FEATURES':
-      return { ...state, selectedFightingStyle: action.payload, step: nextStep };
-    case 'SELECT_CLERIC_FEATURES':
-      return { ...state, selectedDivineOrder: action.payload.order, selectedCantrips: action.payload.cantrips, selectedSpellsL1: action.payload.spellsL1, step: nextStep };
-    case 'SELECT_DRUID_FEATURES':
-      return { ...state, selectedDruidOrder: action.payload.order, selectedCantrips: action.payload.cantrips, selectedSpellsL1: action.payload.spellsL1, step: nextStep };
-    case 'SELECT_WIZARD_FEATURES': case 'SELECT_ARTIFICER_FEATURES': case 'SELECT_SORCERER_FEATURES': case 'SELECT_BARD_FEATURES': case 'SELECT_WARLOCK_FEATURES':
-      return { ...state, selectedCantrips: action.payload.cantrips, selectedSpellsL1: action.payload.spellsL1, step: nextStep };
-    case 'SELECT_RANGER_FEATURES': case 'SELECT_PALADIN_FEATURES':
-      return { ...state, selectedSpellsL1: action.payload.spellsL1, step: nextStep };
-    default:
+  switch (action.type) {
+    case 'SELECT_FIGHTER_FEATURES': {
+      const nextState = { ...state, selectedFightingStyle: action.payload };
+      return { ...nextState, step: resolveStepAfterFeature(nextState) };
+    }
+    case 'SELECT_CLERIC_FEATURES': {
+      const nextState = { ...state, selectedDivineOrder: action.payload.order, selectedCantrips: action.payload.cantrips, selectedSpellsL1: action.payload.spellsL1 };
+      return { ...nextState, step: resolveStepAfterFeature(nextState) };
+    }
+    case 'SELECT_DRUID_FEATURES': {
+      const nextState = { ...state, selectedDruidOrder: action.payload.order, selectedCantrips: action.payload.cantrips, selectedSpellsL1:action.payload.spellsL1 };
+      return { ...nextState, step: resolveStepAfterFeature(nextState) };
+    }
+    case 'SELECT_WIZARD_FEATURES': case 'SELECT_ARTIFICER_FEATURES': case 'SELECT_SORCERER_FEATURES': case 'SELECT_BARD_FEATURES': case 'SELECT_WARLOCK_FEATURES': {
+      const nextState = { ...state, selectedCantrips: action.payload.cantrips, selectedSpellsL1: action.payload.spellsL1 };
+      return { ...nextState, step: resolveStepAfterFeature(nextState) };
+    }
+    case 'SELECT_RANGER_FEATURES': case 'SELECT_PALADIN_FEATURES': {
+      const nextState = { ...state, selectedSpellsL1: action.payload.spellsL1 };
+      return { ...nextState, step: resolveStepAfterFeature(nextState) };
+    }
+  default:
       return state;
-   }
+  }
 }
 
 // --- Reducer ---
@@ -348,17 +390,31 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
     case 'SELECT_HUMAN_SKILL':
       return { ...state, racialSelections: { ...state.racialSelections, human: { skillIds: [action.payload] } }, step: CreationStep.Skills };
     case 'SELECT_SKILLS': {
-      const nextStep = (state.selectedClass?.fightingStyles || state.selectedClass?.spellcasting)
-        ? CreationStep.ClassFeatures
-        : ((state.selectedClass?.weaponMasterySlots ?? 0) > 0 ? CreationStep.WeaponMastery : (state.selectedRace?.id === 'human' ? CreationStep.FeatSelection : CreationStep.NameAndReview));
-      return { ...state, selectedSkills: action.payload, step: nextStep };
+      const hasFeatureStep = !!(state.selectedClass?.fightingStyles || state.selectedClass?.spellcasting);
+      const hasWeaponMasteryStep = (state.selectedClass?.weaponMasterySlots ?? 0) > 0;
+
+      if (hasFeatureStep) {
+        return { ...state, selectedSkills: action.payload, step: CreationStep.ClassFeatures };
+      }
+      if (hasWeaponMasteryStep) {
+        return { ...state, selectedSkills: action.payload, step: CreationStep.WeaponMastery };
+      }
+
+      // If the class has neither a feature nor mastery stop, jump straight to feats only when something is eligible.
+      const nextState = { ...state, selectedSkills: action.payload };
+      return { ...nextState, step: getFeatStepOrReview(nextState) };
     }
     case 'SELECT_WEAPON_MASTERIES': {
-      const nextStep = state.selectedRace?.id === 'human' ? CreationStep.FeatSelection : CreationStep.NameAndReview;
-      return { ...state, selectedWeaponMasteries: action.payload, step: nextStep };
+      // Always move into (or skip past) the feat picker so the user can opt in (or we auto-bypass when nothing qualifies).
+      const nextState = { ...state, selectedWeaponMasteries: action.payload };
+      return { ...nextState, step: getFeatStepOrReview(nextState) };
     }
     case 'SELECT_FEAT':
-      return { ...state, selectedFeat: action.payload, step: CreationStep.NameAndReview };
+      // Selecting a feat no longer auto-advances so users can compare options or clear their pick before continuing.
+      // Empty payloads clear the selection, ensuring downstream assembly does not apply stale bonuses.
+      return { ...state, selectedFeat: action.payload || null };
+    case 'CONFIRM_FEAT_STEP':
+      return { ...state, step: CreationStep.NameAndReview };
     case 'SET_CHARACTER_NAME':
       return { ...state, characterName: action.payload };
     case 'SET_CHARACTER_AGE':
