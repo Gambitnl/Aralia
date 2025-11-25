@@ -3,7 +3,7 @@
  * Manages the turn-based combat state using the new action economy system.
  * Now integrates AI decision making and Damage Numbers with stale state fix.
  */
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { CombatCharacter, TurnState, CombatAction, CombatLogEntry, BattleMapData, DamageNumber, Animation } from '../../types/combat';
 import { createDamageNumber, generateId, getActionMessage } from '../../utils/combatUtils';
 import { useActionEconomy } from './useActionEconomy';
@@ -17,12 +17,12 @@ interface UseTurnManagerProps {
   autoCharacters?: Set<string>;
 }
 
-export const useTurnManager = ({ 
-  characters, 
+export const useTurnManager = ({
+  characters,
   mapData,
-  onCharacterUpdate, 
+  onCharacterUpdate,
   onLogEntry,
-  autoCharacters = new Set()
+  autoCharacters
 }: UseTurnManagerProps) => {
   const [turnState, setTurnState] = useState<TurnState>({
     currentTurn: 1,
@@ -40,6 +40,19 @@ export const useTurnManager = ({
   const [aiState, setAiState] = useState<'idle' | 'thinking' | 'acting' | 'done'>('idle');
   const [aiActionsPerformed, setAiActionsPerformed] = useState(0);
 
+  // Stabilize optional auto-controlled character set so downstream deps do not churn
+  // when callers omit the argument (otherwise a new Set would be created each render).
+  // We use a ref-backed default to survive strict-mode re-renders without generating
+  // fresh identities, while still respecting caller-provided sets.
+  const defaultAutoControlledRef = useRef<Set<string>>();
+  const managedAutoCharacters = useMemo(() => {
+    if (autoCharacters) return autoCharacters;
+    if (!defaultAutoControlledRef.current) {
+      defaultAutoControlledRef.current = new Set<string>();
+    }
+    return defaultAutoControlledRef.current;
+  }, [autoCharacters]);
+
   const { canAfford, consumeAction, resetEconomy } = useActionEconomy();
 
   const addDamageNumber = useCallback((value: number, position: {x: number, y: number}, type: 'damage' | 'heal' | 'miss') => {
@@ -53,11 +66,13 @@ export const useTurnManager = ({
       }, newDn.duration);
   }, []);
 
-  const rollInitiative = (character: CombatCharacter): number => {
+  const rollInitiative = useCallback((character: CombatCharacter): number => {
+    // Memoized to avoid re-allocating a tiny helper every render; keeps downstream
+    // callbacks stable and prevents needless hook churn.
     const dexModifier = Math.floor((character.stats.dexterity - 10) / 2);
     const roll = Math.floor(Math.random() * 20) + 1;
     return roll + dexModifier + character.stats.baseInitiative;
-  };
+  }, []);
 
   const queueAnimation = useCallback((animation: Animation) => {
     setAnimations(prev => [...prev, animation]);
@@ -66,7 +81,9 @@ export const useTurnManager = ({
     }, animation.duration);
   }, []);
 
-  const startTurnFor = (character: CombatCharacter) => {
+  const startTurnFor = useCallback((character: CombatCharacter) => {
+    // Memoized so effects that depend on it do not re-wire every render, which keeps
+    // turn start side effects from being re-subscribed unnecessarily.
     let updatedChar = resetEconomy(character);
     updatedChar = {
         ...updatedChar,
@@ -77,7 +94,7 @@ export const useTurnManager = ({
         }))
     };
     onCharacterUpdate(updatedChar);
-  };
+  }, [onCharacterUpdate, resetEconomy]);
   
   const initializeCombat = useCallback((initialCharacters: CombatCharacter[]) => {
     const charactersWithInitiative = initialCharacters.map(char => ({
@@ -111,8 +128,13 @@ export const useTurnManager = ({
       ).join(' → ')}`,
       data: { turnOrder, initiatives: charactersWithInitiative.map(c => ({ id: c.id, initiative: c.initiative })) }
     });
-    
-  }, [onCharacterUpdate, onLogEntry, resetEconomy]);
+
+    // Reset the turn-start guard so a fresh combat cannot accidentally inherit the
+    // last actor/round key from a prior encounter, which would block the first
+    // character from getting their economy reset.
+    lastTurnStartKey.current = null;
+
+  }, [onCharacterUpdate, onLogEntry, resetEconomy, rollInitiative]);
 
   const executeAction = useCallback((action: CombatAction): boolean => {
     // If it's an end_turn action, we handle it separately
@@ -170,7 +192,9 @@ export const useTurnManager = ({
     return true;
   }, [characters, onCharacterUpdate, onLogEntry, canAfford, consumeAction, queueAnimation]);
   
-  const processEndOfTurnEffects = (character: CombatCharacter) => {
+  const processEndOfTurnEffects = useCallback((character: CombatCharacter) => {
+    // Memoized to keep heavy end-of-turn effect handling stable between renders,
+    // which reduces diff noise for consumers and prevents redundant timeout setups.
     let updatedCharacter = { ...character };
     
     updatedCharacter.statusEffects.forEach(effect => {
@@ -204,7 +228,7 @@ export const useTurnManager = ({
       }
     });
     onCharacterUpdate(updatedCharacter);
-  };
+  }, [addDamageNumber, onCharacterUpdate, onLogEntry]);
 
   const endTurn = useCallback(() => {
     const currentCharacter = characters.find(c => c.id === turnState.currentCharacterId);
@@ -248,18 +272,36 @@ export const useTurnManager = ({
     }));
     setAiState('idle'); // Reset AI
     setAiActionsPerformed(0);
-    
-  }, [turnState, characters, onCharacterUpdate, onLogEntry, addDamageNumber]);
 
-  const getCurrentCharacter = useCallback(() => {
+  }, [turnState, characters, processEndOfTurnEffects, onLogEntry]);
+
+  const currentCharacter = useMemo(() => {
+    // Memoized lookup prevents repeated scans of the roster and provides a stable
+    // reference for effects that react to the active actor.
     return characters.find(c => c.id === turnState.currentCharacterId);
   }, [characters, turnState.currentCharacterId]);
+
+  const getCurrentCharacter = useCallback(() => currentCharacter, [currentCharacter]);
   
+  // Track when a turn has already been initialized so we do not re-run
+  // startTurnFor mid-turn when the characters array changes (e.g. HP/cooldowns
+  // updating after actions). Without this guard, dependency updates from
+  // getCurrentCharacter/characters would repeatedly reset the action economy,
+  // accidentally granting extra actions while expiring statuses early.
+  const lastTurnStartKey = useRef<string | null>(null);
+
   // Turn Start Handling
   useEffect(() => {
-    const character = getCurrentCharacter();
+    const activeId = turnState.currentCharacterId;
+    if (!activeId) return;
+
+    const turnStartKey = `${turnState.currentTurn}:${activeId}`;
+    if (lastTurnStartKey.current === turnStartKey) return; // Already started this actor/round pair
+
+    const character = characters.find(c => c.id === activeId);
     if (!character) return;
-    
+
+    lastTurnStartKey.current = turnStartKey;
     startTurnFor(character);
     onLogEntry({
         id: generateId(),
@@ -268,13 +310,13 @@ export const useTurnManager = ({
         message: `${character.name}'s turn.`,
         characterId: character.id
     });
-    
-    if (character.team === 'enemy' || autoCharacters.has(character.id)) {
+
+    if (character.team === 'enemy' || managedAutoCharacters.has(character.id)) {
         // Init AI turn
         // Small delay to allow visuals to catch up
         setTimeout(() => setAiState('thinking'), 1000);
     }
-  }, [turnState.currentCharacterId]);
+  }, [turnState.currentCharacterId, turnState.currentTurn, characters, startTurnFor, onLogEntry, managedAutoCharacters]);
 
   // AI Logic - Reacting to 'thinking' state or state updates
   useEffect(() => {
@@ -324,7 +366,7 @@ export const useTurnManager = ({
 
       decideAction();
 
-  }, [aiState, characters, mapData, turnState.currentCharacterId, aiActionsPerformed]); // Including characters here ensures we see fresh state
+  }, [aiState, characters, mapData, getCurrentCharacter, aiActionsPerformed, endTurn, executeAction]); // Including characters here ensures we see fresh state
 
 
   const isCharacterTurn = useCallback((characterId: string) => {
