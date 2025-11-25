@@ -6,8 +6,55 @@
  */
 import { GameState, GamePhase, NotificationType } from '../types';
 
+//
+// Save slot configuration
+// -----------------------
+// The legacy system wrote a single GameState object to `DEFAULT_SAVE_SLOT`.
+// To support multiple slots we now persist a metadata index alongside
+// per-slot payloads. Each payload is wrapped to carry preview info so new UI
+// can render slot cards without fully hydrating the GameState.
+
+export interface SaveSlotSummary {
+  slotId: string;
+  slotName: string;
+  lastSaved: number;
+  isAutoSave?: boolean;
+  thumbnail?: string;
+  locationName?: string;
+  partyLevel?: number;
+  playtimeSeconds?: number;
+}
+
+type SavePreview = {
+  locationName?: string;
+  partyLevel?: number;
+  playtimeSeconds?: number;
+};
+
+interface StoredSavePayload {
+  version: string;
+  slotId: string;
+  slotName: string;
+  isAutoSave?: boolean;
+  thumbnail?: string;
+  preview?: SavePreview;
+  state: GameState;
+}
+
+interface SaveGameOptions {
+  displayName?: string;
+  isAutoSave?: boolean;
+  thumbnail?: string;
+}
+
 const SAVE_GAME_VERSION = "0.1.0"; // Current version of the save format
 const DEFAULT_SAVE_SLOT = 'aralia_rpg_default_save';
+const AUTO_SAVE_SLOT = 'aralia_rpg_autosave';
+const SLOT_INDEX_KEY = 'aralia_rpg_save_slots_index';
+const SLOT_PREFIX = 'aralia_rpg_slot_';
+
+export const DEFAULT_SAVE_SLOT_KEY = DEFAULT_SAVE_SLOT;
+export const AUTO_SAVE_SLOT_KEY = AUTO_SAVE_SLOT;
 
 export interface SaveLoadResult {
   success: boolean;
@@ -28,6 +75,7 @@ export async function saveGame(
   gameState: GameState,
   slotName: string = DEFAULT_SAVE_SLOT,
   notify?: NotifyFn,
+  options?: SaveGameOptions,
 ): Promise<SaveLoadResult> {
   try {
     const stateToSave: GameState = {
@@ -47,9 +95,32 @@ export async function saveGame(
       characterSheetModal: { isOpen: false, character: null },
       notifications: [], // Don't save transient notifications
     };
-    const serializedState = JSON.stringify(stateToSave);
-    localStorage.setItem(slotName, serializedState);
-    console.log(`Game saved to slot: ${slotName} at ${new Date(stateToSave.saveTimestamp!).toLocaleString()}`);
+    const storageKey = resolveSlotKey(slotName, options?.isAutoSave);
+    const slotLabel = options?.displayName || slotName;
+    const payload: StoredSavePayload = {
+      version: SAVE_GAME_VERSION,
+      slotId: storageKey,
+      slotName: slotLabel,
+      isAutoSave: options?.isAutoSave || storageKey === AUTO_SAVE_SLOT,
+      thumbnail: options?.thumbnail,
+      preview: extractPreview(stateToSave),
+      state: stateToSave,
+    };
+
+    const serializedState = JSON.stringify(payload);
+    localStorage.setItem(storageKey, serializedState);
+    upsertSlotMetadata({
+      slotId: storageKey,
+      slotName: slotLabel,
+      lastSaved: stateToSave.saveTimestamp!,
+      isAutoSave: payload.isAutoSave,
+      thumbnail: payload.thumbnail,
+      locationName: payload.preview?.locationName,
+      partyLevel: payload.preview?.partyLevel,
+      playtimeSeconds: payload.preview?.playtimeSeconds,
+    });
+
+    console.log(`Game saved to slot: ${storageKey} at ${new Date(stateToSave.saveTimestamp!).toLocaleString()}`);
     const result = { success: true, message: "Game saved successfully." } as const;
     notify?.({ message: result.message, type: 'success' });
     return result;
@@ -75,16 +146,19 @@ export async function saveGame(
  */
 export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: NotifyFn): Promise<SaveLoadResult> {
   try {
-    const serializedState = localStorage.getItem(slotName);
+    const storageKey = resolveSlotKey(slotName);
+    const serializedState = localStorage.getItem(storageKey);
     if (!serializedState) {
-      console.log(`No save game found in slot: ${slotName}`);
+      console.log(`No save game found in slot: ${storageKey}`);
       const result = { success: false, message: "No save game found." } as const;
       notify?.({ message: result.message, type: 'info' });
       return result;
     }
-    const loadedState: GameState = JSON.parse(serializedState);
 
-    if (loadedState.saveVersion !== SAVE_GAME_VERSION) {
+    const parsedData = JSON.parse(serializedState);
+    const loadedState: GameState = (parsedData as StoredSavePayload).state || parsedData;
+
+    if (loadedState.saveVersion && loadedState.saveVersion !== SAVE_GAME_VERSION) {
       console.warn(`Save game version mismatch. Expected ${SAVE_GAME_VERSION}, found ${loadedState.saveVersion}. Load aborted.`);
       const failure = { success: false, message: `Save file incompatible (v${loadedState.saveVersion}). Expected v${SAVE_GAME_VERSION}.` } as const;
       notify?.({ message: failure.message, type: 'warning' });
@@ -109,7 +183,19 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     loadedState.unreadDiscoveryCount = loadedState.unreadDiscoveryCount || 0;
     loadedState.notifications = []; // Reset notifications
 
-    console.log(`Game loaded from slot: ${slotName}, saved at ${new Date(loadedState.saveTimestamp!).toLocaleString()}`);
+    normalizeLoadedDates(loadedState);
+    upsertSlotMetadata({
+      slotId: storageKey,
+      slotName: (parsedData as StoredSavePayload).slotName || storageKey,
+      lastSaved: loadedState.saveTimestamp || Date.now(),
+      isAutoSave: (parsedData as StoredSavePayload).isAutoSave,
+      thumbnail: (parsedData as StoredSavePayload).thumbnail,
+      locationName: (parsedData as StoredSavePayload).preview?.locationName,
+      partyLevel: (parsedData as StoredSavePayload).preview?.partyLevel,
+      playtimeSeconds: (parsedData as StoredSavePayload).preview?.playtimeSeconds,
+    });
+
+    console.log(`Game loaded from slot: ${storageKey}, saved at ${new Date(loadedState.saveTimestamp!).toLocaleString()}`);
     const result = { success: true, message: "Game loaded successfully.", data: loadedState } as const;
     notify?.({ message: result.message, type: 'success' });
     return result;
@@ -127,7 +213,14 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
  * @returns {boolean} True if a save game exists, false otherwise.
  */
 export function hasSaveGame(slotName: string = DEFAULT_SAVE_SLOT): boolean {
-  return localStorage.getItem(slotName) !== null;
+  try {
+    const slots = getSaveSlots();
+    if (slots.length > 0) return true;
+    return localStorage.getItem(resolveSlotKey(slotName)) !== null;
+  } catch (error) {
+    console.error("Error checking save existence:", error);
+    return false;
+  }
 }
 
 /**
@@ -137,12 +230,17 @@ export function hasSaveGame(slotName: string = DEFAULT_SAVE_SLOT): boolean {
  */
 export function getLatestSaveTimestamp(slotName: string = DEFAULT_SAVE_SLOT): number | null {
   try {
-    const serializedState = localStorage.getItem(slotName);
-    if (serializedState) {
-      const loadedState: Partial<GameState> = JSON.parse(serializedState);
-      return loadedState.saveTimestamp || null;
+    const slots = getSaveSlots();
+    if (slots.length > 0) {
+      return slots.sort((a, b) => b.lastSaved - a.lastSaved)[0]?.lastSaved ?? null;
     }
-    return null;
+
+    const serializedState = localStorage.getItem(resolveSlotKey(slotName));
+    if (!serializedState) return null;
+
+    const parsedData = JSON.parse(serializedState);
+    const legacyState: Partial<GameState> = (parsedData as StoredSavePayload).state || parsedData;
+    return legacyState.saveTimestamp || null;
   } catch (error) {
     console.error("Error retrieving save timestamp:", error);
     return null;
@@ -155,9 +253,119 @@ export function getLatestSaveTimestamp(slotName: string = DEFAULT_SAVE_SLOT): nu
  */
 export function deleteSaveGame(slotName: string = DEFAULT_SAVE_SLOT): void {
   try {
-    localStorage.removeItem(slotName);
-    console.log(`Save game deleted from slot: ${slotName}`);
+    const storageKey = resolveSlotKey(slotName);
+    localStorage.removeItem(storageKey);
+    removeSlotMetadata(storageKey);
+    console.log(`Save game deleted from slot: ${storageKey}`);
   } catch (error) {
     console.error("Error deleting save game:", error);
   }
+}
+
+/**
+ * Retrieves metadata for all known save slots, including the auto-save slot when present.
+ */
+export function getSaveSlots(): SaveSlotSummary[] {
+  try {
+    const storedIndex = localStorage.getItem(SLOT_INDEX_KEY);
+    const parsedIndex: SaveSlotSummary[] = storedIndex ? JSON.parse(storedIndex) : [];
+    return mergeWithLegacySaves(parsedIndex).sort((a, b) => b.lastSaved - a.lastSaved);
+  } catch (error) {
+    console.error("Error loading save slot metadata:", error);
+    return mergeWithLegacySaves([]);
+  }
+}
+
+// -----------------
+// Helper functions
+// -----------------
+
+/**
+ * Ensures consistent localStorage keys for both legacy single-slot and new multi-slot saves.
+ */
+function resolveSlotKey(slotName: string, isAutoSave?: boolean): string {
+  if (slotName === DEFAULT_SAVE_SLOT) return DEFAULT_SAVE_SLOT;
+  if (slotName === AUTO_SAVE_SLOT || isAutoSave) return AUTO_SAVE_SLOT;
+  if (slotName.startsWith(SLOT_PREFIX)) return slotName;
+  return `${SLOT_PREFIX}${slotName}`;
+}
+
+/**
+ * Builds preview data (location, party level, playtime) from the latest GameState snapshot.
+ */
+function extractPreview(state: GameState): SavePreview {
+  const partyLevels = state.party?.map(member => member.level || 1) || [];
+  const averageLevel = partyLevels.length > 0 ? Math.round(partyLevels.reduce((a, b) => a + b, 0) / partyLevels.length) : undefined;
+  const playtimeSeconds = state.gameTime instanceof Date ? Math.max(0, Math.floor(state.gameTime.getTime() / 1000)) : undefined;
+  return {
+    locationName: state.currentLocationId,
+    partyLevel: averageLevel,
+    playtimeSeconds,
+  };
+}
+
+/**
+ * Normalizes date-like fields to proper Date instances after JSON parsing.
+ */
+function normalizeLoadedDates(loadedState: GameState) {
+  if (loadedState.gameTime && !(loadedState.gameTime instanceof Date)) {
+    loadedState.gameTime = new Date(loadedState.gameTime);
+  }
+}
+
+function upsertSlotMetadata(summary: SaveSlotSummary) {
+  try {
+    const current = getSaveSlots().filter(slot => slot.slotId !== summary.slotId);
+    const next = [...current, summary];
+    localStorage.setItem(SLOT_INDEX_KEY, JSON.stringify(next));
+  } catch (error) {
+    console.error("Error updating save slot metadata index:", error);
+  }
+}
+
+function removeSlotMetadata(slotId: string) {
+  try {
+    const current = getSaveSlots().filter(slot => slot.slotId !== slotId);
+    localStorage.setItem(SLOT_INDEX_KEY, JSON.stringify(current));
+  } catch (error) {
+    console.error("Error removing save slot metadata:", error);
+  }
+}
+
+function mergeWithLegacySaves(index: SaveSlotSummary[]): SaveSlotSummary[] {
+  const merged = [...index];
+
+  const legacyKeys = [DEFAULT_SAVE_SLOT, AUTO_SAVE_SLOT];
+  for (let i = 0; i < localStorage.length; i += 1) {
+    const key = localStorage.key(i);
+    if (!key || (!key.startsWith(SLOT_PREFIX) && !legacyKeys.includes(key))) {
+      continue;
+    }
+
+    const alreadyIndexed = merged.some(slot => slot.slotId === key);
+    if (alreadyIndexed) continue;
+
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw) as StoredSavePayload | GameState;
+      const state = (parsed as StoredSavePayload).state || (parsed as GameState);
+      const preview = (parsed as StoredSavePayload).preview || extractPreview(state as GameState);
+      const fallbackTimestamp = (state as GameState).saveTimestamp || Date.now();
+      merged.push({
+        slotId: key,
+        slotName: (parsed as StoredSavePayload).slotName || key,
+        isAutoSave: key === AUTO_SAVE_SLOT || (parsed as StoredSavePayload).isAutoSave,
+        lastSaved: fallbackTimestamp,
+        thumbnail: (parsed as StoredSavePayload).thumbnail,
+        locationName: preview?.locationName,
+        partyLevel: preview?.partyLevel,
+        playtimeSeconds: preview?.playtimeSeconds,
+      });
+    } catch (error) {
+      console.error(`Failed to parse save slot ${key}:`, error);
+    }
+  }
+
+  return merged;
 }
