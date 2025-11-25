@@ -21,9 +21,10 @@ For a complete index of all documentation, please see the [README Index](./docs/
 *   **Framework**: **React** (v19) using modern features like hooks.
 *   **Language**: **TypeScript** for type safety.
 *   **Styling**: **Tailwind CSS** (via CDN) plus the utility definitions in `src/index.css` and the curated styles aggregated in `public/styles.css`.
-*   **Build Tooling**: **Vite** for both the dev server (`npm run dev`) and production bundling (`npm run preview`).
+*   **Build Tooling**: **Vite** for both the dev server (`npm run dev`) and production bundling (`npm run build` / `npm run preview`).
     *   **Dual dependency system**: Vite bundles everything declared in `package.json`, while the `index.html` import map loads dependencies directly from a CDN for browser-based imports (React, `@google/genai`, `framer-motion`, markdown tooling, PIXI, etc.).
-    *   **Synchronization requirement**: Keep the semver ranges in `package.json` and the import map aligned. When you update a dependency, update it in both places—including browser polyfills for Node.js modules like `fs` and `path`—so CDN consumers and the bundled build stay in lockstep.
+    *   **Synchronization requirement**: Keep the semver ranges in `package.json` and the import map aligned so CDN imports match the bundled output.
+        *   When you bump a dependency, update it in both places (including browser polyfills for Node.js modules like `fs` and `path`).
 *   **AI Integration**: The app uses the **`@google/genai`** SDK for all interactions with the Gemini models. This is a core, unchangeable requirement.
 
 ### Architectural Constraints (What I Can't Do)
@@ -58,8 +59,14 @@ The project follows a component-based architecture with a clear separation of co
         *   **`CharacterCreator/`**: Contains all components related to the multi-step character creation process. See [`src/components/CharacterCreator/CharacterCreator.README.md`](./src/components/CharacterCreator/CharacterCreator.README.md).
     *   **`services/`**: Modules responsible for external interactions (e.g., Gemini API, Local Storage).
     *   **`hooks/`**: Custom React hooks for encapsulating complex, reusable logic.
-        *   **`useGameActions`**: From `App.tsx`, builds rich context (location, NPCs, submap tile, player class/race), delegates to action handlers in `src/hooks/actions/`, logs Gemini calls, and toggles UI overlays while dispatching reducer updates.
-        *   **`useGameInitialization`**: Coordinates all entry flows—new game seeds/maps, dummy-party skips that call Gemini for names, load/resume via `SaveLoadService`, and the dev-mode `initializeDummyPlayerState` when `USE_DUMMY_CHARACTER_FOR_DEV` is enabled.
+        *   **`useGameActions`**: Orchestrates gameplay actions from `App.tsx`.
+            *   Builds the acting context (location, NPCs, submap tile, player class/race) before dispatching.
+            *   Delegates to the action handlers in `src/hooks/actions/` and logs Gemini calls.
+            *   Toggles UI overlays and reducer updates as actions resolve.
+        *   **`useGameInitialization`**: Coordinates all entry flows.
+            *   Seeds new games (maps and identifiers) and supports dummy-party skips that call Gemini for names.
+            *   Loads and resumes games via `SaveLoadService`.
+            *   Supports the dev-mode `initializeDummyPlayerState` when `USE_DUMMY_CHARACTER_FOR_DEV` is enabled.
         *   **Combat hooks**:
             *   **`useBattleMapGeneration`**: Builds `BattleMapData` via `BattleMapGenerator` and seeds player/enemy spawns before render.
             *   **`useBattleMap`**: Runs inside `CombatView`, coordinating movement/targeting with `useTurnManager` and `useAbilitySystem` while respecting the active turn and ability targeting mode.
