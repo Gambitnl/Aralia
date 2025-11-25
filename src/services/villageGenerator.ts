@@ -364,25 +364,18 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
  * top-most building that occupies a tile so interactions stay deterministic.
  */
 export const findBuildingAt = (layout: VillageLayout, x: number, y: number): VillageBuildingFootprint | undefined => {
-  let chosen: VillageBuildingFootprint | undefined;
-  let bestPriority = TILE_TYPES_PRIORITY.length;
-
-  layout.buildings.forEach(b => {
+  return layout.buildings.reduce((chosen: VillageBuildingFootprint | undefined, b) => {
     const { footprint } = b;
     const withinBounds = x >= footprint.x && x < footprint.x + footprint.width && y >= footprint.y && y < footprint.y + footprint.height;
-    if (!withinBounds) return;
+    if (!withinBounds) return chosen;
 
+    // Using priority comparison here keeps overlapping civic structures
+    // deterministic for UI hit-testing (e.g., plaza beneath market).
     const buildingPriority = getPriorityIndex(b.type);
-    // Pick the most prominent building that owns the tile so that overlapping
-    // civic structures (well inside plaza, market over plaza) resolve
-    // deterministically for UI interactions.
-    if (buildingPriority <= bestPriority) {
-      chosen = b;
-      bestPriority = buildingPriority;
-    }
-  });
+    const chosenPriority = chosen ? getPriorityIndex(chosen.type) : TILE_TYPES_PRIORITY.length;
 
-  return chosen;
+    return buildingPriority <= chosenPriority ? b : chosen;
+  }, undefined);
 };
 
 /**

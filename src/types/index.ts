@@ -967,9 +967,3 @@ export interface VillageActionContext {
   culturalSignature: string;
   encounterHooks: string[];
 }
-
-export interface VillageAction {
-  type: 'custom';
-  label: string;
-  payload: { villageContext: VillageActionContext };
-}

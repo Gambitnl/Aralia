@@ -17,9 +17,11 @@ export interface VillageIntegrationProfile {
 const buildPrompt = (personality: VillagePersonality, summary: string) =>
   `You are describing a village that feels ${summary}. Wealth: ${personality.wealth}. Culture: ${personality.culture}. Biome style: ${personality.biomeStyle}. Population: ${personality.population}. Keep responses warm and concise.`;
 
+const DEFAULT_VILLAGE_PROFILE_ID = 'stoic_poor_temperate';
+
 export const villageIntegrationProfiles: Record<string, VillageIntegrationProfile> = {
-  stoic_poor_temperate: {
-    id: 'stoic_poor_temperate',
+  [DEFAULT_VILLAGE_PROFILE_ID]: {
+    id: DEFAULT_VILLAGE_PROFILE_ID,
     tagline: 'Humble homesteads cling to tradition.',
     aiPrompt: buildPrompt({ wealth: 'poor', culture: 'stoic', biomeStyle: 'temperate', population: 'small' }, 'resilient but short on luxuries'),
     culturalSignature: 'Work songs and worn tools show a community that survives through grit.',
@@ -64,5 +66,5 @@ export const resolveVillageIntegrationProfile = (personality: VillagePersonality
   // Safe fallback keeps the integration layer predictable even for new biomes
   // or wealth levels. The STOIC baseline is intentionally humble so it does not
   // overpromise when data is sparse.
-  return villageIntegrationProfiles.stoic_poor_temperate;
+  return villageIntegrationProfiles[DEFAULT_VILLAGE_PROFILE_ID];
 };

@@ -31,6 +31,16 @@ const baseTileFill: Record<VillageTileType, string> = {
   shop_temple: villageBuildingVisuals.shop_temple.colors[0]
 };
 
+// Keep merchant type lookup at module scope so clicks do not recreate the map
+// every render; leaving non-shop keys out keeps the object minimal because
+// missing keys already return undefined in JS.
+const shopMerchantTypeMap: Partial<Record<VillageTileType, string>> = {
+  shop_blacksmith: 'Blacksmith',
+  shop_general: 'General Store',
+  shop_tavern: 'Tavern',
+  shop_temple: 'Temple'
+};
+
 const interactionLabels: Record<VillageTileType, string> = {
   grass: 'Wander the Green',
   path: 'Stroll the Lane',
@@ -142,22 +152,6 @@ const VillageScene: React.FC<VillageSceneProps> = ({ worldSeed, worldX, worldY, 
 
     // For shop tiles, open the dynamic merchant flow directly so gameplay hooks
     // receive the culture-aware context instead of just a descriptive blurb.
-    const shopMerchantTypeMap: Record<VillageTileType, string | undefined> = {
-      shop_blacksmith: 'Blacksmith',
-      shop_general: 'General Store',
-      shop_tavern: 'Tavern',
-      shop_temple: 'Temple',
-      grass: undefined,
-      path: undefined,
-      plaza: undefined,
-      market: undefined,
-      well: undefined,
-      guard_post: undefined,
-      house_small: undefined,
-      house_medium: undefined,
-      house_large: undefined
-    };
-
     const merchantType = shopMerchantTypeMap[tileType];
 
     const action: Action = merchantType
