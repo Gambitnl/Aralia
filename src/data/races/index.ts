@@ -39,7 +39,7 @@ import { WATER_GENASI_DATA } from './water_genasi';
  * prevents straggler imports from reintroducing retired data. The object
  * map is generated from this list to preserve the existing lookup shape.
  */
-const ACTIVE_RACES_DATA: Race[] = [
+const ACTIVE_RACES_DATA: readonly Race[] = [
   // Core PHB-style options
   HUMAN_DATA,
   ELF_DATA,
@@ -86,10 +86,13 @@ const ACTIVE_RACES_DATA: Race[] = [
 /**
  * Exporting the curated list directly is helpful for gameplay flows that
  * need a stable ordering (e.g., character creator dropdowns) without
- * relying on object iteration order. The spread copy keeps the original
- * array immutable to guard against accidental mutations at runtime.
+ * relying on object iteration order. Freezing the exported array enforces
+ * runtime immutability so consumers cannot mutate ordering or contents,
+ * while still preserving the intentional source ordering above.
  */
-export const ACTIVE_RACES: Race[] = [...ACTIVE_RACES_DATA];
+export const ACTIVE_RACES: readonly Race[] = Object.freeze([
+  ...ACTIVE_RACES_DATA,
+]);
 
 /**
  * A record containing all available race data, keyed by race ID.
@@ -99,6 +102,12 @@ export const ALL_RACES_DATA: Record<string, Race> = Object.freeze(
     // Why: Explicitly mapping each race ID from the curated list avoids accidentally keeping
     // stale imports around after a race is removed elsewhere, while freeze guards against
     // runtime mutations that could desynchronize selectors or hooks.
+    if (acc[race.id]) {
+      // Why: Guard against identifier collisions so downstream selectors/hooks never see
+      // ambiguous lookups or silently overwritten data when new races are added.
+      throw new Error(`Duplicate race id detected while building ALL_RACES_DATA: ${race.id}`);
+    }
+
     acc[race.id] = race;
     return acc;
   }, {} as Record<string, Race>),
