@@ -306,8 +306,12 @@ function evaluateAoEPlan(
   const startTile = mapData.tiles.get(`${caster.position.x}-${caster.position.y}`);
   if (!startTile) return null;
 
-  // Candidate centers: enemy positions and nearby tiles to allow clipping groups.
+  // Candidate centers: enemy positions for offensive casts plus ally clusters for
+  // supportive AoEs. We sample a 1-tile ring to let cones/lines slightly offset
+  // while still catching groups. A small seen-set keeps the work bounded when
+  // both enemies and allies occupy shared spaces.
   const candidateCenters: Position[] = [];
+  const seen = new Set<string>();
   const addCandidate = (pos: Position) => {
     if (
       pos.x >= 0 &&
@@ -315,7 +319,11 @@ function evaluateAoEPlan(
       pos.x < mapData.dimensions.width &&
       pos.y < mapData.dimensions.height
     ) {
-      candidateCenters.push(pos);
+      const key = `${pos.x}-${pos.y}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        candidateCenters.push(pos);
+      }
     }
   };
 
@@ -330,15 +338,40 @@ function evaluateAoEPlan(
     }
   });
 
+  // When an AoE can heal, also seed around allies so we consider supportive casts
+  // even in the absence of nearby hostiles (e.g., mid-combat regrouping).
+  const canHeal = ability.effects.some(e => e.type === 'heal');
+  if (canHeal) {
+    allies.forEach(ally => {
+      addCandidate(ally.position);
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          if (dx === 0 && dy === 0) continue;
+          addCandidate({ x: ally.position.x + dx, y: ally.position.y + dy });
+        }
+      }
+    });
+  }
+
   let bestPlan: AIPlan | null = null;
 
   for (const center of candidateCenters) {
     // Ignore centers we cannot possibly reach within this turn when considering movement + cast range.
     if (getDistance(caster.position, center) > ability.range + moveRange) continue;
 
-    // Find an actual tile we can cast from that respects LoS.
-    const castTile = findCastPosition(reachableTiles, center, ability, mapData) || startTile;
-    if (!hasClearShot(castTile.coordinates, center, mapData)) continue;
+    // Find an actual tile we can cast from that respects LoS. If none is reachable,
+    // fall back to the current tile only when it is legitimately in range and has
+    // line of sight. This prevents us from "planning" casts we cannot execute,
+    // which previously happened when pathing failed but the start tile was far
+    // outside the ability's range.
+    const castTile =
+      findCastPosition(reachableTiles, center, ability, mapData) ||
+      (getDistance(startTile.coordinates, center) <= ability.range &&
+      hasClearShot(startTile.coordinates, center, mapData)
+        ? startTile
+        : null);
+
+    if (!castTile) continue;
 
     const aoeTiles = computeAoETiles(area, center, mapData, castTile.coordinates);
     const impactedEnemies = enemies.filter(e =>
@@ -348,11 +381,17 @@ function evaluateAoEPlan(
       aoeTiles.some(tile => tile.x === a.position.x && tile.y === a.position.y)
     );
 
-    // Skip if we would only clip allies with an offensive spell.
+    // Healing AOE hotfix: filter to allies who can actually benefit so we do not waste
+    // decision slots on fully healthy targets (and to avoid selecting empty heals).
+    const healableAllies = impactedAllies.filter(ally => ally.currentHP < ally.maxHP);
+
+    // Skip cases where the area would hit no valid targets for a single-purpose effect.
+    // Mixed damage/heal areas remain eligible as long as one side has a target so we don't
+    // block dual-purpose spells from being used aggressively or supportively as needed.
     const damageEffect = ability.effects.find(e => e.type === 'damage');
     const healEffect = ability.effects.find(e => e.type === 'heal');
-    if (damageEffect && impactedEnemies.length === 0) continue;
-    if (healEffect && impactedAllies.length === 0) continue;
+    if (damageEffect && impactedEnemies.length === 0 && !healEffect) continue;
+    if (healEffect && healableAllies.length === 0 && !damageEffect) continue;
 
     let score = 0;
 
@@ -375,15 +414,15 @@ function evaluateAoEPlan(
 
     if (healEffect) {
       const healValue = healEffect.value || 0;
-      impactedAllies.forEach(ally => {
+      healableAllies.forEach(ally => {
         const missing = ally.maxHP - ally.currentHP;
         if (missing > 0) {
           score += Math.min(missing, healValue) * WEIGHTS.HEAL;
           if (ally.currentHP < ally.maxHP * 0.35) score += WEIGHTS.SELF_PRESERVATION;
         }
       });
-      if (impactedAllies.length > 1) {
-        score += (impactedAllies.length - 1) * (WEIGHTS.AOE_MULTI_TARGET / 2);
+      if (healableAllies.length > 1) {
+        score += (healableAllies.length - 1) * (WEIGHTS.AOE_MULTI_TARGET / 2);
       }
     }
 
@@ -399,14 +438,18 @@ function evaluateAoEPlan(
     score += WEIGHTS.DISTANCE_PENALTY * movementCost;
 
     if (!bestPlan || score > bestPlan.score) {
+      const allyCountForDescription = healEffect ? healableAllies.length : impactedAllies.length;
+
       bestPlan = {
         actionType: 'ability',
         abilityId: ability.id,
         targetPosition: center,
-        targetCharacterIds: [...impactedEnemies.map(e => e.id), ...impactedAllies.map(a => a.id)],
+        // Only include allies who can benefit in the target list so downstream effects
+        // (animations, logs) reflect the filtered heal targets.
+        targetCharacterIds: [...impactedEnemies.map(e => e.id), ...healableAllies.map(a => a.id)],
         score,
         description: `Cast ${ability.name} to affect ${impactedEnemies.length} enemies${
-          impactedAllies.length ? ` and ${impactedAllies.length} allies` : ''
+          allyCountForDescription ? ` and ${allyCountForDescription} allies` : ''
         }`,
       };
     }
