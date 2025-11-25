@@ -7,7 +7,7 @@
  */
 import { GenerateContentResponse } from "@google/genai";
 import { ai } from './aiClient'; // Import the shared AI client
-import { Action, PlayerCharacter, InspectSubmapTilePayload, SeededFeatureConfig, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState } from "../types"; 
+import { Action, PlayerCharacter, InspectSubmapTilePayload, SeededFeatureConfig, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState, VillageActionContext } from "../types";
 import { SUBMAP_ICON_MEANINGS } from '../data/glossaryData'; 
 import { XP_BY_CR } from '../data/dndData';
 import { CLASSES_DATA } from '../data/classes';
@@ -502,13 +502,19 @@ export async function generateSituationAnalysis(
 
 
 export async function generateMerchantInventory(
-    villageContext: any,
+    villageContext: VillageActionContext | undefined,
     shopType: string,
     devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiInventoryData>> {
     const templateString = Object.entries(ItemTemplates).map(([key, tmpl]) => `${key}: ${JSON.stringify(tmpl)}`).join('\n\n');
+    // Spell out the village context so Gemini receives the culture/biome cues
+    // alongside the building description. This keeps inventories consistent with
+    // the generated settlement instead of relying on a generic fallback.
+    const contextDescription = villageContext
+      ? `A ${shopType} near ${villageContext.buildingType} at (${villageContext.worldX}, ${villageContext.worldY}) in biome ${villageContext.biomeId}. Personality prompt: ${villageContext.integrationPrompt}. Cultural signature: ${villageContext.culturalSignature}. Hooks: ${(villageContext.encounterHooks || []).join(' | ')}. Location detail: ${villageContext.description}`
+      : `A ${shopType} with no specific village context; default to a frontier trading post vibe.`;
     const systemInstruction = `You are a Game Master generating a shop inventory.
-    Context: A ${shopType} in a village: ${JSON.stringify(villageContext)}.
+    Context: ${contextDescription}.
     Return a JSON object with keys: "inventory" (array of items using provided schemas) and "economy" (scarcity/surplus data).
     ITEM SCHEMAS: ${templateString}`;
 

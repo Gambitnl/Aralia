@@ -6,6 +6,7 @@
  */
 import React from 'react';
 import { CombatCharacter, CharacterStats } from './combat'; // Adjusted import path for sibling file
+import type { VillageTileType } from './services/villageGenerator';
 
 export type { CombatCharacter, CharacterStats };
 
@@ -983,9 +984,11 @@ export interface Action {
     cost?: number;
     value?: number;
     item?: Item;
-    // New payloads for dynamic generation
+    // New payloads for dynamic generation. The village context is typed so the
+    // Gemini prompts can safely lean on integration cues without guessing at
+    // available fields.
     merchantType?: string;
-    villageContext?: any;
+    villageContext?: VillageActionContext;
     skillCheck?: { skill: string; dc: number };
     harvestContext?: string;
     
@@ -1090,4 +1093,24 @@ export interface MissingChoice {
   description: string;
   type: 'race' | 'class'; // Source of the missing choice
   options: { id: string; label: string; description?: string; [key: string]: any }[];
+}
+
+// Village scene integration payloads live here to keep the UI contract
+// explicit. Having a shared type prevents accidental "any" leaks when we send
+// interaction data to higher-level action dispatchers.
+export interface VillageActionContext {
+  worldX: number;
+  worldY: number;
+  biomeId: string;
+  buildingId?: string;
+  buildingType: VillageTileType;
+  description: string;
+  integrationProfileId: string;
+  integrationPrompt: string;
+  // Extra narrative cues baked into the integration profile so that
+  // downstream systems (Gemini calls, UI flavor text) can lean on the
+  // same cultural hooks without recalculating them.
+  integrationTagline: string;
+  culturalSignature: string;
+  encounterHooks: string[];
 }

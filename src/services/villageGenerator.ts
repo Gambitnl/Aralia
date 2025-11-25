@@ -1,3 +1,4 @@
+import { resolveVillageIntegrationProfile, VillageIntegrationProfile } from '../data/villagePersonalityProfiles';
 import { villageBuildingVisuals } from '../config/submapVisualsConfig';
 import { createSeededRandom } from '../utils/submapUtils';
 
@@ -50,6 +51,7 @@ export interface VillageLayout {
   tiles: VillageTileType[][];
   buildings: VillageBuildingFootprint[];
   personality: VillagePersonality;
+  integrationProfile: VillageIntegrationProfile;
 }
 
 interface GenerationOptions {
@@ -74,6 +76,36 @@ const TILE_TYPES_PRIORITY: VillageTileType[] = [
   'path',
   'grass'
 ];
+
+/**
+ * Keeps all tile writes consistent by comparing against a single priority list.
+ * Using an explicit helper prevents later tile stamping (for example, guard
+ * posts or houses) from accidentally overwriting the plaza or civic core. That
+ * bug previously caused plaza tiles to flip to whatever the last building write
+ * was, creating confusing hit testing results for the UI. Centralising the
+ * comparison also reduces the chance of new placement code forgetting about the
+ * intended layering rules.
+ */
+const getPriorityIndex = (type: VillageTileType): number => {
+  const idx = TILE_TYPES_PRIORITY.indexOf(type);
+  return idx === -1 ? TILE_TYPES_PRIORITY.length : idx;
+};
+
+const setTileWithPriority = (tiles: VillageTileType[][], x: number, y: number, type: VillageTileType) => {
+  const row = tiles[y];
+  if (!row || typeof row[x] === 'undefined') return;
+
+  const current = row[x];
+  const incomingPriority = getPriorityIndex(type);
+  const currentPriority = getPriorityIndex(current);
+
+  // Lower index means higher priority. Only replace when we know the newcomer
+  // outranks what is already there. This keeps roads from overrunning civic
+  // structures while still allowing high-priority features to reclaim space.
+  if (incomingPriority <= currentPriority) {
+    row[x] = type;
+  }
+};
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
@@ -115,9 +147,7 @@ const createGrid = (width: number, height: number, defaultTile: VillageTileType)
 
 const carvePath = (tiles: VillageTileType[][], points: { x: number; y: number }[]) => {
   points.forEach(({ x, y }) => {
-    if (tiles[y] && tiles[y][x]) {
-      tiles[y][x] = 'path';
-    }
+    setTileWithPriority(tiles, x, y, 'path');
   });
 };
 
@@ -145,12 +175,11 @@ const stampBuilding = (
       const x = footprint.x + dx;
       const y = footprint.y + dy;
       if (!tiles[y] || typeof tiles[y][x] === 'undefined') continue;
-      // Plaza tiles keep highest priority to make the square obvious
-      if (plazaBoost && type === 'market') {
-        tiles[y][x] = 'plaza';
-      } else {
-        tiles[y][x] = type;
-      }
+      // Plaza tiles keep highest priority to make the square obvious while still
+      // storing the market footprint for hit testing. The helper ensures we only
+      // downgrade a tile when the placement belongs higher in the priority list.
+      const targetType: VillageTileType = plazaBoost && type === 'market' ? 'plaza' : type;
+      setTileWithPriority(tiles, x, y, targetType);
     }
   }
 };
@@ -178,7 +207,7 @@ const addWindingRoads = (tiles: VillageTileType[][], rng: () => number) => {
     const wobble = Math.floor(rng() * 3) - 1;
     for (let x = 0; x < width; x++) {
       const rowY = clamp(y + wobble, 1, height - 2);
-      if (tiles[rowY][x] === 'grass') tiles[rowY][x] = 'path';
+      setTileWithPriority(tiles, x, rowY, 'path');
     }
   }
 };
@@ -189,6 +218,9 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
   const biomeSeedText = `${biomeId}_village`;
   const rng = createSeededRandom(worldSeed, { x: worldX, y: worldY }, biomeSeedText, 'village_rng');
   const personality = rollPersonality(rng, biomeId);
+  // Keep a ready-made integration profile so UI layers and AI hooks can share
+  // the same narrative cues without recomputing or duplicating logic.
+  const integrationProfile = resolveVillageIntegrationProfile(personality);
 
   const tiles = createGrid(width, height, 'grass');
   const buildings: VillageBuildingFootprint[] = [];
@@ -305,17 +337,14 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
     buildings.push(house);
   }
 
-  // Ensure tile priority is respected by normalising overlapping placements
+  // Final sanity pass: if a tile ever slipped through with an unknown type,
+  // nudge it back to grass so renderers never choke on unexpected strings.
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const tile = tiles[y][x];
-      // fallback to plaza for inner square if overwritten by later steps
-      if (x >= plazaTopLeft.x && x < plazaTopLeft.x + plazaSize && y >= plazaTopLeft.y && y < plazaTopLeft.y + plazaSize) {
-        tiles[y][x] = tile === 'path' ? 'path' : tile;
-        continue;
+      if (getPriorityIndex(tile) === TILE_TYPES_PRIORITY.length) {
+        tiles[y][x] = 'grass';
       }
-      const idx = TILE_TYPES_PRIORITY.indexOf(tile);
-      if (idx === -1) tiles[y][x] = 'grass';
     }
   }
 
@@ -324,7 +353,8 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
     height,
     tiles,
     buildings,
-    personality
+    personality,
+    integrationProfile
   };
 };
 
@@ -334,10 +364,18 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
  * top-most building that occupies a tile so interactions stay deterministic.
  */
 export const findBuildingAt = (layout: VillageLayout, x: number, y: number): VillageBuildingFootprint | undefined => {
-  return layout.buildings.find(b => {
+  return layout.buildings.reduce((chosen: VillageBuildingFootprint | undefined, b) => {
     const { footprint } = b;
-    return x >= footprint.x && x < footprint.x + footprint.width && y >= footprint.y && y < footprint.y + footprint.height;
-  });
+    const withinBounds = x >= footprint.x && x < footprint.x + footprint.width && y >= footprint.y && y < footprint.y + footprint.height;
+    if (!withinBounds) return chosen;
+
+    // Using priority comparison here keeps overlapping civic structures
+    // deterministic for UI hit-testing (e.g., plaza beneath market).
+    const buildingPriority = getPriorityIndex(b.type);
+    const chosenPriority = chosen ? getPriorityIndex(chosen.type) : TILE_TYPES_PRIORITY.length;
+
+    return buildingPriority <= chosenPriority ? b : chosen;
+  }, undefined);
 };
 
 /**

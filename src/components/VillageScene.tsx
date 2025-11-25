@@ -1,13 +1,16 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { describeBuilding, findBuildingAt, generateVillageLayout, VillageTileType } from '../services/villageGenerator';
 import { villageBuildingVisuals } from '../config/submapVisualsConfig';
+import { Action, VillageActionContext } from '../types';
 
 interface VillageSceneProps {
   worldSeed: number;
   worldX: number;
   worldY: number;
   biomeId: string;
-  onAction?: (action: any) => void;
+  // Type-safe action contract keeps upstream reducers honest and prevents
+  // accidental payload drift whenever the village integration context expands.
+  onAction?: (action: Action) => void;
 }
 
 const TILE_SIZE = 16;
@@ -26,6 +29,16 @@ const baseTileFill: Record<VillageTileType, string> = {
   shop_general: villageBuildingVisuals.shop_general.colors[0],
   shop_tavern: villageBuildingVisuals.shop_tavern.colors[0],
   shop_temple: villageBuildingVisuals.shop_temple.colors[0]
+};
+
+// Keep merchant type lookup at module scope so clicks do not recreate the map
+// every render; leaving non-shop keys out keeps the object minimal because
+// missing keys already return undefined in JS.
+const shopMerchantTypeMap: Partial<Record<VillageTileType, string>> = {
+  shop_blacksmith: 'Blacksmith',
+  shop_general: 'General Store',
+  shop_tavern: 'Tavern',
+  shop_temple: 'Temple'
 };
 
 const interactionLabels: Record<VillageTileType, string> = {
@@ -120,18 +133,42 @@ const VillageScene: React.FC<VillageSceneProps> = ({ worldSeed, worldX, worldY, 
     const tileType: VillageTileType = building?.type || layout.tiles[y]?.[x] || 'grass';
     const label = interactionLabels[tileType] || 'Investigate';
 
-    const payload = {
-      villageContext: {
-        worldX,
-        worldY,
-        biomeId,
-        buildingId: building?.id,
-        buildingType: tileType,
-        description: building ? describeBuilding(building, layout.personality) : 'A quiet corner of the village.'
-      }
+    const villageContext: VillageActionContext = {
+      worldX,
+      worldY,
+      biomeId,
+      buildingId: building?.id,
+      buildingType: tileType,
+      description: building ? describeBuilding(building, layout.personality) : 'A quiet corner of the village.',
+      // Carry all integration metadata so downstream actions (merchants,
+      // NPC greetings, etc.) can reuse the same cultural tone without
+      // re-resolving the personality profile.
+      integrationProfileId: layout.integrationProfile.id,
+      integrationPrompt: layout.integrationProfile.aiPrompt,
+      integrationTagline: layout.integrationProfile.tagline,
+      culturalSignature: layout.integrationProfile.culturalSignature,
+      encounterHooks: layout.integrationProfile.encounterHooks
     };
 
-    onAction?.({ type: 'custom', label, payload });
+    // For shop tiles, open the dynamic merchant flow directly so gameplay hooks
+    // receive the culture-aware context instead of just a descriptive blurb.
+    const merchantType = shopMerchantTypeMap[tileType];
+
+    const action: Action = merchantType
+      ? {
+          type: 'OPEN_DYNAMIC_MERCHANT',
+          label: label || `Enter ${merchantType}`,
+          payload: { merchantType, villageContext }
+        }
+      : {
+          type: 'custom',
+          label,
+          payload: { villageContext }
+        };
+
+    // Emit a fully typed action so downstream handlers can immediately forward
+    // the AI-friendly prompt and profile id without guessing at field names.
+    onAction?.(action);
   };
 
   return (
