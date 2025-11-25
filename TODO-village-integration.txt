@@ -1,0 +1,4 @@
+Village Integration TODOs
+- Expand villageIntegrationProfiles with biome-specific variants so arid/forest/coastal settlements retain unique hooks beyond the current few curated entries.
+- Cache findBuildingAt lookups by tile coordinate when rendering hover/click overlays to reduce repeated priority calculations in dense markets.
+- Add UI affordances (icons or tooltips) for integrationTagline on the village canvas to help players notice personality-driven interactions before clicking.
