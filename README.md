@@ -21,7 +21,9 @@ For a complete index of all documentation, please see the [README Index](./docs/
 *   **Framework**: **React** (v19) using modern features like hooks.
 *   **Language**: **TypeScript** for type safety.
 *   **Styling**: **Tailwind CSS** (via CDN) plus the utility definitions in `src/index.css` and the curated styles aggregated in `public/styles.css`.
-*   **Build Tooling**: **Vite** for both the dev server (`npm run dev`) and production bundling (`npm run build`/`npm run preview`). Everything that ships in `package.json` is what Vite bundles, and the `index.html` import map carries the same semver ranges so direct browser imports (React, `@google/genai`, `framer-motion`, markdown tooling, PIXI, etc.) match the bundled output. When you bump a dependency, update the matching entry in the import map (even for seemingly "node-only" helpers like `fs`/`path`) so CDN consumers and the bundled build stay aligned.
+*   **Build Tooling**: **Vite** for both the dev server (`npm run dev`) and production bundling (`npm run preview`).
+    *   **Dual dependency system**: Vite bundles everything declared in `package.json`, while the `index.html` import map loads dependencies directly from a CDN for browser-based imports (React, `@google/genai`, `framer-motion`, markdown tooling, PIXI, etc.).
+    *   **Synchronization requirement**: Keep the semver ranges in `package.json` and the import map aligned. When you update a dependency, update it in both places—including browser polyfills for Node.js modules like `fs` and `path`—so CDN consumers and the bundled build stay in lockstep.
 *   **AI Integration**: The app uses the **`@google/genai`** SDK for all interactions with the Gemini models. This is a core, unchangeable requirement.
 
 ### Architectural Constraints (What I Can't Do)
@@ -55,7 +57,13 @@ The project follows a component-based architecture with a clear separation of co
         *   Each significant component has its own subdirectory and `[ComponentName].README.md`.
         *   **`CharacterCreator/`**: Contains all components related to the multi-step character creation process. See [`src/components/CharacterCreator/CharacterCreator.README.md`](./src/components/CharacterCreator/CharacterCreator.README.md).
     *   **`services/`**: Modules responsible for external interactions (e.g., Gemini API, Local Storage).
-    *   **`hooks/`**: Custom React hooks for encapsulating complex, reusable logic. In `App.tsx`, `useGameActions` builds rich context (location, NPCs, submap tile, player class/race) before delegating to the action handlers in `src/hooks/actions/`, logging Gemini calls, and toggling UI overlays as it dispatches reducer updates. `useGameInitialization` coordinates all entry flows—new game seeds/maps, dummy-party skips that call Gemini for names, load/resume via `SaveLoadService`, and the dev-mode `initializeDummyPlayerState` used when `USE_DUMMY_CHARACTER_FOR_DEV` is enabled. Combat is split between `useBattleMapGeneration` (builds `BattleMapData` via `BattleMapGenerator` and seeds player/enemy spawns before render) and `useBattleMap` (runs on top of that map inside `CombatView`, coordinating movement/targeting with `useTurnManager` and `useAbilitySystem` while respecting the active turn and ability targeting mode). `useAudio` lazily spins up the `AudioContext` for PCM playback and pushes system messages if playback fails.
+    *   **`hooks/`**: Custom React hooks for encapsulating complex, reusable logic.
+        *   **`useGameActions`**: From `App.tsx`, builds rich context (location, NPCs, submap tile, player class/race), delegates to action handlers in `src/hooks/actions/`, logs Gemini calls, and toggles UI overlays while dispatching reducer updates.
+        *   **`useGameInitialization`**: Coordinates all entry flows—new game seeds/maps, dummy-party skips that call Gemini for names, load/resume via `SaveLoadService`, and the dev-mode `initializeDummyPlayerState` when `USE_DUMMY_CHARACTER_FOR_DEV` is enabled.
+        *   **Combat hooks**:
+            *   **`useBattleMapGeneration`**: Builds `BattleMapData` via `BattleMapGenerator` and seeds player/enemy spawns before render.
+            *   **`useBattleMap`**: Runs inside `CombatView`, coordinating movement/targeting with `useTurnManager` and `useAbilitySystem` while respecting the active turn and ability targeting mode.
+        *   **`useAudio`**: Lazily spins up the `AudioContext` for PCM playback and pushes system messages if playback fails.
     *   **`data/`**: Static game data definitions (races, classes, items, etc.), decoupled from `constants.ts`.
     *   **`state/`**: Centralized state management logic (`appReducer`, `initialGameState`).
     *   **`utils/`**: General-purpose utility functions (e.g., character stat calculations).
