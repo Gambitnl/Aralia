@@ -221,8 +221,9 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
   }, [state, assembleAndSubmitCharacter, dispatch]);
 
   const handleAgeChange = useCallback((age: number) => {
-      const sanitizedAge = Math.max(1, Math.min(999, age || 0));
-      dispatch({ type: 'SET_CHARACTER_AGE', payload: sanitizedAge });
+    // Clamp the input locally so the reducer only ever receives valid, displayable values and the UI stays in sync.
+    const sanitizedAge = Math.max(1, Math.min(999, age || 0));
+    dispatch({ type: 'SET_CHARACTER_AGE', payload: sanitizedAge });
   }, [dispatch]);
 
   const goBack = useCallback(() => {
