@@ -47,8 +47,16 @@ function buildTileLookup(tiles: WfcTileDefinition[]): Map<string, WfcTileDefinit
 function filterTilesByBiome(tiles: WfcTileDefinition[], biomeContext?: string): WfcTileDefinition[] {
   if (!biomeContext) return tiles;
   const biomeMatches = tiles.filter((tile) => tile.biomeHint === biomeContext);
+
   if (biomeMatches.length === 0) return tiles;
-  return biomeMatches;
+
+  const hasVariety = new Set(biomeMatches.map((tile) => tile.id)).size > 1;
+  if (hasVariety) return biomeMatches;
+
+  // If the biome-specific slice collapses to a single tile (e.g., swamp => only water),
+  // blend back in neutral terrain so the grid stays traversable for gameplay checks.
+  const neutralTiles = tiles.filter((tile) => !tile.biomeHint || tile.biomeHint === 'plains');
+  return [...biomeMatches, ...neutralTiles];
 }
 
 function selectTile(

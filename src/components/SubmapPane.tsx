@@ -322,6 +322,12 @@ function applyWfcVisuals(
 ): VisualLayerOutput {
   // WFC tiles should directly inform the base terrain the rest of the UI reasons over.
   const newVisuals = { ...currentVisuals };
+  // Keep DOM visuals aligned with the Pixi palette by sourcing all colors from the centralized visualsConfig.
+  const waterColor = visualsConfig.seededFeatures?.find(
+    (feature) => feature.generatesEffectiveTerrainType === 'water'
+  )?.color || 'rgba(33, 105, 170, 0.85)';
+  const wallColor = visualsConfig.caTileVisuals?.wall?.color || '#4b5563';
+  const floorColor = visualsConfig.caTileVisuals?.floor?.color || '#9ca3af';
 
   switch (tileType) {
     case 'grass': {
@@ -339,29 +345,29 @@ function applyWfcVisuals(
       break;
     }
     case 'water': {
-      newVisuals.style.backgroundColor = 'rgba(33, 105, 170, 0.85)';
+      newVisuals.style.backgroundColor = waterColor;
       newVisuals.content = <span role="img" aria-label="water">🌊</span>;
       newVisuals.effectiveTerrainType = 'water';
       break;
     }
     case 'rock': {
-      newVisuals.style.backgroundColor = '#4b5563';
+      newVisuals.style.backgroundColor = wallColor;
       newVisuals.content = <span role="img" aria-label="rock">🪨</span>;
       newVisuals.effectiveTerrainType = 'wall';
       break;
     }
     case 'wall': {
-      newVisuals.style.backgroundColor = '#2d3748';
+      newVisuals.style.backgroundColor = wallColor;
       newVisuals.effectiveTerrainType = 'wall';
       break;
     }
     case 'floor': {
-      newVisuals.style.backgroundColor = '#9ca3af';
+      newVisuals.style.backgroundColor = floorColor;
       newVisuals.effectiveTerrainType = 'floor';
       break;
     }
     case 'ore': {
-      newVisuals.style.backgroundColor = '#f59e0b';
+      newVisuals.style.backgroundColor = wallColor;
       newVisuals.content = <span role="img" aria-label="ore">💎</span>;
       newVisuals.effectiveTerrainType = 'wall';
       newVisuals.isResource = true;

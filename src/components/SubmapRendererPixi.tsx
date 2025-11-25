@@ -190,12 +190,7 @@ const SubmapRendererPixi: React.FC<SubmapRendererPixiProps> = ({
   ]);
 
   useEffect(() => {
-    // Initialize Pixi only once; reuse across prop changes.
-    if (appRef.current) {
-      // Dimensions can change when the host grid is resized; ensure the canvas keeps pace without reallocating the app.
-      appRef.current.renderer.resize(dimensions.cols * TILE_SIZE, dimensions.rows * TILE_SIZE);
-    }
-
+    // Initialize Pixi once on mount so the WebGL context is stable across prop changes.
     if (canvasRef.current && !appRef.current) {
       const app = new PIXI.Application({
         width: dimensions.cols * TILE_SIZE,
@@ -205,18 +200,29 @@ const SubmapRendererPixi: React.FC<SubmapRendererPixiProps> = ({
       });
       appRef.current = app;
       canvasRef.current.appendChild(app.view as HTMLCanvasElement);
-      // Directly render with procedural fills so PR pipelines do not depend on binary spritesheets.
-      renderGrid();
     }
 
     return () => {
+      // Destroy on unmount only; avoids recreating the WebGL context on every prop change.
       appRef.current?.destroy(true, true);
       appRef.current = null;
     };
-  }, [dimensions.cols, dimensions.rows, renderGrid]);
+    // We intentionally leave dependencies empty so initialization/cleanup only run once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
-    renderGrid();
+    // Keep the canvas in sync with submap dimension changes without reallocating the app.
+    if (appRef.current) {
+      appRef.current.renderer.resize(dimensions.cols * TILE_SIZE, dimensions.rows * TILE_SIZE);
+    }
+  }, [dimensions.cols, dimensions.rows]);
+
+  useEffect(() => {
+    // Trigger draw when inputs change but avoid tearing down the Pixi instance.
+    if (appRef.current) {
+      renderGrid();
+    }
   }, [renderGrid]);
 
   return <div ref={canvasRef} className="w-full overflow-hidden" />;
