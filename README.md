@@ -20,20 +20,23 @@ For a complete index of all documentation, please see the [README Index](./docs/
 ### Core Stack
 *   **Framework**: **React** (v19) using modern features like hooks.
 *   **Language**: **TypeScript** for type safety.
-*   **Styling**: **Tailwind CSS** for utility-first styling. All custom styles are in `<style>` blocks in `index.html`.
-*   **Modules**: The app uses native **ES6 Modules**. The `index.html` file contains an `<script type="importmap">` which defines how modules like `react`, `@google/genai`, etc., are loaded directly from `esm.sh`. **There is no local `node_modules` folder or complex build tool like Webpack or Vite.**
+*   **Styling**: **Tailwind CSS** (via CDN) plus the utility definitions in `src/index.css` and the curated styles aggregated in `public/styles.css`.
+*   **Build Tooling**: **Vite** for both the dev server (`npm run dev`) and production bundling (`npm run build` / `npm run preview`).
+    *   **Dual dependency system**: Vite bundles everything declared in `package.json`, while the `index.html` import map loads dependencies directly from a CDN for browser-based imports (React, `@google/genai`, `framer-motion`, markdown tooling, PIXI, etc.).
+    *   **Synchronization requirement**: Keep the semver ranges in `package.json` and the import map aligned so CDN imports match the bundled output.
+        *   When you bump a dependency, update it in both places (including browser polyfills for Node.js modules like `fs` and `path`).
 *   **AI Integration**: The app uses the **`@google/genai`** SDK for all interactions with the Gemini models. This is a core, unchangeable requirement.
 
 ### Architectural Constraints (What I Can't Do)
 
-Because this is a client-side, static application without a traditional build pipeline, there are some hard limitations:
+Because this is a client-side experience packaged and served through Vite, there are some hard limitations:
 *   **No Backend**: I cannot add a server, a database (like MySQL, MongoDB), or server-side languages (like Node.js, Python, PHP). All state must be managed on the client or saved to Local Storage.
-*   **No Build Tools**: I cannot introduce complex build systems (Webpack, Vite, Babel) or modify a `package.json` file. All dependencies must be available via the existing import-map structure from a CDN like `esm.sh`.
-*   **No New Top-Level Files**: I cannot add new files to the absolute root directory. New files should be placed in appropriate subdirectories (e.g., `src/components/`, `src/hooks/`).
+*   **Stay Within Vite**: The existing build and dev workflow already relies on Vite and `package.json`. Introducing alternate bundlers or server frameworks would break the current toolchain and is out of scope.
+*   **Respect the Front-End Footprint**: New assets should live in the relevant `src/` or `public/` subdirectories rather than adding miscellaneous files to the repository root.
 
 ### Architectural Possibilities (Thinking Outside the Box)
 
-While we can't use a build system, we **can** introduce new client-side libraries via the import-map. This is where you can guide me to build more advanced features. For inspiration, refer to the `docs/POTENTIAL_TOOL_INTEGRATIONS.README.md` file.
+Even though everything runs in the browser, we **can** expand the experience by adding client-side libraries through `package.json` or the import-map. This is where you can guide me to build more advanced features. For inspiration, refer to the `docs/POTENTIAL_TOOL_INTEGRATIONS.README.md` file.
 
 **You could ask me to:**
 *   "Integrate **Zustand** to manage our game state more effectively instead of passing props everywhere."
@@ -55,7 +58,19 @@ The project follows a component-based architecture with a clear separation of co
         *   Each significant component has its own subdirectory and `[ComponentName].README.md`.
         *   **`CharacterCreator/`**: Contains all components related to the multi-step character creation process. See [`src/components/CharacterCreator/CharacterCreator.README.md`](./src/components/CharacterCreator/CharacterCreator.README.md).
     *   **`services/`**: Modules responsible for external interactions (e.g., Gemini API, Local Storage).
-    *   **`hooks/`**: Custom React hooks for encapsulating complex, reusable logic (e.g., `useGameActions`, `useAudio`).
+    *   **`hooks/`**: Custom React hooks for encapsulating complex, reusable logic.
+        *   **`useGameActions`**: Orchestrates gameplay actions from `App.tsx`.
+            *   Builds the acting context (location, NPCs, submap tile, player class/race) before dispatching.
+            *   Delegates to the action handlers in `src/hooks/actions/` and logs Gemini calls.
+            *   Toggles UI overlays and reducer updates as actions resolve.
+        *   **`useGameInitialization`**: Coordinates all entry flows.
+            *   Seeds new games (maps and identifiers) and supports dummy-party skips that call Gemini for names.
+            *   Loads and resumes games via `SaveLoadService`.
+            *   Supports the dev-mode `initializeDummyPlayerState` when `USE_DUMMY_CHARACTER_FOR_DEV` is enabled.
+        *   **Combat hooks**:
+            *   **`useBattleMapGeneration`**: Builds `BattleMapData` via `BattleMapGenerator` and seeds player/enemy spawns before render.
+            *   **`useBattleMap`**: Runs inside `CombatView`, coordinating movement/targeting with `useTurnManager` and `useAbilitySystem` while respecting the active turn and ability targeting mode.
+        *   **`useAudio`**: Lazily spins up the `AudioContext` for PCM playback and pushes system messages if playback fails.
     *   **`data/`**: Static game data definitions (races, classes, items, etc.), decoupled from `constants.ts`.
     *   **`state/`**: Centralized state management logic (`appReducer`, `initialGameState`).
     *   **`utils/`**: General-purpose utility functions (e.g., character stat calculations).
