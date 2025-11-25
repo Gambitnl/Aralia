@@ -106,9 +106,20 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
       }
 
       if (event.key === 'Tab') {
-        // Trap focus between the two buttons so background controls are
-        // inaccessible while the confirmation is open.
-        const focusable = [overwriteCancelRef.current, overwriteConfirmRef.current].filter(Boolean) as HTMLElement[];
+        // Trap focus among all visible, focusable controls inside the modal so
+        // adding new elements later (e.g., inputs or tertiary buttons) won't
+        // require updates to this list. This keeps the overlay resilient while
+        // ensuring background UI stays inert for keyboard users.
+        event.preventDefault();
+        const dialog = overwriteDialogRef.current;
+        if (!dialog) return;
+
+        const focusable = Array.from(
+          dialog.querySelectorAll<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter(el => el.offsetParent !== null);
+
         if (focusable.length === 0) return;
 
         const currentIndex = focusable.indexOf(document.activeElement as HTMLElement);
@@ -116,7 +127,6 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
           ? (currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1)
           : (currentIndex === focusable.length - 1 ? 0 : currentIndex + 1);
         focusable[nextIndex]?.focus({ preventScroll: true });
-        event.preventDefault();
       }
     };
 
