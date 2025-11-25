@@ -160,7 +160,9 @@ const canOfferFeatAtLevelOne = (state: CharacterCreationState): boolean => {
       abilityScores: state.finalAbilityScores!,
       raceId: state.selectedRace!.id,
       classId: state.selectedClass!.id,
-      knownFeats: state.selectedFeat ? [state.selectedFeat] : [],
+      // Avoid treating the in-progress choice as already learned; we only want to filter out
+      // feats that fail real prerequisites for this snapshot of the character.
+      knownFeats: [],
     });
     return eligibility.isEligible;
   });

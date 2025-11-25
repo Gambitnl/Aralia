@@ -94,7 +94,9 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
         abilityScores,
         raceId: selectedRace?.id,
         classId: selectedClass?.id,
-        knownFeats: state.selectedFeat ? [state.selectedFeat] : [],
+        // Do not pass the in-progress selection as "known"—that would mark it as already learned and
+        // erroneously disable confirmation. We only want to block feats for unmet prerequisites.
+        knownFeats: [],
       });
 
       return { ...feat, isEligible: eligibility.isEligible, unmet: eligibility.unmet };
