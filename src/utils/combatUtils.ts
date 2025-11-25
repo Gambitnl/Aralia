@@ -3,7 +3,7 @@
  * @file src/utils/combatUtils.ts
  * Utility functions for the combat system.
  */
-import { CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect } from '../types/combat';
+import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect } from '../types/combat';
 import { PlayerCharacter, Monster, Spell } from '../types';
 import { CLASSES_DATA, MONSTERS_DATA } from '../constants';
 import { createAbilityFromSpell } from './spellAbilityFactory';
@@ -34,6 +34,112 @@ export function getDistance(pos1: Position, pos2: Position): number {
   const dy = pos1.y - pos2.y;
   // Use Chebyshev distance (moves on a grid including diagonals)
   return Math.max(Math.abs(dx), Math.abs(dy));
+}
+
+/**
+ * Normalizes AoE information on an ability into a concrete AreaOfEffect object.
+ * This keeps older abilities that only set areaOfEffect working while supporting
+ * the newer areaShape/areaSize fields described in the combat types.
+ */
+export function resolveAreaDefinition(ability: Ability): AreaOfEffect | null {
+  if (ability.areaOfEffect) return ability.areaOfEffect;
+  if (ability.areaShape && ability.areaSize) {
+    return { shape: ability.areaShape, size: ability.areaSize };
+  }
+  return null;
+}
+
+/**
+ * Calculates all map coordinates touched by a given area template. The geometry
+ * intentionally mirrors D&D 5e templates: cones spread in a 90° arc by default,
+ * circles use Chebyshev distance (5 ft squares), and lines extend from the caster
+ * toward the selected center.
+ */
+export function computeAoETiles(
+  area: AreaOfEffect,
+  center: Position,
+  mapData: BattleMapData,
+  origin?: Position
+): Position[] {
+  const tiles = new Map<string, Position>();
+  const clampWithinMap = (pos: Position) =>
+    pos.x >= 0 && pos.y >= 0 && pos.x < mapData.dimensions.width && pos.y < mapData.dimensions.height;
+
+  const addTile = (pos: Position) => {
+    if (clampWithinMap(pos)) {
+      tiles.set(`${pos.x}-${pos.y}`, pos);
+    }
+  };
+
+  switch (area.shape) {
+    case 'circle': {
+      for (let x = center.x - area.size; x <= center.x + area.size; x++) {
+        for (let y = center.y - area.size; y <= center.y + area.size; y++) {
+          const pos = { x, y };
+          if (getDistance(center, pos) <= area.size) {
+            addTile(pos);
+          }
+        }
+      }
+      break;
+    }
+    case 'square': {
+      const half = Math.floor(area.size / 2);
+      for (let x = center.x - half; x <= center.x + half; x++) {
+        for (let y = center.y - half; y <= center.y + half; y++) {
+          addTile({ x, y });
+        }
+      }
+      break;
+    }
+    case 'line': {
+      const originPos = origin || center;
+      const dx = center.x - originPos.x;
+      const dy = center.y - originPos.y;
+      const stepX = dx === 0 ? 0 : dx > 0 ? 1 : -1;
+      const stepY = dy === 0 ? 0 : dy > 0 ? 1 : -1;
+
+      let current: Position = { x: originPos.x, y: originPos.y };
+      for (let i = 0; i < area.size; i++) {
+        current = { x: current.x + stepX, y: current.y + stepY };
+        addTile(current);
+      }
+      break;
+    }
+    case 'cone': {
+      const originPos = origin || center;
+      const baseDir = {
+        x: center.x - originPos.x,
+        y: center.y - originPos.y,
+      };
+      const magnitude = Math.max(1, Math.hypot(baseDir.x, baseDir.y));
+      const dir = { x: baseDir.x / magnitude, y: baseDir.y / magnitude };
+      const angleLimit = (area.angle ?? 90) * (Math.PI / 180);
+
+      for (let x = originPos.x - area.size; x <= originPos.x + area.size; x++) {
+        for (let y = originPos.y - area.size; y <= originPos.y + area.size; y++) {
+          const pos = { x, y };
+          const dist = getDistance(originPos, pos);
+          if (dist === 0 || dist > area.size) continue;
+
+          const vec = { x: pos.x - originPos.x, y: pos.y - originPos.y };
+          const vecMag = Math.max(1, Math.hypot(vec.x, vec.y));
+          const normVec = { x: vec.x / vecMag, y: vec.y / vecMag };
+          const dot = dir.x * normVec.x + dir.y * normVec.y;
+          const theta = Math.acos(Math.min(1, Math.max(-1, dot)));
+
+          if (theta <= angleLimit / 2) {
+            addTile(pos);
+          }
+        }
+      }
+      break;
+    }
+    default:
+      break;
+  }
+
+  return Array.from(tiles.values());
 }
 
 /**

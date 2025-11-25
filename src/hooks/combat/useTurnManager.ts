@@ -4,7 +4,7 @@
  * Now integrates AI decision making and Damage Numbers with stale state fix.
  */
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { CombatCharacter, TurnState, CombatAction, CombatLogEntry, BattleMapData, DamageNumber } from '../../types/combat';
+import { CombatCharacter, TurnState, CombatAction, CombatLogEntry, BattleMapData, DamageNumber, Animation } from '../../types/combat';
 import { createDamageNumber, generateId, getActionMessage } from '../../utils/combatUtils';
 import { useActionEconomy } from './useActionEconomy';
 import { evaluateCombatTurn } from '../../utils/combat/combatAI';
@@ -34,6 +34,7 @@ export const useTurnManager = ({
 
   // Track damage numbers
   const [damageNumbers, setDamageNumbers] = useState<DamageNumber[]>([]);
+  const [animations, setAnimations] = useState<Animation[]>([]);
 
   // AI State to manage turn steps without stale closures
   const [aiState, setAiState] = useState<'idle' | 'thinking' | 'acting' | 'done'>('idle');
@@ -57,6 +58,13 @@ export const useTurnManager = ({
     const roll = Math.floor(Math.random() * 20) + 1;
     return roll + dexModifier + character.stats.baseInitiative;
   };
+
+  const queueAnimation = useCallback((animation: Animation) => {
+    setAnimations(prev => [...prev, animation]);
+    setTimeout(() => {
+      setAnimations(prev => prev.filter(anim => anim.id !== animation.id));
+    }, animation.duration);
+  }, []);
 
   const startTurnFor = (character: CombatCharacter) => {
     let updatedChar = resetEconomy(character);
@@ -142,8 +150,25 @@ export const useTurnManager = ({
       characterId: character.id,
       data: action
     });
+
+    if (action.type === 'ability') {
+      const targetPositions = action.targetCharacterIds
+        ?.map(id => characters.find(c => c.id === id)?.position)
+        .filter(Boolean) as { x: number; y: number }[];
+
+      queueAnimation({
+        id: generateId(),
+        type: 'spell_effect',
+        characterId: action.characterId,
+        startPosition: character.position,
+        endPosition: action.targetPosition,
+        duration: 650,
+        startTime: Date.now(),
+        data: { targetPositions: targetPositions?.length ? targetPositions : action.targetPosition ? [action.targetPosition] : [] },
+      });
+    }
     return true;
-  }, [characters, onCharacterUpdate, onLogEntry, canAfford, consumeAction]);
+  }, [characters, onCharacterUpdate, onLogEntry, canAfford, consumeAction, queueAnimation]);
   
   const processEndOfTurnEffects = (character: CombatCharacter) => {
     let updatedCharacter = { ...character };
@@ -315,6 +340,7 @@ export const useTurnManager = ({
     isCharacterTurn,
     canAffordAction: canAfford,
     addDamageNumber,
-    damageNumbers
+    damageNumbers,
+    animations
   };
 };
