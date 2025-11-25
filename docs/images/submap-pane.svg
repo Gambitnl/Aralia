@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540" role="img" aria-label="Submap pane with tooltip, legend, and compass">
+  <defs>
+    <style>
+      .bg { fill: #eaf0ff; stroke: #8ea8d8; stroke-width: 4; }
+      .tile { fill: #b7d3ff; stroke: #5e7fb3; }
+      .path { fill: #d9b382; stroke: #9c774a; }
+      .feature { fill: #8fd1c7; stroke: #3c8f7d; }
+      .text { font-family: 'Inter', 'Segoe UI', sans-serif; fill: #233047; }
+      .caption { font-size: 18px; font-weight: 700; }
+      .label { font-size: 14px; }
+      .panel { fill: #ffffff; stroke: #a6b8db; }
+    </style>
+  </defs>
+  <rect class="bg" x="24" y="24" width="630" height="420" rx="14" />
+  <text class="text caption" x="38" y="56">SubmapPane — zoomed-in grid view</text>
+  <g transform="translate(54 86)">
+    <rect class="tile" x="0" y="0" width="340" height="260" rx="12" opacity="0.4" />
+    <rect class="path" x="20" y="60" width="300" height="40" rx="10" />
+    <rect class="feature" x="120" y="150" width="80" height="80" rx="14" />
+    <text class="text label" x="26" y="40">Procedural paths &amp; features</text>
+    <text class="text label" x="26" y="220">Seeded ponds/thickets avoid paths</text>
+    <rect class="panel" x="360" y="0" width="180" height="90" rx="10" />
+    <text class="text caption" x="372" y="28">Tile tooltip</text>
+    <text class="text label" x="372" y="54">• Inspect mode reveals details</text>
+    <text class="text label" x="372" y="78">• Tooltip text from hints/log</text>
+    <rect class="panel" x="0" y="280" width="220" height="90" rx="10" />
+    <text class="text caption" x="12" y="308">CompassPane inline</text>
+    <text class="text label" x="12" y="334">Cardinal controls for movement</text>
+    <text class="text label" x="12" y="358">Disabled state supported</text>
+    <rect class="panel" x="240" y="280" width="300" height="90" rx="10" />
+    <text class="text caption" x="252" y="308">Legend modal</text>
+    <text class="text label" x="252" y="334">Summarizes icons &amp; colors</text>
+    <text class="text label" x="252" y="358">Accessible via button</text>
+  </g>
+  <rect class="panel" x="680" y="60" width="190" height="360" rx="12" />
+  <text class="text caption" x="694" y="92">Data sources</text>
+  <text class="text label" x="694" y="122">• useSubmapProceduralData</text>
+  <text class="text label" x="694" y="148">• submapVisualsConfig</text>
+  <text class="text label" x="694" y="174">• Tooltip + Legend data</text>
+  <text class="text label" x="694" y="204">Cellular automata for caves</text>
+  <text class="text label" x="694" y="232">Paths skipped when CA grid</text>
+</svg>

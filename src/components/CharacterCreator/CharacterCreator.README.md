@@ -8,6 +8,10 @@ It now manages its state using a `useReducer` hook with logic extracted into **`
 
 The final `PlayerCharacter` object includes all pre-calculated derived stats (like `darkvisionRange`, final `speed`, `maxHp`, `armorClass`) and fully aggregated spell lists, serving as the single source of truth for these values.
 
+## Visual Reference
+
+![Character creator stepper, current panel, and preview](../../../docs/images/character-creator-steps.svg)
+
 ## Structure
 
 The character creation process is divided into several steps, managed by the `CreationStep` enum (now in `characterCreatorState.ts`). The UI for each distinct selection part of a step is handled by dedicated sub-components.

@@ -9,6 +9,10 @@ The Battle Map feature provides a tactical, grid-based view for combat encounter
 
 The combat system uses a D&D 5th Edition-style action economy, where characters have an **Action**, **Bonus Action**, **Reaction**, and a set amount of **Movement** each turn.
 
+## Visual Reference
+
+![Battle map grid with tokens and supporting UI](../../../docs/images/battle-map.svg)
+
 ## Core Components
 
 The feature is built from several key components and services:

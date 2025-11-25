@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540" role="img" aria-label="Character creator stepper and preview">
+  <defs>
+    <style>
+      .bg { fill: #f3f6ff; stroke: #9fb7f5; stroke-width: 4; }
+      .step { fill: #dbe3ff; stroke: #6c84d9; }
+      .active { fill: #6c84d9; stroke: #32447d; }
+      .text { font-family: 'Inter', 'Segoe UI', sans-serif; fill: #1f2a44; }
+      .caption { font-size: 18px; font-weight: 700; }
+      .label { font-size: 14px; }
+      .panel { fill: #ffffff; stroke: #9fb7f5; }
+    </style>
+  </defs>
+  <rect class="bg" x="24" y="24" width="852" height="492" rx="16" />
+  <text class="text caption" x="40" y="58">CharacterCreator multi-step flow</text>
+  <g transform="translate(60 90)">
+    <rect class="step active" x="0" y="0" width="120" height="60" rx="10" />
+    <text class="text caption" x="16" y="36" fill="#fff">Race</text>
+    <rect class="step" x="140" y="0" width="120" height="60" rx="10" />
+    <text class="text caption" x="156" y="36">Class</text>
+    <rect class="step" x="280" y="0" width="160" height="60" rx="10" />
+    <text class="text caption" x="296" y="36">Ability Scores</text>
+    <rect class="step" x="460" y="0" width="130" height="60" rx="10" />
+    <text class="text caption" x="476" y="36">Skills</text>
+    <rect class="step" x="610" y="0" width="140" height="60" rx="10" />
+    <text class="text caption" x="626" y="36">Name &amp; Review</text>
+    <text class="text label" x="0" y="88">Reducer-driven steps with framer-motion transitions</text>
+  </g>
+  <g transform="translate(60 150)">
+    <rect class="panel" x="0" y="0" width="520" height="220" rx="14" />
+    <text class="text caption" x="16" y="32">Current step panel</text>
+    <text class="text label" x="16" y="60">• Renders step-specific component</text>
+    <text class="text label" x="16" y="86">• Dispatches actions to reducer</text>
+    <text class="text label" x="16" y="112">• Validates requirements before advancing</text>
+    <text class="text label" x="16" y="138">• Shows contextual helper copy</text>
+  </g>
+  <g transform="translate(600 150)">
+    <rect class="panel" x="0" y="0" width="240" height="220" rx="14" />
+    <text class="text caption" x="14" y="32">Preview &amp; CTA</text>
+    <text class="text label" x="14" y="62">• Live character preview</text>
+    <text class="text label" x="14" y="88">• Back button uses GO_BACK logic</text>
+    <text class="text label" x="14" y="114">• Final submission calls assemble</text>
+    <text class="text label" x="14" y="140">• Dummy mode swap supported</text>
+  </g>
+  <g transform="translate(60 390)">
+    <rect class="panel" x="0" y="0" width="320" height="90" rx="12" />
+    <text class="text caption" x="12" y="32">State sources</text>
+    <text class="text label" x="12" y="58">• characterCreatorState reducer</text>
+    <text class="text label" x="12" y="82">• useCharacterAssembly hook</text>
+    <rect class="panel" x="340" y="0" width="300" height="90" rx="12" />
+    <text class="text caption" x="352" y="32">Accessibility</text>
+    <text class="text label" x="352" y="58">• Button labels for navigation</text>
+    <text class="text label" x="352" y="82">• Keyboard focus maintained</text>
+  </g>
+</svg>
