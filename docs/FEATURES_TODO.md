@@ -195,7 +195,7 @@ This file tracks planned features, enhancements, and tasks for the Aralia RPG pr
 11. **[TODO]** **Remove Dead Code from Village Generator** *(PR #14 Code Quality)*
     *   **Issue**: Plaza boost logic that never executes
     *   **Location**: `src/services/villageGenerator.ts`
-    *   **Impact**: TRIVIAL - Code clarity
+    *   **Impact**: LOW - Code clarity
     *   **Fix**: Remove or fix unreachable code
 
 ### 🔵 Priority 3: Incomplete Lane 1 Tasks
