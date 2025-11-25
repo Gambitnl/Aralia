@@ -12,15 +12,16 @@ import { BIOMES } from '../constants';
 import { SUBMAP_DIMENSIONS } from '../config/mapConfig'; 
 import { Action, InspectSubmapTilePayload, Location, MapData, BiomeVisuals, PlayerCharacter, NPC, Item, SeededFeatureConfig, GlossaryDisplayItem } from '../types'; 
 import { BattleMapData, BattleMapTile } from '../types/combat';
-import GlossaryDisplay from './GlossaryDisplay'; 
-import { SUBMAP_ICON_MEANINGS } from '../data/glossaryData'; 
+import GlossaryDisplay from './GlossaryDisplay';
+import { SUBMAP_ICON_MEANINGS } from '../data/glossaryData';
 import { useSubmapProceduralData, PathDetails } from '../hooks/useSubmapProceduralData';
-import CompassPane from './CompassPane'; 
+import CompassPane from './CompassPane';
 import { biomeVisualsConfig, defaultBiomeVisuals } from '../config/submapVisualsConfig';
-import { findPath } from '../utils/pathfinding'; 
+import { findPath } from '../utils/pathfinding';
 import ActionPane from './ActionPane';
 import SubmapTile from './SubmapTile';
 import { CaTileType } from '../services/cellularAutomataService';
+import SubmapRendererPixi from './SubmapRendererPixi';
 
 interface SubmapPathNode {
   id: string;
@@ -35,8 +36,8 @@ interface SubmapPathNode {
 }
 
 interface SubmapPaneProps {
-  currentLocation: Location; 
-  currentWorldBiomeId: string; 
+  currentLocation: Location;
+  currentWorldBiomeId: string;
   playerSubmapCoords: { x: number; y: number };
   onClose: () => void;
   submapDimensions: { rows: number; cols: number };
@@ -55,6 +56,30 @@ interface SubmapPaneProps {
   unreadDiscoveryCount: number;
   hasNewRateLimitError: boolean;
 }
+
+// Utility: normalize CSS color strings (hex or rgb/rgba) into Pixi-friendly hex numbers so palettes stay consistent.
+const cssColorToHex = (color: string | undefined | null): number | null => {
+  if (!color) return null;
+  const trimmed = color.trim();
+  if (trimmed.startsWith('#')) {
+    const hex = trimmed.slice(1);
+    if (hex.length === 3) {
+      const expanded = hex.split('').map((c) => c + c).join('');
+      return Number.parseInt(expanded, 16);
+    }
+    if (hex.length >= 6) {
+      return Number.parseInt(hex.slice(0, 6), 16);
+    }
+  }
+
+  const rgbaMatch = trimmed.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/i);
+  if (rgbaMatch) {
+    const [, r, g, b] = rgbaMatch;
+    return (Number.parseInt(r, 10) << 16) + (Number.parseInt(g, 10) << 8) + Number.parseInt(b, 10);
+  }
+
+  return null;
+};
 
 // --- Submap Tile Hint Data ---
 const submapTileHints: Record<string, string[]> = {
@@ -289,6 +314,72 @@ function applyPathVisuals(
   return newVisuals;
 }
 
+function applyWfcVisuals(
+  currentVisuals: VisualLayerOutput,
+  tileType: string,
+  visualsConfig: BiomeVisuals,
+  tileHash: number,
+): VisualLayerOutput {
+  // WFC tiles should directly inform the base terrain the rest of the UI reasons over.
+  const newVisuals = { ...currentVisuals };
+  // Keep DOM visuals aligned with the Pixi palette by sourcing all colors from the centralized visualsConfig.
+  const waterColor = visualsConfig.seededFeatures?.find(
+    (feature) => feature.generatesEffectiveTerrainType === 'water'
+  )?.color || 'rgba(33, 105, 170, 0.85)';
+  const wallColor = visualsConfig.caTileVisuals?.wall?.color || '#4b5563';
+  const floorColor = visualsConfig.caTileVisuals?.floor?.color || '#9ca3af';
+
+  switch (tileType) {
+    case 'grass': {
+      newVisuals.style.backgroundColor = visualsConfig.baseColors[tileHash % visualsConfig.baseColors.length];
+      newVisuals.effectiveTerrainType = 'grass';
+      break;
+    }
+    case 'path': {
+      newVisuals.style.backgroundColor = visualsConfig.pathColor;
+      newVisuals.content = visualsConfig.pathIcon && tileHash % 2 === 0
+        ? <span role="img" aria-label="path">{visualsConfig.pathIcon}</span>
+        : null;
+      newVisuals.effectiveTerrainType = 'path';
+      newVisuals.zIndex = Math.max(newVisuals.zIndex, 1);
+      break;
+    }
+    case 'water': {
+      newVisuals.style.backgroundColor = waterColor;
+      newVisuals.content = <span role="img" aria-label="water">🌊</span>;
+      newVisuals.effectiveTerrainType = 'water';
+      break;
+    }
+    case 'rock': {
+      newVisuals.style.backgroundColor = wallColor;
+      newVisuals.content = <span role="img" aria-label="rock">🪨</span>;
+      newVisuals.effectiveTerrainType = 'wall';
+      break;
+    }
+    case 'wall': {
+      newVisuals.style.backgroundColor = wallColor;
+      newVisuals.effectiveTerrainType = 'wall';
+      break;
+    }
+    case 'floor': {
+      newVisuals.style.backgroundColor = floorColor;
+      newVisuals.effectiveTerrainType = 'floor';
+      break;
+    }
+    case 'ore': {
+      newVisuals.style.backgroundColor = wallColor;
+      newVisuals.content = <span role="img" aria-label="ore">💎</span>;
+      newVisuals.effectiveTerrainType = 'wall';
+      newVisuals.isResource = true;
+      break;
+    }
+    default:
+      break;
+  }
+
+  return newVisuals;
+}
+
 function applySeededFeatureVisuals(
   currentVisuals: VisualLayerOutput,
   rowIndex: number,
@@ -425,27 +516,81 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
 }) => {
   const firstFocusableElementRef = useRef<HTMLButtonElement>(null);
   const gridContainerRef = useRef<HTMLDivElement>(null);
+  const hoverFrameRef = useRef<number | null>(null);
   const [isGlossaryOpen, setIsGlossaryOpen] = useState(false);
   const [isInspecting, setIsInspecting] = useState(false);
   const [inspectionMessage, setInspectionMessage] = useState<string | null>(null);
-  
+
   // --- NEW STATE FOR QUICK TRAVEL ---
   const [isQuickTravelMode, setIsQuickTravelMode] = useState(false);
   const [hoveredTile, setHoveredTile] = useState<{ x: number; y: number } | null>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [usePixiRenderer, setUsePixiRenderer] = useState(true);
+  const [renderMetrics, setRenderMetrics] = useState<{ lastMs: number; fpsEstimate: number } | null>(null);
 
   const currentBiome = BIOMES[currentWorldBiomeId] || null;
   const visualsConfig = (currentBiome && biomeVisualsConfig[currentBiome.id]) || defaultBiomeVisuals;
 
-  const isOpen = true; 
+  const pixiPaletteOverrides = useMemo(() => {
+    // Translate the React visuals palette into numeric colors Pixi can consume so both renderers stay visually aligned.
+    const overrides: Partial<Record<string, number>> = {};
+    const baseHex = cssColorToHex(visualsConfig.baseColors?.[0]);
+    if (baseHex !== null) {
+      overrides.grass = baseHex;
+      overrides.default = baseHex;
+    }
 
-  const { simpleHash, activeSeededFeatures, pathDetails, caGrid } = useSubmapProceduralData({
+    const pathHex = cssColorToHex(visualsConfig.pathColor);
+    if (pathHex !== null) overrides.path = pathHex;
+
+    const caFloorHex = cssColorToHex(visualsConfig.caTileVisuals?.floor?.color);
+    if (caFloorHex !== null) overrides.floor = caFloorHex;
+
+    const caWallHex = cssColorToHex(visualsConfig.caTileVisuals?.wall?.color);
+    if (caWallHex !== null) overrides.wall = caWallHex;
+
+    const waterFeature = visualsConfig.seededFeatures?.find((feature) => feature.generatesEffectiveTerrainType === 'water');
+    const waterHex = cssColorToHex(waterFeature?.color);
+    if (waterHex !== null) overrides.water = waterHex;
+
+    return overrides;
+  }, [visualsConfig]);
+
+  const isOpen = true;
+
+  const adjacentBiomeIds = useMemo(() => {
+    // Neighbor biomes give us context for blending (edge tiles near oceans, mountains, etc.).
+    if (!mapData) return [] as string[];
+    const candidates = new Set<string>();
+    const neighborOffsets = [
+      { dx: 1, dy: 0 },
+      { dx: -1, dy: 0 },
+      { dx: 0, dy: 1 },
+      { dx: 0, dy: -1 },
+    ];
+    neighborOffsets.forEach(({ dx, dy }) => {
+      const nx = parentWorldMapCoords.x + dx;
+      const ny = parentWorldMapCoords.y + dy;
+      const biomeId = mapData.tiles?.[ny]?.[nx]?.biomeId;
+      if (biomeId) candidates.add(biomeId);
+    });
+    return Array.from(candidates);
+  }, [mapData, parentWorldMapCoords]);
+
+  const { simpleHash, activeSeededFeatures, pathDetails, caGrid, wfcGrid, biomeBlendContext } = useSubmapProceduralData({
     submapDimensions,
     currentWorldBiomeId,
     parentWorldMapCoords,
     seededFeaturesConfig: visualsConfig.seededFeatures,
     worldSeed,
+    adjacentBiomeIds,
   });
+
+  const secondaryBiomeTint = useMemo(() => {
+    if (!biomeBlendContext.secondaryBiomeId) return null;
+    const neighborBiome = BIOMES[biomeBlendContext.secondaryBiomeId];
+    return cssColorToHex(neighborBiome?.rgbaColor);
+  }, [biomeBlendContext.secondaryBiomeId]);
 
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -497,6 +642,15 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
 
     // --- Standard Logic ---
     let visuals = getBaseVisuals(rowIndex, colIndex, tileHash, visualsConfig);
+
+    if (wfcGrid) {
+      // When a WFC grid is present, use its tile IDs to drive the base terrain so movement and tooltips match the Pixi preview.
+      const wfcTileType = wfcGrid[rowIndex]?.[colIndex];
+      if (wfcTileType) {
+        visuals = applyWfcVisuals(visuals, wfcTileType, visualsConfig, tileHash);
+      }
+    }
+
     visuals = applyPathVisuals(visuals, rowIndex, colIndex, pathDetails, visualsConfig, tileHash);
     visuals = applySeededFeatureVisuals(visuals, rowIndex, colIndex, activeSeededFeatures);
     visuals = applyScatterVisuals(visuals, tileHash, visualsConfig);
@@ -508,7 +662,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
     visuals.isResource = getIsResource(icon);
 
     return visuals;
-  }, [simpleHash, visualsConfig, pathDetails, activeSeededFeatures, caGrid]);
+  }, [simpleHash, visualsConfig, pathDetails, activeSeededFeatures, caGrid, wfcGrid]);
 
   const pathfindingGrid = useMemo(() => {
     const grid = new Map<string, SubmapPathNode>();
@@ -677,9 +831,36 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
     }
   }, [disabled, isQuickTravelMode, isInspecting, quickTravelData, inspectableTiles, onAction, currentWorldBiomeId, parentWorldMapCoords]);
   
+  const scheduleHoverUpdate = useCallback((nextHover: { x: number; y: number } | null) => {
+    // Use rAF to coalesce rapid mousemove events; this keeps hover updates from thrashing React state.
+    if (hoverFrameRef.current) cancelAnimationFrame(hoverFrameRef.current);
+    hoverFrameRef.current = requestAnimationFrame(() => {
+      setHoveredTile(nextHover);
+      hoverFrameRef.current = null;
+    });
+  }, []);
+
   const handleTileHover = useCallback((x: number, y: number) => {
-      if (isQuickTravelMode) setHoveredTile({ x, y });
-  }, [isQuickTravelMode]);
+      if (isQuickTravelMode) scheduleHoverUpdate({ x, y });
+  }, [isQuickTravelMode, scheduleHoverUpdate]);
+
+  const handlePixiHover = useCallback((coords: { x: number; y: number } | null) => {
+    if (!isQuickTravelMode) return;
+    if (!coords) {
+      scheduleHoverUpdate(null);
+      return;
+    }
+    scheduleHoverUpdate({ x: coords.x, y: coords.y });
+  }, [isQuickTravelMode, scheduleHoverUpdate]);
+
+  const handleRenderMetrics = useCallback((metrics: { lastMs: number; fpsEstimate: number }) => {
+    // Persist the latest frame time so UI can surface performance regressions quickly.
+    setRenderMetrics(metrics);
+  }, []);
+
+  useEffect(() => () => {
+    if (hoverFrameRef.current) cancelAnimationFrame(hoverFrameRef.current);
+  }, []);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     // Simple arrow key navigation for submap inspection could be added here if desired
@@ -765,12 +946,46 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
 
         <div className="flex-grow flex flex-col md:flex-row gap-4 overflow-hidden min-h-0"> {/* Use overflow-hidden on parent */}
           {/* Submap Grid Container */}
-          <div 
-            className="p-1 bg-gray-900/30 rounded-md shadow-inner flex-grow overflow-auto scrollable-content relative" 
+          <div
+            className="p-1 bg-gray-900/30 rounded-md shadow-inner flex-grow overflow-auto scrollable-content relative"
             onKeyDown={handleKeyDown}
             onMouseLeave={() => setHoveredTile(null)}
             onMouseMove={(e) => setMousePosition({ x: e.clientX, y: e.clientY })}
           >
+            <div className="flex items-center justify-between text-xs text-gray-300 mb-1">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="accent-amber-400"
+                  checked={usePixiRenderer}
+                  onChange={(e) => setUsePixiRenderer(e.target.checked)}
+                />
+                <span>Use PixiJS renderer (beta)</span>
+              </label>
+              {renderMetrics && (
+                <span className="text-emerald-300">
+                  {renderMetrics.lastMs.toFixed(1)} ms · ~{Math.max(renderMetrics.fpsEstimate, 0).toFixed(0)} fps
+                </span>
+              )}
+            </div>
+
+            {usePixiRenderer && (
+              <div className="mb-2 border border-gray-700 rounded bg-black/30">
+                <SubmapRendererPixi
+                  dimensions={submapDimensions}
+                  playerSubmapCoords={playerSubmapCoords}
+                  wfcGrid={wfcGrid}
+                  caGrid={caGrid as CaTileType[][] | undefined}
+                  biomeBlendContext={biomeBlendContext}
+                  paletteOverrides={pixiPaletteOverrides}
+                  biomeTintColor={secondaryBiomeTint}
+                  onHoverTile={handlePixiHover}
+                  onRenderMetrics={handleRenderMetrics}
+                  seededFeatures={activeSeededFeatures}
+                />
+              </div>
+            )}
+
             <div
                 ref={gridContainerRef}
                 style={gridContainerStyle}

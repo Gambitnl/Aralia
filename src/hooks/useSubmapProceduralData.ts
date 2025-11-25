@@ -7,6 +7,7 @@
 import { useMemo, useCallback } from 'react';
 import { LOCATIONS, STARTING_LOCATION_ID, BIOMES } from '../constants';
 import { CellularAutomataGenerator, CaTileType } from '../services/cellularAutomataService';
+import { generateWfcGrid, WfcGrid } from '../services/wfcService';
 import type { SeededFeatureConfig, PathDetails } from '../types';
 
 export type { SeededFeatureConfig, PathDetails };
@@ -17,6 +18,7 @@ interface UseSubmapProceduralDataProps {
   parentWorldMapCoords: { x: number; y: number };
   seededFeaturesConfig?: SeededFeatureConfig[];
   worldSeed: number;
+  adjacentBiomeIds?: string[];
 }
 
 interface UseSubmapProceduralDataOutput {
@@ -24,6 +26,12 @@ interface UseSubmapProceduralDataOutput {
   activeSeededFeatures: Array<{ x: number; y: number; config: SeededFeatureConfig; actualSize: number }>;
   pathDetails: PathDetails;
   caGrid?: CaTileType[][];
+  wfcGrid?: WfcGrid;
+  biomeBlendContext: {
+    primaryBiomeId: string;
+    secondaryBiomeId: string | null;
+    blendFactor: number;
+  };
 }
 
 export function useSubmapProceduralData({
@@ -32,6 +40,7 @@ export function useSubmapProceduralData({
   parentWorldMapCoords,
   seededFeaturesConfig,
   worldSeed,
+  adjacentBiomeIds,
 }: UseSubmapProceduralDataProps): UseSubmapProceduralDataOutput {
   const worldBiome = BIOMES[currentWorldBiomeId];
   const biomeSeedText = worldBiome ? worldBiome.id + worldBiome.name : 'default_seed';
@@ -44,6 +53,18 @@ export function useSubmapProceduralData({
     }
     return Math.abs(h);
   }, [worldSeed, biomeSeedText, parentWorldMapCoords]);
+
+  const biomeBlendContext = useMemo(() => {
+    // Blend data is used by renderers to soften harsh biome edges. Secondary biome chosen from adjacency list if present.
+    const secondaryBiomeId = adjacentBiomeIds?.find((id) => id && id !== currentWorldBiomeId) || null;
+    // Blend factor is biased toward the primary biome but nudged when a neighbor exists.
+    const blendFactor = secondaryBiomeId ? 0.15 : 0.05;
+    return {
+      primaryBiomeId: currentWorldBiomeId,
+      secondaryBiomeId,
+      blendFactor,
+    };
+  }, [adjacentBiomeIds, currentWorldBiomeId]);
 
   // 0. Cellular Automata Generation (for specific biomes)
   const caGrid = useMemo(() => {
@@ -61,15 +82,31 @@ export function useSubmapProceduralData({
     return undefined;
   }, [currentWorldBiomeId, submapDimensions, simpleHash]);
 
+  const wfcGrid = useMemo(() => {
+    // WFC is used for above-ground biomes to prototype naturalistic clustering without the perf hit of full CA.
+    if (caGrid) return undefined; // CA already handles cavernous spaces.
+    const supportedBiomes = ['plains', 'forest', 'mountain', 'swamp'];
+    if (!supportedBiomes.includes(currentWorldBiomeId)) return undefined;
+    const seed = simpleHash(parentWorldMapCoords.x, parentWorldMapCoords.y, 'wfc_seed_v1');
+    const rulesetId = currentWorldBiomeId === 'mountain' ? 'cavern' : 'temperate';
+    return generateWfcGrid({
+      rows: submapDimensions.rows,
+      cols: submapDimensions.cols,
+      rulesetId,
+      seed,
+      biomeContext: currentWorldBiomeId,
+    });
+  }, [caGrid, currentWorldBiomeId, parentWorldMapCoords, simpleHash, submapDimensions]);
 
-  // 1. Calculate Path Details (Skipped for CA biomes)
+
+  // 1. Calculate Path Details (Skipped for CA or WFC-driven biomes)
   const pathDetails = useMemo(() => {
     const mainPathCoords = new Set<string>();
     const pathAdjacencyCoords = new Set<string>();
-    
-    // If we are using CA, we likely don't want standard paths cutting through, or we'd need to carve them.
-    // For now, disable standard paths in CA biomes.
-    if (caGrid) return { mainPathCoords, pathAdjacencyCoords };
+
+    // If we are using CA or WFC, we likely don't want standard paths cutting through, or we'd need to carve them.
+    // For now, disable standard paths in these procedural modes so renderers stay in sync.
+    if (caGrid || wfcGrid) return { mainPathCoords, pathAdjacencyCoords };
 
     const { rows, cols } = submapDimensions;
 
@@ -173,7 +210,7 @@ export function useSubmapProceduralData({
     });
 
     return { mainPathCoords, pathAdjacencyCoords };
-  }, [submapDimensions, simpleHash, currentWorldBiomeId, parentWorldMapCoords, caGrid]);
+  }, [submapDimensions, simpleHash, currentWorldBiomeId, parentWorldMapCoords, caGrid, wfcGrid]);
 
   // 2. Calculate Active Seeded Features (Skipped for CA biomes)
   const activeSeededFeatures = useMemo(() => {
@@ -239,5 +276,5 @@ export function useSubmapProceduralData({
     return features;
   }, [seededFeaturesConfig, submapDimensions, simpleHash, pathDetails, caGrid]);
 
-  return { simpleHash, activeSeededFeatures, pathDetails, caGrid };
+  return { simpleHash, activeSeededFeatures, pathDetails, caGrid, wfcGrid, biomeBlendContext };
 }
