@@ -10,7 +10,7 @@ import { STARTING_LOCATION_ID, DUMMY_PARTY_FOR_DEV, USE_DUMMY_CHARACTER_FOR_DEV,
 import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import * as SaveLoadService from '../services/saveLoadService';
 import { determineActiveDynamicNpcsForLocation } from '../utils/locationUtils';
-import { createPlayerCharacterFromTemp } from '../utils/characterUtils';
+import { applyXpAndHandleLevelUps, createPlayerCharacterFromTemp } from '../utils/characterUtils';
 import { createEnemyFromMonster } from '../utils/combatUtils';
 
 // Import slice reducers
@@ -402,18 +402,33 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 phase: GamePhase.PLAYING,
                 currentEnemies: null,
             };
-            
+
             if (rewards) {
+                // Distribute XP evenly to all party members and process any resulting level ups.
+                const updatedParty = typeof rewards.xp === 'number'
+                  ? state.party.map((member) => applyXpAndHandleLevelUps(member, rewards.xp))
+                  : state.party;
+
+                // Capture celebratory messages for characters who leveled up to keep players informed.
+                const levelUpMessages = updatedParty.flatMap((member, index) => {
+                    const previousLevel = state.party[index]?.level || 1;
+                    const newLevel = member.level || previousLevel;
+                    return newLevel > previousLevel
+                      ? [{ id: Date.now() + index + 1, text: `${member.name} reached level ${newLevel}!`, sender: 'system', timestamp: new Date() }]
+                      : [];
+                });
+
                 newState = {
                     ...newState,
+                    party: updatedParty,
                     gold: newState.gold + rewards.gold,
                     inventory: [...newState.inventory, ...rewards.items],
                     messages: [
                         ...newState.messages,
-                        { id: Date.now(), text: `Victory! You gained ${rewards.xp} XP, ${rewards.gold} gold, and found items: ${rewards.items.map(i => i.name).join(', ') || 'None'}.`, sender: 'system', timestamp: new Date() }
+                        { id: Date.now(), text: `Victory! You gained ${rewards.xp} XP, ${rewards.gold} gold, and found items: ${rewards.items.map(i => i.name).join(', ') || 'None'}.`, sender: 'system', timestamp: new Date() },
+                        ...levelUpMessages,
                     ]
                 };
-                // TODO: Apply XP to characters (needs XP field in PlayerCharacter)
             } else {
                 newState = {
                     ...newState,
