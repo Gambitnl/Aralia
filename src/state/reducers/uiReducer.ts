@@ -46,6 +46,11 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
     case 'TOGGLE_MAP_VISIBILITY':
       return { isMapVisible: !state.isMapVisible, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false } };
 
+    case 'TOGGLE_MINIMAP_VISIBILITY': {
+      const nextVisibility = !(state as any).isMinimapVisible;
+      return { ...(state as any), isMinimapVisible: nextVisibility } as Partial<GameState>;
+    }
+
     case 'TOGGLE_SUBMAP_VISIBILITY':
       return { isSubmapVisible: !state.isSubmapVisible, isMapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false } };
       

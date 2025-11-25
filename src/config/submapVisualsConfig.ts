@@ -133,3 +133,23 @@ export const defaultBiomeVisuals: BiomeVisuals = {
   seededFeatures: [],
   scatterFeatures: [{ icon: '?', density: 1 }],
 };
+
+/**
+ * Visual definitions for the village canvas system. Each entry bundles a
+ * palette and optional texture hints so the renderer can pick deterministic
+ * variety without hard-coding colors into the drawing logic.
+ */
+export const villageBuildingVisuals: Record<string, { colors: string[]; accent: string; pattern?: 'stripe' | 'check' | 'dot' }> = {
+  plaza: { colors: ['#f8fafc', '#e2e8f0', '#cbd5e1'], accent: '#94a3b8', pattern: 'check' },
+  path: { colors: ['#a16207', '#b45309', '#c08457'], accent: '#78350f', pattern: 'stripe' },
+  house_small: { colors: ['#facc15', '#fde047', '#fbbf24'], accent: '#92400e' },
+  house_medium: { colors: ['#f97316', '#fb923c', '#fdba74'], accent: '#7c2d12' },
+  house_large: { colors: ['#ef4444', '#f87171', '#fca5a5'], accent: '#991b1b', pattern: 'stripe' },
+  shop_blacksmith: { colors: ['#475569', '#334155', '#111827'], accent: '#f8fafc', pattern: 'dot' },
+  shop_general: { colors: ['#4ade80', '#22c55e', '#15803d'], accent: '#166534', pattern: 'check' },
+  shop_tavern: { colors: ['#8b5cf6', '#7c3aed', '#c084fc'], accent: '#4c1d95' },
+  shop_temple: { colors: ['#38bdf8', '#0ea5e9', '#67e8f9'], accent: '#0f172a', pattern: 'stripe' },
+  guard_post: { colors: ['#3b82f6', '#1d4ed8', '#1e40af'], accent: '#0ea5e9', pattern: 'check' },
+  market: { colors: ['#f472b6', '#f9a8d4', '#ec4899'], accent: '#9d174d', pattern: 'stripe' },
+  well: { colors: ['#38bdf8', '#0ea5e9', '#0284c7'], accent: '#0f172a', pattern: 'dot' }
+};

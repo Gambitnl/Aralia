@@ -307,6 +307,12 @@ export function useGameActions({
 
 
           case 'custom':
+            if (action.payload?.villageContext) {
+              const { buildingType, description } = action.payload.villageContext as { buildingType?: string; description?: string };
+              const detailText = description || `You take in the details of the ${buildingType ?? 'building'}.`;
+              addMessage(detailText, 'system');
+              break;
+            }
             if (action.label === 'Exit Village') {
               dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.PLAYING });
               addMessage('You leave the village and return to your journey.', 'system');

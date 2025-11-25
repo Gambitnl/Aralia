@@ -7,8 +7,12 @@ import { AppAction } from '../actionTypes';
 
 export function worldReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
-    case 'SET_MAP_DATA':
-      return { mapData: action.payload };
+    case 'SET_MAP_DATA': {
+      const minimapFocus = action.payload
+        ? { x: Math.floor((action.payload as any).width / 2) || 0, y: Math.floor((action.payload as any).height / 2) || 0 }
+        : (state as any).minimapFocus;
+      return { mapData: action.payload, minimapFocus } as Partial<GameState>;
+    }
 
     case 'UPDATE_INSPECTED_TILE_DESCRIPTION':
       return {
