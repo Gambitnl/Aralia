@@ -5,7 +5,7 @@
  * This is the refactored version that orchestrates calls to specific action handlers.
  */
 import React, { useCallback } from 'react';
-import { GameState, Action, NPC, Location, MapTile, PlayerCharacter, GeminiLogEntry, EquipItemPayload, UnequipItemPayload, DropItemPayload, UseItemPayload, ShowEncounterModalPayload, StartBattleMapEncounterPayload, Monster, TempPartyMember, DiscoveryType, KnownFact, QuickTravelPayload, GamePhase, Item } from '../types';
+import { GameState, Action, NPC, Location, MapTile, PlayerCharacter, GeminiLogEntry, EquipItemPayload, UnequipItemPayload, DropItemPayload, UseItemPayload, ShowEncounterModalPayload, StartBattleMapEncounterPayload, Monster, TempPartyMember, DiscoveryType, KnownFact, QuickTravelPayload, GamePhase, Item, VillageActionContext } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { ITEMS, BIOMES, LOCATIONS, NPCS, WEAPONS_DATA } from '../constants';
 import { DIRECTION_VECTORS, SUBMAP_DIMENSIONS } from '../config/mapConfig';
@@ -308,9 +308,16 @@ export function useGameActions({
 
           case 'custom':
             if (action.payload?.villageContext) {
-              const { buildingType, description } = action.payload.villageContext as { buildingType?: string; description?: string };
-              const detailText = description || `You take in the details of the ${buildingType ?? 'building'}.`;
+              // Typed context ensures we respect the generator's integration
+              // cues (culture, biome, etc.) when crafting follow-up prompts or
+              // messages. The Gemini log keeps visibility into what flavor text
+              // was supplied for downstream AI calls.
+              const villageContext = action.payload.villageContext as VillageActionContext;
+              const detailText = villageContext.description || `You take in the details of the ${villageContext.buildingType ?? 'building'}.`;
               addMessage(detailText, 'system');
+              if (villageContext.integrationPrompt) {
+                addGeminiLog('villageContext', villageContext.integrationPrompt, detailText);
+              }
               break;
             }
             if (action.label === 'Exit Village') {

@@ -4,7 +4,7 @@
  * Handles interactions with dynamic merchants and shops.
  */
 import React from 'react';
-import { GameState, Action, Item, EconomyState } from '../../types';
+import { GameState, Action, Item, EconomyState, VillageActionContext } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
@@ -33,7 +33,23 @@ export async function handleOpenDynamicMerchant({
   dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: `Entering ${merchantType}...` } });
 
   // 1. Generate inventory using Gemini
-  const inventoryResult = await GeminiService.generateMerchantInventory(villageContext, merchantType, gameState.devModelOverride);
+  // Casting keeps us honest about the shape while still letting legacy callers
+  // omit the village context; the Gemini helper handles missing data
+  // gracefully when building prompts.
+  const contextForPrompt = villageContext as VillageActionContext | undefined;
+  if (contextForPrompt) {
+    // Share a quick blurb with the player so they understand why a merchant's
+    // stock skews a certain way (e.g., arid martial village favors weapons).
+    addMessage(
+      contextForPrompt.integrationTagline || 'The shop reflects the settlement around it.',
+      'system'
+    );
+  }
+  const inventoryResult = await GeminiService.generateMerchantInventory(
+    contextForPrompt,
+    merchantType,
+    gameState.devModelOverride
+  );
   
   addGeminiLog('generateMerchantInventory', inventoryResult.data?.promptSent || inventoryResult.metadata?.promptSent || "", inventoryResult.data?.rawResponse || inventoryResult.metadata?.rawResponse || inventoryResult.error || "");
   
