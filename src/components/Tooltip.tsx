@@ -82,10 +82,19 @@ const Tooltip: React.FC<TooltipProps> = ({
       window.addEventListener('resize', handleViewportChange);
       window.addEventListener('scroll', handleViewportChange, true);
 
+      // Provide an escape hatch for keyboard users who want to dismiss the tooltip without moving focus.
+      const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+          setIsVisible(false);
+        }
+      };
+      document.addEventListener('keydown', handleKeyDown);
+
       return () => {
         cancelAnimationFrame(animationFrameId);
         window.removeEventListener('resize', handleViewportChange);
         window.removeEventListener('scroll', handleViewportChange, true);
+        document.removeEventListener('keydown', handleKeyDown);
       };
     } else {
       setCoords(null);

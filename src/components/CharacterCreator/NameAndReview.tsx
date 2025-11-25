@@ -61,8 +61,10 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
 
   const handleAgeChangeLocal = (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = parseInt(e.target.value);
-      setAge(val);
-      if (onAgeChange) onAgeChange(val);
+      // Clamp to a friendly, lore-friendly range so we never serialize impossible values.
+      const sanitizedAge = Number.isNaN(val) ? 1 : Math.max(1, Math.min(999, val));
+      setAge(sanitizedAge);
+      if (onAgeChange) onAgeChange(sanitizedAge);
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -91,6 +93,7 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
       <div className="bg-gray-700 p-4 rounded-lg mb-6 max-h-72 overflow-y-auto scrollable-content border border-gray-600">
         <h3 className="text-xl font-semibold text-amber-400 mb-3">Character Summary</h3>
         <p><strong>Race:</strong> {getCharacterRaceDisplayString(characterPreview)}</p>
+        <p><strong>Age:</strong> {age} years</p>
 
         {selectedDraconicAncestry && (
           <p className="text-sm ml-2">
@@ -157,6 +160,11 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
                 </ul>
             </div>
         )}
+        {!feats?.length && (
+          <div className="my-2 text-sm text-gray-300">
+            <strong>Feats:</strong> <span className="text-gray-400">None chosen at level 1. Many builds unlock feats later, so skipping here is expected.</span>
+          </div>
+        )}
         {selectedWeaponMasteries && selectedWeaponMasteries.length > 0 && (
           <div className="my-2">
             <strong>Weapon Masteries:</strong>
@@ -222,11 +230,11 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
             </label>
             <input
                 type="number"
-                id="characterAge"
-                value={age}
-                onChange={handleAgeChangeLocal}
-                min={1}
-                max={9999}
+              id="characterAge"
+              value={age}
+              onChange={handleAgeChangeLocal}
+              min={1}
+                max={999}
                 className="w-full px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
                 aria-label="Enter your character's age"
             />

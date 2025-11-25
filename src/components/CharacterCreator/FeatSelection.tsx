@@ -10,16 +10,29 @@ interface FeatSelectionProps {
   availableFeats: FeatOption[];
   selectedFeatId?: string;
   onSelectFeat: (featId: string) => void;
+  onConfirm: () => void;
   onBack?: () => void;
+  hasEligibleFeats: boolean;
 }
 
-const FeatSelection: React.FC<FeatSelectionProps> = ({ availableFeats, selectedFeatId, onSelectFeat, onBack }) => {
+const FeatSelection: React.FC<FeatSelectionProps> = ({ availableFeats, selectedFeatId, onSelectFeat, onConfirm, onBack, hasEligibleFeats }) => {
+  // We allow deselection so the feat step behaves like a voluntary choice rather than a hard blocker.
+  const handleToggle = (featId: string, isDisabled: boolean) => {
+    if (isDisabled) return;
+    onSelectFeat(selectedFeatId === featId ? '' : featId);
+  };
+
   return (
     <div className="flex flex-col h-full">
       <h2 className="text-2xl text-sky-300 mb-4 text-center">Select a Feat</h2>
       <p className="text-gray-400 text-center mb-6">
-        Choose a feat to customize your character's abilities.
+        Choose a feat to customize your character's abilities. This step is optional&mdash;continue without a selection if no feat fits your build.
       </p>
+      {!hasEligibleFeats && (
+        <div className="mb-4 text-center text-sm text-amber-200 bg-amber-900/30 border border-amber-700/60 rounded-lg px-3 py-2">
+          At 1st level none of your prerequisites are met yet, so skipping is expected. You can always add a feat later once you qualify.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto mb-6 p-2">
         {availableFeats.map((feat) => {
@@ -28,19 +41,19 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({ availableFeats, selectedF
           return (
             <div
               key={feat.id}
-              onClick={() => !disabled && onSelectFeat(feat.id)}
+              onClick={() => handleToggle(feat.id, disabled)}
               className={`
                 p-4 rounded-lg border cursor-pointer transition-all duration-200 relative
                 ${disabled ? 'bg-gray-900 border-gray-800 cursor-not-allowed opacity-70'
                   : isSelected
                     ? 'bg-amber-900/40 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.3)]'
-                    : 'bg-gray-800 border-gray-700 hover:border-gray-500 hover:bg-gray-750'
+                    : 'bg-gray-800 border-gray-700 hover:border-gray-500 hover:bg-gray-700/80'
                 }
               `}
             >
               <div className="flex justify-between items-start mb-2">
-                 <h3 className={`font-cinzel font-bold text-lg ${isSelected ? 'text-amber-400' : 'text-gray-200'}`}>
-                  {feat.name}
+                <h3 className={`font-cinzel font-bold text-lg ${isSelected ? 'text-amber-400' : 'text-gray-200'}`}>
+                 {feat.name}
                 </h3>
               </div>
 
@@ -92,16 +105,38 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({ availableFeats, selectedF
         })}
       </div>
 
-      <div className="mt-auto flex justify-between border-t border-gray-700 pt-4">
+      {selectedFeatId && (
+        <div className="mb-4 text-center text-sm text-amber-200">
+          <span className="font-semibold">Chosen feat:</span> {availableFeats.find(f => f.id === selectedFeatId)?.name}
+        </div>
+      )}
+
+      <div className="mt-auto flex justify-between border-t border-gray-700 pt-4 gap-3 flex-wrap">
         {onBack && (
-            <button
+          <button
             onClick={onBack}
             className="bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
-            >
+          >
             Back
-            </button>
+          </button>
         )}
-        {/* Next button could be handled by parent based on selection */}
+        <div className="flex-1 flex justify-end gap-3">
+          <button
+            onClick={() => onSelectFeat('')}
+            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+            aria-label="Skip feat selection and continue"
+          >
+            Skip
+          </button>
+          <button
+            onClick={onConfirm}
+            className="bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-6 rounded-lg transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+            aria-label="Confirm feat choice and continue"
+            disabled={!!selectedFeatId && !availableFeats.find(f => f.id === selectedFeatId)?.isEligible}
+          >
+            Continue
+          </button>
+        </div>
       </div>
     </div>
   );

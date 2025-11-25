@@ -77,6 +77,8 @@ const ActionButton: React.FC<{
       disabled={disabled}
       className={`${baseClasses} ${colorClasses} ${className}`}
       aria-label={action.label}
+      type="button"
+      aria-disabled={disabled}
     >
       {action.label}
       {badgeCount !== undefined && badgeCount > 0 && (

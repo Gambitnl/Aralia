@@ -40,6 +40,8 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
 
   const [baseScores, setBaseScores] = useState<AbilityScores>(initialScores);
   const [pointsRemaining, setPointsRemaining] = useState<number>(POINT_BUY_TOTAL_POINTS);
+  // Replace disruptive alerts with a lightweight inline status so the user can keep adjusting scores without breaking flow.
+  const [feedback, setFeedback] = useState<{ type: 'info' | 'error' | 'success'; message: string; targetAbility?: AbilityScoreName } | null>(null);
 
   useEffect(() => {
     // Recalculate points spent if baseScores change
@@ -73,9 +75,11 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
     if (change === 1) { // Incrementing
       if (pointsRemaining >= costDifference) {
         setBaseScores(prev => ({ ...prev, [abilityName]: newScore }));
+        setFeedback(null); // Clear stale warnings once the move is confirmed affordable.
       }
     } else { // Decrementing
       setBaseScores(prev => ({ ...prev, [abilityName]: newScore }));
+      setFeedback(null);
     }
   };
 
@@ -91,24 +95,40 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
     // Check if the change is affordable
     if (pointsRemaining >= costDifference) {
       setBaseScores(prev => ({ ...prev, [abilityName]: newScoreValue }));
+      setFeedback(null);
     } else {
-      // Optional: Provide feedback to the user that they can't afford this score.
-      // For now, we can just prevent the state update with no alert to avoid UI disruption
-      console.log(`Cannot afford to set ${abilityName} to ${newScoreValue}. Need ${Math.abs(costDifference)} more points.`);
+      // Surface inline guidance instead of disruptive alerts so the user can immediately adjust another score.
+      setFeedback({
+        type: 'error',
+        message: `Cannot afford to set ${abilityName} to ${newScoreValue}. You need ${Math.abs(costDifference)} more point${Math.abs(costDifference) === 1 ? '' : 's'}.`,
+        targetAbility: abilityName,
+      });
     }
   };
-  
+
   const handleSubmit = () => {
     if (pointsRemaining === 0) {
       onAbilityScoresSet(baseScores);
+      setFeedback({ type: 'success', message: 'Scores locked in. You can still go back if you want to tweak them.' });
     } else {
-      alert(`Please spend all ${POINT_BUY_TOTAL_POINTS} points. You have ${pointsRemaining} points remaining.`);
+      // Point people toward a concrete next move instead of leaving them to hunt for an under-spent stat.
+      const candidateToBoost = ABILITY_SCORE_NAMES.find(name => baseScores[name] < POINT_BUY_MAX_SCORE);
+      const suggestedScore = candidateToBoost ? baseScores[candidateToBoost] + 1 : POINT_BUY_MIN_SCORE;
+      const suggestedCost = candidateToBoost ? ABILITY_SCORE_COST[suggestedScore] - ABILITY_SCORE_COST[baseScores[candidateToBoost]] : 0;
+
+      setFeedback({
+        type: 'error',
+        message: candidateToBoost
+          ? `Spend all ${POINT_BUY_TOTAL_POINTS} points. You still have ${pointsRemaining}. Try raising ${candidateToBoost} to ${suggestedScore} (costs ${suggestedCost} point${suggestedCost === 1 ? '' : 's'}).`
+          : `Spend all ${POINT_BUY_TOTAL_POINTS} points. You still have ${pointsRemaining}.`,
+        targetAbility: candidateToBoost,
+      });
     }
   };
 
   const handleSetRecommendedStats = () => {
     if (!selectedClass || !selectedClass.recommendedPointBuyPriorities) {
-      alert("No recommended stat priorities defined for this class.");
+      setFeedback({ type: 'info', message: 'No recommended stat priorities defined for this class.' });
       return;
     }
 
@@ -138,6 +158,7 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
     });
 
     setBaseScores(newBaseScores);
+    setFeedback({ type: 'success', message: 'Applied recommended spread. Feel free to fine-tune further.' });
   };
 
   const getScoreCostFromBase = (score: number): number => {
@@ -187,6 +208,21 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
       </div>
 
       <div className="mb-4 p-3 bg-gray-700 rounded-lg shadow">
+        {feedback && (
+          <div
+            className={`mb-3 text-center text-sm px-3 py-2 rounded-md ${
+              feedback.type === 'error'
+                ? 'bg-red-900/60 text-red-200 border border-red-500/50'
+                : feedback.type === 'success'
+                ? 'bg-emerald-900/50 text-emerald-100 border border-emerald-500/40'
+                : 'bg-sky-900/40 text-sky-100 border border-sky-600/50'
+            }`}
+            role="status"
+            aria-live="polite"
+          >
+            {feedback.message}
+          </div>
+        )}
         <h3 className="text-xl text-center font-semibold text-amber-300">
           Points Remaining: <span className={`text-2xl ${pointsRemaining < 0 ? 'text-red-400' : 'text-green-400'}`}>{pointsRemaining}</span> / {POINT_BUY_TOTAL_POINTS}
         </h3>
@@ -198,9 +234,13 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
           const racialBonus = race.abilityBonuses?.find(b => b.ability === abilityName)?.bonus || 0;
           const finalScore = currentBaseScore + racialBonus;
           const costToIncrement = currentBaseScore < POINT_BUY_MAX_SCORE ? (ABILITY_SCORE_COST[currentBaseScore + 1] - ABILITY_SCORE_COST[currentBaseScore]) : Infinity;
+          const isFeedbackTarget = feedback?.targetAbility === abilityName;
 
           return (
-            <div key={abilityName} className="p-3 bg-gray-700 rounded-lg shadow-md flex flex-col items-center text-center">
+            <div
+              key={abilityName}
+              className={`p-3 bg-gray-700 rounded-lg shadow-md flex flex-col items-center text-center ${isFeedbackTarget ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-gray-800' : ''}`}
+            >
               <h4 className="text-lg font-semibold text-amber-400 mb-1.5">{abilityName}</h4>
               
               <div className="flex items-center justify-center space-x-2 my-1">
@@ -227,8 +267,15 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
                         key={score}
                         value={score}
                         disabled={!isAffordable && score !== currentBaseScore}
+                        title={
+                          score === currentBaseScore
+                            ? 'Current score'
+                            : isAffordable
+                            ? `Costs ${ABILITY_SCORE_COST[score]} total points`
+                            : `Need ${Math.abs(costDiff)} more point${Math.abs(costDiff) === 1 ? '' : 's'} to reach this score`
+                        }
                       >
-                        {score}
+                        {`${score} (${ABILITY_SCORE_COST[score]} pts)`}
                       </option>
                     );
                   })}

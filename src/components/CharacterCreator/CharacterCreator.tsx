@@ -101,6 +101,9 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
     });
   }, [finalAbilityScores, selectedRace, selectedClass, state.baseAbilityScores, state.selectedFeat]);
 
+  // A quick availability check lets us skip the feat screen when no picks are valid and helps the UI explain why skipping is fine.
+  const hasEligibleFeats = useMemo(() => featOptions.some(option => option.isEligible), [featOptions]);
+
   const handleRaceSelect = useCallback((raceId: string) => {
     dispatch({ type: 'SELECT_RACE', payload: RACES_DATA[raceId] });
   }, []);
@@ -198,8 +201,19 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
   }, []);
 
   const handleFeatSelect = useCallback((featId: string) => {
+    // Only record the selection here; advancing now happens via an explicit confirmation button so players can compare options.
     dispatch({ type: 'SELECT_FEAT', payload: featId });
   }, []);
+
+  const handleFeatConfirm = useCallback(() => {
+    // Guard against stale/ineligible selections: if the chosen feat is no longer valid, clear it before advancing.
+    const chosenFeat = state.selectedFeat ? featOptions.find(f => f.id === state.selectedFeat) : null;
+    const shouldClear = chosenFeat && !chosenFeat.isEligible;
+    if (shouldClear) {
+      dispatch({ type: 'SELECT_FEAT', payload: '' });
+    }
+    dispatch({ type: 'CONFIRM_FEAT_STEP' });
+  }, [featOptions, state.selectedFeat]);
 
   const handleNameAndReviewSubmit = useCallback((name: string) => {
     dispatch({type: 'SET_CHARACTER_NAME', payload: name});
@@ -207,8 +221,9 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
   }, [state, assembleAndSubmitCharacter, dispatch]);
 
   const handleAgeChange = useCallback((age: number) => {
-      dispatch({ type: 'SET_CHARACTER_AGE', payload: age });
-  }, [dispatch]);
+      const sanitizedAge = Math.max(1, Math.min(999, age || 0));
+      dispatch({ type: 'SET_CHARACTER_AGE', payload: sanitizedAge });
+  }, []);
 
   const goBack = useCallback(() => {
     dispatch({ type: 'GO_BACK' });
@@ -304,7 +319,16 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
          if (!selectedClass) { dispatch({type: 'SET_STEP', payload: CreationStep.Class }); return null; }
          return <WeaponMasterySelection charClass={selectedClass} onMasteriesSelect={handleWeaponMasteriesSelect} onBack={goBack} />
       case CreationStep.FeatSelection:
-         return <FeatSelection availableFeats={featOptions} selectedFeatId={state.selectedFeat || undefined} onSelectFeat={handleFeatSelect} onBack={goBack} />;
+         return (
+          <FeatSelection
+            availableFeats={featOptions}
+            selectedFeatId={state.selectedFeat || undefined}
+            onSelectFeat={handleFeatSelect}
+            onConfirm={handleFeatConfirm}
+            onBack={goBack}
+            hasEligibleFeats={hasEligibleFeats}
+          />
+        );
       case CreationStep.NameAndReview:
         const characterToPreview: PlayerCharacter | null = generatePreviewCharacter(state, state.characterName);
         if (!characterToPreview) {
