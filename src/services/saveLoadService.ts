@@ -53,6 +53,22 @@ const AUTO_SAVE_SLOT = 'aralia_rpg_autosave';
 const SLOT_INDEX_KEY = 'aralia_rpg_save_slots_index';
 const SLOT_PREFIX = 'aralia_rpg_slot_';
 
+// Local in-memory cache of slot metadata to avoid repeated JSON parses and
+// Local Storage scans on every call to getSaveSlots(). This improves menu
+// responsiveness because the slot selector and load modal call into this
+// service frequently while the player hovers between options.
+let slotIndexCache: SaveSlotSummary[] | null = null;
+// Handle storage change sync across tabs/contexts. This ensures that if one
+// tab wipes or repopulates localStorage, every other open tab rebuilds its
+// metadata cache instead of showing stale previews.
+let slotIndexRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+let detachStorageSyncListener: (() => void) | null = null;
+
+// Tracks when the current play session last started or resumed so we can
+// measure incremental playtime in real-world seconds instead of relying on
+// the in-game clock (which advances independently of player presence).
+let sessionStartedAtMs = Date.now();
+
 export const DEFAULT_SAVE_SLOT_KEY = DEFAULT_SAVE_SLOT;
 export const AUTO_SAVE_SLOT_KEY = AUTO_SAVE_SLOT;
 
@@ -96,14 +112,20 @@ export async function saveGame(
       notifications: [], // Don't save transient notifications
     };
     const storageKey = resolveSlotKey(slotName, options?.isAutoSave);
-    const slotLabel = options?.displayName || slotName;
+    // Persist a trimmed display name so slot labels stay consistent even if
+    // upstream callers send padded values. We still default to the provided
+    // slot identifier when a trimmed label would be empty so cards never show
+    // a blank title.
+    const slotLabel = (options?.displayName ?? slotName).trim() || slotName;
+    const existingSlotSummary = getSaveSlots().find(slot => slot.slotId === storageKey);
+    const playtimeSeconds = calculatePlaytimeSeconds(existingSlotSummary);
     const payload: StoredSavePayload = {
       version: SAVE_GAME_VERSION,
       slotId: storageKey,
       slotName: slotLabel,
       isAutoSave: options?.isAutoSave || storageKey === AUTO_SAVE_SLOT,
       thumbnail: options?.thumbnail,
-      preview: extractPreview(stateToSave),
+      preview: extractPreview(stateToSave, playtimeSeconds),
       state: stateToSave,
     };
 
@@ -119,6 +141,10 @@ export async function saveGame(
       partyLevel: payload.preview?.partyLevel,
       playtimeSeconds: payload.preview?.playtimeSeconds,
     });
+
+    // Reset the session start marker so subsequent saves only add newly accrued
+    // real-world time instead of double-counting the segment we just recorded.
+    resetSessionTimer(stateToSave.saveTimestamp!);
 
     console.log(`Game saved to slot: ${storageKey} at ${new Date(stateToSave.saveTimestamp!).toLocaleString()}`);
     const result = { success: true, message: "Game saved successfully." } as const;
@@ -198,6 +224,7 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     console.log(`Game loaded from slot: ${storageKey}, saved at ${new Date(loadedState.saveTimestamp!).toLocaleString()}`);
     const result = { success: true, message: "Game loaded successfully.", data: loadedState } as const;
     notify?.({ message: result.message, type: 'success' });
+    resetSessionTimer();
     return result;
   } catch (error) {
     console.error("Error loading game:", error);
@@ -267,14 +294,81 @@ export function deleteSaveGame(slotName: string = DEFAULT_SAVE_SLOT): void {
  */
 export function getSaveSlots(): SaveSlotSummary[] {
   try {
-    const storedIndex = localStorage.getItem(SLOT_INDEX_KEY);
-    const parsedIndex: SaveSlotSummary[] = storedIndex ? JSON.parse(storedIndex) : [];
-    return mergeWithLegacySaves(parsedIndex).sort((a, b) => b.lastSaved - a.lastSaved);
+    if (slotIndexCache) {
+      // Returning the cached value keeps UI transitions snappy and avoids
+      // repeated localStorage scanning in tight render loops.
+      return [...slotIndexCache];
+    }
+
+    const merged = buildSlotIndex();
+    slotIndexCache = merged;
+    return [...merged];
   } catch (error) {
     console.error("Error loading save slot metadata:", error);
-    return mergeWithLegacySaves([]);
+    // On failure, avoid poisoning the cache with bad data by letting the
+    // fallback run without caching.
+    return mergeWithLegacySaves([]).sort((a, b) => b.lastSaved - a.lastSaved);
   }
 }
+
+/**
+ * Forces a rebuild of the slot index cache. Helpful for gameplay hooks that
+ * clear or repopulate Local Storage (e.g., reset-to-default flows) so UI
+ * layers always read the latest metadata without needing to reload the page.
+ */
+export function refreshSaveSlotIndex(): SaveSlotSummary[] {
+  slotIndexCache = null;
+  return getSaveSlots();
+}
+
+/**
+ * Sets up a window storage listener so slot metadata stays in sync when other
+ * tabs mutate localStorage (e.g., by clearing saves or importing backups).
+ * The debounce avoids thrashing when multiple keys update in quick succession
+ * during bulk operations.
+ */
+export function setupSlotIndexStorageSync() {
+  if (typeof window === 'undefined') return; // Guard for SSR/test environments.
+  if (detachStorageSyncListener) return; // Listener already registered.
+
+  const handler = (event: StorageEvent) => {
+    // Some browsers emit a null key when localStorage.clear() runs, so treat
+    // that as a signal to rebuild the cache too.
+    const isSlotIndex = !event.key || event.key === SLOT_INDEX_KEY;
+    const isSaveKey =
+      event.key === DEFAULT_SAVE_SLOT ||
+      event.key === AUTO_SAVE_SLOT ||
+      (!!event.key && event.key.startsWith(SLOT_PREFIX));
+
+    if (!isSlotIndex && !isSaveKey) return;
+
+    if (slotIndexRefreshTimer) clearTimeout(slotIndexRefreshTimer);
+    slotIndexRefreshTimer = setTimeout(() => {
+      // Refresh after the burst of storage changes settles so we only rebuild
+      // the index once per batch of updates.
+      refreshSaveSlotIndex();
+      slotIndexRefreshTimer = null;
+    }, 75);
+  };
+
+  window.addEventListener('storage', handler);
+  detachStorageSyncListener = () => {
+    window.removeEventListener('storage', handler);
+    detachStorageSyncListener = null;
+  };
+}
+
+/**
+ * Allows tests or teardown hooks to remove the storage sync listener.
+ */
+export function teardownSlotIndexStorageSync() {
+  detachStorageSyncListener?.();
+}
+
+// Register the sync listener immediately so any tab opening this module stays
+// in lockstep with peer tabs that mutate localStorage. The guard within
+// setupSlotIndexStorageSync ensures we play nicely with SSR and repeated imports.
+setupSlotIndexStorageSync();
 
 // -----------------
 // Helper functions
@@ -291,12 +385,20 @@ function resolveSlotKey(slotName: string, isAutoSave?: boolean): string {
 }
 
 /**
+ * Exposed slot normalization helper so UI layers can mirror the storage key
+ * calculation without duplicating prefix/auto-save rules. This keeps overwrite
+ * detection consistent between the selector and the service.
+ */
+export function getSlotStorageKey(slotName: string, isAutoSave?: boolean): string {
+  return resolveSlotKey(slotName, isAutoSave);
+}
+
+/**
  * Builds preview data (location, party level, playtime) from the latest GameState snapshot.
  */
-function extractPreview(state: GameState): SavePreview {
+function extractPreview(state: GameState, playtimeSeconds?: number): SavePreview {
   const partyLevels = state.party?.map(member => member.level || 1) || [];
   const averageLevel = partyLevels.length > 0 ? Math.round(partyLevels.reduce((a, b) => a + b, 0) / partyLevels.length) : undefined;
-  const playtimeSeconds = state.gameTime instanceof Date ? Math.max(0, Math.floor(state.gameTime.getTime() / 1000)) : undefined;
   return {
     locationName: state.currentLocationId,
     partyLevel: averageLevel,
@@ -313,11 +415,24 @@ function normalizeLoadedDates(loadedState: GameState) {
   }
 }
 
+function calculatePlaytimeSeconds(existingSlot?: SaveSlotSummary): number {
+  // Carry forward any previously recorded playtime and add the time accrued
+  // since the current session began. This keeps the metric grounded in
+  // real-world elapsed time instead of the in-game calendar.
+  const alreadyRecorded = existingSlot?.playtimeSeconds ?? 0;
+  const sessionElapsedSeconds = Math.max(0, Math.floor((Date.now() - sessionStartedAtMs) / 1000));
+  return alreadyRecorded + sessionElapsedSeconds;
+}
+
+function resetSessionTimer(startTimeMs: number = Date.now()) {
+  sessionStartedAtMs = startTimeMs;
+}
+
 function upsertSlotMetadata(summary: SaveSlotSummary) {
   try {
     const current = getSaveSlots().filter(slot => slot.slotId !== summary.slotId);
-    const next = [...current, summary];
-    localStorage.setItem(SLOT_INDEX_KEY, JSON.stringify(next));
+    const next = [...current, summary].sort((a, b) => b.lastSaved - a.lastSaved);
+    persistSlotIndex(next);
   } catch (error) {
     console.error("Error updating save slot metadata index:", error);
   }
@@ -326,10 +441,23 @@ function upsertSlotMetadata(summary: SaveSlotSummary) {
 function removeSlotMetadata(slotId: string) {
   try {
     const current = getSaveSlots().filter(slot => slot.slotId !== slotId);
-    localStorage.setItem(SLOT_INDEX_KEY, JSON.stringify(current));
+    persistSlotIndex(current);
   } catch (error) {
     console.error("Error removing save slot metadata:", error);
   }
+}
+
+function persistSlotIndex(next: SaveSlotSummary[]) {
+  // Persist first so the cache stays authoritative even if the write fails.
+  localStorage.setItem(SLOT_INDEX_KEY, JSON.stringify(next));
+  // Copy to guard against accidental external mutation of the cached array.
+  slotIndexCache = [...next];
+}
+
+function buildSlotIndex(): SaveSlotSummary[] {
+  const storedIndex = localStorage.getItem(SLOT_INDEX_KEY);
+  const parsedIndex: SaveSlotSummary[] = storedIndex ? JSON.parse(storedIndex) : [];
+  return mergeWithLegacySaves(parsedIndex).sort((a, b) => b.lastSaved - a.lastSaved);
 }
 
 function mergeWithLegacySaves(index: SaveSlotSummary[]): SaveSlotSummary[] {
