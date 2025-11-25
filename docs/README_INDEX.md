@@ -94,7 +94,6 @@ This file serves as a central index for all README documentation within the Aral
 *   **`src/components/CharacterCreator/Race/RaceSelection.README.md`**: Explains the `RaceSelection.tsx` component.
 *   **`src/components/CharacterCreator/Race/RaceDetailModal.README.md`**: Documents the extracted `RaceDetailModal.tsx` component.
 *   **`src/components/CharacterCreator/Race/RacialSpellAbilitySelection.README.md`**: Documents the generic component for racial spell choices.
-*   **`src/components/CharacterCreator/Race/[RaceName]Selection.README.md`**: Specific READMEs for other race selection components (e.g., `GiantAncestrySelection`, `ChangelingInstinctsSelection`).
 *   **`src/components/CharacterCreator/AbilityScoreAllocation.README.md`**: Covers `AbilityScoreAllocation.tsx`.
 *   **`src/components/CharacterCreator/SkillSelection.README.md`**: Documents `SkillSelection.tsx`.
 *   **`src/components/CharacterCreator/NameAndReview.README.md`**: Documents `NameAndReview.tsx`.
