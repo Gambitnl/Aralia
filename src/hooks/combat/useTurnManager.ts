@@ -278,11 +278,25 @@ export const useTurnManager = ({
 
   const getCurrentCharacter = useCallback(() => currentCharacter, [currentCharacter]);
   
+  // Track when a turn has already been initialized so we do not re-run
+  // startTurnFor mid-turn when the characters array changes (e.g. HP/cooldowns
+  // updating after actions). Without this guard, dependency updates from
+  // getCurrentCharacter/characters would repeatedly reset the action economy,
+  // accidentally granting extra actions while expiring statuses early.
+  const lastTurnStartKey = useRef<string | null>(null);
+
   // Turn Start Handling
   useEffect(() => {
-    const character = getCurrentCharacter();
+    const activeId = turnState.currentCharacterId;
+    if (!activeId) return;
+
+    const turnStartKey = `${turnState.currentTurn}:${activeId}`;
+    if (lastTurnStartKey.current === turnStartKey) return; // Already started this actor/round pair
+
+    const character = characters.find(c => c.id === activeId);
     if (!character) return;
 
+    lastTurnStartKey.current = turnStartKey;
     startTurnFor(character);
     onLogEntry({
         id: generateId(),
@@ -291,13 +305,13 @@ export const useTurnManager = ({
         message: `${character.name}'s turn.`,
         characterId: character.id
     });
-    
+
     if (character.team === 'enemy' || managedAutoCharacters.has(character.id)) {
         // Init AI turn
         // Small delay to allow visuals to catch up
         setTimeout(() => setAiState('thinking'), 1000);
     }
-  }, [getCurrentCharacter, startTurnFor, onLogEntry, managedAutoCharacters, turnState.currentCharacterId]);
+  }, [turnState.currentCharacterId, turnState.currentTurn, characters, startTurnFor, onLogEntry, managedAutoCharacters]);
 
   // AI Logic - Reacting to 'thinking' state or state updates
   useEffect(() => {
@@ -347,7 +361,7 @@ export const useTurnManager = ({
 
       decideAction();
 
-  }, [aiState, characters, mapData, getCurrentCharacter, turnState.currentCharacterId, aiActionsPerformed, endTurn, executeAction]); // Including characters here ensures we see fresh state
+  }, [aiState, characters, mapData, getCurrentCharacter, aiActionsPerformed, endTurn, executeAction]); // Including characters here ensures we see fresh state
 
 
   const isCharacterTurn = useCallback((characterId: string) => {
