@@ -122,7 +122,11 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({ availableFeats, selectedF
         )}
         <div className="flex-1 flex justify-end gap-3">
           <button
-            onClick={() => onSelectFeat('')}
+            onClick={() => {
+              // Skip clears the feat and advances immediately so the aria-label matches behavior and reduces extra clicks.
+              onSelectFeat('');
+              onConfirm();
+            }}
             className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
             aria-label="Skip feat selection and continue"
           >

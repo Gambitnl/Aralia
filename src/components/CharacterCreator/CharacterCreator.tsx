@@ -223,7 +223,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
   const handleAgeChange = useCallback((age: number) => {
       const sanitizedAge = Math.max(1, Math.min(999, age || 0));
       dispatch({ type: 'SET_CHARACTER_AGE', payload: sanitizedAge });
-  }, []);
+  }, [dispatch]);
 
   const goBack = useCallback(() => {
     dispatch({ type: 'GO_BACK' });
