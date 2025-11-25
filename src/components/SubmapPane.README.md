@@ -15,6 +15,10 @@ Key features include:
 *   **Tile Inspection**: An "Inspect Tile" mode allows players to get detailed, AI-generated descriptions of adjacent tiles.
 *   **Compass Integration**: The `CompassPane` is now rendered directly within this component, providing a unified local navigation experience.
 
+## Visual Reference
+
+![Submap grid with tooltips, compass, and legend callouts](../../docs/images/submap-pane.svg)
+
 ## Configuration
 
 The visual appearance of each biome (base colors, path styles, scatter features, etc.) is not hardcoded within this component. It is defined in a dedicated configuration file: **`src/config/submapVisualsConfig.ts`**. This separation of concerns allows for easier tuning of the submap's aesthetic without modifying the component's rendering logic.

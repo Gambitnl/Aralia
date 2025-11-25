@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540" role="img" aria-label="MapPane overlay with legend and tiles">
+  <defs>
+    <style>
+      .bg { fill: #f5e6c4; stroke: #cfa968; stroke-width: 4; }
+      .tile { fill: #7cbf7c; stroke: #3f7f3f; }
+      .tile-undiscovered { fill: #d6d6d6; stroke: #777; }
+      .tile-player { fill: #88c9f9; stroke: #1b6ea8; stroke-width: 3; }
+      .text { font-family: 'Inter', 'Segoe UI', sans-serif; fill: #2d1f0f; }
+      .caption { font-size: 18px; font-weight: 600; }
+      .label { font-size: 14px; }
+      .legend { fill: #fff8e6; stroke: #cfa968; }
+    </style>
+  </defs>
+  <rect class="bg" x="30" y="30" width="620" height="420" rx="18" />
+  <text class="text caption" x="40" y="60">MapPane overlay (keyboard-friendly modal)</text>
+  <g transform="translate(60 90)">
+    <rect class="tile" x="0" y="0" width="70" height="70" rx="8" />
+    <text class="text label" x="10" y="40">Forest biome</text>
+    <rect class="tile-undiscovered" x="90" y="0" width="70" height="70" rx="8" />
+    <text class="text label" x="100" y="40">Fog of war</text>
+    <rect class="tile-player" x="180" y="0" width="70" height="70" rx="8" />
+    <text class="text label" x="190" y="40">Player</text>
+    <rect class="tile" x="270" y="0" width="70" height="70" rx="8" />
+    <text class="text label" x="278" y="40">City</text>
+  </g>
+  <g transform="translate(60 180)">
+    <rect class="tile" x="0" y="0" width="420" height="220" rx="14" opacity="0.35" />
+    <text class="text caption" x="12" y="28">Grid tiles accept click or Enter/Space</text>
+    <text class="text label" x="12" y="56">Arrow keys move focus • Tab loops close button &amp; focused tile</text>
+    <text class="text label" x="12" y="80">Selected tile announced via aria-label</text>
+  </g>
+  <rect class="legend" x="680" y="60" width="190" height="210" rx="10" />
+  <text class="text caption" x="694" y="90">Legend</text>
+  <text class="text label" x="694" y="120">Green: Discovered biome</text>
+  <text class="text label" x="694" y="146">Grey: Undiscovered</text>
+  <text class="text label" x="694" y="172">Blue pin: Player</text>
+  <text class="text label" x="694" y="198">Icons from BIOMES/LOCATIONS</text>
+  <rect class="legend" x="680" y="290" width="190" height="140" rx="10" />
+  <text class="text caption" x="694" y="318">Close/Instructions</text>
+  <text class="text label" x="694" y="344">• Close Map button focused first</text>
+  <text class="text label" x="694" y="368">• Esc closes overlay</text>
+</svg>

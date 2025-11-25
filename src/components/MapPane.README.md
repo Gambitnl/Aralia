@@ -4,6 +4,10 @@
 
 The `MapPane.tsx` component is responsible for rendering the game's world map as a visual overlay. It allows players to see discovered areas, their current position, and the biomes of different regions. Players can interact with the map by clicking on discovered tiles to potentially travel to linked locations. It now features enhanced keyboard navigation and an icon glossary.
 
+## Visual Reference
+
+![MapPane overlay with legend and keyboard guidance](../../docs/images/map-pane-overlay.svg)
+
 ## Props
 
 *   **`mapData: MapData`**:

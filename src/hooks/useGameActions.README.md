@@ -6,8 +6,8 @@ The `useGameActions` custom React hook is the central orchestrator for processin
 
 This hook takes the current game state, a `dispatch` function, and various callbacks/utility functions as dependencies. It then exposes a single, memoized `processAction` function that `App.tsx` uses to handle any game action triggered by the player. This architecture makes the action-handling system significantly more modular, maintainable, and readable.
 
-**Player Action Logging**:
-A key feature of this hook is the generation of more **diegetic (narrative) player action messages** for the game log. Instead of mechanical entries like `> action:move target:forest_path`, the log will display more immersive text. This is achieved by the `getDiegeticPlayerActionMessage` utility.
+**Player Action Logging & Contexting**:
+A key feature of this hook is the generation of more **diegetic (narrative) player action messages** for the game log. Instead of mechanical entries like `> action:move target:forest_path`, the log will display more immersive text. This is achieved by the `getDiegeticPlayerActionMessage` utility, paired with a `generalActionContext` string that is built from the player's identity, active biome, submap tile info, visible items, and nearby NPCs.
 
 ## Interface
 
@@ -36,23 +36,25 @@ The hook returns an object containing:
 
 *   **`processAction: (action: Action) => Promise<void>`**:
     *   An asynchronous function that takes an `Action` object as input.
-    *   **Delegation Logic**: Contains a `switch` statement that routes the `action` to the appropriate modular handler (e.g., `handleMovement`, `handleTalk`, `handleSaveGame`).
-    *   **Context Preparation**: Before delegation, it prepares a `generalActionContext` string that provides rich, situational context to handlers that interact with the Gemini API.
-    *   **Gemini Log Management**: It defines and passes down an `addGeminiLog` callback to all handlers, centralizing the logging of AI interactions.
-    *   **Error Handling**: Wraps the entire `switch` statement in a `try...catch...finally` block to handle any errors that occur during action processing and to ensure the global loading state is properly reset.
+    *   **Delegation Logic**: Routes the `action` to the appropriate modular handler (movement/quick travel, observation & analysis, NPC interaction, item interactions, Oracle & Gemini custom calls, encounter controls, battle map start/end, resource use/rest, merchant flows, system/UI toggles, and custom fallbacks).
+    *   **Context Preparation**: Builds a rich `generalActionContext` string (player identity, biome, submap tile info, local items/NPCs, and game time) to improve Gemini prompts. Also keeps the player-facing log diegetic.
+    *   **Gemini Log Management**: Defines and passes an `addGeminiLog` callback to handlers that talk to Gemini.
+    *   **Discovery Logging**: Wraps `handleMovement` with `logDiscovery` to ensure newly found locations are recorded once per tile.
+    *   **Error Handling**: Wraps action processing in `try...catch...finally` to surface errors and reset loading states for non-UI actions.
 
 ## Modular Action Handlers (`src/hooks/actions/`)
 
 The core logic is now located in these specialized modules:
-*   **`handleMovement.ts`**: Manages all `move` actions, including submap and world map transitions.
-*   **`handleObservation.ts`**: Manages `look_around` and `inspect_submap_tile`.
+*   **`handleMovement.ts`**: Manages `move` and `QUICK_TRAVEL`, handling both world/submap travel and quick village entries while logging discoveries.
+*   **`handleObservation.ts`**: Manages `look_around`, `ANALYZE_SITUATION`, and `inspect_submap_tile` (with tooltip-aware prompts).
 *   **`handleNpcInteraction.ts`**: Manages `talk` actions.
-*   **`handleItemInteraction.ts`**: Manages `take_item`, `EQUIP_ITEM`, `UNEQUIP_ITEM`, `USE_ITEM`, and `DROP_ITEM` actions.
+*   **`handleItemInteraction.ts`**: Manages `take_item`, `EQUIP_ITEM`, `UNEQUIP_ITEM`, `use_item`, `DROP_ITEM`, and `HARVEST_RESOURCE` actions.
 *   **`handleOracle.ts`**: Manages the `ask_oracle` action.
 *   **`handleGeminiCustom.ts`**: Manages `gemini_custom_action`.
-*   **`handleEncounter.ts`**: Manages encounter-related actions like `GENERATE_ENCOUNTER`.
-*   **`handleResourceActions.ts`**: Manages combat resource actions like `CAST_SPELL`.
-*   **`handleSystemAndUi.ts`**: Manages UI toggles (`toggle_map`, `toggle_dev_menu`) and system actions (`save_game`).
+*   **`handleEncounter.ts`**: Manages encounter lifecycle actions like `GENERATE_ENCOUNTER`, `SHOW_ENCOUNTER_MODAL`, `HIDE_ENCOUNTER_MODAL`, `START_BATTLE_MAP_ENCOUNTER`, and `END_BATTLE`.
+*   **`handleResourceActions.ts`**: Manages combat resource actions like `CAST_SPELL`, `USE_LIMITED_ABILITY`, `TOGGLE_PREPARED_SPELL`, `LONG_REST`, and `SHORT_REST`.
+*   **`handleMerchantInteraction.ts`**: Manages dynamic merchant flows (`OPEN_DYNAMIC_MERCHANT`).
+*   **`handleSystemAndUi.ts`**: Manages system/UI toggles and meta actions (`save_game`, `go_to_main_menu`, map/submap/dev menu/logs/tabs visibility, merchant close, party overlays, `TOGGLE_GAME_GUIDE`, etc.).
 
 ## Usage
 
@@ -84,8 +86,8 @@ const App: React.FC = () => {
 ## Dependencies
 *   `react`: For `useCallback`.
 *   `../types`: Core application types.
-*   `../state/appState`: For the `AppAction` type.
-*   `../constants`: For game data constants.
+*   `../state/actionTypes`: For the `AppAction` type.
+*   `../constants` and `../config/mapConfig`: Game data constants and map sizing values.
 *   `../services/geminiService`: Used by the individual handlers.
-*   `../utils/actionUtils`: For `getDiegeticPlayerActionMessage`.
+*   `../utils/actionUtils` and `../utils/submapUtils`: For diegetic messages and submap tile context.
 *   All the handler modules in `src/hooks/actions/`.

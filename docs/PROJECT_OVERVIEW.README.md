@@ -14,6 +14,7 @@ Welcome to the main documentation hub for the Aralia RPG project. This document 
 *   **Tactical Battle Map**: A procedural, grid-based combat system featuring a D&D 5e-style action economy for tactical encounters.
 *   **Developer Mode**: Includes a "dummy character" to bypass character creation for rapid testing and a developer menu for quick actions like save/load.
 *   **Save/Load System**: Persists game state to the browser's Local Storage.
+*   **Scene Visuals (Paused)**: An `ImagePane.tsx` component exists for scene imagery, but image generation is currently disabled to manage external API quotas. Village and exploration scenes rely on canvas/grid renderings instead of fetched art.
 
 ## 2. Technology Stack & Architecture
 

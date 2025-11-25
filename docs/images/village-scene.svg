@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540" role="img" aria-label="Village scene layout with buildings and status bar">
+  <defs>
+    <style>
+      .bg { fill: #f8f1e6; stroke: #d8bfa3; stroke-width: 4; }
+      .ground { fill: #e7d9c3; stroke: #c3a47c; }
+      .building { fill: #d6b48a; stroke: #8b6339; }
+      .text { font-family: 'Inter', 'Segoe UI', sans-serif; fill: #2f2415; }
+      .caption { font-size: 18px; font-weight: 700; }
+      .label { font-size: 14px; }
+      .panel { fill: #ffffff; stroke: #d8bfa3; }
+    </style>
+  </defs>
+  <rect class="bg" x="24" y="24" width="852" height="492" rx="18" />
+  <text class="text caption" x="40" y="58">VillageScene canvas-style view</text>
+  <g transform="translate(60 90)">
+    <rect class="ground" x="0" y="0" width="520" height="320" rx="14" />
+    <rect class="building" x="40" y="40" width="140" height="90" rx="12" />
+    <text class="text label" x="56" y="92">Inn</text>
+    <rect class="building" x="220" y="70" width="140" height="90" rx="12" />
+    <text class="text label" x="236" y="122">Shop</text>
+    <rect class="building" x="140" y="190" width="200" height="90" rx="12" />
+    <text class="text label" x="156" y="242">Workshop</text>
+    <text class="text label" x="20" y="280">Procedural buildings plotted from village data</text>
+  </g>
+  <rect class="panel" x="600" y="90" width="240" height="120" rx="12" />
+  <text class="text caption" x="614" y="120">Scene status</text>
+  <text class="text label" x="614" y="148">• Canvas renders map &amp; NPCs</text>
+  <text class="text label" x="614" y="172">• ImagePane disabled (API quota)</text>
+  <rect class="panel" x="600" y="230" width="240" height="120" rx="12" />
+  <text class="text caption" x="614" y="260">Interaction hooks</text>
+  <text class="text label" x="614" y="288">• Map click -> actions</text>
+  <text class="text label" x="614" y="312">• Quick travel entry point</text>
+  <rect class="panel" x="60" y="430" width="520" height="62" rx="12" />
+  <text class="text caption" x="74" y="466">UI overlay</text>
+  <text class="text label" x="190" y="466">Action buttons / tooltips</text>
+</svg>

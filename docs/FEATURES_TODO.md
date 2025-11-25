@@ -30,8 +30,7 @@ This file tracks planned features, enhancements, and tasks for the Aralia RPG pr
     *   **[TODO]** Gaining new abilities/spells upon level-up.
     *   **[TODO]** Improving stats or choosing feats.
 *   **Feat System**:
-    *   **[TODO]** Integrate feats as part of character creation and progression.
-    *   *(Note: The 'Versatile' trait for Humans is currently descriptive; no mechanical feat system is implemented yet.)*
+    *   **[TODO]** Integrate feats as part of character creation and progression. See dedicated section below.
 *   **Economy System**:
     *   **[DONE]** Introduce currency (PP, GP, EP, SP, CP).
     *   **[DONE]** Implement Merchant interface with buying/selling.
@@ -47,6 +46,15 @@ This file tracks planned features, enhancements, and tasks for the Aralia RPG pr
 *   **Character Age in Creation**:
     *   **[TODO]** Add Age selection to Character Creation.
     *   **[TODO]** Define and display logical age ranges for each race.
+
+### Feat System
+
+*   **Current State**:
+    *   The Human "Versatile" trait describes an extra feat, but no mechanical feat selection or application pipeline exists.
+*   **Implementation Steps**:
+    *   Define structured feat data in `src/data/feats/` (including prerequisites, benefits, and usage limits) and aggregate exports in `src/constants.ts`.
+    *   Create a `FeatSelection` UI component for the character creator to surface eligible feats, enforce prerequisites, and capture the player's choice.
+    *   Integrate feat effects into character assembly so selected feats adjust derived stats, proficiencies, or abilities across combat and exploration systems.
 
 ## World & Exploration
 
@@ -102,7 +110,7 @@ This file tracks planned features, enhancements, and tasks for the Aralia RPG pr
 *   **Accessibility**:
     *   **[ONGOING]** ARIA implementations, keyboard navigation.
 *   **Scene Visuals**:
-    *   **[PAUSED]** `ImagePane` component exists, but image generation is currently disabled to manage API quotas.
+    *   **[PAUSED]** `ImagePane` component exists, but image generation is currently disabled to manage API quotas; scene panels rely on canvas or textual renderings until quota-friendly image generation is re-enabled.
 *   **Tooltips for Keywords**:
     *   **[DONE]** Implemented clickable/hoverable tooltips for game terms.
 *   **Submap Display**:

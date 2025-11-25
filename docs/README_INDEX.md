@@ -104,7 +104,6 @@ This file serves as a central index for all README documentation within the Aral
 *   **`src/components/MapPane.README.md`**: Documents the `MapPane.tsx` component.
 *   **`src/components/SubmapPane.README.md`**: Documents the `SubmapPane.tsx` component.
 *   **`src/components/Tooltip.README.md`**: Explains the reusable `Tooltip.tsx` component.
-*   **`src/components/GlossaryTooltip.README.md`**: Explains the `GlossaryTooltip.tsx` component.
 *   **`src/components/PartyPane.README.md`**: Details the `PartyPane.tsx` component.
 *   **`src/components/PartyOverlay.README.md`**: Details the `PartyOverlay.tsx` component.
 *   **`src/components/CharacterSheetModal.README.md`**: Documents the `CharacterSheetModal.tsx` component.
@@ -116,11 +115,11 @@ This file serves as a central index for all README documentation within the Aral
 *   **`src/components/GlossaryDisplay.README.md`**: Details the `GlossaryDisplay.tsx` component.
 *   **`src/components/DevMenu.README.md`**: Explains the `DevMenu.tsx` component.
 *   **`src/components/GeminiLogViewer.README.md`**: Documents the `GeminiLogViewer.tsx` component.
-*   **`src/components/DiscoveryLogPane.README.md`**: Details the `DiscoveryLogPane.tsx` component.
 *   **`src/components/SpellbookOverlay.README.md`**: Documents the new `SpellbookOverlay.tsx` component.
 *   **`src/components/LogbookPane.README.md`**: Documents the `LogbookPane.tsx` component.
 *   **`src/components/LoadingSpinner.README.md`**: Documents the `LoadingSpinner.tsx` component.
 *   **`src/components/WorldPane.README.md`**: Documents the `WorldPane.tsx` component.
+*   **`src/components/VillageScene.README.md`**: Describes the canvas-based village scene experience and current limitations.
 
 
 ### Services (`src/services/`)

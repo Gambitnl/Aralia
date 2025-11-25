@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540" role="img" aria-label="Battle map grid with UI overlays">
+  <defs>
+    <style>
+      .bg { fill: #f0f7f0; stroke: #9cc59c; stroke-width: 4; }
+      .grid { fill: #d8e8d8; stroke: #7aa57a; stroke-width: 2; }
+      .token { fill: #fff; stroke: #3c6b3c; stroke-width: 3; }
+      .enemy { fill: #f8d7d7; stroke: #b84c4c; stroke-width: 3; }
+      .panel { fill: #ffffff; stroke: #9cc59c; }
+      .text { font-family: 'Inter', 'Segoe UI', sans-serif; fill: #1f2f1f; }
+      .caption { font-size: 18px; font-weight: 700; }
+      .label { font-size: 14px; }
+    </style>
+  </defs>
+  <rect class="bg" x="24" y="24" width="620" height="420" rx="14" />
+  <text class="text caption" x="38" y="58">BattleMap tactical view</text>
+  <g transform="translate(54 90)">
+    <rect class="grid" x="0" y="0" width="420" height="280" rx="12" />
+    <rect class="token" x="40" y="60" width="48" height="48" rx="10" />
+    <text class="text label" x="46" y="92">PC</text>
+    <rect class="enemy" x="180" y="120" width="48" height="48" rx="10" />
+    <text class="text label" x="188" y="152">Enemy</text>
+    <rect class="token" x="260" y="200" width="48" height="48" rx="10" />
+    <text class="text label" x="268" y="232">Ally</text>
+    <text class="text label" x="8" y="308">Grid tiles rendered by BattleMapTile</text>
+  </g>
+  <rect class="panel" x="520" y="90" width="330" height="70" rx="12" />
+  <text class="text caption" x="536" y="118">InitiativeTracker</text>
+  <text class="text label" x="536" y="142">Highlights active combatant</text>
+  <rect class="panel" x="520" y="180" width="330" height="120" rx="12" />
+  <text class="text caption" x="536" y="208">AbilityPalette</text>
+  <text class="text label" x="536" y="234">Shows costs (Action/Bonus/etc.)</text>
+  <text class="text label" x="536" y="258">Disables when resources spent</text>
+  <rect class="panel" x="520" y="320" width="330" height="110" rx="12" />
+  <text class="text caption" x="536" y="350">CombatLog</text>
+  <text class="text label" x="536" y="376">Narrates actions resolved by hooks</text>
+  <rect class="panel" x="40" y="360" width="420" height="90" rx="12" />
+  <text class="text caption" x="52" y="390">Supporting hooks</text>
+  <text class="text label" x="52" y="414">• useTurnManager controls rounds</text>
+  <text class="text label" x="52" y="438">• useAbilitySystem validates targeting</text>
+</svg>

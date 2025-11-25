@@ -23,9 +23,9 @@ interface UseGameInitializationProps {
 
 interface UseGameInitializationOutput {
   handleNewGame: () => void;
-  handleSkipCharacterCreator: () => void;
+  handleSkipCharacterCreator: () => Promise<void>;
   handleLoadGameFlow: () => Promise<void>;
-  startGame: (character: PlayerCharacter) => Promise<void>;
+  startGame: (character: PlayerCharacter, startingInventory: Item[], worldSeed: number) => Promise<void>;
   initializeDummyPlayerState: () => void;
 }
 
@@ -44,21 +44,23 @@ The hook returns an object containing several memoized callback functions:
     *   Generates initial dynamic item states and a new world map.
     *   Dispatches `START_NEW_GAME_SETUP` to transition the game to the `CHARACTER_CREATION` phase and set up initial map/item data.
 
-*   **`handleSkipCharacterCreator: () => void`**:
-    *   Generates initial dynamic item states and a new world map.
-    *   Dispatches `START_GAME_FOR_DUMMY` to directly start the game with the `DUMMY_CHARACTER_FOR_DEV`.
+*   **`handleSkipCharacterCreator: () => Promise<void>`**:
+    *   Generates a fresh world seed and dynamic location item state.
+    *   Calls Gemini name generation for the fighter and cleric dummy characters (with rate limit flagging), then dispatches `START_GAME_FOR_DUMMY` with seeded party names and map data.
+    *   Manages loading/error state if the Gemini calls fail.
 
 *   **`handleLoadGameFlow: () => Promise<void>`**:
     *   Asynchronously loads game state using `SaveLoadService.loadGame()`.
-    *   Dispatches `LOAD_GAME_SUCCESS` if successful, or handles failure by logging a message and setting the game phase to `MAIN_MENU`.
+    *   Dispatches `LOAD_GAME_SUCCESS` if successful, surfaces toast notifications, and logs a system message.
+    *   On failure, logs the issue, triggers an error notification, and resets the phase to `MAIN_MENU`.
     *   Manages loading state via `dispatch`.
 
-*   **`startGame: (character: PlayerCharacter) => Promise<void>`**:
+*   **`startGame: (character: PlayerCharacter, startingInventory: Item[], worldSeed: number) => Promise<void>`**:
     *   Intended to be called after character creation is complete.
-    *   Takes the created `PlayerCharacter` object.
-    *   Sets up initial dynamic items.
-    *   Uses `currentMapData` if available, otherwise generates a new map.
-    *   Dispatches `START_GAME_SUCCESS` with the new character, map data, and initial location details.
+    *   Takes the created `PlayerCharacter`, the assembled starting inventory, and the chosen world seed.
+    *   Seeds initial dynamic items and determines active dynamic NPCs for the starting location.
+    *   Uses `currentMapData` if available, otherwise generates a new map with the provided seed.
+    *   Dispatches `START_GAME_SUCCESS` with the new character, map data, submap coordinates, and location details.
 
 *   **`initializeDummyPlayerState: () => void`**:
     *   Specifically for the auto-start scenario with `DUMMY_CHARACTER_FOR_DEV`.
@@ -117,3 +119,6 @@ const App: React.FC = () => {
 *   `../constants`: For `STARTING_LOCATION_ID`, `LOCATIONS`, `MAP_GRID_SIZE`, `BIOMES`, `SUBMAP_DIMENSIONS`.
 *   `../services/mapService`: For `generateMap`.
 *   `../services/saveLoadService`: For `loadGame`.
+*   `../services/geminiService`: For generating dummy character names when skipping creation.
+*   `../utils/locationUtils`: For determining active dynamic NPCs.
+*   `../utils/seededRandom`: For deterministic world seeds.
