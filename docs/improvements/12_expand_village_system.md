@@ -1,4 +1,4 @@
-- [x] Plan Completed
+- [x] Plan Completed *(PR #14 - Phases 1-2 complete with bugs, Phase 3 partially complete)*
 
 # Plan: Expand Village System with Procedural Generation
 
@@ -27,13 +27,13 @@ Transform the basic hardcoded village into a dynamic, procedurally generated sys
 ### Phase 1: Enhanced Village Canvas System
 **Goal:** Expand the current canvas-based village with more building types
 
-- [ ] **Add Building Types**:
+- [x] **Add Building Types**: *(PR #14 - Completed)*
   - Houses (different styles: small, medium, large)
   - Shops (blacksmith, general store, tavern, temple)
   - Infrastructure (well, market square, guard post)
   - Special buildings (mayor's house, guild hall)
 
-- [ ] **Expand Tile System**:
+- [x] **Expand Tile System**: *(PR #14 - Completed)*
   ```typescript
   // New tile types beyond 0, 1, 2
   const TILE_TYPES = {
@@ -52,7 +52,7 @@ Transform the basic hardcoded village into a dynamic, procedurally generated sys
   };
   ```
 
-- [ ] **Visual Improvements**:
+- [x] **Visual Improvements**: *(PR #14 - Completed)*
   - Different colors/patterns for building types
   - Simple roof/door indicators
   - Path varieties (cobblestone, dirt)
@@ -60,12 +60,12 @@ Transform the basic hardcoded village into a dynamic, procedurally generated sys
 ### Phase 2: Procedural Village Layout Generation
 **Goal:** Use the existing submap system to generate village layouts
 
-- [ ] **Leverage Existing Systems**:
+- [x] **Leverage Existing Systems**: *(PR #14 - Completed, but contains critical bugs)*
   - Extend `src/utils/submapUtils.ts` village seeded features
   - Use deterministic seeding based on world coordinates
   - Integrate with `src/config/submapVisualsConfig.ts`
 
-- [ ] **Village Layout Algorithm**:
+- [x] **Village Layout Algorithm**: *(PR #14 - Completed)*
   ```typescript
   interface VillageGenerationConfig {
     size: 'small' | 'medium' | 'large';
@@ -76,7 +76,7 @@ Transform the basic hardcoded village into a dynamic, procedurally generated sys
   }
   ```
 
-- [ ] **Building Placement Rules**:
+- [x] **Building Placement Rules**: *(PR #14 - Completed)*
   - Central plaza/square with key buildings
   - Residential areas on outskirts  
   - Commercial buildings near main paths
@@ -86,7 +86,7 @@ Transform the basic hardcoded village into a dynamic, procedurally generated sys
 ### Phase 3: Advanced Village Features
 **Goal:** Add depth and interactivity to villages
 
-- [ ] **Building Interactions**:
+- [x] **Building Interactions**: *(PR #14 - Partially completed)*
   - Each building type has specific click behaviors
   - Shops open trade interfaces
   - Houses show residents/lore

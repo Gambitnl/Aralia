@@ -44,22 +44,22 @@ from code reviews and feature planning. Each item is rated by urgency/impact and
         4.  Ensure any new layout remains intuitive and responsive.
     *   **Status**: PENDING
 
-4.  **[Medium Urgency - Documentation] Add Visuals to UI Component READMEs (Review Rec #11)**:
+4.  **[DONE] [Medium Urgency - Documentation] Add Visuals to UI Component READMEs (Review Rec #11)**:
     *   **Description**: Text-only documentation for complex UI components can be hard to visualize. Adding images would significantly improve comprehension.
     *   **Approach**:
         1.  Take screenshots of key UI components in action (e.g., the `MapPane` overlay, a populated `SubmapPane`, a step in the `CharacterCreator`).
         2.  Create diagrams if necessary to explain component relationships or state flow.
         3.  Upload these images to a stable image hosting service (like `ibb.co`, as used for race images) or place them in a `docs/images` directory.
         4.  Embed these images using Markdown syntax in the relevant `[Component].README.md` files.
-    *   **Status**: PENDING
+    *   **Status**: DONE *(PR #16 - Created 5 professional SVG diagrams in docs/images/, embedded in component READMEs)*
 
-5.  **[Medium Urgency - Project Adherence] Clarify "Scene Visuals" Status (Review Rec #12)**:
+5.  **[DONE] [Medium Urgency - Project Adherence] Clarify "Scene Visuals" Status (Review Rec #12)**:
     *   **Description**: The `ImagePane.tsx` component and `generateImageForScene` service exist, but the feature is not currently active in the main UI. Project documentation should reflect this reality.
     *   **Approach**:
         1.  Review `docs/PROJECT_OVERVIEW.README.md` and `docs/FEATURES_TODO.md`.
         2.  Update the "Core Features" section to clarify that scene visualization is a potential feature but is currently disabled or in a non-active state.
         3.  Add a note explaining the reason if known (e.g., "Disabled to manage API quotas during development").
-    *   **Status**: PENDING
+    *   **Status**: DONE *(PR #16 - Updated FEATURES_TODO.md line 105 with clarification about canvas/textual rendering)*
 
 6.  **[Medium Urgency - Project Adherence] Detail Feat System Implementation (Review Rec #13)**:
     *   **Description**: The feat system is mentioned via the Human's "Versatile" trait but isn't a fully implemented system. The project documentation should be clearer on its current state.
@@ -117,20 +117,20 @@ from code reviews and feature planning. Each item is rated by urgency/impact and
         3.  Create a root reducer that combines these slice reducers to manage the overall `GameState` object.
     *   **Status**: PENDING (Future consideration)
 
-6.  **[Low Urgency - Documentation] Scrub `README_INDEX.md` (Review Rec #9)**:
+6.  **[DONE] [Low Urgency - Documentation] Scrub `README_INDEX.md` (Review Rec #9)**:
     *   **Description**: With ongoing refactoring, links in the documentation index can become outdated.
     *   **Approach**:
         1.  Periodically (e.g., after every major feature merge), review every link in `docs/README_INDEX.md`.
         2.  Verify that each link points to the correct file and that the file's description is still accurate.
         3.  Update or remove any broken or incorrect entries.
-    *   **Status**: PENDING
+    *   **Status**: DONE *(PR #16 - Added placeholder back for race selection READMEs after PR #13 cleanup)*
 
-7.  **[Low Urgency - Documentation] Ensure Hook READMEs are Current (Review Rec #10)**:
+7.  **[DONE] [Low Urgency - Documentation] Ensure Hook READMEs are Current (Review Rec #10)**:
     *   **Description**: The custom hooks are the core of the application's logic. Their documentation must be kept accurate.
     *   **Approach**:
         1.  After any significant change to a custom hook in `src/hooks/`, immediately update its corresponding README file.
         2.  Ensure the "Props" (or dependencies), "Return Value," and "Core Functionality" sections accurately reflect the new logic.
-    *   **Status**: PENDING
+    *   **Status**: DONE *(PR #16 - Updated 3 hook READMEs: useGameActions, useGameInitialization, useSubmapProceduralData)*
 
 8.  **[Low Urgency - UI Polish] UI Button Consistency (Existing #12, still valid)**:
     *   **Description**: While generally consistent, minor variations in button padding, font size, or hover/focus states may exist across the app, particularly in multi-step processes like character creation.
