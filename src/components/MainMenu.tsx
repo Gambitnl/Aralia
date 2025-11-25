@@ -6,16 +6,20 @@
  * and view a game compendium (placeholder).
  * It now also includes a conditional "Skip Character Creator" button for development.
  */
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import LoadGameModal from './LoadGameModal';
+import SaveSlotSelector from './SaveSlotSelector';
+import { deleteSaveGame, getSaveSlots, SaveSlotSummary } from '../services/saveLoadService';
 
 interface MainMenuProps {
   onNewGame: () => void;
-  onLoadGame: () => void; 
-  onShowCompendium: () => void; 
-  hasSaveGame: boolean; 
-  latestSaveTimestamp: number | null; 
+  onLoadGame: (slotId?: string) => void;
+  onShowCompendium: () => void;
+  hasSaveGame: boolean;
+  latestSaveTimestamp: number | null;
   isDevDummyActive: boolean; // New prop
   onSkipCharacterCreator: () => void; // New prop
+  onSaveGame?: (slotId: string, displayName?: string, isAutoSave?: boolean) => void;
 }
 
 /**
@@ -32,11 +36,49 @@ const MainMenu: React.FC<MainMenuProps> = ({
   latestSaveTimestamp,
   isDevDummyActive,
   onSkipCharacterCreator,
+  onSaveGame,
 }) => {
+  const [isLoadModalOpen, setIsLoadModalOpen] = useState(false);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [saveSlots, setSaveSlots] = useState<SaveSlotSummary[]>([]);
+
+  useEffect(() => {
+    // Load slot metadata up front so the menu can render previews and continue targets.
+    setSaveSlots(getSaveSlots());
+  }, []);
+
+  const refreshSlots = () => setSaveSlots(getSaveSlots());
+
+  const latestSlot = useMemo(() => {
+    if (saveSlots.length > 0) {
+      return [...saveSlots].sort((a, b) => b.lastSaved - a.lastSaved)[0];
+    }
+    return null;
+  }, [saveSlots]);
+
   const formatTimestamp = (timestamp: number | null): string => {
     if (!timestamp) return '';
     const date = new Date(timestamp);
     return `Last played: ${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  };
+
+  const handleLoadSlot = (slotId?: string) => {
+    onLoadGame(slotId || undefined);
+    setIsLoadModalOpen(false);
+  };
+
+  const handleDeleteSlot = (slotId: string) => {
+    deleteSaveGame(slotId);
+    refreshSlots();
+  };
+
+  const handleSaveSlot = (slotId: string, displayName?: string, isAutoSave?: boolean) => {
+    if (!onSaveGame) {
+      console.warn('Save requested but onSaveGame handler was not provided.');
+      return;
+    }
+    onSaveGame(slotId, displayName || slotId, isAutoSave);
+    refreshSlots();
   };
 
   return (
@@ -46,15 +88,17 @@ const MainMenu: React.FC<MainMenuProps> = ({
           Aralia RPG
         </h1>
         <div className="space-y-4">
-          {hasSaveGame && (
+          {(hasSaveGame || !!latestSlot) && (
             <button
-              onClick={onLoadGame} 
+              onClick={() => handleLoadSlot(latestSlot?.slotId)}
               className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75"
               aria-label="Continue your last adventure"
             >
               Continue
-              {latestSaveTimestamp && (
-                <span className="block text-xs text-emerald-200 mt-1">{formatTimestamp(latestSaveTimestamp)}</span>
+              {(latestSlot?.lastSaved || latestSaveTimestamp) && (
+                <span className="block text-xs text-emerald-200 mt-1">
+                  {formatTimestamp(latestSlot?.lastSaved || latestSaveTimestamp)}
+                </span>
               )}
             </button>
           )}
@@ -64,6 +108,14 @@ const MainMenu: React.FC<MainMenuProps> = ({
             aria-label="Start a new game"
           >
             New Game
+          </button>
+          <button
+            onClick={() => setIsSaveModalOpen(true)}
+            disabled={!onSaveGame}
+            className={`w-full bg-amber-600 hover:bg-amber-500 text-gray-900 font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-opacity-75 ${!onSaveGame ? 'opacity-50 cursor-not-allowed' : ''}`}
+            aria-label="Save to a specific slot"
+          >
+            Save to Slot
           </button>
           {isDevDummyActive && (
             <button
@@ -75,11 +127,11 @@ const MainMenu: React.FC<MainMenuProps> = ({
             </button>
           )}
           <button
-            onClick={onLoadGame}
-            disabled={!hasSaveGame}
-            className={`w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75 ${!hasSaveGame ? 'opacity-50 cursor-not-allowed' : ''}`}
-            aria-label={hasSaveGame ? "Load a saved game" : "Load a saved game (no save file found)"}
-            title={hasSaveGame ? "Load Game" : "Load Game (No save file found)"}
+            onClick={() => setIsLoadModalOpen(true)}
+            disabled={!hasSaveGame && saveSlots.length === 0}
+            className={`w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75 ${(!hasSaveGame && saveSlots.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            aria-label={hasSaveGame || saveSlots.length > 0 ? "Load a saved game" : "Load a saved game (no save file found)"}
+            title={hasSaveGame || saveSlots.length > 0 ? "Load Game" : "Load Game (No save file found)"}
           >
             Load Game
           </button>
@@ -94,6 +146,25 @@ const MainMenu: React.FC<MainMenuProps> = ({
         </div>
         <p className="text-sm text-gray-500 mt-12">Powered by Gemini</p>
       </div>
+
+      {isSaveModalOpen && (
+        <SaveSlotSelector
+          slots={saveSlots}
+          onSaveSlot={handleSaveSlot}
+          onClose={() => setIsSaveModalOpen(false)}
+          allowAutoSave
+          isSavingDisabled={!onSaveGame}
+        />
+      )}
+
+      {isLoadModalOpen && (
+        <LoadGameModal
+          slots={saveSlots}
+          onLoadSlot={handleLoadSlot}
+          onDeleteSlot={handleDeleteSlot}
+          onClose={() => setIsLoadModalOpen(false)}
+        />
+      )}
     </div>
   );
 };
