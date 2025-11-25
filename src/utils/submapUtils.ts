@@ -10,13 +10,34 @@ import { biomeVisualsConfig, defaultBiomeVisuals } from '../config/submapVisuals
 import { CellularAutomataGenerator } from '../services/cellularAutomataService';
 
 // --- Hashing ---
-const simpleHash = (worldSeed: number, worldX: number, worldY: number, biomeSeedText: string, submapX: number, submapY: number, seedSuffix: string): number => {
+/**
+ * Lightweight deterministic hash used throughout submap generation. Exported so
+ * other procedural generators (like the village layout system) can build
+ * seeded RNG helpers without re-implementing the hash algorithm.
+ */
+export const simpleHash = (worldSeed: number, worldX: number, worldY: number, biomeSeedText: string, submapX: number, submapY: number, seedSuffix: string): number => {
     let h = 0;
     const str = `${worldSeed},${worldX},${worldY},${submapX},${submapY},${biomeSeedText},${seedSuffix}`;
     for (let i = 0; i < str.length; i++) {
         h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
     }
     return Math.abs(h);
+};
+
+/**
+ * Creates a deterministic PRNG that mirrors how submaps seed their randomness.
+ * The generator feeds incrementing indices into the shared hash to avoid
+ * synchronisation between different systems while still remaining perfectly
+ * repeatable for a given world coordinate + seed tuple.
+ */
+export const createSeededRandom = (worldSeed: number, parentWorldMapCoords: { x: number; y: number }, biomeSeedText: string, seedLabel: string): (() => number) => {
+    let counter = 0;
+    return () => {
+        const hash = simpleHash(worldSeed, parentWorldMapCoords.x, parentWorldMapCoords.y, biomeSeedText, counter, counter, seedLabel);
+        counter += 1;
+        // Convert integer hash into [0,1) float using modulus of large prime
+        return (hash % 100000) / 100000;
+    };
 };
 
 
