@@ -10,7 +10,7 @@ This file tracks planned features, enhancements, and tasks for the Aralia RPG pr
     *   **[DONE]** Add a "Continue Game" option on the main menu to load the most recent save.
     *   **[DONE]** Provide "Save Game" button in `ActionPane`.
     *   **[DONE]** Allow "Main Menu" button to save game before exiting (if not in dev dummy mode).
-    *   **[TODO]** Implement multiple save slots.
+    *   **[DONE]** Implement multiple save slots. *(PR #15 - Note: Contains critical bugs requiring hotfix - see v1.1 tasks below)*
 *   **Character Sheet & Equipment**:
     *   **[DONE]** Display a Character Sheet modal when a party member is clicked.
     *   **[DONE]** Implement a visual Equipment Mannequin UI with slots.
@@ -20,13 +20,13 @@ This file tracks planned features, enhancements, and tasks for the Aralia RPG pr
     *   **[DONE]** Develop a turn-based tactical combat system on a procedural map.
     *   **[DONE]** Refactor combat system to use a D&D 5e-style action economy (Action, Bonus Action, Reaction, Movement).
     *   **[PARTIALLY DONE]** Implement a full range of abilities and spells. Basic attacks and some spells are supported via `spellAbilityFactory`.
-    *   **[TODO]** Implement complex enemy AI for combat decisions.
-    *   **[TODO]** Integrate visual feedback (damage numbers, effect icons) into the battle map.
+    *   **[DONE]** Implement complex enemy AI for combat decisions. *(PR #12 - Includes AoE targeting, tactical positioning, focus fire)*
+    *   **[DONE]** Integrate visual feedback (damage numbers, effect icons) into the battle map. *(PR #12 - BattleMapOverlay component with animations)*
 *   **Quest System**:
     *   **[TODO]** Implement a robust quest system with objectives, tracking, and rewards.
     *   **[TODO]** Allow quests to be given by NPCs or discovered in the world.
 *   **Character Progression**:
-    *   **[TODO]** Leveling up system.
+    *   **[PARTIALLY DONE]** Leveling up system. *(PR #11 - XP distribution and auto-leveling implemented, but critical bug: rewards not passing to reducer)*
     *   **[TODO]** Gaining new abilities/spells upon level-up.
     *   **[TODO]** Improving stats or choosing feats.
 *   **Feat System**:
@@ -58,8 +58,8 @@ This file tracks planned features, enhancements, and tasks for the Aralia RPG pr
 *   **Points of Interest (POI) System**:
     *   **[TODO]** Define and distribute POIs (shrines, landmarks) across map tiles.
 *   **Towns & Cities**:
-    *   **[DONE]** Develop procedural village generation (`VillageScene`).
-    *   **[DONE]** Implement interactive buildings (Inns, Shops) within villages.
+    *   **[DONE]** Develop procedural village generation (`VillageScene`). *(PR #14 - Expanded with building variety, seeded generation - Contains critical bugs requiring hotfix)*
+    *   **[DONE]** Implement interactive buildings (Inns, Shops) within villages. *(PR #14 - Multiple building types with click handlers)*
 *   **Living NPCs & Social System**:
     *   **[DONE]** NPC Memory System (Disposition, Known Facts, Goals).
     *   **[DONE]** Gossip System (Information spread between NPCs).
@@ -87,7 +87,7 @@ This file tracks planned features, enhancements, and tasks for the Aralia RPG pr
 ## UI/UX Enhancements
 
 *   **Minimap**:
-    *   **[TODO]** Implement a small, always-visible version of the main map.
+    *   **[DONE]** Implement a small, always-visible version of the main map. *(PR #14 - Minimap component with click-to-pan, player position indicator)*
 *   **Map Tile Tooltips**:
     *   **[DONE]** Hover tooltips for biome, coordinates, and location names.
 *   **Quest Indicators**:
@@ -113,7 +113,7 @@ This file tracks planned features, enhancements, and tasks for the Aralia RPG pr
 ## Technical & System
 
 *   **Documentation**:
-    *   **[ONGOING]** Maintain up-to-date READMEs.
+    *   **[DONE]** Maintain up-to-date READMEs. *(PR #16 - Added SVG visual diagrams to 5 component READMEs, updated hook documentation)*
 *   **Error Handling**:
     *   **[DONE]** `ErrorBoundary` implementation.
 *   **Code Quality**:
@@ -121,3 +121,135 @@ This file tracks planned features, enhancements, and tasks for the Aralia RPG pr
     *   **[DONE]** Refactored state management (`useReducer` slices).
     *   **[DONE]** Modular action handlers.
     *   **[DONE]** Externalized CSS.
+
+---
+
+## v1.1 Critical Bug Fixes & Follow-up Tasks
+
+*Based on Lane Agent deployment (PRs #11-16), the following critical issues were identified and require immediate attention:*
+
+### 🔴 Priority 1: Data Integrity & Core Functionality
+
+1.  **[TODO]** **HOTFIX: Battle XP Rewards Not Applied** *(PR #11 Critical Bug)*
+    *   **Issue**: The `END_BATTLE` action does not pass reward object to reducer, preventing XP system from functioning.
+    *   **Location**: `src/state/appState.ts:416` and reward dispatch call
+    *   **Impact**: HIGH - Players cannot gain XP or level up
+    *   **Fix**: Ensure rewards are passed in `END_BATTLE` action dispatch
+
+2.  **[TODO]** **HOTFIX: Save Slot Overwrite Vulnerability** *(PR #15 Critical Bug)*
+    *   **Issue**: Flawed overwrite detection logic could allow unintended save data loss
+    *   **Location**: `src/services/saveLoadService.ts` - slot overwrite check
+    *   **Impact**: CRITICAL - Potential player save data loss
+    *   **Fix**: Correct overwrite detection before writing to localStorage
+
+3.  **[TODO]** **HOTFIX: Village Generation No-op Tile Assignments** *(PR #14 Critical Bug)*
+    *   **Issue**: Tile assignments that don't persist, causing incomplete village generation
+    *   **Location**: `src/services/villageGenerator.ts`
+    *   **Impact**: HIGH - Villages may not render correctly
+    *   **Fix**: Ensure tile assignments modify the layout array correctly
+
+4.  **[TODO]** **HOTFIX: Village Building Selection Logic** *(PR #14 Critical Bug)*
+    *   **Issue**: Nested building selection needs reverse iteration to prevent incorrect placement
+    *   **Location**: `src/services/villageGenerator.ts` - building placement loop
+    *   **Impact**: HIGH - Building layouts incorrect
+    *   **Fix**: Reverse iteration order for building selection
+
+5.  **[TODO]** **HOTFIX: Village Type Safety Violations** *(PR #14 Critical Bug)*
+    *   **Issue**: Multiple uses of `as any` to bypass TypeScript, indicating state management issues
+    *   **Location**: `src/components/VillageScene.tsx`, `src/services/villageGenerator.ts`
+    *   **Impact**: MEDIUM - Potential runtime errors
+    *   **Fix**: Add proper type definitions to `src/types.ts`, remove all `as any` casts
+
+6.  **[TODO]** **HOTFIX: Incorrect Playtime Calculation** *(PR #15 Critical Bug)*
+    *   **Issue**: Save slot playtime using in-game time instead of actual session duration
+    *   **Location**: `src/services/saveLoadService.ts` - playtime metadata
+    *   **Impact**: MEDIUM - Misleading UI, incorrect statistics
+    *   **Fix**: Track actual session duration using `Date.now()` deltas
+
+7.  **[TODO]** **HOTFIX: AoE Healing Can Target Enemies** *(PR #12 Medium Bug)*
+    *   **Issue**: AoE healing spells can heal enemy combatants
+    *   **Location**: `src/utils/combat/combatAI.ts` - AoE evaluation
+    *   **Impact**: MEDIUM - Combat balance broken
+    *   **Fix**: Filter AoE heal targets by team affiliation
+
+### 🟡 Priority 2: Performance & UX Polish
+
+8.  **[TODO]** **Replace Native Dialogs with Themed Modals** *(PR #15 UX Issue)*
+    *   **Issue**: Uses `window.confirm()` which breaks game immersion
+    *   **Location**: `src/components/SaveSlotSelector.tsx`
+    *   **Impact**: LOW - Breaks immersive theming
+    *   **Fix**: Create themed confirmation modal component
+
+9.  **[TODO]** **Optimize Save Slot Metadata Operations** *(PR #15 Performance)*
+    *   **Issue**: Inefficient read-sort-filter pattern on every metadata operation
+    *   **Location**: `src/services/saveLoadService.ts`
+    *   **Impact**: LOW - Performance degrades with many saves
+    *   **Fix**: Cache metadata, only refresh on write operations
+
+10. **[TODO]** **Combat Hook Performance Optimizations** *(PR #12 Performance)*
+    *   **Issue**: Missing `useCallback`/`useMemo` opportunities in battle map hooks
+    *   **Location**: `src/hooks/combat/useTurnManager.ts`
+    *   **Impact**: LOW - Unnecessary re-renders during combat
+    *   **Fix**: Add proper memoization to combat hooks
+
+11. **[TODO]** **Remove Dead Code from Village Generator** *(PR #14 Code Quality)*
+    *   **Issue**: Plaza boost logic that never executes
+    *   **Location**: `src/services/villageGenerator.ts`
+    *   **Impact**: TRIVIAL - Code clarity
+    *   **Fix**: Remove or fix unreachable code
+
+### 🔵 Priority 3: Incomplete Lane 1 Tasks
+
+*Lane 1 (Core Types & Game Systems) only completed 1 of 7 assigned tasks. The following remain:*
+
+12. **[TODO]** **Feat System Integration** *(Lane 1 Incomplete)*
+    *   Create feat data structures in `src/data/feats/`
+    *   Add feat slots to `PlayerCharacter` type
+    *   Create `FeatSelection.tsx` component for character creation
+    *   Integrate feat effects into character stats
+
+13. **[TODO]** **Character Age Selection** *(Lane 1 Incomplete)*
+    *   Add `age` field to `PlayerCharacter` type
+    *   Define logical age ranges for each race
+    *   Add age selection step to CharacterCreator
+
+14. **[TODO]** **Quest System Implementation** *(Lane 1 Incomplete)*
+    *   Define Quest, QuestObjective, QuestReward types
+    *   Implement quest tracking in `questReducer`
+    *   Create QuestLogOverlay component
+    *   Add quest completion rewards
+
+15. **[TODO]** **Item Containers & Comparison UI** *(Lane 1 Incomplete)*
+    *   Add container properties to Item type
+    *   Implement nested inventory logic
+    *   Create ItemComparisonTooltip component
+
+16. **[TODO]** **NPC Routines & Factions** *(Lane 1 Incomplete)*
+    *   Add faction and dailyRoutine to NPC type
+    *   Define faction data structures
+    *   Implement routine scheduling system
+
+17. **[TODO]** **Notification System** *(Lane 1 Incomplete)*
+    *   Add notifications array to GameState
+    *   Create NotificationToast component
+    *   Replace all `alert()` calls with notification dispatches
+
+### 🧹 Priority 4: Incomplete Lane 5 Cleanup
+
+18. **[TODO]** **Delete Obsolete Component Files** *(Lane 5 Incomplete)*
+    *   Delete `src/components/PlayerPane.tsx`
+    *   Delete `src/components/StartScreen.tsx`
+    *   Delete `src/components/Spellbook.tsx`
+    *   Delete `src/battleMapDemo.tsx`
+    *   Delete `src/components/CharacterCreator/Race/FlexibleAsiSelection.tsx`
+    *   Delete `src/hooks/OLD_useGameActions.ts`
+    *   Delete obsolete racial spellcasting components (4 files)
+
+19. **[TODO]** **Delete Obsolete Documentation Files** *(Lane 5 Incomplete)*
+    *   Delete corresponding README files for above components
+    *   Update `docs/README_INDEX.md` to remove references
+
+20. **[TODO]** **Verify No Import References Remain** *(Lane 5 Incomplete)*
+    *   Global search for imports of deleted files
+    *   Remove any remaining import statements
+    *   Test application build
