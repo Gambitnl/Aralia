@@ -1,5 +1,5 @@
 import { CombatCharacter, CombatAction, BattleMapData, Ability, Position, BattleMapTile } from '../../types/combat';
-import { getDistance, generateId } from '../../utils/combatUtils';
+import { computeAoETiles, getDistance, generateId, resolveAreaDefinition } from '../../utils/combatUtils';
 import { hasLineOfSight } from '../../utils/lineOfSight';
 
 // Scoring weights used throughout the planner. Tweakable knobs to steer priorities.
@@ -11,6 +11,9 @@ const WEIGHTS = {
   DISTANCE_PENALTY: -0.1, // Slight penalty for moving far
   FOCUS_FIRE_BONUS: 6, // Bonus for attacking a target already damaged
   SAFETY_DISTANCE: 0.4, // Reward for keeping distance when low HP
+  AOE_MULTI_TARGET: 14, // Encourage clustering hits
+  FRIENDLY_FIRE_PENALTY: -35, // Strongly avoid clipping allies
+  POSITIONING_BONUS: 0.6, // Small reward for holding distance while casting
 };
 
 interface AIPlan {
@@ -72,8 +75,10 @@ export function evaluateCombatTurn(
         const plan = evaluateSupportPlan(character, target, ability, mapData, reachableTiles);
         if (plan) possiblePlans.push(plan);
       }
+    } else if (ability.targeting === 'area' || resolveAreaDefinition(ability)) {
+      const plan = evaluateAoEPlan(character, ability, enemies, allies, mapData, reachableTiles);
+      if (plan) possiblePlans.push(plan);
     }
-    // TODO: Add support for AoE targeting
   }
 
   // Evaluate pure repositioning for survival when low HP.
@@ -278,6 +283,136 @@ function evaluateSupportPlan(
   }
 
   return null;
+}
+
+/**
+ * Evaluates area-of-effect options by scanning likely centers (enemy clusters,
+ * ally clumps for healing) and scoring the resulting hit list. The scoring
+ * intentionally rewards multi-target hits while strongly penalizing friendly fire
+ * to keep the AI tactically sane.
+ */
+function evaluateAoEPlan(
+  caster: CombatCharacter,
+  ability: Ability,
+  enemies: CombatCharacter[],
+  allies: CombatCharacter[],
+  mapData: BattleMapData,
+  reachableTiles: Map<string, { tile: BattleMapTile; cost: number }>
+): AIPlan | null {
+  const area = resolveAreaDefinition(ability);
+  if (!area) return null;
+
+  const moveRange = caster.actionEconomy.movement.total - caster.actionEconomy.movement.used;
+  const startTile = mapData.tiles.get(`${caster.position.x}-${caster.position.y}`);
+  if (!startTile) return null;
+
+  // Candidate centers: enemy positions and nearby tiles to allow clipping groups.
+  const candidateCenters: Position[] = [];
+  const addCandidate = (pos: Position) => {
+    if (
+      pos.x >= 0 &&
+      pos.y >= 0 &&
+      pos.x < mapData.dimensions.width &&
+      pos.y < mapData.dimensions.height
+    ) {
+      candidateCenters.push(pos);
+    }
+  };
+
+  enemies.forEach(enemy => {
+    addCandidate(enemy.position);
+    // Sample a ring around each enemy to catch partial overlaps with cones/lines.
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        if (dx === 0 && dy === 0) continue;
+        addCandidate({ x: enemy.position.x + dx, y: enemy.position.y + dy });
+      }
+    }
+  });
+
+  let bestPlan: AIPlan | null = null;
+
+  for (const center of candidateCenters) {
+    // Ignore centers we cannot possibly reach within this turn when considering movement + cast range.
+    if (getDistance(caster.position, center) > ability.range + moveRange) continue;
+
+    // Find an actual tile we can cast from that respects LoS.
+    const castTile = findCastPosition(reachableTiles, center, ability, mapData) || startTile;
+    if (!hasClearShot(castTile.coordinates, center, mapData)) continue;
+
+    const aoeTiles = computeAoETiles(area, center, mapData, castTile.coordinates);
+    const impactedEnemies = enemies.filter(e =>
+      aoeTiles.some(tile => tile.x === e.position.x && tile.y === e.position.y)
+    );
+    const impactedAllies = allies.filter(a =>
+      aoeTiles.some(tile => tile.x === a.position.x && tile.y === a.position.y)
+    );
+
+    // Skip if we would only clip allies with an offensive spell.
+    const damageEffect = ability.effects.find(e => e.type === 'damage');
+    const healEffect = ability.effects.find(e => e.type === 'heal');
+    if (damageEffect && impactedEnemies.length === 0) continue;
+    if (healEffect && impactedAllies.length === 0) continue;
+
+    let score = 0;
+
+    if (damageEffect) {
+      const dmgValue = damageEffect.value || 0;
+      impactedEnemies.forEach(enemy => {
+        score += dmgValue * WEIGHTS.DAMAGE;
+        if (enemy.currentHP <= dmgValue) score += WEIGHTS.KILL_TARGET;
+        score += (1 - enemy.currentHP / enemy.maxHP) * WEIGHTS.FOCUS_FIRE_BONUS;
+      });
+
+      // Reward clustering; the marginal value of an extra enemy hit should be noticeable.
+      if (impactedEnemies.length > 1) {
+        score += (impactedEnemies.length - 1) * WEIGHTS.AOE_MULTI_TARGET;
+      }
+
+      // Penalize friendly fire to keep cones and lines pointed away from allies.
+      score += impactedAllies.length * WEIGHTS.FRIENDLY_FIRE_PENALTY;
+    }
+
+    if (healEffect) {
+      const healValue = healEffect.value || 0;
+      impactedAllies.forEach(ally => {
+        const missing = ally.maxHP - ally.currentHP;
+        if (missing > 0) {
+          score += Math.min(missing, healValue) * WEIGHTS.HEAL;
+          if (ally.currentHP < ally.maxHP * 0.35) score += WEIGHTS.SELF_PRESERVATION;
+        }
+      });
+      if (impactedAllies.length > 1) {
+        score += (impactedAllies.length - 1) * (WEIGHTS.AOE_MULTI_TARGET / 2);
+      }
+    }
+
+    // Prefer keeping some standoff distance when setting up the cast.
+    const closestEnemy = getNearestEnemy({ ...caster, position: castTile.coordinates }, enemies);
+    if (closestEnemy) {
+      const spacing = getDistance(castTile.coordinates, closestEnemy.position);
+      score += spacing * WEIGHTS.POSITIONING_BONUS;
+    }
+
+    // Movement tax keeps far repositioning from eclipsing immediate casts.
+    const movementCost = reachableTiles.get(castTile.id)?.cost || 0;
+    score += WEIGHTS.DISTANCE_PENALTY * movementCost;
+
+    if (!bestPlan || score > bestPlan.score) {
+      bestPlan = {
+        actionType: 'ability',
+        abilityId: ability.id,
+        targetPosition: center,
+        targetCharacterIds: [...impactedEnemies.map(e => e.id), ...impactedAllies.map(a => a.id)],
+        score,
+        description: `Cast ${ability.name} to affect ${impactedEnemies.length} enemies${
+          impactedAllies.length ? ` and ${impactedAllies.length} allies` : ''
+        }`,
+      };
+    }
+  }
+
+  return bestPlan;
 }
 
 function getNearestEnemy(character: CombatCharacter, enemies: CombatCharacter[]): CombatCharacter | null {

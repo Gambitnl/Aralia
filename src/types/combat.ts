@@ -115,6 +115,14 @@ export interface Ability {
   tags?: string[];
   targeting: TargetingType;
   range: number;
+  /**
+   * AoE metadata flattened onto the ability for quick inspection by AI/preview UIs.
+   * areaShape/areaSize mirror AreaOfEffect but remain optional so single-target
+   * abilities do not need to specify them. When present they should always align
+   * with D&D 5e templates (5 ft grid squares). size is expressed in tiles.
+   */
+  areaShape?: 'circle' | 'cone' | 'line' | 'square';
+  areaSize?: number;
   areaOfEffect?: AreaOfEffect;
   effects: AbilityEffect[];
   cooldown?: number;
