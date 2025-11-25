@@ -97,20 +97,26 @@ export const ACTIVE_RACES: readonly Race[] = Object.freeze([
 /**
  * A record containing all available race data, keyed by race ID.
  */
-export const ALL_RACES_DATA: Record<string, Race> = Object.freeze(
-  ACTIVE_RACES_DATA.reduce((acc, race) => {
-    // Why: Explicitly mapping each race ID from the curated list avoids accidentally keeping
-    // stale imports around after a race is removed elsewhere, while freeze guards against
-    // runtime mutations that could desynchronize selectors or hooks.
-    if (acc[race.id]) {
+// Why: Explicitly mapping each race ID from the curated list avoids accidentally keeping stale
+// imports around after a race is removed elsewhere, while freeze guards against runtime mutations
+// that could desynchronize selectors or hooks.
+const raceEntries = (() => {
+  const seenIds = new Set<string>();
+
+  return ACTIVE_RACES_DATA.map((race) => {
+    if (seenIds.has(race.id)) {
       // Why: Guard against identifier collisions so downstream selectors/hooks never see
       // ambiguous lookups or silently overwritten data when new races are added.
       throw new Error(`Duplicate race id detected while building ALL_RACES_DATA: ${race.id}`);
     }
 
-    acc[race.id] = race;
-    return acc;
-  }, {} as Record<string, Race>),
+    seenIds.add(race.id);
+    return [race.id, race] as const;
+  });
+})();
+
+export const ALL_RACES_DATA: Record<string, Race> = Object.freeze(
+  Object.fromEntries(raceEntries),
 );
 
 /**
