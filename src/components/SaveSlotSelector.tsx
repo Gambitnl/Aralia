@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { AUTO_SAVE_SLOT_KEY, SaveSlotSummary } from '../services/saveLoadService';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AUTO_SAVE_SLOT_KEY, SaveSlotSummary, getSlotStorageKey } from '../services/saveLoadService';
 
 interface SaveSlotSelectorProps {
   slots: SaveSlotSummary[];
@@ -25,24 +25,106 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
 }) => {
   const [newSlotName, setNewSlotName] = useState('');
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+  const [pendingOverwrite, setPendingOverwrite] = useState<{
+    slotId: string;
+    displayName?: string;
+    isAutoSave?: boolean;
+    targetName: string;
+  } | null>(null);
+  const overwriteDialogRef = useRef<HTMLDivElement | null>(null);
+  const overwriteCancelRef = useRef<HTMLButtonElement | null>(null);
+  const overwriteConfirmRef = useRef<HTMLButtonElement | null>(null);
 
   const manualSlots = useMemo(
     () => slots.filter(slot => !slot.isAutoSave),
     [slots],
   );
 
+  const normalizedNameLookup = useMemo(() => {
+    // Normalize slot names once so repeated overwrite checks during typing are cheap.
+    return slots.reduce<Record<string, SaveSlotSummary>>((acc, slot) => {
+      acc[slot.slotName.trim().toLowerCase()] = slot;
+      return acc;
+    }, {});
+  }, [slots]);
+
+  const finalizeSave = useCallback(
+    (slotId: string, displayName?: string, isAutoSave?: boolean) => {
+      // Always send the normalized storage key forward so the invoked save flow
+      // writes to the exact slot we vetted for overwrite conflicts. This avoids
+      // any mismatch between UI validation and service resolution (e.g., when
+      // callers pass human-readable names that need prefixing).
+      const resolvedSlotId = getSlotStorageKey(slotId, isAutoSave);
+      const trimmedDisplayName = displayName?.trim();
+      onSaveSlot(resolvedSlotId, trimmedDisplayName || undefined, isAutoSave);
+      setPendingOverwrite(null);
+      onClose();
+    },
+    [onClose, onSaveSlot],
+  );
+
   const handleSave = (slotId: string, displayName?: string, isAutoSave?: boolean) => {
     if (isSavingDisabled) return;
-    const targetName = displayName || slotId;
-    const shouldOverwrite = slots.some(slot => slot.slotId === slotId);
-    if (shouldOverwrite) {
-      // Use a simple confirm dialog to avoid accidental overwrites.
-      const confirmed = window.confirm(`Overwrite existing save slot "${targetName}"?`);
-      if (!confirmed) return;
+    const trimmedDisplayName = displayName?.trim();
+    const targetName = trimmedDisplayName || slotId;
+    // Normalize the requested slot so ID collision checks run against the same
+    // key shape the save service ultimately uses.
+    const normalizedSlotId = getSlotStorageKey(slotId, isAutoSave);
+    const hasIdCollision = slots.some(slot => slot.slotId === normalizedSlotId);
+    const normalizedTargetName = targetName.trim().toLowerCase();
+    const hasNameCollision = Boolean(normalizedNameLookup[normalizedTargetName]);
+
+    if (hasIdCollision || hasNameCollision) {
+      // Defer the write until the player explicitly confirms to avoid accidental data loss.
+      setPendingOverwrite({ slotId, displayName: trimmedDisplayName, isAutoSave, targetName });
+      return;
     }
-    onSaveSlot(slotId, displayName, isAutoSave);
-    onClose();
+
+    finalizeSave(slotId, trimmedDisplayName, isAutoSave);
   };
+
+  useEffect(() => {
+    if (!pendingOverwrite) return undefined;
+
+    // Focus the modal container (or confirm button) so keyboard users receive
+    // immediate context, and wire simple Enter/Escape shortcuts to mirror the
+    // primary actions. This reduces reliance on pointer interactions.
+    const focusTarget = overwriteConfirmRef.current || overwriteDialogRef.current;
+    focusTarget?.focus({ preventScroll: true });
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setPendingOverwrite(null);
+        return;
+      }
+
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        finalizeSave(pendingOverwrite.slotId, pendingOverwrite.displayName, pendingOverwrite.isAutoSave);
+        return;
+      }
+
+      if (event.key === 'Tab') {
+        // Trap focus between the two buttons so background controls are
+        // inaccessible while the confirmation is open.
+        const focusable = [overwriteCancelRef.current, overwriteConfirmRef.current].filter(Boolean) as HTMLElement[];
+        if (focusable.length === 0) return;
+
+        const currentIndex = focusable.indexOf(document.activeElement as HTMLElement);
+        const nextIndex = event.shiftKey
+          ? (currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1)
+          : (currentIndex === focusable.length - 1 ? 0 : currentIndex + 1);
+        focusable[nextIndex]?.focus({ preventScroll: true });
+        event.preventDefault();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [finalizeSave, pendingOverwrite]);
 
   const renderPreview = (slot: SaveSlotSummary) => (
     <div className="text-xs text-gray-300 mt-1">
@@ -168,6 +250,41 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
           </button>
         </div>
       </div>
+
+      {pendingOverwrite && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
+          <div
+            ref={overwriteDialogRef}
+            className="bg-gray-900 border border-amber-500/60 rounded-xl shadow-xl max-w-md w-full p-6 text-gray-100"
+            role="dialog"
+            aria-modal="true"
+            tabIndex={-1}
+            aria-label="Confirm overwrite save slot"
+          >
+            <h3 className="text-xl font-bold text-amber-300 mb-3">Confirm Overwrite</h3>
+            <p className="text-sm text-gray-300 leading-relaxed">
+              Overwriting <span className="font-semibold text-amber-200">{pendingOverwrite.targetName}</span> will replace the existing save data for that slot.
+              This prompt uses the game's themed modal instead of the browser confirm so the player always gets consistent visual feedback.
+            </p>
+            <div className="mt-4 flex justify-end space-x-3">
+              <button
+                ref={overwriteCancelRef}
+                onClick={() => setPendingOverwrite(null)}
+                className="px-4 py-2 rounded-lg font-semibold bg-gray-700 hover:bg-gray-600 text-gray-100 border border-gray-600"
+              >
+                Keep Existing
+              </button>
+              <button
+                ref={overwriteConfirmRef}
+                onClick={() => finalizeSave(pendingOverwrite.slotId, pendingOverwrite.displayName, pendingOverwrite.isAutoSave)}
+                className="px-4 py-2 rounded-lg font-semibold bg-amber-500 hover:bg-amber-400 text-gray-900 shadow"
+              >
+                Overwrite Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
