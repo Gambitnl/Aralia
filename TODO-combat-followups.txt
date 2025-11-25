@@ -1,0 +1,4 @@
+- Capture and replay combat log anomalies where turn-start guards trigger unexpectedly after initiative reordering.
+- Profile AI AoE sampling hotspots; consider caching reachability and AoE tile sets per ability per turn.
+- Add configurable AI thinking delays per difficulty to avoid hard-coded timeouts in turn start and action loops.
+- Consider consolidating action-economy reset logic so it can be unit-tested independently of the hook lifecycle.

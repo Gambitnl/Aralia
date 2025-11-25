@@ -128,7 +128,12 @@ export const useTurnManager = ({
       ).join(' → ')}`,
       data: { turnOrder, initiatives: charactersWithInitiative.map(c => ({ id: c.id, initiative: c.initiative })) }
     });
-    
+
+    // Reset the turn-start guard so a fresh combat cannot accidentally inherit the
+    // last actor/round key from a prior encounter, which would block the first
+    // character from getting their economy reset.
+    lastTurnStartKey.current = null;
+
   }, [onCharacterUpdate, onLogEntry, resetEconomy, rollInitiative]);
 
   const executeAction = useCallback((action: CombatAction): boolean => {
