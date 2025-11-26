@@ -6,7 +6,7 @@
  */
 import React, { useState } from 'react';
 import { DraconicAncestryInfo, DraconicAncestorType } from '../../../types'; // Path relative to src/components/CharacterCreator/Dragonborn/
-import { DRAGONBORN_ANCESTRIES as DRAGONBORN_ANCESTRIES_DATA } from '../../../constants'; // Path relative to src/components/CharacterCreator/Dragonborn/
+import { DRAGONBORN_ANCESTRIES } from '../../../constants'; // Path relative to src/components/CharacterCreator/Dragonborn/
 
 interface DragonbornAncestrySelectionProps {
   onAncestrySelect: (ancestryType: DraconicAncestorType) => void;
@@ -35,7 +35,7 @@ const DragonbornAncestrySelection: React.FC<
     }
   };
 
-  const ancestorOptions = Object.values(DRAGONBORN_ANCESTRIES_DATA);
+  const ancestorOptions = Object.values(DRAGONBORN_ANCESTRIES);
 
   return (
     <div>

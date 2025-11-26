@@ -189,6 +189,21 @@ export interface DraconicAncestryInfo {
   damageType: DraconicDamageType;
 }
 
+/**
+ * A comprehensive type that bundles all race-related data, including lineages,
+ * subraces, and other unique racial choices. This provides a single, strongly-typed
+ * source for all non-core race data.
+ */
+// Why: This type supports the RACE_DATA_BUNDLE export from `src/data/races/index.ts`.
+// By defining a clear type for the bundle, we ensure type safety and provide
+// better autocompletion for developers. This makes the data easier to work with
+// and reduces the likelihood of runtime errors.
+export interface RaceDataBundle {
+  dragonbornAncestries: Record<DraconicAncestorType, DraconicAncestryInfo>;
+  goliathGiantAncestries: GiantAncestryBenefit[];
+  tieflingLegacies: FiendishLegacy[];
+}
+
 export interface SpellEffect {
   type: string;
   damage?: {

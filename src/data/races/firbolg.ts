@@ -3,7 +3,7 @@
  * @file firbolg.ts
  * Defines the data for the Firbolg race in the Aralia RPG.
  */
-import { Race } from '../../types';
+import { Race } from '../../types.ts';
 
 export const FIRBOLG_DATA: Race = {
   id: 'firbolg',

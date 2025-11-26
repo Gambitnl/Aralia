@@ -3,7 +3,7 @@
  * @file fairy.ts
  * Defines the data for the Fairy race in the Aralia RPG.
  */
-import { Race } from '../../types';
+import { Race } from '../../types.ts';
 
 export const FAIRY_DATA: Race = {
   id: 'fairy',
