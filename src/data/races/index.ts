@@ -5,41 +5,40 @@
  * them as a consolidated `ALL_RACES_DATA` object, which maps race IDs to their respective Race data.
  * It also re-exports specific data like `DRAGONBORN_ANCESTRIES_DATA`.
  */
-import type { Race } from '../../types'; // Path relative to src/data/races/
-import { AARAKOCRA_DATA } from './aarakocra';
-import { AASIMAR_DATA } from './aasimar';
-import { AIR_GENASI_DATA } from './air_genasi';
-import { BUGBEAR_DATA } from './bugbear';
-import { CENTAUR_DATA } from './centaur';
-import { CHANGELING_DATA } from './changeling';
-import { DEEP_GNOME_DATA } from './deep_gnome';
-import { DRAGONBORN_ANCESTRIES_DATA, DRAGONBORN_DATA } from './dragonborn';
-import { DUERGAR_DATA } from './duergar';
-import { DWARF_DATA } from './dwarf';
-import { EARTH_GENASI_DATA } from './earth_genasi';
-import { ELF_DATA } from './elf';
-import { ELADRIN_DATA } from './eladrin';
-import { FAIRY_DATA } from './fairy';
-import { FIENDISH_LEGACIES_DATA, TIEFLING_DATA } from './tiefling';
-import { FIRBOLG_DATA } from './firbolg';
-import { FIRE_GENASI_DATA } from './fire_genasi';
-import { GIANT_ANCESTRY_BENEFITS_DATA, GOLIATH_DATA } from './goliath';
-import { GITHYANKI_DATA } from './githyanki';
-import { GITHZERAI_DATA } from './githzerai';
-import { GNOME_DATA } from './gnome';
-import { GOBLIN_DATA } from './goblin';
-import { HALFLING_DATA } from './halfling';
-import { HUMAN_DATA } from './human';
-import { ORC_DATA } from './orc';
-import { WATER_GENASI_DATA } from './water_genasi';
+import type { Race } from '../../types.ts'; // Path relative to src/data/races/
+import { AARAKOCRA_DATA } from './aarakocra.ts';
+import { AASIMAR_DATA } from './aasimar.ts';
+import { AIR_GENASI_DATA } from './air_genasi.ts';
+import { BUGBEAR_DATA } from './bugbear.ts';
+import { CENTAUR_DATA } from './centaur.ts';
+import { CHANGELING_DATA } from './changeling.ts';
+import { DEEP_GNOME_DATA } from './deep_gnome.ts';
+import { DRAGONBORN_ANCESTRIES_DATA, DRAGONBORN_DATA } from './dragonborn.ts';
+import { DUERGAR_DATA } from './duergar.ts';
+import { DWARF_DATA } from './dwarf.ts';
+import { EARTH_GENASI_DATA } from './earth_genasi.ts';
+import { ELF_DATA } from './elf.ts';
+import { ELADRIN_DATA } from './eladrin.ts';
+import { FAIRY_DATA } from './fairy.ts';
+import { FIENDISH_LEGACIES_DATA, TIEFLING_DATA } from './tiefling.ts';
+import { FIRBOLG_DATA } from './firbolg.ts';
+import { FIRE_GENASI_DATA } from './fire_genasi.ts';
+import { GIANT_ANCESTRY_BENEFITS_DATA, GOLIATH_DATA } from './goliath.ts';
+import { GITHYANKI_DATA } from './githyanki.ts';
+import { GITHZERAI_DATA } from './githzerai.ts';
+import { GNOME_DATA } from './gnome.ts';
+import { GOBLIN_DATA } from './goblin.ts';
+import { HALFLING_DATA } from './halfling.ts';
+import { HUMAN_DATA } from './human.ts';
+import { ORC_DATA } from './orc.ts';
+import { WATER_GENASI_DATA } from './water_genasi.ts';
 
 /**
- * Keeping the active races in a single list makes it obvious when a race
- * is intentionally removed (e.g., during cleanup of obsolete assets) and
- * prevents straggler imports from reintroducing retired data. The object
- * map is generated from this list to preserve the existing lookup shape.
+ * A frozen array of all active races, ensuring runtime immutability.
+ * This list serves as the single source of truth for which races are available in the game,
+ * providing a stable order for UI elements like character creation dropdowns.
  */
-const ACTIVE_RACES_DATA: readonly Race[] = [
+export const ACTIVE_RACES: readonly Race[] = Object.freeze([
   // Core PHB-style options
   HUMAN_DATA,
   ELF_DATA,
@@ -81,55 +80,34 @@ const ACTIVE_RACES_DATA: readonly Race[] = [
   AARAKOCRA_DATA,
   CENTAUR_DATA,
   GOBLIN_DATA,
-];
-
-/**
- * Exporting the curated list directly is helpful for gameplay flows that
- * need a stable ordering (e.g., character creator dropdowns) without
- * relying on object iteration order. Freezing the exported array enforces
- * runtime immutability so consumers cannot mutate ordering or contents,
- * while still preserving the intentional source ordering above.
- */
-export const ACTIVE_RACES: readonly Race[] = Object.freeze([
-  ...ACTIVE_RACES_DATA,
 ]);
 
 /**
  * A record containing all available race data, keyed by race ID.
+ * This is derived from ACTIVE_RACES to ensure consistency and is frozen
+ * to prevent runtime mutations, which could desynchronize game state.
  */
-// Why: Explicitly mapping each race ID from the curated list avoids accidentally keeping stale
-// imports around after a race is removed elsewhere, while freeze guards against runtime mutations
-// that could desynchronize selectors or hooks.
-const raceEntries = (() => {
-  const seenIds = new Set<string>();
-
-  return ACTIVE_RACES_DATA.map((race) => {
-    if (seenIds.has(race.id)) {
-      // Why: Guard against identifier collisions so downstream selectors/hooks never see
-      // ambiguous lookups or silently overwritten data when new races are added.
-      throw new Error(`Duplicate race id detected while building ALL_RACES_DATA: ${race.id}`);
-    }
-
-    seenIds.add(race.id);
-    return [race.id, race] as const;
-  });
-})();
-
+// Why: The previous implementation had a separate ACTIVE_RACES_DATA list, which was redundant.
+// This version uses ACTIVE_RACES as the single source of truth, simplifying the code
+// and reducing the chance of data inconsistencies. The duplicate ID check that was here
+// has been moved to a dedicated validation script (`scripts/validate-data.ts`) to centralize
+// data integrity checks.
 export const ALL_RACES_DATA: Record<string, Race> = Object.freeze(
-  Object.fromEntries(raceEntries),
+  Object.fromEntries(ACTIVE_RACES.map(race => [race.id, race])),
 );
 
 /**
- * Data for Dragonborn ancestries, re-exported for easy access.
+ * A comprehensive bundle of all race-related data, including lineages, subraces,
+ * and other unique racial choices. This is structured to provide a single,
+ * easily importable object for all non-core race data.
  */
-export { DRAGONBORN_ANCESTRIES_DATA };
-
-/**
- * Data for Goliath Giant Ancestry benefits, re-exported for easy access.
- */
-export { GIANT_ANCESTRY_BENEFITS_DATA };
-
-/**
- * Data for Tiefling Fiendish Legacies, re-exported for easy access.
- */
-export { FIENDISH_LEGACIES_DATA as TIEFLING_LEGACIES_DATA };
+// Why: Previously, various race-specific data objects (like Dragonborn ancestries) were
+// exported individually. This made imports cluttered and less organized. By grouping
+// them into a single, well-typed `RACE_DATA_BUNDLE`, we create a cleaner, more
+// maintainable API for accessing this data. The bundle is frozen to prevent runtime
+// mutations, ensuring data integrity.
+export const RACE_DATA_BUNDLE = Object.freeze({
+  dragonbornAncestries: DRAGONBORN_ANCESTRIES_DATA,
+  goliathGiantAncestries: GIANT_ANCESTRY_BENEFITS_DATA,
+  tieflingLegacies: FIENDISH_LEGACIES_DATA,
+});

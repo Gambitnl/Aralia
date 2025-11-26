@@ -3,7 +3,7 @@
  * Defines the data for the Elf race in the Aralia RPG, based on 2024 PHB.
  * This includes base Elf traits and specific Elven Lineages: Drow, High Elf, and Wood Elf.
  */
-import { Race, ElvenLineage } from '../../types'; // Path relative to src/data/races/
+import { Race, ElvenLineage } from '../../types.ts'; // Path relative to src/data/races/
 
 const ELVEN_LINEAGES_DATA: ElvenLineage[] = [
   {

@@ -3,7 +3,7 @@
  * @file githzerai.ts
  * Defines the data for the Githzerai race in the Aralia RPG.
  */
-import { Race } from '../../types';
+import { Race } from '../../types.ts';
 
 export const GITHZERAI_DATA: Race = {
   id: 'githzerai',

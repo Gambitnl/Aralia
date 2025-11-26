@@ -2,7 +2,7 @@
  * @file goblin.ts
  * Defines the data for the Goblin race in the Aralia RPG.
  */
-import { Race } from '../../types';
+import { Race } from '../../types.ts';
 
 export const GOBLIN_DATA: Race = {
   id: 'goblin',
