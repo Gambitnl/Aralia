@@ -4,7 +4,7 @@
  * Defines the data for the Deep Gnome race in the Aralia RPG, based on Mordenkainen Presents: Monsters of the Multiverse, pg. 11.
  * This is a distinct primary race choice, not a subrace of the standard Gnome.
  */
-import { Race } from '../../types'; // Path relative to src/data/races/
+import { Race } from '../../types.ts'; // Path relative to src/data/races/
 
 export const DEEP_GNOME_DATA: Race = {
   id: 'deep_gnome',

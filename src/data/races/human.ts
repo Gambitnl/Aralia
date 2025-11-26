@@ -5,7 +5,7 @@
  * Humans in this version do not receive direct ability score bonuses; these are typically
  * handled by background or other choices (like the Versatile trait's Origin Feat).
  */
-import { Race } from '../../types'; // Path relative to src/data/races/
+import { Race } from '../../types.ts'; // Path relative to src/data/races/
 
 export const HUMAN_DATA: Race = {
   id: 'human',

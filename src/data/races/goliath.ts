@@ -3,7 +3,7 @@
  * Defines the data for the Goliath race in the Aralia RPG.
  * This includes their ID, name, description, traits, and Giant Ancestry choices.
  */
-import { Race, GiantAncestryBenefit, GiantAncestryType } from '../../types'; // Path relative to src/data/races/
+import { Race, GiantAncestryBenefit, GiantAncestryType } from '../../types.ts'; // Path relative to src/data/races/
 
 export const GIANT_ANCESTRY_BENEFITS_DATA: GiantAncestryBenefit[] = [
   {
