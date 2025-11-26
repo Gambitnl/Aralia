@@ -3,7 +3,15 @@
     "allow": [
       "Bash(test:*)",
       "Bash(echo $GEMINI_API_KEY)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(dir:*)",
+      "Bash(npm install)",
+      "Bash(npm run build:*)",
+      "Bash(git stash:*)",
+      "Bash(git pull:*)",
+      "Bash(npm run dev:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

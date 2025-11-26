@@ -2,7 +2,7 @@
  * @file centaur.ts
  * Defines the data for the Centaur race in the Aralia RPG, based on Mordenkainen Presents: Monsters of the Multiverse, pg. 9.
  */
-import { Race } from '../../types'; // Path relative to src/data/races/
+import { Race } from '../../types.ts'; // Path relative to src/data/races/
 
 export const CENTAUR_DATA: Race = {
   id: 'centaur',

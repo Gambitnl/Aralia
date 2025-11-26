@@ -35,8 +35,8 @@ import {
 } from './types'; 
 
 // Import aggregated data from specialized modules
-import { ALL_RACES_DATA, DRAGONBORN_ANCESTRIES_DATA, GIANT_ANCESTRY_BENEFITS_DATA, TIEFLING_LEGACIES_DATA } from './data/races'; 
-import { BIOMES } from './data/biomes'; 
+import { ALL_RACES_DATA, RACE_DATA_BUNDLE } from './data/races/index.ts';
+import { BIOMES } from './data/biomes';
 import { ITEMS, WEAPONS_DATA } from './data/items';
 import { MASTERY_DATA } from './data/masteryData';
 import { SKILLS_DATA } from './data/skills';
@@ -77,14 +77,20 @@ export const initialInventoryForDummyCharacter = getDummyInitialInventory(ITEMS)
 export { DUMMY_PARTY_FOR_DEV } from './data/dev/dummyCharacter';
 
 
+const {
+  dragonbornAncestries: DRAGONBORN_ANCESTRIES,
+  goliathGiantAncestries: GIANT_ANCESTRIES,
+  tieflingLegacies: TIEFLING_LEGACIES,
+} = RACE_DATA_BUNDLE;
+
 // Re-export data imported from specialized modules
-export { 
-  SKILLS_DATA, 
-  RACES_DATA, 
-  DRAGONBORN_ANCESTRIES_DATA as DRAGONBORN_ANCESTRIES, 
-  GIANT_ANCESTRY_BENEFITS_DATA as GIANT_ANCESTRIES, 
-  TIEFLING_LEGACIES_DATA as TIEFLING_LEGACIES, 
-  CLASSES_DATA, 
+export {
+  SKILLS_DATA,
+  RACES_DATA,
+  DRAGONBORN_ANCESTRIES,
+  GIANT_ANCESTRIES,
+  TIEFLING_LEGACIES,
+  CLASSES_DATA,
   AVAILABLE_CLASSES,
   ITEMS,
   WEAPONS_DATA,

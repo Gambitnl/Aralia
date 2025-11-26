@@ -2,7 +2,7 @@
  * @file changeling.ts
  * Defines the data for the Changeling race in the Aralia RPG, based on Mordenkainen Presents: Monsters of the Multiverse, pg. 10.
  */
-import { Race } from '../../types'; // Path relative to src/data/races/
+import { Race } from '../../types.ts'; // Path relative to src/data/races/
 
 export const CHANGELING_DATA: Race = {
   id: 'changeling',
