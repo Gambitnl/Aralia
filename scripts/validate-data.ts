@@ -18,12 +18,22 @@ const validateRaces = (races: readonly Race[]): void => {
   const seenRaceIds = new Set<string>();
   const seenSubraceIds = new Set<string>();
 
-  races.forEach((race) => {
+  races.forEach(race => {
     // Check for duplicate race IDs
     if (seenRaceIds.has(race.id)) {
       throw new Error(`[Data Validation] Duplicate race ID found: ${race.id}`);
     }
     seenRaceIds.add(race.id);
+
+    // Check for required fields
+    if (!race.id || !race.name || !race.description || !race.traits) {
+      throw new Error(`[Data Validation] Race missing required fields: ${race.id}`);
+    }
+
+    // Check for speed trait
+    if (!race.traits.some(trait => trait.startsWith('Speed:'))) {
+      throw new Error(`[Data Validation] Race missing speed trait: ${race.id}`);
+    }
 
     // Check for duplicate subrace/lineage IDs
     const subraces = [
@@ -33,9 +43,11 @@ const validateRaces = (races: readonly Race[]): void => {
       ...(race.fiendishLegacies ?? []),
     ];
 
-    subraces.forEach((subrace) => {
+    subraces.forEach(subrace => {
       if (seenSubraceIds.has(subrace.id)) {
-        throw new Error(`[Data Validation] Duplicate subrace/lineage ID found: ${subrace.id} in race ${race.id}`);
+        throw new Error(
+          `[Data Validation] Duplicate subrace/lineage ID found: ${subrace.id} in race ${race.id}`,
+        );
       }
       seenSubraceIds.add(subrace.id);
     });

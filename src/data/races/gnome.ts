@@ -10,7 +10,7 @@ const GNOME_SUBRACES_DATA: GnomeSubrace[] = [
     id: 'forest_gnome',
     name: 'Forest Gnome',
     description:
-      "As a forest gnome, you have a natural knack for illusion and inherent quickness. Forest gnomes are secretive and shy, dwelling in wooded burrows. They are friendly with good-spirited creatures and dangerous foes to those who threaten them.",
+      'As a forest gnome, you have a natural knack for illusion and inherent quickness. Forest gnomes are secretive and shy, dwelling in wooded burrows. They are friendly with good-spirited creatures and dangerous foes to those who threaten them.',
     traits: [
       'Illusion Savant: You learn the Minor Illusion cantrip. Your spellcasting ability for this spell will be chosen during character creation (Intelligence, Wisdom, or Charisma).',
       'Natural Illusionist: You have advantage on saving throws against illusions and to disbelieve them.',
@@ -38,7 +38,21 @@ const GNOME_SUBRACES_DATA: GnomeSubrace[] = [
     ],
     // No specific spells granted directly by data here, Tinker is a complex ability.
   },
+  {
+    id: 'deep_gnome',
+    name: 'Deep Gnome (Svirfneblin)',
+    description:
+      'Deep gnomes, or svirfneblin, are natives of the Underdark and are suffused with that subterranean realm’s magic. They can supernaturally camouflage themselves, and their svirfneblin magic renders them difficult to locate.',
+    traits: [
+      'Superior Darkvision: Your darkvision has a radius of 120 feet.',
+      'Gift of the Svirfneblin: Starting at 3rd level, you can cast the Disguise Self spell with this trait. Starting at 5th level, you can also cast the Nondetection spell with it, without requiring a material component. Once you cast either of these spells with this trait, you can’t cast that spell with it again until you finish a long rest. You can also cast these spells using spell slots you have of the appropriate level. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells when you cast them with this trait (choose when you select this race).',
+      'Svirfneblin Camouflage: When you make a Dexterity (Stealth) check, you can make the check with advantage. You can use this trait a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a long rest.',
+    ],
+    superiorDarkvision: true,
+  },
 ];
+
+export { GNOME_SUBRACES_DATA };
 
 export const GNOME_DATA: Race = {
   id: 'gnome',
