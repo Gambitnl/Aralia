@@ -376,7 +376,7 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
  * interacts with the village, ensuring that subsequent lookups for the same
  * tile are instantaneous.
  */
-export const findBuildingAtWithCache = (layout: VillageLayout, x: number, y: number): VillageBuildingFootprint | undefined => {
+export const findBuildingAt = (layout: VillageLayout, x: number, y: number): VillageBuildingFootprint | undefined => {
   const cacheKey = `${x},${y}`;
   if (layout.buildingCache.has(cacheKey)) {
     return layout.buildingCache.get(cacheKey);

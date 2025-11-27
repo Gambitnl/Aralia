@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { findBuildingAtWithCache, VillageLayout, VillageBuildingFootprint, VillageTileType } from './villageGenerator';
+import { findBuildingAt, VillageLayout, VillageBuildingFootprint, VillageTileType } from './villageGenerator';
 import { VillagePersonality } from '../services/villageGenerator';
 import { VillageIntegrationProfile } from '../data/villagePersonalityProfiles';
 
@@ -28,7 +28,7 @@ const createMockLayout = (buildings: VillageBuildingFootprint[]): VillageLayout 
   buildingCache: new Map<string, VillageBuildingFootprint | undefined>(),
 });
 
-describe('findBuildingAtWithCache', () => {
+describe('findBuildingAt', () => {
   const buildingA: VillageBuildingFootprint = {
     id: 'house',
     type: 'house_small',
@@ -47,7 +47,7 @@ describe('findBuildingAtWithCache', () => {
 
   it('should return undefined and cache the result for an empty tile', () => {
     const layout = createMockLayout([buildingA]);
-    const result = findBuildingAtWithCache(layout, 0, 0);
+    const result = findBuildingAt(layout, 0, 0);
     expect(result).toBeUndefined();
     expect(layout.buildingCache.has('0,0')).toBe(true);
     expect(layout.buildingCache.get('0,0')).toBeUndefined();
@@ -60,14 +60,14 @@ describe('findBuildingAtWithCache', () => {
     const reduceSpy = vi.spyOn(layout.buildings, 'reduce');
 
     // First call (cache miss)
-    const result1 = findBuildingAtWithCache(layout, 2, 2);
+    const result1 = findBuildingAt(layout, 2, 2);
     expect(result1).toBe(buildingA);
     expect(layout.buildingCache.has('2,2')).toBe(true);
     expect(layout.buildingCache.get('2,2')).toBe(buildingA);
     expect(reduceSpy).toHaveBeenCalledTimes(1);
 
     // Second call (cache hit)
-    const result2 = findBuildingAtWithCache(layout, 2, 2);
+    const result2 = findBuildingAt(layout, 2, 2);
     expect(result2).toBe(buildingA);
     // Reduce should not be called again for a cache hit
     expect(reduceSpy).toHaveBeenCalledTimes(1);
@@ -76,14 +76,14 @@ describe('findBuildingAtWithCache', () => {
 
   it('should return the building with higher priority when buildings overlap', () => {
     const layout = createMockLayout([buildingA, buildingB_higherPriority]);
-    const result = findBuildingAtWithCache(layout, 3, 3);
+    const result = findBuildingAt(layout, 3, 3);
     expect(result).toBe(buildingB_higherPriority);
     expect(layout.buildingCache.get('3,3')).toBe(buildingB_higherPriority);
   });
 
   it('should return the correct building when only one building occupies a tile', () => {
     const layout = createMockLayout([buildingA, buildingB_higherPriority]);
-    const result = findBuildingAtWithCache(layout, 2, 2);
+    const result = findBuildingAt(layout, 2, 2);
     expect(result).toBe(buildingA);
     expect(layout.buildingCache.get('2,2')).toBe(buildingA);
   });
