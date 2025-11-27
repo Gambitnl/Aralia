@@ -40,6 +40,7 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
 
   const [baseScores, setBaseScores] = useState<AbilityScores>(initialScores);
   const [pointsRemaining, setPointsRemaining] = useState<number>(POINT_BUY_TOTAL_POINTS);
+  const [firstUnaffordableScore, setFirstUnaffordableScore] = useState<number | null>(null);
   // Replace disruptive alerts with a lightweight inline status so the user can keep adjusting scores without breaking flow.
   const [feedback, setFeedback] = useState<{ type: 'info' | 'error' | 'success'; message: string; targetAbility?: AbilityScoreName } | null>(null);
 
@@ -49,8 +50,22 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
     for (const ability of ABILITY_SCORE_NAMES) {
       spentPoints += ABILITY_SCORE_COST[baseScores[ability]];
     }
-    setPointsRemaining(POINT_BUY_TOTAL_POINTS - spentPoints);
-  }, [baseScores]); 
+    const newPointsRemaining = POINT_BUY_TOTAL_POINTS - spentPoints;
+    setPointsRemaining(newPointsRemaining);
+
+    // Scan for the first score that is no longer affordable and highlight it in the dropdowns.
+    // This reduces the user's cognitive load by pointing them directly to the boundary they've hit.
+    const currentHighestScore = Math.max(...Object.values(baseScores));
+    let firstUnaffordable = null;
+    for (let score = currentHighestScore + 1; score <= POINT_BUY_MAX_SCORE; score++) {
+        const costToReach = ABILITY_SCORE_COST[score] - ABILITY_SCORE_COST[score - 1];
+        if (newPointsRemaining < costToReach) {
+            firstUnaffordable = score;
+            break;
+        }
+    }
+    setFirstUnaffordableScore(firstUnaffordable);
+  }, [baseScores]);
 
   const calculateFinalScore = useCallback(
     (abilityName: AbilityScoreName, baseVal: number): number => {
@@ -262,11 +277,13 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
                     const score = parseInt(scoreStr, 10);
                     const costDiff = ABILITY_SCORE_COST[score] - ABILITY_SCORE_COST[currentBaseScore];
                     const isAffordable = pointsRemaining >= costDiff;
+                    const isFirstUnaffordable = firstUnaffordableScore !== null && score === firstUnaffordableScore;
                     return (
                       <option
                         key={score}
                         value={score}
                         disabled={!isAffordable && score !== currentBaseScore}
+                        className={isFirstUnaffordable ? 'text-red-400 font-bold' : ''}
                         title={
                           score === currentBaseScore
                             ? 'Current score'

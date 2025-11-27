@@ -525,6 +525,7 @@ const App: React.FC = () => {
         <CharacterCreator
           onCharacterCreate={(character, inventory) => startGame(character, inventory, gameState.worldSeed)}
           onExitToMainMenu={handleExitCharacterCreatorToMainMenu}
+          dispatch={dispatch}
         />
       </ErrorBoundary>
     );

@@ -20,13 +20,14 @@ interface NameAndReviewProps {
   initialName?: string; // Optional initial name for the input field
   initialAge?: number;
   onAgeChange?: (age: number) => void;
+  featStepSkipped?: boolean;
 }
 
 /**
  * NameAndReview component.
  * Allows final review of character details and naming before creation.
  */
-const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfirm, onBack, initialName = '', initialAge = 25, onAgeChange }) => {
+const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfirm, onBack, initialName = '', initialAge = 25, onAgeChange, featStepSkipped }) => {
   const [name, setName] = useState(initialName);
   const [age, setAge] = useState(initialAge);
 
@@ -89,6 +90,12 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
   return (
     <div>
       <h2 className="text-2xl text-sky-300 mb-6 text-center">Name Your Character & Review</h2>
+
+      {featStepSkipped && (
+        <div className="mb-4 text-center text-sm text-sky-200 bg-sky-900/30 border border-sky-700/60 rounded-lg px-3 py-2">
+          The optional Feat selection step was bypassed because your character doesn't qualify for any feats at 1st level.
+        </div>
+      )}
       
       <div className="bg-gray-700 p-4 rounded-lg mb-6 max-h-72 overflow-y-auto scrollable-content border border-gray-600">
         <h3 className="text-xl font-semibold text-amber-400 mb-3">Character Summary</h3>

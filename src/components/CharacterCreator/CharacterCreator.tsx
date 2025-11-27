@@ -70,10 +70,11 @@ import LoadingSpinner from '../LoadingSpinner';
 interface CharacterCreatorProps {
   onCharacterCreate: (character: PlayerCharacter, startingInventory: Item[]) => void;
   onExitToMainMenu: () => void;
+  dispatch: React.Dispatch<any>;
 }
 
 // Main CharacterCreator component.
-const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, onExitToMainMenu }) => {
+const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, onExitToMainMenu, dispatch: appDispatch }) => {
   const [state, dispatch] = useReducer(characterCreatorReducer, initialCharacterCreatorState);
   const allSpells = useContext(SpellContext);
 
@@ -108,104 +109,104 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
 
   const handleRaceSelect = useCallback((raceId: string) => {
     dispatch({ type: 'SELECT_RACE', payload: RACES_DATA[raceId] });
-  }, []);
+  }, [dispatch]);
 
   const handleDragonbornAncestrySelect = useCallback((ancestry: DraconicAncestorType) => {
     dispatch({ type: 'SELECT_DRAGONBORN_ANCESTRY', payload: ancestry });
-  }, []);
+  }, [dispatch]);
 
   const handleElvenLineageSelect = useCallback((lineageId: ElvenLineageType, spellAbility: AbilityScoreName) => {
     dispatch({ type: 'SELECT_ELVEN_LINEAGE', payload: { lineageId, spellAbility } });
-  }, []);
+  }, [dispatch]);
 
   const handleGnomeSubraceSelect = useCallback((subraceId: GnomeSubraceType, spellAbility: AbilityScoreName) => {
     dispatch({ type: 'SELECT_GNOME_SUBRACE', payload: { subraceId, spellAbility } });
-  }, []);
+  }, [dispatch]);
 
   const handleGiantAncestrySelect = useCallback((benefitId: GiantAncestryType) => {
     dispatch({ type: 'SELECT_GIANT_ANCESTRY', payload: benefitId });
-  }, []);
+  }, [dispatch]);
 
   const handleTieflingLegacySelect = useCallback((legacyId: FiendishLegacyType, spellAbility: AbilityScoreName) => {
     dispatch({ type: 'SELECT_TIEFLING_LEGACY', payload: { legacyId, spellAbility } });
-  }, []);
+  }, [dispatch]);
   
   const handleRacialSpellAbilitySelect = useCallback((ability: AbilityScoreName) => {
     dispatch({ type: 'SELECT_RACIAL_SPELL_ABILITY', payload: ability });
-  }, []);
+  }, [dispatch]);
 
   const handleCentaurNaturalAffinitySkillSelect = useCallback((skillId: string) => {
     dispatch({ type: 'SELECT_CENTAUR_NATURAL_AFFINITY_SKILL', payload: skillId });
-  }, []);
+  }, [dispatch]);
 
   const handleChangelingInstinctsSelect = useCallback((skillIds: string[]) => {
     dispatch({ type: 'SELECT_CHANGELING_INSTINCTS', payload: skillIds });
-  }, []);
+  }, [dispatch]);
 
   const handleClassSelect = useCallback((classId: string) => {
     dispatch({ type: 'SELECT_CLASS', payload: CLASSES_DATA[classId] });
-  }, []);
+  }, [dispatch]);
 
   const handleAbilityScoresSet = useCallback((scores: AbilityScores) => {
     dispatch({ type: 'SET_ABILITY_SCORES', payload: { baseScores: scores } });
-  }, []);
+  }, [dispatch]);
 
   const handleHumanSkillSelect = useCallback((skillId: string) => {
     dispatch({ type: 'SELECT_HUMAN_SKILL', payload: skillId });
-  }, []);
+  }, [dispatch]);
 
   const handleSkillsSelect = useCallback((skills: Skill[]) => {
     dispatch({ type: 'SELECT_SKILLS', payload: skills });
-  }, []);
+  }, [dispatch]);
 
   const handleFighterFeaturesSelect = useCallback((style: FightingStyle) => {
     dispatch({ type: 'SELECT_FIGHTER_FEATURES', payload: style });
-  }, []);
+  }, [dispatch]);
 
   const handleClericFeaturesSelect = useCallback((order: 'Protector' | 'Thaumaturge', cantrips: Spell[], spellsL1: Spell[]) => {
     dispatch({ type: 'SELECT_CLERIC_FEATURES', payload: { order, cantrips, spellsL1 } });
-  }, []);
+  }, [dispatch]);
 
   const handleDruidFeaturesSelect = useCallback((order: 'Magician' | 'Warden', cantrips: Spell[], spellsL1: Spell[]) => {
     dispatch({ type: 'SELECT_DRUID_FEATURES', payload: { order, cantrips, spellsL1 } });
-  }, []);
+  }, [dispatch]);
   
   const handleWizardFeaturesSelect = useCallback((cantripsSpells: Spell[], spellsL1Spells: Spell[]) => {
     dispatch({ type: 'SELECT_WIZARD_FEATURES', payload: { cantrips: cantripsSpells, spellsL1: spellsL1Spells } });
-  }, []);
+  }, [dispatch]);
   
   const handleSorcererFeaturesSelect = useCallback((cantrips: Spell[], spellsL1: Spell[]) => {
     dispatch({ type: 'SELECT_SORCERER_FEATURES', payload: { cantrips, spellsL1 } });
-  }, []);
+  }, [dispatch]);
   
   const handleRangerFeaturesSelect = useCallback((spellsL1: Spell[]) => {
     dispatch({ type: 'SELECT_RANGER_FEATURES', payload: { spellsL1 } });
-  }, []);
+  }, [dispatch]);
 
   const handlePaladinFeaturesSelect = useCallback((spellsL1: Spell[]) => {
     dispatch({ type: 'SELECT_PALADIN_FEATURES', payload: { spellsL1 } });
-  }, []);
+  }, [dispatch]);
 
   const handleArtificerFeaturesSelect = useCallback((cantripsSpells: Spell[], spellsL1Spells: Spell[]) => {
     dispatch({ type: 'SELECT_ARTIFICER_FEATURES', payload: { cantrips: cantripsSpells, spellsL1: spellsL1Spells } });
-  }, []);
+  }, [dispatch]);
 
   const handleBardFeaturesSelect = useCallback((cantripsSpells: Spell[], spellsL1Spells: Spell[]) => {
     dispatch({ type: 'SELECT_BARD_FEATURES', payload: { cantrips: cantripsSpells, spellsL1: spellsL1Spells } });
-  }, []);
+  }, [dispatch]);
 
   const handleWarlockFeaturesSelect = useCallback((cantripsSpells: Spell[], spellsL1Spells: Spell[]) => {
     dispatch({ type: 'SELECT_WARLOCK_FEATURES', payload: { cantrips: cantripsSpells, spellsL1: spellsL1Spells } });
-  }, []);
+  }, [dispatch]);
   
   const handleWeaponMasteriesSelect = useCallback((weaponIds: string[]) => {
     dispatch({ type: 'SELECT_WEAPON_MASTERIES', payload: weaponIds });
-  }, []);
+  }, [dispatch]);
 
   const handleFeatSelect = useCallback((featId: string) => {
     // Only record the selection here; advancing now happens via an explicit confirmation button so players can compare options.
     dispatch({ type: 'SELECT_FEAT', payload: featId });
-  }, []);
+  }, [dispatch]);
 
   const handleFeatConfirm = useCallback(() => {
     // Guard against stale/ineligible selections: if the chosen feat is no longer valid, clear it before advancing.
@@ -215,7 +216,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
       dispatch({ type: 'SELECT_FEAT', payload: '' });
     }
     dispatch({ type: 'CONFIRM_FEAT_STEP' });
-  }, [featOptions, state.selectedFeat]);
+  }, [featOptions, state.selectedFeat, dispatch]);
 
   const handleNameAndReviewSubmit = useCallback((name: string) => {
     dispatch({type: 'SET_CHARACTER_NAME', payload: name});
@@ -230,7 +231,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
 
   const goBack = useCallback(() => {
     dispatch({ type: 'GO_BACK' });
-  }, []);
+  }, [dispatch]);
 
 
   const renderStep = (): React.ReactElement | null => {
@@ -330,6 +331,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
             onConfirm={handleFeatConfirm}
             onBack={goBack}
             hasEligibleFeats={hasEligibleFeats}
+            dispatch={appDispatch}
           />
         );
       case CreationStep.NameAndReview:
@@ -347,6 +349,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
                 initialAge={state.characterAge}
                 onAgeChange={handleAgeChange}
                 onBack={goBack}
+                featStepSkipped={state.featStepSkipped}
             />
         );
       default:
