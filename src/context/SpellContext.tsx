@@ -14,7 +14,7 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   useEffect(() => {
     const fetchAllSpells = async () => {
       try {
-        const manifestResponse = await fetch('/data/spells_manifest.json');
+        const manifestResponse = await fetch(`${import.meta.env.BASE_URL}data/spells_manifest.json`);
         if (!manifestResponse.ok) {
           throw new Error(`Failed to load spell manifest: ${manifestResponse.statusText}`);
         }

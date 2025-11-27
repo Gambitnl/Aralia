@@ -26,7 +26,7 @@ class SpellService {
 
   public async getAllSpellInfo(): Promise<SpellManifest | null> {
     if (!this.manifest) {
-      this.manifest = fetch('/data/spells_manifest.json')
+      this.manifest = fetch(`${import.meta.env.BASE_URL}data/spells_manifest.json`)
         .then(res => {
           if (!res.ok) {
             throw new Error(`Failed to load spell manifest: ${res.statusText}`);

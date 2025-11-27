@@ -34,7 +34,7 @@ export const GlossaryProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     const fetchAllData = async () => {
       try {
-        const allEntries = await fetchAndProcessIndex('/data/glossary/index/main.json');
+        const allEntries = await fetchAndProcessIndex(`${import.meta.env.BASE_URL}data/glossary/index/main.json`);
         
         const uniqueEntriesMap = new Map<string, GlossaryEntry>();
         
