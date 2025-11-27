@@ -92,27 +92,27 @@ const getPriorityIndex = (type: VillageTileType): number => {
 };
 
 const setTileWithPriority = (tiles: VillageTileType[][], x: number, y: number, type: VillageTileType) => {
-  const row = tiles[y];
-  if (!row || typeof row[x] === 'undefined') return;
+  // Why: The original implementation modified a `row` variable, which did not
+  // reliably mutate the `tiles` array. By assigning directly to `tiles[y][x]`,
+  // we ensure the change is always persisted, fixing the "no-op" bug where
+  // tile assignments were sometimes lost.
+  if (!tiles[y] || typeof tiles[y][x] === 'undefined') return;
 
-  const current = row[x];
+  const current = tiles[y][x];
   const incomingPriority = getPriorityIndex(type);
   const currentPriority = getPriorityIndex(current);
 
-  // Lower index means higher priority. Only replace when we know the newcomer
-  // outranks what is already there. This keeps roads from overrunning civic
-  // structures while still allowing high-priority features to reclaim space.
   if (incomingPriority <= currentPriority) {
-    row[x] = type;
+    tiles[y][x] = type;
   }
 };
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
-const pickColor = (type: VillageTileType, rng: () => number): { fill: string; accent: string; pattern?: 'stripe' | 'check' | 'dot' } => {
+const pickColor = (type: VillageTileType, rng: () => number): { color: string; accent: string } => {
   const visuals = villageBuildingVisuals[type] || villageBuildingVisuals.path;
   const colorIndex = Math.floor(rng() * visuals.colors.length) % visuals.colors.length;
-  return { fill: visuals.colors[colorIndex], accent: visuals.accent, pattern: visuals.pattern };
+  return { color: visuals.colors[colorIndex], accent: visuals.accent };
 };
 
 const inferBiomeStyle = (biomeId: string): VillagePersonality['biomeStyle'] => {
@@ -364,18 +364,18 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
  * top-most building that occupies a tile so interactions stay deterministic.
  */
 export const findBuildingAt = (layout: VillageLayout, x: number, y: number): VillageBuildingFootprint | undefined => {
-  return layout.buildings.reduce((chosen: VillageBuildingFootprint | undefined, b) => {
+  // Why: Iterating in reverse finds the "top-most" building for hit-testing,
+  // which is more intuitive for UI interactions. The previous implementation
+  // used a priority system that could incorrectly return a building that was
+  // visually underneath another, like selecting the plaza instead of the market.
+  for (let i = layout.buildings.length - 1; i >= 0; i--) {
+    const b = layout.buildings[i];
     const { footprint } = b;
-    const withinBounds = x >= footprint.x && x < footprint.x + footprint.width && y >= footprint.y && y < footprint.y + footprint.height;
-    if (!withinBounds) return chosen;
-
-    // Using priority comparison here keeps overlapping civic structures
-    // deterministic for UI hit-testing (e.g., plaza beneath market).
-    const buildingPriority = getPriorityIndex(b.type);
-    const chosenPriority = chosen ? getPriorityIndex(chosen.type) : TILE_TYPES_PRIORITY.length;
-
-    return buildingPriority <= chosenPriority ? b : chosen;
-  }, undefined);
+    if (x >= footprint.x && x < footprint.x + footprint.width && y >= footprint.y && y < footprint.y + footprint.height) {
+      return b;
+    }
+  }
+  return undefined;
 };
 
 /**
