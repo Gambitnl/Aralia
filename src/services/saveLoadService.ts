@@ -52,6 +52,7 @@ const DEFAULT_SAVE_SLOT = 'aralia_rpg_default_save';
 const AUTO_SAVE_SLOT = 'aralia_rpg_autosave';
 const SLOT_INDEX_KEY = 'aralia_rpg_save_slots_index';
 const SLOT_PREFIX = 'aralia_rpg_slot_';
+const SESSION_CACHE_KEY = 'aralia_rpg_slot_cache';
 
 // Local in-memory cache of slot metadata to avoid repeated JSON parses and
 // Local Storage scans on every call to getSaveSlots(). This improves menu
@@ -295,18 +296,20 @@ export function deleteSaveGame(slotName: string = DEFAULT_SAVE_SLOT): void {
 export function getSaveSlots(): SaveSlotSummary[] {
   try {
     if (slotIndexCache) {
-      // Returning the cached value keeps UI transitions snappy and avoids
-      // repeated localStorage scanning in tight render loops.
       return [...slotIndexCache];
     }
 
+    const fromSession = getSessionCache();
+    if (fromSession) {
+      slotIndexCache = fromSession;
+      return [...fromSession];
+    }
+
     const merged = buildSlotIndex();
-    slotIndexCache = merged;
+    persistSlotIndex(merged); // This also updates the in-memory cache
     return [...merged];
   } catch (error) {
     console.error("Error loading save slot metadata:", error);
-    // On failure, avoid poisoning the cache with bad data by letting the
-    // fallback run without caching.
     return mergeWithLegacySaves([]).sort((a, b) => b.lastSaved - a.lastSaved);
   }
 }
@@ -318,6 +321,7 @@ export function getSaveSlots(): SaveSlotSummary[] {
  */
 export function refreshSaveSlotIndex(): SaveSlotSummary[] {
   slotIndexCache = null;
+  sessionStorage.removeItem(SESSION_CACHE_KEY);
   return getSaveSlots();
 }
 
@@ -448,10 +452,23 @@ function removeSlotMetadata(slotId: string) {
 }
 
 function persistSlotIndex(next: SaveSlotSummary[]) {
-  // Persist first so the cache stays authoritative even if the write fails.
   localStorage.setItem(SLOT_INDEX_KEY, JSON.stringify(next));
-  // Copy to guard against accidental external mutation of the cached array.
   slotIndexCache = [...next];
+  try {
+    sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(next));
+  } catch (error) {
+    console.warn("Session storage is unavailable, caching disabled:", error);
+  }
+}
+
+function getSessionCache(): SaveSlotSummary[] | null {
+  try {
+    const cached = sessionStorage.getItem(SESSION_CACHE_KEY);
+    return cached ? JSON.parse(cached) : null;
+  } catch (error) {
+    console.warn("Failed to read from session storage, cache ignored:", error);
+    return null;
+  }
 }
 
 function buildSlotIndex(): SaveSlotSummary[] {

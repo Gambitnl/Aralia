@@ -147,27 +147,37 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
 
     // Painting Effect
     useEffect(() => {
-        if (!canvasRef.current || !mapData) return;
-        const ctx = canvasRef.current.getContext('2d');
-        if (!ctx) return;
+        const canvas = canvasRef.current;
+        if (!canvas || !mapData) {
+            return;
+        }
 
-        // Canvas sizing
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            console.error("Could not get 2D rendering context.");
+            return;
+        }
+
+        // Why: By moving the canvas sizing and painting logic into this useEffect,
+        // we guarantee that it only runs when both the mapData is available and
+        // the canvas element has been mounted to the DOM. This prevents the race
+        // condition that was causing the "cannot read properties of null" error.
         const TILE_SIZE = 32;
-        canvasRef.current.width = mapData.width * TILE_SIZE;
-        canvasRef.current.height = mapData.height * TILE_SIZE;
+        canvas.width = mapData.width * TILE_SIZE;
+        canvas.height = mapData.height * TILE_SIZE;
 
-        // Clear
+        // Clear canvas
         ctx.fillStyle = '#111827'; // Tailwind gray-900
-        ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         try {
             const painter = new AssetPainter(ctx);
             painter.drawMap(mapData.tiles, mapData.buildings, mapData.biome, { isNight, showGrid });
         } catch (err) {
             console.error("AssetPainter failed:", err);
-            ctx.fillStyle = '#ef4444'; // Red error
+            ctx.fillStyle = '#ef4444'; // Red error for visibility
             ctx.font = '16px sans-serif';
-            ctx.fillText("Rendering Error. Check console.", 20, 30);
+            ctx.fillText("Rendering Error. Check console for details.", 20, 30);
         }
 
     }, [mapData, isNight, showGrid]);

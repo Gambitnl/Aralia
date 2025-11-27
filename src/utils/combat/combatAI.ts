@@ -354,6 +354,10 @@ function evaluateAoEPlan(
   }
 
   let bestPlan: AIPlan | null = null;
+  // Cache computed AoE tile sets to avoid redundant calculations for the same
+  // ability cast from the same tile at the same center. The key combines ability,
+  // target center, and the chosen cast position.
+  const aoeCache = new Map<string, Position[]>();
 
   for (const center of candidateCenters) {
     // Ignore centers we cannot possibly reach within this turn when considering movement + cast range.
@@ -373,7 +377,12 @@ function evaluateAoEPlan(
 
     if (!castTile) continue;
 
-    const aoeTiles = computeAoETiles(area, center, mapData, castTile.coordinates);
+    const cacheKey = `${ability.id}:${center.x},${center.y}:${castTile.id}`;
+    let aoeTiles = aoeCache.get(cacheKey);
+    if (!aoeTiles) {
+      aoeTiles = computeAoETiles(area, center, mapData, castTile.coordinates);
+      aoeCache.set(cacheKey, aoeTiles);
+    }
     const impactedEnemies = enemies.filter(e =>
       aoeTiles.some(tile => tile.x === e.position.x && tile.y === e.position.y)
     );

@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { AUTO_SAVE_SLOT_KEY, SaveSlotSummary, getSlotStorageKey } from '../services/saveLoadService';
+import ConfirmationModal from './ConfirmationModal';
 
 interface SaveSlotSelectorProps {
   slots: SaveSlotSummary[];
@@ -25,15 +26,13 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
 }) => {
   const [newSlotName, setNewSlotName] = useState('');
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const [pendingOverwrite, setPendingOverwrite] = useState<{
     slotId: string;
     displayName?: string;
     isAutoSave?: boolean;
     targetName: string;
   } | null>(null);
-  const overwriteDialogRef = useRef<HTMLDivElement | null>(null);
-  const overwriteCancelRef = useRef<HTMLButtonElement | null>(null);
-  const overwriteConfirmRef = useRef<HTMLButtonElement | null>(null);
 
   const manualSlots = useMemo(
     () => slots.filter(slot => !slot.isAutoSave),
@@ -84,57 +83,17 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
   };
 
   useEffect(() => {
-    if (!pendingOverwrite) return undefined;
-
-    // Focus the modal container (or confirm button) so keyboard users receive
-    // immediate context, and wire simple Enter/Escape shortcuts to mirror the
-    // primary actions. This reduces reliance on pointer interactions.
-    const focusTarget = overwriteConfirmRef.current || overwriteDialogRef.current;
-    focusTarget?.focus({ preventScroll: true });
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        setPendingOverwrite(null);
-        return;
-      }
-
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        finalizeSave(pendingOverwrite.slotId, pendingOverwrite.displayName, pendingOverwrite.isAutoSave);
-        return;
-      }
-
-      if (event.key === 'Tab') {
-        // Trap focus among all visible, focusable controls inside the modal so
-        // adding new elements later (e.g., inputs or tertiary buttons) won't
-        // require updates to this list. This keeps the overlay resilient while
-        // ensuring background UI stays inert for keyboard users.
-        event.preventDefault();
-        const dialog = overwriteDialogRef.current;
-        if (!dialog) return;
-
-        const focusable = Array.from(
-          dialog.querySelectorAll<HTMLElement>(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-          ),
-        ).filter(el => el.offsetParent !== null);
-
-        if (focusable.length === 0) return;
-
-        const currentIndex = focusable.indexOf(document.activeElement as HTMLElement);
-        const nextIndex = event.shiftKey
-          ? (currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1)
-          : (currentIndex === focusable.length - 1 ? 0 : currentIndex + 1);
-        focusable[nextIndex]?.focus({ preventScroll: true });
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [finalizeSave, pendingOverwrite]);
+    // The dependency axe-core is large, so we only want to load it in development.
+    // Vite's import.meta.env.DEV provides a reliable way to tree-shake this code
+    // from production bundles. The dynamic import() ensures the module isn't loaded
+    // until it's actually needed.
+    if (import.meta.env.DEV && rootRef.current) {
+      const node = rootRef.current;
+      import('../utils/testUtils').then(({ runAxe }) => {
+        runAxe(node);
+      });
+    }
+  }, []);
 
   const renderPreview = (slot: SaveSlotSummary) => (
     <div className="text-xs text-gray-300 mt-1">
@@ -154,7 +113,7 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+    <div ref={rootRef} className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
       <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl w-full max-w-2xl p-6 text-gray-100">
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -261,40 +220,23 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
         </div>
       </div>
 
-      {pendingOverwrite && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
-          <div
-            ref={overwriteDialogRef}
-            className="bg-gray-900 border border-amber-500/60 rounded-xl shadow-xl max-w-md w-full p-6 text-gray-100"
-            role="dialog"
-            aria-modal="true"
-            tabIndex={-1}
-            aria-label="Confirm overwrite save slot"
-          >
-            <h3 className="text-xl font-bold text-amber-300 mb-3">Confirm Overwrite</h3>
-            <p className="text-sm text-gray-300 leading-relaxed">
-              Overwriting <span className="font-semibold text-amber-200">{pendingOverwrite.targetName}</span> will replace the existing save data for that slot.
-              This prompt uses the game's themed modal instead of the browser confirm so the player always gets consistent visual feedback.
-            </p>
-            <div className="mt-4 flex justify-end space-x-3">
-              <button
-                ref={overwriteCancelRef}
-                onClick={() => setPendingOverwrite(null)}
-                className="px-4 py-2 rounded-lg font-semibold bg-gray-700 hover:bg-gray-600 text-gray-100 border border-gray-600"
-              >
-                Keep Existing
-              </button>
-              <button
-                ref={overwriteConfirmRef}
-                onClick={() => finalizeSave(pendingOverwrite.slotId, pendingOverwrite.displayName, pendingOverwrite.isAutoSave)}
-                className="px-4 py-2 rounded-lg font-semibold bg-amber-500 hover:bg-amber-400 text-gray-900 shadow"
-              >
-                Overwrite Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmationModal
+        isOpen={!!pendingOverwrite}
+        onClose={() => setPendingOverwrite(null)}
+        onConfirm={() =>
+          pendingOverwrite &&
+          finalizeSave(pendingOverwrite.slotId, pendingOverwrite.displayName, pendingOverwrite.isAutoSave)
+        }
+        title="Confirm Overwrite"
+        confirmLabel="Overwrite Save"
+        cancelLabel="Keep Existing"
+      >
+        <p>
+          Overwriting <span className="font-semibold text-amber-200">{pendingOverwrite?.targetName}</span> will
+          replace the existing save data for that slot. This prompt uses the game's themed modal instead of the browser
+          confirm so the player always gets consistent visual feedback.
+        </p>
+      </ConfirmationModal>
     </div>
   );
 };

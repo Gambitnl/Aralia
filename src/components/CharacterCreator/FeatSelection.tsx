@@ -13,14 +13,15 @@ interface FeatSelectionProps {
   onConfirm: () => void;
   onBack?: () => void;
   hasEligibleFeats: boolean;
+  dispatch: React.Dispatch<any>;
 }
 
-const FeatSelection: React.FC<FeatSelectionProps> = ({ availableFeats, selectedFeatId, onSelectFeat, onConfirm, onBack, hasEligibleFeats }) => {
+const FeatSelection: React.FC<FeatSelectionProps> = ({ availableFeats, selectedFeatId, onSelectFeat, onConfirm, onBack, hasEligibleFeats, dispatch }) => {
   // We allow deselection so the feat step behaves like a voluntary choice rather than a hard blocker.
-  const handleToggle = (featId: string, isDisabled: boolean) => {
+  const handleToggle = React.useCallback((featId: string, isDisabled: boolean) => {
     if (isDisabled) return;
     onSelectFeat(selectedFeatId === featId ? '' : featId);
-  };
+  }, [onSelectFeat, selectedFeatId]);
 
   return (
     <div className="flex flex-col h-full">
@@ -123,8 +124,20 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({ availableFeats, selectedF
         <div className="flex-1 flex justify-end gap-3">
           <button
             onClick={() => {
-              // Skip clears the feat and advances immediately so the aria-label matches behavior and reduces extra clicks.
+              const featCleared = !!selectedFeatId;
               onSelectFeat('');
+              if (featCleared) {
+                // We only surface the toast if a choice was actively cleared, not if the user just clicked past an empty selection.
+                // This keeps the feedback relevant and avoids penalizing players for exploring.
+                dispatch({
+                  type: 'ADD_NOTIFICATION',
+                  payload: {
+                    message: 'Feat selection skipped.',
+                    type: 'info',
+                    duration: 3000,
+                  },
+                });
+              }
               onConfirm();
             }}
             className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"

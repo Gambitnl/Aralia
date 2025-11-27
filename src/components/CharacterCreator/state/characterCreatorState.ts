@@ -69,6 +69,7 @@ export interface CharacterCreationState {
   selectedFeat: string | null;
   characterName: string;
   characterAge: number;
+  featStepSkipped?: boolean;
 }
 
 export type ClassFeatureFinalSelectionAction =
@@ -127,6 +128,7 @@ export const initialCharacterCreatorState: CharacterCreationState = {
   selectedFeat: null,
   characterName: '',
   characterAge: 25, // Default age
+  featStepSkipped: false,
 };
 
 // --- Reducer Helper Functions ---
@@ -168,10 +170,12 @@ const canOfferFeatAtLevelOne = (state: CharacterCreationState): boolean => {
   });
 };
 
-const getFeatStepOrReview = (state: CharacterCreationState): CreationStep => {
-  return canOfferFeatAtLevelOne(state) || !!state.selectedFeat
-    ? CreationStep.FeatSelection
-    : CreationStep.NameAndReview;
+const getFeatStepOrReview = (state: CharacterCreationState): { step: CreationStep; skipped: boolean } => {
+  const canOffer = canOfferFeatAtLevelOne(state) || !!state.selectedFeat;
+  return {
+    step: canOffer ? CreationStep.FeatSelection : CreationStep.NameAndReview,
+    skipped: !canOffer,
+  };
 };
 
 const getFieldsToResetOnGoBack = (state: CharacterCreationState, exitedStep: CreationStep): Partial<CharacterCreationState> => {
@@ -285,34 +289,48 @@ function isClassFeatureFinalSelectionAction(action: CharacterCreatorAction): act
 }
 
 function handleClassFeatureFinalSelectionAction(state: CharacterCreationState, action: ClassFeatureFinalSelectionAction): CharacterCreationState {
-  const resolveStepAfterFeature = (candidate: CharacterCreationState): CreationStep => {
-    return (state.selectedClass?.weaponMasterySlots ?? 0) > 0
-      ? CreationStep.WeaponMastery
-      : getFeatStepOrReview(candidate);
+  const resolveStepAfterFeature = (candidate: CharacterCreationState): { step: CreationStep; featStepSkipped: boolean } => {
+    if ((state.selectedClass?.weaponMasterySlots ?? 0) > 0) {
+      return { step: CreationStep.WeaponMastery, featStepSkipped: false };
+    }
+    const { step, skipped } = getFeatStepOrReview(candidate);
+    return { step, featStepSkipped: skipped };
+  };
+
+  const applyFeaturesAndAdvance = (featureState: Partial<CharacterCreationState>): CharacterCreationState => {
+    const nextState = { ...state, ...featureState };
+    const { step, featStepSkipped } = resolveStepAfterFeature(nextState);
+    return { ...nextState, step, featStepSkipped };
   };
 
   switch (action.type) {
-    case 'SELECT_FIGHTER_FEATURES': {
-      const nextState = { ...state, selectedFightingStyle: action.payload };
-      return { ...nextState, step: resolveStepAfterFeature(nextState) };
-    }
-    case 'SELECT_CLERIC_FEATURES': {
-      const nextState = { ...state, selectedDivineOrder: action.payload.order, selectedCantrips: action.payload.cantrips, selectedSpellsL1: action.payload.spellsL1 };
-      return { ...nextState, step: resolveStepAfterFeature(nextState) };
-    }
-    case 'SELECT_DRUID_FEATURES': {
-      const nextState = { ...state, selectedDruidOrder: action.payload.order, selectedCantrips: action.payload.cantrips, selectedSpellsL1:action.payload.spellsL1 };
-      return { ...nextState, step: resolveStepAfterFeature(nextState) };
-    }
-    case 'SELECT_WIZARD_FEATURES': case 'SELECT_ARTIFICER_FEATURES': case 'SELECT_SORCERER_FEATURES': case 'SELECT_BARD_FEATURES': case 'SELECT_WARLOCK_FEATURES': {
-      const nextState = { ...state, selectedCantrips: action.payload.cantrips, selectedSpellsL1: action.payload.spellsL1 };
-      return { ...nextState, step: resolveStepAfterFeature(nextState) };
-    }
-    case 'SELECT_RANGER_FEATURES': case 'SELECT_PALADIN_FEATURES': {
-      const nextState = { ...state, selectedSpellsL1: action.payload.spellsL1 };
-      return { ...nextState, step: resolveStepAfterFeature(nextState) };
-    }
-  default:
+    case 'SELECT_FIGHTER_FEATURES':
+      return applyFeaturesAndAdvance({ selectedFightingStyle: action.payload });
+    case 'SELECT_CLERIC_FEATURES':
+      return applyFeaturesAndAdvance({
+        selectedDivineOrder: action.payload.order,
+        selectedCantrips: action.payload.cantrips,
+        selectedSpellsL1: action.payload.spellsL1,
+      });
+    case 'SELECT_DRUID_FEATURES':
+      return applyFeaturesAndAdvance({
+        selectedDruidOrder: action.payload.order,
+        selectedCantrips: action.payload.cantrips,
+        selectedSpellsL1: action.payload.spellsL1,
+      });
+    case 'SELECT_WIZARD_FEATURES':
+    case 'SELECT_ARTIFICER_FEATURES':
+    case 'SELECT_SORCERER_FEATURES':
+    case 'SELECT_BARD_FEATURES':
+    case 'SELECT_WARLOCK_FEATURES':
+      return applyFeaturesAndAdvance({
+        selectedCantrips: action.payload.cantrips,
+        selectedSpellsL1: action.payload.spellsL1,
+      });
+    case 'SELECT_RANGER_FEATURES':
+    case 'SELECT_PALADIN_FEATURES':
+      return applyFeaturesAndAdvance({ selectedSpellsL1: action.payload.spellsL1 });
+    default:
       return state;
   }
 }
@@ -402,12 +420,14 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
 
       // If the class has neither a feature nor mastery stop, jump straight to feats only when something is eligible.
       const nextState = { ...state, selectedSkills: action.payload };
-      return { ...nextState, step: getFeatStepOrReview(nextState) };
+      const { step, skipped } = getFeatStepOrReview(nextState);
+      return { ...nextState, step, featStepSkipped: skipped };
     }
     case 'SELECT_WEAPON_MASTERIES': {
       // Always move into (or skip past) the feat picker so the user can opt in (or we auto-bypass when nothing qualifies).
       const nextState = { ...state, selectedWeaponMasteries: action.payload };
-      return { ...nextState, step: getFeatStepOrReview(nextState) };
+      const { step, skipped } = getFeatStepOrReview(nextState);
+      return { ...nextState, step, featStepSkipped: skipped };
     }
     case 'SELECT_FEAT':
       // Selecting a feat no longer auto-advances so users can compare options or clear their pick before continuing.
