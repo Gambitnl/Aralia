@@ -5,11 +5,14 @@
  */
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { CombatCharacter, TurnState, CombatAction, CombatLogEntry, BattleMapData, DamageNumber, Animation } from '../../types/combat';
+import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
 import { createDamageNumber, generateId, getActionMessage } from '../../utils/combatUtils';
+import { resetEconomy } from '../../utils/combat/actionEconomyUtils';
 import { useActionEconomy } from './useActionEconomy';
 import { evaluateCombatTurn } from '../../utils/combat/combatAI';
 
 interface UseTurnManagerProps {
+  difficulty: keyof typeof AI_THINKING_DELAY_MS;
   characters: CombatCharacter[];
   mapData: BattleMapData | null;
   onCharacterUpdate: (character: CombatCharacter) => void;
@@ -53,7 +56,7 @@ export const useTurnManager = ({
     return defaultAutoControlledRef.current;
   }, [autoCharacters]);
 
-  const { canAfford, consumeAction, resetEconomy } = useActionEconomy();
+  const { canAfford, consumeAction } = useActionEconomy();
 
   const addDamageNumber = useCallback((value: number, position: {x: number, y: number}, type: 'damage' | 'heal' | 'miss') => {
       // Build a normalized payload so overlays animate consistently no matter the source.
@@ -296,7 +299,21 @@ export const useTurnManager = ({
     if (!activeId) return;
 
     const turnStartKey = `${turnState.currentTurn}:${activeId}`;
-    if (lastTurnStartKey.current === turnStartKey) return; // Already started this actor/round pair
+    if (lastTurnStartKey.current === turnStartKey) {
+      // This guard is crucial. It prevents re-running turn initialization when a parent
+      // component re-renders (e.g., due to a character HP update). Re-running startTurnFor
+      // would incorrectly reset action economy and prematurely tick down status effects.
+      // We are adding this log to help debug rare cases where initiative reordering might
+      // cause this guard to misfire.
+      onLogEntry({
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'system_debug',
+        message: `Turn start guard triggered for ${activeId} on turn ${turnState.currentTurn}.`,
+        data: { lastKey: lastTurnStartKey.current, currentKey: turnStartKey },
+      });
+      return;
+    }
 
     const character = characters.find(c => c.id === activeId);
     if (!character) return;
@@ -314,9 +331,9 @@ export const useTurnManager = ({
     if (character.team === 'enemy' || managedAutoCharacters.has(character.id)) {
         // Init AI turn
         // Small delay to allow visuals to catch up
-        setTimeout(() => setAiState('thinking'), 1000);
+        setTimeout(() => setAiState('thinking'), AI_THINKING_DELAY_MS[difficulty]);
     }
-  }, [turnState.currentCharacterId, turnState.currentTurn, characters, startTurnFor, onLogEntry, managedAutoCharacters]);
+  }, [turnState.currentCharacterId, turnState.currentTurn, characters, startTurnFor, onLogEntry, managedAutoCharacters, difficulty]);
 
   // AI Logic - Reacting to 'thinking' state or state updates
   useEffect(() => {
@@ -355,7 +372,7 @@ export const useTurnManager = ({
               if (success) {
                   setAiActionsPerformed(prev => prev + 1);
                   // Wait for animation then go back to thinking
-                  setTimeout(() => setAiState('thinking'), 1500);
+                  setTimeout(() => setAiState('thinking'), AI_THINKING_DELAY_MS[difficulty]);
               } else {
                   // Failed to execute (e.g. costs), just end
                   setAiState('done');
@@ -366,7 +383,7 @@ export const useTurnManager = ({
 
       decideAction();
 
-  }, [aiState, characters, mapData, getCurrentCharacter, aiActionsPerformed, endTurn, executeAction]); // Including characters here ensures we see fresh state
+  }, [aiState, characters, mapData, getCurrentCharacter, aiActionsPerformed, endTurn, executeAction, difficulty]); // Including characters here ensures we see fresh state
 
 
   const isCharacterTurn = useCallback((characterId: string) => {

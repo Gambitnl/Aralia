@@ -19,3 +19,20 @@ export function createDefaultActionEconomy(moveTotal: number): ActionEconomyStat
         freeActions: 1,
     };
 }
+
+/**
+ * Resets a character's action economy for the start of their turn.
+ * @param character The character whose turn is starting.
+ * @returns A new CombatCharacter object with the reset action economy.
+ */
+export function resetEconomy(character: CombatCharacter): CombatCharacter {
+    const newEconomy: ActionEconomyState = {
+        action: { used: false, remaining: 1 },
+        bonusAction: { used: false, remaining: 1 },
+        reaction: { used: false, remaining: 1 }, // Reaction resets at start of own turn in 5e
+        movement: { used: 0, total: character.stats.speed },
+        freeActions: 1, // Reset free actions
+    };
+
+    return { ...character, actionEconomy: newEconomy };
+}

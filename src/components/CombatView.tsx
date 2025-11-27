@@ -80,7 +80,8 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
       mapData,
       onCharacterUpdate: handleCharacterUpdate, 
       onLogEntry: handleLogEntry,
-      autoCharacters // Pass auto characters to turn manager if needed, but easier to modify turnManager props to accept "isAuto" check
+      autoCharacters, // Pass auto characters to turn manager if needed, but easier to modify turnManager props to accept "isAuto" check
+      difficulty: 'normal'
   });
   
   // Initialize turn manager when characters are ready

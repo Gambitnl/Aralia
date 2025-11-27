@@ -54,7 +54,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
       setCombatLog(prev => [...prev, entry]);
   }, []);
 
-  const turnManager = useTurnManager({ characters, onCharacterUpdate: handleCharacterUpdate, onLogEntry: handleLogEntry });
+  const turnManager = useTurnManager({ characters, onCharacterUpdate: handleCharacterUpdate, onLogEntry: handleLogEntry, difficulty: 'normal' });
   
   const abilitySystem = useAbilitySystem({
     characters,
