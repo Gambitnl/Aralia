@@ -23,8 +23,10 @@
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@types/axe-core": "^2.0.2",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "axe-core": "^4.11.0",
     "tsx": "^4.20.6",
     "typescript": "~5.8.2",
     "vite": "^7.2.4"
