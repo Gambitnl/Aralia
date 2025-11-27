@@ -177,6 +177,12 @@ const VillageScene: React.FC<VillageSceneProps> = ({ worldSeed, worldX, worldY, 
         <span>
           Village mood: {layout.personality.wealth} / {layout.personality.culture} / {layout.personality.biomeStyle}
         </span>
+        <span
+          className="italic text-amber-100/70 cursor-help"
+          title={layout.integrationProfile.culturalSignature}
+        >
+          &ldquo;{layout.integrationProfile.tagline}&rdquo;
+        </span>
         <span>Population: {layout.personality.population}</span>
       </div>
       <canvas

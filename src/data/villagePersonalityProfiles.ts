@@ -47,6 +47,35 @@ export const villageIntegrationProfiles: Record<string, VillageIntegrationProfil
     aiPrompt: buildPrompt({ wealth: 'comfortable', culture: 'martial', biomeStyle: 'arid', population: 'medium' }, 'alert, self-reliant, and protective'),
     culturalSignature: 'Training dummies and watchful sentries imply readiness for trouble.',
     encounterHooks: ['A patrol asks for help scouting a nearby canyon.', 'A weaponsmith seeks rare metals to improve the guard\'s arsenal.']
+  },
+  // --- Biome-specific variants ---
+  stoic_poor_arid: {
+    id: 'stoic_poor_arid',
+    tagline: 'Sun-bleached bones mark the edge of the well.',
+    aiPrompt: buildPrompt({ wealth: 'poor', culture: 'stoic', biomeStyle: 'arid', population: 'small' }, 'fatalistic but enduring'),
+    culturalSignature: 'Cracked earth and patched cisterns show a life defined by scarcity.',
+    encounterHooks: ['An elder offers a sip of water in exchange for a story from afar.', 'A child has lost a precious family heirloom in the shifting sands.']
+  },
+  festive_comfortable_temperate: {
+    id: 'festive_comfortable_temperate',
+    tagline: 'Laughter spills from taverns onto cobbled streets.',
+    aiPrompt: buildPrompt({ wealth: 'comfortable', culture: 'festive', biomeStyle: 'temperate', population: 'medium' }, 'gregarious and fond of local traditions'),
+    culturalSignature: 'Carved maypoles and community feast tables suggest a tight-knit social fabric.',
+    encounterHooks: ['A bard needs help composing a song for an upcoming festival.', 'A brewer is experimenting with a new ale and seeks a taster.']
+  },
+  martial_poor_swampy: {
+    id: 'martial_poor_swampy',
+    tagline: 'Thatched huts stand on stilts above the murky water.',
+    aiPrompt: buildPrompt({ wealth: 'poor', culture: 'martial', biomeStyle: 'swampy', population: 'small' }, 'wary of outsiders and fiercely territorial'),
+    culturalSignature: 'Sharpened stakes and hidden nets serve as unsubtle warnings.',
+    encounterHooks: ['A hunter offers to guide you through the bog, for a price.', 'A trapper has captured a strange beast and doesn\'t know what to do with it.']
+  },
+  scholarly_comfortable_coastal: {
+    id: 'scholarly_comfortable_coastal',
+    tagline: 'Tide charts and celestial maps adorn the library walls.',
+    aiPrompt: buildPrompt({ wealth: 'comfortable', culture: 'scholarly', biomeStyle: 'coastal', population: 'medium' }, 'curious about the wider world and the secrets of the deep'),
+    culturalSignature: 'Scrimshaw art and collections of exotic shells reveal a fascination with the sea.',
+    encounterHooks: ['A cartographer believes a treasure fleet sank nearby and wants to hire a diver.', 'A scholar is studying tidal patterns and needs help placing research instruments.']
   }
 };
 
