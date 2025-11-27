@@ -92,10 +92,9 @@ const getPriorityIndex = (type: VillageTileType): number => {
 };
 
 const setTileWithPriority = (tiles: VillageTileType[][], x: number, y: number, type: VillageTileType) => {
-  const row = tiles[y];
-  if (!row || typeof row[x] === 'undefined') return;
+  if (!tiles[y] || typeof tiles[y][x] === 'undefined') return;
 
-  const current = row[x];
+  const current = tiles[y][x];
   const incomingPriority = getPriorityIndex(type);
   const currentPriority = getPriorityIndex(current);
 
@@ -103,7 +102,7 @@ const setTileWithPriority = (tiles: VillageTileType[][], x: number, y: number, t
   // outranks what is already there. This keeps roads from overrunning civic
   // structures while still allowing high-priority features to reclaim space.
   if (incomingPriority <= currentPriority) {
-    row[x] = type;
+    tiles[y][x] = type;
   }
 };
 
