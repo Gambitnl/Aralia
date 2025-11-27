@@ -52,6 +52,10 @@ export interface VillageLayout {
   buildings: VillageBuildingFootprint[];
   personality: VillagePersonality;
   integrationProfile: VillageIntegrationProfile;
+  // Cache to optimize repeated hit tests on dense village layouts. The key is
+  // a simple `x,y` string, letting us avoid nested map objects while keeping
+  // the lookup logic straightforward for UI layers.
+  buildingCache: Map<string, VillageBuildingFootprint | undefined>;
 }
 
 interface GenerationOptions {
@@ -348,13 +352,16 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
     }
   }
 
+  const buildingCache = new Map<string, VillageBuildingFootprint | undefined>();
+
   return {
     width,
     height,
     tiles,
     buildings,
     personality,
-    integrationProfile
+    integrationProfile,
+    buildingCache
   };
 };
 
@@ -362,20 +369,32 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
  * Helper that produces a building info object for UI layers based on tile
  * content. Canvas hit-testing in the VillageScene asks the generator for the
  * top-most building that occupies a tile so interactions stay deterministic.
+ *
+ * This version uses a cache to memoize lookups, which is critical for hover
+ * events in dense villages where recalculating building priorities for every
+ * mouse move would be too slow. The cache is populated on-demand as the user
+ * interacts with the village, ensuring that subsequent lookups for the same
+ * tile are instantaneous.
  */
-export const findBuildingAt = (layout: VillageLayout, x: number, y: number): VillageBuildingFootprint | undefined => {
-  return layout.buildings.reduce((chosen: VillageBuildingFootprint | undefined, b) => {
+export const findBuildingAtWithCache = (layout: VillageLayout, x: number, y: number): VillageBuildingFootprint | undefined => {
+  const cacheKey = `${x},${y}`;
+  if (layout.buildingCache.has(cacheKey)) {
+    return layout.buildingCache.get(cacheKey);
+  }
+
+  const result = layout.buildings.reduce((chosen: VillageBuildingFootprint | undefined, b) => {
     const { footprint } = b;
     const withinBounds = x >= footprint.x && x < footprint.x + footprint.width && y >= footprint.y && y < footprint.y + footprint.height;
     if (!withinBounds) return chosen;
 
-    // Using priority comparison here keeps overlapping civic structures
-    // deterministic for UI hit-testing (e.g., plaza beneath market).
     const buildingPriority = getPriorityIndex(b.type);
     const chosenPriority = chosen ? getPriorityIndex(chosen.type) : TILE_TYPES_PRIORITY.length;
 
     return buildingPriority <= chosenPriority ? b : chosen;
   }, undefined);
+
+  layout.buildingCache.set(cacheKey, result);
+  return result;
 };
 
 /**

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { describeBuilding, findBuildingAt, generateVillageLayout, VillageTileType } from '../services/villageGenerator';
+import { describeBuilding, findBuildingAtWithCache, generateVillageLayout, VillageTileType } from '../services/villageGenerator';
 import { villageBuildingVisuals } from '../config/submapVisualsConfig';
 import { Action, VillageActionContext } from '../types';
 
@@ -129,7 +129,7 @@ const VillageScene: React.FC<VillageSceneProps> = ({ worldSeed, worldX, worldY, 
     const rect = canvasRef.current.getBoundingClientRect();
     const x = Math.floor((event.clientX - rect.left) / TILE_SIZE);
     const y = Math.floor((event.clientY - rect.top) / TILE_SIZE);
-    const building = findBuildingAt(layout, x, y);
+    const building = findBuildingAtWithCache(layout, x, y);
     const tileType: VillageTileType = building?.type || layout.tiles[y]?.[x] || 'grass';
     const label = interactionLabels[tileType] || 'Investigate';
 
@@ -176,6 +176,12 @@ const VillageScene: React.FC<VillageSceneProps> = ({ worldSeed, worldX, worldY, 
       <div className="flex items-center justify-between text-amber-200 text-xs font-cinzel">
         <span>
           Village mood: {layout.personality.wealth} / {layout.personality.culture} / {layout.personality.biomeStyle}
+        </span>
+        <span
+          className="italic text-amber-100/70 cursor-help"
+          title={layout.integrationProfile.culturalSignature}
+        >
+          &ldquo;{layout.integrationProfile.tagline}&rdquo;
         </span>
         <span>Population: {layout.personality.population}</span>
       </div>
