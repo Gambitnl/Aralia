@@ -45,6 +45,7 @@ export const DRAGONBORN_DATA: Race = {
     { ability: 'Charisma', bonus: 1 },
   ],
   traits: [
+    'Speed: 30 feet',
     'Draconic Ancestry (Choose ancestor: determines Damage Resistance and Breath Weapon type)',
     'Breath Weapon (Attack action replacement, Dex save for half, Prof Bonus uses/Long Rest, 1d10 damage, scales)', // Specifics (range, shape) depend on ancestry. Scaling & uses not fully implemented.
     'Damage Resistance (Type based on ancestry)',
