@@ -396,47 +396,56 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         }
         
         case 'END_BATTLE': {
-            const { rewards } = action.payload || {};
+            const rewards = action.payload?.rewards;
             let newState = {
                 ...state,
                 phase: GamePhase.PLAYING,
                 currentEnemies: null,
             };
 
-            if (rewards) {
+            if (rewards && typeof rewards.xp === 'number') {
                 // Distribute XP evenly to all party members and process any resulting level ups.
-                const updatedParty = typeof rewards.xp === 'number'
-                  ? state.party.map((member) => applyXpAndHandleLevelUps(member, rewards.xp))
-                  : state.party;
+                const updatedParty = state.party.map((member) =>
+                    applyXpAndHandleLevelUps(member, rewards.xp / state.party.length)
+                );
 
-                // Capture celebratory messages for characters who leveled up to keep players informed.
-                const levelUpMessages = updatedParty.flatMap((member, index) => {
-                    const previousLevel = state.party[index]?.level || 1;
-                    const newLevel = member.level || previousLevel;
-                    return newLevel > previousLevel
-                      ? [{ id: Date.now() + index + 1, text: `${member.name} reached level ${newLevel}!`, sender: 'system', timestamp: new Date() }]
-                      : [];
-                });
+                // Capture celebratory messages for characters who leveled up.
+                const levelUpMessages = updatedParty
+                    .filter((member, index) => member.level > (state.party[index]?.level || 0))
+                    .map((member, index) => ({
+                        id: Date.now() + index + 1,
+                        text: `${member.name} reached level ${member.level}!`,
+                        sender: 'system',
+                        timestamp: new Date()
+                    }));
+
+                const itemsFoundMessage = rewards.items.length > 0
+                    ? `You found: ${rewards.items.map(i => i.name).join(', ')}.`
+                    : 'You found no items.';
 
                 newState = {
                     ...newState,
                     party: updatedParty,
-                    gold: newState.gold + rewards.gold,
-                    inventory: [...newState.inventory, ...rewards.items],
+                    gold: newState.gold + (rewards.gold || 0),
+                    inventory: [...newState.inventory, ...(rewards.items || [])],
                     messages: [
                         ...newState.messages,
-                        { id: Date.now(), text: `Victory! You gained ${rewards.xp} XP, ${rewards.gold} gold, and found items: ${rewards.items.map(i => i.name).join(', ') || 'None'}.`, sender: 'system', timestamp: new Date() },
+                        {
+                            id: Date.now(),
+                            text: `Victory! The party gained ${rewards.xp} XP and ${rewards.gold || 0} gold. ${itemsFoundMessage}`,
+                            sender: 'system',
+                            timestamp: new Date()
+                        },
                         ...levelUpMessages,
                     ]
                 };
             } else {
-                newState = {
-                    ...newState,
-                     messages: [
-                        ...newState.messages,
-                        { id: Date.now(), text: `The battle ends.`, sender: 'system', timestamp: new Date() }
-                    ]
-                }
+                newState.messages.push({
+                    id: Date.now(),
+                    text: `The battle ends.`,
+                    sender: 'system',
+                    timestamp: new Date()
+                });
             }
             return newState;
         }
