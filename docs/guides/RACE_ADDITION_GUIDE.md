@@ -43,17 +43,21 @@ This is the most critical part, ensuring the race works mechanically.
 ### Step 2: Register the Race
 
 *   **File Location**: `src/data/races/index.ts`
-*   **Action**: Import your new race data and add it to the `ALL_RACES_DATA` object. This makes it available to the rest of the application.
+*   **Action**: Import your new race data and add it to the `ALL_RACES_DATA` object. This object is the **single source of truth** for all race data. The `ACTIVE_RACES` array, which is used to populate the UI, is automatically derived from this object.
 
     **Example (`src/data/races/index.ts`):**
     ```typescript
     // ... other imports
-    import { ORC_DATA } from './orc'; // Import your new race data
+    import { ORC_DATA } from './orc.ts'; // Import your new race data
 
-    export const ALL_RACES_DATA: Record<string, Race> = {
+    export const ALL_RACES_DATA: Record<string, Race> = Object.freeze({
       // ... existing races
       [ORC_DATA.id]: ORC_DATA, // Add your new race here
-    };
+    });
+
+    // ACTIVE_RACES is automatically derived from ALL_RACES_DATA.
+    // No need to modify this line.
+    export const ACTIVE_RACES: readonly Race[] = Object.freeze(Object.values(ALL_RACES_DATA));
     ```
 
 ### Step 3: Handle Race-Specific Choices (If Applicable)

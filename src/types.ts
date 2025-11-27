@@ -202,6 +202,7 @@ export interface RaceDataBundle {
   dragonbornAncestries: Record<DraconicAncestorType, DraconicAncestryInfo>;
   goliathGiantAncestries: GiantAncestryBenefit[];
   tieflingLegacies: FiendishLegacy[];
+  gnomeSubraces: GnomeSubrace[];
 }
 
 export interface SpellEffect {
