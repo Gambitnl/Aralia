@@ -96,18 +96,18 @@ const getPriorityIndex = (type: VillageTileType): number => {
 };
 
 const setTileWithPriority = (tiles: VillageTileType[][], x: number, y: number, type: VillageTileType) => {
-  const row = tiles[y];
-  if (!row || typeof row[x] === 'undefined') return;
+  // Why: The original implementation modified a `row` variable, which did not
+  // reliably mutate the `tiles` array. By assigning directly to `tiles[y][x]`,
+  // we ensure the change is always persisted, fixing the "no-op" bug where
+  // tile assignments were sometimes lost.
+  if (!tiles[y] || typeof tiles[y][x] === 'undefined') return;
 
-  const current = row[x];
+  const current = tiles[y][x];
   const incomingPriority = getPriorityIndex(type);
   const currentPriority = getPriorityIndex(current);
 
-  // Lower index means higher priority. Only replace when we know the newcomer
-  // outranks what is already there. This keeps roads from overrunning civic
-  // structures while still allowing high-priority features to reclaim space.
   if (incomingPriority <= currentPriority) {
-    row[x] = type;
+    tiles[y][x] = type;
   }
 };
 
