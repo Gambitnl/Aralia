@@ -40,7 +40,13 @@ const getItemTooltipContent = (item: Item): React.ReactNode => {
     if (item.damageDice) details += `\nDamage: ${item.damageDice} ${item.damageType || ''}`;
     if (item.properties?.length) details += `\nProperties: ${item.properties.join(', ')}`;
   } else if (item.type === 'consumable' && item.effect) {
-    details += `\nEffect: ${item.effect.replace(/_/g, ' ')}`;
+    // Type guard: item.effect should be string, but some items may have object/array
+    if (typeof item.effect === 'string') {
+      details += `\nEffect: ${item.effect.replace(/_/g, ' ')}`;
+    } else {
+      // Handle non-string effects (likely from spell items with effects array)
+      details += `\nEffect: ${JSON.stringify(item.effect)}`;
+    }
   } else if (item.type === 'food_drink') {
     if (item.shelfLife) details += `\nShelf Life: ${item.shelfLife}`;
     if (item.nutritionValue) details += ` | Nutrition: ${item.nutritionValue}/10`;

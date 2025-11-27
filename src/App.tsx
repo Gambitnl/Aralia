@@ -552,9 +552,13 @@ const App: React.FC = () => {
           party={gameState.party}
           enemies={gameState.currentEnemies || []}
           biome={combatBiome}
-          onBattleEnd={(result) => {
+          onBattleEnd={(result, rewards) => {
             addMessage(result === 'victory' ? 'Victory! The enemies are defeated.' : 'Defeat! The party has fallen.', 'system');
-            dispatch({ type: 'END_BATTLE' });
+            if (result === 'victory' && rewards) {
+              dispatch({ type: 'END_BATTLE', payload: { rewards } });
+            } else {
+              dispatch({ type: 'END_BATTLE' });
+            }
           }}
         />
       </ErrorBoundary>

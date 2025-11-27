@@ -390,17 +390,20 @@ function evaluateAoEPlan(
       aoeTiles.some(tile => tile.x === a.position.x && tile.y === a.position.y)
     );
 
-    // Healing AOE hotfix: filter to allies who can actually benefit so we do not waste
-    // decision slots on fully healthy targets (and to avoid selecting empty heals).
-    const healableAllies = impactedAllies.filter(ally => ally.currentHP < ally.maxHP);
-
-    // Skip cases where the area would hit no valid targets for a single-purpose effect.
-    // Mixed damage/heal areas remain eligible as long as one side has a target so we don't
-    // block dual-purpose spells from being used aggressively or supportively as needed.
-    const damageEffect = ability.effects.find(e => e.type === 'damage');
     const healEffect = ability.effects.find(e => e.type === 'heal');
-    if (damageEffect && impactedEnemies.length === 0 && !healEffect) continue;
-    if (healEffect && healableAllies.length === 0 && !damageEffect) continue;
+    const damageEffect = ability.effects.find(e => e.type === 'damage');
+    
+    // For healing spells, we must only consider allies. For pure damage, only enemies.
+    // Mixed spells will consider both but need careful target selection.
+    const healableAllies = healEffect ? impactedAllies.filter(ally => ally.currentHP < ally.maxHP) : [];
+    
+    // If it's a pure healing spell, it must have healable allies.
+    if (healEffect && !damageEffect && healableAllies.length === 0) continue;
+    // If it's a pure damage spell, it must have enemies.
+    if (damageEffect && !healEffect && impactedEnemies.length === 0) continue;
+    // If it's a mixed spell, it must have at least one valid target.
+    if (damageEffect && healEffect && impactedEnemies.length === 0 && healableAllies.length === 0) continue;
+
 
     let score = 0;
 
@@ -412,12 +415,11 @@ function evaluateAoEPlan(
         score += (1 - enemy.currentHP / enemy.maxHP) * WEIGHTS.FOCUS_FIRE_BONUS;
       });
 
-      // Reward clustering; the marginal value of an extra enemy hit should be noticeable.
       if (impactedEnemies.length > 1) {
         score += (impactedEnemies.length - 1) * WEIGHTS.AOE_MULTI_TARGET;
       }
 
-      // Penalize friendly fire to keep cones and lines pointed away from allies.
+      // Penalize friendly fire ONLY IF the ability does damage.
       score += impactedAllies.length * WEIGHTS.FRIENDLY_FIRE_PENALTY;
     }
 
@@ -425,14 +427,18 @@ function evaluateAoEPlan(
       const healValue = healEffect.value || 0;
       healableAllies.forEach(ally => {
         const missing = ally.maxHP - ally.currentHP;
-        if (missing > 0) {
-          score += Math.min(missing, healValue) * WEIGHTS.HEAL;
-          if (ally.currentHP < ally.maxHP * 0.35) score += WEIGHTS.SELF_PRESERVATION;
-        }
+        score += Math.min(missing, healValue) * WEIGHTS.HEAL;
+        if (ally.currentHP < ally.maxHP * 0.35) score += WEIGHTS.SELF_PRESERVATION;
       });
+
       if (healableAllies.length > 1) {
         score += (healableAllies.length - 1) * (WEIGHTS.AOE_MULTI_TARGET / 2);
       }
+      
+      // NEW: Add a penalty for healing enemies if the spell has a healing component.
+      // This prevents using an AoE heal offensively when enemies are in the blast zone.
+      const healedEnemies = impactedEnemies.filter(e => e.currentHP < e.maxHP);
+      score += healedEnemies.length * WEIGHTS.FRIENDLY_FIRE_PENALTY * 1.5; // Make it even more punishing
     }
 
     // Prefer keeping some standoff distance when setting up the cast.

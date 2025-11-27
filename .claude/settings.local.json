@@ -26,7 +26,10 @@
       "Bash(gh secret list:*)",
       "Bash(gh run list:*)",
       "Bash(gh workflow run:*)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(find:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npm run:*)"
     ],
     "deny": [],
     "ask": []
