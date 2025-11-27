@@ -52,6 +52,10 @@ export interface VillageLayout {
   buildings: VillageBuildingFootprint[];
   personality: VillagePersonality;
   integrationProfile: VillageIntegrationProfile;
+  // Cache to optimize repeated hit tests on dense village layouts. The key is
+  // a simple `x,y` string, letting us avoid nested map objects while keeping
+  // the lookup logic straightforward for UI layers.
+  buildingCache: Map<string, VillageBuildingFootprint | undefined>;
 }
 
 interface GenerationOptions {
@@ -109,10 +113,10 @@ const setTileWithPriority = (tiles: VillageTileType[][], x: number, y: number, t
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
-const pickColor = (type: VillageTileType, rng: () => number): { color: string; accent: string } => {
+const pickColor = (type: VillageTileType, rng: () => number): { fill: string; accent: string; pattern?: 'stripe' | 'check' | 'dot' } => {
   const visuals = villageBuildingVisuals[type] || villageBuildingVisuals.path;
   const colorIndex = Math.floor(rng() * visuals.colors.length) % visuals.colors.length;
-  return { color: visuals.colors[colorIndex], accent: visuals.accent };
+  return { fill: visuals.colors[colorIndex], accent: visuals.accent, pattern: visuals.pattern };
 };
 
 const inferBiomeStyle = (biomeId: string): VillagePersonality['biomeStyle'] => {
@@ -348,13 +352,16 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
     }
   }
 
+  const buildingCache = new Map<string, VillageBuildingFootprint | undefined>();
+
   return {
     width,
     height,
     tiles,
     buildings,
     personality,
-    integrationProfile
+    integrationProfile,
+    buildingCache
   };
 };
 
@@ -362,20 +369,32 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
  * Helper that produces a building info object for UI layers based on tile
  * content. Canvas hit-testing in the VillageScene asks the generator for the
  * top-most building that occupies a tile so interactions stay deterministic.
+ *
+ * This version uses a cache to memoize lookups, which is critical for hover
+ * events in dense villages where recalculating building priorities for every
+ * mouse move would be too slow. The cache is populated on-demand as the user
+ * interacts with the village, ensuring that subsequent lookups for the same
+ * tile are instantaneous.
  */
 export const findBuildingAt = (layout: VillageLayout, x: number, y: number): VillageBuildingFootprint | undefined => {
-  // Why: Iterating in reverse finds the "top-most" building for hit-testing,
-  // which is more intuitive for UI interactions. The previous implementation
-  // used a priority system that could incorrectly return a building that was
-  // visually underneath another, like selecting the plaza instead of the market.
-  for (let i = layout.buildings.length - 1; i >= 0; i--) {
-    const b = layout.buildings[i];
-    const { footprint } = b;
-    if (x >= footprint.x && x < footprint.x + footprint.width && y >= footprint.y && y < footprint.y + footprint.height) {
-      return b;
-    }
+  const cacheKey = `${x},${y}`;
+  if (layout.buildingCache.has(cacheKey)) {
+    return layout.buildingCache.get(cacheKey);
   }
-  return undefined;
+
+  const result = layout.buildings.reduce((chosen: VillageBuildingFootprint | undefined, b) => {
+    const { footprint } = b;
+    const withinBounds = x >= footprint.x && x < footprint.x + footprint.width && y >= footprint.y && y < footprint.y + footprint.height;
+    if (!withinBounds) return chosen;
+
+    const buildingPriority = getPriorityIndex(b.type);
+    const chosenPriority = chosen ? getPriorityIndex(chosen.type) : TILE_TYPES_PRIORITY.length;
+
+    return buildingPriority <= chosenPriority ? b : chosen;
+  }, undefined);
+
+  layout.buildingCache.set(cacheKey, result);
+  return result;
 };
 
 /**
