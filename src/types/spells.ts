@@ -76,6 +76,8 @@ export interface Spell {
   description: string;
   higherLevels?: string;
   tags?: string[];
+  ritual?: boolean;
+  rarity?: SpellRarity;
 
   // --- Core Mechanics ---
   castingTime: CastingTime;
@@ -102,6 +104,9 @@ export type SpellSchool =
   | "Necromancy"
   | "Transmutation";
 
+/** Defines the rarity of a spell, for loot tables or special scrolls. */
+export type SpellRarity = "common" | "uncommon" | "rare" | "very_rare" | "legendary";
+
 /**
  * Defines the time required to cast a spell.
  */
@@ -109,6 +114,11 @@ export interface CastingTime {
   value: number;
   unit: "action" | "bonus_action" | "reaction" | "minute" | "hour" | "special";
   reactionCondition?: string; // e.g., "which you take when you are hit by an attack"
+  combatCost?: {
+    type: "action" | "bonus_action" | "reaction";
+    condition?: string;
+  };
+  explorationCost?: { value: number; unit: "minute" | "hour" };
 }
 
 /**
@@ -137,7 +147,7 @@ export interface Components {
 export interface Duration {
   type: "instantaneous" | "timed" | "special" | "until_dispelled" | "until_dispelled_or_triggered";
   value?: number; // in rounds, minutes, or hours
-  unit?: "round" | "minute" | "hour";
+  unit?: "round" | "minute" | "hour" | "day";
   concentration: boolean;
 }
 
@@ -286,6 +296,7 @@ export interface StatusConditionEffect extends BaseEffect {
 export interface StatusCondition {
   name: ConditionName;
   duration: EffectDuration;
+  level?: number;
 }
 
 /** Defines how long an effect-specific condition lasts. */
@@ -306,26 +317,61 @@ export interface StatModifier {
 /** An effect that alters movement (e.g., reduces speed, forces movement). */
 export interface MovementEffect extends BaseEffect {
   type: "MOVEMENT";
+  movementType: "push" | "pull" | "teleport" | "speed_change" | "stop";
+  distance?: number; // for push, pull, teleport in feet
+  speedChange?: {
+    stat: "speed";
+    value: number; // can be negative for reduction
+    unit: "feet";
+  };
+  duration: EffectDuration;
 }
 
 /** An effect that summons creatures or objects. */
 export interface SummoningEffect extends BaseEffect {
   type: "SUMMONING";
+  summonType: "creature" | "object";
+  creatureId?: string; // ID from a creature database
+  objectDescription?: string; // Description for summoned objects
+  count: number; // How many creatures/objects are summoned
+  duration: EffectDuration;
 }
 
 /** An effect that creates or alters terrain. */
 export interface TerrainEffect extends BaseEffect {
   type: "TERRAIN";
+  terrainType: "difficult" | "obscuring" | "damaging" | "blocking" | "wall";
+  areaOfEffect: AreaOfEffect;
+  duration: EffectDuration;
+  damage?: DamageData; // For damaging terrain
+  wallProperties?: {
+    hp: number;
+    ac: number;
+  };
 }
 
 /** A non-combat or miscellaneous effect (e.g., creating light, communicating). */
 export interface UtilityEffect extends BaseEffect {
   type: "UTILITY";
+  utilityType:
+    | "light"
+    | "communication"
+    | "creation"
+    | "information"
+    | "control"
+    | "sensory"
+    | "other";
+  description: string;
 }
 
 /** An effect that provides defensive bonuses (e.g., AC boost, resistance). */
 export interface DefensiveEffect extends BaseEffect {
   type: "DEFENSIVE";
+  defenseType: "ac_bonus" | "resistance" | "immunity" | "temporary_hp" | "advantage_on_saves";
+  value?: number; // e.g., AC bonus or amount of temporary HP
+  damageType?: DamageType[]; // For resistance/immunity
+  savingThrow?: SavingThrowAbility[]; // For advantage on saves
+  duration: EffectDuration;
 }
 
 //==============================================================================
