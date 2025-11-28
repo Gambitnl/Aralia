@@ -113,7 +113,7 @@ export {
 ### File: `src/systems/spells/types/Spell.ts`
 
 ```typescript
-import type { SpellSchool, CastingTime, Range, Components, Duration } from './GameMechanics'
+import type { SpellSchool, CastingTime, Range, Components, Duration, SpellRarity } from './GameMechanics'
 import type { SpellTargeting } from './SpellTargeting'
 import type { SpellEffect } from './SpellEffect'
 import type { ArbitrationType } from './AIArbitration'
@@ -134,6 +134,10 @@ export interface Spell {
   school: SpellSchool
   /** Classes that can learn this spell */
   classes: string[]
+  /** Indicates if the spell can be cast as a ritual. */
+  ritual?: boolean
+  /** Defines the rarity of a spell, for loot tables or special scrolls. */
+  rarity?: SpellRarity
 
   // Casting Requirements
   castingTime: CastingTime
@@ -177,6 +181,11 @@ export type SpellSchool =
   | 'Transmutation'
 
 /**
+ * Defines the rarity of a spell, for loot tables or special scrolls.
+ */
+export type SpellRarity = "common" | "uncommon" | "rare" | "very_rare" | "legendary";
+
+/**
  * Damage types in D&D 5e
  */
 export type DamageType =
@@ -216,7 +225,7 @@ export type ConditionName =
 /**
  * Saving throw ability types
  */
-export type SavingThrow =
+export type SavingThrowAbility =
   | 'Strength'
   | 'Dexterity'
   | 'Constitution'
@@ -233,24 +242,8 @@ export interface CastingTime {
   value: number
   unit: 'action' | 'bonus_action' | 'reaction' | 'minute' | 'hour'
   condition?: string  // For reactions (e.g., "when you are hit")
-
-  /**
-   * Combat cost (tactical turn-based)
-   * Used when spell is cast during combat rounds
-   */
-  combatCost?: {
-    type: 'action' | 'bonus_action' | 'reaction'
-    condition?: string  // For reactions
-  }
-
-  /**
-   * Exploration cost (real-time or abstract)
-   * Used when spell is cast outside combat (rituals, downtime)
-   */
-  explorationCost?: {
-    type: 'minutes' | 'hours'
-    duration: number
-  }
+  combatCost?: "action" | "bonus_action" | "reaction";
+  explorationCost?: { value: number; unit: "minute" | "hour" };
 }
 
 /**
@@ -393,7 +386,7 @@ export interface AreaOfEffect {
 ### File: `src/systems/spells/types/SpellEffect.ts`
 
 ```typescript
-import type { DamageType, ConditionName, SavingThrow, ScalingFormula } from './GameMechanics'
+import type { DamageType, ConditionName, SavingThrowAbility, ScalingFormula, AreaOfEffect } from './GameMechanics'
 
 /**
  * Discriminated union of all spell effect types
@@ -427,7 +420,7 @@ export interface DamageEffect extends BaseEffect {
   type: 'DAMAGE'
   subtype: 'direct' | 'area' | 'over_time' | 'triggered'
   damage: DamageData
-  saveType?: SavingThrow
+  saveType?: SavingThrowAbility
   saveEffect?: 'none' | 'half' | 'negate'
   scaling?: ScalingFormula
 }
@@ -467,7 +460,7 @@ export interface HealingData {
 export interface StatusConditionEffect extends BaseEffect {
   type: 'STATUS_CONDITION'
   condition: StatusCondition
-  saveType?: SavingThrow
+  saveType?: SavingThrowAbility
   saveEffect?: 'negate' | 'end_early'
   saveTiming?: 'initial' | 'end_of_turn' | 'on_damage'
 }
@@ -491,51 +484,73 @@ export interface StatModifier {
 }
 
 /**
- * Movement effect (stub for Phase 3)
+ * An effect that alters movement (e.g., reduces speed, forces movement).
  */
 export interface MovementEffect extends BaseEffect {
-  type: 'MOVEMENT'
-  movementType: 'teleport' | 'push' | 'pull' | 'speed_boost'
-  distance?: number
-  // TODO: Expand in Phase 3
+  type: "MOVEMENT";
+  movementType: "push" | "pull" | "teleport" | "speed_change" | "stop";
+  distance?: number; // for push, pull, teleport in feet
+  speedChange?: {
+    stat: "speed";
+    value: number; // can be negative for reduction
+    unit: "feet";
+  };
+  duration: EffectDuration;
 }
 
 /**
- * Summoning effect (stub for Phase 3)
+ * An effect that summons creatures or objects.
  */
 export interface SummoningEffect extends BaseEffect {
-  type: 'SUMMONING'
-  creatureType: string
-  duration: EffectDuration
-  // TODO: Expand in Phase 3
+  type: "SUMMONING";
+  summonType: "creature" | "object";
+  creatureId?: string; // ID from a creature database
+  objectDescription?: string; // Description for summoned objects
+  count: number; // How many creatures/objects are summoned
+  duration: EffectDuration;
 }
 
 /**
- * Terrain effect (stub for Phase 3)
+ * An effect that creates or alters terrain.
  */
 export interface TerrainEffect extends BaseEffect {
-  type: 'TERRAIN'
-  terrainType: 'difficult' | 'hazard' | 'wall'
-  duration: EffectDuration
-  // TODO: Expand in Phase 3
+  type: "TERRAIN";
+  terrainType: "difficult" | "obscuring" | "damaging" | "blocking" | "wall";
+  areaOfEffect: AreaOfEffect;
+  duration: EffectDuration;
+  damage?: DamageData; // For damaging terrain
+  wallProperties?: {
+    hp: number;
+    ac: number;
+  };
 }
 
 /**
- * Utility effect (stub for Phase 3)
+ * A non-combat or miscellaneous effect (e.g., creating light, communicating).
  */
 export interface UtilityEffect extends BaseEffect {
-  type: 'UTILITY'
-  utilityType: 'light' | 'detect' | 'dispel' | 'identify'
-  // TODO: Expand in Phase 3
+  type: "UTILITY";
+  utilityType:
+    | "light"
+    | "communication"
+    | "creation"
+    | "information"
+    | "control"
+    | "sensory"
+    | "other";
+  description: string;
 }
 
 /**
- * Defensive effect (stub for Phase 3)
+ * An effect that provides defensive bonuses (e.g., AC boost, resistance).
  */
 export interface DefensiveEffect extends BaseEffect {
-  type: 'DEFENSIVE'
-  defensiveType: 'ac_bonus' | 'resistance' | 'immunity' | 'cover'
-  // TODO: Expand in Phase 3
+  type: "DEFENSIVE";
+  defenseType: "ac_bonus" | "resistance" | "immunity" | "temporary_hp" | "advantage_on_saves";
+  value?: number; // e.g., AC bonus or amount of temporary HP
+  damageType?: DamageType[]; // For resistance/immunity
+  savingThrow?: SavingThrowAbility[]; // For advantage on saves
+  duration: EffectDuration;
 }
 ```
 

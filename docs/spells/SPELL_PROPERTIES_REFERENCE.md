@@ -29,8 +29,10 @@ This is the **complete, accurate** list of all spell properties from the TypeScr
 | `description` | ✅ Required | `string` | Full text description of spell effects | Tooltips, info modals, fallback parsing |
 | `higherLevels` | 🔵 Optional | `string` | Description of upcast behavior | Spellbook display, combat |
 | `tags` | 🔵 Optional | `string[]` | Searchable tags (e.g., ["damage", "fire", "aoe"]) | Search/filtering, targeting inference |
+| `ritual` | 🔵 Optional | `boolean` | Indicates if the spell can be cast as a ritual. | Casting logic, UI |
+| `rarity`| 🔵 Optional | `SpellRarity` | Defines the rarity of a spell, for loot tables or special scrolls. | Loot generation, item value |
 
-**Total Top-Level**: 8 properties (5 required, 3 optional)
+**Total Top-Level**: 10 properties (5 required, 5 optional)
 
 ---
 
@@ -43,17 +45,13 @@ This is the **complete, accurate** list of all spell properties from the TypeScr
 | `castingTime.value` | ✅ Required | `number` | Numeric value for casting time | Time system |
 | `castingTime.unit` | ✅ Required | `"action" \| "bonus_action" \| "reaction" \| "minute" \| "hour" \| "special"` | Unit of time | Combat action economy, exploration |
 | `castingTime.reactionCondition` | 🔵 Optional | `string` | Condition for reaction spells (e.g., "when you are hit") | Combat triggers |
-| `castingTime.combatCost` | ⚠️ **Proposed** | `object` | Tactical combat cost (in AGENT-ALPHA docs, NOT in types yet) | Combat system |
-| `castingTime.combatCost.type` | ⚠️ **Proposed** | `"action" \| "bonus_action" \| "reaction"` | Combat-specific cost type | Combat action economy |
-| `castingTime.combatCost.condition` | ⚠️ **Proposed** | `string` | Combat-specific condition | Combat triggers |
-| `castingTime.explorationCost` | ⚠️ **Proposed** | `object` | Out-of-combat time cost (in docs, NOT in types) | Exploration time system |
-| `castingTime.explorationCost.type` | ⚠️ **Proposed** | `"minutes" \| "hours"` | Exploration time unit | Exploration system |
-| `castingTime.explorationCost.duration` | ⚠️ **Proposed** | `number` | How long in exploration mode | Exploration system |
+| `castingTime.combatCost` | 🔵 Optional | `"action" \| "bonus_action" \| "reaction"` | Tactical combat cost. | Combat system |
+| `castingTime.explorationCost` | 🔵 Optional | `object` | Out-of-combat time cost. | Exploration time system |
+| `castingTime.explorationCost.value` | 🔵 Optional | `number` | How long in exploration mode | Exploration system |
+| `castingTime.explorationCost.unit` | 🔵 Optional | `"minute" \| "hour"` | Exploration time unit | Exploration system |
 
-**Actual in types**: 3 properties (2 required, 1 optional)
-**Proposed**: 6 additional properties for hybrid time system
 
-**⚠️ ISSUE**: The `combatCost` and `explorationCost` properties are documented in AGENT-ALPHA-TYPES.md but **NOT implemented** in [src/types/spells.ts](../../../src/types/spells.ts:108-112). This will cause integration issues.
+**Actual in types**: 5 properties (2 required, 3 optional)
 
 ---
 
@@ -250,17 +248,15 @@ This is the **complete, accurate** list of all spell properties from the TypeScr
 
 ## Effect Types: MOVEMENT, SUMMONING, TERRAIN, UTILITY, DEFENSIVE
 
-**Status**: ⚠️ **Stubbed** - These types exist but have **no properties defined yet**
+**Status**: Implemented - These types are now defined in `spells.ts`
 
 | Property | Status | Type | Description | Implementation Status |
 |----------|--------|------|-------------|----------------------|
-| `effects[].type` | ✅ Required | `"MOVEMENT"` | Movement effects | Stub only |
-| `effects[].type` | ✅ Required | `"SUMMONING"` | Summoning effects | Stub only |
-| `effects[].type` | ✅ Required | `"TERRAIN"` | Terrain effects | Stub only |
-| `effects[].type` | ✅ Required | `"UTILITY"` | Utility effects | Stub only |
-| `effects[].type` | ✅ Required | `"DEFENSIVE"` | Defensive effects | Stub only |
-
-**⚠️ ISSUE**: These effect types can be set, but they have **no properties** to define what they do. Will need implementation before use.
+| `effects[].type` | ✅ Required | `"MOVEMENT"` | Movement effects | Implemented |
+| `effects[].type` | ✅ Required | `"SUMMONING"` | Summoning effects | Implemented |
+| `effects[].type` | ✅ Required | `"TERRAIN"` | Terrain effects | Implemented |
+| `effects[].type` | ✅ Required | `"UTILITY"` | Utility effects | Implemented |
+| `effects[].type` | ✅ Required | `"DEFENSIVE"` | Defensive effects | Implemented |
 
 ---
 
@@ -362,33 +358,15 @@ The combat system infers these from other properties:
 
 ### 🔴 Critical Issues (Will Break Integration)
 
-1. **Missing `combatCost` / `explorationCost`**
-   - **Status**: Documented in AGENT-ALPHA-TYPES.md but NOT in src/types/spells.ts
-   - **Impact**: Combat action economy can't distinguish action vs bonus action
-   - **Workaround**: Currently parses `castingTime.unit` string
-   - **Fix Required**: Add to CastingTime interface
-
-2. **Legacy `areaOfEffect` Property**
+1. **Legacy `areaOfEffect` Property**
    - **Status**: Used by spellAbilityFactory.ts but NOT in new Spell interface
    - **Impact**: AoE spells must use `targeting.areaOfEffect` OR `effects[].areaOfEffect`
    - **Workaround**: spellAbilityFactory checks both locations
    - **Fix Required**: Clarify which is canonical
 
-3. **Stubbed Effect Types**
-   - **Status**: MOVEMENT, SUMMONING, TERRAIN, UTILITY, DEFENSIVE have no properties
-   - **Impact**: Can't define what these effects do
-   - **Workaround**: Must use description text parsing
-   - **Fix Required**: Define properties for each type
-
 ### ⚠️ Important Missing Properties
 
-4. **No `ritual` Property**
-   - **Status**: Not in Spell interface
-   - **Impact**: Can't distinguish ritual spells
-   - **Workaround**: Check description text or tags
-   - **Recommended**: Add `ritual?: boolean` to Spell interface
-
-5. **No `rarity` Property**
+2. **No `rarity` Property**
    - **Status**: Not in Spell interface
    - **Impact**: Can't determine spell scroll rarity/value
    - **Workaround**: Calculate from spell level
@@ -400,8 +378,8 @@ The combat system infers these from other properties:
 
 | Category | Required | Optional | Proposed | Stubbed | Total |
 |----------|----------|----------|----------|---------|-------|
-| **Top-Level** | 5 | 3 | 0 | 0 | 8 |
-| **CastingTime** | 2 | 1 | 6 | 0 | 9 |
+| **Top-Level** | 5 | 5 | 0 | 0 | 10 |
+| **CastingTime** | 2 | 5 | 0 | 0 | 7 |
 | **Range** | 1 | 1 | 0 | 0 | 2 |
 | **Components** | 3 | 3 | 0 | 0 | 6 |
 | **Duration** | 2 | 2 | 0 | 0 | 4 |
@@ -411,11 +389,11 @@ The combat system infers these from other properties:
 | **DAMAGE Effect** | 4 | 0 | 0 | 0 | 4 |
 | **HEALING Effect** | 3 | 1 | 0 | 0 | 4 |
 | **STATUS_CONDITION** | 5 | 1 | 0 | 0 | 6 |
-| **Other Effects** | 1 | 0 | 0 | 5 | 1-6 |
+| **Other Effects** | 1 | 0 | 0 | 0 | 1 |
 | **ScalingFormula** | 1 | 2 | 0 | 0 | 3 |
 | **AI Arbitration** | 0 | 1 | 0 | 0 | 1 |
 
-**Total Unique Properties**: ~60-70 (depending on targeting type and effect types)
+**Total Unique Properties**: ~70-80 (depending on targeting type and effect types)
 
 ---
 
@@ -423,32 +401,20 @@ The combat system infers these from other properties:
 
 ### Immediate Actions Required
 
-1. **Implement `combatCost` / `explorationCost`**
-   - Update `src/types/spells.ts` CastingTime interface
-   - Match AGENT-ALPHA-TYPES.md documentation
-   - Update Zod validator
-
-2. **Clarify AoE Property Location**
+1. **Clarify AoE Property Location**
    - Document: Use `targeting.areaOfEffect` for area spells
    - Document: Use `effects[].areaOfEffect` for secondary AoE effects (Ice Knife)
    - Update spellAbilityFactory to prefer targeting.areaOfEffect
 
-3. **Define Stubbed Effect Types**
-   - Create properties for MOVEMENT, SUMMONING, TERRAIN, UTILITY, DEFENSIVE
-   - Or document: Use UTILITY with description parsing for now
-
-4. **Add Missing Properties**
-   - `ritual?: boolean` - For ritual casting
+2. **Add Missing Properties**
    - `rarity?: string` - For spell scrolls (optional, defaults to spell level)
 
 ### Documentation Updates
 
-5. **Update Integration Checklist**
-   - Mark `combatCost` / `explorationCost` as PROPOSED (not implemented)
-   - Add warning about stubbed effect types
+3. **Update Integration Checklist**
    - Document AoE property location ambiguity
 
-6. **Create JSON Schema**
+4. **Create JSON Schema**
    - Generate from TypeScript types
    - Add to validation pipeline
    - Enable VSCode autocomplete

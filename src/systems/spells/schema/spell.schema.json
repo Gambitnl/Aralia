@@ -1,0 +1,373 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Spell",
+  "description": "A spell in the Aralia RPG system",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "level": {
+      "type": "number"
+    },
+    "school": {
+      "type": "string"
+    },
+    "classes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ritual": {
+      "type": "boolean"
+    },
+    "rarity": {
+      "type": "string",
+      "enum": ["common", "uncommon", "rare", "very_rare", "legendary"]
+    },
+    "castingTime": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "enum": ["action", "bonus_action", "reaction", "minute", "hour", "special"]
+        },
+        "combatCost": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["action", "bonus_action", "reaction"]
+            },
+            "condition": {
+              "type": "string"
+            }
+          }
+        },
+        "explorationCost": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "number"
+            },
+            "unit": {
+              "type": "string",
+              "enum": ["minute", "hour"]
+            }
+          }
+        }
+      }
+    },
+    "range": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["self", "touch", "ranged", "special"]
+        },
+        "distance": {
+          "type": "number"
+        }
+      }
+    },
+    "components": {
+      "type": "object",
+      "properties": {
+        "verbal": {
+          "type": "boolean"
+        },
+        "somatic": {
+          "type": "boolean"
+        },
+        "material": {
+          "type": "boolean"
+        },
+        "materialDescription": {
+          "type": "string"
+        },
+        "materialCost": {
+          "type": "number"
+        },
+        "isConsumed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "duration": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["instantaneous", "timed", "special", "until_dispelled", "until_dispelled_or_triggered"]
+        },
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string",
+          "enum": ["round", "minute", "hour", "day"]
+        },
+        "concentration": {
+          "type": "boolean"
+        }
+      }
+    },
+    "targeting": {
+      "type": "object"
+    },
+    "effects": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/definitions/DamageEffect"
+          },
+          {
+            "$ref": "#/definitions/HealingEffect"
+          },
+          {
+            "$ref": "#/definitions/StatusConditionEffect"
+          },
+          {
+            "$ref": "#/definitions/MovementEffect"
+          },
+          {
+            "$ref": "#/definitions/SummoningEffect"
+          },
+          {
+            "$ref": "#/definitions/TerrainEffect"
+          },
+          {
+            "$ref": "#/definitions/UtilityEffect"
+          },
+          {
+            "$ref": "#/definitions/DefensiveEffect"
+          }
+        ]
+      }
+    },
+    "arbitrationType": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "higherLevels": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": ["id", "name", "level", "school", "classes", "castingTime", "range", "components", "duration", "targeting", "effects", "description"],
+  "definitions": {
+    "DamageEffect": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "DAMAGE"
+        },
+        "damage": {
+            "type": "object",
+            "properties": {
+                "dice": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            },
+            "required": ["dice", "type"]
+        }
+      },
+      "required": ["type", "damage"]
+    },
+    "HealingEffect": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "HEALING"
+        },
+        "healing": {
+            "type": "object",
+            "properties": {
+                "dice": {
+                    "type": "string"
+                },
+                "isTemporaryHp": {
+                    "type": "boolean"
+                }
+            },
+            "required": ["dice"]
+        }
+      },
+      "required": ["type", "healing"]
+    },
+    "StatusConditionEffect": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "STATUS_CONDITION"
+        },
+        "statusCondition": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "object"
+                },
+                "level": {
+                    "type": "number"
+                }
+            },
+            "required": ["name", "duration"]
+        }
+      },
+      "required": ["type", "statusCondition"]
+    },
+    "MovementEffect": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "MOVEMENT"
+        },
+        "movementType": {
+          "type": "string",
+          "enum": ["push", "pull", "teleport", "speed_change", "stop"]
+        },
+        "distance": {
+          "type": "number"
+        },
+        "speedChange": {
+          "type": "object",
+          "properties": {
+            "stat": {
+              "type": "string",
+              "const": "speed"
+            },
+            "value": {
+              "type": "number"
+            },
+            "unit": {
+              "type": "string",
+              "const": "feet"
+            }
+          }
+        },
+        "duration": {
+          "type": "object"
+        }
+      },
+      "required": ["type", "movementType", "duration"]
+    },
+    "SummoningEffect": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "SUMMONING"
+        },
+        "summonType": {
+          "type": "string",
+          "enum": ["creature", "object"]
+        },
+        "creatureId": {
+          "type": "string"
+        },
+        "objectDescription": {
+          "type": "string"
+        },
+        "count": {
+          "type": "number"
+        },
+        "duration": {
+          "type": "object"
+        }
+      },
+      "required": ["type", "summonType", "count", "duration"]
+    },
+    "TerrainEffect": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "TERRAIN"
+        },
+        "terrainType": {
+          "type": "string",
+          "enum": ["difficult", "obscuring", "damaging", "blocking", "wall"]
+        },
+        "areaOfEffect": {
+          "type": "object"
+        },
+        "duration": {
+          "type": "object"
+        },
+        "damage": {
+          "type": "object"
+        },
+        "wallProperties": {
+          "type": "object"
+        }
+      },
+      "required": ["type", "terrainType", "areaOfEffect", "duration"]
+    },
+    "UtilityEffect": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "UTILITY"
+        },
+        "utilityType": {
+          "type": "string",
+          "enum": ["light", "communication", "creation", "information", "control", "sensory", "other"]
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": ["type", "utilityType", "description"]
+    },
+    "DefensiveEffect": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "DEFENSIVE"
+        },
+        "defenseType": {
+          "type": "string",
+          "enum": ["ac_bonus", "resistance", "immunity", "temporary_hp", "advantage_on_saves"]
+        },
+        "value": {
+          "type": "number"
+        },
+        "damageType": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "savingThrow": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "duration": {
+          "type": "object"
+        }
+      },
+      "required": ["type", "defenseType", "duration"]
+    }
+  }
+}
