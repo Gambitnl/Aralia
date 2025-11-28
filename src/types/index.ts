@@ -10,6 +10,8 @@ import type { VillageTileType } from '../services/villageGenerator';
 
 export type { CombatCharacter, CharacterStats };
 
+export * from './spells';
+
 export enum GamePhase {
   MAIN_MENU,
   CHARACTER_CREATION,
@@ -153,48 +155,6 @@ export type DraconicDamageType =
 export interface DraconicAncestryInfo {
   type: DraconicAncestorType;
   damageType: DraconicDamageType;
-}
-
-export interface SpellEffect {
-  type: string;
-  damage?: {
-    dice: string;
-    type: string;
-  };
-  healing?: {
-    dice?: string;
-    special?: string;
-  };
-  attack?: {
-    type: string;
-  };
-  areaOfEffect?: {
-    shape: string;
-    size: number;
-  };
-  special?: string;
-}
-
-export interface Spell {
-  id: string;
-  name: string;
-  level: number;
-  description: string;
-  school?: string;
-  castingTime?: string | { value: number; unit: string };
-  range?: string | { type: string; distance?: number };
-  components?: {
-    verbal?: boolean;
-    somatic?: boolean;
-    material?: boolean;
-    materialDescription?: string;
-  };
-  duration?: string | { value: number | null; unit: string; concentration?: boolean };
-  higherLevelsDescription?: string;
-  classes?: string[];
-  tags?: string[];
-  effects?: SpellEffect[];
-  areaOfEffect?: { shape: string; size: number };
 }
 
 export interface ClassFeature {
