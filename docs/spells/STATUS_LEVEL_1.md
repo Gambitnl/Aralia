@@ -1,75 +1,75 @@
 # Spell Integration Status: Level 1
 
-**Legend:**
-*   🟢 **Gold (Structured)**: JSON has `effects` array. Engine uses precise data.
-*   🟡 **Silver (Inferred)**: `spellAbilityFactory` regex-parses description for damage/saves.
-*   ⚪ **Bronze (Metadata)**: Basic metadata only. No mechanical execution.
+This file tracks the migration of Level 1 spells to the new component-based spell system defined in `src/types/spells.ts`.
 
-| Spell | Mechanics | Narrative Support | Notes |
-| :--- | :--- | :--- | :--- |
-| **Absorb Elements** | ⚪ Bronze | ❌ None | Reaction |
-| **Alarm** | ⚪ Bronze | 🟡 Basic | Long rest interruption logic |
-| **Animal Friendship** | ⚪ Bronze | 🟡 Basic | Social (Beast) |
-| **Armor of Agathys** | ⚪ Bronze | ❌ None | Temp HP/Thorns |
-| **Arms of Hadar** | ⚪ Bronze | ❌ None | AoE Self |
-| **Bane** | 🟢 Gold | ❌ None | Debuff (d4 subtraction) |
-| **Bless** | 🟢 Gold | ❌ None | Buff (d4 addition) |
-| **Burning Hands** | 🟢 Gold | ❌ None | |
-| **Catapult** | ⚪ Bronze | ❌ None | Line physics |
-| **Charm Person** | ⚪ Bronze | 🟡 Basic | Social Disposition set to Friendly |
-| **Chromatic Orb** | 🟡 Silver | ❌ None | Dmg type selection |
-| **Color Spray** | ⚪ Bronze | ❌ None | HP threshold |
-| **Command** | ⚪ Bronze | 🟡 Basic | One-word NLP parsing |
-| **Compelled Duel** | ⚪ Bronze | ❌ None | Aggro logic |
-| **Comprehend Languages** | ⚪ Bronze | 🟡 Basic | Gemini translation prompt |
-| **Create or Destroy Water** | ⚪ Bronze | 🟡 Basic | Survival logic |
-| **Cure Wounds** | 🟢 Gold | ❌ None | Healing |
-| **Detect Evil and Good** | ⚪ Bronze | 🟡 Basic | Radar/Compass update |
-| **Detect Magic** | ⚪ Bronze | 🟡 Basic | Highlight interactive objects |
-| **Detect Poison and Disease** | ⚪ Bronze | 🟡 Basic | |
-| **Disguise Self** | 🟢 Gold | 🟡 Basic | NPC Suspicion System bypass |
-| **Dissonant Whispers** | 🟡 Silver | ❌ None | Forced move |
-| **Divine Favor** | 🟡 Silver | ❌ None | Buff |
-| **Divine Smite** | ⚪ Bronze | ❌ None | On-hit trigger |
-| **Ensnaring Strike** | ⚪ Bronze | ❌ None | On-hit trigger |
-| **Entangle** | ⚪ Bronze | ❌ None | AoE Restrain |
-| **Expeditious Retreat** | ⚪ Bronze | ❌ None | Dash bonus |
-| **Faerie Fire** | ⚪ Bronze | ❌ None | Adv on attack |
-| **False Life** | 🟢 Gold | ❌ None | Temp HP |
-| **Feather Fall** | 🟢 Gold | 🟡 Basic | Exploration/Falling event |
-| **Find Familiar** | ⚪ Bronze | 🟡 Basic | Persistent pet entity |
-| **Fog Cloud** | ⚪ Bronze | ❌ None | LoS blocking |
-| **Grease** | ⚪ Bronze | ❌ None | Prone/Terrain |
-| **Guiding Bolt** | 🟢 Gold | ❌ None | Adv next attack |
-| **Hail of Thorns** | ⚪ Bronze | ❌ None | On-hit AoE |
-| **Healing Word** | 🟢 Gold | ❌ None | Bonus action heal |
-| **Hellish Rebuke** | 🟡 Silver | ❌ None | Reaction |
-| **Heroism** | 🟢 Gold | ❌ None | No fear + Temp HP |
-| **Hex** | 🟡 Silver | ❌ None | Bonus dmg trigger |
-| **Hunter's Mark** | 🟡 Silver | ❌ None | Bonus dmg trigger |
-| **Ice Knife** | 🟡 Silver | ❌ None | Attack + AoE |
-| **Identify** | ⚪ Bronze | 🟡 Basic | Reveal item stats |
-| **Illusory Script** | ⚪ Bronze | ❌ None | |
-| **Inflict Wounds** | 🟢 Gold | ❌ None | |
-| **Jump** | ⚪ Bronze | 🟡 Basic | Submap traversal |
-| **Longstrider** | ⚪ Bronze | ❌ None | Speed buff |
-| **Mage Armor** | 🟢 Gold | ❌ None | AC calc update |
-| **Magic Missile** | 🟢 Gold | ❌ None | Auto-hit logic |
-| **Protection from Evil/Good** | 🟢 Gold | ❌ None | Creature type logic |
-| **Purify Food and Drink** | 🟢 Gold | 🟡 Basic | Survival logic |
-| **Ray of Sickness** | 🟡 Silver | ❌ None | Poison cond |
-| **Sanctuary** | 🟢 Gold | ❌ None | Target redirect |
-| **Searing Smite** | 🟡 Silver | ❌ None | On-hit DoT |
-| **Shield** | 🟢 Gold | ❌ None | Reaction AC |
-| **Shield of Faith** | 🟢 Gold | ❌ None | AC Buff |
-| **Silent Image** | ⚪ Bronze | 🟡 Basic | Distraction/Stealth |
-| **Sleep** | 🟢 Gold | ❌ None | HP threshold |
-| **Snare** | ⚪ Bronze | ❌ None | Trap logic |
-| **Speak with Animals** | 🟢 Gold | 🟡 Basic | Unlock "Talk" for Beast NPCs |
-| **Tasha's Caustic Brew** | ⚪ Bronze | ❌ None | Line DoT |
-| **Tasha's Hideous Laughter** | ⚪ Bronze | ❌ None | Prone/Incap |
-| **Thunderous Smite** | 🟡 Silver | ❌ None | On-hit push |
-| **Thunderwave** | 🟢 Gold | ❌ None | Pushback |
-| **Unseen Servant** | ⚪ Bronze | 🟡 Basic | |
-| **Witch Bolt** | 🟡 Silver | ❌ None | Sustained dmg |
-| **Wrathful Smite** | 🟡 Silver | ❌ None | On-hit fear |
+**Legend:**
+*   `[ ] Pending`: Not yet assigned to a Jules task.
+*   `[x] In Progress`: Currently being worked on by Jules.
+*   `[x] Complete`: Migration to the new schema is complete.
+
+| Spell Name | ID | Migration Status | Jules Task ID | Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| Absorb Elements | absorb-elements | [ ] Pending | | |
+| Alarm | alarm | [ ] Pending | | |
+| Animal Friendship | animal-friendship | [ ] Pending | | |
+| Armor of Agathys | armor-of-agathys | [ ] Pending | | |
+| Arms of Hadar | arms-of-hadar | [ ] Pending | | |
+| Bane | bane | [ ] Pending | | |
+| Bless | bless | [ ] Pending | | |
+| Burning Hands | burning-hands | [ ] Pending | | |
+| Catapult | catapult | [ ] Pending | | |
+| Charm Person | charm-person | [ ] Pending | | |
+| Chromatic Orb | chromatic-orb | [ ] Pending | | |
+| Color Spray | color-spray | [ ] Pending | | |
+| Command | command | [ ] Pending | | |
+| Compelled Duel | compelled-duel | [ ] Pending | | |
+| Comprehend Languages | comprehend-languages | [ ] Pending | | |
+| Create or Destroy Water | create-or-destroy-water | [ ] Pending | | |
+| Cure Wounds | cure-wounds | [ ] Pending | | |
+| Detect Evil and Good | detect-evil-and-good | [ ] Pending | | |
+| Detect Magic | detect-magic | [ ] Pending | | |
+| Detect Poison and Disease | detect-poison-and-disease | [ ] Pending | | |
+| Disguise Self | disguise-self | [ ] Pending | | |
+| Dissonant Whispers | dissonant-whispers | [ ] Pending | | |
+| Divine Favor | divine-favor | [ ] Pending | | |
+| Ensnaring Strike | ensnaring-strike | [ ] Pending | | |
+| Entangle | entangle | [ ] Pending | | |
+| Expeditious Retreat | expeditious-retreat | [ ] Pending | | |
+| Faerie Fire | faerie-fire | [ ] Pending | | |
+| False Life | false-life | [ ] Pending | | |
+| Feather Fall | feather-fall | [ ] Pending | | |
+| Find Familiar | find-familiar | [ ] Pending | | |
+| Fog Cloud | fog-cloud | [ ] Pending | | |
+| Grease | grease | [ ] Pending | | |
+| Guiding Bolt | guiding-bolt | [ ] Pending | | |
+| Hail of Thorns | hail-of-thorns | [ ] Pending | | |
+| Healing Word | healing-word | [ ] Pending | | |
+| Hellish Rebuke | hellish-rebuke | [ ] Pending | | |
+| Heroism | heroism | [ ] Pending | | |
+| Hex | hex | [ ] Pending | | |
+| Hunters Mark | hunters-mark | [ ] Pending | | |
+| Ice Knife | ice-knife | [ ] Pending | | |
+| Identify | identify | [ ] Pending | | |
+| Illusory Script | illusory-script | [ ] Pending | | |
+| Inflict Wounds | inflict-wounds | [ ] Pending | | |
+| Jump | jump | [ ] Pending | | |
+| Longstrider | longstrider | [ ] Pending | | |
+| Mage Armor | mage-armor | [ ] Pending | | |
+| Magic Missile | magic-missile | [ ] Pending | | |
+| Protection from Evil and Good | protection-from-evil-and-good | [ ] Pending | | |
+| Purify Food and Drink | purify-food-and-drink | [ ] Pending | | |
+| Ray of Sickness | ray-of-sickness | [ ] Pending | | |
+| Sanctuary | sanctuary | [ ] Pending | | |
+| Searing Smite | searing-smite | [ ] Pending | | |
+| Shield | shield | [ ] Pending | | |
+| Shield of Faith | shield-of-faith | [ ] Pending | | |
+| Silent Image | silent-image | [ ] Pending | | |
+| Sleep | sleep | [ ] Pending | | |
+| Snare | snare | [ ] Pending | | |
+| Speak with Animals | speak-with-animals | [ ] Pending | | |
+| Tashas Hideous Laughter | tashas-hideous-laughter | [ ] Pending | | |
+| Thunderous Smite | thunderous-smite | [ ] Pending | | |
+| Thunderwave | thunderwave | [ ] Pending | | |
+| Unseen Servant | unseen-servant | [ ] Pending | | |
+| Witch Bolt | witch-bolt | [ ] Pending | | |
+| Wrathful Smite | wrathful-smite | [ ] Pending | | |
