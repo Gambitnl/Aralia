@@ -110,7 +110,7 @@ The factory function `createAbilityFromSpell()` uses these spell fields:
 
 **Casting Time**:
 - `spell.castingTime.unit` → Maps to `cost.type` (action/bonus/reaction)
-- `spell.castingTime.combatCost.type` → Tactical combat cost
+- `spell.castingTime.combatCost` → Tactical combat cost
 - `spell.level` → `cost.spellSlotLevel`
 
 **Range**:
