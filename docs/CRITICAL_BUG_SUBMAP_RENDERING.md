@@ -1,13 +1,3 @@
-# CRITICAL BUG REPORT: Submap Rendering Failure
-**Date Discovered:** 2025-11-28 17:09 CET  
-**Severity:** 🔴 **CRITICAL** - Game-breaking  
-**Status:** �� Active in Production  
-**Affects:** https://gambitnl.github.io/Aralia/
-
----
-
-## 🚨 Bug Description
-
 **Error Message:**
 ```
 TypeError: Cannot read properties of undefined (reading 'canvas')

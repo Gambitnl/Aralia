@@ -199,7 +199,14 @@ const SubmapRendererPixi: React.FC<SubmapRendererPixiProps> = ({
         antialias: true,
       });
       appRef.current = app;
-      canvasRef.current.appendChild(app.view as HTMLCanvasElement);
+
+      // PixiJS v8 uses 'canvas' instead of 'view' - check both for compatibility
+      const canvasElement = (app.canvas || app.view) as HTMLCanvasElement;
+      if (canvasElement) {
+        canvasRef.current.appendChild(canvasElement);
+      } else {
+        console.error('PixiJS: Unable to get canvas element from application');
+      }
     }
 
     return () => {
