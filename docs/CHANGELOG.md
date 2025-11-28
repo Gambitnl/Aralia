@@ -1,15 +1,3 @@
-# Changelog
-
-All notable changes to the Aralia RPG project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) (though it's pre-1.0.0, so API is subject to change).
-
-## 04:57:30 PM - Monday, July 21, 2025
-### Added
-*   **Planning**: Added a detailed implementation plan for the "Location Adjacency Model" to the `NPC_GOSSIP_SYSTEM_GUIDE.md`. This feature will allow gossip to spread between connected game locations. See the [Living NPC Changelog](./changelogs/LIVING_NPC_CHANGELOG.md) for details.
-
-## 04:48:08 PM - Monday, July 21, 2025
 ### Added
 *   **Feature**: Completed the "Living NPC" System. This major feature set includes NPC memory, gossip, reputation management, discoverable evidence ("Event Residue"), and dynamic triggers. The final piece, "Consequence Linking," was added to the Discovery Journal to make the social simulation's effects visible to the player.
 *   **Details**: For a complete list of changes, see the new [Living NPC Changelog](./changelogs/LIVING_NPC_CHANGELOG.md).
