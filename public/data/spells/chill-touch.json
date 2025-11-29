@@ -1,16 +1,68 @@
-
 {
   "id": "chill-touch",
   "name": "Chill Touch",
   "level": 0,
   "school": "Necromancy",
-  "castingTime": "1 Action",
-  "range": "120 feet",
+  "classes": ["Sorcerer", "Warlock", "Wizard"],
+  "description": "You create a ghostly, skeletal hand in the space of a creature within range. Make a ranged spell attack against the creature to assail it with the chill of the grave. On a hit, the target takes 1d8 necrotic damage, and it can’t regain hit points until the start of your next turn. Until then, the hand clings to the target. If you hit an undead target, it also has disadvantage on attack rolls against you until the end of your next turn.",
+  "higherLevels": "This spell’s damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).",
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 120
+  },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": false
   },
-  "duration": "1 Round",
-  "description": "You create a ghostly, skeletal hand in the space of a creature within range. Make a ranged spell attack against the creature to assail it with the chill of the grave."
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "round",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 120,
+    "validTargets": ["creatures"]
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "hit" },
+      "damage": {
+        "dice": "1d8",
+        "type": "Necrotic"
+      },
+      "scaling": {
+        "type": "character_level",
+        "formula": "1d8",
+        "levels": [5, 11, 17]
+      }
+    },
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "after_primary" },
+      "condition": { "type": "hit" },
+      "utilityType": "control",
+      "description": "The target can't regain hit points until the start of your next turn."
+    },
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "after_primary" },
+      "condition": { "type": "hit" },
+      "utilityType": "control",
+      "description": "If the target is undead, it has disadvantage on attack rolls against you until the end of your next turn."
+    }
+  ],
+  "arbitrationType": "mechanical"
 }
