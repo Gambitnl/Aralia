@@ -190,24 +190,37 @@ const SubmapRendererPixi: React.FC<SubmapRendererPixiProps> = ({
   ]);
 
   useEffect(() => {
-    // Initialize Pixi once on mount so the WebGL context is stable across prop changes.
+    // Initialize Pixi once on mount - PixiJS v8 requires async initialization
     if (canvasRef.current && !appRef.current) {
-      const app = new PIXI.Application({
-        width: dimensions.cols * TILE_SIZE,
-        height: dimensions.rows * TILE_SIZE,
-        background: '#0b0b0b',
-        antialias: true,
-      });
-      appRef.current = app;
-      canvasRef.current.appendChild(app.view as HTMLCanvasElement);
+      (async () => {
+        try {
+          const app = new PIXI.Application();
+          await app.init({
+            width: dimensions.cols * TILE_SIZE,
+            height: dimensions.rows * TILE_SIZE,
+            background: '#0b0b0b',
+            antialias: true,
+          });
+
+          appRef.current = app;
+
+          // PixiJS v8 uses 'canvas' property
+          if (app.canvas && canvasRef.current) {
+            canvasRef.current.appendChild(app.canvas);
+          } else {
+            console.error('PixiJS: Unable to get canvas element from application');
+          }
+        } catch (error) {
+          console.error('PixiJS initialization error:', error);
+        }
+      })();
     }
 
     return () => {
-      // Destroy on unmount only; avoids recreating the WebGL context on every prop change.
+      // Destroy on unmount only
       appRef.current?.destroy(true, true);
       appRef.current = null;
     };
-    // We intentionally leave dependencies empty so initialization/cleanup only run once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
