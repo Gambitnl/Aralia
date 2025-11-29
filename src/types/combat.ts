@@ -164,6 +164,7 @@ export interface CombatState {
     affectedTiles: Position[];
     ability: Ability;
   };
+  combatLog: CombatLogEntry[];
 }
 
 export interface Animation {

@@ -5,10 +5,10 @@
  * used throughout the Aralia RPG application.
  */
 import React from 'react';
-import { CombatCharacter, CharacterStats } from './combat'; // Adjusted import path for sibling file
+import { CombatCharacter, CharacterStats, Position, CombatState } from './combat'; // Adjusted import path for sibling file
 import type { VillageTileType } from '../services/villageGenerator';
 
-export type { CombatCharacter, CharacterStats };
+export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 export * from './spells';
 
