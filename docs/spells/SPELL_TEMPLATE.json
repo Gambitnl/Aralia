@@ -1,0 +1,298 @@
+{
+  "// COMMENT": "This is the COMPLETE spell template showing ALL possible fields",
+  "// COMMENT": "Not all fields are required for every spell - see individual field comments",
+
+  "id": "spell-id-kebab-case",
+  "name": "Spell Name",
+  "level": 0,
+  "school": "Evocation",
+  "classes": ["ARTIFICER", "BARD", "CLERIC", "DRUID", "PALADIN", "RANGER", "SORCERER", "WARLOCK", "WIZARD"],
+  "description": "Full text description of what the spell does.",
+  "higherLevels": "Optional: Description of what happens when cast at higher levels",
+  "tags": ["optional", "array", "of", "tags"],
+  "ritual": false,
+  "rarity": "common",
+
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "reactionCondition": "Optional: only for reaction spells - e.g., 'when you are hit by an attack'",
+    "combatCost": {
+      "type": "action",
+      "condition": "Optional: same as reactionCondition for reactions"
+    },
+    "explorationCost": {
+      "value": 11,
+      "unit": "minute"
+    }
+  },
+
+  "range": {
+    "type": "ranged",
+    "distance": 120
+  },
+
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": "Optional: text description of material components",
+    "materialCost": 10,
+    "isConsumed": true
+  },
+
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": false
+  },
+
+  "targeting": {
+    "// COMMENT": "Choose ONE targeting type: single, multi, area, self, or hybrid",
+
+    "// OPTION 1: Single Target": {
+      "type": "single",
+      "range": 120,
+      "validTargets": ["creatures", "objects"],
+      "lineOfSight": true
+    },
+
+    "// OPTION 2: Multi Target": {
+      "type": "multi",
+      "range": 120,
+      "maxTargets": 3,
+      "validTargets": ["creatures"],
+      "lineOfSight": true
+    },
+
+    "// OPTION 3: Area Target": {
+      "type": "area",
+      "range": 60,
+      "validTargets": ["creatures"],
+      "lineOfSight": true,
+      "areaOfEffect": {
+        "shape": "Sphere",
+        "size": 20
+      }
+    },
+
+    "// OPTION 4: Self": {
+      "type": "self",
+      "validTargets": ["self"],
+      "lineOfSight": false
+    },
+
+    "// OPTION 5: Hybrid (primary + secondary)": {
+      "type": "hybrid",
+      "validTargets": ["creatures"],
+      "lineOfSight": true,
+      "primary": {
+        "type": "single",
+        "range": 60,
+        "validTargets": ["creatures"],
+        "lineOfSight": true
+      },
+      "secondary": {
+        "type": "area",
+        "range": 0,
+        "validTargets": ["creatures"],
+        "lineOfSight": false,
+        "areaOfEffect": {
+          "shape": "Sphere",
+          "size": 5
+        }
+      }
+    }
+  },
+
+  "effects": [
+    {
+      "// COMMENT": "ALL EFFECTS MUST HAVE trigger, condition, and optional scaling",
+      "// COMMENT": "Then add effect-specific fields based on type",
+
+      "// DAMAGE EFFECT EXAMPLE": {
+        "type": "DAMAGE",
+        "trigger": {
+          "type": "immediate"
+        },
+        "condition": {
+          "type": "hit"
+        },
+        "damage": {
+          "dice": "1d10",
+          "type": "Fire"
+        },
+        "scaling": {
+          "type": "character_level",
+          "bonusPerLevel": "+1d10",
+          "customFormula": "Optional: detailed scaling description"
+        }
+      },
+
+      "// DAMAGE WITH SAVE EXAMPLE": {
+        "type": "DAMAGE",
+        "trigger": {
+          "type": "immediate"
+        },
+        "condition": {
+          "type": "save",
+          "saveType": "Dexterity",
+          "saveEffect": "half"
+        },
+        "damage": {
+          "dice": "3d6",
+          "type": "Fire"
+        },
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "+1d6"
+        }
+      },
+
+      "// HEALING EFFECT EXAMPLE": {
+        "type": "HEALING",
+        "trigger": {
+          "type": "immediate"
+        },
+        "condition": {
+          "type": "always"
+        },
+        "healing": {
+          "dice": "1d8",
+          "isTemporaryHp": false
+        },
+        "scaling": {
+          "type": "slot_level",
+          "bonusPerLevel": "+1d8"
+        }
+      },
+
+      "// DEFENSIVE EFFECT (AC bonus) EXAMPLE": {
+        "type": "DEFENSIVE",
+        "trigger": {
+          "type": "immediate"
+        },
+        "condition": {
+          "type": "always"
+        },
+        "defenseType": "ac_bonus",
+        "value": 5,
+        "duration": {
+          "type": "rounds",
+          "value": 1
+        }
+      },
+
+      "// DEFENSIVE EFFECT (resistance) EXAMPLE": {
+        "type": "DEFENSIVE",
+        "trigger": {
+          "type": "immediate"
+        },
+        "condition": {
+          "type": "always"
+        },
+        "defenseType": "resistance",
+        "damageType": ["Fire", "Cold"],
+        "duration": {
+          "type": "rounds",
+          "value": 1
+        }
+      },
+
+      "// STATUS_CONDITION EFFECT EXAMPLE": {
+        "type": "STATUS_CONDITION",
+        "trigger": {
+          "type": "immediate"
+        },
+        "condition": {
+          "type": "save",
+          "saveType": "Wisdom",
+          "saveEffect": "negates_condition"
+        },
+        "statusCondition": {
+          "name": "Charmed",
+          "duration": {
+            "type": "minutes",
+            "value": 1
+          },
+          "level": 1
+        }
+      },
+
+      "// MOVEMENT EFFECT EXAMPLE": {
+        "type": "MOVEMENT",
+        "trigger": {
+          "type": "immediate"
+        },
+        "condition": {
+          "type": "save",
+          "saveType": "Strength",
+          "saveEffect": "none"
+        },
+        "movementType": "push",
+        "distance": 10,
+        "duration": {
+          "type": "special"
+        }
+      },
+
+      "// SUMMONING EFFECT EXAMPLE": {
+        "type": "SUMMONING",
+        "trigger": {
+          "type": "immediate"
+        },
+        "condition": {
+          "type": "always"
+        },
+        "summonType": "creature",
+        "creatureId": "familiar",
+        "count": 1,
+        "duration": {
+          "type": "special"
+        }
+      },
+
+      "// TERRAIN EFFECT EXAMPLE": {
+        "type": "TERRAIN",
+        "trigger": {
+          "type": "immediate"
+        },
+        "condition": {
+          "type": "always"
+        },
+        "terrainType": "difficult",
+        "areaOfEffect": {
+          "shape": "Sphere",
+          "size": 20
+        },
+        "duration": {
+          "type": "minutes",
+          "value": 10
+        },
+        "damage": {
+          "dice": "2d6",
+          "type": "Fire"
+        },
+        "wallProperties": {
+          "hp": 30,
+          "ac": 15
+        }
+      },
+
+      "// UTILITY EFFECT EXAMPLE": {
+        "type": "UTILITY",
+        "trigger": {
+          "type": "immediate"
+        },
+        "condition": {
+          "type": "always"
+        },
+        "utilityType": "light",
+        "description": "Text description of utility effect"
+      }
+    }
+  ],
+
+  "arbitrationType": "mechanical"
+}
