@@ -1,59 +1,57 @@
-
 {
   "id": "acid-splash",
   "name": "Acid Splash",
   "level": 0,
-  "school": "Evocation",
-  "classes": [
-    "ARTIFICER",
-    "SORCERER",
-    "WIZARD"
-  ],
-  "tags": [
-    "DAMAGE",
-    "ACID",
-    "CANTRIP",
-    "AOE"
-  ],
+  "school": "Conjuration",
+  "classes": ["Artificer", "Sorcerer", "Wizard"],
+  "description": "You hurl a bubble of acid. Choose one creature you can see within range, or choose two creatures you can see within range that are within 5 feet of each other. A target must succeed on a Dexterity saving throw or take 1d6 acid damage.",
+  "higherLevels": "This spell’s damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6).",
+  "ritual": false,
   "castingTime": {
     "value": 1,
-    "unit": "Action"
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
   },
   "range": {
-    "type": "Feet",
+    "type": "ranged",
     "distance": 60
   },
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false,
-    "materialDescription": null
+    "material": false
   },
   "duration": {
-    "value": null,
-    "unit": "Instantaneous",
+    "type": "instantaneous",
     "concentration": false
   },
-  "ritual": false,
-  "description": "You create an acidic bubble at a point within range, where it explodes in a 5-foot-radius Sphere. Each creature in that Sphere must succeed on a Dexterity saving throw or take 1d6 Acid damage.",
-  "higherLevelsDescription": "The damage increases by 1d6 when you reach levels 5 (2d6), 11 (3d6), and 17 (4d6).",
+  "targeting": {
+    "type": "multi",
+    "range": 60,
+    "maxTargets": 2,
+    "validTargets": ["creatures"],
+    "lineOfSight": true
+  },
   "effects": [
     {
-      "type": "Damage",
-      "saveRequired": "Dexterity",
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Dexterity",
+        "saveEffect": "none"
+      },
       "damage": {
         "dice": "1d6",
         "type": "Acid"
       },
-      "areaOfEffect": {
-        "shape": "Sphere",
-        "size": 5
-      },
-      "special": "Targets must succeed on a Dexterity saving throw to avoid damage."
+      "scaling": {
+        "type": "character_level",
+        "bonusPerLevel": "+1d6"
+      }
     }
   ],
-  "engineHook": {
-    "isImplemented": false,
-    "notes": "Requires area of effect targeting and a save-for-damage mechanic."
-  }
+  "arbitrationType": "mechanical"
 }

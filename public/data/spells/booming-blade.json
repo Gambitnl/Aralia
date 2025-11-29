@@ -1,16 +1,66 @@
-
 {
   "id": "booming-blade",
   "name": "Booming Blade",
   "level": 0,
   "school": "Evocation",
-  "castingTime": "1 Action",
-  "range": "Self (5-foot radius)",
+  "classes": ["Artificer", "Sorcerer", "Warlock", "Wizard"],
+  "description": "You brandish the weapon used in the spell’s casting and make a melee attack with it against one creature within 5 feet of you. On a hit, the target suffers the weapon attack’s normal effects and then becomes sheathed in booming energy until the start of your next turn. If the target willingly moves 5 feet or more before then, the target takes 1d8 thunder damage, and the spell ends.",
+  "higherLevels": "At 5th level, the melee attack deals an extra 1d8 thunder damage to the target on a hit, and the damage the target takes for moving increases to 2d8. Both damage rolls increase by 1d8 at 11th level (2d8 and 3d8) and again at 17th level (3d8 and 4d8).",
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 5
+  },
   "components": {
     "verbal": false,
     "somatic": true,
-    "material": true
+    "material": true,
+    "materialDescription": "a melee weapon worth at least 1 sp",
+    "materialCost": 0.1
   },
-  "duration": "1 Round",
-  "description": "As part of the action used to cast this spell, you must make a melee attack with a weapon against one creature within the spell's range, otherwise the spell fails. On a hit, the target suffers the attack's normal effects, and then becomes sheathed in booming energy until the start of your next turn."
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "round",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 5,
+    "validTargets": ["creatures"]
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "hit" },
+      "utilityType": "control",
+      "description": "As part of the action used to cast this spell, you must make a melee weapon attack against one creature within the spell's range, otherwise the spell fails. On a hit, the target suffers the normal effects of the attack and is sheathed in booming energy."
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "after_primary" },
+      "condition": {
+        "type": "always",
+        "saveEffect": "none"
+      },
+      "damage": {
+        "dice": "1d8",
+        "type": "Thunder"
+      },
+      "description": "This damage is triggered if the target willingly moves 5 feet or more before the start of your next turn. The spell ends after the damage is dealt.",
+      "scaling": {
+        "type": "character_level",
+        "bonusPerLevel": "+1d8"
+      }
+    }
+  ],
+  "arbitrationType": "ai_assisted"
 }

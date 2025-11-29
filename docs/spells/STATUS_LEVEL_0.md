@@ -17,11 +17,11 @@ This file tracks the migration of Cantrips (Level 0 spells) to the new component
 
 | Spell Name | ID | Migration Status | Integration Status | Jules Task ID | Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Acid Splash | acid-splash | [ ] Pending | [ ] Not Started | | Data: JSON file creation. Integration: Creator + Sheet + Combat + Glossary |
-| Blade Ward | blade-ward | [ ] Pending | [ ] Not Started | | Defensive buff cantrip |
-| Booming Blade | booming-blade | [ ] Pending | [ ] Not Started | | Melee weapon + spell attack |
-| Chill Touch | chill-touch | [ ] Pending | [ ] Not Started | | Necrotic damage + healing prevention |
-| Create Bonfire | create-bonfire | [ ] Pending | [ ] Not Started | | Concentration + area control |
+| Acid Splash | acid-splash | [D] Data Only | [ ] Not Started | | Data: JSON file creation. Integration: Creator + Sheet + Combat + Glossary |
+| Blade Ward | blade-ward | [D] Data Only | [ ] Not Started | | Defensive buff cantrip |
+| Booming Blade | booming-blade | [D] Data Only | [ ] Not Started | | Melee weapon + spell attack |
+| Chill Touch | chill-touch | [D] Data Only | [ ] Not Started | | Necrotic damage + healing prevention |
+| Create Bonfire | create-bonfire | [D] Data Only | [ ] Not Started | | Concentration + area control |
 | Dancing Lights | dancing-lights | [ ] Pending | [ ] Not Started | | Utility/light source |
 | Druidcraft | druidcraft | [ ] Pending | [ ] Not Started | | Utility cantrip |
 | Eldritch Blast | eldritch-blast | [ ] Pending | [ ] Not Started | | Warlock signature spell |
