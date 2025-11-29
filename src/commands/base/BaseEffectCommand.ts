@@ -1,7 +1,7 @@
 import { SpellCommand, CommandMetadata, CommandContext } from './SpellCommand'
 import { SpellEffect } from '@/types/spells'
 import { CombatState, CombatCharacter, CombatLogEntry } from '@/types/combat'
-import { generateId } from '@/utils/idGenerator'
+import { generateId } from '../../utils/idGenerator'
 
 export abstract class BaseEffectCommand implements SpellCommand {
   public readonly id: string

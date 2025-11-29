@@ -9,8 +9,12 @@ import {
   Position,
   AreaOfEffect,
   CombatAction,
-  BattleMapData
+  BattleMapData,
+  CombatState,
+  CombatLogEntry
 } from '../types/combat';
+import { Spell } from '../types/spells'; // Import Spell type
+import { SpellCommandFactory, CommandExecutor } from '../commands'; // Import Command System
 import { getDistance, calculateDamage, generateId } from '../utils/combatUtils';
 import { hasLineOfSight } from '../utils/lineOfSight';
 
@@ -20,6 +24,7 @@ interface UseAbilitySystemProps {
   onExecuteAction: (action: CombatAction) => boolean;
   onCharacterUpdate: (character: CombatCharacter) => void;
   onAbilityEffect?: (value: number, position: Position, type: 'damage' | 'heal' | 'miss') => void;
+  onLogEntry?: (entry: CombatLogEntry) => void; // Added for Command Pattern logging
 }
 
 export const useAbilitySystem = ({
@@ -27,7 +32,8 @@ export const useAbilitySystem = ({
   mapData,
   onExecuteAction,
   onCharacterUpdate,
-  onAbilityEffect
+  onAbilityEffect,
+  onLogEntry
 }: UseAbilitySystemProps) => {
   const [selectedAbility, setSelectedAbility] = useState<Ability | null>(null);
   const [targetingMode, setTargetingMode] = useState<boolean>(false);
@@ -36,6 +42,90 @@ export const useAbilitySystem = ({
     affectedTiles: Position[];
     ability: Ability;
   } | null>(null);
+  
+  // ... (legacy code)
+
+  // --- Command Pattern Integration ---
+  const executeSpell = useCallback((
+    spell: Spell,
+    caster: CombatCharacter,
+    targets: CombatCharacter[],
+    castAtLevel: number
+  ) => {
+    // 1. Construct temporary CombatState
+    const currentState: CombatState = {
+      isActive: true,
+      characters: characters,
+      turnState: {} as any, // Mock, commands usually don't read this
+      selectedCharacterId: null,
+      selectedAbilityId: null,
+      actionMode: 'select',
+      validTargets: [],
+      validMoves: [],
+      combatLog: [] // Start empty to capture new entries
+    };
+
+    // 2. Create Commands
+    // We assume GameState isn't critical for basic effects yet, or we'd need to pass it in.
+    // For now, we mock what's needed or pass a minimal object.
+    const mockGameState: any = {
+       // Add necessary GameState fields if factory needs them
+    };
+
+    const commands = SpellCommandFactory.createCommands(
+        spell, 
+        caster, 
+        targets, 
+        castAtLevel, 
+        mockGameState
+    );
+
+    // 3. Execute
+    const result = CommandExecutor.execute(commands, currentState);
+
+    if (result.success) {
+        // 4. Propagate State Changes
+        result.finalState.characters.forEach(finalChar => {
+            // Simple check if changed (reference equality might fail if deep cloned, 
+            // but BaseEffectCommand updates by mapping)
+            // We should probably just update any character involved in the command.
+            // Or comparing JSON stringify if we want to be sure.
+            // For now, update all targets + caster to be safe.
+            const isTarget = targets.some(t => t.id === finalChar.id);
+            const isCaster = caster.id === finalChar.id;
+            
+            if (isTarget || isCaster) {
+                 onCharacterUpdate(finalChar);
+            }
+        });
+
+        // 5. Propagate Log Entries
+        if (onLogEntry) {
+            result.finalState.combatLog.forEach(entry => onLogEntry(entry));
+        }
+        
+        // 6. Trigger Animations (Optional / TODO)
+        // We could iterate result.executedCommands and trigger visual effects
+    } else {
+        console.error("Spell execution failed:", result.error);
+    }
+  }, [characters, onCharacterUpdate, onLogEntry]);
+
+  // ... (rest of legacy code)
+
+  return {
+    selectedAbility,
+    targetingMode,
+    aoePreview,
+    getValidTargets,
+    startTargeting,
+    selectTarget,
+    cancelTargeting,
+    previewAoE,
+    isValidTarget,
+    executeSpell // Export new function
+  };
+};
   
   const getCharacterAtPosition = useCallback((position: Position): CombatCharacter | null => {
     return characters.find(char => 
