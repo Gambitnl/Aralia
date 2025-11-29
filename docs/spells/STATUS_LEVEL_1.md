@@ -9,11 +9,11 @@ This file tracks the migration of Level 1 spells to the new component-based spel
 
 | Spell Name | ID | Migration Status | Jules Task ID | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| Absorb Elements | absorb-elements | [ ] Pending | | |
-| Alarm | alarm | [ ] Pending | | |
-| Animal Friendship | animal-friendship | [ ] Pending | | |
-| Armor of Agathys | armor-of-agathys | [ ] Pending | | |
-| Arms of Hadar | arms-of-hadar | [ ] Pending | | |
+| Absorb Elements | absorb-elements | [D] Data Only | | |
+| Alarm | alarm | [D] Data Only | | |
+| Animal Friendship | animal-friendship | [D] Data Only | | |
+| Armor of Agathys | armor-of-agathys | [D] Data Only | | |
+| Arms of Hadar | arms-of-hadar | [D] Data Only | | |
 | Bane | bane | [ ] Pending | | |
 | Bless | bless | [ ] Pending | | |
 | Burning Hands | burning-hands | [ ] Pending | | |
