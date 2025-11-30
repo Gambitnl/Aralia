@@ -25,8 +25,9 @@ When a doc is retired, it gets the `~` marker and is logged in [RETIRED-DOCS.md]
 |--------|----------|----------|---------|--------|
 | 1A | Project Master Springboard | `docs/tasks/spell-system-overhaul/` | Nov 30, 2025 | Active |
 | 1B | Spell Migration Roadmap | `docs/tasks/spell-system-overhaul/` | Nov 30, 2025 | Active |
+| 1C | Version Display & Package Fix | `docs/tasks/spell-system-overhaul/` | Nov 30, 2025 | Active |
 
-**Next available number**: `1C`
+**Next available number**: `1D`
 
 ---
 
