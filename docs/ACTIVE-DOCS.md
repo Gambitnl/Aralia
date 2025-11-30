@@ -10,15 +10,15 @@
 
 ### Primary Documents
 
-1. **[1B-SPELL-MIGRATION-ROADMAP.md](./tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md)**
-   - High-level task breakdown (Phases 0-4)
-   - What to do next
-   - Questions to resolve
-
-2. **[1A-PROJECT-MASTER-SPRINGBOARD.md](./tasks/spell-system-overhaul/1A-PROJECT-MASTER-SPRINGBOARD.md)**
+1. **[1A-PROJECT-MASTER-SPRINGBOARD.md](./tasks/spell-system-overhaul/1A-PROJECT-MASTER-SPRINGBOARD.md)**
    - Current state overview
    - Infrastructure status
    - Known issues
+
+2. **[1B-SPELL-MIGRATION-ROADMAP.md](./tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md)**
+   - High-level task breakdown (Phases 0-4)
+   - What to do next
+   - Questions to resolve
 
 ---
 

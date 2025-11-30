@@ -67,29 +67,29 @@ One agent attempted to build Tasks 1-3 (Types, Targeting, Command Pattern) but l
 
 ### For ALL Agents - Read First
 
-1. **[THIS FILE - PROJECT-MASTER-SPRINGBOARD.md]** - You are here
-2. **[docs/spells/SPELL_JSON_EXAMPLES.md]** - Complete spell format examples (READ THIS for spell conversion!)
-3. **[docs/tasks/spell-system-overhaul/START-HERE.md]** - Original project overview
+1. **[THIS FILE - 1A-PROJECT-MASTER-SPRINGBOARD.md]** - You are here
+2. **[../../spells/SPELL_JSON_EXAMPLES.md]** - Complete spell format examples (READ THIS for spell conversion!)
+3. **[./START-HERE.md]** - Original project overview
 
 ### For Spell Conversion (Jules)
 
-4. **[JULES-WORKFLOW-CONSOLIDATED.md]** (New!) - Single source of truth for spell conversion workflow
-5. **[docs/spells/STATUS_LEVEL_0.md]** - Cantrip migration tracking
-6. **[docs/spells/STATUS_LEVEL_1.md]** - Level 1 spell migration tracking
+4. **[1C-JULES-WORKFLOW-CONSOLIDATED.md]** (To be created) - Single source of truth for spell conversion workflow
+5. **[../../spells/STATUS_LEVEL_0.md]** - Cantrip migration tracking
+6. **[../../spells/STATUS_LEVEL_1.md]** - Level 1 spell migration tracking
 
 ### For Infrastructure Implementation
 
-7. **[docs/tasks/spell-system-overhaul/00-TASK-INDEX.md]** - Master task list with dependencies
-8. **[docs/tasks/spell-system-overhaul/00-PARALLEL-ARCHITECTURE.md]** - 5-agent parallel architecture
-9. **[docs/architecture/SPELL_SYSTEM_RESEARCH.md]** - Original architecture research
+7. **[./00-TASK-INDEX.md]** - Master task list with dependencies
+8. **[./00-PARALLEL-ARCHITECTURE.md]** - 5-agent parallel architecture
+9. **[../../architecture/SPELL_SYSTEM_RESEARCH.md]** - Original architecture research
 
 ### For Specific Agent Tasks
 
-10. **[AGENT-ALPHA-TYPES.md]** - Type system and validation
-11. **[AGENT-BETA-TARGETING.md]** - Targeting and AoE calculations
-12. **[AGENT-GAMMA-COMMANDS.md]** - Command pattern implementation
-13. **[AGENT-DELTA-MECHANICS.md]** - Game mechanics (saves, resistance, scaling)
-14. **[AGENT-EPSILON-AI.md]** - AI arbitration service
+10. **[./AGENT-ALPHA-TYPES.md]** - Type system and validation
+11. **[./AGENT-BETA-TARGETING.md]** - Targeting and AoE calculations
+12. **[./AGENT-GAMMA-COMMANDS.md]** - Command pattern implementation
+13. **[./AGENT-DELTA-MECHANICS.md]** - Game mechanics (saves, resistance, scaling)
+14. **[./AGENT-EPSILON-AI.md]** - AI arbitration service
 
 ---
 
@@ -117,7 +117,7 @@ One agent attempted to build Tasks 1-3 (Types, Targeting, Command Pattern) but l
 
 **Owner**: Jules (AI agent)
 **Status**: Active - Ready for new batch
-**Document**: [JULES-WORKFLOW-CONSOLIDATED.md]
+**Document**: [1C-JULES-WORKFLOW-CONSOLIDATED.md] (To be created)
 
 **Process**:
 1. Jules receives task: "Migrate 5 cantrips to new JSON format"
@@ -330,6 +330,6 @@ If you find conflicting information:
 ---
 
 **Ready to start? Pick your role:**
-- **Spell Conversion**: Read [JULES-WORKFLOW-CONSOLIDATED.md]
-- **Infrastructure**: Read [00-PARALLEL-ARCHITECTURE.md]
-- **Project Management**: Read [00-TASK-INDEX.md]
+- **Spell Conversion**: Read [1C-JULES-WORKFLOW-CONSOLIDATED.md] (To be created)
+- **Infrastructure**: Read [./00-PARALLEL-ARCHITECTURE.md]
+- **Project Management**: Read [./00-TASK-INDEX.md]

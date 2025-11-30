@@ -100,7 +100,7 @@ touch docs/tasks/spell-system-overhaul/1C-JULES-WORKFLOW.md
 
 **DO:**
 - ✅ Use descriptive names: `1C-JULES-WORKFLOW-CONSOLIDATED.md`
-- ✅ Use ALL-CAPS for emphasis: `1A-PROJECT-MASTER-SPRINGBOARD.md`
+- ✅ Use ALL-CAPS for the descriptive part of the filename: `1A-PROJECT-MASTER-SPRINGBOARD.md`
 - ✅ Use hyphens to separate words: `SPELL-MIGRATION-ROADMAP`
 - ✅ Be specific: `JULES-WORKFLOW` not just `WORKFLOW`
 
