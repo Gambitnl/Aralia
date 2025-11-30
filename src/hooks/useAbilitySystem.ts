@@ -113,20 +113,6 @@ export const useAbilitySystem = ({
 
   // ... (rest of legacy code)
 
-  return {
-    selectedAbility,
-    targetingMode,
-    aoePreview,
-    getValidTargets,
-    startTargeting,
-    selectTarget,
-    cancelTargeting,
-    previewAoE,
-    isValidTarget,
-    executeSpell // Export new function
-  };
-};
-  
   const getCharacterAtPosition = useCallback((position: Position): CombatCharacter | null => {
     return characters.find(char => 
       char.position.x === position.x && char.position.y === position.y
@@ -352,6 +338,7 @@ export const useAbilitySystem = ({
     selectTarget,
     cancelTargeting,
     previewAoE,
-    isValidTarget
+    isValidTarget,
+    executeSpell
   };
 };
