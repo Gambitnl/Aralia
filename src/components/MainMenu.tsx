@@ -10,6 +10,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import LoadGameModal from './LoadGameModal';
 import SaveSlotSelector from './SaveSlotSelector';
 import { deleteSaveGame, getSaveSlots, SaveSlotSummary } from '../services/saveLoadService';
+import { VersionDisplay } from './VersionDisplay';
 
 interface MainMenuProps {
   onNewGame: () => void;
@@ -165,6 +166,8 @@ const MainMenu: React.FC<MainMenuProps> = ({
           onClose={() => setIsLoadModalOpen(false)}
         />
       )}
+
+      <VersionDisplay position="main-menu" />
     </div>
   );
 };

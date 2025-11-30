@@ -1,0 +1,20 @@
+.version-display {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: monospace;
+  pointer-events: none;
+  user-select: none;
+}
+
+.top-left-subtle {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 1000;
+}
+
+.bottom-left-menu {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+}
