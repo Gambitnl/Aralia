@@ -22,7 +22,7 @@ When a document is no longer needed, it gets:
 
 | Number | Document | Retired Date | Reason |
 |--------|----------|--------------|--------|
-| *(none yet)* | | | |
+| 1C | [Version Display & Package Fix](./tasks/spell-system-overhaul/1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md) | Nov 30, 2025 | Task successfully implemented and committed |
 
 ---
 

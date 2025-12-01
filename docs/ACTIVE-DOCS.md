@@ -20,11 +20,6 @@
    - What to do next
    - Questions to resolve
 
-3. **[1C-VERSION-DISPLAY-AND-PACKAGE-FIX.md](./tasks/spell-system-overhaul/1C-VERSION-DISPLAY-AND-PACKAGE-FIX.md)**
-   - Fix package.json versioning
-   - Add version display to UI
-   - Ready to implement!
-
 ---
 
 ## Next Steps

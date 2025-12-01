@@ -6,11 +6,60 @@
 
 ---
 
+## Document Types
+
+### Static/Permanent Documents
+**Prefix**: `@`
+**Purpose**: Organizational files that don't track work
+**Examples**: Workflows, README files, naming conventions
+**Lifecycle**: No completion/retirement - always available for reference
+
+```
+@WORKFLOW-GUIDE.md
+@NAMING-CONVENTIONS.md
+@README.md
+```
+
+### Task Documents
+**Format**: `[NUMBER]-TASK-NAME.md`
+**Purpose**: Single, well-defined unit of work
+**Completion trigger**: When implementation is coded, tested, committed, and pushed
+**Lifecycle**: Active → Completed (tilde marker)
+
+```
+1C-VERSION-DISPLAY-AND-PACKAGE-FIX.md  →  1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md
+```
+
+### Project Documents
+**Format**: `[NUMBER]-PROJECT-NAME.md`
+**Purpose**: Overarching documents containing multiple tasks/phases
+**Completion trigger**: When ALL tasks within the project are complete
+**Lifecycle**: Active until entire project done
+
+```
+1A-PROJECT-MASTER-SPRINGBOARD.md  (stays active during entire spell project)
+1B-SPELL-MIGRATION-ROADMAP.md     (stays active until roadmap complete)
+```
+
+### Concept Documents
+**Format**: `[NUMBER]-CONCEPT-NAME.md`
+**Purpose**: Roadmap items, future considerations, design proposals
+**Completion trigger**: When implemented OR explicitly marked as abandoned
+**Lifecycle**: Active until decision made
+
+```
+1F-VERSION-REVIEW-AGENT-CONCEPT.md  (roadmap item, stays active)
+```
+
+---
+
 ## The Numbering System
 
-All active work documents use **sequential alphanumeric numbering**:
+All **work-tracking** documents use **sequential alphanumeric numbering**:
 
 `1A`, `1B`, `1C` ... `1Z` → `2A`, `2B`, `2C` ... `2Z` → `3A`, etc.
+
+**Static documents** use the `@` prefix and are **not numbered**.
 
 ### Format
 
@@ -67,32 +116,47 @@ touch docs/tasks/spell-system-overhaul/1C-JULES-WORKFLOW.md
 
 ---
 
-## Retiring a Document
+## Task Completion Procedure
 
-**When to retire:**
-- Work is complete and no longer actively referenced
-- Document was superseded by a better approach
-- Content was consolidated into another doc
-- Work was abandoned/deprioritized
+**For Task Documents** (single units of work):
 
-**Steps:**
+After implementation is coded, tested, committed, and pushed:
 
-1. **Rename** with tilde marker:
+1. **Rename immediately** with tilde marker:
    ```bash
-   mv 1C-JULES-WORKFLOW.md 1C~JULES-WORKFLOW.md
+   mv 1C-TASK-NAME.md 1C~TASK-NAME.md
    ```
 
 2. **Update DOC-REGISTRY.md**:
    - Move entry from "Active" to "Retired" section
+   - Add completion date
 
 3. **Log in RETIRED-DOCS.md**:
-   - Add to appropriate category (Archived/Abandoned/Obsolete/Duplicate)
-   - Include retirement reason
-   - Include date
+   - Add to "📦 Archived" category
+   - Include completion reason and date
 
 4. **Remove from ACTIVE-DOCS.md** if listed there
 
+**For Project Documents** (containing multiple tasks):
+
+Only retire when ALL tasks within the project are complete.
+
+**For Concept Documents**:
+
+Retire when implemented OR explicitly marked as abandoned.
+
 **Important**: Keep the number! Don't create gaps in the sequence.
+
+---
+
+## Retiring Other Documents
+
+**When to retire:**
+- Document was superseded by a better approach
+- Content was consolidated into another doc
+- Work was abandoned/deprioritized
+
+**Steps:** Same as task completion above, but choose appropriate category in RETIRED-DOCS.md (🚫 Abandoned, ⚠️ Obsolete, 📋 Duplicate)
 
 ---
 
@@ -106,9 +170,35 @@ touch docs/tasks/spell-system-overhaul/1C-JULES-WORKFLOW.md
 
 **DON'T:**
 - ❌ Use generic names: `1C-NOTES.md`
-- ❌ Use special characters: `1C-DOC!.md`, `1C-DOC*.md`
+- ❌ Use special characters beyond `@` and `~`: `1C-DOC!.md`, `1C-DOC*.md`
 - ❌ Skip numbers: If 1B exists, next must be 1C (not 1D)
 - ❌ Reuse numbers: Each number is used exactly once
+
+---
+
+## Folder Organization
+
+Each **project** gets its own subfolder under `docs/tasks/` with numbering that restarts at `1A`.
+
+```
+docs/tasks/
+  spell-system-overhaul/
+    1A-PROJECT-MASTER-SPRINGBOARD.md
+    1B-SPELL-MIGRATION-ROADMAP.md
+    1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md
+    @WORKFLOW-GUIDE.md                    ← Static file with @ prefix
+
+  character-refactor/                     ← Different project
+    1A-PROJECT-OVERVIEW.md                ← Numbering restarts at 1A
+    1B-IMPLEMENTATION-PLAN.md
+    @TESTING-CHECKLIST.md                 ← Static file
+```
+
+**Benefits:**
+- Clear project boundaries
+- Easier to navigate
+- Numbers stay small and manageable
+- Static organizational files clearly marked with `@`
 
 ---
 
