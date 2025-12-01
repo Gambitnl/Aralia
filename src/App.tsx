@@ -71,6 +71,7 @@ import LoadGameTransition from './components/LoadGameTransition';
 import { NotificationSystem } from './components/NotificationSystem';
 import QuestLog from './components/QuestLog';
 import Minimap from './components/Minimap';
+import { VersionDisplay } from './components/VersionDisplay';
 
 
 const App: React.FC = () => {
@@ -595,6 +596,7 @@ const App: React.FC = () => {
   } else if (gameState.phase === GamePhase.PLAYING && gameState.party.length > 0 && gameState.subMapCoordinates) {
     mainContent = (
       <div className="flex flex-col md:flex-row h-screen p-2 sm:p-4 gap-2 sm:gap-4 bg-gray-900 text-gray-200">
+        <VersionDisplay position="game-screen" />
         <div className="md:w-2/5 lg:w-1/3 flex flex-col gap-2 sm:gap-4 min-h-0">
           <ErrorBoundary fallbackMessage="Error in Compass Pane.">
             <CompassPane

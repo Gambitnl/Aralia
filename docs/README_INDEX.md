@@ -2,6 +2,25 @@
 
 This file serves as a central index for all README documentation within the Aralia RPG project. It helps in navigating and understanding the purpose of different documentation files.
 
+---
+
+## 🔥 Active Work (Start Here!)
+
+**New to the project or coming back after a break?**
+
+👉 **[ACTIVE-DOCS.md](./ACTIVE-DOCS.md)** - Your main entry point for current work
+
+**Documentation System:**
+- [DOC-REGISTRY.md](./DOC-REGISTRY.md) - Master list of all numbered docs
+- [DOC-NAMING-CONVENTIONS.md](./DOC-NAMING-CONVENTIONS.md) - How the numbering system works
+- [RETIRED-DOCS.md](./RETIRED-DOCS.md) - Archive of retired documents
+
+**All active work documents use sequential numbering:** `1A`, `1B`, `1C`...
+- Active: `1A-DOCUMENT-NAME.md`
+- Retired: `1A~DOCUMENT-NAME.md` (tilde marker)
+
+---
+
 ## Root Level (Now in `docs/`)
 
 *   **[`PROJECT_OVERVIEW.README.md`](./PROJECT_OVERVIEW.README.md)**: The main entry point for the project. Provides a high-level overview, core features, technology stack, setup instructions, project structure, and links to other key documents.

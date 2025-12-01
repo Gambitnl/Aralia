@@ -1,7 +1,7 @@
 {
-  "name": "aralia-rpg-v0.3.21-(village)",
+  "name": "aralia-rpg",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.4.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
