@@ -392,11 +392,11 @@ function evaluateAoEPlan(
 
     const healEffect = ability.effects.find(e => e.type === 'heal');
     const damageEffect = ability.effects.find(e => e.type === 'damage');
-    
+
     // For healing spells, we must only consider allies. For pure damage, only enemies.
     // Mixed spells will consider both but need careful target selection.
     const healableAllies = healEffect ? impactedAllies.filter(ally => ally.currentHP < ally.maxHP) : [];
-    
+
     // If it's a pure healing spell, it must have healable allies.
     if (healEffect && !damageEffect && healableAllies.length === 0) continue;
     // If it's a pure damage spell, it must have enemies.
@@ -434,7 +434,7 @@ function evaluateAoEPlan(
       if (healableAllies.length > 1) {
         score += (healableAllies.length - 1) * (WEIGHTS.AOE_MULTI_TARGET / 2);
       }
-      
+
       // NEW: Add a penalty for healing enemies if the spell has a healing component.
       // This prevents using an AoE heal offensively when enemies are in the blast zone.
       const healedEnemies = impactedEnemies.filter(e => e.currentHP < e.maxHP);

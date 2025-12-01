@@ -405,7 +405,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
 
             if (rewards && typeof rewards.xp === 'number') {
                 // Distribute XP evenly to all party members and process any resulting level ups.
-                const updatedParty = state.party.map((member) => 
+                const updatedParty = state.party.map((member) =>
                     applyXpAndHandleLevelUps(member, rewards.xp / state.party.length)
                 );
 
@@ -430,21 +430,21 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     inventory: [...newState.inventory, ...(rewards.items || [])],
                     messages: [
                         ...newState.messages,
-                        { 
-                            id: Date.now(), 
-                            text: `Victory! The party gained ${rewards.xp} XP and ${rewards.gold || 0} gold. ${itemsFoundMessage}`, 
-                            sender: 'system', 
-                            timestamp: new Date() 
+                        {
+                            id: Date.now(),
+                            text: `Victory! The party gained ${rewards.xp} XP and ${rewards.gold || 0} gold. ${itemsFoundMessage}`,
+                            sender: 'system',
+                            timestamp: new Date()
                         },
                         ...levelUpMessages,
                     ]
                 };
             } else {
-                newState.messages.push({ 
-                    id: Date.now(), 
-                    text: `The battle ends.`, 
-                    sender: 'system', 
-                    timestamp: new Date() 
+                newState.messages.push({
+                    id: Date.now(),
+                    text: `The battle ends.`,
+                    sender: 'system',
+                    timestamp: new Date()
                 });
             }
             return newState;
