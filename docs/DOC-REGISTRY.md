@@ -25,8 +25,20 @@ When a doc is retired, it gets the `~` marker and is logged in [RETIRED-DOCS.md]
 |--------|----------|----------|---------|--------|
 | 1A | Project Master Springboard | `docs/tasks/spell-system-overhaul/` | Nov 30, 2025 | Active |
 | 1B | Spell Migration Roadmap | `docs/tasks/spell-system-overhaul/` | Nov 30, 2025 | Active |
+| 1D | Archive Old Spell Docs | `docs/tasks/spell-system-overhaul/` | Nov 28, 2025 | Active |
+| 1E | Consolidate Jules Workflow | `docs/tasks/spell-system-overhaul/` | Nov 28, 2025 | Active |
+| 1F | Audit Spell Scope | `docs/tasks/spell-system-overhaul/` | Nov 28, 2025 | Active |
+| 1G | Reorganize Spell Files | `docs/tasks/spell-system-overhaul/` | Nov 28, 2025 | Active |
+| 1H | Create Glossary Template | `docs/tasks/spell-system-overhaul/` | Nov 28, 2025 | Active |
+| 1I | Migrate Cantrips Batch 1 | `docs/tasks/spell-system-overhaul/` | Nov 28, 2025 | Active |
+| 1A | Survey and Classification | `docs/tasks/documentation-cleanup/` | Nov 28, 2025 | Active |
+| 1B | Apply Prefix to Root Docs | `docs/tasks/documentation-cleanup/` | Nov 28, 2025 | Pending |
+| 1C | Archive Obsolete Docs | `docs/tasks/documentation-cleanup/` | Nov 28, 2025 | Pending |
+| 1D | Consolidate Duplicate Content | `docs/tasks/documentation-cleanup/` | Nov 28, 2025 | Pending |
+| 1E | Verify Doc Links | `docs/tasks/documentation-cleanup/` | Nov 28, 2025 | Pending |
+| 1F | Create System Status Report | `docs/tasks/documentation-cleanup/` | Nov 28, 2025 | Pending |
 
-**Next available number**: `1D`
+**Next available number**: `1J`
 
 ---
 

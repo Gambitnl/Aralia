@@ -4,62 +4,58 @@ This document outlines the established workflow for using the Gemini CLI agent i
 
 ## 1. Architecture Overview
 
-*   **Gemini CLI:** The "Orchestrator." Analyzes requirements, breaks down tasks, initiates Jules sessions, and reviews code.
-*   **Jules:** The "Worker." executing coding tasks asynchronously in parallel sessions.
-*   **The Bridge:** A local script (`scripts/watch_jules.cjs`) that monitors Jules task statuses and alerts the user/agent when attention is needed.
+*   **Gemini CLI:** The "Orchestrator." Analyzes requirements, defines precise prompt instructions, launches Jules sessions, and performs final conflict resolution on high-level documentation.
+*   **Jules:** The "Worker." Executes coding and documentation tasks asynchronously in parallel sessions. Responsible for implementation and testing.
 *   **GitHub:** The source of truth and collaboration platform.
 
-## 2. Task Initiation
+## 2. The "Strict Instruction" Protocol
 
-When identifying a complex task (e.g., from a `TODO` file), the Gemini Agent should:
+Jules requires precise, unambiguous instructions. "High-level concepts" lead to drift.
 
-1.  **Break it down:** Identify independent units of work that can run in parallel.
-2.  **Launch Sessions:** Use `jules new --repo <owner/repo> "<Detailed Instruction>"` for each unit.
-3.  **Avoid Conflicts:** Do not launch multiple tasks that touch the same files simultaneously unless they are strictly additive.
+**Every `jules new` command issued by Gemini MUST contain the following structured payload:**
 
-## 3. Monitoring Progress ("The Bridge")
+1.  **MISSION**: A single sentence defining the goal.
+2.  **REQUIRED READING**: A strict list of file paths Jules MUST read before starting.
+3.  **EXECUTION STEPS**: A numbered, step-by-step procedure.
+    *   *Example:* "1. Create file X. 2. Add function Y. 3. Run test Z."
+4.  **CONSTRAINTS**: What Jules is NOT allowed to do (e.g., "Do not modify `constants.ts`").
+5.  **DELIVERABLE**: The exact expected output (e.g., "A PR containing the new component and passing tests").
 
-Since the Gemini CLI is request-response based, it cannot background-poll. We use a separate monitor:
+## 3. The Workflow (GitHub Native)
 
-1.  **Launch Monitor:** Run `node scripts/watch_jules.cjs` in a separate terminal window.
-    *   *Note:* This script exits (`process.exit(0)`) upon detecting *any* status change (e.g., `In Progress` -> `Complete` or `Input Required`).
-2.  **Agent Action:** When the monitor exits, the user informs the Agent, who then checks `jules remote list --session`.
+We use a single, unified workflow for all tasks.
 
-## 4. Review & Feedback Workflows
+### Phase 1: Initiation (Gemini)
+1.  **Analysis:** Gemini analyzes the high-level goal (e.g., "Documentation Cleanup").
+2.  **Partitioning:** Gemini breaks the goal into parallelizable units to avoid file conflicts.
+    *   *Example:* "Jules A handles `docs/guides/`, Jules B handles `docs/spells/`."
+3.  **Launch:** Gemini constructs the **Strict Instruction** prompt and launches the session:
+    ```bash
+    jules new --repo user/repo "MISSION: ... REQUIRED READING: ... STEPS: ..."
+    ```
 
-We support two distinct workflows depending on the task stage.
+### Phase 2: Execution & Review (Jules)
+1.  **Implementation:** Jules reads the context and executes the steps.
+2.  **Self-Correction:** Jules runs relevant tests/linters to verify its own work.
+3.  **Publish:** Jules marks the task "Complete" and prompts the user to "Publish" a Pull Request.
 
-### Workflow A: The "GitHub Native" Loop (Preferred for Features)
-*Best for: New features, complex logic, and tasks requiring persistent history.*
+### Phase 3: Integration (Gemini & User)
+1.  **PR Creation:** The user publishes the PR via the Jules UI.
+2.  **High-Level Conflict Resolution:**
+    *   Jules agents running in parallel may conflict on shared "Registry" or "Index" files (e.g., `DOC-REGISTRY.md`).
+    *   **Gemini's Role:** Gemini reviews these specific conflicts during the PR merge process. We do NOT ask Jules to resolve complex merge conflicts on high-traffic files; Gemini handles the final stitch.
+3.  **Final Merge:** The PR is merged into the main branch.
 
-1.  **Task Completion:** Jules marks the task as `Complete`.
-2.  **Publish:** The User (via Jules Web UI) clicks "Publish" to open a Pull Request.
-3.  **Review:** The Agent checks out the PR branch locally (`gh pr checkout <id>`) to run tests/linters.
-4.  **Feedback:** The Agent/User comments **directly on the GitHub PR**.
-    *   *Mechanism:* Jules monitors the PR. It sees comments and pushes new commits to address feedback.
-    *   *Configuration:* Ensure Jules is in "Normal" mode (reads all comments) or "Reactive" mode (reads only mentions of `@google-jules`).
-5.  **Merge:** Once satisfied, merge via GitHub.
+## 4. Documentation Specifics
 
-### Workflow B: The "Quick Iteration" Loop (Preferred for Fixes)
-*Best for: Small bug fixes, or when task limits are tight.*
+When using Jules for documentation refactoring:
 
-1.  **Task Completion:** Jules marks the task as `Complete`.
-2.  **Local Review:** Agent runs `jules remote pull --session <ID>` (without `--apply`) to inspect the diff.
-3.  **Feedback:** User provides feedback directly in the **Jules Web UI** chat.
-    *   *Why:* The CLI cannot "reply" to a completed session. Using `jules new` for feedback consumes an extra daily task quota.
-4.  **Iterate:** Jules updates the session.
-5.  **Apply:** Agent runs `jules remote pull --session <ID> --apply` to merge changes locally.
-6.  **Commit:** Agent commits and pushes to `master`.
-
-## 5. Handling Local State
-
-*   **Stashing:** If reviewing multiple concurrent tasks locally, **always stash** (`git stash push -m "WIP: <Task Name>"`) before switching contexts or pulling a different session.
-*   **Clean Slate:** Ensure the working directory is clean before applying a Jules patch to avoid "file already exists" conflicts.
-
-## 6. Troubleshooting
-
-*   **"Already exists in working directory":** Occurs when applying a patch that creates a file which is already present (e.g., from a previous failed patch attempt). *Solution:* Delete the local file and re-apply.
-*   **Missing Props/Breaking Changes:** Jules may update a definition (e.g., adding a prop to a Hook) but miss updating consumers if they weren't part of the context. *Solution:* Catch this in Review (Workflow A or B) and explicitly instruct Jules to "Search for all usages of X and update them."
+*   **Parallelism:** Assign Jules agents to disjoint sets of files (e.g., by folder).
+*   **Feedback Loop:** For subjective tasks (e.g., "Consolidate these docs"), instruct Jules to:
+    1.  Read the source files.
+    2.  Draft the new content in a **temporary file** (e.g., `docs/temp_consolidation_draft.md`).
+    3.  Wait for PR review before deleting the originals.
+*   **The Registry Rule:** Instruct Jules **NOT** to update `DOC-REGISTRY.md` or `ACTIVE-DOCS.md` if multiple agents are running. Gemini will update these central files after merging the individual PRs to prevent constant merge conflicts.
 
 ---
-*Reference:* `scripts/watch_jules.cjs`
+*Note: This workflow maximizes Jules's parallel throughput while minimizing the "too many cooks" problem on central project files.*

@@ -17,8 +17,16 @@
 
 2. **[1B-SPELL-MIGRATION-ROADMAP.md](./tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md)**
    - High-level task breakdown (Phases 0-4)
-   - What to do next
-   - Questions to resolve
+
+3. **[1D-ARCHIVE-OLD-SPELL-DOCS.md](./tasks/spell-system-overhaul/1D-ARCHIVE-OLD-SPELL-DOCS.md)**
+   - **Current Step:** Phase 0.1 - Archiving old spell docs
+   - (Next: 1E - Jules Workflow)
+
+## Documentation Cleanup
+
+1. **[1A-SURVEY-AND-CLASSIFICATION.md](./tasks/documentation-cleanup/1A-SURVEY-AND-CLASSIFICATION.md)**
+   - **Current Step:** Surveying all docs for cleanup
+   - (Next: 1B - Apply Prefixes)
 
 ---
 
