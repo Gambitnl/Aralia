@@ -138,23 +138,26 @@ This file tracks planned features, enhancements, and tasks for the Aralia RPG pr
 
 ### 🔴 Priority 1: Data Integrity & Core Functionality
 
-1.  **[TODO]** **HOTFIX: Battle XP Rewards Not Applied** *(PR #11 Critical Bug)*
+1.  **[DONE]** **HOTFIX: Battle XP Rewards Not Applied** *(PR #11 Critical Bug)*
     *   **Issue**: The `END_BATTLE` action does not pass reward object to reducer, preventing XP system from functioning.
-    *   **Location**: `src/state/appState.ts:416` and reward dispatch call
+    *   **Location**: `src/state/appState.ts:398-441`
     *   **Impact**: HIGH - Players cannot gain XP or level up
-    *   **Fix**: Ensure rewards are passed in `END_BATTLE` action dispatch
+    *   **Fix**: Rewards are now properly processed in END_BATTLE reducer, distributing XP, applying level ups, and awarding gold/items
+    *   **Status**: FIXED - Reducer correctly handles rewards.xp, distributes to party, and triggers level up logic
 
-2.  **[TODO]** **HOTFIX: Save Slot Overwrite Vulnerability** *(PR #15 Critical Bug)*
+2.  **[DONE]** **HOTFIX: Save Slot Overwrite Vulnerability** *(PR #15 Critical Bug)*
     *   **Issue**: Flawed overwrite detection logic could allow unintended save data loss
-    *   **Location**: `src/services/saveLoadService.ts` - slot overwrite check
+    *   **Location**: `src/components/SaveSlotSelector.tsx:65-83`
     *   **Impact**: CRITICAL - Potential player save data loss
     *   **Fix**: Correct overwrite detection before writing to localStorage
+    *   **Status**: FIXED - Proper ID and name collision detection with explicit user confirmation via themed modal before overwrite
 
-3.  **[TODO]** **HOTFIX: Village Generation No-op Tile Assignments** *(PR #14 Critical Bug)*
+3.  **[DONE]** **HOTFIX: Village Generation No-op Tile Assignments** *(PR #14 Critical Bug)*
     *   **Issue**: Tile assignments that don't persist, causing incomplete village generation
-    *   **Location**: `src/services/villageGenerator.ts`
+    *   **Location**: `src/services/villageGenerator.ts:98-112`
     *   **Impact**: HIGH - Villages may not render correctly
     *   **Fix**: Ensure tile assignments modify the layout array correctly
+    *   **Status**: FIXED - `setTileWithPriority` now assigns directly to `tiles[y][x]` instead of modifying row variable
 
 4.  **[TODO]** **HOTFIX: Village Building Selection Logic** *(PR #14 Critical Bug)*
     *   **Issue**: Nested building selection needs reverse iteration to prevent incorrect placement
@@ -162,31 +165,35 @@ This file tracks planned features, enhancements, and tasks for the Aralia RPG pr
     *   **Impact**: HIGH - Building layouts incorrect
     *   **Fix**: Reverse iteration order for building selection
 
-5.  **[TODO]** **HOTFIX: Village Type Safety Violations** *(PR #14 Critical Bug)*
+5.  **[DONE]** **HOTFIX: Village Type Safety Violations** *(PR #14 Critical Bug)*
     *   **Issue**: Multiple uses of `as any` to bypass TypeScript, indicating state management issues
     *   **Location**: `src/components/VillageScene.tsx`, `src/services/villageGenerator.ts`
     *   **Impact**: MEDIUM - Potential runtime errors
     *   **Fix**: Add proper type definitions to `src/types.ts`, remove all `as any` casts
+    *   **Status**: FIXED - No `as any` casts remain in either file
 
-6.  **[TODO]** **HOTFIX: Incorrect Playtime Calculation** *(PR #15 Critical Bug)*
+6.  **[DONE]** **HOTFIX: Incorrect Playtime Calculation** *(PR #15 Critical Bug)*
     *   **Issue**: Save slot playtime using in-game time instead of actual session duration
-    *   **Location**: `src/services/saveLoadService.ts` - playtime metadata
+    *   **Location**: `src/services/saveLoadService.ts:422-433`
     *   **Impact**: MEDIUM - Misleading UI, incorrect statistics
     *   **Fix**: Track actual session duration using `Date.now()` deltas
+    *   **Status**: FIXED - `calculatePlaytimeSeconds()` now uses real-world elapsed time via `Date.now() - sessionStartedAtMs`
 
-7.  **[TODO]** **HOTFIX: AoE Healing Can Target Enemies** *(PR #12 Medium Bug)*
+7.  **[DONE]** **HOTFIX: AoE Healing Can Target Enemies** *(PR #12 Medium Bug)*
     *   **Issue**: AoE healing spells can heal enemy combatants
-    *   **Location**: `src/utils/combat/combatAI.ts` - AoE evaluation
+    *   **Location**: `src/utils/combat/combatAI.ts:438-442`
     *   **Impact**: MEDIUM - Combat balance broken
     *   **Fix**: Filter AoE heal targets by team affiliation
+    *   **Status**: FIXED - AI now penalizes healing enemies with `WEIGHTS.FRIENDLY_FIRE_PENALTY * 1.5` when evaluating AoE heal spells
 
 ### 🟡 Priority 2: Performance & UX Polish
 
-8.  **[TODO]** **Replace Native Dialogs with Themed Modals** *(PR #15 UX Issue)*
+8.  **[DONE]** **Replace Native Dialogs with Themed Modals** *(PR #15 UX Issue)*
     *   **Issue**: Uses `window.confirm()` which breaks game immersion
-    *   **Location**: `src/components/SaveSlotSelector.tsx`
+    *   **Location**: `src/components/SaveSlotSelector.tsx:223-239`
     *   **Impact**: LOW - Breaks immersive theming
     *   **Fix**: Create themed confirmation modal component
+    *   **Status**: FIXED - Now uses `ConfirmationModal` component for overwrite confirmations
 
 9.  **[TODO]** **Optimize Save Slot Metadata Operations** *(PR #15 Performance)*
     *   **Issue**: Inefficient read-sort-filter pattern on every metadata operation
