@@ -1,0 +1,17 @@
+﻿
+===== BRANCH CLEANUP COMPLETE =====
+
+Deleted: 13 merged branches
+Remaining: 10 branches
+
+Remaining branches:
+origin/claude/review-spell-system-docs-013QVUSNJUtH4s41EP7Vi5BA
+origin/dreamy-mestorf
+origin/elated-wing
+origin/feat/migrate-cantrips
+origin/feat/spell-system-types
+origin/feat-migrate-cantrips
+origin/feat-migrate-level-1-spells
+origin/fix/village-generation-bugs
+origin/fix-combat-xp-and-aoe-bugs
+origin/master

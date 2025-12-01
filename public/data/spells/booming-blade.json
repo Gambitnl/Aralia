@@ -40,7 +40,7 @@
     {
       "type": "UTILITY",
       "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "condition": { "type": "hit" },
       "utilityType": "control",
       "description": "As part of the action used to cast this spell, you must make a melee weapon attack against one creature within the spell's range, otherwise the spell fails. On a hit, the target suffers the normal effects of the attack and is sheathed in booming energy."
     },
@@ -58,7 +58,7 @@
       "description": "This damage is triggered if the target willingly moves 5 feet or more before the start of your next turn. The spell ends after the damage is dealt.",
       "scaling": {
         "type": "character_level",
-        "customFormula": "The damage increases to 2d8 at 5th level, 3d8 at 11th level, and 4d8 at 17th level."
+        "bonusPerLevel": "+1d8"
       }
     }
   ],

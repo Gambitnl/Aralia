@@ -53,8 +53,7 @@
       },
       "scaling": {
         "type": "character_level",
-        "formula": "1d8",
-        "levels": [5, 11, 17]
+        "bonusPerLevel": "+1d8"
       }
     },
     {
@@ -80,8 +79,7 @@
       },
       "scaling": {
         "type": "character_level",
-        "formula": "1d8",
-        "levels": [5, 11, 17]
+        "bonusPerLevel": "+1d8"
       }
     }
   ],
