@@ -29,9 +29,12 @@
       "Bash(gh api:*)",
       "Bash(find:*)",
       "Bash(npm run type-check:*)",
+      "Bash(npm run typecheck:*)",
       "Bash(npm run:*)",
       "Bash(gh pr view:*)",
-      "Bash(gh pr diff:*)"
+      "Bash(gh pr diff:*)",
+      "Bash(npx:*)",
+      "Bash(.node_modules.bintsc --version)"
     ],
     "deny": [],
     "ask": []

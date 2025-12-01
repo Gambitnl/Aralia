@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "validate": "tsx scripts/validate-data.ts",
     "test": "vitest",
-    "test:types": "tsd src/types/__tests__/spells.test-d.ts"
+    "test:types": "tsd src/types/__tests__/spells.test-d.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@google/genai": "^1.9.0",
