@@ -12,6 +12,8 @@ export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 export * from './spells';
 
+export * from './spells';
+
 export enum GamePhase {
   MAIN_MENU,
   CHARACTER_CREATION,
