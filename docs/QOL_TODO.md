@@ -61,13 +61,13 @@ from code reviews and feature planning. Each item is rated by urgency/impact and
         3.  Add a note explaining the reason if known (e.g., "Disabled to manage API quotas during development").
     *   **Status**: DONE *(PR #16 - Updated FEATURES_TODO.md line 105 with clarification about canvas/textual rendering)*
 
-6.  **[Medium Urgency - Project Adherence] Detail Feat System Implementation (Review Rec #13)**:
+6.  **[DONE] [Medium Urgency - Project Adherence] Detail Feat System Implementation (Review Rec #13)**:
     *   **Description**: The feat system is mentioned via the Human's "Versatile" trait but isn't a fully implemented system. The project documentation should be clearer on its current state.
     *   **Approach**:
         1.  In `docs/FEATURES_TODO.md`, create a dedicated sub-section for the "Feat System".
         2.  Document the current state: "A descriptive `Versatile` trait exists for Humans, but no mechanical feat selection or application is implemented yet."
         3.  Outline the necessary steps for a full implementation: (a) Define feat data structures in `src/data/feats/`. (b) Create a `FeatSelection.tsx` component for character creation. (c) Integrate feat effects into character stats and game mechanics.
-    *   **Status**: PENDING
+    *   **Status**: DONE *(Feat System section exists in FEATURES_TODO.md lines 50-58 with current state and implementation steps)*
 
 7.  **[Medium Urgency - UI Polish] Review User-Facing Error Messages (Existing #11, still valid)**:
     *   **Description**: The application currently uses native `alert()` for some user-facing errors (e.g., save game failure). This is jarring and not thematically consistent.
