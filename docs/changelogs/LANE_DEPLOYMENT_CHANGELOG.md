@@ -84,14 +84,14 @@ Deployed 6 parallel lane agents to accelerate feature development. **5 major fea
 1. Phase 1: Identification of obsolete files
 2. Phase 2: Verification (global search for references)
 3. Phase 3: Deletion of component, hook, and doc files
-4. Phase 4: Update README_INDEX.md
+4. Phase 4: Update @README-INDEX.md
 5. Phase 5: Final verification and testing
 
 **Delivered:**
-- Phase 4 only: Removed generic placeholder from `docs/README_INDEX.md`
+- Phase 4 only: Removed generic placeholder from `docs/@README-INDEX.md`
 
 **Files Changed:**
-- `docs/README_INDEX.md` (-1 line)
+- `docs/@README-INDEX.md` (-1 line)
 
 **Known Issues:**
 - ❌ **INCOMPLETE:** Did not delete obsolete component files as assigned
@@ -185,7 +185,7 @@ Deployed 6 parallel lane agents to accelerate feature development. **5 major fea
 - Updated 5 component READMEs with embedded visuals
 - Updated 3 hook READMEs with current architecture
 - Clarified Scene Visuals status in FEATURES_TODO.md
-- Updated README_INDEX.md with race selection placeholders
+- Updated @README-INDEX.md with race selection placeholders
 
 **Files Changed:** 16 files (+314 / -47 lines)
 - All documentation files only (perfect constraint adherence)

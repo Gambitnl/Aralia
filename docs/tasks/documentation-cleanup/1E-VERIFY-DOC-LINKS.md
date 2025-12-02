@@ -6,7 +6,7 @@ Audit and fix all broken internal links across the documentation suite.
 ## REQUIRED READING
 *   `docs/@ACTIVE-DOCS.md`
 *   `docs/@DOC-REGISTRY.md`
-*   `docs/@README_INDEX.md`
+*   `docs/@README-INDEX.md`
 
 ## EXECUTION STEPS
 1.  **Crawler**: Write a script or process to scan all `.md` files in `docs/`.

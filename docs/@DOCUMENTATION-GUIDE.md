@@ -14,20 +14,20 @@ Our documentation aims to be:
 
 The project employs a multi-level system of uniquely named README files to provide comprehensive documentation.
 
-1.  **Main Project README (`PROJECT_OVERVIEW.README.md`) (in `docs/`):**
+1.  **Main Project README (`@PROJECT-OVERVIEW.README.md`) (in `docs/`):**
     *   Serves as the primary entry point for understanding the project.
     *   Contains:
         *   Project overview and core features.
         *   Technology stack.
         *   Setup and running instructions.
         *   High-level project structure.
-        *   Links to more detailed documentation, including component-specific READMEs, this guide, and the `README_INDEX.md`.
+        *   Links to more detailed documentation, including component-specific READMEs, this guide, and the `@README-INDEX.md`.
         *   Key development practices (dummy character, code formatting).
         *   Instructions for common tasks like adding a new race.
     *   The root `README.md` file now serves as a simple pointer to this more detailed overview.
 
-2.  **README Index (`README_INDEX.md`) (in `docs/`):**
-    *   Located at `docs/README_INDEX.md`.
+2.  **README Index (`@README-INDEX.md`) (in `docs/`):**
+    *   Located at `docs/@README-INDEX.md`.
     *   Serves as a "table of contents" for all README files within the project.
     *   Lists each README by its unique filename and provides a brief description of its content.
     *   Aids in discoverability and navigation of the entire documentation suite. This is the primary tool for finding specific documentation files.
@@ -126,7 +126,7 @@ To maintain consistency and readability across the project, the following naming
 
 -   **Alongside Code Changes:** Whenever a component, module, or core feature is significantly modified, its corresponding uniquely named README **must** be updated to reflect these changes. This is crucial for keeping the documentation useful.
 -   **New Components/Modules/Data Files:** When adding a new significant part to the application, create a new, uniquely named README file for it following the guidelines above.
--   **README Index Updates**: When creating, significantly modifying, renaming, or removing any README file, the central `README_INDEX.md` (now in `docs/README_INDEX.md`) **must** be updated accordingly to maintain an accurate overview of all project documentation.
+-   **README Index Updates**: When creating, significantly modifying, renaming, or removing any README file, the central `@README-INDEX.md` (now in `docs/@README-INDEX.md`) **must** be updated accordingly to maintain an accurate overview of all project documentation.
 -   **Review:** Periodically review documentation for accuracy, completeness, and clarity. As the project evolves, ensure that the documentation evolves with it.
 -   **Component READMEs as a "Source of Truth"**: When a component's props interface, core functionality, or expected parent interactions change, its README file should be updated **concurrently or even prior** to integrating these changes elsewhere. This practice helps the README serve as an accurate reference and checklist.
 -   **Changelog Strategy**: The project uses a two-tiered changelog system:

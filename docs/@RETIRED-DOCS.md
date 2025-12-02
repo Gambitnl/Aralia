@@ -57,5 +57,5 @@ When a document is no longer needed, it gets:
 
 If you need to "un-retire" a document:
 1. Rename: `1C~DOC.md` → `1C-DOC.md`
-2. Move from this file back to [DOC-REGISTRY.md](./DOC-REGISTRY.md) active section
+2. Move from this file back to [@DOC-REGISTRY.md](./@DOC-REGISTRY.md) active section
 3. Add note explaining why it was restored

@@ -34,7 +34,9 @@
       "Bash(gh pr view:*)",
       "Bash(gh pr diff:*)",
       "Bash(npx:*)",
-      "Bash(.node_modules.bintsc --version)"
+      "Bash(.node_modules.bintsc --version)",
+      "Bash(git mv:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []

@@ -63,4 +63,4 @@ This plan is about future-proofing the application and establishing professional
     -   Update `docs/guides/NPC_GOSSIP_SYSTEM_GUIDE.md` to reference the new `npcBehaviorConfig.ts` file for tuning.
     -   Update `src/constants.README.md` to clarify its role as a data aggregator.
     -   Add `[configName].README.md` files for the new, significant config modules (`submapVisualsConfig.README.md`, etc.).
-    -   Update `docs/README_INDEX.md` to include all new documentation files.
+    -   Update `docs/@README-INDEX.md` to include all new documentation files.

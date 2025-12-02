@@ -262,7 +262,7 @@ This file tracks planned features, enhancements, and tasks for the Aralia RPG pr
 
 19. **[TODO]** **Delete Obsolete Documentation Files** *(Lane 5 Incomplete)*
     *   Delete corresponding README files for above components
-    *   Update `docs/README_INDEX.md` to remove references
+    *   Update `docs/@README-INDEX.md` to remove references
 
 20. **[TODO]** **Verify No Import References Remain** *(Lane 5 Incomplete)*
     *   Global search for imports of deleted files

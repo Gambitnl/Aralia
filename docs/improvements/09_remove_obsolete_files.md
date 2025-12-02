@@ -62,7 +62,7 @@ The goal of this improvement is to perform a thorough cleanup of the codebase by
 
 ### Phase 4: Update Documentation Index
 
--   [ ] **Modify Index**: `docs/README_INDEX.md`
+-   [ ] **Modify Index**: `docs/@README-INDEX.md`
 -   **Code Direction**:
     1.  Open the documentation index file.
     2.  Carefully review the list and remove the lines corresponding to the deleted README files (`PLAYER_PANE.README.md`, `SPELLBOOK.README.md`, `FLEXIBLE_ASI_SELECTION.README.md`).

@@ -120,7 +120,7 @@ Therefore, the new stylesheet **must** be placed in `/public` (e.g., `public/sty
 
 -   [x] **Topic: Update Documentation Files**
     -   **Action**: Search the project for any mentions of inline CSS and update them to reflect the new external stylesheet.
-    -   **Code Suggestion (Example for `docs/PROJECT_OVERVIEW.README.md`)**:
+    -   **Code Suggestion (Example for `docs/@PROJECT-OVERVIEW.README.md`)**:
         -   **Before**:
             ```markdown
             *   **Styling**: **Tailwind CSS** for utility-first styling. All custom styles are in `<style>` blocks in `index.html`.

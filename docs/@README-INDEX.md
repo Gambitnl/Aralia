@@ -8,12 +8,12 @@ This file serves as a central index for all README documentation within the Aral
 
 **New to the project or coming back after a break?**
 
-👉 **[ACTIVE-DOCS.md](./ACTIVE-DOCS.md)** - Your main entry point for current work
+👉 **[@ACTIVE-DOCS.md](./@ACTIVE-DOCS.md)** - Your main entry point for current work
 
 **Documentation System:**
-- [DOC-REGISTRY.md](./DOC-REGISTRY.md) - Master list of all numbered docs
-- [DOC-NAMING-CONVENTIONS.md](./DOC-NAMING-CONVENTIONS.md) - How the numbering system works
-- [RETIRED-DOCS.md](./RETIRED-DOCS.md) - Archive of retired documents
+- [@DOC-REGISTRY.md](./@DOC-REGISTRY.md) - Master list of all numbered docs
+- [@DOC-NAMING-CONVENTIONS.md](./@DOC-NAMING-CONVENTIONS.md) - How the numbering system works
+- [@RETIRED-DOCS.md](./@RETIRED-DOCS.md) - Archive of retired documents
 
 **All active work documents use sequential numbering:** `1A`, `1B`, `1C`...
 - Active: `1A-DOCUMENT-NAME.md`
@@ -23,17 +23,17 @@ This file serves as a central index for all README documentation within the Aral
 
 ## Root Level (Now in `docs/`)
 
-*   **[`PROJECT_OVERVIEW.README.md`](./PROJECT_OVERVIEW.README.md)**: The main entry point for the project. Provides a high-level overview, core features, technology stack, setup instructions, project structure, and links to other key documents.
-*   **[`DOCUMENTATION_GUIDE.md`](./DOCUMENTATION_GUIDE.md)**: Explains the project's documentation strategy, README structure guidelines, naming conventions, and how to maintain documentation.
+*   **[`@PROJECT-OVERVIEW.README.md`](./@PROJECT-OVERVIEW.README.md)**: The main entry point for the project. Provides a high-level overview, core features, technology stack, setup instructions, project structure, and links to other key documents.
+*   **[`@DOCUMENTATION-GUIDE.md`](./@DOCUMENTATION-GUIDE.md)**: Explains the project's documentation strategy, README structure guidelines, naming conventions, and how to maintain documentation.
 *   **[`CHANGELOG.md`](./CHANGELOG.md)**: Tracks a high-level overview of notable changes to the application, linking to component-specific changelogs for details.
-*   **[`README_INDEX.md`](./README_INDEX.md)**: This file. An index of all READMEs.
+*   **[`@README-INDEX.md`](./@README-INDEX.md)**: This file. An index of all READMEs.
 *   **[`FEATURES_TODO.md`](./FEATURES_TODO.md)**: A comprehensive list of planned features, enhancements, and tasks for future development.
 *   **[`QOL_TODO.md`](./QOL_TODO.md)**: Lists Quality of Life improvements and general TODO items identified from code reviews and planning.
-*   **[`POTENTIAL_TOOL_INTEGRATIONS.README.md`](./POTENTIAL_TOOL_INTEGRATIONS.README.md)**: Lists potential tools and libraries that could be integrated to enhance the application.
+*   **[`@POTENTIAL-TOOL-INTEGRATIONS.README.md`](./@POTENTIAL-TOOL-INTEGRATIONS.README.md)**: Lists potential tools and libraries that could be integrated to enhance the application.
 *   **[`SPELL_INTEGRATION_STATUS.md`](./SPELL_INTEGRATION_STATUS.md)**: The central hub for tracking the implementation status of spells across Data, Combat, Narrative, and Economy pillars.
-*   **[`VERIFICATION_OF_CHANGES_GUIDE.md`](./VERIFICATION_OF_CHANGES_GUIDE.md)**: A guide for AI assistants on how to ensure code changes are verifiable.
-*   **[`AI_PROMPT_GUIDE.md`](./AI_PROMPT_GUIDE.md)**: A guide for users on how to craft effective prompts for the AI assistant.
-*   **[`TROUBLESHOOTING.md`](./TROUBLESHOOTING.md)**: Solutions to common technical issues encountered during development.
+*   **[`@VERIFICATION-OF-CHANGES-GUIDE.md`](./@VERIFICATION-OF-CHANGES-GUIDE.md)**: A guide for AI assistants on how to ensure code changes are verifiable.
+*   **[`@AI-PROMPT-GUIDE.md`](./@AI-PROMPT-GUIDE.md)**: A guide for users on how to craft effective prompts for the AI assistant.
+*   **[`@TROUBLESHOOTING.md`](./@TROUBLESHOOTING.md)**: Solutions to common technical issues encountered during development.
 
 ## Spell Integration Status (`docs/spells/`)
 *   **[`docs/spells/STATUS_LEVEL_0.md`](./spells/STATUS_LEVEL_0.md)**: Detailed status tracking for Cantrips.

@@ -56,7 +56,7 @@ from code reviews and feature planning. Each item is rated by urgency/impact and
 5.  **[DONE] [Medium Urgency - Project Adherence] Clarify "Scene Visuals" Status (Review Rec #12)**:
     *   **Description**: The `ImagePane.tsx` component and `generateImageForScene` service exist, but the feature is not currently active in the main UI. Project documentation should reflect this reality.
     *   **Approach**:
-        1.  Review `docs/PROJECT_OVERVIEW.README.md` and `docs/FEATURES_TODO.md`.
+        1.  Review `docs/@PROJECT-OVERVIEW.README.md` and `docs/FEATURES_TODO.md`.
         2.  Update the "Core Features" section to clarify that scene visualization is a potential feature but is currently disabled or in a non-active state.
         3.  Add a note explaining the reason if known (e.g., "Disabled to manage API quotas during development").
     *   **Status**: DONE *(PR #16 - Updated FEATURES_TODO.md line 105 with clarification about canvas/textual rendering)*
@@ -117,10 +117,10 @@ from code reviews and feature planning. Each item is rated by urgency/impact and
         3.  Create a root reducer that combines these slice reducers to manage the overall `GameState` object.
     *   **Status**: PENDING (Future consideration)
 
-6.  **[DONE] [Low Urgency - Documentation] Scrub `README_INDEX.md` (Review Rec #9)**:
+6.  **[DONE] [Low Urgency - Documentation] Scrub `@README-INDEX.md` (Review Rec #9)**:
     *   **Description**: With ongoing refactoring, links in the documentation index can become outdated.
     *   **Approach**:
-        1.  Periodically (e.g., after every major feature merge), review every link in `docs/README_INDEX.md`.
+        1.  Periodically (e.g., after every major feature merge), review every link in `docs/@README-INDEX.md`.
         2.  Verify that each link points to the correct file and that the file's description is still accurate.
         3.  Update or remove any broken or incorrect entries.
     *   **Status**: DONE *(PR #16 - Added placeholder back for race selection READMEs after PR #13 cleanup)*

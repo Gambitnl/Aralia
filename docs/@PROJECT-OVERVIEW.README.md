@@ -34,7 +34,7 @@ Because this is a client-side, static application without a traditional build pi
 
 ### Architectural Possibilities (Thinking Outside the Box)
 
-While we can't use a build system, we **can** introduce new client-side libraries via the import-map. This is where you can guide me to build more advanced features. For inspiration, refer to the `docs/POTENTIAL_TOOL_INTEGRATIONS.README.md` file.
+While we can't use a build system, we **can** introduce new client-side libraries via the import-map. This is where you can guide me to build more advanced features. For inspiration, refer to the `docs/@POTENTIAL-TOOL-INTEGRATIONS.README.md` file.
 
 **You could ask me to:**
 *   "Integrate **Zustand** to manage our game state more effectively instead of passing props everywhere."

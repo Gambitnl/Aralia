@@ -100,10 +100,10 @@ The **tilde (`~`)** character marks a document as retired.
 
 **Steps:**
 
-1. Check [DOC-REGISTRY.md](./DOC-REGISTRY.md) for "Next available number"
+1. Check [@DOC-REGISTRY.md](./@DOC-REGISTRY.md) for "Next available number"
 2. Create file with that number: `1C-YOUR-DOC-NAME.md`
-3. Add entry to DOC-REGISTRY.md
-4. If this is active work, add to [ACTIVE-DOCS.md](./ACTIVE-DOCS.md)
+3. Add entry to @DOC-REGISTRY.md
+4. If this is active work, add to [@ACTIVE-DOCS.md](./@ACTIVE-DOCS.md)
 
 **Example:**
 ```bash
@@ -111,7 +111,7 @@ The **tilde (`~`)** character marks a document as retired.
 touch docs/tasks/spell-system-overhaul/1C-JULES-WORKFLOW.md
 
 # Update registry
-# Add to ACTIVE-DOCS.md if currently working on it
+# Add to @ACTIVE-DOCS.md if currently working on it
 ```
 
 ---
@@ -127,15 +127,15 @@ After implementation is coded, tested, committed, and pushed:
    mv 1C-TASK-NAME.md 1C~TASK-NAME.md
    ```
 
-2. **Update DOC-REGISTRY.md**:
+2. **Update @DOC-REGISTRY.md**:
    - Move entry from "Active" to "Retired" section
    - Add completion date
 
-3. **Log in RETIRED-DOCS.md**:
+3. **Log in @RETIRED-DOCS.md**:
    - Add to "📦 Archived" category
    - Include completion reason and date
 
-4. **Remove from ACTIVE-DOCS.md** if listed there
+4. **Remove from @ACTIVE-DOCS.md** if listed there
 
 **For Project Documents** (containing multiple tasks):
 
@@ -156,7 +156,7 @@ Retire when implemented OR explicitly marked as abandoned.
 - Content was consolidated into another doc
 - Work was abandoned/deprioritized
 
-**Steps:** Same as task completion above, but choose appropriate category in RETIRED-DOCS.md (🚫 Abandoned, ⚠️ Obsolete, 📋 Duplicate)
+**Steps:** Same as task completion above, but choose appropriate category in @RETIRED-DOCS.md (🚫 Abandoned, ⚠️ Obsolete, 📋 Duplicate)
 
 ---
 
@@ -224,12 +224,12 @@ This gives you:
 ## Finding Documents
 
 **To find active work:**
-1. Open [ACTIVE-DOCS.md](./ACTIVE-DOCS.md)
+1. Open [@ACTIVE-DOCS.md](./@ACTIVE-DOCS.md)
 2. See what's currently being worked on
 3. Click links to relevant docs
 
 **To find a specific doc:**
-1. Check [DOC-REGISTRY.md](./DOC-REGISTRY.md)
+1. Check [@DOC-REGISTRY.md](./@DOC-REGISTRY.md)
 2. Search by number or name
 3. See if it's active or retired
 
@@ -245,12 +245,12 @@ ls -1 [0-9]*~*.md  # retired only
 ## Maintenance
 
 **Weekly:**
-- Review ACTIVE-DOCS.md
+- Review @ACTIVE-DOCS.md
 - Retire docs that are no longer being worked on
 - Update registry if new docs were created
 
 **Monthly:**
-- Audit DOC-REGISTRY.md for accuracy
+- Audit @DOC-REGISTRY.md for accuracy
 - Check for gaps in numbering (there shouldn't be any!)
 - Archive very old retired docs if needed
 
@@ -259,7 +259,7 @@ ls -1 [0-9]*~*.md  # retired only
 ## Special Cases
 
 **Multiple people working in parallel:**
-- Check DOC-REGISTRY.md before creating
+- Check @DOC-REGISTRY.md before creating
 - Reserve your number by creating empty file immediately
 - Prevents number conflicts
 
@@ -277,17 +277,17 @@ ls -1 [0-9]*~*.md  # retired only
 
 ## Registry Files
 
-**[DOC-REGISTRY.md](./DOC-REGISTRY.md)**
+**[@DOC-REGISTRY.md](./@DOC-REGISTRY.md)**
 - Master list of ALL numbered docs (active + retired)
 - Shows next available number
 - Single source of truth
 
-**[ACTIVE-DOCS.md](./ACTIVE-DOCS.md)**
+**[@ACTIVE-DOCS.md](./@ACTIVE-DOCS.md)**
 - Quick reference for current work
 - Your main entry point when returning to project
 - Links to relevant docs
 
-**[RETIRED-DOCS.md](./RETIRED-DOCS.md)**
+**[@RETIRED-DOCS.md](./@RETIRED-DOCS.md)**
 - Archive of retired docs with reasons
 - Categorized: Archived, Abandoned, Obsolete, Duplicate
 - Searchable history
@@ -297,7 +297,7 @@ ls -1 [0-9]*~*.md  # retired only
 ## Questions?
 
 If unsure about numbering:
-1. Check DOC-REGISTRY.md for "Next available number"
+1. Check @DOC-REGISTRY.md for "Next available number"
 2. Use that number
 3. Don't overthink it!
 

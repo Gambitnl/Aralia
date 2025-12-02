@@ -67,7 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 *   **Animated UI Elements**:
     *   `ActionPane`: Buttons now have a subtle "pop-in" animation.
     *   `WorldPane`: New messages in the game log now gracefully fade and slide into view.
-*   **Updated AI Prompt Guide**: Replaced the content of `docs/AI_PROMPT_GUIDE.md` with new, more collaborative and application-specific text provided by the user.
+*   **Updated AI Prompt Guide**: Replaced the content of `docs/@AI-PROMPT-GUIDE.md` with new, more collaborative and application-specific text provided by the user.
 
 ## 2025-06-28 - 15:54:10 UTC
 ### Changed (Glossary Workflow Refactor)
@@ -132,7 +132,7 @@ This entry summarizes a significant period of iterative development and refactor
     *   **State Management**: `App.tsx` refactored to use `useReducer` with centralized state logic in `src/state/appState.ts`.
     *   **Custom Hooks**: Extracted complex logic into `useGameActions.ts` (with action handlers decomposed into `src/hooks/actions/` subdirectory), `useGameInitialization.ts`, `useAudio.ts`, and `useSubmapProceduralData.ts`.
     *   **Data Decoupling**: Moved static game data (locations, NPCs, items, spells, classes, biomes, TTS options, dummy character) from `src/data/` into organized subdirectories under `src/data/`.
-    *   **Documentation**: Extensive creation and updates to README files for components, services, data modules, and hooks. Updated `PROJECT_OVERVIEW.README.md` and `README_INDEX.md`.
+    *   **Documentation**: Extensive creation and updates to README files for components, services, data modules, and hooks. Updated `@PROJECT-OVERVIEW.README.md` and `@README-INDEX.md`.
 
 **V. Bug Fixes:**
     *   Fixed an issue where the starting submap's path would dynamically re-align to the player's current position rather than being static.
@@ -189,7 +189,7 @@ This entry summarizes a significant period of iterative development and refactor
     *   **State Management**: `App.tsx` refactored to use `useReducer` with centralized state logic in `src/state/appState.ts`.
     *   **Custom Hooks**: Extracted complex logic into `useGameActions.ts`, `useGameInitialization.ts`, `useAudio.ts`, and `useSubmapProceduralData.ts`.
     *   **Data Decoupling**: Moved static game data (locations, NPCs, items, spells, classes, biomes, TTS options, dummy character) from `constants.ts` into organized subdirectories under `src/data/`.
-    *   **Documentation**: Extensive creation and updates to README files for components, services, data modules, and hooks. Updated `PROJECT_OVERVIEW.README.md` and `README_INDEX.md`.
+    *   **Documentation**: Extensive creation and updates to README files for components, services, data modules, and hooks. Updated `@PROJECT-OVERVIEW.README.md` and `@README-INDEX.md`.
 
 **V. Bug Fixes:**
     *   Fixed an issue where the starting submap's path would dynamically re-align to the player's current position rather than being static.

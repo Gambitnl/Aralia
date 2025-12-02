@@ -42,7 +42,7 @@ We use a single, unified workflow for all tasks.
 ### Phase 3: Integration (Gemini & User)
 1.  **PR Creation:** The user publishes the PR via the Jules UI.
 2.  **High-Level Conflict Resolution:**
-    *   Jules agents running in parallel may conflict on shared "Registry" or "Index" files (e.g., `DOC-REGISTRY.md`).
+    *   Jules agents running in parallel may conflict on shared "Registry" or "Index" files (e.g., `@DOC-REGISTRY.md`).
     *   **Gemini's Role:** Gemini reviews these specific conflicts during the PR merge process. We do NOT ask Jules to resolve complex merge conflicts on high-traffic files; Gemini handles the final stitch.
 3.  **Final Merge:** The PR is merged into the main branch.
 
@@ -55,7 +55,7 @@ When using Jules for documentation refactoring:
     1.  Read the source files.
     2.  Draft the new content in a **temporary file** (e.g., `docs/temp_consolidation_draft.md`).
     3.  Wait for PR review before deleting the originals.
-*   **The Registry Rule:** Instruct Jules **NOT** to update `DOC-REGISTRY.md` or `ACTIVE-DOCS.md` if multiple agents are running. Gemini will update these central files after merging the individual PRs to prevent constant merge conflicts.
+*   **The Registry Rule:** Instruct Jules **NOT** to update `@DOC-REGISTRY.md` or `@ACTIVE-DOCS.md` if multiple agents are running. Gemini will update these central files after merging the individual PRs to prevent constant merge conflicts.
 
 ---
 *Note: This workflow maximizes Jules's parallel throughput while minimizing the "too many cooks" problem on central project files.*
