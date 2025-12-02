@@ -10,14 +10,14 @@ Migrate valuable architectural knowledge from `docs/improvements/@*.md` into com
 
 | ID | Task File | Source File | Status |
 |----|-----------|-------------|--------|
-| **1G.1** | [1G.1-COMMON-COMPONENTS.md](./1G.1-COMMON-COMPONENTS.md) | `@01_consolidate_repetitive_components.md` | Pending |
-| **1G.2** | [1G.2-CONFIG-DECOUPLING.md](./1G.2-CONFIG-DECOUPLING.md) | `@02_decouple_configuration.md` | Pending |
-| **1G.3** | [1G.3-PLAYER-TYPES.md](./1G.3-PLAYER-TYPES.md) | `@03_refactor_player_character_type.md` | Pending |
-| **1G.4** | [1G.4-EXTERNALIZE-CSS.md](./1G.4-EXTERNALIZE-CSS.md) | `@04_externalize_css.md` | Pending |
-| **1G.5** | [1G.5-API-ERROR-HANDLING.md](./1G.5-API-ERROR-HANDLING.md) | `@05_standardize_api_error_handling.md` | Pending |
-| **1G.6** | [1G.6-SUBMAP-RENDERING.md](./1G.6-SUBMAP-RENDERING.md) | `@06_optimize_submap_rendering.md` | Pending |
-| **1G.7** | [1G.7-REDUCER-LOGIC.md](./1G.7-REDUCER-LOGIC.md) | `@07_invert_reducer_action_logic.md` | Pending |
-| **1G.8** | [1G.8-POINT-BUY-UI.md](./1G.8-POINT-BUY-UI.md) | `@08_improve_point_buy_ui.md` | Pending |
+| **1G.1** | [1G.1-COMMON-COMPONENTS.md](./1G.1-COMMON-COMPONENTS.md) | `@01_consolidate_repetitive_components.md` | Completed |
+| **1G.2** | [1G.2-CONFIG-DECOUPLING.md](./1G.2-CONFIG-DECOUPLING.md) | `@02_decouple_configuration.md` | Completed |
+| **1G.3** | [1G.3-PLAYER-TYPES.md](./1G.3-PLAYER-TYPES.md) | `@03_refactor_player_character_type.md` | Completed |
+| **1G.4** | [1G.4-EXTERNALIZE-CSS.md](./1G.4-EXTERNALIZE-CSS.md) | `@04_externalize_css.md` | Completed |
+| **1G.5** | [1G.5-API-ERROR-HANDLING.md](./1G.5-API-ERROR-HANDLING.md) | `@05_standardize_api_error_handling.md` | Completed |
+| **1G.6** | [1G.6-SUBMAP-RENDERING.md](./1G.6-SUBMAP-RENDERING.md) | `@06_optimize_submap_rendering.md` | Completed |
+| **1G.7** | [1G.7-REDUCER-LOGIC.md](./1G.7-REDUCER-LOGIC.md) | `@07_invert_reducer_action_logic.md` | Completed |
+| **1G.8** | [1G.8-POINT-BUY-UI.md](./1G.8-POINT-BUY-UI.md) | `@08_improve_point_buy_ui.md` | Completed |
 | **1G.9** | [1G.9-LOADING-TRANSITION.md](./1G.9-LOADING-TRANSITION.md) | `@10_enhance_loading_transition.md` | Pending |
 | **1G.10** | [1G.10-SUBMAP-GENERATION.md](./1G.10-SUBMAP-GENERATION.md) | `11_submap_generation_deep_dive/` | Pending |
 
