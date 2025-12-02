@@ -19,7 +19,7 @@
 
 [Why this task is needed, current state, pain points]
 
-**Reference:** [SPELL_SYSTEM_RESEARCH.md § X.X](../../architecture/SPELL_SYSTEM_RESEARCH.md#section)
+**Reference:** [@SPELL-SYSTEM-RESEARCH.md § X.X](../../architecture/@SPELL-SYSTEM-RESEARCH.md#section)
 
 ---
 
@@ -108,7 +108,7 @@ describe('[Component] Integration', () => {
 
 ## References
 
-- [SPELL_SYSTEM_RESEARCH.md § X](../../architecture/SPELL_SYSTEM_RESEARCH.md)
+- [@SPELL-SYSTEM-RESEARCH.md § X](../../architecture/@SPELL-SYSTEM-RESEARCH.md)
 - [External Reference](https://example.com)
 
 ---

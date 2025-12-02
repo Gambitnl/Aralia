@@ -46,7 +46,7 @@ Read your assigned task file:
 
 ### Background / Architecture
 
-- **[../../architecture/SPELL_SYSTEM_RESEARCH.md](../../architecture/SPELL_SYSTEM_RESEARCH.md)** - Original research document
+- **[../../architecture/@SPELL-SYSTEM-RESEARCH.md](../../architecture/@SPELL-SYSTEM-RESEARCH.md)** - Original research document
   - Effect taxonomy (8 core types)
   - TypeScript schema design
   - Grid algorithms
@@ -343,7 +343,7 @@ git push origin task/spell-system-[module]
 ## Emergency Contacts
 
 - **Orchestrator:** @orchestrator (Discord)
-- **Architecture Questions:** See [SPELL_SYSTEM_RESEARCH.md](../../architecture/SPELL_SYSTEM_RESEARCH.md)
+- **Architecture Questions:** See [@SPELL-SYSTEM-RESEARCH.md](../../architecture/@SPELL-SYSTEM-RESEARCH.md)
 - **Integration Issues:** #spell-system-coordination (Discord)
 - **File Conflicts:** @orchestrator immediately
 

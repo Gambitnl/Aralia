@@ -79,7 +79,7 @@ The project follows a component-based architecture with a clear separation of co
 ## 5. How to Add New Game Content
 
 ### Adding a New Race
-Please follow the detailed guide: **[`docs/guides/RACE_ADDITION_GUIDE.md`](./docs/guides/RACE_ADDITION_GUIDE.md)**
+Please follow the detailed guide: **[`docs/guides/RACE_ADDITION_GUIDE.md`](./guides/RACE_ADDITION_GUIDE.md)**
 
 ### Adding a New Class
-Please follow the detailed guide: **[`docs/guides/CLASS_ADDITION_GUIDE.md`](./docs/guides/CLASS_ADDITION_GUIDE.md)**
+Please follow the detailed guide: **[`docs/guides/CLASS_ADDITION_GUIDE.md`](./guides/CLASS_ADDITION_GUIDE.md)**

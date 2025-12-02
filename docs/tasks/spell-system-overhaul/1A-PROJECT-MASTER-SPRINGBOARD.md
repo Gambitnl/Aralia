@@ -81,7 +81,7 @@ One agent attempted to build Tasks 1-3 (Types, Targeting, Command Pattern) but l
 
 7. **[./00-TASK-INDEX.md]** - Master task list with dependencies
 8. **[./00-PARALLEL-ARCHITECTURE.md]** - 5-agent parallel architecture
-9. **[../../architecture/SPELL_SYSTEM_RESEARCH.md]** - Original architecture research
+9. **[../../architecture/@SPELL-SYSTEM-RESEARCH.md]** - Original architecture research
 
 ### For Specific Agent Tasks
 
@@ -276,7 +276,7 @@ Key Directories:
 1. **For spell format questions**: Read `docs/spells/SPELL_JSON_EXAMPLES.md`
 2. **For task questions**: Check `docs/tasks/spell-system-overhaul/00-TASK-INDEX.md`
 3. **For workflow questions**: Read `JULES-WORKFLOW-CONSOLIDATED.md`
-4. **For architecture questions**: See `docs/architecture/SPELL_SYSTEM_RESEARCH.md`
+4. **For architecture questions**: See `docs/architecture/@SPELL-SYSTEM-RESEARCH.md`
 
 ---
 
@@ -314,7 +314,7 @@ Key Directories:
 If you find conflicting information:
 1. This document takes precedence for current priorities
 2. Specific workflow documents (JULES-WORKFLOW) take precedence for process details
-3. Architecture documents (SPELL_SYSTEM_RESEARCH) take precedence for design decisions
+3. Architecture documents (@SPELL-SYSTEM-RESEARCH) take precedence for design decisions
 4. Task files (AGENT-*.md) take precedence for implementation details
 
 **Maintenance**:

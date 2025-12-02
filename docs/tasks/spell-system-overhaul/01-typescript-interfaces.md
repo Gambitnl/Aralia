@@ -19,7 +19,7 @@ Define comprehensive TypeScript interfaces and types for the new component-based
 
 Currently, spell types are inconsistent with mixed formats (strings vs objects) and incomplete definitions. This task establishes the type foundation that all other tasks will build upon.
 
-**Reference:** [SPELL_SYSTEM_RESEARCH.md § 3.2](../../architecture/SPELL_SYSTEM_RESEARCH.md#32-core-typescript-interfaces)
+**Reference:** [@SPELL-SYSTEM-RESEARCH.md § 3.2](../../architecture/@SPELL-SYSTEM-RESEARCH.md#32-core-typescript-interfaces)
 
 ---
 
@@ -322,7 +322,7 @@ const fireball: Spell = {
 
 ## References
 
-- [SPELL_SYSTEM_RESEARCH.md § 3.2](../../architecture/SPELL_SYSTEM_RESEARCH.md#32-core-typescript-interfaces)
+- [@SPELL-SYSTEM-RESEARCH.md § 3.2](../../architecture/@SPELL-SYSTEM-RESEARCH.md#32-core-typescript-interfaces)
 - [TypeScript Handbook - Discriminated Unions](https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html#discriminating-unions)
 - [tsd - Type Testing](https://github.com/SamVerschueren/tsd)
 

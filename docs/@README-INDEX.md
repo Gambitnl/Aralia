@@ -27,13 +27,23 @@ This file serves as a central index for all README documentation within the Aral
 *   **[`@DOCUMENTATION-GUIDE.md`](./@DOCUMENTATION-GUIDE.md)**: Explains the project's documentation strategy, README structure guidelines, naming conventions, and how to maintain documentation.
 *   **[`CHANGELOG.md`](./CHANGELOG.md)**: Tracks a high-level overview of notable changes to the application, linking to component-specific changelogs for details.
 *   **[`@README-INDEX.md`](./@README-INDEX.md)**: This file. An index of all READMEs.
-*   **[`FEATURES_TODO.md`](./FEATURES_TODO.md)**: A comprehensive list of planned features, enhancements, and tasks for future development.
+*   **[`FEATURES_TODO.md`](./FEATURES_TODO.md)**: Active planned features, enhancements, and tasks for future development.
+*   **[`archive/@FEATURES-COMPLETED.md`](./archive/@FEATURES-COMPLETED.md)**: Archive of completed features and tasks moved from FEATURES_TODO.md.
 *   **[`QOL_TODO.md`](./QOL_TODO.md)**: Lists Quality of Life improvements and general TODO items identified from code reviews and planning.
 *   **[`@POTENTIAL-TOOL-INTEGRATIONS.README.md`](./@POTENTIAL-TOOL-INTEGRATIONS.README.md)**: Lists potential tools and libraries that could be integrated to enhance the application.
 *   **[`SPELL_INTEGRATION_STATUS.md`](./SPELL_INTEGRATION_STATUS.md)**: The central hub for tracking the implementation status of spells across Data, Combat, Narrative, and Economy pillars.
 *   **[`@VERIFICATION-OF-CHANGES-GUIDE.md`](./@VERIFICATION-OF-CHANGES-GUIDE.md)**: A guide for AI assistants on how to ensure code changes are verifiable.
 *   **[`@AI-PROMPT-GUIDE.md`](./@AI-PROMPT-GUIDE.md)**: A guide for users on how to craft effective prompts for the AI assistant.
 *   **[`@TROUBLESHOOTING.md`](./@TROUBLESHOOTING.md)**: Solutions to common technical issues encountered during development.
+
+## Documentation System Reports
+
+*   **[`@DOC-REGISTRY.md`](./@DOC-REGISTRY.md)**: Central registry tracking all numbered task documents across projects with status and dependencies.
+*   **[`@DOCUMENTATION-SYSTEM-STATUS.md`](./@DOCUMENTATION-SYSTEM-STATUS.md)**: Comprehensive health report of the documentation system after cleanup (Tasks 1A-1F).
+*   **[`@CLEANUP-CLASSIFICATION-REPORT.md`](./@CLEANUP-CLASSIFICATION-REPORT.md)**: Survey results from Task 1A classifying all 77 documentation files.
+*   **[`@CONSOLIDATION-LOG.md`](./@CONSOLIDATION-LOG.md)**: Analysis from Task 1D showing no consolidation was needed.
+*   **[`@LINK-VERIFICATION-REPORT.md`](./@LINK-VERIFICATION-REPORT.md)**: Link verification results from Task 1E with broken link details.
+*   **[`@RETIRED-DOCS.md`](./@RETIRED-DOCS.md)**: Archive tracking documents that are no longer active with retirement reasons.
 
 ## Spell Integration Status (`docs/spells/`)
 *   **[`docs/spells/STATUS_LEVEL_0.md`](./spells/STATUS_LEVEL_0.md)**: Detailed status tracking for Cantrips.
@@ -51,11 +61,11 @@ This file serves as a central index for all README documentation within the Aral
 *   **[`docs/guides/CLASS_ADDITION_GUIDE.md`](./guides/CLASS_ADDITION_GUIDE.md)**: A comprehensive guide on how to add a new character class to the Aralia RPG.
 *   **[`docs/guides/RACE_ADDITION_GUIDE.md`](./guides/RACE_ADDITION_GUIDE.md)**: A guide on how to add a new character race.
 *   **[`docs/guides/GLOSSARY_ENTRY_DESIGN_GUIDE.md`](./guides/GLOSSARY_ENTRY_DESIGN_GUIDE.md)**: Outlines the structure, content, and styling conventions for creating and updating glossary entries.
-*   **[`docs/guides/SPELL_DATA_CREATION_GUIDE.md`](./guides/SPELL_DATA_CREATION_GUIDE.md)**: A guide for creating the structured JSON data files for spells.
+*   **[`docs/tasks/spell-system-overhaul/archive/SPELL_DATA_CREATION_GUIDE.md`](./tasks/spell-system-overhaul/archive/SPELL_DATA_CREATION_GUIDE.md)**: A guide for creating the structured JSON data files for spells.
 *   **[`docs/guides/SPELL_ADDITION_WORKFLOW_GUIDE.md`](./guides/SPELL_ADDITION_WORKFLOW_GUIDE.md)**: A guide for using the `add_spell.js` script to streamline adding new spells.
 *   **[`docs/guides/TABLE_CREATION_GUIDE.md`](./guides/TABLE_CREATION_GUIDE.md)**: A detailed guide on creating standard Markdown tables and custom HTML tables.
-*   **[`docs/guides/NPC_MECHANICS_IMPLEMENTATION_GUIDE.md`](./guides/NPC_MECHANICS_IMPLEMENTATION_GUIDE.md)**: A comprehensive guide outlining the phased implementation plan for the 'Living NPC' and 'Plausibility & Suspicion' systems.
-*   **[`docs/guides/NPC_GOSSIP_SYSTEM_GUIDE.md`](./guides/NPC_GOSSIP_SYSTEM_GUIDE.md)**: A detailed checklist for implementing the Gossip & Witness system.
+*   **[`docs/guides/@NPC-MECHANICS-IMPLEMENTATION-GUIDE.md`](./guides/@NPC-MECHANICS-IMPLEMENTATION-GUIDE.md)**: A comprehensive guide outlining the phased implementation plan for the 'Living NPC' and 'Plausibility & Suspicion' systems.
+*   **[`docs/guides/@NPC-GOSSIP-SYSTEM-GUIDE.md`](./guides/@NPC-GOSSIP-SYSTEM-GUIDE.md)**: A detailed checklist for implementing the Gossip & Witness system.
 
 ## Changelogs (`docs/changelogs/`)
 *   **[`docs/changelogs/BATTLEMAP_CHANGELOG.md`](./changelogs/BATTLEMAP_CHANGELOG.md)**: Details changes specifically related to the Battle Map feature.

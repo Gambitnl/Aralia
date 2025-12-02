@@ -254,7 +254,7 @@ describe('Spell Execution Flow', () => {
 
 ### Getting Help
 
-1. **Check Architecture Docs:** [SPELL_SYSTEM_RESEARCH.md](../../architecture/SPELL_SYSTEM_RESEARCH.md)
+1. **Check Architecture Docs:** [@SPELL-SYSTEM-RESEARCH.md](../../architecture/@SPELL-SYSTEM-RESEARCH.md)
 2. **Review Similar Tasks:** Look at completed task files for patterns
 3. **Ask in Standups:** Raise blockers early
 4. **Update Task File:** Document deviations and learnings
@@ -263,7 +263,7 @@ describe('Spell Execution Flow', () => {
 
 ## Architecture References
 
-- **Main Research:** [SPELL_SYSTEM_RESEARCH.md](../../architecture/SPELL_SYSTEM_RESEARCH.md)
+- **Main Research:** [@SPELL-SYSTEM-RESEARCH.md](../../architecture/@SPELL-SYSTEM-RESEARCH.md)
 - **Current System:** [SPELL_SYSTEM_ARCHITECTURE.md](../../architecture/SPELL_SYSTEM_ARCHITECTURE.md)
 - **Migration Status:** [SPELL_INTEGRATION_STATUS.md](../../SPELL_INTEGRATION_STATUS.md)
 

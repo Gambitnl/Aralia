@@ -19,7 +19,7 @@ Implement the AI Spell Arbitrator service that validates spell prerequisites and
 
 5% of D&D 5e spells cannot be mechanically defined without situational awareness and creative interpretation. This service provides a three-tier arbitration system: Mechanical (95%), AI-Assisted (4%), and AI-DM (1%).
 
-**Reference:** [SPELL_SYSTEM_RESEARCH.md § 6](../../architecture/SPELL_SYSTEM_RESEARCH.md#6-ai-dm-arbitration-layer)
+**Reference:** [@SPELL-SYSTEM-RESEARCH.md § 6](../../architecture/@SPELL-SYSTEM-RESEARCH.md#6-ai-dm-arbitration-layer)
 
 ---
 
@@ -729,7 +729,7 @@ VITE_AI_ENABLED=true
 
 ## References
 
-- [SPELL_SYSTEM_RESEARCH.md § 6.3](../../architecture/SPELL_SYSTEM_RESEARCH.md#63-implementation-architecture)
+- [@SPELL-SYSTEM-RESEARCH.md § 6.3](../../architecture/@SPELL-SYSTEM-RESEARCH.md#63-implementation-architecture)
 - [Anthropic Claude API Docs](https://docs.anthropic.com/claude/reference/getting-started-with-the-api)
 
 ---

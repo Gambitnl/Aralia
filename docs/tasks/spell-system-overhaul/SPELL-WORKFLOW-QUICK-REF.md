@@ -79,22 +79,7 @@ Then edit manually with VSCode autocomplete (JSON Schema enabled).
 
 ## Converting LEGACY Spells
 
-### Step 1: Find Old Spell
-
-Old location: `public/data/spells/spell-name.json`
-
-Example old format:
-```json
-{
-  "name": "Fireball",
-  "level": 3,
-  "damage": "8d6",
-  "damageType": "Fire",
-  "areaOfEffect": "20ft radius sphere"
-}
-```
-
-### Step 2: Use Template
+### Step 1: Use Template
 
 ```bash
 cp src/systems/spells/data/templates/TEMPLATE-damage-spell.json \

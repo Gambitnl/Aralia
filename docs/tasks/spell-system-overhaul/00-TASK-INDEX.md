@@ -1,7 +1,7 @@
 # Spell System Overhaul - Task Index
 
 **Epic:** Component-Based Spell System Implementation
-**Architecture Reference:** [SPELL_SYSTEM_RESEARCH.md](../../architecture/SPELL_SYSTEM_RESEARCH.md)
+**Architecture Reference:** [@SPELL-SYSTEM-RESEARCH.md](../../architecture/@SPELL-SYSTEM-RESEARCH.md)
 **Status:** Ready for Implementation
 **Estimated Timeline:** 11 weeks (55 working days)
 

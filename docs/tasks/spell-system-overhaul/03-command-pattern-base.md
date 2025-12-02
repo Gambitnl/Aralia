@@ -19,7 +19,7 @@ Implement the Command Pattern foundation for spell execution, enabling discrete,
 
 The current spell execution directly mutates state within `useAbilitySystem`. This task creates a flexible command architecture where each spell effect becomes an independent command that can be executed, logged, and potentially undone.
 
-**Reference:** [SPELL_SYSTEM_RESEARCH.md § 5](../../architecture/SPELL_SYSTEM_RESEARCH.md#5-integration-strategy)
+**Reference:** [@SPELL-SYSTEM-RESEARCH.md § 5](../../architecture/@SPELL-SYSTEM-RESEARCH.md#5-integration-strategy)
 
 ---
 
@@ -675,7 +675,7 @@ describe('CommandExecutor Integration', () => {
 
 ## References
 
-- [SPELL_SYSTEM_RESEARCH.md § 5.2](../../architecture/SPELL_SYSTEM_RESEARCH.md#52-command-structure)
+- [@SPELL-SYSTEM-RESEARCH.md § 5.2](../../architecture/@SPELL-SYSTEM-RESEARCH.md#52-command-structure)
 - [Game Programming Patterns - Command](https://gameprogrammingpatterns.com/command.html)
 - [Refactoring Guru - Command Pattern](https://refactoring.guru/design-patterns/command)
 

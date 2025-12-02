@@ -1,7 +1,7 @@
 # Spell System Overhaul - Parallel Modular Architecture
 
 **Epic:** Component-Based Spell System Implementation
-**Architecture Reference:** [SPELL_SYSTEM_RESEARCH.md](../../architecture/SPELL_SYSTEM_RESEARCH.md)
+**Architecture Reference:** [@SPELL-SYSTEM-RESEARCH.md](../../architecture/@SPELL-SYSTEM-RESEARCH.md)
 **Status:** Ready for Parallel Implementation
 **Max Parallel Agents:** 5
 **Estimated Timeline:** 3-4 weeks (with 5 agents)

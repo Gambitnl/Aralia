@@ -59,13 +59,14 @@ When a doc is retired, it gets the `~` marker and is logged in [@RETIRED-DOCS.md
 | [1A](./tasks/documentation-cleanup/1A-SURVEY-AND-CLASSIFICATION.md) | Survey and Classification | Completed | 100% | High | - | Dec 2, 2025 |
 | [1B](./tasks/documentation-cleanup/1B-APPLY-PREFIX-TO-ROOT-DOCS.md) | Apply Prefix to Static Documentation | Completed | 100% | High | 1A | Dec 2, 2025 |
 | [1C](./tasks/documentation-cleanup/1C-ARCHIVE-OBSOLETE-DOCS.md) | Archive Obsolete Docs | Completed | 100% | High | 1A | Dec 2, 2025 |
-| [1D](./tasks/documentation-cleanup/1D-CONSOLIDATE-DUPLICATE-CONTENT.md) | Consolidate Duplicate Content | Pending | 0% | Medium | 1A | Nov 28, 2025 |
-| [1E](./tasks/documentation-cleanup/1E-VERIFY-DOC-LINKS.md) | Verify Doc Links | Pending | 0% | Medium | 1B, 1C, 1D | Nov 28, 2025 |
-| [1F](./tasks/documentation-cleanup/1F-CREATE-SYSTEM-STATUS-REPORT.md) | Create System Status Report | Pending | 0% | Low | 1E | Nov 28, 2025 |
+| [1D](./tasks/documentation-cleanup/1D-CONSOLIDATE-DUPLICATE-CONTENT.md) | Consolidate Duplicate Content | Completed | 100% | Medium | 1A | Dec 2, 2025 |
+| [1E](./tasks/documentation-cleanup/1E-VERIFY-DOC-LINKS.md) | Verify Doc Links | Completed | 100% | Medium | 1B, 1C, 1D | Dec 2, 2025 |
+| [1F](./tasks/documentation-cleanup/1F-CREATE-SYSTEM-STATUS-REPORT.md) | Create System Status Report | Completed | 100% | Low | 1E | Dec 2, 2025 |
+| [1G](./tasks/documentation-cleanup/1G-MIGRATE-IMPROVEMENT-DOCS.md) | Migrate Improvement Docs | Pending | 0% | Medium | - | Dec 2, 2025 |
 
 **Tags**: `documentation`, `cleanup`, `organization`, `maintenance`
 
-**Next available number**: `1G`
+**Next available number**: `1H`
 
 ---
 
@@ -183,6 +184,7 @@ Example: @WORKFLOW-GUIDE.md
 
 | Date | Change | Project | Details |
 |------|--------|---------|---------|
+| Dec 2, 2025 | Completed 1D | Documentation Cleanup | No consolidation required - documentation system healthy |
 | Dec 2, 2025 | Completed 1C | Documentation Cleanup | Archived 8 obsolete docs and created archive index |
 | Dec 2, 2025 | Completed 1B | Documentation Cleanup | Applied @ prefix to 22 permanent reference files |
 | Dec 2, 2025 | Completed 1A | Documentation Cleanup | Survey and classification report generated |
