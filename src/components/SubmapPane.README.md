@@ -57,3 +57,17 @@ The visual appearance of each biome (base colors, path styles, scatter features,
 *   `src/data/glossaryData.ts`: For `SUBMAP_ICON_MEANINGS`.
 *   `src/components/GlossaryDisplay.tsx` and `src/components/Tooltip.tsx`.
 *   `src/hooks/useSubmapProceduralData.ts`: For procedural data generation.
+
+## Architecture & Design History
+
+### Optimization: Memoized Tile Rendering
+
+The `SubmapPane` was identified as a performance bottleneck. Initially, any state change (e.g., player movement, toggling "inspect" mode) would cause the entire grid of up to 600 tiles to re-render, leading to noticeable UI lag.
+
+To solve this, the rendering logic was refactored:
+
+1.  **`SubmapTile.tsx` Component**: A new, dedicated component (`src/components/SubmapTile.tsx`) was created to handle the rendering of a single tile.
+2.  **`React.memo`**: The `SubmapTile` component is wrapped in `React.memo`, a higher-order component that prevents a component from re-rendering if its props have not changed.
+3.  **Memoized Callbacks**: In `SubmapPane.tsx`, any functions passed down as props to `SubmapTile` (like click handlers) are memoized using the `useCallback` hook. This is crucial, as passing a new function reference on every render would defeat the purpose of `React.memo`.
+
+This architectural change ensures that only the specific tiles whose props have actually changed will re-render, dramatically improving the component's performance and responsiveness.
