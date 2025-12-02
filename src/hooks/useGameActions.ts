@@ -22,11 +22,11 @@ import { handleGeminiCustom } from './actions/handleGeminiCustom';
 import { handleGenerateEncounter, handleShowEncounterModal, handleHideEncounterModal, handleStartBattleMapEncounter, handleEndBattle } from './actions/handleEncounter';
 import { handleCastSpell, handleUseLimitedAbility, handleTogglePreparedSpell, handleLongRest, handleShortRest } from './actions/handleResourceActions';
 import { handleOpenDynamicMerchant } from './actions/handleMerchantInteraction';
-import { 
-  handleSaveGame, 
-  handleGoToMainMenu, 
-  handleToggleMap, 
-  handleToggleSubmap, 
+import {
+  handleSaveGame,
+  handleGoToMainMenu,
+  handleToggleMap,
+  handleToggleSubmap,
   handleToggleDevMenu,
   handleToggleDiscoveryLog,
   handleToggleGlossary,
@@ -34,7 +34,9 @@ import {
   handleTogglePartyOverlay,
   handleToggleNpcTestModal,
   handleToggleLogbook,
-  handleToggleGameGuide // New Import
+
+  handleToggleGameGuide,
+  handleToggleQuestLog
 } from './actions/handleSystemAndUi';
 import { getDiegeticPlayerActionMessage } from '../utils/actionUtils';
 import { getSubmapTileInfo } from '../utils/submapUtils';
@@ -51,29 +53,29 @@ interface UseGameActionsProps {
 }
 
 const formatDuration = (totalSeconds: number): string => {
-    if (totalSeconds <= 0) return "a moment";
+  if (totalSeconds <= 0) return "a moment";
 
-    const years = Math.floor(totalSeconds / 31536000);
-    totalSeconds %= 31536000;
-    const months = Math.floor(totalSeconds / 2592000);
-    totalSeconds %= 2592000;
-    const weeks = Math.floor(totalSeconds / 604800);
-    totalSeconds %= 604800;
-    const days = Math.floor(totalSeconds / 86400);
-    totalSeconds %= 86400;
-    const hours = Math.floor(totalSeconds / 3600);
-    totalSeconds %= 3600;
-    const minutes = Math.floor(totalSeconds / 60);
+  const years = Math.floor(totalSeconds / 31536000);
+  totalSeconds %= 31536000;
+  const months = Math.floor(totalSeconds / 2592000);
+  totalSeconds %= 2592000;
+  const weeks = Math.floor(totalSeconds / 604800);
+  totalSeconds %= 604800;
+  const days = Math.floor(totalSeconds / 86400);
+  totalSeconds %= 86400;
+  const hours = Math.floor(totalSeconds / 3600);
+  totalSeconds %= 3600;
+  const minutes = Math.floor(totalSeconds / 60);
 
-    const parts = [];
-    if (years > 0) parts.push(`${years} year${years > 1 ? 's' : ''}`);
-    if (months > 0) parts.push(`${months} month${months > 1 ? 's' : ''}`);
-    if (weeks > 0) parts.push(`${weeks} week${weeks > 1 ? 's' : ''}`);
-    if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
-    if (hours > 0) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
-    if (minutes > 0) parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
+  const parts = [];
+  if (years > 0) parts.push(`${years} year${years > 1 ? 's' : ''}`);
+  if (months > 0) parts.push(`${months} month${months > 1 ? 's' : ''}`);
+  if (weeks > 0) parts.push(`${weeks} week${weeks > 1 ? 's' : ''}`);
+  if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
+  if (hours > 0) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
+  if (minutes > 0) parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
 
-    return parts.length > 0 ? parts.join(', ') : "less than a minute";
+  return parts.length > 0 ? parts.join(', ') : "less than a minute";
 };
 
 
@@ -104,18 +106,18 @@ export function useGameActions({
     );
 
     if (!alreadyDiscovered) {
-      dispatch({ 
-        type: 'ADD_DISCOVERY_ENTRY', 
+      dispatch({
+        type: 'ADD_DISCOVERY_ENTRY',
         payload: {
-            gameTime: gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
-            type: DiscoveryType.LOCATION_DISCOVERY,
-            title: `Location Discovered: ${newLocation.name}`,
-            content: `You have discovered ${newLocation.name}. ${newLocation.baseDescription}`,
-            source: { type: 'LOCATION', id: newLocation.id, name: newLocation.name },
-            flags: [{ key: 'locationId', value: newLocation.id, label: newLocation.name }],
-            isQuestRelated: false,
-            associatedLocationId: newLocation.id,
-            worldMapCoordinates: newLocation.mapCoordinates,
+          gameTime: gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+          type: DiscoveryType.LOCATION_DISCOVERY,
+          title: `Location Discovered: ${newLocation.name}`,
+          content: `You have discovered ${newLocation.name}. ${newLocation.baseDescription}`,
+          source: { type: 'LOCATION', id: newLocation.id, name: newLocation.name },
+          flags: [{ key: 'locationId', value: newLocation.id, label: newLocation.name }],
+          isQuestRelated: false,
+          associatedLocationId: newLocation.id,
+          worldMapCoordinates: newLocation.mapCoordinates,
         }
       });
     }
@@ -123,19 +125,19 @@ export function useGameActions({
 
   const processAction = useCallback(
     async (action: Action) => {
-      const isUiToggle = ['toggle_map', 'toggle_submap_visibility', 'toggle_dev_menu', 'toggle_gemini_log_viewer', 'TOGGLE_DISCOVERY_LOG', 'TOGGLE_GLOSSARY_VISIBILITY', 'HIDE_ENCOUNTER_MODAL', 'SHOW_ENCOUNTER_MODAL', 'toggle_party_editor', 'toggle_party_overlay', 'CLOSE_CHARACTER_SHEET', 'TOGGLE_NPC_TEST_MODAL', 'TOGGLE_LOGBOOK', 'CLOSE_MERCHANT', 'BUY_ITEM', 'SELL_ITEM', 'TOGGLE_GAME_GUIDE'].includes(action.type);
+      const isUiToggle = ['toggle_map', 'toggle_submap_visibility', 'toggle_dev_menu', 'toggle_gemini_log_viewer', 'TOGGLE_DISCOVERY_LOG', 'TOGGLE_GLOSSARY_VISIBILITY', 'HIDE_ENCOUNTER_MODAL', 'SHOW_ENCOUNTER_MODAL', 'toggle_party_editor', 'toggle_party_overlay', 'CLOSE_CHARACTER_SHEET', 'TOGGLE_NPC_TEST_MODAL', 'TOGGLE_LOGBOOK', 'CLOSE_MERCHANT', 'BUY_ITEM', 'SELL_ITEM', 'TOGGLE_GAME_GUIDE', 'TOGGLE_QUEST_LOG'].includes(action.type);
       if (!isUiToggle) {
         dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Processing action..." } });
       }
-      
+
       dispatch({ type: 'SET_ERROR', payload: null });
 
       if (action.type !== 'talk' && action.type !== 'inspect_submap_tile') {
         if (gameState.lastInteractedNpcId !== null) {
-            dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
+          dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
         }
       }
-      
+
       const playerCharacter = gameState.party[0];
 
       const diegeticMessage = getDiegeticPlayerActionMessage(action, NPCS, LOCATIONS, playerCharacter);
@@ -148,12 +150,12 @@ export function useGameActions({
         playerContext = `${playerCharacter.name}, a ${playerCharacter.race.name} ${playerCharacter.class.name}`;
       }
 
-      const currentLoc = getCurrentLocation(); 
-      const npcsInLocation = getCurrentNPCs(); 
+      const currentLoc = getCurrentLocation();
+      const npcsInLocation = getCurrentNPCs();
       const itemsInLocationNames = currentLoc.itemIds?.map((id) => ITEMS[id]?.name).filter(Boolean).join(', ') || 'nothing special';
 
       const submapTileInfo = gameState.subMapCoordinates ? getSubmapTileInfo(gameState.worldSeed, currentLoc.mapCoordinates, currentLoc.biomeId, SUBMAP_DIMENSIONS, gameState.subMapCoordinates) : null;
-      
+
       const subMapCtx = submapTileInfo ? `You are standing on a '${submapTileInfo.effectiveTerrainType}' tile. ` : '';
       const detailedLocationContext = `${subMapCtx}The location is ${currentLoc.name}. Biome: ${BIOMES[currentLoc.biomeId]?.name || 'Unknown'}. Game Time: ${gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}`;
       const generalActionContext = `Player context: ${playerContext}. Location context: ${detailedLocationContext}. NPCs present: ${npcsInLocation.map((n) => n.name).join(', ') || 'no one'}. Visible items: ${itemsInLocationNames}.`;
@@ -228,16 +230,16 @@ export function useGameActions({
             handleTogglePreparedSpell(dispatch, action.payload as { characterId: string; spellId: string; });
             break;
           case 'LONG_REST':
-            await handleLongRest({gameState, dispatch, addMessage, addGeminiLog});
+            await handleLongRest({ gameState, dispatch, addMessage, addGeminiLog });
             break;
           case 'SHORT_REST':
-            handleShortRest({dispatch, addMessage});
+            handleShortRest({ dispatch, addMessage });
             break;
           case 'wait':
             if (action.payload?.seconds && action.payload.seconds > 0) {
-                const durationString = formatDuration(action.payload.seconds);
-                addMessage(`You wait for ${durationString}. Time passes.`, 'system');
-                dispatch({ type: 'ADVANCE_TIME', payload: { seconds: action.payload.seconds } });
+              const durationString = formatDuration(action.payload.seconds);
+              addMessage(`You wait for ${durationString}. Time passes.`, 'system');
+              dispatch({ type: 'ADVANCE_TIME', payload: { seconds: action.payload.seconds } });
             }
             break;
           case 'save_game':
@@ -259,8 +261,8 @@ export function useGameActions({
             handleToggleLogbook(dispatch);
             return;
           case 'TOGGLE_GLOSSARY_VISIBILITY':
-             handleToggleGlossary(dispatch, action.payload?.initialTermId);
-             return;
+            handleToggleGlossary(dispatch, action.payload?.initialTermId);
+            return;
           case 'toggle_dev_menu':
             handleToggleDevMenu(dispatch);
             return;
@@ -274,11 +276,11 @@ export function useGameActions({
             handleToggleNpcTestModal(dispatch);
             return;
           case 'ADD_MET_NPC':
-             if (action.payload?.npcId) {
-                dispatch({ type: 'ADD_MET_NPC', payload: { npcId: action.payload.npcId } });
-             }
-             break;
-          
+            if (action.payload?.npcId) {
+              dispatch({ type: 'ADD_MET_NPC', payload: { npcId: action.payload.npcId } });
+            }
+            break;
+
           // --- MERCHANT ACTIONS ---
           case 'OPEN_MERCHANT':
             dispatch({ type: 'OPEN_MERCHANT', payload: action.payload as { merchantName: string; inventory: Item[] } });
@@ -287,11 +289,11 @@ export function useGameActions({
             dispatch({ type: 'CLOSE_MERCHANT' });
             return;
           case 'BUY_ITEM':
-             dispatch({ type: 'BUY_ITEM', payload: action.payload as { item: Item; cost: number } });
-             return;
+            dispatch({ type: 'BUY_ITEM', payload: action.payload as { item: Item; cost: number } });
+            return;
           case 'SELL_ITEM':
-             dispatch({ type: 'SELL_ITEM', payload: action.payload as { itemId: string; value: number } });
-             return;
+            dispatch({ type: 'SELL_ITEM', payload: action.payload as { itemId: string; value: number } });
+            return;
 
           // --- NEW DYNAMIC ACTIONS ---
           case 'OPEN_DYNAMIC_MERCHANT':
@@ -300,10 +302,13 @@ export function useGameActions({
           case 'HARVEST_RESOURCE':
             await handleHarvestResource({ action, gameState, dispatch, addMessage, addGeminiLog });
             break;
-            
+
           case 'TOGGLE_GAME_GUIDE':
-             handleToggleGameGuide(dispatch);
-             return;
+            handleToggleGameGuide(dispatch);
+            return;
+          case 'TOGGLE_QUEST_LOG':
+            handleToggleQuestLog(dispatch);
+            return;
 
 
           case 'custom':
@@ -324,18 +329,18 @@ export function useGameActions({
               dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.PLAYING });
               addMessage('You leave the village and return to your journey.', 'system');
             } else if (action.label === 'Visit General Store') {
-                // LEGACY FALLBACK - Should be replaced by dynamic call in VillageScene
-                const inventory: Item[] = [ITEMS['healing_potion'], ITEMS['rope_item'], ITEMS['torch_item']].filter(Boolean);
-                dispatch({ type: 'OPEN_MERCHANT', payload: { merchantName: "General Store (Legacy)", inventory }});
-                addMessage('You enter the General Store.', 'system');
+              // LEGACY FALLBACK - Should be replaced by dynamic call in VillageScene
+              const inventory: Item[] = [ITEMS['healing_potion'], ITEMS['rope_item'], ITEMS['torch_item']].filter(Boolean);
+              dispatch({ type: 'OPEN_MERCHANT', payload: { merchantName: "General Store (Legacy)", inventory } });
+              addMessage('You enter the General Store.', 'system');
             } else if (action.label === 'Visit Blacksmith') {
-                // LEGACY FALLBACK
-                const inventory: Item[] = [WEAPONS_DATA['dagger'], ITEMS['shield_std']].filter(Boolean);
-                dispatch({ type: 'OPEN_MERCHANT', payload: { merchantName: "The Anvil (Legacy)", inventory }});
-                addMessage('You step into the sweltering heat of the Blacksmith.', 'system');
+              // LEGACY FALLBACK
+              const inventory: Item[] = [WEAPONS_DATA['dagger'], ITEMS['shield_std']].filter(Boolean);
+              dispatch({ type: 'OPEN_MERCHANT', payload: { merchantName: "The Anvil (Legacy)", inventory } });
+              addMessage('You step into the sweltering heat of the Blacksmith.', 'system');
             } else if (action.label?.includes('Visit') || action.label?.includes('Examine') || action.label?.includes('Browse') || action.label?.includes('Speak')) {
               // ... flavor text logic ...
-               addMessage(`You interact with: ${action.label}`, 'system');
+              addMessage(`You interact with: ${action.label}`, 'system');
             } else {
               addMessage(`Custom action: ${action.label}`, 'system');
             }
@@ -352,7 +357,7 @@ export function useGameActions({
         dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
       } finally {
         if (!isUiToggle && action.type !== 'save_game' && action.type !== 'GENERATE_ENCOUNTER' && !action.type.includes('_MERCHANT') && !action.type.includes('_ITEM')) {
-             dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
+          dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
         }
       }
     },

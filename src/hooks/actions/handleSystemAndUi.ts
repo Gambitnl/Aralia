@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { GameState, GamePhase } from '../../types';
-import { AppAction } from '../actionTypes';
+import { AppAction } from '../../state/actionTypes';
 import * as SaveLoadService from '../../services/saveLoadService';
 import { AddMessageFn } from './actionHandlerTypes';
 import { USE_DUMMY_CHARACTER_FOR_DEV } from '../../constants';
@@ -42,7 +42,7 @@ export async function handleGoToMainMenu({
   if (!USE_DUMMY_CHARACTER_FOR_DEV) {
     const result = await SaveLoadService.saveGame(gameState);
     if (!result.success) {
-         dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'error', message: "Failed to save game on exit." } });
+      dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'error', message: "Failed to save game on exit." } });
     }
   }
   dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU });
@@ -67,15 +67,15 @@ export function handleToggleNpcTestModal(dispatch: React.Dispatch<AppAction>): v
 }
 
 export function handleToggleDiscoveryLog(dispatch: React.Dispatch<AppAction>): void {
-    dispatch({ type: 'TOGGLE_DISCOVERY_LOG_VISIBILITY' });
+  dispatch({ type: 'TOGGLE_DISCOVERY_LOG_VISIBILITY' });
 }
 
 export function handleToggleGlossary(dispatch: React.Dispatch<AppAction>, initialTermId?: string): void {
-    dispatch({ type: 'TOGGLE_GLOSSARY_VISIBILITY', payload: { initialTermId } });
+  dispatch({ type: 'TOGGLE_GLOSSARY_VISIBILITY', payload: { initialTermId } });
 }
 
 export function handleToggleLogbook(dispatch: React.Dispatch<AppAction>): void {
-    dispatch({ type: 'TOGGLE_LOGBOOK' });
+  dispatch({ type: 'TOGGLE_LOGBOOK' });
 }
 
 export function handleTogglePartyEditor(dispatch: React.Dispatch<AppAction>): void {
@@ -83,9 +83,13 @@ export function handleTogglePartyEditor(dispatch: React.Dispatch<AppAction>): vo
 }
 
 export function handleTogglePartyOverlay(dispatch: React.Dispatch<AppAction>): void {
-    dispatch({ type: 'TOGGLE_PARTY_OVERLAY' });
+  dispatch({ type: 'TOGGLE_PARTY_OVERLAY' });
 }
 
 export function handleToggleGameGuide(dispatch: React.Dispatch<AppAction>): void {
   dispatch({ type: 'TOGGLE_GAME_GUIDE' });
+}
+
+export function handleToggleQuestLog(dispatch: React.Dispatch<AppAction>): void {
+  dispatch({ type: 'TOGGLE_QUEST_LOG' });
 }

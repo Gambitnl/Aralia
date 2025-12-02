@@ -343,7 +343,7 @@ const App: React.FC = () => {
         }
         newMapDataForDispatch = { ...newMapDataForDispatch, tiles: newTiles };
       }
-      dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: tile.locationId, newSubMapCoordinates, mapData: newMapDataForDispatch, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(tile.locationId, LOCATIONS) } });
+      dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: tile.locationId, newSubMapCoordinates, mapData: newMapDataForDispatch || undefined, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(tile.locationId, LOCATIONS) } });
       dispatch({ type: 'ADVANCE_TIME', payload: { seconds: 3600 } });
       dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
     } else if (tile.discovered && !tile.locationId) {
@@ -359,7 +359,7 @@ const App: React.FC = () => {
           }
           newMapDataForDispatch = { ...newMapDataForDispatch, tiles: newTiles };
         }
-        dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: targetCoordId, newSubMapCoordinates, mapData: newMapDataForDispatch, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(targetCoordId, LOCATIONS) } });
+        dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: targetCoordId, newSubMapCoordinates, mapData: newMapDataForDispatch || undefined, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(targetCoordId, LOCATIONS) } });
         dispatch({ type: 'ADVANCE_TIME', payload: { seconds: 3600 } });
         dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
       } else {
@@ -582,8 +582,11 @@ const App: React.FC = () => {
           npcsInLocation={npcs}
           itemsInLocation={itemsInCurrentLocation}
           disabled={!isUIInteractive}
-          geminiGeneratedActions={gameState.geminiGeneratedActions}
+
+
+          geminiGeneratedActions={gameState.geminiGeneratedActions || []}
           isDevDummyActive={USE_DUMMY_CHARACTER_FOR_DEV}
+
           unreadDiscoveryCount={gameState.unreadDiscoveryCount}
           hasNewRateLimitError={gameState.hasNewRateLimitError}
         />
@@ -617,10 +620,12 @@ const App: React.FC = () => {
               itemsInLocation={itemsInCurrentLocation}
               onAction={processAction}
               disabled={!isUIInteractive}
-              geminiGeneratedActions={gameState.geminiGeneratedActions}
+              geminiGeneratedActions={gameState.geminiGeneratedActions || []}
               isDevDummyActive={USE_DUMMY_CHARACTER_FOR_DEV}
               unreadDiscoveryCount={gameState.unreadDiscoveryCount}
               hasNewRateLimitError={gameState.hasNewRateLimitError}
+              subMapCoordinates={gameState.subMapCoordinates || undefined}
+              worldSeed={gameState.worldSeed}
             />
           </ErrorBoundary>
         </div>
@@ -630,11 +635,11 @@ const App: React.FC = () => {
             <WorldPane messages={gameState.messages} />
           </ErrorBoundary>
           <Minimap
-              mapData={gameState.mapData}
-              currentLocationCoords={currentLocationData.mapCoordinates}
-              submapCoords={gameState.subMapCoordinates}
-              visible={true} // Always visible in this layout
-              toggleMap={() => processAction({ type: 'toggle_map', label: 'Open Map' })}
+            mapData={gameState.mapData}
+            currentLocationCoords={currentLocationData.mapCoordinates}
+            submapCoords={gameState.subMapCoordinates}
+            visible={true} // Always visible in this layout
+            toggleMap={() => processAction({ type: 'toggle_map', label: 'Open Map' })}
           />
         </div>
       </div>

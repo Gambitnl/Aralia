@@ -45,17 +45,17 @@ export async function handleMovement({
   }
 
   const directionKey = action.targetId as keyof typeof DIRECTION_VECTORS;
-  
+
   const currentLocData = LOCATIONS[gameState.currentLocationId];
   const currentLoc = currentLocData || {
-      id: gameState.currentLocationId,
-      name: 'Wilderness',
-      mapCoordinates: {
-          x: parseInt(gameState.currentLocationId.split('_')[1], 10),
-          y: parseInt(gameState.currentLocationId.split('_')[2], 10),
-      },
-      biomeId: gameState.mapData.tiles[parseInt(gameState.currentLocationId.split('_')[2], 10)][parseInt(gameState.currentLocationId.split('_')[1], 10)].biomeId,
-      exits: {},
+    id: gameState.currentLocationId,
+    name: 'Wilderness',
+    mapCoordinates: {
+      x: parseInt(gameState.currentLocationId.split('_')[1], 10),
+      y: parseInt(gameState.currentLocationId.split('_')[2], 10),
+    },
+    biomeId: gameState.mapData.tiles[parseInt(gameState.currentLocationId.split('_')[2], 10)][parseInt(gameState.currentLocationId.split('_')[1], 10)].biomeId,
+    exits: {},
   };
 
 
@@ -64,11 +64,11 @@ export async function handleMovement({
 
   let newLocationId = gameState.currentLocationId;
   let newSubMapCoordinates = { ...gameState.subMapCoordinates };
-  let newMapDataForDispatch: MapData | undefined = gameState.mapData ? { ...gameState.mapData, tiles: gameState.mapData.tiles.map(row => row.map(tile => ({...tile}))) } : undefined;
+  let newMapDataForDispatch: MapData | undefined = gameState.mapData ? { ...gameState.mapData, tiles: gameState.mapData.tiles.map(row => row.map(tile => ({ ...tile }))) } : undefined;
   let activeDynamicNpcIdsForNewLocation: string[] | null = null;
   let timeToAdvanceSeconds = 0;
   let movedToNewNamedLocation: Location | null = null;
-  
+
   let descriptionGenerationFn: (() => Promise<GeminiService.StandardizedResult<GeminiService.GeminiTextData>>) | null = null;
   let geminiFunctionName = '';
   let baseDescriptionForFallback = "You arrive at the new location.";
@@ -82,24 +82,24 @@ export async function handleMovement({
     const targetLocation = LOCATIONS[action.targetId];
     if (targetLocation) {
       if (action.targetId === 'aralia_town_center') {
-          const villageLocationId = 'aralia_town_center';
-          activeDynamicNpcIdsForNewLocation = determineActiveDynamicNpcsForLocation(villageLocationId, LOCATIONS);
-          
-          dispatch({ 
-              type: 'MOVE_PLAYER', 
-              payload: { 
-                  newLocationId: villageLocationId, 
-                  newSubMapCoordinates: { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) },
-                  mapData: gameState.mapData, // Preserve map state
-                  activeDynamicNpcIds: activeDynamicNpcIdsForNewLocation 
-              } 
-          });
+        const villageLocationId = 'aralia_town_center';
+        activeDynamicNpcIdsForNewLocation = determineActiveDynamicNpcsForLocation(villageLocationId, LOCATIONS);
 
-          dispatch({ type: 'ADVANCE_TIME', payload: { seconds: 1800 } }); 
-          dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.VILLAGE_VIEW });
-          
-          addMessage("You enter Aralia Town Center.", "system");
-          return; 
+        dispatch({
+          type: 'MOVE_PLAYER',
+          payload: {
+            newLocationId: villageLocationId,
+            newSubMapCoordinates: { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) },
+            mapData: gameState.mapData, // Preserve map state
+            activeDynamicNpcIds: activeDynamicNpcIdsForNewLocation
+          }
+        });
+
+        dispatch({ type: 'ADVANCE_TIME', payload: { seconds: 1800 } });
+        dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.VILLAGE_VIEW });
+
+        addMessage("You enter Aralia Town Center.", "system");
+        return;
       }
 
       newLocationId = action.targetId;
@@ -131,18 +131,18 @@ export async function handleMovement({
 
       // Quest Triggers for named locations
       if (action.targetId === 'ancient_ruins_entrance' || action.targetId === 'ruins_courtyard') {
-         const questId = 'explore_ruins';
-         const quest = INITIAL_QUESTS[questId];
-         // Auto-accept if not present
-         if (quest && !gameState.questLog.some(q => q.id === questId)) {
-             dispatch({ type: 'ACCEPT_QUEST', payload: quest });
-         }
+        const questId = 'explore_ruins';
+        const quest = INITIAL_QUESTS[questId];
+        // Auto-accept if not present
+        if (quest && !gameState.questLog.some(q => q.id === questId)) {
+          dispatch({ type: 'ACCEPT_QUEST', payload: quest });
+        }
 
-         if (action.targetId === 'ancient_ruins_entrance') {
-             dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: { questId, objectiveId: 'find_ruins', isCompleted: true } });
-         } else if (action.targetId === 'ruins_courtyard') {
-             dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: { questId, objectiveId: 'enter_courtyard', isCompleted: true } });
-         }
+        if (action.targetId === 'ancient_ruins_entrance') {
+          dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: { questId, objectiveId: 'find_ruins', isCompleted: true } });
+        } else if (action.targetId === 'ruins_courtyard') {
+          dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: { questId, objectiveId: 'enter_courtyard', isCompleted: true } });
+        }
       }
 
     } else {
@@ -156,33 +156,37 @@ export async function handleMovement({
     let nextSubMapY = gameState.subMapCoordinates.y + dy;
     newSubMapCoordinates = { x: nextSubMapX, y: nextSubMapY };
 
-    if (nextSubMapX >= 0 && nextSubMapX < SUBMAP_DIMENSIONS.cols && nextSubMapY >= 0 && nextSubMapY < SUBMAP_DIMENSIONS.rows) { 
+    if (nextSubMapX >= 0 && nextSubMapX < SUBMAP_DIMENSIONS.cols && nextSubMapY >= 0 && nextSubMapY < SUBMAP_DIMENSIONS.rows) {
       newLocationId = gameState.currentLocationId;
       activeDynamicNpcIdsForNewLocation = gameState.currentLocationActiveDynamicNpcIds;
-      
+
       const { effectiveTerrainType } = getSubmapTileInfo(
-          gameState.worldSeed,
-          currentLoc.mapCoordinates,
-          currentLoc.biomeId,
-          SUBMAP_DIMENSIONS,
-          { x: nextSubMapX, y: nextSubMapY }
+        gameState.worldSeed,
+        currentLoc.mapCoordinates,
+        currentLoc.biomeId,
+        SUBMAP_DIMENSIONS,
+        { x: nextSubMapX, y: nextSubMapY }
       );
 
-      if (playerCharacter.transportMode === 'foot') {
-          timeToAdvanceSeconds = effectiveTerrainType === 'path' ? 15 * 60 : 30 * 60;
+      if (effectiveTerrainType === 'village_area') {
+        addMessage("You stand before a village. You can enter if you wish.", "system");
       }
-      
+
+      if (playerCharacter.transportMode === 'foot') {
+        timeToAdvanceSeconds = effectiveTerrainType === 'path' ? 15 * 60 : 30 * 60;
+      }
+
       const biome = BIOMES[currentLoc.biomeId];
       const currentWorldTile = gameState.mapData?.tiles[currentWorldY]?.[currentWorldX];
       const tooltip = currentWorldTile ? getTileTooltipText(currentWorldTile) : null;
       geminiFunctionName = 'generateWildernessLocationDescription';
-      descriptionGenerationFn = () => GeminiService.generateWildernessLocationDescription(biome?.name || 'Unknown Biome', {x: currentWorldX, y: currentWorldY}, newSubMapCoordinates, playerContext, tooltip, gameState.devModelOverride);
-    } else { 
+      descriptionGenerationFn = () => GeminiService.generateWildernessLocationDescription(biome?.name || 'Unknown Biome', { x: currentWorldX, y: currentWorldY }, newSubMapCoordinates, playerContext, tooltip, gameState.devModelOverride);
+    } else {
       const targetWorldMapX = currentWorldX + dx;
       const targetWorldMapY = currentWorldY + dy;
 
       if (!newMapDataForDispatch || targetWorldMapY < 0 || targetWorldMapY >= newMapDataForDispatch.gridSize.rows ||
-          targetWorldMapX < 0 || targetWorldMapX >= newMapDataForDispatch.gridSize.cols) {
+        targetWorldMapX < 0 || targetWorldMapX >= newMapDataForDispatch.gridSize.cols) {
         addMessage("You can't go that way; it's the edge of the known world.", "system");
         dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
         return;
@@ -196,16 +200,16 @@ export async function handleMovement({
         dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
         return;
       }
-      
+
       addMessage("As you travel, you get the sense that tales of your deeds precede you...", "system");
       await handleGossipEvent(gameState, addGeminiLog, dispatch);
 
       newLocationId = targetWorldTile.locationId || `coord_${targetWorldMapX}_${targetWorldMapY}`;
       activeDynamicNpcIdsForNewLocation = determineActiveDynamicNpcsForLocation(newLocationId, LOCATIONS);
-      
+
       if (nextSubMapX < 0) newSubMapCoordinates.x = SUBMAP_DIMENSIONS.cols - 1;
       else if (nextSubMapX >= SUBMAP_DIMENSIONS.cols) newSubMapCoordinates.x = 0;
-      
+
       if (nextSubMapY < 0) newSubMapCoordinates.y = SUBMAP_DIMENSIONS.rows - 1;
       else if (nextSubMapY >= SUBMAP_DIMENSIONS.rows) newSubMapCoordinates.y = 0;
 
@@ -217,24 +221,28 @@ export async function handleMovement({
         newSubMapCoordinates
       );
 
+      if (entryTileInfo.effectiveTerrainType === 'village_area') {
+        addMessage("You stand before a village. You can enter if you wish.", "system");
+      }
+
       if (playerCharacter.transportMode === 'foot') {
         timeToAdvanceSeconds = entryTileInfo.effectiveTerrainType === 'path' ? 15 * 60 : 30 * 60;
       } else {
-        timeToAdvanceSeconds = 3600; 
+        timeToAdvanceSeconds = 3600;
       }
-      
+
       const newTiles = newMapDataForDispatch.tiles.map(row => row.map(tile => ({ ...tile, isPlayerCurrent: false })));
       if (newTiles[targetWorldMapY]?.[targetWorldMapX]) {
         newTiles[targetWorldMapY][targetWorldMapX].isPlayerCurrent = true;
         newTiles[targetWorldMapY][targetWorldMapX].discovered = true;
         for (let y_offset = -1; y_offset <= 1; y_offset++) {
-            for (let x_offset = -1; x_offset <= 1; x_offset++) {
-                const adjY = targetWorldMapY + y_offset;
-                const adjX = targetWorldMapX + x_offset;
-                if (adjY >= 0 && adjY < newMapDataForDispatch.gridSize.rows && adjX >= 0 && adjX < newMapDataForDispatch.gridSize.cols) {
-                    newTiles[adjY][adjX].discovered = true;
-                }
+          for (let x_offset = -1; x_offset <= 1; x_offset++) {
+            const adjY = targetWorldMapY + y_offset;
+            const adjX = targetWorldMapX + x_offset;
+            if (adjY >= 0 && adjY < newMapDataForDispatch.gridSize.rows && adjX >= 0 && adjX < newMapDataForDispatch.gridSize.cols) {
+              newTiles[adjY][adjX].discovered = true;
             }
+          }
         }
       }
       newMapDataForDispatch.tiles = newTiles;
@@ -247,7 +255,7 @@ export async function handleMovement({
         baseDescriptionForFallback = targetDefLocation.baseDescription;
       } else {
         geminiFunctionName = 'generateWildernessLocationDescription (world move)';
-        descriptionGenerationFn = () => GeminiService.generateWildernessLocationDescription(targetBiome?.name || 'Unknown Biome', {x: targetWorldMapX, y: targetWorldMapY}, newSubMapCoordinates, playerContext, getTileTooltipText(targetWorldTile), gameState.devModelOverride);
+        descriptionGenerationFn = () => GeminiService.generateWildernessLocationDescription(targetBiome?.name || 'Unknown Biome', { x: targetWorldMapX, y: targetWorldMapY }, newSubMapCoordinates, playerContext, getTileTooltipText(targetWorldTile), gameState.devModelOverride);
       }
     }
   }
@@ -256,37 +264,37 @@ export async function handleMovement({
 
   if (descriptionGenerationFn) {
     const result = await descriptionGenerationFn();
-    
+
     // Use optional chaining or fallback if data is null due to hard failure
     const promptSent = result.data?.promptSent || result.metadata?.promptSent || 'Unknown prompt';
     const rawResponse = result.data?.rawResponse || result.metadata?.rawResponse || result.error || 'No response';
-    
+
     addGeminiLog(geminiFunctionName, promptSent, rawResponse);
-    
+
     if (result.data?.rateLimitHit || result.metadata?.rateLimitHit) {
       dispatch({ type: 'SET_RATE_LIMIT_ERROR_FLAG' });
     }
 
     if (result.data?.text) {
-        newDescription = result.data.text;
+      newDescription = result.data.text;
     } else if (result.error) {
-        addMessage("There was an issue describing your new surroundings.", 'system');
-        console.error("Gemini Error during movement description:", result.error);
+      addMessage("There was an issue describing your new surroundings.", 'system');
+      console.error("Gemini Error during movement description:", result.error);
     }
   }
-  
+
   if (timeToAdvanceSeconds > 0) {
     dispatch({ type: 'ADVANCE_TIME', payload: { seconds: timeToAdvanceSeconds } });
   }
 
   dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId, newSubMapCoordinates, mapData: newMapDataForDispatch, activeDynamicNpcIds: activeDynamicNpcIdsForNewLocation } });
-  
+
   if (movedToNewNamedLocation) {
     logDiscovery(movedToNewNamedLocation);
   }
-  
+
   dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
-  
+
   addMessage(newDescription, 'system');
 }
 
@@ -310,13 +318,31 @@ export async function handleQuickTravel({
 
   const { destination, durationSeconds } = action.payload.quickTravel;
 
+  // Calculate tile info for the destination to check for special terrain types (like villages)
+  const currentLoc = LOCATIONS[gameState.currentLocationId] || {
+    id: gameState.currentLocationId,
+    mapCoordinates: {
+      x: parseInt(gameState.currentLocationId.split('_')[1], 10),
+      y: parseInt(gameState.currentLocationId.split('_')[2], 10),
+    },
+    biomeId: gameState.mapData?.tiles[parseInt(gameState.currentLocationId.split('_')[2], 10)][parseInt(gameState.currentLocationId.split('_')[1], 10)].biomeId || 'plains',
+  };
+
+  const { effectiveTerrainType } = getSubmapTileInfo(
+    gameState.worldSeed,
+    currentLoc.mapCoordinates,
+    currentLoc.biomeId,
+    SUBMAP_DIMENSIONS,
+    destination
+  );
+
   // Dispatch move
   dispatch({
     type: 'MOVE_PLAYER',
     payload: {
       newLocationId: gameState.currentLocationId,
       newSubMapCoordinates: destination,
-      mapData: gameState.mapData,
+      mapData: gameState.mapData || undefined,
       activeDynamicNpcIds: gameState.currentLocationActiveDynamicNpcIds
     }
   });
@@ -325,6 +351,11 @@ export async function handleQuickTravel({
   if (durationSeconds > 0) {
     dispatch({ type: 'ADVANCE_TIME', payload: { seconds: durationSeconds } });
   }
-  
+
   addMessage(`You travel quickly across the terrain.`, 'system');
+
+  // Check for Village Entry
+  if (effectiveTerrainType === 'village_area') {
+    addMessage("You stand before a village. You can enter if you wish.", "system");
+  }
 }

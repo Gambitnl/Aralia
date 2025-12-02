@@ -9,6 +9,8 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { Location, Action, NPC, Item } from '../types';
+import { getSubmapTileInfo } from '../utils/submapUtils';
+import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 
 interface ActionPaneProps {
   currentLocation: Location;
@@ -19,7 +21,10 @@ interface ActionPaneProps {
   geminiGeneratedActions: Action[] | null;
   isDevDummyActive: boolean;
   unreadDiscoveryCount: number;
+
   hasNewRateLimitError: boolean;
+  subMapCoordinates?: { x: number; y: number };
+  worldSeed?: number;
 }
 
 const ActionButton: React.FC<{
@@ -32,9 +37,9 @@ const ActionButton: React.FC<{
   hasNotification?: boolean;
 }> = ({ action, onClick, disabled, className = '', isGeminiAction = false, badgeCount, hasNotification }) => {
   const baseClasses = "btn";
-  
+
   let colorClasses = "btn-primary";
-  
+
   // Determine color based on action type
   if (action.type === 'toggle_party_overlay') colorClasses = "btn-green";
   else if (action.type === 'save_game') colorClasses = "btn-yellow";
@@ -52,14 +57,14 @@ const ActionButton: React.FC<{
   if (isGeminiAction && action.type !== 'gemini_custom_action') {
     colorClasses = "btn-teal";
   }
-  
+
   const handleClick = () => {
-      // Ensure targetId for movement actions is a string to avoid type errors, without mutating prop
-      if (action.type === 'move' && action.targetId && typeof action.targetId !== 'string') {
-          onClick({ ...action, targetId: String(action.targetId) });
-      } else {
-          onClick(action);
-      }
+    // Ensure targetId for movement actions is a string to avoid type errors, without mutating prop
+    if (action.type === 'move' && action.targetId && typeof action.targetId !== 'string') {
+      onClick({ ...action, targetId: String(action.targetId) });
+    } else {
+      onClick(action);
+    }
   };
 
 
@@ -102,7 +107,10 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   geminiGeneratedActions,
   isDevDummyActive,
   unreadDiscoveryCount,
+
   hasNewRateLimitError,
+  subMapCoordinates,
+  worldSeed,
 }) => {
   const [isOracleInputVisible, setIsOracleInputVisible] = useState(false);
   const [oracleQuery, setOracleQuery] = useState('');
@@ -158,19 +166,34 @@ const ActionPane: React.FC<ActionPaneProps> = ({
       generalActions.push({ type: 'take_item', label: `Take ${item.name}`, targetId: item.id });
     });
   }
-  
+
   // Move actions for named exits (standard non-compass moves)
   if (currentLocation.exits) {
     Object.entries(currentLocation.exits).forEach(([direction, exit]) => {
-       if (!['North', 'South', 'East', 'West', 'NorthEast', 'NorthWest', 'SouthEast', 'SouthWest'].includes(direction)) {
+      if (!['North', 'South', 'East', 'West', 'NorthEast', 'NorthWest', 'SouthEast', 'SouthWest'].includes(direction)) {
         // Handle exit being string (legacy) or object
         const targetId = typeof exit === 'string' ? exit : exit.targetId;
         // Optionally verify exit is visible if it's an object
         if (typeof exit === 'string' || !exit.isHidden) {
-             generalActions.push({ type: 'move', label: `Go ${direction}`, targetId: targetId });
+          generalActions.push({ type: 'move', label: `Go ${direction}`, targetId: targetId });
         }
       }
     });
+  }
+
+  // Check for Village Entry
+  if (currentLocation.id.startsWith('coord_') && subMapCoordinates && worldSeed !== undefined) {
+    const { effectiveTerrainType } = getSubmapTileInfo(
+      worldSeed,
+      currentLocation.mapCoordinates,
+      currentLocation.biomeId,
+      SUBMAP_DIMENSIONS,
+      subMapCoordinates
+    );
+
+    if (effectiveTerrainType === 'village_area') {
+      generalActions.push({ type: 'ENTER_VILLAGE', label: 'Enter Village' });
+    }
   }
 
   const handleAskOracleClick = () => setIsOracleInputVisible(true);
@@ -189,13 +212,13 @@ const ActionPane: React.FC<ActionPaneProps> = ({
       {/* Top Row: Oracle, Analyze, System Toggles */}
       <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {!isOracleInputVisible && (
-          <ActionButton 
-             action={{ type: 'custom', label: 'Ask the Oracle' }} 
-             onClick={handleAskOracleClick} 
-             disabled={disabled} 
+          <ActionButton
+            action={{ type: 'custom', label: 'Ask the Oracle' }}
+            onClick={handleAskOracleClick}
+            disabled={disabled}
           />
         )}
-        <ActionButton 
+        <ActionButton
           action={{ type: 'ANALYZE_SITUATION', label: 'Analyze Situation' }}
           onClick={onAction}
           disabled={disabled}
@@ -218,7 +241,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
           </div>
         </div>
       )}
-      
+
       {/* Gemini Generated Actions */}
       <AnimatePresence>
         {geminiGeneratedActions && geminiGeneratedActions.length > 0 && (
@@ -226,12 +249,12 @@ const ActionPane: React.FC<ActionPaneProps> = ({
             <h3 className="text-sm font-semibold text-teal-400 mb-2">Suggested Actions</h3>
             <div className="grid grid-cols-1 gap-2">
               {geminiGeneratedActions.map((action, index) => (
-                <ActionButton 
-                  key={`gemini-${index}`} 
-                  action={action} 
-                  onClick={onAction} 
-                  disabled={disabled || isOracleInputVisible} 
-                  isGeminiAction 
+                <ActionButton
+                  key={`gemini-${index}`}
+                  action={action}
+                  onClick={onAction}
+                  disabled={disabled || isOracleInputVisible}
+                  isGeminiAction
                 />
               ))}
             </div>
@@ -242,57 +265,57 @@ const ActionPane: React.FC<ActionPaneProps> = ({
       {/* Standard Context Actions */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
         {generalActions.map((action, index) => (
-          <ActionButton 
-            key={`gen-${index}`} 
-            action={action} 
-            onClick={onAction} 
-            disabled={disabled || isOracleInputVisible} 
+          <ActionButton
+            key={`gen-${index}`}
+            action={action}
+            onClick={onAction}
+            disabled={disabled || isOracleInputVisible}
           />
         ))}
       </div>
-      
+
       {/* System/Menu Actions */}
       <div className="mt-6 pt-4 border-t border-gray-700 flex justify-end relative" ref={menuRef}>
-         <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            disabled={disabled}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg shadow transition-colors"
-            aria-haspopup="menu"
-            aria-expanded={isMenuOpen}
-         >
-            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
-            <span>System</span>
-            {(unreadDiscoveryCount > 0 || hasNewRateLimitError) && (
-              <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 border-2 border-gray-800 animate-pulse"></span>
-            )}
-         </button>
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          disabled={disabled}
+          className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg shadow transition-colors"
+          aria-haspopup="menu"
+          aria-expanded={isMenuOpen}
+        >
+          {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          <span>System</span>
+          {(unreadDiscoveryCount > 0 || hasNewRateLimitError) && (
+            <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 border-2 border-gray-800 animate-pulse"></span>
+          )}
+        </button>
 
-         <AnimatePresence>
-            {isMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                transition={{ duration: 0.15 }}
-                className="absolute bottom-full right-0 mb-2 w-56 bg-gray-800 border border-gray-600 rounded-lg shadow-xl overflow-hidden z-20 flex flex-col p-2 gap-2"
-                role="menu"
-              >
-                {systemMenuActions.map(({ action, badgeCount, hasNotification }, idx) => (
-                  <React.Fragment key={`${action.type}-${idx}`}>
-                    {idx === 6 && <div className="h-px bg-gray-600 my-1" aria-hidden="true"></div>}
-                    <ActionButton
-                      className="w-full text-left"
-                      action={action}
-                      onClick={(a) => { onAction(a); setIsMenuOpen(false); }}
-                      disabled={disabled}
-                      badgeCount={badgeCount}
-                      hasNotification={hasNotification}
-                    />
-                  </React.Fragment>
-                ))}
-              </motion.div>
-            )}
-         </AnimatePresence>
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              transition={{ duration: 0.15 }}
+              className="absolute bottom-full right-0 mb-2 w-56 bg-gray-800 border border-gray-600 rounded-lg shadow-xl overflow-hidden z-20 flex flex-col p-2 gap-2"
+              role="menu"
+            >
+              {systemMenuActions.map(({ action, badgeCount, hasNotification }, idx) => (
+                <React.Fragment key={`${action.type}-${idx}`}>
+                  {idx === 6 && <div className="h-px bg-gray-600 my-1" aria-hidden="true"></div>}
+                  <ActionButton
+                    className="w-full text-left"
+                    action={action}
+                    onClick={(a) => { onAction(a); setIsMenuOpen(false); }}
+                    disabled={disabled}
+                    badgeCount={badgeCount}
+                    hasNotification={hasNotification}
+                  />
+                </React.Fragment>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

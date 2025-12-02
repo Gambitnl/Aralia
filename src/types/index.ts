@@ -130,8 +130,8 @@ export interface Race {
   fiendishLegacies?: FiendishLegacy[];
   imageUrl?: string;
   racialSpellChoice?: {
-      traitName: string;
-      traitDescription: string;
+    traitName: string;
+    traitDescription: string;
   };
   knownSpells?: RacialSpell[];
 }
@@ -166,7 +166,7 @@ export interface ClassFeature {
   levelAvailable: number;
 }
 
-export interface FightingStyle extends ClassFeature {}
+export interface FightingStyle extends ClassFeature { }
 
 export interface DivineOrderOption {
   id: 'Protector' | 'Thaumaturge';
@@ -217,8 +217,8 @@ export interface Class {
   recommendedPointBuyPriorities?: AbilityScoreName[];
 }
 
-export type EquipmentSlotType = 
-  | 'Head' | 'Neck' | 'Torso' | 'Cloak' | 'Belt' 
+export type EquipmentSlotType =
+  | 'Head' | 'Neck' | 'Torso' | 'Cloak' | 'Belt'
   | 'MainHand' | 'OffHand' | 'Wrists' | 'Ring1' | 'Ring2' | 'Feet' | 'Legs' | 'Hands';
 
 export interface ResourceVial {
@@ -279,7 +279,7 @@ export interface PlayerCharacter {
   selectedDruidOrder?: 'Magician' | 'Warden';
   selectedWarlockPatron?: string;
   racialSelections?: Record<string, RacialSelectionData>;
-  equippedItems: Partial<Record<EquipmentSlotType, Item>>; 
+  equippedItems: Partial<Record<EquipmentSlotType, Item>>;
 }
 
 export interface CanEquipResult {
@@ -344,7 +344,7 @@ export interface Location {
   dynamicNpcConfig?: LocationDynamicNpcConfig;
   mapCoordinates: { x: number; y: number };
   biomeId: string;
-  gossipLinks?: string[]; 
+  gossipLinks?: string[];
 }
 
 export interface TTSVoiceOption {
@@ -499,12 +499,12 @@ export type ActionType =
   | 'custom'
   | 'ask_oracle'
   | 'toggle_map'
-  | 'toggle_submap_visibility' 
+  | 'toggle_submap_visibility'
   | 'gemini_custom_action'
   | 'save_game'
-  | 'go_to_main_menu' 
+  | 'go_to_main_menu'
   | 'inspect_submap_tile'
-  | 'toggle_dev_menu' 
+  | 'toggle_dev_menu'
   | 'toggle_party_editor'
   | 'toggle_party_overlay'
   | 'toggle_gemini_log_viewer'
@@ -514,8 +514,8 @@ export type ActionType =
   | 'TOGGLE_GLOSSARY_VISIBILITY'
   | 'TOGGLE_LOGBOOK'
   | 'ADD_MET_NPC'
-  | 'EQUIP_ITEM' 
-  | 'UNEQUIP_ITEM' 
+  | 'EQUIP_ITEM'
+  | 'UNEQUIP_ITEM'
   | 'DROP_ITEM'
   | 'SET_LOADING'
   | 'GENERATE_ENCOUNTER'
@@ -546,8 +546,9 @@ export type ActionType =
   | 'UPDATE_CHARACTER_CHOICE'
   | 'ACCEPT_QUEST'
   | 'UPDATE_QUEST_OBJECTIVE'
-  | 'COMPLETE_QUEST';
-  
+  | 'COMPLETE_QUEST'
+  | 'TOGGLE_QUEST_LOG';
+
 
 export enum DiscoveryType {
   LOCATION_DISCOVERY = 'Location Discovery',
@@ -617,13 +618,13 @@ export interface GroundingChunk {
 }
 
 export interface StartGameSuccessPayload {
-    character: PlayerCharacter;
-    mapData: MapData;
-    dynamicLocationItemIds: Record<string, string[]>;
-    initialLocationDescription: string;
-    initialSubMapCoordinates: { x: number; y: number };
-    initialActiveDynamicNpcIds: string[] | null;
-    startingInventory: Item[];
+  character: PlayerCharacter;
+  mapData: MapData;
+  dynamicLocationItemIds: Record<string, string[]>;
+  initialLocationDescription: string;
+  initialSubMapCoordinates: { x: number; y: number };
+  initialActiveDynamicNpcIds: string[] | null;
+  startingInventory: Item[];
 }
 
 export interface EconomyState {
@@ -649,22 +650,22 @@ export interface GameState {
   isImageLoading: boolean;
   error: string | null;
   worldSeed: number;
-  mapData: MapData | null; 
-  isMapVisible: boolean; 
-  isSubmapVisible: boolean; 
+  mapData: MapData | null;
+  isMapVisible: boolean;
+  isSubmapVisible: boolean;
   isPartyOverlayVisible: boolean;
   isNpcTestModalVisible: boolean;
   isLogbookVisible: boolean;
   isGameGuideVisible: boolean; // New state for chatbot
-  dynamicLocationItemIds: Record<string, string[]>; 
+  dynamicLocationItemIds: Record<string, string[]>;
   currentLocationActiveDynamicNpcIds: string[] | null;
   geminiGeneratedActions: Action[] | null;
-  characterSheetModal: { 
+  characterSheetModal: {
     isOpen: boolean;
     character: PlayerCharacter | null;
   };
   gameTime: Date;
-  
+
   isDevMenuVisible: boolean;
   isPartyEditorVisible: boolean;
   isGeminiLogViewerVisible: boolean;
@@ -676,7 +677,7 @@ export interface GameState {
   generatedEncounter: Monster[] | null;
   encounterSources: GroundingChunk[] | null;
   encounterError: string | null;
-  
+
   currentEnemies: CombatCharacter[] | null;
 
   saveVersion?: string;
@@ -685,25 +686,25 @@ export interface GameState {
   lastInteractedNpcId: string | null;
   lastNpcResponse: string | null;
 
-  inspectedTileDescriptions: Record<string, string>; 
+  inspectedTileDescriptions: Record<string, string>;
 
   discoveryLog: DiscoveryEntry[];
   unreadDiscoveryCount: number;
   isDiscoveryLogVisible: boolean;
-  isGlossaryVisible: boolean; 
+  isGlossaryVisible: boolean;
   selectedGlossaryTermForModal?: string;
 
   npcMemory: Record<string, NpcMemory>;
-  
+
   locationResidues: Record<string, DiscoveryResidue | null>;
 
   metNpcIds: string[];
-  
+
   merchantModal: {
-      isOpen: boolean;
-      merchantName: string;
-      merchantInventory: Item[];
-      economy?: EconomyState; // Added economy state
+    isOpen: boolean;
+    merchantName: string;
+    merchantInventory: Item[];
+    economy?: EconomyState; // Added economy state
   };
 
   questLog: Quest[];
@@ -715,12 +716,12 @@ export interface InspectSubmapTilePayload {
   effectiveTerrainType: string;
   worldBiomeId: string;
   parentWorldMapCoords: { x: number; y: number };
-  activeFeatureConfig?: { id: string; name?: string; icon: string; generatesEffectiveTerrainType?: string }; 
+  activeFeatureConfig?: { id: string; name?: string; icon: string; generatesEffectiveTerrainType?: string };
 }
 
-export interface UpdateInspectedTileDescriptionPayload { 
-    tileKey: string;
-    description: string;
+export interface UpdateInspectedTileDescriptionPayload {
+  tileKey: string;
+  description: string;
 }
 
 export interface EquipItemPayload {
@@ -762,7 +763,7 @@ export interface ShowEncounterModalPayload {
 }
 
 export interface StartBattleMapEncounterPayload {
-    monsters: Monster[];
+  monsters: Monster[];
 }
 
 export interface QuickTravelPayload {
@@ -806,11 +807,11 @@ export interface Action {
     villageContext?: VillageActionContext;
     skillCheck?: { skill: string; dc: number };
     harvestContext?: string;
-    
+
     // For missing choice updates
     choiceType?: string;
     choiceId?: string;
-    
+
     // For Quests
     quest?: Quest;
     objectiveId?: string;
@@ -821,7 +822,7 @@ export interface Action {
   };
 }
 
-export interface GlossaryDisplayItem { 
+export interface GlossaryDisplayItem {
   icon: string;
   meaning: string;
   category?: string;
@@ -832,10 +833,10 @@ export interface GlossaryEntry {
   title: string;
   category: string;
   tags?: string[];
-  excerpt?: string; 
-  aliases?: string[]; 
-  seeAlso?: string[]; 
-  filePath: string; 
+  excerpt?: string;
+  aliases?: string[];
+  seeAlso?: string[];
+  filePath: string;
   subEntries?: GlossaryEntry[];
 }
 
@@ -907,7 +908,7 @@ export interface MissingChoice {
   label: string; // Display label (e.g., "Draconic Ancestry")
   description: string;
   type: 'race' | 'class'; // Source of the missing choice
-  options: { id: string; label: string; description?: string; [key: string]: any }[];
+  options: { id: string; label: string; description?: string;[key: string]: any }[];
 }
 
 // Village scene integration payloads live here to keep the UI contract
