@@ -82,3 +82,16 @@ Primarily Tailwind CSS.
 ## Accessibility
 
 Steps are titled; interactive elements in child components should be accessible.
+
+## Architecture & Design History
+
+### Point Buy UI Enhancement
+
+The Point Buy system, handled by the `AbilityScoreAllocation` sub-component, was originally designed with simple increment/decrement buttons. While functional, this was identified as a point of friction for users who already knew their desired ability scores.
+
+To improve usability, the UI was enhanced to include a dropdown (`<select>`) element for each ability score. This allows users to directly select a target value between 8 and 15.
+
+Key features of this enhancement include:
+*   **Direct Selection**: The dropdown allows for quick assignment of scores. The point cost is calculated and deducted automatically.
+*   **Hybrid Control**: The original increment/decrement buttons were retained for fine-grained adjustments.
+*   **Real-time Validation**: The dropdown options are dynamically disabled if the player cannot afford the associated point cost, providing immediate user feedback and preventing invalid states.
