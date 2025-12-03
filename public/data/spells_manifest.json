@@ -8,7 +8,7 @@
   "acid-splash": {
     "name": "Acid Splash",
     "level": 0,
-    "school": "Evocation",
+    "school": "Conjuration",
     "path": "/data/spells/acid-splash.json"
   },
   "aid": {
@@ -525,7 +525,7 @@
     "name": "Dancing Lights",
     "level": 0,
     "school": "Evocation",
-    "path": "/data/spells/dancing-lights.json"
+    "path": "/data/spells/level-0/dancing-lights.json"
   },
   "darkness": {
     "name": "Darkness",
@@ -681,7 +681,7 @@
     "name": "Druidcraft",
     "level": 0,
     "school": "Transmutation",
-    "path": "/data/spells/druidcraft.json"
+    "path": "/data/spells/level-0/druidcraft.json"
   },
   "earthquake": {
     "name": "Earthquake",
@@ -693,7 +693,7 @@
     "name": "Eldritch Blast",
     "level": 0,
     "school": "Evocation",
-    "path": "/data/spells/eldritch-blast.json"
+    "path": "/data/spells/level-0/eldritch-blast.json"
   },
   "elemental-bane": {
     "name": "Elemental Bane",
@@ -711,7 +711,7 @@
     "name": "Elementalism",
     "level": 0,
     "school": "Transmutation",
-    "path": "/data/spells/elementalism.json"
+    "path": "/data/spells/level-0/elementalism.json"
   },
   "enhance-ability": {
     "name": "Enhance Ability",
@@ -831,7 +831,7 @@
     "name": "Fire Bolt",
     "level": 0,
     "school": "Evocation",
-    "path": "/data/spells/fire-bolt.json"
+    "path": "/data/spells/level-0/fire-bolt.json"
   },
   "fire-shield": {
     "name": "Fire Shield",
@@ -1811,23 +1811,29 @@
     "school": "Transmutation",
     "path": "/data/spells/shillelagh.json"
   },
+  "shining-smite": {
+    "name": "Shining Smite",
+    "level": 5,
+    "school": "Evocation",
+    "path": "/data/spells/shining-smite.json"
+  },
   "shocking-grasp": {
     "name": "Shocking Grasp",
     "level": 0,
     "school": "Evocation",
     "path": "/data/spells/shocking-grasp.json"
   },
-  "silent-image": {
-    "name": "Silent Image",
-    "level": 1,
-    "school": "Illusion",
-    "path": "/data/spells/silent-image.json"
-  },
   "silence": {
     "name": "Silence",
     "level": 2,
     "school": "Illusion",
     "path": "/data/spells/silence.json"
+  },
+  "silent-image": {
+    "name": "Silent Image",
+    "level": 1,
+    "school": "Illusion",
+    "path": "/data/spells/silent-image.json"
   },
   "simulacrum": {
     "name": "Simulacrum",

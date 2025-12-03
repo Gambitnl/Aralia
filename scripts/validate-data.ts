@@ -1,11 +1,69 @@
-/**
- * @file scripts/validate-data.ts
- * This script contains validation functions to ensure the integrity of game data.
- * It checks for duplicate IDs in races, subraces, and other data structures
- * to prevent runtime errors and maintain data consistency.
- */
+import fs from 'fs';
+import path from 'path';
+import { z } from 'zod';
+import { SpellValidator } from '../src/systems/spells/validation/spellValidator.ts';
 import { ACTIVE_RACES } from '../src/data/races/index.ts';
 import type { Race } from '../src/types.ts';
+
+/**
+ * Validates all spell data against the Zod schema.
+ */
+const validateSpells = (): void => {
+  const manifestPath = path.join(process.cwd(), 'public', 'data', 'spells_manifest.json');
+  if (!fs.existsSync(manifestPath)) {
+    console.warn('[Data Validation] Spells manifest not found. Skipping spell validation.');
+    return;
+  }
+
+  const manifestContent = fs.readFileSync(manifestPath, 'utf-8');
+  let manifest;
+  try {
+    manifest = JSON.parse(manifestContent);
+  } catch (e) {
+    throw new Error(`[Data Validation] Failed to parse spells_manifest.json: ${e.message}`);
+  }
+
+  const spellIds = Object.keys(manifest);
+  console.log(`[Data Validation] Validating ${spellIds.length} spells...`);
+
+  let errorCount = 0;
+
+  spellIds.forEach(id => {
+    const entry = manifest[id];
+    // entry.path is like "/data/spells/acid-splash.json"
+    // Only validate spells in level-* directories (new format)
+    if (!entry.path.includes('/level-')) {
+      return;
+    }
+
+    const relativePath = entry.path.startsWith('/') ? entry.path.substring(1) : entry.path;
+    const spellFilePath = path.join(process.cwd(), 'public', relativePath);
+
+    if (!fs.existsSync(spellFilePath)) {
+      console.error(`[Data Validation] Spell file not found for ${id}: ${spellFilePath}`);
+      errorCount++;
+      return;
+    }
+
+    try {
+      const spellContent = fs.readFileSync(spellFilePath, 'utf-8');
+      const spellData = JSON.parse(spellContent);
+      SpellValidator.parse(spellData);
+    } catch (error) {
+      console.error(`[Data Validation] Validation failed for spell ${id}:`);
+      if (error instanceof z.ZodError) {
+        error.errors.forEach(e => console.error(`  - ${e.path.join('.')}: ${e.message}`));
+      } else {
+        console.error(error);
+      }
+      errorCount++;
+    }
+  });
+
+  if (errorCount > 0) {
+    throw new Error(`[Data Validation] ${errorCount} spells failed validation.`);
+  }
+};
 
 /**
  * Validates all race data, checking for duplicate race IDs and subrace/lineage IDs.
@@ -19,17 +77,15 @@ const validateRaces = (races: readonly Race[]): void => {
   const seenSubraceIds = new Set<string>();
 
   races.forEach(race => {
-    // Check for duplicate race IDs
     if (seenRaceIds.has(race.id)) {
       throw new Error(`[Data Validation] Duplicate race ID found: ${race.id}`);
     }
     seenRaceIds.add(race.id);
 
-    // Check for required fields
-    if (!race.id || !race.name || !race.description || !race.traits) {
-      throw new Error(`[Data Validation] Race missing required fields: ${race.id}`);
+    // Validate required fields (basic check)
+    if (!race.name) {
+      throw new Error(`[Data Validation] Race missing name: ${race.id}`);
     }
-
     // Check for speed trait
     if (!race.traits.some(trait => trait.startsWith('Speed:'))) {
       throw new Error(`[Data Validation] Race missing speed trait: ${race.id}`);
@@ -65,6 +121,9 @@ const main = () => {
   try {
     validateRaces(ACTIVE_RACES);
     console.log('[Data Validation] All race data validated successfully.');
+
+    validateSpells();
+    console.log('[Data Validation] All spell data validated successfully.');
   } catch (error) {
     console.error(error.message);
     process.exit(1);

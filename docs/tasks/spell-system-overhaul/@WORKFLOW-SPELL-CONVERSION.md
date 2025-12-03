@@ -17,7 +17,7 @@ Single-source workflow for converting legacy spell data into the current JSON fo
 ## Canonical Targets (New Format)
 - File location: `public/data/spells/level-{0-9}/{spell-id}.json` (cantrips → `level-0`).
 - ID/file name: kebab-case (e.g., `fire-bolt.json`, `absorb-elements.json`).
-- Enums/casing: lower_snake for time units (`action`, `bonus_action`, `reaction`), Title case for schools/damage types (`Evocation`, `Fire`), ALLCAPS for effect types (`DAMAGE`, `DEFENSIVE`, etc.).
+- Enums/casing: lower_snake for time units (`action`, `bonus_action`, `reaction`), Title case for schools/damage types/classes (`Evocation`, `Fire`, `Wizard`), ALLCAPS for effect types (`DAMAGE`, `DEFENSIVE`, etc.).
 
 ---
 
@@ -62,7 +62,7 @@ Single-source workflow for converting legacy spell data into the current JSON fo
 ---
 
 ## Validation & Checks
-- Run `npm run validate` (or `npm run validate:spells`) to ensure schema compliance.
+- Run `npm run validate` to ensure schema compliance.
 - Verify:
   - All effects include `trigger` and `condition`.
   - Enum casing matches (`action`, `Evocation`, `Fire`, `DAMAGE`).

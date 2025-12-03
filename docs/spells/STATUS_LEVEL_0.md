@@ -22,11 +22,11 @@ This file tracks the migration of Cantrips (Level 0 spells) to the new component
 | Booming Blade | booming-blade | [D] Data Only | [ ] Not Started | | Melee weapon + spell attack |
 | Chill Touch | chill-touch | [D] Data Only | [ ] Not Started | | Necrotic damage + healing prevention |
 | Create Bonfire | create-bonfire | [D] Data Only | [ ] Not Started | | Concentration + area control |
-| Dancing Lights | dancing-lights | [ ] Pending | [ ] Not Started | | Utility/light source |
-| Druidcraft | druidcraft | [ ] Pending | [ ] Not Started | | Utility cantrip |
-| Eldritch Blast | eldritch-blast | [ ] Pending | [ ] Not Started | | Warlock signature spell |
-| Elementalism | elementalism | [ ] Pending | [ ] Not Started | | Utility cantrip |
-| Fire Bolt | fire-bolt | [ ] Pending | [ ] Not Started | | Fire damage cantrip |
+| Dancing Lights | dancing-lights | [D] Data Only | [ ] Not Started | | Utility/light source |
+| Druidcraft | druidcraft | [D] Data Only | [ ] Not Started | | Utility cantrip |
+| Eldritch Blast | eldritch-blast | [D] Data Only | [ ] Not Started | | Warlock signature spell |
+| Elementalism | elementalism | [D] Data Only | [ ] Not Started | | Utility cantrip |
+| Fire Bolt | fire-bolt | [D] Data Only | [ ] Not Started | | Fire damage cantrip |
 | Friends | friends | [ ] Pending | [ ] Not Started | | Social/charm cantrip |
 | Frostbite | frostbite | [ ] Pending | [ ] Not Started | | Cold damage + disadvantage |
 | Green-Flame Blade | green-flame-blade | [ ] Pending | [ ] Not Started | | Melee weapon + AoE |

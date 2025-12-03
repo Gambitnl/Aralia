@@ -44,7 +44,7 @@ CRITICAL REQUIREMENTS:
    - Example scaling: 1d10 at level 1, 2d10 at level 5, 3d10 at level 11, 4d10 at level 17
 
 5. Create Both JSON and Glossary Files
-   - Spell JSON: public/data/spells/[spell-id].json
+   - Spell JSON: public/data/spells/level-{N}/[spell-id].json
    - Glossary entry: public/data/glossary/entries/spells/[spell-id].md
 
 6. Update Status File
@@ -52,7 +52,8 @@ CRITICAL REQUIREMENTS:
    - Mark each spell as "[D] Data Only"
 
 7. Run Validation Before Creating PR
-   Execute: npm run validate
+   a. Update Manifest: npx tsx scripts/regenerate-manifest.ts
+   b. Execute: npm run validate
    Fix any errors before committing.
 
 COMPLETE EXAMPLE TO FOLLOW:
@@ -64,7 +65,7 @@ Here is a complete, correct cantrip JSON (Fire Bolt):
   "name": "Fire Bolt",
   "level": 0,
   "school": "Evocation",
-  "classes": ["ARTIFICER", "SORCERER", "WIZARD"],
+  "classes": ["Artificer", "Sorcerer", "Wizard"],
   "description": "You hurl a mote of fire at a creature or an object within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 fire damage. A flammable object hit by this spell ignites if it isn't being worn or carried.",
   "higherLevels": "This spell's damage increases by 1d10 when you reach 5th level (2d10), 11th level (3d10), and 17th level (4d10).",
   "tags": ["damage", "fire", "cantrip"],
@@ -128,9 +129,10 @@ WORKFLOW:
    e. Verify all BaseEffect fields are present (trigger, condition)
 3. Create glossary markdown files
 4. Update docs/spells/STATUS_LEVEL_0.md
-5. Run: npm run validate
-6. Fix any validation errors
-7. Create PR with title: "feat: migrate 5 cantrips to new spell format"
+5. Run: npx tsx scripts/regenerate-manifest.ts
+6. Run: npm run validate
+7. Fix any validation errors
+8. Create PR with title: "feat: migrate 5 cantrips to new spell format"
 
 DO NOT:
 - Skip the BaseEffect fields (trigger, condition)
@@ -244,7 +246,8 @@ CRITICAL REQUIREMENTS:
     - Mark each spell as "[D] Data Only"
 
 11. Run Validation Before Creating PR
-    Execute: npm run validate
+    a. Update Manifest: npx tsx scripts/regenerate-manifest.ts
+    b. Execute: npm run validate
     Fix any errors before committing.
 
 EXAMPLES TO REFERENCE:
@@ -275,9 +278,10 @@ WORKFLOW:
    h. Check for material components (add materialCost if GP value given)
 3. Create glossary markdown files
 4. Update docs/spells/STATUS_LEVEL_1.md
-5. Run: npm run validate
-6. Fix any validation errors
-7. Create PR with title: "feat: migrate 5 level 1 spells to new spell format"
+5. Run: npx tsx scripts/regenerate-manifest.ts
+6. Run: npm run validate
+7. Fix any validation errors
+8. Create PR with title: "feat: migrate 5 level 1 spells to new spell format"
 
 DO NOT:
 - Skip the BaseEffect fields (trigger, condition)
@@ -508,6 +512,201 @@ UTILITY:
 ```
 
 ---
+Your task is to fix the 5 spell JSONs in PR #38 by adding the missing BaseEffect fields.
+
+PROBLEM:
+All effects in PR #38 are missing required "trigger" and "condition" fields from BaseEffect.
+
+SOLUTION:
+For each spell, update the effects to include these fields.
+
+SPELLS TO FIX:
+1. absorb-elements.json
+2. alarm.json
+3. animal-friendship.json
+4. armor-of-agathys.json
+5. arms-of-hadar.json
+
+COMPLETE FIXED EXAMPLE - Absorb Elements:
+
+Current (BROKEN):
+{
+  "effects": [
+    {
+      "type": "DEFENSIVE",
+      "defenseType": "resistance",
+      "damageType": ["Acid", "Cold", "Fire", "Lightning", "Thunder"],
+      "duration": { "type": "rounds", "value": 1 }
+    }
+  ]
+}
+
+Fixed (CORRECT):
+{
+  "effects": [
+    {
+      "type": "DEFENSIVE",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "defenseType": "resistance",
+      "damageType": ["Acid", "Cold", "Fire", "Lightning", "Thunder"],
+      "duration": {
+        "type": "rounds",
+        "value": 1
+      }
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "turn_start"
+      },
+      "condition": {
+        "type": "hit"
+      },
+      "damage": {
+        "dice": "1d6",
+        "type": "Acid"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d6"
+      }
+    }
+  ]
+}
+
+Note: Absorb Elements has TWO effects - the resistance AND the bonus damage.
+
+FIELD REFERENCE:
+
+For DEFENSIVE effects (Shield, Absorb Elements resistance):
+{
+  "type": "DEFENSIVE",
+  "trigger": { "type": "immediate" },
+  "condition": { "type": "always" },
+  // ... rest of defensive fields
+}
+
+For DAMAGE effects (most attack spells):
+{
+  "type": "DAMAGE",
+  "trigger": { "type": "immediate" },
+  "condition": { "type": "hit" },  // or "save" with saveType
+  // ... rest of damage fields
+}
+
+For UTILITY effects:
+{
+  "type": "UTILITY",
+  "trigger": { "type": "immediate" },
+  "condition": { "type": "always" },
+  // ... rest of utility fields
+}
+
+WORKFLOW:
+
+1. Read the complete Example 3 (Absorb Elements) from docs/spells/SPELL_JSON_EXAMPLES.md
+2. For each of the 5 spells:
+   a. Add "trigger" field to each effect
+   b. Add "condition" field to each effect
+   c. Verify effect-specific fields are correct
+   d. Check if any effects are missing (like Absorb Elements second effect)
+3. Run: npm run validate
+4. Fix any validation errors
+5. Commit changes to PR #38
+
+CRITICAL:
+- Absorb Elements needs TWO effects, not one
+- All effects need trigger and condition
+- Use the examples document to verify complete structure
+
+REFERENCE:
+- Complete correct example: docs/spells/SPELL_JSON_EXAMPLES.md Example 3
+```
+
+---
+
+## Quick Reference: Common Effect Patterns
+
+```
+DAMAGE (spell attack):
+{
+  "type": "DAMAGE",
+  "trigger": { "type": "immediate" },
+  "condition": { "type": "hit" },
+  "damage": { "dice": "1d10", "type": "Fire" }
+}
+
+DAMAGE (saving throw):
+{
+  "type": "DAMAGE",
+  "trigger": { "type": "immediate" },
+  "condition": {
+    "type": "save",
+    "saveType": "Dexterity",
+    "saveEffect": "half"
+  },
+  "damage": { "dice": "3d6", "type": "Fire" }
+}
+
+DEFENSIVE (AC bonus):
+{
+  "type": "DEFENSIVE",
+  "trigger": { "type": "immediate" },
+  "condition": { "type": "always" },
+  "defenseType": "ac_bonus",
+  "value": 5,
+  "duration": { "type": "rounds", "value": 1 }
+}
+
+DEFENSIVE (resistance):
+{
+  "type": "DEFENSIVE",
+  "trigger": { "type": "immediate" },
+  "condition": { "type": "always" },
+  "defenseType": "resistance",
+  "damageType": ["Fire", "Cold"],
+  "duration": { "type": "rounds", "value": 1 }
+}
+
+HEALING:
+{
+  "type": "HEALING",
+  "trigger": { "type": "immediate" },
+  "condition": { "type": "always" },
+  "healing": { "dice": "1d8", "isTemporaryHp": false }
+}
+
+STATUS_CONDITION:
+{
+  "type": "STATUS_CONDITION",
+  "trigger": { "type": "immediate" },
+  "condition": {
+    "type": "save",
+    "saveType": "Wisdom",
+    "saveEffect": "negates_condition"
+  },
+  "statusCondition": {
+    "name": "Charmed",
+    "duration": { "type": "minutes", "value": 1 }
+  }
+}
+
+UTILITY:
+{
+  "type": "UTILITY",
+  "trigger": { "type": "immediate" },
+  "condition": { "type": "always" },
+  "utilityType": "light",
+  "description": "Creates bright light in a 20-foot radius"
+}
+```
+
+---
 
 **Usage Instructions**:
 
@@ -517,5 +716,7 @@ UTILITY:
 4. Jules should read docs/spells/SPELL_JSON_EXAMPLES.md FIRST
 5. Jules should follow the examples exactly
 6. Jules must run validation before creating PR
+10) **Update Manifest**: Run `npx tsx scripts/regenerate-manifest.ts` to update `spells_manifest.json` with new paths.
+11) **Integration Verification**: After migration, run `docs/spells/SPELL_INTEGRATION_CHECKLIST.md` for the spell and mark completion in the status file (e.g., add an “Integration” checkbox/column when updating status).
 
 **Key Success Factor**: Jules must use the SPELL_JSON_EXAMPLES.md document as the source of truth, not try to infer structure from TypeScript files.
