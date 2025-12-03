@@ -317,6 +317,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
           )}
         </AnimatePresence>
       </div>
+
     </div>
   );
 };

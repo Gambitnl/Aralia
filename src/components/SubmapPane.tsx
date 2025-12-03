@@ -8,9 +8,9 @@
  * CompassPane is now integrated into this modal.
  */
 import React, { useEffect, useMemo, useRef, useCallback, useState } from 'react';
-import { BIOMES } from '../constants'; 
-import { SUBMAP_DIMENSIONS } from '../config/mapConfig'; 
-import { Action, InspectSubmapTilePayload, Location, MapData, BiomeVisuals, PlayerCharacter, NPC, Item, SeededFeatureConfig, GlossaryDisplayItem } from '../types'; 
+import { BIOMES } from '../constants';
+import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
+import { Action, InspectSubmapTilePayload, Location, MapData, BiomeVisuals, PlayerCharacter, NPC, Item, SeededFeatureConfig, GlossaryDisplayItem } from '../types';
 import { BattleMapData, BattleMapTile } from '../types/combat';
 import GlossaryDisplay from './GlossaryDisplay';
 import { SUBMAP_ICON_MEANINGS } from '../data/glossaryData';
@@ -28,7 +28,7 @@ interface SubmapPathNode {
   coordinates: { x: number; y: number };
   movementCost: number;
   blocksMovement: boolean;
-  terrain?: any; 
+  terrain?: any;
   elevation?: any;
   blocksLoS?: any;
   decoration?: any;
@@ -41,11 +41,11 @@ interface SubmapPaneProps {
   playerSubmapCoords: { x: number; y: number };
   onClose: () => void;
   submapDimensions: { rows: number; cols: number };
-  parentWorldMapCoords: { x: number; y: number }; 
-  onAction: (action: Action) => void; 
-  disabled: boolean; 
+  parentWorldMapCoords: { x: number; y: number };
+  onAction: (action: Action) => void;
+  disabled: boolean;
   inspectedTileDescriptions: Record<string, string>;
-  mapData: MapData | null; 
+  mapData: MapData | null;
   gameTime: Date;
   playerCharacter: PlayerCharacter;
   worldSeed: number;
@@ -83,10 +83,10 @@ const cssColorToHex = (color: string | undefined | null): number | null => {
 
 // --- Submap Tile Hint Data ---
 const submapTileHints: Record<string, string[]> = {
-  'default': [ 
-    "The air is still here.", 
-    "You survey your surroundings.", 
-    "A sense of anticipation hangs in the air.", 
+  'default': [
+    "The air is still here.",
+    "You survey your surroundings.",
+    "A sense of anticipation hangs in the air.",
     "An unremarkable patch of terrain, yet potential lurks everywhere.",
     "The ground here seems ordinary.",
     "A quiet moment of observation."
@@ -179,20 +179,20 @@ const submapTileHints: Record<string, string[]> = {
     "A piece of driftwood bobs on the surface nearby."
   ],
   'cave_default': [
-      "The air is cool, damp, and still.",
-      "Water drips rhythmically from a stalactite somewhere in the dark.",
-      "The rocky floor is uneven and slick with moisture.",
-      "Shadows dance on the walls, cast by unseen light sources.",
-      "A faint draft suggests a larger chamber nearby.",
-      "The silence is heavy, broken only by your own breathing."
+    "The air is cool, damp, and still.",
+    "Water drips rhythmically from a stalactite somewhere in the dark.",
+    "The rocky floor is uneven and slick with moisture.",
+    "Shadows dance on the walls, cast by unseen light sources.",
+    "A faint draft suggests a larger chamber nearby.",
+    "The silence is heavy, broken only by your own breathing."
   ],
   'dungeon_default': [
-      "The air is stale and carries the scent of old stone and dust.",
-      "Cobwebs hang in thick curtains from the ceiling.",
-      "The floor is made of worn flagstones, cracked with age.",
-      "Rusting iron fixtures line the walls.",
-      "You hear the faint scuttling of vermin in the shadows.",
-      "A sense of dread permeates these ancient halls."
+    "The air is stale and carries the scent of old stone and dust.",
+    "Cobwebs hang in thick curtains from the ceiling.",
+    "The floor is made of worn flagstones, cracked with age.",
+    "Rusting iron fixtures line the walls.",
+    "You hear the faint scuttling of vermin in the shadows.",
+    "A sense of dread permeates these ancient halls."
   ],
   'wall': ["Solid rock blocks your path.", "A rough-hewn stone wall stands before you.", "The cave wall is damp and covered in lichen.", "An ancient masonry wall, built by forgotten hands."],
   'floor': ["The ground is level enough for easy travel.", "Rough stone floor, worn smooth by time.", "A patch of dirt floor, packed hard."],
@@ -232,8 +232,8 @@ const getAnimationClass = (icon: string | null | undefined): string => {
 };
 
 const getIsResource = (icon: string | null | undefined): boolean => {
-    if(!icon) return false;
-    return ['🌲', '🌳', '🪨', '💎', '🍄', '🌿'].includes(icon);
+  if (!icon) return false;
+  return ['🌲', '🌳', '🪨', '💎', '🍄', '🌿'].includes(icon);
 };
 
 function getBaseVisuals(
@@ -270,8 +270,8 @@ function applyPathVisuals(
     const pathZ = 1;
     if (newVisuals.zIndex < pathZ) {
       newVisuals.style.backgroundColor = visualsConfig.pathColor;
-      newVisuals.content = visualsConfig.pathIcon && tileHash % 3 === 0 
-        ? <span role="img" aria-label="path detail">{visualsConfig.pathIcon}</span> 
+      newVisuals.content = visualsConfig.pathIcon && tileHash % 3 === 0
+        ? <span role="img" aria-label="path detail">{visualsConfig.pathIcon}</span>
         : null;
       newVisuals.zIndex = pathZ;
       newVisuals.effectiveTerrainType = 'path';
@@ -283,15 +283,15 @@ function applyPathVisuals(
         const currentBgMatch = newVisuals.style.backgroundColor?.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
         const adjBgMatch = visualsConfig.pathAdjacency.color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
         if (currentBgMatch && adjBgMatch) {
-            const r = Math.floor((parseInt(currentBgMatch[1]) * 0.7 + parseInt(adjBgMatch[1]) * 0.3)); 
-            const g = Math.floor((parseInt(currentBgMatch[2]) * 0.7 + parseInt(adjBgMatch[2]) * 0.3));
-            const b = Math.floor((parseInt(currentBgMatch[3]) * 0.7 + parseInt(adjBgMatch[3]) * 0.3));
-            const aC = parseFloat(currentBgMatch[4] || '1');
-            const aA = parseFloat(adjBgMatch[4] || '1');
-            const a = Math.max(aC, aA); 
-            newVisuals.style.backgroundColor = `rgba(${r},${g},${b},${a.toFixed(2)})`;
+          const r = Math.floor((parseInt(currentBgMatch[1]) * 0.7 + parseInt(adjBgMatch[1]) * 0.3));
+          const g = Math.floor((parseInt(currentBgMatch[2]) * 0.7 + parseInt(adjBgMatch[2]) * 0.3));
+          const b = Math.floor((parseInt(currentBgMatch[3]) * 0.7 + parseInt(adjBgMatch[3]) * 0.3));
+          const aC = parseFloat(currentBgMatch[4] || '1');
+          const aA = parseFloat(adjBgMatch[4] || '1');
+          const a = Math.max(aC, aA);
+          newVisuals.style.backgroundColor = `rgba(${r},${g},${b},${a.toFixed(2)})`;
         } else {
-            newVisuals.style.backgroundColor = visualsConfig.pathAdjacency.color;
+          newVisuals.style.backgroundColor = visualsConfig.pathAdjacency.color;
         }
       }
       if (visualsConfig.pathAdjacency?.scatter && !newVisuals.content) {
@@ -408,7 +408,7 @@ function applySeededFeatureVisuals(
         newVisuals.style.backgroundColor = seeded.config.color;
         newVisuals.content = <span role="img" aria-label={seeded.config.name || seeded.config.id}>{seeded.config.icon}</span>;
         newVisuals.effectiveTerrainType = seeded.config.generatesEffectiveTerrainType || seeded.config.id;
-        dominantFeatureForTile = seeded.config; 
+        dominantFeatureForTile = seeded.config;
       }
     } else if (seeded.config.adjacency) {
       let isAdjacent = false;
@@ -420,14 +420,14 @@ function applySeededFeatureVisuals(
       }
 
       if (isAdjacent) {
-        const adjZ = (seeded.config.zOffset || 0.1) - 0.05; 
+        const adjZ = (seeded.config.zOffset || 0.1) - 0.05;
         if (adjZ > newVisuals.zIndex) {
           newVisuals.zIndex = adjZ;
           if (seeded.config.adjacency.color) newVisuals.style.backgroundColor = seeded.config.adjacency.color;
           if (seeded.config.adjacency.icon) newVisuals.content = <span role="img" aria-label={`${seeded.config.name || seeded.config.id} adjacency`}>{seeded.config.adjacency.icon}</span>;
-          
-          if (!dominantFeatureForTile) { 
-             newVisuals.effectiveTerrainType = `${seeded.config.generatesEffectiveTerrainType || seeded.config.id}_adj`;
+
+          if (!dominantFeatureForTile) {
+            newVisuals.effectiveTerrainType = `${seeded.config.generatesEffectiveTerrainType || seeded.config.id}_adj`;
           }
         }
       }
@@ -445,7 +445,7 @@ function applyScatterVisuals(
 ): VisualLayerOutput {
   const newVisuals = { ...currentVisuals };
   const scatterFeaturesToUse = newVisuals.activeSeededFeatureConfigForTile?.scatterOverride || visualsConfig.scatterFeatures;
-  const allowedTerrain = newVisuals.activeSeededFeatureConfigForTile?.scatterOverride 
+  const allowedTerrain = newVisuals.activeSeededFeatureConfigForTile?.scatterOverride
     ? newVisuals.effectiveTerrainType // If override exists, scatter is specific to the feature's terrain type
     : currentVisuals.effectiveTerrainType; // Use the current effective terrain type (could be 'floor' or 'default')
 
@@ -457,23 +457,23 @@ function applyScatterVisuals(
       if (scatterRoll < cumulativeDensity) {
         // Logic to check 'allowedOn'. If allowedOn is present, the current terrain MUST match.
         if (scatter.allowedOn && allowedTerrain) {
-             if (!scatter.allowedOn.includes(allowedTerrain) && !scatter.allowedOn.includes('default')) {
-                 continue; // Skip if not allowed
-             }
+          if (!scatter.allowedOn.includes(allowedTerrain) && !scatter.allowedOn.includes('default')) {
+            continue; // Skip if not allowed
+          }
         }
 
-        const scatterZ = 0.01; 
-        if (scatterZ > newVisuals.zIndex) { 
-             newVisuals.zIndex = scatterZ; // Keep zIndex low for scatter unless it's meant to be prominent
+        const scatterZ = 0.01;
+        if (scatterZ > newVisuals.zIndex) {
+          newVisuals.zIndex = scatterZ; // Keep zIndex low for scatter unless it's meant to be prominent
         }
-        const iconOpacity = 0.5 + (tileHash % 51) / 100; 
+        const iconOpacity = 0.5 + (tileHash % 51) / 100;
         const iconNode = scatter.icon ? <span style={{ opacity: iconOpacity }} role="img" aria-label="scatter detail">{scatter.icon}</span> : null;
-        if(iconNode) {
+        if (iconNode) {
           newVisuals.content = iconNode;
           newVisuals.animationClass = getAnimationClass(scatter.icon);
           newVisuals.isResource = getIsResource(scatter.icon);
         }
-        if (scatter.color) newVisuals.style.backgroundColor = scatter.color; 
+        if (scatter.color) newVisuals.style.backgroundColor = scatter.color;
         break;
       }
     }
@@ -482,14 +482,14 @@ function applyScatterVisuals(
 }
 
 const getDayNightOverlayClass = (gameTime: Date): string => {
-    const hour = gameTime.getHours();
-    if (hour >= 18 && hour < 21) { // Evening: 6 PM to 9 PM
-        return 'bg-amber-700/20 mix-blend-overlay';
-    }
-    if (hour >= 21 || hour < 5) { // Night: 9 PM to 5 AM
-        return 'bg-indigo-900/40 mix-blend-multiply';
-    }
-    return ''; // Day
+  const hour = gameTime.getHours();
+  if (hour >= 18 && hour < 21) { // Evening: 6 PM to 9 PM
+    return 'bg-amber-700/20 mix-blend-overlay';
+  }
+  if (hour >= 21 || hour < 5) { // Night: 9 PM to 5 AM
+    return 'bg-indigo-900/40 mix-blend-multiply';
+  }
+  return ''; // Day
 };
 
 
@@ -525,7 +525,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
   const [isQuickTravelMode, setIsQuickTravelMode] = useState(false);
   const [hoveredTile, setHoveredTile] = useState<{ x: number; y: number } | null>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [usePixiRenderer, setUsePixiRenderer] = useState(true);
+  const [usePixiRenderer, setUsePixiRenderer] = useState(false);
   const [renderMetrics, setRenderMetrics] = useState<{ lastMs: number; fpsEstimate: number } | null>(null);
 
   const currentBiome = BIOMES[currentWorldBiomeId] || null;
@@ -605,10 +605,10 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
         }
       }
     };
-    if (isOpen) { 
+    if (isOpen) {
       window.addEventListener('keydown', handleEsc);
       if (!isInspecting && !isGlossaryOpen && !isQuickTravelMode) {
-         firstFocusableElementRef.current?.focus();
+        firstFocusableElementRef.current?.focus();
       }
     }
     return () => window.removeEventListener('keydown', handleEsc);
@@ -616,28 +616,28 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
 
   const getTileVisuals = useCallback((rowIndex: number, colIndex: number): VisualLayerOutput => {
     const tileHash = simpleHash(colIndex, rowIndex, 'tile_visual_seed_v4');
-    
+
     // --- NEW LOGIC: Check for CA Grid first ---
     if (caGrid && visualsConfig.caTileVisuals) {
-        const tileType: CaTileType = caGrid[rowIndex]?.[colIndex] || 'wall';
-        const tileVisual = visualsConfig.caTileVisuals[tileType];
-        
-        let visuals: VisualLayerOutput = {
-            style: { backgroundColor: tileVisual.color },
-            content: tileVisual.icon ? <span role="img" aria-label={tileType}>{tileVisual.icon}</span> : null,
-            animationClass: '',
-            isResource: false,
-            effectiveTerrainType: tileType,
-            zIndex: 0,
-            activeSeededFeatureConfigForTile: null,
-        };
-        
-        // Apply scatter features on top of 'floor' tiles
-        if (tileType === 'floor') {
-            visuals = applyScatterVisuals(visuals, tileHash, visualsConfig);
-        }
-        
-        return visuals;
+      const tileType: CaTileType = caGrid[rowIndex]?.[colIndex] || 'wall';
+      const tileVisual = visualsConfig.caTileVisuals[tileType];
+
+      let visuals: VisualLayerOutput = {
+        style: { backgroundColor: tileVisual.color },
+        content: tileVisual.icon ? <span role="img" aria-label={tileType}>{tileVisual.icon}</span> : null,
+        animationClass: '',
+        isResource: false,
+        effectiveTerrainType: tileType,
+        zIndex: 0,
+        activeSeededFeatureConfigForTile: null,
+      };
+
+      // Apply scatter features on top of 'floor' tiles
+      if (tileType === 'floor') {
+        visuals = applyScatterVisuals(visuals, tileHash, visualsConfig);
+      }
+
+      return visuals;
     }
 
     // --- Standard Logic ---
@@ -654,7 +654,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
     visuals = applyPathVisuals(visuals, rowIndex, colIndex, pathDetails, visualsConfig, tileHash);
     visuals = applySeededFeatureVisuals(visuals, rowIndex, colIndex, activeSeededFeatures);
     visuals = applyScatterVisuals(visuals, tileHash, visualsConfig);
-    
+
     const iconContent = React.isValidElement(visuals.content) ? (visuals.content.props as { children?: React.ReactNode }).children : null;
     const icon = typeof iconContent === 'string' ? iconContent : null;
 
@@ -674,14 +674,14 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
         let blocksMovement = false;
 
         if (playerCharacter.transportMode === 'foot') {
-            if (effectiveTerrainType === 'path') {
-                movementCost = 15;
-            } else if (effectiveTerrainType === 'wall') {
-                movementCost = Infinity;
-                blocksMovement = true;
-            } else {
-                movementCost = 30;
-            }
+          if (effectiveTerrainType === 'path') {
+            movementCost = 15;
+          } else if (effectiveTerrainType === 'wall') {
+            movementCost = Infinity;
+            blocksMovement = true;
+          } else {
+            movementCost = 30;
+          }
         }
         // Future: Add 'mounted' mode logic here
 
@@ -711,28 +711,28 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
     if (!startNode || !endNode || endNode.blocksMovement) {
       return { path: new Set<string>(), orderedPath: [], time: 0, isBlocked: !!endNode?.blocksMovement };
     }
-    
+
     const themeForPathfinder = ((): BattleMapData['theme'] => {
-        const validThemes: BattleMapData['theme'][] = ['forest', 'cave', 'dungeon', 'desert', 'swamp'];
-        if ((validThemes as string[]).includes(currentWorldBiomeId)) {
-            return currentWorldBiomeId as BattleMapData['theme'];
-        }
-        if (currentWorldBiomeId === 'plains' || currentWorldBiomeId === 'hills') return 'forest';
-        if (currentWorldBiomeId === 'mountain') return 'cave';
-        return 'forest';
+      const validThemes: BattleMapData['theme'][] = ['forest', 'cave', 'dungeon', 'desert', 'swamp'];
+      if ((validThemes as string[]).includes(currentWorldBiomeId)) {
+        return currentWorldBiomeId as BattleMapData['theme'];
+      }
+      if (currentWorldBiomeId === 'plains' || currentWorldBiomeId === 'hills') return 'forest';
+      if (currentWorldBiomeId === 'mountain') return 'cave';
+      return 'forest';
     })();
 
     const mapForPathfinder: BattleMapData = {
-        dimensions: { width: submapDimensions.cols, height: submapDimensions.rows },
-        tiles: pathfindingGrid as unknown as Map<string, BattleMapTile>,
-        theme: themeForPathfinder,
-        seed: simpleHash(0, 0, 'pathfinder_seed'),
+      dimensions: { width: submapDimensions.cols, height: submapDimensions.rows },
+      tiles: pathfindingGrid as unknown as Map<string, BattleMapTile>,
+      theme: themeForPathfinder,
+      seed: simpleHash(0, 0, 'pathfinder_seed'),
     };
 
     const pathNodes = findPath(startNode as unknown as BattleMapTile, endNode as unknown as BattleMapTile, mapForPathfinder);
-    
+
     if (pathNodes.length === 0 && startNode !== endNode) {
-        return { path: new Set<string>(), orderedPath: [], time: 0, isBlocked: true };
+      return { path: new Set<string>(), orderedPath: [], time: 0, isBlocked: true };
     }
 
     const pathCoords = new Set(pathNodes.map(p => p.id));
@@ -743,7 +743,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
   }, [isQuickTravelMode, hoveredTile, playerSubmapCoords, pathfindingGrid, submapDimensions, currentWorldBiomeId, simpleHash]);
 
 
-  const getHintForTile = useCallback((submapX: number, submapY: number, effectiveTerrain: string, featureConfig: SeededFeatureConfig | null ): string => {
+  const getHintForTile = useCallback((submapX: number, submapY: number, effectiveTerrain: string, featureConfig: SeededFeatureConfig | null): string => {
     const tileKey = `${parentWorldMapCoords.x}_${parentWorldMapCoords.y}_${submapX}_${submapY}`;
     if (inspectedTileDescriptions[tileKey]) {
       return inspectedTileDescriptions[tileKey];
@@ -755,23 +755,23 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
 
     let hintKey = 'default';
     if (featureConfig) {
-      hintKey = featureConfig.id; 
+      hintKey = featureConfig.id;
     } else if (effectiveTerrain !== 'default') {
       hintKey = effectiveTerrain;
     }
-    
+
     const biomeDefaultKey = `${currentWorldBiomeId}_default`;
 
     if (isAdjacent) {
       if (submapTileHints[hintKey] && submapTileHints[hintKey].length > 0) {
         return submapTileHints[hintKey][simpleHash(submapX, submapY, 'hint_adj_feature') % submapTileHints[hintKey].length];
-      } else if (submapTileHints[biomeDefaultKey] && submapTileHints[biomeDefaultKey].length > 0){
+      } else if (submapTileHints[biomeDefaultKey] && submapTileHints[biomeDefaultKey].length > 0) {
         return submapTileHints[biomeDefaultKey][simpleHash(submapX, submapY, 'hint_adj_biome') % submapTileHints[biomeDefaultKey].length];
       }
     } else {
-       if (featureConfig?.name) return `An area featuring a ${featureConfig.name.toLowerCase()}.`;
-       if (effectiveTerrain !== 'default' && effectiveTerrain !== 'path_adj' && effectiveTerrain !== 'path') return `A patch of ${effectiveTerrain.replace(/_/g, ' ')}.`;
-       return `A patch of ${currentBiome?.name || 'terrain'}.`;
+      if (featureConfig?.name) return `An area featuring a ${featureConfig.name.toLowerCase()}.`;
+      if (effectiveTerrain !== 'default' && effectiveTerrain !== 'path_adj' && effectiveTerrain !== 'path') return `A patch of ${effectiveTerrain.replace(/_/g, ' ')}.`;
+      return `A patch of ${currentBiome?.name || 'terrain'}.`;
     }
     return submapTileHints['default'][simpleHash(submapX, submapY, 'hint_adj_fallback') % submapTileHints['default'].length];
 
@@ -788,7 +788,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
     }
     return grid;
   }, [submapDimensions.rows, submapDimensions.cols, getTileVisuals]);
-  
+
   const inspectableTiles = useMemo(() => {
     const tiles = new Set<string>();
     if (!isInspecting || !playerSubmapCoords) return tiles;
@@ -807,11 +807,11 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
 
   const handleTileClickForInspection = useCallback((tileX: number, tileY: number, effectiveTerrain: string, featureConfig: SeededFeatureConfig | null) => {
     if (disabled) return;
-    
-    if(isQuickTravelMode) {
+
+    if (isQuickTravelMode) {
       const travelData = quickTravelData;
-      if(travelData.path.size > 0) {
-        onAction({ type: 'QUICK_TRAVEL', label: `Quick travel to (${tileX},${tileY})`, payload: { quickTravel: { destination: { x: tileX, y: tileY }, durationSeconds: travelData.time * 60 } }});
+      if (travelData.path.size > 0) {
+        onAction({ type: 'QUICK_TRAVEL', label: `Quick travel to (${tileX},${tileY})`, payload: { quickTravel: { destination: { x: tileX, y: tileY }, durationSeconds: travelData.time * 60 } } });
         setIsQuickTravelMode(false);
       }
       return;
@@ -823,14 +823,14 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
           tileX, tileY, effectiveTerrainType: effectiveTerrain, worldBiomeId: currentWorldBiomeId,
           parentWorldMapCoords, activeFeatureConfig: featureConfig || undefined,
         };
-        onAction({ type: 'inspect_submap_tile', label: `Inspect tile (${tileX},${tileY})`, payload: { inspectTileDetails: payload }});
+        onAction({ type: 'inspect_submap_tile', label: `Inspect tile (${tileX},${tileY})`, payload: { inspectTileDetails: payload } });
         setInspectionMessage(`Inspecting tile (${tileX}, ${tileY})...`);
       } else {
         setInspectionMessage("You can only inspect adjacent tiles.");
       }
     }
   }, [disabled, isQuickTravelMode, isInspecting, quickTravelData, inspectableTiles, onAction, currentWorldBiomeId, parentWorldMapCoords]);
-  
+
   const scheduleHoverUpdate = useCallback((nextHover: { x: number; y: number } | null) => {
     // Use rAF to coalesce rapid mousemove events; this keeps hover updates from thrashing React state.
     if (hoverFrameRef.current) cancelAnimationFrame(hoverFrameRef.current);
@@ -841,7 +841,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
   }, []);
 
   const handleTileHover = useCallback((x: number, y: number) => {
-      if (isQuickTravelMode) scheduleHoverUpdate({ x, y });
+    if (isQuickTravelMode) scheduleHoverUpdate({ x, y });
   }, [isQuickTravelMode, scheduleHoverUpdate]);
 
   const handlePixiHover = useCallback((coords: { x: number; y: number } | null) => {
@@ -867,14 +867,14 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
   };
 
   const toggleGlossary = () => setIsGlossaryOpen(!isGlossaryOpen);
-  
+
   const handleInspectClick = () => {
     if (disabled) return;
     setIsQuickTravelMode(false);
     setIsInspecting(!isInspecting);
     setInspectionMessage(isInspecting ? null : "Select an adjacent tile to inspect.");
   };
-  
+
   const handleQuickTravelClick = () => {
     if (disabled) return;
     setIsInspecting(false);
@@ -887,33 +887,33 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
     const addedIcons = new Set<string>();
 
     const addIcon = (icon: string, meaningKey: string, category?: string) => {
-        if (icon && !addedIcons.has(icon)) {
-            items.push({ icon, meaning: SUBMAP_ICON_MEANINGS[icon] || meaningKey, category });
-            addedIcons.add(icon);
-        }
+      if (icon && !addedIcons.has(icon)) {
+        items.push({ icon, meaning: SUBMAP_ICON_MEANINGS[icon] || meaningKey, category });
+        addedIcons.add(icon);
+      }
     };
-    
+
     addIcon('🧍', 'Your Position', 'Player');
     if (visualsConfig.pathIcon) addIcon(visualsConfig.pathIcon, 'Path Marker', 'Path');
     visualsConfig.seededFeatures?.forEach(sf => addIcon(sf.icon, sf.name || sf.id, 'Seeded Feature'));
     visualsConfig.scatterFeatures?.forEach(sc => addIcon(sc.icon, `Scatter: ${sc.icon}`, 'Scatter Feature'));
     visualsConfig.pathAdjacency?.scatter?.forEach(paSc => addIcon(paSc.icon, `Path Adjacency: ${paSc.icon}`, 'Path Adjacency Scatter'));
-    if(visualsConfig.caTileVisuals) {
-         if(visualsConfig.caTileVisuals.wall.icon) addIcon(visualsConfig.caTileVisuals.wall.icon, 'Wall', 'Structure');
-         // Implicitly handle floors if they have icons, though usually they don't
+    if (visualsConfig.caTileVisuals) {
+      if (visualsConfig.caTileVisuals.wall.icon) addIcon(visualsConfig.caTileVisuals.wall.icon, 'Wall', 'Structure');
+      // Implicitly handle floors if they have icons, though usually they don't
     }
 
-    return items.sort((a,b) => (a.category || '').localeCompare(b.category || '') || a.meaning.localeCompare(b.meaning));
+    return items.sort((a, b) => (a.category || '').localeCompare(b.category || '') || a.meaning.localeCompare(b.meaning));
   }, [visualsConfig]);
 
   const gridContainerStyle: React.CSSProperties & { '--tile-size': string } = {
-    '--tile-size': '1.75rem', 
+    '--tile-size': '1.75rem',
     display: 'grid',
     gridTemplateColumns: `repeat(${submapDimensions.cols}, var(--tile-size))`,
     gridTemplateRows: `repeat(${submapDimensions.rows}, var(--tile-size))`,
-    position: 'relative', 
+    position: 'relative',
   };
-  
+
   const dayNightOverlayClass = getDayNightOverlayClass(gameTime);
 
 
@@ -939,7 +939,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
             &times;
           </button>
         </div>
-        
+
         {isInspecting && inspectionMessage && (
           <p className="text-center text-sm text-yellow-300 mb-2 italic">{inspectionMessage}</p>
         )}
@@ -987,10 +987,10 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
             )}
 
             <div
-                ref={gridContainerRef}
-                style={gridContainerStyle}
-                role="grid"
-                aria-labelledby="submap-grid-description"
+              ref={gridContainerRef}
+              style={gridContainerStyle}
+              role="grid"
+              aria-labelledby="submap-grid-description"
             >
               <p id="submap-grid-description" className="sr-only">
                 Submap grid showing local terrain features. Your current position is marked with a person icon.
@@ -999,12 +999,12 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                 const isPlayerPos = playerSubmapCoords?.x === c && playerSubmapCoords?.y === r;
                 const tileKey = `${c},${r}`;
                 const isHighlightedForInspection = isInspecting && inspectableTiles.has(tileKey);
-                const isInteractiveResource = !isInspecting && !isQuickTravelMode && visuals.isResource && ((Math.abs(c-playerSubmapCoords.x) <=1 && Math.abs(r-playerSubmapCoords.y) <= 1));
+                const isInteractiveResource = !isInspecting && !isQuickTravelMode && visuals.isResource && ((Math.abs(c - playerSubmapCoords.x) <= 1 && Math.abs(r - playerSubmapCoords.y) <= 1));
                 const isInQuickTravelPath = isQuickTravelMode && quickTravelData.path.has(tileKey);
                 const isBlockedForTravel = pathfindingGrid.get(tileKey)?.blocksMovement === true;
                 const isHovered = hoveredTile?.x === c && hoveredTile?.y === r;
                 const isDestination = isQuickTravelMode && isHovered;
-                
+
                 // Calculate the tooltip content here, during render time. 
                 // This keeps the 'visuals' object in submapGrid stable for React.memo
                 const tooltipContent = getHintForTile(c, r, visuals.effectiveTerrainType, visuals.activeSeededFeatureConfigForTile);
@@ -1030,37 +1030,37 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                   />
                 );
               })}
-              
+
               {/* Dynamic SVG Path Overlay */}
               {isQuickTravelMode && quickTravelData.orderedPath.length > 0 && (
-                  <svg 
-                      className="absolute inset-0 w-full h-full pointer-events-none z-[20]"
-                      viewBox={`0 0 ${submapDimensions.cols} ${submapDimensions.rows}`}
-                      preserveAspectRatio="none" // Stretch to fit container
-                  >
-                      <polyline
-                          points={quickTravelData.orderedPath.map(p => 
-                              `${p.x + 0.5},${p.y + 0.5}`
-                          ).join(' ')}
-                          fill="none"
-                          stroke="yellow"
-                          strokeWidth="0.15" // Relative to tile size of 1
-                          strokeOpacity="0.6"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                      />
-                      {/* Destination Marker */}
-                      {hoveredTile && !quickTravelData.isBlocked && (
-                          <circle 
-                              cx={hoveredTile.x + 0.5} 
-                              cy={hoveredTile.y + 0.5} 
-                              r="0.3" 
-                              fill="yellow" 
-                              stroke="white" 
-                              strokeWidth="0.05" 
-                          />
-                      )}
-                  </svg>
+                <svg
+                  className="absolute inset-0 w-full h-full pointer-events-none z-[20]"
+                  viewBox={`0 0 ${submapDimensions.cols} ${submapDimensions.rows}`}
+                  preserveAspectRatio="none" // Stretch to fit container
+                >
+                  <polyline
+                    points={quickTravelData.orderedPath.map(p =>
+                      `${p.x + 0.5},${p.y + 0.5}`
+                    ).join(' ')}
+                    fill="none"
+                    stroke="yellow"
+                    strokeWidth="0.15" // Relative to tile size of 1
+                    strokeOpacity="0.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  {/* Destination Marker */}
+                  {hoveredTile && !quickTravelData.isBlocked && (
+                    <circle
+                      cx={hoveredTile.x + 0.5}
+                      cy={hoveredTile.y + 0.5}
+                      r="0.3"
+                      fill="yellow"
+                      stroke="white"
+                      strokeWidth="0.05"
+                    />
+                  )}
+                </svg>
               )}
             </div>
             <div className={`day-night-overlay ${dayNightOverlayClass}`}></div>
@@ -1070,85 +1070,87 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
           {/* Controls Column */}
           <div className="flex flex-col gap-3 md:w-auto md:max-w-sm flex-shrink-0 overflow-hidden">
             <div className="flex-shrink-0">
-                <CompassPane
-                  currentLocation={currentLocation}
-                  currentSubMapCoordinates={playerSubmapCoords}
-                  worldMapCoords={currentLocation.mapCoordinates}
-                  subMapCoords={playerSubmapCoords}
-                  onAction={onAction}
-                  disabled={disabled || isInspecting || isQuickTravelMode}
-                  mapData={mapData}
-                  gameTime={gameTime}
-                  isSubmapContext={true}
-                />
+              <CompassPane
+                currentLocation={currentLocation}
+                currentSubMapCoordinates={playerSubmapCoords}
+                worldMapCoords={currentLocation.mapCoordinates}
+                subMapCoords={playerSubmapCoords}
+                onAction={onAction}
+                disabled={disabled || isInspecting || isQuickTravelMode}
+                mapData={mapData}
+                gameTime={gameTime}
+                isSubmapContext={true}
+              />
             </div>
             <div className="flex flex-col items-stretch gap-2 p-3 bg-gray-700/50 rounded-lg border border-gray-600/70 shadow-md flex-shrink-0">
-                <button
-                    onClick={handleQuickTravelClick}
-                    disabled={disabled}
-                    className={`px-3 py-2 text-sm font-semibold rounded-md shadow-sm transition-colors w-full
+              <button
+                onClick={handleQuickTravelClick}
+                disabled={disabled}
+                className={`px-3 py-2 text-sm font-semibold rounded-md shadow-sm transition-colors w-full
                                 ${isQuickTravelMode ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-green-600 hover:bg-green-500 text-white'}
                                 disabled:bg-gray-500 disabled:cursor-not-allowed`}
-                >
-                  {isQuickTravelMode ? 'Cancel Travel' : 'Quick Travel'}
-                </button>
-                <button
-                    onClick={handleInspectClick}
-                    disabled={disabled}
-                    className={`px-3 py-2 text-sm font-semibold rounded-md shadow-sm transition-colors w-full
+              >
+                {isQuickTravelMode ? 'Cancel Travel' : 'Quick Travel'}
+              </button>
+              <button
+                onClick={handleInspectClick}
+                disabled={disabled}
+                className={`px-3 py-2 text-sm font-semibold rounded-md shadow-sm transition-colors w-full
                                 ${isInspecting ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-yellow-500 hover:bg-yellow-400 text-gray-900'}
                                 disabled:bg-gray-500 disabled:cursor-not-allowed`}
-                >
-                    {isInspecting ? 'Cancel Inspect' : 'Inspect Tile'}
-                </button>
-                <button 
-                    onClick={toggleGlossary}
-                    disabled={disabled}
-                    className="px-3 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-md shadow-sm transition-colors w-full disabled:bg-gray-500 disabled:cursor-not-allowed"
-                    aria-label="Toggle submap legend"
-                >
-                    {isGlossaryOpen ? 'Hide Legend' : 'Show Legend'}
-                </button>
+              >
+                {isInspecting ? 'Cancel Inspect' : 'Inspect Tile'}
+              </button>
+              <button
+                onClick={toggleGlossary}
+                disabled={disabled}
+                className="px-3 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-md shadow-sm transition-colors w-full disabled:bg-gray-500 disabled:cursor-not-allowed"
+                aria-label="Toggle submap legend"
+              >
+                {isGlossaryOpen ? 'Hide Legend' : 'Show Legend'}
+              </button>
             </div>
             <div className="mt-2 flex-grow overflow-y-auto scrollable-content border-t border-gray-700 pt-2">
-                <ActionPane
-                    currentLocation={currentLocation}
-                    npcsInLocation={npcsInLocation}
-                    itemsInLocation={itemsInLocation}
-                    onAction={onAction}
-                    disabled={disabled || isInspecting || isQuickTravelMode}
-                    geminiGeneratedActions={geminiGeneratedActions}
-                    isDevDummyActive={isDevDummyActive}
-                    unreadDiscoveryCount={unreadDiscoveryCount}
-                    hasNewRateLimitError={hasNewRateLimitError}
-                />
+              <ActionPane
+                currentLocation={currentLocation}
+                npcsInLocation={npcsInLocation}
+                itemsInLocation={itemsInLocation}
+                onAction={onAction}
+                disabled={disabled || isInspecting || isQuickTravelMode}
+                geminiGeneratedActions={geminiGeneratedActions}
+                isDevDummyActive={isDevDummyActive}
+                unreadDiscoveryCount={unreadDiscoveryCount}
+                hasNewRateLimitError={hasNewRateLimitError}
+                subMapCoordinates={playerSubmapCoords}
+                worldSeed={worldSeed}
+              />
             </div>
           </div>
         </div>
-        
+
         {isGlossaryOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[60]" onClick={(e) => e.target === e.currentTarget && setIsGlossaryOpen(false)}>
-              <div className="bg-gray-800 p-4 rounded-lg shadow-xl max-w-md w-full max-h-[70vh] overflow-y-auto scrollable-content border border-gray-600" onClick={e => e.stopPropagation()}>
-                <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-lg font-semibold text-amber-400">Submap Legend</h3>
-                    <button onClick={toggleGlossary} className="text-gray-300 hover:text-white text-xl">&times;</button>
-                </div>
-                <GlossaryDisplay items={glossaryItems} title=""/>
+            <div className="bg-gray-800 p-4 rounded-lg shadow-xl max-w-md w-full max-h-[70vh] overflow-y-auto scrollable-content border border-gray-600" onClick={e => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-semibold text-amber-400">Submap Legend</h3>
+                <button onClick={toggleGlossary} className="text-gray-300 hover:text-white text-xl">&times;</button>
               </div>
+              <GlossaryDisplay items={glossaryItems} title="" />
+            </div>
           </div>
         )}
 
         {isQuickTravelMode && (
-            <div 
-                className="fixed bg-gray-900/80 text-white text-xs px-2 py-1 rounded-md shadow-lg pointer-events-none"
-                style={{ top: mousePosition.y + 20, left: mousePosition.x + 20, zIndex: 100 }}
-            >
-               {quickTravelData.isBlocked ? (
-                  <span className="text-red-400 font-bold">Path Blocked</span>
-               ) : (
-                  quickTravelData.path.size > 0 ? `Travel Time: ${quickTravelData.time} minutes` : 'Select a tile to travel'
-               )}
-            </div>
+          <div
+            className="fixed bg-gray-900/80 text-white text-xs px-2 py-1 rounded-md shadow-lg pointer-events-none"
+            style={{ top: mousePosition.y + 20, left: mousePosition.x + 20, zIndex: 100 }}
+          >
+            {quickTravelData.isBlocked ? (
+              <span className="text-red-400 font-bold">Path Blocked</span>
+            ) : (
+              quickTravelData.path.size > 0 ? `Travel Time: ${quickTravelData.time} minutes` : 'Select a tile to travel'
+            )}
+          </div>
         )}
       </div>
     </div>
