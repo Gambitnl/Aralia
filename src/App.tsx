@@ -579,11 +579,9 @@ const App: React.FC = () => {
           onAction={processAction}
           gameTime={gameState.gameTime}
           currentLocation={currentLocationData}
+          disabled={!isUIInteractive}
           npcsInLocation={npcs}
           itemsInLocation={itemsInCurrentLocation}
-          disabled={!isUIInteractive}
-
-
           geminiGeneratedActions={gameState.geminiGeneratedActions || []}
           isDevDummyActive={USE_DUMMY_CHARACTER_FOR_DEV}
 
@@ -624,7 +622,7 @@ const App: React.FC = () => {
               isDevDummyActive={USE_DUMMY_CHARACTER_FOR_DEV}
               unreadDiscoveryCount={gameState.unreadDiscoveryCount}
               hasNewRateLimitError={gameState.hasNewRateLimitError}
-              subMapCoordinates={gameState.subMapCoordinates || undefined}
+              subMapCoordinates={gameState.subMapCoordinates}
               worldSeed={gameState.worldSeed}
             />
           </ErrorBoundary>
