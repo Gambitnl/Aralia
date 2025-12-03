@@ -5,7 +5,7 @@
 **PR #38** (5 Level 1 spells) - **MERGED** ✅
 **PR #39** (Cantrips) - **MERGED** ✅
 
-The working pattern is now established. Time to scale it!
+The working pattern is now established. Time to scale it! Follow-up: Absorb Elements and Armor of Agathys still need their stored/retaliation damage expressed as `DAMAGE` effects with correct triggers and slot-level scaling.
 
 ## What You Have Now
 
@@ -133,6 +133,12 @@ Repeat until spell level 100% complete
 Move to next spell level
 ```
 
+### Coordination via GitHub CLI
+
+- Post instructions: `gh pr comment <pr-number> --body "Fix instructions here..."`
+- Review diff: `gh pr diff <pr-number>`
+- Post feedback: `gh pr comment <pr-number> --body "Feedback here..."`
+
 ## Key Files Reference
 
 | File | Purpose |
@@ -148,11 +154,19 @@ Move to next spell level
 ## Success Criteria
 
 You'll know it's working when:
-- ✅ Each PR passes validation on first attempt
-- ✅ All effects have trigger + condition fields
-- ✅ Cantrips use character_level, leveled spells use slot_level
-- ✅ One spell level completes before moving to next
-- ✅ Jules consistently references the template + examples
+- PRs pass validation on first attempt
+- All effects include trigger + condition fields
+- Cantrips use character_level; leveled spells use slot_level
+- One spell level completes before moving to next
+- Contributors reference the template and examples
+- Absorb Elements + Armor of Agathys use `DAMAGE` (not `UTILITY`) for stored/retaliation damage with correct triggers and scaling
+
+## Red Flags (Block PRs)
+
+- UTILITY used for actual damage/healing (should be DAMAGE/HEALING)
+- Missing `trigger` or `condition` on any effect
+- PR submitted without `npm run validate` passing
+- Scaling type mismatched to spell level (slot_level vs character_level)
 
 ## What's Different Now
 
