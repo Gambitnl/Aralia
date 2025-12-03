@@ -343,7 +343,7 @@ const App: React.FC = () => {
         }
         newMapDataForDispatch = { ...newMapDataForDispatch, tiles: newTiles };
       }
-      dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: tile.locationId, newSubMapCoordinates, mapData: newMapDataForDispatch, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(tile.locationId, LOCATIONS) } });
+      dispatch({ type: 'MOVE_PLAYER', payload: { newLocationId: tile.locationId, newSubMapCoordinates, mapData: newMapDataForDispatch || undefined, activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(tile.locationId, LOCATIONS) } });
       dispatch({ type: 'ADVANCE_TIME', payload: { seconds: 3600 } });
       dispatch({ type: 'TOGGLE_MAP_VISIBILITY' });
     } else if (tile.discovered && !tile.locationId) {
@@ -579,10 +579,8 @@ const App: React.FC = () => {
           onAction={processAction}
           gameTime={gameState.gameTime}
           currentLocation={currentLocationData}
-          npcsInLocation={npcs}
-          itemsInLocation={itemsInCurrentLocation}
           disabled={!isUIInteractive}
-          geminiGeneratedActions={gameState.geminiGeneratedActions}
+          geminiGeneratedActions={gameState.geminiGeneratedActions || []}
           isDevDummyActive={USE_DUMMY_CHARACTER_FOR_DEV}
           unreadDiscoveryCount={gameState.unreadDiscoveryCount}
           hasNewRateLimitError={gameState.hasNewRateLimitError}
@@ -613,12 +611,12 @@ const App: React.FC = () => {
           <ErrorBoundary fallbackMessage="Error in Action Pane.">
             <ActionPane
               currentLocation={currentLocationData}
-              npcsInLocation={npcs}
-              itemsInLocation={itemsInCurrentLocation}
               onAction={processAction}
               disabled={!isUIInteractive}
-              geminiGeneratedActions={gameState.geminiGeneratedActions}
+              geminiGeneratedActions={gameState.geminiGeneratedActions || []}
               isDevDummyActive={USE_DUMMY_CHARACTER_FOR_DEV}
+              subMapCoordinates={gameState.subMapCoordinates}
+              worldSeed={gameState.worldSeed}
               unreadDiscoveryCount={gameState.unreadDiscoveryCount}
               hasNewRateLimitError={gameState.hasNewRateLimitError}
             />
