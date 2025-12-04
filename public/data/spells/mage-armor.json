@@ -4,8 +4,8 @@
   "level": 1,
   "school": "Abjuration",
   "classes": [
-    "SORCERER",
-    "WIZARD"
+    "Sorcerer",
+    "Wizard"
   ],
   "tags": [
     "BUFF",

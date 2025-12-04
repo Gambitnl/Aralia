@@ -1,16 +1,15 @@
-
 {
   "id": "light",
   "name": "Light",
   "level": 0,
   "school": "Evocation",
   "classes": [
-    "ARTIFICER",
-    "BARD",
-    "CLERIC",
-    "SORCERER",
-    "WIZARD",
-    "WARLOCK - CELESTIAL PATRON"
+    "Artificer",
+    "Bard",
+    "Cleric",
+    "Sorcerer",
+    "Wizard",
+    "Warlock - Celestial Patron"
   ],
   "tags": [
     "UTILITY",

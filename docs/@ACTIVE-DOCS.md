@@ -1,6 +1,6 @@
 # 🔥 Active Documentation
 
-**Last Updated**: December 2, 2025
+**Last Updated**: December 4, 2025
 
 **Purpose**: Quick reference to documents currently being worked on.
 
@@ -8,9 +8,9 @@
 
 ## Overview
 
-**Active Projects**: 2
-**Total Active Docs**: 15
-**Current Focus**: Spell System Migration (Phase 0)
+**Active Projects**: 3
+**Total Active Docs**: 17
+**Current Focus**: Spell System Migration (Phase 0) and Spell Completeness Audit (Phase 2 prep)
 
 ---
 
@@ -58,7 +58,37 @@
 
 ---
 
-## Project 2: Documentation Cleanup
+## Project 2: Spell Completeness Audit & Description Extraction
+
+**Status**: 🟢 Active - Setup / Phase 1 (Completeness Audit)  
+**Location**: `docs/tasks/spell-completeness-audit/`  
+**Priority**: High
+
+### Master Documents
+
+| Doc | Description | Status |
+|-----|-------------|--------|
+| [@PROJECT-INDEX](./tasks/spell-completeness-audit/@PROJECT-INDEX.md) | START HERE — project index, scope, task links | 🟢 Active |
+| [@WORKFLOW](./tasks/spell-completeness-audit/@WORKFLOW.md) | Reusable workflows for audit/extraction | 🟢 Active |
+
+### Phase 1: Completeness Audit
+
+| Doc | Task | Progress | Dependencies |
+|-----|------|----------|--------------|
+| [1A~INVENTORY-LOCAL-SPELLS](./tasks/spell-completeness-audit/1A~INVENTORY-LOCAL-SPELLS.md) | Inventory local spells (levels 1-9, exclude cantrips) | ✅ Completed | - |
+| [1B~RESEARCH-PHB-2024-LIST](./tasks/spell-completeness-audit/1B~RESEARCH-PHB-2024-LIST.md) | Gather official PHB 2024 spell list | ✅ Completed | 1A~ |
+| [1C~GAP-ANALYSIS](./tasks/spell-completeness-audit/1C~GAP-ANALYSIS.md) | Compare local vs PHB and classify gaps | ✅ Completed | 1A~, 1B~ |
+
+### Phase 2: Description Extraction
+
+| Doc | Task | Progress | Dependencies |
+|-----|------|----------|--------------|
+| [2A-EXTRACT-LEVEL-1-DESCRIPTIONS](./tasks/spell-completeness-audit/2A-EXTRACT-LEVEL-1-DESCRIPTIONS.md) | Pilot extraction for level 1 spells | ⏸️ Pending | 1C~ |
+| [2B-EXTRACT-REMAINING-LEVELS](./tasks/spell-completeness-audit/2B-EXTRACT-REMAINING-LEVELS.md) | Scale extraction to levels 2-9 | ⏸️ Pending | 2A |
+
+---
+
+## Project 3: Documentation Cleanup
 
 **Status**: 🟡 In Progress - Survey Phase
 **Location**: `docs/tasks/documentation-cleanup/`
@@ -86,6 +116,9 @@
 
 | Doc | Project | Completed | Description |
 |-----|---------|-----------|-------------|
+| [1A~INVENTORY-LOCAL-SPELLS](./tasks/spell-completeness-audit/1A~INVENTORY-LOCAL-SPELLS.md) | Spell Completeness Audit | Dec 4, 2025 | Local spell inventory captured (levels 1-9) |
+| [1B~RESEARCH-PHB-2024-LIST](./tasks/spell-completeness-audit/1B~RESEARCH-PHB-2024-LIST.md) | Spell Completeness Audit | Dec 4, 2025 | PHB 2024 spell list compiled with citations |
+| [1C~GAP-ANALYSIS](./tasks/spell-completeness-audit/1C~GAP-ANALYSIS.md) | Spell Completeness Audit | Dec 4, 2025 | Coverage report published (local vs PHB 2024) |
 | [1C~VERSION-DISPLAY-AND-PACKAGE-FIX](./tasks/spell-system-overhaul/1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md) | Spell System | Nov 30, 2025 | Fixed version display and package issues |
 
 ---
@@ -95,7 +128,7 @@
 ### Returning to the Project?
 
 1. **Check this file** to see what's currently active
-2. **Open the roadmap** ([1B-SPELL-MIGRATION-ROADMAP](./tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md)) for context
+2. **Open the roadmap** ([1B-SPELL-MIGRATION-ROADMAP](./tasks/spell-system-overhaul/1B-SPELL-MIGRATION-ROADMAP.md)) for spell system items; for the audit, start with [@PROJECT-INDEX](./tasks/spell-completeness-audit/@PROJECT-INDEX.md).
 3. **Pick the next task** marked with 🔴 or 🟡
 4. **Read the task doc** for detailed execution steps
 5. **Update progress** in [@DOC-REGISTRY.md](./@DOC-REGISTRY.md) when you start/complete work
@@ -114,32 +147,42 @@
 
 ### Immediate (This Week)
 
-1. **Complete 1D** (Archive Old Spell Docs)
+1. **Start 2A** (Level 1 extraction pilot)
+   - Use coverage report to scope level 1 spells
+   - Establish reference formatting
+
+2. **Complete 1D** (Archive Old Spell Docs)
    - Salvage unique business logic from old docs
    - Move obsolete files to archive
    - Create salvage context file
 
-2. **Start 1E** (Consolidate Jules Workflow)
+3. **Start 1E** (Consolidate Jules Workflow)
    - Create authoritative conversion guide
    - Incorporate salvaged context
    - Make it LLM-friendly
 
 ### Short Term (Next 2 Weeks)
 
-3. **Complete 1F** (Audit Spell Scope)
+4. **Prep 2B** (Levels 2-9 extraction)
+   - Mirror 2A formatting and sourcing plan
+   - Identify blockers from gap report
+
+5. **Complete 1F** (Audit Spell Scope)
    - Compare cantrips against PHB 2024
    - Prioritize migration list
    - Identify gaps
 
-4. **Begin 1G** (Reorganize Spell Files)
+6. **Begin 1G** (Reorganize Spell Files)
    - Create level-based folder structure
    - Update manifest scripts
    - Test spell loading
 
 ### Medium Term (Next Month)
 
-5. **Complete Phase 1**: Infrastructure improvements
-6. **Start Phase 2**: Begin spell migration batches
+7. **Complete Phase 1**: Infrastructure improvements
+8. **Start Phase 2**: Begin spell migration batches
+9. **Run 2A/2B** (Spell Completeness follow-on)
+   - Pilot level 1 extraction, then levels 2-9
 
 ---
 
@@ -190,5 +233,5 @@
 
 ---
 
-**Last Review**: December 2, 2025
-**Next Review**: December 9, 2025
+**Last Review**: December 4, 2025
+**Next Review**: December 11, 2025

@@ -1,12 +1,11 @@
-
 {
   "id": "sacred-flame",
   "name": "Sacred Flame",
   "level": 0,
   "school": "Evocation",
   "classes": [
-    "CLERIC",
-    "WARLOCK - CELESTIAL PATRON"
+    "Cleric",
+    "Warlock - Celestial Patron"
   ],
   "tags": [
     "DAMAGE",

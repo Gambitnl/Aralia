@@ -4,9 +4,9 @@
   "level": 0,
   "school": "Divination",
   "classes": [
-    "ARTIFICER",
-    "CLERIC",
-    "DRUID"
+    "Artificer",
+    "Cleric",
+    "Druid"
   ],
   "tags": [
     "BUFF",

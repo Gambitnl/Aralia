@@ -4,10 +4,10 @@
   "level": 1,
   "school": "Enchantment",
   "classes": [
-    "BARD",
-    "PALADIN",
-    "ARTIFICER - BATTLE SMITH",
-    "PALADIN - OATH OF GLORY"
+    "Bard",
+    "Paladin",
+    "Artificer - Battle Smith",
+    "Paladin - Oath Of Glory"
   ],
   "tags": [
     "BUFF",

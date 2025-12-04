@@ -4,9 +4,9 @@
   "level": 0,
   "school": "Evocation",
   "classes": [
-    "ARTIFICER",
-    "SORCERER",
-    "WIZARD"
+    "Artificer",
+    "Sorcerer",
+    "Wizard"
   ],
   "tags": [
     "DAMAGE",

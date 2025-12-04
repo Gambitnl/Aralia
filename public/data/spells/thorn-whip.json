@@ -1,12 +1,11 @@
-
 {
   "id": "thorn-whip",
   "name": "Thorn Whip",
   "level": 0,
   "school": "Transmutation",
   "classes": [
-    "ARTIFICER",
-    "DRUID"
+    "Artificer",
+    "Druid"
   ],
   "tags": [
     "DAMAGE",

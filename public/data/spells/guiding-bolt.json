@@ -4,10 +4,10 @@
   "level": 1,
   "school": "Evocation",
   "classes": [
-    "CLERIC",
-    "DRUID - CIRCLE OF THE STARS",
-    "WARLOCK - CELESTIAL PATRON",
-    "PALADIN - OATH OF GLORY"
+    "Cleric",
+    "Druid - Circle Of The Stars",
+    "Warlock - Celestial Patron",
+    "Paladin - Oath Of Glory"
   ],
   "tags": [
     "DAMAGE",

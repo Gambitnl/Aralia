@@ -4,10 +4,10 @@
   "level": 1,
   "school": "Illusion",
   "classes": [
-    "ARTIFICER",
-    "BARD",
-    "SORCERER",
-    "WIZARD"
+    "Artificer",
+    "Bard",
+    "Sorcerer",
+    "Wizard"
   ],
   "tags": [
     "UTILITY",

@@ -1,13 +1,12 @@
-
 {
   "id": "healing-word",
   "name": "Healing Word",
   "level": 1,
   "school": "Evocation",
   "classes": [
-    "BARD",
-    "CLERIC",
-    "DRUID"
+    "Bard",
+    "Cleric",
+    "Druid"
   ],
   "tags": [
     "HEALING",

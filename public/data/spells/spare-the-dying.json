@@ -4,9 +4,9 @@
   "level": 0,
   "school": "Necromancy",
   "classes": [
-    "CLERIC",
-    "DRUID",
-    "ARTIFICER"
+    "Cleric",
+    "Druid",
+    "Artificer"
   ],
   "tags": [
     "HEALING",

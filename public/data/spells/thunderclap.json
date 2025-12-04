@@ -1,16 +1,15 @@
-
 {
   "id": "thunderclap",
   "name": "Thunderclap",
   "level": 0,
   "school": "Evocation",
   "classes": [
-    "ARTIFICER",
-    "BARD",
-    "DRUID",
-    "SORCERER",
-    "WARLOCK",
-    "WIZARD"
+    "Artificer",
+    "Bard",
+    "Druid",
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
   ],
   "tags": [
     "DAMAGE",

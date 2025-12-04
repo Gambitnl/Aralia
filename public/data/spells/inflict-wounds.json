@@ -1,11 +1,10 @@
-
 {
   "id": "inflict-wounds",
   "name": "Inflict Wounds",
   "level": 1,
   "school": "Necromancy",
   "classes": [
-    "CLERIC"
+    "Cleric"
   ],
   "tags": [
     "DAMAGE",

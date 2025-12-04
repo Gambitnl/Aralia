@@ -4,9 +4,9 @@
   "level": 1,
   "school": "Enchantment",
   "classes": [
-    "CLERIC",
-    "PALADIN",
-    "CLERIC - LIFE DOMAIN"
+    "Cleric",
+    "Paladin",
+    "Cleric - Life Domain"
   ],
   "tags": [
     "BUFF",

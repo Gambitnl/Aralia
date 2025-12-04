@@ -4,10 +4,10 @@
   "level": 1,
   "school": "Evocation",
   "classes": [
-    "SORCERER",
-    "WIZARD",
-    "WARLOCK - FIEND PATRON",
-    "CLERIC - LIGHT DOMAIN"
+    "Sorcerer",
+    "Wizard",
+    "Warlock - Fiend Patron",
+    "Cleric - Light Domain"
   ],
   "tags": [
     "DAMAGE",

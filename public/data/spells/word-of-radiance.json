@@ -1,11 +1,10 @@
-
 {
   "id": "word-of-radiance",
   "name": "Word of Radiance",
   "level": 0,
   "school": "Evocation",
   "classes": [
-    "CLERIC"
+    "Cleric"
   ],
   "tags": [
     "DAMAGE",

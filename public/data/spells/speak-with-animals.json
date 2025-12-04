@@ -1,15 +1,14 @@
-
 {
   "id": "speak-with-animals",
   "name": "Speak with Animals",
   "level": 1,
   "school": "Divination",
   "classes": [
-    "BARD",
-    "DRUID",
-    "RANGER",
-    "WARLOCK",
-    "PALADIN - OATH OF THE ANCIENTS"
+    "Bard",
+    "Druid",
+    "Ranger",
+    "Warlock",
+    "Paladin - Oath Of The Ancients"
   ],
   "tags": [
     "COMMUNICATION",

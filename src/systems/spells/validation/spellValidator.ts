@@ -1,4 +1,29 @@
 import { z } from 'zod';
+import { CLASSES_DATA } from '../../data/classes';
+
+const BASE_CLASS_NAMES = Object.values(CLASSES_DATA).map(cls => cls.name);
+// Legacy spell data may include subclass-specific entries; keep them whitelisted in Title Case.
+const SUBCLASS_CLASS_NAMES = [
+  "Artificer - Armorer",
+  "Artificer - Artillerist",
+  "Artificer - Battle Smith",
+  "Cleric - Life Domain",
+  "Cleric - Light Domain",
+  "Cleric - Twilight Domain",
+  "Druid - Circle Of The Stars",
+  "Fighter - Eldritch Knight",
+  "Paladin - Oath Of Glory",
+  "Paladin - Oath Of Redemption",
+  "Paladin - Oath Of The Ancients",
+  "Paladin - Oath Of Vengeance",
+  "Rogue - Arcane Trickster",
+  "Warlock - Archfey Patron",
+  "Warlock - Celestial Patron",
+  "Warlock - Fiend Patron",
+];
+
+const CLASS_NAMES = Array.from(new Set([...BASE_CLASS_NAMES, ...SUBCLASS_CLASS_NAMES]));
+const ClassNameEnum = z.enum(CLASS_NAMES as [string, ...string[]]);
 
 const SpellRarity = z.enum(["common", "uncommon", "rare", "very_rare", "legendary"]);
 
@@ -165,7 +190,7 @@ export const SpellValidator = z.object({
   name: z.string(),
   level: z.number(),
   school: z.string(),
-  classes: z.array(z.string()),
+  classes: z.array(ClassNameEnum),
   ritual: z.boolean().optional(),
   rarity: SpellRarity.optional(),
   castingTime: CastingTime,

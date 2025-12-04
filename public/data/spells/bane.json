@@ -4,10 +4,10 @@
   "level": 1,
   "school": "Enchantment",
   "classes": [
-    "BARD",
-    "CLERIC",
-    "WARLOCK - FIEND PATRON",
-    "PALADIN - OATH OF VENGEANCE"
+    "Bard",
+    "Cleric",
+    "Warlock - Fiend Patron",
+    "Paladin - Oath Of Vengeance"
   ],
   "tags": [
     "DEBUFF",

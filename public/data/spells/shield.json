@@ -4,10 +4,10 @@
   "level": 1,
   "school": "Abjuration",
   "classes": [
-    "SORCERER",
-    "WIZARD",
-    "ARTIFICER - BATTLE SMITH",
-    "ARTIFICER - ARTILLERIST"
+    "Sorcerer",
+    "Wizard",
+    "Artificer - Battle Smith",
+    "Artificer - Artillerist"
   ],
   "tags": [
     "BUFF",

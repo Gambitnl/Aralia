@@ -2,15 +2,15 @@
 
 **Purpose**: Master index of all numbered documentation files in the project.
 
-**Last Updated**: December 2, 2025
+**Last Updated**: December 4, 2025
 
 ---
 
 ## Quick Stats
 
-- **Total Active**: 15 documents (9 spell-system, 6 doc-cleanup)
-- **Total Retired**: 1 document
-- **Active Projects**: 2
+- **Total Active**: 17 documents (9 spell-system, 6 doc-cleanup, 2 spell-completeness)
+- **Total Retired**: 4 documents
+- **Active Projects**: 3
 
 ---
 
@@ -70,6 +70,21 @@ When a doc is retired, it gets the `~` marker and is logged in [@RETIRED-DOCS.md
 
 ---
 
+### Project: Spell Completeness Audit & Description Extraction
+
+**Location**: `docs/tasks/spell-completeness-audit/`
+
+| Number | Document | Status | Progress | Priority | Dependencies | Last Updated |
+|--------|----------|--------|----------|----------|--------------|--------------|
+| [2A](./tasks/spell-completeness-audit/2A-EXTRACT-LEVEL-1-DESCRIPTIONS.md) | Extract Level 1 Spell Descriptions | Pending | 0% | Medium | 1C~ | Dec 4, 2025 |
+| [2B](./tasks/spell-completeness-audit/2B-EXTRACT-REMAINING-LEVELS.md) | Extract Spell Descriptions (Levels 2-9) | Pending | 0% | Medium | 2A | Dec 4, 2025 |
+
+**Tags**: `spell-completeness`, `audit`, `reference-extraction`
+
+**Next available number**: `2C`
+
+---
+
 ## Retired Documents
 
 **See**: [@RETIRED-DOCS.md](./@RETIRED-DOCS.md) for full archive with retirement reasons.
@@ -78,6 +93,9 @@ When a doc is retired, it gets the `~` marker and is logged in [@RETIRED-DOCS.md
 
 | Number | Document | Project | Retired Date | Reason | Location |
 |--------|----------|---------|--------------|--------|----------|
+| 1C | [Gap Analysis (Local vs PHB)](./tasks/spell-completeness-audit/1C~GAP-ANALYSIS.md) | Spell Completeness Audit | Dec 4, 2025 | Gap analysis report published | `docs/tasks/spell-completeness-audit/` |
+| 1B | [Research PHB 2024 Spell List](./tasks/spell-completeness-audit/1B~RESEARCH-PHB-2024-LIST.md) | Spell Completeness Audit | Dec 4, 2025 | PHB reference list captured with citations | `docs/tasks/spell-completeness-audit/` |
+| 1A | [Inventory Local Spells](./tasks/spell-completeness-audit/1A~INVENTORY-LOCAL-SPELLS.md) | Spell Completeness Audit | Dec 4, 2025 | Inventory report delivered | `docs/tasks/spell-completeness-audit/` |
 | 1C | [Version Display & Package Fix](./tasks/spell-system-overhaul/1C~VERSION-DISPLAY-AND-PACKAGE-FIX.md) | Spell System Overhaul | Nov 30, 2025 | Task completed | `docs/tasks/spell-system-overhaul/` |
 
 ---
@@ -138,7 +156,7 @@ git mv 1D-TASK-NAME.md 1D~TASK-NAME.md
 
 ### Registry Health
 
-- **Numbering continuity**: Valid (no gaps)
+- **Numbering continuity**: Phase-based numbering in spell-completeness project uses `2A` after `1C` (intentional); all referenced files exist.
 - **File existence**: All referenced files exist
 - **Project scoping**: Properly separated
 - **Tilde markers**: Consistent with retired status

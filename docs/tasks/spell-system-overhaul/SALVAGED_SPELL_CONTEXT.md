@@ -9,8 +9,9 @@ Notes rescued from legacy spell documentation while archiving old-format guides.
 
 ---
 
-## Legacy Class/Subclass Normalization (from SPELL_DATA_CREATION_GUIDE.md)
-- Classes and subclasses were expected in UPPERCASE with the format `BASE CLASS - SUBCLASS` (e.g., `CLERIC - WAR DOMAIN`).
+## Class/Subclass Normalization (from SPELL_DATA_CREATION_GUIDE.md)
+- **Current standard**: Use Title Case display names (e.g., `Wizard`, `Paladin - Oath of Vengeance`). Convert any legacy ALLCAPS data to this format during migration.
+- Legacy guide expected UPPERCASE with the format `BASE CLASS - SUBCLASS` (e.g., `CLERIC - WAR DOMAIN`); keep this note only for interpreting old files.
 - Explicit rule to **filter out legacy tags** such as `"BARD (LEGACY)"` and to exclude subclasses not on the official list.
 - Official subclass list was enumerated for all casting classes (Artificer/Barbarian/Bard/Cleric/Druid/Fighter/Monk/Paladin/Ranger/Rogue/Sorcerer/Warlock/Wizard) to ensure only supported subclasses appeared in `classes[]`.
 

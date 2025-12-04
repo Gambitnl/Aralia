@@ -4,12 +4,12 @@
   "level": 3,
   "school": "Abjuration",
   "classes": [
-    "BARD",
-    "RANGER",
-    "WIZARD",
-    "CLERIC",
-    "PALADIN",
-    "WARLOCK"
+    "Bard",
+    "Ranger",
+    "Wizard",
+    "Cleric",
+    "Paladin",
+    "Warlock"
   ],
   "tags": [
     "UTILITY",

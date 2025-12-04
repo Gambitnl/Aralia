@@ -4,9 +4,9 @@
   "level": 0,
   "school": "Abjuration",
   "classes": [
-    "CLERIC",
-    "DRUID",
-    "ARTIFICER"
+    "Cleric",
+    "Druid",
+    "Artificer"
   ],
   "tags": [
     "BUFF",

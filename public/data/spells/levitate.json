@@ -4,9 +4,9 @@
   "level": 2,
   "school": "Transmutation",
   "classes": [
-    "ARTIFICER",
-    "SORCERER",
-    "WIZARD"
+    "Artificer",
+    "Sorcerer",
+    "Wizard"
   ],
   "tags": [
     "CONTROL",

@@ -4,11 +4,11 @@
   "level": 0,
   "school": "Transmutation",
   "classes": [
-    "BARD",
-    "DRUID",
-    "SORCERER",
-    "WIZARD",
-    "ARTIFICER"
+    "Bard",
+    "Druid",
+    "Sorcerer",
+    "Wizard",
+    "Artificer"
   ],
   "tags": [
     "COMMUNICATION",

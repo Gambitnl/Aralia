@@ -4,12 +4,12 @@
   "level": 1,
   "school": "Enchantment",
   "classes": [
-    "BARD",
-    "SORCERER",
-    "WIZARD",
-    "WARLOCK - ARCHFEY PATRON",
-    "CLERIC - TWILIGHT DOMAIN",
-    "PALADIN - OATH OF REDEMPTION"
+    "Bard",
+    "Sorcerer",
+    "Wizard",
+    "Warlock - Archfey Patron",
+    "Cleric - Twilight Domain",
+    "Paladin - Oath Of Redemption"
   ],
   "tags": [
     "CONTROL",

@@ -1,11 +1,10 @@
-
 {
   "id": "shillelagh",
   "name": "Shillelagh",
   "level": 0,
   "school": "Transmutation",
   "classes": [
-    "DRUID"
+    "Druid"
   ],
   "tags": [
     "DAMAGE",

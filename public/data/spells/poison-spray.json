@@ -4,11 +4,11 @@
   "level": 0,
   "school": "Necromancy",
   "classes": [
-    "DRUID",
-    "SORCERER",
-    "WARLOCK",
-    "WIZARD",
-    "ARTIFICER"
+    "Druid",
+    "Sorcerer",
+    "Warlock",
+    "Wizard",
+    "Artificer"
   ],
   "tags": [
     "DAMAGE",

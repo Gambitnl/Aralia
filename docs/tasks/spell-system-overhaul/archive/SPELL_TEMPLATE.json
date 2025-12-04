@@ -6,7 +6,7 @@
   "name": "Spell Name",
   "level": 0,
   "school": "Evocation",
-  "classes": ["ARTIFICER", "BARD", "CLERIC", "DRUID", "PALADIN", "RANGER", "SORCERER", "WARLOCK", "WIZARD"],
+  "classes": ["Artificer", "Bard", "Cleric", "Druid", "Paladin", "Ranger", "Sorcerer", "Warlock", "Wizard"],
   "description": "Full text description of what the spell does.",
   "higherLevels": "Optional: Description of what happens when cast at higher levels",
   "tags": ["optional", "array", "of", "tags"],

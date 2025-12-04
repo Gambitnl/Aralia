@@ -1,11 +1,10 @@
-
 {
   "id": "produce-flame",
   "name": "Produce Flame",
   "level": 0,
   "school": "Conjuration",
   "classes": [
-    "DRUID"
+    "Druid"
   ],
   "tags": [
     "CREATION",

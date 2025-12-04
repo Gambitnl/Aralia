@@ -1,12 +1,11 @@
-
 {
   "id": "starry-wisp",
   "name": "Starry Wisp",
   "level": 0,
   "school": "Evocation",
   "classes": [
-    "BARD",
-    "DRUID"
+    "Bard",
+    "Druid"
   ],
   "tags": [
     "DAMAGE",

@@ -4,11 +4,11 @@
   "level": 1,
   "school": "Necromancy",
   "classes": [
-    "SORCERER",
-    "WIZARD",
-    "ARTIFICER",
-    "ROGUE - ARCANE TRICKSTER",
-    "FIGHTER - ELDRITCH KNIGHT"
+    "Sorcerer",
+    "Wizard",
+    "Artificer",
+    "Rogue - Arcane Trickster",
+    "Fighter - Eldritch Knight"
   ],
   "tags": [
     "BUFF",
