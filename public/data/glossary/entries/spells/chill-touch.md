@@ -1,15 +1,15 @@
 ---
-id: "acid-splash"
-title: "Acid Splash"
+id: "chill-touch"
+title: "Chill Touch"
 category: "Spells"
-tags: ["cantrip", "conjuration", "damage", "acid", "area", "artificer", "sorcerer", "wizard"]
-excerpt: "You hurl a bubble of acid. Choose one or two creatures you can see within range. A target must succeed on a Dexterity saving throw or take 1d6 acid damage."
-seeAlso: ["poison-spray", "fire-bolt"]
-filePath: "/data/glossary/entries/spells/acid-splash.md"
+tags: ["cantrip", "necromancy", "damage", "necrotic", "ranged", "sorcerer", "warlock", "wizard"]
+excerpt: "You create a ghostly, skeletal hand in the space of a creature within range. On a hit, the target takes 1d8 necrotic damage, and it can't regain hit points until the start of your next turn."
+seeAlso: ["ray-of-frost", "fire-bolt"]
+filePath: "/data/glossary/entries/spells/chill-touch.md"
 ---
 <div class="spell-card">
   <div class="spell-card-header">
-    <h1 class="spell-card-title">Acid Splash</h1>
+    <h1 class="spell-card-title">Chill Touch</h1>
   </div>
   <div class="spell-card-divider"></div>
   <div class="spell-card-stats-grid">
@@ -23,7 +23,7 @@ filePath: "/data/glossary/entries/spells/acid-splash.md"
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Range/Area</span>
-      <span class="spell-card-stat-value">60 ft.</span>
+      <span class="spell-card-stat-value">120 ft.</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Components</span>
@@ -31,27 +31,30 @@ filePath: "/data/glossary/entries/spells/acid-splash.md"
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Duration</span>
-      <span class="spell-card-stat-value">Instantaneous</span>
+      <span class="spell-card-stat-value">1 Round</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">School</span>
-      <span class="spell-card-stat-value">Conjuration</span>
+      <span class="spell-card-stat-value">Necromancy</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Attack/Save</span>
-      <span class="spell-card-stat-value">DEX Save</span>
+      <span class="spell-card-stat-value">Ranged</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Damage/Effect</span>
-      <span class="spell-card-stat-value">Acid</span>
+      <span class="spell-card-stat-value">Necrotic</span>
     </div>
   </div>
   <div class="spell-card-divider"></div>
   <p class="spell-card-description">
-    You hurl a bubble of acid. Choose one creature you can see within range, or choose two creatures you can see within range that are within 5 feet of each other. A target must succeed on a Dexterity saving throw or take 1d6 acid damage.
+    You create a ghostly, skeletal hand in the space of a creature within range. Make a ranged spell attack against the creature to assail it with the chill of the grave. On a hit, the target takes 1d8 necrotic damage, and it can't regain hit points until the start of your next turn.
   </p>
   <p class="spell-card-description">
-    <strong>Cantrip Upgrade.</strong> This spell's damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6).
+    If you hit an undead target, it also has disadvantage on attack rolls against you until the end of your next turn.
+  </p>
+  <p class="spell-card-description">
+    <strong>Cantrip Upgrade.</strong> This spell's damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).
   </p>
   <div class="spell-card-tags-section">
     <span class="spell-card-tags-label">Spell Tags:</span>
@@ -59,8 +62,8 @@ filePath: "/data/glossary/entries/spells/acid-splash.md"
   </div>
   <div class="spell-card-tags-section">
     <span class="spell-card-tags-label">Available For:</span>
-    <span class="spell-card-tag">ARTIFICER</span>
     <span class="spell-card-tag">SORCERER</span>
+    <span class="spell-card-tag">WARLOCK</span>
     <span class="spell-card-tag">WIZARD</span>
   </div>
 </div>

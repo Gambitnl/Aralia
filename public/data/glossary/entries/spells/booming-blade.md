@@ -1,15 +1,15 @@
 ---
-id: "acid-splash"
-title: "Acid Splash"
+id: "booming-blade"
+title: "Booming Blade"
 category: "Spells"
-tags: ["cantrip", "conjuration", "damage", "acid", "area", "artificer", "sorcerer", "wizard"]
-excerpt: "You hurl a bubble of acid. Choose one or two creatures you can see within range. A target must succeed on a Dexterity saving throw or take 1d6 acid damage."
-seeAlso: ["poison-spray", "fire-bolt"]
-filePath: "/data/glossary/entries/spells/acid-splash.md"
+tags: ["cantrip", "evocation", "damage", "thunder", "melee", "artificer", "sorcerer", "warlock", "wizard"]
+excerpt: "As part of the action used to cast this spell, you must make a melee attack with a weapon against one creature within the spell's range. On a hit, the target suffers the attack's normal effects, and it becomes sheathed in booming energy."
+seeAlso: ["green-flame-blade", "lightning-lure"]
+filePath: "/data/glossary/entries/spells/booming-blade.md"
 ---
 <div class="spell-card">
   <div class="spell-card-header">
-    <h1 class="spell-card-title">Acid Splash</h1>
+    <h1 class="spell-card-title">Booming Blade</h1>
   </div>
   <div class="spell-card-divider"></div>
   <div class="spell-card-stats-grid">
@@ -23,35 +23,35 @@ filePath: "/data/glossary/entries/spells/acid-splash.md"
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Range/Area</span>
-      <span class="spell-card-stat-value">60 ft.</span>
+      <span class="spell-card-stat-value">5 ft.</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Components</span>
-      <span class="spell-card-stat-value">V, S</span>
+      <span class="spell-card-stat-value">V, S, M</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Duration</span>
-      <span class="spell-card-stat-value">Instantaneous</span>
+      <span class="spell-card-stat-value">1 Round</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">School</span>
-      <span class="spell-card-stat-value">Conjuration</span>
+      <span class="spell-card-stat-value">Evocation</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Attack/Save</span>
-      <span class="spell-card-stat-value">DEX Save</span>
+      <span class="spell-card-stat-value">Melee</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Damage/Effect</span>
-      <span class="spell-card-stat-value">Acid</span>
+      <span class="spell-card-stat-value">Thunder</span>
     </div>
   </div>
   <div class="spell-card-divider"></div>
   <p class="spell-card-description">
-    You hurl a bubble of acid. Choose one creature you can see within range, or choose two creatures you can see within range that are within 5 feet of each other. A target must succeed on a Dexterity saving throw or take 1d6 acid damage.
+    As part of the action used to cast this spell, you must make a melee attack with a weapon against one creature within the spell's range, otherwise the spell fails. On a hit, the target suffers the attack's normal effects, and it becomes sheathed in booming energy until the start of your next turn. If the target willingly moves before then, it immediately takes 1d8 thunder damage, and the spell ends.
   </p>
   <p class="spell-card-description">
-    <strong>Cantrip Upgrade.</strong> This spell's damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6).
+    <strong>Cantrip Upgrade.</strong> At 5th level, the melee attack deals an extra 1d8 thunder damage to the target, and the damage the target takes for moving increases to 2d8. Both damage rolls increase by 1d8 at 11th level and 17th level.
   </p>
   <div class="spell-card-tags-section">
     <span class="spell-card-tags-label">Spell Tags:</span>
@@ -61,6 +61,7 @@ filePath: "/data/glossary/entries/spells/acid-splash.md"
     <span class="spell-card-tags-label">Available For:</span>
     <span class="spell-card-tag">ARTIFICER</span>
     <span class="spell-card-tag">SORCERER</span>
+    <span class="spell-card-tag">WARLOCK</span>
     <span class="spell-card-tag">WIZARD</span>
   </div>
 </div>
