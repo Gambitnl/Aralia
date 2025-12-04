@@ -57,8 +57,8 @@
 
 | Path | Created | Modified | Reviewed |
 |------|---------|----------|----------|
-| docs/spells/COMPONENT_DEPENDENCIES.md | 2025-11-28 | 2025-11-28 | - |
-| docs/spells/SPELL_INTEGRATION_CHECKLIST.md | 2025-11-28 | 2025-11-29 | - |
+| ~~docs/spells/COMPONENT_DEPENDENCIES.md~~ | 2025-11-28 | 2025-11-28 | **ARCHIVED 2025-12-04** (Merged into SPELL_INTEGRATION_CHECKLIST.md) |
+| docs/spells/SPELL_INTEGRATION_CHECKLIST.md | 2025-11-28 | 2025-12-04 | 2025-12-04 (Reviewed: verified all component paths, merged COMPONENT_DEPENDENCIES content, converted to hierarchical lists) |
 | docs/spells/SPELL_JSON_EXAMPLES.md | 2025-12-01 | 2025-12-01 | Current session |
 | docs/spells/SPELL_PROPERTIES_REFERENCE.md | 2025-11-28 | 2025-11-29 | Current session |
 | docs/spells/STATUS_LEVEL_0.md | 2025-11-28 | 2025-12-03 | - |

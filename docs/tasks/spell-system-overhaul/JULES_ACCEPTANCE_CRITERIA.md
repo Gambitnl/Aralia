@@ -25,7 +25,7 @@ You are NOT done with a spell until **ALL** of the following are true.
     - **Effect Types**: UPPERCASE → `DAMAGE`, `HEALING`, `DEFENSIVE`, `STATUS_CONDITION`, `UTILITY`, `MOVEMENT`, `SUMMONING`, `TERRAIN`
     - **Schools**: Title Case → `Abjuration`, `Conjuration`, `Divination`, `Enchantment`, `Evocation`, `Illusion`, `Necromancy`, `Transmutation`
     - **Damage Types**: Title Case → `Acid`, `Bludgeoning`, `Cold`, `Fire`, `Force`, `Lightning`, `Necrotic`, `Piercing`, `Poison`, `Psychic`, `Radiant`, `Slashing`, `Thunder`
-    - **Classes**: UPPERCASE → `ARTIFICER`, `BARD`, `CLERIC`, `DRUID`, `PALADIN`, `RANGER`, `SORCERER`, `WARLOCK`, `WIZARD`
+    - **Classes**: Title Case → `Artificer`, `Bard`, `Cleric`, `Druid`, `Paladin`, `Ranger`, `Sorcerer`, `Warlock`, `Wizard` (and subclasses in the same format, e.g., `Warlock - Fiend Patron`)
     - **validTargets**: Exact values only → `"creatures"`, `"objects"`, `"allies"`, `"enemies"`, `"self"`, `"point"` (NOT singular like `"creature"`)
     - **STATUS_CONDITION names**: Must be valid D&D 5e conditions → `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitated`, `Invisible`, `Paralyzed`, `Petrified`, `Poisoned`, `Prone`, `Restrained`, `Stunned`, `Unconscious`
 - [ ] **Required Fields (All Spells)**:

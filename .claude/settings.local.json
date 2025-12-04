@@ -42,7 +42,8 @@
       "Bash(for file in 00-PARALLEL-ARCHITECTURE.md 00-TASK-INDEX.md 01-typescript-interfaces.md 03-command-pattern-base.md 19-ai-spell-arbitrator.md README.md START-HERE.md TASK-TEMPLATE.md)",
       "Bash(do sed -i 's/SPELL_SYSTEM_RESEARCH\\.md/@SPELL-SYSTEM-RESEARCH.md/g' \"$file\")",
       "Bash(done)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
