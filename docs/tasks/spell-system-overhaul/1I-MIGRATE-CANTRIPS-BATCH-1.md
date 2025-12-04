@@ -1,24 +1,32 @@
 # Path 2.F: Migrate Cantrips Batch 1 (5 spells)
 
 ## MISSION
-Convert the first batch of 5 high-priority cantrips from Old Format to New Format.
+Convert the first batch of 5 high-priority cantrips from Old Format to New Format, adhering to the "Iron Rules" acceptance criteria.
 
-## REQUIRED READING
-*   `docs/tasks/spell-system-overhaul/@WORKFLOW-SPELL-CONVERSION.md` (The workflow you created in Task 1E)
-*   `docs/tasks/spell-system-overhaul/@SPELL-AUDIT-CANTRIPS.md` (The priority list from Task 1F)
-*   `src/types/spells.ts`
-
-## EXECUTION STEPS
-1.  **Select**: Pick the top 5 "Needs Migration" cantrips from `@SPELL-AUDIT-CANTRIPS.md`.
-2.  **Convert**: For each spell file:
-    *   Apply the transformation rules from the Workflow guide.
-    *   Ensure all fields match the `src/types/spells.ts` interface.
-    *   Add the `glossaryTerms` array (if applicable).
-3.  **Validate**: Run any validation scripts (`scripts/validate-data.ts` if available) or manually check JSON syntax.
-4.  **Update Status**: Update the entry in `@SPELL-AUDIT-CANTRIPS.md` to "Completed".
-
-## CONSTRAINTS
-*   **Strict Adherence**: Output must match the New Format exactly.
+**Spells in this batch:**
+- `acid-splash`
+- `blade-ward`
+- `booming-blade`
+- `chill-touch`
+- `create-bonfire`
 
 ## DELIVERABLE
-A Pull Request with 5 modified JSON files and the updated Audit list.
+A Pull Request with 5 new JSON files, 5 new glossary files, an updated manifest, and this file marked with completion for each spell.
+
+## RESULTS
+- [x] `acid-splash`
+- [x] `blade-ward`
+- [x] `booming-blade`
+- [x] `chill-touch`
+- [x] `create-bonfire`
+
+## System Gaps & Follow-up
+- [ ] **`booming-blade`**: The trigger for the secondary damage is "if the target willingly moves".
+    - *Context*: The current schema's `trigger.type` does not support conditional triggers based on character actions like movement.
+    - *Recommendation*: Add a `custom` trigger type or a more robust conditional trigger system to the schema. For now, the mechanic is noted in the effect's `description`.
+- [ ] **`create-bonfire`**: Damage should trigger "when a creature moves into the bonfire's space for the first time on a turn".
+    - *Context*: The current schema's `trigger.type` does not support triggers based on entering an area.
+    - *Recommendation*: Add an `on_enter_area` trigger type to the schema. For now, the mechanic is noted in the effect's `description`.
+- [ ] **`chill-touch`**: The disadvantage effect on Undead is conditional.
+    - *Context*: The current schema does not support targeting conditions based on creature type (e.g., Undead).
+    - *Recommendation*: Add a `targetType` condition to the `condition` object in the effect schema. For now, the condition is noted in the effect's `description`.

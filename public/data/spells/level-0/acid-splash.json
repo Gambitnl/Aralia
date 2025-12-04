@@ -1,0 +1,55 @@
+{
+  "id": "acid-splash",
+  "name": "Acid Splash",
+  "level": 0,
+  "school": "Conjuration",
+  "classes": ["Artificer", "Sorcerer", "Wizard"],
+  "tags": ["damage", "acid", "area"],
+  "castingTime": {
+    "value": 1,
+    "unit": "action"
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "multi",
+    "range": 60,
+    "maxTargets": 2,
+    "validTargets": ["creature"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Dexterity",
+        "saveEffect": "none"
+      },
+      "damage": {
+        "dice": "1d6",
+        "type": "Acid"
+      },
+      "scaling": {
+        "type": "character_level",
+        "customFormula": "{\"5\": \"2d6\", \"11\": \"3d6\", \"17\": \"4d6\"}"
+      }
+    }
+  ],
+  "description": "You hurl a bubble of acid. Choose one creature you can see within range, or choose two creatures you can see within range that are within 5 feet of each other. A target must succeed on a Dexterity saving throw or take 1d6 acid damage.",
+  "higherLevels": "This spell's damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6)."
+}

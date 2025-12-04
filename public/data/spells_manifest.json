@@ -9,7 +9,7 @@
     "name": "Acid Splash",
     "level": 0,
     "school": "Conjuration",
-    "path": "/data/spells/acid-splash.json"
+    "path": "/data/spells/level-0/acid-splash.json"
   },
   "aid": {
     "name": "Aid",
@@ -189,7 +189,7 @@
     "name": "Blade Ward",
     "level": 0,
     "school": "Abjuration",
-    "path": "/data/spells/blade-ward.json"
+    "path": "/data/spells/level-0/blade-ward.json"
   },
   "bless": {
     "name": "Bless",
@@ -231,7 +231,7 @@
     "name": "Booming Blade",
     "level": 0,
     "school": "Evocation",
-    "path": "/data/spells/booming-blade.json"
+    "path": "/data/spells/level-0/booming-blade.json"
   },
   "burning-hands": {
     "name": "Burning Hands",
@@ -285,7 +285,7 @@
     "name": "Chill Touch",
     "level": 0,
     "school": "Necromancy",
-    "path": "/data/spells/chill-touch.json"
+    "path": "/data/spells/level-0/chill-touch.json"
   },
   "chromatic-orb": {
     "name": "Chromatic Orb",
@@ -477,7 +477,7 @@
     "name": "Create Bonfire",
     "level": 0,
     "school": "Conjuration",
-    "path": "/data/spells/create-bonfire.json"
+    "path": "/data/spells/level-0/create-bonfire.json"
   },
   "create-food-and-water": {
     "name": "Create Food and Water",

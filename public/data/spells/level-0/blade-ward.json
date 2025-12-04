@@ -1,0 +1,48 @@
+{
+  "id": "blade-ward",
+  "name": "Blade Ward",
+  "level": 0,
+  "school": "Abjuration",
+  "classes": ["Bard", "Sorcerer", "Warlock", "Wizard"],
+  "tags": ["defensive"],
+  "castingTime": {
+    "value": 1,
+    "unit": "action"
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "round",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "self"
+  },
+  "effects": [
+    {
+      "type": "DEFENSIVE",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "defenseType": "resistance",
+      "damageType": ["bludgeoning", "piercing", "slashing"],
+      "duration": {
+        "type": "rounds",
+        "value": 1
+      }
+    }
+  ],
+  "description": "You extend your hand and trace a sigil of warding in the air. Until the end of your next turn, you have resistance against bludgeoning, piercing, and slashing damage dealt by weapon attacks.",
+  "higherLevels": ""
+}
