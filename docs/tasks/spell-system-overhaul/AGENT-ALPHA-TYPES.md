@@ -687,15 +687,14 @@ Other agents will create spell JSON files. They'll use:
 npm run spell:new
 
 # Or copy template
-cp src/systems/spells/data/templates/TEMPLATE-damage-spell.json \
-   src/systems/spells/data/level-3/fireball.json
+Create `public/data/spells/level-3/fireball.json` using `docs/spells/SPELL_JSON_EXAMPLES.md` as the structural template (or an existing cantrip JSON as a starter).
 ```
 
 ### Updating EXISTING Spells
 
 ```bash
 # Edit manually (VSCode autocomplete from your JSON Schema)
-code src/systems/spells/data/level-3/fireball.json
+code public/data/spells/level-3/fireball.json
 
 # Validate
 npm run validate:spells

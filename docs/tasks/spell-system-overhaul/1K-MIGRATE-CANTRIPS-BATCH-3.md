@@ -20,9 +20,10 @@
 1. For each spell:
    - Apply the conversion workflow; place JSON in `public/data/spells/level-0/{id}.json`.
    - Create/update glossary entry `public/data/glossary/entries/spells/{id}.md`.
-   - Run `npm run validate` (or `npm run validate:spells`) and fix errors.
    - Run `SPELL_INTEGRATION_CHECKLIST.md` for this spell and note results below.
-2. **Do NOT edit shared status files** (`STATUS_LEVEL_0.md`, manifests, or shared checklists). Record completion here.
+2. Manifest: `npx tsx scripts/regenerate-manifest.ts` to refresh `public/data/spells_manifest.json`.
+3. Validation: `npm run validate` (or `npm run validate:spells`) and fix errors.
+4. **Do NOT edit shared status files** (`STATUS_LEVEL_0.md`, manifests, or shared checklists). Record completion here.
 
 ## Per-Spell Checklist (fill here, not elsewhere)
 - light: Data ✅ / Validation ✅ / Integration ✅ (notes: …)

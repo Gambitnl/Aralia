@@ -15,19 +15,19 @@
 3. `docs/tasks/spell-system-overhaul/SALVAGED_SPELL_CONTEXT.md`
 4. `docs/tasks/spell-system-overhaul/SPELL-WORKFLOW-QUICK-REF.md`
 5. `docs/spells/SPELL_INTEGRATION_CHECKLIST.md`
-6. `docs/spells/STATUS_LEVEL_0.md` (update after each spell)
 
 ## Execution Steps
 1. For each spell:
    - Apply the conversion workflow (BaseEffect fields, targeting, enums/casing).
+   - Place JSON at `public/data/spells/level-0/{id}.json`.
    - Create/update glossary entry in `public/data/glossary/entries/spells/{id}.md`.
-   - Update `docs/spells/STATUS_LEVEL_0.md` with status and mark Integration checklist when done.
-2. Validation: run `npm run validate` (or `npm run validate:spells`) and fix any errors.
-3. Integration: execute `docs/spells/SPELL_INTEGRATION_CHECKLIST.md` per spell; ensure combat/creator/sheet expectations are satisfied.
+   - Run the integration checklist (`docs/spells/SPELL_INTEGRATION_CHECKLIST.md`) and log results in **this batch file** (do not edit shared status files).
+2. Manifest: run `npx tsx scripts/regenerate-manifest.ts` to refresh `public/data/spells_manifest.json`.
+3. Validation: run `npm run validate` (or `npm run validate:spells`) and fix any errors.
 4. Deliverables:
    - 5 validated spell JSON files in `public/data/spells/level-0/`.
    - Glossary entries created/updated.
-   - `STATUS_LEVEL_0.md` updated with data and integration status.
+   - Integration checklist results recorded in this file (no shared status file edits).
 
 ## Notes
 - Guidance is missing: create new JSON and glossary entry.

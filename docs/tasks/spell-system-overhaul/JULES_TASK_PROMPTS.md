@@ -47,12 +47,11 @@ CRITICAL REQUIREMENTS:
    - Spell JSON: public/data/spells/level-{N}/[spell-id].json
    - Glossary entry: public/data/glossary/entries/spells/[spell-id].md
 
-6. Update Status File
-   - File: docs/spells/STATUS_LEVEL_0.md
-   - Mark each spell as "[D] Data Only"
+6. Status Updates
+   - Do NOT edit shared status files (to avoid conflicts). Record completion inside the active batch file's checklist.
 
 7. Run Validation Before Creating PR
-   a. Update Manifest: npx tsx scripts/regenerate-manifest.ts
+   a. Update Manifest: npx tsx scripts/regenerate-manifest.ts (refreshes public/data/spells_manifest.json for SpellContext lookups)
    b. Execute: npm run validate
    Fix any errors before committing.
 
@@ -277,7 +276,7 @@ WORKFLOW:
    g. Check if spell is ritual (add ritual: true if so)
    h. Check for material components (add materialCost if GP value given)
 3. Create glossary markdown files
-4. Update docs/spells/STATUS_LEVEL_1.md
+4. Status: Do NOT edit shared status files; log completion in the batch file you’re working in.
 5. Run: npx tsx scripts/regenerate-manifest.ts
 6. Run: npm run validate
 7. Fix any validation errors
@@ -387,85 +386,6 @@ UTILITY:
   "description": "Creates bright light in a 20-foot radius"
 }
 ```
-
----
-## Quick Reference: Common Effect Patterns
-
-```
-DAMAGE (spell attack):
-{
-  "type": "DAMAGE",
-  "trigger": { "type": "immediate" },
-  "condition": { "type": "hit" },
-  "damage": { "dice": "1d10", "type": "Fire" }
-}
-
-DAMAGE (saving throw):
-{
-  "type": "DAMAGE",
-  "trigger": { "type": "immediate" },
-  "condition": {
-    "type": "save",
-    "saveType": "Dexterity",
-    "saveEffect": "half"
-  },
-  "damage": { "dice": "3d6", "type": "Fire" }
-}
-
-DEFENSIVE (AC bonus):
-{
-  "type": "DEFENSIVE",
-  "trigger": { "type": "immediate" },
-  "condition": { "type": "always" },
-  "defenseType": "ac_bonus",
-  "value": 5,
-  "duration": { "type": "rounds", "value": 1 }
-}
-
-DEFENSIVE (resistance):
-{
-  "type": "DEFENSIVE",
-  "trigger": { "type": "immediate" },
-  "condition": { "type": "always" },
-  "defenseType": "resistance",
-  "damageType": ["Fire", "Cold"],
-  "duration": { "type": "rounds", "value": 1 }
-}
-
-HEALING:
-{
-  "type": "HEALING",
-  "trigger": { "type": "immediate" },
-  "condition": { "type": "always" },
-  "healing": { "dice": "1d8", "isTemporaryHp": false }
-}
-
-STATUS_CONDITION:
-{
-  "type": "STATUS_CONDITION",
-  "trigger": { "type": "immediate" },
-  "condition": {
-    "type": "save",
-    "saveType": "Wisdom",
-    "saveEffect": "negates_condition"
-  },
-  "statusCondition": {
-    "name": "Charmed",
-    "duration": { "type": "minutes", "value": 1 }
-  }
-}
-
-UTILITY:
-{
-  "type": "UTILITY",
-  "trigger": { "type": "immediate" },
-  "condition": { "type": "always" },
-  "utilityType": "light",
-  "description": "Creates bright light in a 20-foot radius"
-}
-```
-
----
 
 **Usage Instructions**:
 

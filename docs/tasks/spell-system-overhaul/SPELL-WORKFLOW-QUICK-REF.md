@@ -36,35 +36,27 @@ $ npm run spell:new
 ? Material component description: a tiny ball of bat guano and sulfur
 ... (continues)
 
-✅ Spell created: src/systems/spells/data/level-3/fireball.json
+✅ Spell created: public/data/spells/level-3/fireball.json
 ⚠️  Remember to fill in TODO fields!
 ```
 
-### Option 2: Copy Template
+### Option 2: Copy an Existing Example
 
 ```bash
-# For damage spells
-cp src/systems/spells/data/templates/TEMPLATE-damage-spell.json \
-   src/systems/spells/data/level-3/fireball.json
-
-# For healing spells
-cp src/systems/spells/data/templates/TEMPLATE-healing-spell.json \
-   src/systems/spells/data/level-1/cure-wounds.json
-
-# For area save spells
-cp src/systems/spells/data/templates/TEMPLATE-area-save-spell.json \
-   src/systems/spells/data/level-3/fireball.json
+# Copy a close example and edit
+cp public/data/spells/level-0/acid-splash.json \
+   public/data/spells/level-3/fireball.json
 ```
 
-Then edit manually with VSCode autocomplete (JSON Schema enabled).
+Then edit manually with VSCode autocomplete (JSON Schema enabled) using `docs/spells/SPELL_JSON_EXAMPLES.md` as the source of truth.
 
 ---
 
 ## Updating an EXISTING Spell
 
 1. **Find the file:**
-   - Cantrips: `src/systems/spells/data/cantrips/spell-name.json`
-   - Level 1-9: `src/systems/spells/data/level-X/spell-name.json`
+   - Cantrips: `public/data/spells/level-0/spell-name.json`
+   - Level 1-9: `public/data/spells/level-X/spell-name.json`
 
 2. **Edit manually:**
    - VSCode will provide autocomplete from JSON Schema
@@ -79,12 +71,9 @@ Then edit manually with VSCode autocomplete (JSON Schema enabled).
 
 ## Converting LEGACY Spells
 
-### Step 1: Use Template
+### Step 1: Start from an Example
 
-```bash
-cp src/systems/spells/data/templates/TEMPLATE-damage-spell.json \
-   src/systems/spells/data/level-3/fireball.json
-```
+Use the closest pattern in `docs/spells/SPELL_JSON_EXAMPLES.md` and create `public/data/spells/level-3/fireball.json`.
 
 ### Step 3: Map Old → New
 
@@ -113,25 +102,20 @@ New format requires:
 ### Where Files Go
 
 ```
-src/systems/spells/data/
-├── cantrips/
-│   ├── acid-splash.json
-│   ├── fire-bolt.json
-│   └── ...
-├── level-1/
-│   ├── cure-wounds.json
-│   ├── magic-missile.json
-│   └── ...
-├── level-2/
-│   └── ...
-├── level-3/
-│   ├── fireball.json
-│   └── ...
-└── templates/
-    ├── TEMPLATE-damage-spell.json
-    ├── TEMPLATE-healing-spell.json
-    ├── TEMPLATE-area-save-spell.json
-    └── ...
+public/data/spells/
+?? level-0/
+?   ?? acid-splash.json
+?   ?? fire-bolt.json
+?   ?? ...
+?? level-1/
+?   ?? cure-wounds.json
+?   ?? magic-missile.json
+?   ?? ...
+?? level-2/
+?   ?? ...
+?? level-3/
+?   ?? fireball.json
+?   ?? ...
 ```
 
 ### Naming Convention
@@ -152,9 +136,9 @@ npm run validate:spells
 
 **Output:**
 ```bash
-✅ src/systems/spells/data/cantrips/acid-splash.json
-✅ src/systems/spells/data/level-1/cure-wounds.json
-✅ src/systems/spells/data/level-3/fireball.json
+✅ public/data/spells/cantrips/acid-splash.json
+✅ public/data/spells/level-1/cure-wounds.json
+✅ public/data/spells/level-3/fireball.json
 
 ✅ All spells validated successfully!
 ```
@@ -163,7 +147,7 @@ npm run validate:spells
 
 **Example error:**
 ```bash
-❌ src/systems/spells/data/level-3/fireball.json:
+❌ public/data/spells/level-3/fireball.json:
    /effects/0/damage/type must be one of: Acid, Cold, Fire, ...
    /targeting/areaOfEffect/shape must be one of: Cone, Cube, Sphere, Line, Cylinder
 ```
@@ -182,7 +166,7 @@ Add to `.vscode/settings.json`:
 {
   "json.schemas": [
     {
-      "fileMatch": ["src/systems/spells/data/**/*.json"],
+      "fileMatch": ["public/data/spells/**/*.json"],
       "url": "./src/systems/spells/schema/spell.schema.json"
     }
   ]
@@ -219,8 +203,8 @@ npm run validate:spells
 ### Add a New Healing Spell
 
 ```bash
-cp templates/TEMPLATE-healing-spell.json level-1/cure-wounds.json
-# Edit manually
+cp public/data/spells/level-1/cure-wounds.json public/data/spells/level-1/new-healing-spell.json
+# Edit manually using docs/spells/SPELL_JSON_EXAMPLES.md as reference
 npm run validate:spells
 ```
 
@@ -309,7 +293,7 @@ console.log(result.logEntries)  // ["Fireball deals 28 fire damage to Goblin"]
 **Solution:**
 1. Check `.vscode/settings.json` has JSON schema mapping
 2. Reload VSCode window (`Ctrl+Shift+P` → "Reload Window")
-3. Ensure file path matches pattern (`src/systems/spells/data/**/*.json`)
+3. Ensure file path matches pattern (`public/data/spells/**/*.json`)
 
 ---
 
@@ -335,7 +319,7 @@ If build fails due to invalid spells:
 ```bash
 🚨 SPELL VALIDATION FAILED:
 
-❌ src/systems/spells/data/level-3/fireball.json:
+❌ public/data/spells/level-3/fireball.json:
    /effects/0/damage/type must be one of: ...
 
 Build failed. Fix validation errors and try again.
@@ -362,16 +346,7 @@ npm run build  # Rebuild
 
 ## File Templates
 
-### Available Templates
-
-- `TEMPLATE-damage-spell.json` - Direct damage (Magic Missile)
-- `TEMPLATE-area-save-spell.json` - AoE with save (Fireball)
-- `TEMPLATE-healing-spell.json` - Healing (Cure Wounds)
-- `TEMPLATE-status-condition-spell.json` - Buffs/debuffs (Bless, Bane)
-
-### Template Locations
-
-All templates: `src/systems/spells/data/templates/`
+Use `docs/spells/SPELL_JSON_EXAMPLES.md` as the canonical templates. Copy the closest example into `public/data/spells/level-{0-9}/{id}.json` and edit.
 
 ---
 

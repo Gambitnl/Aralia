@@ -20,9 +20,10 @@
 1. For each spell:
    - Convert/create JSON in `public/data/spells/level-0/{id}.json`.
    - Create/update glossary entry `public/data/glossary/entries/spells/{id}.md`.
-   - Run `npm run validate` and fix errors.
    - Run `SPELL_INTEGRATION_CHECKLIST.md` and capture notes here.
-2. **Do NOT edit shared status files** (`STATUS_LEVEL_0.md`, manifests, or shared checklists). Log completion below.
+2. Manifest: `npx tsx scripts/regenerate-manifest.ts` to refresh `public/data/spells_manifest.json`.
+3. Validation: `npm run validate` (or `npm run validate:spells`) and fix errors.
+4. **Do NOT edit shared status files** (`STATUS_LEVEL_0.md`, manifests, or shared checklists). Log completion below.
 
 ## Per-Spell Checklist (record here)
 - shape-water: Data ✅ / Validation ✅ / Integration ✅ (notes: …)

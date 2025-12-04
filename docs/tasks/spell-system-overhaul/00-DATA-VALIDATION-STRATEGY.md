@@ -289,7 +289,7 @@ import spellSchema from '../src/systems/spells/schema/spell.schema.json'
 const ajv = new Ajv({ allErrors: true })
 const validate = ajv.compile(spellSchema)
 
-const spellsDir = path.join(__dirname, '../src/systems/spells/data')
+const spellsDir = path.join(__dirname, '../public/data/spells')
 const errors: string[] = []
 
 // Recursively validate all JSON files
@@ -462,7 +462,7 @@ export function validateSpellSafe(data: unknown):
 ### Usage in Spell Loader
 
 ```typescript
-// src/systems/spells/data/spellLoader.ts
+// public/data/spells manifest loader
 import { validateSpell } from '../validation/spellValidator'
 import type { Spell } from '../types'
 
@@ -859,8 +859,8 @@ async function runSpellWizard() {
 
   // Save to correct directory
   const dir = answers.level === 0
-    ? 'src/systems/spells/data/cantrips'
-    : `src/systems/spells/data/level-${answers.level}`
+    ? 'public/data/spells/level-0'
+    : `public/data/spells/level-${answers.level}`
 
   const filePath = path.join(dir, `${answers.id}.json`)
   fs.writeFileSync(filePath, JSON.stringify(spell, null, 2))
@@ -1020,7 +1020,7 @@ runSpellWizard()
 
 ## Layer 4: Template Files
 
-**Location:** `src/systems/spells/data/templates/`
+**Location:** Create spell JSONs in `public/data/spells/level-{0-9}/{id}.json` (use `docs/spells/SPELL_JSON_EXAMPLES.md` as the structure reference).
 
 Provide ready-to-use templates for common spell patterns.
 
@@ -1204,14 +1204,13 @@ Provide ready-to-use templates for common spell patterns.
 npm run spell:new
 
 # Option 2: Copy template
-cp src/systems/spells/data/templates/TEMPLATE-damage-spell.json \
-   src/systems/spells/data/level-1/magic-missile.json
+Create `public/data/spells/level-1/magic-missile.json` using the closest example from `docs/spells/SPELL_JSON_EXAMPLES.md` as your template (or `npm run spell:new`).
 
 # Edit the file, then validate
 npm run spell:validate
 
 # If validation passes, commit
-git add src/systems/spells/data/level-1/magic-missile.json
+git add public/data/spells/level-1/magic-missile.json
 git commit -m "feat: add Magic Missile spell definition"
 ```
 
@@ -1233,7 +1232,7 @@ npm run spell:validate
 {
   "json.schemas": [
     {
-      "fileMatch": ["src/systems/spells/data/**/*.json"],
+      "fileMatch": ["public/data/spells/**/*.json"],
       "url": "./src/systems/spells/schema/spell.schema.json"
     }
   ]
