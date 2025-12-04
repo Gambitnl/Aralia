@@ -1,29 +1,32 @@
 # Path 2.F: Migrate Cantrips Batch 1 (5 spells)
 
 ## MISSION
-Convert the first batch of 5 high-priority cantrips from Old Format to New Format.
+Convert the first batch of 5 high-priority cantrips from Old Format to New Format, adhering to the "Iron Rules" acceptance criteria.
 
-## REQUIRED READING (in order)
-* `docs/tasks/spell-system-overhaul/@WORKFLOW-SPELL-CONVERSION.md`
-* `docs/spells/SPELL_JSON_EXAMPLES.md`
-* `docs/tasks/spell-system-overhaul/SALVAGED_SPELL_CONTEXT.md`
-* `docs/tasks/spell-system-overhaul/SPELL-WORKFLOW-QUICK-REF.md`
-* `docs/spells/SPELL_INTEGRATION_CHECKLIST.md`
-* `docs/tasks/spell-system-overhaul/@SPELL-AUDIT-CANTRIPS.md` (for selection)
+**Spells in this batch:**
+- `acid-splash`
+- `blade-ward`
+- `booming-blade`
+- `chill-touch`
+- `create-bonfire`
 
-## EXECUTION STEPS
-1) Select the top 5 "Needs Migration" cantrips from `@SPELL-AUDIT-CANTRIPS.md`.
-2) For each selected spell:
-   - Create/convert JSON at `public/data/spells/level-0/{id}.json` (apply BaseEffect fields, correct enums/casing).
-   - Create/update glossary entry at `public/data/glossary/entries/spells/{id}.md`.
-   - Run `docs/spells/SPELL_INTEGRATION_CHECKLIST.md` and log results in this file.
-3) Manifest: `npx tsx scripts/regenerate-manifest.ts` to refresh `public/data/spells_manifest.json`.
-4) Validation: `npm run validate` (or `npm run validate:spells`) and fix any errors.
-5) Do NOT edit shared status files; track completion in this file only.
+## DELIVERABLE
+A Pull Request with 5 new JSON files, 5 new glossary files, an updated manifest, and this file marked with completion for each spell.
 
-## PER-SPELL CHECKLIST (record here)
-- [spell-id-1]: Data ƒo. / Validation ƒo. / Integration ƒo. (notes: ƒ?Ý)
-- [spell-id-2]: Data ƒo. / Validation ƒo. / Integration ƒo. (notes: ƒ?Ý)
-- [spell-id-3]: Data ƒo. / Validation ƒo. / Integration ƒo. (notes: ƒ?Ý)
-- [spell-id-4]: Data ƒo. / Validation ƒo. / Integration ƒo. (notes: ƒ?Ý)
-- [spell-id-5]: Data ƒo. / Validation ƒo. / Integration ƒo. (notes: ƒ?Ý)
+## RESULTS
+- [x] `acid-splash`
+- [x] `blade-ward`
+- [x] `booming-blade`
+- [x] `chill-touch`
+- [x] `create-bonfire`
+
+## System Gaps & Follow-up
+- [ ] **`booming-blade`**: The trigger for the secondary damage is "if the target willingly moves".
+    - *Context*: The current schema's `trigger.type` does not support conditional triggers based on character actions like movement.
+    - *Recommendation*: Add a `custom` trigger type or a more robust conditional trigger system to the schema. For now, the mechanic is noted in the effect's `description`.
+- [ ] **`create-bonfire`**: Damage should trigger "when a creature moves into the bonfire's space for the first time on a turn".
+    - *Context*: The current schema's `trigger.type` does not support triggers based on entering an area.
+    - *Recommendation*: Add an `on_enter_area` trigger type to the schema. For now, the mechanic is noted in the effect's `description`.
+- [ ] **`chill-touch`**: The disadvantage effect on Undead is conditional.
+    - *Context*: The current schema does not support targeting conditions based on creature type (e.g., Undead).
+    - *Recommendation*: Add a `targetType` condition to the `condition` object in the effect schema. For now, the condition is noted in the effect's `description`.

@@ -1,0 +1,88 @@
+{
+  "id": "chill-touch",
+  "name": "Chill Touch",
+  "level": 0,
+  "school": "Necromancy",
+  "classes": ["Sorcerer", "Warlock", "Wizard"],
+  "tags": ["damage", "necrotic", "ranged"],
+  "castingTime": {
+    "value": 1,
+    "unit": "action"
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 120
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "round",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 120,
+    "validTargets": ["creature"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "hit"
+      },
+      "damage": {
+        "dice": "1d8",
+        "type": "Necrotic"
+      },
+      "scaling": {
+        "type": "character_level",
+        "customFormula": "{\"5\": \"2d8\", \"11\": \"3d8\", \"17\": \"4d8\"}"
+      }
+    },
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "hit"
+      },
+      "statusCondition": {
+        "name": "No Healing",
+        "duration": {
+          "type": "rounds",
+          "value": 1
+        }
+      },
+      "description": "On a hit, the target can't regain hit points until the start of your next turn."
+    },
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "hit"
+      },
+      "statusCondition": {
+        "name": "Disadvantage on attacks vs. caster",
+        "duration": {
+          "type": "rounds",
+          "value": 1
+        }
+      },
+      "description": "If you hit an undead target, it also has disadvantage on attack rolls against you until the end of your next turn."
+    }
+  ],
+  "description": "You create a ghostly, skeletal hand in the space of a creature within range. Make a ranged spell attack against the creature to assail it with the chill of the grave. On a hit, the target takes 1d8 necrotic damage, and it can't regain hit points until the start of your next turn. If you hit an undead target, it also has disadvantage on attack rolls against you until the end of your next turn.",
+  "higherLevels": "This spell's damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8)."
+}
