@@ -20,6 +20,6 @@ export const HUMAN_DATA: Race = {
     'Speed: 30 feet',
     'Resourceful: You gain Heroic Inspiration whenever you finish a Long Rest (descriptive, not mechanically implemented yet).',
     'Skillful: You gain proficiency in one skill of your choice (chosen during character creation).',
-    'Versatile: You gain an Origin feat of your choice (descriptive, not mechanically implemented yet).',
+    'Versatile: You gain an Origin feat of your choice.',
   ],
 };

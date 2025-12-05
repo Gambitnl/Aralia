@@ -16,6 +16,8 @@ You are NOT done with a spell until **ALL** of the following are true.
 ### B. Deliverables
 - [ ] **JSON File Created**: `public/data/spells/level-0/{id}.json` exists.
 - [ ] **Glossary Entry Created**: `public/data/glossary/entries/spells/{id}.md` exists.
+- [ ] **Class Spell Lists Updated**: If the spell is new, add its ID to the appropriate class spell list(s) in `src/data/classes/index.ts` (e.g., `DRUID_SPELL_LIST`, `WIZARD_SPELL_LIST`). The `classes` array in the JSON must match the lists the spell is added to.
+- [ ] **Old JSON Removed**: If migrating a spell from `public/data/spells/{id}.json` to `public/data/spells/level-0/{id}.json`, delete the old file to prevent orphaned duplicates.
 
 ### C. JSON Content Compliance
 - [ ] **BaseEffect Fields**: Every single effect object **MUST** contain:

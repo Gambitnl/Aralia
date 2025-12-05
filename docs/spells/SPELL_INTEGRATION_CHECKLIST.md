@@ -701,6 +701,6 @@ This checklist ensures:
 **Related Documentation**:
 - [SPELL_SYSTEM_ARCHITECTURE.md](../architecture/SPELL_SYSTEM_ARCHITECTURE.md) - Complete 8-pillar architecture definition ✅
 - [SPELL_INTEGRATION_STATUS.md](../SPELL_INTEGRATION_STATUS.md) - High-level status overview ✅
-- [@SPELL-SYSTEM-OVERHAUL-TODO.md](../@SPELL-SYSTEM-OVERHAUL-TODO.md) - Implementation phases ✅
+- [@SPELL-SYSTEM-OVERHAUL-TODO.md](../tasks/spell-system-overhaul/@SPELL-SYSTEM-OVERHAUL-TODO.md) - Implementation phases ✅
 - [SPELL-WORKFLOW-QUICK-REF.md](../tasks/spell-system-overhaul/SPELL-WORKFLOW-QUICK-REF.md) - Quick workflow reference ✅
 - [STATUS_LEVEL_0.md](./STATUS_LEVEL_0.md) - Cantrip status tracking ✅

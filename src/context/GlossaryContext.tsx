@@ -19,7 +19,7 @@ export const GlossaryProvider: React.FC<{ children: ReactNode }> = ({ children }
 
       // Check if it's a nested index file (like the new rules_glossary.json)
       if (data.index_files && Array.isArray(data.index_files)) {
-        const promises = data.index_files.map((nestedPath: string) => fetchAndProcessIndex(nestedPath));
+        const promises = data.index_files.map((nestedPath: string) => fetchAndProcessIndex(`${import.meta.env.BASE_URL}${nestedPath.replace(/^\//, '')}`));
         const results = await Promise.all(promises);
         return results.flat(); // Flatten the array of arrays of entries
       } 

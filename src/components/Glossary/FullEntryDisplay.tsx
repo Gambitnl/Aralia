@@ -9,8 +9,8 @@ const stripYamlFrontmatter = (markdownContent: string): string => {
 };
 
 interface FullEntryDisplayProps {
-    entry: GlossaryEntry | null;
-    onNavigate?: (termId: string) => void;
+  entry: GlossaryEntry | null;
+  onNavigate?: (termId: string) => void;
 }
 
 export const FullEntryDisplay: React.FC<FullEntryDisplayProps> = ({ entry, onNavigate }) => {
@@ -31,7 +31,8 @@ export const FullEntryDisplay: React.FC<FullEntryDisplayProps> = ({ entry, onNav
     setError(null);
     setMarkdownContent(null);
 
-    fetch(filePath)
+    const fullPath = `${import.meta.env.BASE_URL}${filePath.replace(/^\//, '')}`;
+    fetch(fullPath)
       .then(res => {
         if (!res.ok) throw new Error(`Failed to fetch glossary content from ${filePath}: ${res.status} ${res.statusText}`);
         return res.text();

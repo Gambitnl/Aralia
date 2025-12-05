@@ -47,7 +47,7 @@ This document is part of a documentation suite for the spell system:
 1. **[SPELL_INTEGRATION_STATUS.md](./SPELL_INTEGRATION_STATUS.md)** (this file) - High-level roadmap and status overview
 2. **[SPELL_SYSTEM_ARCHITECTURE.md](./architecture/SPELL_SYSTEM_ARCHITECTURE.md)** - Complete 8-pillar architecture definition
 3. **[SPELL_INTEGRATION_CHECKLIST.md](./spells/SPELL_INTEGRATION_CHECKLIST.md)** - Detailed component integration map with test procedures
-4. **[@SPELL-SYSTEM-OVERHAUL-TODO.md](./@SPELL-SYSTEM-OVERHAUL-TODO.md)** - Implementation phases and current work
+4. **[@SPELL-SYSTEM-OVERHAUL-TODO.md](./tasks/spell-system-overhaul/@SPELL-SYSTEM-OVERHAUL-TODO.md)** - Implementation phases and current work
 
 **Recommended Reading Order:**
 1. Start here (SPELL_INTEGRATION_STATUS.md) for the big picture
@@ -75,4 +75,4 @@ This document is part of a documentation suite for the spell system:
 - **Item Templates:** Scroll generation uses `BaseItemTemplate` ([src/data/item_templates/index.ts:9](src/data/item_templates/index.ts#L9))
 - **Spell Ability Factory:** [src/utils/spellAbilityFactory.ts](src/utils/spellAbilityFactory.ts) converts spell JSON to combat abilities
 
-The spell system is functional for combat and character creation, but the overhaul described in [@SPELL-SYSTEM-OVERHAUL-TODO.md](./@SPELL-SYSTEM-OVERHAUL-TODO.md) aims to migrate all spells from Bronze/Silver to Gold (fully structured) status.
+The spell system is functional for combat and character creation, but the overhaul described in [@SPELL-SYSTEM-OVERHAUL-TODO.md](./tasks/spell-system-overhaul/@SPELL-SYSTEM-OVERHAUL-TODO.md) aims to migrate all spells from Bronze/Silver to Gold (fully structured) status.

@@ -6,49 +6,20 @@
 
 ## Creating a NEW Spell
 
-### Option 1: Interactive Wizard (Recommended)
-
-```bash
-npm run spell:new
-```
-
-The wizard will:
-- ✅ Ask ~30 questions about your spell
-- ✅ Generate correctly-formatted JSON
-- ✅ Place file in correct directory (`cantrips/` or `level-X/`)
-- ✅ Auto-validate before saving
-
-**Example workflow:**
-```bash
-$ npm run spell:new
-🧙 Spell Creation Wizard
-
-? Spell ID (kebab-case): fireball
-? Spell Name: Fireball
-? Spell Level (0-9): 3
-? School of Magic: Evocation
-? Which classes can learn this spell? Sorcerer, Wizard
-? Casting time: 1 action
-? Range in feet: 150
-? Requires verbal component? Yes
-? Requires somatic component? Yes
-? Requires material component? Yes
-? Material component description: a tiny ball of bat guano and sulfur
-... (continues)
-
-✅ Spell created: public/data/spells/level-3/fireball.json
-⚠️  Remember to fill in TODO fields!
-```
-
-### Option 2: Copy an Existing Example
+### Manual Creation Process
 
 ```bash
 # Copy a close example and edit
-cp public/data/spells/level-0/acid-splash.json \
-   public/data/spells/level-3/fireball.json
+# Example: Creating a cantrip
+cp public/data/spells/level-0/fire-bolt.json \
+   public/data/spells/level-0/my-new-cantrip.json
+
+# Example: Creating a leveled spell (check if level-X directory exists first)
+# Note: Not all level directories may exist yet
+ls public/data/spells/  # Check which directories exist
 ```
 
-Then edit manually with VSCode autocomplete (JSON Schema enabled) using `docs/spells/SPELL_JSON_EXAMPLES.md` as the source of truth.
+Then edit manually using [docs/spells/SPELL_JSON_EXAMPLES.md](../../spells/SPELL_JSON_EXAMPLES.md) as the source of truth.
 
 ---
 
@@ -59,12 +30,12 @@ Then edit manually with VSCode autocomplete (JSON Schema enabled) using `docs/sp
    - Level 1-9: `public/data/spells/level-X/spell-name.json`
 
 2. **Edit manually:**
-   - VSCode will provide autocomplete from JSON Schema
-   - Red squiggles show validation errors
+   - Use [SPELL_JSON_EXAMPLES.md](../../spells/SPELL_JSON_EXAMPLES.md) as reference
+   - Refer to [src/types/spells.ts](../../src/types/spells.ts) for field definitions
 
 3. **Validate:**
    ```bash
-   npm run validate:spells
+   npm run validate  # Validates all game data including spells
    ```
 
 ---
@@ -73,7 +44,7 @@ Then edit manually with VSCode autocomplete (JSON Schema enabled) using `docs/sp
 
 ### Step 1: Start from an Example
 
-Use the closest pattern in `docs/spells/SPELL_JSON_EXAMPLES.md` and create `public/data/spells/level-3/fireball.json`.
+Use the closest pattern in [docs/spells/SPELL_JSON_EXAMPLES.md](../../spells/SPELL_JSON_EXAMPLES.md) and create the JSON file in the appropriate directory (e.g., `public/data/spells/level-0/` for cantrips).
 
 ### Step 3: Map Old → New
 
@@ -131,62 +102,27 @@ public/data/spells/
 ### Validate All Spells
 
 ```bash
-npm run validate:spells
+npm run validate  # Validates all game data via scripts/validate-data.ts
 ```
 
 **Output:**
 ```bash
-✅ public/data/spells/cantrips/acid-splash.json
-✅ public/data/spells/level-1/cure-wounds.json
-✅ public/data/spells/level-3/fireball.json
+[Data Validation] Validating 375 spells...
+✅ Validation passed for all spells in level-* directories
 
-✅ All spells validated successfully!
+✅ All game data validated successfully!
 ```
 
 ### Validation Errors
 
 **Example error:**
 ```bash
-❌ public/data/spells/level-3/fireball.json:
-   /effects/0/damage/type must be one of: Acid, Cold, Fire, ...
-   /targeting/areaOfEffect/shape must be one of: Cone, Cube, Sphere, Line, Cylinder
+❌ Validation failed for spell: fire-bolt
+   Error: Invalid damage type "fire" (must be capitalized: "Fire")
+   Location: effects[0].damage.type
 ```
 
-**Fix:** Open the file, correct the field, validate again.
-
----
-
-## VSCode Autocomplete
-
-### Enable JSON Schema
-
-Add to `.vscode/settings.json`:
-
-```json
-{
-  "json.schemas": [
-    {
-      "fileMatch": ["public/data/spells/**/*.json"],
-      "url": "./src/systems/spells/schema/spell.schema.json"
-    }
-  ]
-}
-```
-
-### How to Use
-
-1. Open any spell JSON file
-2. Start typing a field name → autocomplete shows valid options
-3. Hover over a field → see documentation
-4. Red squiggles → validation error (hover for details)
-
-**Example:**
-```json
-{
-  "effects": [
-    {
-      "type": "DA  <-- Autocomplete suggests: DAMAGE, DEFENSIVE
-```
+**Fix:** Open the file, correct the field, validate again with `npm run validate`.
 
 ---
 
@@ -195,17 +131,20 @@ Add to `.vscode/settings.json`:
 ### Add a New Damage Spell
 
 ```bash
-npm run spell:new
-# Answer prompts, select "Damage" as effect type
-npm run validate:spells
+# 1. Copy a similar spell from SPELL_JSON_EXAMPLES.md
+# 2. Edit the JSON file
+# 3. Validate
+npm run validate
 ```
 
 ### Add a New Healing Spell
 
 ```bash
-cp public/data/spells/level-1/cure-wounds.json public/data/spells/level-1/new-healing-spell.json
+# Copy an existing healing spell template
+# Note: Check if level-1 directory exists; if not, spells may be in flat structure
+cp public/data/spells/level-0/some-healing-cantrip.json public/data/spells/level-0/new-healing-spell.json
 # Edit manually using docs/spells/SPELL_JSON_EXAMPLES.md as reference
-npm run validate:spells
+npm run validate
 ```
 
 ### Add Upcast Scaling
@@ -273,27 +212,21 @@ console.log(result.logEntries)  // ["Fireball deals 28 fire damage to Goblin"]
 **Error:** `schema validation failed`
 
 **Solution:**
-1. Run `npm run validate:spells` to see specific errors
+1. Run `npm run validate` to see specific errors
 2. Check JSON syntax (commas, brackets, quotes)
-3. Verify field names match schema exactly
-4. Check enum values (e.g., `"Fire"` not `"fire"`)
+3. Verify field names match schema exactly (see [src/types/spells.ts](../../src/types/spells.ts))
+4. Check enum values are case-sensitive (e.g., `"Fire"` not `"fire"`, `"action"` not `"Action"`)
 
 ### Problem: Spell Not Loading
 
-**Error:** `Spell 'fireball' not found`
+**Error:** `Spell 'my-spell' not found`
 
 **Checks:**
-- [ ] File exists at correct path?
-- [ ] File name matches spell ID? (`fireball.json` for `id: "fireball"`)
+- [ ] File exists at correct path in `public/data/spells/`?
+- [ ] File name matches spell ID? (`my-spell.json` for `id: "my-spell"`)
+- [ ] Spell listed in [public/data/spells_manifest.json](../../public/data/spells_manifest.json)?
 - [ ] JSON is valid? (no syntax errors)
-- [ ] Validation passes?
-
-### Problem: Autocomplete Not Working
-
-**Solution:**
-1. Check `.vscode/settings.json` has JSON schema mapping
-2. Reload VSCode window (`Ctrl+Shift+P` → "Reload Window")
-3. Ensure file path matches pattern (`public/data/spells/**/*.json`)
+- [ ] Validation passes with `npm run validate`?
 
 ---
 
@@ -303,31 +236,33 @@ console.log(result.logEntries)  // ["Fireball deals 28 fire damage to Goblin"]
 
 ```bash
 # Manual validation
-npm run validate:spells
+npm run validate  # Runs scripts/validate-data.ts
 
-# Automatic during build
-npm run build  # Runs validation first
+# Build process
+npm run build  # ⚠️ Check if validation runs automatically
 
 # Pre-commit hook
-git commit  # Runs validation automatically
+git commit  # ⚠️ Check if validation hook is configured
 ```
+
+**Note:** The integration of validation into the build and git workflow may not be fully implemented yet. Always run `npm run validate` manually before committing.
 
 ### Build Failure
 
-If build fails due to invalid spells:
+If you encounter validation errors:
 
 ```bash
-🚨 SPELL VALIDATION FAILED:
+🚨 DATA VALIDATION FAILED:
 
-❌ public/data/spells/level-3/fireball.json:
-   /effects/0/damage/type must be one of: ...
+❌ Validation failed for spell: my-spell
+   Error details...
 
 Build failed. Fix validation errors and try again.
 ```
 
 **Fix the errors, then:**
 ```bash
-npm run validate:spells  # Verify fix
+npm run validate  # Verify fix
 npm run build  # Rebuild
 ```
 
@@ -335,19 +270,32 @@ npm run build  # Rebuild
 
 ## Quick Command Reference
 
-| Command | Purpose |
-|---------|---------|
-| `npm run spell:new` | Create new spell (wizard) |
-| `npm run validate:spells` | Validate all spell files |
-| `npm run build` | Build project (includes validation) |
-| `npm test` | Run all tests |
+| Command | Status | Purpose |
+|---------|--------|---------|
+| `npm run validate` | ✅ WORKING | Validate all game data including spells via [scripts/validate-data.ts](../../scripts/validate-data.ts) |
+| `npm run build` | ✅ WORKING | Build project (validation integration unclear) |
+| `npm test` | ✅ WORKING | Run all tests via vitest |
+| `npm run dev` | ✅ WORKING | Start development server |
 
 ---
 
 ## File Templates
 
-Use `docs/spells/SPELL_JSON_EXAMPLES.md` as the canonical templates. Copy the closest example into `public/data/spells/level-{0-9}/{id}.json` and edit.
+Use [docs/spells/SPELL_JSON_EXAMPLES.md](../../spells/SPELL_JSON_EXAMPLES.md) as the canonical templates. Copy the closest example into the appropriate directory in `public/data/spells/` and edit.
+
+**Directory Structure:**
+- Cantrips: `public/data/spells/level-0/{spell-id}.json` ✅ Active
+- Level 1-9: `public/data/spells/level-{1-9}/{spell-id}.json` ✅ Ready for migration
+
+**Note:** Level 1-9 directories exist but are empty. Legacy spells are currently in the flat root structure and will be migrated during the spell overhaul.
 
 ---
 
-**Last Updated:** November 28, 2025
+**Last Updated:** 2025-12-05 (Document Review)
+
+
+**Related Documentation:**
+- [SPELL_INTEGRATION_CHECKLIST.md](../../spells/SPELL_INTEGRATION_CHECKLIST.md) - Component integration and testing procedures
+- [SPELL_SYSTEM_ARCHITECTURE.md](../../architecture/SPELL_SYSTEM_ARCHITECTURE.md) - Complete architecture overview
+- [SPELL_INTEGRATION_STATUS.md](../../SPELL_INTEGRATION_STATUS.md) - Current implementation status
+- [@SPELL-SYSTEM-OVERHAUL-TODO.md](./@SPELL-SYSTEM-OVERHAUL-TODO.md) - Implementation roadmap

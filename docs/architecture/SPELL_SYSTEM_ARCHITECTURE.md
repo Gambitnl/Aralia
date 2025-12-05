@@ -7,7 +7,7 @@ This document defines the "Full Stack" implementation of a Spell in the Aralia R
 **Related Documentation:**
 - [SPELL_INTEGRATION_STATUS.md](../SPELL_INTEGRATION_STATUS.md) - High-level status overview
 - [SPELL_INTEGRATION_CHECKLIST.md](../spells/SPELL_INTEGRATION_CHECKLIST.md) - Detailed integration testing
-- [@SPELL-SYSTEM-OVERHAUL-TODO.md](../@SPELL-SYSTEM-OVERHAUL-TODO.md) - Implementation phases
+- [@SPELL-SYSTEM-OVERHAUL-TODO.md](../tasks/spell-system-overhaul/@SPELL-SYSTEM-OVERHAUL-TODO.md) - Implementation phases
 
 ## 1. The Eight Pillars of Spell Integration
 

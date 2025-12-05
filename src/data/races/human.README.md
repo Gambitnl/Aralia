@@ -24,7 +24,7 @@ The file exports a single constant:
     *   **Speed**: 30 feet.
     *   **Resourceful**: Descriptive trait, not yet mechanically implemented.
     *   **Skillful**: Grants proficiency in one skill of the player's choice. This choice is handled during character creation.
-    *   **Versatile**: Grants an Origin feat of the player's choice (descriptive, as feats are not yet mechanically implemented).
+    *   **Versatile**: Grants an Origin feat of the player's choice (mechanically implemented via feat selection during character creation).
 
 ## Usage
 

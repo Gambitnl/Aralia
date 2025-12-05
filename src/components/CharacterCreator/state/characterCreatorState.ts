@@ -156,6 +156,11 @@ const canOfferFeatAtLevelOne = (state: CharacterCreationState): boolean => {
     return false;
   }
 
+  // Humans get the Versatile trait which grants access to feat selection at level 1
+  if (state.selectedRace.id === 'human') {
+    return true;
+  }
+
   return FEATS_DATA.some(feat => {
     const eligibility = evaluateFeatPrerequisites(feat, {
       level: 1,

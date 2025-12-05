@@ -1,7 +1,7 @@
 # Task 2A: Extract Level 1 Spell Descriptions
 
 Created: 2025-12-04 16:35 UTC  
-Last Updated: 2025-12-04 16:35 UTC  
+Last Updated: 2025-12-04 16:36 UTC  
 **Project:** Spell Completeness Audit & Description Extraction  
 **Type:** Task (Reference Extraction)  
 **Status:** Active
@@ -30,6 +30,9 @@ Create a reference-quality catalog of level 1 spells using authoritative mechani
   - Batch 6: spells 51-60  
   - Batch 7: spells 61-65  
 - Complete online check → local code review → reference entry for each batch before starting the next.
+
+## Batch Progress
+- Batch 1 (spells 01-10): In Progress — placeholders added in `docs/spells/reference/LEVEL-1-REFERENCE.md`.
 
 ## Steps
 1. Select level 1 spells confirmed in the coverage report.
