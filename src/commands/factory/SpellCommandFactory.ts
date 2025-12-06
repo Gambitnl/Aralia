@@ -1,5 +1,6 @@
 import { Spell, SpellEffect } from '@/types/spells'
 import { CombatCharacter, CombatState } from '@/types/combat'
+import { isDamageEffect, isHealingEffect } from '@/types/spells' // Import type guards
 import { SpellCommand, CommandContext } from '../base/SpellCommand'
 import { DamageCommand } from '../effects/DamageCommand'
 import { HealingCommand } from '../effects/HealingCommand'
@@ -102,11 +103,14 @@ export class SpellCommandFactory {
     }
 
     // Handle initial concentration break if needed
+    // If the spell requires concentration and the caster is already concentrating,
+    // we must break the previous concentration FIRST, before the new spell starts.
     if (spell.duration.concentration && caster.concentratingOn) {
       commands.unshift(new BreakConcentrationCommand(context))
     }
 
     // Start concentration if applicable
+    // This command is pushed LAST to ensure concentration only starts if the spell successfully resolves.
     if (spell.duration.concentration) {
       commands.push(new StartConcentrationCommand(spell, context))
     }
@@ -173,13 +177,7 @@ export class SpellCommandFactory {
       // But the interface scaling.bonusPerLevel might imply standard cantrip scaling?
       // The interface defined in Task 01: `bonusPerLevel?: string`
       // It doesn't have `levels` array.
-      // Standard 5e cantrip scaling is usually hardcoded or needs extra data.
-      // Let's assume for now we implement simple slot scaling.
-      // Or we need `scalingLevels` in the interface?
-      // In Task 01 I defined `ScalingFormula`: { type, bonusPerLevel, customFormula }.
-      // I missed `levels`.
-      // I will assume standard cantrip tiers [5, 11, 17] if type is 'character_level'.
-
+      // Standard cantrip upgrades happen at levels 5, 11, and 17.
       const tiers = [5, 11, 17]
       scaled = this.applyCharacterLevelScaling(scaled, casterLevel, tiers)
     }
@@ -200,17 +198,23 @@ export class SpellCommandFactory {
 
     // Parse bonus (e.g., "+1d6", "+2", "+1 target")
     const diceMatch = bonusPerLevel.match(/\+(\d+)d(\d+)/)
-    if (diceMatch && 'damage' in effect) {
+
+    if (diceMatch && isDamageEffect(effect)) {
       const [, count, size] = diceMatch
       const originalDice = effect.damage.dice || '0d0'
       const newDice = this.addDice(originalDice, `${count}d${size}`, levelsAbove)
+
       return {
         ...effect,
-        damage: { ...effect.damage, dice: newDice }
+        damage: {
+          ...effect.damage,
+          dice: newDice,
+          type: effect.damage.type // Ensure type checks pass
+        }
       }
     }
 
-    if (diceMatch && 'healing' in effect) {
+    if (diceMatch && isHealingEffect(effect)) {
       const [, count, size] = diceMatch
       const originalDice = effect.healing.dice || '0d0'
       const newDice = this.addDice(originalDice, `${count}d${size}`, levelsAbove)
@@ -240,13 +244,17 @@ export class SpellCommandFactory {
     const bonusPerLevel = effect.scaling.bonusPerLevel
     const diceMatch = bonusPerLevel.match(/\+(\d+)d(\d+)/)
 
-    if (diceMatch && 'damage' in effect) {
+    if (diceMatch && isDamageEffect(effect)) {
       const [, count, size] = diceMatch
       const originalDice = effect.damage.dice || '0d0'
       const newDice = this.addDice(originalDice, `${count}d${size}`, tier)
       return {
         ...effect,
-        damage: { ...effect.damage, dice: newDice }
+        damage: {
+          ...effect.damage,
+          dice: newDice,
+          type: effect.damage.type
+        }
       }
     }
 
@@ -255,6 +263,9 @@ export class SpellCommandFactory {
 
   /**
    * Helper: Add dice notation (e.g., "3d6" + "1d6" * 2 = "5d6")
+   * @param base Base dice string (e.g. "1d6")
+   * @param bonus Bonus dice string (e.g. "1d6")
+   * @param multiplier How many times to add the bonus
    */
   private static addDice(base: string, bonus: string, multiplier: number): string {
     const parseMatch = (s: string) => {

@@ -47,7 +47,7 @@ import CompassPane from './components/CompassPane';
 import CharacterCreator from './components/CharacterCreator/CharacterCreator';
 import MainMenu from './components/MainMenu';
 import MapPane from './components/MapPane';
-import SubmapPane from './components/SubmapPane';
+import SubmapPane from './components/Submap/SubmapPane';
 import TownCanvas from './components/TownCanvas';
 import ErrorBoundary from './components/ErrorBoundary';
 import * as SaveLoadService from './services/saveLoadService';

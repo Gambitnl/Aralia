@@ -1,13 +1,16 @@
 /**
  * @file hooks/useAbilitySystem.ts
  * Manages ability selection, targeting, and execution logic for combat.
+ * REFACTORED:
+ * - UI/Selection state now delegated to `useTargeting`.
+ * - Geometric logic delegated to `targetingUtils`.
+ * - Remains the "Orchestrator" connecting UI events to Action execution.
  */
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import {
   CombatCharacter,
   Ability,
   Position,
-  AreaOfEffect,
   CombatAction,
   BattleMapData,
   CombatState,
@@ -18,6 +21,9 @@ import { SpellCommandFactory, CommandExecutor } from '../commands'; // Import Co
 import { BreakConcentrationCommand } from '../commands/effects/ConcentrationCommands'; // Import Break Concentration
 import { getDistance, calculateDamage, generateId } from '../utils/combatUtils';
 import { hasLineOfSight } from '../utils/lineOfSight';
+import { calculateAffectedTiles } from '../utils/aoeCalculations';
+import { useTargeting } from './combat/useTargeting'; // New Hook
+import { resolveAoEParams } from '../utils/targetingUtils'; // New Utils
 
 interface UseAbilitySystemProps {
   characters: CombatCharacter[];
@@ -25,8 +31,8 @@ interface UseAbilitySystemProps {
   onExecuteAction: (action: CombatAction) => boolean;
   onCharacterUpdate: (character: CombatCharacter) => void;
   onAbilityEffect?: (value: number, position: Position, type: 'damage' | 'heal' | 'miss') => void;
-  onLogEntry?: (entry: CombatLogEntry) => void; // Added for Command Pattern logging
-  onRequestInput?: (spell: Spell, onConfirm: (input: string) => void) => void; // New prop for AI Input
+  onLogEntry?: (entry: CombatLogEntry) => void;
+  onRequestInput?: (spell: Spell, onConfirm: (input: string) => void) => void;
 }
 
 export const useAbilitySystem = ({
@@ -38,17 +44,18 @@ export const useAbilitySystem = ({
   onLogEntry,
   onRequestInput
 }: UseAbilitySystemProps) => {
-  const [selectedAbility, setSelectedAbility] = useState<Ability | null>(null);
-  const [targetingMode, setTargetingMode] = useState<boolean>(false);
-  const [aoePreview, setAoePreview] = useState<{
-    center: Position;
-    affectedTiles: Position[];
-    ability: Ability;
-  } | null>(null);
 
-  // ... (legacy code)
+  // Delegate Selection/Targeting State to specialized hook
+  const {
+    selectedAbility,
+    targetingMode,
+    aoePreview,
+    startTargeting: baseStartTargeting,
+    cancelTargeting,
+    previewAoE
+  } = useTargeting({ mapData, characters });
 
-  // --- Command Pattern Integration ---
+  // --- Command Pattern Execution Logic ---
   const executeSpell = useCallback(async (
     spell: Spell,
     caster: CombatCharacter,
@@ -60,6 +67,7 @@ export const useAbilitySystem = ({
     if (spell.arbitrationType === 'ai_dm' && spell.aiContext?.playerInputRequired && !playerInput) {
       if (onRequestInput) {
         onRequestInput(spell, (input) => {
+          // Re-trigger execution with the collected input
           executeSpell(spell, caster, targets, castAtLevel, input);
         });
         return; // Halt execution until input is provided
@@ -82,12 +90,12 @@ export const useAbilitySystem = ({
     };
 
     // 2. Create Commands
-    // We assume GameState isn't critical for basic effects yet, or we'd need to pass it in.
-    // For now, we mock what's needed or pass a minimal object.
     const mockGameState: any = {
       // Add necessary GameState fields if factory needs them
     };
 
+    // Asynchronously generate the chain of effect commands
+    // This handles concentration checks, scaling, and arbitration automatically.
     const commands = await SpellCommandFactory.createCommands(
       spell,
       caster,
@@ -102,12 +110,8 @@ export const useAbilitySystem = ({
 
     if (result.success) {
       // 4. Propagate State Changes
+      // Map the resulting generic characters back to the React app's state update system
       result.finalState.characters.forEach(finalChar => {
-        // Simple check if changed (reference equality might fail if deep cloned, 
-        // but BaseEffectCommand updates by mapping)
-        // We should probably just update any character involved in the command.
-        // Or comparing JSON stringify if we want to be sure.
-        // For now, update all targets + caster to be safe.
         const isTarget = targets.some(t => t.id === finalChar.id);
         const isCaster = caster.id === finalChar.id;
 
@@ -121,20 +125,24 @@ export const useAbilitySystem = ({
         result.finalState.combatLog.forEach(entry => onLogEntry(entry));
       }
 
-      // 6. Trigger Animations (Optional / TODO)
-      // We could iterate result.executedCommands and trigger visual effects
     } else {
       console.error("Spell execution failed:", result.error);
     }
   }, [characters, onCharacterUpdate, onLogEntry, onRequestInput]);
 
 
+  // Helper: Find character at exact grid position
   const getCharacterAtPosition = useCallback((position: Position): CombatCharacter | null => {
     return characters.find(char =>
       char.position.x === position.x && char.position.y === position.y
     ) || null;
   }, [characters]);
 
+
+  /**
+   * Validates if a target position is legal for the given ability.
+   * Checks range, line of sight (if map data exists), and targeting rules (e.g. enemy vs ally).
+   */
   const isValidTarget = useCallback((
     ability: Ability,
     caster: CombatCharacter,
@@ -142,13 +150,17 @@ export const useAbilitySystem = ({
   ): boolean => {
     if (!mapData) return false;
 
+    // 1. Tile Existence Check
     const startTile = mapData.tiles.get(`${caster.position.x}-${caster.position.y}`);
     const endTile = mapData.tiles.get(`${targetPosition.x}-${targetPosition.y}`);
     if (!startTile || !endTile) return false;
 
+    // 2. Range Check
+    // Note: getDistance uses Euclidean or Chebyshev depending on impl, matches D&D 5e rule?
     const distance = getDistance(caster.position, targetPosition);
     if (distance > ability.range) return false;
 
+    // 3. Line of Sight Check
     if (ability.type === 'attack' || ability.type === 'spell') {
       if (!hasLineOfSight(startTile, endTile, mapData)) {
         return false;
@@ -157,6 +169,7 @@ export const useAbilitySystem = ({
 
     const targetCharacter = getCharacterAtPosition(targetPosition);
 
+    // 4. Logic by Targeting Type
     switch (ability.targeting) {
       case 'single_enemy':
         return !!targetCharacter && targetCharacter.team !== caster.team;
@@ -167,12 +180,18 @@ export const useAbilitySystem = ({
       case 'self':
         return targetPosition.x === caster.position.x && targetPosition.y === caster.position.y;
       case 'area':
+        // Area spells can technically target any point in range
         return true;
       default:
         return false;
     }
   }, [mapData, getCharacterAtPosition]);
 
+
+  /**
+   * Generates a list of all valid target positions on the map.
+   * Useful for highlighting valid tiles.
+   */
   const getValidTargets = useCallback((
     ability: Ability,
     caster: CombatCharacter
@@ -180,9 +199,13 @@ export const useAbilitySystem = ({
     if (!mapData) return [];
     const validPositions: Position[] = [];
 
+    // Brute force scan of map.
+    // Optimization: Only scan within ability.range of caster?
+    // For now, full scan is safe for small maps.
     for (let x = 0; x < mapData.dimensions.width; x++) {
       for (let y = 0; y < mapData.dimensions.height; y++) {
         const position = { x, y };
+        // This re-runs LoS checks per tile, expensive for big maps.
         if (isValidTarget(ability, caster, position)) {
           validPositions.push(position);
         }
@@ -191,44 +214,19 @@ export const useAbilitySystem = ({
     return validPositions;
   }, [mapData, isValidTarget]);
 
-  const calculateAoE = useCallback((
-    aoe: AreaOfEffect,
-    center: Position,
-    caster?: CombatCharacter
-  ): Position[] => {
-    if (!mapData) return [];
-    const affectedTiles: Position[] = [];
 
-    switch (aoe.shape) {
-      case 'circle':
-        for (let x = center.x - aoe.size; x <= center.x + aoe.size; x++) {
-          for (let y = center.y - aoe.size; y <= center.y + aoe.size; y++) {
-            if (x >= 0 && x < mapData.dimensions.width && y >= 0 && y < mapData.dimensions.height) {
-              if (getDistance(center, { x, y }) <= aoe.size) {
-                affectedTiles.push({ x, y });
-              }
-            }
-          }
-        }
-        break;
-      // Other shapes can be implemented here
-    }
-    return affectedTiles;
-  }, [mapData]);
-
-  const cancelTargeting = useCallback(() => {
-    setSelectedAbility(null);
-    setTargetingMode(false);
-    setAoePreview(null);
-  }, []);
-
+  /**
+   * Legacy effect application (Direct Mutation).
+   * Used for non-spell abilities until fully migrated to Command Pattern.
+   */
   const applyAbilityEffects = useCallback((
     ability: Ability,
     caster: CombatCharacter,
     target: CombatCharacter
   ) => {
-    // Clone once so we can safely layer mutations in this pass.
+    // Clone once so we can safely layer mutations.
     let modifiedTarget = { ...target, statusEffects: [...target.statusEffects] };
+
     ability.effects.forEach(effect => {
       switch (effect.type) {
         case 'damage':
@@ -242,7 +240,6 @@ export const useAbilitySystem = ({
           if (onAbilityEffect) onAbilityEffect(healAmount, target.position, 'heal');
           break;
         case 'status': {
-          // Apply buffs/debuffs and extend duration if provided on the effect payload.
           const statusEffect = effect.statusEffect;
           if (statusEffect) {
             const effectDuration = effect.duration ?? statusEffect.duration ?? 1;
@@ -259,25 +256,30 @@ export const useAbilitySystem = ({
     onCharacterUpdate(modifiedTarget);
   }, [onCharacterUpdate, onAbilityEffect]);
 
+
+  /**
+   * Main entry point to execute an ability (Legacy/Hybrid).
+   * Bridges simple abilities to Action System and Spells to Command System.
+   */
   const executeAbility = useCallback((
     ability: Ability,
     caster: CombatCharacter,
     targetPosition: Position,
     targetCharacterIds: string[]
   ) => {
-    // NEW: Bridge to Spell System
+
+    // --- Path A: Spell System (Command Pattern) ---
     if (ability.spell) {
-      // Resolve targets
       const targets = targetCharacterIds
         .map(id => characters.find(c => c.id === id))
         .filter((c): c is CombatCharacter => !!c);
 
-      // Cast at base level for now (TODO: Spell Slots / Upcasting UI)
       executeSpell(ability.spell, caster, targets, ability.spell.level);
       cancelTargeting();
       return;
     }
 
+    // --- Path B: Legacy Ability System (Action Object) ---
     const action: CombatAction = {
       id: generateId(),
       characterId: caster.id,
@@ -289,8 +291,11 @@ export const useAbilitySystem = ({
       timestamp: Date.now()
     };
 
+    // Verify economy costs (Action Points)
     const success = onExecuteAction(action);
+
     if (success) {
+      // Apply effects immediately (Synchronous)
       targetCharacterIds.forEach(targetId => {
         const target = characters.find(c => c.id === targetId);
         if (target) {
@@ -298,6 +303,7 @@ export const useAbilitySystem = ({
         }
       });
 
+      // Handle Cooldowns
       if (ability.cooldown) {
         const updatedCaster = {
           ...caster,
@@ -310,32 +316,47 @@ export const useAbilitySystem = ({
     }
 
     cancelTargeting();
-  }, [onExecuteAction, characters, applyAbilityEffects, onCharacterUpdate, cancelTargeting]);
+  }, [onExecuteAction, characters, applyAbilityEffects, onCharacterUpdate, cancelTargeting, executeSpell]);
 
 
+  /**
+   * Initiates the targeting flow.
+   * If 'self' targeting, executes immediately.
+   */
   const startTargeting = useCallback((ability: Ability, caster: CombatCharacter) => {
-    setSelectedAbility(ability);
-    setTargetingMode(true);
+    baseStartTargeting(ability);
 
+    // Auto-cast for Self abilities
     if (ability.targeting === 'self') {
       executeAbility(ability, caster, caster.position, [caster.id]);
       return;
     }
-  }, [executeAbility]);
+  }, [executeAbility, baseStartTargeting]);
 
+
+  /**
+   * Confirms selection of a target tile.
+   * Resolves AoE targets if applicable, then executes.
+   */
   const selectTarget = useCallback((targetPosition: Position, caster: CombatCharacter) => {
     if (!selectedAbility) return;
 
     let targetCharacterIds: string[] = [];
 
     if (selectedAbility.areaOfEffect) {
-      const affectedTiles = calculateAoE(selectedAbility.areaOfEffect, targetPosition, caster);
-      targetCharacterIds = characters
-        .filter(char => affectedTiles.some(tile =>
-          tile.x === char.position.x && tile.y === char.position.y
-        ))
-        .map(char => char.id);
+      // Use Utils to resolve full affected area
+      const params = resolveAoEParams(selectedAbility.areaOfEffect, targetPosition, caster);
+      if (params) {
+        const affectedTiles = calculateAffectedTiles(params);
+
+        targetCharacterIds = characters
+          .filter(char => affectedTiles.some(tile =>
+            tile.x === char.position.x && tile.y === char.position.y
+          ))
+          .map(char => char.id);
+      }
     } else {
+      // Single Target
       const targetCharacter = getCharacterAtPosition(targetPosition);
       if (targetCharacter) {
         targetCharacterIds = [targetCharacter.id];
@@ -343,25 +364,16 @@ export const useAbilitySystem = ({
     }
 
     executeAbility(selectedAbility, caster, targetPosition, targetCharacterIds);
-  }, [selectedAbility, characters, calculateAoE, getCharacterAtPosition, executeAbility]);
-
-  const previewAoE = useCallback((position: Position, caster: CombatCharacter) => {
-    if (!selectedAbility?.areaOfEffect) return;
-
-    const affectedTiles = calculateAoE(selectedAbility.areaOfEffect, position, caster);
-    setAoePreview({
-      center: position,
-      affectedTiles,
-      ability: selectedAbility
-    });
-  }, [selectedAbility, calculateAoE]);
+  }, [selectedAbility, characters, getCharacterAtPosition, executeAbility]);
 
 
-
+  /**
+   * Allows a character to voluntarily stop concentrating on a spell.
+   * Uses Command Pattern to ensure proper cleanup/logging.
+   */
   const dropConcentration = useCallback((character: CombatCharacter) => {
     if (!character.concentratingOn) return;
 
-    // 1. Construct temporary CombatState
     const currentState: CombatState = {
       isActive: true,
       characters: characters,
@@ -374,7 +386,7 @@ export const useAbilitySystem = ({
       combatLog: []
     };
 
-    // 2. Create Command
+    // Create Command manually (no Factory needed for simple drop)
     const command = new BreakConcentrationCommand({
       spellId: character.concentratingOn.spellId,
       spellName: character.concentratingOn.spellName,
@@ -384,23 +396,22 @@ export const useAbilitySystem = ({
       gameState: {} as any,
     });
 
-    // 3. Execute
     const result = CommandExecutor.execute([command], currentState);
 
     if (result.success) {
-      // 4. Propagate
       result.finalState.characters.forEach(finalChar => {
         if (finalChar.id === character.id) {
           onCharacterUpdate(finalChar);
         }
       });
-
       if (onLogEntry) {
         result.finalState.combatLog.forEach(entry => onLogEntry(entry));
       }
     }
   }, [characters, onCharacterUpdate, onLogEntry]);
 
+
+  // Expose API
   return {
     selectedAbility,
     targetingMode,

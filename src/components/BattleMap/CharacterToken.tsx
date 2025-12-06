@@ -89,24 +89,20 @@ const CharacterToken: React.FC<CharacterTokenProps> = ({ character, position, is
             </Tooltip>
           ))}
         </div>
-        </div>
-  )
-}
+      )}
 
-{/* Concentration Indicator */ }
-{
-  character.concentratingOn && (
-    <Tooltip content={`Concentrating on ${character.concentratingOn.spellName}`}>
-      <div
-        className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-purple-900 border border-purple-400 flex items-center justify-center text-xs shadow-md z-20"
-        style={{ animation: 'pulse 2s infinite' }}
-      >
-        🔮
-      </div>
-    </Tooltip>
-  )
-}
-    </div >
+      {/* Concentration Indicator: Shows a pulsing crystal orb if the character is maintaining a spell. */}
+      {character.concentratingOn && (
+        <Tooltip content={`Concentrating on ${character.concentratingOn.spellName}`}>
+          <div
+            className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-purple-900 border border-purple-400 flex items-center justify-center text-xs shadow-md z-20"
+            style={{ animation: 'pulse 2s infinite' }}
+          >
+            🔮
+          </div>
+        </Tooltip>
+      )}
+    </div>
   );
 };
 

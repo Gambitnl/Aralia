@@ -4,6 +4,10 @@ import { isDamageEffect } from '../../types/spells'
 import { checkConcentration } from '../../utils/concentrationUtils'
 import { BreakConcentrationCommand } from './ConcentrationCommands'
 
+/**
+ * Command to apply damage to targets.
+ * Handles damage calculation, HP reduction, and triggers concentration saves.
+ */
 export class DamageCommand extends BaseEffectCommand {
   execute(state: CombatState): CombatState {
     if (!isDamageEffect(this.effect)) {
@@ -32,6 +36,7 @@ export class DamageCommand extends BaseEffectCommand {
       })
 
       // 3. Check Concentration
+      // If the target is concentrating and took damage, they must make a Constitution check.
       if (target.concentratingOn && damageRoll > 0) {
         const check = checkConcentration(target, damageRoll)
 
@@ -77,6 +82,11 @@ export class DamageCommand extends BaseEffectCommand {
     return 'Deals damage'
   }
 
+  /**
+   * Helper to parse dice string (e.g., "2d6+3") and roll damage.
+   * @param diceString The dice notation string.
+   * @returns The total calculated damage.
+   */
   private rollDamage(diceString: string): number {
     const match = diceString.match(/(\d+)d(\d+)(?:\+(\d+))?/)
     if (!match) return 0

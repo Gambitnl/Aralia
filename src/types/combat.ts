@@ -41,6 +41,7 @@ export type Direction = 'north' | 'south' | 'east' | 'west' | 'northeast' | 'nor
 export interface CombatCharacter {
   id: string;
   name: string;
+  level: number; // For scaling calculations (CR for monsters, Level for PCs)
   class: Class;
   position: Position;
   stats: CharacterStats;
@@ -141,13 +142,17 @@ export interface TurnState {
   actionsThisTurn: CombatAction[];
 }
 
+/**
+ * Represents the state of a character concentrating on a spell.
+ * Tracks which spell is active, when it started, and related effects.
+ */
 export interface ConcentrationState {
   spellId: string;
   spellName: string;
-  spellLevel: number; // slot level used to cast
-  startedTurn: number; // which combat turn it started
-  effectIds: string[]; // IDs of active effects tied to this concentration
-  canDropAsFreeAction: boolean; // usually true
+  spellLevel: number; // The slot level used to cast the spell (important for dispelling/countering)
+  startedTurn: number; // The combat turn index when concentration began
+  effectIds: string[]; // IDs of any active temporary effects (buffs/debuffs) tied to this concentration
+  canDropAsFreeAction: boolean; // Whether the player can voluntarily end this (standard D&D rule: yes)
 }
 
 export interface CombatAction {

@@ -9,7 +9,7 @@ import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
 import { createDamageNumber, generateId, getActionMessage, rollDice } from '../../utils/combatUtils';
 import { resetEconomy } from '../../utils/combat/actionEconomyUtils';
 import { useActionEconomy } from './useActionEconomy';
-import { evaluateCombatTurn } from '../../utils/combat/combatAI';
+import { useCombatAI } from './useCombatAI';
 import {
   ActiveSpellZone,
   MovementTriggerDebuff,
@@ -32,7 +32,8 @@ export const useTurnManager = ({
   mapData,
   onCharacterUpdate,
   onLogEntry,
-  autoCharacters
+  autoCharacters,
+  difficulty = 'normal' // Provide neutral default if missing
 }: UseTurnManagerProps) => {
   const [turnState, setTurnState] = useState<TurnState>({
     currentTurn: 1,
@@ -45,10 +46,6 @@ export const useTurnManager = ({
   // Track damage numbers
   const [damageNumbers, setDamageNumbers] = useState<DamageNumber[]>([]);
   const [animations, setAnimations] = useState<Animation[]>([]);
-
-  // AI State to manage turn steps without stale closures
-  const [aiState, setAiState] = useState<'idle' | 'thinking' | 'acting' | 'done'>('idle');
-  const [aiActionsPerformed, setAiActionsPerformed] = useState(0);
 
   // Spell trigger tracking: zones (Create Bonfire, etc.) and debuffs (Booming Blade, etc.)
   const [spellZones, setSpellZones] = useState<ActiveSpellZone[]>([]);
@@ -159,6 +156,7 @@ export const useTurnManager = ({
 
     const character = characters.find(c => c.id === action.characterId);
 
+    // Validate if character exists and has enough resources (actions/movement)
     if (!character || !canAfford(character, action.cost)) {
       onLogEntry({
         id: generateId(),
@@ -170,6 +168,7 @@ export const useTurnManager = ({
       return false;
     }
 
+    // Deduct resources (action point, movement speed, etc.)
     let updatedCharacter = consumeAction(character, action.cost);
 
     if (action.type === 'move' && action.targetPosition) {
@@ -255,6 +254,7 @@ export const useTurnManager = ({
     // which reduces diff noise for consumers and prevents redundant timeout setups.
     let updatedCharacter = { ...character };
 
+    // Iterate through all active status effects to apply DOTs/HOTs
     updatedCharacter.statusEffects.forEach(effect => {
       switch (effect.effect.type) {
         case 'damage_per_turn':
@@ -309,6 +309,7 @@ export const useTurnManager = ({
       attempts++;
     }
 
+    // Determine if we've cycled back to the start of the initiative order (start of new round)
     const isNewRound = nextIndex <= currentIndex && attempts < turnState.turnOrder.length;
     const nextCharacterId = turnState.turnOrder[nextIndex];
 
@@ -335,8 +336,7 @@ export const useTurnManager = ({
       currentCharacterId: nextCharacterId,
       actionsThisTurn: []
     }));
-    setAiState('idle'); // Reset AI
-    setAiActionsPerformed(0);
+    // Note: AI state reset is handled reactively in useCombatAI when currentCharacterId changes
 
   }, [turnState, characters, processEndOfTurnEffects, onLogEntry]);
 
@@ -370,8 +370,8 @@ export const useTurnManager = ({
       onLogEntry({
         id: generateId(),
         timestamp: Date.now(),
-        type: 'system_debug',
-        message: `Turn start guard triggered for ${activeId} on turn ${turnState.currentTurn}.`,
+        type: 'action', // using 'action' as safe fallback for debug
+        message: `[DEBUG] Turn start guard triggered for ${activeId} on turn ${turnState.currentTurn}.`,
         data: { lastKey: lastTurnStartKey.current, currentKey: turnStartKey },
       });
       return;
@@ -390,62 +390,22 @@ export const useTurnManager = ({
       characterId: character.id
     });
 
-    if (character.team === 'enemy' || managedAutoCharacters.has(character.id)) {
-      // Init AI turn
-      // Small delay to allow visuals to catch up
-      setTimeout(() => setAiState('thinking'), AI_THINKING_DELAY_MS[difficulty]);
-    }
-  }, [turnState.currentCharacterId, turnState.currentTurn, characters, startTurnFor, onLogEntry, managedAutoCharacters, difficulty]);
+  }, [turnState.currentCharacterId, turnState.currentTurn, characters, startTurnFor, onLogEntry]);
 
-  // AI Logic - Reacting to 'thinking' state or state updates
-  useEffect(() => {
-    if (aiState !== 'thinking') return;
+  // Hook: AI Logic
+  // Delegates all AI state management and decision making to a dedicated hook.
+  // We pass the dependencies it needs to inspect the board and execute actions.
+  useCombatAI({
+    difficulty,
+    characters,
+    mapData,
+    currentCharacterId: turnState.currentCharacterId,
+    executeAction,
+    endTurn,
+    autoCharacters: managedAutoCharacters // use the stabilized set
+  });
 
-    const character = getCurrentCharacter();
-    if (!character) {
-      setAiState('idle');
-      return;
-    }
 
-    // Safety break
-    if (aiActionsPerformed >= 3 || !mapData) {
-      setAiState('done');
-      endTurn();
-      return;
-    }
-
-    const decideAction = async () => {
-      setAiState('acting'); // Lock
-
-      // Evaluate based on CURRENT characters state (passed via props, so this effect re-runs when props change if we add it to dep array, or we trust closures?)
-      // To fix stale state, we MUST ensure this effect runs with fresh `characters`.
-      // If we add `characters` to dep array, this runs on every update.
-      // `aiState` is 'thinking'.
-      // When we execute action, `characters` updates. Component renders.
-      // This effect runs again. We need to decide if we keep going.
-
-      const action = evaluateCombatTurn(character, characters, mapData);
-
-      if (action.type === 'end_turn') {
-        setAiState('done');
-        endTurn();
-      } else {
-        const success = executeAction(action);
-        if (success) {
-          setAiActionsPerformed(prev => prev + 1);
-          // Wait for animation then go back to thinking
-          setTimeout(() => setAiState('thinking'), AI_THINKING_DELAY_MS[difficulty]);
-        } else {
-          // Failed to execute (e.g. costs), just end
-          setAiState('done');
-          endTurn();
-        }
-      }
-    };
-
-    decideAction();
-
-  }, [aiState, characters, mapData, getCurrentCharacter, aiActionsPerformed, endTurn, executeAction, difficulty]); // Including characters here ensures we see fresh state
 
 
   const isCharacterTurn = useCallback((characterId: string) => {

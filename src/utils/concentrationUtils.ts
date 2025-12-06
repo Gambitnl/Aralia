@@ -20,6 +20,10 @@ export function rollConcentrationSave(character: CombatCharacter): number {
 
 /**
  * Checks if a character passes their concentration check after taking damage.
+ * 
+ * @param character The character taking damage who is currently concentrating.
+ * @param damageDealt The amount of damage taken (determines DC).
+ * @returns Object containing success status, the calculated DC, and the actual roll total.
  */
 export function checkConcentration(
     character: CombatCharacter,

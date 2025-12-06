@@ -48,7 +48,9 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   const [autoCharacters, setAutoCharacters] = useState<Set<string>>(new Set());
 
   // AI Spell Input State
+  // Tracks the spell currently requesting player input (for AI-DM arbitration)
   const [inputModalSpell, setInputModalSpell] = useState<Spell | null>(null);
+  // Callback to resume execution once input is confirmed
   const [inputModalCallback, setInputModalCallback] = useState<((input: string) => void) | null>(null);
 
   // NEW: Get spell data to hydrate combat abilities
@@ -299,7 +301,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
           />
           {currentCharacter && <ActionEconomyBar actionEconomy={currentCharacter.actionEconomy} />}
           <AbilityPalette
-            character={currentCharacter}
+            character={currentCharacter ?? null}
             onSelectAbility={(ability) => abilitySystem.startTargeting(ability, currentCharacter!)}
             canAffordAction={(cost) => currentCharacter ? turnManager.canAffordAction(currentCharacter, cost) : false}
           />
