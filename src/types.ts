@@ -123,9 +123,12 @@ export interface Feat {
     abilityScores?: Partial<AbilityScores>;
     raceId?: string;
     classId?: string;
+    requiresFightingStyle?: boolean; // For Fighting Style feats
   };
   benefits?: {
     abilityScoreIncrease?: Partial<AbilityScores>;
+    // If abilityScoreIncrease is empty object {}, it means "select one" - options defined in selectableAbilityScores
+    selectableAbilityScores?: AbilityScoreName[]; // Which abilities can be chosen for ASI
     skillProficiencies?: string[];
     savingThrowProficiencies?: AbilityScoreName[];
     speedIncrease?: number;
@@ -141,11 +144,24 @@ export interface FeatPrerequisiteContext {
   raceId?: string;
   classId?: string;
   knownFeats?: string[];
+  hasFightingStyle?: boolean; // Whether character's class has Fighting Style feature
 }
 
 export interface LevelUpChoices {
   abilityScoreIncreases?: Partial<AbilityScores>;
   featId?: string;
+  featChoices?: {
+    // Store choices made for feats during level-up (e.g., selected ability score, spells, etc.)
+    [featId: string]: {
+      selectedAbilityScore?: AbilityScoreName;
+      selectedSpells?: string[];
+      selectedSkills?: string[];
+      selectedWeapons?: string[];
+      selectedTools?: string[];
+      selectedDamageType?: string;
+      [key: string]: any; // Allow for future choice types
+    };
+  };
 }
 
 export interface Race {

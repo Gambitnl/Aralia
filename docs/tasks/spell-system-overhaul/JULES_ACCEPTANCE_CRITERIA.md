@@ -17,7 +17,18 @@ You are NOT done with a spell until **ALL** of the following are true.
 - [ ] **JSON File Created**: `public/data/spells/level-0/{id}.json` exists.
 - [ ] **Glossary Entry Created**: `public/data/glossary/entries/spells/{id}.md` exists.
 - [ ] **Class Spell Lists Updated**: If the spell is new, add its ID to the appropriate class spell list(s) in `src/data/classes/index.ts` (e.g., `DRUID_SPELL_LIST`, `WIZARD_SPELL_LIST`). The `classes` array in the JSON must match the lists the spell is added to.
-- [ ] **Old JSON Removed**: If migrating a spell from `public/data/spells/{id}.json` to `public/data/spells/level-0/{id}.json`, delete the old file to prevent orphaned duplicates.
+- [ ] **Field Comparison Check (CRITICAL)**: If an old file exists at `public/data/spells/{id}.json`:
+    1. **Read the old file FIRST** — It may contain fields not in the new template
+    2. **Check these commonly-missed fields** exist in your new file:
+       - `ritual` (boolean, required for all spells)
+       - `castingTime.combatCost` (object with `type`, required)
+       - `tags` (array, if present in old file)
+       - `arbitrationType` (if present in old file)
+    3. **Verify format correctness**:
+       - `validTargets` uses plural: `"creatures"`, NOT `"creature"`
+       - `damageType` array uses Title Case: `"Bludgeoning"`, NOT `"bludgeoning"`
+    4. **Copy any valuable fields** from old file that aren't in new file
+- [ ] **Old JSON Removed**: Delete `public/data/spells/{id}.json` **ONLY after** completing Field Comparison Check above.
 
 ### C. JSON Content Compliance
 - [ ] **BaseEffect Fields**: Every single effect object **MUST** contain:
@@ -28,11 +39,21 @@ You are NOT done with a spell until **ALL** of the following are true.
     - **Schools**: Title Case → `Abjuration`, `Conjuration`, `Divination`, `Enchantment`, `Evocation`, `Illusion`, `Necromancy`, `Transmutation`
     - **Damage Types**: Title Case → `Acid`, `Bludgeoning`, `Cold`, `Fire`, `Force`, `Lightning`, `Necrotic`, `Piercing`, `Poison`, `Psychic`, `Radiant`, `Slashing`, `Thunder`
     - **Classes**: Title Case → `Artificer`, `Bard`, `Cleric`, `Druid`, `Paladin`, `Ranger`, `Sorcerer`, `Warlock`, `Wizard` (and subclasses in the same format, e.g., `Warlock - Fiend Patron`)
-    - **validTargets**: Exact values only → `"creatures"`, `"objects"`, `"allies"`, `"enemies"`, `"self"`, `"point"` (NOT singular like `"creature"`)
+    - **validTargets**: Exact values only → `"creatures"`, `"objects"`, `"allies"`, `"enemies"`, `"self"`, `"point"`, `"ground"` (NOT singular like `"creature"`)
     - **STATUS_CONDITION names**: Must be valid D&D 5e conditions → `Blinded`, `Charmed`, `Deafened`, `Exhaustion`, `Frightened`, `Grappled`, `Incapacitated`, `Invisible`, `Paralyzed`, `Petrified`, `Poisoned`, `Prone`, `Restrained`, `Stunned`, `Unconscious`
-- [ ] **Required Fields (All Spells)**:
-    - `ritual`: Must be present (use `false` for cantrips)
-    - `castingTime.combatCost`: Must include `{ "type": "action" | "bonus_action" | "reaction" }`
+- [ ] **Required Top-Level Fields (All Spells)**:
+    - `id`, `name`, `level`, `school`, `classes`, `description` (always required)
+    - `ritual`: **MUST be present** (use `false` for cantrips, `true`/`false` for other spells)
+    - `castingTime.combatCost`: **MUST include** `{ "type": "action" | "bonus_action" | "reaction" }`
+    - `duration.concentration`: **MUST be present** (boolean)
+    - `tags`: Array of descriptive tags (copy from old file if present)
+- [ ] **Effect Trigger Types**:
+    - Standard: `immediate`, `after_primary`, `turn_start`, `turn_end`
+    - Area-based: `on_enter_area` (for spells like Create Bonfire that trigger on area entry)
+    - Movement-based: `on_target_move` (for spells like Booming Blade that trigger on target movement)
+    - Optional `frequency`: `every_time` | `first_per_turn` | `once`
+- [ ] **Conditional Target Filters** (for creature-type-specific effects):
+    - Use `condition.targetFilter.creatureType: ["Undead"]` for effects that only apply to certain creature types (e.g., Chill Touch disadvantage)
 - [ ] **Targeting Rules**:
     - `SelfTargeting` must include `validTargets: ["self"]` and `lineOfSight: false`
     - `SingleTargeting` and `AreaTargeting` must include `validTargets` array

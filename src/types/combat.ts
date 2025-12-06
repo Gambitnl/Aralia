@@ -5,6 +5,7 @@
  * used throughout the Aralia RPG application's battle map feature.
  */
 import { Class, SpellbookData, SpellSlots } from './index';
+import { Spell } from './spells'; // Import Spell
 
 export type { SpellSlots };
 
@@ -32,7 +33,7 @@ export interface ActionEconomyState {
   bonusAction: { used: boolean; remaining: number };
   reaction: { used: boolean; remaining: number };
   movement: { used: number; total: number }; // in feet
-  freeActions: number; 
+  freeActions: number;
 }
 
 export type Direction = 'north' | 'south' | 'east' | 'west' | 'northeast' | 'northwest' | 'southeast' | 'southwest';
@@ -53,6 +54,7 @@ export interface CombatCharacter {
   actionEconomy: ActionEconomyState;
   spellbook?: SpellbookData;
   spellSlots?: SpellSlots;
+  concentratingOn?: ConcentrationState;
 }
 
 export type AbilityType = 'attack' | 'spell' | 'skill' | 'movement' | 'utility';
@@ -128,6 +130,7 @@ export interface Ability {
   cooldown?: number;
   currentCooldown?: number;
   icon?: string;
+  spell?: Spell; // Reference to the original spell data for AI arbitration
 }
 
 export interface TurnState {
@@ -136,6 +139,15 @@ export interface TurnState {
   currentCharacterId: string | null;
   phase: 'planning' | 'action' | 'resolution' | 'end_turn';
   actionsThisTurn: CombatAction[];
+}
+
+export interface ConcentrationState {
+  spellId: string;
+  spellName: string;
+  spellLevel: number; // slot level used to cast
+  startedTurn: number; // which combat turn it started
+  effectIds: string[]; // IDs of active effects tied to this concentration
+  canDropAsFreeAction: boolean; // usually true
 }
 
 export interface CombatAction {
@@ -228,6 +240,6 @@ export interface BattleMapData {
 }
 
 export interface CharacterPosition {
-    characterId: string;
-    coordinates: { x: number; y: number };
+  characterId: string;
+  coordinates: { x: number; y: number };
 }

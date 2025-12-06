@@ -1,4 +1,3 @@
-
 {
   "id": "meld-into-stone",
   "name": "Meld into Stone",
@@ -12,5 +11,10 @@
     "material": false
   },
   "duration": "8 Hours",
-  "description": "You step into a stone object or surface large enough to fully contain your body, melding yourself and all the equipment you carry with the stone for the duration."
+  "description": "You step into a stone object or surface large enough to fully contain your body, melding yourself and all the equipment you carry with the stone for the duration.",
+  "arbitrationType": "ai_assisted",
+  "aiContext": {
+    "prompt": "Determine if there is a suitable stone surface adjacent to the caster.",
+    "playerInputRequired": false
+  }
 }

@@ -67,6 +67,18 @@ export interface CharacterCreationState {
   selectedSpellsL1: Spell[];
   selectedWeaponMasteries: string[] | null;
   selectedFeat: string | null;
+  featChoices?: {
+    // Store choices made for feats (e.g., selected ability score, spells, etc.)
+    [featId: string]: {
+      selectedAbilityScore?: AbilityScoreName;
+      selectedSpells?: string[];
+      selectedSkills?: string[];
+      selectedWeapons?: string[];
+      selectedTools?: string[];
+      selectedDamageType?: string;
+      [key: string]: any; // Allow for future choice types
+    };
+  };
   characterName: string;
   characterAge: number;
   featStepSkipped?: boolean;
@@ -103,6 +115,7 @@ export type CharacterCreatorAction =
   | ClassFeatureFinalSelectionAction
   | { type: 'SELECT_WEAPON_MASTERIES'; payload: string[] }
   | { type: 'SELECT_FEAT'; payload: string }
+  | { type: 'SET_FEAT_CHOICE'; payload: { featId: string; choiceType: string; value: any } }
   | { type: 'CONFIRM_FEAT_STEP' }
   | { type: 'SET_CHARACTER_NAME'; payload: string }
   | { type: 'SET_CHARACTER_AGE'; payload: number }
@@ -126,6 +139,7 @@ export const initialCharacterCreatorState: CharacterCreationState = {
   selectedSpellsL1: [],
   selectedWeaponMasteries: null,
   selectedFeat: null,
+  featChoices: {},
   characterName: '',
   characterAge: 25, // Default age
   featStepSkipped: false,
@@ -438,6 +452,20 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       // Selecting a feat no longer auto-advances so users can compare options or clear their pick before continuing.
       // Empty payloads clear the selection, ensuring downstream assembly does not apply stale bonuses.
       return { ...state, selectedFeat: action.payload || null };
+    case 'SET_FEAT_CHOICE': {
+      const { featId, choiceType, value } = action.payload;
+      const currentChoices = state.featChoices || {};
+      return {
+        ...state,
+        featChoices: {
+          ...currentChoices,
+          [featId]: {
+            ...currentChoices[featId],
+            [choiceType]: value,
+          },
+        },
+      };
+    }
     case 'CONFIRM_FEAT_STEP':
       return { ...state, step: CreationStep.NameAndReview };
     case 'SET_CHARACTER_NAME':

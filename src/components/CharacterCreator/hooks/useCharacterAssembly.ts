@@ -241,6 +241,7 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       transportMode: 'foot',
       selectedWeaponMasteries: currentState.selectedWeaponMasteries || [],
       feats: currentState.selectedFeat ? [currentState.selectedFeat] : [],
+      featChoices: currentState.featChoices || {},
       equippedItems: {}, 
       ...castingProperties,
       selectedFightingStyle: currentState.selectedFightingStyle || undefined,
@@ -252,7 +253,7 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
 
     // Apply feat benefits after the baseline character is assembled so derived stats update.
     if (assembledCharacter.feats && assembledCharacter.feats.length > 0) {
-      assembledCharacter = applyAllFeats(assembledCharacter, assembledCharacter.feats);
+      assembledCharacter = applyAllFeats(assembledCharacter, assembledCharacter.feats, currentState.featChoices);
     }
 
     return assembledCharacter;

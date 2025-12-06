@@ -21,6 +21,8 @@ interface MainMenuProps {
   isDevDummyActive: boolean; // New prop
   onSkipCharacterCreator: () => void; // New prop
   onSaveGame?: (slotId: string, displayName?: string, isAutoSave?: boolean) => void;
+  onGoBack?: () => void; // New prop for back navigation
+  canGoBack?: boolean; // Whether there's a previous screen to go back to
 }
 
 /**
@@ -38,6 +40,8 @@ const MainMenu: React.FC<MainMenuProps> = ({
   isDevDummyActive,
   onSkipCharacterCreator,
   onSaveGame,
+  onGoBack,
+  canGoBack = false,
 }) => {
   const [isLoadModalOpen, setIsLoadModalOpen] = useState(false);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
@@ -88,6 +92,18 @@ const MainMenu: React.FC<MainMenuProps> = ({
         <h1 className="text-5xl font-bold text-amber-400 mb-12 font-cinzel tracking-wider">
           Aralia RPG
         </h1>
+        {canGoBack && onGoBack && (
+          <button
+            onClick={onGoBack}
+            className="w-full mb-4 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow-md text-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 flex items-center justify-center gap-2"
+            aria-label="Go back to previous screen"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back
+          </button>
+        )}
         <div className="space-y-4">
           {(hasSaveGame || !!latestSlot) && (
             <button

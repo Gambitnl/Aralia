@@ -506,7 +506,14 @@ const App: React.FC = () => {
     missingChoiceModal.isOpen;
 
 
+  const handleGoBackFromMainMenu = useCallback(() => {
+    if (gameState.previousPhase && gameState.previousPhase !== GamePhase.MAIN_MENU) {
+      dispatch({ type: 'SET_GAME_PHASE', payload: gameState.previousPhase });
+    }
+  }, [gameState.previousPhase, dispatch]);
+
   if (gameState.phase === GamePhase.MAIN_MENU) {
+    const canGoBack = !!gameState.previousPhase && gameState.previousPhase !== GamePhase.MAIN_MENU;
     mainContent = (
       <ErrorBoundary fallbackMessage="An error occurred in the Main Menu.">
         <MainMenu
@@ -517,6 +524,8 @@ const App: React.FC = () => {
           latestSaveTimestamp={SaveLoadService.getLatestSaveTimestamp()}
           isDevDummyActive={USE_DUMMY_CHARACTER_FOR_DEV}
           onSkipCharacterCreator={handleSkipCharacterCreator}
+          onGoBack={canGoBack ? handleGoBackFromMainMenu : undefined}
+          canGoBack={canGoBack}
         />
       </ErrorBoundary>
     );

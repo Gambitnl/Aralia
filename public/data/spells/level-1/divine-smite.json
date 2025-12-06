@@ -1,0 +1,72 @@
+{
+  "id": "divine-smite",
+  "name": "Divine Smite",
+  "level": 1,
+  "school": "Evocation",
+  "classes": ["Paladin"],
+  "description": "The target takes an extra 2d8 Radiant damage from the attack when you smite after hitting with a melee weapon or an unarmed strike. The damage increases by 1d8 if the target is a Fiend or an Undead.",
+  "higherLevels": "The damage increases by 1d8 for each spell slot level above 1.",
+  "tags": ["damage", "radiant", "melee"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action",
+    "combatCost": {
+      "type": "bonus_action",
+      "condition": "after you hit with a melee weapon or unarmed strike"
+    }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 5,
+    "validTargets": ["creatures", "enemies"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "hit"
+      },
+      "damage": {
+        "dice": "2d8",
+        "type": "Radiant"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d8"
+      }
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "hit",
+        "targetFilter": {
+          "creatureType": ["Fiend", "Undead"]
+        }
+      },
+      "damage": {
+        "dice": "1d8",
+        "type": "Radiant"
+      }
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "id": "cure-wounds",
+  "name": "Cure Wounds",
+  "level": 1,
+  "school": "Abjuration",
+  "classes": ["Artificer", "Bard", "Cleric", "Druid", "Paladin", "Ranger"],
+  "description": "A creature you touch regains a number of hit points equal to 2d8 plus your spellcasting ability modifier.",
+  "higherLevels": "The healing increases by 2d8 for each spell slot level above 1.",
+  "tags": ["healing"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 5,
+    "validTargets": ["creatures", "allies"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "HEALING",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "healing": {
+        "dice": "2d8",
+        "isTemporaryHp": false
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+2d8"
+      }
+    }
+  ]
+}

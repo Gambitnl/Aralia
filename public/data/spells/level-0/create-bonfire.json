@@ -3,11 +3,26 @@
   "name": "Create Bonfire",
   "level": 0,
   "school": "Conjuration",
-  "classes": ["Artificer", "Druid", "Sorcerer", "Warlock", "Wizard"],
-  "tags": ["damage", "fire", "area", "concentration"],
+  "classes": [
+    "Artificer",
+    "Druid",
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
+  "tags": [
+    "damage",
+    "fire",
+    "area",
+    "concentration"
+  ],
+  "ritual": false,
   "castingTime": {
     "value": 1,
-    "unit": "action"
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
   },
   "range": {
     "type": "ranged",
@@ -31,7 +46,9 @@
       "shape": "Cube",
       "size": 5
     },
-    "validTargets": ["ground"],
+    "validTargets": [
+      "ground"
+    ],
     "lineOfSight": true
   },
   "effects": [
@@ -58,7 +75,7 @@
     {
       "type": "DAMAGE",
       "trigger": {
-        "type": "turn_start"
+        "type": "turn_end"
       },
       "condition": {
         "type": "save",
@@ -73,7 +90,28 @@
         "type": "character_level",
         "customFormula": "{\"5\": \"2d8\", \"11\": \"3d8\", \"17\": \"4d8\"}"
       },
-      "description": "A creature must also make the saving throw when it moves into the bonfire's space for the first time on a turn or ends its turn there."
+      "description": "A creature that ends its turn in the bonfire's space must make this saving throw."
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "on_enter_area",
+        "frequency": "first_per_turn"
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Dexterity",
+        "saveEffect": "none"
+      },
+      "damage": {
+        "dice": "1d8",
+        "type": "Fire"
+      },
+      "scaling": {
+        "type": "character_level",
+        "customFormula": "{\"5\": \"2d8\", \"11\": \"3d8\", \"17\": \"4d8\"}"
+      },
+      "description": "A creature that moves into the bonfire's space for the first time on a turn must make this saving throw."
     }
   ],
   "description": "You create a bonfire on ground that you can see within range. Until the spell ends, the magic bonfire fills a 5-foot cube. Any creature in the bonfire's space when you cast the spell must succeed on a Dexterity saving throw or take 1d8 fire damage. A creature must also make the saving throw when it moves into the bonfire's space for the first time on a turn or ends its turn there.",

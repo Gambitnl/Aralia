@@ -3,11 +3,23 @@
   "name": "Acid Splash",
   "level": 0,
   "school": "Conjuration",
-  "classes": ["Artificer", "Sorcerer", "Wizard"],
-  "tags": ["damage", "acid", "area"],
+  "classes": [
+    "Artificer",
+    "Sorcerer",
+    "Wizard"
+  ],
+  "tags": [
+    "damage",
+    "acid",
+    "area"
+  ],
+  "ritual": false,
   "castingTime": {
     "value": 1,
-    "unit": "action"
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
   },
   "range": {
     "type": "ranged",
@@ -26,7 +38,9 @@
     "type": "multi",
     "range": 60,
     "maxTargets": 2,
-    "validTargets": ["creature"],
+    "validTargets": [
+      "creatures"
+    ],
     "lineOfSight": true
   },
   "effects": [

@@ -1,0 +1,54 @@
+{
+  "id": "detect-magic",
+  "name": "Detect Magic",
+  "level": 1,
+  "school": "Divination",
+  "classes": ["Artificer", "Bard", "Cleric", "Druid", "Paladin", "Ranger", "Sorcerer", "Warlock", "Wizard"],
+  "description": "For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
+  "higherLevels": "None",
+  "tags": ["ritual", "detection", "divination"],
+  "ritual": true,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    },
+    "explorationCost": {
+      "value": 11,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 10,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": ["self"],
+    "lineOfSight": false
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "utilityType": "sensory",
+      "description": "Sense magical effects within 30 feet; with the Magic action you can see auras on visible creatures or objects and learn a spell's school; blocked by common materials as noted."
+    }
+  ]
+}

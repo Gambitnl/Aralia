@@ -1,0 +1,58 @@
+{
+  "id": "expeditious-retreat",
+  "name": "Expeditious Retreat",
+  "level": 1,
+  "school": "Transmutation",
+  "classes": ["Artificer", "Sorcerer", "Warlock", "Wizard"],
+  "description": "You take the Dash action. Until the spell ends, you can take the Dash action again as a Bonus Action on each of your turns.",
+  "higherLevels": "None",
+  "tags": ["movement", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action",
+    "combatCost": {
+      "type": "bonus_action"
+    }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 10,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": ["self"],
+    "lineOfSight": false
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "utilityType": "other",
+      "description": "Immediately Dash; while the spell lasts you can Dash as a bonus action each turn.",
+      "grantedActions": [
+        {
+          "type": "bonus_action",
+          "action": "Dash",
+          "frequency": "each_turn",
+          "notes": "Available immediately when cast and on each of your turns for the duration."
+        }
+      ]
+    }
+  ]
+}

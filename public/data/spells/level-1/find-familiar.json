@@ -1,0 +1,84 @@
+{
+  "id": "find-familiar",
+  "name": "Find Familiar",
+  "level": 1,
+  "school": "Conjuration",
+  "classes": ["Wizard"],
+  "description": "You gain the service of a familiar, a spirit that takes an eligible animal form. It acts independently but obeys you, uses its own initiative, cannot attack, and disappears at 0 HP. You can communicate telepathically within 100 feet, see through its senses as a Bonus Action, and have it deliver touch spells within 100 feet by using its Reaction. You can dismiss or resummon it to a pocket dimension with a Magic action, and you can only have one familiar at a time.",
+  "higherLevels": "None",
+  "tags": ["summoning", "ritual", "familiar"],
+  "ritual": true,
+  "castingTime": {
+    "value": 1,
+    "unit": "hour",
+    "explorationCost": {
+      "value": 1,
+      "unit": "hour"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 10
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "incense worth 10+ gp, which the spell consumes",
+    "materialCost": 10,
+    "isConsumed": true
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "area",
+    "range": 10,
+    "validTargets": ["point"],
+    "lineOfSight": true,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 5
+    }
+  },
+  "effects": [
+    {
+      "type": "SUMMONING",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "summonType": "creature",
+      "creatureId": "familiar",
+      "count": 1,
+      "duration": {
+        "type": "special"
+      },
+      "familiarContract": {
+        "forms": ["Bat", "Cat", "Crab", "Frog", "Hawk", "Lizard", "Octopus", "Owl", "Poisonous Snake", "Quipper", "Rat", "Raven", "Seahorse", "Spider", "Weasel"],
+        "telepathyRange": 100,
+        "actionEconomy": {
+          "actsIndependently": true,
+          "canAttack": false
+        },
+        "sensesSharing": {
+          "actionType": "bonus_action",
+          "range": 100
+        },
+        "touchDelivery": {
+          "enabled": true,
+          "range": 100,
+          "usesReactionOf": "familiar"
+        },
+        "dismissal": {
+          "method": "pocket_dimension",
+          "actionType": "action"
+        },
+        "notes": "Uses its own initiative and obeys commands; disappears at 0 HP and can be resummoned."
+      }
+    }
+  ]
+}

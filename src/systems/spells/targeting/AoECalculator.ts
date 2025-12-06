@@ -51,6 +51,10 @@ export class AoECalculator {
       case 'Sphere':
         return getSphere(center, aoe.size)
 
+      case 'Square':
+        // Treat planar squares the same as cubes on the 2D grid.
+        return getCube(center, aoe.size)
+
       case 'Line':
         if (!direction) throw new Error('Line requires direction vector')
         // Line requires a width in spells.ts? No, spells.ts AreaOfEffect only has size.

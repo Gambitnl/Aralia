@@ -16,6 +16,7 @@ import SpellbookOverlay from './SpellbookOverlay'; // Import the new SpellbookOv
 import { getAbilityModifierValue, getAbilityModifierString, getCharacterRaceDisplayString } from '../utils/characterUtils';
 import Tooltip from './Tooltip';
 import SingleGlossaryEntryModal from './SingleGlossaryEntryModal'; // This component handles its own visibility based on termId
+import { FEATS_DATA } from '../data/feats/featsData';
 
 
 interface CharacterSheetModalProps {
@@ -145,9 +146,9 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
   const spellAttackModifierString = spellAttackModifier >= 0 ? `+${spellAttackModifier}` : `${spellAttackModifier}`;
 
   const renderOverviewTab = () => (
-     <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-4 flex-grow overflow-hidden min-h-0">
+     <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-4 h-full overflow-hidden">
         {/* Column 1: Core Stats & Features */}
-        <div className="lg:col-span-1 space-y-4 overflow-y-auto scrollable-content p-1 pr-2">
+        <div className="lg:col-span-1 space-y-4 overflow-y-auto scrollable-content p-1 pr-2 h-full">
             <p className="text-lg text-sky-300">{getCharacterRaceDisplayString(character)} {character.class.name}</p>
             
             {/* Vitals */}
@@ -220,6 +221,31 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
                          <li><span className="font-medium text-amber-200">Patron: {character.selectedWarlockPatron}</span></li>
                     )}
 
+                    {/* Feats */}
+                    {character.feats && character.feats.length > 0 && character.feats.map(featId => {
+                        const feat = FEATS_DATA.find(f => f.id === featId);
+                        if (!feat) return null;
+                        
+                        const featChoice = character.featChoices?.[featId];
+                        const selectedASI = featChoice?.selectedAbilityScore;
+                        
+                        // Build display text with choices
+                        let displayText = feat.name;
+                        if (selectedASI && feat.benefits?.selectableAbilityScores) {
+                            displayText += ` (${selectedASI} +1)`;
+                        }
+                        
+                        return (
+                            <li key={featId}>
+                                <Tooltip content={feat.description}>
+                                    <span className="font-medium text-emerald-200 cursor-help border-b border-dotted border-emerald-200/50">
+                                        {displayText}
+                                    </span>
+                                </Tooltip>
+                            </li>
+                        );
+                    })}
+
                     {/* Racial Traits - Filter out simple stat modifiers if desired, or show all */}
                     {character.race.traits.map((trait, index) => {
                         // Simple heuristic to get trait name: split by colon
@@ -290,12 +316,12 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
         </div>
 
         {/* Column 2: Equipment */}
-        <div className="lg:col-span-1 space-y-4 p-1 flex flex-col items-center justify-start">
+        <div className="lg:col-span-1 space-y-4 p-1 flex flex-col items-center justify-start overflow-y-auto scrollable-content h-full">
             <EquipmentMannequin character={character} onSlotClick={handleSlotClick} />
         </div>
 
         {/* Column 3: Inventory */}
-        <div className="lg:col-span-1 space-y-4 overflow-y-auto scrollable-content p-1 pr-2">
+        <div className="lg:col-span-1 space-y-4 overflow-y-auto scrollable-content p-1 pr-2 h-full">
             <InventoryList inventory={inventory} gold={gold} character={character} onAction={onAction} />
         </div>
      </div>
@@ -362,7 +388,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-grow overflow-hidden min-h-0">
+          <div className="flex-grow overflow-hidden min-h-0 flex flex-col">
             {activeTab === 'overview' && renderOverviewTab()}
           </div>
         </motion.div>

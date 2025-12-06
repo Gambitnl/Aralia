@@ -131,7 +131,10 @@ export function appReducer(state: GameState, action: AppAction): GameState {
     // 1. Handle actions with cross-cutting concerns first
     switch (action.type) {
         case 'SET_GAME_PHASE':
-            let additionalUpdates: Partial<GameState> = { loadingMessage: null }; 
+            let additionalUpdates: Partial<GameState> = { 
+                loadingMessage: null,
+                previousPhase: state.phase !== action.payload ? state.phase : state.previousPhase, // Track previous phase
+            }; 
             if (action.payload === GamePhase.MAIN_MENU || action.payload === GamePhase.CHARACTER_CREATION) {
                 // Reset a wide range of UI and game context state when returning to menu or starting creation
                 additionalUpdates = {

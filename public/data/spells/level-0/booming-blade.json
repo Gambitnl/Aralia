@@ -3,11 +3,24 @@
   "name": "Booming Blade",
   "level": 0,
   "school": "Evocation",
-  "classes": ["Artificer", "Sorcerer", "Warlock", "Wizard"],
-  "tags": ["damage", "thunder", "melee"],
+  "classes": [
+    "Artificer",
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
+  "tags": [
+    "damage",
+    "thunder",
+    "melee"
+  ],
+  "ritual": false,
   "castingTime": {
     "value": 1,
-    "unit": "action"
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
   },
   "range": {
     "type": "self"
@@ -27,7 +40,9 @@
   "targeting": {
     "type": "single",
     "range": 5,
-    "validTargets": ["creature"],
+    "validTargets": [
+      "creatures"
+    ],
     "lineOfSight": true
   },
   "effects": [
@@ -50,19 +65,20 @@
       "description": "As part of the action used to cast this spell, you must make a melee attack with a weapon against one creature within the spell's range, otherwise the spell fails. On a hit, the target suffers the attack's normal effects, and then becomes sheathed in booming energy."
     },
     {
-      "type": "STATUS_CONDITION",
+      "type": "DAMAGE",
       "trigger": {
-        "type": "immediate"
+        "type": "on_target_move"
       },
       "condition": {
-        "type": "hit"
+        "type": "always"
       },
-      "statusCondition": {
-        "name": "Booming Energy",
-        "duration": {
-          "type": "rounds",
-          "value": 1
-        }
+      "damage": {
+        "dice": "1d8",
+        "type": "Thunder"
+      },
+      "scaling": {
+        "type": "character_level",
+        "customFormula": "{\"5\": \"2d8\", \"11\": \"3d8\", \"17\": \"4d8\"}"
       },
       "description": "If the target willingly moves before the start of your next turn, it immediately takes 1d8 thunder damage (scaling with level), and the spell ends."
     }

@@ -1,0 +1,50 @@
+{
+  "id": "disguise-self",
+  "name": "Disguise Self",
+  "level": 1,
+  "school": "Illusion",
+  "classes": ["Artificer", "Bard", "Sorcerer", "Wizard"],
+  "description": "You make yourself--including your clothing, armor, weapons, and other belongings on your person--look different until the spell ends. You can seem 1 foot shorter or taller and can appear heavier or lighter, but must keep the same basic limb arrangement. The illusion fails on physical inspection. A creature can use the Study action to inspect your appearance and must succeed on an Intelligence (Investigation) check against your spell save DC to discern the disguise.",
+  "higherLevels": "None",
+  "tags": ["illusion", "utility", "deception"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": ["self"],
+    "lineOfSight": false
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "utilityType": "control",
+      "description": "Alter your appearance and gear within size limits; physical contact passes through, and an Intelligence (Investigation) check via the Study action can reveal the illusion."
+    }
+  ]
+}

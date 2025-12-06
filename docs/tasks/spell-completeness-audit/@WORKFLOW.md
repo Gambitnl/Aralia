@@ -1,7 +1,7 @@
 # Spell Completeness Audit Workflow
 
 Created: 2025-12-04 15:40 UTC  
-Last Updated: 2025-12-04 16:35 UTC  
+Last Updated: 2025-12-06 15:11 UTC  
 Reusable procedures for the audit and extraction project. Keep updates minimal and reference external sources instead of embedding long rules.
 
 ---
@@ -32,3 +32,13 @@ Reusable procedures for the audit and extraction project. Keep updates minimal a
 4. For levels 2-9, replicate structure per level: `LEVEL-{N}-REFERENCE.md`.
 5. Maintain source notes for traceability; do not modify game data files.
 6. Always work in batches of ≤10 spells per level with no cross-level overlap; finish the full check cycle per batch (online verification → local code review → add/update references) before moving to the next batch.
+7. For each entry, include structured fields per the template alignment (ritual; casting time with activation/reaction; range type; components with material details/cost/consumed; duration with concentration; targeting/area; save/attack; damage/healing with scaling; conditions; secondary effects) before the narrative Description.
+
+## Migration & Validation (Levels 1-9)
+1. Read in order: `JULES_ACCEPTANCE_CRITERIA.md`, `SPELL_TEMPLATE.json`, `output/PHB-2024-REFERENCE.md`, `output/LOCAL-INVENTORY.md`, `@SPELL-COMPLETENESS-REPORT.md`, level reference file, cantrip learnings (`1I-MIGRATE-CANTRIPS-BATCH-1.md`, `gaps/BATCH-1-GAPS.md`).
+2. Sequence: level-by-level (1→9), batches ≤10 in PHB order (local-only appended). Finish a batch before starting the next.
+3. Reference updates: structured fields per template in `docs/spells/reference/LEVEL-{N}-REFERENCE.md`, update timestamps, remove TODOs, include citation and “None” for missing higher-level scaling.
+4. Implementation: for missing/outdated spells, create/update JSON at `public/data/spells/level-{N}/{id}.json` and glossary at `public/data/glossary/entries/spells/{id}.md`; PHB IDs take precedence, log conflicts in batch gaps; keep local-only spells with source noted.
+5. Validation per batch (in order): `npm run lint`; `npm test`; `npx tsx scripts/regenerate-manifest.ts`; `npm run validate`. Log outcomes (success/failure) in the batch gaps file; rerun once only if transient/missing.
+6. Gap logging: create `docs/tasks/spell-system-overhaul/gaps/LEVEL-{N}-BATCH-{X}-GAPS.md` per batch with timestamp, commands run + outcomes, spell list, blockers or “No blockers”, and any source/schema gaps.
+7. Pause after each level: summarize blockers before moving to the next level. See `docs/tasks/spell-system-overhaul/LEVELS-1-9-MIGRATION-GUIDE.md` for full details.

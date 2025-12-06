@@ -1,7 +1,7 @@
 # Task 2B: Extract Spell Descriptions (Levels 2-9)
 
 Created: 2025-12-04 16:35 UTC  
-Last Updated: 2025-12-04 16:35 UTC  
+Last Updated: 2025-12-06 15:11 UTC  
 **Project:** Spell Completeness Audit & Description Extraction  
 **Type:** Task (Reference Extraction)  
 **Status:** Active
@@ -9,7 +9,7 @@ Last Updated: 2025-12-04 16:35 UTC
 ---
 
 ## Objective
-Scale the reference extraction process to levels 2-9 using the pilot format from 2A.
+Scale the reference extraction process to levels 2-9 using the pilot format from 2A and drive migration outputs (JSON + glossary + validation + gaps) per `docs/tasks/spell-system-overhaul/LEVELS-1-9-MIGRATION-GUIDE.md`.
 
 ## Inputs
 - `@SPELL-COMPLETENESS-REPORT.md`
@@ -37,14 +37,20 @@ Scale the reference extraction process to levels 2-9 using the pilot format from
 2. Extract mechanical details with citations; mirror the 2A formatting.
 3. Save per-level references under `docs/spells/reference/`.
 4. Log gaps or blocked items for follow-up work.
+5. After reference updates, run migration steps per level in batches ≤10: JSON/glossary updates for missing/outdated spells, validation command sequence, and per-batch gap logging (`LEVEL-{N}-BATCH-{X}-GAPS.md`).
+
+## Migration Outputs & Validation (Per Level)
+- Outputs per batch: structured reference updates; JSON at `public/data/spells/level-{N}/{id}.json` for missing/outdated spells; glossary at `public/data/glossary/entries/spells/{id}.md`; batch gap log at `docs/tasks/spell-system-overhaul/gaps/LEVEL-{N}-BATCH-{X}-GAPS.md`.
+- Validation commands (in order): `npm run lint`; `npm test`; `npx tsx scripts/regenerate-manifest.ts`; `npm run validate`. Record outcomes in the batch gap file (successes and failures); rerun once if transient/missing, otherwise log and continue.
+- Log PHB source gaps, schema limitations, ID conflicts, or command issues in the batch gap file; “No blockers” if none. Pause after each level to summarize blockers before moving on.
 
 ## Constraints
-- Do not edit game data files; references only.
-- Consistency with level 1 formatting is required.
+- Levels 2-9 only (no cantrips); batch size limit 10; no cross-level mixing.
+- Consistency with level 1 formatting is required; update timestamps and remove TODOs.
 - Use authoritative sources; avoid speculative text.
 
 ## Acceptance Criteria
-- [ ] Levels 2-9 files created with required fields and citations.
-- [ ] Formatting matches 2A pilot.
-- [ ] Blockers noted per level.
+- [ ] Levels 2-9 files created with required fields and citations; formatting matches 2A pilot.
+- [ ] Blockers noted per level and per batch gap files created.
 - [ ] Files saved to `docs/spells/reference/`.
+- [ ] Missing/outdated spells migrated to JSON/glossary per template, with per-batch validation commands run/logged.

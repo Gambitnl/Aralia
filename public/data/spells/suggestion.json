@@ -1,4 +1,3 @@
-
 {
   "id": "suggestion",
   "name": "Suggestion",
@@ -12,5 +11,11 @@
     "material": true
   },
   "duration": "Concentration, up to 8 hours",
-  "description": "You suggest a course of activity (limited to a sentence or two) and magically influence a creature you can see within range that can hear and understand you."
+  "description": "You suggest a course of activity (limited to a sentence or two) and magically influence a creature you can see within range that can hear and understand you.",
+  "arbitrationType": "ai_dm",
+  "aiContext": {
+    "prompt": "Evaluate the reasonableness of the suggestion '{playerInput}' given the situation. If reasonable, describe the target's compliance.",
+    "playerInputRequired": true,
+    "inputPrompt": "What is your suggestion?"
+  }
 }

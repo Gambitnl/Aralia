@@ -1,0 +1,55 @@
+{
+  "id": "comprehend-languages",
+  "name": "Comprehend Languages",
+  "level": 1,
+  "school": "Divination",
+  "classes": ["Bard", "Sorcerer", "Warlock", "Wizard"],
+  "description": "For the duration, you understand the literal meaning of any language that you hear or see signed. You also understand any written language that you see while touching the surface, taking about 1 minute to read one page of text. This spell doesn't decode symbols or secret messages.",
+  "higherLevels": "None",
+  "tags": ["ritual", "information", "communication"],
+  "ritual": true,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    },
+    "explorationCost": {
+      "value": 11,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a pinch of soot and salt"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": ["self"],
+    "lineOfSight": false
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "utilityType": "information",
+      "description": "Understand spoken, signed, and written language you touch for the duration; reading roughly one page per minute; does not decode symbols or secret messages."
+    }
+  ]
+}

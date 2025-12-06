@@ -48,8 +48,13 @@ Single-source workflow for converting legacy spell data into the current JSON fo
    - Multi: `type: "multi"`, `range`, `maxTargets`, `validTargets`.
    - Self: `type: "self"`.
 6) **Effects (BaseEffect REQUIRED)**:
-   - `trigger`: `immediate | after_primary | turn_start | turn_end`
+   - `trigger`: `immediate | after_primary | turn_start | turn_end | on_enter_area | on_target_move`
+     - Use `on_enter_area` for spells that trigger when creatures enter (e.g., Create Bonfire)
+     - Use `on_target_move` for spells that trigger on target movement (e.g., Booming Blade)
+   - `trigger.frequency` (optional): `every_time | first_per_turn | once`
    - `condition`: `hit | save | always` (+ `saveType`, `saveEffect` when save)
+   - `condition.targetFilter` (optional): Filter effects by creature properties
+     - `{ "creatureType": ["Undead"] }` for effects that only apply to certain types
    - `scaling`: optional (`slot_level` or `character_level`; include `bonusPerLevel` or custom formula)
    - Then add effect-specific fields (damage/healing/defensive/status_condition/etc.).
 7) **Upcasting/Scaling**:

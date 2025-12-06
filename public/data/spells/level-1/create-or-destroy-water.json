@@ -1,0 +1,59 @@
+{
+  "id": "create-or-destroy-water",
+  "name": "Create or Destroy Water",
+  "level": 1,
+  "school": "Transmutation",
+  "classes": ["Cleric", "Druid"],
+  "description": "You create or destroy water. Create Water: create up to 10 gallons of clean water within range in containers or as rain in a 30-foot Cube that extinguishes exposed flames. Destroy Water: destroy up to 10 gallons of water in containers or disperse fog in a 30-foot Cube within range.",
+  "higherLevels": "You create or destroy 10 additional gallons of water, or the size of the Cube increases by 5 feet, for each spell slot level above 1.",
+  "tags": ["utility", "creation", "water"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a mix of water and sand"
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "area",
+    "range": 30,
+    "validTargets": ["point", "ground"],
+    "lineOfSight": true,
+    "areaOfEffect": {
+      "shape": "Cube",
+      "size": 30
+    }
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "customFormula": "+10 gallons created or destroyed, or +5-foot Cube size per slot level above 1 (choose when casting)."
+      },
+      "utilityType": "creation",
+      "description": "Choose to create clean water (in containers or as rain that can extinguish exposed flames) or destroy contained water/fog within a 30-foot Cube."
+    }
+  ]
+}

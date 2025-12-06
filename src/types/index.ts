@@ -279,6 +279,18 @@ export interface PlayerCharacter {
   selectedDruidOrder?: 'Magician' | 'Warden';
   selectedWarlockPatron?: string;
   racialSelections?: Record<string, RacialSelectionData>;
+  featChoices?: {
+    // Store choices made for feats (e.g., selected ability score, spells, etc.)
+    [featId: string]: {
+      selectedAbilityScore?: AbilityScoreName;
+      selectedSpells?: string[];
+      selectedSkills?: string[];
+      selectedWeapons?: string[];
+      selectedTools?: string[];
+      selectedDamageType?: string;
+      [key: string]: any; // Allow for future choice types
+    };
+  };
   equippedItems: Partial<Record<EquipmentSlotType, Item>>;
 }
 
@@ -638,6 +650,7 @@ export interface EconomyState {
 
 export interface GameState {
   phase: GamePhase;
+  previousPhase?: GamePhase; // Track previous phase for back navigation
   party: PlayerCharacter[];
   tempParty: TempPartyMember[] | null;
   inventory: Item[];

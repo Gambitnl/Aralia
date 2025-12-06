@@ -1,11 +1,10 @@
-
 ---
 id: "feather-fall"
 title: "Feather Fall"
 category: "Spells"
-tags: ["level 1", "transmutation", "utility", "reaction"]
-excerpt: "Slows the rate of descent of up to five falling creatures, preventing fall damage."
-seeAlso: ["reaction", "falling", "spell_duration_rules"]
+tags: ["level 1", "transmutation", "reaction", "movement"]
+excerpt: "Reaction when creatures fall: slow descent to 60 ft/round and prevent fall damage for up to five targets."
+seeAlso: ["levitate", "fly"]
 filePath: "/data/glossary/entries/spells/feather-fall.md"
 ---
 <div class="spell-card">
@@ -20,7 +19,7 @@ filePath: "/data/glossary/entries/spells/feather-fall.md"
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Casting Time</span>
-      <span class="spell-card-stat-value">1 Reaction *</span>
+      <span class="spell-card-stat-value">1 Reaction (when you or a creature within 60 ft falls)</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Range/Area</span>
@@ -28,7 +27,7 @@ filePath: "/data/glossary/entries/spells/feather-fall.md"
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Components</span>
-      <span class="spell-card-stat-value">V, M **</span>
+      <span class="spell-card-stat-value">V, M (a small feather or piece of down)</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Duration</span>
@@ -44,23 +43,17 @@ filePath: "/data/glossary/entries/spells/feather-fall.md"
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Damage/Effect</span>
-      <span class="spell-card-stat-value">Exploration (...)</span>
+      <span class="spell-card-stat-value">Fall Control</span>
     </div>
   </div>
   <div class="spell-card-divider"></div>
   <p class="spell-card-description">
-    Choose up to five falling creatures within range. A falling creature’s rate of descent slows to 60 feet per round until the spell ends. If a creature lands before the spell ends, the creature takes no damage from the fall, and the spell ends for that creature.
-  </p>
-  <p class="spell-card-material-note">
-    * - which you take when you or a creature you can see within 60 feet of you falls
-  </p>
-  <p class="spell-card-material-note">
-    ** - (a small feather or piece of down)
+    Choose up to five falling creatures within range. Each target's rate of descent slows to 60 feet per round until the spell ends. If a creature lands before the spell ends, it takes no damage from the fall and the spell ends for that creature.
   </p>
   <div class="spell-card-tags-section">
     <span class="spell-card-tags-label">Spell Tags:</span>
-    <span class="spell-card-tag">UTILITY</span>
-    <span class="spell-card-tag">EXPLORATION</span>
+    <span class="spell-card-tag">REACTION</span>
+    <span class="spell-card-tag">MOVEMENT</span>
   </div>
   <div class="spell-card-tags-section">
     <span class="spell-card-tags-label">Available For:</span>

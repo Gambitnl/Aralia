@@ -1,0 +1,58 @@
+{
+  "id": "faerie-fire",
+  "name": "Faerie Fire",
+  "level": 1,
+  "school": "Evocation",
+  "classes": ["Artificer", "Bard", "Druid"],
+  "description": "Objects in a 20-foot Cube within range are outlined in light. Each creature in the Cube that fails a Dexterity saving throw is also outlined. For the duration, affected creatures and objects shed Dim Light in a 10-foot radius, cannot benefit from the Invisible condition, and attack rolls against them have Advantage if the attacker can see them.",
+  "higherLevels": "None",
+  "tags": ["utility", "concentration", "visibility"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "area",
+    "range": 60,
+    "validTargets": ["creatures", "objects"],
+    "lineOfSight": true,
+    "areaOfEffect": {
+      "shape": "Cube",
+      "size": 20
+    }
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Dexterity",
+        "saveEffect": "negates_condition"
+      },
+      "utilityType": "control",
+      "description": "Outlined creatures shed dim light, cannot benefit from Invisible, and attackers who can see them have Advantage."
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "id": "detect-poison-and-disease",
+  "name": "Detect Poison and Disease",
+  "level": 1,
+  "school": "Divination",
+  "classes": ["Cleric", "Druid", "Paladin", "Ranger"],
+  "description": "For the duration, you sense the location of poisons, poisonous or venomous creatures, and magical contagions within 30 feet of yourself. You sense the kind of poison, creature, or contagion in each case. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.",
+  "higherLevels": "None",
+  "tags": ["detection", "divination", "sense"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a yew leaf"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 10,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": ["self"],
+    "lineOfSight": false
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "utilityType": "sensory",
+      "description": "Sense locations and types of poisons, poisonous or venomous creatures, and magical contagions within 30 feet; blocked by common materials as noted."
+    }
+  ]
+}

@@ -3,6 +3,7 @@
 **Project:** Aralia V4
 **Author:** AI Research Analysis
 **Date:** November 27, 2025
+**Last Updated:** 2025-12-05 (Document Review)
 **Status:** Architecture Proposal
 
 ---
@@ -36,11 +37,14 @@ This document provides comprehensive research and architectural recommendations 
 
 ### 1.1 Existing Architecture
 
+✅ **All files verified to exist**
+
 **Current Files:**
-- [spellAbilityFactory.ts](../../src/utils/spellAbilityFactory.ts) - Regex-based spell parser
-- [useAbilitySystem.ts](../../src/hooks/useAbilitySystem.ts) - Ability execution logic
-- [combat.ts](../../src/types/combat.ts) - Combat type definitions
-- [types.ts](../../src/types.ts) - Spell data structures
+- [src/utils/spellAbilityFactory.ts](../../src/utils/spellAbilityFactory.ts:1) - Regex-based spell parser ✅ **Exists**
+- [src/hooks/useAbilitySystem.ts](../../src/hooks/useAbilitySystem.ts:1) - Ability execution logic ✅ **Exists**
+- [src/types/combat.ts](../../src/types/combat.ts:1) - Combat type definitions ✅ **Exists**
+- [src/types.ts](../../src/types.ts:1) - Legacy spell data structures ✅ **Exists**
+- [src/types/spells.ts](../../src/types/spells.ts:1) - **New component-based spell types** ✅ **Implemented**
 
 **Three-Tiered Parsing Approach:**
 
@@ -397,6 +401,8 @@ if (character.concentratingOn) {
 ---
 
 ## 3. Schema Design
+
+✅ **IMPLEMENTED** - Schema defined in [src/types/spells.ts](../../src/types/spells.ts:69-420)
 
 ### 3.1 Design Principles
 
@@ -765,6 +771,8 @@ interface ScalingFormula {
 
 ## 4. Grid Topology & AoE Algorithms
 
+⚠️ **PARTIALLY IMPLEMENTED** - Circle AoE exists in [src/hooks/useAbilitySystem.ts:179-202](../../src/hooks/useAbilitySystem.ts#L179-L202), other shapes not yet implemented
+
 ### 4.1 D&D 5e AoE Shapes
 
 **Five Standard Shapes:** Cone, Cube, Cylinder, Line, Sphere
@@ -889,8 +897,10 @@ function getCubeAoE(origin: Position, size: number): Position[] {
 
 ### 4.3 Recommended Implementation
 
+❌ **NOT YET BUILT** - File `src/utils/aoeCalculations.ts` does not exist
+
 ```typescript
-// src/utils/aoeCalculations.ts
+// src/utils/aoeCalculations.ts (ASPIRATIONAL)
 
 export type AoEShape = "Sphere" | "Cone" | "Cube" | "Line" | "Cylinder"
 
@@ -924,7 +934,11 @@ export function hasLineOfSight(from: Position, to: Position, blockers: Position[
 
 ## 5. Integration Strategy
 
+✅ **IMPLEMENTED** - Command Pattern built in [src/commands/](../../src/commands/)
+
 ### 5.1 Architectural Pattern: Command Pattern
+
+✅ **Built in [src/commands/base/SpellCommand.ts](../../src/commands/base/SpellCommand.ts:4-51)** and [src/commands/base/BaseEffectCommand.ts](../../src/commands/base/BaseEffectCommand.ts:6-89)
 
 **Recommendation:** Use **Command Pattern** for spell execution.
 
@@ -942,8 +956,10 @@ export function hasLineOfSight(from: Position, to: Position, blockers: Position[
 
 ### 5.2 Command Structure
 
+✅ **Actual implementation differs slightly** - See [src/commands/factory/SpellCommandFactory.ts](../../src/commands/factory/SpellCommandFactory.ts:9-196)
+
 ```typescript
-// src/commands/spellCommands.ts
+// src/commands/spellCommands.ts (RESEARCH PROPOSAL - actual differs)
 
 interface SpellCommand {
   execute(state: CombatState): CombatState
@@ -995,6 +1011,8 @@ class DamageCommand extends EffectCommand {
 
 ### 5.3 Integration with Existing AbilitySystem
 
+✅ **IMPLEMENTED** - Integration exists in [src/hooks/useAbilitySystem.ts:49-112](../../src/hooks/useAbilitySystem.ts#L49-L112)
+
 **New Flow:**
 ```
 User clicks spell → useAbilitySystem → validateTargets →
@@ -1029,6 +1047,8 @@ const executeSpell = useCallback((
 ---
 
 ## 6. AI DM Arbitration Layer
+
+⚠️ **PARTIALLY IMPLEMENTED** - Type definitions exist in [src/types/spells.ts:406-418](../../src/types/spells.ts#L406-L418), but no AISpellArbitrator service built yet
 
 ### 6.1 The Problem: Context-Dependent Spells
 
@@ -1165,8 +1185,10 @@ AI handles entire spell execution narratively.
 
 ### 6.3 Implementation Architecture
 
+❌ **NOT YET BUILT** - File `src/services/AISpellArbitrator.ts` does not exist
+
 ```typescript
-// src/services/AISpellArbitrator.ts
+// src/services/AISpellArbitrator.ts (ASPIRATIONAL)
 
 interface ArbitrationRequest {
   spell: Spell
@@ -1308,10 +1330,12 @@ Current Conditions:
 
 ### 6.4 Material Tagging System (Minimal Implementation)
 
+❌ **NOT IMPLEMENTED** - BattleMapTile does not have `material` property (see [src/types/combat.ts:205](../../src/types/combat.ts#L205))
+
 To support spells like Meld into Stone, you need lightweight material metadata:
 
 ```typescript
-// src/types/terrain.ts
+// src/types/terrain.ts (ASPIRATIONAL)
 
 type Material =
   | "stone" | "wood" | "metal" | "earth" | "water"
@@ -1479,30 +1503,32 @@ interface Prop {
 
 ## 7. Implementation Roadmap
 
-### Phase 1: Foundation (Weeks 1-2)
-- [ ] Define TypeScript interfaces (including AI arbitration types)
-- [ ] Implement AoE calculation utilities
-- [ ] Create Command base classes
-- [ ] Implement DamageCommand, HealingCommand
-- [ ] Convert 5 test spells (pure mechanical)
-- [ ] Unit tests
+**PROGRESS UPDATE (2025-12-05):**
 
-### Phase 2: Core Mechanics (Weeks 3-4)
-- [ ] Implement StatusConditionCommand
-- [ ] Add concentration tracking
-- [ ] Implement saving throw system
-- [ ] Add resistance/vulnerability
-- [ ] Convert 20 common spells
-- [ ] Integration tests
+### Phase 1: Foundation ✅ **COMPLETED**
+- [x] Define TypeScript interfaces (including AI arbitration types) - [src/types/spells.ts](../../src/types/spells.ts)
+- [ ] Implement AoE calculation utilities - ⚠️ Only circle implemented
+- [x] Create Command base classes - [src/commands/base/](../../src/commands/base/)
+- [x] Implement DamageCommand, HealingCommand - [src/commands/effects/](../../src/commands/effects/)
+- [x] Convert 5 test spells (pure mechanical) - Level 0 cantrips migrated
+- [x] Unit tests - [src/commands/__tests__/](../../src/commands/__tests__/)
 
-### Phase 3: Advanced Features (Weeks 5-6)
-- [ ] Implement remaining command types
+### Phase 2: Core Mechanics ⚠️ **IN PROGRESS**
+- [x] Implement StatusConditionCommand - [src/commands/effects/StatusConditionCommand.ts](../../src/commands/effects/StatusConditionCommand.ts)
+- [ ] Add concentration tracking - ❌ Not yet implemented
+- [ ] Implement saving throw system - ⚠️ Partial (types defined, logic incomplete)
+- [ ] Add resistance/vulnerability - ❌ Not yet implemented
+- [ ] Convert 20 common spells - ⚠️ In progress
+- [ ] Integration tests - ⚠️ Partial
+
+### Phase 3: Advanced Features ❌ **NOT STARTED**
+- [ ] Implement remaining command types (Movement, Summoning, Terrain, Utility, Defensive)
 - [ ] Add hybrid spell support
 - [ ] Multi-target selection UI
-- [ ] Spell upscaling UI
+- [ ] Spell upscaling UI - ⚠️ Logic exists in factory, UI not built
 - [ ] Convert 40 more spells
 
-### Phase 4: AI DM Integration (Weeks 7-9)
+### Phase 4: AI DM Integration ❌ **NOT STARTED** (Types defined only)
 - [ ] Build AISpellArbitrator service
 - [ ] Add material tagging to terrain system
 - [ ] Implement AI validation caching
@@ -1510,7 +1536,7 @@ interface Prop {
 - [ ] Convert 3 AI-DM spells (Suggestion, Minor Illusion, Prestidigitation)
 - [ ] Test AI fallback behavior
 
-### Phase 5: Migration & Polish (Weeks 10-11)
+### Phase 5: Migration & Polish ❌ **NOT STARTED**
 - [ ] Convert remaining spells
 - [ ] Remove legacy parser
 - [ ] Performance optimization

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CLASSES_DATA } from '../../data/classes';
+import { CLASSES_DATA } from '../../../data/classes';
 
 const BASE_CLASS_NAMES = Object.values(CLASSES_DATA).map(cls => cls.name);
 // Legacy spell data may include subclass-specific entries; keep them whitelisted in Title Case.
@@ -64,18 +64,42 @@ const Duration = z.object({
 });
 
 const EffectDuration = z.object({
-    type: z.enum(["rounds", "minutes", "special"]),
-    value: z.number().optional()
+  type: z.enum(["rounds", "minutes", "special"]),
+  value: z.number().optional()
+});
+
+const EscapeCheck = z.object({
+  ability: SavingThrowAbility.optional(),
+  skill: z.string().optional(),
+  dc: z.union([z.number(), z.literal("spell_save_dc")]),
+  actionCost: z.enum(["action", "bonus_action"]),
 });
 
 const EffectTrigger = z.object({
-  type: z.enum(["immediate", "after_primary", "turn_start", "turn_end"]),
+  type: z.enum(["immediate", "after_primary", "turn_start", "turn_end", "on_enter_area", "on_target_move", "on_attack_hit"]),
+  frequency: z.enum(["every_time", "first_per_turn", "once"]).optional(),
+});
+
+const TargetConditionFilter = z.object({
+  creatureType: z.array(z.string()).optional(),
+  size: z.array(z.string()).optional(),
+  alignment: z.array(z.string()).optional(),
+});
+
+const SaveModifier = z.object({
+  type: z.enum(["advantage", "disadvantage", "bonus", "penalty"]),
+  value: z.number().optional(),
+  appliesTo: TargetConditionFilter.optional(),
+  reason: z.string().optional(),
 });
 
 const EffectCondition = z.object({
   type: z.enum(["hit", "save", "always"]),
   saveType: SavingThrowAbility.optional(),
   saveEffect: z.enum(["none", "half", "negates_condition"]).optional(),
+  targetFilter: TargetConditionFilter.optional(),
+  requiresStatus: z.array(z.string()).optional(),
+  saveModifiers: z.array(SaveModifier).optional(),
 });
 
 const ScalingFormula = z.object({
@@ -111,9 +135,10 @@ const HealingEffect = BaseEffect.extend({
 });
 
 const StatusCondition = z.object({
-    name: z.string(),
-    duration: EffectDuration,
-    level: z.number().optional(),
+  name: z.string(),
+  duration: EffectDuration,
+  level: z.number().optional(),
+  escapeCheck: EscapeCheck.optional(),
 });
 
 const StatusConditionEffect = BaseEffect.extend({
@@ -133,6 +158,43 @@ const MovementEffect = BaseEffect.extend({
   duration: EffectDuration,
 });
 
+const GrantedAction = z.object({
+  type: z.enum(["action", "bonus_action", "reaction"]),
+  action: z.string(),
+  frequency: z.enum(["once", "each_turn", "while_active"]),
+  rangeLimit: z.number().optional(),
+  notes: z.string().optional(),
+});
+
+const AttackAugment = z.object({
+  attackType: z.enum(["weapon", "melee_weapon", "ranged_weapon"]),
+  additionalDamage: DamageData.optional(),
+  appliesOn: z.enum(["hit"]).optional(),
+});
+
+const FamiliarContract = z.object({
+  forms: z.array(z.string()),
+  telepathyRange: z.number(),
+  actionEconomy: z.object({
+    actsIndependently: z.boolean(),
+    canAttack: z.boolean(),
+  }),
+  sensesSharing: z.object({
+    actionType: z.enum(["action", "bonus_action", "reaction"]),
+    range: z.number(),
+  }).optional(),
+  touchDelivery: z.object({
+    enabled: z.boolean(),
+    range: z.number(),
+    usesReactionOf: z.enum(["familiar", "caster"]),
+  }).optional(),
+  dismissal: z.object({
+    method: z.literal("pocket_dimension"),
+    actionType: z.enum(["action", "bonus_action"]),
+  }).optional(),
+  notes: z.string().optional(),
+});
+
 const SummoningEffect = BaseEffect.extend({
   type: z.literal("SUMMONING"),
   summonType: z.enum(["creature", "object"]),
@@ -140,11 +202,13 @@ const SummoningEffect = BaseEffect.extend({
   objectDescription: z.string().optional(),
   count: z.number(),
   duration: EffectDuration,
+  familiarContract: FamiliarContract.optional(),
 });
 
 const AreaOfEffect = z.object({
-    shape: z.enum(["Cone", "Cube", "Cylinder", "Line", "Sphere"]),
-    size: z.number(),
+  shape: z.enum(["Cone", "Cube", "Cylinder", "Line", "Sphere", "Square"]),
+  size: z.number(),
+  height: z.number().optional(),
 });
 
 const TerrainEffect = BaseEffect.extend({
@@ -157,12 +221,15 @@ const TerrainEffect = BaseEffect.extend({
     hp: z.number(),
     ac: z.number(),
   }).optional(),
+  dispersedByStrongWind: z.boolean().optional(),
 });
 
 const UtilityEffect = BaseEffect.extend({
   type: z.literal("UTILITY"),
   utilityType: z.enum(["light", "communication", "creation", "information", "control", "sensory", "other"]),
   description: z.string(),
+  grantedActions: z.array(GrantedAction).optional(),
+  attackAugments: z.array(AttackAugment).optional(),
 });
 
 const DefensiveEffect = BaseEffect.extend({

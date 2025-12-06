@@ -1,0 +1,55 @@
+{
+  "id": "false-life",
+  "name": "False Life",
+  "level": 1,
+  "school": "Necromancy",
+  "classes": ["Artificer", "Sorcerer", "Wizard"],
+  "description": "You gain 2d4 + 4 Temporary Hit Points.",
+  "higherLevels": "You gain 5 additional Temporary Hit Points for each spell slot level above 1.",
+  "tags": ["temporary_hp", "necromancy"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a drop of alcohol"
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": ["self"],
+    "lineOfSight": false
+  },
+  "effects": [
+    {
+      "type": "HEALING",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "healing": {
+        "dice": "2d4+4",
+        "isTemporaryHp": true
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+5 temp HP"
+      }
+    }
+  ]
+}

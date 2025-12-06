@@ -90,7 +90,9 @@ export interface Spell {
   effects: SpellEffect[];
 
   // --- AI & Advanced Systems ---
+  // --- AI & Advanced Systems ---
   arbitrationType?: ArbitrationType;
+  aiContext?: AIContext;
 }
 
 /** The eight schools of magic in D&D 5e. */
@@ -168,8 +170,10 @@ export type TargetFilter = "creatures" | "objects" | "allies" | "enemies" | "sel
 
 /** Defines the shape and size of an area of effect. */
 export interface AreaOfEffect {
-  shape: "Cone" | "Cube" | "Cylinder" | "Line" | "Sphere";
+  shape: "Cone" | "Cube" | "Cylinder" | "Line" | "Sphere" | "Square";
   size: number; // in feet (e.g., radius for Sphere, length for Line)
+  /** Optional vertical dimension for planar effects like squares on the ground. */
+  height?: number;
 }
 
 /** Base interface for all targeting types. */
@@ -243,9 +247,19 @@ export type ConditionName =
   | "Grappled" | "Incapacitated" | "Invisible" | "Paralyzed" | "Petrified"
   | "Poisoned" | "Prone" | "Restrained" | "Stunned" | "Unconscious";
 
+/** Modifiers that adjust how a saving throw is made. */
+export interface SaveModifier {
+  type: "advantage" | "disadvantage" | "bonus" | "penalty";
+  value?: number;
+  appliesTo?: TargetConditionFilter;
+  reason?: string;
+}
+
 /** Defines the trigger for an effect. */
 export interface EffectTrigger {
-  type: "immediate" | "after_primary" | "turn_start" | "turn_end";
+  type: "immediate" | "after_primary" | "turn_start" | "turn_end" | "on_enter_area" | "on_target_move" | "on_attack_hit";
+  /** Controls how often this trigger can fire. Defaults to 'every_time' if not specified. */
+  frequency?: "every_time" | "first_per_turn" | "once";
 }
 
 /** Defines the condition under which an effect applies. */
@@ -253,6 +267,22 @@ export interface EffectCondition {
   type: "hit" | "save" | "always";
   saveType?: SavingThrowAbility;
   saveEffect?: "none" | "half" | "negates_condition";
+  /** Filter to apply effect only to specific target types. */
+  targetFilter?: TargetConditionFilter;
+  /** Require that the target already has certain conditions for this effect to apply. */
+  requiresStatus?: ConditionName[];
+  /** Adjustments applied when making a saving throw. */
+  saveModifiers?: SaveModifier[];
+}
+
+/** Filter for conditional effects based on target properties. */
+export interface TargetConditionFilter {
+  /** Creature types this effect applies to (e.g., ["Undead", "Construct"]) */
+  creatureType?: string[];
+  /** Size categories this effect applies to (e.g., ["Large", "Huge"]) */
+  size?: string[];
+  /** Alignments this effect applies to (e.g., ["Evil"]) */
+  alignment?: string[];
 }
 
 /** Base interface for all spell effects. */
@@ -297,12 +327,21 @@ export interface StatusCondition {
   name: ConditionName;
   duration: EffectDuration;
   level?: number;
+  escapeCheck?: EscapeCheck;
 }
 
 /** Defines how long an effect-specific condition lasts. */
 export interface EffectDuration {
   type: "rounds" | "minutes" | "special";
   value?: number;
+}
+
+/** Requirements to end a condition through an action or check. */
+export interface EscapeCheck {
+  ability?: SavingThrowAbility;
+  skill?: string;
+  dc: number | "spell_save_dc";
+  actionCost: "action" | "bonus_action";
 }
 
 /** A temporary or permanent modification to a character's stats. */
@@ -335,6 +374,7 @@ export interface SummoningEffect extends BaseEffect {
   objectDescription?: string; // Description for summoned objects
   count: number; // How many creatures/objects are summoned
   duration: EffectDuration;
+  familiarContract?: FamiliarContract;
 }
 
 /** An effect that creates or alters terrain. */
@@ -348,20 +388,23 @@ export interface TerrainEffect extends BaseEffect {
     hp: number;
     ac: number;
   };
+  dispersedByStrongWind?: boolean;
 }
 
 /** A non-combat or miscellaneous effect (e.g., creating light, communicating). */
 export interface UtilityEffect extends BaseEffect {
   type: "UTILITY";
   utilityType:
-    | "light"
-    | "communication"
-    | "creation"
-    | "information"
-    | "control"
-    | "sensory"
-    | "other";
+  | "light"
+  | "communication"
+  | "creation"
+  | "information"
+  | "control"
+  | "sensory"
+  | "other";
   description: string;
+  grantedActions?: GrantedAction[];
+  attackAugments?: AttackAugment[];
 }
 
 /** An effect that provides defensive bonuses (e.g., AC boost, resistance). */
@@ -372,6 +415,50 @@ export interface DefensiveEffect extends BaseEffect {
   damageType?: DamageType[]; // For resistance/immunity
   savingThrow?: SavingThrowAbility[]; // For advantage on saves
   duration: EffectDuration;
+}
+
+//==============================================================================
+// Advanced Effect Structures
+//==============================================================================
+
+/** Describes an action, bonus action, or reaction option granted while a spell is active. */
+export interface GrantedAction {
+  type: "action" | "bonus_action" | "reaction";
+  action: string;
+  frequency: "once" | "each_turn" | "while_active";
+  rangeLimit?: number;
+  notes?: string;
+}
+
+/** Adds structured rider effects to weapon attacks (e.g., extra radiant damage). */
+export interface AttackAugment {
+  attackType: "weapon" | "melee_weapon" | "ranged_weapon";
+  additionalDamage?: DamageData;
+  appliesOn?: "hit";
+}
+
+/** Provides machine-readable details for familiars created by spells. */
+export interface FamiliarContract {
+  forms: string[];
+  telepathyRange: number;
+  actionEconomy: {
+    actsIndependently: boolean;
+    canAttack: boolean;
+  };
+  sensesSharing?: {
+    actionType: "action" | "bonus_action" | "reaction";
+    range: number;
+  };
+  touchDelivery?: {
+    enabled: boolean;
+    range: number;
+    usesReactionOf: "familiar" | "caster";
+  };
+  dismissal?: {
+    method: "pocket_dimension";
+    actionType: "action" | "bonus_action";
+  };
+  notes?: string;
 }
 
 //==============================================================================

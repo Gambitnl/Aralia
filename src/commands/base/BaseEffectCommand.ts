@@ -44,11 +44,17 @@ export abstract class BaseEffectCommand implements SpellCommand {
 
   /**
    * Helper: Get targets from state
+   * Looks up targets from context in the current combat state to ensure we have up-to-date character data.
+   * Returns an empty array if no targets are found or if context.targets is undefined.
    */
   protected getTargets(state: CombatState): CombatCharacter[] {
+    if (!this.context?.targets || this.context.targets.length === 0) {
+      return []
+    }
+    
     return this.context.targets
       .map(t => state.characters.find(c => c.id === t.id))
-      .filter(Boolean) as CombatCharacter[]
+      .filter((c): c is CombatCharacter => c !== undefined)
   }
 
   /**

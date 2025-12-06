@@ -1,0 +1,54 @@
+{
+  "id": "compelled-duel",
+  "name": "Compelled Duel",
+  "level": 1,
+  "school": "Enchantment",
+  "classes": ["Paladin"],
+  "description": "You try to compel a creature into a duel. One creature that you can see within range makes a Wisdom saving throw. On a failed save, the target has Disadvantage on attack rolls against creatures other than you and can't willingly move to a space more than 30 feet away from you. The spell ends if you attack another creature, cast a spell on an enemy other than the target, an ally damages the target, or you end your turn more than 30 feet from the target.",
+  "higherLevels": "None",
+  "tags": ["control", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action",
+    "combatCost": {
+      "type": "bonus_action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 30,
+    "validTargets": ["creatures"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "negates_condition"
+      },
+      "utilityType": "control",
+      "description": "On a failed save, the target focuses on you: Disadvantage on attacks against others and cannot willingly move more than 30 feet away while the spell lasts; it ends if the listed break conditions occur."
+    }
+  ]
+}

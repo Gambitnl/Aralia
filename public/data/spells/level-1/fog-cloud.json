@@ -1,0 +1,68 @@
+{
+  "id": "fog-cloud",
+  "name": "Fog Cloud",
+  "level": 1,
+  "school": "Conjuration",
+  "classes": ["Druid", "Ranger", "Sorcerer", "Wizard"],
+  "description": "You create a 20-foot-radius Sphere of fog centered on a point within range. The Sphere is Heavily Obscured and lasts for the duration or until a strong wind disperses it.",
+  "higherLevels": "The fog's radius increases by 20 feet for each spell slot level above 1.",
+  "tags": ["terrain", "obscurement", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 120
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "area",
+    "range": 120,
+    "validTargets": ["point"],
+    "lineOfSight": true,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 20
+    }
+  },
+  "effects": [
+    {
+      "type": "TERRAIN",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "terrainType": "obscuring",
+      "areaOfEffect": {
+        "shape": "Sphere",
+        "size": 20
+      },
+      "duration": {
+        "type": "minutes",
+        "value": 60
+      },
+      "dispersedByStrongWind": true,
+      "scaling": {
+        "type": "slot_level",
+        "customFormula": "Increase radius by 20 feet for each slot level above 1."
+      }
+    }
+  ]
+}

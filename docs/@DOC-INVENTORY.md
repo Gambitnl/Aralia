@@ -48,7 +48,7 @@
 
 | Path | Created | Modified | Reviewed |
 |------|---------|----------|----------|
-| docs/architecture/@SPELL-SYSTEM-RESEARCH.md | 2025-11-27 | 2025-11-28 | November 27, 2025 |
+| docs/architecture/@SPELL-SYSTEM-RESEARCH.md | 2025-11-27 | 2025-12-05 | 2025-12-05 (Reviewed: added implementation status markers, verified all claims, updated roadmap. See SPELL-SYSTEM-RESEARCH-REVIEW.md) |
 | docs/architecture/SPELL_SYSTEM_ARCHITECTURE.md | 2025-11-23 | 2025-12-04 | 2025-12-04 (Reviewed: verified all file paths, added specific references) |
 
 ---
@@ -93,8 +93,8 @@
 
 | Path | Created | Modified | Reviewed |
 |------|---------|----------|----------|
-| 00-AGENT-COORDINATION.md | 2025-11-28 | 2025-11-28 | November 28, 2025 |
-| 00-DATA-VALIDATION-STRATEGY.md | 2025-11-28 | 2025-12-03 | November 28, 2025 |
+| 00-AGENT-COORDINATION.md | 2025-11-28 | 2025-12-06 | 2025-12-06 (Reviewed: Added agent status table, marked Phase 1 complete, documented coordination protocol usage vs. plan) |
+| 00-DATA-VALIDATION-STRATEGY.md | 2025-11-28 | 2025-12-03 | **NEXT FOR REVIEW** - November 28, 2025 (validation strategy needs verification against current spell data structure) |
 | 00-PARALLEL-ARCHITECTURE.md | 2025-12-02 | 2025-12-02 | November 28, 2025 |
 | 00-TASK-INDEX.md | 2025-12-02 | 2025-12-02 | - |
 | 1A-PROJECT-MASTER-SPRINGBOARD.md | 2025-12-02 | 2025-12-02 | November 30, 2025 |
@@ -117,7 +117,7 @@
 | 1Q-MIGRATE-CANTRIPS-BATCH-9.md | 2025-12-02 | 2025-12-03 | - |
 | @SPELL-AUDIT-CANTRIPS.md | 2025-12-02 | 2025-12-02 | - |
 | @SPELL-SYSTEM-OVERHAUL-TODO.md | 2025-12-04 | 2025-12-05 | 2025-12-05 (Moved from docs/ root) |
-| @WORKFLOW-SPELL-CONVERSION.md | 2025-12-02 | 2025-12-03 | **NEXT FOR REVIEW** |
+| @WORKFLOW-SPELL-CONVERSION.md | 2025-12-02 | 2025-12-03 | - |
 | AGENT-ALPHA-TYPES.md | 2025-11-28 | 2025-12-03 | November 28, 2025 |
 | AGENT-BETA-TARGETING.md | 2025-11-28 | 2025-11-28 | November 28, 2025 |
 | AGENT-DELTA-MECHANICS.md | 2025-11-28 | 2025-11-28 | November 28, 2025 |

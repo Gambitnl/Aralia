@@ -98,6 +98,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
         // Do not pass the in-progress selection as "known"—that would mark it as already learned and
         // erroneously disable confirmation. We only want to block feats for unmet prerequisites.
         knownFeats: [],
+        hasFightingStyle: !!(selectedClass?.fightingStyles && selectedClass.fightingStyles.length > 0),
       });
 
       return { ...feat, isEligible: eligibility.isEligible, unmet: eligibility.unmet };
@@ -327,7 +328,11 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
           <FeatSelection
             availableFeats={featOptions}
             selectedFeatId={state.selectedFeat || undefined}
+            featChoices={state.featChoices}
             onSelectFeat={handleFeatSelect}
+            onSetFeatChoice={(featId, choiceType, value) => {
+              dispatch({ type: 'SET_FEAT_CHOICE', payload: { featId, choiceType, value } });
+            }}
             onConfirm={handleFeatConfirm}
             onBack={goBack}
             hasEligibleFeats={hasEligibleFeats}

@@ -151,6 +151,7 @@ export const FEATS_DATA: Feat[] = [
       'Learn two cantrips and one 1st-level spell from a class list; cast the 1st-level spell once per long rest without a slot.',
     benefits: {
       abilityScoreIncrease: {},
+      selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
     },
   },
   {
@@ -214,6 +215,7 @@ export const FEATS_DATA: Feat[] = [
       'Choose acid, cold, fire, lightning, or thunder; your spells ignore resistance to that damage and treat 1s on damage dice as 2s.',
     benefits: {
       abilityScoreIncrease: {},
+      selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
     },
   },
   {
@@ -223,6 +225,7 @@ export const FEATS_DATA: Feat[] = [
       'Increase mental ability, learn Misty Step and one 1st-level divination or enchantment spell; cast each once per long rest for free.',
     benefits: {
       abilityScoreIncrease: {},
+      selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
     },
   },
   {
@@ -249,7 +252,8 @@ export const FEATS_DATA: Feat[] = [
     description:
       'Gain proficiency with heavy armor and increase Strength or Constitution.',
     benefits: {
-      abilityScoreIncrease: { Strength: 1, Constitution: 1 },
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ['Strength', 'Constitution'],
     },
   },
   {
@@ -320,7 +324,8 @@ export const FEATS_DATA: Feat[] = [
     description:
       'Gain proficiency with medium armor and shields; increase Strength or Dexterity.',
     benefits: {
-      abilityScoreIncrease: { Strength: 1, Dexterity: 1 },
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ['Strength', 'Dexterity'],
     },
   },
   {
@@ -329,7 +334,8 @@ export const FEATS_DATA: Feat[] = [
     description:
       'Gain advantage on melee attacks against unmounted smaller creatures, force attacks to target you instead of your mount, and give your mount evasion on Dexterity saves.',
     benefits: {
-      abilityScoreIncrease: { Strength: 1, Dexterity: 1 },
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ['Strength', 'Dexterity'],
     },
   },
   {
@@ -338,7 +344,8 @@ export const FEATS_DATA: Feat[] = [
     description:
       'Increase Strength or Dexterity; reroll one damage die on piercing attacks once per turn and crits with piercing weapons roll one additional damage die.',
     benefits: {
-      abilityScoreIncrease: { Strength: 1, Dexterity: 1 },
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ['Strength', 'Dexterity'],
     },
   },
   {
@@ -384,6 +391,7 @@ export const FEATS_DATA: Feat[] = [
       'Increase a mental stat; learn Invisibility and one 1st-level illusion or necromancy spell; each can be cast once per long rest for free.',
     benefits: {
       abilityScoreIncrease: {},
+      selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
     },
   },
   {
@@ -401,7 +409,8 @@ export const FEATS_DATA: Feat[] = [
     description:
       'Add shield bonus to Dex saves against effects targeting only you, use reaction to take no damage on successful Dex save vs half-damage effects, and shove as a bonus action after attacking.',
     benefits: {
-      abilityScoreIncrease: { Strength: 1, Dexterity: 1 },
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ['Strength', 'Dexterity'],
     },
   },
   {
@@ -411,6 +420,7 @@ export const FEATS_DATA: Feat[] = [
       'Increase one ability, gain proficiency in one skill, and expertise in one skill you’re proficient in.',
     benefits: {
       abilityScoreIncrease: {},
+      selectableAbilityScores: ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'],
       skillProficiencies: ['any'],
     },
   },
@@ -449,6 +459,7 @@ export const FEATS_DATA: Feat[] = [
       'Double the range of spell attacks, ignore half and three-quarters cover with spell attacks, learn one attack cantrip, and your spell attacks crit on 19–20.',
     benefits: {
       abilityScoreIncrease: {},
+      selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
     },
   },
   {
@@ -458,6 +469,7 @@ export const FEATS_DATA: Feat[] = [
       'Increase mental stat; gain Mage Hand with boosted range and bonus-action shove 5 feet on a failed Strength save.',
     benefits: {
       abilityScoreIncrease: {},
+      selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
     },
   },
   {
@@ -467,6 +479,7 @@ export const FEATS_DATA: Feat[] = [
       'Increase mental stat; gain Detect Thoughts once per long rest and can communicate telepathically with nearby creatures.',
     benefits: {
       abilityScoreIncrease: {},
+      selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
     },
   },
   {
@@ -484,7 +497,8 @@ export const FEATS_DATA: Feat[] = [
     description:
       'Gain proficiency with four weapons of your choice and increase Strength or Dexterity.',
     benefits: {
-      abilityScoreIncrease: { Strength: 1, Dexterity: 1 },
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ['Strength', 'Dexterity'],
     },
   },
   {
@@ -492,58 +506,88 @@ export const FEATS_DATA: Feat[] = [
     name: 'Archery Fighting Style',
     description:
       'You gain a +2 bonus to attack rolls you make with ranged weapons.',
+    prerequisites: {
+      requiresFightingStyle: true,
+    },
   },
   {
     id: 'defense_style',
     name: 'Defense Fighting Style',
     description: 'While you are wearing armor, you gain a +1 bonus to AC.',
+    prerequisites: {
+      requiresFightingStyle: true,
+    },
   },
   {
     id: 'dueling_style',
     name: 'Dueling Fighting Style',
     description:
       'When wielding a melee weapon in one hand and no other weapons, gain +2 damage on attacks with that weapon.',
+    prerequisites: {
+      requiresFightingStyle: true,
+    },
   },
   {
     id: 'great_weapon_fighting_style',
     name: 'Great Weapon Fighting Style',
     description:
       'When wielding a two-handed or versatile melee weapon, you can reroll 1s on damage dice (once per die).',
+    prerequisites: {
+      requiresFightingStyle: true,
+    },
   },
   {
     id: 'two_weapon_fighting_style',
     name: 'Two-Weapon Fighting Style',
     description:
       'When you engage in two-weapon fighting, add your ability modifier to the damage of the off-hand attack.',
+    prerequisites: {
+      requiresFightingStyle: true,
+    },
   },
   {
     id: 'protection_style',
     name: 'Protection Fighting Style',
     description:
       'While wielding a shield, you can use your reaction to impose disadvantage on an attack against an adjacent ally.',
+    prerequisites: {
+      requiresFightingStyle: true,
+    },
   },
   {
     id: 'interception_style',
     name: 'Interception Fighting Style',
     description:
       'While wielding a shield or simple/martial weapon, use your reaction to reduce damage to a nearby ally by 1d10 + proficiency bonus.',
+    prerequisites: {
+      requiresFightingStyle: true,
+    },
   },
   {
     id: 'unarmed_fighting_style',
     name: 'Unarmed Fighting Style',
     description:
       'Your unarmed strikes deal 1d8 damage when not wielding weapons or a shield; 1d6 otherwise; and grapples deal extra damage.',
+    prerequisites: {
+      requiresFightingStyle: true,
+    },
   },
   {
     id: 'blind_fighting_style',
     name: 'Blind Fighting Style',
     description:
       'You have blindsight with a range of 10 feet, allowing you to see anything not behind total cover in that radius.',
+    prerequisites: {
+      requiresFightingStyle: true,
+    },
   },
   {
     id: 'thrown_weapon_fighting_style',
     name: 'Thrown Weapon Fighting Style',
     description:
       'You can draw thrown weapons as part of the attack and gain +2 damage on ranged attacks with thrown weapons.',
+    prerequisites: {
+      requiresFightingStyle: true,
+    },
   },
 ];

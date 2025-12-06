@@ -3,11 +3,23 @@
   "name": "Chill Touch",
   "level": 0,
   "school": "Necromancy",
-  "classes": ["Sorcerer", "Warlock", "Wizard"],
-  "tags": ["damage", "necrotic", "ranged"],
+  "classes": [
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
+  "tags": [
+    "damage",
+    "necrotic",
+    "ranged"
+  ],
+  "ritual": false,
   "castingTime": {
     "value": 1,
-    "unit": "action"
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
   },
   "range": {
     "type": "ranged",
@@ -27,7 +39,9 @@
   "targeting": {
     "type": "single",
     "range": 120,
-    "validTargets": ["creature"],
+    "validTargets": [
+      "creatures"
+    ],
     "lineOfSight": true
   },
   "effects": [
@@ -71,7 +85,12 @@
         "type": "immediate"
       },
       "condition": {
-        "type": "hit"
+        "type": "hit",
+        "targetFilter": {
+          "creatureType": [
+            "Undead"
+          ]
+        }
       },
       "statusCondition": {
         "name": "Disadvantage on attacks vs. caster",

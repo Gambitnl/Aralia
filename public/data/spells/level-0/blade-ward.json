@@ -3,11 +3,23 @@
   "name": "Blade Ward",
   "level": 0,
   "school": "Abjuration",
-  "classes": ["Bard", "Sorcerer", "Warlock", "Wizard"],
-  "tags": ["defensive"],
+  "classes": [
+    "Bard",
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
+  "tags": [
+    "defensive",
+    "resistance"
+  ],
+  "ritual": false,
   "castingTime": {
     "value": 1,
-    "unit": "action"
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
   },
   "range": {
     "type": "self"
@@ -24,7 +36,11 @@
     "concentration": false
   },
   "targeting": {
-    "type": "self"
+    "type": "self",
+    "validTargets": [
+      "self"
+    ],
+    "lineOfSight": false
   },
   "effects": [
     {
@@ -36,7 +52,11 @@
         "type": "always"
       },
       "defenseType": "resistance",
-      "damageType": ["bludgeoning", "piercing", "slashing"],
+      "damageType": [
+        "Bludgeoning",
+        "Piercing",
+        "Slashing"
+      ],
       "duration": {
         "type": "rounds",
         "value": 1

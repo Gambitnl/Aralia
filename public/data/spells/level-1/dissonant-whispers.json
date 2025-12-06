@@ -1,0 +1,77 @@
+{
+  "id": "dissonant-whispers",
+  "name": "Dissonant Whispers",
+  "level": 1,
+  "school": "Enchantment",
+  "classes": ["Bard"],
+  "description": "One creature of your choice that you can see within range hears a discordant melody in its mind. The target makes a Wisdom saving throw. On a failed save, it takes 3d6 Psychic damage and must immediately use its Reaction, if available, to move as far away from you as it can by the safest route. On a successful save, the target takes half as much damage only.",
+  "higherLevels": "The damage increases by 1d6 for each spell slot level above 1.",
+  "tags": ["damage", "psychic", "control"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 60,
+    "validTargets": ["creatures", "enemies"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "half"
+      },
+      "damage": {
+        "dice": "3d6",
+        "type": "Psychic"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d6"
+      }
+    },
+    {
+      "type": "MOVEMENT",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "negates_condition"
+      },
+      "movementType": "push",
+      "duration": {
+        "type": "rounds"
+      },
+      "scaling": {
+        "type": "custom",
+        "customFormula": "On a failed save, the target uses its reaction to move away from you up to its speed by the safest route."
+      }
+    }
+  ]
+}

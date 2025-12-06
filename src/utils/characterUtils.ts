@@ -274,6 +274,10 @@ export const evaluateFeatPrerequisites = (
     });
   }
 
+  if (prerequisites?.requiresFightingStyle && !context.hasFightingStyle) {
+    unmet.push('Requires Fighting Style class feature');
+  }
+
   const alreadyTaken = context.knownFeats?.includes(feat.id);
   if (alreadyTaken) unmet.push('Already learned');
 
@@ -295,7 +299,14 @@ const getHpBonusPerLevelFromFeats = (featIds: string[]): number => featIds.reduc
  * This helper centralizes stat mutations so the creator and level-up paths
  * stay consistent.
  */
-export const applyFeatToCharacter = (character: PlayerCharacter, feat: Feat, options?: { applyHpBonus?: boolean }): PlayerCharacter => {
+export const applyFeatToCharacter = (
+  character: PlayerCharacter, 
+  feat: Feat, 
+  options?: { 
+    applyHpBonus?: boolean;
+    selectedAbilityScore?: AbilityScoreName; // For feats with selectable ASI
+  }
+): PlayerCharacter => {
   const updated: PlayerCharacter = { ...character };
   const applyHpBonus = options?.applyHpBonus ?? true;
 
@@ -305,7 +316,21 @@ export const applyFeatToCharacter = (character: PlayerCharacter, feat: Feat, opt
   }
 
   const benefit = feat.benefits;
-  if (benefit?.abilityScoreIncrease) {
+  
+  // Handle selectable ability score increases
+  if (benefit?.selectableAbilityScores && benefit.selectableAbilityScores.length > 0) {
+    const selectedAbility = options?.selectedAbilityScore;
+    if (selectedAbility && benefit.selectableAbilityScores.includes(selectedAbility)) {
+      const nextBase = { ...updated.abilityScores };
+      nextBase[selectedAbility] = Math.min(20, (nextBase[selectedAbility] || 0) + 1);
+      updated.abilityScores = nextBase;
+    } else if (!selectedAbility) {
+      // Log a warning if a feat with selectable ASI is applied without a selection
+      // This shouldn't happen in normal flow since UI requires selection, but helps with debugging
+      console.warn(`Feat ${feat.id} requires an ability score selection but none was provided. No ASI will be applied.`);
+    }
+  } else if (benefit?.abilityScoreIncrease) {
+    // Handle fixed ability score increases
     const nextBase = { ...updated.abilityScores };
     Object.entries(benefit.abilityScoreIncrease).forEach(([ability, increase]) => {
       const key = ability as AbilityScoreName;
@@ -348,10 +373,19 @@ export const applyFeatToCharacter = (character: PlayerCharacter, feat: Feat, opt
  * Applies many feats in order. Useful for the character creator preview where
  * the final sheet should reflect chosen feats.
  */
-export const applyAllFeats = (character: PlayerCharacter, featIds: string[]): PlayerCharacter => {
+export const applyAllFeats = (
+  character: PlayerCharacter, 
+  featIds: string[],
+  featChoices?: { [featId: string]: { selectedAbilityScore?: AbilityScoreName; [key: string]: any } }
+): PlayerCharacter => {
   return featIds.reduce((char, featId) => {
     const feat = FEATS_DATA.find(f => f.id === featId);
-    return feat ? applyFeatToCharacter(char, feat) : char;
+    if (!feat) return char;
+    
+    const choices = featChoices?.[featId];
+    return applyFeatToCharacter(char, feat, {
+      selectedAbilityScore: choices?.selectedAbilityScore,
+    });
   }, { ...character });
 };
 
@@ -449,7 +483,22 @@ export const performLevelUp = (
   if (featChosen) {
     const feat = FEATS_DATA.find(f => f.id === featChosen);
     if (feat) {
-      updatedCharacter = applyFeatToCharacter(updatedCharacter, feat, { applyHpBonus: false });
+      const featChoice = choices?.featChoices?.[featChosen];
+      updatedCharacter = applyFeatToCharacter(updatedCharacter, feat, { 
+        applyHpBonus: false,
+        selectedAbilityScore: featChoice?.selectedAbilityScore,
+      });
+      
+      // Store feat choices on the character if provided
+      if (featChoice && !updatedCharacter.featChoices) {
+        updatedCharacter.featChoices = {};
+      }
+      if (featChoice) {
+        updatedCharacter.featChoices = {
+          ...updatedCharacter.featChoices,
+          [featChosen]: featChoice,
+        };
+      }
     }
   }
 

@@ -1,0 +1,57 @@
+{
+  "id": "command",
+  "name": "Command",
+  "level": 1,
+  "school": "Enchantment",
+  "classes": ["Bard", "Cleric", "Paladin"],
+  "description": "You speak a one-word command to a creature you can see within range. The target must succeed on a Wisdom saving throw or follow the command on its next turn according to the option you choose (Approach, Drop, Flee, Grovel, or Halt).",
+  "higherLevels": "You can affect one additional creature for each spell slot level above 1.",
+  "tags": ["control", "enchantment"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "multi",
+    "range": 60,
+    "maxTargets": 1,
+    "validTargets": ["creatures"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "negates_condition"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1 target"
+      },
+      "utilityType": "control",
+      "description": "On a failed save, the target follows the one-word command on its next turn, which may force movement, dropping held items, or taking the Prone condition as directed."
+    }
+  ]
+}

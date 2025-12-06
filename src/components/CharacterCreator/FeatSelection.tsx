@@ -1,5 +1,5 @@
 import React from 'react';
-import { Feat } from '../../types';
+import { Feat, AbilityScoreName } from '../../types';
 
 interface FeatOption extends Feat {
   isEligible: boolean;
@@ -9,19 +9,35 @@ interface FeatOption extends Feat {
 interface FeatSelectionProps {
   availableFeats: FeatOption[];
   selectedFeatId?: string;
+  featChoices?: { [featId: string]: { selectedAbilityScore?: AbilityScoreName; [key: string]: any } };
   onSelectFeat: (featId: string) => void;
+  onSetFeatChoice: (featId: string, choiceType: string, value: any) => void;
   onConfirm: () => void;
   onBack?: () => void;
   hasEligibleFeats: boolean;
   dispatch: React.Dispatch<any>;
 }
 
-const FeatSelection: React.FC<FeatSelectionProps> = ({ availableFeats, selectedFeatId, onSelectFeat, onConfirm, onBack, hasEligibleFeats, dispatch }) => {
+const FeatSelection: React.FC<FeatSelectionProps> = ({ 
+  availableFeats, 
+  selectedFeatId, 
+  featChoices = {},
+  onSelectFeat, 
+  onSetFeatChoice,
+  onConfirm, 
+  onBack, 
+  hasEligibleFeats, 
+  dispatch 
+}) => {
   // We allow deselection so the feat step behaves like a voluntary choice rather than a hard blocker.
   const handleToggle = React.useCallback((featId: string, isDisabled: boolean) => {
     if (isDisabled) return;
     onSelectFeat(selectedFeatId === featId ? '' : featId);
   }, [onSelectFeat, selectedFeatId]);
+
+  const selectedFeat = selectedFeatId ? availableFeats.find(f => f.id === selectedFeatId) : null;
+  const hasSelectableASI = selectedFeat?.benefits?.selectableAbilityScores && selectedFeat.benefits.selectableAbilityScores.length > 0;
+  const selectedASI = selectedFeatId ? featChoices[selectedFeatId]?.selectedAbilityScore : undefined;
 
   return (
     <div className="flex flex-col h-full">
@@ -64,9 +80,14 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({ availableFeats, selectedF
                   <div className="text-xs text-gray-500 mt-2">
                       <strong className="text-gray-400">Benefits:</strong>
                       <ul className="list-disc list-inside mt-1">
+                          {feat.benefits.selectableAbilityScores && feat.benefits.selectableAbilityScores.length > 0 && (
+                            <li>
+                              Ability Score Increase: Choose one ({feat.benefits.selectableAbilityScores.join(', ')}) +1
+                            </li>
+                          )}
                           {feat.benefits.abilityScoreIncrease && Object.entries(feat.benefits.abilityScoreIncrease)
                             .filter(([, value]) => (value || 0) > 0)
-                            .length > 0 && (
+                            .length > 0 && !feat.benefits.selectableAbilityScores && (
                               <li>
                                 Ability Score Increase: {Object.entries(feat.benefits.abilityScoreIncrease)
                                   .filter(([, value]) => (value || 0) > 0)
@@ -107,8 +128,42 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({ availableFeats, selectedF
       </div>
 
       {selectedFeatId && (
-        <div className="mb-4 text-center text-sm text-amber-200">
-          <span className="font-semibold">Chosen feat:</span> {availableFeats.find(f => f.id === selectedFeatId)?.name}
+        <div className="mb-4 p-4 bg-gray-800/50 border border-amber-500/30 rounded-lg">
+          <div className="text-center text-sm text-amber-200 mb-3">
+            <span className="font-semibold">Chosen feat:</span> {selectedFeat?.name}
+          </div>
+          {hasSelectableASI && (
+            <div className="mt-3">
+              <label className="block text-sm text-gray-300 mb-2">
+                Select Ability Score to Increase:
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                {selectedFeat.benefits.selectableAbilityScores!.map((ability) => (
+                  <button
+                    key={ability}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSetFeatChoice(selectedFeatId, 'selectedAbilityScore', ability);
+                    }}
+                    className={`
+                      px-3 py-2 rounded border text-sm transition-colors
+                      ${selectedASI === ability
+                        ? 'bg-amber-600 border-amber-400 text-white'
+                        : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
+                      }
+                    `}
+                  >
+                    {ability} +1
+                  </button>
+                ))}
+              </div>
+              {!selectedASI && (
+                <p className="text-xs text-amber-300 mt-2">
+                  Please select an ability score to increase.
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -149,7 +204,10 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({ availableFeats, selectedF
             onClick={onConfirm}
             className="bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-6 rounded-lg transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
             aria-label="Confirm feat choice and continue"
-            disabled={!!selectedFeatId && !availableFeats.find(f => f.id === selectedFeatId)?.isEligible}
+            disabled={
+              (!!selectedFeatId && !availableFeats.find(f => f.id === selectedFeatId)?.isEligible) ||
+              (hasSelectableASI && !selectedASI)
+            }
           >
             Continue
           </button>

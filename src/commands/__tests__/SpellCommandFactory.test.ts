@@ -28,12 +28,12 @@ const createMockSpell = (id: string, overrides: Partial<Spell> = {}): Spell => (
 
 describe('SpellCommandFactory', () => {
   describe('createCommands', () => {
-    it('should create commands for simple damage spell', () => {
+    it('should create commands for simple damage spell', async () => {
       const fireball = createMockSpell('fireball', {
         effects: [{ type: 'DAMAGE', damage: { dice: '8d6', type: 'Fire' }, trigger: {type: 'immediate'}, condition: {type: 'hit'} }]
       })
 
-      const commands = SpellCommandFactory.createCommands(
+      const commands = await SpellCommandFactory.createCommands(
         fireball,
         mockCaster,
         [mockTarget],
@@ -45,7 +45,7 @@ describe('SpellCommandFactory', () => {
       expect(commands[0]).toBeInstanceOf(DamageCommand)
     })
 
-    it('should apply slot level scaling for Damage', () => {
+    it('should apply slot level scaling for Damage', async () => {
       const spell = createMockSpell('magic_missile', {
         level: 1,
         effects: [{
@@ -75,7 +75,7 @@ describe('SpellCommandFactory', () => {
           }]
         })
 
-      const commands = SpellCommandFactory.createCommands(
+      const commands = await SpellCommandFactory.createCommands(
         spellSimple,
         mockCaster,
         [mockTarget],

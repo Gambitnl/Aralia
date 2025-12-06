@@ -156,13 +156,24 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
                 <ul className="list-disc list-inside ml-4 text-sm">
                     {feats.map(featId => {
                         const feat = FEATS_DATA.find(f => f.id === featId);
-                        return feat ? (
+                        if (!feat) return null;
+                        
+                        const featChoice = characterPreview.featChoices?.[featId];
+                        const selectedASI = featChoice?.selectedAbilityScore;
+                        
+                        // Build display text with choices
+                        let displayText = feat.name;
+                        if (selectedASI && feat.benefits?.selectableAbilityScores) {
+                            displayText += ` (${selectedASI} +1)`;
+                        }
+                        
+                        return (
                             <li key={featId}>
                                 <Tooltip content={feat.description}>
-                                    <span className="cursor-help underline decoration-dotted">{feat.name}</span>
+                                    <span className="cursor-help underline decoration-dotted">{displayText}</span>
                                 </Tooltip>
                             </li>
-                        ) : null;
+                        );
                     })}
                 </ul>
             </div>

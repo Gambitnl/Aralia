@@ -1,0 +1,56 @@
+{
+  "id": "feather-fall",
+  "name": "Feather Fall",
+  "level": 1,
+  "school": "Transmutation",
+  "classes": ["Artificer", "Bard", "Sorcerer", "Wizard"],
+  "description": "Choose up to five falling creatures within range. A falling creature's rate of descent slows to 60 feet per round until the spell ends. If a creature lands before the spell ends, it takes no damage from the fall, and the spell ends for that creature.",
+  "higherLevels": "None",
+  "tags": ["reaction", "movement", "utility"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "reaction",
+    "reactionCondition": "when you or a creature you can see within 60 feet falls",
+    "combatCost": {
+      "type": "reaction",
+      "condition": "when you or a creature you can see within 60 feet falls"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": true,
+    "materialDescription": "a small feather or piece of down"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "multi",
+    "range": 60,
+    "maxTargets": 5,
+    "validTargets": ["creatures"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "utilityType": "other",
+      "description": "Targeted falling creatures descend at 60 feet per round and take no fall damage if they land before the spell ends."
+    }
+  ]
+}

@@ -18,12 +18,12 @@ interface CharacterTokenProps {
 }
 
 const getClassIcon = (classId: string) => {
-    switch (classId) {
-        case 'fighter': return '⚔️';
-        case 'wizard': return '🧙';
-        case 'cleric': return '✝️';
-        default: return '●';
-    }
+  switch (classId) {
+    case 'fighter': return '⚔️';
+    case 'wizard': return '🧙';
+    case 'cleric': return '✝️';
+    default: return '●';
+  }
 };
 
 const CharacterToken: React.FC<CharacterTokenProps> = ({ character, position, isSelected, isTargetable, isTurn, onClick }) => {
@@ -37,9 +37,9 @@ const CharacterToken: React.FC<CharacterTokenProps> = ({ character, position, is
     zIndex: 10,
     cursor: 'pointer',
   };
-  
+
   let borderColor = '#6B7280'; // gray-500 default
-  if(character.team === 'player') borderColor = '#3B82F6'; // blue-500 for player team
+  if (character.team === 'player') borderColor = '#3B82F6'; // blue-500 for player team
   else borderColor = '#991B1B'; // red-800 for enemy team
 
   if (isTargetable) {
@@ -89,8 +89,24 @@ const CharacterToken: React.FC<CharacterTokenProps> = ({ character, position, is
             </Tooltip>
           ))}
         </div>
-      )}
-    </div>
+        </div>
+  )
+}
+
+{/* Concentration Indicator */ }
+{
+  character.concentratingOn && (
+    <Tooltip content={`Concentrating on ${character.concentratingOn.spellName}`}>
+      <div
+        className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-purple-900 border border-purple-400 flex items-center justify-center text-xs shadow-md z-20"
+        style={{ animation: 'pulse 2s infinite' }}
+      >
+        🔮
+      </div>
+    </Tooltip>
+  )
+}
+    </div >
   );
 };
 
