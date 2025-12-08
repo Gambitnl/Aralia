@@ -1,0 +1,51 @@
+{
+  "id": "guidance",
+  "name": "Guidance",
+  "level": 0,
+  "school": "Divination",
+  "classes": ["CLERIC", "DRUID", "ARTIFICER"],
+  "description": "You touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one ability check of its choice. It can roll the die before or after making the ability check. The spell then ends.",
+  "higherLevels": "",
+  "tags": ["utility", "cantrip", "buff"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 5,
+    "validTargets": ["creatures", "allies"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "utilityType": "other",
+      "description": "Once before the spell ends, the target can add 1d4 to one ability check of its choice."
+    }
+  ]
+}

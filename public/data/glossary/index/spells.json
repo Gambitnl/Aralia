@@ -37,7 +37,7 @@
           "cantrip",
           "transmutation",
           "utility",
-          "druid"
+          "DRUID"
         ],
         "excerpt": "Whispering to the spirits of nature, you create one of several minor, harmless sensory effects within range.",
         "seeAlso": [
@@ -46,6 +46,24 @@
           "elementalism"
         ],
         "filePath": "/data/glossary/entries/spells/druidcraft.md"
+      },
+      {
+        "id": "dancing-lights",
+        "title": "Dancing Lights",
+        "category": "Spells",
+        "tags": ["cantrip", "evocation", "utility", "light", "artificer", "bard", "sorcerer", "wizard"],
+        "excerpt": "You create up to four torch-sized lights within range, making them appear as torches, lanterns, or glowing orbs that hover in the air for the duration.",
+        "seeAlso": ["light", "prestidigitation", "minor-illusion"],
+        "filePath": "/data/glossary/entries/spells/dancing-lights.md"
+      },
+      {
+        "id": "eldritch-blast",
+        "title": "Eldritch Blast",
+        "category": "Spells",
+        "tags": ["cantrip", "evocation", "damage", "force", "warlock"],
+        "excerpt": "A beam of crackling energy streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 force damage.",
+        "seeAlso": ["fire-bolt", "ray-of-frost", "chill-touch"],
+        "filePath": "/data/glossary/entries/spells/eldritch-blast.md"
       },
       {
         "id": "elementalism",
@@ -88,24 +106,15 @@
           "eldritch-blast",
           "chill-touch"
         ],
-        "filePath": "/data/glossary/entries/spells/fire_bolt.md"
+        "filePath": "/data/glossary/entries/spells/fire-bolt.md"
       },
       {
         "id": "guidance",
         "title": "Guidance",
         "category": "Spells",
-        "tags": [
-          "cantrip",
-          "divination",
-          "utility",
-          "buff",
-          "concentration"
-        ],
-        "excerpt": "You touch a willing creature and choose a skill, granting a d4 bonus to ability checks with that skill.",
-        "seeAlso": [
-          "ability_check",
-          "concentration"
-        ],
+        "tags": ["cantrip", "divination", "utility", "buff", "cleric", "druid", "artificer"],
+        "excerpt": "You touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one ability check of its choice.",
+        "seeAlso": ["resistance", "bless"],
         "filePath": "/data/glossary/entries/spells/guidance.md"
       },
       {
