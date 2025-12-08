@@ -1,15 +1,15 @@
 ---
-id: "guidance"
-title: "Guidance"
+id: "dancing-lights"
+title: "Dancing Lights"
 category: "Spells"
-tags: ["cantrip", "divination", "utility", "buff", "cleric", "druid", "artificer"]
-excerpt: "You touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one ability check of its choice."
-seeAlso: ["resistance", "bless"]
-filePath: "/data/glossary/entries/spells/guidance.md"
+tags: ["cantrip", "evocation", "utility", "light", "artificer", "bard", "sorcerer", "wizard"]
+excerpt: "You create up to four torch-sized lights within range, making them appear as torches, lanterns, or glowing orbs that hover in the air for the duration."
+seeAlso: ["light", "prestidigitation", "minor-illusion"]
+filePath: "/data/glossary/entries/spells/dancing-lights.md"
 ---
 <div class="spell-card">
   <div class="spell-card-header">
-    <h1 class="spell-card-title">Guidance</h1>
+    <h1 class="spell-card-title">Dancing Lights</h1>
   </div>
   <div class="spell-card-divider"></div>
   <div class="spell-card-stats-grid">
@@ -23,11 +23,11 @@ filePath: "/data/glossary/entries/spells/guidance.md"
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Range/Area</span>
-      <span class="spell-card-stat-value">Touch</span>
+      <span class="spell-card-stat-value">120 ft.</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Components</span>
-      <span class="spell-card-stat-value">V, S</span>
+      <span class="spell-card-stat-value">V, S, M</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Duration</span>
@@ -35,7 +35,7 @@ filePath: "/data/glossary/entries/spells/guidance.md"
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">School</span>
-      <span class="spell-card-stat-value">Divination</span>
+      <span class="spell-card-stat-value">Evocation</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Attack/Save</span>
@@ -48,7 +48,7 @@ filePath: "/data/glossary/entries/spells/guidance.md"
   </div>
   <div class="spell-card-divider"></div>
   <p class="spell-card-description">
-    You touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one ability check of its choice. It can roll the die before or after making the ability check. The spell then ends.
+    You create up to four torch-sized lights within range, making them appear as torches, lanterns, or glowing orbs that hover in the air for the duration. You can also combine the four lights into one glowing vaguely humanoid form of Medium size. Whichever form you choose, each light sheds dim light in a 10-foot radius.
   </p>
   <div class="spell-card-tags-section">
     <span class="spell-card-tags-label">Spell Tags:</span>
@@ -56,8 +56,9 @@ filePath: "/data/glossary/entries/spells/guidance.md"
   </div>
   <div class="spell-card-tags-section">
     <span class="spell-card-tags-label">Available For:</span>
-    <span class="spell-card-tag">CLERIC</span>
-    <span class="spell-card-tag">DRUID</span>
     <span class="spell-card-tag">ARTIFICER</span>
+    <span class="spell-card-tag">BARD</span>
+    <span class="spell-card-tag">SORCERER</span>
+    <span class="spell-card-tag">WIZARD</span>
   </div>
 </div>
