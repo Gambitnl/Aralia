@@ -1,0 +1,37 @@
+{
+  "id": "tensers-floating-disk",
+  "name": "Tenser's Floating Disk",
+  "level": 1,
+  "school": "Conjuration",
+  "classes": ["Wizard"],
+  "description": "This spell creates a circular, horizontal disk of force (3-foot diameter) that floats 3 feet above the ground in an unoccupied space of your choice within range. The disk lasts for the duration and can hold up to 500 pounds. If more weight is placed on it, the spell ends and anything on the disk falls to the ground. The disk remains within 20 feet of you and moves with you, staying within 20 feet; if you move farther, the disk follows to remain within 20 feet. It can cross uneven terrain but cannot cross pits or rises taller than 10 feet. If you move more than 100 feet from the disk, the spell ends.",
+  "higherLevels": "None",
+  "tags": ["utility", "ritual"],
+  "ritual": true,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" },
+    "explorationCost": { "value": 11, "unit": "minute" }
+  },
+  "range": { "type": "ranged", "distance": 30 },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a drop of mercury",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": { "type": "timed", "value": 1, "unit": "hour", "concentration": false },
+  "targeting": { "type": "area", "range": 30, "validTargets": ["point"], "lineOfSight": true, "areaOfEffect": { "shape": "Circle", "size": 3 } },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "creation",
+      "description": "Summons a 3-foot-diameter force disk that hovers 3 feet off the ground, carries up to 500 lb., and follows within 20 ft of you (ends if too far or overloaded)."
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "id": "sleep",
+  "name": "Sleep",
+  "level": 1,
+  "school": "Enchantment",
+  "classes": ["Bard", "Sorcerer", "Wizard"],
+  "description": "This spell sends creatures into a magical slumber. Roll 5d8; the total is how many hit points of creatures the spell can affect. Creatures within 20 feet of a point you choose within range are affected in ascending order of current hit points (ignoring unconscious). Each creature falls Unconscious until the spell ends, it takes damage, or someone uses an action to shake or slap it awake.",
+  "higherLevels": "Roll 2d8 additional hit points for each spell slot level above 1.",
+  "tags": ["control", "sleep"],
+  "ritual": false,
+  "castingTime": { "value": 1, "unit": "action", "combatCost": { "type": "action" } },
+  "range": { "type": "ranged", "distance": 90 },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a pinch of fine sand, rose petals, or a cricket",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": { "type": "timed", "value": 1, "unit": "minute", "concentration": false },
+  "targeting": {
+    "type": "area",
+    "range": 90,
+    "validTargets": ["creatures"],
+    "lineOfSight": true,
+    "areaOfEffect": { "shape": "Sphere", "size": 20 }
+  },
+  "effects": [
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "statusCondition": {
+        "name": "Unconscious",
+        "duration": { "type": "minutes", "value": 1 }
+      },
+      "description": "Applies in ascending HP order up to 5d8 HP of creatures; ends early on damage or if a creature is shaken awake."
+    }
+  ]
+}

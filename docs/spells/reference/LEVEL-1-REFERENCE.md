@@ -1,8 +1,8 @@
 # Level 1 Spell Reference (PHB 2024)
 
 Created: 2025-12-04 16:36 UTC  
-Last Updated: 2025-12-08 10:56 UTC  
-Scope: Batches 1-5 (spells 1-50 of 64, level 1 only) — process in batches ≤10, no cross-level mixing.
+Last Updated: 2025-12-08 11:00 UTC  
+Scope: Batches 1-6 (spells 1-60 of 64, level 1 only) — process in batches ≤10, no cross-level mixing.
 
 ## Field Requirements (aligned to `docs/tasks/spell-system-overhaul/archive/SPELL_TEMPLATE.json`)
 - Name; Level; School; Ritual (true/false)
@@ -850,6 +850,180 @@ Scope: Batches 1-5 (spells 1-50 of 64, level 1 only) — process in batches ≤1
 - **Description**: You blast a target with toxic energy, poisoning it on a failed save after a hit.
 - **At Higher Levels**: Damage increases by 1d8 per slot level above 1.
 - **Source**: PHB 2024 p.311 (https://dnd2024.wikidot.com/spell:ray-of-sickness)
+- **Status**: Complete
+
+---
+
+## Batch 6 — Spells 51-60 (in PHB order)
+
+### Sanctuary
+- **Level/School**: 1; Abjuration; Ritual: false
+- **Casting Time**: 1 bonus action (combat cost: bonus_action)
+- **Range**: 30 feet (ranged)
+- **Components**: V, S, M (a small silver mirror); Cost: 0 gp; Consumed: false
+- **Duration**: 1 minute; Concentration: false
+- **Classes**: Artificer, Cleric
+- **Targeting/Area**: One creature you can see within 30 feet; line of sight required
+- **Save/Attack**: Wisdom save (attacker reroutes on failed save)
+- **Damage/Healing**: None; Scaling: None
+- **Conditions Applied**: None
+- **Secondary Effects**: Attacker must choose a new target or lose the attack/harmful spell on a failed save; area effects bypass; spell ends early if the warded creature attacks, damages, or casts a harmful spell.
+- **Description**: You ward a creature against direct attacks, forcing aggressors to pass a Wisdom save or redirect.
+- **At Higher Levels**: None
+- **Source**: PHB 2024 p.313 (https://dnd2024.wikidot.com/spell:sanctuary)
+- **Status**: Complete
+
+### Searing Smite
+- **Level/School**: 1; Evocation; Ritual: false
+- **Casting Time**: 1 bonus action (combat cost: bonus_action)
+- **Range**: Self
+- **Components**: V; Materials: none; Consumed: false
+- **Duration**: Concentration, up to 1 minute
+- **Classes**: Paladin
+- **Targeting/Area**: Your next melee weapon hit before the spell ends (melee reach)
+- **Save/Attack**: Melee attack roll; Constitution saves at the start of target turns to end flames
+- **Damage/Healing**: +1d6 Fire on the first melee hit; ongoing 1d6 Fire at start of target turns; Scaling: +1d6 for each slot level above 1 to both initial and ongoing damage
+- **Conditions Applied**: None
+- **Secondary Effects**: Target ignites; audible/visual flames persist until it succeeds on a Constitution save.
+- **Description**: Your next melee hit flares with fire, dealing extra damage and igniting the target until it succeeds on a save.
+- **At Higher Levels**: Initial and ongoing fire damage each increase by 1d6 per slot level above 1.
+- **Source**: PHB 2024 p.314 (https://dnd2024.wikidot.com/spell:searing-smite)
+- **Status**: Complete
+
+### Shield
+- **Level/School**: 1; Abjuration; Ritual: false
+- **Casting Time**: 1 reaction (combat cost: reaction; condition: when you are hit by an attack or targeted by Magic Missile)
+- **Range**: Self
+- **Components**: V, S; Materials: none; Consumed: false
+- **Duration**: 1 round; Concentration: false
+- **Classes**: Sorcerer, Wizard
+- **Targeting/Area**: Self
+- **Save/Attack**: None
+- **Damage/Healing**: None; Scaling: None
+- **Conditions Applied**: None
+- **Secondary Effects**: Gain +5 AC until the start of your next turn (including against the triggering attack) and take no damage from Magic Missile.
+- **Description**: You conjure a momentary barrier of force that sharply boosts your defenses.
+- **At Higher Levels**: None
+- **Source**: PHB 2024 p.316 (https://dnd2024.wikidot.com/spell:shield)
+- **Status**: Complete
+
+### Shield of Faith
+- **Level/School**: 1; Abjuration; Ritual: false
+- **Casting Time**: 1 bonus action (combat cost: bonus_action)
+- **Range**: 60 feet (ranged)
+- **Components**: V, S, M (a tiny parchment with holy text); Cost: 0 gp; Consumed: false
+- **Duration**: Concentration, up to 10 minutes
+- **Classes**: Cleric, Paladin
+- **Targeting/Area**: One creature you can see within 60 feet; line of sight required
+- **Save/Attack**: None
+- **Damage/Healing**: None; Scaling: None
+- **Conditions Applied**: None
+- **Secondary Effects**: Target gains a +2 bonus to AC for the duration.
+- **Description**: A shimmering field of divine force guards a chosen creature.
+- **At Higher Levels**: None
+- **Source**: PHB 2024 p.316 (https://dnd2024.wikidot.com/spell:shield-of-faith)
+- **Status**: Complete
+
+### Silent Image
+- **Level/School**: 1; Illusion; Ritual: false
+- **Casting Time**: 1 action (combat cost: action)
+- **Range**: 60 feet (ranged)
+- **Components**: V, S, M (a bit of fleece); Cost: 0 gp; Consumed: false
+- **Duration**: Concentration, up to 10 minutes
+- **Classes**: Bard, Sorcerer, Wizard
+- **Targeting/Area**: 15-foot Cube illusion within 60 feet; line of sight required
+- **Save/Attack**: Investigation check (action) to discern illusion (DC your spell save DC)
+- **Damage/Healing**: None; Scaling: None
+- **Conditions Applied**: None
+- **Secondary Effects**: Intangible, silent image that can be moved up to 60 feet with an action; physical interaction reveals the illusion.
+- **Description**: You create and move a silent visual illusion up to a 15-foot cube.
+- **At Higher Levels**: None
+- **Source**: PHB 2024 p.317 (https://dnd2024.wikidot.com/spell:silent-image)
+- **Status**: Complete
+
+### Sleep
+- **Level/School**: 1; Enchantment; Ritual: false
+- **Casting Time**: 1 action (combat cost: action)
+- **Range**: 90 feet (ranged)
+- **Components**: V, S, M (a pinch of fine sand, rose petals, or a cricket); Cost: 0 gp; Consumed: false
+- **Duration**: 1 minute; Concentration: false
+- **Classes**: Bard, Sorcerer, Wizard
+- **Targeting/Area**: 20-foot-radius Sphere within 90 feet; line of sight required; affects creatures in ascending HP order
+- **Save/Attack**: None (HP pool determines targets)
+- **Damage/Healing**: None; Scaling: +2d8 HP worth of creatures per slot level above 1
+- **Conditions Applied**: Unconscious (ends on damage or being shaken awake)
+- **Secondary Effects**: Uses a 5d8 HP pool to apply Unconscious in ascending HP order; unaffected by current unconscious creatures.
+- **Description**: You magically lull nearby creatures to sleep based on their current hit points.
+- **At Higher Levels**: Add 2d8 to the total HP affected for each slot level above 1.
+- **Source**: PHB 2024 p.317 (https://dnd2024.wikidot.com/spell:sleep)
+- **Status**: Complete
+
+### Speak with Animals
+- **Level/School**: 1; Divination; Ritual: true
+- **Casting Time**: 1 action (combat cost: action; ritual casting 11 minutes)
+- **Range**: Self
+- **Components**: V, S; Materials: none; Consumed: false
+- **Duration**: 10 minutes; Concentration: false
+- **Classes**: Bard, Druid, Ranger, Warlock
+- **Targeting/Area**: Self; line of sight not required
+- **Save/Attack**: None
+- **Damage/Healing**: None; Scaling: None
+- **Conditions Applied**: None
+- **Secondary Effects**: Communicate verbally with Beasts about their surroundings, creatures, and events; you might coax small favors at GM discretion.
+- **Description**: You gain a temporary ability to converse with animals.
+- **At Higher Levels**: None
+- **Source**: PHB 2024 p.318 (https://dnd2024.wikidot.com/spell:speak-with-animals)
+- **Status**: Complete
+
+### Tasha's Hideous Laughter
+- **Level/School**: 1; Enchantment; Ritual: false
+- **Casting Time**: 1 action (combat cost: action)
+- **Range**: 30 feet (ranged)
+- **Components**: V, S, M (tiny tarts and a feather); Cost: 0 gp; Consumed: false
+- **Duration**: Concentration, up to 1 minute
+- **Classes**: Bard, Warlock, Wizard
+- **Targeting/Area**: One creature you can see within 30 feet; line of sight required
+- **Save/Attack**: Wisdom save (negates); repeat saves end effect (Advantage when triggered by damage)
+- **Damage/Healing**: None; Scaling: None
+- **Conditions Applied**: Prone; Incapacitated (cannot stand)
+- **Secondary Effects**: Target falls prone and is incapacitated on a failed save; repeats Wisdom save at end of turns and when taking damage (with Advantage if damage triggered).
+- **Description**: You afflict a creature with uncontrollable laughter, knocking it prone and incapacitating it until it saves.
+- **At Higher Levels**: None
+- **Source**: PHB 2024 p.331 (https://dnd2024.wikidot.com/spell:tashas-hideous-laughter)
+- **Status**: Complete
+
+### Tenser's Floating Disk
+- **Level/School**: 1; Conjuration; Ritual: true
+- **Casting Time**: 1 action (combat cost: action; ritual casting 11 minutes)
+- **Range**: 30 feet (ranged)
+- **Components**: V, S, M (a drop of mercury); Cost: 0 gp; Consumed: false
+- **Duration**: 1 hour; Concentration: false
+- **Classes**: Wizard
+- **Targeting/Area**: 3-foot-diameter disk in an unoccupied space within 30 feet; line of sight required
+- **Save/Attack**: None
+- **Damage/Healing**: None; Scaling: None
+- **Conditions Applied**: None
+- **Secondary Effects**: Disk hovers 3 feet above ground, holds up to 500 lb., follows within 20 feet, and fails if you move too far or overload it; struggles across pits/rises over 10 feet.
+- **Description**: You conjure a floating force disk that carries gear and trails you.
+- **At Higher Levels**: None
+- **Source**: PHB 2024 p.332 (https://dnd2024.wikidot.com/spell:tensers-floating-disk)
+- **Status**: Complete
+
+### Thunderous Smite
+- **Level/School**: 1; Evocation; Ritual: false
+- **Casting Time**: 1 bonus action (combat cost: bonus_action)
+- **Range**: Self
+- **Components**: V; Materials: none; Consumed: false
+- **Duration**: Concentration, up to 1 minute
+- **Classes**: Paladin
+- **Targeting/Area**: Your next melee weapon hit before the spell ends (melee reach)
+- **Save/Attack**: Melee attack roll; Strength save for push/prone rider
+- **Damage/Healing**: +2d6 Thunder on first hit; Scaling: +1d6 per slot level above 1
+- **Conditions Applied**: Prone (on failed save)
+- **Secondary Effects**: On failed Strength save, target is pushed 10 feet away and knocked prone; thunderous boom audible within 300 feet.
+- **Description**: Your next melee hit releases a thunderclap that deals extra damage and can hurl foes away.
+- **At Higher Levels**: The bonus thunder damage increases by 1d6 per slot level above 1.
+- **Source**: PHB 2024 p.334 (https://dnd2024.wikidot.com/spell:thunderous-smite)
 - **Status**: Complete
 
 ---

@@ -1,0 +1,32 @@
+{
+  "id": "shield-of-faith",
+  "name": "Shield of Faith",
+  "level": 1,
+  "school": "Abjuration",
+  "classes": ["Cleric", "Paladin"],
+  "description": "A shimmering field surrounds a creature of your choice within range, granting it a +2 bonus to AC for the duration.",
+  "higherLevels": "None",
+  "tags": ["buff", "protection", "concentration"],
+  "ritual": false,
+  "castingTime": { "value": 1, "unit": "bonus_action", "combatCost": { "type": "bonus_action" } },
+  "range": { "type": "ranged", "distance": 60 },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a tiny parchment with holy text",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": { "type": "timed", "value": 10, "unit": "minute", "concentration": true },
+  "targeting": { "type": "single", "range": 60, "validTargets": ["creatures", "allies"], "lineOfSight": true },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "other",
+      "description": "Target gains a +2 bonus to AC while you concentrate on the spell."
+    }
+  ]
+}

@@ -1743,7 +1743,7 @@
     "name": "Sanctuary",
     "level": 1,
     "school": "Abjuration",
-    "path": "/data/spells/sanctuary.json"
+    "path": "/data/spells/level-1/sanctuary.json"
   },
   "scorching-ray": {
     "name": "Scorching Ray",
@@ -1761,7 +1761,7 @@
     "name": "Searing Smite",
     "level": 1,
     "school": "Evocation",
-    "path": "/data/spells/searing-smite.json"
+    "path": "/data/spells/level-1/searing-smite.json"
   },
   "see-invisibility": {
     "name": "See Invisibility",
@@ -1803,13 +1803,13 @@
     "name": "Shield",
     "level": 1,
     "school": "Abjuration",
-    "path": "/data/spells/shield.json"
+    "path": "/data/spells/level-1/shield.json"
   },
   "shield-of-faith": {
     "name": "Shield of Faith",
     "level": 1,
     "school": "Abjuration",
-    "path": "/data/spells/shield-of-faith.json"
+    "path": "/data/spells/level-1/shield-of-faith.json"
   },
   "shillelagh": {
     "name": "Shillelagh",
@@ -1839,7 +1839,7 @@
     "name": "Silent Image",
     "level": 1,
     "school": "Illusion",
-    "path": "/data/spells/silent-image.json"
+    "path": "/data/spells/level-1/silent-image.json"
   },
   "simulacrum": {
     "name": "Simulacrum",
@@ -1863,7 +1863,7 @@
     "name": "Sleep",
     "level": 1,
     "school": "Enchantment",
-    "path": "/data/spells/sleep.json"
+    "path": "/data/spells/level-1/sleep.json"
   },
   "sleet-storm": {
     "name": "Sleet Storm",
@@ -1893,7 +1893,7 @@
     "name": "Speak with Animals",
     "level": 1,
     "school": "Divination",
-    "path": "/data/spells/speak-with-animals.json"
+    "path": "/data/spells/level-1/speak-with-animals.json"
   },
   "speak-with-dead": {
     "name": "Speak with Dead",
@@ -2013,7 +2013,7 @@
     "name": "Tasha's Hideous Laughter",
     "level": 1,
     "school": "Enchantment",
-    "path": "/data/spells/tashas-hideous-laughter.json"
+    "path": "/data/spells/level-1/tashas-hideous-laughter.json"
   },
   "telekinesis": {
     "name": "Telekinesis",
@@ -2032,6 +2032,12 @@
     "level": 5,
     "school": "Conjuration",
     "path": "/data/spells/teleportation-circle.json"
+  },
+  "tensers-floating-disk": {
+    "name": "Tenser's Floating Disk",
+    "level": 1,
+    "school": "Conjuration",
+    "path": "/data/spells/level-1/tensers-floating-disk.json"
   },
   "thaumaturgy": {
     "name": "Thaumaturgy",
@@ -2055,7 +2061,7 @@
     "name": "Thunderous Smite",
     "level": 1,
     "school": "Evocation",
-    "path": "/data/spells/thunderous-smite.json"
+    "path": "/data/spells/level-1/thunderous-smite.json"
   },
   "thunderwave": {
     "name": "Thunderwave",

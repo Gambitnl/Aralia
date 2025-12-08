@@ -1,0 +1,36 @@
+{
+  "id": "sanctuary",
+  "name": "Sanctuary",
+  "level": 1,
+  "school": "Abjuration",
+  "classes": ["Artificer", "Cleric"],
+  "description": "You ward a creature within range. Until the spell ends, any creature that targets the warded creature with an attack or a harmful spell must first make a Wisdom saving throw. On a failed save, the attacker must choose a new target or lose the attack or spell. This spell does not protect the warded creature from area effects. The spell ends if the warded creature makes an attack, casts a spell that affects an enemy, or deals damage to another creature.",
+  "higherLevels": "None",
+  "tags": ["protection", "ward"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action",
+    "combatCost": { "type": "bonus_action" }
+  },
+  "range": { "type": "ranged", "distance": 30 },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a small silver mirror",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": { "type": "timed", "value": 1, "unit": "minute", "concentration": false },
+  "targeting": { "type": "single", "range": 30, "validTargets": ["creatures", "allies"], "lineOfSight": true },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "control",
+      "description": "Attacker must succeed on a Wisdom save or choose a new target/lose the attack or spell; spell ends if warded creature attacks, damages, or casts a harmful spell. Area effects bypass this ward."
+    }
+  ]
+}

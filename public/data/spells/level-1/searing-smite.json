@@ -1,0 +1,36 @@
+{
+  "id": "searing-smite",
+  "name": "Searing Smite",
+  "level": 1,
+  "school": "Evocation",
+  "classes": ["Paladin"],
+  "description": "The next time you hit a creature with a melee weapon attack during the spell's duration, your weapon flare deals an extra 1d6 Fire damage and sets the target ablaze. At the start of each of its turns, the ignited target makes a Constitution saving throw; on a failed save it takes 1d6 Fire damage, and on a successful save the flames end.",
+  "higherLevels": "The extra damage increases by 1d6 for each spell slot level above 1.",
+  "tags": ["damage", "fire", "smite", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action",
+    "combatCost": { "type": "bonus_action" }
+  },
+  "range": { "type": "self" },
+  "components": { "verbal": true, "somatic": false, "material": false },
+  "duration": { "type": "timed", "value": 1, "unit": "minute", "concentration": true },
+  "targeting": { "type": "single", "range": 5, "validTargets": ["creatures", "enemies"], "lineOfSight": true },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "hit" },
+      "damage": { "dice": "1d6", "type": "Fire" },
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d6" }
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "turn_start", "frequency": "every_time" },
+      "condition": { "type": "save", "saveType": "Constitution", "saveEffect": "none" },
+      "damage": { "dice": "1d6", "type": "Fire" },
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d6" }
+    }
+  ]
+}

@@ -349,3 +349,28 @@ Both files are in new format but with inconsistencies:
 - [ ] **Mage Armor**: Base AC setting is stored in description via utility; schema lacks a structured “set base AC” defensive field.
 - [ ] **Protection from Evil and Good**: Disadvantage vs specific creature types and immunity to charm/frighten/possession are stored in description; no structured creature-type ward/attack-disadvantage fields.
 - [ ] **Grease-style repeating saves** remain unmodeled (enter/end-of-turn) but similar pattern applies if a general solution is added later.
+
+---
+
+## Batch 6 — Level 1 Spells 51-60
+
+**Timestamp:** 2025-12-08 11:00 UTC  
+**Spells:** sanctuary, searing-smite, shield, shield-of-faith, silent-image, sleep, speak-with-animals, tashas-hideous-laughter, tensers-floating-disk, thunderous-smite
+
+### Commands Run
+- `npm run lint` — Completed with existing warnings across codebase (no new errors).
+- `npm test` — Passed (CommandExecutor test logs expected “Boom” failure message).
+- `npx tsx scripts/regenerate-manifest.ts` — Passed (Generated manifest with 377 spells).
+- `npm run validate` — Failed initially (utilityType enums on new spells); reran after updating utilityType values to accepted enum — Passed.
+
+### Blockers
+- No blockers; all validation commands completed after minor schema enum fix.
+
+### System Gaps & Follow-up
+- [ ] **Sanctuary**: Attacker reroute/Wisdom save captured in prose; schema lacks an explicit “attacker must retarget or lose attack” hook.
+- [ ] **Smite Riders (Searing/Thunderous Smite)**: “Next melee hit before spell ends” trigger and per-hit rider damage are not explicitly modeled; schema lacks on-attack-hit gating and single-use triggers.
+- [ ] **AC Buffs (Shield, Shield of Faith)**: +5 AC until start of next turn and +2 AC while concentrating stored in description via utility; schema lacks structured AC bonus/base AC fields.
+- [ ] **Silent Image**: Investigation-on-action and physical interaction reveal mechanics are in prose; no structured interaction/contested-check fields.
+- [ ] **Sleep**: HP-pool targeting logic (5d8 + scaling, ascending HP order, sleep until damage/shaken) not represented structurally.
+- [ ] **Tasha’s Hideous Laughter**: Repeat saves each turn and advantage on saves when damage triggers are in prose; schema lacks repeat-save/advantage-on-trigger hooks.
+- [ ] **Tenser’s Floating Disk**: Follow/offset rules, 500 lb. capacity, and terrain/height constraints are described in text; schema lacks structured summon/vehicle payload and follow-distance fields.

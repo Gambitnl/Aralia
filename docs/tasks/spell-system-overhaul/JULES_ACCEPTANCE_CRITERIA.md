@@ -14,7 +14,7 @@ You are NOT done with a spell until **ALL** of the following are true.
 - [ ] **Templates Used**: You have used the templates provided in `docs/tasks/spell-system-overhaul/JULES_TASK_PROMPTS.md` (if applicable).
 
 ### B. Deliverables
-- [ ] **JSON File Created**: `public/data/spells/level-0/{id}.json` exists.
+- [ ] **JSON File Created**: `public/data/spells/level-{N}/{id}.json` exists (always nested by level; no flattened `public/data/spells/{id}.json` files).
 - [ ] **Glossary Entry Created**: `public/data/glossary/entries/spells/{id}.md` exists.
 - [ ] **Class Spell Lists Updated**: If the spell is new, add its ID to the appropriate class spell list(s) in `src/data/classes/index.ts` (e.g., `DRUID_SPELL_LIST`, `WIZARD_SPELL_LIST`). The `classes` array in the JSON must match the lists the spell is added to.
 - [ ] **Field Comparison Check (CRITICAL)**: If an old file exists at `public/data/spells/{id}.json`:
@@ -66,6 +66,7 @@ You are NOT done with a spell until **ALL** of the following are true.
 
 ### D. Validation
 - [ ] **Manifest Updated**: You have run `npx tsx scripts/regenerate-manifest.ts`.
+- [ ] **Manifest Paths Correct**: Generated manifest paths are nested (`/data/spells/level-{N}/{id}.json`); fix any flattened paths before commit.
 - [ ] **Validation Passed**: You have run `npm run validate` and it reports **0 errors** for your files.
 
 ### E. Logging

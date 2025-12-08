@@ -1,0 +1,38 @@
+{
+  "id": "silent-image",
+  "name": "Silent Image",
+  "level": 1,
+  "school": "Illusion",
+  "classes": ["Bard", "Sorcerer", "Wizard"],
+  "description": "You create the image of an object, creature, or other visible phenomenon no larger than a 15-foot cube within range. The image appears real but includes no sound, smell, or temperature. You can use an action to move the image up to 60 feet to a spot within range. Physical interaction reveals the illusion as insubstantial. A creature that uses its action to examine the image can determine it is an illusion with a successful Intelligence (Investigation) check against your spell save DC.",
+  "higherLevels": "None",
+  "tags": ["illusion", "control", "concentration"],
+  "ritual": false,
+  "castingTime": { "value": 1, "unit": "action", "combatCost": { "type": "action" } },
+  "range": { "type": "ranged", "distance": 60 },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a bit of fleece",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": { "type": "timed", "value": 10, "unit": "minute", "concentration": true },
+  "targeting": {
+    "type": "area",
+    "range": 60,
+    "validTargets": ["point"],
+    "lineOfSight": true,
+    "areaOfEffect": { "shape": "Cube", "size": 15 }
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "sensory",
+      "description": "Creates and moves a silent, intangible image up to a 15-foot cube; Investigation check (action) reveals the illusion."
+    }
+  ]
+}
