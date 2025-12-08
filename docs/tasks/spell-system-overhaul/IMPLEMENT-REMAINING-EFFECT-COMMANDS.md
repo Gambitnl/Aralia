@@ -1,12 +1,15 @@
 # Task: Implement Remaining Effect Command Types
 
-**Status:** Not Started
+**Status:** Completed
 **Priority:** Medium
 **Phase:** Phase 3 - Advanced Features
 **Estimated Effort:** 1 week
 **Source:** Identified in @SPELL-SYSTEM-RESEARCH.md review (2025-12-05)
 
 ---
+
+## Completion Log
+- 2025-12-08: Implemented teleport destination resolution, AoE-driven terrain marking, and coverage tests; task marked complete.
 
 ## Problem Statement
 

@@ -1,7 +1,8 @@
 // scripts/generateGlossaryIndex.js
 import fs from "fs";
 import path from "path";
-import glob from "glob";
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+import { glob } from "glob";
 import fm from "front-matter";
 
 const ENTRY_BASE_DIR = path.join(__dirname, "../public/data/glossary/entries"); // Corrected path
@@ -79,7 +80,7 @@ function buildIndex() {
     }
     acc[categoryKey].push(entry);
     return acc;
-  }, {} as Record<string, any[]>);
+  }, {});
 
   const categoryIndexFiles = [];
 
