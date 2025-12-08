@@ -1,0 +1,44 @@
+{
+  "id": "hail-of-thorns",
+  "name": "Hail of Thorns",
+  "level": 1,
+  "school": "Conjuration",
+  "classes": ["Ranger"],
+  "description": "As you hit a creature with a ranged weapon, thorns erupt from your weapon or ammunition. The target and each creature within 5 feet of it make a Dexterity saving throw, taking 1d10 Piercing damage on a failed save or half as much on a successful one.",
+  "higherLevels": "The damage increases by 1d10 for each spell slot level above 1.",
+  "tags": ["damage", "aoe"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action",
+    "combatCost": {
+      "type": "bonus_action",
+      "condition": "immediately after you hit with a ranged weapon"
+    }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": { "verbal": true, "somatic": false, "material": false },
+  "duration": { "type": "instantaneous", "concentration": false },
+  "targeting": {
+    "type": "area",
+    "range": 0,
+    "validTargets": ["creatures"],
+    "lineOfSight": false,
+    "areaOfEffect": { "shape": "Sphere", "size": 5 }
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Dexterity",
+        "saveEffect": "half"
+      },
+      "damage": { "dice": "1d10", "type": "Piercing" },
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d10" }
+    }
+  ]
+}

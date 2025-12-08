@@ -1,0 +1,25 @@
+{
+  "id": "hunters-mark",
+  "name": "Hunter's Mark",
+  "level": 1,
+  "school": "Divination",
+  "classes": ["Ranger"],
+  "description": "You magically mark a creature you can see within range as your quarry. Until the spell ends, you deal an extra 1d6 Force damage to the target whenever you hit it with an attack roll, and you have Advantage on Wisdom (Perception or Survival) checks to find it. If the target drops to 0 HP, you can use a Bonus Action to move the mark to a new creature within range. Higher-level slots extend duration (3–4: up to 8 hours; 5+: up to 24 hours).",
+  "higherLevels": "Duration extends: 3rd–4th up to 8 hours; 5th+ up to 24 hours.",
+  "tags": ["mark", "force", "concentration"],
+  "ritual": false,
+  "castingTime": { "value": 1, "unit": "bonus_action", "combatCost": { "type": "bonus_action" } },
+  "range": { "type": "ranged", "distance": 90 },
+  "components": { "verbal": true, "somatic": false, "material": false },
+  "duration": { "type": "timed", "value": 1, "unit": "hour", "concentration": true },
+  "targeting": { "type": "single", "range": 90, "validTargets": ["creatures", "enemies"], "lineOfSight": true },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "control",
+      "description": "Marked target takes +1d6 force damage on your attack hits, you have advantage on Perception/Survival to find it, and you can move the mark when it drops to 0 HP; duration can be extended with higher-level slots."
+    }
+  ]
+}

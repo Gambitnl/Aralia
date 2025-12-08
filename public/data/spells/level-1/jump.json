@@ -1,0 +1,25 @@
+{
+  "id": "jump",
+  "name": "Jump",
+  "level": 1,
+  "school": "Transmutation",
+  "classes": ["Artificer", "Druid", "Ranger", "Sorcerer", "Wizard"],
+  "description": "You touch a creature. The creature's jump distance is tripled for the duration.",
+  "higherLevels": "You can target one additional creature for each spell slot level above 1.",
+  "tags": ["movement"],
+  "ritual": false,
+  "castingTime": { "value": 1, "unit": "bonus_action", "combatCost": { "type": "bonus_action" } },
+  "range": { "type": "touch" },
+  "components": { "verbal": true, "somatic": true, "material": true, "materialDescription": "a grasshopper’s hind leg" },
+  "duration": { "type": "timed", "value": 1, "unit": "minute", "concentration": false },
+  "targeting": { "type": "single", "range": 5, "validTargets": ["creatures", "allies"], "lineOfSight": true },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "other",
+      "description": "Target's jump distance is tripled for the duration."
+    }
+  ]
+}

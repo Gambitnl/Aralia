@@ -1,0 +1,25 @@
+{
+  "id": "inflict-wounds",
+  "name": "Inflict Wounds",
+  "level": 1,
+  "school": "Necromancy",
+  "classes": ["Cleric"],
+  "description": "You channel negative energy into a creature you touch. Make a melee spell attack against the target. On a hit, the target takes 2d10 Necrotic damage.",
+  "higherLevels": "The damage increases by 1d10 for each spell slot level above 1.",
+  "tags": ["damage", "necrotic", "melee"],
+  "ritual": false,
+  "castingTime": { "value": 1, "unit": "action", "combatCost": { "type": "action" } },
+  "range": { "type": "touch" },
+  "components": { "verbal": true, "somatic": true, "material": false },
+  "duration": { "type": "instantaneous", "concentration": false },
+  "targeting": { "type": "single", "range": 5, "validTargets": ["creatures", "enemies"], "lineOfSight": true },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "hit" },
+      "damage": { "dice": "2d10", "type": "Necrotic" },
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d10" }
+    }
+  ]
+}

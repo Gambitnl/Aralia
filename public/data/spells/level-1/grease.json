@@ -1,0 +1,55 @@
+{
+  "id": "grease",
+  "name": "Grease",
+  "level": 1,
+  "school": "Conjuration",
+  "classes": ["Artificer", "Sorcerer", "Wizard"],
+  "description": "Nonflammable grease covers the ground in a 10-foot square centered on a point within range and turns it into Difficult Terrain for the duration. When the grease appears, each creature standing in its area must succeed on a Dexterity saving throw or fall Prone. A creature that enters the area or ends its turn there must also succeed on that save or fall Prone.",
+  "higherLevels": "None",
+  "tags": ["terrain", "control"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a bit of pork rind or butter"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "area",
+    "range": 60,
+    "validTargets": ["creatures", "ground"],
+    "lineOfSight": true,
+    "areaOfEffect": { "shape": "Cube", "size": 10 }
+  },
+  "effects": [
+    {
+      "type": "TERRAIN",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "terrainType": "difficult",
+      "areaOfEffect": { "shape": "Cube", "size": 10 },
+      "duration": { "type": "minutes", "value": 1 }
+    },
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "save", "saveType": "Dexterity", "saveEffect": "negates_condition" },
+      "statusCondition": { "name": "Prone", "duration": { "type": "rounds", "value": 0 } }
+    }
+  ]
+}

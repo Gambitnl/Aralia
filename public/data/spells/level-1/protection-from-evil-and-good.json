@@ -1,0 +1,25 @@
+{
+  "id": "protection-from-evil-and-good",
+  "name": "Protection from Evil and Good",
+  "level": 1,
+  "school": "Abjuration",
+  "classes": ["Cleric", "Druid", "Paladin", "Warlock", "Wizard"],
+  "description": "Until the spell ends, one willing creature you touch is protected against Aberrations, Celestials, Elementals, Fey, Fiends, and Undead. Those creatures have Disadvantage on attack rolls against the target. The target cannot be charmed, frightened, or possessed by them; if already affected, the target has Advantage on new saves against those effects.",
+  "higherLevels": "None",
+  "tags": ["defense", "concentration"],
+  "ritual": false,
+  "castingTime": { "value": 1, "unit": "action", "combatCost": { "type": "action" } },
+  "range": { "type": "touch" },
+  "components": { "verbal": true, "somatic": true, "material": true, "materialDescription": "a flask of holy water worth 25+ gp, consumed", "materialCost": 25, "isConsumed": true },
+  "duration": { "type": "timed", "value": 10, "unit": "minute", "concentration": true },
+  "targeting": { "type": "single", "range": 5, "validTargets": ["creatures", "allies"], "lineOfSight": true },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "control",
+      "description": "Creatures of specified types have disadvantage on attacks; target is immune to charm/frighten/possession from them and has advantage on new saves if already affected."
+    }
+  ]
+}

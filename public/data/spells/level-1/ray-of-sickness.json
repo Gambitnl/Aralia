@@ -1,0 +1,31 @@
+{
+  "id": "ray-of-sickness",
+  "name": "Ray of Sickness",
+  "level": 1,
+  "school": "Necromancy",
+  "classes": ["Sorcerer", "Wizard"],
+  "description": "A ray of sickening energy lashes out toward a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 2d8 Poison damage and must make a Constitution saving throw. On a failed save, it is poisoned until the end of your next turn.",
+  "higherLevels": "The damage increases by 1d8 for each spell slot level above 1.",
+  "tags": ["damage", "poison", "status"],
+  "ritual": false,
+  "castingTime": { "value": 1, "unit": "action", "combatCost": { "type": "action" } },
+  "range": { "type": "ranged", "distance": 60 },
+  "components": { "verbal": true, "somatic": true, "material": false },
+  "duration": { "type": "instantaneous", "concentration": false },
+  "targeting": { "type": "single", "range": 60, "validTargets": ["creatures", "enemies"], "lineOfSight": true },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "hit" },
+      "damage": { "dice": "2d8", "type": "Poison" },
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d8" }
+    },
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "save", "saveType": "Constitution", "saveEffect": "negates_condition" },
+      "statusCondition": { "name": "Poisoned", "duration": { "type": "rounds", "value": 1 } }
+    }
+  ]
+}

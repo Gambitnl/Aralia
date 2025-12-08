@@ -1,0 +1,37 @@
+{
+  "id": "ice-knife",
+  "name": "Ice Knife",
+  "level": 1,
+  "school": "Conjuration",
+  "classes": ["Druid", "Sorcerer", "Wizard"],
+  "description": "You create a shard of ice and fling it at one creature within range. Make a ranged spell attack; on a hit, the target takes 1d10 Piercing damage. Hit or miss, the shard explodes. The target and each creature within 5 feet of it must succeed on a Dexterity saving throw or take 2d6 Cold damage.",
+  "higherLevels": "The cold damage increases by 1d6 for each spell slot level above 1.",
+  "tags": ["damage", "cold", "aoe"],
+  "ritual": false,
+  "castingTime": { "value": 1, "unit": "action", "combatCost": { "type": "action" } },
+  "range": { "type": "ranged", "distance": 60 },
+  "components": { "verbal": false, "somatic": true, "material": true, "materialDescription": "a drop of water or piece of ice" },
+  "duration": { "type": "instantaneous", "concentration": false },
+  "targeting": {
+    "type": "hybrid",
+    "validTargets": ["creatures"],
+    "lineOfSight": true,
+    "primary": { "type": "single", "range": 60, "validTargets": ["creatures"], "lineOfSight": true },
+    "secondary": { "type": "area", "range": 0, "validTargets": ["creatures"], "lineOfSight": false, "areaOfEffect": { "shape": "Sphere", "size": 5 } }
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "hit" },
+      "damage": { "dice": "1d10", "type": "Piercing" }
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "after_primary" },
+      "condition": { "type": "save", "saveType": "Dexterity", "saveEffect": "half" },
+      "damage": { "dice": "2d6", "type": "Cold" },
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d6" }
+    }
+  ]
+}

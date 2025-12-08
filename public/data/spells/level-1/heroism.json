@@ -1,0 +1,25 @@
+{
+  "id": "heroism",
+  "name": "Heroism",
+  "level": 1,
+  "school": "Enchantment",
+  "classes": ["Bard", "Paladin"],
+  "description": "A willing creature you touch is imbued with bravery. Until the spell ends, the creature is immune to the Frightened condition and gains Temporary Hit Points equal to your spellcasting ability modifier at the start of each of its turns. When the spell ends, the target loses any remaining Temporary Hit Points from this spell.",
+  "higherLevels": "You can target one additional creature for each spell slot level above 1.",
+  "tags": ["buff", "concentration"],
+  "ritual": false,
+  "castingTime": { "value": 1, "unit": "action", "combatCost": { "type": "action" } },
+  "range": { "type": "touch" },
+  "components": { "verbal": true, "somatic": true, "material": false },
+  "duration": { "type": "timed", "value": 1, "unit": "minute", "concentration": true },
+  "targeting": { "type": "single", "range": 5, "validTargets": ["creatures", "allies"], "lineOfSight": true },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "other",
+      "description": "Target is immune to being Frightened and gains temp HP equal to your spellcasting ability modifier at the start of each of its turns; temp HP from the spell end when the spell ends."
+    }
+  ]
+}

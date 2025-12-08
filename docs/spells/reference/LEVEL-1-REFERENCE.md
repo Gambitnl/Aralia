@@ -1,8 +1,8 @@
 # Level 1 Spell Reference (PHB 2024)
 
 Created: 2025-12-04 16:36 UTC  
-Last Updated: 2025-12-06 20:46 UTC  
-Scope: Batches 1-3 (spells 1-30 of 64, level 1 only) — process in batches ≤10, no cross-level mixing.
+Last Updated: 2025-12-08 10:56 UTC  
+Scope: Batches 1-5 (spells 1-50 of 64, level 1 only) — process in batches ≤10, no cross-level mixing.
 
 ## Field Requirements (aligned to `docs/tasks/spell-system-overhaul/archive/SPELL_TEMPLATE.json`)
 - Name; Level; School; Ritual (true/false)
@@ -502,6 +502,354 @@ Scope: Batches 1-3 (spells 1-30 of 64, level 1 only) — process in batches ≤1
 - **Description**: You create a heavily obscuring fog sphere that persists while you concentrate or until dispersed.
 - **At Higher Levels**: The fog’s radius increases by 20 feet for each spell slot level above 1.
 - **Source**: PHB 2024 p.276 (https://dnd2024.wikidot.com/spell:fog-cloud)
+- **Status**: Complete
+
+---
+
+## Batch 4 — Spells 31-40 (in PHB order)
+
+### Goodberry
+- **Level/School**: 1; Conjuration; Ritual: false
+- **Casting Time**: 1 action (combat cost: action)
+- **Range**: Self
+- **Components**: V, S, M (a sprig of mistletoe); Cost: 0 gp; Consumed: false
+- **Duration**: 24 hours; Concentration: false
+- **Classes**: Druid, Ranger
+- **Targeting/Area**: Self; line of sight not required
+- **Save/Attack**: None
+- **Damage/Healing**: Each berry heals 1 HP when eaten; Scaling: None
+- **Conditions Applied**: None
+- **Secondary Effects**: Ten berries appear; each eaten as a Bonus Action heals 1 HP and provides a day of nourishment; uneaten berries vanish when the spell ends.
+- **Description**: You create ten magical berries lasting 24 hours that restore a small amount of health and sustain a creature.
+- **At Higher Levels**: None
+- **Source**: PHB 2024 p.280 (https://dnd2024.wikidot.com/spell:goodberry)
+- **Status**: Complete
+
+### Grease
+- **Level/School**: 1; Conjuration; Ritual: false
+- **Casting Time**: 1 action (combat cost: action)
+- **Range**: 60 feet (ranged)
+- **Components**: V, S, M (a bit of pork rind or butter); Cost: 0 gp; Consumed: false
+- **Duration**: 1 minute; Concentration: false
+- **Classes**: Artificer, Sorcerer, Wizard
+- **Targeting/Area**: 10-foot square (treated as Cube) within 60 feet; line of sight required
+- **Save/Attack**: Dexterity save to avoid falling Prone (on creation and on entering/ending turn)
+- **Damage/Healing**: None; Scaling: None
+- **Conditions Applied**: Prone on failed save
+- **Secondary Effects**: Area becomes Difficult Terrain; creatures entering or ending turns must repeat the Dexterity save or fall Prone.
+- **Description**: You coat the ground with nonflammable grease that hinders movement and knocks creatures Prone on failed saves.
+- **At Higher Levels**: None
+- **Source**: PHB 2024 p.280 (https://dnd2024.wikidot.com/spell:grease)
+- **Status**: Complete
+
+### Guiding Bolt
+- **Level/School**: 1; Evocation; Ritual: false
+- **Casting Time**: 1 action (combat cost: action)
+- **Range**: 120 feet (ranged)
+- **Components**: V, S; Materials: none; Consumed: false
+- **Duration**: 1 round; Concentration: false
+- **Classes**: Cleric
+- **Targeting/Area**: Single creature within 120 feet; line of sight required
+- **Save/Attack**: Ranged spell attack (on hit)
+- **Damage/Healing**: 4d6 Radiant; Scaling: +1d6 per slot level above 1
+- **Conditions Applied**: None
+- **Secondary Effects**: Next attack roll against the target before end of your next turn has Advantage.
+- **Description**: A bolt of radiant light strikes a target, dealing radiant damage and making it easier for allies to hit.
+- **At Higher Levels**: Damage increases by 1d6 per slot level above 1.
+- **Source**: PHB 2024 p.282 (https://dnd2024.wikidot.com/spell:guiding-bolt)
+- **Status**: Complete
+
+### Hail of Thorns
+- **Level/School**: 1; Conjuration; Ritual: false
+- **Casting Time**: 1 bonus action (combat cost: bonus_action; condition: after you hit with a ranged weapon)
+- **Range**: Self (burst at target)
+- **Components**: V; Materials: none; Consumed: false
+- **Duration**: Instantaneous; Concentration: false
+- **Classes**: Ranger
+- **Targeting/Area**: 5-foot radius around the creature you hit; line of sight not required for adjacent targets
+- **Save/Attack**: Dexterity save; Outcome: half damage on success
+- **Damage/Healing**: 1d10 Piercing; Scaling: +1d10 per slot level above 1
+- **Conditions Applied**: None
+- **Secondary Effects**: Affects the struck target and creatures within 5 feet.
+- **Description**: After a ranged weapon hit, thorns erupt harming the target and nearby creatures.
+- **At Higher Levels**: Damage increases by 1d10 per slot level above 1.
+- **Source**: PHB 2024 p.283 (https://dnd2024.wikidot.com/spell:hail-of-thorns)
+- **Status**: Complete
+
+### Healing Word
+- **Level/School**: 1; Abjuration; Ritual: false
+- **Casting Time**: 1 bonus action (combat cost: bonus_action)
+- **Range**: 60 feet (ranged)
+- **Components**: V; Materials: none; Consumed: false
+- **Duration**: Instantaneous; Concentration: false
+- **Classes**: Bard, Cleric, Druid
+- **Targeting/Area**: Single creature you can see within 60 feet; line of sight required
+- **Save/Attack**: None
+- **Damage/Healing**: Healing 2d4 + spellcasting ability modifier; Scaling: +2d4 per slot level above 1
+- **Conditions Applied**: None
+- **Secondary Effects**: None
+- **Description**: A quick word of restoration heals a visible creature at range.
+- **At Higher Levels**: The healing increases by 2d4 for each slot level above 1.
+- **Source**: PHB 2024 p.284 (https://dnd2024.wikidot.com/spell:healing-word)
+- **Status**: Complete
+
+### Hellish Rebuke
+- **Level/School**: 1; Evocation; Ritual: false
+- **Casting Time**: 1 reaction (condition: when a creature you can see within 60 feet damages you; combat cost: reaction)
+- **Range**: 60 feet (ranged)
+- **Components**: V, S; Materials: none; Consumed: false
+- **Duration**: Instantaneous; Concentration: false
+- **Classes**: Warlock
+- **Targeting/Area**: Single creature that damaged you; line of sight required
+- **Save/Attack**: Dexterity save; Outcome: half damage on success
+- **Damage/Healing**: 2d10 Fire; Scaling: +1d10 per slot level above 1
+- **Conditions Applied**: None
+- **Secondary Effects**: None
+- **Description**: You retaliate with green flames, forcing the attacker to make a Dexterity save against fiery damage.
+- **At Higher Levels**: Damage increases by 1d10 per slot level above 1.
+- **Source**: PHB 2024 p.284 (https://dnd2024.wikidot.com/spell:hellish-rebuke)
+- **Status**: Complete
+
+### Heroism
+- **Level/School**: 1; Enchantment; Ritual: false
+- **Casting Time**: 1 action (combat cost: action)
+- **Range**: Touch
+- **Components**: V, S; Materials: none; Consumed: false
+- **Duration**: Concentration, up to 1 minute
+- **Classes**: Bard, Paladin
+- **Targeting/Area**: One willing creature you touch (5 feet); line of sight required
+- **Save/Attack**: None
+- **Damage/Healing**: Temporary HP equal to your spellcasting ability modifier each turn; Scaling: +1 target per slot level above 1
+- **Conditions Applied**: Immune to Frightened
+- **Secondary Effects**: Temp HP granted at start of each target turn; temp HP from this spell end when the spell ends.
+- **Description**: You bolster a willing creature with bravery, granting immunity to Frightened and recurring temporary hit points while you concentrate.
+- **At Higher Levels**: Target one additional creature per slot level above 1.
+- **Source**: PHB 2024 p.285 (https://dnd2024.wikidot.com/spell:heroism)
+- **Status**: Complete
+
+### Hex
+- **Level/School**: 1; Enchantment; Ritual: false
+- **Casting Time**: 1 bonus action (combat cost: bonus_action)
+- **Range**: 90 feet (ranged)
+- **Components**: V, S, M (the petrified eye of a newt); Cost: 0 gp; Consumed: false
+- **Duration**: Concentration, up to 1 hour (extended with higher slots)
+- **Classes**: Warlock
+- **Targeting/Area**: Single creature you can see within 90 feet; line of sight required
+- **Save/Attack**: None
+- **Damage/Healing**: Extra 1d6 Necrotic to target when you hit it; Scaling: duration extension (2nd: 4 hours; 3rd–4th: 8 hours; 5th+: 24 hours)
+- **Conditions Applied**: Disadvantage on checks for chosen ability
+- **Secondary Effects**: Can move the curse to a new target with a Bonus Action if the original drops to 0 HP.
+- **Description**: You curse a creature, adding necrotic damage to your hits, imposing check disadvantage on a chosen ability, and allowing the curse to transfer when the target falls.
+- **At Higher Levels**: Extends concentration duration as noted above.
+- **Source**: PHB 2024 p.285 (https://dnd2024.wikidot.com/spell:hex)
+- **Status**: Complete
+
+### Hunter's Mark
+- **Level/School**: 1; Divination; Ritual: false
+- **Casting Time**: 1 bonus action (combat cost: bonus_action)
+- **Range**: 90 feet (ranged)
+- **Components**: V; Materials: none; Consumed: false
+- **Duration**: Concentration, up to 1 hour (extended with higher slots)
+- **Classes**: Ranger
+- **Targeting/Area**: Single creature you can see within 90 feet; line of sight required
+- **Save/Attack**: None
+- **Damage/Healing**: Extra 1d6 Force on your attack hits; Scaling: duration extension (3rd–4th: 8 hours; 5th+: 24 hours)
+- **Conditions Applied**: None
+- **Secondary Effects**: Advantage on Wisdom (Perception or Survival) checks to find the marked target; can move the mark to a new creature with a Bonus Action when the target drops to 0 HP.
+- **Description**: You mark a quarry to deal extra damage on hits and track it more easily; the mark can be reassigned when the target falls.
+- **At Higher Levels**: Duration increases with higher-level slots.
+- **Source**: PHB 2024 p.287 (https://dnd2024.wikidot.com/spell:hunter-s-mark)
+- **Status**: Complete
+
+### Ice Knife
+- **Level/School**: 1; Conjuration; Ritual: false
+- **Casting Time**: 1 action (combat cost: action)
+- **Range**: 60 feet (ranged)
+- **Components**: S, M (a drop of water or piece of ice); Cost: 0 gp; Consumed: false
+- **Duration**: Instantaneous; Concentration: false
+- **Classes**: Druid, Sorcerer, Wizard
+- **Targeting/Area**: Hybrid—primary single target within 60 feet; secondary 5-foot Sphere around target; line of sight required for primary
+- **Save/Attack**: Primary ranged spell attack (hit); Secondary Dexterity save (half)
+- **Damage/Healing**: Primary 1d10 Piercing; Secondary 2d6 Cold; Scaling: Secondary cold damage +1d6 per slot level above 1
+- **Conditions Applied**: None
+- **Secondary Effects**: Shard explodes after the primary attack, affecting nearby creatures.
+- **Description**: You throw an icy dagger that damages a target on hit and explodes to damage nearby creatures on a Dexterity save.
+- **At Higher Levels**: Cold explosion damage increases by 1d6 per slot level above 1.
+- **Source**: PHB 2024 p.287 (https://dnd2024.wikidot.com/spell:ice-knife)
+- **Status**: Complete
+
+---
+
+## Batch 5 — Spells 41-50 (in PHB order)
+
+### Identify
+- **Level/School**: 1; Divination; Ritual: true
+- **Casting Time**: 1 minute (combat cost: action; ritual casting 11 minutes)
+- **Range**: Touch
+- **Components**: V, S, M (a pearl worth 100+ gp and an owl feather); Consumed: false
+- **Duration**: Instantaneous; Concentration: false
+- **Classes**: Artificer, Bard, Wizard
+- **Targeting/Area**: One object touched; line of sight required
+- **Save/Attack**: None
+- **Damage/Healing**: None; Scaling: None
+- **Conditions Applied**: None
+- **Secondary Effects**: Learn properties, charges, usage, attunement needs, active spells, and the spell that created the item if applicable.
+- **Description**: You analyze a magic item or imbued object to reveal its properties and magical context.
+- **At Higher Levels**: None
+- **Source**: PHB 2024 p.287 (https://dnd2024.wikidot.com/spell:identify)
+- **Status**: Complete
+
+### Illusory Script
+- **Level/School**: 1; Illusion; Ritual: true
+- **Casting Time**: 1 minute (combat cost: action; ritual casting 11 minutes)
+- **Range**: Touch
+- **Components**: S, M (ink worth 10+ gp, consumed); Cost: 10 gp; Consumed: true
+- **Duration**: 10 days; Concentration: false
+- **Classes**: Bard, Warlock, Wizard
+- **Targeting/Area**: Writing material you touch; line of sight required
+- **Save/Attack**: None
+- **Damage/Healing**: None; Scaling: None
+- **Conditions Applied**: None
+- **Secondary Effects**: Designated creatures read the true message; others see false text. Truesight reveals the original; magic reading shows both.
+- **Description**: You inscribe text veiled by illusion, controlling who can read the true message for the duration.
+- **At Higher Levels**: None
+- **Source**: PHB 2024 p.288 (https://dnd2024.wikidot.com/spell:illusory-script)
+- **Status**: Complete
+
+### Inflict Wounds
+- **Level/School**: 1; Necromancy; Ritual: false
+- **Casting Time**: 1 action (combat cost: action)
+- **Range**: Touch
+- **Components**: V, S; Materials: none; Consumed: false
+- **Duration**: Instantaneous; Concentration: false
+- **Classes**: Cleric
+- **Targeting/Area**: One creature you touch; line of sight required
+- **Save/Attack**: Melee spell attack (on hit)
+- **Damage/Healing**: 2d10 Necrotic; Scaling: +1d10 per slot level above 1
+- **Conditions Applied**: None
+- **Secondary Effects**: None
+- **Description**: You deliver necrotic energy through a touch attack, harming the target on a hit.
+- **At Higher Levels**: The damage increases by 1d10 for each slot level above 1.
+- **Source**: PHB 2024 p.288 (https://dnd2024.wikidot.com/spell:inflict-wounds)
+- **Status**: Complete
+
+### Jump
+- **Level/School**: 1; Transmutation; Ritual: false
+- **Casting Time**: 1 bonus action (combat cost: bonus_action)
+- **Range**: Touch
+- **Components**: V, S, M (a grasshopper’s hind leg); Cost: 0 gp; Consumed: false
+- **Duration**: 1 minute; Concentration: false
+- **Classes**: Artificer, Druid, Ranger, Sorcerer, Wizard
+- **Targeting/Area**: One creature you touch; line of sight required
+- **Save/Attack**: None
+- **Damage/Healing**: None; Scaling: +1 target per slot level above 1
+- **Conditions Applied**: None
+- **Secondary Effects**: Target’s jump distance is tripled for the duration.
+- **Description**: You enhance mobility, tripling the target’s jump distance.
+- **At Higher Levels**: You can target one additional creature for each slot level above 1.
+- **Source**: PHB 2024 p.290 (https://dnd2024.wikidot.com/spell:jump)
+- **Status**: Complete
+
+### Longstrider
+- **Level/School**: 1; Transmutation; Ritual: false
+- **Casting Time**: 1 action (combat cost: action)
+- **Range**: Touch
+- **Components**: V, S, M (a pinch of dirt); Cost: 0 gp; Consumed: false
+- **Duration**: 1 hour; Concentration: false
+- **Classes**: Artificer, Bard, Druid, Ranger, Wizard
+- **Targeting/Area**: One creature you touch; line of sight required
+- **Save/Attack**: None
+- **Damage/Healing**: None; Scaling: +1 target per slot level above 1
+- **Conditions Applied**: None
+- **Secondary Effects**: Target’s speed increases by 10 feet for the duration.
+- **Description**: You increase the target’s movement speed for an hour.
+- **At Higher Levels**: You can target one additional creature for each slot level above 1.
+- **Source**: PHB 2024 p.293 (https://dnd2024.wikidot.com/spell:longstrider)
+- **Status**: Complete
+
+### Mage Armor
+- **Level/School**: 1; Abjuration; Ritual: false
+- **Casting Time**: 1 action (combat cost: action)
+- **Range**: Touch
+- **Components**: V, S, M (a piece of cured leather); Cost: 0 gp; Consumed: false
+- **Duration**: 8 hours; Concentration: false
+- **Classes**: Sorcerer, Wizard
+- **Targeting/Area**: One willing unarmored creature you touch; line of sight required
+- **Save/Attack**: None
+- **Damage/Healing**: None; Scaling: None
+- **Conditions Applied**: None
+- **Secondary Effects**: Sets base AC to 13 + Dex modifier; ends if target dons armor or you dismiss it.
+- **Description**: You ward an unarmored creature with a lasting magical defense.
+- **At Higher Levels**: None
+- **Source**: PHB 2024 p.293 (https://dnd2024.wikidot.com/spell:mage-armor)
+- **Status**: Complete
+
+### Magic Missile
+- **Level/School**: 1; Evocation; Ritual: false
+- **Casting Time**: 1 action (combat cost: action)
+- **Range**: 120 feet (ranged)
+- **Components**: V, S; Materials: none; Consumed: false
+- **Duration**: Instantaneous; Concentration: false
+- **Classes**: Sorcerer, Wizard
+- **Targeting/Area**: Up to 3 creatures within 120 feet; line of sight required
+- **Save/Attack**: Auto-hit
+- **Damage/Healing**: 1d4 + 1 Force per dart (3 darts); Scaling: +1 dart per slot level above 1
+- **Conditions Applied**: None
+- **Secondary Effects**: Darts can be split among targets.
+- **Description**: You launch auto-hitting force darts that can strike one or several targets.
+- **At Higher Levels**: The spell creates one more dart for each slot level above 1.
+- **Source**: PHB 2024 p.295 (https://dnd2024.wikidot.com/spell:magic-missile)
+- **Status**: Complete
+
+### Protection from Evil and Good
+- **Level/School**: 1; Abjuration; Ritual: false
+- **Casting Time**: 1 action (combat cost: action)
+- **Range**: Touch
+- **Components**: V, S, M (a flask of holy water worth 25+ gp, consumed); Cost: 25 gp; Consumed: true
+- **Duration**: Concentration, up to 10 minutes
+- **Classes**: Cleric, Druid, Paladin, Warlock, Wizard
+- **Targeting/Area**: One willing creature you touch; line of sight required
+- **Save/Attack**: None
+- **Damage/Healing**: None; Scaling: None
+- **Conditions Applied**: Immunity to charm, fright, and possession by Aberration, Celestial, Elemental, Fey, Fiend, or Undead
+- **Secondary Effects**: Listed creature types have Disadvantage on attack rolls against the target; if already affected, target has Advantage on new saves vs. those effects.
+- **Description**: You ward a creature against specified creature types, hindering their attacks and mental effects.
+- **At Higher Levels**: None
+- **Source**: PHB 2024 p.309 (https://dnd2024.wikidot.com/spell:protection-from-evil-and-good)
+- **Status**: Complete
+
+### Purify Food and Drink
+- **Level/School**: 1; Transmutation; Ritual: true
+- **Casting Time**: 1 action (combat cost: action; ritual casting 11 minutes)
+- **Range**: 10 feet (ranged)
+- **Components**: V, S; Materials: none; Consumed: false
+- **Duration**: Instantaneous; Concentration: false
+- **Classes**: Artificer, Cleric, Druid, Paladin
+- **Targeting/Area**: 5-foot-radius Sphere within 10 feet; line of sight required
+- **Save/Attack**: None
+- **Damage/Healing**: None; Scaling: None
+- **Conditions Applied**: None
+- **Secondary Effects**: Removes poison and rot from nonmagical food and drink in the area.
+- **Description**: You cleanse nearby food and drink of spoilage and poison.
+- **At Higher Levels**: None
+- **Source**: PHB 2024 p.310 (https://dnd2024.wikidot.com/spell:purify-food-and-drink)
+- **Status**: Complete
+
+### Ray of Sickness
+- **Level/School**: 1; Necromancy; Ritual: false
+- **Casting Time**: 1 action (combat cost: action)
+- **Range**: 60 feet (ranged)
+- **Components**: V, S; Materials: none; Consumed: false
+- **Duration**: Instantaneous; Concentration: false
+- **Classes**: Sorcerer, Wizard
+- **Targeting/Area**: One creature within 60 feet; line of sight required
+- **Save/Attack**: Ranged spell attack; Constitution save (negates condition)
+- **Damage/Healing**: 2d8 Poison; Scaling: +1d8 per slot level above 1
+- **Conditions Applied**: Poisoned (until end of your next turn on failed save)
+- **Secondary Effects**: None
+- **Description**: You blast a target with toxic energy, poisoning it on a failed save after a hit.
+- **At Higher Levels**: Damage increases by 1d8 per slot level above 1.
+- **Source**: PHB 2024 p.311 (https://dnd2024.wikidot.com/spell:ray-of-sickness)
 - **Status**: Complete
 
 ---

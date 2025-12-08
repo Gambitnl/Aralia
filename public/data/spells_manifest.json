@@ -986,8 +986,8 @@
   "goodberry": {
     "name": "Goodberry",
     "level": 1,
-    "school": "Transmutation",
-    "path": "/data/spells/goodberry.json"
+    "school": "Conjuration",
+    "path": "/data/spells/level-1/goodberry.json"
   },
   "grasping-vine": {
     "name": "Grasping Vine",
@@ -999,7 +999,7 @@
     "name": "Grease",
     "level": 1,
     "school": "Conjuration",
-    "path": "/data/spells/grease.json"
+    "path": "/data/spells/level-1/grease.json"
   },
   "greater-invisibility": {
     "name": "Greater Invisibility",
@@ -1041,7 +1041,7 @@
     "name": "Guiding Bolt",
     "level": 1,
     "school": "Evocation",
-    "path": "/data/spells/guiding-bolt.json"
+    "path": "/data/spells/level-1/guiding-bolt.json"
   },
   "gust-of-wind": {
     "name": "Gust of Wind",
@@ -1053,7 +1053,7 @@
     "name": "Hail of Thorns",
     "level": 1,
     "school": "Conjuration",
-    "path": "/data/spells/hail-of-thorns.json"
+    "path": "/data/spells/level-1/hail-of-thorns.json"
   },
   "hallow": {
     "name": "Hallow",
@@ -1088,8 +1088,8 @@
   "healing-word": {
     "name": "Healing Word",
     "level": 1,
-    "school": "Evocation",
-    "path": "/data/spells/healing-word.json"
+    "school": "Abjuration",
+    "path": "/data/spells/level-1/healing-word.json"
   },
   "heat-metal": {
     "name": "Heat Metal",
@@ -1101,7 +1101,7 @@
     "name": "Hellish Rebuke",
     "level": 1,
     "school": "Evocation",
-    "path": "/data/spells/hellish-rebuke.json"
+    "path": "/data/spells/level-1/hellish-rebuke.json"
   },
   "heroes-feast": {
     "name": "Heroes' Feast",
@@ -1113,13 +1113,13 @@
     "name": "Heroism",
     "level": 1,
     "school": "Enchantment",
-    "path": "/data/spells/heroism.json"
+    "path": "/data/spells/level-1/heroism.json"
   },
   "hex": {
     "name": "Hex",
     "level": 1,
     "school": "Enchantment",
-    "path": "/data/spells/hex.json"
+    "path": "/data/spells/level-1/hex.json"
   },
   "hold-monster": {
     "name": "Hold Monster",
@@ -1149,7 +1149,7 @@
     "name": "Hunter's Mark",
     "level": 1,
     "school": "Divination",
-    "path": "/data/spells/hunters-mark.json"
+    "path": "/data/spells/level-1/hunters-mark.json"
   },
   "hypnotic-pattern": {
     "name": "Hypnotic Pattern",
@@ -1161,7 +1161,7 @@
     "name": "Ice Knife",
     "level": 1,
     "school": "Conjuration",
-    "path": "/data/spells/ice-knife.json"
+    "path": "/data/spells/level-1/ice-knife.json"
   },
   "ice-storm": {
     "name": "Ice Storm",
@@ -1173,13 +1173,13 @@
     "name": "Identify",
     "level": 1,
     "school": "Divination",
-    "path": "/data/spells/identify.json"
+    "path": "/data/spells/level-1/identify.json"
   },
   "illusory-script": {
     "name": "Illusory Script",
     "level": 1,
     "school": "Illusion",
-    "path": "/data/spells/illusory-script.json"
+    "path": "/data/spells/level-1/illusory-script.json"
   },
   "imprisonment": {
     "name": "Imprisonment",
@@ -1197,7 +1197,7 @@
     "name": "Inflict Wounds",
     "level": 1,
     "school": "Necromancy",
-    "path": "/data/spells/inflict-wounds.json"
+    "path": "/data/spells/level-1/inflict-wounds.json"
   },
   "insect-plague": {
     "name": "Insect Plague",
@@ -1221,7 +1221,7 @@
     "name": "Jump",
     "level": 1,
     "school": "Transmutation",
-    "path": "/data/spells/jump.json"
+    "path": "/data/spells/level-1/jump.json"
   },
   "knock": {
     "name": "Knock",
@@ -1293,13 +1293,13 @@
     "name": "Longstrider",
     "level": 1,
     "school": "Transmutation",
-    "path": "/data/spells/longstrider.json"
+    "path": "/data/spells/level-1/longstrider.json"
   },
   "mage-armor": {
     "name": "Mage Armor",
     "level": 1,
     "school": "Abjuration",
-    "path": "/data/spells/mage-armor.json"
+    "path": "/data/spells/level-1/mage-armor.json"
   },
   "mage-hand": {
     "name": "Mage Hand",
@@ -1323,7 +1323,7 @@
     "name": "Magic Missile",
     "level": 1,
     "school": "Evocation",
-    "path": "/data/spells/magic-missile.json"
+    "path": "/data/spells/level-1/magic-missile.json"
   },
   "magic-mouth": {
     "name": "Magic Mouth",
@@ -1635,7 +1635,7 @@
     "name": "Protection from Evil and Good",
     "level": 1,
     "school": "Abjuration",
-    "path": "/data/spells/protection-from-evil-and-good.json"
+    "path": "/data/spells/level-1/protection-from-evil-and-good.json"
   },
   "protection-from-poison": {
     "name": "Protection from Poison",
@@ -1647,7 +1647,7 @@
     "name": "Purify Food and Drink",
     "level": 1,
     "school": "Transmutation",
-    "path": "/data/spells/purify-food-and-drink.json"
+    "path": "/data/spells/level-1/purify-food-and-drink.json"
   },
   "pyrotechnics": {
     "name": "Pyrotechnics",
@@ -1683,7 +1683,7 @@
     "name": "Ray of Sickness",
     "level": 1,
     "school": "Necromancy",
-    "path": "/data/spells/ray-of-sickness.json"
+    "path": "/data/spells/level-1/ray-of-sickness.json"
   },
   "regenerate": {
     "name": "Regenerate",

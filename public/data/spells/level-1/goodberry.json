@@ -1,0 +1,47 @@
+{
+  "id": "goodberry",
+  "name": "Goodberry",
+  "level": 1,
+  "school": "Conjuration",
+  "classes": ["Druid", "Ranger"],
+  "description": "Ten berries appear in your hand and are infused with magic for 24 hours. A creature can take a Bonus Action to eat one berry. Eating a berry restores 1 Hit Point, and the berry provides enough nourishment to sustain a creature for one day. Uneaten berries disappear when the spell ends.",
+  "higherLevels": "None",
+  "tags": ["healing", "utility", "food"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a sprig of mistletoe"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 24,
+    "unit": "hour",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": ["self"],
+    "lineOfSight": false
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "creation",
+      "description": "Create ten berries that each restore 1 HP and provide a day of nourishment when eaten as a bonus action within 24 hours."
+    }
+  ]
+}

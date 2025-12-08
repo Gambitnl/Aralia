@@ -1,0 +1,50 @@
+{
+  "id": "identify",
+  "name": "Identify",
+  "level": 1,
+  "school": "Divination",
+  "classes": ["Artificer", "Bard", "Wizard"],
+  "description": "You touch one object throughout the casting. If it is a magic item or imbued object, you learn its properties, charges, and how to use them, whether it requires Attunement, and how many charges it has. You learn whether any spells are affecting the item or creature and what they are. If the item was created by a spell, you learn which spell created it.",
+  "higherLevels": "None",
+  "tags": ["ritual", "information"],
+  "ritual": true,
+  "castingTime": {
+    "value": 1,
+    "unit": "minute",
+    "combatCost": {
+      "type": "action"
+    },
+    "explorationCost": {
+      "value": 11,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a pearl worth 100+ gp and an owl feather"
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 5,
+    "validTargets": ["objects"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "information",
+      "description": "Learn magical properties, charges, attunement requirements, active spells, and the spell that created the item if applicable."
+    }
+  ]
+}

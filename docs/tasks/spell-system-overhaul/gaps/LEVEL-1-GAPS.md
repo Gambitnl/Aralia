@@ -305,3 +305,47 @@ Both files are in new format but with inconsistencies:
 - [x] **Expeditious Retreat**: Fixed by adding structured `grantedActions` and encoding per-turn bonus-action Dash in the spell; engine still needs to surface granted actions.
 - [x] **Find Familiar**: Fixed by adding `familiarContract` schema and populating contract details (forms, telepathy 100 ft, bonus-action senses, pocket-dimension dismissal, touch delivery via familiar reaction) in `find-familiar.json`.
 - [x] **Fog Cloud**: Fixed by adding `dispersedByStrongWind` to terrain schema and marking `fog-cloud.json`; environment/wind hook still needed to consume the flag.
+
+---
+
+## Batch 4 — Level 1 Spells 31-40
+
+**Timestamp:** 2025-12-08 10:56 UTC  
+**Spells:** goodberry, grease, guiding-bolt, hail-of-thorns, healing-word, hellish-rebuke, heroism, hex, hunters-mark, ice-knife
+
+### Commands Run
+- `npm run lint` — Completed with warnings (numerous existing eslint warnings)
+- `npm test` — Passed (Vitest suite)
+- `npx tsx scripts/regenerate-manifest.ts` — Passed (Generated manifest with 376 spells)
+- `npm run validate` — Passed (All spell data validated)
+
+### Blockers
+- None new; lint warnings remain.
+
+### System Gaps & Follow-up
+- [ ] **Grease**: Enter/end-of-turn prone checks and repeated saves not modeled as repeatable triggers; prone only captured on creation.
+- [ ] **Heroism**: Per-turn temp HP equal to casting mod and Frightened immunity stay in description; schema lacks recurring temp HP/condition immunity primitives.
+- [ ] **Hex**: Per-hit +1d6 necrotic and chosen-ability check Disadvantage captured in prose; schema lacks per-hit rider and ability-check penalty fields; duration scaling in text only.
+- [ ] **Hunter's Mark**: Per-hit +1d6 force, tracking advantage, mark transfer on 0 HP stored in description; no structured mark/transfer or per-hit rider support.
+- [ ] **Hail of Thorns**: Trigger is “after ranged weapon hit”; schema only approximated with immediate trigger.
+
+---
+
+## Batch 5 — Level 1 Spells 41-50
+
+**Timestamp:** 2025-12-08 10:47 UTC  
+**Spells:** identify, illusory-script, inflict-wounds, jump, longstrider, mage-armor, magic-missile, protection-from-evil-and-good, purify-food-and-drink, ray-of-sickness
+
+### Commands Run
+- `npm run lint` — Completed with warnings (existing eslint noise across codebase)
+- `npm test` — Passed (CommandExecutor test logs expected failure line)
+- `npx tsx scripts/regenerate-manifest.ts` — Passed (Generated manifest with 376 spells)
+- `npm run validate` — Passed after adjusting schema fields (all spell data validated)
+
+### Blockers
+- None new; lint warnings persist from existing code.
+
+### System Gaps & Follow-up
+- [ ] **Mage Armor**: Base AC setting is stored in description via utility; schema lacks a structured “set base AC” defensive field.
+- [ ] **Protection from Evil and Good**: Disadvantage vs specific creature types and immunity to charm/frighten/possession are stored in description; no structured creature-type ward/attack-disadvantage fields.
+- [ ] **Grease-style repeating saves** remain unmodeled (enter/end-of-turn) but similar pattern applies if a general solution is added later.

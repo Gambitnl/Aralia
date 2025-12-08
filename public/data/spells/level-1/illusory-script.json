@@ -1,0 +1,37 @@
+{
+  "id": "illusory-script",
+  "name": "Illusory Script",
+  "level": 1,
+  "school": "Illusion",
+  "classes": ["Bard", "Warlock", "Wizard"],
+  "description": "You write on a surface and imbue it with an illusion that lasts 10 days. You and creatures you designate see the intended message. Others see different text that conveys something else. Truesight reveals the original text. A creature using magic to read the text sees both versions.",
+  "higherLevels": "None",
+  "tags": ["ritual", "deception", "utility"],
+  "ritual": true,
+  "castingTime": {
+    "value": 1,
+    "unit": "minute",
+    "combatCost": { "type": "action" },
+    "explorationCost": { "value": 11, "unit": "minute" }
+  },
+  "range": { "type": "touch" },
+  "components": {
+    "verbal": false,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "ink worth 10+ gp, which the spell consumes",
+    "materialCost": 10,
+    "isConsumed": true
+  },
+  "duration": { "type": "special", "concentration": false },
+  "targeting": { "type": "single", "range": 5, "validTargets": ["objects"], "lineOfSight": true },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "other",
+      "description": "Creates an illusory message readable only by designated creatures for 10 days; others see false text, truesight reveals original."
+    }
+  ]
+}

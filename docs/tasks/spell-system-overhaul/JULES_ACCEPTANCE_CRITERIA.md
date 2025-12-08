@@ -49,11 +49,13 @@ You are NOT done with a spell until **ALL** of the following are true.
     - `tags`: Array of descriptive tags (copy from old file if present)
 - [ ] **Effect Trigger Types**:
     - Standard: `immediate`, `after_primary`, `turn_start`, `turn_end`
-    - Area-based: `on_enter_area` (for spells like Create Bonfire that trigger on area entry)
-    - Movement-based: `on_target_move` (for spells like Booming Blade that trigger on target movement)
+    - Area-based: `on_enter_area` (MUST use `frequency` field, e.g., `first_per_turn`)
+    - Movement-based: `on_target_move` (for "willingly moves" etc.)
+    - Rider Effects: `on_attack_hit` (e.g., Divine Favor)
     - Optional `frequency`: `every_time` | `first_per_turn` | `once`
-- [ ] **Conditional Target Filters** (for creature-type-specific effects):
-    - Use `condition.targetFilter.creatureType: ["Undead"]` for effects that only apply to certain creature types (e.g., Chill Touch disadvantage)
+- [ ] **Conditional Target Filters** (for creature-type/size/alignment effects):
+    - Use `condition.targetFilter.creatureType: ["Undead"]` for effects that only apply to certain types.
+    - Use `condition.targetFilter.size: ["Large"]` or `alignment: ["Evil"]` if applicable.
 - [ ] **Targeting Rules**:
     - `SelfTargeting` must include `validTargets: ["self"]` and `lineOfSight: false`
     - `SingleTargeting` and `AreaTargeting` must include `validTargets` array
@@ -80,9 +82,16 @@ During migration, you may encounter spell mechanics that the current system (Typ
 **DO NOT** skip the spell (unless it's impossible to represent even partially).
 
 ### Procedure for Gaps:
-1.  **Best Effort Implementation**: Implement the spell using `UTILITY` or the closest valid type.
-2.  **Description Fallback**: Put the complex mechanic in the `description` field.
-3.  **Flag for Follow-up**: You **MUST** log this gap in the Batch File.
+1.  **Check "Solved Gaps" First**: See if the feature is now supported (below).
+2.  **Best Effort Implementation**: If truly unsupported, implement the spell using `UTILITY` or the closest valid type.
+3.  **Description Fallback**: Put the complex mechanic in the `description` field.
+4.  **Flag for Follow-up**: You **MUST** log this gap in the Batch File.
+
+### Solved Gaps (Use These Features!)
+*   **"Willingly Moves"**: Use `trigger: { type: "on_target_move" }`.
+*   **"Enters Area"**: Use `trigger: { type: "on_enter_area", frequency: "first_per_turn" }`.
+*   **"Undead Target"**: Use `condition: { targetFilter: { creatureType: ["Undead"] } }`.
+*   **"On Hit" Rider**: Use `trigger: { type: "on_attack_hit" }` (e.g. for Divine Favor).
 
 ### How to Log Gaps
 Append a section titled `## System Gaps & Follow-up` to the bottom of your Batch File if it doesn't exist, and add an entry.
