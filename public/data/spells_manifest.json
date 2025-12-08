@@ -2067,7 +2067,7 @@
     "name": "Thunderwave",
     "level": 1,
     "school": "Evocation",
-    "path": "/data/spells/thunderwave.json"
+    "path": "/data/spells/level-1/thunderwave.json"
   },
   "time-stop": {
     "name": "Time Stop",
@@ -2139,7 +2139,7 @@
     "name": "Unseen Servant",
     "level": 1,
     "school": "Conjuration",
-    "path": "/data/spells/unseen-servant.json"
+    "path": "/data/spells/level-1/unseen-servant.json"
   },
   "vampiric-touch": {
     "name": "Vampiric Touch",
@@ -2235,7 +2235,7 @@
     "name": "Witch Bolt",
     "level": 1,
     "school": "Evocation",
-    "path": "/data/spells/witch-bolt.json"
+    "path": "/data/spells/level-1/witch-bolt.json"
   },
   "word-of-radiance": {
     "name": "Word of Radiance",
@@ -2252,8 +2252,8 @@
   "wrathful-smite": {
     "name": "Wrathful Smite",
     "level": 1,
-    "school": "Evocation",
-    "path": "/data/spells/wrathful-smite.json"
+    "school": "Necromancy",
+    "path": "/data/spells/level-1/wrathful-smite.json"
   },
   "zone-of-truth": {
     "name": "Zone of Truth",

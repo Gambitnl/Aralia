@@ -1,8 +1,8 @@
 # Level 1 Spell Reference (PHB 2024)
 
 Created: 2025-12-04 16:36 UTC  
-Last Updated: 2025-12-08 11:00 UTC  
-Scope: Batches 1-6 (spells 1-60 of 64, level 1 only) — process in batches ≤10, no cross-level mixing.
+Last Updated: 2025-12-08 11:28 UTC  
+Scope: Batches 1-7 (spells 1-64 of 64, level 1 only) — process in batches ≤10, no cross-level mixing.
 
 ## Field Requirements (aligned to `docs/tasks/spell-system-overhaul/archive/SPELL_TEMPLATE.json`)
 - Name; Level; School; Ritual (true/false)
@@ -1024,6 +1024,78 @@ Scope: Batches 1-6 (spells 1-60 of 64, level 1 only) — process in batches ≤1
 - **Description**: Your next melee hit releases a thunderclap that deals extra damage and can hurl foes away.
 - **At Higher Levels**: The bonus thunder damage increases by 1d6 per slot level above 1.
 - **Source**: PHB 2024 p.334 (https://dnd2024.wikidot.com/spell:thunderous-smite)
+- **Status**: Complete
+
+---
+
+## Batch 7 — Spells 61-64 (in PHB order)
+
+### Thunderwave
+- **Level/School**: 1; Evocation; Ritual: false
+- **Casting Time**: 1 action (combat cost: action)
+- **Range**: Self
+- **Components**: V, S; Materials: none; Consumed: false
+- **Duration**: Instantaneous; Concentration: false
+- **Classes**: Bard, Druid, Sorcerer, Wizard
+- **Targeting/Area**: 15-foot Cube originating from you; line of sight required
+- **Save/Attack**: Constitution save (half damage; no push on success)
+- **Damage/Healing**: 2d8 Thunder; Scaling: +1d8 per slot level above 1
+- **Conditions Applied**: None
+- **Secondary Effects**: On failed save, creature is pushed 10 feet away; unsecured objects wholly in the area are pushed 10 feet; thunder audible to 300 feet.
+- **Description**: You unleash a thunderous wave, damaging and pushing nearby creatures.
+- **At Higher Levels**: Damage increases by 1d8 per slot level above 1.
+- **Source**: PHB 2024 p.334 (https://dnd2024.wikidot.com/spell:thunderwave)
+- **Status**: Complete
+
+### Unseen Servant
+- **Level/School**: 1; Conjuration; Ritual: true
+- **Casting Time**: 1 action (combat cost: action; ritual casting 11 minutes)
+- **Range**: 60 feet (ranged)
+- **Components**: V, S, M (a piece of string and a bit of wood); Cost: 0 gp; Consumed: false
+- **Duration**: 1 hour; Concentration: false
+- **Classes**: Bard, Warlock, Wizard
+- **Targeting/Area**: Unoccupied space on the ground within 60 feet; line of sight required
+- **Save/Attack**: None
+- **Damage/Healing**: None; Scaling: None
+- **Conditions Applied**: None
+- **Secondary Effects**: Summons an invisible servant (AC 10, 1 HP, Str 2) that obeys simple commands; on each of your turns, use a Bonus Action to command it to move up to 15 feet and perform a simple task; carries up to 10 lb; ends if reduced to 0 HP or commanded beyond range.
+- **Description**: You conjure an unseen helper to perform simple tasks for an hour.
+- **At Higher Levels**: None
+- **Source**: PHB 2024 p.336 (https://dnd2024.wikidot.com/spell:unseen-servant)
+- **Status**: Complete
+
+### Witch Bolt
+- **Level/School**: 1; Evocation; Ritual: false
+- **Casting Time**: 1 action (combat cost: action)
+- **Range**: 30 feet (ranged)
+- **Components**: V, S, M (a twig from a tree struck by lightning); Cost: 0 gp; Consumed: false
+- **Duration**: Concentration, up to 1 minute
+- **Classes**: Sorcerer, Warlock
+- **Targeting/Area**: One creature you can see within 30 feet; line of sight required
+- **Save/Attack**: Ranged spell attack (on hit); sustained damage uses your action on later turns
+- **Damage/Healing**: 1d12 Lightning; Scaling: +1d12 per slot level above 1
+- **Conditions Applied**: None
+- **Secondary Effects**: While you concentrate, you can use your action on later turns to automatically deal the same Lightning damage; ends if target leaves range/gains total cover or you take another action.
+- **Description**: You lash a target with lightning, sustaining the arc to deal repeated damage while you concentrate.
+- **At Higher Levels**: Both initial and sustained damage increase by 1d12 per slot level above 1.
+- **Source**: PHB 2024 p.343 (https://dnd2024.wikidot.com/spell:witch-bolt)
+- **Status**: Complete
+
+### Wrathful Smite
+- **Level/School**: 1; Necromancy; Ritual: false
+- **Casting Time**: 1 bonus action (combat cost: bonus_action)
+- **Range**: Self
+- **Components**: V; Materials: none; Consumed: false
+- **Duration**: Concentration, up to 1 minute
+- **Classes**: Paladin
+- **Targeting/Area**: Your next melee weapon hit before the spell ends (melee reach)
+- **Save/Attack**: Melee attack roll; Wisdom save (negates Frightened)
+- **Damage/Healing**: +1d6 Psychic on that hit; Scaling: None
+- **Conditions Applied**: Frightened (on failed save)
+- **Secondary Effects**: Target can use an action to make a Wisdom check against your spell save DC to end the effect.
+- **Description**: You infuse your next strike with psychic fear, dealing extra damage and potentially frightening the target.
+- **At Higher Levels**: None
+- **Source**: PHB 2024 p.343 (https://dnd2024.wikidot.com/spell:wrathful-smite)
 - **Status**: Complete
 
 ---

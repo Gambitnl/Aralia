@@ -276,7 +276,7 @@ Both files are in new format but with inconsistencies:
 ### System Gaps & Follow-up
 - [x] **Command**: Added `controlOptions` schema and populated per-option behaviors (Approach/Drop/Flee/Grovel/Halt) in `command.json`; engine now logs control options for enforcement, but UI/AI still must choose which option to execute.
 - [x] **Compelled Duel**: Added `taunt` schema (disadvantage vs. others, 30 ft leash, break conditions) and populated in `compelled-duel.json`; engine now tags targets with a taunt status and logs leash data (full disadvantage/leash enforcement still to be wired where targeting/attack rolls are resolved).
-- [x] **Dissonant Whispers**: Added `forcedMovement` schema (`usesReaction`, direction away, maxDistance target speed) and updated movement effect in `dissonant-whispers.json`; engine now forces positional movement away from caster using the target’s speed, though pathfinding/safest-route handling remains a future enhancement.
+- [x] **Dissonant Whispers**: Added `forcedMovement` schema (`usesReaction`, direction away, maxDistance target speed) and updated movement effect in `dissonant-whispers.json`; engine now forces positional movement away from caster using the target's speed, though pathfinding/safest-route handling remains a future enhancement.
 
 ---
 
@@ -372,5 +372,27 @@ Both files are in new format but with inconsistencies:
 - [ ] **AC Buffs (Shield, Shield of Faith)**: +5 AC until start of next turn and +2 AC while concentrating stored in description via utility; schema lacks structured AC bonus/base AC fields.
 - [ ] **Silent Image**: Investigation-on-action and physical interaction reveal mechanics are in prose; no structured interaction/contested-check fields.
 - [ ] **Sleep**: HP-pool targeting logic (5d8 + scaling, ascending HP order, sleep until damage/shaken) not represented structurally.
-- [ ] **Tasha’s Hideous Laughter**: Repeat saves each turn and advantage on saves when damage triggers are in prose; schema lacks repeat-save/advantage-on-trigger hooks.
-- [ ] **Tenser’s Floating Disk**: Follow/offset rules, 500 lb. capacity, and terrain/height constraints are described in text; schema lacks structured summon/vehicle payload and follow-distance fields.
+- [ ] **Tasha's Hideous Laughter**: Repeat saves each turn and advantage on saves when damage triggers are in prose; schema lacks repeat-save/advantage-on-trigger hooks.
+- [ ] **Tenser's Floating Disk**: Follow/offset rules, 500 lb. capacity, and terrain/height constraints are described in text; schema lacks structured summon/vehicle payload and follow-distance fields.
+
+---
+
+## Batch 7 — Level 1 Spells 61-64
+
+**Timestamp:** 2025-12-08 11:28 UTC  
+**Spells:** thunderwave, unseen-servant, witch-bolt, wrathful-smite
+
+### Commands Run
+- `npm run lint` — Completed with existing eslint warnings (no new errors).
+- `npm test` — Passed (CommandExecutor test logs expected “Boom” failure message).
+- `npx tsx scripts/regenerate-manifest.ts` — Passed (377 spells).
+- `npm run validate` — Passed (all spell data validated).
+
+### Blockers
+- None; validations completed despite pre-existing lint warnings elsewhere in the codebase.
+
+### System Gaps & Follow-up
+- [ ] **Thunderwave**: Push-on-failed-save and unsecured-object push captured in description; no structured forced-movement flag tied to save outcome; audible radius unmodeled.
+- [ ] **Unseen Servant**: Servant stats/action economy encoded in prose; schema lacks a summon stat block (HP/AC/Str), carry capacity, and command-per-turn economy fields.
+- [ ] **Witch Bolt**: Sustained action-based damage each turn and break conditions (out of range/total cover/other actions) live in description; no structured “sustain action” trigger or beam persistence.
+- [ ] **Wrathful Smite**: “Next melee hit” gating and per-hit rider not structured; frightened condition repeat check (Wis check with action) in prose; no explicit on-hit rider schema.

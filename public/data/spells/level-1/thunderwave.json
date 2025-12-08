@@ -1,0 +1,42 @@
+{
+  "id": "thunderwave",
+  "name": "Thunderwave",
+  "level": 1,
+  "school": "Evocation",
+  "classes": ["Bard", "Druid", "Sorcerer", "Wizard"],
+  "description": "A wave of thunderous force sweeps out from you. Each creature in a 15-foot Cube originating from you must make a Constitution saving throw. On a failed save, a creature takes 2d8 Thunder damage and is pushed 10 feet away from you. On a successful save, the creature takes half as much damage and isn't pushed. Unsecured objects wholly in the area are pushed 10 feet. The spell's boom is audible out to 300 feet.",
+  "higherLevels": "The damage increases by 1d8 for each spell slot level above 1.",
+  "tags": ["damage", "thunder", "aoe"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": { "type": "self" },
+  "components": { "verbal": true, "somatic": true, "material": false },
+  "duration": { "type": "instantaneous", "concentration": false },
+  "targeting": {
+    "type": "area",
+    "range": 0,
+    "validTargets": ["creatures", "objects"],
+    "lineOfSight": true,
+    "areaOfEffect": { "shape": "Cube", "size": 15 }
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "save", "saveType": "Constitution", "saveEffect": "half" },
+      "damage": { "dice": "2d8", "type": "Thunder" },
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d8" }
+    },
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "save", "saveType": "Constitution", "saveEffect": "none" },
+      "utilityType": "control",
+      "description": "On a failed save, creature is pushed 10 feet away; unsecured objects wholly in the area are pushed 10 feet. Audible out to 300 feet."
+    }
+  ]
+}
