@@ -3,6 +3,7 @@ import GlossaryContext from '../context/GlossaryContext';
 import { GlossaryEntry } from '../types';
 import { FullEntryDisplay } from './Glossary/FullEntryDisplay';
 import { findGlossaryEntryAndPath } from '../utils/glossaryUtils';
+import { useSpellGateChecks } from '../hooks/useSpellGateChecks';
 
 interface GlossaryProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ const entryMatchesSearch = (entry: GlossaryEntry, term: string): boolean => {
 const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) => {
   const firstFocusableElementRef = useRef<HTMLButtonElement>(null);
   const glossaryIndex = useContext(GlossaryContext); 
+  const gateResults = useSpellGateChecks(glossaryIndex);
   
   const [selectedEntry, setSelectedEntry] = useState<GlossaryEntry | null>(null);
   const [error, setError] = useState<string | null>(null); 
@@ -223,6 +225,22 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
     const isExpanded = isParent && expandedParentEntries.has(entry.id);
     const indentClass = `pl-${level * 2}`; 
     const hasContentToDisplay = !!entry.filePath;
+    const gate = entry.category === 'Spells' ? gateResults[entry.id] : undefined;
+    const disabled = (!hasContentToDisplay && !isParent); // allow selection even if gate fails to view details
+    const gateLabel = gate?.reasons?.join('; ');
+    const gateDot = gate ? (
+      <span
+        className={
+          gate.status === 'pass'
+            ? 'ml-1 inline-block w-2 h-2 rounded-full bg-emerald-400'
+            : gate.status === 'gap'
+              ? 'ml-1 inline-block w-2 h-2 rounded-full bg-amber-400'
+              : 'ml-1 inline-block w-2 h-2 rounded-full bg-red-500'
+        }
+        title={gateLabel || undefined}
+        aria-label={gateLabel || undefined}
+      />
+    ) : null;
 
     return (
       <li key={entry.id} ref={el => { entryRefs.current[entry.id] = el; }} role="treeitem" aria-expanded={isParent ? isExpanded : undefined} aria-selected={selectedEntry?.id === entry.id}>
@@ -242,10 +260,11 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
           <button
             onClick={() => handleEntrySelect(entry)}
             className={`w-full text-left px-2 py-1.5 ${indentClass} ${isParent && !isExpanded && selectedEntry?.id === entry.id ? 'font-semibold' : ''} ${!isParent && selectedEntry?.id === entry.id ? 'font-semibold' : ''}`}
-            disabled={!hasContentToDisplay && !isParent}
-            title={entry.title}
+            disabled={disabled}
+            title={gateLabel || entry.title}
           >
             {entry.title}
+            {gateDot}
           </button>
         </div>
         {isParent && isExpanded && (
@@ -297,7 +316,42 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
 
           <div className="flex-grow md:w-2/3 border border-gray-700 rounded-lg bg-gray-800/50 p-4 overflow-y-auto scrollable-content">
             {selectedEntry ? (
-                <FullEntryDisplay entry={selectedEntry} onNavigate={handleNavigateToGlossary} />
+                <>
+                  <FullEntryDisplay entry={selectedEntry} onNavigate={handleNavigateToGlossary} />
+                  {selectedEntry.category === 'Spells' && gateResults[selectedEntry.id] && (
+                    <div className="mt-4 p-3 border border-gray-700 rounded bg-gray-900/70 text-sm">
+                      <div className="font-semibold mb-2 text-gray-200">Spell Gate Checks</div>
+                      <ul className="space-y-1 text-gray-300">
+                        {(() => {
+                          const gate = gateResults[selectedEntry.id];
+                          const checks = [
+                            { label: "Manifest path under correct level", ok: gate.checklist.manifestPathOk },
+                            { label: "Glossary card exists", ok: gate.checklist.glossaryExists },
+                            { label: "Glossary card has level tag", ok: gate.checklist.levelTagOk },
+                            { label: "Known gap (allowed)", ok: gate.checklist.knownGap, invert: true },
+                          ];
+                          return checks.map((c, idx) => {
+                            const pass = c.invert ? !c.ok : c.ok;
+                            return (
+                              <li key={idx} className="flex items-center gap-2">
+                                <span className={`inline-block w-4 text-center ${pass ? 'text-emerald-400' : 'text-red-400'}`}>
+                                  {pass ? '✓' : '✕'}
+                                </span>
+                                <span>{c.label}</span>
+                              </li>
+                            );
+                          });
+                        })()}
+                        {gateResults[selectedEntry.id].status === 'gap' && (
+                          <li className="text-amber-300 mt-1">Known schema gap logged; content allowed but not fully structured.</li>
+                        )}
+                        {gateResults[selectedEntry.id].status === 'fail' && gateResults[selectedEntry.id].reasons.length > 0 && (
+                          <li className="text-red-300 mt-1">Issues: {gateResults[selectedEntry.id].reasons.join('; ')}</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </>
             ) : (
               <p className="text-gray-500 italic text-center py-10">Select an entry to view its details or use the search bar.</p>
             )}

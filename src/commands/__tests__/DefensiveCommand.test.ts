@@ -1,0 +1,118 @@
+import { describe, expect, it } from 'vitest';
+import { DefensiveCommand } from '../effects/DefensiveCommand';
+import type { CommandContext } from '../base/SpellCommand';
+import type { CombatCharacter, CombatState, Position } from '@/types/combat';
+import type { DefensiveEffect } from '@/types/spells';
+
+const baseStats = {
+  strength: 10,
+  dexterity: 12,
+  constitution: 12,
+  intelligence: 10,
+  wisdom: 10,
+  charisma: 8,
+  baseInitiative: 0,
+  speed: 30,
+  cr: '0'
+};
+
+const baseEconomy = {
+  action: { used: false, remaining: 1 },
+  bonusAction: { used: false, remaining: 1 },
+  reaction: { used: false, remaining: 1 },
+  movement: { used: 0, total: 30 },
+  freeActions: 0
+};
+
+const makeCharacter = (id: string, position: Position): CombatCharacter => ({
+  id,
+  name: id,
+  level: 5,
+  class: 'Wizard' as any,
+  position,
+  stats: { ...baseStats },
+  abilities: [],
+  team: 'player',
+  currentHP: 18,
+  maxHP: 18,
+  initiative: 0,
+  statusEffects: [],
+  conditions: [],
+  actionEconomy: { ...baseEconomy },
+  armorClass: 12,
+  activeEffects: [],
+  tempHP: 5
+});
+
+const makeState = (characters: CombatCharacter[]): CombatState => ({
+  isActive: true,
+  characters,
+  turnState: {
+    currentTurn: 2,
+    turnOrder: characters.map(c => c.id),
+    currentCharacterId: characters[0]?.id ?? null,
+    phase: 'action',
+    actionsThisTurn: []
+  },
+  selectedCharacterId: null,
+  selectedAbilityId: null,
+  actionMode: 'select',
+  validTargets: [],
+  validMoves: [],
+  combatLog: []
+});
+
+const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): CommandContext => ({
+  spellId: 'defensive-spell',
+  spellName: 'Defensive Spell',
+  castAtLevel: 1,
+  caster,
+  targets,
+  gameState: {} as any
+});
+
+describe('DefensiveCommand', () => {
+  it('adds an AC bonus and tracks the active effect', () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 });
+    const target = makeCharacter('target', { x: 1, y: 0 });
+    const state = makeState([caster, target]);
+
+    const effect: DefensiveEffect = {
+      type: 'DEFENSIVE',
+      defenseType: 'ac_bonus',
+      value: 5,
+      duration: { type: 'rounds', value: 1 },
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' }
+    };
+
+    const command = new DefensiveCommand(effect, makeContext(caster, [target]));
+    const result = command.execute(state);
+
+    const updated = result.characters.find(c => c.id === 'target');
+    expect(updated?.armorClass).toBe(17);
+    expect(updated?.activeEffects?.[0]?.type).toBe('ac_bonus');
+  });
+
+  it('keeps the higher temporary HP value instead of stacking', () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 });
+    const target = makeCharacter('target', { x: 1, y: 0 });
+    const state = makeState([caster, target]);
+
+    const effect: DefensiveEffect = {
+      type: 'DEFENSIVE',
+      defenseType: 'temporary_hp',
+      value: 3,
+      duration: { type: 'rounds', value: 1 },
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' }
+    };
+
+    const command = new DefensiveCommand(effect, makeContext(caster, [target]));
+    const result = command.execute(state);
+
+    const updated = result.characters.find(c => c.id === 'target');
+    expect(updated?.tempHP).toBe(5);
+    expect(result.combatLog.at(-1)?.message).toContain('temporary HP');
+  });
+});

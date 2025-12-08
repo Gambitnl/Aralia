@@ -3,13 +3,29 @@
   "name": "Witch Bolt",
   "level": 1,
   "school": "Evocation",
-  "classes": ["Sorcerer", "Warlock"],
+  "classes": [
+    "Sorcerer",
+    "Warlock"
+  ],
   "description": "A beam of crackling lightning arcs toward a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d12 Lightning damage, and the spell creates a sustained arc. While you maintain concentration, you can use your action on subsequent turns to automatically deal 1d12 Lightning damage to the target. The effect ends if the target is ever outside the spell's range or has total cover, or if you take an action that isn't to sustain the bolt.",
   "higherLevels": "Both the initial hit and sustained damage increase by 1d12 for each spell slot level above 1.",
-  "tags": ["damage", "lightning", "concentration"],
+  "tags": [
+    "damage",
+    "lightning",
+    "concentration"
+  ],
   "ritual": false,
-  "castingTime": { "value": 1, "unit": "action", "combatCost": { "type": "action" } },
-  "range": { "type": "ranged", "distance": 30 },
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
   "components": {
     "verbal": true,
     "somatic": true,
@@ -18,22 +34,60 @@
     "materialCost": 0,
     "isConsumed": false
   },
-  "duration": { "type": "timed", "value": 1, "unit": "minute", "concentration": true },
-  "targeting": { "type": "single", "range": 30, "validTargets": ["creatures", "enemies"], "lineOfSight": true },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 30,
+    "validTargets": [
+      "creatures",
+      "enemies"
+    ],
+    "lineOfSight": true
+  },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "hit" },
-      "damage": { "dice": "1d12", "type": "Lightning" },
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d12" }
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "hit"
+      },
+      "damage": {
+        "dice": "1d12",
+        "type": "Lightning"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d12"
+      }
     },
     {
-      "type": "UTILITY",
-      "trigger": { "type": "turn_start" },
-      "condition": { "type": "always" },
-      "utilityType": "control",
-      "description": "While you maintain concentration, you can use your action on later turns to automatically deal the same Lightning damage to the target, ending if the target leaves range or gains total cover or if you take another action."
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "on_caster_action",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": true
+        }
+      },
+      "condition": {
+        "type": "always"
+      },
+      "damage": {
+        "dice": "1d12",
+        "type": "Lightning"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d12"
+      },
+      "description": "While you maintain concentration, you can use your action on later turns to automatically deal the same Lightning damage to the target."
     }
   ]
 }

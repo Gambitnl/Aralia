@@ -48,10 +48,14 @@ Single-source workflow for converting legacy spell data into the current JSON fo
    - Multi: `type: "multi"`, `range`, `maxTargets`, `validTargets`.
    - Self: `type: "self"`.
 6) **Effects (BaseEffect REQUIRED)**:
-   - `trigger`: `immediate | after_primary | turn_start | turn_end | on_enter_area | on_target_move`
-     - Use `on_enter_area` for spells that trigger when creatures enter (e.g., Create Bonfire)
+   - `trigger`: `immediate | after_primary | turn_start | turn_end | on_enter_area | on_exit_area | on_end_turn_in_area | on_target_move | on_target_attack | on_target_cast | on_caster_action | on_attack_hit`
+     - Use `on_enter_area` for spells that trigger when creatures enter (e.g., Create Bonfire on move-in)
+     - Use `on_end_turn_in_area` for end-of-turn zone effects (e.g., Create Bonfire lingering damage)
+     - Use `on_exit_area` when leaving the zone triggers an effect (e.g., Grease/slow zones that punish leaving)
      - Use `on_target_move` for spells that trigger on target movement (e.g., Booming Blade)
-   - `trigger.frequency` (optional): `every_time | first_per_turn | once`
+   - `trigger.frequency` (optional): `every_time | first_per_turn | once | once_per_creature`
+   - `trigger.consumption` (optional): `unlimited | first_hit | per_turn` (for riders)
+   - `trigger.attackFilter` (optional): filter by `weaponType` ("melee"/"ranged")
    - `condition`: `hit | save | always` (+ `saveType`, `saveEffect` when save)
    - `condition.targetFilter` (optional): Filter effects by creature properties
      - `{ "creatureType": ["Undead"] }` for effects that only apply to certain types

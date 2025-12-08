@@ -78,6 +78,7 @@ export interface Spell {
   tags?: string[];
   ritual?: boolean;
   rarity?: SpellRarity;
+  attackType?: SpellAttackType;
 
   // --- Core Mechanics ---
   castingTime: CastingTime;
@@ -106,8 +107,11 @@ export type SpellSchool =
   | "Necromancy"
   | "Transmutation";
 
-/** Defines the rarity of a spell, for loot tables or special scrolls. */
+/** The rarity of a spell. */
 export type SpellRarity = "common" | "uncommon" | "rare" | "very_rare" | "legendary";
+
+/** Defines the type of attack roll required, if any. */
+export type SpellAttackType = "melee" | "ranged" | "none";
 
 /**
  * Defines the time required to cast a spell.
@@ -245,7 +249,7 @@ export type DamageType =
 export type ConditionName =
   | "Blinded" | "Charmed" | "Deafened" | "Exhaustion" | "Frightened"
   | "Grappled" | "Incapacitated" | "Invisible" | "Paralyzed" | "Petrified"
-  | "Poisoned" | "Prone" | "Restrained" | "Stunned" | "Unconscious";
+  | "Poisoned" | "Prone" | "Restrained" | "Stunned" | "Unconscious" | "Ignited";
 
 /** Modifiers that adjust how a saving throw is made. */
 export interface SaveModifier {
@@ -257,9 +261,46 @@ export interface SaveModifier {
 
 /** Defines the trigger for an effect. */
 export interface EffectTrigger {
-  type: "immediate" | "after_primary" | "turn_start" | "turn_end" | "on_enter_area" | "on_target_move" | "on_attack_hit";
-  /** Controls how often this trigger can fire. Defaults to 'every_time' if not specified. */
-  frequency?: "every_time" | "first_per_turn" | "once";
+  type:
+  | "immediate"
+  | "after_primary"
+  | "turn_start"
+  | "turn_end"
+  | "on_enter_area"
+  | "on_exit_area"
+  | "on_end_turn_in_area"
+  | "on_target_move"
+  | "on_target_attack"
+  | "on_target_cast"
+  | "on_caster_action"
+  | "on_attack_hit";
+  /**
+   * Controls how often this trigger can fire.
+   * Defaults to 'every_time' if not specified.
+   */
+  frequency?: "every_time" | "first_per_turn" | "once" | "once_per_creature";
+  /**
+   * For rider effects (on_attack_hit), controls consumption.
+   */
+  consumption?: "unlimited" | "first_hit" | "per_turn";
+  /**
+   * For rider effects, filters which attacks trigger the effect.
+   */
+  attackFilter?: {
+    weaponType?: "melee" | "ranged" | "any";
+    attackType?: "weapon" | "spell" | "any";
+  };
+  /**
+   * For on_target_move triggers, specifies if it triggers on willing or forced movement.
+   */
+  movementType?: "any" | "willing" | "forced";
+  /**
+   * For on_caster_action triggers, specifies the cost to sustain the effect.
+   */
+  sustainCost?: {
+    actionType: "action" | "bonus_action" | "reaction";
+    optional: boolean;
+  };
 }
 
 /** Defines the condition under which an effect applies. */

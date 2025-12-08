@@ -2,7 +2,7 @@
  * @file src/systems/spells/effects/triggerHandler.ts
  * 
  * Handles execution of spell effect triggers based on game events.
- * Supports the new trigger types: on_enter_area, on_target_move
+ * Supports the new trigger types: on_enter_area, on_exit_area, on_end_turn_in_area, on_target_move
  */
 
 import type { SpellEffect, EffectTrigger, EffectCondition, TargetConditionFilter } from '../../../types/spells';
@@ -20,6 +20,8 @@ export interface ActiveSpellZone {
     effects: SpellEffect[];
     /** Track entities that have already triggered "first_per_turn" effects this turn */
     triggeredThisTurn: Set<string>;
+    /** Track entities that should only ever trigger once (per creature) for this zone */
+    triggeredEver: Set<string>;
     expiresAtRound?: number;
 }
 
@@ -52,6 +54,7 @@ interface TriggerContext {
 export interface TriggerResult {
     triggered: boolean;
     effects: ProcessedEffect[];
+    sourceId?: string;
 }
 
 export interface ProcessedEffect {
@@ -96,6 +99,52 @@ export function matchesTargetFilter(
         if (targetAlignment && !filter.alignment.includes(targetAlignment)) {
             return false;
         }
+    }
+
+    return true;
+}
+
+type TriggerFrequency = EffectTrigger['frequency'] | undefined;
+
+/**
+ * Frequency helper so entry/exit/end-turn triggers share the same guard rails.
+ * We keep per-turn and per-encounter tracking separate to avoid clearing "once"
+ * triggers when the round advances.
+ * 
+ * - `every_time`: Triggers every time the event occurs (default).
+ * - `first_per_turn`: Triggers once per creature per turn.
+ * - `once`: Triggers only ONCE for the entire zone, regardless of who triggers it.
+ * - `once_per_creature`: Triggers once per unique creature interacting with the zone.
+ */
+function shouldTriggerForFrequency(
+    frequency: TriggerFrequency,
+    zone: ActiveSpellZone,
+    characterId: string
+): boolean {
+    const mode = frequency || 'every_time';
+
+    if (mode === 'first_per_turn') {
+        // Key includes characterId: each creature can trigger once per turn
+        const perTurnKey = `${characterId}-${zone.id}`;
+        if (zone.triggeredThisTurn.has(perTurnKey)) return false;
+        zone.triggeredThisTurn.add(perTurnKey);
+        return true;
+    }
+
+    if (mode === 'once') {
+        // Key uses ONLY zone.id: triggers once for entire spell zone, period
+        const onceGlobalKey = `${zone.id}-once`;
+        if (zone.triggeredEver.has(onceGlobalKey)) return false;
+        zone.triggeredEver.add(onceGlobalKey);
+        return true;
+    }
+
+    if (mode === 'once_per_creature') {
+        // Key includes characterId: each creature can trigger once for the zone's lifetime
+        const oncePerCreatureKey = `${characterId}-${zone.id}-once`;
+        if (zone.triggeredEver.has(oncePerCreatureKey)) return false;
+        zone.triggeredEver.add(oncePerCreatureKey);
+        return true;
     }
 
     return true;
@@ -164,21 +213,8 @@ export function processAreaEntryTriggers(
             );
 
             for (const effect of entryEffects) {
-                const frequency = effect.trigger?.frequency || 'every_time';
-
-                // Check frequency constraints
-                if (frequency === 'first_per_turn') {
-                    const triggerKey = `${character.id}-${zone.id}`;
-                    if (zone.triggeredThisTurn.has(triggerKey)) {
-                        continue; // Already triggered this turn
-                    }
-                    zone.triggeredThisTurn.add(triggerKey);
-                } else if (frequency === 'once') {
-                    const triggerKey = `${character.id}-${zone.id}-once`;
-                    if (zone.triggeredThisTurn.has(triggerKey)) {
-                        continue; // Already triggered ever
-                    }
-                    zone.triggeredThisTurn.add(triggerKey);
+                if (!shouldTriggerForFrequency(effect.trigger?.frequency, zone, character.id)) {
+                    continue;
                 }
 
                 // Check target filter
@@ -230,11 +266,95 @@ export function processMovementTriggers(
 
             results.push({
                 triggered: true,
-                effects: convertSpellEffectToProcessed(effect)
+                effects: convertSpellEffectToProcessed(effect),
+                sourceId: debuff.id
             });
 
             // Mark as triggered (most movement triggers are one-shot)
             debuff.hasTriggered = true;
+        }
+    }
+
+    return results;
+}
+
+/**
+ * Process on_exit_area triggers when a character leaves a zone.
+ */
+export function processAreaExitTriggers(
+    zones: ActiveSpellZone[],
+    character: CombatCharacter,
+    newPosition: Position,
+    previousPosition: Position
+): TriggerResult[] {
+    const results: TriggerResult[] = [];
+
+    for (const zone of zones) {
+        if (!zone.areaOfEffect) continue;
+
+        const wasInZone = isPositionInArea(previousPosition, zone.position, zone.areaOfEffect);
+        const isNowInZone = isPositionInArea(newPosition, zone.position, zone.areaOfEffect);
+
+        // Only trigger on actual exit (was in zone, now out)
+        if (wasInZone && !isNowInZone) {
+            const exitEffects = zone.effects.filter(effect =>
+                effect.trigger?.type === 'on_exit_area'
+            );
+
+            for (const effect of exitEffects) {
+                if (!shouldTriggerForFrequency(effect.trigger?.frequency, zone, character.id)) {
+                    continue;
+                }
+
+                if (!matchesTargetFilter(effect.condition?.targetFilter, character)) {
+                    continue;
+                }
+
+                results.push({
+                    triggered: true,
+                    effects: convertSpellEffectToProcessed(effect)
+                });
+            }
+        }
+    }
+
+    return results;
+}
+
+/**
+ * Process on_end_turn_in_area triggers when a character ends their turn inside a zone.
+ */
+export function processAreaEndTurnTriggers(
+    zones: ActiveSpellZone[],
+    character: CombatCharacter,
+    _round: number
+): TriggerResult[] {
+    const results: TriggerResult[] = [];
+
+    for (const zone of zones) {
+        if (!zone.areaOfEffect) continue;
+
+        const isInZone = isPositionInArea(character.position, zone.position, zone.areaOfEffect);
+        if (!isInZone) continue;
+
+        const endTurnEffects = zone.effects.filter(effect =>
+            effect.trigger?.type === 'on_end_turn_in_area' ||
+            effect.trigger?.type === 'turn_end'
+        );
+
+        for (const effect of endTurnEffects) {
+            if (!shouldTriggerForFrequency(effect.trigger?.frequency, zone, character.id)) {
+                continue;
+            }
+
+            if (!matchesTargetFilter(effect.condition?.targetFilter, character)) {
+                continue;
+            }
+
+            results.push({
+                triggered: true,
+                effects: convertSpellEffectToProcessed(effect)
+            });
         }
     }
 
@@ -309,10 +429,13 @@ export function createSpellZone(
         areaOfEffect,
         effects: effects.filter(e =>
             e.trigger?.type === 'on_enter_area' ||
+            e.trigger?.type === 'on_exit_area' ||
+            e.trigger?.type === 'on_end_turn_in_area' ||
             e.trigger?.type === 'turn_end' ||
             e.trigger?.type === 'turn_start'
         ),
         triggeredThisTurn: new Set(),
+        triggeredEver: new Set(),
         expiresAtRound: durationRounds ? currentRound + durationRounds : undefined
     };
 }

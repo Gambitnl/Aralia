@@ -3,6 +3,7 @@
 **Created:** 2025-12-06
 **Purpose:** Copy-paste ready prompts for completing stub command implementations
 **Parent Task:** [COMPLETE-STUB-COMMANDS.md](COMPLETE-STUB-COMMANDS.md)
+**Status:** Completed — 2025-12-08 (healing/status/defensive commands implemented with supporting tests)
 
 ---
 
@@ -140,13 +141,13 @@ Create or run tests that verify:
 
 ## Success Criteria
 
-- [ ] HealingCommand.ts no longer returns "Stub" text
-- [ ] rollHealing() method parses all common dice formats
-- [ ] execute() method heals targets correctly
-- [ ] Healing is capped at maxHP
-- [ ] Combat log entries are created
-- [ ] All tests pass
-- [ ] Cure Wounds spell works in actual gameplay
+- [x] HealingCommand.ts no longer returns "Stub" text
+- [x] rollHealing() method parses all common dice formats
+- [x] execute() method heals targets correctly
+- [x] Healing is capped at maxHP
+- [x] Combat log entries are created
+- [x] All tests pass
+- [x] Cure Wounds spell works in actual gameplay
 
 ## Files to Modify
 
@@ -377,15 +378,15 @@ get description(): string {
 
 ## Success Criteria
 
-- [ ] src/types/combat.ts extended with StatusCondition interface
-- [ ] StatusConditionCommand.ts no longer returns "Stub" text
-- [ ] execute() method applies conditions to characters
-- [ ] Conditions array is updated correctly
-- [ ] Duration and source are tracked
-- [ ] Combat log entries created
-- [ ] All tests pass
-- [ ] Bless spell works and applies "Blessed" condition
-- [ ] Standard D&D conditions (charmed, frightened, etc.) work
+- [x] src/types/combat.ts extended with StatusCondition interface
+- [x] StatusConditionCommand.ts no longer returns "Stub" text
+- [x] execute() method applies conditions to characters
+- [x] Conditions array is updated correctly
+- [x] Duration and source are tracked
+- [x] Combat log entries created
+- [x] All tests pass
+- [x] Bless spell works and applies "Blessed" condition
+- [x] Standard D&D conditions (charmed, frightened, etc.) work
 
 ## Files to Modify
 
@@ -743,18 +744,18 @@ private applyImmunity(state: CombatState, target: CombatCharacter, effect: Defen
 
 ## Success Criteria
 
-- [ ] src/types/combat.ts extended with defensive fields
-- [ ] All 4 TODO comments removed from DefensiveCommand.ts
-- [ ] applyACBonus() fully implemented
-- [ ] applyResistance() fully implemented
-- [ ] applyTemporaryHP() fully implemented
-- [ ] applyAdvantageOnSaves() fully implemented
-- [ ] applyImmunity() fully implemented
-- [ ] All tests pass
-- [ ] Shield spell increases AC
-- [ ] False Life grants temp HP
-- [ ] Protection from Energy grants resistance
-- [ ] Temp HP follows D&D rules (higher value wins, doesn't stack)
+- [x] src/types/combat.ts extended with defensive fields
+- [x] All 4 TODO comments removed from DefensiveCommand.ts
+- [x] applyACBonus() fully implemented
+- [x] applyResistance() fully implemented
+- [x] applyTemporaryHP() fully implemented
+- [x] applyAdvantageOnSaves() fully implemented
+- [x] applyImmunity() fully implemented
+- [x] All tests pass
+- [x] Shield spell increases AC
+- [x] False Life grants temp HP
+- [x] Protection from Energy grants resistance
+- [x] Temp HP follows D&D rules (higher value wins, doesn't stack)
 
 ## Files to Modify
 

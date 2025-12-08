@@ -76,8 +76,31 @@ const EscapeCheck = z.object({
 });
 
 const EffectTrigger = z.object({
-  type: z.enum(["immediate", "after_primary", "turn_start", "turn_end", "on_enter_area", "on_target_move", "on_attack_hit"]),
-  frequency: z.enum(["every_time", "first_per_turn", "once"]).optional(),
+  type: z.enum([
+    "immediate",
+    "after_primary",
+    "turn_start",
+    "turn_end",
+    "on_enter_area",
+    "on_exit_area",
+    "on_end_turn_in_area",
+    "on_target_move",
+    "on_attack_hit",
+    "on_target_attack",
+    "on_target_cast",
+    "on_caster_action"
+  ]),
+  frequency: z.enum(["every_time", "first_per_turn", "once", "once_per_creature"]).optional(),
+  consumption: z.enum(["unlimited", "first_hit", "per_turn"]).optional(),
+  attackFilter: z.object({
+    weaponType: z.enum(["melee", "ranged", "any"]).optional(),
+    attackType: z.enum(["weapon", "spell", "any"]).optional()
+  }).optional(),
+  movementType: z.enum(["any", "willing", "forced"]).optional(),
+  sustainCost: z.object({
+    actionType: z.enum(["action", "bonus_action", "reaction"]),
+    optional: z.boolean()
+  }).optional(),
 });
 
 const TargetConditionFilter = z.object({

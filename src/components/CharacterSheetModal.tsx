@@ -43,6 +43,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
   const [isSkillDetailOverlayOpen, setIsSkillDetailOverlayOpen] = useState(false);
   const [isSpellbookOpen, setIsSpellbookOpen] = useState(false); // State for the spellbook overlay
   const [activeTab, setActiveTab] = useState<SheetTab>('overview');
+  const [filterBySlot, setFilterBySlot] = useState<EquipmentSlotType | null>(null); // State for inventory filtering
 
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -67,8 +68,12 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
   }, [isOpen, onClose, isSkillDetailOverlayOpen, isSpellbookOpen]);
 
   const handleSlotClick = (slot: EquipmentSlotType, item?: Item) => {
-    if (item && character) { 
+    if (item && character) {
+      // If item is equipped, unequip it
       onAction({ type: 'UNEQUIP_ITEM', label: `Unequip ${item.name}`, payload: { slot, characterId: character.id! }});
+    } else {
+      // If slot is empty, toggle filter mode for that slot
+      setFilterBySlot(filterBySlot === slot ? null : slot);
     }
   };
   
@@ -317,12 +322,23 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
 
         {/* Column 2: Equipment */}
         <div className="lg:col-span-1 space-y-4 p-1 flex flex-col items-center justify-start overflow-y-auto scrollable-content h-full">
-            <EquipmentMannequin character={character} onSlotClick={handleSlotClick} />
+            <EquipmentMannequin
+              character={character}
+              onSlotClick={handleSlotClick}
+              activeFilterSlot={filterBySlot}
+            />
         </div>
 
         {/* Column 3: Inventory */}
         <div className="lg:col-span-1 space-y-4 overflow-y-auto scrollable-content p-1 pr-2 h-full">
-            <InventoryList inventory={inventory} gold={gold} character={character} onAction={onAction} />
+            <InventoryList
+              inventory={inventory}
+              gold={gold}
+              character={character}
+              onAction={onAction}
+              filterBySlot={filterBySlot}
+              onClearFilter={() => setFilterBySlot(null)}
+            />
         </div>
      </div>
   );

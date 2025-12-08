@@ -192,11 +192,11 @@ frequency: z.enum([
 ```
 
 ### Implementation Tasks
-- [ ] Add area trigger types to schema
+- [x] Add area trigger types to schema
 - [ ] Create `AreaEffectTracker` to monitor zone boundaries
-- [ ] Implement turn-based frequency tracking per creature
-- [ ] Hook into movement system to emit entry/exit events
-- [ ] Migrate `create-bonfire`, `grease`, terrain spells
+- [x] Implement turn-based frequency tracking per creature
+- [x] Hook into movement system to emit entry/exit events
+- [ ] Migrate `create-bonfire`, `grease`, terrain spells (create-bonfire updated; others pending)
 
 ### Test Cases
 1. `create-bonfire` → creature walks through → Dex save + damage

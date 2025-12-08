@@ -84,6 +84,46 @@ function buildIndex() {
 
   const categoryIndexFiles = [];
 
+  // Special handling for Spells: ensure the index includes every spell in the manifest,
+  // even if a glossary card is missing, so the UI can show gaps.
+  if (entriesByCategory["Spells"]) {
+    try {
+      const manifestPath = path.join(__dirname, "../public/data/spells_manifest.json");
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+      const spellCardDir = path.join(ENTRY_BASE_DIR, "spells");
+      const spellCards = new Set(fs.readdirSync(spellCardDir).filter(f => f.endsWith(".md")).map(f => f.replace(/\.md$/, "")));
+
+      const levelsMap = new Map();
+      Object.entries(manifest).forEach(([id, spell]) => {
+        if (typeof spell.level !== "number") return;
+        if (!levelsMap.has(spell.level)) levelsMap.set(spell.level, []);
+        levelsMap.get(spell.level).push({
+          id,
+          title: spell.name,
+          category: "Spells",
+          tags: [`level ${spell.level}`],
+          excerpt: spell.school ? `${spell.school} spell` : "Spell entry",
+          filePath: `/data/glossary/entries/spells/${id}.md`,
+          hasCard: spellCards.has(id),
+        });
+      });
+
+      const sortedLevels = [...levelsMap.keys()].sort((a, b) => a - b);
+      const spellGroups = sortedLevels.map(level => ({
+        id: `spell_level_${level}`,
+        title: level === 0 ? "Cantrips (Level 0)" : `Level ${level} Spells`,
+        category: "Spells",
+        excerpt: level === 0 ? "Spells that can be cast at will, without using a spell slot." : `Spells cast using a ${level} level spell slot.`,
+        filePath: null,
+        subEntries: levelsMap.get(level).sort((a, b) => a.title.localeCompare(b.title)),
+      }));
+
+      entriesByCategory["Spells"] = spellGroups;
+    } catch (e) {
+      console.error("Failed to enrich spell index from manifest:", e.message);
+    }
+  }
+
   // Create directory if it doesn't exist (for local dev)
   if (process.env.NODE_ENV !== 'test_ai_studio' && !fs.existsSync(OUT_INDEX_DIR)) {
     fs.mkdirSync(OUT_INDEX_DIR, { recursive: true });
@@ -96,8 +136,10 @@ function buildIndex() {
     const categoryFilePath = path.join(OUT_INDEX_DIR, categoryFileName);
     const categoryEntries = entriesByCategory[categoryName];
 
-    // Simple alphabetical sort for consistency
-    categoryEntries.sort((a,b) => a.title.localeCompare(b.title));
+    // Simple alphabetical sort for consistency (skip for Spells to preserve level ordering)
+    if (categoryName !== "Spells") {
+      categoryEntries.sort((a,b) => a.title.localeCompare(b.title));
+    }
 
     if (process.env.NODE_ENV !== 'test_ai_studio') {
       fs.writeFileSync(categoryFilePath, JSON.stringify(categoryEntries, null, 2));

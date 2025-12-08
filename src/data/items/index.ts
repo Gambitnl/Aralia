@@ -76,7 +76,48 @@ export const ITEMS: Record<string, Item> = {
   'lodestone_pair': { id: 'lodestone_pair', name: 'Lodestone Pair', icon: '🧲', description: 'Two small, naturally magnetic stones.', type: 'spell_component', weight: 0.2, cost: "1 SP" },
   'diamond_300gp': { id: 'diamond_300gp', name: 'Diamond (300 GP)', icon: '💎', description: 'A large, clear diamond.', type: 'spell_component', weight: 0.1, cost: "300 GP", costInGp: 300, isConsumed: true, substitutable: false },
 
-  // Armor and Shield
+  // --- Armor: Head ---
+  'leather_cap': { id: 'leather_cap', name: 'Leather Cap', icon: '🎓', description: 'A simple leather cap.', type: 'armor', slot: 'Head', armorCategory: 'Light', baseArmorClass: 0, weight: 1, cost: '2 GP' },
+  'chainmail_coif': { id: 'chainmail_coif', name: 'Chainmail Coif', icon: '⛓️', description: 'A hood of interlocking metal rings.', type: 'armor', slot: 'Head', armorCategory: 'Medium', baseArmorClass: 0, weight: 3, cost: '15 GP' },
+  'steel_helmet': { id: 'steel_helmet', name: 'Steel Helmet', icon: '⛑️', description: 'A solid steel helmet.', type: 'armor', slot: 'Head', armorCategory: 'Heavy', baseArmorClass: 0, weight: 5, cost: '30 GP' },
+
+  // --- Armor: Hands ---
+  'leather_gloves': { id: 'leather_gloves', name: 'Leather Gloves', icon: '🧤', description: 'Supple leather gloves.', type: 'armor', slot: 'Hands', armorCategory: 'Light', baseArmorClass: 0, weight: 0.5, cost: '1 GP' },
+  'chainmail_gauntlets': { id: 'chainmail_gauntlets', name: 'Chainmail Gauntlets', icon: '🥊', description: 'Metal mesh gloves.', type: 'armor', slot: 'Hands', armorCategory: 'Medium', baseArmorClass: 0, weight: 2, cost: '10 GP' },
+  'plate_gauntlets': { id: 'plate_gauntlets', name: 'Plate Gauntlets', icon: '🥊', description: 'Heavy plated gloves.', type: 'armor', slot: 'Hands', armorCategory: 'Heavy', baseArmorClass: 0, weight: 4, cost: '50 GP' },
+
+  // --- Armor: Legs ---
+  'cloth_pants': { id: 'cloth_pants', name: 'Cloth Pants', icon: '👖', description: 'Simple cloth trousers.', type: 'armor', slot: 'Legs', armorCategory: 'Light', baseArmorClass: 0, weight: 2, cost: '5 SP' },
+  'leather_greaves': { id: 'leather_greaves', name: 'Leather Greaves', icon: '🦵', description: 'Leather leg protection.', type: 'armor', slot: 'Legs', armorCategory: 'Medium', baseArmorClass: 0, weight: 4, cost: '15 GP' },
+  'plate_greaves': { id: 'plate_greaves', name: 'Plate Greaves', icon: '🦵', description: 'Full plate leg armor.', type: 'armor', slot: 'Legs', armorCategory: 'Heavy', baseArmorClass: 0, weight: 8, cost: '75 GP' },
+
+  // --- Armor: Feet ---
+  'soft_boots': { id: 'soft_boots', name: 'Soft Boots', icon: '👢', description: 'Comfortable leather boots.', type: 'armor', slot: 'Feet', armorCategory: 'Light', baseArmorClass: 0, weight: 1, cost: '2 GP' },
+  'studded_boots': { id: 'studded_boots', name: 'Studded Boots', icon: '🥾', description: 'Reinforced leather boots.', type: 'armor', slot: 'Feet', armorCategory: 'Medium', baseArmorClass: 0, weight: 3, cost: '12 GP' },
+  'steel_boots': { id: 'steel_boots', name: 'Steel Boots', icon: '🥾', description: 'Heavy metal boots.', type: 'armor', slot: 'Feet', armorCategory: 'Heavy', baseArmorClass: 0, weight: 6, cost: '40 GP' },
+
+  // --- Armor: Wrists ---
+  'leather_bracers': { id: 'leather_bracers', name: 'Leather Bracers', icon: '💪', description: 'Protective leather wrist guards.', type: 'armor', slot: 'Wrists', armorCategory: 'Light', baseArmorClass: 0, weight: 0.5, cost: '3 GP' },
+  'reinforced_bracers': { id: 'reinforced_bracers', name: 'Reinforced Bracers', icon: '💪', description: 'Metal-studded bracers.', type: 'armor', slot: 'Wrists', armorCategory: 'Medium', baseArmorClass: 0, weight: 2, cost: '15 GP' },
+
+  // --- Accessories: Neck ---
+  'silver_necklace': { id: 'silver_necklace', name: 'Silver Necklace', icon: '📿', description: 'A simple silver chain.', type: 'accessory', slot: 'Neck', weight: 0.1, cost: '10 GP' },
+  'amulet_of_health': { id: 'amulet_of_health', name: 'Amulet of Health', icon: '🔮', description: 'A magical amulet that grants vitality. (Placeholder)', type: 'accessory', slot: 'Neck', weight: 0.2, cost: '500 GP' },
+
+  // --- Accessories: Cloak ---
+  'travelers_cloak': { id: 'travelers_cloak', name: "Traveler's Cloak", icon: '🧥', description: 'A warm, weatherproof cloak.', type: 'accessory', slot: 'Cloak', weight: 3, cost: '5 GP' },
+  'cloak_of_protection': { id: 'cloak_of_protection', name: 'Cloak of Protection', icon: '✨', description: 'A magical cloak that wards against harm. (Placeholder)', type: 'accessory', slot: 'Cloak', weight: 2, cost: '1000 GP' },
+
+  // --- Accessories: Belt ---
+  'leather_belt': { id: 'leather_belt', name: 'Leather Belt', icon: '🔗', description: 'A sturdy leather belt.', type: 'accessory', slot: 'Belt', weight: 0.5, cost: '1 GP' },
+  'belt_of_giant_strength': { id: 'belt_of_giant_strength', name: 'Belt of Giant Strength', icon: '💪', description: 'A magical belt that enhances strength. (Placeholder)', type: 'accessory', slot: 'Belt', weight: 1, cost: '2000 GP' },
+
+  // --- Accessories: Rings ---
+  'silver_ring': { id: 'silver_ring', name: 'Silver Ring', icon: '💍', description: 'A plain silver band.', type: 'accessory', slot: 'Ring', weight: 0.01, cost: '5 GP' },
+  'gold_ring': { id: 'gold_ring', name: 'Gold Ring', icon: '💍', description: 'A polished gold ring.', type: 'accessory', slot: 'Ring', weight: 0.01, cost: '25 GP' },
+  'ring_of_protection': { id: 'ring_of_protection', name: 'Ring of Protection', icon: '✨', description: 'A magical ring that provides protection. (Placeholder)', type: 'accessory', slot: 'Ring', weight: 0.01, cost: '1500 GP' },
+
+  // Armor and Shield (Torso)
   'padded_armor': { id: 'padded_armor', name: 'Padded Armor', icon: '🧥', description: 'Quilted layers of cloth and batting.', type: 'armor', slot: 'Torso', armorCategory: 'Light', baseArmorClass: 11, addsDexterityModifier: true, stealthDisadvantage: true, weight: 8, cost: '5 GP' },
   'leather_armor': { id: 'leather_armor', name: 'Leather Armor', icon: '👕', description: 'Stiffened leather plates.', type: 'armor', slot: 'Torso', armorCategory: 'Light', baseArmorClass: 11, addsDexterityModifier: true, weight: 10, cost: '10 GP' },
   'studded_leather_armor': { id: 'studded_leather_armor', name: 'Studded Leather Armor', icon: '👘', description: 'Leather reinforced with rivets.', type: 'armor', slot: 'Torso', armorCategory: 'Light', baseArmorClass: 12, addsDexterityModifier: true, weight: 13, cost: '45 GP' },

@@ -52,9 +52,11 @@ const validateSpells = (): void => {
     } catch (error) {
       console.error(`[Data Validation] Validation failed for spell ${id}:`);
       if (error instanceof z.ZodError) {
-        error.errors.forEach(e => console.error(`  - ${e.path.join('.')}: ${e.message}`));
+        const issues = error.errors || (error as any).issues || [];
+        issues.forEach((e: any) => console.error(`  - ${e.path.join('.')}: ${e.message}`));
       } else {
         console.error(error);
+        if (error instanceof Error && error.stack) console.error(error.stack);
       }
       errorCount++;
     }

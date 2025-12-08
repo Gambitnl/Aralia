@@ -3,23 +3,105 @@
   "name": "Hex",
   "level": 1,
   "school": "Enchantment",
-  "classes": ["Warlock"],
-  "description": "You curse a creature you can see within range. Until the spell ends, you deal an extra 1d6 Necrotic damage to the target whenever you hit it with an attack roll. Also choose one ability when you cast the spell; the target has Disadvantage on ability checks with the chosen ability. If the target drops to 0 HP, you can use a Bonus Action to curse a new creature. Concentration can be extended with higher-level slots (2: up to 4 hours, 3–4: up to 8 hours, 5+: 24 hours).",
-  "higherLevels": "Duration extends: 2nd level up to 4 hours; 3rd–4th up to 8 hours; 5th+ 24 hours.",
-  "tags": ["curse", "necrotic", "concentration"],
-  "ritual": false,
-  "castingTime": { "value": 1, "unit": "bonus_action", "combatCost": { "type": "bonus_action" } },
-  "range": { "type": "ranged", "distance": 90 },
-  "components": { "verbal": true, "somatic": true, "material": true, "materialDescription": "the petrified eye of a newt" },
-  "duration": { "type": "timed", "value": 1, "unit": "hour", "concentration": true },
-  "targeting": { "type": "single", "range": 90, "validTargets": ["creatures", "enemies"], "lineOfSight": true },
+  "classes": [
+    "Warlock"
+  ],
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "petrified eye of newt",
+    "isConsumed": false
+  },
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action",
+    "combatCost": {
+      "type": "bonus_action"
+    }
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": true
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 90
+  },
+  "targeting": {
+    "type": "single",
+    "range": 90,
+    "validTargets": [
+      "creatures"
+    ]
+  },
+  "description": "You place a curse on a creature that you can see within range. Until the spell ends, you deal an extra 1d6 necrotic damage to the target whenever you hit it with an attack. Also, choose one ability when you cast the spell. The target has disadvantage on ability checks made with the chosen ability.",
   "effects": [
     {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "on_attack_hit",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        }
+      },
+      "condition": {
+        "type": "hit"
+      },
+      "damage": {
+        "dice": "1d6",
+        "type": "Necrotic"
+      }
+    },
+    {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
       "utilityType": "control",
-      "description": "Target is cursed: you deal +1d6 necrotic damage on each attack hit, target has disadvantage on chosen ability checks, and you can move the curse when the target drops to 0 HP."
+      "description": "The target has disadvantage on ability checks made with the chosen ability.",
+      "controlOptions": [
+        {
+          "name": "Strength",
+          "effect": "disadvantage"
+        },
+        {
+          "name": "Dexterity",
+          "effect": "disadvantage"
+        },
+        {
+          "name": "Constitution",
+          "effect": "disadvantage"
+        },
+        {
+          "name": "Intelligence",
+          "effect": "disadvantage"
+        },
+        {
+          "name": "Wisdom",
+          "effect": "disadvantage"
+        },
+        {
+          "name": "Charisma",
+          "effect": "disadvantage"
+        }
+      ]
     }
-  ]
+  ],
+  "ritual": false,
+  "tags": [
+    "damage",
+    "debuff"
+  ],
+  "scaling": {
+    "type": "slot_level",
+    "bonusPerLevel": "Duration increases (see PHB)"
+  }
 }

@@ -3,30 +3,103 @@
   "name": "Thunderous Smite",
   "level": 1,
   "school": "Evocation",
-  "classes": ["Paladin"],
-  "description": "The first time you hit with a melee weapon attack during the spell's duration, your weapon rings with thunder that is audible within 300 feet and the attack deals an extra 2d6 Thunder damage. Additionally, the target must succeed on a Strength saving throw or be pushed 10 feet away from you and knocked Prone.",
-  "higherLevels": "The extra damage increases by 1d6 for each spell slot level above 1.",
-  "tags": ["damage", "thunder", "smite", "concentration"],
-  "ritual": false,
-  "castingTime": { "value": 1, "unit": "bonus_action", "combatCost": { "type": "bonus_action" } },
-  "range": { "type": "self" },
-  "components": { "verbal": true, "somatic": false, "material": false },
-  "duration": { "type": "timed", "value": 1, "unit": "minute", "concentration": true },
-  "targeting": { "type": "single", "range": 5, "validTargets": ["creatures", "enemies"], "lineOfSight": true },
+  "classes": [
+    "Paladin"
+  ],
+  "description": "The first time you hit with a melee weapon attack during this spell's duration, your weapon rings with thunder that is audible within 300 feet. The attack deals an extra 2d6 thunder damage to the target. Additionally, if the target is a creature, it must succeed on a Strength saving throw or be pushed 10 feet away from you and knocked prone.",
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action"
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": [
+      "self"
+    ]
+  },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "hit" },
-      "damage": { "dice": "2d6", "type": "Thunder" },
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d6" }
+      "trigger": {
+        "type": "on_attack_hit",
+        "consumption": "first_hit",
+        "attackFilter": {
+          "weaponType": "melee",
+          "attackType": "weapon"
+        }
+      },
+      "condition": {
+        "type": "always"
+      },
+      "damage": {
+        "dice": "2d6",
+        "type": "Thunder"
+      }
     },
     {
-      "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "save", "saveType": "Strength", "saveEffect": "none" },
-      "utilityType": "control",
-      "description": "On a failed save, target is pushed 10 feet away and knocked Prone."
+      "type": "STATUS_CONDITION",
+      "trigger": {
+        "type": "on_attack_hit",
+        "consumption": "first_hit",
+        "attackFilter": {
+          "weaponType": "melee",
+          "attackType": "weapon"
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Strength",
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureType": []
+        }
+      },
+      "statusCondition": {
+        "name": "Prone",
+        "duration": {
+          "type": "rounds",
+          "value": 10
+        },
+        "level": 1
+      }
+    },
+    {
+      "type": "MOVEMENT",
+      "trigger": {
+        "type": "on_attack_hit",
+        "consumption": "first_hit",
+        "attackFilter": {
+          "weaponType": "melee",
+          "attackType": "weapon"
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Strength",
+        "saveEffect": "negates_condition"
+      },
+      "movementType": "push",
+      "distance": 10,
+      "forcedMovement": {
+        "direction": "away_from_caster"
+      },
+      "duration": {
+        "type": "instantaneous"
+      }
     }
   ]
 }

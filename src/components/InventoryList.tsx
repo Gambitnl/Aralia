@@ -5,7 +5,7 @@
  * It's used within the CharacterSheetModal.
  */
 import React, { useEffect, useMemo, useState } from 'react';
-import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry } from '../types';
+import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType } from '../types';
 import { canEquipItem } from '../utils/characterUtils';
 import Tooltip from './Tooltip';
 
@@ -14,6 +14,8 @@ interface InventoryListProps {
   gold: number;
   character: PlayerCharacter;
   onAction: (action: Action) => void;
+  filterBySlot?: EquipmentSlotType | null;
+  onClearFilter?: () => void;
 }
 
 /**
@@ -88,7 +90,7 @@ const CoinDisplay: React.FC<{ label: string, amount: number, color: string, icon
 
 const ROOT_CONTAINER_ID = 'root-backpack';
 
-const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, character, onAction }) => {
+const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, character, onAction, filterBySlot, onClearFilter }) => {
   /**
    * The weight computation still sums the raw inventory to keep parity
    * with the existing encumbrance rules while the nested UI only affects
@@ -136,6 +138,41 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
     return inventory.filter(item => !coinIds.includes(item.id));
   }, [inventory]);
 
+  // Apply slot-based filtering if active
+  const filteredInventory = useMemo(() => {
+    if (!filterBySlot) return nonCoinInventory;
+
+    return nonCoinInventory.filter(item => {
+      // Check if item has a slot that matches the filter
+      if (!item.slot) return false;
+
+      // Special case: Ring1 and Ring2 both accept items with slot='Ring' or 'Ring1' or 'Ring2'
+      if ((filterBySlot === 'Ring1' || filterBySlot === 'Ring2')) {
+        if (item.slot === 'Ring' || item.slot === 'Ring1' || item.slot === 'Ring2') {
+          // For armor/weapon, check proficiency
+          if (item.type === 'armor' || item.type === 'weapon') {
+            const { can } = canEquipItem(character, item);
+            return can;
+          }
+          return true;
+        }
+        return false;
+      }
+
+      // Direct slot match
+      if (item.slot === filterBySlot) {
+        // Additional check: verify the item can actually be equipped by this character
+        if (item.type === 'armor' || item.type === 'weapon') {
+          const { can } = canEquipItem(character, item);
+          return can;
+        }
+        return true;
+      }
+
+      return false;
+    });
+  }, [nonCoinInventory, filterBySlot, character]);
+
   /**
    * Containers introduce a hierarchy. Because duplicate items are allowed,
    * we fabricate a stable instanceId for rendering and for in-component
@@ -143,8 +180,8 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
    * not yet been expanded to persist container assignments globally.
    */
   const inventoryInstances = useMemo(() => {
-    return nonCoinInventory.map((item, index) => ({ ...item, instanceId: `${item.id}-${index}` }));
-  }, [nonCoinInventory]);
+    return filteredInventory.map((item, index) => ({ ...item, instanceId: `${item.id}-${index}` }));
+  }, [filteredInventory]);
 
   const [containerAssignments, setContainerAssignments] = useState<Record<string, string>>({});
   const [collapsedContainers, setCollapsedContainers] = useState<Record<string, boolean>>({});
@@ -249,8 +286,9 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
           <ul className="mt-2 space-y-1.5">
             {bucket.children.map(child => {
               const key = child.instanceId;
+              const isEquippableType = child.type === 'armor' || child.type === 'weapon' || child.type === 'accessory';
               const { can: canBeEquipped, reason: cantEquipReason } =
-                (child.type === 'armor' || child.type === 'weapon') && child.slot ?
+                isEquippableType && child.slot ?
                   canEquipItem(character, child) : { can: false, reason: undefined };
 
               const isFood = child.type === 'food_drink';
@@ -291,7 +329,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                           {isFood ? 'Eat' : 'Use'}
                         </button>
                       )}
-                      {(child.type === 'armor' || child.type === 'weapon') && child.slot && (
+                      {isEquippableType && child.slot && (
                         <Tooltip content={canBeEquipped ? `Equip ${child.name}` : (cantEquipReason || "Cannot equip")}>
                           <button onClick={() => onAction({ type: 'EQUIP_ITEM', label: `Equip ${child.name}`, payload: { itemId: child.id, characterId: character.id! } })}
                             disabled={!canBeEquipped}
@@ -332,6 +370,24 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
           <CoinDisplay label="CP" amount={currency.CP} color="text-orange-400" icon="🪙" tooltip="Copper Pieces (1 CP = 0.01 GP)" />
         </div>
       </div>
+
+      {/* Filter Indicator */}
+      {filterBySlot && (
+        <div className="mb-2 p-2 bg-amber-900/30 border border-amber-600/50 rounded-md flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-amber-300 text-sm font-semibold">🔍 Filtering: {filterBySlot} slot</span>
+            <span className="text-xs text-gray-400">({filteredInventory.length} compatible items)</span>
+          </div>
+          <button
+            type="button"
+            onClick={onClearFilter}
+            className="text-xs bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded transition-colors"
+            aria-label="Clear filter"
+          >
+            Clear
+          </button>
+        </div>
+      )}
 
       {/* Weight & List Header */}
       <div className="flex justify-between items-center mb-2 px-1">

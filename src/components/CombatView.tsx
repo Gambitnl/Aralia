@@ -125,7 +125,9 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
     onExecuteAction: turnManager.executeAction,
     onCharacterUpdate: handleCharacterUpdate,
     onAbilityEffect: turnManager.addDamageNumber, // Pass the callback to show visual feedback
-    onRequestInput: handleRequestInput
+    onRequestInput: handleRequestInput,
+    reactiveTriggers: turnManager.reactiveTriggers,
+    onReactiveTriggerUpdate: turnManager.setReactiveTriggers
   });
 
   const handleToggleAuto = useCallback((characterId: string) => {
@@ -299,7 +301,12 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
             turnState={turnManager.turnState}
             onCharacterSelect={handleSheetOpen}
           />
-          {currentCharacter && <ActionEconomyBar actionEconomy={currentCharacter.actionEconomy} />}
+          {currentCharacter && (
+            <ActionEconomyBar
+              character={currentCharacter}
+              onExecuteAction={turnManager.executeAction}
+            />
+          )}
           <AbilityPalette
             character={currentCharacter ?? null}
             onSelectAbility={(ability) => abilitySystem.startTargeting(ability, currentCharacter!)}

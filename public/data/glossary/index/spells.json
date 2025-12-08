@@ -11,436 +11,418 @@
         "title": "Acid Splash",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "evocation",
-          "acid",
-          "damage",
-          "aoe"
+          "level 0"
         ],
-        "excerpt": "You create an acidic bubble at a point within range, where it explodes in a 5-foot-radius Sphere. Each creature in that Sphere must succeed on a Dexterity saving throw or take 1d6 Acid damage.",
-        "seeAlso": [
-          "dexterity_saving_throw",
-          "acid_damage",
-          "area_of_effect",
-          "sphere_area",
-          "artificer",
-          "sorcerer",
-          "wizard"
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/acid-splash.md",
+        "hasCard": true
+      },
+      {
+        "id": "blade-ward",
+        "title": "Blade Ward",
+        "category": "Spells",
+        "tags": [
+          "level 0"
         ],
-        "filePath": "/data/glossary/entries/spells/acid_splash.md"
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/blade-ward.md",
+        "hasCard": true
+      },
+      {
+        "id": "booming-blade",
+        "title": "Booming Blade",
+        "category": "Spells",
+        "tags": [
+          "level 0"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/booming-blade.md",
+        "hasCard": true
+      },
+      {
+        "id": "chill-touch",
+        "title": "Chill Touch",
+        "category": "Spells",
+        "tags": [
+          "level 0"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/chill-touch.md",
+        "hasCard": true
+      },
+      {
+        "id": "create-bonfire",
+        "title": "Create Bonfire",
+        "category": "Spells",
+        "tags": [
+          "level 0"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/create-bonfire.md",
+        "hasCard": true
+      },
+      {
+        "id": "dancing-lights",
+        "title": "Dancing Lights",
+        "category": "Spells",
+        "tags": [
+          "level 0"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/dancing-lights.md",
+        "hasCard": true
       },
       {
         "id": "druidcraft",
         "title": "Druidcraft",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "transmutation",
-          "utility",
-          "DRUID"
+          "level 0"
         ],
-        "excerpt": "Whispering to the spirits of nature, you create one of several minor, harmless sensory effects within range.",
-        "seeAlso": [
-          "prestidigitation",
-          "thaumaturgy",
-          "elementalism"
-        ],
-        "filePath": "/data/glossary/entries/spells/druidcraft.md"
-      },
-      {
-        "id": "dancing-lights",
-        "title": "Dancing Lights",
-        "category": "Spells",
-        "tags": ["cantrip", "evocation", "utility", "light", "artificer", "bard", "sorcerer", "wizard"],
-        "excerpt": "You create up to four torch-sized lights within range, making them appear as torches, lanterns, or glowing orbs that hover in the air for the duration.",
-        "seeAlso": ["light", "prestidigitation", "minor-illusion"],
-        "filePath": "/data/glossary/entries/spells/dancing-lights.md"
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/druidcraft.md",
+        "hasCard": true
       },
       {
         "id": "eldritch-blast",
         "title": "Eldritch Blast",
         "category": "Spells",
-        "tags": ["cantrip", "evocation", "damage", "force", "warlock"],
-        "excerpt": "A beam of crackling energy streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 force damage.",
-        "seeAlso": ["fire-bolt", "ray-of-frost", "chill-touch"],
-        "filePath": "/data/glossary/entries/spells/eldritch-blast.md"
+        "tags": [
+          "level 0"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/eldritch-blast.md",
+        "hasCard": true
       },
       {
         "id": "elementalism",
         "title": "Elementalism",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "transmutation",
-          "utility",
-          "druid",
-          "sorcerer",
-          "wizard"
+          "level 0"
         ],
-        "excerpt": "You exert control over the elements, creating one of several minor, instantaneous effects within range.",
-        "seeAlso": [
-          "druid",
-          "sorcerer",
-          "wizard",
-          "prestidigitation",
-          "druidcraft"
-        ],
-        "filePath": "/data/glossary/entries/spells/elementalism.md"
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/elementalism.md",
+        "hasCard": true
       },
       {
         "id": "fire-bolt",
         "title": "Fire Bolt",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "evocation",
-          "damage",
-          "fire",
-          "artificer",
-          "sorcerer",
-          "wizard"
+          "level 0"
         ],
-        "excerpt": "You hurl a mote of fire at a creature or an object within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Fire damage.",
-        "seeAlso": [
-          "ray-of-frost",
-          "eldritch-blast",
-          "chill-touch"
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/fire-bolt.md",
+        "hasCard": true
+      },
+      {
+        "id": "friends",
+        "title": "Friends",
+        "category": "Spells",
+        "tags": [
+          "level 0"
         ],
-        "filePath": "/data/glossary/entries/spells/fire-bolt.md"
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/friends.md",
+        "hasCard": false
+      },
+      {
+        "id": "frostbite",
+        "title": "Frostbite",
+        "category": "Spells",
+        "tags": [
+          "level 0"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/frostbite.md",
+        "hasCard": false
+      },
+      {
+        "id": "green-flame-blade",
+        "title": "Green-Flame Blade",
+        "category": "Spells",
+        "tags": [
+          "level 0"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/green-flame-blade.md",
+        "hasCard": false
       },
       {
         "id": "guidance",
         "title": "Guidance",
         "category": "Spells",
-        "tags": ["cantrip", "divination", "utility", "buff", "cleric", "druid", "artificer"],
-        "excerpt": "You touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one ability check of its choice.",
-        "seeAlso": ["resistance", "bless"],
-        "filePath": "/data/glossary/entries/spells/guidance.md"
+        "tags": [
+          "level 0"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/guidance.md",
+        "hasCard": true
       },
       {
         "id": "light",
         "title": "Light",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "evocation",
-          "utility",
-          "creation"
+          "level 0"
         ],
-        "excerpt": "You touch an object and make it shed bright light in a 20-foot radius and dim light for an additional 20 feet.",
-        "seeAlso": [
-          "bright_light",
-          "dim_light",
-          "spell_components_rules"
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/light.md",
+        "hasCard": true
+      },
+      {
+        "id": "lightning-lure",
+        "title": "Lightning Lure",
+        "category": "Spells",
+        "tags": [
+          "level 0"
         ],
-        "filePath": "/data/glossary/entries/spells/light.md"
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/lightning-lure.md",
+        "hasCard": false
       },
       {
         "id": "mage-hand",
         "title": "Mage Hand",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "conjuration",
-          "utility",
-          "bard",
-          "sorcerer",
-          "warlock",
-          "wizard",
-          "artificer"
+          "level 0"
         ],
-        "excerpt": "A spectral, floating hand appears at a point you choose within range. The hand lasts for the duration.",
-        "seeAlso": [
-          "unseen_servant",
-          "prestidigitation",
-          "minor_illusion"
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/mage-hand.md",
+        "hasCard": false
+      },
+      {
+        "id": "magic-stone",
+        "title": "Magic Stone",
+        "category": "Spells",
+        "tags": [
+          "level 0"
         ],
-        "filePath": "/data/glossary/entries/spells/mage_hand.md"
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/magic-stone.md",
+        "hasCard": false
       },
       {
         "id": "mending",
         "title": "Mending",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "transmutation",
-          "utility",
-          "repair"
+          "level 0"
         ],
-        "excerpt": "This spell repairs a single break or tear in an object you touch, leaving no trace of the former damage.",
-        "seeAlso": [
-          "artificer",
-          "bard",
-          "cleric",
-          "druid",
-          "sorcerer",
-          "wizard"
-        ],
-        "filePath": "/data/glossary/entries/spells/mending.md"
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/mending.md",
+        "hasCard": true
       },
       {
         "id": "message",
         "title": "Message",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "transmutation",
-          "communication",
-          "social",
-          "bard",
-          "druid",
-          "sorcerer",
-          "wizard",
-          "artificer"
+          "level 0"
         ],
-        "excerpt": "Point at a creature and whisper a message that only they can hear, allowing them to reply in a whisper only you can hear.",
-        "seeAlso": [
-          "mage_hand",
-          "friends",
-          "vicious_mockery"
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/message.md",
+        "hasCard": true
+      },
+      {
+        "id": "minor-illusion",
+        "title": "Minor Illusion",
+        "category": "Spells",
+        "tags": [
+          "level 0"
         ],
-        "filePath": "/data/glossary/entries/spells/message.md"
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/minor-illusion.md",
+        "hasCard": false
       },
       {
         "id": "poison-spray",
         "title": "Poison Spray",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "necromancy",
-          "damage",
-          "poison",
-          "artificer",
-          "druid",
-          "sorcerer",
-          "warlock",
-          "wizard"
+          "level 0"
         ],
-        "excerpt": "You spray toxic mist at a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d12 Poison damage.",
-        "seeAlso": [
-          "chill-touch",
-          "acid-splash",
-          "fire-bolt"
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/poison-spray.md",
+        "hasCard": true
+      },
+      {
+        "id": "prestidigitation",
+        "title": "Prestidigitation",
+        "category": "Spells",
+        "tags": [
+          "level 0"
         ],
-        "filePath": "/data/glossary/entries/spells/poison-spray.md"
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/prestidigitation.md",
+        "hasCard": false
       },
       {
         "id": "produce-flame",
         "title": "Produce Flame",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "conjuration",
-          "damage",
-          "fire",
-          "druid"
+          "level 0"
         ],
-        "excerpt": "A flickering flame appears in your hand, shedding light and allowing you to hurl it at enemies.",
-        "seeAlso": [
-          "druidcraft",
-          "fire-bolt",
-          "light"
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/produce-flame.md",
+        "hasCard": true
+      },
+      {
+        "id": "ray-of-frost",
+        "title": "Ray of Frost",
+        "category": "Spells",
+        "tags": [
+          "level 0"
         ],
-        "filePath": "/data/glossary/entries/spells/produce-flame.md"
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/ray-of-frost.md",
+        "hasCard": false
       },
       {
         "id": "resistance",
         "title": "Resistance",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "abjuration",
-          "buff",
-          "concentration",
-          "damage reduction"
+          "level 0"
         ],
-        "excerpt": "Touch a willing creature to grant them the ability to reduce incoming damage of a chosen type by 1d4 once per turn.",
-        "seeAlso": [
-          "concentration",
-          "damage_resistance",
-          "artificer",
-          "cleric",
-          "druid"
-        ],
-        "filePath": "/data/glossary/entries/spells/resistance.md"
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/resistance.md",
+        "hasCard": true
       },
       {
         "id": "sacred-flame",
         "title": "Sacred Flame",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "evocation",
-          "damage",
-          "radiant",
-          "cleric",
-          "warlock"
+          "level 0"
         ],
-        "excerpt": "Flame-like radiance descends on a creature, ignoring cover bonuses for its saving throw.",
-        "seeAlso": [
-          "guiding_bolt",
-          "toll_the_dead",
-          "cleric",
-          "celestial_patron_subclass"
-        ],
-        "filePath": "/data/glossary/entries/spells/sacred_flame.md"
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/sacred-flame.md",
+        "hasCard": false
       },
       {
         "id": "shillelagh",
         "title": "Shillelagh",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "transmutation",
-          "damage",
-          "buff",
-          "druid"
+          "level 0"
         ],
-        "excerpt": "Imbue a club or quarterstaff with nature's power, allowing you to use your spellcasting ability for attacks and increasing its damage.",
-        "seeAlso": [
-          "druidcraft",
-          "thorn-whip",
-          "club",
-          "quarterstaff"
-        ],
-        "filePath": "/data/glossary/entries/spells/shillelagh.md"
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/shillelagh.md",
+        "hasCard": true
       },
       {
         "id": "shocking-grasp",
         "title": "Shocking Grasp",
         "category": "Spells",
-        "tags": ["cantrip", "evocation", "damage", "lightning", "control"],
-        "excerpt": "A melee spell attack that deals 1d8 lightning damage and prevents the target from taking reactions.",
-        "seeAlso": ["lightning_damage", "reactions", "opportunity_attack"],
-        "filePath": "/data/glossary/entries/spells/shocking-grasp.md"
+        "tags": [
+          "level 0"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/shocking-grasp.md",
+        "hasCard": true
       },
       {
         "id": "spare-the-dying",
         "title": "Spare the Dying",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "necromancy",
-          "utility",
-          "healing",
-          "stable"
+          "level 0"
         ],
-        "excerpt": "Choose a creature within range that has 0 Hit Points and isn't dead. The creature becomes Stable.",
-        "seeAlso": [
-          "stable_condition",
-          "hit_points",
-          "cleric",
-          "druid",
-          "artificer"
-        ],
-        "filePath": "/data/glossary/entries/spells/spare-the-dying.md"
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/spare-the-dying.md",
+        "hasCard": true
       },
       {
         "id": "starry-wisp",
         "title": "Starry Wisp",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "evocation",
-          "radiant",
-          "damage",
-          "bard",
-          "druid"
+          "level 0"
         ],
-        "excerpt": "Launch a mote of light that deals radiant damage and prevents a target from being invisible.",
-        "seeAlso": [
-          "eldritch_blast",
-          "fire_bolt",
-          "guidance",
-          "druidcraft"
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/starry-wisp.md",
+        "hasCard": true
+      },
+      {
+        "id": "thaumaturgy",
+        "title": "Thaumaturgy",
+        "category": "Spells",
+        "tags": [
+          "level 0"
         ],
-        "filePath": "/data/glossary/entries/spells/starry-wisp.md"
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/thaumaturgy.md",
+        "hasCard": false
       },
       {
         "id": "thorn-whip",
         "title": "Thorn Whip",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "transmutation",
-          "damage",
-          "control",
-          "druid",
-          "artificer"
+          "level 0"
         ],
-        "excerpt": "Create a vine-like whip to lash out, dealing piercing damage and pulling a creature closer.",
-        "seeAlso": [
-          "shillelagh",
-          "produce-flame",
-          "elementalism"
-        ],
-        "filePath": "/data/glossary/entries/spells/thorn-whip.md"
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/thorn-whip.md",
+        "hasCard": true
       },
       {
         "id": "thunderclap",
         "title": "Thunderclap",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "evocation",
-          "damage",
-          "aoe",
-          "thunder",
-          "artificer",
-          "bard",
-          "druid",
-          "sorcerer",
-          "warlock",
-          "wizard"
+          "level 0"
         ],
-        "excerpt": "You create a burst of thunderous sound that can be heard up to 100 feet away. Each creature within 5 feet of you must make a Constitution saving throw or take 1d6 thunder damage.",
-        "seeAlso": [
-          "fire-bolt",
-          "toll-the-dead",
-          "word-of-radiance"
-        ],
-        "filePath": "/data/glossary/entries/spells/thunderclap.md"
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/thunderclap.md",
+        "hasCard": true
       },
       {
         "id": "toll-the-dead",
         "title": "Toll the Dead",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "necromancy",
-          "damage",
-          "necrotic",
-          "saving throw"
+          "level 0"
         ],
-        "excerpt": "Point at a creature and a dolorous bell sound fills the air, dealing necrotic damage unless they make a Wisdom saving throw. Damage is greater if the target is already wounded.",
-        "seeAlso": [
-          "necrotic_damage",
-          "wisdom_saving_throw",
-          "cantrip",
-          "cleric",
-          "warlock",
-          "wizard"
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/toll-the-dead.md",
+        "hasCard": true
+      },
+      {
+        "id": "true-strike",
+        "title": "True Strike",
+        "category": "Spells",
+        "tags": [
+          "level 0"
         ],
-        "filePath": "/data/glossary/entries/spells/toll-the-dead.md"
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/true-strike.md",
+        "hasCard": false
+      },
+      {
+        "id": "vicious-mockery",
+        "title": "Vicious Mockery",
+        "category": "Spells",
+        "tags": [
+          "level 0"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/vicious-mockery.md",
+        "hasCard": false
       },
       {
         "id": "word-of-radiance",
         "title": "Word of Radiance",
         "category": "Spells",
         "tags": [
-          "cantrip",
-          "evocation",
-          "radiant",
-          "damage",
-          "cleric"
+          "level 0"
         ],
-        "excerpt": "Burning radiance erupts from you in a 5-foot Emanation. Each creature of your choice that you can see in it must succeed on a Constitution saving throw or take 1d6 Radiant damage.",
-        "seeAlso": [
-          "constitution_saving_throw",
-          "radiant_damage",
-          "emanation_area"
-        ],
-        "filePath": "/data/glossary/entries/spells/word-of-radiance.md"
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/word-of-radiance.md",
+        "hasCard": true
       }
     ]
   },
@@ -448,237 +430,745 @@
     "id": "spell_level_1",
     "title": "Level 1 Spells",
     "category": "Spells",
-    "excerpt": "Spells cast using a 1st-level spell slot.",
+    "excerpt": "Spells cast using a 1 level spell slot.",
     "filePath": null,
     "subEntries": [
       {
-        "id": "cure_wounds",
+        "id": "absorb-elements",
+        "title": "Absorb Elements",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/absorb-elements.md",
+        "hasCard": true
+      },
+      {
+        "id": "alarm",
+        "title": "Alarm",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/alarm.md",
+        "hasCard": true
+      },
+      {
+        "id": "animal-friendship",
+        "title": "Animal Friendship",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/animal-friendship.md",
+        "hasCard": true
+      },
+      {
+        "id": "armor-of-agathys",
+        "title": "Armor of Agathys",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/armor-of-agathys.md",
+        "hasCard": true
+      },
+      {
+        "id": "arms-of-hadar",
+        "title": "Arms of Hadar",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/arms-of-hadar.md",
+        "hasCard": true
+      },
+      {
+        "id": "bane",
+        "title": "Bane",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/bane.md",
+        "hasCard": false
+      },
+      {
+        "id": "bless",
+        "title": "Bless",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/bless.md",
+        "hasCard": false
+      },
+      {
+        "id": "burning-hands",
+        "title": "Burning Hands",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/burning-hands.md",
+        "hasCard": false
+      },
+      {
+        "id": "catapult",
+        "title": "Catapult",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/catapult.md",
+        "hasCard": false
+      },
+      {
+        "id": "charm-person",
+        "title": "Charm Person",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/charm-person.md",
+        "hasCard": false
+      },
+      {
+        "id": "chromatic-orb",
+        "title": "Chromatic Orb",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/chromatic-orb.md",
+        "hasCard": false
+      },
+      {
+        "id": "color-spray",
+        "title": "Color Spray",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/color-spray.md",
+        "hasCard": false
+      },
+      {
+        "id": "command",
+        "title": "Command",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/command.md",
+        "hasCard": true
+      },
+      {
+        "id": "compelled-duel",
+        "title": "Compelled Duel",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/compelled-duel.md",
+        "hasCard": true
+      },
+      {
+        "id": "comprehend-languages",
+        "title": "Comprehend Languages",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/comprehend-languages.md",
+        "hasCard": true
+      },
+      {
+        "id": "create-or-destroy-water",
+        "title": "Create or Destroy Water",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/create-or-destroy-water.md",
+        "hasCard": true
+      },
+      {
+        "id": "cure-wounds",
         "title": "Cure Wounds",
         "category": "Spells",
         "tags": [
-          "level 1",
-          "evocation",
-          "healing"
+          "level 1"
         ],
-        "excerpt": "A creature you touch regains a number of hit points equal to 1d8 + your spellcasting ability modifier.",
-        "seeAlso": [
-          "healing_word",
-          "spellcasting_ability"
-        ],
-        "filePath": "/data/glossary/entries/spells/cure_wounds.md"
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/cure-wounds.md",
+        "hasCard": true
       },
       {
-        "id": "detect_magic",
+        "id": "detect-evil-and-good",
+        "title": "Detect Evil and Good",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/detect-evil-and-good.md",
+        "hasCard": true
+      },
+      {
+        "id": "detect-magic",
         "title": "Detect Magic",
         "category": "Spells",
-        "tags": [ "level 1", "divination", "utility", "ritual" ],
-        "excerpt": "For the duration, you sense the presence of magic within 30 feet of you.",
-        "seeAlso": [ "school_of_magic", "ritual" ],
-        "filePath": "/data/glossary/entries/spells/detect_magic.md"
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/detect-magic.md",
+        "hasCard": true
+      },
+      {
+        "id": "detect-poison-and-disease",
+        "title": "Detect Poison and Disease",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/detect-poison-and-disease.md",
+        "hasCard": true
       },
       {
         "id": "disguise-self",
         "title": "Disguise Self",
         "category": "Spells",
         "tags": [
-          "level 1",
-          "illusion",
-          "utility",
-          "deception"
+          "level 1"
         ],
-        "excerpt": "You make yourself look different for 1 hour, including clothing, armor, and weapons.",
-        "seeAlso": [
-          "alter_self",
-          "invisibility"
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/disguise-self.md",
+        "hasCard": true
+      },
+      {
+        "id": "dissonant-whispers",
+        "title": "Dissonant Whispers",
+        "category": "Spells",
+        "tags": [
+          "level 1"
         ],
-        "filePath": "/data/glossary/entries/spells/disguise-self.md"
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/dissonant-whispers.md",
+        "hasCard": true
+      },
+      {
+        "id": "divine-favor",
+        "title": "Divine Favor",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/divine-favor.md",
+        "hasCard": true
+      },
+      {
+        "id": "divine-smite",
+        "title": "Divine Smite",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/divine-smite.md",
+        "hasCard": true
+      },
+      {
+        "id": "ensnaring-strike",
+        "title": "Ensnaring Strike",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/ensnaring-strike.md",
+        "hasCard": true
+      },
+      {
+        "id": "entangle",
+        "title": "Entangle",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/entangle.md",
+        "hasCard": true
+      },
+      {
+        "id": "expeditious-retreat",
+        "title": "Expeditious Retreat",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/expeditious-retreat.md",
+        "hasCard": true
+      },
+      {
+        "id": "faerie-fire",
+        "title": "Faerie Fire",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/faerie-fire.md",
+        "hasCard": true
+      },
+      {
+        "id": "false-life",
+        "title": "False Life",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/false-life.md",
+        "hasCard": true
       },
       {
         "id": "feather-fall",
         "title": "Feather Fall",
         "category": "Spells",
         "tags": [
-          "level 1",
-          "transmutation",
-          "utility",
-          "reaction"
+          "level 1"
         ],
-        "excerpt": "Slows the rate of descent of up to five falling creatures, preventing fall damage.",
-        "seeAlso": [
-          "reaction",
-          "falling",
-          "spell_duration_rules"
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/feather-fall.md",
+        "hasCard": true
+      },
+      {
+        "id": "find-familiar",
+        "title": "Find Familiar",
+        "category": "Spells",
+        "tags": [
+          "level 1"
         ],
-        "filePath": "/data/glossary/entries/spells/feather-fall.md"
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/find-familiar.md",
+        "hasCard": true
+      },
+      {
+        "id": "fog-cloud",
+        "title": "Fog Cloud",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/fog-cloud.md",
+        "hasCard": true
+      },
+      {
+        "id": "goodberry",
+        "title": "Goodberry",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/goodberry.md",
+        "hasCard": true
+      },
+      {
+        "id": "grease",
+        "title": "Grease",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/grease.md",
+        "hasCard": true
+      },
+      {
+        "id": "guiding-bolt",
+        "title": "Guiding Bolt",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/guiding-bolt.md",
+        "hasCard": true
+      },
+      {
+        "id": "hail-of-thorns",
+        "title": "Hail of Thorns",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/hail-of-thorns.md",
+        "hasCard": true
       },
       {
         "id": "healing-word",
         "title": "Healing Word",
         "category": "Spells",
         "tags": [
-          "level 1",
-          "evocation",
-          "healing",
-          "bonus action"
+          "level 1"
         ],
-        "excerpt": "A creature of your choice that you can see within range regains hit points equal to 1d4 + your spellcasting ability modifier.",
-        "seeAlso": [
-          "cure_wounds",
-          "bonus_actions",
-          "spellcasting_ability"
-        ],
-        "filePath": "/data/glossary/entries/spells/healing-word.md"
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/healing-word.md",
+        "hasCard": true
       },
       {
-        "id": "inflict_wounds",
+        "id": "hellish-rebuke",
+        "title": "Hellish Rebuke",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/hellish-rebuke.md",
+        "hasCard": true
+      },
+      {
+        "id": "heroism",
+        "title": "Heroism",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/heroism.md",
+        "hasCard": true
+      },
+      {
+        "id": "hex",
+        "title": "Hex",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/hex.md",
+        "hasCard": true
+      },
+      {
+        "id": "hunters-mark",
+        "title": "Hunter's Mark",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/hunters-mark.md",
+        "hasCard": true
+      },
+      {
+        "id": "ice-knife",
+        "title": "Ice Knife",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/ice-knife.md",
+        "hasCard": true
+      },
+      {
+        "id": "identify",
+        "title": "Identify",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/identify.md",
+        "hasCard": true
+      },
+      {
+        "id": "illusory-script",
+        "title": "Illusory Script",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/illusory-script.md",
+        "hasCard": true
+      },
+      {
+        "id": "inflict-wounds",
         "title": "Inflict Wounds",
         "category": "Spells",
         "tags": [
-          "level 1",
-          "necromancy",
-          "damage",
-          "necrotic",
-          "touch"
+          "level 1"
         ],
-        "excerpt": "A creature you touch makes a Constitution saving throw, taking 2d10 Necrotic damage on a failed save or half as much on a successful one.",
-        "seeAlso": [
-          "constitution_saving_throw",
-          "necrotic_damage",
-          "cleric"
-        ],
-        "filePath": "/data/glossary/entries/spells/inflict-wounds.md"
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/inflict-wounds.md",
+        "hasCard": true
       },
       {
-        "id": "magic_missile",
+        "id": "jump",
+        "title": "Jump",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/jump.md",
+        "hasCard": true
+      },
+      {
+        "id": "longstrider",
+        "title": "Longstrider",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/longstrider.md",
+        "hasCard": true
+      },
+      {
+        "id": "mage-armor",
+        "title": "Mage Armor",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/mage-armor.md",
+        "hasCard": true
+      },
+      {
+        "id": "magic-missile",
         "title": "Magic Missile",
         "category": "Spells",
         "tags": [
-          "level 1",
-          "evocation",
-          "damage",
-          "force"
+          "level 1"
         ],
-        "excerpt": "Create three glowing darts of magical force that automatically hit their targets.",
-        "seeAlso": [
-          "force_damage",
-          "shield_spell"
-        ],
-        "filePath": "/data/glossary/entries/spells/magic_missile.md"
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/magic-missile.md",
+        "hasCard": true
       },
       {
         "id": "protection-from-evil-and-good",
         "title": "Protection from Evil and Good",
         "category": "Spells",
         "tags": [
-          "level 1",
-          "abjuration",
-          "buff",
-          "warding",
-          "protection",
-          "concentration"
+          "level 1"
         ],
-        "excerpt": "Protect a willing creature against aberrations, celestials, elementals, fey, fiends, and undead.",
-        "aliases": [],
-        "seeAlso": [
-          "charmed_condition",
-          "frightened_condition"
-        ],
-        "filePath": "/data/glossary/entries/spells/protection-from-evil-and-good.md"
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/protection-from-evil-and-good.md",
+        "hasCard": true
       },
       {
-        "id": "purify_food_and_drink",
+        "id": "purify-food-and-drink",
         "title": "Purify Food and Drink",
         "category": "Spells",
         "tags": [
-          "level 1",
-          "transmutation",
-          "utility",
-          "ritual"
+          "level 1"
         ],
-        "excerpt": "You remove poison and rot from nonmagical food and drink in a 5-foot-radius Sphere.",
-        "seeAlso": [
-          "artificer",
-          "cleric",
-          "druid",
-          "paladin",
-          "ritual"
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/purify-food-and-drink.md",
+        "hasCard": true
+      },
+      {
+        "id": "ray-of-sickness",
+        "title": "Ray of Sickness",
+        "category": "Spells",
+        "tags": [
+          "level 1"
         ],
-        "filePath": "/data/glossary/entries/spells/purify_food_and_drink.md"
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/ray-of-sickness.md",
+        "hasCard": true
       },
       {
         "id": "sanctuary",
         "title": "Sanctuary",
         "category": "Spells",
         "tags": [
-          "level 1",
-          "abjuration",
-          "buff",
-          "warding",
-          "protection"
+          "level 1"
         ],
-        "excerpt": "You ward a creature within range against attack. Any creature who targets the warded creature must first make a Wisdom saving throw.",
-        "seeAlso": [
-          "wisdom_saving_throw",
-          "attack_action",
-          "area_of_effect"
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/sanctuary.md",
+        "hasCard": true
+      },
+      {
+        "id": "searing-smite",
+        "title": "Searing Smite",
+        "category": "Spells",
+        "tags": [
+          "level 1"
         ],
-        "filePath": "/data/glossary/entries/spells/sanctuary.md"
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/searing-smite.md",
+        "hasCard": true
       },
       {
         "id": "shield",
         "title": "Shield",
         "category": "Spells",
         "tags": [
-          "level 1",
-          "abjuration",
-          "reaction",
-          "defense",
-          "ac"
+          "level 1"
         ],
-        "excerpt": "An invisible barrier of magical force appears and protects you, granting a bonus to AC.",
-        "seeAlso": [
-          "reaction",
-          "armor_class",
-          "magic_missile"
-        ],
-        "filePath": "/data/glossary/entries/spells/shield.md"
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/shield.md",
+        "hasCard": true
       },
       {
-        "id": "shield_of_faith",
+        "id": "shield-of-faith",
         "title": "Shield of Faith",
         "category": "Spells",
         "tags": [
-          "level 1",
-          "abjuration",
-          "buff",
-          "concentration"
+          "level 1"
         ],
-        "excerpt": "A shimmering field surrounds a creature of your choice within range, granting it a +2 bonus to AC for the duration.",
-        "aliases": [],
-        "seeAlso": [
-          "concentration",
-          "armor_class"
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/shield-of-faith.md",
+        "hasCard": true
+      },
+      {
+        "id": "silent-image",
+        "title": "Silent Image",
+        "category": "Spells",
+        "tags": [
+          "level 1"
         ],
-        "filePath": "/data/glossary/entries/spells/shield_of_faith.md"
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/silent-image.md",
+        "hasCard": true
+      },
+      {
+        "id": "sleep",
+        "title": "Sleep",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/sleep.md",
+        "hasCard": true
+      },
+      {
+        "id": "snare",
+        "title": "Snare",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/snare.md",
+        "hasCard": false
       },
       {
         "id": "speak-with-animals",
         "title": "Speak with Animals",
         "category": "Spells",
         "tags": [
-          "level 1",
-          "divination",
-          "utility",
-          "communication",
-          "social",
-          "ritual"
+          "level 1"
         ],
-        "excerpt": "For the duration, you can comprehend and verbally communicate with Beasts. The knowledge and awareness of many beasts is limited by their intelligence, but at a minimum, beasts can give you information about nearby locations and monsters.",
-        "seeAlso": [
-          "ritual",
-          "influence_action"
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/speak-with-animals.md",
+        "hasCard": true
+      },
+      {
+        "id": "tashas-hideous-laughter",
+        "title": "Tasha's Hideous Laughter",
+        "category": "Spells",
+        "tags": [
+          "level 1"
         ],
-        "filePath": "/data/glossary/entries/spells/speak-with-animals.md"
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/tashas-hideous-laughter.md",
+        "hasCard": true
+      },
+      {
+        "id": "tensers-floating-disk",
+        "title": "Tenser's Floating Disk",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/tensers-floating-disk.md",
+        "hasCard": true
+      },
+      {
+        "id": "thunderous-smite",
+        "title": "Thunderous Smite",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/thunderous-smite.md",
+        "hasCard": true
+      },
+      {
+        "id": "thunderwave",
+        "title": "Thunderwave",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/thunderwave.md",
+        "hasCard": true
+      },
+      {
+        "id": "unseen-servant",
+        "title": "Unseen Servant",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/unseen-servant.md",
+        "hasCard": true
+      },
+      {
+        "id": "witch-bolt",
+        "title": "Witch Bolt",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/witch-bolt.md",
+        "hasCard": true
+      },
+      {
+        "id": "wrathful-smite",
+        "title": "Wrathful Smite",
+        "category": "Spells",
+        "tags": [
+          "level 1"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/wrathful-smite.md",
+        "hasCard": true
       }
     ]
   },
@@ -686,17 +1176,668 @@
     "id": "spell_level_2",
     "title": "Level 2 Spells",
     "category": "Spells",
-    "excerpt": "Spells cast using a 2nd-level spell slot.",
+    "excerpt": "Spells cast using a 2 level spell slot.",
     "filePath": null,
     "subEntries": [
+      {
+        "id": "aid",
+        "title": "Aid",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/aid.md",
+        "hasCard": false
+      },
+      {
+        "id": "alter-self",
+        "title": "Alter Self",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/alter-self.md",
+        "hasCard": false
+      },
+      {
+        "id": "animal-messenger",
+        "title": "Animal Messenger",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/animal-messenger.md",
+        "hasCard": false
+      },
+      {
+        "id": "arcane-lock",
+        "title": "Arcane Lock",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/arcane-lock.md",
+        "hasCard": false
+      },
+      {
+        "id": "augury",
+        "title": "Augury",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/augury.md",
+        "hasCard": false
+      },
+      {
+        "id": "barkskin",
+        "title": "Barkskin",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/barkskin.md",
+        "hasCard": false
+      },
+      {
+        "id": "beast-sense",
+        "title": "Beast Sense",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/beast-sense.md",
+        "hasCard": false
+      },
+      {
+        "id": "blindness-deafness",
+        "title": "Blindness/Deafness",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/blindness-deafness.md",
+        "hasCard": false
+      },
+      {
+        "id": "blur",
+        "title": "Blur",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/blur.md",
+        "hasCard": false
+      },
+      {
+        "id": "calm-emotions",
+        "title": "Calm Emotions",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/calm-emotions.md",
+        "hasCard": false
+      },
+      {
+        "id": "cloud-of-daggers",
+        "title": "Cloud of Daggers",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/cloud-of-daggers.md",
+        "hasCard": false
+      },
+      {
+        "id": "continual-flame",
+        "title": "Continual Flame",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/continual-flame.md",
+        "hasCard": false
+      },
+      {
+        "id": "cordon-of-arrows",
+        "title": "Cordon of Arrows",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/cordon-of-arrows.md",
+        "hasCard": false
+      },
+      {
+        "id": "crown-of-madness",
+        "title": "Crown of Madness",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/crown-of-madness.md",
+        "hasCard": false
+      },
+      {
+        "id": "darkness",
+        "title": "Darkness",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/darkness.md",
+        "hasCard": false
+      },
+      {
+        "id": "darkvision",
+        "title": "Darkvision",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/darkvision.md",
+        "hasCard": false
+      },
+      {
+        "id": "detect-thoughts",
+        "title": "Detect Thoughts",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/detect-thoughts.md",
+        "hasCard": false
+      },
+      {
+        "id": "dragons-breath",
+        "title": "Dragon's Breath",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/dragons-breath.md",
+        "hasCard": false
+      },
+      {
+        "id": "enhance-ability",
+        "title": "Enhance Ability",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/enhance-ability.md",
+        "hasCard": false
+      },
+      {
+        "id": "enlarge-reduce",
+        "title": "Enlarge/Reduce",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/enlarge-reduce.md",
+        "hasCard": false
+      },
+      {
+        "id": "enthrall",
+        "title": "Enthrall",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/enthrall.md",
+        "hasCard": false
+      },
+      {
+        "id": "find-steed",
+        "title": "Find Steed",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/find-steed.md",
+        "hasCard": false
+      },
+      {
+        "id": "find-traps",
+        "title": "Find Traps",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/find-traps.md",
+        "hasCard": false
+      },
+      {
+        "id": "flame-blade",
+        "title": "Flame Blade",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/flame-blade.md",
+        "hasCard": false
+      },
+      {
+        "id": "flaming-sphere",
+        "title": "Flaming Sphere",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/flaming-sphere.md",
+        "hasCard": false
+      },
+      {
+        "id": "gentle-repose",
+        "title": "Gentle Repose",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/gentle-repose.md",
+        "hasCard": false
+      },
+      {
+        "id": "gust-of-wind",
+        "title": "Gust of Wind",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/gust-of-wind.md",
+        "hasCard": false
+      },
+      {
+        "id": "heat-metal",
+        "title": "Heat Metal",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/heat-metal.md",
+        "hasCard": false
+      },
+      {
+        "id": "hold-person",
+        "title": "Hold Person",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/hold-person.md",
+        "hasCard": false
+      },
+      {
+        "id": "invisibility",
+        "title": "Invisibility",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/invisibility.md",
+        "hasCard": false
+      },
+      {
+        "id": "knock",
+        "title": "Knock",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/knock.md",
+        "hasCard": false
+      },
+      {
+        "id": "lesser-restoration",
+        "title": "Lesser Restoration",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/lesser-restoration.md",
+        "hasCard": false
+      },
       {
         "id": "levitate",
         "title": "Levitate",
         "category": "Spells",
-        "tags": ["level 2", "transmutation", "control", "movement", "concentration"],
-        "excerpt": "One creature or loose object of your choice that you can see within range rises vertically up to 20 feet and remains suspended there for the duration.",
-        "seeAlso": ["concentration", "constitution_saving_throw", "magic_action"],
-        "filePath": "/data/glossary/entries/spells/levitate.md"
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/levitate.md",
+        "hasCard": true
+      },
+      {
+        "id": "locate-animals-or-plants",
+        "title": "Locate Animals or Plants",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/locate-animals-or-plants.md",
+        "hasCard": false
+      },
+      {
+        "id": "locate-object",
+        "title": "Locate Object",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/locate-object.md",
+        "hasCard": false
+      },
+      {
+        "id": "magic-mouth",
+        "title": "Magic Mouth",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/magic-mouth.md",
+        "hasCard": false
+      },
+      {
+        "id": "magic-weapon",
+        "title": "Magic Weapon",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/magic-weapon.md",
+        "hasCard": false
+      },
+      {
+        "id": "melfs-acid-arrow",
+        "title": "Melf's Acid Arrow",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/melfs-acid-arrow.md",
+        "hasCard": false
+      },
+      {
+        "id": "mind-spike",
+        "title": "Mind Spike",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/mind-spike.md",
+        "hasCard": false
+      },
+      {
+        "id": "misty-step",
+        "title": "Misty Step",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/misty-step.md",
+        "hasCard": false
+      },
+      {
+        "id": "moonbeam",
+        "title": "Moonbeam",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/moonbeam.md",
+        "hasCard": false
+      },
+      {
+        "id": "pass-without-trace",
+        "title": "Pass without Trace",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/pass-without-trace.md",
+        "hasCard": false
+      },
+      {
+        "id": "phantasmal-force",
+        "title": "Phantasmal Force",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/phantasmal-force.md",
+        "hasCard": false
+      },
+      {
+        "id": "prayer-of-healing",
+        "title": "Prayer of Healing",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/prayer-of-healing.md",
+        "hasCard": false
+      },
+      {
+        "id": "protection-from-poison",
+        "title": "Protection from Poison",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/protection-from-poison.md",
+        "hasCard": false
+      },
+      {
+        "id": "pyrotechnics",
+        "title": "Pyrotechnics",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/pyrotechnics.md",
+        "hasCard": false
+      },
+      {
+        "id": "ray-of-enfeeblement",
+        "title": "Ray of Enfeeblement",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/ray-of-enfeeblement.md",
+        "hasCard": false
+      },
+      {
+        "id": "rope-trick",
+        "title": "Rope Trick",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/rope-trick.md",
+        "hasCard": false
+      },
+      {
+        "id": "scorching-ray",
+        "title": "Scorching Ray",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/scorching-ray.md",
+        "hasCard": false
+      },
+      {
+        "id": "see-invisibility",
+        "title": "See Invisibility",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/see-invisibility.md",
+        "hasCard": false
+      },
+      {
+        "id": "shatter",
+        "title": "Shatter",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/shatter.md",
+        "hasCard": false
+      },
+      {
+        "id": "silence",
+        "title": "Silence",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/silence.md",
+        "hasCard": false
+      },
+      {
+        "id": "skywrite",
+        "title": "Skywrite",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/skywrite.md",
+        "hasCard": false
+      },
+      {
+        "id": "spider-climb",
+        "title": "Spider Climb",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/spider-climb.md",
+        "hasCard": false
+      },
+      {
+        "id": "spike-growth",
+        "title": "Spike Growth",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/spike-growth.md",
+        "hasCard": false
+      },
+      {
+        "id": "spiritual-weapon",
+        "title": "Spiritual Weapon",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/spiritual-weapon.md",
+        "hasCard": false
+      },
+      {
+        "id": "suggestion",
+        "title": "Suggestion",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/suggestion.md",
+        "hasCard": false
+      },
+      {
+        "id": "warding-bond",
+        "title": "Warding Bond",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/warding-bond.md",
+        "hasCard": false
+      },
+      {
+        "id": "web",
+        "title": "Web",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/web.md",
+        "hasCard": false
+      },
+      {
+        "id": "zone-of-truth",
+        "title": "Zone of Truth",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/zone-of-truth.md",
+        "hasCard": false
       }
     ]
   },
@@ -704,64 +1845,2394 @@
     "id": "spell_level_3",
     "title": "Level 3 Spells",
     "category": "Spells",
-    "excerpt": "Spells cast using a 3rd-level spell slot.",
+    "excerpt": "Spells cast using a 3 level spell slot.",
     "filePath": null,
     "subEntries": [
+      {
+        "id": "animate-dead",
+        "title": "Animate Dead",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/animate-dead.md",
+        "hasCard": false
+      },
+      {
+        "id": "aura-of-vitality",
+        "title": "Aura of Vitality",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/aura-of-vitality.md",
+        "hasCard": false
+      },
+      {
+        "id": "beacon-of-hope",
+        "title": "Beacon of Hope",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/beacon-of-hope.md",
+        "hasCard": false
+      },
+      {
+        "id": "bestow-curse",
+        "title": "Bestow Curse",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/bestow-curse.md",
+        "hasCard": false
+      },
+      {
+        "id": "blinding-smite",
+        "title": "Blinding Smite",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/blinding-smite.md",
+        "hasCard": false
+      },
+      {
+        "id": "blink",
+        "title": "Blink",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/blink.md",
+        "hasCard": false
+      },
+      {
+        "id": "call-lightning",
+        "title": "Call Lightning",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/call-lightning.md",
+        "hasCard": false
+      },
+      {
+        "id": "catnap",
+        "title": "Catnap",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/catnap.md",
+        "hasCard": false
+      },
+      {
+        "id": "clairvoyance",
+        "title": "Clairvoyance",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/clairvoyance.md",
+        "hasCard": false
+      },
+      {
+        "id": "conjure-animals",
+        "title": "Conjure Animals",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/conjure-animals.md",
+        "hasCard": false
+      },
+      {
+        "id": "conjure-barrage",
+        "title": "Conjure Barrage",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/conjure-barrage.md",
+        "hasCard": false
+      },
+      {
+        "id": "create-food-and-water",
+        "title": "Create Food and Water",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/create-food-and-water.md",
+        "hasCard": false
+      },
+      {
+        "id": "crusaders-mantle",
+        "title": "Crusader's Mantle",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/crusaders-mantle.md",
+        "hasCard": false
+      },
+      {
+        "id": "daylight",
+        "title": "Daylight",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/daylight.md",
+        "hasCard": false
+      },
+      {
+        "id": "dispel-magic",
+        "title": "Dispel Magic",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/dispel-magic.md",
+        "hasCard": false
+      },
+      {
+        "id": "elemental-weapon",
+        "title": "Elemental Weapon",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/elemental-weapon.md",
+        "hasCard": false
+      },
+      {
+        "id": "fear",
+        "title": "Fear",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/fear.md",
+        "hasCard": false
+      },
+      {
+        "id": "feign-death",
+        "title": "Feign Death",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/feign-death.md",
+        "hasCard": false
+      },
       {
         "id": "fireball",
         "title": "Fireball",
         "category": "Spells",
         "tags": [
-          "level 3",
-          "evocation",
-          "damage",
-          "fire",
-          "aoe"
+          "level 3"
         ],
-        "excerpt": "A bright streak flashes from your finger and blossoms into an explosion of flame.",
-        "seeAlso": [
-          "dexterity_saving_throw",
-          "area_of_effect"
-        ],
-        "filePath": "/data/glossary/entries/spells/fireball.md"
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/fireball.md",
+        "hasCard": true
       },
       {
-        "id": "lightning_bolt",
+        "id": "flame-arrows",
+        "title": "Flame Arrows",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/flame-arrows.md",
+        "hasCard": false
+      },
+      {
+        "id": "fly",
+        "title": "Fly",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/fly.md",
+        "hasCard": false
+      },
+      {
+        "id": "gaseous-form",
+        "title": "Gaseous Form",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/gaseous-form.md",
+        "hasCard": false
+      },
+      {
+        "id": "glyph-of-warding",
+        "title": "Glyph of Warding",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/glyph-of-warding.md",
+        "hasCard": false
+      },
+      {
+        "id": "haste",
+        "title": "Haste",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/haste.md",
+        "hasCard": false
+      },
+      {
+        "id": "hunger-of-hadar",
+        "title": "Hunger of Hadar",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/hunger-of-hadar.md",
+        "hasCard": false
+      },
+      {
+        "id": "hypnotic-pattern",
+        "title": "Hypnotic Pattern",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/hypnotic-pattern.md",
+        "hasCard": false
+      },
+      {
+        "id": "intellect-fortress",
+        "title": "Intellect Fortress",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/intellect-fortress.md",
+        "hasCard": false
+      },
+      {
+        "id": "lightning-arrow",
+        "title": "Lightning Arrow",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/lightning-arrow.md",
+        "hasCard": false
+      },
+      {
+        "id": "lightning-bolt",
         "title": "Lightning Bolt",
         "category": "Spells",
         "tags": [
-          "level 3",
-          "evocation",
-          "damage",
-          "lightning",
-          "aoe",
-          "line"
+          "level 3"
         ],
-        "excerpt": "A stroke of lightning forming a line 100 feet long blasts out from you.",
-        "seeAlso": [
-          "dexterity_saving_throw",
-          "area_of_effect"
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/lightning-bolt.md",
+        "hasCard": false
+      },
+      {
+        "id": "magic-circle",
+        "title": "Magic Circle",
+        "category": "Spells",
+        "tags": [
+          "level 3"
         ],
-        "filePath": "/data/glossary/entries/spells/lightning_bolt.md"
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/magic-circle.md",
+        "hasCard": false
+      },
+      {
+        "id": "major-image",
+        "title": "Major Image",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/major-image.md",
+        "hasCard": false
+      },
+      {
+        "id": "mass-healing-word",
+        "title": "Mass Healing Word",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/mass-healing-word.md",
+        "hasCard": false
+      },
+      {
+        "id": "meld-into-stone",
+        "title": "Meld into Stone",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/meld-into-stone.md",
+        "hasCard": false
       },
       {
         "id": "nondetection",
         "title": "Nondetection",
         "category": "Spells",
         "tags": [
-          "level 3",
-          "abjuration",
-          "utility",
-          "warding",
-          "deception"
+          "level 3"
         ],
-        "excerpt": "You hide a target that you touch from Divination spells and magical scrying sensors for 8 hours.",
-        "seeAlso": [
-          "divination_school",
-          "scrying",
-          "spell_components_rules"
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/nondetection.md",
+        "hasCard": true
+      },
+      {
+        "id": "plant-growth",
+        "title": "Plant Growth",
+        "category": "Spells",
+        "tags": [
+          "level 3"
         ],
-        "filePath": "/data/glossary/entries/spells/nondetection.md"
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/plant-growth.md",
+        "hasCard": false
+      },
+      {
+        "id": "protection-from-energy",
+        "title": "Protection from Energy",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/protection-from-energy.md",
+        "hasCard": false
+      },
+      {
+        "id": "remove-curse",
+        "title": "Remove Curse",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/remove-curse.md",
+        "hasCard": false
+      },
+      {
+        "id": "revivify",
+        "title": "Revivify",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/revivify.md",
+        "hasCard": false
+      },
+      {
+        "id": "sending",
+        "title": "Sending",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/sending.md",
+        "hasCard": false
+      },
+      {
+        "id": "sleet-storm",
+        "title": "Sleet Storm",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/sleet-storm.md",
+        "hasCard": false
+      },
+      {
+        "id": "slow",
+        "title": "Slow",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/slow.md",
+        "hasCard": false
+      },
+      {
+        "id": "speak-with-dead",
+        "title": "Speak with Dead",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/speak-with-dead.md",
+        "hasCard": false
+      },
+      {
+        "id": "speak-with-plants",
+        "title": "Speak with Plants",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/speak-with-plants.md",
+        "hasCard": false
+      },
+      {
+        "id": "spirit-guardians",
+        "title": "Spirit Guardians",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/spirit-guardians.md",
+        "hasCard": false
+      },
+      {
+        "id": "stinking-cloud",
+        "title": "Stinking Cloud",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/stinking-cloud.md",
+        "hasCard": false
+      },
+      {
+        "id": "tiny-servant",
+        "title": "Tiny Servant",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/tiny-servant.md",
+        "hasCard": false
+      },
+      {
+        "id": "tongues",
+        "title": "Tongues",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/tongues.md",
+        "hasCard": false
+      },
+      {
+        "id": "vampiric-touch",
+        "title": "Vampiric Touch",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/vampiric-touch.md",
+        "hasCard": false
+      },
+      {
+        "id": "water-breathing",
+        "title": "Water Breathing",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/water-breathing.md",
+        "hasCard": false
+      },
+      {
+        "id": "water-walk",
+        "title": "Water Walk",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/water-walk.md",
+        "hasCard": false
+      },
+      {
+        "id": "wind-wall",
+        "title": "Wind Wall",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/wind-wall.md",
+        "hasCard": false
+      }
+    ]
+  },
+  {
+    "id": "spell_level_4",
+    "title": "Level 4 Spells",
+    "category": "Spells",
+    "excerpt": "Spells cast using a 4 level spell slot.",
+    "filePath": null,
+    "subEntries": [
+      {
+        "id": "arcane-eye",
+        "title": "Arcane Eye",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/arcane-eye.md",
+        "hasCard": false
+      },
+      {
+        "id": "aura-of-life",
+        "title": "Aura of Life",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/aura-of-life.md",
+        "hasCard": false
+      },
+      {
+        "id": "aura-of-purity",
+        "title": "Aura of Purity",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/aura-of-purity.md",
+        "hasCard": false
+      },
+      {
+        "id": "banishment",
+        "title": "Banishment",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/banishment.md",
+        "hasCard": false
+      },
+      {
+        "id": "blight",
+        "title": "Blight",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/blight.md",
+        "hasCard": false
+      },
+      {
+        "id": "charm-monster",
+        "title": "Charm Monster",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/charm-monster.md",
+        "hasCard": false
+      },
+      {
+        "id": "compulsion",
+        "title": "Compulsion",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/compulsion.md",
+        "hasCard": false
+      },
+      {
+        "id": "confusion",
+        "title": "Confusion",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/confusion.md",
+        "hasCard": false
+      },
+      {
+        "id": "conjure-minor-elementals",
+        "title": "Conjure Minor Elementals",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/conjure-minor-elementals.md",
+        "hasCard": false
+      },
+      {
+        "id": "conjure-woodland-beings",
+        "title": "Conjure Woodland Beings",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/conjure-woodland-beings.md",
+        "hasCard": false
+      },
+      {
+        "id": "control-water",
+        "title": "Control Water",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/control-water.md",
+        "hasCard": false
+      },
+      {
+        "id": "death-ward",
+        "title": "Death Ward",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/death-ward.md",
+        "hasCard": false
+      },
+      {
+        "id": "dimension-door",
+        "title": "Dimension Door",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/dimension-door.md",
+        "hasCard": false
+      },
+      {
+        "id": "divination",
+        "title": "Divination",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/divination.md",
+        "hasCard": false
+      },
+      {
+        "id": "dominate-beast",
+        "title": "Dominate Beast",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/dominate-beast.md",
+        "hasCard": false
+      },
+      {
+        "id": "elemental-bane",
+        "title": "Elemental Bane",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/elemental-bane.md",
+        "hasCard": false
+      },
+      {
+        "id": "fabricate",
+        "title": "Fabricate",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/fabricate.md",
+        "hasCard": false
+      },
+      {
+        "id": "fire-shield",
+        "title": "Fire Shield",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/fire-shield.md",
+        "hasCard": false
+      },
+      {
+        "id": "freedom-of-movement",
+        "title": "Freedom of Movement",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/freedom-of-movement.md",
+        "hasCard": false
+      },
+      {
+        "id": "giant-insect",
+        "title": "Giant Insect",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/giant-insect.md",
+        "hasCard": false
+      },
+      {
+        "id": "grasping-vine",
+        "title": "Grasping Vine",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/grasping-vine.md",
+        "hasCard": false
+      },
+      {
+        "id": "greater-invisibility",
+        "title": "Greater Invisibility",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/greater-invisibility.md",
+        "hasCard": false
+      },
+      {
+        "id": "guardian-of-faith",
+        "title": "Guardian of Faith",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/guardian-of-faith.md",
+        "hasCard": false
+      },
+      {
+        "id": "hallucinatory-terrain",
+        "title": "Hallucinatory Terrain",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/hallucinatory-terrain.md",
+        "hasCard": false
+      },
+      {
+        "id": "ice-storm",
+        "title": "Ice Storm",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/ice-storm.md",
+        "hasCard": false
+      },
+      {
+        "id": "locate-creature",
+        "title": "Locate Creature",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/locate-creature.md",
+        "hasCard": false
+      },
+      {
+        "id": "mordenkainens-faithful-hound",
+        "title": "Mordenkainen's Faithful Hound",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/mordenkainens-faithful-hound.md",
+        "hasCard": false
+      },
+      {
+        "id": "mordenkainens-private-sanctum",
+        "title": "Mordenkainen's Private Sanctum",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/mordenkainens-private-sanctum.md",
+        "hasCard": false
+      },
+      {
+        "id": "otilukes-resilient-sphere",
+        "title": "Otiluke's Resilient Sphere",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/otilukes-resilient-sphere.md",
+        "hasCard": false
+      },
+      {
+        "id": "phantasmal-killer",
+        "title": "Phantasmal Killer",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/phantasmal-killer.md",
+        "hasCard": false
+      },
+      {
+        "id": "polymorph",
+        "title": "Polymorph",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/polymorph.md",
+        "hasCard": false
+      },
+      {
+        "id": "staggering-smite",
+        "title": "Staggering Smite",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/staggering-smite.md",
+        "hasCard": false
+      },
+      {
+        "id": "stone-shape",
+        "title": "Stone Shape",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/stone-shape.md",
+        "hasCard": false
+      },
+      {
+        "id": "stoneskin",
+        "title": "Stoneskin",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/stoneskin.md",
+        "hasCard": false
+      },
+      {
+        "id": "wall-of-fire",
+        "title": "Wall of Fire",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/wall-of-fire.md",
+        "hasCard": false
+      }
+    ]
+  },
+  {
+    "id": "spell_level_5",
+    "title": "Level 5 Spells",
+    "category": "Spells",
+    "excerpt": "Spells cast using a 5 level spell slot.",
+    "filePath": null,
+    "subEntries": [
+      {
+        "id": "animate-objects",
+        "title": "Animate Objects",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/animate-objects.md",
+        "hasCard": false
+      },
+      {
+        "id": "antilife-shell",
+        "title": "Antilife Shell",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/antilife-shell.md",
+        "hasCard": false
+      },
+      {
+        "id": "awaken",
+        "title": "Awaken",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/awaken.md",
+        "hasCard": false
+      },
+      {
+        "id": "bigbys-hand",
+        "title": "Bigby's Hand",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/bigbys-hand.md",
+        "hasCard": false
+      },
+      {
+        "id": "circle-of-power",
+        "title": "Circle of Power",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/circle-of-power.md",
+        "hasCard": false
+      },
+      {
+        "id": "cloudkill",
+        "title": "Cloudkill",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/cloudkill.md",
+        "hasCard": false
+      },
+      {
+        "id": "commune",
+        "title": "Commune",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/commune.md",
+        "hasCard": false
+      },
+      {
+        "id": "commune-with-nature",
+        "title": "Commune with Nature",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/commune-with-nature.md",
+        "hasCard": false
+      },
+      {
+        "id": "cone-of-cold",
+        "title": "Cone of Cold",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/cone-of-cold.md",
+        "hasCard": false
+      },
+      {
+        "id": "conjure-elemental",
+        "title": "Conjure Elemental",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/conjure-elemental.md",
+        "hasCard": false
+      },
+      {
+        "id": "conjure-volley",
+        "title": "Conjure Volley",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/conjure-volley.md",
+        "hasCard": false
+      },
+      {
+        "id": "contact-other-plane",
+        "title": "Contact Other Plane",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/contact-other-plane.md",
+        "hasCard": false
+      },
+      {
+        "id": "contagion",
+        "title": "Contagion",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/contagion.md",
+        "hasCard": false
+      },
+      {
+        "id": "creation",
+        "title": "Creation",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/creation.md",
+        "hasCard": false
+      },
+      {
+        "id": "destructive-wave",
+        "title": "Destructive Wave",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/destructive-wave.md",
+        "hasCard": false
+      },
+      {
+        "id": "dispel-evil-and-good",
+        "title": "Dispel Evil and Good",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/dispel-evil-and-good.md",
+        "hasCard": false
+      },
+      {
+        "id": "dominate-person",
+        "title": "Dominate Person",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/dominate-person.md",
+        "hasCard": false
+      },
+      {
+        "id": "dream",
+        "title": "Dream",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/dream.md",
+        "hasCard": false
+      },
+      {
+        "id": "flame-strike",
+        "title": "Flame Strike",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/flame-strike.md",
+        "hasCard": false
+      },
+      {
+        "id": "geas",
+        "title": "Geas",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/geas.md",
+        "hasCard": false
+      },
+      {
+        "id": "greater-restoration",
+        "title": "Greater Restoration",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/greater-restoration.md",
+        "hasCard": false
+      },
+      {
+        "id": "hallow",
+        "title": "Hallow",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/hallow.md",
+        "hasCard": false
+      },
+      {
+        "id": "hold-monster",
+        "title": "Hold Monster",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/hold-monster.md",
+        "hasCard": false
+      },
+      {
+        "id": "insect-plague",
+        "title": "Insect Plague",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/insect-plague.md",
+        "hasCard": false
+      },
+      {
+        "id": "legend-lore",
+        "title": "Legend Lore",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/legend-lore.md",
+        "hasCard": false
+      },
+      {
+        "id": "mass-cure-wounds",
+        "title": "Mass Cure Wounds",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/mass-cure-wounds.md",
+        "hasCard": false
+      },
+      {
+        "id": "mislead",
+        "title": "Mislead",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/mislead.md",
+        "hasCard": false
+      },
+      {
+        "id": "modify-memory",
+        "title": "Modify Memory",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/modify-memory.md",
+        "hasCard": false
+      },
+      {
+        "id": "passwall",
+        "title": "Passwall",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/passwall.md",
+        "hasCard": false
+      },
+      {
+        "id": "planar-binding",
+        "title": "Planar Binding",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/planar-binding.md",
+        "hasCard": false
+      },
+      {
+        "id": "raise-dead",
+        "title": "Raise Dead",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/raise-dead.md",
+        "hasCard": false
+      },
+      {
+        "id": "rarys-telepathic-bond",
+        "title": "Rary's Telepathic Bond",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/rarys-telepathic-bond.md",
+        "hasCard": false
+      },
+      {
+        "id": "reincarnate",
+        "title": "Reincarnate",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/reincarnate.md",
+        "hasCard": false
+      },
+      {
+        "id": "scrying",
+        "title": "Scrying",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/scrying.md",
+        "hasCard": false
+      },
+      {
+        "id": "seeming",
+        "title": "Seeming",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/seeming.md",
+        "hasCard": false
+      },
+      {
+        "id": "shining-smite",
+        "title": "Shining Smite",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/shining-smite.md",
+        "hasCard": false
+      },
+      {
+        "id": "skill-empowerment",
+        "title": "Skill Empowerment",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/skill-empowerment.md",
+        "hasCard": false
+      },
+      {
+        "id": "steel-wind-strike",
+        "title": "Steel Wind Strike",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/steel-wind-strike.md",
+        "hasCard": false
+      },
+      {
+        "id": "swift-quiver",
+        "title": "Swift Quiver",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/swift-quiver.md",
+        "hasCard": false
+      },
+      {
+        "id": "synaptic-static",
+        "title": "Synaptic Static",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/synaptic-static.md",
+        "hasCard": false
+      },
+      {
+        "id": "telekinesis",
+        "title": "Telekinesis",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/telekinesis.md",
+        "hasCard": false
+      },
+      {
+        "id": "teleportation-circle",
+        "title": "Teleportation Circle",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/teleportation-circle.md",
+        "hasCard": false
+      },
+      {
+        "id": "tree-stride",
+        "title": "Tree Stride",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/tree-stride.md",
+        "hasCard": false
+      },
+      {
+        "id": "wall-of-force",
+        "title": "Wall of Force",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/wall-of-force.md",
+        "hasCard": false
+      },
+      {
+        "id": "wall-of-stone",
+        "title": "Wall of Stone",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/wall-of-stone.md",
+        "hasCard": false
+      }
+    ]
+  },
+  {
+    "id": "spell_level_6",
+    "title": "Level 6 Spells",
+    "category": "Spells",
+    "excerpt": "Spells cast using a 6 level spell slot.",
+    "filePath": null,
+    "subEntries": [
+      {
+        "id": "blade-barrier",
+        "title": "Blade Barrier",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/blade-barrier.md",
+        "hasCard": false
+      },
+      {
+        "id": "chain-lightning",
+        "title": "Chain Lightning",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/chain-lightning.md",
+        "hasCard": false
+      },
+      {
+        "id": "circle-of-death",
+        "title": "Circle of Death",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/circle-of-death.md",
+        "hasCard": false
+      },
+      {
+        "id": "conjure-fey",
+        "title": "Conjure Fey",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/conjure-fey.md",
+        "hasCard": false
+      },
+      {
+        "id": "contingency",
+        "title": "Contingency",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/contingency.md",
+        "hasCard": false
+      },
+      {
+        "id": "create-undead",
+        "title": "Create Undead",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/create-undead.md",
+        "hasCard": false
+      },
+      {
+        "id": "disintegrate",
+        "title": "Disintegrate",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/disintegrate.md",
+        "hasCard": false
+      },
+      {
+        "id": "eyebite",
+        "title": "Eyebite",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/eyebite.md",
+        "hasCard": false
+      },
+      {
+        "id": "find-the-path",
+        "title": "Find the Path",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/find-the-path.md",
+        "hasCard": false
+      },
+      {
+        "id": "flesh-to-stone",
+        "title": "Flesh to Stone",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/flesh-to-stone.md",
+        "hasCard": false
+      },
+      {
+        "id": "forbiddance",
+        "title": "Forbiddance",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/forbiddance.md",
+        "hasCard": false
+      },
+      {
+        "id": "globe-of-invulnerability",
+        "title": "Globe of Invulnerability",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/globe-of-invulnerability.md",
+        "hasCard": false
+      },
+      {
+        "id": "guards-and-wards",
+        "title": "Guards and Wards",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/guards-and-wards.md",
+        "hasCard": false
+      },
+      {
+        "id": "harm",
+        "title": "Harm",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/harm.md",
+        "hasCard": false
+      },
+      {
+        "id": "heal",
+        "title": "Heal",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/heal.md",
+        "hasCard": false
+      },
+      {
+        "id": "heroes-feast",
+        "title": "Heroes' Feast",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/heroes-feast.md",
+        "hasCard": false
+      },
+      {
+        "id": "magic-jar",
+        "title": "Magic Jar",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/magic-jar.md",
+        "hasCard": false
+      },
+      {
+        "id": "mass-suggestion",
+        "title": "Mass Suggestion",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/mass-suggestion.md",
+        "hasCard": false
+      },
+      {
+        "id": "move-earth",
+        "title": "Move Earth",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/move-earth.md",
+        "hasCard": false
+      },
+      {
+        "id": "otilukes-freezing-sphere",
+        "title": "Otiluke's Freezing Sphere",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/otilukes-freezing-sphere.md",
+        "hasCard": false
+      },
+      {
+        "id": "ottos-irresistible-dance",
+        "title": "Otto's Irresistible Dance",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/ottos-irresistible-dance.md",
+        "hasCard": false
+      },
+      {
+        "id": "planar-ally",
+        "title": "Planar Ally",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/planar-ally.md",
+        "hasCard": false
+      },
+      {
+        "id": "programmed-illusion",
+        "title": "Programmed Illusion",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/programmed-illusion.md",
+        "hasCard": false
+      },
+      {
+        "id": "sunbeam",
+        "title": "Sunbeam",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/sunbeam.md",
+        "hasCard": false
+      },
+      {
+        "id": "transport-via-plants",
+        "title": "Transport via Plants",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/transport-via-plants.md",
+        "hasCard": false
+      },
+      {
+        "id": "true-seeing",
+        "title": "True Seeing",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/true-seeing.md",
+        "hasCard": false
+      },
+      {
+        "id": "wall-of-ice",
+        "title": "Wall of Ice",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/wall-of-ice.md",
+        "hasCard": false
+      },
+      {
+        "id": "wall-of-thorns",
+        "title": "Wall of Thorns",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/wall-of-thorns.md",
+        "hasCard": false
+      },
+      {
+        "id": "wind-walk",
+        "title": "Wind Walk",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/wind-walk.md",
+        "hasCard": false
+      },
+      {
+        "id": "word-of-recall",
+        "title": "Word of Recall",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/word-of-recall.md",
+        "hasCard": false
+      }
+    ]
+  },
+  {
+    "id": "spell_level_7",
+    "title": "Level 7 Spells",
+    "category": "Spells",
+    "excerpt": "Spells cast using a 7 level spell slot.",
+    "filePath": null,
+    "subEntries": [
+      {
+        "id": "conjure-celestial",
+        "title": "Conjure Celestial",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/conjure-celestial.md",
+        "hasCard": false
+      },
+      {
+        "id": "delayed-blast-fireball",
+        "title": "Delayed Blast Fireball",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/delayed-blast-fireball.md",
+        "hasCard": false
+      },
+      {
+        "id": "divine-word",
+        "title": "Divine Word",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/divine-word.md",
+        "hasCard": false
+      },
+      {
+        "id": "etherealness",
+        "title": "Etherealness",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/etherealness.md",
+        "hasCard": false
+      },
+      {
+        "id": "finger-of-death",
+        "title": "Finger of Death",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/finger-of-death.md",
+        "hasCard": false
+      },
+      {
+        "id": "fire-storm",
+        "title": "Fire Storm",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/fire-storm.md",
+        "hasCard": false
+      },
+      {
+        "id": "forcecage",
+        "title": "Forcecage",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/forcecage.md",
+        "hasCard": false
+      },
+      {
+        "id": "mirage-arcane",
+        "title": "Mirage Arcane",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/mirage-arcane.md",
+        "hasCard": false
+      },
+      {
+        "id": "mordenkainens-magnificent-mansion",
+        "title": "Mordenkainen's Magnificent Mansion",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/mordenkainens-magnificent-mansion.md",
+        "hasCard": false
+      },
+      {
+        "id": "mordenkainens-sword",
+        "title": "Mordenkainen's Sword",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/mordenkainens-sword.md",
+        "hasCard": false
+      },
+      {
+        "id": "plane-shift",
+        "title": "Plane Shift",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/plane-shift.md",
+        "hasCard": false
+      },
+      {
+        "id": "prismatic-spray",
+        "title": "Prismatic Spray",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/prismatic-spray.md",
+        "hasCard": false
+      },
+      {
+        "id": "project-image",
+        "title": "Project Image",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/project-image.md",
+        "hasCard": false
+      },
+      {
+        "id": "regenerate",
+        "title": "Regenerate",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/regenerate.md",
+        "hasCard": false
+      },
+      {
+        "id": "resurrection",
+        "title": "Resurrection",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/resurrection.md",
+        "hasCard": false
+      },
+      {
+        "id": "reverse-gravity",
+        "title": "Reverse Gravity",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/reverse-gravity.md",
+        "hasCard": false
+      },
+      {
+        "id": "sequester",
+        "title": "Sequester",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/sequester.md",
+        "hasCard": false
+      },
+      {
+        "id": "simulacrum",
+        "title": "Simulacrum",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/simulacrum.md",
+        "hasCard": false
+      },
+      {
+        "id": "symbol",
+        "title": "Symbol",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/symbol.md",
+        "hasCard": false
+      },
+      {
+        "id": "teleport",
+        "title": "Teleport",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/teleport.md",
+        "hasCard": false
+      }
+    ]
+  },
+  {
+    "id": "spell_level_8",
+    "title": "Level 8 Spells",
+    "category": "Spells",
+    "excerpt": "Spells cast using a 8 level spell slot.",
+    "filePath": null,
+    "subEntries": [
+      {
+        "id": "animal-shapes",
+        "title": "Animal Shapes",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/animal-shapes.md",
+        "hasCard": false
+      },
+      {
+        "id": "antimagic-field",
+        "title": "Antimagic Field",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/antimagic-field.md",
+        "hasCard": false
+      },
+      {
+        "id": "antipathy-sympathy",
+        "title": "Antipathy/Sympathy",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/antipathy-sympathy.md",
+        "hasCard": false
+      },
+      {
+        "id": "clone",
+        "title": "Clone",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/clone.md",
+        "hasCard": false
+      },
+      {
+        "id": "control-weather",
+        "title": "Control Weather",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/control-weather.md",
+        "hasCard": false
+      },
+      {
+        "id": "demiplane",
+        "title": "Demiplane",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/demiplane.md",
+        "hasCard": false
+      },
+      {
+        "id": "dominate-monster",
+        "title": "Dominate Monster",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/dominate-monster.md",
+        "hasCard": false
+      },
+      {
+        "id": "earthquake",
+        "title": "Earthquake",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/earthquake.md",
+        "hasCard": false
+      },
+      {
+        "id": "glibness",
+        "title": "Glibness",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/glibness.md",
+        "hasCard": false
+      },
+      {
+        "id": "holy-aura",
+        "title": "Holy Aura",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/holy-aura.md",
+        "hasCard": false
+      },
+      {
+        "id": "incendiary-cloud",
+        "title": "Incendiary Cloud",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/incendiary-cloud.md",
+        "hasCard": false
+      },
+      {
+        "id": "maze",
+        "title": "Maze",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/maze.md",
+        "hasCard": false
+      },
+      {
+        "id": "mind-blank",
+        "title": "Mind Blank",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/mind-blank.md",
+        "hasCard": false
+      },
+      {
+        "id": "power-word-stun",
+        "title": "Power Word Stun",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/power-word-stun.md",
+        "hasCard": false
+      },
+      {
+        "id": "sunburst",
+        "title": "Sunburst",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/sunburst.md",
+        "hasCard": false
+      },
+      {
+        "id": "tsunami",
+        "title": "Tsunami",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/tsunami.md",
+        "hasCard": false
+      }
+    ]
+  },
+  {
+    "id": "spell_level_9",
+    "title": "Level 9 Spells",
+    "category": "Spells",
+    "excerpt": "Spells cast using a 9 level spell slot.",
+    "filePath": null,
+    "subEntries": [
+      {
+        "id": "astral-projection",
+        "title": "Astral Projection",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/astral-projection.md",
+        "hasCard": false
+      },
+      {
+        "id": "foresight",
+        "title": "Foresight",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Divination spell",
+        "filePath": "/data/glossary/entries/spells/foresight.md",
+        "hasCard": false
+      },
+      {
+        "id": "gate",
+        "title": "Gate",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/gate.md",
+        "hasCard": false
+      },
+      {
+        "id": "imprisonment",
+        "title": "Imprisonment",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/imprisonment.md",
+        "hasCard": false
+      },
+      {
+        "id": "mass-heal",
+        "title": "Mass Heal",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/mass-heal.md",
+        "hasCard": false
+      },
+      {
+        "id": "meteor-swarm",
+        "title": "Meteor Swarm",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Evocation spell",
+        "filePath": "/data/glossary/entries/spells/meteor-swarm.md",
+        "hasCard": false
+      },
+      {
+        "id": "power-word-kill",
+        "title": "Power Word Kill",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Enchantment spell",
+        "filePath": "/data/glossary/entries/spells/power-word-kill.md",
+        "hasCard": false
+      },
+      {
+        "id": "prismatic-wall",
+        "title": "Prismatic Wall",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Abjuration spell",
+        "filePath": "/data/glossary/entries/spells/prismatic-wall.md",
+        "hasCard": false
+      },
+      {
+        "id": "shapechange",
+        "title": "Shapechange",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/shapechange.md",
+        "hasCard": false
+      },
+      {
+        "id": "storm-of-vengeance",
+        "title": "Storm of Vengeance",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/storm-of-vengeance.md",
+        "hasCard": false
+      },
+      {
+        "id": "time-stop",
+        "title": "Time Stop",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/time-stop.md",
+        "hasCard": false
+      },
+      {
+        "id": "true-polymorph",
+        "title": "True Polymorph",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Transmutation spell",
+        "filePath": "/data/glossary/entries/spells/true-polymorph.md",
+        "hasCard": false
+      },
+      {
+        "id": "true-resurrection",
+        "title": "True Resurrection",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Necromancy spell",
+        "filePath": "/data/glossary/entries/spells/true-resurrection.md",
+        "hasCard": false
+      },
+      {
+        "id": "weird",
+        "title": "Weird",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Illusion spell",
+        "filePath": "/data/glossary/entries/spells/weird.md",
+        "hasCard": false
+      },
+      {
+        "id": "wish",
+        "title": "Wish",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Conjuration spell",
+        "filePath": "/data/glossary/entries/spells/wish.md",
+        "hasCard": false
       }
     ]
   }

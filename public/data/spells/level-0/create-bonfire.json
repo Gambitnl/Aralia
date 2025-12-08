@@ -75,7 +75,8 @@
     {
       "type": "DAMAGE",
       "trigger": {
-        "type": "turn_end"
+        "type": "on_end_turn_in_area",
+        "frequency": "every_time"
       },
       "condition": {
         "type": "save",

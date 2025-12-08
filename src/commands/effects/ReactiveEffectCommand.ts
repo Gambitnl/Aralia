@@ -1,0 +1,171 @@
+import { BaseEffectCommand } from '../base/BaseEffectCommand';
+import { CombatState } from '../../types/combat';
+import { generateId } from '../../utils/combatUtils';
+import { movementEvents, MovementEventEmitter } from '../../systems/combat/MovementEventEmitter';
+import { attackEvents, AttackEventEmitter } from '../../systems/combat/AttackEventEmitter';
+import { combatEvents } from '../../systems/events/CombatEvents';
+import { sustainActionSystem, SustainedSpell } from '../../systems/combat/SustainActionSystem';
+
+export class ReactiveEffectCommand extends BaseEffectCommand {
+    private registeredListeners: (() => void)[] = []; // Store cleanup functions
+
+    execute(state: CombatState): CombatState {
+        const trigger = this.effect.trigger;
+        const newTriggers = [...(state.reactiveTriggers || [])];
+
+        const durationRounds = this.getDurationInRounds();
+
+        // Create a new trigger entry
+        const triggerId = generateId();
+        newTriggers.push({
+            id: triggerId,
+            sourceEffect: this.effect,
+            casterId: this.context.caster.id,
+            targetId: this.context.targets[0]?.id, // Bind to specific target
+            createdTurn: state.turnState.currentTurn,
+            expiresAtRound: durationRounds ? state.turnState.currentTurn + durationRounds : undefined
+        });
+
+        // Register event listeners based on trigger type
+        this.registerEventListeners(triggerId);
+
+        // Handle sustain requirements
+        if (trigger.type === 'on_caster_action' && trigger.sustainCost) {
+            this.registerSustainRequirement(triggerId);
+        }
+
+        // We must ensure reactiveTriggers exists since we just added it to the interface
+        // but existing runtime state might not have it initialized if derived from older logic
+        const nextState = {
+            ...state,
+            reactiveTriggers: newTriggers
+        };
+
+        return this.addLogEntry(nextState, {
+            type: 'status',
+            message: `${this.context.spellName} awaits trigger: ${trigger.type}`,
+            characterId: this.context.caster.id,
+            targetIds: this.context.targets.map(t => t.id)
+        });
+    }
+
+    private registerEventListeners(triggerId: string): void {
+        const trigger = this.effect.trigger;
+        const casterId = this.context.caster.id;
+        const targetId = this.context.targets[0]?.id;
+
+        switch (trigger.type) {
+            case 'on_target_move':
+                if (targetId) {
+                    const listener = async (event: any) => {
+                        // Check if movement matches our criteria
+                        if (event.creatureId !== targetId) return;
+
+                        const movementType = trigger.movementType || 'any';
+                        if (movementType !== 'any' && event.movementType !== movementType) return;
+
+                        // Trigger the effect
+                        await this.executeReactiveEffect(event);
+                    };
+
+                    movementEvents.onMovement(listener);
+                    this.registeredListeners.push(() => movementEvents.offMovement(listener));
+                }
+                break;
+
+            case 'on_target_attack':
+                if (targetId) {
+                    const listener = async (event: any) => {
+                        // Check if this is an attack against our target
+                        if (event.targetId !== targetId) return;
+
+                        // Trigger the effect (save vs lose attack for compelled duel)
+                        await this.executeReactiveEffect(event);
+                    };
+
+                    attackEvents.onPreAttack(listener);
+                    this.registeredListeners.push(() => attackEvents.offPreAttack(listener));
+                }
+                break;
+
+            case 'on_target_cast':
+                if (targetId) {
+                    const listener = (event: any) => {
+                        if (event.casterId !== targetId) return;
+                        this.executeReactiveEffect(event);
+                    };
+
+                    combatEvents.on('unit_cast', listener);
+                    this.registeredListeners.push(() => combatEvents.off('unit_cast', listener));
+                }
+                break;
+
+            case 'on_caster_action':
+                // This is handled by sustain system, but we might want to listen for specific actions
+                break;
+        }
+    }
+
+    private registerSustainRequirement(triggerId: string): void {
+        if (!this.effect.trigger.sustainCost) return;
+
+        const sustainedSpell: SustainedSpell = {
+            spellId: this.context.spellId,
+            casterId: this.context.caster.id,
+            targetIds: this.context.targets.map(t => t.id),
+            sustainCost: this.effect.trigger.sustainCost,
+            effectIds: [triggerId], // This effect needs sustaining
+            sustainedThisTurn: false
+        };
+
+        sustainActionSystem.registerSustainedSpell(sustainedSpell);
+    }
+
+    private async executeReactiveEffect(event: any): Promise<void> {
+        // This would execute the actual effect when triggered
+        // For now, we'll emit a log message - in a full implementation,
+        // this would create and execute the appropriate command
+        console.log(`Reactive effect triggered: ${this.effect.type} for ${this.context.spellName}`, event);
+    }
+
+    /**
+     * Cleanup method to remove registered listeners when effect expires
+     */
+    cleanup(): void {
+        this.registeredListeners.forEach(cleanup => cleanup());
+        this.registeredListeners = [];
+
+        // Remove from sustain system if applicable
+        if (this.effect.trigger.type === 'on_caster_action') {
+            sustainActionSystem.removeSustainedSpell(this.context.caster.id, this.context.spellId);
+        }
+    }
+
+    private getDurationInRounds(): number | undefined {
+        // 1. Try to get duration from the effect itself (e.g. MovementTriggerDebuff might have it)
+        const effectAny = this.effect as any;
+        let duration = effectAny.duration;
+
+        // 2. Fallback to spell duration from context if not on effect
+        // triggers like 'on_caster_action' for sustain rely on the spell's duration
+        if (!duration && this.context.effectDuration) {
+            duration = this.context.effectDuration;
+        }
+
+        if (!duration) return undefined;
+
+        // Handle EffectDuration structure { type: 'rounds' | 'minutes', value: number }
+        if (duration.type === 'rounds') return duration.value || 1;
+        if (duration.type === 'minutes') return (duration.value || 1) * 10;
+
+        // Handle Legacy/Spell Duration structure { unit: 'round' | 'minute', value: number }
+        if (duration.unit === 'round') return duration.value || 1;
+        if (duration.unit === 'minute') return (duration.value || 1) * 10;
+
+        return undefined;
+    }
+
+    get description(): string {
+        return `Reactive trigger: ${this.effect.trigger.type}`;
+    }
+}

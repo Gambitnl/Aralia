@@ -2,33 +2,85 @@
   "id": "wrathful-smite",
   "name": "Wrathful Smite",
   "level": 1,
-  "school": "Necromancy",
-  "classes": ["Paladin"],
-  "description": "The next time you hit with a melee weapon attack during this spell's duration, your attack deals an extra 1d6 Psychic damage. If the target is a creature, it must succeed on a Wisdom saving throw or be Frightened of you until the spell ends. A Frightened creature can use its action to make a Wisdom check against your spell save DC, ending the spell on a success.",
-  "higherLevels": "None",
-  "tags": ["smite", "psychic", "concentration", "control"],
-  "ritual": false,
-  "castingTime": { "value": 1, "unit": "bonus_action", "combatCost": { "type": "bonus_action" } },
-  "range": { "type": "self" },
-  "components": { "verbal": true, "somatic": false, "material": false },
-  "duration": { "type": "timed", "value": 1, "unit": "minute", "concentration": true },
-  "targeting": { "type": "single", "range": 5, "validTargets": ["creatures", "enemies"], "lineOfSight": true },
+  "school": "Evocation",
+  "classes": [
+    "Paladin"
+  ],
+  "description": "The next time you hit with a melee weapon attack during this spell's duration, your attack deals an extra 1d6 psychic damage. Additionally, if the target is a creature, it must make a Wisdom saving throw or be frightened of you until the spell ends. As an action, the creature can make a Wisdom check against your spell save DC to steel its resolve and end this spell.",
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action"
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": [
+      "self"
+    ]
+  },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "hit" },
-      "damage": { "dice": "1d6", "type": "Psychic" }
+      "trigger": {
+        "type": "on_attack_hit",
+        "consumption": "first_hit",
+        "attackFilter": {
+          "weaponType": "melee",
+          "attackType": "weapon"
+        }
+      },
+      "condition": {
+        "type": "always"
+      },
+      "damage": {
+        "dice": "1d6",
+        "type": "Psychic"
+      }
     },
     {
       "type": "STATUS_CONDITION",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "save", "saveType": "Wisdom", "saveEffect": "negates_condition" },
+      "trigger": {
+        "type": "on_attack_hit",
+        "consumption": "first_hit",
+        "attackFilter": {
+          "weaponType": "melee",
+          "attackType": "weapon"
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureType": []
+        }
+      },
       "statusCondition": {
         "name": "Frightened",
-        "duration": { "type": "minutes", "value": 1 }
-      },
-      "description": "On a failed save, the target is Frightened until the spell ends; it can use its action to make a Wisdom check against your spell save DC, ending the effect on a success."
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "escapeCheck": {
+          "ability": "Wisdom",
+          "dc": "spell_save_dc",
+          "actionCost": "action"
+        },
+        "level": 1
+      }
     }
   ]
 }

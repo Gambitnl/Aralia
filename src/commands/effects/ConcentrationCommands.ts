@@ -3,6 +3,7 @@ import { CommandContext } from '../base/SpellCommand'
 import { CombatState, ConcentrationState } from '../../types/combat'
 import { Spell } from '../../types/spells'
 import { generateId } from '../../utils/idGenerator'
+import { AttackRiderSystem } from '../../systems/combat/AttackRiderSystem'
 
 /**
  * Command to initiate concentration on a spell.
@@ -39,7 +40,9 @@ export class StartConcentrationCommand extends BaseEffectCommand {
             spellLevel: this.context.castAtLevel,
             startedTurn: state.turnState.currentTurn,
             effectIds: [], // TODO: Future integration points for tracking specific effect IDs (buffs/debuffs)
-            canDropAsFreeAction: true
+            canDropAsFreeAction: true,
+            sustainCost: this.spell.effects.find(e => e.trigger?.sustainCost)?.trigger.sustainCost,
+            sustainedThisTurn: true // Initially sustained on cast turn
         }
 
         // Apply the state change to the character
@@ -91,11 +94,14 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
         }
 
         const previousSpell = caster.concentratingOn.spellName
+        const previousSpellId = caster.concentratingOn.spellId
 
-        // In a full implementation, we would also remove any active status effects 
-        // linked to this concentration (using effectIds) here.
-        // For now, we simply remove the pointer, effectively "ending" the spell.
-        const updatedState = this.updateCharacter(state, caster.id, {
+        // Remove active riders associated with this spell
+        const riderSystem = new AttackRiderSystem();
+        let updatedState = riderSystem.removeRidersBySpell(state, previousSpellId, caster.id);
+
+        // Clear concentration pointer
+        updatedState = this.updateCharacter(updatedState, caster.id, {
             concentratingOn: undefined
         })
 

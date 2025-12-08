@@ -28,7 +28,8 @@ import { getCharacterMaxArmorProficiency, getArmorCategoryHierarchy, getAbilityM
 
 interface EquipmentMannequinProps {
   character: PlayerCharacter;
-  onSlotClick?: (slot: EquipmentSlotType, item?: Item) => void; 
+  onSlotClick?: (slot: EquipmentSlotType, item?: Item) => void;
+  activeFilterSlot?: EquipmentSlotType | null;
 }
 
 interface SlotDisplayInfo {
@@ -73,7 +74,7 @@ const MannequinSilhouette = () => (
   </svg>
 );
 
-const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSlotClick }) => {
+const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSlotClick, activeFilterSlot }) => {
   const characterMaxProficiencyLevel = getCharacterMaxArmorProficiency(character);
   const charMaxProficiencyValue = getArmorCategoryHierarchy(characterMaxProficiencyLevel.charAt(0).toUpperCase() + characterMaxProficiencyLevel.slice(1) as ArmorCategory);
 
@@ -82,7 +83,7 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
       <h3 className="text-xl font-semibold text-amber-400 mb-2 font-cinzel">Equipment</h3>
       
       {/* Mannequin Container */}
-      <div className="relative w-[320px] h-[440px] bg-gray-900/50 rounded-xl border border-gray-700 shadow-2xl overflow-hidden">
+      <div className="relative w-[340px] h-[480px] bg-gray-900/50 rounded-xl border border-gray-700 shadow-2xl overflow-hidden">
         
         {/* Background Silhouette */}
         <div className="absolute inset-0 flex items-center justify-center top-4">
@@ -106,6 +107,7 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
         >
           {equipmentSlots.map(slotInfo => {
             const equippedItem = character.equippedItems?.[slotInfo.id];
+            const isActiveFilter = activeFilterSlot === slotInfo.id || (activeFilterSlot && ['Ring1', 'Ring2'].includes(activeFilterSlot) && ['Ring1', 'Ring2'].includes(slotInfo.id));
             let slotStyle = "bg-black/60 border-gray-700 shadow-inner"; // Default empty slot style
             let iconColor = "text-gray-600";
             let proficiencyMismatch = false;
@@ -154,9 +156,15 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
               }
             }
 
-            const buttonTitle = equippedItem 
-              ? `${equippedItem.name} (In ${slotInfo.label})${proficiencyMismatch ? ` - Proficiency Mismatch! ${mismatchReason}` : ''}${damageDisplay ? ` | Damage: ${damageDisplay}`: ''}${onSlotClick ? ' - Click to Unequip' : ''}` 
-              : `Empty ${slotInfo.label} Slot (Max Armor: ${characterMaxProficiencyLevel})`;
+            // Highlight active filter slot
+            if (isActiveFilter && !equippedItem) {
+              slotStyle = "bg-sky-900/40 border-sky-500 ring-2 ring-sky-500 shadow-lg shadow-sky-500/50";
+              iconColor = "text-sky-400";
+            }
+
+            const buttonTitle = equippedItem
+              ? `${equippedItem.name} (In ${slotInfo.label})${proficiencyMismatch ? ` - Proficiency Mismatch! ${mismatchReason}` : ''}${damageDisplay ? ` | Damage: ${damageDisplay}`: ''}${onSlotClick ? ' - Click to Unequip' : ''}`
+              : `Empty ${slotInfo.label} Slot (Max Armor: ${characterMaxProficiencyLevel})${onSlotClick ? ' - Click to Filter Inventory' : ''}`;
 
             return (
               <Tooltip key={slotInfo.id} content={buttonTitle}>
@@ -168,8 +176,9 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
                     w-20 h-20 rounded-lg border-2
                     transition-all duration-200
                     ${slotStyle}
-                    ${onSlotClick && equippedItem ? 'hover:border-amber-400 hover:shadow-[0_0_10px_rgba(251,191,36,0.3)] cursor-pointer' : 'cursor-default'}
-                    ${!equippedItem ? 'hover:border-gray-500' : ''}
+                    ${onSlotClick && equippedItem ? 'hover:border-amber-400 hover:shadow-[0_0_10px_rgba(251,191,36,0.3)] cursor-pointer' : ''}
+                    ${onSlotClick && !equippedItem ? 'hover:border-sky-500 hover:bg-sky-900/20 cursor-pointer' : ''}
+                    ${!onSlotClick ? 'cursor-default' : ''}
                   `}
                   aria-label={buttonTitle}
                   disabled={!onSlotClick && !equippedItem}

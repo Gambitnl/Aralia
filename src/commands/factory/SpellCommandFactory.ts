@@ -1,6 +1,6 @@
 import { Spell, SpellEffect } from '@/types/spells'
 import { CombatCharacter, CombatState } from '@/types/combat'
-import { isDamageEffect, isHealingEffect } from '@/types/spells' // Import type guards
+import { isDamageEffect, isHealingEffect } from '@/types/spells'
 import { SpellCommand, CommandContext } from '../base/SpellCommand'
 import { DamageCommand } from '../effects/DamageCommand'
 import { HealingCommand } from '../effects/HealingCommand'
@@ -11,6 +11,8 @@ import { SummoningCommand } from '../effects/SummoningCommand'
 import { TerrainCommand } from '../effects/TerrainCommand'
 import { UtilityCommand } from '../effects/UtilityCommand'
 import { DefensiveCommand } from '../effects/DefensiveCommand'
+import { ReactiveEffectCommand } from '../effects/ReactiveEffectCommand'
+import { RegisterRiderCommand } from '../effects/RegisterRiderCommand'
 import { GameState } from '@/types'
 
 export class SpellCommandFactory {
@@ -33,10 +35,16 @@ export class SpellCommandFactory {
       castAtLevel,
       caster,
       targets,
-      gameState
+      gameState,
+      effectDuration: spell.duration.type === 'timed' && spell.duration.unit
+        ? {
+          type: spell.duration.unit === 'round' ? 'rounds' : spell.duration.unit === 'minute' ? 'minutes' : 'special',
+          value: spell.duration.value
+        }
+        : undefined,
+      attackType: spell.attackType
     }
 
-    // NEW: AI Arbitration check
     if (spell.arbitrationType && spell.arbitrationType !== 'mechanical') {
       const { aiSpellArbitrator } = await import('@/services/AISpellArbitrator')
 
@@ -44,73 +52,44 @@ export class SpellCommandFactory {
         spell,
         caster,
         targets,
-        combatState: { // Mock combat state if not fully provided, or assume passed in GameState has it?
-          // The factory signature assumes gameState. 
-          // We might need to extract combatState from somewhere or update signature?
-          // For now, let's construct a minimal one or cast if available.
-          // Looking at existing calls, 'gameState' is passed.
-          // Let's assume for this task we can get what we need or pass undefined for now if types conflict.
-          // Wait, AISpellArbitrator needs CombatState.
-          // The `useAbilitySystem` constructs a temporary `currentState` (CombatState) but doesn't pass it to factory.
-          // Refactor: We need CombatState in factory? Or extract from arguments?
-          // `caster` and `targets` are in CombatState. 
-          // Let's construct a partial CombatState for arbitration.
+        combatState: {
           isActive: true,
-          characters: [caster, ...targets], // Minimal set
+          characters: [caster, ...targets],
           turnState: {} as any,
           selectedCharacterId: null,
           selectedAbilityId: null,
           actionMode: 'select',
           validTargets: [],
           validMoves: [],
-          combatLog: []
+          combatLog: [],
+          reactiveTriggers: []
         },
         gameState,
         playerInput
       })
 
       if (!arbitrationResult.allowed) {
-        // TODO: Return a specialized failure command or empty?
-        // For now, let's throw or return empty to signify failure?
-        // Plan said "Return a NarrativeCommand that just logs failure".
-        // But I need to import NarrativeCommand.
-        // Let's iterate: just return empty for now, or log error.
         console.warn(`Arbitration failed: ${arbitrationResult.reason}`)
         return []
       }
 
-      // If AI provided narrative outcome, we might want to attach it.
-      // Current Command architecture splits effects into commands.
-      // We can maybe add a "NarrativeCommand" later.
-      // For now, proceed to mechanical effects if allowed.
-
-      // Note: Tier 3 might rely ENTIRELY on narrative.
       if (spell.arbitrationType === 'ai_dm' && !arbitrationResult.mechanicalEffects) {
-        // If it's purely narrative, we need a command to show it.
-        // I should implement NarrativeCommand or similar.
+        // Narrative only
       }
     }
 
     for (const effect of spell.effects) {
-      // Apply scaling before creating command
       const scaledEffect = this.applyScaling(effect, spell.level, castAtLevel, caster.level)
-
-      // Create appropriate command for effect type
       const command = this.createCommand(scaledEffect, context)
       if (command) {
         commands.push(command)
       }
     }
 
-    // Handle initial concentration break if needed
-    // If the spell requires concentration and the caster is already concentrating,
-    // we must break the previous concentration FIRST, before the new spell starts.
     if (spell.duration.concentration && caster.concentratingOn) {
       commands.unshift(new BreakConcentrationCommand(context))
     }
 
-    // Start concentration if applicable
-    // This command is pushed LAST to ensure concentration only starts if the spell successfully resolves.
     if (spell.duration.concentration) {
       commands.push(new StartConcentrationCommand(spell, context))
     }
@@ -125,6 +104,14 @@ export class SpellCommandFactory {
     effect: SpellEffect,
     context: CommandContext
   ): SpellCommand | null {
+    if (['on_target_move', 'on_target_attack', 'on_target_cast', 'on_caster_action'].includes(effect.trigger.type)) {
+      return new ReactiveEffectCommand(effect, context)
+    }
+
+    if (effect.trigger.type === 'on_attack_hit') {
+      return new RegisterRiderCommand(effect, context)
+    }
+
     switch (effect.type) {
       case 'DAMAGE':
         return new DamageCommand(effect, context)
@@ -173,11 +160,6 @@ export class SpellCommandFactory {
     }
 
     if (effect.scaling.type === 'character_level') {
-      // For cantrips, scalingLevels is usually [5, 11, 17]
-      // But the interface scaling.bonusPerLevel might imply standard cantrip scaling?
-      // The interface defined in Task 01: `bonusPerLevel?: string`
-      // It doesn't have `levels` array.
-      // Standard cantrip upgrades happen at levels 5, 11, and 17.
       const tiers = [5, 11, 17]
       scaled = this.applyCharacterLevelScaling(scaled, casterLevel, tiers)
     }
@@ -196,7 +178,6 @@ export class SpellCommandFactory {
 
     if (!bonusPerLevel) return effect
 
-    // Parse bonus (e.g., "+1d6", "+2", "+1 target")
     const diceMatch = bonusPerLevel.match(/\+(\d+)d(\d+)/)
 
     if (diceMatch && isDamageEffect(effect)) {
@@ -209,7 +190,7 @@ export class SpellCommandFactory {
         damage: {
           ...effect.damage,
           dice: newDice,
-          type: effect.damage.type // Ensure type checks pass
+          type: effect.damage.type
         }
       }
     }
@@ -224,7 +205,6 @@ export class SpellCommandFactory {
       }
     }
 
-    // Add more scaling types as needed (e.g. flat bonus)
     return effect
   }
 
@@ -240,7 +220,6 @@ export class SpellCommandFactory {
 
     if (tier === 0 || !effect.scaling?.bonusPerLevel) return effect
 
-    // Apply tier-based scaling
     const bonusPerLevel = effect.scaling.bonusPerLevel
     const diceMatch = bonusPerLevel.match(/\+(\d+)d(\d+)/)
 
@@ -262,10 +241,7 @@ export class SpellCommandFactory {
   }
 
   /**
-   * Helper: Add dice notation (e.g., "3d6" + "1d6" * 2 = "5d6")
-   * @param base Base dice string (e.g. "1d6")
-   * @param bonus Bonus dice string (e.g. "1d6")
-   * @param multiplier How many times to add the bonus
+   * Helper: Add dice notation
    */
   private static addDice(base: string, bonus: string, multiplier: number): string {
     const parseMatch = (s: string) => {

@@ -45,20 +45,6 @@ You are NOT done with a spell until **ALL** of the following are true.
     - `id`, `name`, `level`, `school`, `classes`, `description` (always required)
     - `ritual`: **MUST be present** (use `false` for cantrips, `true`/`false` for other spells)
     - `castingTime.combatCost`: **MUST include** `{ "type": "action" | "bonus_action" | "reaction" }`
-    - `duration.concentration`: **MUST be present** (boolean)
-    - `tags`: Array of descriptive tags (copy from old file if present)
-- [ ] **Effect Trigger Types**:
-    - Standard: `immediate`, `after_primary`, `turn_start`, `turn_end`
-    - Area-based: `on_enter_area` (MUST use `frequency` field, e.g., `first_per_turn`)
-    - Movement-based: `on_target_move` (for "willingly moves" etc.)
-    - Rider Effects: `on_attack_hit` (e.g., Divine Favor)
-    - Optional `frequency`: `every_time` | `first_per_turn` | `once`
-- [ ] **Conditional Target Filters** (for creature-type/size/alignment effects):
-    - Use `condition.targetFilter.creatureType: ["Undead"]` for effects that only apply to certain types.
-    - Use `condition.targetFilter.size: ["Large"]` or `alignment: ["Evil"]` if applicable.
-- [ ] **Targeting Rules**:
-    - `SelfTargeting` must include `validTargets: ["self"]` and `lineOfSight: false`
-    - `SingleTargeting` and `AreaTargeting` must include `validTargets` array
 - [ ] **Level 0 (Cantrip) Rules**:
     - `level`: `0`
     - `ritual`: `false`
@@ -92,7 +78,7 @@ During migration, you may encounter spell mechanics that the current system (Typ
 *   **"Willingly Moves"**: Use `trigger: { type: "on_target_move" }`.
 *   **"Enters Area"**: Use `trigger: { type: "on_enter_area", frequency: "first_per_turn" }`.
 *   **"Undead Target"**: Use `condition: { targetFilter: { creatureType: ["Undead"] } }`.
-*   **"On Hit" Rider**: Use `trigger: { type: "on_attack_hit" }` (e.g. for Divine Favor).
+*   **"On Hit" Rider**: Use `trigger: { type: "on_attack_hit" }` with `consumption` (e.g., `unlimited` for Hunter's Mark, `first_hit` for Smites).
 
 ### How to Log Gaps
 Append a section titled `## System Gaps & Follow-up` to the bottom of your Batch File if it doesn't exist, and add an entry.

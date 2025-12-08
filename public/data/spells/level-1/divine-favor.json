@@ -2,12 +2,15 @@
   "id": "divine-favor",
   "name": "Divine Favor",
   "level": 1,
-  "school": "Transmutation",
-  "classes": ["Paladin"],
-  "description": "Until the spell ends, your weapon attacks deal an extra 1d4 Radiant damage on a hit.",
-  "higherLevels": "None",
-  "tags": ["buff", "radiant", "weapon"],
-  "ritual": false,
+  "school": "Evocation",
+  "classes": [
+    "Paladin"
+  ],
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
   "castingTime": {
     "value": 1,
     "unit": "bonus_action",
@@ -15,46 +18,47 @@
       "type": "bonus_action"
     }
   },
-  "range": {
-    "type": "self"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false
-  },
   "duration": {
     "type": "timed",
     "value": 1,
     "unit": "minute",
     "concentration": true
   },
+  "range": {
+    "type": "self",
+    "distance": 0
+  },
   "targeting": {
     "type": "self",
-    "validTargets": ["self"],
+    "validTargets": [
+      "self"
+    ],
     "lineOfSight": false
   },
+  "description": "Your prayer empowers you with divine radiance. Your weapon attacks deal an extra 1d4 radiant damage on a hit.",
   "effects": [
     {
-      "type": "UTILITY",
+      "type": "DAMAGE",
       "trigger": {
-        "type": "on_attack_hit"
+        "type": "on_attack_hit",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "weapon"
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "hit"
       },
-      "utilityType": "other",
-      "description": "Your weapon attacks deal an extra 1d4 Radiant damage on hit for the duration.",
-      "attackAugments": [
-        {
-          "attackType": "weapon",
-          "additionalDamage": {
-            "dice": "1d4",
-            "type": "Radiant"
-          },
-          "appliesOn": "hit"
-        }
-      ]
+      "damage": {
+        "dice": "1d4",
+        "type": "Radiant"
+      }
     }
+  ],
+  "ritual": false,
+  "tags": [
+    "damage",
+    "buff"
   ]
 }

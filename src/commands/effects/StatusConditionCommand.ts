@@ -1,6 +1,6 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
-import { CombatState, StatusEffect } from '../../types/combat';
-import { isStatusConditionEffect } from '../../types/spells';
+import { CombatState, StatusEffect, ActiveCondition } from '../../types/combat';
+import { isStatusConditionEffect, EffectDuration } from '../../types/spells';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
 import { generateId } from '../../utils/combatUtils';
 
@@ -14,7 +14,6 @@ export class StatusConditionCommand extends BaseEffectCommand {
 
     for (const target of this.getTargets(currentState)) {
       // 1. Check Saving Throw (if applicable)
-      // Most status conditions allow a save to negate (e.g. Hold Person, Blindness/Deafness)
       if (this.effect.condition.type === 'save' && this.effect.condition.saveType) {
         const caster = this.getCaster(currentState);
         const dc = calculateSpellDC(caster);
@@ -27,46 +26,33 @@ export class StatusConditionCommand extends BaseEffectCommand {
         });
 
         if (saveResult.success) {
-          // Save success: Condition is negated (typically)
           currentState = this.addLogEntry(currentState, {
-            type: 'status', // using 'status' for generic info
+            type: 'status',
             message: `${target.name} resists the ${this.effect.statusCondition.name} condition`,
             characterId: target.id
           });
-          continue; // Skip applying effect
+          continue;
         }
       }
 
-      // 2. Apply Condition
       const durationRounds = this.calculateDuration(this.effect.statusCondition.duration);
-
-      const newStatusEffect: StatusEffect = {
-        id: generateId(),
+      const appliedCondition: ActiveCondition = {
         name: this.effect.statusCondition.name,
-        type: 'debuff', // Most are debuffs, some buffs exist (Invisible) but usually 'StatusCondition' implies negative in this context? 
-        // Actually Invisibility is a StatusCondition.
-        // Logic: If it's a "Condition" from the standard list, we can infer type or default to 'debuff'.
-        duration: durationRounds,
-        effect: {
-          type: 'condition',
-        },
-        icon: this.getIconForCondition(this.effect.statusCondition.name)
+        duration: this.effect.statusCondition.duration,
+        appliedTurn: currentState.turnState.currentTurn,
+        source: this.context.spellName || this.context.spellId
       };
 
-      // Check if target already has this condition?
-      // D&D rules: Effects with same name don't stack.
-      const existingIndex = target.statusEffects.findIndex(e => e.name === newStatusEffect.name);
-      let newStatusEffects = [...target.statusEffects];
-
-      if (existingIndex >= 0) {
-        // Refresh duration
-        newStatusEffects[existingIndex] = newStatusEffect;
-      } else {
-        newStatusEffects.push(newStatusEffect);
-      }
+      const updatedConditions = this.applyCondition(target.conditions, appliedCondition);
+      const { statusEffects, appliedStatus } = this.applyStatusEffect(
+        target.statusEffects,
+        durationRounds,
+        this.effect.statusCondition.name
+      );
 
       currentState = this.updateCharacter(currentState, target.id, {
-        statusEffects: newStatusEffects
+        statusEffects,
+        conditions: updatedConditions
       });
 
       currentState = this.addLogEntry(currentState, {
@@ -74,21 +60,79 @@ export class StatusConditionCommand extends BaseEffectCommand {
         message: `${target.name} is now ${this.effect.statusCondition.name}`,
         characterId: target.id,
         targetIds: [target.id],
-        data: { statusId: newStatusEffect.id, condition: this.effect.statusCondition.name }
+        data: { statusId: appliedStatus.id, condition: appliedCondition }
       });
     }
 
     return currentState;
   }
 
-  private calculateDuration(duration: { type: string, value?: number }): number {
+  /**
+   * Apply or refresh a condition entry on the character. Re-applying the same condition name
+   * refreshes duration/turn so downstream systems don't stack duplicates.
+   */
+  private applyCondition(
+    existing: ActiveCondition[] | undefined,
+    condition: ActiveCondition
+  ): ActiveCondition[] {
+    const conditions = existing ? [...existing] : [];
+    const matchIndex = conditions.findIndex(c => c.name === condition.name);
+
+    if (matchIndex >= 0) {
+      conditions[matchIndex] = condition;
+    } else {
+      conditions.push(condition);
+    }
+
+    return conditions;
+  }
+
+  /**
+   * Mirror conditions into the legacy statusEffects array so current renderers and loggers
+   * continue to behave while the new conditions field comes online.
+   */
+  private applyStatusEffect(
+    existing: StatusEffect[],
+    duration: number,
+    name: string
+  ): { statusEffects: StatusEffect[]; appliedStatus: StatusEffect } {
+    const statusEffects = [...existing];
+    const matchIndex = statusEffects.findIndex(effect => effect.name === name);
+
+    const appliedStatus: StatusEffect = {
+      id: matchIndex >= 0 ? statusEffects[matchIndex].id : generateId(),
+      name,
+      type: 'debuff',
+      duration,
+      effect: {
+        type: 'condition'
+      },
+      icon: this.getIconForCondition(name)
+    };
+
+    if (matchIndex >= 0) {
+      statusEffects[matchIndex] = appliedStatus;
+    } else {
+      statusEffects.push(appliedStatus);
+    }
+
+    return { statusEffects, appliedStatus };
+  }
+
+  private calculateDuration(duration: EffectDuration): number {
     const val = duration.value || 1;
     switch (duration.type) {
-      case 'rounds': return val;
-      case 'minutes': return val * 10;
-      case 'hours': return val * 600;
-      case 'instantaneous': return 0;
-      default: return 1;
+      case 'rounds':
+        return val;
+      case 'minutes':
+        return val * 10;
+      case 'hours':
+        return val * 600;
+      case 'special':
+      case 'instantaneous':
+        return val;
+      default:
+        return 1;
     }
   }
 

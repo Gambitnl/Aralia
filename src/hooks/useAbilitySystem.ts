@@ -19,11 +19,13 @@ import {
 import { Spell } from '../types/spells'; // Import Spell type
 import { SpellCommandFactory, CommandExecutor } from '../commands'; // Import Command System
 import { BreakConcentrationCommand } from '../commands/effects/ConcentrationCommands'; // Import Break Concentration
-import { getDistance, calculateDamage, generateId } from '../utils/combatUtils';
+import { getDistance, calculateDamage, generateId, rollDice } from '../utils/combatUtils';
 import { hasLineOfSight } from '../utils/lineOfSight';
 import { calculateAffectedTiles } from '../utils/aoeCalculations';
 import { useTargeting } from './combat/useTargeting'; // New Hook
-import { resolveAoEParams } from '../utils/targetingUtils'; // New Utils
+import { resolveAoEParams } from '../utils/targetingUtils';
+import { AttackRiderSystem, AttackContext } from '../systems/combat/AttackRiderSystem';
+import { isDamageEffect, isStatusConditionEffect, isMovementEffect, isUtilityEffect } from '../types/spells'; // New Utils
 
 interface UseAbilitySystemProps {
   characters: CombatCharacter[];
@@ -33,6 +35,8 @@ interface UseAbilitySystemProps {
   onAbilityEffect?: (value: number, position: Position, type: 'damage' | 'heal' | 'miss') => void;
   onLogEntry?: (entry: CombatLogEntry) => void;
   onRequestInput?: (spell: Spell, onConfirm: (input: string) => void) => void;
+  reactiveTriggers?: any[]; // TODO: Import ReactiveTrigger
+  onReactiveTriggerUpdate?: (triggers: any[]) => void;
 }
 
 export const useAbilitySystem = ({
@@ -42,7 +46,9 @@ export const useAbilitySystem = ({
   onCharacterUpdate,
   onAbilityEffect,
   onLogEntry,
-  onRequestInput
+  onRequestInput,
+  reactiveTriggers,
+  onReactiveTriggerUpdate
 }: UseAbilitySystemProps) => {
 
   // Delegate Selection/Targeting State to specialized hook
@@ -86,16 +92,15 @@ export const useAbilitySystem = ({
       actionMode: 'select',
       validTargets: [],
       validMoves: [],
-      combatLog: [] // Start empty to capture new entries
+      combatLog: [], // Start empty to capture new entries
+      reactiveTriggers: reactiveTriggers || [] // Pass current triggers
     };
 
-    // 2. Create Commands
     const mockGameState: any = {
       // Add necessary GameState fields if factory needs them
     };
 
     // Asynchronously generate the chain of effect commands
-    // This handles concentration checks, scaling, and arbitration automatically.
     const commands = await SpellCommandFactory.createCommands(
       spell,
       caster,
@@ -110,7 +115,6 @@ export const useAbilitySystem = ({
 
     if (result.success) {
       // 4. Propagate State Changes
-      // Map the resulting generic characters back to the React app's state update system
       result.finalState.characters.forEach(finalChar => {
         const isTarget = targets.some(t => t.id === finalChar.id);
         const isCaster = caster.id === finalChar.id;
@@ -125,10 +129,15 @@ export const useAbilitySystem = ({
         result.finalState.combatLog.forEach(entry => onLogEntry(entry));
       }
 
+      // 6. Propagate Reactive Triggers
+      if (onReactiveTriggerUpdate && result.finalState.reactiveTriggers !== currentState.reactiveTriggers) {
+        onReactiveTriggerUpdate(result.finalState.reactiveTriggers);
+      }
+
     } else {
       console.error("Spell execution failed:", result.error);
     }
-  }, [characters, onCharacterUpdate, onLogEntry, onRequestInput]);
+  }, [characters, onCharacterUpdate, onLogEntry, onRequestInput, reactiveTriggers, onReactiveTriggerUpdate]);
 
 
   // Helper: Find character at exact grid position
@@ -141,7 +150,6 @@ export const useAbilitySystem = ({
 
   /**
    * Validates if a target position is legal for the given ability.
-   * Checks range, line of sight (if map data exists), and targeting rules (e.g. enemy vs ally).
    */
   const isValidTarget = useCallback((
     ability: Ability,
@@ -156,7 +164,6 @@ export const useAbilitySystem = ({
     if (!startTile || !endTile) return false;
 
     // 2. Range Check
-    // Note: getDistance uses Euclidean or Chebyshev depending on impl, matches D&D 5e rule?
     const distance = getDistance(caster.position, targetPosition);
     if (distance > ability.range) return false;
 
@@ -180,7 +187,6 @@ export const useAbilitySystem = ({
       case 'self':
         return targetPosition.x === caster.position.x && targetPosition.y === caster.position.y;
       case 'area':
-        // Area spells can technically target any point in range
         return true;
       default:
         return false;
@@ -190,7 +196,6 @@ export const useAbilitySystem = ({
 
   /**
    * Generates a list of all valid target positions on the map.
-   * Useful for highlighting valid tiles.
    */
   const getValidTargets = useCallback((
     ability: Ability,
@@ -199,13 +204,9 @@ export const useAbilitySystem = ({
     if (!mapData) return [];
     const validPositions: Position[] = [];
 
-    // Brute force scan of map.
-    // Optimization: Only scan within ability.range of caster?
-    // For now, full scan is safe for small maps.
     for (let x = 0; x < mapData.dimensions.width; x++) {
       for (let y = 0; y < mapData.dimensions.height; y++) {
         const position = { x, y };
-        // This re-runs LoS checks per tile, expensive for big maps.
         if (isValidTarget(ability, caster, position)) {
           validPositions.push(position);
         }
@@ -229,16 +230,18 @@ export const useAbilitySystem = ({
 
     ability.effects.forEach(effect => {
       switch (effect.type) {
-        case 'damage':
+        case 'damage': {
           const damage = calculateDamage(effect.value || 0, caster, target);
           modifiedTarget.currentHP = Math.max(0, modifiedTarget.currentHP - damage);
           if (onAbilityEffect) onAbilityEffect(damage, target.position, 'damage');
           break;
-        case 'heal':
+        }
+        case 'heal': {
           const healAmount = effect.value || 0;
           modifiedTarget.currentHP = Math.min(modifiedTarget.maxHP, modifiedTarget.currentHP + healAmount);
           if (onAbilityEffect) onAbilityEffect(healAmount, target.position, 'heal');
           break;
+        }
         case 'status': {
           const statusEffect = effect.statusEffect;
           if (statusEffect) {
@@ -253,8 +256,101 @@ export const useAbilitySystem = ({
         }
       }
     });
+
+
+    // --- Rider System Integration ---
+    if (ability.type === 'attack') {
+      const riderSystem = new AttackRiderSystem();
+
+      const tempState: CombatState = {
+        isActive: true,
+        characters: characters,
+        turnState: {} as any,
+        selectedCharacterId: null,
+        selectedAbilityId: null,
+        actionMode: 'select',
+        validTargets: [],
+        validMoves: [],
+        combatLog: [],
+        reactiveTriggers: []
+      };
+
+      const weaponType = ability.range <= 2 ? 'melee' : 'ranged';
+
+      const context: AttackContext = {
+        attackerId: caster.id,
+        targetId: target.id,
+        attackType: 'weapon',
+        weaponType: weaponType,
+        isHit: true
+      };
+
+      const matchingRiders = riderSystem.getMatchingRiders(tempState, context);
+
+      if (matchingRiders.length > 0) {
+        matchingRiders.forEach(rider => {
+          // Apply Rider Effect
+          if (isDamageEffect(rider.effect)) {
+            const rolledDamage = rollDice(rider.effect.damage.dice || '0');
+            const damage = calculateDamage(rolledDamage, caster, target);
+
+            modifiedTarget.currentHP = Math.max(0, modifiedTarget.currentHP - damage);
+
+            if (onAbilityEffect) onAbilityEffect(damage, target.position, 'damage');
+            if (onLogEntry) {
+              onLogEntry({
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'damage',
+                message: `${caster.name}'s ${rider.sourceName} deals ${damage} additional ${rider.effect.damage.type} damage.`,
+                characterId: caster.id,
+                targetIds: [target.id],
+                data: { value: damage, type: rider.effect.damage.type }
+              });
+            }
+          } else if (isStatusConditionEffect(rider.effect)) {
+            const statusData = rider.effect.statusCondition;
+
+            if (statusData) {
+              let duration = 1;
+              const effectDuration = statusData.duration;
+              if (effectDuration.type === 'minutes') duration = (effectDuration.value || 1) * 10;
+              if (effectDuration.type === 'rounds') duration = effectDuration.value || 1;
+
+              modifiedTarget.statusEffects.push({
+                id: generateId(),
+                name: statusData.name,
+                type: 'debuff',
+                duration: duration,
+                effect: { type: 'condition', value: 0 }
+              });
+
+              if (onLogEntry) {
+                onLogEntry({
+                  id: generateId(),
+                  timestamp: Date.now(),
+                  type: 'status',
+                  message: `${target.name} is affected by ${statusData.name}`,
+                  characterId: target.id,
+                  targetIds: [target.id]
+                });
+              }
+
+              // Handle Consumption
+              const stateAfterConsumption = riderSystem.consumeRiders(tempState, caster.id, matchingRiders);
+              const updatedCaster = stateAfterConsumption.characters.find(c => c.id === caster.id);
+
+              if (updatedCaster) {
+                onCharacterUpdate(updatedCaster);
+              }
+            }
+          }
+        });
+      }
+    }
+
     onCharacterUpdate(modifiedTarget);
-  }, [onCharacterUpdate, onAbilityEffect]);
+  }, [onCharacterUpdate, onAbilityEffect, characters, onLogEntry]);
 
 
   /**
@@ -383,7 +479,8 @@ export const useAbilitySystem = ({
       actionMode: 'select',
       validTargets: [],
       validMoves: [],
-      combatLog: []
+      combatLog: [],
+      reactiveTriggers: reactiveTriggers || []
     };
 
     // Create Command manually (no Factory needed for simple drop)

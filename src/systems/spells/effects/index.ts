@@ -15,6 +15,8 @@ export {
     matchesTargetFilter,
     isPositionInArea,
     processAreaEntryTriggers,
+    processAreaExitTriggers,
+    processAreaEndTurnTriggers,
     processMovementTriggers,
     resetZoneTurnTracking,
     createSpellZone,

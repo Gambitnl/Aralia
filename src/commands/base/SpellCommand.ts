@@ -1,5 +1,6 @@
 import { CombatState, CombatCharacter } from '@/types/combat'
 import { GameState } from '@/types'
+import { EffectDuration, SpellAttackType } from '@/types/spells'
 
 export interface SpellCommand {
   /**
@@ -47,4 +48,6 @@ export interface CommandContext {
   caster: CombatCharacter
   targets: CombatCharacter[]
   gameState: GameState
+  effectDuration?: EffectDuration
+  attackType?: SpellAttackType
 }

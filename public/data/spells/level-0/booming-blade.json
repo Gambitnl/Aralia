@@ -67,7 +67,8 @@
     {
       "type": "DAMAGE",
       "trigger": {
-        "type": "on_target_move"
+        "type": "on_target_move",
+        "movementType": "willing"
       },
       "condition": {
         "type": "always"

@@ -17,10 +17,30 @@ let DUMMY_PARTY_FOR_DEV: PlayerCharacter[] = [];
 
 export function getDummyInitialInventory(allItems: Record<string, Item>): Item[] {
     return [
+        // Torso armor
         allItems['padded_armor'], allItems['leather_armor'], allItems['studded_leather_armor'],
         allItems['hide_armor'], allItems['chain_shirt'], allItems['scale_mail'], allItems['breastplate'], allItems['half_plate_armor'],
         allItems['ring_mail'], allItems['chain_mail'], allItems['splint_armor'], allItems['plate_armor'],
-        allItems['shield_std'], allItems['rusty_sword'], allItems['healing_potion'],
+        // Shields & Weapons
+        allItems['shield_std'], allItems['rusty_sword'], allItems['longsword'], allItems['shortbow'],
+        allItems['dagger'], allItems['mace'], allItems['quarterstaff'], allItems['battleaxe'], allItems['greatsword'],
+        // Head armor
+        allItems['leather_cap'], allItems['chainmail_coif'], allItems['steel_helmet'],
+        // Hands armor
+        allItems['leather_gloves'], allItems['chainmail_gauntlets'], allItems['plate_gauntlets'],
+        // Legs armor
+        allItems['cloth_pants'], allItems['leather_greaves'], allItems['plate_greaves'],
+        // Feet armor
+        allItems['soft_boots'], allItems['studded_boots'], allItems['steel_boots'],
+        // Wrists armor
+        allItems['leather_bracers'], allItems['reinforced_bracers'],
+        // Accessories
+        allItems['silver_necklace'], allItems['amulet_of_health'],
+        allItems['travelers_cloak'], allItems['cloak_of_protection'],
+        allItems['leather_belt'], allItems['belt_of_giant_strength'],
+        allItems['silver_ring'], allItems['gold_ring'], allItems['ring_of_protection'],
+        // Consumables
+        allItems['healing_potion'],
     ].filter(Boolean) as Item[];
 }
 

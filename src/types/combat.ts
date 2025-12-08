@@ -5,7 +5,7 @@
  * used throughout the Aralia RPG application's battle map feature.
  */
 import { Class, SpellbookData, SpellSlots } from './index';
-import { Spell, DamageType, SavingThrowAbility } from './spells'; // Import Spell
+import { Spell, DamageType, SavingThrowAbility, ConditionName, EffectDuration, SpellEffect } from './spells'; // Import Spell
 
 export type { SpellSlots };
 
@@ -38,6 +38,14 @@ export interface ActionEconomyState {
 
 export type Direction = 'north' | 'south' | 'east' | 'west' | 'northeast' | 'northwest' | 'southeast' | 'southwest';
 
+/** Tracks 5e conditions (prone, restrained, custom, etc.) currently affecting a character. */
+export interface ActiveCondition {
+  name: ConditionName | string;
+  duration: EffectDuration | { type: 'permanent'; value?: number };
+  appliedTurn: number;
+  source?: string; // Spell or effect that applied the condition
+}
+
 export interface CombatCharacter {
   id: string;
   name: string;
@@ -51,6 +59,7 @@ export interface CombatCharacter {
   maxHP: number;
   initiative: number;
   statusEffects: StatusEffect[];
+  conditions?: ActiveCondition[];
   facing?: Direction; // For directional abilities
   actionEconomy: ActionEconomyState;
   spellbook?: SpellbookData;
@@ -64,6 +73,7 @@ export interface CombatCharacter {
   immunities?: DamageType[];
   tempHP?: number;          // Temporary hit points
   activeEffects?: ActiveEffect[];  // Active spell effects
+  riders?: ActiveRider[];   // Active damage riders (smites, hex, etc)
 }
 
 export interface ActiveEffect {
@@ -175,18 +185,52 @@ export interface ConcentrationState {
   startedTurn: number; // The combat turn index when concentration began
   effectIds: string[]; // IDs of any active temporary effects (buffs/debuffs) tied to this concentration
   canDropAsFreeAction: boolean; // Whether the player can voluntarily end this (standard D&D rule: yes)
+  sustainCost?: {
+    actionType: "action" | "bonus_action" | "reaction";
+    optional: boolean;
+  };
+  sustainedThisTurn?: boolean;
 }
 
 export interface CombatAction {
   id: string;
   characterId: string;
-  type: 'move' | 'ability' | 'end_turn';
+  type: 'move' | 'ability' | 'end_turn' | 'sustain';
   abilityId?: string;
   targetPosition?: Position;
   targetCharacterIds?: string[];
   movementUsed?: number;
   cost: AbilityCost;
   timestamp: number;
+}
+
+
+export interface ReactiveTrigger {
+  id: string;
+  sourceEffect: SpellEffect;
+  casterId: string;
+  targetId?: string;
+  createdTurn: number;
+  expiresAtRound?: number;
+}
+
+export interface ActiveRider {
+  id: string;
+  spellId: string;
+  casterId: string;
+  sourceName: string;
+  targetId?: string;
+  effect: SpellEffect; // Changed to SpellEffect to be more generic, though usually DamageEffect
+  consumption: "unlimited" | "first_hit" | "per_turn";
+  attackFilter: {
+    weaponType?: "melee" | "ranged" | "any";
+    attackType?: "weapon" | "spell" | "any";
+  };
+  usedThisTurn: boolean;
+  duration: {
+    type: "rounds" | "minutes" | "special";
+    value?: number;
+  };
 }
 
 export interface CombatState {
@@ -204,6 +248,7 @@ export interface CombatState {
     ability: Ability;
   };
   combatLog: CombatLogEntry[];
+  reactiveTriggers: ReactiveTrigger[];
 }
 
 export interface Animation {

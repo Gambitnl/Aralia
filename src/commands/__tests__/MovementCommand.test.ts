@@ -56,7 +56,8 @@ const makeState = (characters: CombatCharacter[], validMoves: Position[] = []): 
   actionMode: 'select',
   validTargets: [],
   validMoves,
-  combatLog: []
+  combatLog: [],
+  reactiveTriggers: []
 })
 
 const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): CommandContext => ({

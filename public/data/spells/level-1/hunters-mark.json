@@ -3,23 +3,77 @@
   "name": "Hunter's Mark",
   "level": 1,
   "school": "Divination",
-  "classes": ["Ranger"],
-  "description": "You magically mark a creature you can see within range as your quarry. Until the spell ends, you deal an extra 1d6 Force damage to the target whenever you hit it with an attack roll, and you have Advantage on Wisdom (Perception or Survival) checks to find it. If the target drops to 0 HP, you can use a Bonus Action to move the mark to a new creature within range. Higher-level slots extend duration (3–4: up to 8 hours; 5+: up to 24 hours).",
-  "higherLevels": "Duration extends: 3rd–4th up to 8 hours; 5th+ up to 24 hours.",
-  "tags": ["mark", "force", "concentration"],
-  "ritual": false,
-  "castingTime": { "value": 1, "unit": "bonus_action", "combatCost": { "type": "bonus_action" } },
-  "range": { "type": "ranged", "distance": 90 },
-  "components": { "verbal": true, "somatic": false, "material": false },
-  "duration": { "type": "timed", "value": 1, "unit": "hour", "concentration": true },
-  "targeting": { "type": "single", "range": 90, "validTargets": ["creatures", "enemies"], "lineOfSight": true },
+  "classes": [
+    "Ranger"
+  ],
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action",
+    "combatCost": {
+      "type": "bonus_action"
+    }
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": true
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 90
+  },
+  "targeting": {
+    "type": "single",
+    "range": 90,
+    "validTargets": [
+      "creatures"
+    ]
+  },
+  "description": "You choose a creature you can see within range and mystically mark it as your quarry. Until the spell ends, you deal an extra 1d6 damage to the target whenever you hit it with a weapon attack. You also have advantage on any Wisdom (Perception) or Wisdom (Survival) check you make to find it.",
   "effects": [
     {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "on_attack_hit",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "weapon"
+        }
+      },
+      "condition": {
+        "type": "hit"
+      },
+      "damage": {
+        "dice": "1d6",
+        "type": "Force"
+      }
+    },
+    {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
-      "utilityType": "control",
-      "description": "Marked target takes +1d6 force damage on your attack hits, you have advantage on Perception/Survival to find it, and you can move the mark when it drops to 0 HP; duration can be extended with higher-level slots."
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "utilityType": "information",
+      "description": "You have advantage on any Wisdom (Perception) or Wisdom (Survival) check you make to find the target."
     }
-  ]
+  ],
+  "ritual": false,
+  "tags": [
+    "damage",
+    "tracker"
+  ],
+  "scaling": {
+    "type": "slot_level",
+    "bonusPerLevel": "Duration increases (see PHB)"
+  }
 }

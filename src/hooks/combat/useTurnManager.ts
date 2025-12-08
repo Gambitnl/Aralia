@@ -4,7 +4,7 @@
  * Now integrates AI decision making, Damage Numbers, and Spell Effect Triggers.
  */
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { CombatCharacter, TurnState, CombatAction, CombatLogEntry, BattleMapData, DamageNumber, Animation } from '../../types/combat';
+import { CombatCharacter, TurnState, CombatAction, CombatLogEntry, BattleMapData, DamageNumber, Animation, ReactiveTrigger } from '../../types/combat';
 import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
 import { createDamageNumber, generateId, getActionMessage, rollDice } from '../../utils/combatUtils';
 import { resetEconomy } from '../../utils/combat/actionEconomyUtils';
@@ -14,12 +14,15 @@ import {
   ActiveSpellZone,
   MovementTriggerDebuff,
   processAreaEntryTriggers,
+  processAreaExitTriggers,
+  processAreaEndTurnTriggers,
   processMovementTriggers,
   resetZoneTurnTracking
 } from '../../systems/spells/effects';
+import { combatEvents } from '../../systems/events/CombatEvents';
 
 interface UseTurnManagerProps {
-  difficulty: keyof typeof AI_THINKING_DELAY_MS;
+  difficulty?: keyof typeof AI_THINKING_DELAY_MS;
   characters: CombatCharacter[];
   mapData: BattleMapData | null;
   onCharacterUpdate: (character: CombatCharacter) => void;
@@ -33,7 +36,7 @@ export const useTurnManager = ({
   onCharacterUpdate,
   onLogEntry,
   autoCharacters,
-  difficulty = 'normal' // Provide neutral default if missing
+  difficulty = 'normal'
 }: UseTurnManagerProps) => {
   // --- Core turn tracking (whose turn, which phase, order, and what they've done) ---
   const [turnState, setTurnState] = useState<TurnState>({
@@ -51,12 +54,10 @@ export const useTurnManager = ({
   // Spell trigger tracking: zones (Create Bonfire, etc.) and debuffs (Booming Blade, etc.)
   const [spellZones, setSpellZones] = useState<ActiveSpellZone[]>([]);
   const [movementDebuffs, setMovementDebuffs] = useState<MovementTriggerDebuff[]>([]);
+  const [reactiveTriggers, setReactiveTriggers] = useState<ReactiveTrigger[]>([]);
 
-  // Stabilize optional auto-controlled character set so downstream deps do not churn
-  // when callers omit the argument (otherwise a new Set would be created each render).
-  // We use a ref-backed default to survive strict-mode re-renders without generating
-  // fresh identities, while still respecting caller-provided sets.
-  const defaultAutoControlledRef = useRef<Set<string>>();
+  // Stabilize optional auto-controlled character set
+  const defaultAutoControlledRef = useRef<Set<string> | undefined>(undefined);
   const managedAutoCharacters = useMemo(() => {
     if (autoCharacters) return autoCharacters;
     if (!defaultAutoControlledRef.current) {
@@ -67,29 +68,23 @@ export const useTurnManager = ({
 
   const { canAfford, consumeAction } = useActionEconomy();
 
+  const lastTurnStartKey = useRef<string | null>(null);
+
   const addDamageNumber = useCallback((value: number, position: { x: number, y: number }, type: 'damage' | 'heal' | 'miss') => {
-    // Build a normalized payload so overlays animate consistently no matter the source.
     const newDn: DamageNumber = createDamageNumber(value, position, type);
     setDamageNumbers(prev => [...prev, newDn]);
-
-    // Auto-remove after duration to avoid a stale overlay queue lingering across turns.
     setTimeout(() => {
       setDamageNumbers(prev => prev.filter(dn => dn.id !== newDn.id));
     }, newDn.duration);
   }, []);
 
   const rollInitiative = useCallback((character: CombatCharacter): number => {
-    // Memoized to avoid re-allocating a tiny helper every render; keeps downstream callbacks
-    // stable and prevents needless hook churn when initiative is re-evaluated (rare, but occurs
-    // when combat is re-initialized).
     const dexModifier = Math.floor((character.stats.dexterity - 10) / 2);
     const roll = Math.floor(Math.random() * 20) + 1;
     return roll + dexModifier + character.stats.baseInitiative;
   }, []);
 
   const queueAnimation = useCallback((animation: Animation) => {
-    // Small helper that appends and then prunes an animation entry once its timer elapses.
-    // The rendering layer reads this array and fades entries out on removal.
     setAnimations(prev => [...prev, animation]);
     setTimeout(() => {
       setAnimations(prev => prev.filter(anim => anim.id !== animation.id));
@@ -97,8 +92,6 @@ export const useTurnManager = ({
   }, []);
 
   const startTurnFor = useCallback((character: CombatCharacter) => {
-    // Memoized so effects that depend on it do not re-wire every render, which keeps
-    // turn start side effects from being re-subscribed unnecessarily.
     let updatedChar = resetEconomy(character);
     updatedChar = {
       ...updatedChar,
@@ -106,14 +99,17 @@ export const useTurnManager = ({
       abilities: character.abilities.map(ability => ({
         ...ability,
         currentCooldown: Math.max(0, (ability.currentCooldown || 0) - 1)
-      }))
+      })),
+      concentratingOn: character.concentratingOn ? {
+        ...character.concentratingOn,
+        sustainedThisTurn: false
+      } : undefined,
+      riders: character.riders?.map(r => ({ ...r, usedThisTurn: false }))
     };
     onCharacterUpdate(updatedChar);
   }, [onCharacterUpdate, resetEconomy]);
 
   const initializeCombat = useCallback((initialCharacters: CombatCharacter[]) => {
-    // Entry point when a fight begins. Rolls initiatives, sets the order, and resets
-    // everyone’s action economy so they start fresh on round one.
     const charactersWithInitiative = initialCharacters.map(char => ({
       ...char,
       initiative: rollInitiative(char)
@@ -123,7 +119,6 @@ export const useTurnManager = ({
       .sort((a, b) => b.initiative - a.initiative)
       .map(char => char.id);
 
-    // Reset economy for all characters at the start of combat
     charactersWithInitiative.forEach(char => {
       onCharacterUpdate(resetEconomy(char));
     });
@@ -146,124 +141,33 @@ export const useTurnManager = ({
       data: { turnOrder, initiatives: charactersWithInitiative.map(c => ({ id: c.id, initiative: c.initiative })) }
     });
 
-    // Reset the turn-start guard so a fresh combat cannot accidentally inherit the
-    // last actor/round key from a prior encounter, which would block the first
-    // character from getting their economy reset.
     lastTurnStartKey.current = null;
-
   }, [onCharacterUpdate, onLogEntry, resetEconomy, rollInitiative]);
 
-  const executeAction = useCallback((action: CombatAction): boolean => {
-    // Main dispatcher for all actions (move, ability, end turn, etc.).
-    // Returns true on success so callers (AI/UI) can chain follow-up logic.
-
-    // If it's an end_turn action, we handle it separately
-    if (action.type === 'end_turn') {
-      endTurn();
-      return true;
-    }
-
-    const character = characters.find(c => c.id === action.characterId);
-
-    // Validate if character exists and has enough resources (actions/movement)
-    if (!character || !canAfford(character, action.cost)) {
-      onLogEntry({
-        id: generateId(),
-        timestamp: Date.now(),
-        type: 'action',
-        message: `${character?.name || 'Character'} cannot perform this action (not enough resources or action already used).`,
-        characterId: character?.id
-      });
-      return false;
-    }
-
-    // Deduct resources (action point, movement speed, etc.)
-    let updatedCharacter = consumeAction(character, action.cost);
-
-    if (action.type === 'move' && action.targetPosition) {
-      const previousPosition = character.position;
-      updatedCharacter = { ...updatedCharacter, position: action.targetPosition };
-
-      // Process movement-based spell triggers (Booming Blade)
-      const moveTriggerResults = processMovementTriggers(movementDebuffs, character, turnState.currentTurn);
-      for (const result of moveTriggerResults) {
-        for (const effect of result.effects) {
-          if (effect.type === 'damage' && effect.dice) {
-            const damage = rollDice(effect.dice);
-            updatedCharacter = { ...updatedCharacter, currentHP: Math.max(0, updatedCharacter.currentHP - damage) };
-            addDamageNumber(damage, action.targetPosition, 'damage');
-            onLogEntry({
-              id: generateId(),
-              timestamp: Date.now(),
-              type: 'damage',
-              message: `${character.name} takes ${damage} ${effect.damageType || ''} damage from moving while affected by a spell!`,
-              characterId: character.id,
-              data: { damage, damageType: effect.damageType, trigger: 'on_target_move' }
-            });
-          }
-        }
-      }
-
-      // Process area entry triggers (Create Bonfire)
-      const areaEntryResults = processAreaEntryTriggers(
-        spellZones, character, action.targetPosition, previousPosition, turnState.currentTurn
-      );
-      for (const result of areaEntryResults) {
-        for (const effect of result.effects) {
-          if (effect.type === 'damage' && effect.dice) {
-            // TODO: Handle saving throws if effect.requiresSave
-            const damage = rollDice(effect.dice);
-            updatedCharacter = { ...updatedCharacter, currentHP: Math.max(0, updatedCharacter.currentHP - damage) };
-            addDamageNumber(damage, action.targetPosition, 'damage');
-            onLogEntry({
-              id: generateId(),
-              timestamp: Date.now(),
-              type: 'damage',
-              message: `${character.name} takes ${damage} ${effect.damageType || ''} damage from entering a spell zone!`,
-              characterId: character.id,
-              data: { damage, damageType: effect.damageType, trigger: 'on_enter_area' }
-            });
-          }
-        }
-      }
-    }
-
-    onCharacterUpdate(updatedCharacter);
-    setTurnState(prev => ({ ...prev, actionsThisTurn: [...prev.actionsThisTurn, action] }));
-    onLogEntry({
-      id: generateId(),
-      timestamp: Date.now(),
-      type: 'action',
-      message: getActionMessage(action, character),
-      characterId: character.id,
-      data: action
-    });
-
-    if (action.type === 'ability') {
-      const targetPositions = action.targetCharacterIds
-        ?.map(id => characters.find(c => c.id === id)?.position)
-        .filter(Boolean) as { x: number; y: number }[];
-
-      queueAnimation({
-        id: generateId(),
-        type: 'spell_effect',
-        characterId: action.characterId,
-        startPosition: character.position,
-        endPosition: action.targetPosition,
-        duration: 650,
-        startTime: Date.now(),
-        data: { targetPositions: targetPositions?.length ? targetPositions : action.targetPosition ? [action.targetPosition] : [] },
-      });
-    }
-    return true;
-  }, [characters, onCharacterUpdate, onLogEntry, canAfford, consumeAction, queueAnimation]);
-
   const processEndOfTurnEffects = useCallback((character: CombatCharacter) => {
-    // Memoized to keep heavy end-of-turn effect handling stable between renders,
-    // which reduces diff noise for consumers and prevents redundant timeout setups.
     let updatedCharacter = { ...character };
 
-    // Iterate through all active status effects to apply DOTs/HOTs
+    // Resolve any lingering zone effects
+    const zoneResults = processAreaEndTurnTriggers(spellZones, updatedCharacter, turnState.currentTurn);
+    for (const result of zoneResults) {
+      for (const effect of result.effects) {
+        if (effect.type === 'damage' && effect.dice) {
+          const damage = rollDice(effect.dice);
+          updatedCharacter = { ...updatedCharacter, currentHP: Math.max(0, updatedCharacter.currentHP - damage) };
+          addDamageNumber(damage, updatedCharacter.position, 'damage');
+          onLogEntry({
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'damage',
+            message: `${character.name} takes ${damage} ${effect.damageType || ''} damage for ending turn in a hazard!`,
+            characterId: character.id,
+            data: { damage, damageType: effect.damageType, trigger: 'on_end_turn_in_area' }
+          });
+        }
+      }
+    }
+
+    // Iterate statuses
     updatedCharacter.statusEffects.forEach(effect => {
       switch (effect.effect.type) {
         case 'damage_per_turn':
@@ -294,12 +198,23 @@ export const useTurnManager = ({
           break;
       }
     });
+
+    // Check Concentration Sustain
+    if (updatedCharacter.concentratingOn?.sustainCost && !updatedCharacter.concentratingOn.sustainedThisTurn) {
+      onLogEntry({
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'status',
+        message: `${character.name} lost concentration on ${updatedCharacter.concentratingOn.spellName} (failed to sustain).`,
+        characterId: character.id
+      });
+      updatedCharacter.concentratingOn = undefined;
+    }
+
     onCharacterUpdate(updatedCharacter);
-  }, [addDamageNumber, onCharacterUpdate, onLogEntry]);
+  }, [addDamageNumber, onCharacterUpdate, onLogEntry, spellZones, turnState.currentTurn]);
 
   const endTurn = useCallback(() => {
-    // Handles phase wrap-up: apply lingering effects, pick the next living actor,
-    // rotate the turn order, and bump the round counter if we wrapped.
     const currentCharacter = characters.find(c => c.id === turnState.currentCharacterId);
     if (!currentCharacter) return;
 
@@ -308,7 +223,6 @@ export const useTurnManager = ({
     const currentIndex = turnState.turnOrder.indexOf(turnState.currentCharacterId!);
     let nextIndex = (currentIndex + 1) % turnState.turnOrder.length;
 
-    // Skip dead characters
     let attempts = 0;
     while (attempts < turnState.turnOrder.length) {
       const charId = turnState.turnOrder[nextIndex];
@@ -320,17 +234,14 @@ export const useTurnManager = ({
       attempts++;
     }
 
-    // Determine if we've cycled back to the start of the initiative order (start of new round)
     const isNewRound = nextIndex <= currentIndex && attempts < turnState.turnOrder.length;
     const nextCharacterId = turnState.turnOrder[nextIndex];
 
     if (isNewRound) {
-      // Reset per-turn tracking for spell zones at the start of each round
       resetZoneTurnTracking(spellZones);
-
-      // Clean up expired zones and debuffs
       setSpellZones(prev => prev.filter(z => !z.expiresAtRound || z.expiresAtRound > turnState.currentTurn + 1));
       setMovementDebuffs(prev => prev.filter(d => d.expiresAtRound > turnState.currentTurn + 1 && !d.hasTriggered));
+      setReactiveTriggers(prev => prev.filter(t => !t.expiresAtRound || t.expiresAtRound > turnState.currentTurn + 1));
 
       onLogEntry({
         id: generateId(),
@@ -347,41 +258,252 @@ export const useTurnManager = ({
       currentCharacterId: nextCharacterId,
       actionsThisTurn: []
     }));
-    // Note: AI state reset is handled reactively in useCombatAI when currentCharacterId changes
 
-  }, [turnState, characters, processEndOfTurnEffects, onLogEntry]);
+  }, [turnState, characters, processEndOfTurnEffects, onLogEntry, spellZones]);
+
+
+  const executeAction = useCallback((action: CombatAction): boolean => {
+    if (action.type === 'end_turn') {
+      endTurn();
+      return true;
+    }
+
+    const startCharacter = characters.find(c => c.id === action.characterId);
+    if (!startCharacter) return false;
+
+    if (!canAfford(startCharacter, action.cost)) {
+      onLogEntry({
+        id: generateId(),
+        timestamp: Date.now(),
+        type: 'action',
+        message: `${startCharacter.name} cannot perform this action (not enough resources or action already used).`,
+        characterId: startCharacter.id
+      });
+      return false;
+    }
+
+    consumeAction(startCharacter, action.cost);
+    let updatedCharacter = { ...startCharacter };
+
+    if (action.type === 'sustain') {
+      if (updatedCharacter.concentratingOn) {
+        updatedCharacter.concentratingOn.sustainedThisTurn = true;
+
+        combatEvents.emit({
+          type: 'unit_sustain',
+          casterId: updatedCharacter.id,
+          spellId: updatedCharacter.concentratingOn.spellId,
+          actionType: action.cost.type as any
+        });
+
+        onLogEntry({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'action',
+          message: `${updatedCharacter.name} sustains ${updatedCharacter.concentratingOn.spellName}`,
+          characterId: updatedCharacter.id,
+          data: { actionType: action.cost.type }
+        });
+
+        const sustainTriggers = reactiveTriggers.filter(t =>
+          t.casterId === updatedCharacter.id &&
+          t.sourceEffect.trigger.type === 'on_caster_action'
+        );
+
+        for (const trigger of sustainTriggers) {
+          const effect = trigger.sourceEffect;
+          if (effect.type === 'DAMAGE' && effect.damage) {
+            if (trigger.targetId) {
+              const target = characters.find(c => c.id === trigger.targetId);
+              if (target) {
+                const damage = rollDice(effect.damage.dice);
+                onLogEntry({
+                  id: generateId(),
+                  timestamp: Date.now(),
+                  type: 'damage',
+                  message: `${target.name} takes ${damage} damage from sustained spell!`,
+                  characterId: target.id,
+                  data: { damage, trigger: 'on_caster_action' }
+                });
+                const updatedTarget = { ...target, currentHP: Math.max(0, target.currentHP - damage) };
+                onCharacterUpdate(updatedTarget);
+                addDamageNumber(damage, target.position, 'damage');
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (action.type === 'move' && action.targetPosition) {
+      const previousPosition = updatedCharacter.position;
+      updatedCharacter = { ...updatedCharacter, position: action.targetPosition };
+
+      combatEvents.emit({
+        type: 'unit_move',
+        unitId: startCharacter.id,
+        from: previousPosition,
+        to: action.targetPosition,
+        cost: (action.cost && 'movement' in action.cost) ? (action.cost as any).movement : 0,
+        isForced: false
+      });
+
+      const moveTriggerResults = processMovementTriggers(movementDebuffs, updatedCharacter, turnState.currentTurn);
+
+      for (const result of moveTriggerResults) {
+        if (result.triggered) {
+          setMovementDebuffs(prev => prev.map(d => d.id === result.sourceId ? { ...d, hasTriggered: true } : d));
+          for (const effect of result.effects) {
+            if (effect.type === 'damage' && effect.dice) {
+              const damage = rollDice(effect.dice);
+              updatedCharacter = { ...updatedCharacter, currentHP: Math.max(0, updatedCharacter.currentHP - damage) };
+              addDamageNumber(damage, action.targetPosition, 'damage');
+              onLogEntry({
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'damage',
+                message: `${updatedCharacter.name} takes ${damage} ${effect.damageType || ''} damage from moving!`,
+                characterId: updatedCharacter.id,
+                data: { damage, damageType: effect.damageType, trigger: 'on_target_move' }
+              });
+            }
+          }
+        }
+      }
+
+      const areaEntryResults = processAreaEntryTriggers(
+        spellZones, updatedCharacter, action.targetPosition, previousPosition, turnState.currentTurn
+      );
+      for (const result of areaEntryResults) {
+        for (const effect of result.effects) {
+          if (effect.type === 'damage' && effect.dice) {
+            const damage = rollDice(effect.dice);
+            updatedCharacter = { ...updatedCharacter, currentHP: Math.max(0, updatedCharacter.currentHP - damage) };
+            addDamageNumber(damage, action.targetPosition, 'damage');
+            onLogEntry({
+              id: generateId(),
+              timestamp: Date.now(),
+              type: 'damage',
+              message: `${updatedCharacter.name} takes ${damage} ${effect.damageType || ''} damage from entering a spell zone!`,
+              characterId: updatedCharacter.id,
+              data: { damage, damageType: effect.damageType, trigger: 'on_enter_area' }
+            });
+          }
+        }
+      }
+
+      const areaExitResults = processAreaExitTriggers(
+        spellZones, updatedCharacter, action.targetPosition, previousPosition
+      );
+      for (const result of areaExitResults) {
+        for (const effect of result.effects) {
+          if (effect.type === 'damage' && effect.dice) {
+            const damage = rollDice(effect.dice);
+            updatedCharacter = { ...updatedCharacter, currentHP: Math.max(0, updatedCharacter.currentHP - damage) };
+            addDamageNumber(damage, action.targetPosition, 'damage');
+            onLogEntry({
+              id: generateId(),
+              timestamp: Date.now(),
+              type: 'damage',
+              message: `${updatedCharacter.name} takes ${damage} ${effect.damageType || ''} damage from leaving a spell zone!`,
+              characterId: updatedCharacter.id,
+              data: { damage, damageType: effect.damageType, trigger: 'on_exit_area' }
+            });
+          }
+        }
+      }
+    }
+
+    onCharacterUpdate(updatedCharacter);
+    setTurnState(prev => ({ ...prev, actionsThisTurn: [...prev.actionsThisTurn, action] }));
+    onLogEntry({
+      id: generateId(),
+      timestamp: Date.now(),
+      type: 'action',
+      message: getActionMessage(action, updatedCharacter),
+      characterId: updatedCharacter.id,
+      data: action
+    });
+
+    if (action.type === 'ability' && action.abilityId) {
+      const ability = characters.find(c => c.id === action.characterId)?.abilities.find(a => a.id === action.abilityId);
+
+      combatEvents.emit({
+        type: 'unit_cast',
+        casterId: updatedCharacter.id,
+        spellId: action.abilityId,
+        targets: action.targetCharacterIds || []
+      });
+
+      if (ability && (ability.type === 'attack' || (ability.spell?.attackType && ability.spell.attackType !== 'none'))) {
+        action.targetCharacterIds?.forEach(targetId => {
+          combatEvents.emit({
+            type: 'unit_attack',
+            attackerId: updatedCharacter.id,
+            targetId: targetId,
+            isHit: true,
+            isCrit: false
+          });
+
+          const triggers = reactiveTriggers.filter(t =>
+            t.targetId === targetId &&
+            t.sourceEffect.trigger.type === 'on_target_attack'
+          );
+
+          for (const trigger of triggers) {
+            const effect = trigger.sourceEffect;
+            if (effect.type === 'DAMAGE' && effect.damage) {
+              const damage = rollDice(effect.damage.dice);
+              onLogEntry({
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'damage',
+                message: `${updatedCharacter.name} takes ${damage} damage from reactive effect (on_target_attack)!`,
+                characterId: updatedCharacter.id,
+                data: { damage, trigger: 'on_target_attack' }
+              });
+              updatedCharacter.currentHP = Math.max(0, updatedCharacter.currentHP - damage);
+              addDamageNumber(damage, updatedCharacter.position, 'damage');
+            }
+
+            const targetPositions = action.targetCharacterIds
+              ?.map(id => characters.find(c => c.id === id)?.position)
+              .filter(Boolean) as { x: number; y: number }[];
+
+            queueAnimation({
+              id: generateId(),
+              type: 'spell_effect',
+              characterId: action.characterId,
+              startPosition: updatedCharacter.position,
+              endPosition: action.targetPosition,
+              duration: 650,
+              startTime: Date.now(),
+              data: { targetPositions: targetPositions?.length ? targetPositions : action.targetPosition ? [action.targetPosition] : [] },
+            });
+          }
+        });
+      }
+    }
+
+    return true;
+  }, [characters, onCharacterUpdate, onLogEntry, canAfford, consumeAction, queueAnimation, addDamageNumber, movementDebuffs, spellZones, turnState.currentTurn, endTurn, reactiveTriggers]);
 
   const currentCharacter = useMemo(() => {
-    // Memoized lookup prevents repeated scans of the roster and provides a stable
-    // reference for effects that react to the active actor.
     return characters.find(c => c.id === turnState.currentCharacterId);
   }, [characters, turnState.currentCharacterId]);
 
   const getCurrentCharacter = useCallback(() => currentCharacter, [currentCharacter]);
 
-  // Track when a turn has already been initialized so we do not re-run
-  // startTurnFor mid-turn when the characters array changes (e.g. HP/cooldowns
-  // updating after actions). Without this guard, dependency updates from
-  // getCurrentCharacter/characters would repeatedly reset the action economy,
-  // accidentally granting extra actions while expiring statuses early.
-  const lastTurnStartKey = useRef<string | null>(null);
-
-  // Turn Start Handling
   useEffect(() => {
     const activeId = turnState.currentCharacterId;
     if (!activeId) return;
 
     const turnStartKey = `${turnState.currentTurn}:${activeId}`;
     if (lastTurnStartKey.current === turnStartKey) {
-      // This guard is crucial. It prevents re-running turn initialization when a parent
-      // component re-renders (e.g., due to a character HP update). Re-running startTurnFor
-      // would incorrectly reset action economy and prematurely tick down status effects.
-      // We are adding this log to help debug rare cases where initiative reordering might
-      // cause this guard to misfire.
       onLogEntry({
         id: generateId(),
         timestamp: Date.now(),
-        type: 'action', // using 'action' as safe fallback for debug
+        type: 'action',
         message: `[DEBUG] Turn start guard triggered for ${activeId} on turn ${turnState.currentTurn}.`,
         data: { lastKey: lastTurnStartKey.current, currentKey: turnStartKey },
       });
@@ -403,11 +525,6 @@ export const useTurnManager = ({
 
   }, [turnState.currentCharacterId, turnState.currentTurn, characters, startTurnFor, onLogEntry]);
 
-  // Hook: AI Logic
-  // Delegates all AI state management and decision making to a dedicated hook.
-  // We pass the dependencies it needs to inspect the board and execute actions.
-  // AI hook listens to currentCharacterId and will no-op if the current actor is
-  // player-controlled, so sharing this hook keeps the main turn manager agnostic.
   useCombatAI({
     difficulty,
     characters,
@@ -415,30 +532,25 @@ export const useTurnManager = ({
     currentCharacterId: turnState.currentCharacterId,
     executeAction,
     endTurn,
-    autoCharacters: managedAutoCharacters // use the stabilized set
+    autoCharacters: managedAutoCharacters
   });
 
-
-
-
   const isCharacterTurn = useCallback((characterId: string) => {
-    // Convenience helper for UI to highlight the active combatant or block inputs.
     return turnState.currentCharacterId === characterId;
   }, [turnState.currentCharacterId]);
 
-  // Spell zone management - add zone when area spell is cast (e.g., Create Bonfire)
   const addSpellZone = useCallback((zone: ActiveSpellZone) => {
-    // Zones persist across turns until they expire; endTurn cleans up when rounds advance.
     setSpellZones(prev => [...prev, zone]);
   }, []);
 
-  // Movement debuff management - add debuff when hit by movement-triggered spell (e.g., Booming Blade)
   const addMovementDebuff = useCallback((debuff: MovementTriggerDebuff) => {
-    // Debuffs are consulted during move actions to apply secondary damage/effects.
     setMovementDebuffs(prev => [...prev, debuff]);
   }, []);
 
-  // Remove a spell zone by ID (e.g., when concentration ends)
+  const addReactiveTrigger = useCallback((trigger: ReactiveTrigger) => {
+    setReactiveTriggers(prev => [...prev, trigger]);
+  }, []);
+
   const removeSpellZone = useCallback((zoneId: string) => {
     setSpellZones(prev => prev.filter(z => z.id !== zoneId));
   }, []);
@@ -454,11 +566,13 @@ export const useTurnManager = ({
     addDamageNumber,
     damageNumbers,
     animations,
-    // Spell trigger management
     addSpellZone,
     addMovementDebuff,
     removeSpellZone,
+    addReactiveTrigger,
+    setReactiveTriggers,
     spellZones,
-    movementDebuffs
+    movementDebuffs,
+    reactiveTriggers
   };
 };

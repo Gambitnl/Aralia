@@ -3,42 +3,84 @@
   "name": "Hail of Thorns",
   "level": 1,
   "school": "Conjuration",
-  "classes": ["Ranger"],
-  "description": "As you hit a creature with a ranged weapon, thorns erupt from your weapon or ammunition. The target and each creature within 5 feet of it make a Dexterity saving throw, taking 1d10 Piercing damage on a failed save or half as much on a successful one.",
-  "higherLevels": "The damage increases by 1d10 for each spell slot level above 1.",
-  "tags": ["damage", "aoe"],
-  "ritual": false,
+  "classes": [
+    "Ranger"
+  ],
+  "description": "The next time you hit a creature with a ranged weapon attack before the spell ends, this spell creates a rain of thorns that sprouts from your ranged weapon or ammunition. In addition to the normal attack's effects, the attack targets the creature and each creature within 5 feet of it. Make a ranged spell attack against each target. On a hit, the targets take 1d10 piercing damage.",
   "castingTime": {
     "value": 1,
-    "unit": "bonus_action",
-    "combatCost": {
-      "type": "bonus_action",
-      "condition": "immediately after you hit with a ranged weapon"
-    }
+    "unit": "bonus_action"
   },
   "range": {
     "type": "self"
   },
-  "components": { "verbal": true, "somatic": false, "material": false },
-  "duration": { "type": "instantaneous", "concentration": false },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
   "targeting": {
-    "type": "area",
-    "range": 0,
-    "validTargets": ["creatures"],
-    "lineOfSight": false,
-    "areaOfEffect": { "shape": "Sphere", "size": 5 }
+    "type": "self",
+    "validTargets": [
+      "self"
+    ]
   },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "immediate" },
+      "trigger": {
+        "type": "on_attack_hit",
+        "consumption": "first_hit",
+        "attackFilter": {
+          "weaponType": "ranged",
+          "attackType": "weapon"
+        }
+      },
+      "condition": {
+        "type": "always"
+      },
+      "damage": {
+        "dice": "1d10",
+        "type": "Piercing"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d10"
+      }
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "on_attack_hit",
+        "consumption": "first_hit",
+        "attackFilter": {
+          "weaponType": "ranged",
+          "attackType": "weapon"
+        }
+      },
       "condition": {
         "type": "save",
         "saveType": "Dexterity",
-        "saveEffect": "half"
+        "saveEffect": "half",
+        "targetFilter": {
+          "creatureType": []
+        }
       },
-      "damage": { "dice": "1d10", "type": "Piercing" },
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d10" }
+      "description": "AoE damage to creatures within 5ft of target.",
+      "damage": {
+        "dice": "1d10",
+        "type": "Piercing"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d10"
+      }
     }
   ]
 }
