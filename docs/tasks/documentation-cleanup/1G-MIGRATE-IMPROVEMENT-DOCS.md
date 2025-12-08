@@ -18,7 +18,7 @@ Migrate valuable architectural knowledge from `docs/improvements/@*.md` into com
 | **1G.6** | [1G.6-SUBMAP-RENDERING.md](./1G.6-SUBMAP-RENDERING.md) | `@06_optimize_submap_rendering.md` | Completed |
 | **1G.7** | [1G.7-REDUCER-LOGIC.md](./1G.7-REDUCER-LOGIC.md) | `@07_invert_reducer_action_logic.md` | Completed |
 | **1G.8** | [1G.8-POINT-BUY-UI.md](./1G.8-POINT-BUY-UI.md) | `@08_improve_point_buy_ui.md` | Completed |
-| **1G.9** | [1G.9-LOADING-TRANSITION.md](./1G.9-LOADING-TRANSITION.md) | `@10_enhance_loading_transition.md` | Pending |
+| **1G.9** | [1G.9-LOADING-TRANSITION.md](./1G.9-LOADING-TRANSITION.md) | `@10_enhance_loading_transition.md` | Completed |
 | **1G.10** | [1G.10-SUBMAP-GENERATION.md](./1G.10-SUBMAP-GENERATION.md) | `11_submap_generation_deep_dive/` | Pending |
 
 ## STANDARD MIGRATION WORKFLOW
