@@ -24,7 +24,7 @@ import HandsIcon from '../assets/icons/HandsIcon';
 
 // Import the new dynamic icon component
 import DynamicMannequinSlotIcon from './DynamicMannequinSlotIcon';
-import { isWeaponProficient } from '../utils/weaponUtils';
+import { isWeaponProficient, isWeaponMartial } from '../utils/weaponUtils';
 import { getCharacterMaxArmorProficiency, getArmorCategoryHierarchy, getAbilityModifierValue } from '../utils/characterUtils';
 
 interface EquipmentMannequinProps {
@@ -157,10 +157,8 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
                 const isProficient = isWeaponProficient(character, equippedItem);
                 if (!isProficient) {
                   proficiencyMismatch = true;
-                  // Try to use a clean description, defaulting to checking isMartial flag/category
-                  const weaponType = equippedItem.isMartial || equippedItem.category?.toLowerCase().includes('martial')
-                    ? 'Martial weapons'
-                    : 'Simple weapons';
+                  // Use helper to determine type for display
+                  const weaponType = isWeaponMartial(equippedItem) ? 'Martial weapons' : 'Simple weapons';
                   mismatchReason = `Not proficient with ${weaponType}. Cannot add proficiency bonus to attack rolls or use weapon mastery.`;
                 }
               }
