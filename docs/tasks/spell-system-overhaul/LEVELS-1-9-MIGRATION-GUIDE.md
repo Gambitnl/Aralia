@@ -74,3 +74,29 @@ Operational playbook for completing the spell completeness + migration work for 
 - Missing spells implemented with JSON + glossary; outdated entries updated to template schema.
 - Batch sizes respected; validation steps run; gaps files populated (including successful runs).
 - Timestamps updated; formatting consistent; IDs/batching per PHB order; no cross-level mixing.
+
+---
+
+## Reference: Legacy Data Patterns
+
+When migrating old files, you may encounter these legacy patterns. Use this mapping to convert them to the new schema.
+
+### Legacy -> New Field Mapping
+
+| Legacy Field | New Field | Notes |
+|--------------|-----------|-------|
+| `damage` | `effects[0].damage.dice` | Move damage string to effect |
+| `damageType` | `effects[0].damage.type` | Move to effect, Title Case |
+| `areaOfEffect` | `targeting.areaOfEffect` | Move from root to targeting |
+| `saveType` | `effects[0].condition.saveType` | Move to effect condition |
+| `description` | `description` | Stays the same |
+| `type: "Buff"` | `type: "DEFENSIVE"` or `"UTILITY"` | Reclassify based on effect |
+| `type: "Debuff"` | `type: "STATUS_CONDITION"` | Reclassify |
+| `type: "Control"` | `type: "MOVEMENT"` or `"STATUS_CONDITION"` | Reclassify |
+
+### Legacy Spell JSON Structure Highlights
+
+- **Root-level effects**: Old files often had flat properties like `damage` or `saveType` at the root instead of inside an `effects` array.
+- **Engine Hooks**: The `engineHook` block was used for implementation notes (`isImplemented`, `notes`). This is deprecated but can be mined for context.
+- **Capitalized Enums**: Old files used `"Bonus Action"`, `"Feet"`, `"Minute"`. New format uses `"bonus_action"`, `"touch"`, `"minute"` (snake_case/lowercase for most enums except Schools/Damage/Classes).
+- **Loose Typing**: Old `effects` arrays were loosely typed payloads (e.g., `{ "type": "Buff", ... }`) without the strict `BaseEffect` structure (missing `trigger`, `condition`).
