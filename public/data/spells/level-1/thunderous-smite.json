@@ -98,7 +98,7 @@
         "direction": "away_from_caster"
       },
       "duration": {
-        "type": "instantaneous"
+        "type": "special"
       }
     }
   ]
