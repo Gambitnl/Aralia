@@ -219,7 +219,7 @@ export interface Class {
 
 export type EquipmentSlotType =
   | 'Head' | 'Neck' | 'Torso' | 'Cloak' | 'Belt'
-  | 'MainHand' | 'OffHand' | 'Wrists' | 'Ring1' | 'Ring2' | 'Feet' | 'Legs' | 'Hands';
+  | 'MainHand' | 'OffHand' | 'Wrists' | 'Ring' | 'Ring1' | 'Ring2' | 'Feet' | 'Legs' | 'Hands';
 
 export interface ResourceVial {
   current: number;
@@ -257,6 +257,7 @@ export interface PlayerCharacter {
   id?: string;
   name: string;
   level?: number;
+  xp?: number;
   proficiencyBonus?: number;
   race: Race;
   class: Class;

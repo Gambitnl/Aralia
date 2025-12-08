@@ -27,7 +27,7 @@ const isContainerItem = (item: InventoryEntry): item is ItemContainer =>
   typeof (item as ItemContainer).capacitySlots === 'number' ||
   typeof (item as ItemContainer).capacityWeight === 'number';
 
-const getItemTooltipContent = (item: Item): React.ReactNode => {
+const getItemTooltipContent = (item: Item, warning?: string): React.ReactNode => {
   let details = `${item.description}\nType: ${item.type}`;
   if (item.slot) details += `\nSlot: ${item.slot}`;
 
@@ -74,6 +74,10 @@ const getItemTooltipContent = (item: Item): React.ReactNode => {
 
   if (item.weight) details += `\nWeight: ${item.weight} lbs`;
   if (item.cost) details += `\nCost: ${item.cost}`;
+
+  if (warning) {
+    details += `\n\n⚠️ ${warning}`;
+  }
 
   return <pre className="text-xs whitespace-pre-wrap">{details}</pre>;
 };
@@ -294,15 +298,22 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
               const isFood = child.type === 'food_drink';
               const isExpired = false; // Placeholder logic for now
               const childIsContainer = isContainerItem(child);
+              const hasWarning = !!cantEquipReason;
 
               return (
                 <React.Fragment key={key}>
-                  <li className="p-2 bg-gray-700/70 rounded-md border border-gray-600/40 flex items-center justify-between">
+                  <li className={`p-2 rounded-md border flex items-center justify-between transition-colors ${hasWarning
+                    ? 'bg-red-900/10 border-red-500/30 hover:bg-red-900/20'
+                    : 'bg-gray-700/70 border-gray-600/40'
+                    }`}>
                     <div className="flex items-center gap-2 min-w-0">
                       {child.icon && <span className="text-xl w-6 text-center flex-shrink-0 filter drop-shadow-sm">{child.icon}</span>}
-                      <Tooltip content={getItemTooltipContent(child)}>
+                      <Tooltip content={getItemTooltipContent(child, cantEquipReason)}>
                         <div className="flex flex-col min-w-0">
-                          <span className="font-medium text-amber-200 text-sm cursor-help truncate" title={child.name}>{child.name}</span>
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium text-amber-200 text-sm cursor-help truncate" title={child.name}>{child.name}</span>
+                            {hasWarning && <span className="text-[10px]" title={cantEquipReason}>⚠️</span>}
+                          </div>
                           {child.perishable && <span className="text-[10px] text-orange-300">Expires: {child.shelfLife || 'Unknown'}</span>}
                         </div>
                       </Tooltip>
@@ -330,7 +341,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                         </button>
                       )}
                       {isEquippableType && child.slot && (
-                        <Tooltip content={canBeEquipped ? `Equip ${child.name}` : (cantEquipReason || "Cannot equip")}>
+                        <Tooltip content={canBeEquipped ? (cantEquipReason ? `Equip ${child.name}\n⚠️ ${cantEquipReason}` : `Equip ${child.name}`) : (cantEquipReason || "Cannot equip")}>
                           <button onClick={() => onAction({ type: 'EQUIP_ITEM', label: `Equip ${child.name}`, payload: { itemId: child.id, characterId: character.id! } })}
                             disabled={!canBeEquipped}
                             className="text-xs bg-sky-700 hover:bg-sky-600 text-white px-2 py-1 rounded disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors shadow-sm">

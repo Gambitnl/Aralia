@@ -14,6 +14,7 @@ import { FEATS_DATA } from '../data/feats/featsData';
  */
 export { getAbilityModifierValue, calculateFinalAbilityScores, getAbilityModifierString } from './statUtils';
 import { getAbilityModifierValue, calculateFinalAbilityScores, calculateFixedRacialBonuses, calculateArmorClass } from './statUtils';
+import { isWeaponProficient } from './weaponUtils';
 
 /**
  * Generates a descriptive race display string for a character.
@@ -97,6 +98,37 @@ export { calculateArmorClass };
  * @returns {{can: boolean, reason?: string}} An object indicating if the item can be equipped and why not if applicable.
  */
 export const canEquipItem = (character: PlayerCharacter, item: Item): { can: boolean; reason?: string } => {
+  // Check requirements first, regardless of proficiency
+  if (item.requirements) {
+    const { requirements } = item;
+    if (requirements.minLevel && (character.level || 1) < requirements.minLevel) {
+      return { can: false, reason: `Requires Level ${requirements.minLevel}.` };
+    }
+    if (requirements.classId && !requirements.classId.includes(character.class.id)) {
+      return { can: false, reason: `Class restricted.` };
+    }
+    // Check stat requirements against BASE or CURRENT stats?
+    // Usually current final stats.
+    if (requirements.minStrength && character.finalAbilityScores.Strength < requirements.minStrength) {
+      return { can: false, reason: `Requires ${requirements.minStrength} Strength.` };
+    }
+    if (requirements.minDexterity && character.finalAbilityScores.Dexterity < requirements.minDexterity) {
+      return { can: false, reason: `Requires ${requirements.minDexterity} Dexterity.` };
+    }
+    if (requirements.minConstitution && character.finalAbilityScores.Constitution < requirements.minConstitution) {
+      return { can: false, reason: `Requires ${requirements.minConstitution} Constitution.` };
+    }
+    if (requirements.minIntelligence && character.finalAbilityScores.Intelligence < requirements.minIntelligence) {
+      return { can: false, reason: `Requires ${requirements.minIntelligence} Intelligence.` };
+    }
+    if (requirements.minWisdom && character.finalAbilityScores.Wisdom < requirements.minWisdom) {
+      return { can: false, reason: `Requires ${requirements.minWisdom} Wisdom.` };
+    }
+    if (requirements.minCharisma && character.finalAbilityScores.Charisma < requirements.minCharisma) {
+      return { can: false, reason: `Requires ${requirements.minCharisma} Charisma.` };
+    }
+  }
+
   if (item.type === 'armor') {
     if (item.strengthRequirement && character.finalAbilityScores.Strength < item.strengthRequirement) {
       return { can: false, reason: `Requires ${item.strengthRequirement} Strength.` };
@@ -118,33 +150,16 @@ export const canEquipItem = (character: PlayerCharacter, item: Item): { can: boo
     }
   }
 
-  if (item.requirements) {
-    const { requirements } = item;
-    if (requirements.minLevel && (character.level || 1) < requirements.minLevel) {
-      return { can: false, reason: `Requires Level ${requirements.minLevel}.` };
-    }
-    if (requirements.classId && !requirements.classId.includes(character.class.id)) {
-      return { can: false, reason: `Class restricted.` };
-    }
-    // Check stat requirements against BASE or CURRENT stats? 
-    // Usually current final stats.
-    if (requirements.minStrength && character.finalAbilityScores.Strength < requirements.minStrength) {
-      return { can: false, reason: `Requires ${requirements.minStrength} Strength.` };
-    }
-    if (requirements.minDexterity && character.finalAbilityScores.Dexterity < requirements.minDexterity) {
-      return { can: false, reason: `Requires ${requirements.minDexterity} Dexterity.` };
-    }
-    if (requirements.minConstitution && character.finalAbilityScores.Constitution < requirements.minConstitution) {
-      return { can: false, reason: `Requires ${requirements.minConstitution} Constitution.` };
-    }
-    if (requirements.minIntelligence && character.finalAbilityScores.Intelligence < requirements.minIntelligence) {
-      return { can: false, reason: `Requires ${requirements.minIntelligence} Intelligence.` };
-    }
-    if (requirements.minWisdom && character.finalAbilityScores.Wisdom < requirements.minWisdom) {
-      return { can: false, reason: `Requires ${requirements.minWisdom} Wisdom.` };
-    }
-    if (requirements.minCharisma && character.finalAbilityScores.Charisma < requirements.minCharisma) {
-      return { can: false, reason: `Requires ${requirements.minCharisma} Charisma.` };
+  if (item.type === 'weapon') {
+    const isProficient = isWeaponProficient(character, item);
+    if (!isProficient) {
+      const weaponType = item.isMartial || item.category?.toLowerCase().includes('martial')
+        ? 'Martial weapons'
+        : 'Simple weapons';
+      return {
+        can: true, // Permissive: can still equip
+        reason: `Not proficient with ${weaponType}. Cannot add proficiency bonus to attack rolls or use weapon mastery.`
+      };
     }
   }
 
@@ -202,26 +217,26 @@ export const getXpRequiredForNextLevel = (currentLevel: number): number | null =
 
   // Standard 5e XP Table (Cumulative)
   const LEVEL_XP: Record<number, number> = {
-      1: 0,
-      2: 300,
-      3: 900,
-      4: 2700,
-      5: 6500,
-      6: 14000,
-      7: 23000,
-      8: 34000,
-      9: 48000,
-      10: 64000,
-      11: 85000,
-      12: 100000,
-      13: 120000,
-      14: 140000,
-      15: 165000,
-      16: 195000,
-      17: 225000,
-      18: 265000,
-      19: 305000,
-      20: 355000
+    1: 0,
+    2: 300,
+    3: 900,
+    4: 2700,
+    5: 6500,
+    6: 14000,
+    7: 23000,
+    8: 34000,
+    9: 48000,
+    10: 64000,
+    11: 85000,
+    12: 100000,
+    13: 120000,
+    14: 140000,
+    15: 165000,
+    16: 195000,
+    17: 225000,
+    18: 265000,
+    19: 305000,
+    20: 355000
   };
 
   return LEVEL_XP[currentLevel + 1] || null;
@@ -300,9 +315,9 @@ const getHpBonusPerLevelFromFeats = (featIds: string[]): number => featIds.reduc
  * stay consistent.
  */
 export const applyFeatToCharacter = (
-  character: PlayerCharacter, 
-  feat: Feat, 
-  options?: { 
+  character: PlayerCharacter,
+  feat: Feat,
+  options?: {
     applyHpBonus?: boolean;
     selectedAbilityScore?: AbilityScoreName; // For feats with selectable ASI
   }
@@ -316,7 +331,7 @@ export const applyFeatToCharacter = (
   }
 
   const benefit = feat.benefits;
-  
+
   // Handle selectable ability score increases
   if (benefit?.selectableAbilityScores && benefit.selectableAbilityScores.length > 0) {
     const selectedAbility = options?.selectedAbilityScore;
@@ -374,14 +389,14 @@ export const applyFeatToCharacter = (
  * the final sheet should reflect chosen feats.
  */
 export const applyAllFeats = (
-  character: PlayerCharacter, 
+  character: PlayerCharacter,
   featIds: string[],
-  featChoices?: { [featId: string]: { selectedAbilityScore?: AbilityScoreName; [key: string]: any } }
+  featChoices?: { [featId: string]: { selectedAbilityScore?: AbilityScoreName;[key: string]: any } }
 ): PlayerCharacter => {
   return featIds.reduce((char, featId) => {
     const feat = FEATS_DATA.find(f => f.id === featId);
     if (!feat) return char;
-    
+
     const choices = featChoices?.[featId];
     return applyFeatToCharacter(char, feat, {
       selectedAbilityScore: choices?.selectedAbilityScore,
@@ -484,11 +499,11 @@ export const performLevelUp = (
     const feat = FEATS_DATA.find(f => f.id === featChosen);
     if (feat) {
       const featChoice = choices?.featChoices?.[featChosen];
-      updatedCharacter = applyFeatToCharacter(updatedCharacter, feat, { 
+      updatedCharacter = applyFeatToCharacter(updatedCharacter, feat, {
         applyHpBonus: false,
         selectedAbilityScore: featChoice?.selectedAbilityScore,
       });
-      
+
       // Store feat choices on the character if provided
       if (featChoice && !updatedCharacter.featChoices) {
         updatedCharacter.featChoices = {};

@@ -362,9 +362,9 @@ Major decisions should be documented:
 - [TASK-TEMPLATE.md](TASK-TEMPLATE.md) - Template for new tasks
 
 ### Task Files
-**Phase 1**: [01](01-add-weapon-proficiency-helper.md) | [02](02-integrate-proficiency-check.md) | [03](03-update-inventory-filtering.md) ✅ Created
-**Phase 2**: [04](04-equipped-weapon-warnings.md) | [05](05-update-tooltips.md) | [06](06-inventory-indicators.md) ✅ Created
-**Phase 3**: [07](07-audit-weapon-data.md) | [08](08-fix-proficiency-flags.md) ✅ Created
+**Phase 1**: [01](01-add-weapon-proficiency-helper.md) ✅ Completed | [02](02-integrate-proficiency-check.md) ✅ Completed | [03](03-update-inventory-filtering.md) ✅ Verified
+**Phase 2**: [04](04-equipped-weapon-warnings.md) ✅ Completed | [05](05-update-tooltips.md) ✅ Completed | [06](06-inventory-indicators.md) ✅ Completed
+**Phase 3**: [07](07-audit-weapon-data.md) ✅ Completed | [08](08-fix-proficiency-flags.md) ✅ Created
 **Phase 4**: [09](09-attack-roll-penalties.md) | [10](10-weapon-mastery-integration.md) | [11](11-combat-ui-warnings.md) ✅ Created
 
 ### Related Code
