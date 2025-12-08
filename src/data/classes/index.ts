@@ -33,7 +33,7 @@ const CLERIC_SPELL_LIST = [
 ];
 const DRUID_SPELL_LIST = [
     // Cantrips
-    'druidcraft', 'elementalism', 'guidance', 'mending', 'message', 'poison-spray', 'produce-flame', 'resistance', 'shillelagh', 'spare-the-dying', 'starry-wisp', 'thorn-whip', 'thunderclap',
+    'druidcraft', 'elementalism', 'guidance', 'mending', 'message', 'mold-earth', 'poison-spray', 'primal-savagery', 'produce-flame', 'resistance', 'shillelagh', 'spare-the-dying', 'starry-wisp', 'thorn-whip', 'thunderclap',
     // Level 1
     'animal-friendship', 'charm-person', 'create-or-destroy-water', 'cure-wounds', 'detect-magic', 'detect-poison-and-disease', 'entangle', 'faerie-fire', 'fog-cloud', 'goodberry', 'healing-word', 'ice-knife', 'jump', 'longstrider', 'protection-from-evil-and-good', 'purify-food-and-drink', 'speak-with-animals', 'thunderwave'
 ];
@@ -51,7 +51,7 @@ const RANGER_SPELL_LIST = [
 ];
 const SORCERER_SPELL_LIST = [
     // Cantrips
-    'acid-splash', 'elementalism', 'fire-bolt', 'light', 'mage-hand', 'mending', 'message', 'poison-spray', 'prestidigitation', 'ray-of-frost', 'shocking-grasp', 'thunderclap',
+    'acid-splash', 'elementalism', 'fire-bolt', 'light', 'mage-hand', 'mending', 'message', 'mind-sliver', 'mold-earth', 'poison-spray', 'prestidigitation', 'ray-of-frost', 'shocking-grasp', 'thunderclap',
     // Level 1
     'burning-hands', 'charm-person', 'color-spray', 'detect-magic', 'disguise-self', 'expeditious-retreat', 'false-life', 'feather-fall', 'fog-cloud', 'jump', 'mage-armor', 'magic-missile', 'shield', 'sleep', 'thunderwave',
     // Level 2
@@ -68,8 +68,8 @@ const WARLOCK_SPELL_LIST = [
 const WIZARD_SPELL_LIST = [
     // Cantrips
     'acid-splash', 'chill-touch', 'dancing-lights', 'elementalism', 'fire-bolt', 'light', 'mage-hand', 
-    'mending', 'message', 'minor-illusion', 'poison-spray', 'prestidigitation', 
-    'ray-of-frost', 'shocking-grasp', 'thunderclap', 'true-strike', 'toll-the-dead',
+    'mending', 'message', 'mind-sliver', 'minor-illusion', 'mold-earth', 'poison-spray', 'prestidigitation',
+    'ray-of-frost', 'sapping-sting', 'shocking-grasp', 'thunderclap', 'true-strike', 'toll-the-dead',
     // Level 1
     'alarm', 'burning-hands', 'charm-person', 'color-spray', 'comprehend-languages', 
     'detect-magic', 'disguise-self', 'expeditious-retreat', 'false-life', 
