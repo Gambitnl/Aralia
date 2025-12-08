@@ -33,6 +33,11 @@ Notes rescued from legacy spell documentation while archiving old-format guides.
 - Required additions when converting old payloads:
   - Add `classes`, `school`, `components`, `duration`, `targeting.validTargets`, `effects[].subtype`, and `BaseEffect` fields (`trigger`, `condition`, optional `scaling`).
 
+### Migration Reminders (apply when using legacy context)
+- Do **not** leave or create flat `public/data/spells/{id}.json`; migrate to `public/data/spells/level-{N}/{id}.json` (cantrips → `level-0`) after field comparison.
+- Normalize enums and add required fields: `ritual`, `castingTime.combatCost.type`, `trigger` + `condition` on every effect, plural `validTargets`, Title Case damage types/schools/classes.
+- Use current schema primitives where applicable: `on_attack_hit`, `controlOptions`, `taunt`, `forcedMovement`, AoE `Square/height`, `saveModifiers`, `requiresStatus`, `escapeCheck`, `familiarContract`, `dispersedByStrongWind`.
+
 ## Legacy AoE Placement (from SPELL_PROPERTIES_REFERENCE.md)
 - Legacy spells sometimes used a top-level `areaOfEffect` or `effects[].areaOfEffect` instead of the canonical `targeting.areaOfEffect`.
 - Current standard: `targeting.areaOfEffect` for primary AoE; `effects[].areaOfEffect` only for secondary AoE (e.g., Ice Knife secondary explosion).

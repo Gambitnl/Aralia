@@ -4,6 +4,12 @@ This document provides complete, validated examples of spell JSONs in the new fo
 
 ## Critical Rules
 
+### Pre-Flight Checklist (applies to every spell, especially cantrips)
+- File is nested: `public/data/spells/level-{N}/{id}.json` (cantrips → `level-0`); no flat `public/data/spells/{id}.json` remains.
+- Required base fields: `ritual` present, `castingTime.combatCost.type` present, every effect has `trigger` + `condition` (no exceptions).
+- Enums/casing exact: time units lower_snake, schools/damage types/classes Title Case, effect types ALL CAPS, `validTargets` plural.
+- Use current schema primitives when applicable: `on_attack_hit` trigger; `controlOptions`, `taunt`, `forcedMovement`; AoE `Square/height`; `saveModifiers`, `requiresStatus`, `escapeCheck`; `familiarContract`; `dispersedByStrongWind`.
+
 ### Rule 1: All Effects MUST Include BaseEffect Fields
 
 **Every effect**, regardless of type, MUST include these three fields from `BaseEffect`:

@@ -4,21 +4,21 @@
  * Now integrates AI decision making, Damage Numbers, and Spell Effect Triggers.
  */
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { CombatCharacter, TurnState, CombatAction, CombatLogEntry, BattleMapData, DamageNumber, Animation, ReactiveTrigger } from '../../types/combat';
+import { CombatCharacter, TurnState, CombatAction, CombatLogEntry, BattleMapData, DamageNumber, Animation, ReactiveTrigger, ActiveCondition, StatusEffect } from '../../types/combat';
+import { EffectDuration } from '../../types/spells';
 import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
 import { createDamageNumber, generateId, getActionMessage, rollDice } from '../../utils/combatUtils';
 import { resetEconomy } from '../../utils/combat/actionEconomyUtils';
+import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
 import { useActionEconomy } from './useActionEconomy';
 import { useCombatAI } from './useCombatAI';
 import {
   ActiveSpellZone,
   MovementTriggerDebuff,
-  processAreaEntryTriggers,
-  processAreaExitTriggers,
-  processAreaEndTurnTriggers,
   processMovementTriggers,
   resetZoneTurnTracking
 } from '../../systems/spells/effects';
+import { AreaEffectTracker } from '../../systems/spells/effects/AreaEffectTracker';
 import { combatEvents } from '../../systems/events/CombatEvents';
 
 interface UseTurnManagerProps {
@@ -148,7 +148,8 @@ export const useTurnManager = ({
     let updatedCharacter = { ...character };
 
     // Resolve any lingering zone effects
-    const zoneResults = processAreaEndTurnTriggers(spellZones, updatedCharacter, turnState.currentTurn);
+    const tracker = new AreaEffectTracker(spellZones);
+    const zoneResults = tracker.processEndTurn(updatedCharacter, turnState.currentTurn);
     for (const result of zoneResults) {
       for (const effect of result.effects) {
         if (effect.type === 'damage' && effect.dice) {
@@ -371,44 +372,154 @@ export const useTurnManager = ({
         }
       }
 
-      const areaEntryResults = processAreaEntryTriggers(
-        spellZones, updatedCharacter, action.targetPosition, previousPosition, turnState.currentTurn
+      const tracker = new AreaEffectTracker(spellZones);
+      const areaTriggerResults = tracker.handleMovement(
+        updatedCharacter,
+        action.targetPosition,
+        previousPosition,
+        turnState.currentTurn
       );
-      for (const result of areaEntryResults) {
-        for (const effect of result.effects) {
-          if (effect.type === 'damage' && effect.dice) {
-            const damage = rollDice(effect.dice);
-            updatedCharacter = { ...updatedCharacter, currentHP: Math.max(0, updatedCharacter.currentHP - damage) };
-            addDamageNumber(damage, action.targetPosition, 'damage');
-            onLogEntry({
-              id: generateId(),
-              timestamp: Date.now(),
-              type: 'damage',
-              message: `${updatedCharacter.name} takes ${damage} ${effect.damageType || ''} damage from entering a spell zone!`,
-              characterId: updatedCharacter.id,
-              data: { damage, damageType: effect.damageType, trigger: 'on_enter_area' }
-            });
-          }
-        }
-      }
 
-      const areaExitResults = processAreaExitTriggers(
-        spellZones, updatedCharacter, action.targetPosition, previousPosition
-      );
-      for (const result of areaExitResults) {
+      for (const result of areaTriggerResults) {
         for (const effect of result.effects) {
-          if (effect.type === 'damage' && effect.dice) {
-            const damage = rollDice(effect.dice);
-            updatedCharacter = { ...updatedCharacter, currentHP: Math.max(0, updatedCharacter.currentHP - damage) };
-            addDamageNumber(damage, action.targetPosition, 'damage');
-            onLogEntry({
-              id: generateId(),
-              timestamp: Date.now(),
-              type: 'damage',
-              message: `${updatedCharacter.name} takes ${damage} ${effect.damageType || ''} damage from leaving a spell zone!`,
-              characterId: updatedCharacter.id,
-              data: { damage, damageType: effect.damageType, trigger: 'on_exit_area' }
-            });
+          switch (effect.type) {
+            case 'damage':
+              if (effect.dice) {
+                // Handle saving throws for damage effects
+                let damage = rollDice(effect.dice);
+                let saveMessage = '';
+
+                if (effect.requiresSave && effect.saveType) {
+                  // For area effects, we need to determine the caster. Use the first player character as a fallback.
+                  // In a real implementation, this should track which character cast the spell that created the zone.
+                  const caster = updatedCharacter.team === 'player' ? updatedCharacter :
+                    // Fallback: find a player character or use the current character
+                    updatedCharacter;
+
+                  const dc = calculateSpellDC(caster);
+                  const saveResult = rollSavingThrow(updatedCharacter, effect.saveType, dc);
+
+                  onLogEntry({
+                    id: generateId(),
+                    timestamp: Date.now(),
+                    type: 'status',
+                    message: `${updatedCharacter.name} ${saveResult.success ? 'succeeds' : 'fails'} ${effect.saveType} save (${saveResult.total} vs DC ${dc})`,
+                    characterId: updatedCharacter.id
+                  });
+
+                  if (saveResult.success) {
+                    damage = Math.floor(damage / 2);
+                    saveMessage = ' (save)';
+                  }
+                }
+
+                updatedCharacter = { ...updatedCharacter, currentHP: Math.max(0, updatedCharacter.currentHP - damage) };
+                addDamageNumber(damage, action.targetPosition, 'damage');
+                onLogEntry({
+                  id: generateId(),
+                  timestamp: Date.now(),
+                  type: 'damage',
+                  message: `${updatedCharacter.name} takes ${damage} ${effect.damageType || ''} damage from zone effect${saveMessage}!`,
+                  characterId: updatedCharacter.id,
+                  data: { damage, damageType: effect.damageType, trigger: result.triggerType || 'on_enter_area' }
+                });
+              }
+              break;
+
+            case 'heal':
+              if (effect.dice) {
+                const healing = rollDice(effect.dice);
+                const newHP = Math.min(updatedCharacter.maxHP, updatedCharacter.currentHP + healing);
+                const actualHealing = newHP - updatedCharacter.currentHP;
+                updatedCharacter = { ...updatedCharacter, currentHP: newHP };
+                addDamageNumber(actualHealing, action.targetPosition, 'heal');
+                onLogEntry({
+                  id: generateId(),
+                  timestamp: Date.now(),
+                  type: 'damage', // Reuse damage type for heal display
+                  message: `${updatedCharacter.name} heals ${actualHealing} HP from zone effect!`,
+                  characterId: updatedCharacter.id,
+                  data: { healing: actualHealing, trigger: result.triggerType || 'on_enter_area' }
+                });
+              }
+              break;
+
+            case 'status_condition':
+              if (effect.statusName) {
+                // Handle saving throws for status conditions
+                let appliedCondition = false;
+                let saveMessage = '';
+
+                if (effect.requiresSave && effect.saveType) {
+                  // For area effects, we need to determine the caster. Use the first player character as a fallback.
+                  const caster = updatedCharacter.team === 'player' ? updatedCharacter : updatedCharacter;
+
+                  const dc = calculateSpellDC(caster);
+                  const saveResult = rollSavingThrow(updatedCharacter, effect.saveType, dc);
+
+                  onLogEntry({
+                    id: generateId(),
+                    timestamp: Date.now(),
+                    type: 'status',
+                    message: `${updatedCharacter.name} ${saveResult.success ? 'succeeds' : 'fails'} ${effect.saveType} save (${saveResult.total} vs DC ${dc})`,
+                    characterId: updatedCharacter.id
+                  });
+
+                  if (!saveResult.success) {
+                    appliedCondition = true;
+                  } else {
+                    saveMessage = ' (resisted)';
+                  }
+                } else {
+                  // No save required, apply condition directly
+                  appliedCondition = true;
+                }
+
+                if (appliedCondition) {
+                  // Apply the status condition
+                  const durationRounds = 1; // Default duration, could be made configurable
+                  const statusEffect = {
+                    id: generateId(),
+                    name: effect.statusName,
+                    type: 'debuff' as const,
+                    duration: durationRounds,
+                    effect: { type: 'condition' as const },
+                    icon: '💀' // Default icon
+                  };
+
+                  const activeCondition = {
+                    name: effect.statusName,
+                    duration: { type: 'rounds' as const, value: durationRounds },
+                    appliedTurn: turnState.currentTurn,
+                    source: 'zone_effect'
+                  };
+
+                  updatedCharacter = {
+                    ...updatedCharacter,
+                    statusEffects: [...(updatedCharacter.statusEffects || []), statusEffect],
+                    conditions: [...(updatedCharacter.conditions || []), activeCondition]
+                  };
+
+                  onLogEntry({
+                    id: generateId(),
+                    timestamp: Date.now(),
+                    type: 'status',
+                    message: `${updatedCharacter.name} is now ${effect.statusName} from zone effect!`,
+                    characterId: updatedCharacter.id,
+                    data: { statusId: statusEffect.id, condition: activeCondition, trigger: result.triggerType || 'on_enter_area' }
+                  });
+                } else {
+                  onLogEntry({
+                    id: generateId(),
+                    timestamp: Date.now(),
+                    type: 'status',
+                    message: `${updatedCharacter.name} resists ${effect.statusName}${saveMessage}`,
+                    characterId: updatedCharacter.id,
+                    data: { trigger: result.triggerType || 'on_enter_area' }
+                  });
+                }
+              }
+              break;
           }
         }
       }

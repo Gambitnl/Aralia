@@ -1,6 +1,12 @@
 # Spell Workflow Quick Reference
 
-**1-Page Cheat Sheet** for creating, updating, and validating spell JSON files.
+**1-Page Cheat Sheet** for creating, updating, and validating spell JSON files. Treat this as a guardrail list—do not skip the required fields or nesting rules.
+
+### Non-Negotiables (all spells, especially cantrips)
+- Files live under `public/data/spells/level-{N}/{id}.json` (cantrips → `level-0`); remove any flat `public/data/spells/{id}.json` after field comparison.
+- Required base fields: `ritual` present, `castingTime.combatCost.type` present, every effect has `trigger` + `condition`.
+- Enums/casing: time units lower_snake, schools/damage types/classes Title Case, effect types ALL CAPS, `validTargets` plural.
+- Use current schema primitives when applicable: `on_attack_hit`, `controlOptions`, `taunt`, `forcedMovement`, AoE `Square/height`, `saveModifiers`, `requiresStatus`, `escapeCheck`, `familiarContract`, `dispersedByStrongWind`.
 
 ---
 

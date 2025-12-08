@@ -7,6 +7,12 @@
 
 ## 1. Definition of Done (The "Iron Rules")
 
+### Cantrip Migration Hard Rules (Level 0)
+- Files **must** live under `public/data/spells/level-0/{id}.json` (never flat `public/data/spells/{id}.json`).
+- `level: 0`, `ritual: false`, `castingTime.combatCost.type` present; Title Case enums (schools, damage types, classes) and plural `validTargets`.
+- Every effect carries `trigger` + `condition`; use current schema fields (e.g., `on_attack_hit`, `controlOptions`, `taunt`, `forcedMovement`, `Square/height` AoE) where applicable.
+- Perform the Field Comparison Check against any legacy flat file **before** deleting it.
+
 You are NOT done with a spell until **ALL** of the following are true.
 
 ### A. Required Reference Material (Source of Truth)

@@ -36,7 +36,23 @@ export interface SustainEvent extends CombatEvent {
     actionType: 'action' | 'bonus_action' | 'reaction';
 }
 
-export type AllCombatEvents = MovementEvent | AttackEvent | CastEvent | SustainEvent;
+export interface ZoneEntryEvent extends CombatEvent {
+    type: 'unit_enter_area';
+    unitId: string;
+    zoneId: string;
+    spellId: string;
+    position: Position;
+}
+
+export interface ZoneExitEvent extends CombatEvent {
+    type: 'unit_exit_area';
+    unitId: string;
+    zoneId: string;
+    spellId: string;
+    position: Position;
+}
+
+export type AllCombatEvents = MovementEvent | AttackEvent | CastEvent | SustainEvent | ZoneEntryEvent | ZoneExitEvent;
 
 type CombatEventListener<T extends CombatEvent> = (event: T) => void;
 

@@ -55,6 +55,7 @@ export interface TriggerResult {
     triggered: boolean;
     effects: ProcessedEffect[];
     sourceId?: string;
+    triggerType?: 'on_enter_area' | 'on_exit_area' | 'on_end_turn_in_area' | 'on_target_move';
 }
 
 export interface ProcessedEffect {
@@ -116,7 +117,7 @@ type TriggerFrequency = EffectTrigger['frequency'] | undefined;
  * - `once`: Triggers only ONCE for the entire zone, regardless of who triggers it.
  * - `once_per_creature`: Triggers once per unique creature interacting with the zone.
  */
-function shouldTriggerForFrequency(
+export function shouldTriggerForFrequency(
     frequency: TriggerFrequency,
     zone: ActiveSpellZone,
     characterId: string
@@ -364,7 +365,7 @@ export function processAreaEndTurnTriggers(
 /**
  * Convert a SpellEffect to a ProcessedEffect for the combat system
  */
-function convertSpellEffectToProcessed(effect: SpellEffect): ProcessedEffect[] {
+export function convertSpellEffectToProcessed(effect: SpellEffect): ProcessedEffect[] {
     const processed: ProcessedEffect[] = [];
 
     switch (effect.type) {

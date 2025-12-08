@@ -12,6 +12,12 @@ Single-source workflow for converting legacy spell data into the current JSON fo
 - Class access list (base class + subclasses).
 - Legacy data (if converting existing file).
 
+### Cantrip/Level-0 Guardrails (must satisfy before editing)
+- Path: `public/data/spells/level-0/{id}.json` only; remove/replace any flat `public/data/spells/{id}.json` after field comparison.
+- Required fields: `ritual: false`, `castingTime.combatCost.type` present, `trigger` + `condition` on every effect, plural `validTargets`, Title Case damage types/schools/classes.
+- Use current schema primitives where appropriate: `trigger.type` supports `on_attack_hit`; effects may use `controlOptions`, `taunt`, `forcedMovement`, AoE `Square/height`, `saveModifiers`, `requiresStatus`, `escapeCheck`, `familiarContract`, `dispersedByStrongWind`.
+- Run the Field Comparison Check against any legacy file first (ritual, combatCost, tags, arbitrationType, strict enums/casing).
+
 ---
 
 ## Canonical Targets (New Format)

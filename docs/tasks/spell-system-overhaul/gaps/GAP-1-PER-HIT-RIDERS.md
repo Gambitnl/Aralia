@@ -1,3 +1,14 @@
+# Gap 1: Per-Hit Damage Riders
+
+**Created:** 2025-12-08 12:59 CET  
+**Status:** Complete
+**Owner:** Gemini/Jules
+**Priority:** High
+**Blocks:** All smites, hex, hunter's-mark, divine-favor
+
+---
+
+## Problem Statement
 
 Spells that add bonus damage to weapon attacks have no structured representation. The combat engine cannot automatically apply "on your next hit" or "on every hit" damage bonuses.
 
@@ -14,15 +25,6 @@ Spells that add bonus damage to weapon attacks have no structured representation
 | `thunderous-smite` | +2d6 thunder + push | First melee hit | Concentration, 1 min |
 | `wrathful-smite` | +1d6 psychic + frightened | First melee hit | Concentration, 1 min |
 | `hail-of-thorns` | +1d10 piercing AoE | First ranged hit | Concentration, 1 min |
-
----
-
-## Current State
-
-- `divine-favor` has partial `attackAugments` schema (added in Batch 3)
-- All other smites/marks use `description` field only
-- No `on_attack_hit` trigger type in effect schema
-- No consumption tracking (first hit vs every hit)
 
 ---
 
@@ -57,27 +59,28 @@ attackFilter: z.object({
 ## Implementation Tasks
 
 ### Schema Updates
-- [ ] Add `on_attack_hit` trigger type to `EffectTrigger` in `spellValidator.ts`
-- [ ] Add `consumption` field with enum values
-- [ ] Add `attackFilter` object for weapon/attack type constraints
-- [ ] Update `@WORKFLOW-SPELL-CONVERSION.md` with new fields
-- [ ] Update `JULES_ACCEPTANCE_CRITERIA.md` with rider guidance
+- [x] Add `on_attack_hit` trigger type to `EffectTrigger` in `spellValidator.ts`
+- [x] Add `consumption` field with enum values
+- [x] Add `attackFilter` object for weapon/attack type constraints
+- [x] Update `@WORKFLOW-SPELL-CONVERSION.md` with new fields
+- [x] Update `JULES_ACCEPTANCE_CRITERIA.md` with rider guidance
 
 ### Engine Implementation
-- [ ] Create `AttackRiderSystem` class in combat engine
-- [ ] Register attack listeners when spell is cast
-- [ ] Apply bonus damage on qualifying hits
-- [ ] Handle consumption (remove rider after first hit for smites)
-- [ ] Integrate with `SpellCommandFactory` to set up riders
+- [x] Create `AttackRiderSystem` class in combat engine (`src/systems/combat/AttackRiderSystem.ts`)
+- [x] Create `RegisterRiderCommand` (`src/commands/effects/RegisterRiderCommand.ts`)
+- [x] Integrate with `SpellCommandFactory` to generate rider commands
+- [x] Integrate with `useAbilitySystem` to apply riders on attack hits
+- [x] Integrate rider cleanup in `ConcentrationCommands.ts`
+- [x] Handle consumption (remove rider after first hit for smites)
 
 ### Spell Migrations
-- [ ] Update `divine-favor.json` to use finalized schema
-- [ ] Migrate `hex.json` to new rider schema
-- [ ] Migrate `hunter's-mark.json` to new rider schema
-- [ ] Migrate `searing-smite.json` to new rider schema
-- [ ] Migrate `thunderous-smite.json` to new rider schema
-- [ ] Migrate `wrathful-smite.json` to new rider schema
-- [ ] Migrate `hail-of-thorns.json` to new rider schema
+- [x] Update `divine-favor.json` to use finalized schema
+- [x] Migrate `hex.json` to new rider schema
+- [x] Migrate `hunter's-mark.json` to new rider schema
+- [x] Migrate `searing-smite.json` to new rider schema
+- [x] Migrate `thunderous-smite.json` to new rider schema
+- [x] Migrate `wrathful-smite.json` to new rider schema
+- [x] Migrate `hail-of-thorns.json` to new rider schema
 
 ---
 
@@ -97,9 +100,8 @@ attackFilter: z.object({
 
 ---
 
-## Estimated Effort
+## Completed: 2025-12-08
 
-- Schema: 1 session
-- Engine: 2 sessions
-- Migration: 1 session
-- **Total: 4 dev sessions**
+- Schema: ✅
+- Engine: ✅
+- Migration: ✅
