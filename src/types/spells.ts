@@ -364,6 +364,7 @@ export interface MovementEffect extends BaseEffect {
     unit: "feet";
   };
   duration: EffectDuration;
+  forcedMovement?: ForcedMovement;
 }
 
 /** An effect that summons creatures or objects. */
@@ -405,6 +406,8 @@ export interface UtilityEffect extends BaseEffect {
   description: string;
   grantedActions?: GrantedAction[];
   attackAugments?: AttackAugment[];
+  controlOptions?: ControlOption[];
+  taunt?: TauntEffect;
 }
 
 /** An effect that provides defensive bonuses (e.g., AC boost, resistance). */
@@ -435,6 +438,27 @@ export interface AttackAugment {
   attackType: "weapon" | "melee_weapon" | "ranged_weapon";
   additionalDamage?: DamageData;
   appliesOn?: "hit";
+}
+
+/** Models specific one-word command options for spells like Command. */
+export interface ControlOption {
+  name: string;
+  effect: "approach" | "drop" | "flee" | "grovel" | "halt" | string;
+  details?: string;
+}
+
+/** Captures taunt/leash mechanics such as Compelled Duel. */
+export interface TauntEffect {
+  disadvantageAgainstOthers?: boolean;
+  leashRangeFeet?: number;
+  breakConditions?: string[];
+}
+
+/** Defines forced movement parameters (e.g., reaction-based fleeing). */
+export interface ForcedMovement {
+  usesReaction?: boolean;
+  direction?: "away_from_caster" | "toward_caster" | "caster_choice" | "safest_route";
+  maxDistance?: string;
 }
 
 /** Provides machine-readable details for familiars created by spells. */

@@ -1,126 +1,99 @@
-const result = calculateAffectedTiles({
-    shape: 'Sphere',
-    origin: { x: 5, y: 5 },
-    size: 20
-});
-// Should satisfy distance <= 4.
-// E.g. (5,5) is dist 0. (5,9) is dist 4. (5,10) is dist 5 (out).
-// (9,5) is dist 4.
-const center = result.find(p => p.x === 5 && p.y === 5);
-const edge = result.find(p => p.x === 9 && p.y === 5);
-const outside = result.find(p => p.x === 10 && p.y === 5);
+import { describe, it, expect } from 'vitest'
+import { calculateAffectedTiles } from '../aoeCalculations'
 
-expect(center).toBeDefined();
-expect(edge).toBeDefined();
-expect(outside).toBeUndefined();
+describe('calculateAffectedTiles', () => {
+  describe('Sphere', () => {
+    it('returns tiles within a 20-foot sphere', () => {
+      const result = calculateAffectedTiles({
+        shape: 'Sphere',
+        origin: { x: 5, y: 5 },
+        size: 20
+      })
 
-// Approximate count check: PI * r^2 area in tiles?
-// r=4. Area ~ 50. 
-// Manhattan/Grid circles are rough.
-expect(result.length).toBeGreaterThan(30);
-expect(result.length).toBeLessThan(60);
-        });
-    });
+      const center = result.find(p => p.x === 5 && p.y === 5)
+      const edge = result.find(p => p.x === 9 && p.y === 5) // 4 tiles away
+      const outside = result.find(p => p.x === 10 && p.y === 5) // 5 tiles away
 
-describe('Cone', () => {
-    it('calculates 15-foot cone facing North (0 deg)', () => {
-        // 15 ft = 3 tiles
-        // North = -Y direction in logic check
-        const result = calculateAffectedTiles({
-            shape: 'Cone',
-            origin: { x: 5, y: 5 },
-            size: 15,
-            direction: 0
-        });
+      expect(center).toBeDefined()
+      expect(edge).toBeDefined()
+      expect(outside).toBeUndefined()
 
-        // Should assume general Northward direction (y <= 5)
-        const allNorth = result.every(p => p.y <= 5);
-        expect(allNorth).toBe(true);
+      // Rough bounds: area should be in a reasonable range for a radius-4 circle on grid
+      expect(result.length).toBeGreaterThan(30)
+      expect(result.length).toBeLessThan(60)
+    })
+  })
 
-        // Should include directly north tiles
-        expect(result).toContainEqual({ x: 5, y: 4 });
-        expect(result).toContainEqual({ x: 5, y: 3 });
-        expect(result).toContainEqual({ x: 5, y: 2 });
+  describe('Cone', () => {
+    it('calculates a 15-foot cone facing North (0 deg)', () => {
+      const result = calculateAffectedTiles({
+        shape: 'Cone',
+        origin: { x: 5, y: 5 },
+        size: 15,
+        direction: 0
+      })
 
-        // Should NOT include South
-        expect(result).not.toContainEqual({ x: 5, y: 6 });
-    });
+      expect(result.every(p => p.y <= 5)).toBe(true)
+      expect(result).toContainEqual({ x: 5, y: 4 })
+      expect(result).toContainEqual({ x: 5, y: 3 })
+      expect(result).not.toContainEqual({ x: 5, y: 6 })
+    })
 
-    it('calculates 15-foot cone facing East (90 deg)', () => {
-        const result = calculateAffectedTiles({
-            shape: 'Cone',
-            origin: { x: 5, y: 5 },
-            size: 15,
-            direction: 90
-        });
+    it('calculates a 15-foot cone facing East (90 deg)', () => {
+      const result = calculateAffectedTiles({
+        shape: 'Cone',
+        origin: { x: 5, y: 5 },
+        size: 15,
+        direction: 90
+      })
 
-        // Should be Eastward (x >= 5)
-        const allEast = result.every(p => p.x >= 5);
-        expect(allEast).toBe(true);
+      expect(result.every(p => p.x >= 5)).toBe(true)
+      expect(result).toContainEqual({ x: 8, y: 5 })
+      expect(result).not.toContainEqual({ x: 9, y: 5 })
+    })
+  })
 
-        // 15ft = 3 tiles.
-        expect(result).toContainEqual({ x: 8, y: 5 }); // Edge
-        expect(result).not.toContainEqual({ x: 9, y: 5 }); // Out
-    });
-});
+  describe('Cube', () => {
+    it('calculates a 10-foot cube', () => {
+      const result = calculateAffectedTiles({
+        shape: 'Cube',
+        origin: { x: 5, y: 5 },
+        size: 10
+      })
 
-describe('Cube', () => {
-    it('calculates 10-foot cube', () => {
-        // 10 ft = 2 tiles. 2x2 = 4 tiles.
-        const result = calculateAffectedTiles({
-            shape: 'Cube',
-            origin: { x: 5, y: 5 },
-            size: 10
-        });
+      expect(result.length).toBe(4)
+      expect(result).toContainEqual({ x: 5, y: 5 })
+      expect(result).toContainEqual({ x: 6, y: 5 })
+      expect(result).toContainEqual({ x: 5, y: 6 })
+      expect(result).toContainEqual({ x: 6, y: 6 })
+    })
+  })
 
-        expect(result.length).toBe(4);
-        expect(result).toContainEqual({ x: 5, y: 5 });
-        expect(result).toContainEqual({ x: 6, y: 5 });
-        expect(result).toContainEqual({ x: 5, y: 6 });
-        expect(result).toContainEqual({ x: 6, y: 6 });
-    });
-});
+  describe('Line', () => {
+    it('calculates a 30-foot line northward', () => {
+      const result = calculateAffectedTiles({
+        shape: 'Line',
+        origin: { x: 5, y: 10 },
+        size: 30,
+        direction: 0
+      })
 
-describe('Line', () => {
-    it('calculates 30-foot line (North)', () => {
-        // 30ft = 6 tiles.
-        const result = calculateAffectedTiles({
-            shape: 'Line',
-            origin: { x: 5, y: 10 },
-            size: 30,
-            direction: 0 // North (-Y)
-        });
+      expect(result).toContainEqual({ x: 5, y: 10 })
+      expect(result).toContainEqual({ x: 5, y: 4 })
+      expect(result.every(p => p.x === 5)).toBe(true)
+      expect(result.length).toBeGreaterThanOrEqual(6)
+    })
 
-        // Includes origin? Logic says yes if dist <= width/2 (0 is <= 0.5)
-        expect(result).toContainEqual({ x: 5, y: 10 });
-        // End point roughly 5, 4
-        expect(result).toContainEqual({ x: 5, y: 4 });
+    it('calculates a diagonal line (45 deg)', () => {
+      const result = calculateAffectedTiles({
+        shape: 'Line',
+        origin: { x: 0, y: 0 },
+        size: 10,
+        direction: 45
+      })
 
-        // Should be approximately straight line
-        const xVariance = result.every(p => p.x === 5);
-        expect(xVariance).toBe(true);
-
-        expect(result.length).toBeGreaterThanOrEqual(6);
-    });
-
-    it('calculates diagonal line', () => {
-        // 45 degrees (North East)
-        const result = calculateAffectedTiles({
-            shape: 'Line',
-            origin: { x: 0, y: 0 },
-            size: 10, // 2 tiles length (diagonal is sqrt(2)*tile)
-            direction: 45
-        });
-
-        // Just check it generates something
-        expect(result.length).toBeGreaterThan(0);
-        // Should contain 1, -1 (approx NE if Y is down? 0 deg N is -Y, 90 E is X. 45 is NE.)
-        // 0=N(-Y), 90=E(+X). 45 is between N and E. +X, -Y.
-        // So x increases, y decreases.
-        // Origin is 0,0. Target roughly 1, -1.
-        // Let's verify coordinates
-        const hasDiagonal = result.some(p => p.x > 0 && p.y < 0);
-        expect(hasDiagonal).toBe(true);
-    });
-});
-});
+      expect(result.length).toBeGreaterThan(0)
+      expect(result.some(p => p.x > 0 && p.y < 0)).toBe(true)
+    })
+  })
+})

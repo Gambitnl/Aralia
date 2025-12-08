@@ -124,6 +124,58 @@ export class MovementCommand extends BaseEffectCommand {
     }
 
     private applyStop(state: CombatState, target: CombatCharacter, effect: MovementEffect): CombatState {
+        // Treat stop as either a forced-movement instruction or a speed clamp.
+        if (effect.forcedMovement) {
+            const caster = this.getCaster(state)
+
+            const distanceFeet = effect.forcedMovement.maxDistance === 'target_speed'
+                ? target.stats.speed
+                : effect.forcedMovement.maxDistance
+                    ? parseInt(effect.forcedMovement.maxDistance.toString(), 10)
+                    : 0
+
+            const tiles = Math.max(0, Math.floor(distanceFeet / 5))
+            const dir = effect.forcedMovement.direction ?? 'away_from_caster'
+
+            // Determine direction vector
+            let dx = 0
+            let dy = 0
+            if (dir === 'away_from_caster') {
+                dx = target.position.x - caster.position.x
+                dy = target.position.y - caster.position.y
+            } else if (dir === 'toward_caster') {
+                dx = caster.position.x - target.position.x
+                dy = caster.position.y - target.position.y
+            } else {
+                // fallback: no movement vector
+                dx = 0
+                dy = 0
+            }
+
+            const magnitude = Math.sqrt(dx * dx + dy * dy)
+            if (magnitude === 0 || tiles === 0) {
+                return this.addLogEntry(state, {
+                    type: 'action',
+                    message: `${target.name} is forced to move but cannot determine direction.`,
+                    characterId: target.id
+                })
+            }
+
+            const newX = target.position.x + Math.round((dx / magnitude) * tiles)
+            const newY = target.position.y + Math.round((dy / magnitude) * tiles)
+
+            const updatedState = this.updateCharacter(state, target.id, {
+                position: { x: newX, y: newY }
+            })
+
+            return this.addLogEntry(updatedState, {
+                type: 'action',
+                message: `${target.name} is forced to move ${distanceFeet} ft ${dir.replace('_', ' ')}`,
+                characterId: target.id,
+                data: { forcedMovement: effect.forcedMovement }
+            })
+        }
+
         return this.updateCharacter(state, target.id, {
             stats: { ...target.stats, speed: 0 }
         })

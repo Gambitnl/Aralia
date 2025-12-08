@@ -5,7 +5,7 @@
  * used throughout the Aralia RPG application's battle map feature.
  */
 import { Class, SpellbookData, SpellSlots } from './index';
-import { Spell } from './spells'; // Import Spell
+import { Spell, DamageType, SavingThrowAbility } from './spells'; // Import Spell
 
 export type { SpellSlots };
 
@@ -56,6 +56,28 @@ export interface CombatCharacter {
   spellbook?: SpellbookData;
   spellSlots?: SpellSlots;
   concentratingOn?: ConcentrationState;
+
+  // Defensive tracking (for DefensiveCommand)
+  armorClass?: number;      // Current AC (including bonuses)
+  baseAC?: number;          // Base AC before temporary bonuses
+  resistances?: DamageType[];
+  immunities?: DamageType[];
+  tempHP?: number;          // Temporary hit points
+  activeEffects?: ActiveEffect[];  // Active spell effects
+}
+
+export interface ActiveEffect {
+  type: 'ac_bonus' | 'advantage_on_saves' | 'disadvantage_on_attacks' | 'other';
+  name: string;
+  value?: number;  // For numeric effects like AC bonus
+  duration: {
+    type: 'rounds' | 'until_condition' | 'permanent';
+    value?: number;
+  };
+  appliedTurn: number;
+  source: string;  // Spell ID or effect name
+  description?: string;
+  savingThrows?: SavingThrowAbility[];  // For advantage_on_saves
 }
 
 export type AbilityType = 'attack' | 'spell' | 'skill' | 'movement' | 'utility';
@@ -86,7 +108,7 @@ export interface StatusEffect {
   type: 'buff' | 'debuff' | 'dot' | 'hot'; // damage/heal over time
   duration: number; // in turns
   effect: {
-    type: 'stat_modifier' | 'damage_per_turn' | 'heal_per_turn' | 'skip_turn';
+    type: 'stat_modifier' | 'damage_per_turn' | 'heal_per_turn' | 'skip_turn' | 'condition';
     value?: number;
     stat?: keyof CharacterStats;
   };

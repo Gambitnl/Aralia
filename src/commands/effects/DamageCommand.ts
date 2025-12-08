@@ -1,7 +1,8 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CombatState } from '../../types/combat'
 import { isDamageEffect } from '../../types/spells'
-import { checkConcentration } from '../../utils/concentrationUtils'
+import { checkConcentration } from '../../utils/concentrationUtils';
+import { calculateSpellDC, rollSavingThrow, calculateSaveDamage } from '../../utils/savingThrowUtils';
 import { BreakConcentrationCommand } from './ConcentrationCommands'
 
 /**
@@ -18,14 +19,36 @@ export class DamageCommand extends BaseEffectCommand {
     let currentState = state
 
     for (const target of this.getTargets(currentState)) {
-      // 1. Calculate Damage
-      const damageRoll = this.rollDamage(this.effect.damage.dice)
+      // 1. Calculate base damage
+      let damageRoll = this.rollDamage(this.effect.damage.dice);
 
-      // 2. Apply Damage
-      const newHP = Math.max(0, target.currentHP - damageRoll)
+      // 2. Handle Saving Throw (if applicable)
+      if (this.effect.condition.type === 'save' && this.effect.condition.saveType) {
+        const caster = this.getCaster(currentState);
+        const dc = calculateSpellDC(caster);
+        const saveResult = rollSavingThrow(target, this.effect.condition.saveType, dc);
+
+        // Adjust damage based on save result
+        const originalDamage = damageRoll;
+        damageRoll = calculateSaveDamage(
+          damageRoll,
+          saveResult,
+          this.effect.condition.saveEffect || 'half'
+        );
+
+        // Log save outcome
+        currentState = this.addLogEntry(currentState, {
+          type: 'status',
+          message: `${target.name} ${saveResult.success ? 'succeeds' : 'fails'} ${this.effect.condition.saveType} save (${saveResult.total} vs DC ${dc})`,
+          characterId: target.id
+        });
+      }
+
+      // 3. Apply Damage
+      const newHP = Math.max(0, target.currentHP - damageRoll);
       currentState = this.updateCharacter(currentState, target.id, {
         currentHP: newHP
-      })
+      });
 
       currentState = this.addLogEntry(currentState, {
         type: 'damage',
@@ -33,12 +56,12 @@ export class DamageCommand extends BaseEffectCommand {
         characterId: target.id,
         targetIds: [target.id],
         data: { value: damageRoll, type: this.effect.damage.type }
-      })
+      });
 
-      // 3. Check Concentration
+      // 4. Check Concentration
       // If the target is concentrating and took damage, they must make a Constitution check.
       if (target.concentratingOn && damageRoll > 0) {
-        const check = checkConcentration(target, damageRoll)
+        const check = checkConcentration(target, damageRoll);
 
         if (!check.success) {
           // Break concentration
@@ -53,21 +76,21 @@ export class DamageCommand extends BaseEffectCommand {
             spellId: target.concentratingOn.spellId,
             spellName: target.concentratingOn.spellName,
             targets: [] // Self logic is handled by getCaster
-          })
+          });
 
-          currentState = breakCommand.execute(currentState)
+          currentState = breakCommand.execute(currentState);
 
           currentState = this.addLogEntry(currentState, {
             type: 'status',
             message: `${target.name} fails concentration save (${check.roll} vs DC ${check.dc})`,
             characterId: target.id
-          })
+          });
         } else {
           currentState = this.addLogEntry(currentState, {
             type: 'status',
             message: `${target.name} maintains concentration (${check.roll} vs DC ${check.dc})`,
             characterId: target.id
-          })
+          });
         }
       }
     }

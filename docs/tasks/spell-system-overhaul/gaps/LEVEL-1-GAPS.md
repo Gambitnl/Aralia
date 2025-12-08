@@ -265,17 +265,18 @@ Both files are in new format but with inconsistencies:
 
 ### Commands Run
 - `npm run lint` — Failed (script missing in package.json)
-- `npm test` — Passed (Vitest suite; CommandExecutor test logs expected failure message but suite exits 0)
-- `npx tsx scripts/regenerate-manifest.ts` — Passed (Generated manifest with 375 spells)
+- `npm test` — Passed (CommandExecutor test logs expected failure message)
+- `npx tsx scripts/regenerate-manifest.ts` — Passed (Generated manifest with 376 spells)
 - `npm run validate` — Passed (All spell data validated)
 
 ### Blockers
 - No blockers for this batch; lint script missing upstream and noted above.
+- None new; lint script still absent upstream.
 
 ### System Gaps & Follow-up
-- [ ] **Command**: Per-command behaviors (Approach/Drop/Flee/Grovel/Halt) rely on prose; schema lacks structured control/taunt effect to model each option explicitly.
-- [ ] **Compelled Duel**: Taunt/leash mechanics (disadvantage vs. others, 30 ft leash, break conditions) captured in description only; no dedicated schema fields for taunt effects or distance-based break triggers.
-- [ ] **Dissonant Whispers**: Forced reaction movement uses a Movement effect with a custom note; schema cannot express “use reaction to move up to speed along safest route” or reaction-gated movement distance.
+- [x] **Command**: Added `controlOptions` schema and populated per-option behaviors (Approach/Drop/Flee/Grovel/Halt) in `command.json`; engine now logs control options for enforcement, but UI/AI still must choose which option to execute.
+- [x] **Compelled Duel**: Added `taunt` schema (disadvantage vs. others, 30 ft leash, break conditions) and populated in `compelled-duel.json`; engine now tags targets with a taunt status and logs leash data (full disadvantage/leash enforcement still to be wired where targeting/attack rolls are resolved).
+- [x] **Dissonant Whispers**: Added `forcedMovement` schema (`usesReaction`, direction away, maxDistance target speed) and updated movement effect in `dissonant-whispers.json`; engine now forces positional movement away from caster using the target’s speed, though pathfinding/safest-route handling remains a future enhancement.
 
 ---
 

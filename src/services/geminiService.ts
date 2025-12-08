@@ -67,7 +67,7 @@ export interface GeminiHarvestData extends GeminiMetadata {
  * Generic function to generate text content using the Gemini API.
  * Returns a StandardizedResult containing data on success or an error string on failure.
  */
-async function generateText(
+export async function generateText(
   promptContent: string,
   systemInstruction?: string,
   expectJson: boolean = false,

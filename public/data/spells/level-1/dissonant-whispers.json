@@ -64,9 +64,14 @@
         "saveType": "Wisdom",
         "saveEffect": "negates_condition"
       },
-      "movementType": "push",
+      "movementType": "stop",
       "duration": {
         "type": "rounds"
+      },
+      "forcedMovement": {
+        "usesReaction": true,
+        "direction": "away_from_caster",
+        "maxDistance": "target_speed"
       },
       "scaling": {
         "type": "custom",

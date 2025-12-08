@@ -43,7 +43,8 @@
       "Bash(do sed -i 's/SPELL_SYSTEM_RESEARCH\\.md/@SPELL-SYSTEM-RESEARCH.md/g' \"$file\")",
       "Bash(done)",
       "Bash(rm:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(npm test:*)"
     ],
     "deny": [],
     "ask": []

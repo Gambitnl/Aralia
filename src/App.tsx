@@ -27,9 +27,7 @@ import { useGameInitialization } from './hooks/useGameInitialization';
 import { determineActiveDynamicNpcsForLocation } from './utils/locationUtils';
 
 // Context providers - wrap the app to provide glossary and spell data to all child components
-import { GlossaryProvider } from './context/GlossaryContext';
-import { SpellProvider } from './context/SpellContext';
-
+import { AppProviders } from './components/providers/AppProviders';
 import {
   STARTING_LOCATION_ID,
   LOCATIONS,
@@ -41,37 +39,18 @@ import {
 } from './constants';
 import { SUBMAP_DIMENSIONS } from './config/mapConfig';
 
-import WorldPane from './components/WorldPane';
-import ActionPane from './components/ActionPane';
-import CompassPane from './components/CompassPane';
+import { NotificationSystem } from './components/NotificationSystem';
+import GameLayout from './components/layout/GameLayout';
+import GameModals from './components/layout/GameModals';
 import CharacterCreator from './components/CharacterCreator/CharacterCreator';
 import MainMenu from './components/MainMenu';
-import MapPane from './components/MapPane';
-import SubmapPane from './components/Submap/SubmapPane';
 import TownCanvas from './components/TownCanvas';
 import ErrorBoundary from './components/ErrorBoundary';
 import * as SaveLoadService from './services/saveLoadService';
 import LoadingSpinner from './components/LoadingSpinner';
-import CharacterSheetModal from './components/CharacterSheetModal';
-import DevMenu from './components/DevMenu';
-import GeminiLogViewer from './components/GeminiLogViewer';
-import DiscoveryLogPane from './components/DiscoveryLogPane';
-import Glossary from './components/Glossary';
 import BattleMapDemo from './components/BattleMapDemo';
-import CombatView from './components/CombatView'; // Import CombatView
-import EncounterModal from './components/EncounterModal';
-import PartyEditorModal from './components/PartyEditorModal';
-import PartyOverlay from './components/PartyOverlay';
-import NpcInteractionTestModal from './components/NpcInteractionTestModal';
-import LogbookPane from './components/LogbookPane';
-import MerchantModal from './components/MerchantModal';
-import GameGuideModal from './components/GameGuideModal';
-import MissingChoiceModal from './components/MissingChoiceModal'; // New Import
+import CombatView from './components/CombatView';
 import LoadGameTransition from './components/LoadGameTransition';
-import { NotificationSystem } from './components/NotificationSystem';
-import QuestLog from './components/QuestLog';
-import Minimap from './components/Minimap';
-import { VersionDisplay } from './components/VersionDisplay';
 
 
 const App: React.FC = () => {
@@ -462,6 +441,8 @@ const App: React.FC = () => {
 
 
   // --- Main Content Rendering Logic ---
+  // The 'mainContent' variable determines the primary view of the application based on the current 'gamePhase'.
+  // This approach keeps the return statement clean and focused on high-level structure.
   let mainContent: React.ReactNode = null;
   const currentLocationData = getCurrentLocation();
   const npcs = getCurrentNPCs();
@@ -469,8 +450,9 @@ const App: React.FC = () => {
     (!currentLocationData.id.startsWith('coord_') && currentLocationData.itemIds
       ?.map((id) => ITEMS[id])
       .filter(Boolean) as Item[]) || [];
-  const currentBiome = currentLocationData ? BIOMES[currentLocationData.biomeId] : null;
 
+  // Determine if the UI should be interactive based on modal/loading states.
+  // This boolean is passed down to disable controls when overlays are active.
   const isUIInteractive = !gameState.isLoading &&
     !gameState.isImageLoading &&
     !gameState.characterSheetModal.isOpen &&
@@ -490,6 +472,7 @@ const App: React.FC = () => {
     !gameState.merchantModal.isOpen &&
     !missingChoiceModal.isOpen;
 
+  // Specific check for Submap interaction disabling
   const submapPaneDisabled = gameState.isLoading ||
     gameState.isImageLoading ||
     gameState.characterSheetModal.isOpen ||
@@ -512,7 +495,10 @@ const App: React.FC = () => {
     }
   }, [gameState.previousPhase, dispatch]);
 
+  // --- Phase-Based Rendering ---
+
   if (gameState.phase === GamePhase.MAIN_MENU) {
+    // Render the Main Menu: New Game, Load Game, etc.
     const canGoBack = !!gameState.previousPhase && gameState.previousPhase !== GamePhase.MAIN_MENU;
     mainContent = (
       <ErrorBoundary fallbackMessage="An error occurred in the Main Menu.">
@@ -530,6 +516,7 @@ const App: React.FC = () => {
       </ErrorBoundary>
     );
   } else if (gameState.phase === GamePhase.CHARACTER_CREATION) {
+    // Render the Character Creator interface
     mainContent = (
       <ErrorBoundary fallbackMessage="An error occurred during Character Creation.">
         <CharacterCreator
@@ -540,6 +527,7 @@ const App: React.FC = () => {
       </ErrorBoundary>
     );
   } else if (gameState.phase === GamePhase.BATTLE_MAP_DEMO) {
+    // Render the standalone Battle Map Demo
     mainContent = (
       <ErrorBoundary fallbackMessage="An error occurred in the Battle Map.">
         <BattleMapDemo
@@ -550,8 +538,7 @@ const App: React.FC = () => {
       </ErrorBoundary>
     );
   } else if (gameState.phase === GamePhase.COMBAT) {
-    // --- COMBAT PHASE ---
-    // Deriving biome for combat based on current location
+    // Render the full Combat View
     const combatBiome = (currentLocationData.biomeId && ['forest', 'cave', 'dungeon', 'desert', 'swamp'].includes(currentLocationData.biomeId))
       ? (currentLocationData.biomeId as any)
       : 'forest';
@@ -574,6 +561,7 @@ const App: React.FC = () => {
       </ErrorBoundary>
     );
   } else if (gameState.phase === GamePhase.VILLAGE_VIEW) {
+    // Render the Town/Village View Canvas
     const currentLocationData = getCurrentLocation();
     const worldCoords = currentLocationData.mapCoordinates;
     const biome = currentLocationData.biomeId || 'plains';
@@ -599,282 +587,86 @@ const App: React.FC = () => {
         />
       </ErrorBoundary>
     );
-  } else if (gameState.phase === GamePhase.LOAD_TRANSITION && gameState.party.length > 0) {
-    mainContent = (
-      <LoadGameTransition character={gameState.party[0]} />
-    );
   } else if (gameState.phase === GamePhase.PLAYING && gameState.party.length > 0 && gameState.subMapCoordinates) {
+    // Render the Main Game Layout (Exploration Mode)
+    // <GameLayout> extracts the complexity of the Compass, Action, World, and Minimap panes.
     mainContent = (
-      <div className="flex flex-col md:flex-row h-screen p-2 sm:p-4 gap-2 sm:gap-4 bg-gray-900 text-gray-200">
-        <VersionDisplay position="game-screen" />
-        <div className="md:w-2/5 lg:w-1/3 flex flex-col gap-2 sm:gap-4 min-h-0">
-          <ErrorBoundary fallbackMessage="Error in Compass Pane.">
-            <CompassPane
-              currentLocation={currentLocationData}
-              currentSubMapCoordinates={gameState.subMapCoordinates}
-              worldMapCoords={currentLocationData.mapCoordinates}
-              subMapCoords={gameState.subMapCoordinates}
-              onAction={processAction}
-              disabled={!isUIInteractive}
-              mapData={gameState.mapData}
-              gameTime={gameState.gameTime}
-            />
-          </ErrorBoundary>
-          <ErrorBoundary fallbackMessage="Error in Action Pane.">
-            <ActionPane
-              currentLocation={currentLocationData}
-              npcsInLocation={npcs}
-              itemsInLocation={itemsInCurrentLocation}
-              onAction={processAction}
-              disabled={!isUIInteractive}
-              geminiGeneratedActions={gameState.geminiGeneratedActions || []}
-              isDevDummyActive={USE_DUMMY_CHARACTER_FOR_DEV}
-              unreadDiscoveryCount={gameState.unreadDiscoveryCount}
-              hasNewRateLimitError={gameState.hasNewRateLimitError}
-              subMapCoordinates={gameState.subMapCoordinates}
-              worldSeed={gameState.worldSeed}
-            />
-          </ErrorBoundary>
-        </div>
-
-        <div className="md:w-3/5 lg:w-2/3 flex flex-col gap-2 sm:gap-4 min-h-0 relative">
-          <ErrorBoundary fallbackMessage="Error in World Pane.">
-            <WorldPane messages={gameState.messages} />
-          </ErrorBoundary>
-          <Minimap
-            mapData={gameState.mapData}
-            currentLocationCoords={currentLocationData.mapCoordinates}
-            submapCoords={gameState.subMapCoordinates}
-            visible={true} // Always visible in this layout
-            toggleMap={() => processAction({ type: 'toggle_map', label: 'Open Map' })}
-          />
-        </div>
-      </div>
+      <GameLayout
+        currentLocation={currentLocationData}
+        subMapCoordinates={gameState.subMapCoordinates}
+        mapData={gameState.mapData}
+        gameTime={gameState.gameTime}
+        messages={gameState.messages}
+        npcsInLocation={npcs}
+        itemsInLocation={itemsInCurrentLocation}
+        geminiGeneratedActions={gameState.geminiGeneratedActions}
+        unreadDiscoveryCount={gameState.unreadDiscoveryCount}
+        hasNewRateLimitError={gameState.hasNewRateLimitError}
+        worldSeed={gameState.worldSeed}
+        isDevDummyActive={USE_DUMMY_CHARACTER_FOR_DEV}
+        disabled={!isUIInteractive}
+        onAction={processAction}
+      />
     );
   } else if (gameState.phase === GamePhase.GAME_OVER) {
     mainContent = (
-      <div className="text-center p-8">
-        <h1 className="text-4xl text-red-500 mb-4">Game Over</h1>
-        <button onClick={handleNewGame} className="bg-blue-500 text-white px-4 py-2 rounded">New Game</button>
+      <div className="flex items-center justify-center h-screen bg-black text-red-600 text-4xl font-serif">
+        GAME OVER
       </div>
     );
-  } else {
-    mainContent = <LoadingSpinner message={gameState.loadingMessage} />;
+  } else if (gameState.phase === GamePhase.LOAD_TRANSITION) {
+    mainContent = <LoadGameTransition character={gameState.party[0]} />;
   }
 
+  // --- Root Render ---
+  // Wraps the application in <AppProviders> for context access.
+  // Renders global notifications, the computed 'mainContent', and the manager for <GameModals>.
   return (
-    <GlossaryProvider>
-      <SpellProvider>
-        <div className="App min-h-screen bg-gray-900">
-          <NotificationSystem notifications={gameState.notifications} dispatch={dispatch} />
-          <AnimatePresence>
-            {(gameState.isLoading || gameState.isImageLoading) && <LoadingSpinner message={gameState.loadingMessage || (gameState.isImageLoading ? "A vision forms in the æther..." : "Aralia is weaving fate...")} />}
-          </AnimatePresence>
-          {gameState.error && (
-            <div className="bg-red-800 text-white p-4 fixed top-0 left-0 right-0 z-[100] text-center">
-              Error: {gameState.error}
-              <button onClick={() => dispatch({ type: 'SET_ERROR', payload: null })} className="ml-4 bg-red-600 px-2 py-1 rounded">Dismiss</button>
-            </div>
-          )}
-          {mainContent}
-          <AnimatePresence>
-            {gameState.isMapVisible && gameState.mapData && (
-              <ErrorBoundary fallbackMessage="Error displaying the World Map.">
-                <MapPane
-                  mapData={gameState.mapData}
-                  onTileClick={handleTileClick}
-                  onClose={() => processAction({ type: 'toggle_map', label: 'Close Map' })}
-                />
-              </ErrorBoundary>
-            )}
-            {gameState.isQuestLogVisible && (
-              <ErrorBoundary fallbackMessage="Error in Quest Log.">
-                <QuestLog
-                  isOpen={gameState.isQuestLogVisible}
-                  onClose={() => dispatch({ type: 'TOGGLE_QUEST_LOG' })}
-                  quests={gameState.questLog}
-                />
-              </ErrorBoundary>
-            )}
-            {gameState.isSubmapVisible && gameState.party[0] && gameState.mapData && gameState.subMapCoordinates && currentBiome && (
-              <ErrorBoundary fallbackMessage="Error displaying the Submap.">
-                <SubmapPane
-                  currentLocation={currentLocationData}
-                  currentWorldBiomeId={currentLocationData.biomeId}
-                  playerSubmapCoords={gameState.subMapCoordinates}
-                  onClose={() => processAction({ type: 'toggle_submap_visibility', label: 'Close Submap' })}
-                  submapDimensions={SUBMAP_DIMENSIONS}
-                  parentWorldMapCoords={currentLocationData.mapCoordinates}
-                  onAction={processAction}
-                  disabled={submapPaneDisabled}
-                  inspectedTileDescriptions={gameState.inspectedTileDescriptions}
-                  mapData={gameState.mapData}
-                  gameTime={gameState.gameTime}
-                  playerCharacter={gameState.party[0]}
-                  worldSeed={gameState.worldSeed}
-                  npcsInLocation={npcs}
-                  itemsInLocation={itemsInCurrentLocation}
-                  geminiGeneratedActions={gameState.geminiGeneratedActions}
-                  isDevDummyActive={USE_DUMMY_CHARACTER_FOR_DEV}
-                  unreadDiscoveryCount={gameState.unreadDiscoveryCount}
-                  hasNewRateLimitError={gameState.hasNewRateLimitError}
-                />
-              </ErrorBoundary>
-            )}
-            {gameState.characterSheetModal.isOpen && gameState.characterSheetModal.character && (
-              <ErrorBoundary fallbackMessage="Error displaying Character Sheet.">
-                <CharacterSheetModal
-                  isOpen={gameState.characterSheetModal.isOpen}
-                  character={gameState.characterSheetModal.character}
-                  inventory={gameState.inventory}
-                  gold={gameState.gold}
-                  onClose={handleCloseCharacterSheet}
-                  onAction={processAction}
-                  onNavigateToGlossary={handleNavigateToGlossaryFromTooltip}
-                />
-              </ErrorBoundary>
-            )}
-            {gameState.isDevMenuVisible && USE_DUMMY_CHARACTER_FOR_DEV && (
-              <ErrorBoundary fallbackMessage="Error in Developer Menu.">
-                <DevMenu
-                  isOpen={gameState.isDevMenuVisible}
-                  onClose={() => dispatch({ type: 'TOGGLE_DEV_MENU' })}
-                  onDevAction={handleDevMenuAction}
-                  hasNewRateLimitError={gameState.hasNewRateLimitError}
-                  currentModelOverride={gameState.devModelOverride}
-                  onModelChange={handleModelChange}
-                />
-              </ErrorBoundary>
-            )}
-            {gameState.isPartyOverlayVisible && (
-              <ErrorBoundary fallbackMessage="Error displaying Party Overlay.">
-                <PartyOverlay
-                  isOpen={gameState.isPartyOverlayVisible}
-                  onClose={handleClosePartyOverlay}
-                  party={gameState.party}
-                  onViewCharacterSheet={handleOpenCharacterSheet}
-                  onFixMissingChoice={handleFixMissingChoice}
-                />
-              </ErrorBoundary>
-            )}
-            {gameState.isPartyEditorVisible && USE_DUMMY_CHARACTER_FOR_DEV && (
-              <ErrorBoundary fallbackMessage="Error in Party Editor.">
-                <PartyEditorModal
-                  isOpen={gameState.isPartyEditorVisible}
-                  onClose={() => dispatch({ type: 'TOGGLE_PARTY_EDITOR_MODAL' })}
-                  initialParty={gameState.party}
-                  onSave={(newParty) => dispatch({ type: 'SET_PARTY_COMPOSITION', payload: newParty })}
-                />
-              </ErrorBoundary>
-            )}
-            {gameState.isGeminiLogViewerVisible && USE_DUMMY_CHARACTER_FOR_DEV && (
-              <ErrorBoundary fallbackMessage="Error in Gemini Log Viewer.">
-                <GeminiLogViewer
-                  isOpen={gameState.isGeminiLogViewerVisible}
-                  onClose={() => dispatch({ type: 'TOGGLE_GEMINI_LOG_VIEWER' })}
-                  logEntries={gameState.geminiInteractionLog}
-                />
-              </ErrorBoundary>
-            )}
-            {gameState.isNpcTestModalVisible && USE_DUMMY_CHARACTER_FOR_DEV && (
-              <ErrorBoundary fallbackMessage="Error in NPC Test Plan Modal.">
-                <NpcInteractionTestModal
-                  isOpen={gameState.isNpcTestModalVisible}
-                  onClose={() => dispatch({ type: 'TOGGLE_NPC_TEST_MODAL' })}
-                  onAction={processAction}
-                />
-              </ErrorBoundary>
-            )}
-            {gameState.isLogbookVisible && (
-              <ErrorBoundary fallbackMessage="Error in Character Logbook.">
-                <LogbookPane
-                  isOpen={gameState.isLogbookVisible}
-                  onClose={() => processAction({ type: 'TOGGLE_LOGBOOK', label: 'Close Logbook' })}
-                  metNpcIds={gameState.metNpcIds}
-                  npcMemory={gameState.npcMemory}
-                  allNpcs={NPCS}
-                />
-              </ErrorBoundary>
-            )}
-            {gameState.isDiscoveryLogVisible && (
-              <ErrorBoundary fallbackMessage="Error in Discovery Journal.">
-                <DiscoveryLogPane
-                  isOpen={gameState.isDiscoveryLogVisible}
-                  entries={gameState.discoveryLog}
-                  unreadCount={gameState.unreadDiscoveryCount}
-                  onClose={() => dispatch({ type: 'TOGGLE_DISCOVERY_LOG_VISIBILITY' })}
-                  onMarkRead={(entryId) => dispatch({ type: 'MARK_DISCOVERY_READ', payload: { entryId } })}
-                  onMarkAllRead={() => dispatch({ type: 'MARK_ALL_DISCOVERIES_READ' })}
-                  npcMemory={gameState.npcMemory}
-                  allNpcs={NPCS}
-                />
-              </ErrorBoundary>
-            )}
-            {gameState.isGlossaryVisible && (
-              <ErrorBoundary fallbackMessage="Error in Glossary.">
-                <Glossary
-                  isOpen={gameState.isGlossaryVisible}
-                  onClose={handleOpenGlossary}
-                  initialTermId={gameState.selectedGlossaryTermForModal}
-                />
-              </ErrorBoundary>
-            )}
-            {gameState.isEncounterModalVisible && (
-              <ErrorBoundary fallbackMessage="Error in Encounter Modal.">
-                <EncounterModal
-                  isOpen={gameState.isEncounterModalVisible}
-                  onClose={() => dispatch({ type: 'HIDE_ENCOUNTER_MODAL' })}
-                  encounter={gameState.generatedEncounter}
-                  sources={gameState.encounterSources}
-                  error={gameState.encounterError}
-                  isLoading={gameState.isLoading}
-                  onAction={processAction}
-                  partyUsed={gameState.tempParty || undefined}
-                />
-              </ErrorBoundary>
-            )}
-            {/* Merchant Modal */}
-            {gameState.merchantModal.isOpen && (
-              <ErrorBoundary fallbackMessage="Error in Merchant Interface.">
-                <MerchantModal
-                  isOpen={gameState.merchantModal.isOpen}
-                  merchantName={gameState.merchantModal.merchantName}
-                  merchantInventory={gameState.merchantModal.merchantInventory}
-                  playerInventory={gameState.inventory}
-                  playerGold={gameState.gold}
-                  onClose={() => dispatch({ type: 'CLOSE_MERCHANT' })}
-                  onAction={processAction}
-                />
-              </ErrorBoundary>
-            )}
-            {/* Game Guide Modal */}
-            {gameState.isGameGuideVisible && (
-              <ErrorBoundary fallbackMessage="Error in Game Guide.">
-                <GameGuideModal
-                  isOpen={gameState.isGameGuideVisible}
-                  onClose={() => processAction({ type: 'TOGGLE_GAME_GUIDE', label: 'Close Game Guide' })}
-                  gameContext={`Current Location: ${currentLocationData.name}. Game Time: ${gameState.gameTime.toLocaleString()}.`}
-                  devModelOverride={gameState.devModelOverride}
-                  onAction={dispatch}
-                />
-              </ErrorBoundary>
-            )}
-            {/* Missing Choice Modal */}
-            {missingChoiceModal.isOpen && missingChoiceModal.character && missingChoiceModal.missingChoice && (
-              <ErrorBoundary fallbackMessage="Error in Selection Modal.">
-                <MissingChoiceModal
-                  isOpen={missingChoiceModal.isOpen}
-                  characterName={missingChoiceModal.character.name}
-                  missingChoice={missingChoiceModal.missingChoice}
-                  onClose={() => setMissingChoiceModal({ isOpen: false, character: null, missingChoice: null })}
-                  onConfirm={handleConfirmMissingChoice}
-                />
-              </ErrorBoundary>
-            )}
-          </AnimatePresence>
-        </div>
-      </SpellProvider>
-    </GlossaryProvider>
+    <AppProviders>
+      <div className="App min-h-screen bg-gray-900">
+        <NotificationSystem notifications={gameState.notifications} dispatch={dispatch} />
+
+        {/* Global Loading Spinner */}
+        <AnimatePresence>
+          {(gameState.isLoading || gameState.isImageLoading) && <LoadingSpinner message={gameState.loadingMessage || (gameState.isImageLoading ? "A vision forms in the æther..." : "Aralia is weaving fate...")} />}
+        </AnimatePresence>
+
+        {/* Global Error Message Banner */}
+        {gameState.error && (
+          <div className="bg-red-800 text-white p-4 fixed top-0 left-0 right-0 z-[100] text-center">
+            Error: {gameState.error}
+            <button onClick={() => dispatch({ type: 'SET_ERROR', payload: null })} className="ml-4 bg-red-600 px-2 py-1 rounded">Dismiss</button>
+          </div>
+        )}
+
+        {/* Primary View */}
+        {mainContent}
+
+        {/* Modal Manager: Handles all overlays (Inventory, Map, Logs, etc.) */}
+        <GameModals
+          gameState={gameState}
+          dispatch={dispatch}
+          onAction={processAction}
+          onTileClick={handleTileClick}
+          currentLocation={currentLocationData}
+          npcsInLocation={npcs}
+          itemsInLocation={itemsInCurrentLocation}
+          isUIInteractive={isUIInteractive}
+          submapPaneDisabled={!!submapPaneDisabled}
+          missingChoiceModal={missingChoiceModal}
+          onCloseMissingChoice={() => setMissingChoiceModal({ isOpen: false, character: null, missingChoice: null })}
+          onConfirmMissingChoice={handleConfirmMissingChoice}
+          onFixMissingChoice={handleFixMissingChoice}
+          handleCloseCharacterSheet={handleCloseCharacterSheet}
+          handleClosePartyOverlay={handleClosePartyOverlay}
+          handleDevMenuAction={handleDevMenuAction}
+          handleModelChange={handleModelChange}
+          handleNavigateToGlossaryFromTooltip={handleNavigateToGlossaryFromTooltip}
+          handleOpenGlossary={handleOpenGlossary}
+          handleOpenCharacterSheet={handleOpenCharacterSheet}
+        />
+      </div>
+    </AppProviders>
   );
 };
 

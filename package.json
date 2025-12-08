@@ -10,7 +10,8 @@
     "validate": "tsx scripts/validate-data.ts",
     "test": "vitest",
     "test:types": "tsd src/types/__tests__/spells.test-d.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint --ext .ts,.tsx src scripts tests"
   },
   "dependencies": {
     "@google/genai": "^1.9.0",
@@ -33,8 +34,16 @@
     "@types/node": "^22.14.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.48.1",
+    "@typescript-eslint/parser": "^8.48.1",
     "@vitejs/plugin-react": "^5.0.0",
     "axe-core": "^4.11.0",
+    "eslint": "^8.57.1",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "jsdom": "^27.2.0",
     "tsd": "^0.33.0",
     "tsx": "^4.20.6",

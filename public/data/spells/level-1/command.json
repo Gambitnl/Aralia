@@ -51,7 +51,14 @@
         "bonusPerLevel": "+1 target"
       },
       "utilityType": "control",
-      "description": "On a failed save, the target follows the one-word command on its next turn, which may force movement, dropping held items, or taking the Prone condition as directed."
+      "description": "On a failed save, the target follows the one-word command on its next turn.",
+      "controlOptions": [
+        { "name": "Approach", "effect": "approach", "details": "Target moves toward you by the shortest route on its turn." },
+        { "name": "Drop", "effect": "drop", "details": "Target drops what it is holding, then ends its turn." },
+        { "name": "Flee", "effect": "flee", "details": "Target spends its turn moving away from you by the safest route." },
+        { "name": "Grovel", "effect": "grovel", "details": "Target falls prone and ends its turn." },
+        { "name": "Halt", "effect": "halt", "details": "Target does nothing and stands in place." }
+      ]
     }
   ]
 }

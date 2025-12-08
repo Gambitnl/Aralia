@@ -35,6 +35,7 @@ export const useTurnManager = ({
   autoCharacters,
   difficulty = 'normal' // Provide neutral default if missing
 }: UseTurnManagerProps) => {
+  // --- Core turn tracking (whose turn, which phase, order, and what they've done) ---
   const [turnState, setTurnState] = useState<TurnState>({
     currentTurn: 1,
     turnOrder: [],
@@ -43,7 +44,7 @@ export const useTurnManager = ({
     actionsThisTurn: []
   });
 
-  // Track damage numbers
+  // Damage/heal popups and lightweight FX to show the player what just happened.
   const [damageNumbers, setDamageNumbers] = useState<DamageNumber[]>([]);
   const [animations, setAnimations] = useState<Animation[]>([]);
 
@@ -78,14 +79,17 @@ export const useTurnManager = ({
   }, []);
 
   const rollInitiative = useCallback((character: CombatCharacter): number => {
-    // Memoized to avoid re-allocating a tiny helper every render; keeps downstream
-    // callbacks stable and prevents needless hook churn.
+    // Memoized to avoid re-allocating a tiny helper every render; keeps downstream callbacks
+    // stable and prevents needless hook churn when initiative is re-evaluated (rare, but occurs
+    // when combat is re-initialized).
     const dexModifier = Math.floor((character.stats.dexterity - 10) / 2);
     const roll = Math.floor(Math.random() * 20) + 1;
     return roll + dexModifier + character.stats.baseInitiative;
   }, []);
 
   const queueAnimation = useCallback((animation: Animation) => {
+    // Small helper that appends and then prunes an animation entry once its timer elapses.
+    // The rendering layer reads this array and fades entries out on removal.
     setAnimations(prev => [...prev, animation]);
     setTimeout(() => {
       setAnimations(prev => prev.filter(anim => anim.id !== animation.id));
@@ -108,6 +112,8 @@ export const useTurnManager = ({
   }, [onCharacterUpdate, resetEconomy]);
 
   const initializeCombat = useCallback((initialCharacters: CombatCharacter[]) => {
+    // Entry point when a fight begins. Rolls initiatives, sets the order, and resets
+    // everyone’s action economy so they start fresh on round one.
     const charactersWithInitiative = initialCharacters.map(char => ({
       ...char,
       initiative: rollInitiative(char)
@@ -148,6 +154,9 @@ export const useTurnManager = ({
   }, [onCharacterUpdate, onLogEntry, resetEconomy, rollInitiative]);
 
   const executeAction = useCallback((action: CombatAction): boolean => {
+    // Main dispatcher for all actions (move, ability, end turn, etc.).
+    // Returns true on success so callers (AI/UI) can chain follow-up logic.
+
     // If it's an end_turn action, we handle it separately
     if (action.type === 'end_turn') {
       endTurn();
@@ -289,6 +298,8 @@ export const useTurnManager = ({
   }, [addDamageNumber, onCharacterUpdate, onLogEntry]);
 
   const endTurn = useCallback(() => {
+    // Handles phase wrap-up: apply lingering effects, pick the next living actor,
+    // rotate the turn order, and bump the round counter if we wrapped.
     const currentCharacter = characters.find(c => c.id === turnState.currentCharacterId);
     if (!currentCharacter) return;
 
@@ -395,6 +406,8 @@ export const useTurnManager = ({
   // Hook: AI Logic
   // Delegates all AI state management and decision making to a dedicated hook.
   // We pass the dependencies it needs to inspect the board and execute actions.
+  // AI hook listens to currentCharacterId and will no-op if the current actor is
+  // player-controlled, so sharing this hook keeps the main turn manager agnostic.
   useCombatAI({
     difficulty,
     characters,
@@ -409,16 +422,19 @@ export const useTurnManager = ({
 
 
   const isCharacterTurn = useCallback((characterId: string) => {
+    // Convenience helper for UI to highlight the active combatant or block inputs.
     return turnState.currentCharacterId === characterId;
   }, [turnState.currentCharacterId]);
 
   // Spell zone management - add zone when area spell is cast (e.g., Create Bonfire)
   const addSpellZone = useCallback((zone: ActiveSpellZone) => {
+    // Zones persist across turns until they expire; endTurn cleans up when rounds advance.
     setSpellZones(prev => [...prev, zone]);
   }, []);
 
   // Movement debuff management - add debuff when hit by movement-triggered spell (e.g., Booming Blade)
   const addMovementDebuff = useCallback((debuff: MovementTriggerDebuff) => {
+    // Debuffs are consulted during move actions to apply secondary damage/effects.
     setMovementDebuffs(prev => [...prev, debuff]);
   }, []);
 

@@ -340,10 +340,11 @@ get description(): string {
   "effects": [
     {
       "type": "STATUS_CONDITION",
-      "condition": "custom",
-      "conditionName": "Blessed",
+      "statusCondition": {
+        "name": "Blessed",
+        "duration": { "type": "rounds", "value": 10 }
+      },
       "description": "Add 1d4 to attack rolls and saving throws",
-      "duration": { "type": "rounds", "value": 10 },
       "trigger": { "type": "immediate" },
       "condition": { "type": "always" }
     }
@@ -359,9 +360,10 @@ get description(): string {
   "effects": [
     {
       "type": "STATUS_CONDITION",
-      "condition": "charmed",
-      "conditionName": "Charmed",
-      "duration": { "type": "rounds", "value": 10 },
+      "statusCondition": {
+        "name": "Charmed",
+        "duration": { "type": "rounds", "value": 10 }
+      },
       "trigger": { "type": "immediate" },
       "condition": {
         "type": "save",

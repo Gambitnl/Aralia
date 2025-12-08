@@ -48,7 +48,17 @@
         "saveEffect": "negates_condition"
       },
       "utilityType": "control",
-      "description": "On a failed save, the target focuses on you: Disadvantage on attacks against others and cannot willingly move more than 30 feet away while the spell lasts; it ends if the listed break conditions occur."
+      "description": "On a failed save, the target focuses on you: disadvantage on attacks against others and cannot willingly move more than 30 feet away while the spell lasts; it ends if the listed break conditions occur.",
+      "taunt": {
+        "disadvantageAgainstOthers": true,
+        "leashRangeFeet": 30,
+        "breakConditions": [
+          "You attack another creature",
+          "You cast a spell on an enemy other than the target",
+          "An ally damages the target",
+          "You end your turn more than 30 feet from the target"
+        ]
+      }
     }
   ]
 }

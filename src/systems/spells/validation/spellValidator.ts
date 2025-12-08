@@ -156,6 +156,11 @@ const MovementEffect = BaseEffect.extend({
     unit: z.literal("feet"),
   }).optional(),
   duration: EffectDuration,
+  forcedMovement: z.object({
+    usesReaction: z.boolean().optional(),
+    direction: z.enum(["away_from_caster", "toward_caster", "caster_choice", "safest_route"]).optional(),
+    maxDistance: z.string().optional(),
+  }).optional(),
 });
 
 const GrantedAction = z.object({
@@ -170,6 +175,18 @@ const AttackAugment = z.object({
   attackType: z.enum(["weapon", "melee_weapon", "ranged_weapon"]),
   additionalDamage: DamageData.optional(),
   appliesOn: z.enum(["hit"]).optional(),
+});
+
+const ControlOption = z.object({
+  name: z.string(),
+  effect: z.string(),
+  details: z.string().optional(),
+});
+
+const TauntEffect = z.object({
+  disadvantageAgainstOthers: z.boolean().optional(),
+  leashRangeFeet: z.number().optional(),
+  breakConditions: z.array(z.string()).optional(),
 });
 
 const FamiliarContract = z.object({
@@ -230,6 +247,8 @@ const UtilityEffect = BaseEffect.extend({
   description: z.string(),
   grantedActions: z.array(GrantedAction).optional(),
   attackAugments: z.array(AttackAugment).optional(),
+  controlOptions: z.array(ControlOption).optional(),
+  taunt: TauntEffect.optional(),
 });
 
 const DefensiveEffect = BaseEffect.extend({
