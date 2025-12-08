@@ -29,8 +29,8 @@
 4. If you add or modify data fields, keep to ASCII, maintain schema compatibility, and do not invent new types beyond the approved schema.
 
 ## Per-Spell Checklist (fill here, not elsewhere)
-- light: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- mind-sliver: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- mold-earth: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- primal-savagery: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- sapping-sting: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
+- light: Data ✅ / Validation ✅ / Integration ✅ (notes: Migrated successfully. Fixed saveEffect.)
+- mind-sliver: Data ✅ / Validation ✅ / Integration ✅ (notes: Created new. Fixed saveEffect.)
+- mold-earth: Data ✅ / Validation ✅ / Integration ✅ (notes: Created new. Fixed terrainType, AoE, duration.)
+- primal-savagery: Data ✅ / Validation ✅ / Integration ✅ (notes: Created new.)
+- sapping-sting: Data ✅ / Validation ✅ / Integration ✅ (notes: Created new. Fixed saveEffect.)

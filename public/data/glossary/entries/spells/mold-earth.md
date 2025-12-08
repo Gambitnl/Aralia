@@ -1,14 +1,14 @@
 ---
-id: "light"
-title: "Light"
+id: "mold-earth"
+title: "Mold Earth"
 category: "Spells"
-tags: ["cantrip", "evocation", "utility", "creation", "light"]
-excerpt: "You touch an object and make it shed bright light in a 20-foot radius and dim light for an additional 20 feet."
-seeAlso: ["bright_light", "dim_light"]
+tags: ["cantrip", "transmutation", "utility", "terrain"]
+excerpt: "You manipulate dirt or stone to excavate, mark, or create difficult terrain in a 5-foot cube."
+seeAlso: ["difficult_terrain"]
 ---
 <div class="spell-card">
   <div class="spell-card-header">
-    <h1 class="spell-card-title">Light</h1>
+    <h1 class="spell-card-title">Mold Earth</h1>
   </div>
   <div class="spell-card-divider"></div>
   <div class="spell-card-stats-grid">
@@ -22,23 +22,23 @@ seeAlso: ["bright_light", "dim_light"]
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Range/Area</span>
-      <span class="spell-card-stat-value">Touch</span>
+      <span class="spell-card-stat-value">30 feet</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Components</span>
-      <span class="spell-card-stat-value">V, M *</span>
+      <span class="spell-card-stat-value">S</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Duration</span>
-      <span class="spell-card-stat-value">1 hour</span>
+      <span class="spell-card-stat-value">Instantaneous (or 1 hour)</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">School</span>
-      <span class="spell-card-stat-value">Evocation</span>
+      <span class="spell-card-stat-value">Transmutation</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Attack/Save</span>
-      <span class="spell-card-stat-value">DEX Save</span>
+      <span class="spell-card-stat-value">None</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Damage/Effect</span>
@@ -47,27 +47,26 @@ seeAlso: ["bright_light", "dim_light"]
   </div>
   <div class="spell-card-divider"></div>
   <p class="spell-card-description">
-    You touch one object that is no larger than 10 feet in any dimension. Until the spell ends, the object sheds bright light in a 20-foot radius and dim light for an additional 20 feet. The light can be colored as you like. Completely covering the object with something opaque blocks the light. The spell ends if you cast it again or dismiss it as an action.
+    You choose a portion of dirt or stone that you can see within range and that fits within a 5-foot cube. You manipulate it in one of the following ways:
   </p>
+  <ul>
+    <li>If you target an area of loose earth, you can instantaneously excavate it, moving it along the ground and depositing it up to 5 feet away. This movement doesn't have enough force to cause damage.</li>
+    <li>You cause shapes, colors, or a pattern to appear on the dirt or stone for 1 hour.</li>
+    <li>You cause the ground to become difficult terrain or ordinary terrain. This change lasts for 1 hour.</li>
+  </ul>
   <p class="spell-card-description">
-    If you target an object held or worn by a hostile creature, that creature must succeed on a Dexterity saving throw to avoid the spell.
-  </p>
-  <p class="spell-card-material-note">
-    * - (a firefly or phosphorescent moss)
+    If you cast this spell multiple times, you can have no more than two of its non-instantaneous effects active at a time, and you can dismiss such an effect as an action.
   </p>
   <div class="spell-card-tags-section">
     <span class="spell-card-tags-label">Spell Tags:</span>
     <span class="spell-card-tag">UTILITY</span>
     <span class="spell-card-tag">CREATION</span>
-    <span class="spell-card-tag">LIGHT</span>
+    <span class="spell-card-tag">TERRAIN</span>
   </div>
   <div class="spell-card-tags-section">
     <span class="spell-card-tags-label">Available For:</span>
-    <span class="spell-card-tag">Artificer</span>
-    <span class="spell-card-tag">Bard</span>
-    <span class="spell-card-tag">Cleric</span>
+    <span class="spell-card-tag">Druid</span>
     <span class="spell-card-tag">Sorcerer</span>
     <span class="spell-card-tag">Wizard</span>
-    <span class="spell-card-tag">Warlock - Celestial Patron</span>
   </div>
 </div>

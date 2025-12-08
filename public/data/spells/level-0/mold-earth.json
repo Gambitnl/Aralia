@@ -1,0 +1,68 @@
+{
+  "id": "mold-earth",
+  "name": "Mold Earth",
+  "level": 0,
+  "school": "Transmutation",
+  "classes": [
+    "Druid",
+    "Sorcerer",
+    "Wizard"
+  ],
+  "description": "You choose a portion of dirt or stone that you can see within range and that fits within a 5-foot cube. You manipulate it in one of the following ways:\n- If you target an area of loose earth, you can instantaneously excavate it, moving it along the ground and depositing it up to 5 feet away. This movement doesn't have enough force to cause damage.\n- You cause shapes, colors, or a pattern to appear on the dirt or stone for 1 hour.\n- You cause the ground to become difficult terrain or ordinary terrain. This change lasts for 1 hour.\nIf you cast this spell multiple times, you can have no more than two of its non-instantaneous effects active at a time, and you can dismiss such an effect as an action.",
+  "tags": [
+    "utility",
+    "creation",
+    "terrain"
+  ],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
+  "components": {
+    "verbal": false,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 30,
+    "validTargets": [
+      "objects",
+      "ground"
+    ],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "TERRAIN",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "terrainType": "difficult",
+      "areaOfEffect": {
+        "shape": "Cube",
+        "size": 5
+      },
+      "duration": {
+        "type": "minutes",
+        "value": 60
+      },
+      "description": "Excavate loose earth, color/shape dirt/stone, or toggle difficult terrain."
+    }
+  ]
+}
