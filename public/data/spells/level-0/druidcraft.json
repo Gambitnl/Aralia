@@ -4,7 +4,7 @@
     "level": 0,
     "school": "Transmutation",
     "classes": [
-        "Druid"
+        "DRUID"
     ],
     "description": "Whispering to the spirits of nature, you create one of the following effects within range:\n- You create a tiny, harmless sensory effect that predicts what the weather will be at your location for the next 24 hours. The effect persists for 1 round.\n- You instantly make a flower blossom, a seed pod open, or a leaf bud bloom.\n- You create a harmless sensory effect, such as falling leaves, spectral dancing fairies, a gentle breeze, the sound of an animal, or the faint odor of skunk. The effect must fit in a 5-foot cube.\n- You instantly light or snuff out a candle, a torch, or a small campfire.",
     "ritual": false,
@@ -34,7 +34,8 @@
         "validTargets": [
             "point",
             "objects"
-        ]
+        ],
+        "lineOfSight": true
     },
     "effects": [
         {

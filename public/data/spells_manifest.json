@@ -1035,7 +1035,7 @@
     "name": "Guidance",
     "level": 0,
     "school": "Divination",
-    "path": "/data/spells/guidance.json"
+    "path": "/data/spells/level-0/guidance.json"
   },
   "guiding-bolt": {
     "name": "Guiding Bolt",
