@@ -73,13 +73,53 @@ export const calculateFinalAbilityScores = (
  * @param {PlayerCharacter} character - The character object.
  * @returns {number} The calculated Armor Class.
  */
-export const calculateArmorClass = (character: PlayerCharacter): number => {
+/**
+ * Calculates a character's Armor Class based on their equipped items, stats, and active effects.
+ * @param {PlayerCharacter} character - The character object.
+ * @param {ActiveEffect[]} [activeEffects] - Optional list of active effects on the character.
+ * @returns {number} The calculated Armor Class.
+ */
+export const calculateArmorClass = (character: PlayerCharacter, activeEffects: any[] = []): number => {
+  // 1. Determine Base AC Calculation
+  // Default: 10 + Dex
+  // Armor: Armor Base + Dex (capped)
+  // Unarmored Defense: 10 + Dex + Con/Wis
+  // Spells (Mage Armor): Set Base + Dex (usually)
+
   let baseAc = 10;
   let dexBonus = getAbilityModifierValue(character.finalAbilityScores.Dexterity);
+  let additionalBaseBonus = 0; // For Unarmored Defense like effects
 
   const armor = character.equippedItems.Torso;
+  let usingArmorCalculation = false;
+
+  // Check for Base AC overrides from spells (e.g., Mage Armor) - ONLY if not wearing armor usually
+  // But some might override regardless. Mage Armor specifically says "Target who isn't wearing armor".
+  // We'll trust the "restrictions" field was bonded at cast time, so if the effect is active, we use it.
+  // We sort by value if there are multiple? Usually higher base prevails.
+
+  // Actually, we must check if we ARE wearing armor to invalidate Mage Armor if it was cast previously?
+  // Or do we assume the effect would be removed? The engine should probably handle removal, but let's be safe.
+  const baseAcEffects = activeEffects.filter(e => e.type === 'set_base_ac');
+
+  let spellBaseAc = 0;
+  let spellUsesDex = true; // Most set_base_ac like Mage Armor use Dex
+
+  if (baseAcEffects.length > 0 && (!armor || armor.type !== 'armor')) { // Mage armor doesn't work with armor
+    // Parse formula like "13 + dex_mod"
+    // For now, we expect the effect value to be the base number (e.g. 13)
+    // and we assume it allows full Dex unless specified. 
+    // We'll take the highest base value.
+    for (const effect of baseAcEffects) {
+      if ((effect.value || 0) > spellBaseAc) {
+        spellBaseAc = effect.value || 0;
+        // If we had a flag for "noDex", we'd check it here. Default is yes.
+      }
+    }
+  }
 
   if (armor && armor.type === 'armor' && armor.baseArmorClass) {
+    usingArmorCalculation = true;
     baseAc = armor.baseArmorClass;
     if (armor.addsDexterityModifier) {
       if (armor.maxDexterityBonus !== undefined) {
@@ -88,19 +128,47 @@ export const calculateArmorClass = (character: PlayerCharacter): number => {
     } else {
       dexBonus = 0;
     }
-  } else { // Unarmored
+  } else if (spellBaseAc > 0) {
+    // Spell Override (Mage Armor)
+    baseAc = spellBaseAc;
+    // Full Dex applies for Mage Armor
+  } else {
+    // Unarmored Defense
     if (character.class.id === 'barbarian') {
-      baseAc = 10 + dexBonus + getAbilityModifierValue(character.finalAbilityScores.Constitution);
-      dexBonus = 0; // Already included in baseAc calculation
+      additionalBaseBonus = getAbilityModifierValue(character.finalAbilityScores.Constitution);
     } else if (character.class.id === 'monk') {
-      baseAc = 10 + dexBonus + getAbilityModifierValue(character.finalAbilityScores.Wisdom);
-      dexBonus = 0; // Already included
+      additionalBaseBonus = getAbilityModifierValue(character.finalAbilityScores.Wisdom);
     }
   }
 
-
+  // 2. Shield Bonus
   const shield = character.equippedItems.OffHand;
   const shieldBonus = (shield && shield.type === 'armor' && shield.armorCategory === 'Shield' && shield.armorClassBonus) ? shield.armorClassBonus : 0;
 
-  return baseAc + dexBonus + shieldBonus;
+  // 3. Effect Bonuses (Shield spell, Shield of Faith, Haste)
+  let effectBonus = 0;
+  activeEffects.forEach(e => {
+    if (e.type === 'ac_bonus') {
+      effectBonus += (e.value || 0);
+    }
+  });
+
+  // Calculate Preliminary AC
+  let totalAc = baseAc + dexBonus + additionalBaseBonus + shieldBonus + effectBonus;
+
+  // 4. AC Minimum (Barkskin)
+  // "Target's AC can't be less than 16"
+  // This applies to the FINAL total.
+  let minAc = 0;
+  activeEffects.forEach(e => {
+    if (e.type === 'ac_minimum') {
+      // If the effect stores the min value in a property like 'acMinimum' or just 'value'
+      // We'll look for 'value' as per the generic ActiveEffect structure usually holding the magnitude
+      if ((e.value || 0) > minAc) {
+        minAc = e.value || 0;
+      }
+    }
+  });
+
+  return Math.max(totalAc, minAc);
 };

@@ -98,12 +98,57 @@ export class SpellCommandFactory {
   }
 
   /**
-   * Create a single command from an effect
+   * Check if a target matches the filter
+   */
+  public static matchesFilter(target: CombatCharacter, filter: any): boolean {
+    if (!filter) return true
+
+    if (filter.creatureTypes && filter.creatureTypes.length > 0) {
+      if (!target.creatureTypes || !filter.creatureTypes.some((t: string) => target.creatureTypes!.includes(t))) {
+        return false
+      }
+    }
+
+    if (filter.excludeCreatureTypes && filter.excludeCreatureTypes.length > 0) {
+      if (target.creatureTypes && filter.excludeCreatureTypes.some((t: string) => target.creatureTypes!.includes(t))) {
+        return false
+      }
+    }
+
+    return true
+  }
+
+  /**
+   * Create a single command from an effect, filtering targets if necessary
    */
   private static createCommand(
     effect: SpellEffect,
     context: CommandContext
   ): SpellCommand | null {
+    // Check for target filtering
+    if (effect.condition?.targetFilter || context.targets.length > 0) {
+      // We need to filter targets.
+      // The CommandContext has `targets`. The command itself might use them.
+      // Most commands use `context.targets`.
+      // If we filter here, we should pass a modified context.
+
+      let filteredTargets = context.targets;
+
+      if (effect.condition?.targetFilter) {
+        filteredTargets = context.targets.filter(t => this.matchesFilter(t, effect.condition.targetFilter));
+
+        if (filteredTargets.length === 0 && context.targets.length > 0) {
+          // All targets filtered out
+          return null;
+        }
+      }
+
+      // Create a new context with filtered targets if they changed
+      if (filteredTargets.length !== context.targets.length) {
+        context = { ...context, targets: filteredTargets };
+      }
+    }
+
     if (['on_target_move', 'on_target_attack', 'on_target_cast', 'on_caster_action'].includes(effect.trigger.type)) {
       return new ReactiveEffectCommand(effect, context)
     }

@@ -26,6 +26,7 @@ export interface CharacterStats {
   baseInitiative: number;
   speed: number; // in feet
   cr: string;
+  size?: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Gargantuan';
 }
 
 export interface ActionEconomyState {
@@ -50,6 +51,7 @@ export interface CombatCharacter {
   id: string;
   name: string;
   level: number; // For scaling calculations (CR for monsters, Level for PCs)
+  creatureTypes?: string[]; // e.g., ['Undead', 'Humanoid']
   class: Class;
   position: Position;
   stats: CharacterStats;
@@ -66,6 +68,15 @@ export interface CombatCharacter {
   spellSlots?: SpellSlots;
   concentratingOn?: ConcentrationState;
 
+  // Summoning fields
+  isSummon?: boolean;
+  summonMetadata?: {
+    casterId: string;
+    spellId: string;
+    durationRemaining?: number;
+    dismissable: boolean;
+  };
+
   // Defensive tracking (for DefensiveCommand)
   armorClass?: number;      // Current AC (including bonuses)
   baseAC?: number;          // Base AC before temporary bonuses
@@ -74,14 +85,15 @@ export interface CombatCharacter {
   tempHP?: number;          // Temporary hit points
   activeEffects?: ActiveEffect[];  // Active spell effects
   riders?: ActiveRider[];   // Active damage riders (smites, hex, etc)
+  damagedThisTurn?: boolean; // Track if character took damage this turn (for concentration/repeat saves)
 }
 
 export interface ActiveEffect {
-  type: 'ac_bonus' | 'advantage_on_saves' | 'disadvantage_on_attacks' | 'other';
+  type: 'ac_bonus' | 'advantage_on_saves' | 'disadvantage_on_attacks' | 'set_base_ac' | 'ac_minimum' | 'other';
   name: string;
   value?: number;  // For numeric effects like AC bonus
   duration: {
-    type: 'rounds' | 'until_condition' | 'permanent';
+    type: 'rounds' | 'until_condition' | 'permanent' | 'minutes' | 'hours' | 'special';
     value?: number;
   };
   appliedTurn: number;
@@ -195,8 +207,9 @@ export interface ConcentrationState {
 export interface CombatAction {
   id: string;
   characterId: string;
-  type: 'move' | 'ability' | 'end_turn' | 'sustain';
+  type: 'move' | 'ability' | 'end_turn' | 'sustain' | 'break_free';
   abilityId?: string;
+  targetEffectId?: string; // ID of the status effect to break free from
   targetPosition?: Position;
   targetCharacterIds?: string[];
   movementUsed?: number;

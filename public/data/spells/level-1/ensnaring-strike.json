@@ -3,10 +3,16 @@
   "name": "Ensnaring Strike",
   "level": 1,
   "school": "Conjuration",
-  "classes": ["Ranger"],
+  "classes": [
+    "Ranger"
+  ],
   "description": "After you hit a creature with a weapon, it makes a Strength saving throw (Large or larger has Advantage). On a failed save, the target is Restrained by magical vines. While Restrained, it takes 1d6 Piercing damage at the start of each of its turns. A creature can use an action to make a Strength (Athletics) check against your spell save DC, ending the effect on a success.",
   "higherLevels": "The start-of-turn damage increases by 1d6 for each spell slot level above 1.",
-  "tags": ["control", "conjuration", "concentration"],
+  "tags": [
+    "control",
+    "conjuration",
+    "concentration"
+  ],
   "ritual": false,
   "castingTime": {
     "value": 1,
@@ -33,7 +39,10 @@
   "targeting": {
     "type": "single",
     "range": 5,
-    "validTargets": ["creatures", "enemies"],
+    "validTargets": [
+      "creatures",
+      "enemies"
+    ],
     "lineOfSight": true
   },
   "effects": [
@@ -50,7 +59,11 @@
           {
             "type": "advantage",
             "appliesTo": {
-              "size": ["Large", "Huge", "Gargantuan"]
+              "size": [
+                "Large",
+                "Huge",
+                "Gargantuan"
+              ]
             },
             "reason": "Large or larger creatures have advantage on the saving throw."
           }
@@ -67,6 +80,19 @@
           "skill": "Athletics",
           "dc": "spell_save_dc",
           "actionCost": "action"
+        },
+        "repeatSave": {
+          "timing": "on_action",
+          "saveType": "strength_check",
+          "successEnds": true,
+          "useOriginalDC": true,
+          "modifiers": {
+            "sizeAdvantage": [
+              "Large",
+              "Huge",
+              "Gargantuan"
+            ]
+          }
         }
       }
     },
@@ -78,7 +104,9 @@
       },
       "condition": {
         "type": "always",
-        "requiresStatus": ["Restrained"]
+        "requiresStatus": [
+          "Restrained"
+        ]
       },
       "damage": {
         "dice": "1d6",

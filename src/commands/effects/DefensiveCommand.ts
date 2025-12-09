@@ -1,12 +1,37 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { DefensiveEffect, isDefensiveEffect } from '@/types/spells'
-import { CombatState, CombatCharacter, ActiveEffect, DamageType } from '@/types/combat'
+import { CombatState, CombatCharacter, ActiveEffect } from '@/types/combat'
 
 /**
- * Command to apply defensive effects to targets.
- * Handles AC bonuses, resistances, immunities, temporary HP, and advantage on saves.
+ * Calculate AC for a CombatCharacter considering active effects.
+ * This is a combat-specific implementation that works with the simplified CombatCharacter type.
  */
+function calculateCombatAC(baseAC: number, effects: ActiveEffect[]): number {
+    let bonus = 0;
+    let setBaseAC: number | null = null;
+    let minAC = 0;
+
+    for (const e of effects) {
+        if (e.type === 'ac_bonus') {
+            bonus += e.value || 0;
+        } else if (e.type === 'set_base_ac') {
+            // Use the highest set_base_ac value if multiple exist
+            const base = e.value || 10;
+            if (setBaseAC === null || base > setBaseAC) {
+                setBaseAC = base;
+            }
+        } else if (e.type === 'ac_minimum') {
+            if ((e.value || 0) > minAC) {
+                minAC = e.value || 0;
+            }
+        }
+    }
+
+    const effectiveBase = setBaseAC !== null ? setBaseAC : baseAC;
+    const totalAC = effectiveBase + bonus;
+    return Math.max(totalAC, minAC);
+}
 export class DefensiveCommand extends BaseEffectCommand {
     constructor(
         effect: DefensiveEffect,
@@ -30,6 +55,12 @@ export class DefensiveCommand extends BaseEffectCommand {
                 case 'ac_bonus':
                     newState = this.applyACBonus(newState, target, effect)
                     break
+                case 'set_base_ac':
+                    newState = this.applySetBaseAC(newState, target, effect)
+                    break
+                case 'ac_minimum':
+                    newState = this.applyACMinimum(newState, target, effect)
+                    break
                 case 'resistance':
                     newState = this.applyResistance(newState, target, effect)
                     break
@@ -49,8 +80,8 @@ export class DefensiveCommand extends BaseEffectCommand {
     }
 
     private applyACBonus(state: CombatState, target: CombatCharacter, effect: DefensiveEffect): CombatState {
-        const bonus = effect.value || 0
-        const currentAC = target.armorClass || 10
+        // Use acBonus preferred, fallback to value
+        const bonus = effect.acBonus ?? effect.value ?? 0
 
         // Create active effect for tracking
         const activeEffect: ActiveEffect = {
@@ -62,16 +93,86 @@ export class DefensiveCommand extends BaseEffectCommand {
             source: this.context.spellName || this.context.spellId || 'Unknown'
         }
 
+        // Add effect to character first
+        const updatedEffects = [...(target.activeEffects || []), activeEffect];
+
+        // Recalculate AC
+        const newAC = calculateCombatAC(target.armorClass ?? 10, updatedEffects);
+
         // Update character state
         const updatedState = this.updateCharacter(state, target.id, {
-            armorClass: currentAC + bonus,
-            activeEffects: [...(target.activeEffects || []), activeEffect]
+            armorClass: newAC,
+            activeEffects: updatedEffects
         })
 
         // Log entry
         return this.addLogEntry(updatedState, {
             type: 'status',
-            message: `${target.name} gains +${bonus} AC (${currentAC} → ${currentAC + bonus})`,
+            message: `${target.name} gains +${bonus} AC (${target.armorClass} → ${newAC})`,
+            characterId: target.id,
+            data: { defensiveEffect: effect }
+        })
+    }
+
+    private applySetBaseAC(state: CombatState, target: CombatCharacter, effect: DefensiveEffect): CombatState {
+        // e.g. "13 + dex_mod". We currently only support fixed base values in value/acBonus + dex.
+        // Logic in statUtils expects 'value' to be the base number (e.g. 13).
+        // If we provided a formula string, we'd need to parse it, but let's stick to the 'value' convention for now as per statUtils implementation.
+        // However, schema has `baseACFormula`. 
+        // For now we will check if `baseACFormula` is "13 + dex_mod" and set value to 13?
+        // Or relies on 'value' being set in JSON.
+
+        // Let's rely on 'value' or 'acBonus' being the base number (13).
+        const baseValue = effect.value ?? effect.acBonus ?? 10;
+
+        const activeEffect: ActiveEffect = {
+            type: 'set_base_ac',
+            name: `Base AC set by ${this.context.spellName}`,
+            value: baseValue,
+            duration: effect.duration || { type: 'rounds', value: 1, concentration: true },
+            appliedTurn: state.turnState.currentTurn,
+            source: this.context.spellName || this.context.spellId || 'Unknown'
+        }
+
+        const updatedEffects = [...(target.activeEffects || []), activeEffect];
+        const newAC = calculateCombatAC(target.armorClass ?? 10, updatedEffects);
+
+        const updatedState = this.updateCharacter(state, target.id, {
+            armorClass: newAC,
+            activeEffects: updatedEffects
+        })
+
+        return this.addLogEntry(updatedState, {
+            type: 'status',
+            message: `${target.name}'s base AC becomes ${baseValue} + Dex (${target.armorClass} → ${newAC})`,
+            characterId: target.id,
+            data: { defensiveEffect: effect }
+        })
+    }
+
+    private applyACMinimum(state: CombatState, target: CombatCharacter, effect: DefensiveEffect): CombatState {
+        const minVal = effect.acMinimum ?? effect.value ?? 16;
+
+        const activeEffect: ActiveEffect = {
+            type: 'ac_minimum',
+            name: `AC Minimum from ${this.context.spellName}`,
+            value: minVal,
+            duration: effect.duration || { type: 'rounds', value: 1, concentration: true },
+            appliedTurn: state.turnState.currentTurn,
+            source: this.context.spellName || this.context.spellId || 'Unknown'
+        }
+
+        const updatedEffects = [...(target.activeEffects || []), activeEffect];
+        const newAC = calculateCombatAC(target.armorClass ?? 10, updatedEffects);
+
+        const updatedState = this.updateCharacter(state, target.id, {
+            armorClass: newAC,
+            activeEffects: updatedEffects
+        })
+
+        return this.addLogEntry(updatedState, {
+            type: 'status',
+            message: `${target.name}'s AC cannot be less than ${minVal} (${target.armorClass} → ${newAC})`,
             characterId: target.id,
             data: { defensiveEffect: effect }
         })
@@ -153,7 +254,7 @@ export class DefensiveCommand extends BaseEffectCommand {
             duration: effect.duration || { type: 'rounds', value: 1 },
             appliedTurn: state.turnState.currentTurn,
             source: this.context.spellName || this.context.spellId || 'Unknown',
-            description: effect.description || 'Advantage on saving throws',
+            description: 'Advantage on saving throws',
             savingThrows: effect.savingThrow
         }
 

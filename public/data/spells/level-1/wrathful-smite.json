@@ -79,7 +79,13 @@
           "dc": "spell_save_dc",
           "actionCost": "action"
         },
-        "level": 1
+        "level": 1,
+        "repeatSave": {
+          "timing": "on_action",
+          "saveType": "wisdom_check",
+          "successEnds": true,
+          "useOriginalDC": true
+        }
       }
     }
   ]

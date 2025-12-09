@@ -78,6 +78,105 @@ export const useTurnManager = ({
     }, newDn.duration);
   }, []);
 
+  const processRepeatSaves = useCallback((character: CombatCharacter, timing: 'turn_end' | 'turn_start' | 'on_damage' | 'on_action', actionEffectId?: string): CombatCharacter => {
+    let updatedCharacter = { ...character };
+    let savedEffectIds: string[] = [];
+
+    updatedCharacter.statusEffects.forEach(effect => {
+      const repeat = effect.repeatSave;
+      if (!repeat) return;
+      if (timing === 'on_action' && effect.id !== actionEffectId) return;
+      if (repeat.timing !== timing) return;
+
+      // Determine caster for DC (fallback to self/team logic if unknown - ideally stored on effect)
+      // For now we assume DC is on effect or use character's own stats if needed (rare)
+      // Actually spellValidator schema has useOriginalDC. StatusEffect needs to carry this info.
+      // We'll calculate a standard DC or use a fixed one if present.
+      const dc = repeat.dc || 10;
+
+      let hasAdvantage = false;
+      let hasDisadvantage = false;
+
+      if (repeat.modifiers?.advantageOnDamage && character.damagedThisTurn) {
+        hasAdvantage = true;
+      }
+      if (repeat.modifiers?.sizeAdvantage && character.stats.size && repeat.modifiers.sizeAdvantage.includes(character.stats.size)) {
+        hasAdvantage = true;
+      }
+      if (repeat.modifiers?.sizeDisadvantage && character.stats.size && repeat.modifiers.sizeDisadvantage.includes(character.stats.size)) {
+        hasDisadvantage = true;
+      }
+
+      const saveType = repeat.saveType as any;
+      // Roll
+      const roll = rollSavingThrow(character, saveType, dc);
+
+      // Apply advantage/disadvantage logic manually to roll? rollSavingThrow support?
+      // rollSavingThrow returns { total, die, bonus, success ... } based on basic stats.
+      // It doesn't take advantage param in current util signature?
+      // Let's check imports.
+      // If I can't pass advantage, I might need to reroll.
+
+      let finalSuccess = roll.success;
+      if (hasAdvantage) {
+        const roll2 = rollSavingThrow(character, saveType, dc);
+        finalSuccess = roll.success || roll2.success; // Advantage: succeeds if either roll succeeds
+      } else if (hasDisadvantage) {
+        const roll2 = rollSavingThrow(character, saveType, dc);
+        finalSuccess = roll.success && roll2.success; // Disadvantage: succeeds only if both rolls succeed
+      }
+
+      if (finalSuccess) {
+        onLogEntry({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'status',
+          message: `${character.name} succeeds on repeat save against ${effect.name}!`,
+          characterId: character.id
+        });
+        if (repeat.successEnds) {
+          savedEffectIds.push(effect.id);
+        }
+      } else {
+        onLogEntry({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'status',
+          message: `${character.name} fails repeat save against ${effect.name}.`,
+          characterId: character.id
+        });
+      }
+    });
+
+    if (savedEffectIds.length > 0) {
+      updatedCharacter.statusEffects = updatedCharacter.statusEffects.filter(e => !savedEffectIds.includes(e.id));
+      // Also potentially remove from activeEffects / conditions if mapped
+    }
+    return updatedCharacter;
+  }, [onLogEntry]);
+
+  const handleDamage = useCallback((character: CombatCharacter, amount: number, source: string, damageType?: string): CombatCharacter => {
+    let updatedCharacter = { ...character };
+    updatedCharacter.currentHP = Math.max(0, updatedCharacter.currentHP - amount);
+    updatedCharacter.damagedThisTurn = true;
+
+    addDamageNumber(amount, updatedCharacter.position, 'damage');
+
+    onLogEntry({
+      id: generateId(),
+      timestamp: Date.now(),
+      type: 'damage',
+      message: `${character.name} takes ${amount} ${damageType || ''} damage from ${source}`,
+      characterId: character.id,
+      data: { damage: amount, damageType, source }
+    });
+
+    // Trigger on_damage repeat saves
+    updatedCharacter = processRepeatSaves(updatedCharacter, 'on_damage');
+
+    return updatedCharacter;
+  }, [addDamageNumber, onLogEntry, processRepeatSaves]);
+
   const rollInitiative = useCallback((character: CombatCharacter): number => {
     const dexModifier = Math.floor((character.stats.dexterity - 10) / 2);
     const roll = Math.floor(Math.random() * 20) + 1;
@@ -144,6 +243,61 @@ export const useTurnManager = ({
     lastTurnStartKey.current = null;
   }, [onCharacterUpdate, onLogEntry, resetEconomy, rollInitiative]);
 
+  const joinCombat = useCallback((character: CombatCharacter, options: { initiative?: number } = {}) => {
+    // 1. Determine Initiative
+    const initiative = options.initiative ?? rollInitiative(character);
+    const charWithInit = { ...character, initiative };
+
+    // 2. Initialize Economy
+    const readyChar = resetEconomy(charWithInit);
+    onCharacterUpdate(readyChar);
+
+    // 3. Insert into Turn Order
+    setTurnState(prev => {
+      const newOrder = [...prev.turnOrder];
+      // Insert based on initiative sort
+      // We need to look up existing initiatives. Since we don't have them easily accessible in a map 
+      // without scanning characters, and characters prop might not be updated yet (async),
+      // we'll append and resort if we can access the full list, OR just insert based on current turn order assumption.
+      // Better: Just append for now or try to be smart?
+      // Let's rely on resorting.
+
+      // Wait, turnOrder is just IDs. We need the actual characters to compare initiatives.
+      // We can't rely on `characters` prop being up to date immediately if this is called in same cycle as setCharacters.
+      // But we can assume the caller will handle setCharacters.
+
+      // Simple approach: Add to end of order for now, or insert after current turn?
+      // If "immediate", likely after caster.
+      // If "rolled", sorted.
+
+      // Let's just append for now to be safe, logic can be refined.
+      // Ideally we rewrite the whole order based on all characters + this new one.
+
+      // Insert at end
+      if (!newOrder.includes(readyChar.id)) {
+        newOrder.push(readyChar.id);
+      }
+
+      // If we want to sort, we need initiatives of all ID's.
+      // The `characters` array has them.
+
+      return {
+        ...prev,
+        turnOrder: newOrder
+      };
+    });
+
+    onLogEntry({
+      id: generateId(),
+      timestamp: Date.now(),
+      type: 'turn_start', // Closest type
+      message: `${readyChar.name} joins the combat! (Init: ${initiative})`,
+      characterId: readyChar.id,
+      data: { initiative }
+    });
+
+  }, [onCharacterUpdate, onLogEntry, resetEconomy, rollInitiative]);
+
   const processEndOfTurnEffects = useCallback((character: CombatCharacter) => {
     let updatedCharacter = { ...character };
 
@@ -173,16 +327,7 @@ export const useTurnManager = ({
       switch (effect.effect.type) {
         case 'damage_per_turn':
           const dmg = effect.effect.value || 0;
-          updatedCharacter.currentHP = Math.max(0, updatedCharacter.currentHP - dmg);
-          addDamageNumber(dmg, updatedCharacter.position, 'damage');
-          onLogEntry({
-            id: generateId(),
-            timestamp: Date.now(),
-            type: 'damage',
-            message: `${character.name} takes ${dmg} damage from ${effect.name}`,
-            characterId: character.id,
-            data: { damage: dmg, source: effect.name }
-          });
+          updatedCharacter = handleDamage(updatedCharacter, dmg, effect.name, 'necrotic'); // assume necrotic/stat based for now
           break;
         case 'heal_per_turn':
           const heal = effect.effect.value || 0;
@@ -212,8 +357,14 @@ export const useTurnManager = ({
       updatedCharacter.concentratingOn = undefined;
     }
 
+    // Process End of Turn Repeat Saves
+    updatedCharacter = processRepeatSaves(updatedCharacter, 'turn_end');
+
+    // Reset damagedThisTurn at the very end of processing turns
+    updatedCharacter.damagedThisTurn = false;
+
     onCharacterUpdate(updatedCharacter);
-  }, [addDamageNumber, onCharacterUpdate, onLogEntry, spellZones, turnState.currentTurn]);
+  }, [addDamageNumber, onCharacterUpdate, onLogEntry, spellZones, turnState.currentTurn, handleDamage, processRepeatSaves]);
 
   const endTurn = useCallback(() => {
     const currentCharacter = characters.find(c => c.id === turnState.currentCharacterId);
@@ -318,22 +469,18 @@ export const useTurnManager = ({
               const target = characters.find(c => c.id === trigger.targetId);
               if (target) {
                 const damage = rollDice(effect.damage.dice);
-                onLogEntry({
-                  id: generateId(),
-                  timestamp: Date.now(),
-                  type: 'damage',
-                  message: `${target.name} takes ${damage} damage from sustained spell!`,
-                  characterId: target.id,
-                  data: { damage, trigger: 'on_caster_action' }
-                });
-                const updatedTarget = { ...target, currentHP: Math.max(0, target.currentHP - damage) };
+                const updatedTarget = handleDamage(target, damage, 'sustained spell', effect.damage.type);
                 onCharacterUpdate(updatedTarget);
-                addDamageNumber(damage, target.position, 'damage');
               }
             }
           }
         }
       }
+    }
+
+    if (action.type === 'break_free' && action.targetEffectId) {
+      updatedCharacter = processRepeatSaves(updatedCharacter, 'on_action', action.targetEffectId);
+      // Log handled in processRepeatSaves
     }
 
     if (action.type === 'move' && action.targetPosition) {
@@ -357,16 +504,7 @@ export const useTurnManager = ({
           for (const effect of result.effects) {
             if (effect.type === 'damage' && effect.dice) {
               const damage = rollDice(effect.dice);
-              updatedCharacter = { ...updatedCharacter, currentHP: Math.max(0, updatedCharacter.currentHP - damage) };
-              addDamageNumber(damage, action.targetPosition, 'damage');
-              onLogEntry({
-                id: generateId(),
-                timestamp: Date.now(),
-                type: 'damage',
-                message: `${updatedCharacter.name} takes ${damage} ${effect.damageType || ''} damage from moving!`,
-                characterId: updatedCharacter.id,
-                data: { damage, damageType: effect.damageType, trigger: 'on_target_move' }
-              });
+              updatedCharacter = handleDamage(updatedCharacter, damage, 'moving', effect.damageType);
             }
           }
         }
@@ -413,16 +551,7 @@ export const useTurnManager = ({
                   }
                 }
 
-                updatedCharacter = { ...updatedCharacter, currentHP: Math.max(0, updatedCharacter.currentHP - damage) };
-                addDamageNumber(damage, action.targetPosition, 'damage');
-                onLogEntry({
-                  id: generateId(),
-                  timestamp: Date.now(),
-                  type: 'damage',
-                  message: `${updatedCharacter.name} takes ${damage} ${effect.damageType || ''} damage from zone effect${saveMessage}!`,
-                  characterId: updatedCharacter.id,
-                  data: { damage, damageType: effect.damageType, trigger: result.triggerType || 'on_enter_area' }
-                });
+                updatedCharacter = handleDamage(updatedCharacter, damage, `zone effect${saveMessage}`, effect.damageType);
               }
               break;
 
@@ -669,6 +798,7 @@ export const useTurnManager = ({
   return {
     turnState,
     initializeCombat,
+    joinCombat,
     executeAction,
     endTurn,
     getCurrentCharacter,

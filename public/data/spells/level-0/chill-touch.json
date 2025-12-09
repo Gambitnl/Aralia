@@ -87,7 +87,7 @@
       "condition": {
         "type": "hit",
         "targetFilter": {
-          "creatureType": [
+          "creatureTypes": [
             "Undead"
           ]
         }

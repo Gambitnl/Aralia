@@ -114,6 +114,15 @@ const SaveModifier = z.object({
   value: z.number().optional(),
   appliesTo: TargetConditionFilter.optional(),
   reason: z.string().optional(),
+  advantageOnDamage: z.boolean().optional(),
+  sizeAdvantage: z.array(z.string()).optional(),
+  sizeDisadvantage: z.array(z.string()).optional()
+});
+
+const RepeatSaveModifiers = z.object({
+  advantageOnDamage: z.boolean().optional(),
+  sizeAdvantage: z.array(z.string()).optional(),
+  sizeDisadvantage: z.array(z.string()).optional()
 });
 
 const EffectCondition = z.object({
@@ -162,6 +171,23 @@ const StatusCondition = z.object({
   duration: EffectDuration,
   level: z.number().optional(),
   escapeCheck: EscapeCheck.optional(),
+  repeatSave: z.object({
+    timing: z.enum([
+      "turn_end",           // End of target's turn
+      "turn_start",         // Start of target's turn
+      "on_damage",          // When target takes damage
+      "on_action"           // Target must use action to attempt
+    ]),
+    saveType: z.enum([
+      "Strength", "Dexterity", "Constitution",
+      "Intelligence", "Wisdom", "Charisma",
+      "strength_check",
+      "wisdom_check"
+    ]),
+    successEnds: z.boolean(),
+    useOriginalDC: z.boolean(),
+    modifiers: RepeatSaveModifiers.optional()
+  }).optional()
 });
 
 const StatusConditionEffect = BaseEffect.extend({
@@ -212,37 +238,76 @@ const TauntEffect = z.object({
   breakConditions: z.array(z.string()).optional(),
 });
 
-const FamiliarContract = z.object({
-  forms: z.array(z.string()),
-  telepathyRange: z.number(),
-  actionEconomy: z.object({
-    actsIndependently: z.boolean(),
-    canAttack: z.boolean(),
-  }),
-  sensesSharing: z.object({
-    actionType: z.enum(["action", "bonus_action", "reaction"]),
-    range: z.number(),
+// Summoning Schema
+const SummonedEntityStatBlock = z.object({
+  name: z.string().optional(),
+  type: z.string().optional(), // Celestial, Fey, Fiend, Beast, etc.
+  size: z.enum(['Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan']).optional(),
+  ac: z.number().optional(),
+  hp: z.number().optional(),
+  speed: z.number().optional(),
+  flySpeed: z.number().optional(),
+  climbSpeed: z.number().optional(),
+  swimSpeed: z.number().optional(),
+  abilities: z.object({
+    str: z.number(),
+    dex: z.number(),
+    con: z.number(),
+    int: z.number(),
+    wis: z.number(),
+    cha: z.number(),
   }).optional(),
-  touchDelivery: z.object({
-    enabled: z.boolean(),
-    range: z.number(),
-    usesReactionOf: z.enum(["familiar", "caster"]),
-  }).optional(),
-  dismissal: z.object({
-    method: z.literal("pocket_dimension"),
-    actionType: z.enum(["action", "bonus_action"]),
-  }).optional(),
-  notes: z.string().optional(),
+  senses: z.array(z.string()).optional(),
+  skills: z.record(z.number()).optional(),
+});
+
+const SummonSpecialAction = z.object({
+  name: z.string(),
+  description: z.string(),
+  cost: z.enum(['action', 'bonus_action', 'reaction', 'free']),
+  damage: z.object({
+    dice: z.string(),
+    type: z.string() // DamageType
+  }).optional()
 });
 
 const SummoningEffect = BaseEffect.extend({
   type: z.literal("SUMMONING"),
-  summonType: z.enum(["creature", "object"]),
-  creatureId: z.string().optional(),
-  objectDescription: z.string().optional(),
-  count: z.number(),
-  duration: EffectDuration,
-  familiarContract: FamiliarContract.optional(),
+  summon: z.object({
+    entityType: z.enum(["familiar", "servant", "construct", "creature", "undead", "mount", "object"]),
+    persistent: z.boolean(), // If true, remains until dismissed or killed. If false, duration applies.
+    dismissAction: z.enum(["action", "bonus_action", "free", "none"]).optional(),
+
+    // For variable summons
+    count: z.number().optional(),
+    countByCR: z.record(z.number()).optional(), // e.g. {"2": 1, "1": 2, "0.5": 4}
+
+    // For choice summons
+    formOptions: z.array(z.string()).optional(),
+
+    // Stats
+    statBlock: SummonedEntityStatBlock.optional(),
+    objectDescription: z.string().optional(), // For simple objects like Disk
+
+    // Command Economy
+    commandCost: z.enum(["action", "bonus_action", "free", "none"]),
+    commandsPerTurn: z.number().optional(),
+    initiative: z.enum(["immediate", "rolled", "shared"]).optional(),
+
+    // Movement/Following
+    followDistance: z.number().optional(),
+    hoverHeight: z.number().optional(),
+    terrainRestrictions: z.array(z.string()).optional(),
+
+    // Capacity
+    carryCapacity: z.number().optional(), // In pounds
+
+    // Special Integrations
+    telepathyRange: z.number().optional(),
+    sharedSenses: z.boolean().optional(),
+    sharedSensesCost: z.enum(["action", "bonus_action"]).optional(),
+    specialActions: z.array(SummonSpecialAction).optional()
+  })
 });
 
 const AreaOfEffect = z.object({
@@ -276,11 +341,35 @@ const UtilityEffect = BaseEffect.extend({
 
 const DefensiveEffect = BaseEffect.extend({
   type: z.literal("DEFENSIVE"),
-  defenseType: z.enum(["ac_bonus", "resistance", "immunity", "temporary_hp", "advantage_on_saves"]),
-  value: z.number().optional(),
+  defenseType: z.enum([
+    "ac_bonus",
+    "set_base_ac",
+    "ac_minimum",
+    "resistance",
+    "immunity",
+    "temporary_hp",
+    "advantage_on_saves"
+  ]),
+  value: z.number().optional(), // Used for AC bonus value or Temp HP amount
+  baseACFormula: z.string().optional(), // For set_base_ac
+  acMinimum: z.number().optional(), // For ac_minimum
+
   damageType: z.array(z.string()).optional(),
   savingThrow: z.array(SavingThrowAbility).optional(),
   duration: EffectDuration,
+
+  // Reaction trigger (for shield)
+  reactionTrigger: z.object({
+    event: z.enum(["when_hit", "when_targeted", "when_damaged"]),
+    includesSpells: z.array(z.string()).optional()
+  }).optional(),
+
+  // Restrictions
+  restrictions: z.object({
+    noArmor: z.boolean().optional(),
+    noShield: z.boolean().optional(),
+    targetSelf: z.boolean().optional()
+  }).optional()
 });
 
 const SpellEffect = z.discriminatedUnion("type", [

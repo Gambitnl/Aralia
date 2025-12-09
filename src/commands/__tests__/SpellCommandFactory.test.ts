@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { SpellCommandFactory } from '../factory/SpellCommandFactory'
 import { DamageCommand } from '../effects/DamageCommand'
-import { HealingCommand } from '../effects/HealingCommand'
 import type { Spell } from '@/types/spells'
 import type { CombatCharacter, CombatState } from '@/types/combat'
 
@@ -30,7 +29,7 @@ describe('SpellCommandFactory', () => {
   describe('createCommands', () => {
     it('should create commands for simple damage spell', async () => {
       const fireball = createMockSpell('fireball', {
-        effects: [{ type: 'DAMAGE', damage: { dice: '8d6', type: 'Fire' }, trigger: {type: 'immediate'}, condition: {type: 'hit'} }]
+        effects: [{ type: 'DAMAGE', damage: { dice: '8d6', type: 'Fire' }, trigger: { type: 'immediate' }, condition: { type: 'hit' } }]
       })
 
       const commands = await SpellCommandFactory.createCommands(
@@ -46,34 +45,16 @@ describe('SpellCommandFactory', () => {
     })
 
     it('should apply slot level scaling for Damage', async () => {
-      const spell = createMockSpell('magic_missile', {
+      const spellSimple = createMockSpell('burning_hands', {
         level: 1,
         effects: [{
           type: 'DAMAGE',
-          damage: { dice: '1d4+1', type: 'Force' },
-          trigger: {type: 'immediate'}, 
-          condition: {type: 'hit'},
-          scaling: { type: 'slot_level', bonusPerLevel: '+1d4+1' } // Simplified scaling syntax
+          damage: { dice: '3d6', type: 'Fire' },
+          trigger: { type: 'immediate' },
+          condition: { type: 'save' },
+          scaling: { type: 'slot_level', bonusPerLevel: '+1d6' }
         }]
       })
-
-      // This test depends on how I implemented addDice.
-      // My addDice implementation handles "XdY" + "AdB".
-      // Does it handle "+1"? My regex was `match(/(\d+)d(\d+)/)`.
-      // It expects "XdY".
-      // So "+1d4" is fine. "+1d4+1" might fail my simple regex.
-      // Let's stick to the simple regex support I wrote: "+1d4".
-      
-      const spellSimple = createMockSpell('burning_hands', {
-          level: 1,
-          effects: [{
-            type: 'DAMAGE',
-            damage: { dice: '3d6', type: 'Fire' },
-            trigger: {type: 'immediate'}, 
-            condition: {type: 'save'},
-            scaling: { type: 'slot_level', bonusPerLevel: '+1d6' }
-          }]
-        })
 
       const commands = await SpellCommandFactory.createCommands(
         spellSimple,
@@ -84,17 +65,75 @@ describe('SpellCommandFactory', () => {
       )
 
       const cmd = commands[0] as DamageCommand
-      // I can't access `effect` on DamageCommand easily because it's protected in BaseEffectCommand.
-      // I should make it public or cast to any for testing.
-      // Or check metadata? Metadata stores 'effectType', not values.
-      // I'll cast to any.
-      
-      // Also, my DamageCommand is a Stub that doesn't store the modified effect locally, 
-      // BUT BaseEffectCommand constructor takes `effect`.
-      // So `(cmd as any).effect` should hold the scaled effect.
-      
       const effect: any = (cmd as any).effect;
       expect(effect.damage.dice).toBe('4d6') // 3d6 + 1d6
+    })
+
+    it('should filter targets based on creatureTypes', async () => {
+      const spell = createMockSpell('turn_undead', {
+        effects: [{
+          type: 'DAMAGE',
+          damage: { dice: '1d6', type: 'Radiant' },
+          trigger: { type: 'immediate' },
+          condition: {
+            type: 'hit',
+            targetFilter: { creatureTypes: ['Undead'] }
+          }
+        }]
+      })
+
+      const undeadTarget = { ...mockTarget, id: 'undead', creatureTypes: ['Undead'] }
+      const humanTarget = { ...mockTarget, id: 'human', creatureTypes: ['Humanoid'] }
+
+      // We explicitly pass multiple targets. The factory iterates context targets.
+      // But SpellCommandFactory.createCommands takes `targets: CombatCharacter[]`.
+      // It iterates `spell.effects` and calls `createCommand`.
+      // `createCommand` uses `context.targets`.
+      // My implementation FILTERS `context.targets` inside `createCommand` if a filter exists.
+      // So the command created should use a filtered context.
+
+      const commands = await SpellCommandFactory.createCommands(
+        spell,
+        mockCaster,
+        [undeadTarget, humanTarget],
+        1,
+        {} as any
+      )
+
+      expect(commands).toHaveLength(1)
+      const cmd = commands[0]
+      // We can check if the command context targets were filtered.
+      // Since context is protected/private, we can't check directly without casting.
+
+      const contextTargets = (cmd as any).context.targets;
+      expect(contextTargets).toHaveLength(1);
+      expect(contextTargets[0].id).toBe('undead');
+    })
+
+    it('should return no commands if all targets are filtered out', async () => {
+      const spell = createMockSpell('turn_undead', {
+        effects: [{
+          type: 'DAMAGE',
+          damage: { dice: '1d6', type: 'Radiant' },
+          trigger: { type: 'immediate' },
+          condition: {
+            type: 'hit',
+            targetFilter: { creatureTypes: ['Undead'] }
+          }
+        }]
+      })
+
+      const humanTarget = { ...mockTarget, id: 'human', creatureTypes: ['Humanoid'] }
+
+      const commands = await SpellCommandFactory.createCommands(
+        spell,
+        mockCaster,
+        [humanTarget],
+        1,
+        {} as any
+      )
+
+      expect(commands).toHaveLength(0)
     })
   })
 })

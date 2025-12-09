@@ -3,13 +3,29 @@
   "name": "Tasha's Hideous Laughter",
   "level": 1,
   "school": "Enchantment",
-  "classes": ["Bard", "Warlock", "Wizard"],
+  "classes": [
+    "Bard",
+    "Warlock",
+    "Wizard"
+  ],
   "description": "A creature of your choice that you can see within range perceives everything as hilariously funny and falls into fits of laughter if it fails a Wisdom saving throw. The target falls Prone, is Incapacitated, and cannot stand up for the duration. At the end of each of its turns, and each time it takes damage, the target can make another Wisdom saving throw (with Advantage if triggered by damage), ending the spell on a success.",
   "higherLevels": "None",
-  "tags": ["control", "concentration"],
+  "tags": [
+    "control",
+    "concentration"
+  ],
   "ritual": false,
-  "castingTime": { "value": 1, "unit": "action", "combatCost": { "type": "action" } },
-  "range": { "type": "ranged", "distance": 30 },
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
   "components": {
     "verbal": true,
     "somatic": true,
@@ -18,18 +34,49 @@
     "materialCost": 0,
     "isConsumed": false
   },
-  "duration": { "type": "timed", "value": 1, "unit": "minute", "concentration": true },
-  "targeting": { "type": "single", "range": 30, "validTargets": ["creatures", "enemies"], "lineOfSight": true },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 30,
+    "validTargets": [
+      "creatures",
+      "enemies"
+    ],
+    "lineOfSight": true
+  },
   "effects": [
     {
       "type": "STATUS_CONDITION",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "save", "saveType": "Wisdom", "saveEffect": "negates_condition" },
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "negates_condition"
+      },
+      "description": "Target is prone and incapacitated on a failed save; repeats Wisdom saves at end of turns and after taking damage (with Advantage if damage triggered) to end the effect.",
       "statusCondition": {
         "name": "Prone, Incapacitated",
-        "duration": { "type": "minutes", "value": 1 }
-      },
-      "description": "Target is prone and incapacitated on a failed save; repeats Wisdom saves at end of turns and after taking damage (with Advantage if damage triggered) to end the effect."
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true,
+          "modifiers": {
+            "advantageOnDamage": true
+          }
+        }
+      }
     }
   ]
 }

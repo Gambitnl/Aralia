@@ -3,35 +3,63 @@
   "name": "Unseen Servant",
   "level": 1,
   "school": "Conjuration",
-  "classes": ["Bard", "Warlock", "Wizard"],
-  "description": "You create an invisible, mindless force in an unoccupied space on the ground within range. The servant has AC 10, 1 hit point, Strength 2, and it can't attack. If it drops to 0 HP, the spell ends. On each of your turns, you can use a Bonus Action to command it to move up to 15 feet and perform a simple task (fetch, clean, mend, open/close, fold, light/extinguish). It can carry up to 10 pounds and stops moving if ordered beyond 60 feet.",
-  "higherLevels": "None",
-  "tags": ["utility", "ritual", "summon"],
-  "ritual": true,
+  "classes": [
+    "Bard",
+    "Warlock",
+    "Wizard"
+  ],
   "castingTime": {
     "value": 1,
-    "unit": "action",
-    "combatCost": { "type": "action" },
-    "explorationCost": { "value": 11, "unit": "minute" }
+    "unit": "action"
   },
-  "range": { "type": "ranged", "distance": 60 },
+  "range": {
+    "type": "point",
+    "distance": 60
+  },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a piece of string and a bit of wood",
-    "materialCost": 0,
-    "isConsumed": false
+    "materialComponents": "a piece of string and a bit of wood"
   },
-  "duration": { "type": "timed", "value": 1, "unit": "hour", "concentration": false },
-  "targeting": { "type": "single", "range": 60, "validTargets": ["unoccupied_space"], "lineOfSight": true },
+  "duration": {
+    "type": "minutes",
+    "value": 60
+  },
   "effects": [
     {
-      "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
-      "utilityType": "creation",
-      "description": "Summons an invisible servant (AC 10, 1 HP, Str 2) that obeys simple commands, moves 15 feet per command, and performs basic tasks but cannot attack; ends if reduced to 0 HP."
+      "type": "SUMMONING",
+      "summon": {
+        "entityType": "servant",
+        "persistent": false,
+        "count": 1,
+        "statBlock": {
+          "name": "Unseen Servant",
+          "ac": 10,
+          "hp": 1,
+          "speed": 15,
+          "abilities": {
+            "str": 2,
+            "dex": 10,
+            "con": 10,
+            "int": 1,
+            "wis": 10,
+            "cha": 1
+          },
+          "size": "Medium",
+          "type": "Construct"
+        },
+        "commandCost": "bonus_action",
+        "carryCapacity": 20,
+        "specialActions": [
+          {
+            "name": "Perform Task",
+            "description": "The servant performs a simple task such as fetching an object, cleaning, mending, folding clothes, lighting fires, serving food, or pouring wine.",
+            "cost": "action"
+          }
+        ]
+      }
     }
-  ]
+  ],
+  "description": "This spell creates an invisible, mindless, shapeless force that performs simple tasks at your command until the spell ends. The servant springs into existence in an unoccupied space on the ground within range. It has AC 10, 1 hit point, and a Strength of 2, and it can't attack. If it drops to 0 hit points, the spell ends.\n\nOnce on each of your turns as a bonus action, you can mentally command the servant to move up to 15 feet and interact with an object. The servant can perform simple tasks that a human servant could do, such as fetching things, cleaning, mending, folding clothes, lighting fires, serving food, and pouring wine. Once you give the command, the servant performs the task to the best of its ability until it completes the task, then waits for your next command.\n\nIf you command the servant to perform a task that would move it more than 60 feet away from you, the spell ends."
 }

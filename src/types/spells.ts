@@ -454,11 +454,30 @@ export interface UtilityEffect extends BaseEffect {
 /** An effect that provides defensive bonuses (e.g., AC boost, resistance). */
 export interface DefensiveEffect extends BaseEffect {
   type: "DEFENSIVE";
-  defenseType: "ac_bonus" | "resistance" | "immunity" | "temporary_hp" | "advantage_on_saves";
+  defenseType: "ac_bonus" | "set_base_ac" | "ac_minimum" | "resistance" | "immunity" | "temporary_hp" | "advantage_on_saves";
   value?: number; // e.g., AC bonus or amount of temporary HP
+
+  // AC Specifics
+  acBonus?: number;
+  baseACFormula?: string;
+  acMinimum?: number;
+
   damageType?: DamageType[]; // For resistance/immunity
   savingThrow?: SavingThrowAbility[]; // For advantage on saves
   duration: EffectDuration;
+
+  // Reaction
+  reactionTrigger?: {
+    event: "when_hit" | "when_targeted" | "when_damaged";
+    includesSpells?: string[];
+  };
+
+  // Restrictions
+  restrictions?: {
+    noArmor?: boolean;
+    noShield?: boolean;
+    targetSelf?: boolean;
+  };
 }
 
 //==============================================================================
