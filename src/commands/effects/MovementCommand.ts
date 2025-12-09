@@ -52,19 +52,41 @@ export class MovementCommand extends BaseEffectCommand {
 
         if (magnitude === 0) return state // Same position, can't push
 
-        // Normalize and multiply by tiles
-        const newX = target.position.x + Math.round((dx / magnitude) * tiles)
-        const newY = target.position.y + Math.round((dy / magnitude) * tiles)
+        // Iterate tiles to find furthest valid position
+        let bestX = target.position.x
+        let bestY = target.position.y
 
-        // TODO: Check if new position is valid (not blocked, not off-map)
+        for (let i = 1; i <= tiles; i++) {
+            const nextX = target.position.x + Math.round((dx / magnitude) * i)
+            const nextY = target.position.y + Math.round((dy / magnitude) * i)
+
+            if (this.validatePosition(state, { x: nextX, y: nextY }, target.id)) {
+                bestX = nextX
+                bestY = nextY
+            } else {
+                // Blocked or off-map, stop pushing
+                break
+            }
+        }
+
+        // Check if we actually moved
+        if (bestX === target.position.x && bestY === target.position.y) {
+            return this.addLogEntry(state, {
+                type: 'action',
+                message: `${target.name} cannot be pushed (blocked)`,
+                characterId: target.id
+            })
+        }
 
         const updatedState = this.updateCharacter(state, target.id, {
-            position: { x: newX, y: newY }
+            position: { x: bestX, y: bestY }
         })
+
+        const distanceMoved = Math.round(Math.sqrt(Math.pow(bestX - target.position.x, 2) + Math.pow(bestY - target.position.y, 2)) * 5)
 
         return this.addLogEntry(updatedState, {
             type: 'action',
-            message: `${target.name} is pushed ${distance} feet`,
+            message: `${target.name} is pushed ${distanceMoved} feet`,
             characterId: target.id
         })
     }
@@ -81,19 +103,43 @@ export class MovementCommand extends BaseEffectCommand {
 
         if (magnitude === 0) return state // Same position
 
-        // Normalize and multiply by tiles
-        // We don't want to pull them INTO the caster, so maybe stop 1 tile short if they would collide?
-        // For now, simpler implementation as per task description request
-        const newX = target.position.x + Math.round((dx / magnitude) * tiles)
-        const newY = target.position.y + Math.round((dy / magnitude) * tiles)
+        let bestX = target.position.x
+        let bestY = target.position.y
+
+        for (let i = 1; i <= tiles; i++) {
+            const nextX = target.position.x + Math.round((dx / magnitude) * i)
+            const nextY = target.position.y + Math.round((dy / magnitude) * i)
+
+            // Don't pull ONTO the caster (unless they are ghost/flying? assume no for now)
+            if (nextX === caster.position.x && nextY === caster.position.y) {
+                break
+            }
+
+            if (this.validatePosition(state, { x: nextX, y: nextY }, target.id)) {
+                bestX = nextX
+                bestY = nextY
+            } else {
+                break
+            }
+        }
+
+        if (bestX === target.position.x && bestY === target.position.y) {
+            return this.addLogEntry(state, {
+                type: 'action',
+                message: `${target.name} cannot be pulled (blocked)`,
+                characterId: target.id
+            })
+        }
 
         const updatedState = this.updateCharacter(state, target.id, {
-            position: { x: newX, y: newY }
+            position: { x: bestX, y: bestY }
         })
+
+        const distanceMoved = Math.round(Math.sqrt(Math.pow(bestX - target.position.x, 2) + Math.pow(bestY - target.position.y, 2)) * 5)
 
         return this.addLogEntry(updatedState, {
             type: 'action',
-            message: `${target.name} is pulled ${distance} feet`,
+            message: `${target.name} is pulled ${distanceMoved} feet`,
             characterId: target.id
         })
     }
@@ -104,7 +150,6 @@ export class MovementCommand extends BaseEffectCommand {
         const requestedDestination = this.resolveTeleportDestination(state, target, maxTiles, effect)
 
         if (!requestedDestination) {
-            // Without any selectable destination, keep the target in place but surface a log entry.
             return this.addLogEntry(state, {
                 type: 'action',
                 message: `${target.name} attempts to teleport but no destination was available`,
@@ -112,26 +157,38 @@ export class MovementCommand extends BaseEffectCommand {
             })
         }
 
-        // Ensure we do not exceed range or map bounds, and avoid occupied tiles when possible.
         const clampedDestination = this.clampToBounds(requestedDestination)
-        const destination = this.findAvailableDestination(state, target.id, origin, clampedDestination, maxTiles)
 
-        if (!destination) {
-            // Avoid silently failing: let the log communicate why the teleport fizzled.
-            return this.addLogEntry(state, {
+        // Final validation: is it occupied?
+        if (!this.validatePosition(state, clampedDestination, target.id)) {
+             // Try to find available near destination? The original method findAvailableDestination did this.
+             // Let's reuse findAvailableDestination but update it to use validatePosition
+             const altDest = this.findAvailableDestination(state, target.id, origin, clampedDestination, maxTiles)
+             if (!altDest) {
+                 return this.addLogEntry(state, {
+                     type: 'action',
+                     message: `${target.name} cannot teleport to a valid space`,
+                     characterId: target.id
+                 })
+             }
+
+             // Recursion safe because findAvailableDestination returns a validated point or null
+             const updatedState = this.updateCharacter(state, target.id, { position: altDest })
+             return this.addLogEntry(updatedState, {
                 type: 'action',
-                message: `${target.name} cannot teleport to a valid space`,
-                characterId: target.id
+                message: `${target.name} teleports from (${origin.x}, ${origin.y}) to (${altDest.x}, ${altDest.y})`,
+                characterId: target.id,
+                data: { from: origin, to: altDest, maxDistance: effect.distance || null }
             })
         }
 
-        const updatedState = this.updateCharacter(state, target.id, { position: destination })
+        const updatedState = this.updateCharacter(state, target.id, { position: clampedDestination })
 
         return this.addLogEntry(updatedState, {
             type: 'action',
-            message: `${target.name} teleports from (${origin.x}, ${origin.y}) to (${destination.x}, ${destination.y})`,
+            message: `${target.name} teleports from (${origin.x}, ${origin.y}) to (${clampedDestination.x}, ${clampedDestination.y})`,
             characterId: target.id,
-            data: { from: origin, to: destination, maxDistance: effect.distance || null }
+            data: { from: origin, to: clampedDestination, maxDistance: effect.distance || null }
         })
     }
 
@@ -175,7 +232,6 @@ export class MovementCommand extends BaseEffectCommand {
                 dx = caster.position.x - target.position.x
                 dy = caster.position.y - target.position.y
             } else {
-                // fallback: no movement vector
                 dx = 0
                 dy = 0
             }
@@ -189,11 +245,32 @@ export class MovementCommand extends BaseEffectCommand {
                 })
             }
 
-            const newX = target.position.x + Math.round((dx / magnitude) * tiles)
-            const newY = target.position.y + Math.round((dy / magnitude) * tiles)
+            // Iterate for forced movement (similar to push/pull safety)
+            let bestX = target.position.x
+            let bestY = target.position.y
+
+            for (let i = 1; i <= tiles; i++) {
+                const nextX = target.position.x + Math.round((dx / magnitude) * i)
+                const nextY = target.position.y + Math.round((dy / magnitude) * i)
+
+                if (this.validatePosition(state, { x: nextX, y: nextY }, target.id)) {
+                    bestX = nextX
+                    bestY = nextY
+                } else {
+                    break
+                }
+            }
+
+            if (bestX === target.position.x && bestY === target.position.y) {
+                 return this.addLogEntry(state, {
+                    type: 'action',
+                    message: `${target.name} is forced to move but is blocked`,
+                    characterId: target.id
+                })
+            }
 
             const updatedState = this.updateCharacter(state, target.id, {
-                position: { x: newX, y: newY }
+                position: { x: bestX, y: bestY }
             })
 
             return this.addLogEntry(updatedState, {
@@ -209,32 +286,24 @@ export class MovementCommand extends BaseEffectCommand {
         })
     }
 
-    /**
-     * Choose a teleport destination using, in order:
-     * 1) An explicit destination encoded on the effect (destination/targetPosition for future compatibility)
-     * 2) A valid move tile supplied by the state (UI-prevalidated options)
-     * 3) A fallback vector away from the caster to honor max distance
-     */
     private resolveTeleportDestination(
         state: CombatState,
         target: CombatCharacter,
         maxTiles: number,
         effect: MovementEffect
     ): Position | null {
-        // 1) Author-specified destination (forward compatible if we add UI piping into the effect payload)
-        const explicit = (effect as any).destination ?? (effect as any).targetPosition
+        // Safe access via new type properties
+        const explicit = effect.destination ?? effect.targetPosition
         if (explicit && typeof explicit.x === 'number' && typeof explicit.y === 'number') {
             return explicit as Position
         }
 
-        // 2) Pre-validated tiles from state.validMoves (preferred UI path)
         const origin = target.position
         const validMoves = (state.validMoves || []).filter(pos => getDistance(origin, pos) <= (maxTiles || Infinity))
         if (validMoves.length > 0) {
             return validMoves[0]
         }
 
-        // Fallback: move directly away from the caster up to maxTiles.
         const caster = this.getCaster(state)
         const dx = origin.x - caster.position.x
         const dy = origin.y - caster.position.y
@@ -244,17 +313,12 @@ export class MovementCommand extends BaseEffectCommand {
             return null
         }
 
-        // 3) Fallback: project directly away from the caster within range
         return {
             x: origin.x + Math.round((dx / magnitude) * maxTiles),
             y: origin.y + Math.round((dy / magnitude) * maxTiles)
         }
     }
 
-    /**
-     * Clamp the requested position to known map bounds when available.
-     * Supports both overworld (gridSize) and combat map (dimensions) metadata when present on gameState.
-     */
     private clampToBounds(position: Position): Position {
         const mapData: any = this.context.gameState?.mapData
         const width = mapData?.dimensions?.width ?? mapData?.gridSize?.cols
@@ -271,9 +335,27 @@ export class MovementCommand extends BaseEffectCommand {
     }
 
     /**
-     * Find a tile within range that is not already occupied; prefer the requested destination, then fall back
-     * to any other valid move supplied by state.validMoves.
+     * Checks if a position is valid:
+     * 1. Within map bounds (if map data is available)
+     * 2. Not occupied by another character
      */
+    private validatePosition(state: CombatState, position: Position, excludeCharacterId?: string): boolean {
+        // 1. Check bounds
+        const clamped = this.clampToBounds(position)
+        if (clamped.x !== position.x || clamped.y !== position.y) {
+            return false // Was out of bounds
+        }
+
+        // 2. Check collision
+        const isOccupied = state.characters.some(c =>
+            c.id !== excludeCharacterId &&
+            c.position.x === position.x &&
+            c.position.y === position.y
+        )
+
+        return !isOccupied
+    }
+
     private findAvailableDestination(
         state: CombatState,
         targetId: string,
@@ -281,18 +363,14 @@ export class MovementCommand extends BaseEffectCommand {
         requested: Position,
         maxTiles: number
     ): Position | null {
-        // Prefer the requested tile if it is in range and empty
         const inRange = (pos: Position) => maxTiles === 0 || getDistance(origin, pos) <= maxTiles
-        const isOccupied = (pos: Position) =>
-            state.characters.some(c => c.id !== targetId && c.position.x === pos.x && c.position.y === pos.y)
 
-        if (inRange(requested) && !isOccupied(requested)) {
+        if (inRange(requested) && this.validatePosition(state, requested, targetId)) {
             return requested
         }
 
-        // Otherwise try any UI-validated tile
         for (const pos of state.validMoves || []) {
-            if (inRange(pos) && !isOccupied(pos)) {
+            if (inRange(pos) && this.validatePosition(state, pos, targetId)) {
                 return pos
             }
         }
