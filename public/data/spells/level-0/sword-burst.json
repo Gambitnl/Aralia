@@ -1,0 +1,62 @@
+{
+  "id": "sword-burst",
+  "name": "Sword Burst",
+  "level": 0,
+  "school": "Conjuration",
+  "classes": ["Artificer", "Sorcerer", "Warlock", "Wizard"],
+  "description": "You create a momentary circle of spectral blades that sweep around you. All other creatures within 5 feet of you must succeed on a Dexterity saving throw or take 1d6 force damage.",
+  "higherLevels": "This spell's damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6).",
+  "tags": ["damage", "force", "aoe", "cantrip"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "area",
+    "range": 0,
+    "validTargets": ["creatures"],
+    "lineOfSight": false,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 5
+    }
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Dexterity",
+        "saveEffect": "none"
+      },
+      "damage": {
+        "dice": "1d6",
+        "type": "Force"
+      },
+      "scaling": {
+        "type": "character_level",
+        "bonusPerLevel": "+1d6",
+        "customFormula": "1d6 at level 1, 2d6 at level 5, 3d6 at level 11, 4d6 at level 17"
+      }
+    }
+  ]
+}
