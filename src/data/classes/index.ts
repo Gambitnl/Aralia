@@ -33,7 +33,7 @@ const CLERIC_SPELL_LIST = [
 ];
 const DRUID_SPELL_LIST = [
     // Cantrips
-    'druidcraft', 'elementalism', 'guidance', 'mending', 'message', 'poison-spray', 'produce-flame', 'resistance', 'shillelagh', 'spare-the-dying', 'starry-wisp', 'thorn-whip', 'thunderclap',
+    'druidcraft', 'elementalism', 'guidance', 'magic-stone', 'mending', 'message', 'poison-spray', 'produce-flame', 'resistance', 'shillelagh', 'spare-the-dying', 'starry-wisp', 'thorn-whip', 'thunderclap',
     // Level 1
     'animal-friendship', 'charm-person', 'create-or-destroy-water', 'cure-wounds', 'detect-magic', 'detect-poison-and-disease', 'entangle', 'faerie-fire', 'fog-cloud', 'goodberry', 'healing-word', 'ice-knife', 'jump', 'longstrider', 'protection-from-evil-and-good', 'purify-food-and-drink', 'speak-with-animals', 'thunderwave'
 ];
@@ -59,7 +59,7 @@ const SORCERER_SPELL_LIST = [
 ];
 const WARLOCK_SPELL_LIST = [
     // Cantrips
-    'blade-ward', 'chill-touch', 'eldritch-blast', 'friends', 'mage-hand', 'mind-sliver', 'minor-illusion', 'poison-spray', 'prestidigitation', 'thunderclap', 'toll-the-dead', 'true-strike',
+    'blade-ward', 'chill-touch', 'eldritch-blast', 'friends', 'mage-hand', 'magic-stone', 'mind-sliver', 'minor-illusion', 'poison-spray', 'prestidigitation', 'thunderclap', 'toll-the-dead', 'true-strike',
     // Level 1
     'armor-of-agathys', 'arms-of-hadar', 'bane', 'charm-person', 'comprehend-languages', 'detect-magic', 'expeditious-retreat', 'hellish-rebuke', 'hex', 'illusory-script', 'protection-from-evil-and-good', 'speak-with-animals', 'tashas-hideous-laughter', 'unseen-servant', 'witch-bolt',
     // Level 3
@@ -84,7 +84,7 @@ const WIZARD_SPELL_LIST = [
 ];
 const ARTIFICER_SPELL_LIST = [
     'acid-splash', 'dancing-lights', 'fire-bolt', 'guidance', 'light', 'mage-hand',
-    'mending', 'message', 'poison-spray', 'prestidigitation', 'ray-of-frost',
+    'magic-stone', 'mending', 'message', 'poison-spray', 'prestidigitation', 'ray-of-frost',
     'resistance', 'shocking-grasp', 'spare-the-dying', 'thorn-whip', 'thunderclap', 'alarm',
     'cure-wounds', 'detect-magic', 'disguise-self', 'expeditious-retreat', 'faerie-fire',
     'false-life', 'feather-fall', 'grease', 'identify', 'jump', 'longstrider',

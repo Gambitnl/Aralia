@@ -1,0 +1,65 @@
+{
+  "id": "message",
+  "name": "Message",
+  "level": 0,
+  "school": "Transmutation",
+  "classes": [
+    "Artificer",
+    "Bard",
+    "Druid",
+    "Sorcerer",
+    "Wizard"
+  ],
+  "description": "You point your finger toward a creature within range and whisper a message. The target (and only the target) hears the message and can reply in a whisper that only you can hear. You can cast this spell through solid objects if you are familiar with the target and know it is beyond the barrier. Magical silence, 1 foot of stone, metal, or wood, or a thin sheet of lead blocks the spell.",
+  "tags": [
+    "communication",
+    "social",
+    "utility",
+    "cantrip"
+  ],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 120
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a short piece of copper wire"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "round",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 120,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": false
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "utilityType": "communication",
+      "description": "Sends a whispered message to a creature within range. The target can reply in a whisper only you can hear."
+    }
+  ]
+}
