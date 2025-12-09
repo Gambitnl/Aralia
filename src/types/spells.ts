@@ -404,6 +404,10 @@ export interface MovementEffect extends BaseEffect {
     value: number; // can be negative for reduction
     unit: "feet";
   };
+  /** Explicit destination for teleport effects (if known at design time) */
+  destination?: { x: number; y: number };
+  /** Alternative field for target position */
+  targetPosition?: { x: number; y: number };
   duration: EffectDuration;
   forcedMovement?: ForcedMovement;
 }

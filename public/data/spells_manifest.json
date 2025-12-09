@@ -1605,7 +1605,7 @@
     "name": "Prestidigitation",
     "level": 0,
     "school": "Transmutation",
-    "path": "/data/spells/prestidigitation.json"
+    "path": "/data/spells/level-0/prestidigitation.json"
   },
   "primal-savagery": {
     "name": "Primal Savagery",
@@ -1629,7 +1629,7 @@
     "name": "Produce Flame",
     "level": 0,
     "school": "Conjuration",
-    "path": "/data/spells/produce-flame.json"
+    "path": "/data/spells/level-0/produce-flame.json"
   },
   "programmed-illusion": {
     "name": "Programmed Illusion",
@@ -1695,7 +1695,7 @@
     "name": "Ray of Frost",
     "level": 0,
     "school": "Evocation",
-    "path": "/data/spells/ray-of-frost.json"
+    "path": "/data/spells/level-0/ray-of-frost.json"
   },
   "ray-of-sickness": {
     "name": "Ray of Sickness",
@@ -1725,7 +1725,7 @@
     "name": "Resistance",
     "level": 0,
     "school": "Abjuration",
-    "path": "/data/spells/resistance.json"
+    "path": "/data/spells/level-0/resistance.json"
   },
   "resurrection": {
     "name": "Resurrection",
@@ -1755,7 +1755,7 @@
     "name": "Sacred Flame",
     "level": 0,
     "school": "Evocation",
-    "path": "/data/spells/sacred-flame.json"
+    "path": "/data/spells/level-0/sacred-flame.json"
   },
   "sanctuary": {
     "name": "Sanctuary",

@@ -1,0 +1,64 @@
+{
+  "id": "prestidigitation",
+  "name": "Prestidigitation",
+  "level": 0,
+  "school": "Transmutation",
+  "classes": [
+    "Artificer",
+    "Bard",
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
+  "tags": [
+    "utility",
+    "cantrip"
+  ],
+  "ritual": false,
+  "arbitrationType": "player_choice",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 10
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 10,
+    "validTargets": [
+      "creatures",
+      "objects"
+    ],
+    "lineOfSight": true
+  },
+  "description": "This spell is a minor magical trick that novice spellcasters use for practice. You create one of the following magical effects within range: 1) A harmless sensory effect (sparks, wind, music, odor). 2) Light or snuff out a candle, torch, or small campfire. 3) Clean or soil an object no larger than 1 cubic foot. 4) Chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour. 5) Make a color, mark, or symbol appear on an object/surface for 1 hour. 6) Create a nonmagical trinket or illusory image that fits in your hand (lasts until end of next turn).",
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "utilityType": "sensory",
+      "description": "You create one of the following magical effects within range: 1) A harmless sensory effect (sparks, wind, music, odor). 2) Light or snuff out a candle, torch, or small campfire. 3) Clean or soil an object no larger than 1 cubic foot. 4) Chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour. 5) Make a color, mark, or symbol appear on an object/surface for 1 hour. 6) Create a nonmagical trinket or illusory image that fits in your hand (lasts until end of next turn)."
+    }
+  ]
+}
