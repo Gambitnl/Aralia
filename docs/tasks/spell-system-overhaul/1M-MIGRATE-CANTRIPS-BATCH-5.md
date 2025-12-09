@@ -20,7 +20,7 @@
 ## Execution Steps
 1. For each spell:
    - If `public/data/spells/{id}.json` exists, read it first; migrate to `public/data/spells/level-0/{id}.json`. No flattened copies remain.
-   - Field Comparison Check: ritual present; `castingTime.combatCost.type` present; tags/arbitrationType preserved; strict enums/casing; every effect has `trigger` and `condition`; `validTargets` plural.
+   - Field Comparison Check: ritual present; `castingTime.combatCost.type` present; tags/arbitrationType preserved; strict enums/casing; every effect has `trigger` + `condition`; `validTargets` plural.
    - Ensure cantrip rules: `level: 0`, `ritual: false`, scaling uses `character_level` if needed, damage types Title Case.
    - Create/update glossary entry `public/data/glossary/entries/spells/{id}.md`.
    - Run `docs/spells/SPELL_INTEGRATION_CHECKLIST.md` for the spell; capture notes below.
@@ -29,8 +29,13 @@
 4. Stay within the approved schema; no new fields; ASCII only.
 
 ## Per-Spell Checklist (record here)
-- magic-stone: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- mending: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- message: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- minor-illusion: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- poison-spray: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
+- magic-stone: Data ✅ / Validation ✅ / Integration ✅ (notes: Added to class lists manually)
+- mending: Data ✅ / Validation ✅ / Integration ✅ (notes: Utility spell)
+- message: Data ✅ / Validation ✅ / Integration ✅ (notes: Utility/Communication)
+- minor-illusion: Data ✅ / Validation ✅ / Integration ✅ (notes: Utility/Sensory)
+- poison-spray: Data ✅ / Validation ✅ / Integration ✅ (notes: Save negates damage)
+
+## System Gaps & Follow-up
+- [ ] **Stealth & Noise Mechanics**: `message` and `minor-illusion` rely on narrative descriptions for sound/detection.
+    - *Context*: The current schema lacks fields for "audible range", "noise level" (e.g., Whisper vs. Shout), and "NPC attention" (e.g., Passive Perception vs. Active Investigation for hearing).
+    - *Recommendation*: Introduce a `noise` property to `Effect` or `CastingTime` (e.g., `{ "level": "whisper", "audibleDistance": 10 }`) to allow the Game Engine to automate NPC detection based on distance and alertness (Sleeping/Drunk/Guard).

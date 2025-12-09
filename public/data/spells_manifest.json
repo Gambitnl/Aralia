@@ -153,7 +153,7 @@
     "name": "Barkskin",
     "level": 2,
     "school": "Transmutation",
-    "path": "/data/spells/barkskin.json"
+    "path": "/data/spells/level-2/barkskin.json"
   },
   "beacon-of-hope": {
     "name": "Beacon of Hope",
@@ -387,7 +387,7 @@
     "name": "Conjure Animals",
     "level": 3,
     "school": "Conjuration",
-    "path": "/data/spells/conjure-animals.json"
+    "path": "/data/spells/level-3/conjure-animals.json"
   },
   "conjure-barrage": {
     "name": "Conjure Barrage",
@@ -1335,7 +1335,7 @@
     "name": "Magic Stone",
     "level": 0,
     "school": "Transmutation",
-    "path": "/data/spells/magic-stone.json"
+    "path": "/data/spells/level-0/magic-stone.json"
   },
   "magic-weapon": {
     "name": "Magic Weapon",
@@ -1395,13 +1395,13 @@
     "name": "Mending",
     "level": 0,
     "school": "Transmutation",
-    "path": "/data/spells/mending.json"
+    "path": "/data/spells/level-0/mending.json"
   },
   "message": {
     "name": "Message",
     "level": 0,
     "school": "Transmutation",
-    "path": "/data/spells/message.json"
+    "path": "/data/spells/level-0/message.json"
   },
   "meteor-swarm": {
     "name": "Meteor Swarm",
@@ -1431,7 +1431,7 @@
     "name": "Minor Illusion",
     "level": 0,
     "school": "Illusion",
-    "path": "/data/spells/minor-illusion.json"
+    "path": "/data/spells/level-0/minor-illusion.json"
   },
   "mirage-arcane": {
     "name": "Mirage Arcane",
@@ -1575,7 +1575,7 @@
     "name": "Poison Spray",
     "level": 0,
     "school": "Necromancy",
-    "path": "/data/spells/poison-spray.json"
+    "path": "/data/spells/level-0/poison-spray.json"
   },
   "polymorph": {
     "name": "Polymorph",
