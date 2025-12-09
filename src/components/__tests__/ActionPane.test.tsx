@@ -118,4 +118,17 @@ describe('ActionPane', () => {
     expect(onAction).toHaveBeenCalledWith(expect.objectContaining({ type: 'save_game' }));
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
+
+  it('renders Dev Menu when dev mode is active and rate limit notification is present', () => {
+    render(
+      <ActionPane
+        {...defaultProps}
+        isDevDummyActive={true}
+        hasNewRateLimitError={true}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /system/i }));
+    expect(screen.getByText('Dev Menu')).toBeInTheDocument();
+  });
 });

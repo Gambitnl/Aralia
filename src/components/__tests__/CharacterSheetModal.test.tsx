@@ -157,6 +157,25 @@ describe('CharacterSheetModal', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('closes the spellbook overlay with Escape while keeping the modal open', () => {
+    render(<CharacterSheetModal {...defaultProps} />);
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Spellbook' }));
+    expect(screen.getByTestId('spellbook-overlay')).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByTestId('spellbook-overlay')).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('returns null when closed or without a character', () => {
+    const { rerender } = render(<CharacterSheetModal {...defaultProps} isOpen={false} />);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    rerender(<CharacterSheetModal {...defaultProps} character={null} />);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
   it('toggles the skill detail overlay and closes it with Escape', () => {
     render(<CharacterSheetModal {...defaultProps} />);
 
