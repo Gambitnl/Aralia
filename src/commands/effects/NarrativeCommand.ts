@@ -1,20 +1,46 @@
-import { SpellCommand, CommandContext } from '../base/SpellCommand';
+import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand';
+import { CombatState } from '@/types/combat';
+import { generateId } from '../../utils/idGenerator';
 
-export class NarrativeCommand extends SpellCommand {
+export class NarrativeCommand implements SpellCommand {
+    public readonly id: string;
+    public readonly metadata: CommandMetadata;
     private narrative: string;
+    private context: CommandContext;
 
     constructor(narrative: string, context: CommandContext) {
-        super(context);
         this.narrative = narrative;
+        this.context = context;
+        this.id = generateId();
+        this.metadata = {
+            spellId: context.spellId,
+            spellName: context.spellName,
+            casterId: context.caster.id,
+            casterName: context.caster.name,
+            targetIds: context.targets.map(t => t.id),
+            effectType: 'NARRATIVE',
+            timestamp: Date.now()
+        };
     }
 
-    async execute(): Promise<void> {
+    execute(state: CombatState): CombatState {
         // Log the narrative to the combat log
-        this.context.combatState.combatLog.push(
-            `[DM]: ${this.narrative}`
-        );
+        return {
+            ...state,
+            combatLog: [
+                ...state.combatLog,
+                {
+                    id: generateId(),
+                    timestamp: Date.now(),
+                    type: 'info',
+                    message: `[DM]: ${this.narrative}`,
+                    characterId: this.context.caster.id
+                }
+            ]
+        };
+    }
 
-        // TODO: In the future, this could trigger a Notification or a Modal
-        console.log(`[NarrativeCommand] Executing: ${this.narrative}`);
+    get description(): string {
+        return `Narrative outcome: ${this.narrative.substring(0, 50)}...`;
     }
 }
