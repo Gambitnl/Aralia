@@ -20,7 +20,7 @@
 ## Execution Steps
 1. For each spell:
    - If `public/data/spells/{id}.json` exists, read it, then migrate to `public/data/spells/level-0/{id}.json`; remove flattened copies.
-   - Field Comparison Check: ritual present; `castingTime.combatCost.type` present; tags/arbitrationType preserved; strict enums/casing; every effect has `trigger` and `condition`; `validTargets` plural.
+   - Field Comparison Check: ritual present; `castingTime.combatCost.type` present; tags/arbitrationType preserved; strict enums/casing; every effect has `trigger` + `condition`; `validTargets` plural.
    - Enforce cantrip rules: `level: 0`, `ritual: false`, scaling via `character_level` if applicable, Title Case damage types.
    - Create/update glossary entry `public/data/glossary/entries/spells/{id}.md`.
    - Run `docs/spells/SPELL_INTEGRATION_CHECKLIST.md` and capture notes below.
@@ -29,8 +29,13 @@
 4. Stay within approved schema; no new fields; ASCII only.
 
 ## Per-Spell Checklist (record here)
-- prestidigitation: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- produce-flame: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- ray-of-frost: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- resistance: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- sacred-flame: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
+- prestidigitation: Data ✅ / Validation ✅ / Integration ✅ (notes: Used UTILITY effect with player_choice arbitration)
+- produce-flame: Data ✅ / Validation ✅ / Integration ✅ (notes: Two effects: UTILITY light + DAMAGE trigger on_caster_action)
+- ray-of-frost: Data ✅ / Validation ✅ / Integration ✅ (notes: Added MOVEMENT effect for speed reduction)
+- resistance: Data ✅ / Validation ✅ / Integration ✅ (notes: Fixed legacy data error; used UTILITY for save bonus; see gaps)
+- sacred-flame: Data ✅ / Validation ✅ / Integration ✅ (notes: Added cover ignore to description)
+
+## System Gaps & Follow-up
+- [ ] **Resistance**: No support for numeric saving throw bonuses (+1d4)
+    - *Context*: DefensiveEffect has advantage_on_saves but not save_bonus.
+    - *Recommendation*: Add save_bonus to defenseType enum or create a SaveBonusEffect.

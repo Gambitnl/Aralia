@@ -1,0 +1,87 @@
+{
+  "id": "ray-of-frost",
+  "name": "Ray of Frost",
+  "level": 0,
+  "school": "Evocation",
+  "classes": [
+    "Artificer",
+    "Sorcerer",
+    "Wizard"
+  ],
+  "tags": [
+    "damage",
+    "cold",
+    "control",
+    "cantrip"
+  ],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 60,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "hit"
+      },
+      "damage": {
+        "dice": "1d8",
+        "type": "Cold"
+      },
+      "scaling": {
+        "type": "character_level",
+        "bonusPerLevel": "+1d8",
+        "customFormula": "1d8 at level 1, 2d8 at level 5, 3d8 at level 11, 4d8 at level 17"
+      }
+    },
+    {
+      "type": "MOVEMENT",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "hit"
+      },
+      "movementType": "speed_change",
+      "speedChange": {
+        "stat": "speed",
+        "value": -10,
+        "unit": "feet"
+      },
+      "duration": {
+        "type": "rounds",
+        "value": 1
+      }
+    }
+  ],
+  "description": "A frigid beam of blue-white light streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, it takes 1d8 cold damage, and its speed is reduced by 10 feet until the start of your next turn.",
+  "higherLevels": "The spell's damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8)."
+}

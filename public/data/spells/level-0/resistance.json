@@ -1,0 +1,62 @@
+{
+  "id": "resistance",
+  "name": "Resistance",
+  "level": 0,
+  "school": "Abjuration",
+  "classes": [
+    "Artificer",
+    "Cleric",
+    "Druid"
+  ],
+  "tags": [
+    "utility",
+    "cantrip",
+    "buff"
+  ],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a miniature cloak"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 5,
+    "validTargets": [
+      "creatures",
+      "allies"
+    ],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "utilityType": "other",
+      "description": "Once before the spell ends, the target can roll a d4 and add the number rolled to one saving throw of its choice."
+    }
+  ],
+  "description": "You touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one saving throw of its choice. It can roll the die before or after the saving throw. The spell then ends."
+}
