@@ -4,7 +4,7 @@
 
 The `RacialSpellAbilitySelection.tsx` component is a generic, reusable component created to handle any scenario where a character race needs to select a spellcasting ability (Intelligence, Wisdom, or Charisma) for one of its racial traits.
 
-This component is the cornerstone of the refactor described in `docs/improvements/01_consolidate_repetitive_components.md`. It replaces numerous individual components (like `AarakocraSpellcastingAbilitySelection`, `AirGenasiSpellcastingAbilitySelection`, etc.) with a single, data-driven UI.
+This component is the cornerstone of the refactor described in `docs/archive/improvements/01_consolidate_repetitive_components.md`. It replaces numerous individual components (like `AarakocraSpellcastingAbilitySelection`, `AirGenasiSpellcastingAbilitySelection`, etc.) with a single, data-driven UI.
 
 ## Props
 

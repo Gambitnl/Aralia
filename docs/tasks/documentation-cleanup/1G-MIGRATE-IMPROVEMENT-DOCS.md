@@ -1,7 +1,7 @@
 # Path 1.G: Improvement Docs Migration Campaign
 
 ## MISSION
-Migrate valuable architectural knowledge from `docs/improvements/@*.md` into component-specific `README.md` files and retire the original improvement documents.
+Migrate valuable architectural knowledge from `docs/archive/improvements/*.md` into component-specific `README.md` files and retire the original improvement documents.
 
 ## RATIONALE
 "Improvement Plans" are valuable historical records, but the architectural decisions they contain (the "Why" and "How") belong closer to the code. By moving this information to component READMEs, we ensure that developers working on the component have immediate access to its design history and performance considerations.
