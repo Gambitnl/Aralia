@@ -72,6 +72,7 @@ export const useCombatAI = ({
             // It is an AI turn. 
             // We introduce a delay to allow the UI to update and creating a natural pacing.
             // This transitions the state to 'thinking'.
+            // The delay is determined by the difficulty setting (easy/normal/hard).
             const delay = AI_THINKING_DELAY_MS[difficulty];
             const timer = setTimeout(() => {
                 setAiState('thinking');
@@ -141,6 +142,7 @@ export const useCombatAI = ({
                     // After a successful action, we go back to 'thinking'.
                     // This allows the AI to make a *sequence* of moves (e.g., Move then Attack).
                     // We apply the delay again for pacing between individual actions.
+                    // This delay is also configurable via the difficulty setting.
                     setTimeout(() => setAiState('thinking'), AI_THINKING_DELAY_MS[difficulty]);
                 } else {
                     // Action failed (e.g., resource exhaustion not caught by planner).
