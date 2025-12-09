@@ -1,68 +1,41 @@
+---
+title: Word of Radiance
+type: spell
+tags: [spell, cantrip, evocation, radiant]
+---
 
----
-id: "word-of-radiance"
-title: "Word of Radiance"
-category: "Spells"
-tags: ["cantrip", "evocation", "radiant", "damage", "cleric"]
-excerpt: "Burning radiance erupts from you in a 5-foot Emanation. Each creature of your choice that you can see in it must succeed on a Constitution saving throw or take 1d6 Radiant damage."
-seeAlso: ["constitution_saving_throw", "radiant_damage", "emanation_area"]
-filePath: "/data/glossary/entries/spells/word-of-radiance.md"
----
+# Word of Radiance
+
 <div class="spell-card">
-  <div class="spell-card-header">
-    <h1 class="spell-card-title">Word of Radiance</h1>
+  <div class="spell-header">
+    <div class="spell-name">Word of Radiance</div>
+    <div class="spell-level">Evocation Cantrip</div>
   </div>
-  <div class="spell-card-divider"></div>
-  <div class="spell-card-stats-grid">
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Level</span>
-      <span class="spell-card-stat-value">Cantrip</span>
+
+  <div class="spell-stats">
+    <div class="stat-row">
+      <span class="stat-label">Casting Time:</span>
+      <span class="stat-value">1 Action</span>
     </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Casting Time</span>
-      <span class="spell-card-stat-value">1 Action</span>
+    <div class="stat-row">
+      <span class="stat-label">Range:</span>
+      <span class="stat-value">Self (5-foot radius)</span>
     </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Range/Area</span>
-      <span class="spell-card-stat-value">Self (5 ft. 🌐)</span>
+    <div class="stat-row">
+      <span class="stat-label">Components:</span>
+      <span class="stat-value">V, M (a holy symbol)</span>
     </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Components</span>
-      <span class="spell-card-stat-value">V, M *</span>
-    </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Duration</span>
-      <span class="spell-card-stat-value">Instantaneous</span>
-    </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">School</span>
-      <span class="spell-card-stat-value">Evocation</span>
-    </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Attack/Save</span>
-      <span class="spell-card-stat-value">CON Save</span>
-    </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Damage/Effect</span>
-      <span class="spell-card-stat-value">Radiant</span>
+    <div class="stat-row">
+      <span class="stat-label">Duration:</span>
+      <span class="stat-value">Instantaneous</span>
     </div>
   </div>
-  <div class="spell-card-divider"></div>
-  <p class="spell-card-description">
-    Burning radiance erupts from you in a 5-foot <span data-term-id="emanation_area" class="glossary-term-link-from-markdown">Emanation</span>. Each creature of your choice that you can see in it must succeed on a Constitution saving throw or take 1d6 Radiant damage.
-  </p>
-  <p class="spell-card-description">
-    <strong>Cantrip Upgrade.</strong> The damage increases by 1d6 when you reach levels 5 (2d6), 11 (3d6), and 17 (4d6).
-  </p>
-  <p class="spell-card-material-note">
-    * - (a sunburst token)
-  </p>
-  <div class="spell-card-tags-section">
-    <span class="spell-card-tags-label">Spell Tags:</span>
-    <span class="spell-card-tag">DAMAGE</span>
-  </div>
-  <div class="spell-card-tags-section">
-    <span class="spell-card-tags-label">Available For:</span>
-    <span class="spell-card-tag">CLERIC</span>
+
+  <div class="spell-description">
+    <p>You utter a divine word, and burning radiance erupts from you. Each creature of your choice that you can see within range must succeed on a Constitution saving throw or take 1d6 radiant damage.</p>
+
+    <div class="scaling">
+      <strong>At Higher Levels:</strong> The spell's damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6).
+    </div>
   </div>
 </div>

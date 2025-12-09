@@ -2079,7 +2079,7 @@
     "name": "Thunderclap",
     "level": 0,
     "school": "Evocation",
-    "path": "/data/spells/thunderclap.json"
+    "path": "/data/spells/level-0/thunderclap.json"
   },
   "thunderous-smite": {
     "name": "Thunderous Smite",
@@ -2109,7 +2109,7 @@
     "name": "Toll the Dead",
     "level": 0,
     "school": "Necromancy",
-    "path": "/data/spells/toll-the-dead.json"
+    "path": "/data/spells/level-0/toll-the-dead.json"
   },
   "tongues": {
     "name": "Tongues",
@@ -2151,7 +2151,7 @@
     "name": "True Strike",
     "level": 0,
     "school": "Divination",
-    "path": "/data/spells/true-strike.json"
+    "path": "/data/spells/level-0/true-strike.json"
   },
   "tsunami": {
     "name": "Tsunami",
@@ -2175,7 +2175,7 @@
     "name": "Vicious Mockery",
     "level": 0,
     "school": "Enchantment",
-    "path": "/data/spells/vicious-mockery.json"
+    "path": "/data/spells/level-0/vicious-mockery.json"
   },
   "wall-of-fire": {
     "name": "Wall of Fire",
@@ -2265,7 +2265,7 @@
     "name": "Word of Radiance",
     "level": 0,
     "school": "Evocation",
-    "path": "/data/spells/word-of-radiance.json"
+    "path": "/data/spells/level-0/word-of-radiance.json"
   },
   "word-of-recall": {
     "name": "Word of Recall",

@@ -29,8 +29,8 @@
 4. Stay within approved schema; no new fields; ASCII only.
 
 ## Per-Spell Checklist (record here)
-- thunderclap: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- toll-the-dead: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- true-strike: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- vicious-mockery: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- word-of-radiance: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
+- thunderclap: Data ✅ / Validation ✅ / Integration ✅ (notes: Migrated to level-0. AoE centered on self.)
+- toll-the-dead: Data ✅ / Validation ✅ / Integration ✅ (notes: Conditional 1d12 damage documented in description.)
+- true-strike: Data ✅ / Validation ✅ / Integration ✅ (notes: Completely rewritten to 2024 mechanics: Action, attack with weapon, radiant/normal damage.)
+- vicious-mockery: Data ✅ / Validation ✅ / Integration ✅ (notes: Disadvantage modeled as UTILITY effect.)
+- word-of-radiance: Data ✅ / Validation ✅ / Integration ✅ (notes: Selective targeting "creatures of your choice" noted in description.)

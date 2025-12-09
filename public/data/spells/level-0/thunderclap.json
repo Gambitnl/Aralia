@@ -1,0 +1,75 @@
+{
+  "id": "thunderclap",
+  "name": "Thunderclap",
+  "level": 0,
+  "school": "Evocation",
+  "classes": [
+    "Artificer",
+    "Bard",
+    "Druid",
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
+  "description": "You create a burst of thunderous sound that can be heard up to 100 feet away. Each creature within range, other than you, must succeed on a Constitution saving throw or take 1d6 Thunder damage.",
+  "higherLevels": "The spell's damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6).",
+  "tags": [
+    "damage",
+    "thunder",
+    "aoe",
+    "cantrip"
+  ],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": false,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "area",
+    "range": 0,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": false,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 5
+    }
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "half"
+      },
+      "damage": {
+        "dice": "1d6",
+        "type": "Thunder"
+      },
+      "scaling": {
+        "type": "character_level",
+        "bonusPerLevel": "+1d6"
+      }
+    }
+  ]
+}
