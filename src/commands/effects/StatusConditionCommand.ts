@@ -3,6 +3,7 @@ import { CombatState, StatusEffect, ActiveCondition } from '../../types/combat';
 import { isStatusConditionEffect, EffectDuration } from '../../types/spells';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
 import { generateId } from '../../utils/combatUtils';
+import { STATUS_ICONS, DEFAULT_STATUS_ICON } from '@/config/statusIcons';
 
 export class StatusConditionCommand extends BaseEffectCommand {
   execute(state: CombatState): CombatState {
@@ -137,24 +138,7 @@ export class StatusConditionCommand extends BaseEffectCommand {
   }
 
   private getIconForCondition(name: string): string {
-    const map: Record<string, string> = {
-      'Blinded': '👁️',
-      'Charmed': '💕',
-      'Deafened': '🙉',
-      'Frightened': '😱',
-      'Grappled': '✊',
-      'Incapacitated': '🤕',
-      'Invisible': '👻',
-      'Paralyzed': '⚡',
-      'Petrified': '🗿',
-      'Poisoned': '🤢',
-      'Prone': '🛌',
-      'Restrained': '⛓️',
-      'Stunned': '💫',
-      'Unconscious': '💤',
-      'Exhaustion': '😫'
-    };
-    return map[name] || '💀';
+    return STATUS_ICONS[name] || DEFAULT_STATUS_ICON;
   }
 
   get description(): string {
