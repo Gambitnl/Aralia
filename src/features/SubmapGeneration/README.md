@@ -4,7 +4,7 @@ This feature is responsible for the procedural generation of local submaps that 
 
 ## Architecture & Design History
 
-This document provides a deep dive into the submap generation system for the Aralia RPG. It explains how the system works in relation to the core design requirements and explores potential "better tools"—both algorithmic and technological—for future enhancements.
+This document provides a deep dive into the submap generation system for the Aralia RPG. It explains how the system works in relation to the core design requirements and details the algorithmic tools used to achieve diverse environments.
 
 ### How the Current Submap System Works
 
@@ -22,9 +22,37 @@ The illusion of connected roads between adjacent world map tiles is achieved in 
 
 Travel time is currently calculated using fixed, abstract time costs in the `handleMovement` action handler (`src/hooks/actions/handleMovement.ts`). A move between world map tiles costs 1 hour, and a move within a submap costs 30 minutes. The architecture is designed to be extensible to incorporate more granular calculations based on factors like mount speed, terrain type (roads), and character-specific movement rates.
 
-### Potential Future Improvements
+### Implemented Algorithms
 
-The following are summaries of architectural deep dives and plans for potential future enhancements to the submap generation system.
+The submap generation system utilizes distinct algorithms tailored to specific biome types to create diverse and appropriate environments.
+
+#### 1. Standard Seeded Generation
+
+**Used For**: General biomes (Plains, some Forests)
+
+The default generation method uses seeded random hashing to place individual features (trees, rocks, ponds) and paths. It ensures that features do not overlap with the main path and respects collision boundaries.
+
+#### 2. Cellular Automata (Organic Maps)
+
+**Used For**: Caves, Dungeons
+**Implementation**: `src/services/cellularAutomataService.ts`
+
+For environments that require natural, cavernous layouts, the system uses a **Cellular Automata (CA)** algorithm.
+- **Initialization**: The grid is filled with random noise (walls vs. floors) based on a fill probability.
+- **Simulation**: The grid iterates through several steps of simulation. A cell becomes a wall or floor based on the count of its neighbors (Moore neighborhood), naturally smoothing out noise into cohesive cavern structures.
+- **Connectivity**: A post-processing step identifies disconnected floor regions (using flood fill) and carves corridors between them to ensure the entire map is traversable.
+
+#### 3. Wave Function Collapse (Structured Maps)
+
+**Used For**: Mountains, Dense Forests, specialized biomes
+**Implementation**: `src/services/wfcService.ts`
+
+For environments requiring logical structure or specific adjacency rules, a simplified **Wave Function Collapse (WFC)** algorithm is used.
+- **Row-Scanning**: Unlike a full-entropy WFC solver which can be computationally expensive, this implementation uses a row-by-row scan. This trades some flexibility for the speed required to generate maps on the fly during render.
+- **Rulesets**: Adjacency constraints are defined in `src/config/wfcRulesets/`. For example, a "mountain base" tile might only be allowed below a "mountain peak" tile.
+- **Biome Context**: The generator filters tiles based on the current biome, ensuring that a "Swamp" submap uses swamp-appropriate tiles while falling back to neutral terrain if constraints cannot be met.
+
+### Future Improvements
 
 #### 1. Gradual Biome Transitions
 
@@ -32,32 +60,9 @@ The following are summaries of architectural deep dives and plans for potential 
 
 **Concept**: To improve immersion, the system could be enhanced to create smooth, gradual transitions between different biomes. When a player travels from a "plains" world tile to a "forest" world tile, the edge of the new forest submap would contain a few rows of plains terrain.
 
-**Implementation Plan**: This would be an algorithmic enhancement, not a change of tools. The `handleMovement` action would be modified to pass the `previousBiomeId` and `entryDirection` to the `useSubmapProceduralData` hook. The rendering logic in `SubmapPane.tsx` would then use this context to "paint" a few rows of the previous biome's visuals onto the edge of the new submap.
+**Implementation Plan**: This would be an algorithmic enhancement. The `handleMovement` action would be modified to pass the `previousBiomeId` and `entryDirection` to the `useSubmapProceduralData` hook. The rendering logic in `SubmapPane.tsx` would then use this context to "paint" a few rows of the previous biome's visuals onto the edge of the new submap.
 
-#### 2. Cellular Automata for Organic Maps
-
-**Status**: Planned
-
-**Concept**: For biomes like `cave` or `dungeon` that should feel more organic and less like open fields, the **Cellular Automata (CA)** algorithm is a "better tool." It excels at creating natural, cavernous layouts by applying simple rules to a grid of cells based on their neighbors.
-
-**Implementation Plan**:
-1.  Create a self-contained `cellularAutomataService.ts`.
-2.  Modify the `useSubmapProceduralData.ts` hook to act as a router, calling the CA service when the biome is `cave` or `dungeon`.
-3.  Update the rendering logic in `SubmapPane.tsx` to display the grid data generated by the CA service.
-
-#### 3. Wave Function Collapse for Structured Maps
-
-**Status**: Planned
-
-**Concept**: For highly structured environments like `villages` or `ruins`, the **Wave Function Collapse (WFC)** algorithm is a powerful tool. It generates logical, non-random layouts based on a predefined set of adjacency rules (e.g., "a road tile must connect to another road tile").
-
-**Implementation Plan**:
-1.  Integrate a third-party WFC library.
-2.  Define tile and adjacency rulesets for specific biomes (e.g., in `src/config/wfcRulesets/village.ts`).
-3.  Create a `wfcService.ts` to wrap the library.
-4.  Update `useSubmapProceduralData.ts` to call the WFC service for relevant biomes.
-
-#### 4. PixiJS for High-Performance Rendering
+#### 2. PixiJS for High-Performance Rendering
 
 **Status**: Planned (Major Refactor)
 
@@ -66,4 +71,4 @@ The following are summaries of architectural deep dives and plans for potential 
 **Implementation Plan**:
 1.  Integrate the PixiJS library.
 2.  Create a dedicated React component (`SubmapRendererPixi.tsx`) to encapsulate all PixiJS logic.
-3.  Refactor `SubmapPane.tsx` to act as a container that manages data and renders the new PixiJS component instead of the DOM-based grid. This is a significant architectural change that would require re-implementing interactivity like tooltips.
+3.  Refactor `SubmapPane.tsx` to act as a container that manages data and renders the new PixiJS component instead of the DOM-based grid.

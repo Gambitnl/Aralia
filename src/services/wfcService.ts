@@ -46,15 +46,21 @@ function buildTileLookup(tiles: WfcTileDefinition[]): Map<string, WfcTileDefinit
 
 function filterTilesByBiome(tiles: WfcTileDefinition[], biomeContext?: string): WfcTileDefinition[] {
   if (!biomeContext) return tiles;
+
+  // 1. Prioritize tiles explicitly tagged for this biome
   const biomeMatches = tiles.filter((tile) => tile.biomeHint === biomeContext);
 
+  // 2. If no specific tiles exist for this biome, fallback to the full set
   if (biomeMatches.length === 0) return tiles;
 
+  // 3. Check if we have enough variety to build a map.
+  // If we only have 1 type of tile (e.g. just "water"), the map would be a single solid block.
   const hasVariety = new Set(biomeMatches.map((tile) => tile.id)).size > 1;
   if (hasVariety) return biomeMatches;
 
+  // 4. Fallback for low variety:
   // If the biome-specific slice collapses to a single tile (e.g., swamp => only water),
-  // blend back in neutral terrain so the grid stays traversable for gameplay checks.
+  // blend back in "neutral" terrain (no hint or plains) so the grid has traversable land.
   const neutralTiles = tiles.filter((tile) => !tile.biomeHint || tile.biomeHint === 'plains');
   return [...biomeMatches, ...neutralTiles];
 }
