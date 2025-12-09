@@ -57,7 +57,8 @@ const makeState = (characters: CombatCharacter[], validMoves: Position[] = []): 
   validTargets: [],
   validMoves,
   combatLog: [],
-  reactiveTriggers: []
+  reactiveTriggers: [],
+  activeLightSources: []
 })
 
 const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): CommandContext => ({

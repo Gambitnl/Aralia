@@ -93,7 +93,8 @@ export const useAbilitySystem = ({
       validTargets: [],
       validMoves: [],
       combatLog: [], // Start empty to capture new entries
-      reactiveTriggers: reactiveTriggers || [] // Pass current triggers
+      reactiveTriggers: reactiveTriggers || [], // Pass current triggers
+      activeLightSources: []
     };
 
     const mockGameState: any = {
@@ -272,7 +273,8 @@ export const useAbilitySystem = ({
         validTargets: [],
         validMoves: [],
         combatLog: [],
-        reactiveTriggers: []
+        reactiveTriggers: [],
+        activeLightSources: []
       };
 
       const weaponType = ability.range <= 2 ? 'melee' : 'ranged';
@@ -395,6 +397,53 @@ export const useAbilitySystem = ({
       targetCharacterIds.forEach(targetId => {
         const target = characters.find(c => c.id === targetId);
         if (target) {
+
+          if (ability.type === 'attack') {
+            // Task 09: Attack Roll Implementation
+            const d20 = rollDice('1d20');
+            const strMod = Math.floor((caster.stats.strength - 10) / 2);
+            const dexMod = Math.floor((caster.stats.dexterity - 10) / 2);
+
+            // Determine modifier (simplified: finesse not fully checked yet, prioritizing Str for melee unless ranged)
+            // Default to Strength for melee, Dex for ranged.
+            // TODO: Check weapon properties for Finesse
+            const isRanged = ability.range > 1 || ability.weapon?.properties?.includes('range');
+            const abilityMod = isRanged ? dexMod : strMod;
+
+            // Proficiency Check
+            let proficiencyBonus = 0;
+            if (ability.weapon) {
+              // Proficiency Bonus formula: Math.ceil(level / 4) + 1
+              const pb = Math.ceil((caster.level || 1) / 4) + 1;
+              // Check isProficient flag, which is calculated based on class/race in combatUtils
+              proficiencyBonus = ability.isProficient ? pb : 0;
+
+              // Strategy: 
+              // 1. Calculate Attack Roll = d20 + Mod + PB (if proficient)
+              // 2. Compare vs Target AC.
+
+              const attackRoll = d20 + abilityMod + proficiencyBonus;
+              const targetAC = target.armorClass || 10;
+
+              if (onLogEntry) {
+                const hitMiss = attackRoll >= targetAC ? "HITS" : "MISSES";
+                onLogEntry({
+                  id: generateId(),
+                  timestamp: Date.now(),
+                  type: 'action',
+                  message: `${caster.name} attacks ${target.name}: ${d20} + ${abilityMod} + ${proficiencyBonus} = ${attackRoll} vs AC ${targetAC} -> ${hitMiss}`,
+                  characterId: caster.id,
+                  targetIds: [targetId]
+                });
+              }
+
+              if (attackRoll < targetAC) {
+                if (onAbilityEffect) onAbilityEffect(0, target.position, 'miss');
+                return; // Miss - stop processing effects
+              }
+            }
+          }
+
           applyAbilityEffects(ability, caster, target);
         }
       });
@@ -480,7 +529,8 @@ export const useAbilitySystem = ({
       validTargets: [],
       validMoves: [],
       combatLog: [],
-      reactiveTriggers: reactiveTriggers || []
+      reactiveTriggers: reactiveTriggers || [],
+      activeLightSources: []
     };
 
     // Create Command manually (no Factory needed for simple drop)

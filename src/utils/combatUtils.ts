@@ -8,6 +8,7 @@ import { PlayerCharacter, Monster } from '../types';
 import { Spell } from '../types/spells'; // Explicit import to avoid conflicts
 import { CLASSES_DATA, MONSTERS_DATA } from '../constants';
 import { createAbilityFromSpell } from './spellAbilityFactory';
+import { isWeaponProficient } from './weaponUtils';
 
 // Re-export for consumers
 export { createAbilityFromSpell };
@@ -243,11 +244,74 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
   };
 
   // 1. Basic Physical Abilities
-  const abilities: Ability[] = [
-    { id: 'melee_attack', name: 'Attack', description: 'A basic melee strike.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 1, effects: [{ type: 'damage', value: 5, damageType: 'physical' }], icon: '⚔️' },
+  const abilities: Ability[] = [];
+
+  // Generate Attack Actions from Equipped Weapons
+  const mainHand = player.equippedItems?.MainHand;
+  const offHand = player.equippedItems?.OffHand;
+
+  // Helper to create weapon ability
+  const createWeaponAbility = (weapon: any, idSuffix: string, isOffHand: boolean = false): Ability => {
+    // Determine damage
+    let damageValue = 1;
+    let damageType: any = 'physical';
+
+    // Parse damage from weapon stats if available, otherwise default
+    // Simplify for now: most weapons in our data have a 'damage' string like '1d8'
+    // We will store the dice string in the effect value if we supported it, 
+    // but the current system expects a number.
+    // For now, let's keep using a fixed average or simple parsing if possible.
+    // However, the `calculateDamage` in combatUtils currently just returns baseDamage.
+    // We will update useAbilitySystem to allow dice rolling later.
+    // For this step, let's try to parse the dice string to get an average or just pass 0 and handle rolling in execution.
+    // Actually, let's check the weapon data structure.
+
+    return {
+      id: `attack_${idSuffix}`,
+      name: weapon.name,
+      description: `Attack with ${weapon.name}.`,
+      type: 'attack',
+      cost: { type: isOffHand ? 'bonus' : 'action' },
+      targeting: 'single_enemy',
+      range: (weapon.properties?.some((p: string) => p === 'reach')) ? 2 : 1, // Simple reach check
+      // For ranged weapons, we'd check properties too
+      effects: [{
+        type: 'damage',
+        value: 0, // Value 0 signals "roll weapon damage" to the system
+        damageType: 'physical'
+      }],
+      icon: '⚔️',
+      weapon: weapon, // Link source weapon
+      isProficient: isWeaponProficient(player, weapon)
+    };
+  };
+
+  if (mainHand) {
+    abilities.push(createWeaponAbility(mainHand, 'main'));
+  } else {
+    // Unarmed Strike
+    abilities.push({
+      id: 'unarmed_strike',
+      name: 'Unarmed Strike',
+      description: 'A basic punch or kick.',
+      type: 'attack',
+      cost: { type: 'action' },
+      targeting: 'single_enemy',
+      range: 1,
+      effects: [{ type: 'damage', value: 1 + Math.floor((stats.strength - 10) / 2), damageType: 'physical' }],
+      icon: '✊'
+    });
+  }
+
+  if (offHand && offHand.category && offHand.category.includes('Weapon')) {
+    abilities.push(createWeaponAbility(offHand, 'off', true));
+  }
+
+  // Universal Actions
+  abilities.push(
     { id: 'dash', name: 'Dash', description: 'Gain extra movement for the turn.', type: 'movement', cost: { type: 'action' }, targeting: 'self', range: 0, effects: [{ type: 'movement', value: stats.speed }], icon: '🏃' },
-    { id: 'disengage', name: 'Disengage', description: 'Prevent opportunity attacks.', type: 'utility', cost: { type: 'action' }, targeting: 'self', range: 0, effects: [], icon: '🛡️' },
-  ];
+    { id: 'disengage', name: 'Disengage', description: 'Prevent opportunity attacks.', type: 'utility', cost: { type: 'action' }, targeting: 'self', range: 0, effects: [], icon: '🛡️' }
+  );
 
   if (player.class.id === 'rogue') {
     abilities.push({ id: 'cunning_dash', name: 'Cunning Dash', description: 'Dash as a bonus action.', type: 'movement', cost: { type: 'bonus' }, targeting: 'self', range: 0, effects: [{ type: 'movement', value: stats.speed }], icon: '🏃' });
@@ -274,7 +338,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
         // Here we pass the JSON data to the factory.
         // The factory reads 'effects' array from the JSON (Gold Standard)
         // and returns an executable 'Ability' for the combat engine.
-        const ability = createAbilityFromSpell(spellData, player);
+        const ability = createAbilityFromSpell(spellData as any, player);
         ability.spell = spellData; // Link original spell data
         abilities.push(ability);
       } else {
@@ -287,6 +351,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
   return {
     id: player.id || `player_${player.name.toLowerCase().replace(' ', '_')}`,
     name: player.name,
+    level: player.level || 1,
     class: player.class,
     position: { x: 0, y: 0 },
     stats,
@@ -324,10 +389,11 @@ export function createEnemyFromMonster(monster: Monster, index: number): CombatC
     return {
       id: `enemy_${monsterId}_${index}`,
       name: `${monster.name} ${index + 1}`,
+      level: parseFloat(monster.cr) || 1,
       class: CLASSES_DATA['fighter'],
       position: { x: 0, y: 0 },
       stats: fallbackStats,
-      abilities: [{ id: 'basic_attack', name: 'Attack', description: 'A basic attack.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 1, effects: [{ type: 'damage', value: 4, damageType: 'physical' }], icon: '⚔️' }],
+      abilities: [{ id: 'basic_attack', name: 'Attack', description: 'A basic attack.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 1, effects: [{ type: 'damage', value: 4, damageType: 'physical' }], icon: '⚔️', isProficient: true }],
       team: 'enemy',
       maxHP: 10,
       currentHP: 10,
@@ -343,9 +409,21 @@ export function createEnemyFromMonster(monster: Monster, index: number): CombatC
     };
   }
 
+  // Parse CR to number for level
+  let level = 1;
+  if (monsterData.baseStats.cr) {
+    if (monsterData.baseStats.cr.includes('/')) {
+      const [n, d] = monsterData.baseStats.cr.split('/');
+      level = parseInt(n) / parseInt(d);
+    } else {
+      level = parseFloat(monsterData.baseStats.cr);
+    }
+  }
+
   return {
     id: `enemy_${monsterId}_${index}`,
     name: `${monsterData.name} ${index + 1}`,
+    level: level || 1,
     class: CLASSES_DATA['fighter'], // Needs a class for structure
     position: { x: 0, y: 0 },
     stats: monsterData.baseStats,

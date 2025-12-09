@@ -203,7 +203,7 @@ export const createPlayerCharacterFromTemp = (tempMember: TempPartyMember): Play
     equippedItems: {},
     proficiencyBonus: Math.floor((tempMember.level - 1) / 4) + 2,
   };
-  newChar.armorClass = calculateArmorClass(newChar);
+  newChar.armorClass = calculateArmorClass(newChar, newChar.activeEffects);
   return newChar;
 };
 
@@ -383,7 +383,7 @@ export const applyFeatToCharacter = (
 
   // Recalculate derived properties when ability scores change.
   updated.finalAbilityScores = calculateFinalAbilityScores(updated.abilityScores, updated.race, updated.equippedItems);
-  updated.armorClass = calculateArmorClass(updated);
+  updated.armorClass = calculateArmorClass(updated, updated.activeEffects);
 
   return updated;
 };
@@ -541,7 +541,7 @@ export const performLevelUp = (
 
   // Calculate new Proficiency Bonus
   updatedCharacter.proficiencyBonus = Math.floor((newLevel - 1) / 4) + 2;
-  updatedCharacter.armorClass = calculateArmorClass(updatedCharacter);
+  updatedCharacter.armorClass = calculateArmorClass(updatedCharacter, updatedCharacter.activeEffects);
 
   return updatedCharacter;
 };

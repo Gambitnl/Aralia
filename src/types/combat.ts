@@ -4,7 +4,7 @@
  * This file contains all combat-related TypeScript type definitions and interfaces
  * used throughout the Aralia RPG application's battle map feature.
  */
-import { Class, SpellbookData, SpellSlots } from './index';
+import { Class, SpellbookData, SpellSlots, Item } from './index';
 import { Spell, DamageType, SavingThrowAbility, ConditionName, EffectDuration, SpellEffect } from './spells'; // Import Spell
 
 export type { SpellSlots };
@@ -178,6 +178,8 @@ export interface Ability {
   currentCooldown?: number;
   icon?: string;
   spell?: Spell; // Reference to the original spell data for AI arbitration
+  weapon?: Item; // Reference to the source weapon for proficiency checks
+  isProficient?: boolean; // Whether caster is proficient with this ability/weapon
 }
 
 export interface TurnState {
