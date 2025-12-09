@@ -82,6 +82,7 @@ export interface CombatCharacter {
   armorClass?: number;      // Current AC (including bonuses)
   baseAC?: number;          // Base AC before temporary bonuses
   resistances?: DamageType[];
+  vulnerabilities?: DamageType[]; // Added for full 5e mechanics support
   immunities?: DamageType[];
   tempHP?: number;          // Temporary hit points
   activeEffects?: ActiveEffect[];  // Active spell effects
