@@ -1,0 +1,59 @@
+{
+  "id": "friends",
+  "name": "Friends",
+  "level": 0,
+  "school": "Enchantment",
+  "classes": ["Bard", "Sorcerer", "Warlock", "Wizard"],
+  "description": "You magically emanate a sense of friendship toward one creature you can see within range. The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target succeeds automatically if it isn't a Humanoid, if you're fighting it, or if you have cast this spell on it within the past 24 hours.\n\nThe spell ends early if the target takes damage or if you make an attack roll, deal damage, or force anyone to make a saving throw. When the spell ends, the target knows it was Charmed by you.",
+  "tags": ["social", "charm", "enchantment", "cantrip"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 10
+  },
+  "components": {
+    "verbal": false,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "some makeup"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 10,
+    "validTargets": ["creatures"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "negates_condition"
+      },
+      "statusCondition": {
+        "name": "Charmed",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        }
+      }
+    }
+  ]
+}

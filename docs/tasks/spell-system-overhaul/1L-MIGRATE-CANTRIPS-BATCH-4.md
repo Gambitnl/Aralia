@@ -29,8 +29,8 @@
 4. Keep to the approved schema; do not invent new fields. Maintain ASCII.
 
 ## Per-Spell Checklist (record here)
-- shape-water: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- sword-burst: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- friends: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- frostbite: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- mage-hand: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
+- shape-water: Data ✅ / Validation ✅ / Integration ✅ (notes: Added to Druid, Sorcerer, Wizard lists)
+- sword-burst: Data ✅ / Validation ✅ / Integration ✅ (notes: Added to Artificer, Sorcerer, Warlock, Wizard lists)
+- friends: Data ✅ / Validation ✅ / Integration ✅ (notes: Added to Sorcerer, Wizard lists; was already in Bard, Warlock)
+- frostbite: Data ✅ / Validation ✅ / Integration ✅ (notes: Added to Artificer, Druid, Sorcerer, Warlock, Wizard lists)
+- mage-hand: Data ✅ / Validation ✅ / Integration ✅ (notes: Already in all class lists)
