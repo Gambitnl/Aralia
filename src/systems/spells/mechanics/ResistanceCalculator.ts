@@ -54,8 +54,7 @@ export class ResistanceCalculator {
     character: CombatCharacter,
     damageType: DamageType
   ): boolean {
-    // TODO: Read from character.damageImmunities
-    return false
+    return character.immunities?.includes(damageType) ?? false
   }
 
   /**
@@ -65,8 +64,7 @@ export class ResistanceCalculator {
     character: CombatCharacter,
     damageType: DamageType
   ): boolean {
-    // TODO: Read from character.damageResistances
-    return false
+    return character.resistances?.includes(damageType) ?? false
   }
 
   /**
@@ -76,7 +74,6 @@ export class ResistanceCalculator {
     character: CombatCharacter,
     damageType: DamageType
   ): boolean {
-    // TODO: Read from character.damageVulnerabilities
-    return false
+    return character.vulnerabilities?.includes(damageType) ?? false
   }
 }

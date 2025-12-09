@@ -1,12 +1,13 @@
 import { describe, it, expect, vi } from 'vitest'
 import { ConcentrationTracker } from '../ConcentrationTracker'
 import { DiceRoller } from '../DiceRoller'
-import type { CombatCharacter } from '@/types'
+import type { CombatCharacter, CombatState } from '@/types'
 
 const mockCharacter: CombatCharacter = {
     stats: {
         constitution: 14 // Modifier +2
-    }
+    },
+    concentratingOn: undefined
 } as unknown as CombatCharacter
 
 describe('ConcentrationTracker', () => {
@@ -33,6 +34,26 @@ describe('ConcentrationTracker', () => {
         expect(result.dc).toBe(10)
         expect(result.success).toBe(true)
         vi.restoreAllMocks()
+    })
+  })
+
+  describe('isConcentrating', () => {
+    it('should return true if character has concentratingOn object', () => {
+        const concentratingChar = {
+            ...mockCharacter,
+            concentratingOn: { spellId: '1', spellName: 'Bless' }
+        } as unknown as CombatCharacter
+
+        expect(ConcentrationTracker.isConcentrating(concentratingChar, {} as CombatState)).toBe(true)
+    })
+
+    it('should return false if character has undefined concentratingOn', () => {
+        const notConcentratingChar = {
+            ...mockCharacter,
+            concentratingOn: undefined
+        } as unknown as CombatCharacter
+
+        expect(ConcentrationTracker.isConcentrating(notConcentratingChar, {} as CombatState)).toBe(false)
     })
   })
 })

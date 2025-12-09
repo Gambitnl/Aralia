@@ -22,9 +22,7 @@ export class ConcentrationTracker {
     character: CombatCharacter,
     gameState: CombatState
   ): boolean {
-    // TODO: Check gameState for active concentration
-    // For now, stub implementation
-    return false
+    return !!character.concentratingOn
   }
 
   /**
