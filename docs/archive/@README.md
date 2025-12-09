@@ -6,6 +6,7 @@ This folder contains historical documentation that is no longer actively referen
 
 - `2025-12-branch-cleanup/` - Branch management reports from December 2025
 - `bugs/` - Historical bug reports and fixes
+- `improvements/` - Completed and archived architectural improvement plans
 - `spell-system/` - Spell system migration historical documents
 
 ## When to Archive

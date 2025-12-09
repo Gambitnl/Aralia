@@ -168,12 +168,12 @@
 
 | File Path | Current State | Suggested Action | Reasoning |
 |-----------|---------------|------------------|-----------|
-| `docs/BRANCH_CLEANUP_SUMMARY.md` | Completed action | **Archive** → `docs/archive/2025-12-branch-cleanup/` | Branch cleanup from Dec 1, 2025 |
-| `docs/QUICK_WINS_MERGE_SUMMARY.md` | Completed action | **Archive** → `docs/archive/2025-12-branch-cleanup/` | Merge summary from Dec 1, 2025 |
-| `docs/REMOTE_BRANCH_ANALYSIS.md` | Historical snapshot | **Archive** → `docs/archive/2025-12-branch-cleanup/` | Raw analysis dump from Dec 1, 2025 |
-| `docs/REMOTE_BRANCHES_ACTIONABLE_SUMMARY.md` | Historical snapshot | **Archive** → `docs/archive/2025-12-branch-cleanup/` | Action plan from Dec 1, 2025 |
-| `docs/CRITICAL_BUG_SUBMAP_RENDERING.md` | Completed bug | **Archive** → `docs/archive/bugs/2025-11-submap-rendering/` | Bug report from Nov 28, 2025, fixed |
-| `docs/FIX_APPLIED_SUBMAP.md` | Completed fix | **Archive** → `docs/archive/bugs/2025-11-submap-rendering/` | Fix documentation from Nov 28, 2025 |
+| `docs/BRANCH_CLEANUP_SUMMARY.md` | Completed action | **COMPLETED** | Branch cleanup from Dec 1, 2025 |
+| `docs/QUICK_WINS_MERGE_SUMMARY.md` | Completed action | **COMPLETED** | Merge summary from Dec 1, 2025 |
+| `docs/REMOTE_BRANCH_ANALYSIS.md` | Historical snapshot | **COMPLETED** | Raw analysis dump from Dec 1, 2025 |
+| `docs/REMOTE_BRANCHES_ACTIONABLE_SUMMARY.md` | Historical snapshot | **COMPLETED** | Action plan from Dec 1, 2025 |
+| `docs/CRITICAL_BUG_SUBMAP_RENDERING.md` | Completed bug | **COMPLETED** | Bug report from Nov 28, 2025, fixed |
+| `docs/FIX_APPLIED_SUBMAP.md` | Completed fix | **COMPLETED** | Fix documentation from Nov 28, 2025 |
 
 ---
 
@@ -181,7 +181,7 @@
 
 | File Path | Current State | Suggested Action | Reasoning |
 |-----------|---------------|------------------|-----------|
-| `docs/UNMERGED_BRANCHES_SUMMARY.md` | Superseded snapshot | **Delete** | Superseded by REMOTE_BRANCH_ANALYSIS.md and REMOTE_BRANCHES_ACTIONABLE_SUMMARY.md (90 minutes newer) |
+| `docs/UNMERGED_BRANCHES_SUMMARY.md` | Superseded snapshot | **COMPLETED** | Superseded by REMOTE_BRANCH_ANALYSIS.md and REMOTE_BRANCHES_ACTIONABLE_SUMMARY.md (90 minutes newer) |
 
 ---
 
