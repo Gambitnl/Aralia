@@ -165,8 +165,7 @@ const areaIsFree = (tiles: VillageTileType[][], x: number, y: number, width: num
 
 const stampBuilding = (
   tiles: VillageTileType[][],
-  building: VillageBuildingFootprint,
-  plazaBoost = false
+  building: VillageBuildingFootprint
 ) => {
   const { footprint, type } = building;
   for (let dy = 0; dy < footprint.height; dy++) {
@@ -174,11 +173,7 @@ const stampBuilding = (
       const x = footprint.x + dx;
       const y = footprint.y + dy;
       if (!tiles[y] || typeof tiles[y][x] === 'undefined') continue;
-      // Plaza tiles keep highest priority to make the square obvious while still
-      // storing the market footprint for hit testing. The helper ensures we only
-      // downgrade a tile when the placement belongs higher in the priority list.
-      const targetType: VillageTileType = plazaBoost && type === 'market' ? 'plaza' : type;
-      setTileWithPriority(tiles, x, y, targetType);
+      setTileWithPriority(tiles, x, y, type);
     }
   }
 };
@@ -248,7 +243,7 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
     footprint: { x: plazaTopLeft.x, y: plazaTopLeft.y, width: plazaSize, height: plazaSize },
     ...pickColor('plaza', rng)
   };
-  stampBuilding(tiles, plazaBuilding, true);
+  stampBuilding(tiles, plazaBuilding);
   buildings.push(plazaBuilding);
 
   // Well sits in the heart of the plaza, deterministic placement for player cues
