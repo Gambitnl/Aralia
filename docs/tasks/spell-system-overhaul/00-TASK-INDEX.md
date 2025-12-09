@@ -120,11 +120,23 @@ Phase 5: Migration & Polish (Weeks 10-11)
 
 **Phase 5 Total:** 9 days
 
+### Phase X: Gap Remediation (Targeting & Mechanics)
+
+| # | Task | Complexity | Est. Days | Priority | Dependencies |
+|---|------|------------|-----------|----------|--------------|
+| [GAP-8](gaps/GAP-8-CUBE-ALGORITHM.md) | Fix Cube Algorithm Bug | Low | 0.5 | P0 | None |
+| [GAP-9](gaps/GAP-9-LOS-AND-COVER.md) | Line of Sight & Cover System | High | 3 | P1 | 02 |
+| [GAP-10](gaps/GAP-10-OBJECT-TARGETING.md) | Object Targeting Support | Medium | 1 | P2 | 02 |
+| [GAP-11](gaps/GAP-11-VERTICALITY.md) | Verticality & 3D Support | High | 2 | P2 | 02 |
+| [GAP-12](gaps/GAP-12-ADVANCED-GRID-LOGIC.md) | Advanced Grid Logic | Medium | 2 | P2 | 02 |
+
+**Gap Remediation Total:** 8.5 days
+
 ---
 
 ## Total Effort
 
-- **Total Tasks:** 27
+- **Total Tasks:** 32
 - **Total Estimated Days:** 57 days (~11.5 weeks)
 - **Recommended Team Size:** 2-3 agents working in parallel
 - **Critical Path:** 01 → 03 → 04 → 05 → 07 → 14 → 19 → 23 → 27
