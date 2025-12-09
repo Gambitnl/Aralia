@@ -1839,7 +1839,7 @@
     "name": "Shillelagh",
     "level": 0,
     "school": "Transmutation",
-    "path": "/data/spells/shillelagh.json"
+    "path": "/data/spells/level-0/shillelagh.json"
   },
   "shining-smite": {
     "name": "Shining Smite",

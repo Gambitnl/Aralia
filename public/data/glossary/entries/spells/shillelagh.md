@@ -1,4 +1,3 @@
-
 ---
 id: "shillelagh"
 title: "Shillelagh"
@@ -6,7 +5,6 @@ category: "Spells"
 tags: ["cantrip", "transmutation", "damage", "buff", "druid"]
 excerpt: "Imbue a club or quarterstaff with nature's power, allowing you to use your spellcasting ability for attacks and increasing its damage."
 seeAlso: ["druidcraft", "thorn-whip", "club", "quarterstaff"]
-filePath: "/data/glossary/entries/spells/shillelagh.md"
 ---
 <div class="spell-card">
   <div class="spell-card-header">
@@ -40,30 +38,31 @@ filePath: "/data/glossary/entries/spells/shillelagh.md"
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Attack/Save</span>
-      <span class="spell-card-stat-value">Melee</span>
+      <span class="spell-card-stat-value">None</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Damage/Effect</span>
-      <span class="spell-card-stat-value">Bludgeoning (...)</span>
+      <span class="spell-card-stat-value">Buff</span>
     </div>
   </div>
   <div class="spell-card-divider"></div>
   <p class="spell-card-description">
-    A Club or Quarterstaff you are holding is imbued with nature's power. For the duration, you can use your spellcasting ability instead of Strength for the attack and damage rolls of melee attacks using that weapon, and the weapon's damage die becomes a d8. If the attack deals damage, it can be Force damage or the weapon's normal damage type (your choice).
+    A club or quarterstaff you are holding is imbued with nature's power. For the duration, you can use your spellcasting ability instead of Strength for the attack and damage rolls of melee attacks using that weapon, and the weapon's damage die becomes a d8. If the attack deals damage, it can be Force damage or the weapon's normal damage type (your choice).
   </p>
   <p class="spell-card-description">
     The spell ends early if you cast it again or if you let go of the weapon.
   </p>
   <p class="spell-card-description">
-    <strong>Cantrip Upgrade.</strong> The damage die changes when you reach levels 5 (d10), 11 (d12), and 17 (2d6).
+    <strong>Cantrip Upgrade.</strong> The damage die changes when you reach 5th level (d10), 11th level (d12), and 17th level (2d6).
   </p>
   <p class="spell-card-material-note">
-    * - (mistletoe)
+    * - (mistletoe, a shamrock leaf, and a club or quarterstaff)
   </p>
   <div class="spell-card-tags-section">
     <span class="spell-card-tags-label">Spell Tags:</span>
-    <span class="spell-card-tag">DAMAGE</span>
+    <span class="spell-card-tag">TRANSMUTATION</span>
     <span class="spell-card-tag">BUFF</span>
+    <span class="spell-card-tag">DAMAGE</span>
   </div>
   <div class="spell-card-tags-section">
     <span class="spell-card-tags-label">Available For:</span>
