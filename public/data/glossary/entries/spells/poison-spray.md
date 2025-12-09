@@ -3,8 +3,8 @@ id: "poison-spray"
 title: "Poison Spray"
 category: "Spells"
 tags: ["cantrip", "necromancy", "damage", "poison", "artificer", "druid", "sorcerer", "warlock", "wizard"]
-excerpt: "You spray toxic mist at a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d12 Poison damage."
-seeAlso: ["chill-touch", "acid-splash", "fire-bolt"]
+excerpt: "You extend your hand toward a creature you can see within range and project a puff of noxious gas from your palm. The creature must succeed on a Constitution saving throw or take 1d12 poison damage."
+seeAlso: ["acid-splash", "chill-touch"]
 filePath: "/data/glossary/entries/spells/poison-spray.md"
 ---
 <div class="spell-card">
@@ -23,7 +23,7 @@ filePath: "/data/glossary/entries/spells/poison-spray.md"
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Range/Area</span>
-      <span class="spell-card-stat-value">30 ft.</span>
+      <span class="spell-card-stat-value">10 ft.</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Components</span>
@@ -39,7 +39,7 @@ filePath: "/data/glossary/entries/spells/poison-spray.md"
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Attack/Save</span>
-      <span class="spell-card-stat-value">Ranged</span>
+      <span class="spell-card-stat-value">CON Save</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Damage/Effect</span>
@@ -48,14 +48,15 @@ filePath: "/data/glossary/entries/spells/poison-spray.md"
   </div>
   <div class="spell-card-divider"></div>
   <p class="spell-card-description">
-    You spray toxic mist at a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d12 Poison damage.
+    You extend your hand toward a creature you can see within range and project a puff of noxious gas from your palm. The creature must succeed on a Constitution saving throw or take 1d12 poison damage.
   </p>
-    <p class="spell-card-description">
+  <p class="spell-card-description">
     <strong>Cantrip Upgrade.</strong> The damage increases by 1d12 when you reach levels 5 (2d12), 11 (3d12), and 17 (4d12).
   </p>
   <div class="spell-card-tags-section">
     <span class="spell-card-tags-label">Spell Tags:</span>
     <span class="spell-card-tag">DAMAGE</span>
+    <span class="spell-card-tag">POISON</span>
   </div>
   <div class="spell-card-tags-section">
     <span class="spell-card-tags-label">Available For:</span>

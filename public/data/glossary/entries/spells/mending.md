@@ -2,9 +2,9 @@
 id: "mending"
 title: "Mending"
 category: "Spells"
-tags: ["cantrip", "transmutation", "utility", "repair"]
-excerpt: "This spell repairs a single break or tear in an object you touch, leaving no trace of the former damage."
-seeAlso: ["artificer", "bard", "cleric", "druid", "sorcerer", "wizard"]
+tags: ["cantrip", "transmutation", "utility", "repair", "artificer", "bard", "cleric", "druid", "sorcerer", "wizard"]
+excerpt: "This spell repairs a single break or tear in an object you touch, such as a broken chain link, two halves of a broken key, a torn cloak, or a leaking wineskin."
+seeAlso: ["prestidigitation"]
 filePath: "/data/glossary/entries/spells/mending.md"
 ---
 <div class="spell-card">
@@ -27,7 +27,7 @@ filePath: "/data/glossary/entries/spells/mending.md"
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Components</span>
-      <span class="spell-card-stat-value">V, S, M *</span>
+      <span class="spell-card-stat-value">V, S, M (two lodestones)</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Duration</span>
@@ -39,7 +39,7 @@ filePath: "/data/glossary/entries/spells/mending.md"
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Attack/Save</span>
-      <span class="spell-card-stat-value">None</span>
+      <span class="spell-card-stat-value">-</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Damage/Effect</span>
@@ -48,17 +48,12 @@ filePath: "/data/glossary/entries/spells/mending.md"
   </div>
   <div class="spell-card-divider"></div>
   <p class="spell-card-description">
-    This spell repairs a single break or tear in an object you touch, such as a broken chain link, two halves of a broken key, a torn cloak, or a leaking wineskin. As long as the break or tear is no larger than 1 foot in any dimension, you mend it, leaving no trace of the former damage.
-  </p>
-  <p class="spell-card-description">
-    This spell can physically repair a magic item, but it can’t restore magic to such an object.
-  </p>
-  <p class="spell-card-material-note">
-    * - (two lodestones)
+    This spell repairs a single break or tear in an object you touch, such as a broken chain link, two halves of a broken key, a torn cloak, or a leaking wineskin. As long as the break or tear is no larger than 1 foot in any dimension, you mend it, leaving no trace of the former damage. This spell can physically repair a magic item or construct, but the spell can't restore magic to such an object.
   </p>
   <div class="spell-card-tags-section">
     <span class="spell-card-tags-label">Spell Tags:</span>
     <span class="spell-card-tag">UTILITY</span>
+    <span class="spell-card-tag">REPAIR</span>
   </div>
   <div class="spell-card-tags-section">
     <span class="spell-card-tags-label">Available For:</span>

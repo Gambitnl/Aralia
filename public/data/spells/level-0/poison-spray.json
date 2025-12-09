@@ -1,0 +1,71 @@
+{
+  "id": "poison-spray",
+  "name": "Poison Spray",
+  "level": 0,
+  "school": "Necromancy",
+  "classes": [
+    "Artificer",
+    "Druid",
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
+  "description": "You extend your hand toward a creature you can see within range and project a puff of noxious gas from your palm. The creature must succeed on a Constitution saving throw or take 1d12 poison damage.",
+  "higherLevels": "This spell's damage increases by 1d12 when you reach 5th level (2d12), 11th level (3d12), and 17th level (4d12).",
+  "tags": [
+    "damage",
+    "poison",
+    "cantrip"
+  ],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 10
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 10,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "none"
+      },
+      "damage": {
+        "dice": "1d12",
+        "type": "Poison"
+      },
+      "scaling": {
+        "type": "character_level",
+        "bonusPerLevel": "+1d12",
+        "customFormula": "1d12 at level 1, 2d12 at level 5, 3d12 at level 11, 4d12 at level 17"
+      }
+    }
+  ]
+}
