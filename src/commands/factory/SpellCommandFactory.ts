@@ -13,6 +13,7 @@ import { UtilityCommand } from '../effects/UtilityCommand'
 import { DefensiveCommand } from '../effects/DefensiveCommand'
 import { ReactiveEffectCommand } from '../effects/ReactiveEffectCommand'
 import { RegisterRiderCommand } from '../effects/RegisterRiderCommand'
+import { NarrativeCommand } from '../effects/NarrativeCommand'
 import { GameState } from '@/types'
 
 export class SpellCommandFactory {
@@ -46,7 +47,7 @@ export class SpellCommandFactory {
     }
 
     if (spell.arbitrationType && spell.arbitrationType !== 'mechanical') {
-      const { aiSpellArbitrator } = await import('@/services/AISpellArbitrator')
+      const { aiSpellArbitrator } = await import('@/systems/spells/ai/AISpellArbitrator')
 
       const arbitrationResult = await aiSpellArbitrator.arbitrate({
         spell,
@@ -74,9 +75,12 @@ export class SpellCommandFactory {
         return []
       }
 
-      if (spell.arbitrationType === 'ai_dm' && !arbitrationResult.mechanicalEffects) {
-        // Narrative only
+      // If AI provides a narrative, add it as a command
+      if (arbitrationResult.narrativeOutcome) {
+        commands.push(new NarrativeCommand(arbitrationResult.narrativeOutcome, context));
       }
+
+      // TODO: Handle arbitrationResult.mechanicalEffects if the AI modified the spell logic
     }
 
     for (const effect of spell.effects) {

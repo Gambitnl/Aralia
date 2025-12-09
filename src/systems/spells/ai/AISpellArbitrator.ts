@@ -1,8 +1,9 @@
-import { Spell } from '../types/spells'
-import { CombatCharacter, CombatState } from '../types/combat'
-import { GameState } from '../types'
-import { generateText } from './geminiService'
-import { Position } from '../types/map'
+import { Spell } from '../../../types/spells'
+import { CombatCharacter, CombatState } from '../../../types/combat'
+import { GameState } from '../../../types'
+import { generateText } from '../../../services/geminiService'
+import { Position } from '../../../types/map'
+import { MaterialTagService } from './MaterialTagService'
 
 export interface ArbitrationRequest {
     spell: Spell
@@ -114,8 +115,9 @@ class AISpellArbitrator {
         }
 
         const context = this.buildGameStateContext(caster, combatState, gameState)
+        const targetNames = request.targets.map(t => t.name).join(', ') || 'None';
         const promptWithInput = spell.aiContext.prompt
-            .replace('{target}', 'TARGET_NAME_HERE') // TODO: Actual target name
+            .replace('{target}', targetNames)
             .replace('{playerInput}', playerInput || 'N/A')
             .replace('{spellDC}', this.calculateSpellDC(caster).toString())
 
@@ -163,7 +165,7 @@ Nearby Creatures (within 30 feet):
 ${this.describeNearbyCreatures(caster, combatState)}
 
 Nearby Terrain:
-${this.describeNearbyTerrain(caster, combatState)}
+${this.describeNearbyTerrain(caster, gameState)}
 
 Current Conditions:
 - Combat Round: ${combatState.turnState.currentTurn}
@@ -191,10 +193,9 @@ Current Conditions:
 
     private describeNearbyTerrain(
         caster: CombatCharacter,
-        combatState: CombatState
+        gameState: GameState
     ): string {
-        // TODO: Implement when material tagging exists
-        return 'Terrain details not yet implemented'
+        return MaterialTagService.describeNearbyMaterials(caster.position, gameState);
     }
 
     private getDistance(pos1: Position, pos2: Position): number {
@@ -204,9 +205,9 @@ Current Conditions:
     }
 
     private calculateSpellDC(caster: CombatCharacter): number {
-        // TODO: Get spellcasting ability from character
-        const spellcastingMod = 3 // Placeholder
-        const proficiencyBonus = 2 // Placeholder
+        // TODO: Get real stats when available
+        const spellcastingMod = 3
+        const proficiencyBonus = 2
         return 8 + proficiencyBonus + spellcastingMod
     }
 }
