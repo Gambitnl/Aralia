@@ -1,0 +1,61 @@
+{
+  "id": "primal-savagery",
+  "name": "Primal Savagery",
+  "level": 0,
+  "school": "Transmutation",
+  "classes": [
+    "Druid"
+  ],
+  "tags": [
+    "damage",
+    "acid",
+    "melee"
+  ],
+  "description": "You channel primal magic to cause your teeth or fingernails to sharpen, ready to deliver a corrosive attack. Make a melee spell attack against one creature within 5 feet of you. On a hit, the target takes 1d10 acid damage.",
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": false,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 5,
+    "validTargets": ["creatures", "objects", "enemies"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "hit"
+      },
+      "damage": {
+        "dice": "1d10",
+        "type": "Acid"
+      },
+      "scaling": {
+        "type": "character_level",
+        "bonusPerLevel": "+1d10",
+        "customFormula": "1d10 at level 1, 2d10 at level 5, 3d10 at level 11, 4d10 at level 17"
+      }
+    }
+  ]
+}

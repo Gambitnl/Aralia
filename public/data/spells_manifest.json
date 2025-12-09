@@ -638,7 +638,7 @@
   "divine-favor": {
     "name": "Divine Favor",
     "level": 1,
-    "school": "Transmutation",
+    "school": "Evocation",
     "path": "/data/spells/level-1/divine-favor.json"
   },
   "divine-smite": {
@@ -1251,7 +1251,7 @@
     "name": "Light",
     "level": 0,
     "school": "Evocation",
-    "path": "/data/spells/light.json"
+    "path": "/data/spells/level-0/light.json"
   },
   "lightning-arrow": {
     "name": "Lightning Arrow",
@@ -1415,6 +1415,12 @@
     "school": "Abjuration",
     "path": "/data/spells/mind-blank.json"
   },
+  "mind-sliver": {
+    "name": "Mind Sliver",
+    "level": 0,
+    "school": "Enchantment",
+    "path": "/data/spells/level-0/mind-sliver.json"
+  },
   "mind-spike": {
     "name": "Mind Spike",
     "level": 2,
@@ -1450,6 +1456,12 @@
     "level": 5,
     "school": "Enchantment",
     "path": "/data/spells/modify-memory.json"
+  },
+  "mold-earth": {
+    "name": "Mold Earth",
+    "level": 0,
+    "school": "Transmutation",
+    "path": "/data/spells/level-0/mold-earth.json"
   },
   "moonbeam": {
     "name": "Moonbeam",
@@ -1594,6 +1606,12 @@
     "level": 0,
     "school": "Transmutation",
     "path": "/data/spells/prestidigitation.json"
+  },
+  "primal-savagery": {
+    "name": "Primal Savagery",
+    "level": 0,
+    "school": "Transmutation",
+    "path": "/data/spells/level-0/primal-savagery.json"
   },
   "prismatic-spray": {
     "name": "Prismatic Spray",
@@ -1744,6 +1762,12 @@
     "level": 1,
     "school": "Abjuration",
     "path": "/data/spells/level-1/sanctuary.json"
+  },
+  "sapping-sting": {
+    "name": "Sapping Sting",
+    "level": 0,
+    "school": "Necromancy",
+    "path": "/data/spells/level-0/sapping-sting.json"
   },
   "scorching-ray": {
     "name": "Scorching Ray",
@@ -2252,7 +2276,7 @@
   "wrathful-smite": {
     "name": "Wrathful Smite",
     "level": 1,
-    "school": "Necromancy",
+    "school": "Evocation",
     "path": "/data/spells/level-1/wrathful-smite.json"
   },
   "zone-of-truth": {

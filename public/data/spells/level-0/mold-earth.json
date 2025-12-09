@@ -1,0 +1,88 @@
+{
+  "id": "mold-earth",
+  "name": "Mold Earth",
+  "level": 0,
+  "school": "Transmutation",
+  "classes": [
+    "Druid",
+    "Sorcerer",
+    "Wizard"
+  ],
+  "tags": [
+    "utility",
+    "transmutation"
+  ],
+  "description": "You choose a portion of dirt or stone that you can see within range and that fits within a 5-foot cube. You manipulate it in one of the following ways: excavate it, cause shapes/colors/text to appear, or turn it into difficult terrain (or vice versa).",
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
+  "components": {
+    "verbal": false,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "area",
+    "range": 30,
+    "validTargets": ["point", "ground"],
+    "lineOfSight": true,
+    "areaOfEffect": {
+      "shape": "Cube",
+      "size": 5
+    }
+  },
+  "effects": [
+    {
+      "type": "TERRAIN",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "terrainType": "difficult",
+      "areaOfEffect": {
+        "shape": "Cube",
+        "size": 5
+      },
+      "duration": {
+        "type": "special"
+      }
+    },
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "utilityType": "creation",
+      "description": "If you target an area of loose earth, you can instantaneously excavate it, move it along the ground, and deposit it up to 5 feet away. This movement doesn't have enough force to cause damage."
+    },
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "utilityType": "other",
+      "description": "You cause shapes, colors, or text to appear on the dirt or stone, or you turn difficult terrain into normal terrain (or vice versa). This change lasts for 1 hour."
+    }
+  ]
+}
