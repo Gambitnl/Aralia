@@ -29,8 +29,19 @@
 4. If you add or modify data fields, keep to ASCII, maintain schema compatibility, and do not invent new types beyond the approved schema.
 
 ## Per-Spell Checklist (fill here, not elsewhere)
-- light: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- mind-sliver: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- mold-earth: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- primal-savagery: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- sapping-sting: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
+- light: Data ✅ / Validation ✅ / Integration ✅ (notes: Used UTILITY type for light effect; deleted legacy file)
+- mind-sliver: Data ✅ / Validation ✅ / Integration ✅ (notes: Used UTILITY for save penalty; new spell)
+- mold-earth: Data ✅ / Validation ✅ / Integration ✅ (notes: Used TERRAIN + UTILITY; new spell)
+- primal-savagery: Data ✅ / Validation ✅ / Integration ✅ (notes: Standard melee spell attack; new spell)
+- sapping-sting: Data ✅ / Validation ✅ / Integration ✅ (notes: Prone condition on save; new spell)
+
+## System Gaps & Follow-up
+- [ ] **Light**: Dynamic light sources
+    - *Context*: No game mechanic for dynamic light sources exists yet.
+    - *Recommendation*: Implement a lighting system or use the `UTILITY` effect description for manual adjudication until then.
+- [ ] **Mind Sliver**: Save penalty mechanic
+    - *Context*: "Subtract 1d4 from the next saving throw" is not a structured effect type.
+    - *Recommendation*: Add a structured `statModifier` or specific debuff type to the schema.
+- [ ] **Mold Earth**: Complex terrain/utility options
+    - *Context*: Excavating earth and cosmetic changes are handled via `UTILITY` descriptions.
+    - *Recommendation*: Expand `TERRAIN` or `UTILITY` types to handle structured world interaction.
