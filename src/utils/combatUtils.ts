@@ -266,7 +266,9 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     // For this step, let's try to parse the dice string to get an average or just pass 0 and handle rolling in execution.
     // Actually, let's check the weapon data structure.
 
-    return {
+    const isProficient = isWeaponProficient(player, weapon);
+
+    const ability: Ability = {
       id: `attack_${idSuffix}`,
       name: weapon.name,
       description: `Attack with ${weapon.name}.`,
@@ -282,8 +284,19 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       }],
       icon: '⚔️',
       weapon: weapon, // Link source weapon
-      isProficient: isWeaponProficient(player, weapon)
+      isProficient: isProficient
     };
+
+    // Task 10: Weapon Mastery Integration
+    // Only attach mastery if:
+    // 1. Character is proficient with the weapon.
+    // 2. Character has unlocked mastery for this specific choice (stored in selectedWeaponMasteries as Item ID).
+    // 3. The weapon actually has a mastery property.
+    if (isProficient && weapon.mastery && player.selectedWeaponMasteries?.includes(weapon.id)) {
+      ability.mastery = weapon.mastery;
+    }
+
+    return ability;
   };
 
   if (mainHand) {

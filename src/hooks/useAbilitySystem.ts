@@ -6,7 +6,7 @@
  * - Geometric logic delegated to `targetingUtils`.
  * - Remains the "Orchestrator" connecting UI events to Action execution.
  */
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import {
   CombatCharacter,
   Ability,
@@ -25,7 +25,7 @@ import { calculateAffectedTiles } from '../utils/aoeCalculations';
 import { useTargeting } from './combat/useTargeting'; // New Hook
 import { resolveAoEParams } from '../utils/targetingUtils';
 import { AttackRiderSystem, AttackContext } from '../systems/combat/AttackRiderSystem';
-import { isDamageEffect, isStatusConditionEffect, isMovementEffect, isUtilityEffect } from '../types/spells'; // New Utils
+import { isDamageEffect, isStatusConditionEffect, isMovementEffect, isUtilityEffect, isDefensiveEffect } from '../types/spells'; // New Utils
 
 interface UseAbilitySystemProps {
   characters: CombatCharacter[];
@@ -37,6 +37,14 @@ interface UseAbilitySystemProps {
   onRequestInput?: (spell: Spell, onConfirm: (input: string) => void) => void;
   reactiveTriggers?: any[]; // TODO: Import ReactiveTrigger
   onReactiveTriggerUpdate?: (triggers: any[]) => void;
+}
+
+export interface PendingReaction {
+  attackerId: string;
+  targetId: string;
+  triggerType: 'on_hit' | 'on_cast' | 'on_move';
+  reactionSpells: Spell[]; // Spells available to cast
+  onResolve: (usedSpellId: string | null) => void;
 }
 
 export const useAbilitySystem = ({
@@ -60,6 +68,8 @@ export const useAbilitySystem = ({
     cancelTargeting,
     previewAoE
   } = useTargeting({ mapData, characters });
+
+  const [pendingReaction, setPendingReaction] = useState<PendingReaction | null>(null);
 
   // --- Command Pattern Execution Logic ---
   const executeSpell = useCallback(async (
@@ -355,11 +365,11 @@ export const useAbilitySystem = ({
   }, [onCharacterUpdate, onAbilityEffect, characters, onLogEntry]);
 
 
-  /**
-   * Main entry point to execute an ability (Legacy/Hybrid).
-   * Bridges simple abilities to Action System and Spells to Command System.
-   */
-  const executeAbility = useCallback((
+
+
+
+  // Refactored async wrapper for executeAbility to support internal await
+  const executeAbilityInternal = useCallback(async (
     ability: Ability,
     caster: CombatCharacter,
     targetPosition: Position,
@@ -393,60 +403,128 @@ export const useAbilitySystem = ({
     const success = onExecuteAction(action);
 
     if (success) {
-      // Apply effects immediately (Synchronous)
-      targetCharacterIds.forEach(targetId => {
+      // Loop through targets sequentially to allow for individual reactions
+      for (const targetId of targetCharacterIds) {
         const target = characters.find(c => c.id === targetId);
-        if (target) {
+        if (!target) continue;
 
-          if (ability.type === 'attack') {
-            // Task 09: Attack Roll Implementation
-            const d20 = rollDice('1d20');
-            const strMod = Math.floor((caster.stats.strength - 10) / 2);
-            const dexMod = Math.floor((caster.stats.dexterity - 10) / 2);
+        if (ability.type === 'attack') {
+          // Task 09: Attack Roll Implementation
+          const d20 = rollDice('1d20');
+          const strMod = Math.floor((caster.stats.strength - 10) / 2);
+          const dexMod = Math.floor((caster.stats.dexterity - 10) / 2);
 
-            // Determine modifier (simplified: finesse not fully checked yet, prioritizing Str for melee unless ranged)
-            // Default to Strength for melee, Dex for ranged.
-            // TODO: Check weapon properties for Finesse
-            const isRanged = ability.range > 1 || ability.weapon?.properties?.includes('range');
-            const abilityMod = isRanged ? dexMod : strMod;
+          const isRanged = ability.range > 1 || ability.weapon?.properties?.includes('range');
+          const abilityMod = isRanged ? dexMod : strMod;
 
-            // Proficiency Check
-            let proficiencyBonus = 0;
-            if (ability.weapon) {
-              // Proficiency Bonus formula: Math.ceil(level / 4) + 1
-              const pb = Math.ceil((caster.level || 1) / 4) + 1;
-              // Check isProficient flag, which is calculated based on class/race in combatUtils
-              proficiencyBonus = ability.isProficient ? pb : 0;
+          let proficiencyBonus = 0;
+          if (ability.weapon) {
+            const pb = Math.ceil((caster.level || 1) / 4) + 1;
+            proficiencyBonus = ability.isProficient ? pb : 0;
+            const initialAttackRoll = d20 + abilityMod + proficiencyBonus;
+            const initialAC = target.armorClass || 10;
+            const initialIsHit = initialAttackRoll >= initialAC;
 
-              // Strategy: 
-              // 1. Calculate Attack Roll = d20 + Mod + PB (if proficient)
-              // 2. Compare vs Target AC.
+            if (onLogEntry) {
+              onLogEntry({
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'action',
+                message: `${caster.name} attacks ${target.name} (Roll: ${d20} + ${abilityMod} + ${proficiencyBonus} = ${initialAttackRoll})`,
+                characterId: caster.id,
+                targetIds: [targetId]
+              });
+            }
 
-              const attackRoll = d20 + abilityMod + proficiencyBonus;
-              const targetAC = target.armorClass || 10;
+            let finalAC = initialAC;
+            let finalIsHit = initialIsHit;
 
+            // --- REACTION CHECK ---
+            if (initialIsHit) {
+              // Check for available reactions (e.g., Shield)
+              const hasReactionResource = (target.actionEconomy?.reaction?.remaining ?? 0) > 0;
+
+              // Scan `target.abilities` for spells with reactionTrigger
+              const reactionSpells = target.abilities
+                .map(a => a.spell)
+                .filter(s => {
+                  if (!s || s.castingTime.unit !== 'reaction') return false;
+                  // Check if any defensive effect has a reaction trigger of type 'when_hit'
+                  return s.effects.some(e => isDefensiveEffect(e) && e.reactionTrigger?.event === 'when_hit');
+                }) as Spell[];
+
+              if (hasReactionResource && reactionSpells.length > 0) {
+                // Pause for User Input
+                const usedSpellId = await new Promise<string | null>(resolve => {
+                  setPendingReaction({
+                    attackerId: caster.id,
+                    targetId: target.id,
+                    triggerType: 'on_hit',
+                    reactionSpells,
+                    onResolve: resolve
+                  });
+                });
+
+                setPendingReaction(null);
+
+                if (usedSpellId) {
+                  const spell = reactionSpells.find(s => s.id === usedSpellId);
+                  if (spell) {
+                    await executeSpell(spell, target, [target], spell.level); // Cast Shield on self
+
+                    // For calculation, assume Shield adds +5 (read from defensive effect)
+                    const defensiveEffect = spell.effects.find(isDefensiveEffect);
+                    const acBonus = defensiveEffect?.acBonus || 5; // Default to 5 if undefined
+
+                    finalAC += acBonus;
+                    finalIsHit = initialAttackRoll >= finalAC;
+
+                    if (onLogEntry) {
+                      onLogEntry({
+                        id: generateId(),
+                        timestamp: Date.now(),
+                        type: 'action',
+                        message: `${target.name} casts ${spell.name}! AC increases to ${finalAC}. Attack ${finalIsHit ? 'still HITS' : 'now MISSES'}!`,
+                        characterId: target.id,
+                        data: { spellId: spell.id, reaction: true }
+                      });
+                    }
+                  }
+                }
+              }
+            }
+            // --- END REACTION CHECK ---
+
+            if (!finalIsHit) {
               if (onLogEntry) {
-                const hitMiss = attackRoll >= targetAC ? "HITS" : "MISSES";
                 onLogEntry({
                   id: generateId(),
                   timestamp: Date.now(),
                   type: 'action',
-                  message: `${caster.name} attacks ${target.name}: ${d20} + ${abilityMod} + ${proficiencyBonus} = ${attackRoll} vs AC ${targetAC} -> ${hitMiss}`,
+                  message: `Attack MISSES ${target.name} (AC ${finalAC}).`,
                   characterId: caster.id,
                   targetIds: [targetId]
                 });
               }
-
-              if (attackRoll < targetAC) {
-                if (onAbilityEffect) onAbilityEffect(0, target.position, 'miss');
-                return; // Miss - stop processing effects
+              if (onAbilityEffect) onAbilityEffect(0, target.position, 'miss');
+              continue; // Next target
+            } else {
+              if (onLogEntry) {
+                onLogEntry({
+                  id: generateId(),
+                  timestamp: Date.now(),
+                  type: 'damage', // Log as damage event or just hit confirmation
+                  message: `Attack HITS ${target.name}!`,
+                  characterId: caster.id,
+                  targetIds: [targetId]
+                });
               }
             }
           }
-
-          applyAbilityEffects(ability, caster, target);
         }
-      });
+
+        applyAbilityEffects(ability, caster, target);
+      } // end target loop
 
       // Handle Cooldowns
       if (ability.cooldown) {
@@ -461,7 +539,11 @@ export const useAbilitySystem = ({
     }
 
     cancelTargeting();
-  }, [onExecuteAction, characters, applyAbilityEffects, onCharacterUpdate, cancelTargeting, executeSpell]);
+  }, [onExecuteAction, characters, applyAbilityEffects, onCharacterUpdate, cancelTargeting, executeSpell, onLogEntry, onAbilityEffect]);
+
+  const executeAbility = useCallback((...args: Parameters<typeof executeAbilityInternal>) => {
+    executeAbilityInternal(...args);
+  }, [executeAbilityInternal]);
 
 
   /**
@@ -570,6 +652,8 @@ export const useAbilitySystem = ({
     previewAoE,
     isValidTarget,
     executeSpell,
+
     dropConcentration,
+    pendingReaction,
   };
 };

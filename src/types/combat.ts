@@ -181,6 +181,7 @@ export interface Ability {
   spell?: Spell; // Reference to the original spell data for AI arbitration
   weapon?: Item; // Reference to the source weapon for proficiency checks
   isProficient?: boolean; // Whether caster is proficient with this ability/weapon
+  mastery?: string; // Active weapon mastery property (e.g., 'Topple', 'Sap') if unlocked and proficient
 }
 
 export interface TurnState {
