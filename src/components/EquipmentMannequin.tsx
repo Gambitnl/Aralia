@@ -154,15 +154,26 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
                 }
 
                 // Check weapon proficiency
+                // REVIEW Q10: This correctly uses the isWeaponMartial helper now (after fix).
+                // However, the error message says "Cannot add proficiency bonus to attack rolls or use weapon mastery."
+                // Is this mechanically accurate for 2024 D&D? Need to verify the actual penalties.
+                // ANSWER: Yes, per 2024 PHB: Non-proficient = no prof bonus to attack, no mastery properties.
                 const isProficient = isWeaponProficient(character, equippedItem);
                 if (!isProficient) {
                   proficiencyMismatch = true;
                   // Use helper to determine type for display
+                  // REVIEW Q11: Error message is duplicated from characterUtils.ts canEquipItem.
+                  // Should we centralize this message in one place to avoid drift?
+                  // ANSWER: Good observation. Consider a constant or helper function for message consistency.
                   const weaponType = isWeaponMartial(equippedItem) ? 'Martial weapons' : 'Simple weapons';
                   mismatchReason = `Not proficient with ${weaponType}. Cannot add proficiency bonus to attack rolls or use weapon mastery.`;
                 }
               }
 
+              // REVIEW Q12: The red styling is applied even if proficiencyMismatch is true from a non-weapon source.
+              // Currently only weapons set proficiencyMismatch, but if armor proficiency mismatch is added later,
+              // would this styling still be appropriate?
+              // ANSWER: Yes, the styling is generic enough for any "equipment mismatch" warning.
               if (proficiencyMismatch) {
                 slotStyle = "bg-red-900/20 border-red-500 ring-1 ring-red-500";
               }

@@ -28,6 +28,12 @@ Reusable procedures for the audit and extraction project. Keep updates minimal a
 ## Description Extraction
 1. Use a reliable rules source for mechanical text (avoid user-generated content).
 2. Capture fields: Name, Level, School, Casting Time, Range, Components, Duration, Classes, Description, At Higher Levels.
+
+> **[Claude Agent Note]** Successfully tested data sources for spell extraction (Dec 2025):
+> - **Primary**: `https://www.aidedd.org/spell/{spell-id}` — Reliable PHB 2024 data; use WebFetch with HTTP.
+> - **Fallback**: WebSearch for "D&D 5e 2024 PHB {spell-name} spell" then fetch from results.
+> - **Avoid**: `dnd2024.wikidot.com` — Has redirect issues (301 loops between HTTP/HTTPS).
+> - URL pattern: Use kebab-case spell IDs (e.g., `cloud-of-daggers`, `blindness-deafness`).
 3. For level 1, create `docs/spells/reference/LEVEL-1-REFERENCE.md` (pilot quality).
 4. For levels 2-9, replicate structure per level: `LEVEL-{N}-REFERENCE.md`.
 5. Maintain source notes for traceability; do not modify game data files.

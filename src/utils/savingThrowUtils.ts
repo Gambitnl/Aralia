@@ -5,6 +5,7 @@
 import {
     CombatCharacter,
 } from '../types/combat';
+import { rollDice } from './combatUtils';
 import {
     SavingThrowAbility,
     // StatusConditionEffect // Not used yet but good for future
@@ -17,6 +18,17 @@ export interface SavingThrowResult {
     dc: number;
     natural20: boolean;
     natural1: boolean;
+    modifiersApplied?: { source: string; value: number }[];
+}
+
+/**
+ * Modifier to apply to a saving throw from external effects.
+ * Used by SavePenaltySystem for spells like Mind Sliver.
+ */
+export interface SavingThrowModifier {
+    dice?: string;    // e.g. "1d4" - will be rolled and subtracted
+    flat?: number;    // e.g. -2 - static penalty (should be negative)
+    source: string;   // Name of the effect that caused this modifier
 }
 
 /**
@@ -38,7 +50,7 @@ export function calculateSpellDC(caster: CombatCharacter): number {
 
     // Identify spellcasting ability from class, default to Intelligence if unknown
     const abilityName = caster.class?.spellcasting?.ability || 'Intelligence';
-    const score = caster.stats[abilityName.toLowerCase() as keyof typeof caster.stats] || 10;
+    const score = (caster.stats[abilityName.toLowerCase() as keyof typeof caster.stats] || 10) as number;
     const mod = Math.floor((score - 10) / 2);
 
     return 8 + pb + mod;
@@ -46,16 +58,21 @@ export function calculateSpellDC(caster: CombatCharacter): number {
 
 /**
  * Rolls a saving throw for a character against a target DC.
+ * @param target The character making the save
+ * @param ability The ability to use for the save
+ * @param dc The difficulty class to beat
+ * @param modifiers Optional array of modifiers from active effects (e.g., Mind Sliver's -1d4)
  */
 export function rollSavingThrow(
     target: CombatCharacter,
     ability: SavingThrowAbility,
-    dc: number
+    dc: number,
+    modifiers?: SavingThrowModifier[]
 ): SavingThrowResult {
     const roll = Math.floor(Math.random() * 20) + 1;
 
     // Get ability modifier
-    const score = target.stats[ability.toLowerCase() as keyof typeof target.stats] || 10;
+    const score = (target.stats[ability.toLowerCase() as keyof typeof target.stats] || 10) as number;
     let mod = Math.floor((score - 10) / 2);
 
     // Add proficiency if applicable
@@ -69,7 +86,23 @@ export function rollSavingThrow(
         mod += calculateProficiencyBonus(target.level || 1);
     }
 
-    // TODO: Add modifiers from active effects (e.g. Bless +1d4, Cover +2)
+    // Apply external modifiers (e.g., Mind Sliver's -1d4, Bless +1d4, Cover +2)
+    const modifiersApplied: { source: string; value: number }[] = [];
+    if (modifiers && modifiers.length > 0) {
+        for (const modifier of modifiers) {
+            if (modifier.dice) {
+                const diceRoll = rollDice(modifier.dice);
+                // Dice penalties are subtracted (e.g., Mind Sliver subtracts 1d4)
+                mod -= diceRoll;
+                modifiersApplied.push({ source: modifier.source, value: -diceRoll });
+            }
+            if (modifier.flat !== undefined) {
+                // Flat modifiers are applied directly (already signed)
+                mod += modifier.flat;
+                modifiersApplied.push({ source: modifier.source, value: modifier.flat });
+            }
+        }
+    }
 
     const total = roll + mod;
 
@@ -79,7 +112,8 @@ export function rollSavingThrow(
         total,
         dc,
         natural20: roll === 20,
-        natural1: roll === 1
+        natural1: roll === 1,
+        modifiersApplied: modifiersApplied.length > 0 ? modifiersApplied : undefined
     };
 }
 

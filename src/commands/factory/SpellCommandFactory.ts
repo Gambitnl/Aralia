@@ -62,7 +62,8 @@ export class SpellCommandFactory {
           validTargets: [],
           validMoves: [],
           combatLog: [],
-          reactiveTriggers: []
+          reactiveTriggers: [],
+          activeLightSources: []
         },
         gameState,
         playerInput
@@ -103,6 +104,7 @@ export class SpellCommandFactory {
   public static matchesFilter(target: CombatCharacter, filter: any): boolean {
     if (!filter) return true
 
+    // Creature Type
     if (filter.creatureTypes && filter.creatureTypes.length > 0) {
       if (!target.creatureTypes || !filter.creatureTypes.some((t: string) => target.creatureTypes!.includes(t))) {
         return false
@@ -113,6 +115,35 @@ export class SpellCommandFactory {
       if (target.creatureTypes && filter.excludeCreatureTypes.some((t: string) => target.creatureTypes!.includes(t))) {
         return false
       }
+    }
+
+    // Size
+    if (filter.sizes && filter.sizes.length > 0) {
+      if (!target.stats.size || !filter.sizes.includes(target.stats.size)) {
+        return false
+      }
+    }
+
+    // Alignment
+    if (filter.alignments && filter.alignments.length > 0) {
+      // Alignment logic: check exact match or "includes" for broader categories if needed.
+      // Schema says array of strings. We assume exact matches matching data (e.g. "Lawful Good").
+      if (!target.alignment || !filter.alignments.includes(target.alignment)) {
+        return false
+      }
+    }
+
+    // Has Condition
+    if (filter.hasCondition && filter.hasCondition.length > 0) {
+      if (!target.conditions && !target.statusEffects) return false
+
+      const hasReqCondition = filter.hasCondition.every((req: string) => {
+        const hasActiveCondition = target.conditions?.some(c => c.name === req)
+        const hasStatusEffect = target.statusEffects?.some(s => s.name === req)
+        return hasActiveCondition || hasStatusEffect
+      })
+
+      if (!hasReqCondition) return false
     }
 
     return true
@@ -147,6 +178,15 @@ export class SpellCommandFactory {
       if (filteredTargets.length !== context.targets.length) {
         context = { ...context, targets: filteredTargets };
       }
+
+      // [REVIEW QUESTION]: Does creating a new local `context` variable correctly propagate deep mutations if `SpellCommand` modifies the context?
+      // `CommandContext` is an object. `createCommand` receives it.
+      // Here we replace the `targets` array in a shallow copy.
+      // Any downstream command that holds a reference to this `context` will see the filtered targets.
+      // But if a command modifies `context.gameState`, will that propagate back to `createCommands`?
+      // Yes, because `gameState` is a reference sharing the same object.
+      // But if `createCommand` does complex async logic that relies on `context` identity, this might be risky.
+      // Verified: `createCommands` iterates sequentially, so each `createCommand` call gets an isolated (partially) context scope for targets.
     }
 
     if (['on_target_move', 'on_target_attack', 'on_target_cast', 'on_caster_action'].includes(effect.trigger.type)) {

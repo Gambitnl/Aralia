@@ -19,6 +19,9 @@ export const WEAPONS_DATA: Record<string, Item> = {
   'spear': { id: 'spear', name: 'Spear', icon: '⚰', description: 'A long weapon with a pointed tip.', type: 'weapon', category: 'Simple Melee', slot: 'MainHand', damageDice: '1d6', damageType: 'Piercing', properties: ['Thrown', 'Versatile'], weight: 3, cost: '1 GP', mastery: 'Sap' },
 
   // --- Simple Ranged Weapons ---
+  // REVIEW Q20: After removing isMartial flag, all weapons now rely solely on `category` field.
+  // Should we validate that all entries have a valid category? Missing categories would default to Simple.
+  // ANSWER: Good practice. Consider adding a build-time validation script to catch data issues.
   'light_crossbow': { id: 'light_crossbow', name: 'Light Crossbow', icon: '🏹', description: 'A lighter, easier-to-load crossbow.', type: 'weapon', category: 'Simple Ranged', slot: 'MainHand', damageDice: '1d8', damageType: 'Piercing', properties: ['Ammunition', 'Loading', 'Two-Handed'], weight: 5, cost: '25 GP', mastery: 'Slow' },
   'shortbow': { id: 'shortbow', name: 'Shortbow', icon: '🏹', description: 'A small bow.', type: 'weapon', category: 'Simple Ranged', slot: 'MainHand', damageDice: '1d6', damageType: 'Piercing', properties: ['Ammunition', 'Two-Handed'], weight: 2, cost: '25 GP', mastery: 'Vex' },
 
@@ -113,6 +116,11 @@ export const ITEMS: Record<string, Item> = {
   'belt_of_giant_strength': { id: 'belt_of_giant_strength', name: 'Belt of Giant Strength', icon: '💪', description: 'A magical belt that enhances strength. (Placeholder)', type: 'accessory', slot: 'Belt', weight: 1, cost: '2000 GP' },
 
   // --- Accessories: Rings ---
+  // REVIEW Q21: Lint shows 'Ring' is not assignable to EquipmentSlotType.
+  // But 'Ring' IS in the type definition (line 222 of types/index.ts).
+  // This might be a TypeScript server caching issue. Try restarting TS server.
+  // If it persists, check if Item interface correctly references EquipmentSlotType for slot field.
+  // ANSWER: Needs investigation - the type definition appears correct but TS doesn't recognize it.
   'silver_ring': { id: 'silver_ring', name: 'Silver Ring', icon: '💍', description: 'A plain silver band.', type: 'accessory', slot: 'Ring', weight: 0.01, cost: '5 GP' },
   'gold_ring': { id: 'gold_ring', name: 'Gold Ring', icon: '💍', description: 'A polished gold ring.', type: 'accessory', slot: 'Ring', weight: 0.01, cost: '25 GP' },
   'ring_of_protection': { id: 'ring_of_protection', name: 'Ring of Protection', icon: '✨', description: 'A magical ring that provides protection. (Placeholder)', type: 'accessory', slot: 'Ring', weight: 0.01, cost: '1500 GP' },

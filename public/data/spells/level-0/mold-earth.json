@@ -37,7 +37,10 @@
   "targeting": {
     "type": "area",
     "range": 30,
-    "validTargets": ["point", "ground"],
+    "validTargets": [
+      "point",
+      "ground"
+    ],
     "lineOfSight": true,
     "areaOfEffect": {
       "shape": "Cube",
@@ -60,29 +63,99 @@
       },
       "duration": {
         "type": "special"
+      },
+      "manipulation": {
+        "type": "excavate",
+        "volume": {
+          "shape": "Cube",
+          "size": 5,
+          "depth": 5
+        },
+        "depositDistance": 5
       }
     },
     {
-      "type": "UTILITY",
+      "type": "TERRAIN",
       "trigger": {
         "type": "immediate"
       },
       "condition": {
         "type": "always"
       },
-      "utilityType": "creation",
-      "description": "If you target an area of loose earth, you can instantaneously excavate it, move it along the ground, and deposit it up to 5 feet away. This movement doesn't have enough force to cause damage."
+      "terrainType": "difficult",
+      "areaOfEffect": {
+        "shape": "Cube",
+        "size": 5
+      },
+      "duration": {
+        "type": "minutes",
+        "value": 60
+      },
+      "manipulation": {
+        "type": "difficult",
+        "volume": {
+          "shape": "Cube",
+          "size": 5
+        },
+        "duration": {
+          "type": "minutes",
+          "value": 60
+        }
+      }
     },
     {
-      "type": "UTILITY",
+      "type": "TERRAIN",
       "trigger": {
         "type": "immediate"
       },
       "condition": {
         "type": "always"
       },
-      "utilityType": "other",
-      "description": "You cause shapes, colors, or text to appear on the dirt or stone, or you turn difficult terrain into normal terrain (or vice versa). This change lasts for 1 hour."
+      "terrainType": "difficult",
+      "areaOfEffect": {
+        "shape": "Cube",
+        "size": 5
+      },
+      "duration": {
+        "type": "minutes",
+        "value": 60
+      },
+      "manipulation": {
+        "type": "normal",
+        "volume": {
+          "shape": "Cube",
+          "size": 5
+        }
+      }
+    },
+    {
+      "type": "TERRAIN",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "terrainType": "difficult",
+      "areaOfEffect": {
+        "shape": "Cube",
+        "size": 5
+      },
+      "duration": {
+        "type": "minutes",
+        "value": 60
+      },
+      "manipulation": {
+        "type": "cosmetic",
+        "volume": {
+          "shape": "Cube",
+          "size": 5
+        },
+        "duration": {
+          "type": "minutes",
+          "value": 60
+        }
+      }
     }
   ]
 }

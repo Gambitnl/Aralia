@@ -1,8 +1,13 @@
-/**
- * @file src/utils/statUtils.ts
- * specific utility functions for calculating stats to avoid circular dependencies.
- */
 import { AbilityScores, Race, PlayerCharacter, ArmorCategory, Item, EquipmentSlotType } from '../types';
+import { ActiveEffect } from '../types/combat';
+
+
+
+// ... (keep intervening functions same if possible, but replace_file_content needs contiguous block. I'll replace from the imports down to end of file to be safe and clean, or just the function if I can context match. The imports are at the top.)
+// I will split this into two edits if needed, but I can replace the whole key section updates.
+
+// Let's replace the whole file content from imports down to ensure clean structure.
+// Actually, I can just replace the definition of calculateArmorClass and the imports.
 
 /**
  * Calculates the D&D ability score modifier as a number.
@@ -74,101 +79,151 @@ export const calculateFinalAbilityScores = (
  * @returns {number} The calculated Armor Class.
  */
 /**
+ * Components required to calculate final AC.
+ * This interface allows both PlayerCharacter (detailed items) and CombatCharacter (simplified stats) to use the same logic.
+ */
+export interface ACComponents {
+  baseAC: number;          // Natural AC, Armor Base AC, or current Monster AC. Default 10.
+  dexMod: number;
+  maxDexBonus?: number;    // If wearing armor with cap
+  unarmoredBonus?: number; // Barbarian Con / Monk Wis
+  shieldBonus?: number;
+  activeEffects?: { type: string; value?: number; acBonus?: number; acMinimum?: number }[];
+  stdBaseIncludesDex?: boolean; // If true, dexMod is not added to standardTotal (but still used for Spell Overrides)
+}
+
+/**
+ * Core function to calculate AC from components.
+ * Centralizes rules for Base AC overrides, stacking, and limits.
+ */
+export const calculateFinalAC = (components: ACComponents): number => {
+  const { maxDexBonus, unarmoredBonus = 0, shieldBonus = 0, activeEffects = [], stdBaseIncludesDex = false } = components;
+  let { baseAC, dexMod } = components;
+
+  // Apply Max Dex logic to input
+  if (maxDexBonus !== undefined) {
+    dexMod = Math.min(dexMod, maxDexBonus);
+  }
+
+  // Determine effective Base AC (Standard vs Spell overrides)
+  // Standard: baseAC + dexMod + unarmoredBonus
+  // Spell (Set Base): value + dexMod (usually)
+
+  let standardTotal = baseAC + (stdBaseIncludesDex ? 0 : dexMod) + unarmoredBonus;
+
+  // Check for Set Base AC effects (Mage Armor)
+  // These usually replace the calculation: "Your AC becomes 13 + Dex"
+  let spellBaseTotal = 0;
+  let hasSpellBase = false;
+
+  const baseAcEffects = activeEffects.filter(e => e.type === 'set_base_ac');
+  if (baseAcEffects.length > 0) {
+    // Find highest spell base
+    // Helper assumption: Spell overrides assume full Dex unless specified (no schema yet for that)
+    // And generally they don't stack with armor/unarmored bonus, they REPLACE the base calculation.
+    let maxSpellBase = 0;
+    for (const effect of baseAcEffects) {
+      const val = effect.value || 0;
+      if (val > maxSpellBase) maxSpellBase = val;
+    }
+    if (maxSpellBase > 0) {
+      spellBaseTotal = maxSpellBase + components.dexMod; // Use full dex for spells usually
+      hasSpellBase = true;
+    }
+  }
+
+  // Decision: Which Base to use?
+  // D&D Rule: You choose the calculation. Usually max.
+  // Note: If wearing armor (maxDexBonus defined), standard rules usually prevent Unarmored Defense/Mage Armor.
+  // But here we rely on caller to only provide conflicting components if valid?
+  // Actually, calculateArmorClass checks bounds.
+  // For safety: If hasSpellBase, we compare.
+
+  let currentTotal = standardTotal;
+  if (hasSpellBase && spellBaseTotal > currentTotal) {
+    currentTotal = spellBaseTotal;
+  }
+
+  // Add Bonuses (Shield + Effects)
+  let bonusTotal = shieldBonus;
+  activeEffects.forEach(e => {
+    if (e.type === 'ac_bonus') {
+      bonusTotal += (e.value || e.acBonus || 0);
+    }
+  });
+
+  currentTotal += bonusTotal;
+
+  // Apply Minimum
+  let minAC = 0;
+  activeEffects.forEach(e => {
+    if (e.type === 'ac_minimum') {
+      const val = e.value || e.acMinimum || 0;
+      if (val > minAC) minAC = val;
+    }
+  });
+
+  return Math.max(currentTotal, minAC);
+};
+
+/**
  * Calculates a character's Armor Class based on their equipped items, stats, and active effects.
  * @param {PlayerCharacter} character - The character object.
  * @param {ActiveEffect[]} [activeEffects] - Optional list of active effects on the character.
  * @returns {number} The calculated Armor Class.
  */
-export const calculateArmorClass = (character: PlayerCharacter, activeEffects: any[] = []): number => {
-  // 1. Determine Base AC Calculation
-  // Default: 10 + Dex
-  // Armor: Armor Base + Dex (capped)
-  // Unarmored Defense: 10 + Dex + Con/Wis
-  // Spells (Mage Armor): Set Base + Dex (usually)
-
-  let baseAc = 10;
-  let dexBonus = getAbilityModifierValue(character.finalAbilityScores.Dexterity);
-  let additionalBaseBonus = 0; // For Unarmored Defense like effects
-
+export const calculateArmorClass = (character: PlayerCharacter, activeEffects: ActiveEffect[] = []): number => {
+  const dexMod = getAbilityModifierValue(character.finalAbilityScores.Dexterity);
   const armor = character.equippedItems.Torso;
-  let usingArmorCalculation = false;
-
-  // Check for Base AC overrides from spells (e.g., Mage Armor) - ONLY if not wearing armor usually
-  // But some might override regardless. Mage Armor specifically says "Target who isn't wearing armor".
-  // We'll trust the "restrictions" field was bonded at cast time, so if the effect is active, we use it.
-  // We sort by value if there are multiple? Usually higher base prevails.
-
-  // Actually, we must check if we ARE wearing armor to invalidate Mage Armor if it was cast previously?
-  // Or do we assume the effect would be removed? The engine should probably handle removal, but let's be safe.
-  const baseAcEffects = activeEffects.filter(e => e.type === 'set_base_ac');
-
-  let spellBaseAc = 0;
-  let spellUsesDex = true; // Most set_base_ac like Mage Armor use Dex
-
-  if (baseAcEffects.length > 0 && (!armor || armor.type !== 'armor')) { // Mage armor doesn't work with armor
-    // Parse formula like "13 + dex_mod"
-    // For now, we expect the effect value to be the base number (e.g. 13)
-    // and we assume it allows full Dex unless specified. 
-    // We'll take the highest base value.
-    for (const effect of baseAcEffects) {
-      if ((effect.value || 0) > spellBaseAc) {
-        spellBaseAc = effect.value || 0;
-        // If we had a flag for "noDex", we'd check it here. Default is yes.
-      }
-    }
-  }
-
-  if (armor && armor.type === 'armor' && armor.baseArmorClass) {
-    usingArmorCalculation = true;
-    baseAc = armor.baseArmorClass;
-    if (armor.addsDexterityModifier) {
-      if (armor.maxDexterityBonus !== undefined) {
-        dexBonus = Math.min(dexBonus, armor.maxDexterityBonus);
-      }
-    } else {
-      dexBonus = 0;
-    }
-  } else if (spellBaseAc > 0) {
-    // Spell Override (Mage Armor)
-    baseAc = spellBaseAc;
-    // Full Dex applies for Mage Armor
-  } else {
-    // Unarmored Defense
-    if (character.class.id === 'barbarian') {
-      additionalBaseBonus = getAbilityModifierValue(character.finalAbilityScores.Constitution);
-    } else if (character.class.id === 'monk') {
-      additionalBaseBonus = getAbilityModifierValue(character.finalAbilityScores.Wisdom);
-    }
-  }
-
-  // 2. Shield Bonus
   const shield = character.equippedItems.OffHand;
-  const shieldBonus = (shield && shield.type === 'armor' && shield.armorCategory === 'Shield' && shield.armorClassBonus) ? shield.armorClassBonus : 0;
 
-  // 3. Effect Bonuses (Shield spell, Shield of Faith, Haste)
-  let effectBonus = 0;
-  activeEffects.forEach(e => {
-    if (e.type === 'ac_bonus') {
-      effectBonus += (e.value || 0);
+  let baseAC = 10;
+  let maxDexBonus: number | undefined = undefined;
+  let unarmoredBonus = 0;
+
+  // 1. Determine Armor / Unarmored Configuration
+  if (armor && armor.type === 'armor') {
+    // Wearing Armor
+    baseAC = armor.baseArmorClass || 10;
+    if (armor.addsDexterityModifier && armor.maxDexterityBonus !== undefined) {
+      maxDexBonus = armor.maxDexterityBonus;
+    } else if (!armor.addsDexterityModifier) {
+      maxDexBonus = 0; // No dex
     }
-  });
-
-  // Calculate Preliminary AC
-  let totalAc = baseAc + dexBonus + additionalBaseBonus + shieldBonus + effectBonus;
-
-  // 4. AC Minimum (Barkskin)
-  // "Target's AC can't be less than 16"
-  // This applies to the FINAL total.
-  let minAc = 0;
-  activeEffects.forEach(e => {
-    if (e.type === 'ac_minimum') {
-      // If the effect stores the min value in a property like 'acMinimum' or just 'value'
-      // We'll look for 'value' as per the generic ActiveEffect structure usually holding the magnitude
-      if ((e.value || 0) > minAc) {
-        minAc = e.value || 0;
-      }
+    // Unarmored Bonus doesn't apply
+  } else {
+    // Unarmored logic
+    if (character.class.id === 'barbarian') {
+      unarmoredBonus = getAbilityModifierValue(character.finalAbilityScores.Constitution);
+    } else if (character.class.id === 'monk' && !shield) {
+      unarmoredBonus = getAbilityModifierValue(character.finalAbilityScores.Wisdom);
     }
-  });
+  }
 
-  return Math.max(totalAc, minAc);
+  // 2. Shield
+  const shieldBonus = (shield && shield.type === 'armor' && shield.armorCategory === 'Shield' && shield.armorClassBonus)
+    ? shield.armorClassBonus
+    : 0;
+
+  // 3. Delegate to core calculator
+  // Filter Mage Armor if wearing armor? 
+  // Standard rule: Mage Armor ends if you don armor.
+  // But if effect is present, `calculateFinalAC` will compare values.
+  // However, Mage Armor calculation (13+Dex) vs Armor (12+Dex) might favor Mage Armor incorrectly if we don't suppress it while armored.
+  // The 'set_base_ac' effects should strictly NOT apply if wearing armor.
+  let validEffects = activeEffects;
+  if (armor && armor.type === 'armor') {
+    validEffects = activeEffects.filter(e => e.type !== 'set_base_ac');
+  }
+
+  const components: ACComponents = {
+    baseAC,
+    dexMod,
+    maxDexBonus,
+    unarmoredBonus,
+    shieldBonus,
+    activeEffects: validEffects
+  };
+
+  return calculateFinalAC(components);
 };

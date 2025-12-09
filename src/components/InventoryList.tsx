@@ -291,6 +291,10 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
             {bucket.children.map(child => {
               const key = child.instanceId;
               const isEquippableType = child.type === 'armor' || child.type === 'weapon' || child.type === 'accessory';
+              // REVIEW Q13: The canEquipItem check is only called if isEquippableType AND child.slot exist.
+              // What if an equippable item doesn't have a slot defined? It would get { can: false, reason: undefined }.
+              // Is this intentional to skip slotless equippable items?
+              // ANSWER: This could hide valid items. Should log a warning for equippable items without slots.
               const { can: canBeEquipped, reason: cantEquipReason } =
                 isEquippableType && child.slot ?
                   canEquipItem(character, child) : { can: false, reason: undefined };
@@ -298,10 +302,18 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
               const isFood = child.type === 'food_drink';
               const isExpired = false; // Placeholder logic for now
               const childIsContainer = isContainerItem(child);
+              // REVIEW Q14: hasWarning is true whenever cantEquipReason exists. But with our permissive system,
+              // cantEquipReason is set even when canBeEquipped is true. This means all non-proficient weapons
+              // will show a warning even though they CAN be equipped. Is this the intended UX?
+              // ANSWER: Yes, this is intentional. The warning indicates "you CAN equip, but there are penalties."
               const hasWarning = !!cantEquipReason;
 
               return (
                 <React.Fragment key={key}>
+                  {/* REVIEW Q15: The red styling on the <li> is based on hasWarning, not on canBeEquipped.
+                   * So items that CAN be equipped but have a warning still get red styling.
+                   * Is this confusing? User might think red = cannot equip.
+                   * ANSWER: Valid UX concern. Consider using amber/orange for "warning but allowed" vs red for "blocked". */}
                   <li className={`p-2 rounded-md border flex items-center justify-between transition-colors ${hasWarning
                     ? 'bg-red-900/10 border-red-500/30 hover:bg-red-900/20'
                     : 'bg-gray-700/70 border-gray-600/40'

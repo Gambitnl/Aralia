@@ -43,7 +43,9 @@
   "targeting": {
     "type": "single",
     "range": 5,
-    "validTargets": ["objects"],
+    "validTargets": [
+      "objects"
+    ],
     "lineOfSight": true
   },
   "effects": [
@@ -56,7 +58,13 @@
         "type": "always"
       },
       "utilityType": "light",
-      "description": "Object sheds bright light in a 20-foot radius and dim light for an additional 20 feet."
+      "description": "Object sheds bright light in a 20-foot radius and dim light for an additional 20 feet.",
+      "light": {
+        "brightRadius": 20,
+        "dimRadius": 20,
+        "attachedTo": "target",
+        "color": "warm"
+      }
     }
   ]
 }

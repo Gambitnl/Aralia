@@ -104,9 +104,12 @@ const EffectTrigger = z.object({
 });
 
 const TargetConditionFilter = z.object({
-  creatureType: z.array(z.string()).optional(),
-  size: z.array(z.string()).optional(),
-  alignment: z.array(z.string()).optional(),
+  creatureTypes: z.array(z.string()).optional(),
+  excludeCreatureTypes: z.array(z.string()).optional(),
+  sizes: z.array(z.string()).optional(),
+  alignments: z.array(z.string()).optional(),
+  hasCondition: z.array(z.string()).optional(),
+  isNativeToPlane: z.boolean().optional(),
 });
 
 const SaveModifier = z.object({
@@ -316,6 +319,17 @@ const AreaOfEffect = z.object({
   height: z.number().optional(),
 });
 
+const TerrainManipulation = z.object({
+  type: z.enum(["excavate", "fill", "difficult", "normal", "cosmetic"]),
+  volume: z.object({
+    shape: z.literal("Cube"),
+    size: z.number(),
+    depth: z.number().optional()
+  }).optional(),
+  duration: EffectDuration.optional(),
+  depositDistance: z.number().optional()
+});
+
 const TerrainEffect = BaseEffect.extend({
   type: z.literal("TERRAIN"),
   terrainType: z.enum(["difficult", "obscuring", "damaging", "blocking", "wall"]),
@@ -327,6 +341,19 @@ const TerrainEffect = BaseEffect.extend({
     ac: z.number(),
   }).optional(),
   dispersedByStrongWind: z.boolean().optional(),
+  manipulation: TerrainManipulation.optional(),
+});
+
+/**
+ * Save penalty data for effects like Mind Sliver that impose penalties on saving throws.
+ * The penalty can be a dice roll (e.g., "1d4") or a flat modifier, and applies to
+ * either the next save or all saves for the duration.
+ */
+const SavePenaltyData = z.object({
+  dice: z.string().optional(),        // e.g. "1d4" - rolled and subtracted from save
+  flat: z.number().optional(),        // e.g. -2 - flat penalty to save
+  applies: z.enum(["next_save", "all_saves"]),
+  duration: EffectDuration.optional() // Falls back to spell duration if not specified
 });
 
 const UtilityEffect = BaseEffect.extend({
@@ -337,6 +364,13 @@ const UtilityEffect = BaseEffect.extend({
   attackAugments: z.array(AttackAugment).optional(),
   controlOptions: z.array(ControlOption).optional(),
   taunt: TauntEffect.optional(),
+  savePenalty: SavePenaltyData.optional(), // For effects like Mind Sliver that impose save penalties
+  light: z.object({
+    brightRadius: z.number(),
+    dimRadius: z.number().optional(),
+    attachedTo: z.enum(["caster", "target", "point"]).optional(),
+    color: z.string().optional(),
+  }).optional(),
 });
 
 const DefensiveEffect = BaseEffect.extend({

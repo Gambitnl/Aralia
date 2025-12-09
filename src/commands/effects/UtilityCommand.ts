@@ -1,7 +1,7 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { UtilityEffect } from '@/types/spells'
-import { CombatState, CombatCharacter, StatusEffect } from '@/types/combat'
+import { CombatState, CombatCharacter, StatusEffect, LightSource } from '@/types/combat'
 import { generateId } from '../../utils/idGenerator'
 
 export class UtilityCommand extends BaseEffectCommand {
@@ -26,20 +26,6 @@ export class UtilityCommand extends BaseEffectCommand {
             case 'communication':
                 message = `${this.context.caster.name} establishes communication: ${effect.description}`
                 break
-            case 'detection': // Maps to "sensory" or "information" broadly, but if utilityType has a specific match
-                // The type def has "sensory", "information". "detection" was in the prompt example but not in type def?
-                // Let's check type def again.
-                // type: "UTILITY"; utilityType: "light" | "communication" | "creation" | "information" | "control" | "sensory" | "other";
-                // Prompt used 'detection' in switch but 'information' or 'sensory' is likely what it maps to.
-                // I will stick to what the type definition supports to avoid TS errors.
-                if (effect.utilityType === 'information') {
-                    message = `${this.context.caster.name} gains information: ${effect.description}`
-                } else if (effect.utilityType === 'sensory') {
-                    message = `${this.context.caster.name} detects: ${effect.description}`
-                } else {
-                    message = `${this.context.caster.name}: ${effect.description}`
-                }
-                break
             case 'information':
                 message = `${this.context.caster.name} gains information: ${effect.description}`
                 break
@@ -56,6 +42,51 @@ export class UtilityCommand extends BaseEffectCommand {
             characterId: this.context.caster.id,
             data: { utilityEffect: effect }
         })
+
+        // Handle structured light source creation
+        if (effect.utilityType === 'light' && effect.light) {
+            const lightConfig = effect.light
+            const targets = this.getTargets(newState)
+
+            // Determine attachment target
+            let attachedToCharacterId: string | undefined
+            let position: { x: number; y: number } | undefined
+
+            if (lightConfig.attachedTo === 'caster') {
+                attachedToCharacterId = this.context.caster.id
+            } else if (lightConfig.attachedTo === 'target' && targets.length > 0) {
+                attachedToCharacterId = targets[0].id
+            } else if (lightConfig.attachedTo === 'point') {
+                // Use first target's position if available, otherwise caster's position
+                position = targets.length > 0 ? targets[0].position : this.context.caster.position
+            }
+
+            const lightSource: LightSource = {
+                id: generateId(),
+                sourceSpellId: this.context.spellId || 'unknown',
+                casterId: this.context.caster.id,
+                brightRadius: lightConfig.brightRadius,
+                dimRadius: lightConfig.dimRadius ?? 0,
+                attachedTo: lightConfig.attachedTo ?? 'caster',
+                attachedToCharacterId,
+                position,
+                color: lightConfig.color,
+                createdTurn: state.turnState.currentTurn,
+                // If spell requires concentration, it will be removed when concentration breaks
+            }
+
+            newState = {
+                ...newState,
+                activeLightSources: [...(newState.activeLightSources || []), lightSource]
+            }
+
+            newState = this.addLogEntry(newState, {
+                type: 'status',
+                message: `A light source appears: ${lightConfig.brightRadius} ft bright, ${lightConfig.dimRadius ?? 0} ft dim`,
+                characterId: this.context.caster.id,
+                data: { lightSource }
+            })
+        }
 
         // Apply control options metadata for downstream enforcement.
         if (effect.controlOptions && effect.controlOptions.length > 0) {

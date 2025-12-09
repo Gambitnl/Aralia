@@ -9,7 +9,8 @@ import { EffectDuration } from '../../types/spells';
 import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
 import { createDamageNumber, generateId, getActionMessage, rollDice } from '../../utils/combatUtils';
 import { resetEconomy } from '../../utils/combat/actionEconomyUtils';
-import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
+import { calculateSpellDC, rollSavingThrow, SavingThrowModifier } from '../../utils/savingThrowUtils';
+import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 import { useActionEconomy } from './useActionEconomy';
 import { useCombatAI } from './useCombatAI';
 import {
@@ -56,15 +57,10 @@ export const useTurnManager = ({
   const [movementDebuffs, setMovementDebuffs] = useState<MovementTriggerDebuff[]>([]);
   const [reactiveTriggers, setReactiveTriggers] = useState<ReactiveTrigger[]>([]);
 
-  // Stabilize optional auto-controlled character set
-  const defaultAutoControlledRef = useRef<Set<string> | undefined>(undefined);
-  const managedAutoCharacters = useMemo(() => {
-    if (autoCharacters) return autoCharacters;
-    if (!defaultAutoControlledRef.current) {
-      defaultAutoControlledRef.current = new Set<string>();
-    }
-    return defaultAutoControlledRef.current;
-  }, [autoCharacters]);
+  // Stabilize optional auto-controlled character set so downstream deps don't churn; memoized empty set
+  // avoids ref access during render while surviving strict-mode double renders.
+  const defaultAutoCharacters = useMemo(() => new Set<string>(), []);
+  const managedAutoCharacters = autoCharacters ?? defaultAutoCharacters;
 
   const { canAfford, consumeAction } = useActionEconomy();
 
@@ -81,6 +77,7 @@ export const useTurnManager = ({
   const processRepeatSaves = useCallback((character: CombatCharacter, timing: 'turn_end' | 'turn_start' | 'on_damage' | 'on_action', actionEffectId?: string): CombatCharacter => {
     let updatedCharacter = { ...character };
     let savedEffectIds: string[] = [];
+    const savePenaltySystem = new SavePenaltySystem();
 
     updatedCharacter.statusEffects.forEach(effect => {
       const repeat = effect.repeatSave;
@@ -108,22 +105,37 @@ export const useTurnManager = ({
       }
 
       const saveType = repeat.saveType as any;
-      // Roll
-      const roll = rollSavingThrow(character, saveType, dc);
+
+      // Get any active save penalty modifiers on the character
+      const savePenalties = savePenaltySystem.getActivePenalties(character);
+
+      // Roll with penalties applied
+      const roll = rollSavingThrow(character, saveType, dc, savePenalties);
 
       // Apply advantage/disadvantage logic manually to roll? rollSavingThrow support?
       // rollSavingThrow returns { total, die, bonus, success ... } based on basic stats.
       // It doesn't take advantage param in current util signature?
-      // Let's check imports.
       // If I can't pass advantage, I might need to reroll.
 
       let finalSuccess = roll.success;
       if (hasAdvantage) {
-        const roll2 = rollSavingThrow(character, saveType, dc);
+        const roll2 = rollSavingThrow(character, saveType, dc, savePenalties);
         finalSuccess = roll.success || roll2.success; // Advantage: succeeds if either roll succeeds
       } else if (hasDisadvantage) {
-        const roll2 = rollSavingThrow(character, saveType, dc);
+        const roll2 = rollSavingThrow(character, saveType, dc, savePenalties);
         finalSuccess = roll.success && roll2.success; // Disadvantage: succeeds only if both rolls succeed
+      }
+
+      // Log penalty details if any were applied
+      if (roll.modifiersApplied && roll.modifiersApplied.length > 0) {
+        const penaltyDetails = roll.modifiersApplied.map(m => `${m.value} from ${m.source}`).join(', ');
+        onLogEntry({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'status',
+          message: `${character.name}'s save is modified: ${penaltyDetails}`,
+          characterId: character.id
+        });
       }
 
       if (finalSuccess) {
@@ -152,6 +164,15 @@ export const useTurnManager = ({
       updatedCharacter.statusEffects = updatedCharacter.statusEffects.filter(e => !savedEffectIds.includes(e.id));
       // Also potentially remove from activeEffects / conditions if mapped
     }
+
+    // Consume next_save penalties after the save(s)
+    if (updatedCharacter.savePenaltyRiders && updatedCharacter.savePenaltyRiders.length > 0) {
+      updatedCharacter = {
+        ...updatedCharacter,
+        savePenaltyRiders: updatedCharacter.savePenaltyRiders.filter(r => r.applies !== 'next_save')
+      };
+    }
+
     return updatedCharacter;
   }, [onLogEntry]);
 
@@ -726,7 +747,7 @@ export const useTurnManager = ({
     }
 
     return true;
-  }, [characters, onCharacterUpdate, onLogEntry, canAfford, consumeAction, queueAnimation, addDamageNumber, movementDebuffs, spellZones, turnState.currentTurn, endTurn, reactiveTriggers]);
+  }, [characters, onCharacterUpdate, onLogEntry, canAfford, consumeAction, queueAnimation, addDamageNumber, movementDebuffs, spellZones, turnState.currentTurn, endTurn, reactiveTriggers, handleDamage, processRepeatSaves]);
 
   const currentCharacter = useMemo(() => {
     return characters.find(c => c.id === turnState.currentCharacterId);

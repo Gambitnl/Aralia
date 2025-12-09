@@ -419,6 +419,22 @@ export interface SummoningEffect extends BaseEffect {
   familiarContract?: FamiliarContract;
 }
 
+/** Structured terrain manipulation for spells like Mold Earth */
+export interface TerrainManipulation {
+  /** Type of manipulation: excavate/fill dirt, toggle difficult terrain, or cosmetic changes */
+  type: "excavate" | "fill" | "difficult" | "normal" | "cosmetic";
+  /** Volume of terrain affected */
+  volume?: {
+    shape: "Cube";
+    size: number;  // in feet
+    depth?: number; // in feet, for excavation
+  };
+  /** How long the manipulation lasts (for difficult/cosmetic) */
+  duration?: EffectDuration;
+  /** Distance excavated material can be deposited, in feet */
+  depositDistance?: number;
+}
+
 /** An effect that creates or alters terrain. */
 export interface TerrainEffect extends BaseEffect {
   type: "TERRAIN";
@@ -431,6 +447,8 @@ export interface TerrainEffect extends BaseEffect {
     ac: number;
   };
   dispersedByStrongWind?: boolean;
+  /** Structured manipulation action for spells like Mold Earth */
+  manipulation?: TerrainManipulation;
 }
 
 /** A non-combat or miscellaneous effect (e.g., creating light, communicating). */
@@ -449,6 +467,13 @@ export interface UtilityEffect extends BaseEffect {
   attackAugments?: AttackAugment[];
   controlOptions?: ControlOption[];
   taunt?: TauntEffect;
+  /** Structured light source configuration for utilityType: "light" */
+  light?: {
+    brightRadius: number;   // Radius of bright light in feet
+    dimRadius?: number;     // Additional radius of dim light in feet
+    attachedTo?: "caster" | "target" | "point";
+    color?: string;         // e.g., "warm", "cold", "#RRGGBB"
+  };
 }
 
 /** An effect that provides defensive bonuses (e.g., AC boost, resistance). */

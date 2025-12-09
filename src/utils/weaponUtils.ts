@@ -12,6 +12,9 @@ import { PlayerCharacter, Item } from '../types';
  * @returns true if Martial, false if Simple or unknown
  */
 function isWeaponMartial(weapon: Item): boolean {
+    // REVIEW Q1: What happens if weapon is null but not undefined? 
+    // The check `!weapon` handles both, but is there a case where weapon could be an empty object {}?
+    // ANSWER: An empty object {} would pass the !weapon check but fail weapon.type !== 'weapon'. Safe.
     if (!weapon || weapon.type !== 'weapon') {
         return false;
     }
@@ -19,17 +22,23 @@ function isWeaponMartial(weapon: Item): boolean {
     // Primary: Check category field
     if (weapon.category) {
         const categoryLower = weapon.category.toLowerCase();
+        // REVIEW Q2: What if category is something like "MartialSimple" or contains both words?
+        // The order of checks means 'martial' wins. Is this intentional?
+        // ANSWER: Edge case unlikely in D&D data, but yes - "Martial" takes precedence. Document this assumption.
         if (categoryLower.includes('martial')) return true;
         if (categoryLower.includes('simple')) return false;
     }
 
     // Fallback: Check isMartial boolean
+    // REVIEW Q3: We removed isMartial from weapon data in Task 08. Is this fallback now dead code?
+    // ANSWER: Yes, this is now dead code since all weapons rely on category. Consider removing in future cleanup.
     if (weapon.isMartial !== undefined) {
         return weapon.isMartial;
     }
 
     // Default: Assume Simple if no data
-    // Using warn only in dev/test to avoid console spam in prod, or could remove entirely if noise is too high
+    // REVIEW Q4: This console.warn will fire in production. Is this acceptable noise or should it be conditional?
+    // ANSWER: Could be noisy. Consider wrapping with `if (process.env.NODE_ENV !== 'production')` or removing.
     console.warn(`Weapon "${weapon.name}" has no martial/simple data, assuming Simple`);
     return false;
 }
@@ -64,17 +73,22 @@ export function isWeaponProficient(
     if (!character || !weapon) return false;
     if (weapon.type !== 'weapon') return false;
 
-    // Safety check for class data (handle missing class or proficiencies gracefully)
+    // REVIEW Q5: What about multiclassing? Does character.class represent only the primary class?
+    // If a Fighter/Wizard multiclass exists, do we check both classes' proficiencies?
+    // ANSWER: Current implementation only checks character.class (single). Multiclass support would require
+    // iterating over an array of classes or a combined proficiency set. This is a known limitation.
     if (!character.class || !character.class.weaponProficiencies) return false;
 
     const proficiencies = character.class.weaponProficiencies;
     const isMartial = isWeaponMartial(weapon);
 
     // Check for blanket proficiency
-    if (isMartial && proficiencies.includes('Martial weapons')) {
+    // Fix Q6: Case-insensitive check for weapon categories
+    const normalizedProfs = proficiencies.map(p => p.toLowerCase());
+    if (isMartial && normalizedProfs.includes('martial weapons')) {
         return true;
     }
-    if (!isMartial && proficiencies.includes('Simple weapons')) {
+    if (!isMartial && normalizedProfs.includes('simple weapons')) {
         return true;
     }
 
@@ -87,12 +101,13 @@ export function isWeaponProficient(
         // Normalize weapon name: lowercase and remove trailing 's'
         const weaponNameSingular = weaponNameLower.replace(/s$/, '');
 
-        // Check for exact match or if one includes the other (e.g. "Longsword" matches "Longsword +1")
+        // Fix Q7: Removed redundant check
+        // Check for exact match or if one includes the other
         return profLower === weaponNameSingular ||
-            profLower === weaponNameLower ||
-            weaponNameSingular === profLower;
+            profLower === weaponNameLower;
     });
 }
 
 // Export helper function for reuse
 export { isWeaponMartial };
+

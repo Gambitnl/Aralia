@@ -137,4 +137,59 @@ describe('TerrainCommand', () => {
     const terrainLog = result.combatLog.at(-1)
     expect(terrainLog?.data?.affectedPositions?.length).toBeGreaterThan(0)
   })
+
+  it('handles excavate manipulation with deposit distance', () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 })
+    const target = makeCharacter('target', { x: 2, y: 0 })
+    const state = makeState([caster, target])
+
+    const effect: TerrainEffect = {
+      type: 'TERRAIN',
+      terrainType: 'difficult',
+      areaOfEffect: { shape: 'Cube', size: 5 },
+      duration: { type: 'special' },
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      manipulation: {
+        type: 'excavate',
+        volume: { shape: 'Cube', size: 5, depth: 5 },
+        depositDistance: 5
+      }
+    }
+
+    const cmd = new TerrainCommand(effect, makeContext(caster, [target]))
+    const result = cmd.execute(state)
+
+    const terrainLog = result.combatLog.at(-1)
+    expect(terrainLog?.message).toContain('excavates')
+    expect(terrainLog?.message).toContain('deposits it up to 5 feet away')
+    expect(terrainLog?.data?.manipulation?.type).toBe('excavate')
+  })
+
+  it('handles difficult terrain manipulation', () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 })
+    const target = makeCharacter('target', { x: 2, y: 0 })
+    const state = makeState([caster, target])
+
+    const effect: TerrainEffect = {
+      type: 'TERRAIN',
+      terrainType: 'difficult',
+      areaOfEffect: { shape: 'Cube', size: 5 },
+      duration: { type: 'minutes', value: 60 },
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' },
+      manipulation: {
+        type: 'difficult',
+        volume: { shape: 'Cube', size: 5 }
+      }
+    }
+
+    const cmd = new TerrainCommand(effect, makeContext(caster, [target]))
+    const result = cmd.execute(state)
+
+    const terrainLog = result.combatLog.at(-1)
+    expect(terrainLog?.message).toContain('turns terrain into difficult terrain')
+    expect(terrainLog?.data?.manipulation?.type).toBe('difficult')
+  })
 })
+

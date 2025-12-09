@@ -14,7 +14,10 @@ import { FEATS_DATA } from '../data/feats/featsData';
  */
 export { getAbilityModifierValue, calculateFinalAbilityScores, getAbilityModifierString } from './statUtils';
 import { getAbilityModifierValue, calculateFinalAbilityScores, calculateFixedRacialBonuses, calculateArmorClass } from './statUtils';
-import { isWeaponProficient } from './weaponUtils';
+import {
+  isWeaponProficient,
+  isWeaponMartial
+} from './weaponUtils';
 
 /**
  * Generates a descriptive race display string for a character.
@@ -151,11 +154,12 @@ export const canEquipItem = (character: PlayerCharacter, item: Item): { can: boo
   }
 
   if (item.type === 'weapon') {
+    // Check proficiency using the centralized helper
     const isProficient = isWeaponProficient(character, item);
+
     if (!isProficient) {
-      const weaponType = item.isMartial || item.category?.toLowerCase().includes('martial')
-        ? 'Martial weapons'
-        : 'Simple weapons';
+      // Fix Q9: Use isWeaponMartial helper to determine type
+      const weaponType = isWeaponMartial(item) ? 'Martial weapons' : 'Simple weapons';
       return {
         can: true, // Permissive: can still equip
         reason: `Not proficient with ${weaponType}. Cannot add proficiency bonus to attack rolls or use weapon mastery.`

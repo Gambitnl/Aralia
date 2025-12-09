@@ -135,5 +135,100 @@ describe('SpellCommandFactory', () => {
 
       expect(commands).toHaveLength(0)
     })
+    it('should filter targets based on size', async () => {
+      const spell = createMockSpell('giant_insects', {
+        effects: [{
+          type: 'DAMAGE',
+          damage: { dice: '1d6', type: 'Poison' },
+          trigger: { type: 'immediate' },
+          condition: {
+            type: 'hit',
+            targetFilter: { sizes: ['Small'] } // Only affects Small creatures
+          }
+        }]
+      })
+
+      const smallTarget = { ...mockTarget, id: 'small', stats: { ...mockTarget.stats, size: 'Small' } } as CombatCharacter
+      const mediumTarget = { ...mockTarget, id: 'medium', stats: { ...mockTarget.stats, size: 'Medium' } } as CombatCharacter
+
+      const commands = await SpellCommandFactory.createCommands(
+        spell,
+        mockCaster,
+        [smallTarget, mediumTarget],
+        1,
+        {} as any
+      )
+
+      expect(commands).toHaveLength(1)
+      const cmd = commands[0]
+      const contextTargets = (cmd as any).context.targets;
+      expect(contextTargets).toHaveLength(1);
+      expect(contextTargets[0].id).toBe('small');
+    })
+
+    it('should filter targets based on alignment', async () => {
+      const spell = createMockSpell('holy_smite', {
+        effects: [{
+          type: 'DAMAGE',
+          damage: { dice: '2d6', type: 'Radiant' },
+          trigger: { type: 'immediate' },
+          condition: {
+            type: 'hit',
+            targetFilter: { alignments: ['Chaotic Evil'] }
+          }
+        }]
+      })
+
+      const evilTarget = { ...mockTarget, id: 'evil', alignment: 'Chaotic Evil' } as CombatCharacter
+      const goodTarget = { ...mockTarget, id: 'good', alignment: 'Lawful Good' } as CombatCharacter
+
+      const commands = await SpellCommandFactory.createCommands(
+        spell,
+        mockCaster,
+        [evilTarget, goodTarget],
+        1,
+        {} as any
+      )
+
+      expect(commands).toHaveLength(1)
+      const contextTargets = (commands[0] as any).context.targets;
+      expect(contextTargets).toHaveLength(1);
+      expect(contextTargets[0].id).toBe('evil');
+    })
+
+    it('should filter targets based on conditions', async () => {
+      const spell = createMockSpell('shatter_frozen', {
+        effects: [{
+          type: 'DAMAGE',
+          damage: { dice: '2d8', type: 'Cold' },
+          trigger: { type: 'immediate' },
+          condition: {
+            type: 'hit',
+            targetFilter: { hasCondition: ['Frozen'] }
+          }
+        }]
+      })
+
+      const frozenTarget = {
+        ...mockTarget,
+        id: 'frozen',
+        conditions: [{ name: 'Frozen', duration: { type: 'rounds', value: 1 }, appliedTurn: 1 }]
+      } as CombatCharacter
+
+      const normalTarget = { ...mockTarget, id: 'normal', conditions: [] } as CombatCharacter
+
+      const commands = await SpellCommandFactory.createCommands(
+        spell,
+        mockCaster,
+        [frozenTarget, normalTarget],
+        1,
+        {} as any
+      )
+
+      expect(commands).toHaveLength(1)
+      const contextTargets = (commands[0] as any).context.targets;
+      expect(contextTargets).toHaveLength(1);
+      expect(contextTargets[0].id).toBe('frozen');
+    })
   })
 })

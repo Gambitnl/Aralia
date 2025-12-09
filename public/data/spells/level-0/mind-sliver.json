@@ -38,7 +38,10 @@
   "targeting": {
     "type": "single",
     "range": 60,
-    "validTargets": ["creatures", "enemies"],
+    "validTargets": [
+      "creatures",
+      "enemies"
+    ],
     "lineOfSight": true
   },
   "effects": [
@@ -73,7 +76,15 @@
         "saveEffect": "none"
       },
       "utilityType": "other",
-      "description": "Subtract 1d4 from the next saving throw the target makes before the end of your next turn."
+      "description": "Subtract 1d4 from the next saving throw the target makes before the end of your next turn.",
+      "savePenalty": {
+        "dice": "1d4",
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 2
+        }
+      }
     }
   ]
 }

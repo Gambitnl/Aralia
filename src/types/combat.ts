@@ -52,6 +52,7 @@ export interface CombatCharacter {
   name: string;
   level: number; // For scaling calculations (CR for monsters, Level for PCs)
   creatureTypes?: string[]; // e.g., ['Undead', 'Humanoid']
+  alignment?: string; // e.g., 'Chaotic Evil', 'Lawful Good'
   class: Class;
   position: Position;
   stats: CharacterStats;
@@ -86,6 +87,7 @@ export interface CombatCharacter {
   activeEffects?: ActiveEffect[];  // Active spell effects
   riders?: ActiveRider[];   // Active damage riders (smites, hex, etc)
   damagedThisTurn?: boolean; // Track if character took damage this turn (for concentration/repeat saves)
+  savePenaltyRiders?: SavePenaltyRider[]; // Save penalties from Mind Sliver etc.
 }
 
 export interface ActiveEffect {
@@ -246,6 +248,43 @@ export interface ActiveRider {
   };
 }
 
+/**
+ * Save penalty rider applied to a target from effects like Mind Sliver.
+ * Stored on the target character (not caster) since it modifies their saves.
+ */
+export interface SavePenaltyRider {
+  id: string;
+  spellId: string;
+  casterId: string;
+  sourceName: string;
+  dice?: string;         // e.g. "1d4" - rolled and subtracted from save
+  flat?: number;         // e.g. -2 - flat penalty
+  applies: "next_save" | "all_saves";
+  duration: {
+    type: "rounds" | "minutes" | "special";
+    value?: number;
+  };
+  appliedTurn: number;
+}
+
+/**
+ * Represents an active light source on the map, created by spells or items.
+ * Light sources can be attached to characters or fixed at a point.
+ */
+export interface LightSource {
+  id: string;
+  sourceSpellId: string;       // ID of the spell that created this light
+  casterId: string;            // Character ID of the caster
+  brightRadius: number;        // Radius of bright light in feet
+  dimRadius: number;           // Additional radius of dim light in feet
+  attachedTo: "caster" | "target" | "point";
+  attachedToCharacterId?: string;  // If attached to caster or target
+  position?: Position;         // Fixed position if attachedTo is "point"
+  color?: string;              // Optional color tint
+  createdTurn: number;         // Turn when this was created
+  expiresAtRound?: number;     // Optional expiration (for concentration tracking)
+}
+
 export interface CombatState {
   isActive: boolean;
   characters: CombatCharacter[];
@@ -262,6 +301,7 @@ export interface CombatState {
   };
   combatLog: CombatLogEntry[];
   reactiveTriggers: ReactiveTrigger[];
+  activeLightSources: LightSource[];    // Active light sources on the map
 }
 
 export interface Animation {

@@ -99,7 +99,6 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
     if (characters.length > 0 && turnManager.turnState.turnOrder.length === 0) {
       turnManager.initializeCombat(characters);
     }
-  }
   }, [characters, turnManager]);
 
 // Handle Summoning Integration

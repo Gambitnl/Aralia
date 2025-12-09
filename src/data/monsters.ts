@@ -42,7 +42,12 @@ export const MONSTERS_DATA: Record<string, MonsterData> = {
     'goblin': {
         id: 'goblin',
         name: 'Goblin',
-        baseStats: { ...GOBLIN_STATS, cr: '1/4', creatureTypes: ['Humanoid', 'Goblinoid'] },
+        baseStats: { ...GOBLIN_STATS, cr: '1/4', creatureTypes: ['Humanoid', 'Goblinoid'], alignment: 'Neutral Evil' },
+        // [REVIEW QUESTION]: Is mixing "Type" (Humanoid) and "Tag" (Goblinoid) in a single string array robust enough?
+        // 5e rules distinguish them (e.g. "Hold Person" targets Humanoids, "Ranger Favored Enemy" might pick "Humanoids (Goblinoids)").
+        // Currently `matchesFilter` checks `includes(t)`, so it works for both.
+        // But if we ever need "Humanoid AND NOT Goblinoid", we might need structured types.
+        // For now, this flattening seems acceptable but worth tracking as tech debt.
         maxHP: 7,
         abilities: GOBLIN_ABILITIES,
         tags: ['goblinoid', 'forest', 'cave', 'hills', 'ruins'],
@@ -50,7 +55,7 @@ export const MONSTERS_DATA: Record<string, MonsterData> = {
     'orc': {
         id: 'orc',
         name: 'Orc',
-        baseStats: { ...ORC_STATS, cr: '1/2', creatureTypes: ['Humanoid', 'Orc'] },
+        baseStats: { ...ORC_STATS, cr: '1/2', creatureTypes: ['Humanoid', 'Orc'], alignment: 'Chaotic Evil' },
         maxHP: 15,
         abilities: ORC_ABILITIES,
         tags: ['goblinoid', 'forest', 'hills', 'mountain', 'cave'],
@@ -59,7 +64,7 @@ export const MONSTERS_DATA: Record<string, MonsterData> = {
         id: 'bugbear',
         name: 'Bugbear',
 
-        baseStats: { ...ORC_STATS, strength: 17, cr: '1' },
+        baseStats: { ...ORC_STATS, strength: 17, cr: '1', creatureTypes: ['Humanoid', 'Goblinoid'], alignment: 'Chaotic Evil' },
         maxHP: 27,
         abilities: [
             { id: 'morningstar', name: 'Morningstar', description: 'A brutal swing with a spiked morningstar.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 1, effects: [{ type: 'damage', value: 11, damageType: 'physical' }], icon: '⭐' },

@@ -22,12 +22,60 @@ export class TerrainCommand extends BaseEffectCommand {
         // For now, add to combat log and mark positions
         const affectedTiles = this.calculateTerrainArea(effect)
 
+        // Handle structured manipulation if present
+        if (effect.manipulation) {
+            return this.executeManipulation(state, effect, affectedTiles)
+        }
+
         return this.addLogEntry(state, {
             type: 'action',
             message: `${this.context.caster.name} creates ${effect.terrainType} terrain`,
             characterId: this.context.caster.id,
             data: {
                 terrainEffect: effect,
+                affectedPositions: affectedTiles
+            }
+        })
+    }
+
+    /**
+     * Handles structured terrain manipulation from spells like Mold Earth.
+     * Creates appropriate log entries based on manipulation type.
+     */
+    private executeManipulation(state: CombatState, effect: TerrainEffect, affectedTiles: Position[]): CombatState {
+        const manip = effect.manipulation!
+        let message: string
+
+        switch (manip.type) {
+            case 'excavate':
+                message = `${this.context.caster.name} excavates a ${manip.volume?.size ?? 5}-foot cube of earth`
+                if (manip.depositDistance) {
+                    message += ` and deposits it up to ${manip.depositDistance} feet away`
+                }
+                break
+            case 'fill':
+                message = `${this.context.caster.name} fills a ${manip.volume?.size ?? 5}-foot area with earth`
+                break
+            case 'difficult':
+                message = `${this.context.caster.name} turns terrain into difficult terrain`
+                break
+            case 'normal':
+                message = `${this.context.caster.name} turns difficult terrain into normal terrain`
+                break
+            case 'cosmetic':
+                message = `${this.context.caster.name} shapes the earth cosmetically`
+                break
+            default:
+                message = `${this.context.caster.name} manipulates the terrain`
+        }
+
+        return this.addLogEntry(state, {
+            type: 'action',
+            message,
+            characterId: this.context.caster.id,
+            data: {
+                terrainEffect: effect,
+                manipulation: manip,
                 affectedPositions: affectedTiles
             }
         })

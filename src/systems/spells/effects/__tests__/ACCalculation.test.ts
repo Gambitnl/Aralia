@@ -1,5 +1,6 @@
 import { calculateArmorClass } from "../../../../utils/statUtils";
-import { PlayerCharacter, ActiveEffect, Item } from "../../../../types";
+import { PlayerCharacter, Item } from "../../../../types";
+import { ActiveEffect } from "../../../../types/combat";
 import { createMockCharacter } from "../../../../commands/__tests__/testUtils"; // Assuming this exists or I'll stub it
 import { createMockItem } from "../../../../data/item_templates"; // Assuming usage
 
@@ -206,5 +207,22 @@ describe("AC Calculation System", () => {
         };
 
         expect(calculateArmorClass(char, [shieldSpell, sof])).toBe(10 + 5 + 2); // 17
+    });
+
+    test("Monk Unarmored Defense should be disabled if wearing a shield", () => {
+        const char = mockCharacterWithDex(14); // +2 Dex
+        char.class.id = "monk";
+        char.finalAbilityScores.Wisdom = 16; // +3 Wis
+        // Expected Unarmored: 10 + 2 + 3 = 15
+
+        expect(calculateArmorClass(char, [])).toBe(15);
+
+        // Equip Shield
+        char.equippedItems.OffHand = mockShield; // +2 AC
+        // Unarmored Defense lost. 
+        // fallback to Natural (10 + Dex) + Shield
+        // 10 + 2 + 2 = 14
+        // (Note: Monk without shield was 15. With shield is 14. So shield effectively reduced AC, which is correct per rules)
+        expect(calculateArmorClass(char, [])).toBe(14);
     });
 });

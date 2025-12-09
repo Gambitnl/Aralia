@@ -59,7 +59,9 @@ const makeState = (characters: CombatCharacter[]): CombatState => ({
   actionMode: 'select',
   validTargets: [],
   validMoves: [],
-  combatLog: []
+  combatLog: [],
+  reactiveTriggers: [],
+  activeLightSources: []
 });
 
 const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): CommandContext => ({
@@ -114,5 +116,30 @@ describe('DefensiveCommand', () => {
     const updated = result.characters.find(c => c.id === 'target');
     expect(updated?.tempHP).toBe(5);
     expect(result.combatLog.at(-1)?.message).toContain('temporary HP');
+  });
+
+  it('calculates set_base_ac correctly including Dexterity modifier', () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 });
+    const target = makeCharacter('target', { x: 1, y: 0 });
+    // Target has Dex 12 (+1 mod)
+    // Base AC is 12 (from makeCharacter default which assumes some armor or natural)
+    const state = makeState([caster, target]);
+
+    const effect: DefensiveEffect = {
+      type: 'DEFENSIVE',
+      defenseType: 'set_base_ac',
+      value: 13, // e.g., Mage Armor
+      duration: { type: 'rounds', value: 8 * 60 },
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' }
+    };
+
+    const command = new DefensiveCommand(effect, makeContext(caster, [target]));
+    const result = command.execute(state);
+
+    const updated = result.characters.find(c => c.id === 'target');
+    // Expected: 13 (base) + 1 (Dex) = 14
+    expect(updated?.armorClass).toBe(14);
+    expect(updated?.activeEffects?.[0]?.type).toBe('set_base_ac');
   });
 });

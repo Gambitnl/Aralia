@@ -2,36 +2,31 @@ import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { DefensiveEffect, isDefensiveEffect } from '@/types/spells'
 import { CombatState, CombatCharacter, ActiveEffect } from '@/types/combat'
+import { getAbilityModifierValue, calculateFinalAC, ACComponents } from '@/utils/statUtils';
 
 /**
- * Calculate AC for a CombatCharacter considering active effects.
- * This is a combat-specific implementation that works with the simplified CombatCharacter type.
+ * Calculates AC for a CombatCharacter using the shared statUtils logic.
  */
-function calculateCombatAC(baseAC: number, effects: ActiveEffect[]): number {
-    let bonus = 0;
-    let setBaseAC: number | null = null;
-    let minAC = 0;
+/**
+ * Resolves the base AC of a character.
+ * If baseAC is not explicitly set, derives it from current armorClass by stripping known bonuses to prevent double-counting.
+ */
+function resolveBaseAC(target: CombatCharacter): number {
+    if (target.baseAC !== undefined) return target.baseAC;
 
-    for (const e of effects) {
-        if (e.type === 'ac_bonus') {
-            bonus += e.value || 0;
-        } else if (e.type === 'set_base_ac') {
-            // Use the highest set_base_ac value if multiple exist
-            const base = e.value || 10;
-            if (setBaseAC === null || base > setBaseAC) {
-                setBaseAC = base;
-            }
-        } else if (e.type === 'ac_minimum') {
-            if ((e.value || 0) > minAC) {
-                minAC = e.value || 0;
+    let base = target.armorClass ?? 10;
+    // Strip additive bonuses to find "raw" base
+    if (target.activeEffects) {
+        for (const e of target.activeEffects) {
+            if (e.type === 'ac_bonus' && typeof e.value === 'number') {
+                base -= e.value;
             }
         }
     }
-
-    const effectiveBase = setBaseAC !== null ? setBaseAC : baseAC;
-    const totalAC = effectiveBase + bonus;
-    return Math.max(totalAC, minAC);
+    return base;
 }
+
+
 export class DefensiveCommand extends BaseEffectCommand {
     constructor(
         effect: DefensiveEffect,
@@ -97,7 +92,12 @@ export class DefensiveCommand extends BaseEffectCommand {
         const updatedEffects = [...(target.activeEffects || []), activeEffect];
 
         // Recalculate AC
-        const newAC = calculateCombatAC(target.armorClass ?? 10, updatedEffects);
+        const newAC = calculateFinalAC({
+            baseAC: resolveBaseAC(target),
+            dexMod: Math.floor((target.stats.dexterity - 10) / 2),
+            activeEffects: updatedEffects,
+            stdBaseIncludesDex: true // baseAC usually comes from sheet which includes Dex
+        });
 
         // Update character state
         const updatedState = this.updateCharacter(state, target.id, {
@@ -135,7 +135,12 @@ export class DefensiveCommand extends BaseEffectCommand {
         }
 
         const updatedEffects = [...(target.activeEffects || []), activeEffect];
-        const newAC = calculateCombatAC(target.armorClass ?? 10, updatedEffects);
+        const newAC = calculateFinalAC({
+            baseAC: resolveBaseAC(target),
+            dexMod: Math.floor((target.stats.dexterity - 10) / 2),
+            activeEffects: updatedEffects,
+            stdBaseIncludesDex: true
+        });
 
         const updatedState = this.updateCharacter(state, target.id, {
             armorClass: newAC,
@@ -163,7 +168,12 @@ export class DefensiveCommand extends BaseEffectCommand {
         }
 
         const updatedEffects = [...(target.activeEffects || []), activeEffect];
-        const newAC = calculateCombatAC(target.armorClass ?? 10, updatedEffects);
+        const newAC = calculateFinalAC({
+            baseAC: resolveBaseAC(target),
+            dexMod: Math.floor((target.stats.dexterity - 10) / 2),
+            activeEffects: updatedEffects,
+            stdBaseIncludesDex: true
+        });
 
         const updatedState = this.updateCharacter(state, target.id, {
             armorClass: newAC,
