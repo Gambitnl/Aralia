@@ -1,51 +1,38 @@
-### Conjure Celestial
+# Conjure Celestial
 - **Level**: 7
 - **School**: Conjuration
 - **Ritual**: false
 - **Classes**: Cleric
 
-#### Casting
 - **Casting Time Value**: 1
-- **Casting Time Unit**: minute
-- **Combat Cost**: none
-- **Reaction Trigger**: None
+- **Casting Time Unit**: action
+- **Combat Cost**: action
 
-#### Range & Area
 - **Range Type**: ranged
 - **Range Distance**: 90
-- **Targeting Type**: single
-- **Area Shape**: none
-- **Area Size**: 0
-- **Valid Targets**: point
+- **Targeting Type**: area
+- **Area Shape**: cylinder
+- **Area Size**: 10-foot-radius, 40-foot-high
+- **Valid Targets**: creatures
 - **Line of Sight**: true
 
-#### Components
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: false
-- **Material Description**:
-- **Material Cost GP**: 0
-- **Consumed**: false
 
-#### Duration
-- **Duration Type**: timed
-- **Duration Value**: 1
-- **Duration Unit**: hour
+- **Duration Type**: concentration
+- **Duration Value**: 10
+- **Duration Unit**: minutes
 - **Concentration**: true
 
-#### Effects (Primary)
-- **Effect Type**: UTILITY
-- **Save Stat**: None
-- **Save Outcome**: none
-- **Attack Roll**: none
-- **Damage Dice**:
-- **Damage Type**:
-- **Conditions Applied**:
+- **Effect Type**: HEALING, DAMAGE
+- **Healing Dice**: 4d12 + spellcasting_modifier
+- **Save Stat**: Dexterity
+- **Save Outcome**: half
+- **Damage Dice**: 6d12
+- **Damage Type**: Radiant
 
-#### Description
-- **Text**: You summon a celestial of challenge rating 4 or lower, which appears in an unoccupied space that you can see within range. The celestial disappears when it drops to 0 hit points or when the spell ends.
-
-The celestial is friendly to you and your companions for the duration. Roll initiative for the celestial, which has its own turns. It obeys any verbal commands that you issue to it (no action required by you), as long as they don’t violate its alignment. If you don’t issue any commands to the celestial, it defends itself from hostile creatures but otherwise takes no actions. The DM has the celestial’s statistics.
-- **Higher Levels**: When you cast this spell using a 9th-level spell slot, you summon a celestial of challenge rating 5 or lower.
-- **Source**: http://dnd5ed.wikidot.com/spell:conjure-celestial
-- **Status**: Draft
+- **Description**: You conjure a spirit from the Upper Planes, which manifests as a pillar of light in a 10-foot-radius, 40-foot-high Cylinder centered on a point within range. For each creature you can see in the Cylinder, choose which of these lights shines on it: Healing Light. The target regains Hit Points equal to 4d12 plus your spellcasting ability modifier. Searing Light. The target makes a Dexterity saving throw, taking 6d12 Radiant damage on a failed save or half as much damage on a successful one. Until the spell ends, Bright Light fills the Cylinder, and when you move on your turn, you can also move the Cylinder up to 30 feet. Whenever the Cylinder moves into the space of a creature you can see and whenever a creature you can see enters the Cylinder or ends its turn there, you can bathe it in one of the lights. A creature can be affected by this spell only once per turn.
+- **Higher Levels**: The healing and damage increase by 1d12 for each spell slot level above 7.
+- **Source**: PHB 2024
+- **Status**: Complete
