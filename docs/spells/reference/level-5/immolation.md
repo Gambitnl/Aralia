@@ -1,4 +1,4 @@
-# Immoloation
+# Immolation
 - **Level**: 5
 - **School**: Evocation
 - **Ritual**: false
