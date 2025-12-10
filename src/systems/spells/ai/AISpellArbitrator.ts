@@ -14,20 +14,53 @@ export interface ArbitrationRequest {
     playerInput?: string // For Tier 3 spells requiring player description
 }
 
+export interface SimplifiedSpellEffect {
+    type: 'DAMAGE' | 'HEALING' | 'STATUS_CONDITION';
+    damage?: { dice: string, type: string };
+    healing?: { dice: string };
+    statusCondition?: { name: string, duration: { type: 'rounds', value: number } };
+    target?: string;
+}
+
 export interface ArbitrationResult {
     allowed: boolean
     reason?: string
-    mechanicalEffects?: any[] // Override or supplement spell effects
+    mechanicalEffects?: SimplifiedSpellEffect[] // Override or supplement spell effects
     narrativeOutcome?: string // For combat log
     stateChanges?: Partial<GameState> // Direct state modifications
 }
+
+const EFFECT_SCHEMA = `
+{
+  "allowed": boolean,
+  "reason": string,
+  "narrativeOutcome": string,
+  "mechanicalEffects": [
+    {
+      "type": "DAMAGE",
+      "damage": { "dice": string, "type": string },
+      "target": string
+    },
+    {
+      "type": "HEALING",
+      "healing": { "dice": string },
+      "target": string
+    },
+    {
+      "type": "STATUS_CONDITION",
+      "statusCondition": { "name": string, "duration": { "type": "rounds", "value": number } },
+      "target": string
+    }
+  ]
+}
+`
 
 class AISpellArbitrator {
     /**
      * Main arbitration entry point
      */
     async arbitrate(request: ArbitrationRequest): Promise<ArbitrationResult> {
-        const { spell, caster, combatState, gameState, playerInput } = request
+        const { spell, caster, combatState, gameState, playerInput, targets } = request
 
         // Tier 1: Mechanical (no AI needed)
         if (!spell.arbitrationType || spell.arbitrationType === 'mechanical') {
@@ -47,7 +80,7 @@ class AISpellArbitrator {
                     reason: 'Player input required for this spell'
                 }
             }
-            return await this.aiDMAdjudication(spell, caster, combatState, gameState, playerInput)
+            return await this.aiDMAdjudication(spell, caster, targets, combatState, gameState, playerInput)
         }
 
         return { allowed: false, reason: 'Unknown arbitration type' }
@@ -106,6 +139,7 @@ class AISpellArbitrator {
     private async aiDMAdjudication(
         spell: Spell,
         caster: CombatCharacter,
+        targets: CombatCharacter[],
         combatState: CombatState,
         gameState: GameState,
         playerInput?: string
@@ -115,7 +149,7 @@ class AISpellArbitrator {
         }
 
         const context = this.buildGameStateContext(caster, combatState, gameState)
-        const targetNames = request.targets.map(t => t.name).join(', ') || 'None';
+        const targetNames = targets.map(t => t.name).join(', ') || 'None';
         const promptWithInput = spell.aiContext.prompt
             .replace('{target}', targetNames)
             .replace('{playerInput}', playerInput || 'N/A')
@@ -124,8 +158,10 @@ class AISpellArbitrator {
         try {
             const result = await generateText(
                 `${promptWithInput}\n\nContext:\n${context}`,
-                'You are a D&D 5e Dungeon Master adjudicating spell effects. Be fair but follow the rules. Be concise.',
-                false, // expectJson
+                `You are a D&D 5e Dungeon Master adjudicating spell effects. Be fair but follow the rules. Be concise.
+                Respond with valid JSON matching this schema:
+                ${EFFECT_SCHEMA}`,
+                true, // expectJson
                 'AISpellArbitrator.aiDMAdjudication'
             )
 
@@ -136,10 +172,13 @@ class AISpellArbitrator {
                 }
             }
 
+            const responseData = JSON.parse(result.data.text.replace(/```json\n|```/g, '').trim())
+
             return {
-                allowed: true,
-                narrativeOutcome: result.data.text,
-                // TODO: Parse AI response for mechanical effects if needed
+                allowed: responseData.allowed !== false, // Default to true if missing
+                reason: responseData.reason,
+                narrativeOutcome: responseData.narrativeOutcome,
+                mechanicalEffects: responseData.mechanicalEffects
             }
         } catch (error) {
             console.error('AI DM adjudication failed:', error)
