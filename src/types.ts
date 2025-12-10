@@ -130,7 +130,10 @@ export interface Feat {
     // If abilityScoreIncrease is empty object {}, it means "select one" - options defined in selectableAbilityScores
     selectableAbilityScores?: AbilityScoreName[]; // Which abilities can be chosen for ASI
     skillProficiencies?: string[];
+    selectableSkillCount?: number; // Number of skills to choose (e.g., Skilled = 3)
     savingThrowProficiencies?: AbilityScoreName[];
+    savingThrowLinkedToAbility?: boolean; // If true, saving throw proficiency matches selected ability (for Resilient)
+    selectableDamageTypes?: string[]; // Damage types to choose from (e.g., Elemental Adept)
     speedIncrease?: number;
     initiativeBonus?: number;
     hpMaxIncreasePerLevel?: number;

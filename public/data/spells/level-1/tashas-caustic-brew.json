@@ -1,0 +1,66 @@
+{
+  "id": "tashas-caustic-brew",
+  "name": "Tasha's Caustic Brew",
+  "level": 1,
+  "school": "Evocation",
+  "classes": [
+    "Artificer",
+    "Sorcerer",
+    "Wizard"
+  ],
+  "description": "A stream of acid emanates from you in a 30-foot line, coating creatures in corrosive brew.",
+  "tags": ["damage", "acid", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a bit of rotten food"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "area",
+    "range": 30,
+    "areaOfEffect": {
+      "shape": "Line",
+      "size": 30,
+      "height": 5
+    },
+    "validTargets": ["creatures"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Dexterity",
+        "saveEffect": "half"
+      },
+      "damage": {
+        "dice": "2d4",
+        "type": "Acid"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+2d4"
+      }
+    }
+  ]
+}

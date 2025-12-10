@@ -2,6 +2,7 @@
 title: Sacred Flame
 type: spell
 tags:
+  - level 0
   - cantrip
   - evocation
   - damage

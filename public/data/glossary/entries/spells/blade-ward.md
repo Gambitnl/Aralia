@@ -2,7 +2,7 @@
 id: "blade-ward"
 title: "Blade Ward"
 category: "Spells"
-tags: ["cantrip", "abjuration", "defensive", "bard", "sorcerer", "warlock", "wizard"]
+tags: ["level 0", "cantrip", "abjuration", "defensive", "bard", "sorcerer", "warlock", "wizard"]
 excerpt: "You extend your hand and trace a sigil of warding in the air. Until the end of your next turn, you have resistance against bludgeoning, piercing, and slashing damage dealt by weapon attacks."
 seeAlso: ["shield", "resistance"]
 filePath: "/data/glossary/entries/spells/blade-ward.md"

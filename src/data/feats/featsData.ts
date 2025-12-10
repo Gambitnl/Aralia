@@ -113,10 +113,11 @@ export const FEATS_DATA: Feat[] = [
   {
     id: 'resilient',
     name: 'Resilient',
-    description: 'Bolster a saving throw of your choice.',
+    description: 'Bolster a saving throw of your choice. Increase the chosen ability by 1 and gain proficiency in saving throws using that ability.',
     benefits: {
-      abilityScoreIncrease: { Constitution: 1 },
-      savingThrowProficiencies: ['Constitution'],
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'],
+      savingThrowLinkedToAbility: true,
     },
   },
   {
@@ -124,7 +125,8 @@ export const FEATS_DATA: Feat[] = [
     name: 'Skilled',
     description: 'You gain proficiency in three skills of your choice.',
     benefits: {
-      skillProficiencies: ['athletics', 'perception', 'insight'],
+      skillProficiencies: [],
+      selectableSkillCount: 3,
     },
   },
   {
@@ -183,9 +185,10 @@ export const FEATS_DATA: Feat[] = [
     id: 'tavern_brawler',
     name: 'Tavern Brawler',
     description:
-      'Increase Strength or Constitution, become proficient with improvised weapons, improve unarmed strikes, and can grapple as a bonus action after hitting.',
+      'Increase Strength or Constitution by 1, become proficient with improvised weapons, improve unarmed strikes, and can grapple as a bonus action after hitting.',
     benefits: {
-      abilityScoreIncrease: { Strength: 1, Constitution: 1 },
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ['Strength', 'Constitution'],
     },
   },
   {
@@ -223,6 +226,7 @@ export const FEATS_DATA: Feat[] = [
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
+      selectableDamageTypes: ['Acid', 'Cold', 'Fire', 'Lightning', 'Thunder'],
     },
   },
   {
@@ -460,9 +464,10 @@ export const FEATS_DATA: Feat[] = [
     id: 'slasher',
     name: 'Slasher',
     description:
-      'Increase Strength or Dexterity; once per turn reduce a creature’s speed by 10 when you deal slashing damage; on a crit, the target has disadvantage on attacks until your next turn.',
+      'Increase Strength or Dexterity by 1; once per turn reduce a creature\'s speed by 10 when you deal slashing damage; on a crit, the target has disadvantage on attacks until your next turn.',
     benefits: {
-      abilityScoreIncrease: { Strength: 1, Dexterity: 1 },
+      abilityScoreIncrease: {},
+      selectableAbilityScores: ['Strength', 'Dexterity'],
     },
   },
   {

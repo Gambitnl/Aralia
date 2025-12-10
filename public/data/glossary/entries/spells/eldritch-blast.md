@@ -2,7 +2,7 @@
 id: "eldritch-blast"
 title: "Eldritch Blast"
 category: "Spells"
-tags: ["cantrip", "evocation", "damage", "force", "warlock"]
+tags: ["level 0", "cantrip", "evocation", "damage", "force", "warlock"]
 excerpt: "A beam of crackling energy streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 force damage."
 seeAlso: ["fire-bolt", "ray-of-frost", "chill-touch"]
 filePath: "/data/glossary/entries/spells/eldritch-blast.md"

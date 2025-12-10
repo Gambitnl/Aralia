@@ -2,7 +2,7 @@
 id: "fire-bolt"
 title: "Fire Bolt"
 category: "Spells"
-tags: ["cantrip", "evocation", "damage", "fire", "artificer", "sorcerer", "wizard"]
+tags: ["level 0", "cantrip", "evocation", "damage", "fire", "artificer", "sorcerer", "wizard"]
 excerpt: "You hurl a mote of fire at a creature or an object within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Fire damage."
 seeAlso: ["ray-of-frost", "eldritch-blast", "chill-touch"]
 filePath: "/data/glossary/entries/spells/fire-bolt.md"

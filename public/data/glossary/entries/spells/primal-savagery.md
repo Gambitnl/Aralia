@@ -2,6 +2,7 @@
 title: Primal Savagery
 type: spell
 tags:
+  - level 0
   - cantrip
   - transmutation
   - damage

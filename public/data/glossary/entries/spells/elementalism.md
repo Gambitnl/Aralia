@@ -3,7 +3,7 @@
 id: "elementalism"
 title: "Elementalism"
 category: "Spells"
-tags: ["cantrip", "transmutation", "utility", "druid", "sorcerer", "wizard"]
+tags: ["level 0", "cantrip", "transmutation", "utility", "druid", "sorcerer", "wizard"]
 excerpt: "You exert control over the elements, creating one of several minor, instantaneous effects within range."
 seeAlso: ["druid", "sorcerer", "wizard", "prestidigitation", "druidcraft"]
 filePath: "/data/glossary/entries/spells/elementalism.md"

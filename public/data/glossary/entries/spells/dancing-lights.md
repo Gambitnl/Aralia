@@ -2,7 +2,7 @@
 id: "dancing-lights"
 title: "Dancing Lights"
 category: "Spells"
-tags: ["cantrip", "evocation", "utility", "light", "artificer", "bard", "sorcerer", "wizard"]
+tags: ["level 0", "cantrip", "evocation", "utility", "light", "artificer", "bard", "sorcerer", "wizard"]
 excerpt: "You create up to four torch-sized lights within range, making them appear as torches, lanterns, or glowing orbs that hover in the air for the duration."
 seeAlso: ["light", "prestidigitation", "minor-illusion"]
 filePath: "/data/glossary/entries/spells/dancing-lights.md"

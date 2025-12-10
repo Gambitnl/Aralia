@@ -2,7 +2,7 @@
 id: "booming-blade"
 title: "Booming Blade"
 category: "Spells"
-tags: ["cantrip", "evocation", "damage", "thunder", "melee", "artificer", "sorcerer", "warlock", "wizard"]
+tags: ["level 0", "cantrip", "evocation", "damage", "thunder", "melee", "artificer", "sorcerer", "warlock", "wizard"]
 excerpt: "As part of the action used to cast this spell, you must make a melee attack with a weapon against one creature within the spell's range. On a hit, the target suffers the attack's normal effects, and it becomes sheathed in booming energy."
 seeAlso: ["green-flame-blade", "lightning-lure"]
 filePath: "/data/glossary/entries/spells/booming-blade.md"

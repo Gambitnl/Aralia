@@ -2,7 +2,7 @@
 id: "shape-water"
 title: "Shape Water"
 category: "Spells"
-tags: ["utility", "control", "water", "cantrip", "druid", "sorcerer", "wizard"]
+tags: ["level 0", "utility", "control", "water", "cantrip", "druid", "sorcerer", "wizard"]
 excerpt: "You choose an area of water that you can see within range and that fits within a 5-foot cube. You can manipulate it in various ways, such as moving it, animating it into simple shapes, changing its color, or freezing it."
 seeAlso: ["control-water", "create-or-destroy-water"]
 filePath: "/data/glossary/entries/spells/shape-water.md"

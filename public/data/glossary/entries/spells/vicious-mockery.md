@@ -1,7 +1,7 @@
 ---
 title: Vicious Mockery
 type: spell
-tags: [spell, cantrip, enchantment, psychic]
+tags: [level 0, spell, cantrip, enchantment, psychic]
 ---
 
 # Vicious Mockery

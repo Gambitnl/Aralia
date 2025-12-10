@@ -1,7 +1,7 @@
 ---
 title: Word of Radiance
 type: spell
-tags: [spell, cantrip, evocation, radiant]
+tags: [level 0, spell, cantrip, evocation, radiant]
 ---
 
 # Word of Radiance

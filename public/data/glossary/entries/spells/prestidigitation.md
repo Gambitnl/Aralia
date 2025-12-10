@@ -2,6 +2,7 @@
 title: Prestidigitation
 type: spell
 tags:
+  - level 0
   - cantrip
   - transmutation
   - utility

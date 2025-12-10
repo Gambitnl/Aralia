@@ -2,6 +2,7 @@
 title: Produce Flame
 type: spell
 tags:
+  - level 0
   - cantrip
   - conjuration
   - fire

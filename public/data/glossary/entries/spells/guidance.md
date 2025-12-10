@@ -2,7 +2,7 @@
 id: "guidance"
 title: "Guidance"
 category: "Spells"
-tags: ["cantrip", "divination", "utility", "buff", "cleric", "druid", "artificer"]
+tags: ["level 0", "cantrip", "divination", "utility", "buff", "cleric", "druid", "artificer"]
 excerpt: "You touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one ability check of its choice."
 seeAlso: ["resistance", "bless"]
 filePath: "/data/glossary/entries/spells/guidance.md"

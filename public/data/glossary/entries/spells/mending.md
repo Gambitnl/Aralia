@@ -2,7 +2,7 @@
 id: "mending"
 title: "Mending"
 category: "Spells"
-tags: ["cantrip", "transmutation", "utility", "repair", "artificer", "bard", "cleric", "druid", "sorcerer", "wizard"]
+tags: ["level 0", "cantrip", "transmutation", "utility", "repair", "artificer", "bard", "cleric", "druid", "sorcerer", "wizard"]
 excerpt: "This spell repairs a single break or tear in an object you touch, such as a broken chain link, two halves of a broken key, a torn cloak, or a leaking wineskin."
 seeAlso: ["prestidigitation"]
 filePath: "/data/glossary/entries/spells/mending.md"

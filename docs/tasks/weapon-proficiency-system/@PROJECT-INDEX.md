@@ -1,8 +1,8 @@
 # Weapon Proficiency System - Project Index
 
-**Status**: Planning Phase
+**Status**: Phase 1-3 Complete, Phase 4 Blocked (Future Work)
 **Created**: 2025-12-08
-**Last Updated**: 2025-12-08
+**Last Updated**: 2025-12-11
 
 ---
 
@@ -25,21 +25,21 @@ This document tracks all tasks, dependencies, and progress for the Weapon Profic
 ## Phase 1: Core Proficiency Logic
 
 **Goal**: Implement backend weapon proficiency checking without UI changes
-**Status**: 🔴 Not Started
+**Status**: 🟢 Completed
 **Estimated Effort**: 2-3 hours
 **Dependencies**: None
 
 | Task | Status | File | Assignee | Notes |
 |------|--------|------|----------|-------|
-| [01-add-weapon-proficiency-helper.md](01-add-weapon-proficiency-helper.md) | 🔴 | weaponUtils.ts | - | Creates foundation for all proficiency checks |
-| [02-integrate-proficiency-check.md](02-integrate-proficiency-check.md) | 🔴 | characterUtils.ts | - | Must complete Task 01 first |
-| [03-update-inventory-filtering.md](03-update-inventory-filtering.md) | 🔴 | InventoryList.tsx | - | Verification task, should auto-work |
+| [01-add-weapon-proficiency-helper.md](01-add-weapon-proficiency-helper.md) | 🟢 | weaponUtils.ts | - | Completed 2025-12-08 |
+| [02-integrate-proficiency-check.md](02-integrate-proficiency-check.md) | 🟢 | characterUtils.ts | - | Completed 2025-12-08 |
+| [03-update-inventory-filtering.md](03-update-inventory-filtering.md) | 🟢 | InventoryList.tsx | - | Verified working |
 
 **Acceptance Criteria**:
-- [ ] `isWeaponProficient()` function exists in weaponUtils.ts
-- [ ] `canEquipItem()` checks weapon proficiency
-- [ ] Function returns `{ can: true, reason: "Not proficient..." }` for non-proficient weapons
-- [ ] Inventory filtering respects proficiency (already uses canEquipItem)
+- [x] `isWeaponProficient()` function exists in weaponUtils.ts
+- [x] `canEquipItem()` checks weapon proficiency
+- [x] Function returns `{ can: true, reason: "Not proficient..." }` for non-proficient weapons
+- [x] Inventory filtering respects proficiency (already uses canEquipItem)
 - [ ] Unit tests pass for all proficiency scenarios
 
 ---
@@ -47,42 +47,42 @@ This document tracks all tasks, dependencies, and progress for the Weapon Profic
 ## Phase 2: Visual Feedback
 
 **Goal**: Add proficiency warnings to UI components
-**Status**: 🔴 Not Started
+**Status**: 🟢 Completed
 **Estimated Effort**: 2-3 hours
 **Dependencies**: Phase 1 complete
 
 | Task | Status | File | Assignee | Notes |
 |------|--------|------|----------|-------|
-| [04-equipped-weapon-warnings.md](04-equipped-weapon-warnings.md) | 🔴 | EquipmentMannequin.tsx | - | Red border/ring like armor warnings |
-| [05-update-tooltips.md](05-update-tooltips.md) | 🔴 | Multiple components | - | Add proficiency status to all weapon tooltips |
-| [06-inventory-indicators.md](06-inventory-indicators.md) | 🔴 | InventoryList.tsx | - | Visual indicators in inventory grid |
+| [04-equipped-weapon-warnings.md](04-equipped-weapon-warnings.md) | 🟢 | EquipmentMannequin.tsx | - | Completed 2025-12-08 |
+| [05-update-tooltips.md](05-update-tooltips.md) | 🟢 | Multiple components | - | Completed 2025-12-08 |
+| [06-inventory-indicators.md](06-inventory-indicators.md) | 🟢 | InventoryList.tsx | - | Completed 2025-12-08 |
 
 **Acceptance Criteria**:
-- [ ] Non-proficient equipped weapons show red border in mannequin
-- [ ] Inventory items have visual indicator for proficiency status
-- [ ] All weapon tooltips mention proficiency and penalties
-- [ ] Visual style matches armor proficiency warnings
-- [ ] Manual testing confirms all UI updates work
+- [x] Non-proficient equipped weapons show red border in mannequin
+- [x] Inventory items have visual indicator for proficiency status
+- [x] All weapon tooltips mention proficiency and penalties
+- [x] Visual style matches armor proficiency warnings
+- [x] Manual testing confirms all UI updates work
 
 ---
 
 ## Phase 3: Data Consistency Audit
 
 **Goal**: Ensure all weapon data has accurate proficiency information
-**Status**: 🔴 Not Started
+**Status**: 🟢 Completed
 **Estimated Effort**: 1-2 hours
 **Dependencies**: None (can run in parallel with Phase 1-2)
 
 | Task | Status | File | Assignee | Notes |
 |------|--------|------|----------|-------|
-| [07-audit-weapon-data.md](07-audit-weapon-data.md) | 🔴 | items/index.ts | - | Create audit report |
-| [08-fix-proficiency-flags.md](08-fix-proficiency-flags.md) | 🔴 | items/index.ts | - | Standardize isMartial flags |
+| [07-audit-weapon-data.md](07-audit-weapon-data.md) | 🟢 | items/index.ts | - | Completed - see weapon-audit-report.md |
+| [08-fix-proficiency-flags.md](08-fix-proficiency-flags.md) | 🟢 | items/index.ts | - | Completed - isMartial standardized |
 
 **Acceptance Criteria**:
-- [ ] Audit document created listing all weapons
-- [ ] All weapons have explicit `isMartial` boolean
-- [ ] No mismatches between `category` and `isMartial`
-- [ ] Edge cases documented
+- [x] Audit document created listing all weapons
+- [x] All weapons have explicit `isMartial` boolean
+- [x] No mismatches between `category` and `isMartial`
+- [x] Edge cases documented
 
 **Decision Points**:
 - Should we keep both `category` and `isMartial`?
@@ -94,17 +94,17 @@ This document tracks all tasks, dependencies, and progress for the Weapon Profic
 ## Phase 4: Combat Integration (FUTURE)
 
 **Goal**: Apply non-proficiency penalties in combat mechanics
-**Status**: 🔴 Not Started (Future Work)
+**Status**: ⏸️ Blocked (Awaiting combat system maturity)
 **Estimated Effort**: 4-6 hours
-**Dependencies**: Phase 1-2 complete, Combat system architecture finalized
+**Dependencies**: Phase 1-3 complete ✅, Combat system architecture finalized
 
 | Task | Status | File | Assignee | Notes |
 |------|--------|------|----------|-------|
-| [09-attack-roll-penalties.md](09-attack-roll-penalties.md) | 🔴 | Attack roll logic | - | Future work |
-| [10-weapon-mastery-integration.md](10-weapon-mastery-integration.md) | 🔴 | Weapon mastery system | - | Future work |
-| [11-combat-ui-warnings.md](11-combat-ui-warnings.md) | 🔴 | Combat UI components | - | Future work |
+| [09-attack-roll-penalties.md](09-attack-roll-penalties.md) | ⏸️ | Attack roll logic | - | Blocked - awaiting combat system |
+| [10-weapon-mastery-integration.md](10-weapon-mastery-integration.md) | ⏸️ | Weapon mastery system | - | Blocked - awaiting combat system |
+| [11-combat-ui-warnings.md](11-combat-ui-warnings.md) | ⏸️ | Combat UI components | - | Blocked - awaiting combat system |
 
-**Note**: Phase 4 is intentionally postponed. Complete Phase 1-3 first and validate the UI/UX before touching combat mechanics.
+**Note**: Phase 4 is intentionally postponed. Phase 1-3 are complete. Combat system architecture must mature before proceeding.
 
 **Acceptance Criteria** (for future reference):
 - [ ] Attack rolls exclude proficiency bonus for non-proficient weapons
@@ -147,15 +147,15 @@ Phase 4 (Tasks 09-11) - Blocked until combat system architecture is stable
 ## File Modifications Tracker
 
 ### New Files
-- [ ] `src/utils/weaponUtils.ts` - New utility file for weapon proficiency logic
-- [ ] `docs/tasks/weapon-proficiency-system/weapon-audit-report.md` - Audit findings (Task 07)
+- [x] `src/utils/weaponUtils.ts` - New utility file for weapon proficiency logic
+- [x] `docs/tasks/weapon-proficiency-system/weapon-audit-report.md` - Audit findings (Task 07)
 
 ### Modified Files
-- [ ] `src/utils/characterUtils.ts` - Add weapon proficiency check to canEquipItem()
-- [ ] `src/components/EquipmentMannequin.tsx` - Add proficiency warning styling
-- [ ] `src/components/InventoryList.tsx` - Add proficiency indicators (visual only)
-- [ ] `src/data/items/index.ts` - Standardize isMartial flags
-- [ ] `src/components/Tooltip.tsx` - Potentially update tooltip component (Task 05)
+- [x] `src/utils/characterUtils.ts` - Add weapon proficiency check to canEquipItem()
+- [x] `src/components/EquipmentMannequin.tsx` - Add proficiency warning styling
+- [x] `src/components/InventoryList.tsx` - Add proficiency indicators (visual only)
+- [x] `src/data/items/index.ts` - Standardize isMartial flags
+- [x] `src/components/Tooltip.tsx` - Potentially update tooltip component (Task 05)
 
 ### Read-Only References (No Changes)
 - `src/components/WeaponMasterySelection.tsx` - Reference for proficiency checking pattern
@@ -375,5 +375,5 @@ Major decisions should be documented:
 
 ---
 
-**Last Updated**: 2025-12-08
-**Next Review**: After Phase 1 completion
+**Last Updated**: 2025-12-11
+**Next Review**: When combat system is ready for Phase 4

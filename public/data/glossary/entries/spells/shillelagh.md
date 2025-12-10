@@ -2,7 +2,7 @@
 id: "shillelagh"
 title: "Shillelagh"
 category: "Spells"
-tags: ["cantrip", "transmutation", "damage", "buff", "druid"]
+tags: ["level 0", "cantrip", "transmutation", "damage", "buff", "druid"]
 excerpt: "Imbue a club or quarterstaff with nature's power, allowing you to use your spellcasting ability for attacks and increasing its damage."
 seeAlso: ["druidcraft", "thorn-whip", "club", "quarterstaff"]
 ---

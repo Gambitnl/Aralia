@@ -2,7 +2,7 @@
 id: "minor-illusion"
 title: "Minor Illusion"
 category: "Spells"
-tags: ["cantrip", "illusion", "utility", "bard", "sorcerer", "warlock", "wizard"]
+tags: ["level 0", "cantrip", "illusion", "utility", "bard", "sorcerer", "warlock", "wizard"]
 excerpt: "You create a sound or an image of an object within range that lasts for the duration."
 seeAlso: ["silent-image", "major-image"]
 filePath: "/data/glossary/entries/spells/minor-illusion.md"

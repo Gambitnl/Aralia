@@ -1,11 +1,11 @@
 # Task 03: Verify Inventory Filtering Respects Weapon Proficiency
 
-**Status**: 🔴 Not Started
+**Status**: 🟢 Completed
 **Phase**: 1 (Core Proficiency Logic)
 **Estimated Effort**: 15 minutes
 **Priority**: Medium
-**Assigned To**: Unassigned
-**Completed**: Not completed
+**Assigned To**: -
+**Completed**: 2025-12-08 (Verified working)
 
 ---
 

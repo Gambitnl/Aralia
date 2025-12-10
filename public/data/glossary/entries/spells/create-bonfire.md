@@ -2,7 +2,7 @@
 id: "create-bonfire"
 title: "Create Bonfire"
 category: "Spells"
-tags: ["cantrip", "conjuration", "damage", "fire", "area", "concentration", "artificer", "druid", "sorcerer", "warlock", "wizard"]
+tags: ["level 0", "cantrip", "conjuration", "damage", "fire", "area", "concentration", "artificer", "druid", "sorcerer", "warlock", "wizard"]
 excerpt: "You create a bonfire on ground that you can see within range. Until the spell ends, the magic bonfire fills a 5-foot cube."
 seeAlso: ["sacred-flame", "produce-flame"]
 filePath: "/data/glossary/entries/spells/create-bonfire.md"

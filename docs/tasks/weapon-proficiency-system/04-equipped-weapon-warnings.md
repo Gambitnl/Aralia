@@ -1,10 +1,11 @@
 # Task 04: Add Equipped Weapon Proficiency Warnings
 
-**Status**: 🔴 Not Started
+**Status**: 🟢 Completed
 **Phase**: 2 (Visual Feedback)
 **Estimated Effort**: 1 hour
 **Priority**: High
-**Assigned To**: Unassigned
+**Assigned To**: -
+**Completed**: 2025-12-08
 
 ---
 

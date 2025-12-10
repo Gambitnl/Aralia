@@ -1,7 +1,7 @@
 ---
 title: Thunderclap
 type: spell
-tags: [spell, cantrip, evocation, thunder]
+tags: [level 0, spell, cantrip, evocation, thunder]
 ---
 
 # Thunderclap

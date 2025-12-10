@@ -2,7 +2,7 @@
 id: "magic-stone"
 title: "Magic Stone"
 category: "Spells"
-tags: ["cantrip", "transmutation", "utility", "damage", "artificer", "druid", "warlock"]
+tags: ["level 0", "cantrip", "transmutation", "utility", "damage", "artificer", "druid", "warlock"]
 excerpt: "You touch one to three pebbles and imbue them with magic. You or someone else can make a ranged spell attack with one of the pebbles."
 seeAlso: ["shillelagh", "produce-flame"]
 filePath: "/data/glossary/entries/spells/magic-stone.md"

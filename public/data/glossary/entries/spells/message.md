@@ -2,7 +2,7 @@
 id: "message"
 title: "Message"
 category: "Spells"
-tags: ["cantrip", "transmutation", "utility", "communication", "artificer", "bard", "druid", "sorcerer", "wizard"]
+tags: ["level 0", "cantrip", "transmutation", "utility", "communication", "artificer", "bard", "druid", "sorcerer", "wizard"]
 excerpt: "You point your finger toward a creature within range and whisper a message. The target (and only the target) hears the message and can reply in a whisper that only you can hear."
 seeAlso: ["sending"]
 filePath: "/data/glossary/entries/spells/message.md"

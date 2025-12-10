@@ -2,6 +2,7 @@
 title: Light
 type: spell
 tags:
+  - level 0
   - cantrip
   - evocation
   - utility

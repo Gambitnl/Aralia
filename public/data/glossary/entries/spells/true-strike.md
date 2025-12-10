@@ -1,7 +1,7 @@
 ---
 title: True Strike
 type: spell
-tags: [spell, cantrip, divination, radiant]
+tags: [level 0, spell, cantrip, divination, radiant]
 ---
 
 # True Strike

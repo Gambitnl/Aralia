@@ -2,7 +2,7 @@
 id: "chill-touch"
 title: "Chill Touch"
 category: "Spells"
-tags: ["cantrip", "necromancy", "damage", "necrotic", "ranged", "sorcerer", "warlock", "wizard"]
+tags: ["level 0", "cantrip", "necromancy", "damage", "necrotic", "ranged", "sorcerer", "warlock", "wizard"]
 excerpt: "You create a ghostly, skeletal hand in the space of a creature within range. On a hit, the target takes 1d8 necrotic damage, and it can't regain hit points until the start of your next turn."
 seeAlso: ["ray-of-frost", "fire-bolt"]
 filePath: "/data/glossary/entries/spells/chill-touch.md"

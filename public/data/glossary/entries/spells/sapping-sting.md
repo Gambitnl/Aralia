@@ -2,6 +2,7 @@
 title: Sapping Sting
 type: spell
 tags:
+  - level 0
   - cantrip
   - necromancy
   - damage

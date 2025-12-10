@@ -2,6 +2,7 @@
 title: Ray of Frost
 type: spell
 tags:
+  - level 0
   - cantrip
   - evocation
   - damage

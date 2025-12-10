@@ -2,7 +2,7 @@
 id: "poison-spray"
 title: "Poison Spray"
 category: "Spells"
-tags: ["cantrip", "necromancy", "damage", "poison", "artificer", "druid", "sorcerer", "warlock", "wizard"]
+tags: ["level 0", "cantrip", "necromancy", "damage", "poison", "artificer", "druid", "sorcerer", "warlock", "wizard"]
 excerpt: "You extend your hand toward a creature you can see within range and project a puff of noxious gas from your palm. The creature must succeed on a Constitution saving throw or take 1d12 poison damage."
 seeAlso: ["acid-splash", "chill-touch"]
 filePath: "/data/glossary/entries/spells/poison-spray.md"

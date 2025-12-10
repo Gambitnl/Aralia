@@ -1,7 +1,7 @@
 ---
 title: Toll the Dead
 type: spell
-tags: [spell, cantrip, necromancy, necrotic]
+tags: [level 0, spell, cantrip, necromancy, necrotic]
 ---
 
 # Toll the Dead

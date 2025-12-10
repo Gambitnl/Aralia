@@ -2,6 +2,7 @@
 title: Mold Earth
 type: spell
 tags:
+  - level 0
   - cantrip
   - transmutation
   - utility

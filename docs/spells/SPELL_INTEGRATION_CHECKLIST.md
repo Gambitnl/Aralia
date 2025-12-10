@@ -8,6 +8,7 @@ This comprehensive checklist tracks not only spell data conversion but also **co
 - File is nested: `public/data/spells/level-{N}/{id}.json` (cantrips → `level-0`); no flat `public/data/spells/{id}.json` remains after field comparison.
 - Required base fields: `ritual` present, `castingTime.combatCost.type` present, every effect has `trigger` + `condition`; enums/casing exact (`validTargets` plural, effect types ALL CAPS, Title Case damage types/schools/classes).
 - Use current schema primitives when applicable: `on_attack_hit`, `controlOptions`, `taunt`, `forcedMovement`, AoE `Square/height`, `saveModifiers`, `requiresStatus`, `escapeCheck`, `familiarContract`, `dispersedByStrongWind`.
+- Run `npx tsx scripts/check-spell-integrity.ts` to catch missing glossary cards/level tags or class spell-list IDs not present in the manifest (fails fast with a summary of issues).
 
 ---
 

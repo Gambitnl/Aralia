@@ -1,6 +1,6 @@
 # Spell System Overhaul: "The Gold Standard"
 
-**Last Updated:** 2025-12-04 (Document Review)
+**Last Updated:** 2025-12-11
 
 > **Related Documentation:**
 > - [SPELL_INTEGRATION_STATUS.md](./SPELL_INTEGRATION_STATUS.md) - High-level status overview and statistics
@@ -51,10 +51,11 @@ A spell is a container for one or more Effects. **Status: IMPLEMENTED** in [src/
       - 🟢 Gold (Structured): 1 spell (0.3%)
       - 🟡 Silver (Inferred): 80 spells (22.9%)
       - ⚪ Bronze (Metadata): 269 spells (76.9%)
-*   [ ] Migrate all spells to the new JSON format.
-    - **In Progress:** Level 0 cantrips show 10/37 at "Data Only" status, 27/37 still "Pending"
+*   [~] Migrate all spells to the new JSON format.
+    - **In Progress:** PR #38 (5 Level 1 spells) and PR #39 (Cantrips) merged. Pattern established.
     - JSON files exist in `public/data/spells/` (flat structure, not level-based subfolders)
     - Manifest: [public/data/spells_manifest.json](public/data/spells_manifest.json)
+    - See [FINAL_SUMMARY.md](./FINAL_SUMMARY.md) for current workflow
 
 ### Phase 2: Geometric Algorithms (The Math)
 

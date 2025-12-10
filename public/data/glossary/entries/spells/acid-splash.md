@@ -2,65 +2,7 @@
 id: "acid-splash"
 title: "Acid Splash"
 category: "Spells"
-tags: ["cantrip", "conjuration", "damage", "acid", "area", "artificer", "sorcerer", "wizard"]
-excerpt: "You hurl a bubble of acid. Choose one or two creatures you can see within range. A target must succeed on a Dexterity saving throw or take 1d6 acid damage."
-seeAlso: ["poison-spray", "fire-bolt"]
+tags: ["level 0", "conjuration", "cantrip", "acid", "damage", "aoe"]
+excerpt: "Hurl acid to singe creatures in range." 
 filePath: "/data/glossary/entries/spells/acid-splash.md"
 ---
-<div class="spell-card">
-  <div class="spell-card-header">
-    <h1 class="spell-card-title">Acid Splash</h1>
-  </div>
-  <div class="spell-card-divider"></div>
-  <div class="spell-card-stats-grid">
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Level</span>
-      <span class="spell-card-stat-value">Cantrip</span>
-    </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Casting Time</span>
-      <span class="spell-card-stat-value">1 Action</span>
-    </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Range/Area</span>
-      <span class="spell-card-stat-value">60 ft.</span>
-    </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Components</span>
-      <span class="spell-card-stat-value">V, S</span>
-    </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Duration</span>
-      <span class="spell-card-stat-value">Instantaneous</span>
-    </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">School</span>
-      <span class="spell-card-stat-value">Conjuration</span>
-    </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Attack/Save</span>
-      <span class="spell-card-stat-value">DEX Save</span>
-    </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Damage/Effect</span>
-      <span class="spell-card-stat-value">Acid</span>
-    </div>
-  </div>
-  <div class="spell-card-divider"></div>
-  <p class="spell-card-description">
-    You hurl a bubble of acid. Choose one creature you can see within range, or choose two creatures you can see within range that are within 5 feet of each other. A target must succeed on a Dexterity saving throw or take 1d6 acid damage.
-  </p>
-  <p class="spell-card-description">
-    <strong>Cantrip Upgrade.</strong> This spell's damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6).
-  </p>
-  <div class="spell-card-tags-section">
-    <span class="spell-card-tags-label">Spell Tags:</span>
-    <span class="spell-card-tag">DAMAGE</span>
-  </div>
-  <div class="spell-card-tags-section">
-    <span class="spell-card-tags-label">Available For:</span>
-    <span class="spell-card-tag">ARTIFICER</span>
-    <span class="spell-card-tag">SORCERER</span>
-    <span class="spell-card-tag">WIZARD</span>
-  </div>
-</div>

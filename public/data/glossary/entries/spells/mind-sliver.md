@@ -2,6 +2,7 @@
 title: Mind Sliver
 type: spell
 tags:
+  - level 0
   - cantrip
   - enchantment
   - damage

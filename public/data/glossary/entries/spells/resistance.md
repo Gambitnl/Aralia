@@ -2,6 +2,7 @@
 title: Resistance
 type: spell
 tags:
+  - level 0
   - cantrip
   - abjuration
   - utility

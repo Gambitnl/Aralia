@@ -2,7 +2,7 @@
 id: "druidcraft"
 title: "Druidcraft"
 category: "Spells"
-tags: ["cantrip", "transmutation", "utility", "druid"]
+tags: ["level 0", "cantrip", "transmutation", "utility", "druid"]
 excerpt: "Whispering to the spirits of nature, you create one of several minor, harmless sensory effects within range."
 seeAlso: ["prestidigitation", "thaumaturgy", "elementalism"]
 filePath: "/data/glossary/entries/spells/druidcraft.md"
