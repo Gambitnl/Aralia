@@ -14,7 +14,8 @@ import {
   CombatAction,
   BattleMapData,
   CombatState,
-  CombatLogEntry
+  CombatLogEntry,
+  ReactiveTrigger
 } from '../types/combat';
 import { Spell } from '../types/spells'; // Import Spell type
 import { SpellCommandFactory, CommandExecutor } from '../commands'; // Import Command System
@@ -35,8 +36,8 @@ interface UseAbilitySystemProps {
   onAbilityEffect?: (value: number, position: Position, type: 'damage' | 'heal' | 'miss') => void;
   onLogEntry?: (entry: CombatLogEntry) => void;
   onRequestInput?: (spell: Spell, onConfirm: (input: string) => void) => void;
-  reactiveTriggers?: any[]; // TODO: Import ReactiveTrigger
-  onReactiveTriggerUpdate?: (triggers: any[]) => void;
+  reactiveTriggers?: ReactiveTrigger[];
+  onReactiveTriggerUpdate?: (triggers: ReactiveTrigger[]) => void;
 }
 
 export interface PendingReaction {
