@@ -11,6 +11,7 @@ import { Menu, X } from 'lucide-react';
 import { Location, Action, NPC, Item } from '../types';
 import { getSubmapTileInfo } from '../utils/submapUtils';
 import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
+import { BTN_BASE, BTN_SIZE_LG } from '../styles/buttonStyles';
 
 interface ActionPaneProps {
   currentLocation: Location;
@@ -36,7 +37,7 @@ const ActionButton: React.FC<{
   badgeCount?: number;
   hasNotification?: boolean;
 }> = ({ action, onClick, disabled, className = '', isGeminiAction = false, badgeCount, hasNotification }) => {
-  const baseClasses = "btn";
+  const baseClasses = `${BTN_BASE} ${BTN_SIZE_LG}`;
 
   let colorClasses = "btn-primary";
 
