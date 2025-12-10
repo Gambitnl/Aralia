@@ -284,22 +284,22 @@ const AgeSelection: React.FC<AgeSelectionProps> = ({
       exit={{ opacity: 0, x: -50 }}
       className="max-w-2xl mx-auto p-6"
     >
-      <div className="bg-white rounded-lg shadow-lg p-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+      <div className="bg-gray-700 rounded-lg shadow-lg p-8 border border-gray-600">
+        <h2 className="text-3xl font-bold text-gray-100 mb-6 text-center">
           Age Selection
         </h2>
 
         <div className="mb-6">
-          <p className="text-gray-600 text-center mb-4">
+          <p className="text-gray-300 text-center mb-4">
             Choose your {selectedRace?.name}'s age. Age affects ability scores, size, hit points, and armor class.
           </p>
 
-          <div className="bg-blue-50 p-4 rounded-lg mb-6">
-            <h3 className="font-semibold text-blue-800 mb-2">Age Range for {selectedRace?.name}s</h3>
-            <p className="text-blue-700 mb-2">
+          <div className="bg-blue-900 bg-opacity-30 p-4 rounded-lg mb-6 border border-blue-800 border-opacity-50">
+            <h3 className="font-semibold text-blue-300 mb-2">Age Range for {selectedRace?.name}s</h3>
+            <p className="text-blue-200 mb-2">
               Total lifespan: {ageData.min}-{ageData.max} years
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-blue-100">
               <div><strong>Child:</strong> {ageData.min}-{ageData.categories.child.max}y</div>
               <div><strong>Adolescent:</strong> {ageData.categories.child.max + 1}-{ageData.categories.adolescent.max}y</div>
               <div><strong>Adult:</strong> {ageData.categories.adolescent.max + 1}-{ageData.categories.adult.max}y</div>
@@ -309,20 +309,26 @@ const AgeSelection: React.FC<AgeSelectionProps> = ({
           </div>
 
           {ageCategory && (
-            <div className={`p-4 rounded-lg mb-6 ${ageCategory.statPenalty === 0 ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200'} border`}>
-              <h3 className="font-semibold text-gray-800 mb-2">
-                Current Age Category: <span className={`font-bold ${ageCategory.statPenalty === 0 ? 'text-green-700' : 'text-orange-700'}`}>
+            <div className={`p-4 rounded-lg mb-6 border ${
+              ageCategory.statPenalty === 0
+                ? 'bg-green-900 bg-opacity-30 border-green-800'
+                : 'bg-orange-900 bg-opacity-30 border-orange-800'
+            }`}>
+              <h3 className="font-semibold text-gray-200 mb-2">
+                Current Age Category: <span className={`font-bold ${
+                  ageCategory.statPenalty === 0 ? 'text-green-400' : 'text-orange-400'
+                }`}>
                   {ageCategory.name}
                 </span>
               </h3>
-              <div className="text-sm text-gray-700 space-y-1">
+              <div className="text-sm text-gray-300 space-y-1">
                 {ageCategory.sizeModifier && (
                   <p><strong>Size:</strong> {ageCategory.sizeModifier} (normally {selectedRace?.traits.find(t => t.includes('Size:'))?.split(':')[1]?.trim() || 'Medium'})</p>
                 )}
                 <p><strong>Ability Scores:</strong> {ageCategory.statPenalty >= 0 ? '+' : ''}{ageCategory.statPenalty} to all (Strength, Dexterity, Constitution, Intelligence, Wisdom, Charisma)</p>
                 <p><strong>Hit Points:</strong> Recalculated based on modified Constitution</p>
                 <p><strong>Armor Class:</strong> Recalculated if Dexterity is modified</p>
-                <div className="mt-2 p-2 bg-white bg-opacity-50 rounded text-xs">
+                <div className="mt-2 p-2 bg-black bg-opacity-30 rounded text-xs text-gray-300">
                   {ageCategory.statPenalty === 0
                     ? "✅ Adult characters have full ability scores and are at peak physical/mental condition."
                     : ageCategory.statPenalty === -1
@@ -335,7 +341,7 @@ const AgeSelection: React.FC<AgeSelectionProps> = ({
           )}
 
           <div className="flex flex-col items-center space-y-4">
-            <label htmlFor="age" className="text-lg font-medium text-gray-700">
+            <label htmlFor="age" className="text-lg font-medium text-gray-300">
               Character Age (years):
             </label>
 
@@ -346,11 +352,11 @@ const AgeSelection: React.FC<AgeSelectionProps> = ({
               onChange={(e) => handleAgeChange(e.target.value)}
               min={ageData.min}
               max={ageData.max}
-              className="w-32 px-4 py-2 border border-gray-300 rounded-lg text-center text-lg font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-32 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-center text-lg font-semibold text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
             />
 
             {!isValidAge && ageInput && (
-              <p className="text-red-600 text-sm">
+              <p className="text-red-400 text-sm">
                 Age must be between {ageData.min} and {ageData.max} years
               </p>
             )}
@@ -360,7 +366,7 @@ const AgeSelection: React.FC<AgeSelectionProps> = ({
         <div className="flex justify-between">
           <button
             onClick={onBack}
-            className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors"
           >
             Back
           </button>
@@ -368,7 +374,7 @@ const AgeSelection: React.FC<AgeSelectionProps> = ({
           <button
             onClick={handleSubmit}
             disabled={!isValidAge}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
           >
             Next
           </button>
