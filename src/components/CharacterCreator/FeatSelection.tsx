@@ -1,5 +1,9 @@
-import React from 'react';
-import { Feat, AbilityScoreName } from '../../types';
+import React, { useContext, useCallback, useMemo } from 'react';
+import { Feat, AbilityScoreName, MagicInitiateSource, FeatGrantedSpell } from '../../types';
+import SpellContext from '../../context/SpellContext';
+import FeatSpellPicker from './FeatSpellPicker';
+import SpellSourceSelector from './SpellSourceSelector';
+import { getSchoolIcon } from '../../utils/spellFilterUtils';
 
 interface FeatOption extends Feat {
   isEligible: boolean;
@@ -18,26 +22,130 @@ interface FeatSelectionProps {
   dispatch: React.Dispatch<any>;
 }
 
-const FeatSelection: React.FC<FeatSelectionProps> = ({ 
-  availableFeats, 
-  selectedFeatId, 
+/**
+ * Displays spells that are automatically granted by a feat.
+ */
+const GrantedSpellsDisplay: React.FC<{ grantedSpells: FeatGrantedSpell[] }> = ({ grantedSpells }) => {
+  const allSpells = useContext(SpellContext);
+
+  if (!allSpells) return null;
+
+  const getCastingLabel = (method: FeatGrantedSpell['castingMethod']) => {
+    switch (method) {
+      case 'at_will':
+        return 'At Will';
+      case 'once_per_long_rest':
+        return '1/Long Rest';
+      case 'once_per_short_rest':
+        return '1/Short Rest';
+      default:
+        return '';
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <h4 className="text-amber-300/80 text-sm font-medium">Automatically Granted:</h4>
+      <div className="flex flex-wrap gap-2">
+        {grantedSpells.map((granted) => {
+          const spell = allSpells[granted.spellId];
+
+          return (
+            <div
+              key={granted.spellId}
+              className="flex items-center gap-2 px-3 py-2 bg-green-900/30 border border-green-700/50 rounded-lg"
+            >
+              <span className="text-lg">{spell ? getSchoolIcon(spell.school || '') : '\u{1F4DC}'}</span>
+              <div>
+                <span className="text-green-300 font-medium">
+                  {spell?.name || granted.spellId}
+                </span>
+                <span className="text-xs text-green-500/80 ml-2">
+                  ({getCastingLabel(granted.castingMethod)})
+                </span>
+              </div>
+              {granted.specialNotes && (
+                <span className="text-xs text-gray-500 italic ml-1">
+                  {granted.specialNotes}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const FeatSelection: React.FC<FeatSelectionProps> = ({
+  availableFeats,
+  selectedFeatId,
   featChoices = {},
-  onSelectFeat, 
+  onSelectFeat,
   onSetFeatChoice,
-  onConfirm, 
-  onBack, 
-  hasEligibleFeats, 
-  dispatch 
+  onConfirm,
+  onBack,
+  hasEligibleFeats,
+  dispatch
 }) => {
   // We allow deselection so the feat step behaves like a voluntary choice rather than a hard blocker.
-  const handleToggle = React.useCallback((featId: string, isDisabled: boolean) => {
+  const handleToggle = useCallback((featId: string, isDisabled: boolean) => {
     if (isDisabled) return;
-    onSelectFeat(selectedFeatId === featId ? '' : featId);
-  }, [onSelectFeat, selectedFeatId]);
+
+    const newFeatId = selectedFeatId === featId ? '' : featId;
+
+    // Clear spell choices when feat changes
+    if (selectedFeatId && selectedFeatId !== newFeatId) {
+      onSetFeatChoice(selectedFeatId, 'selectedCantrips', []);
+      onSetFeatChoice(selectedFeatId, 'selectedLeveledSpells', []);
+      onSetFeatChoice(selectedFeatId, 'selectedSpellSource', undefined);
+    }
+
+    onSelectFeat(newFeatId);
+  }, [onSelectFeat, selectedFeatId, onSetFeatChoice]);
 
   const selectedFeat = selectedFeatId ? availableFeats.find(f => f.id === selectedFeatId) : null;
   const hasSelectableASI = selectedFeat?.benefits?.selectableAbilityScores && selectedFeat.benefits.selectableAbilityScores.length > 0;
   const selectedASI = selectedFeatId ? featChoices[selectedFeatId]?.selectedAbilityScore : undefined;
+
+  // Spell benefits
+  const spellBenefits = selectedFeat?.benefits?.spellBenefits;
+  const hasSpellBenefits = !!spellBenefits;
+  const currentChoices = selectedFeatId ? featChoices[selectedFeatId] : undefined;
+  const selectedSpellSource = currentChoices?.selectedSpellSource as MagicInitiateSource | undefined;
+
+  // Helper to check if all spell choices are complete
+  const areSpellChoicesComplete = useMemo(() => {
+    if (!spellBenefits) return true;
+
+    // Check if source is needed and selected (for Magic Initiate)
+    if (spellBenefits.selectableSpellSource && !selectedSpellSource) {
+      return false;
+    }
+
+    // Check each spell requirement
+    for (const requirement of spellBenefits.spellChoices || []) {
+      const choiceKey = requirement.level === 0 ? 'selectedCantrips' : 'selectedLeveledSpells';
+      const selections = (currentChoices?.[choiceKey] as string[]) || [];
+      if (selections.length !== requirement.count) {
+        return false;
+      }
+    }
+
+    return true;
+  }, [spellBenefits, selectedSpellSource, currentChoices]);
+
+  // Handle spell source change - clear spell selections
+  const handleSpellSourceChange = useCallback((source: MagicInitiateSource) => {
+    if (!selectedFeatId) return;
+
+    // Clear existing spell selections when source changes
+    if (selectedSpellSource !== source) {
+      onSetFeatChoice(selectedFeatId, 'selectedCantrips', []);
+      onSetFeatChoice(selectedFeatId, 'selectedLeveledSpells', []);
+    }
+    onSetFeatChoice(selectedFeatId, 'selectedSpellSource', source);
+  }, [selectedFeatId, selectedSpellSource, onSetFeatChoice]);
 
   return (
     <div className="flex flex-col h-full">
@@ -164,6 +272,54 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
               )}
             </div>
           )}
+
+          {/* Spell Benefits Section */}
+          {hasSpellBenefits && spellBenefits && (
+            <div className="mt-4 pt-4 border-t border-gray-700/50 space-y-6">
+              <h3 className="text-lg text-sky-300 font-cinzel">Spell Benefits</h3>
+
+              {/* Spell Source Selector (for Magic Initiate) */}
+              {spellBenefits.selectableSpellSource && (
+                <SpellSourceSelector
+                  availableSources={spellBenefits.selectableSpellSource}
+                  selectedSource={selectedSpellSource}
+                  onSourceSelect={handleSpellSourceChange}
+                />
+              )}
+
+              {/* Granted Spells Display */}
+              {spellBenefits.grantedSpells && spellBenefits.grantedSpells.length > 0 && (
+                <GrantedSpellsDisplay grantedSpells={spellBenefits.grantedSpells} />
+              )}
+
+              {/* Spell Choices */}
+              {spellBenefits.spellChoices?.map((requirement, index) => {
+                // For Magic Initiate, only show spell choices after source is selected
+                const needsSource = !!spellBenefits.selectableSpellSource;
+                if (needsSource && !selectedSpellSource) return null;
+
+                const choiceKey = requirement.level === 0 ? 'selectedCantrips' : 'selectedLeveledSpells';
+                const currentSelections = (currentChoices?.[choiceKey] as string[]) || [];
+
+                return (
+                  <FeatSpellPicker
+                    key={`spell-choice-${index}`}
+                    requirement={requirement}
+                    selectedSpellIds={currentSelections}
+                    onSelectionChange={(spellIds) => onSetFeatChoice(selectedFeatId, choiceKey, spellIds)}
+                    selectedSpellSource={selectedSpellSource}
+                  />
+                );
+              })}
+
+              {/* Completion indicator */}
+              {!areSpellChoicesComplete && (
+                <p className="text-xs text-amber-300">
+                  Please complete all spell selections above.
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -206,7 +362,8 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
             aria-label="Confirm feat choice and continue"
             disabled={
               (!!selectedFeatId && !availableFeats.find(f => f.id === selectedFeatId)?.isEligible) ||
-              (hasSelectableASI && !selectedASI)
+              (hasSelectableASI && !selectedASI) ||
+              (hasSpellBenefits && !areSpellChoicesComplete)
             }
           >
             Continue

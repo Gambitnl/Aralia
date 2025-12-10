@@ -15,7 +15,9 @@ class SpellService {
   private manifest: Promise<SpellManifest | null> | null = null;
   private spellCache: Map<string, Promise<Spell | null>> = new Map();
 
-  private constructor() {}
+  private constructor() {
+    console.log('[SpellService] initialized', { BASE_URL: import.meta.env.BASE_URL });
+  }
 
   public static getInstance(): SpellService {
     if (!SpellService.instance) {
@@ -53,7 +55,13 @@ class SpellService {
     }
 
     const spellPath = manifest[spellId].path;
-    const spellPromise = fetch(spellPath)
+    // content in manifest has leading slash, BASE_URL also has trailing slash
+    // we need to construct the full path correctly
+    const normalizedPath = spellPath.startsWith('/') ? spellPath.slice(1) : spellPath;
+    const fullUrl = `${import.meta.env.BASE_URL}${normalizedPath}`;
+    console.log('[SpellService] Fetching spell:', { spellId, BASE_URL: import.meta.env.BASE_URL, fullUrl });
+
+    const spellPromise = fetch(fullUrl)
       .then(res => {
         if (!res.ok) {
           throw new Error(`Failed to fetch spell details for ${spellId} at ${spellPath}`);

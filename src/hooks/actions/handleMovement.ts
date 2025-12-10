@@ -327,6 +327,37 @@ export async function handleQuickTravel({
     },
     biomeId: gameState.mapData?.tiles[parseInt(gameState.currentLocationId.split('_')[2], 10)][parseInt(gameState.currentLocationId.split('_')[1], 10)].biomeId || 'plains',
   };
+
+  const { effectiveTerrainType } = getSubmapTileInfo(
+    gameState.worldSeed,
+    currentLoc.mapCoordinates,
+    currentLoc.biomeId,
+    SUBMAP_DIMENSIONS,
+    destination
+  );
+
+  // Dispatch move
+  dispatch({
+    type: 'MOVE_PLAYER',
+    payload: {
+      newLocationId: gameState.currentLocationId,
+      newSubMapCoordinates: destination,
+      mapData: gameState.mapData || undefined,
+      activeDynamicNpcIds: gameState.currentLocationActiveDynamicNpcIds
+    }
+  });
+
+  // Advance time
+  if (durationSeconds > 0) {
+    dispatch({ type: 'ADVANCE_TIME', payload: { seconds: durationSeconds } });
+  }
+
+  addMessage(`You travel quickly across the terrain.`, 'system');
+
+  // Check for Village Entry
+  if (effectiveTerrainType === 'village_area') {
+    addMessage("You stand before a village. You can enter if you wish.", "system");
+  }
 }
 
 interface HandleApproachSettlementProps {
@@ -382,34 +413,3 @@ export async function handleObserveSettlement({
     context: 'settlement_observation'
   });
 }
-
-  const { effectiveTerrainType } = getSubmapTileInfo(
-    gameState.worldSeed,
-    currentLoc.mapCoordinates,
-    currentLoc.biomeId,
-    SUBMAP_DIMENSIONS,
-    destination
-  );
-
-  // Dispatch move
-  dispatch({
-    type: 'MOVE_PLAYER',
-    payload: {
-      newLocationId: gameState.currentLocationId,
-      newSubMapCoordinates: destination,
-      mapData: gameState.mapData || undefined,
-      activeDynamicNpcIds: gameState.currentLocationActiveDynamicNpcIds
-    }
-  });
-
-  // Advance time
-  if (durationSeconds > 0) {
-    dispatch({ type: 'ADVANCE_TIME', payload: { seconds: durationSeconds } });
-  }
-
-  addMessage(`You travel quickly across the terrain.`, 'system');
-
-  // Check for Village Entry
-  if (effectiveTerrainType === 'village_area') {
-    addMessage("You stand before a village. You can enter if you wish.", "system");
-  }

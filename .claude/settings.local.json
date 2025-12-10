@@ -4,7 +4,10 @@
       "Bash(npm audit fix:*)",
       "Bash(npm view:*)",
       "Bash(npm uninstall:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(xargs -I {} bash -c 'echo \"\"\"\"{}:\"\"\"\" && ls {} | wc -l')"
     ],
     "deny": [],
     "ask": []

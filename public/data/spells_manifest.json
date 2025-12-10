@@ -927,13 +927,13 @@
     "name": "Friends",
     "level": 0,
     "school": "Enchantment",
-    "path": "/data/spells/friends.json"
+    "path": "/data/spells/level-0/friends.json"
   },
   "frostbite": {
     "name": "Frostbite",
     "level": 0,
     "school": "Evocation",
-    "path": "/data/spells/frostbite.json"
+    "path": "/data/spells/level-0/frostbite.json"
   },
   "gaseous-form": {
     "name": "Gaseous Form",
@@ -1305,7 +1305,7 @@
     "name": "Mage Hand",
     "level": 0,
     "school": "Conjuration",
-    "path": "/data/spells/mage-hand.json"
+    "path": "/data/spells/level-0/mage-hand.json"
   },
   "magic-circle": {
     "name": "Magic Circle",

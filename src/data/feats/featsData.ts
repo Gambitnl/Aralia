@@ -152,6 +152,13 @@ export const FEATS_DATA: Feat[] = [
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
+      spellBenefits: {
+        selectableSpellSource: ['bard', 'cleric', 'druid', 'sorcerer', 'warlock', 'wizard'],
+        spellChoices: [
+          { count: 2, level: 0, description: 'Choose 2 cantrips from your selected class' },
+          { count: 1, level: 1, description: 'Choose 1 first-level spell from your selected class' },
+        ],
+      },
     },
   },
   {
@@ -226,6 +233,14 @@ export const FEATS_DATA: Feat[] = [
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
+      spellBenefits: {
+        grantedSpells: [
+          { spellId: 'misty-step', castingMethod: 'once_per_long_rest' },
+        ],
+        spellChoices: [
+          { count: 1, level: 1, schools: ['Divination', 'Enchantment'], description: 'Choose 1 Divination or Enchantment spell' },
+        ],
+      },
     },
   },
   {
@@ -392,6 +407,14 @@ export const FEATS_DATA: Feat[] = [
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
+      spellBenefits: {
+        grantedSpells: [
+          { spellId: 'invisibility', castingMethod: 'once_per_long_rest' },
+        ],
+        spellChoices: [
+          { count: 1, level: 1, schools: ['Illusion', 'Necromancy'], description: 'Choose 1 Illusion or Necromancy spell' },
+        ],
+      },
     },
   },
   {
@@ -460,6 +483,11 @@ export const FEATS_DATA: Feat[] = [
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
+      spellBenefits: {
+        spellChoices: [
+          { count: 1, level: 0, requiresAttack: true, description: 'Choose 1 cantrip that requires an attack roll' },
+        ],
+      },
     },
   },
   {
@@ -470,6 +498,11 @@ export const FEATS_DATA: Feat[] = [
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
+      spellBenefits: {
+        grantedSpells: [
+          { spellId: 'mage-hand', castingMethod: 'at_will', specialNotes: 'Range 60 ft, invisible hand' },
+        ],
+      },
     },
   },
   {
@@ -480,6 +513,11 @@ export const FEATS_DATA: Feat[] = [
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Intelligence', 'Wisdom', 'Charisma'],
+      spellBenefits: {
+        grantedSpells: [
+          { spellId: 'detect-thoughts', castingMethod: 'once_per_long_rest' },
+        ],
+      },
     },
   },
   {

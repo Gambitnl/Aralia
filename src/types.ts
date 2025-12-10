@@ -135,7 +135,78 @@ export interface Feat {
     initiativeBonus?: number;
     hpMaxIncreasePerLevel?: number;
     resistance?: string[];
+    // Spell-granting benefits for feats like Magic Initiate, Fey-Touched, etc.
+    spellBenefits?: FeatSpellBenefits;
   };
+}
+
+// ============================================================================
+// SPELL-GRANTING FEAT TYPES
+// ============================================================================
+
+/**
+ * The eight schools of magic in D&D 5e.
+ */
+export type SpellSchool =
+  | 'Abjuration'
+  | 'Conjuration'
+  | 'Divination'
+  | 'Enchantment'
+  | 'Evocation'
+  | 'Illusion'
+  | 'Necromancy'
+  | 'Transmutation';
+
+/**
+ * Spellcasting classes available for Magic Initiate feat.
+ */
+export type MagicInitiateSource =
+  | 'bard'
+  | 'cleric'
+  | 'druid'
+  | 'sorcerer'
+  | 'warlock'
+  | 'wizard';
+
+/**
+ * Configuration for a spell choice requirement in a feat.
+ * Supports filtering by level, school, and attack type.
+ */
+export interface FeatSpellRequirement {
+  /** How many spells must be chosen */
+  count: number;
+  /** Spell level (0 = cantrip, 1 = 1st level, etc.) */
+  level: number;
+  /** Filter by spell school(s) */
+  schools?: SpellSchool[];
+  /** Only spells that require an attack roll */
+  requiresAttack?: boolean;
+  /** Description shown to user explaining what they can pick */
+  description: string;
+}
+
+/**
+ * A spell automatically granted by a feat, with usage restrictions.
+ */
+export interface FeatGrantedSpell {
+  /** The spell ID (must match spell data) */
+  spellId: string;
+  /** How often the spell can be cast */
+  castingMethod: 'at_will' | 'once_per_long_rest' | 'once_per_short_rest';
+  /** Special notes about modifications (e.g., "Range extended to 60 ft") */
+  specialNotes?: string;
+}
+
+/**
+ * Spell-related benefits for a feat.
+ */
+export interface FeatSpellBenefits {
+  /** For Magic Initiate: which class spell lists can be chosen from */
+  selectableSpellSource?: MagicInitiateSource[];
+  /** Spells that require player choice */
+  spellChoices?: FeatSpellRequirement[];
+  /** Spells automatically granted (no choice needed) */
+  grantedSpells?: FeatGrantedSpell[];
 }
 
 export interface FeatPrerequisiteContext {
@@ -155,6 +226,9 @@ export interface LevelUpChoices {
     [featId: string]: {
       selectedAbilityScore?: AbilityScoreName;
       selectedSpells?: string[];
+      selectedCantrips?: string[];        // Cantrips chosen for spell-granting feats
+      selectedLeveledSpells?: string[];   // Leveled spells chosen for spell-granting feats
+      selectedSpellSource?: MagicInitiateSource; // Class source for Magic Initiate
       selectedSkills?: string[];
       selectedWeapons?: string[];
       selectedTools?: string[];

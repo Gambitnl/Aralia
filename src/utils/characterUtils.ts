@@ -3,7 +3,25 @@
  * This file contains utility functions related to player characters,
  * such as calculating ability score modifiers, armor class, and equipment rules.
  */
-import { PlayerCharacter, Race, Item, ArmorCategory, ArmorProficiencyLevel, TempPartyMember, AbilityScores, Class as CharClass, DraconicAncestryInfo, EquipmentSlotType, Feat, FeatPrerequisiteContext, LevelUpChoices, AbilityScoreName } from '../types';
+import {
+  PlayerCharacter,
+  Race,
+  Item,
+  ArmorCategory,
+  ArmorProficiencyLevel,
+  TempPartyMember,
+  AbilityScores,
+  Class as CharClass,
+  DraconicAncestryInfo,
+  EquipmentSlotType,
+  Feat,
+  FeatPrerequisiteContext,
+  LevelUpChoices,
+  AbilityScoreName,
+  MagicInitiateSource,
+  SpellbookData,
+  LimitedUses,
+} from '../types';
 import { RACES_DATA, GIANT_ANCESTRIES, TIEFLING_LEGACIES, CLASSES_DATA, DRAGONBORN_ANCESTRIES, SKILLS_DATA } from '../constants';
 import { FEATS_DATA } from '../data/feats/featsData';
 
@@ -314,6 +332,108 @@ const getHpBonusPerLevelFromFeats = (featIds: string[]): number => featIds.reduc
 }, 0);
 
 /**
+ * Applies spell benefits from a feat to the character.
+ * Handles granted spells, chosen cantrips/spells, and creates limited use entries.
+ */
+const applyFeatSpellBenefits = (
+  character: PlayerCharacter,
+  feat: Feat,
+  spellChoices?: {
+    selectedCantrips?: string[];
+    selectedLeveledSpells?: string[];
+    selectedSpellSource?: MagicInitiateSource;
+  }
+): PlayerCharacter => {
+  const updated = { ...character };
+  const spellBenefits = feat.benefits?.spellBenefits;
+  if (!spellBenefits) return updated;
+
+  // Initialize spellbook if needed
+  if (!updated.spellbook) {
+    updated.spellbook = {
+      knownSpells: [],
+      preparedSpells: [],
+      cantrips: [],
+    };
+  } else {
+    // Clone to avoid mutations
+    updated.spellbook = {
+      knownSpells: [...updated.spellbook.knownSpells],
+      preparedSpells: [...updated.spellbook.preparedSpells],
+      cantrips: [...updated.spellbook.cantrips],
+    };
+  }
+
+  // Initialize limitedUses if needed
+  if (!updated.limitedUses) {
+    updated.limitedUses = {};
+  } else {
+    updated.limitedUses = { ...updated.limitedUses };
+  }
+
+  // Process granted spells (automatic, no choice needed)
+  if (spellBenefits.grantedSpells) {
+    for (const granted of spellBenefits.grantedSpells) {
+      // Determine if it's a cantrip (level 0) or leveled spell
+      // For granted spells, we assume they go to knownSpells unless they're cantrips
+      // We'll add all granted spells to knownSpells for consistency
+      if (!updated.spellbook.knownSpells.includes(granted.spellId)) {
+        updated.spellbook.knownSpells = [...updated.spellbook.knownSpells, granted.spellId];
+      }
+
+      // Create limited use entry for non-at-will spells
+      if (granted.castingMethod === 'once_per_long_rest') {
+        const limitedUseKey = `feat_${feat.id}_${granted.spellId}`;
+        updated.limitedUses[limitedUseKey] = {
+          name: `${feat.name}: Cast ${granted.spellId.replace(/-/g, ' ')}`,
+          current: 1,
+          max: 1,
+          resetOn: 'long_rest',
+        };
+      } else if (granted.castingMethod === 'once_per_short_rest') {
+        const limitedUseKey = `feat_${feat.id}_${granted.spellId}`;
+        updated.limitedUses[limitedUseKey] = {
+          name: `${feat.name}: Cast ${granted.spellId.replace(/-/g, ' ')}`,
+          current: 1,
+          max: 1,
+          resetOn: 'short_rest',
+        };
+      }
+      // at_will spells don't need limited use tracking
+    }
+  }
+
+  // Process chosen cantrips
+  if (spellChoices?.selectedCantrips) {
+    for (const cantripId of spellChoices.selectedCantrips) {
+      if (!updated.spellbook.cantrips.includes(cantripId)) {
+        updated.spellbook.cantrips = [...updated.spellbook.cantrips, cantripId];
+      }
+    }
+  }
+
+  // Process chosen leveled spells (e.g., Magic Initiate's 1st-level spell)
+  if (spellChoices?.selectedLeveledSpells) {
+    for (const spellId of spellChoices.selectedLeveledSpells) {
+      if (!updated.spellbook.knownSpells.includes(spellId)) {
+        updated.spellbook.knownSpells = [...updated.spellbook.knownSpells, spellId];
+      }
+
+      // Feat-granted leveled spells can be cast once per long rest without a slot
+      const limitedUseKey = `feat_${feat.id}_${spellId}`;
+      updated.limitedUses[limitedUseKey] = {
+        name: `${feat.name}: Cast ${spellId.replace(/-/g, ' ')}`,
+        current: 1,
+        max: 1,
+        resetOn: 'long_rest',
+      };
+    }
+  }
+
+  return updated;
+};
+
+/**
  * Applies a single feat to the character and returns a cloned, updated object.
  * This helper centralizes stat mutations so the creator and level-up paths
  * stay consistent.
@@ -323,10 +443,13 @@ export const applyFeatToCharacter = (
   feat: Feat,
   options?: {
     applyHpBonus?: boolean;
-    selectedAbilityScore?: AbilityScoreName; // For feats with selectable ASI
+    selectedAbilityScore?: AbilityScoreName;
+    selectedCantrips?: string[];
+    selectedLeveledSpells?: string[];
+    selectedSpellSource?: MagicInitiateSource;
   }
 ): PlayerCharacter => {
-  const updated: PlayerCharacter = { ...character };
+  let updated: PlayerCharacter = { ...character };
   const applyHpBonus = options?.applyHpBonus ?? true;
 
   if (!updated.feats) updated.feats = [];
@@ -381,6 +504,15 @@ export const applyFeatToCharacter = (
     updated.hp = Math.min(updated.maxHp, (updated.hp || updated.maxHp) + hpBonus);
   }
 
+  // Apply spell benefits (granted spells, chosen cantrips/spells, limited uses)
+  if (benefit?.spellBenefits) {
+    updated = applyFeatSpellBenefits(updated, feat, {
+      selectedCantrips: options?.selectedCantrips,
+      selectedLeveledSpells: options?.selectedLeveledSpells,
+      selectedSpellSource: options?.selectedSpellSource,
+    });
+  }
+
   // Recalculate derived properties when ability scores change.
   updated.finalAbilityScores = calculateFinalAbilityScores(updated.abilityScores, updated.race, updated.equippedItems);
   updated.armorClass = calculateArmorClass(updated, updated.activeEffects);
@@ -404,6 +536,9 @@ export const applyAllFeats = (
     const choices = featChoices?.[featId];
     return applyFeatToCharacter(char, feat, {
       selectedAbilityScore: choices?.selectedAbilityScore,
+      selectedCantrips: choices?.selectedCantrips as string[] | undefined,
+      selectedLeveledSpells: choices?.selectedLeveledSpells as string[] | undefined,
+      selectedSpellSource: choices?.selectedSpellSource as MagicInitiateSource | undefined,
     });
   }, { ...character });
 };

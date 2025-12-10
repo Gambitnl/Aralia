@@ -7,6 +7,8 @@
 import React from 'react';
 // ReactDOM client methods - createRoot enables React 19's concurrent features
 import ReactDOM from 'react-dom/client';
+// Main CSS file - contains Tailwind and custom styles
+import './src/index.css';
 // Root App component - contains all game logic and UI (next execution point: src/App.tsx)
 import App from './src/App';
 
