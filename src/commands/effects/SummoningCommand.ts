@@ -66,7 +66,10 @@ export class SummoningCommand extends BaseEffectCommand {
                     if (Math.abs(x - origin.x) !== r && Math.abs(y - origin.y) !== r) continue
 
                     const pos = { x, y }
-                    // TODO: Check map boundaries using state.mapData if available
+
+                    // Check map boundaries using state.mapData if available
+                    if (!this.isWithinBounds(pos)) continue
+
                     // For now, simple collision check with other characters
                     if (!this.isOccupied(state, pos)) {
                         return pos
@@ -79,6 +82,20 @@ export class SummoningCommand extends BaseEffectCommand {
 
     private isOccupied(state: CombatState, pos: Position): boolean {
         return state.characters.some(c => c.position.x === pos.x && c.position.y === pos.y)
+    }
+
+    private isWithinBounds(pos: Position): boolean {
+        const mapData: any = this.context.gameState?.mapData
+        if (!mapData) return true // Assume infinite map if no data
+
+        const width = mapData?.dimensions?.width ?? mapData?.gridSize?.cols
+        const height = mapData?.dimensions?.height ?? mapData?.gridSize?.rows
+
+        if (typeof width !== 'number' || typeof height !== 'number') {
+            return true
+        }
+
+        return pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height
     }
 
     private createSummonedCharacter(

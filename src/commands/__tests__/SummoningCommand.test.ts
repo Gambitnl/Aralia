@@ -124,4 +124,134 @@ describe('SummoningCommand', () => {
         expect(summoned?.name).toBe('Summoned Creature 1')
         expect(summoned?.maxHP).toBe(10) // Fallback HP
     })
+
+    describe('SummoningCommand - Boundary Checks', () => {
+        // Reuse mockCaster and helper functions adjusted for the existing describe block context if needed
+        const createMockContext = (mapData: any): CommandContext => ({
+            spellId: 'spell-1',
+            spellName: 'Summon Spell',
+            castAtLevel: 1,
+            caster: mockCaster,
+            targets: [],
+            gameState: {
+                mapData: mapData
+            } as any
+        })
+
+        const createMockState = (characters: CombatCharacter[] = [mockCaster]): CombatState => ({
+            isActive: true,
+            characters,
+            turnState: {} as any,
+            selectedCharacterId: null,
+            selectedAbilityId: null,
+            actionMode: 'select',
+            validTargets: [],
+            validMoves: [],
+            combatLog: [],
+            reactiveTriggers: [],
+            activeLightSources: []
+        })
+
+        const mockEffect: SummoningEffect = {
+            type: 'SUMMONING',
+            summonType: 'Creature',
+            count: 1,
+            duration: { type: 'rounds', value: 10 },
+            trigger: { type: 'on_cast' }
+        }
+
+        it('should summon within map boundaries', () => {
+            // Map is 10x10. Caster is at 0,0 (top-left corner)
+            const mapData = {
+                dimensions: { width: 10, height: 10 }
+            }
+
+            const casterAtCorner = { ...mockCaster, position: { x: 0, y: 0 } }
+            const context = { ...createMockContext(mapData), caster: casterAtCorner }
+            const command = new SummoningCommand(mockEffect, context)
+            const state = createMockState([casterAtCorner])
+
+            const newState = command.execute(state)
+
+            // Should have summoned one character
+            expect(newState.characters.length).toBe(2)
+            const summoned = newState.characters.find(c => c.id.startsWith('summon_'))
+            expect(summoned).toBeDefined()
+
+            // Check position
+            expect(summoned!.position.x).toBeGreaterThanOrEqual(0)
+            expect(summoned!.position.x).toBeLessThan(10)
+            expect(summoned!.position.y).toBeGreaterThanOrEqual(0)
+            expect(summoned!.position.y).toBeLessThan(10)
+
+            // Specifically check that it didn't spawn at negative coordinates
+            expect(summoned!.position.x).not.toBe(-1)
+            expect(summoned!.position.y).not.toBe(-1)
+        })
+
+        it('should respect map boundaries when caster is at bottom-right corner', () => {
+            // Map is 10x10. Caster is at 9,9
+            const mapData = {
+                dimensions: { width: 10, height: 10 }
+            }
+
+            const casterAtCorner = { ...mockCaster, position: { x: 9, y: 9 } }
+            const context = { ...createMockContext(mapData), caster: casterAtCorner }
+            const command = new SummoningCommand(mockEffect, context)
+            const state = createMockState([casterAtCorner])
+
+            const newState = command.execute(state)
+
+            const summoned = newState.characters.find(c => c.id.startsWith('summon_'))
+            expect(summoned).toBeDefined()
+
+            expect(summoned!.position.x).toBeGreaterThanOrEqual(0)
+            expect(summoned!.position.x).toBeLessThan(10)
+            expect(summoned!.position.y).toBeGreaterThanOrEqual(0)
+            expect(summoned!.position.y).toBeLessThan(10)
+
+            // Should not be > 9
+            expect(summoned!.position.x).not.toBe(10)
+            expect(summoned!.position.y).not.toBe(10)
+        })
+
+        it('should fail to summon if no space is available within boundaries', () => {
+            // Tiny map 1x1, caster occupies 0,0. No space left.
+            const mapData = {
+                dimensions: { width: 1, height: 1 }
+            }
+
+            const casterAtCorner = { ...mockCaster, position: { x: 0, y: 0 } }
+            const context = { ...createMockContext(mapData), caster: casterAtCorner }
+            const command = new SummoningCommand(mockEffect, context)
+            const state = createMockState([casterAtCorner])
+
+            const newState = command.execute(state)
+
+            // Should NOT have summoned
+            expect(newState.characters.length).toBe(1)
+
+            // Log should indicate failure
+            expect(newState.combatLog.some(l => l.message.includes('No space available'))).toBe(true)
+        })
+
+        it('should handle mapData with gridSize format (backward compatibility)', () => {
+             const mapData = {
+                gridSize: { cols: 10, rows: 10 }
+            }
+
+            const casterAtCorner = { ...mockCaster, position: { x: 0, y: 0 } }
+            const context = { ...createMockContext(mapData), caster: casterAtCorner }
+            const command = new SummoningCommand(mockEffect, context)
+            const state = createMockState([casterAtCorner])
+
+            const newState = command.execute(state)
+
+            const summoned = newState.characters.find(c => c.id.startsWith('summon_'))
+            expect(summoned).toBeDefined()
+
+            expect(summoned!.position.x).toBeGreaterThanOrEqual(0)
+            expect(summoned!.position.x).toBeLessThan(10)
+        })
+    })
 })
