@@ -9,6 +9,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Race } from '../../../types';
+import { BTN_PRIMARY_SM } from '../../../styles/buttonStyles';
 import RaceDetailModal, { RaceForModal } from './RaceDetailModal';
 
 /**
@@ -149,7 +150,7 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
             </div>
             <button
               onClick={() => handleOpenModal(race)}
-              className="mt-auto w-full bg-sky-600 hover:bg-sky-500 text-white font-medium py-2 px-4 rounded-md shadow transition-colors text-sm"
+              className={`mt-auto w-full ${BTN_PRIMARY_SM}`}
               aria-label={`View details for ${race.name}`}
             >
               View Details

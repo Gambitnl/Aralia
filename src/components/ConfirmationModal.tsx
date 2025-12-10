@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import { BTN_CONFIRM, BTN_CANCEL } from '../styles/buttonStyles';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -91,14 +92,14 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           <button
             ref={cancelRef}
             onClick={onClose}
-            className="px-4 py-2 rounded-lg font-semibold bg-gray-700 hover:bg-gray-600 text-gray-100 border border-gray-600"
+            className={BTN_CANCEL}
           >
             {cancelLabel}
           </button>
           <button
             ref={confirmRef}
             onClick={onConfirm}
-            className="px-4 py-2 rounded-lg font-semibold bg-amber-500 hover:bg-amber-400 text-gray-900 shadow"
+            className={BTN_CONFIRM}
           >
             {confirmLabel}
           </button>
