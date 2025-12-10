@@ -80,7 +80,17 @@ export class SpellCommandFactory {
         commands.push(new NarrativeCommand(arbitrationResult.narrativeOutcome, context));
       }
 
-      // TODO: Handle arbitrationResult.mechanicalEffects if the AI modified the spell logic
+      // Handle arbitrationResult.mechanicalEffects if the AI modified the spell logic
+      if (arbitrationResult.mechanicalEffects) {
+        for (const effectData of arbitrationResult.mechanicalEffects) {
+          const effect = effectData as SpellEffect
+          const scaledEffect = this.applyScaling(effect, spell.level, castAtLevel, caster.level)
+          const command = this.createCommand(scaledEffect, context)
+          if (command) {
+            commands.push(command)
+          }
+        }
+      }
     }
 
     for (const effect of spell.effects) {

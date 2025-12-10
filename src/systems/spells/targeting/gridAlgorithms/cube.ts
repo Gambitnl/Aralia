@@ -15,13 +15,17 @@ import type { Position } from '@/types'
 export function getCube(center: Position, size: number): Position[] {
   const tiles: Position[] = []
   const sizeInTiles = Math.floor(size / 5)
-  const halfSize = Math.floor(sizeInTiles / 2)
 
-  for (let dx = -halfSize; dx < halfSize; dx++) {
-    for (let dy = -halfSize; dy < halfSize; dy++) {
+  // Calculate offset to center the cube on the target tile as best as possible.
+  // Ideally, for odd sizes, it's perfectly centered.
+  // For even sizes, it biases slightly (top-left in this implementation).
+  const offset = Math.floor(sizeInTiles / 2)
+
+  for (let dx = 0; dx < sizeInTiles; dx++) {
+    for (let dy = 0; dy < sizeInTiles; dy++) {
       tiles.push({
-        x: center.x + dx,
-        y: center.y + dy
+        x: center.x - offset + dx,
+        y: center.y - offset + dy
       })
     }
   }

@@ -65,11 +65,27 @@ export class SavingThrowResolver {
     const abilityScore = this.getAbilityScore(character, saveType)
     const abilityModifier = Math.floor((abilityScore - 10) / 2)
 
-    // TODO: Check if proficient in this save
-    // For now, assume not proficient
-    const proficiency = 0
+    let proficiency = 0
+    // Check if character has a class and if that class has proficiency in this save
+    if (character.class?.savingThrowProficiencies?.includes(saveType)) {
+      proficiency = this.getProficiencyBonus(character.level)
+    }
 
     return abilityModifier + proficiency
+  }
+
+  /**
+   * Calculate proficiency bonus based on level
+   * Formula: ceil(level / 4) + 1
+   * Level 1-4: +2
+   * Level 5-8: +3
+   * ...
+   * Level 17-20: +6
+   */
+  private static getProficiencyBonus(level: number): number {
+    // Ensure level is at least 1
+    const effectiveLevel = Math.max(1, level)
+    return Math.ceil(effectiveLevel / 4) + 1
   }
 
   /**
