@@ -1,6 +1,6 @@
 # Task: Implement AI DM Arbitration Service
 
-**Status:** Not Started
+**Status:** In Progress
 **Priority:** Medium (Future Phase)
 **Phase:** Phase 4 - AI DM Integration
 **Estimated Effort:** 1-2 weeks
@@ -10,9 +10,9 @@
 
 ## Problem Statement
 
-**Type definitions exist** for AI arbitration ([src/types/spells.ts:406-418](../../../src/types/spells.ts#L406-L418)), but **no service implementation**.
+**Type definitions exist** for AI arbitration ([src/types/spells.ts:406-418](../../../src/types/spells.ts#L406-L418)), and the `AISpellArbitrator` service has been implemented to handle validation and DM adjudication.
 
-This blocks spells that require:
+This enables spells that require:
 - **Context validation** (e.g., Meld into Stone - "is there stone nearby?")
 - **Creative interpretation** (e.g., Prestidigitation - "create a harmless sensory effect")
 - **DM judgment** (e.g., Suggestion - "is this suggestion reasonable?")
@@ -69,14 +69,18 @@ export interface Spell {
 }
 ```
 
+### What's Done ✅
+
+1. `AISpellArbitrator` service class implemented.
+2. Integration with existing AI service (Gemini).
+3. Logic for parsing `mechanicalEffects` from AI responses for Tier 3 spells.
+
 ### What's Missing ❌
 
-1. `AISpellArbitrator` service class
-2. Integration with existing AI service (Gemini)
-3. Material tagging system for terrain
-4. Player input UI for AI-DM spells
-5. Caching layer for AI validation
-6. Fallback behavior when AI unavailable
+1. Material tagging system for terrain
+2. Player input UI for AI-DM spells
+3. Caching layer for AI validation
+4. Fallback behavior when AI unavailable
 
 ---
 
@@ -101,10 +105,18 @@ export interface ArbitrationRequest {
   playerInput?: string // For Tier 3 spells requiring player description
 }
 
+export interface SimplifiedSpellEffect {
+    type: 'DAMAGE' | 'HEALING' | 'STATUS_CONDITION';
+    damage?: { dice: string, type: string };
+    healing?: { dice: string };
+    statusCondition?: { name: string, duration: { type: 'rounds', value: number } };
+    target?: string;
+}
+
 export interface ArbitrationResult {
   allowed: boolean
   reason?: string
-  mechanicalEffects?: any[] // Override or supplement spell effects
+  mechanicalEffects?: SimplifiedSpellEffect[] // Override or supplement spell effects
   narrativeOutcome?: string // For combat log
   stateChanges?: Partial<GameState> // Direct state modifications
 }
@@ -114,7 +126,7 @@ export class AISpellArbitrator {
    * Main arbitration entry point
    */
   async arbitrate(request: ArbitrationRequest): Promise<ArbitrationResult> {
-    const { spell, caster, combatState, gameState, playerInput } = request
+    const { spell, caster, combatState, gameState, playerInput, targets } = request
 
     // Tier 1: Mechanical (no AI needed)
     if (!spell.arbitrationType || spell.arbitrationType === 'mechanical') {
@@ -134,7 +146,7 @@ export class AISpellArbitrator {
           reason: 'Player input required for this spell'
         }
       }
-      return await this.aiDMAdjudication(spell, caster, combatState, gameState, playerInput)
+      return await this.aiDMAdjudication(spell, caster, targets, combatState, gameState, playerInput)
     }
 
     return { allowed: false, reason: 'Unknown arbitration type' }
@@ -156,18 +168,27 @@ export class AISpellArbitrator {
     const context = this.buildGameStateContext(caster, combatState, gameState)
 
     try {
-      const aiResponse = await geminiService.queryAI({
-        system: 'You are a D&D 5e DM validating spell prerequisites. Respond with JSON only.',
-        prompt: `${spell.aiContext.prompt}\n\nContext:\n${context}`,
-        expectJson: true
-      })
+      const result = await generateText(
+        `${spell.aiContext.prompt}\n\nContext:\n${context}`,
+        'You are a D&D 5e DM validating spell prerequisites. Respond with valid JSON only.',
+        true, // expectJson
+        'AISpellArbitrator.validateContext'
+      )
 
-      const result = JSON.parse(aiResponse)
+      if (result.error || !result.data) {
+          console.error('AI validation failed:', result.error)
+          return {
+              allowed: false,
+              reason: 'AI validation service unavailable'
+          }
+      }
+
+      const responseData = JSON.parse(result.data.text.replace(/```json\n|```/g, '').trim())
 
       return {
-        allowed: result.valid === true,
-        reason: result.reason,
-        narrativeOutcome: result.flavorText
+        allowed: responseData.valid === true,
+        reason: responseData.reason,
+        narrativeOutcome: responseData.flavorText
       }
     } catch (error) {
       console.error('AI validation failed:', error)
@@ -184,6 +205,7 @@ export class AISpellArbitrator {
   private async aiDMAdjudication(
     spell: Spell,
     caster: CombatCharacter,
+    targets: CombatCharacter[],
     combatState: CombatState,
     gameState: GameState,
     playerInput?: string
@@ -193,23 +215,37 @@ export class AISpellArbitrator {
     }
 
     const context = this.buildGameStateContext(caster, combatState, gameState)
+    const targetNames = targets.map(t => t.name).join(', ') || 'None';
     const promptWithInput = spell.aiContext.prompt
-      .replace('{target}', 'TARGET_NAME_HERE') // TODO: Actual target
-      .replace('{playerInput}', playerInput || 'N/A')
-      .replace('{spellDC}', this.calculateSpellDC(caster).toString())
+        .replace('{target}', targetNames)
+        .replace('{playerInput}', playerInput || 'N/A')
+        .replace('{spellDC}', this.calculateSpellDC(caster).toString())
 
     try {
-      const aiResponse = await geminiService.queryAI({
-        system: 'You are a D&D 5e Dungeon Master adjudicating spell effects. Be fair but follow the rules.',
-        prompt: `${promptWithInput}\n\nContext:\n${context}`,
-        expectJson: false
-      })
+        const result = await generateText(
+            `${promptWithInput}\n\nContext:\n${context}`,
+            `You are a D&D 5e Dungeon Master adjudicating spell effects. Be fair but follow the rules. Be concise.
+            Respond with valid JSON matching this schema:
+            ${EFFECT_SCHEMA}`,
+            true, // expectJson
+            'AISpellArbitrator.aiDMAdjudication'
+        )
 
-      return {
-        allowed: true,
-        narrativeOutcome: aiResponse,
-        // TODO: Parse AI response for mechanical effects if needed
-      }
+        if (result.error || !result.data) {
+            return {
+                allowed: false,
+                reason: 'AI DM service unavailable'
+            }
+        }
+
+        const responseData = JSON.parse(result.data.text.replace(/```json\n|```/g, '').trim())
+
+        return {
+            allowed: responseData.allowed !== false, // Default to true if missing
+            reason: responseData.reason,
+            narrativeOutcome: responseData.narrativeOutcome,
+            mechanicalEffects: responseData.mechanicalEffects
+        }
     } catch (error) {
       console.error('AI DM adjudication failed:', error)
       return {
