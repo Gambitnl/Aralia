@@ -1,51 +1,31 @@
-### Animate Objects
+# Animate Objects
 - **Level**: 5
 - **School**: Transmutation
 - **Ritual**: false
-- **Classes**: Artificer, Bard, Sorcerer, Wizard
+- **Classes**: Bard, Sorcerer, Wizard
 
-#### Casting
 - **Casting Time Value**: 1
 - **Casting Time Unit**: action
 - **Combat Cost**: action
-- **Reaction Trigger**: None
 
-#### Range & Area
 - **Range Type**: ranged
 - **Range Distance**: 120
 - **Targeting Type**: multi
-- **Area Shape**: none
-- **Area Size**: 0
 - **Valid Targets**: objects
 - **Line of Sight**: true
 
-#### Components
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: false
-- **Material Description**:
-- **Material Cost GP**: 0
 - **Consumed**: false
 
-#### Duration
 - **Duration Type**: timed
 - **Duration Value**: 1
 - **Duration Unit**: minute
 - **Concentration**: true
 
-#### Effects (Primary)
-- **Effect Type**: UTILITY
-- **Save Stat**: None
-- **Save Outcome**: none
-- **Attack Roll**: none
-- **Damage Dice**:
-- **Damage Type**:
-- **Conditions Applied**:
-
-#### Description
-- **Text**: Objects come to life at your command. Choose up to ten nonmagical objects within range that are not being worn or carried. Medium targets count as two objects, Large targets count as four objects, Huge targets count as eight objects. You can’t animate any object larger than Huge. Each target animates and becomes a creature under your control until the spell ends or until reduced to 0 hit points.
-
-As a bonus action, you can mentally command any creature you made with this spell if the creature is within 500 feet of you (if you control multiple creatures, you can command any or all of them at the same time, issuing the same command to each one). You decide what action the creature will take and where it will move during its next turn, or you can issue a general command, such as to guard a particular chamber or corridor. If you issue no commands, the creature only defends itself against hostile creatures. Once given an order, the creature continues to follow it until its task is complete.
-- **Higher Levels**: If you cast this spell using a spell slot of 6th level or higher, you can animate two additional objects for each slot level above 5th.
-- **Source**: http://dnd5ed.wikidot.com/spell:animate-objects
-- **Status**: Draft
+- **Effect Type**: SUMMON
+- **Description**: Objects animate at your command. Choose a number of nonmagical objects within range that aren't being worn or carried, aren't fixed to a surface, and aren't Gargantuan. The maximum number of objects is equal to your spellcasting ability modifier; for this number, a Medium or smaller target counts as one object, a Large target counts as two, and a Huge target counts as three. Each target animates, sprouts legs, and becomes a Construct that uses the Animated Object stat block; this creature is under your control until the spell ends or until it is reduced to 0 Hit Points. Each creature you make with this spell is an ally to you and your allies. In combat, it shares your Initiative count and takes its turn immediately after yours. Until the spell ends, you can take a Bonus Action to mentally command any creature you made with this spell if the creature is within 500 feet of you (if you control multiple creatures, you can command any of them at the same time, issuing the same command to each one). If you issue no commands, the creature takes the Dodge action and moves only to avoid harm. When the creature drops to 0 Hit Points, it reverts to its object form, and any remaining damage carries over to that form. See the Animated Object stat block for creature statistics.
+- **Higher Levels**: The creature's Slam damage increases by 1d4 (Medium or smaller), 1d6 (Large), or 1d12 (Huge) for each spell slot level above 5.
+- **Source**: PHB 2024
+- **Status**: Complete
