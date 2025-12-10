@@ -242,7 +242,7 @@ const TauntEffect = z.object({
 });
 
 // Summoning Schema
-const SummonedEntityStatBlock = z.object({
+export const SummonedEntityStatBlock = z.object({
   name: z.string().optional(),
   type: z.string().optional(), // Celestial, Fey, Fiend, Beast, etc.
   size: z.enum(['Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan']).optional(),

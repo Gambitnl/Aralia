@@ -1,5 +1,6 @@
 import type { SpellTargeting, TargetFilter } from '@/types'
 import type { CombatCharacter, CombatState, Position } from '@/types'
+import { hasLineOfSight } from '../../../utils/lineOfSight'
 
 /**
  * Resolves valid targets based on spell targeting rules
@@ -88,18 +89,35 @@ export class TargetResolver {
 
   /**
    * Check if there's line of sight between two positions
-   *
-   * TODO: Implement proper raycasting with terrain obstacles
-   * For now, returns true (assumes clear line of sight)
    */
   private static hasLineOfSight(
     pos1: Position,
     pos2: Position,
     gameState: CombatState
   ): boolean {
-    // TODO: Implement raycasting algorithm
-    // Check for walls, terrain, etc.
-    return true
+    if (!gameState.mapData) {
+      // If map data is missing, assume clear LoS or handle as error?
+      // For now, assuming clear to avoid blocking gameplay in incomplete states.
+      return true
+    }
+
+    // Adapt Position to BattleMapTile-like structure expected by hasLineOfSight util
+    // We only need coordinates for bresenham, but hasLineOfSight checks tile properties.
+    // The util expects BattleMapTile objects.
+
+    const startTileId = `${pos1.x}-${pos1.y}`
+    const endTileId = `${pos2.x}-${pos2.y}`
+
+    const startTile = gameState.mapData.tiles.get(startTileId)
+    const endTile = gameState.mapData.tiles.get(endTileId)
+
+    if (!startTile || !endTile) {
+       // If start or end tiles don't exist in map data (e.g. out of bounds), assume blocked?
+       // Or just return false.
+       return false
+    }
+
+    return hasLineOfSight(startTile, endTile, gameState.mapData)
   }
 
   /**

@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { CombatCharacter } from '../../types/combat';
 import { Spell } from '../../types/spells';
 import { generateId } from '../../utils/combatUtils';
+import { getSummonTemplate, SummonTemplate } from '../../data/summonTemplates';
 
 interface UseSummonsProps {
     onSummonAdded?: (summon: CombatCharacter) => void;
@@ -19,8 +20,21 @@ export const useSummons = ({ onSummonAdded, onSummonRemoved }: UseSummonsProps =
         formIndex: number = 0
     ) => {
         // Determine stats based on effect definition or selected form
-        const statBlock = summonEffect.statBlock;
-        // TODO: Handle form selection (e.g. from familiar options) if statBlock is missing or conditional
+        let statBlock: SummonTemplate | undefined = summonEffect.statBlock;
+
+        // Handle form selection (e.g. from familiar options) if statBlock is missing
+        if (!statBlock) {
+            const forms = summonEffect.formOptions || summonEffect.familiarContract?.forms;
+            if (forms && Array.isArray(forms) && forms.length > 0) {
+                // Safely access the selected form, defaulting to the first one if index is invalid
+                const selectedFormName = forms[formIndex] || forms[0];
+                statBlock = getSummonTemplate(selectedFormName);
+
+                if (!statBlock) {
+                    console.warn(`Could not find stat block for form: ${selectedFormName}`);
+                }
+            }
+        }
 
         if (!statBlock) {
             console.warn("Attempted to summon entity without stat block definition.");

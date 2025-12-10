@@ -290,6 +290,35 @@ export interface LightSource {
   expiresAtRound?: number;     // Optional expiration (for concentration tracking)
 }
 
+// Battle Map Types
+export type BattleMapTerrain = 'grass' | 'rock' | 'water' | 'difficult' | 'wall' | 'floor' | 'sand' | 'mud';
+export type BattleMapDecoration = 'tree' | 'boulder' | 'stalagmite' | 'pillar' | 'cactus' | 'mangrove' | null;
+
+export interface BattleMapTile {
+  id: string; // "x-y"
+  coordinates: { x: number; y: number };
+  terrain: BattleMapTerrain;
+  elevation: number;
+  movementCost: number;
+  blocksLoS: boolean;
+  blocksMovement: boolean;
+  decoration: BattleMapDecoration;
+  effects: string[]; // IDs of active effects
+  providesCover?: boolean;
+  environmentalEffect?: {
+    type: 'fire' | 'ice' | 'poison' | 'difficult_terrain';
+    duration: number;
+    effect: StatusEffect;
+  };
+}
+
+export interface BattleMapData {
+  dimensions: { width: number; height: number };
+  tiles: Map<string, BattleMapTile>;
+  theme: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp';
+  seed: number;
+}
+
 export interface CombatState {
   isActive: boolean;
   characters: CombatCharacter[];
@@ -307,6 +336,7 @@ export interface CombatState {
   combatLog: CombatLogEntry[];
   reactiveTriggers: ReactiveTrigger[];
   activeLightSources: LightSource[];    // Active light sources on the map
+  mapData?: BattleMapData;
 }
 
 export interface Animation {
@@ -337,36 +367,6 @@ export interface CombatLogEntry {
   characterId?: string;
   targetIds?: string[];
   data?: any;
-}
-
-
-// Battle Map Types
-export type BattleMapTerrain = 'grass' | 'rock' | 'water' | 'difficult' | 'wall' | 'floor' | 'sand' | 'mud';
-export type BattleMapDecoration = 'tree' | 'boulder' | 'stalagmite' | 'pillar' | 'cactus' | 'mangrove' | null;
-
-export interface BattleMapTile {
-  id: string; // "x-y"
-  coordinates: { x: number; y: number };
-  terrain: BattleMapTerrain;
-  elevation: number;
-  movementCost: number;
-  blocksLoS: boolean;
-  blocksMovement: boolean;
-  decoration: BattleMapDecoration;
-  effects: string[]; // IDs of active effects
-  providesCover?: boolean;
-  environmentalEffect?: {
-    type: 'fire' | 'ice' | 'poison' | 'difficult_terrain';
-    duration: number;
-    effect: StatusEffect;
-  };
-}
-
-export interface BattleMapData {
-  dimensions: { width: number; height: number };
-  tiles: Map<string, BattleMapTile>;
-  theme: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp';
-  seed: number;
 }
 
 export interface CharacterPosition {
