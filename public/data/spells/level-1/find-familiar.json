@@ -8,7 +8,10 @@
   ],
   "castingTime": {
     "value": 1,
-    "unit": "hour"
+    "unit": "hour",
+    "combatCost": {
+      "type": "action"
+    }
   },
   "range": {
     "type": "touch"
@@ -17,21 +20,31 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialComponents": "10 gp worth of charcoal, incense, and herbs that must be consumed by fire in a brass brazier"
+    "materialDescription": "10 gp worth of charcoal, incense, and herbs that must be consumed by fire in a brass brazier",
+    "materialCost": 10,
+    "isConsumed": true
   },
   "duration": {
-    "type": "instantaneous"
+    "type": "until_dispelled",
+    "concentration": false
   },
   "targeting": {
-    "type": "self"
+    "type": "self",
+    "validTargets": [
+      "self"
+    ],
+    "lineOfSight": false
   },
   "effects": [
     {
       "type": "SUMMONING",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
       "summon": {
         "entityType": "familiar",
         "persistent": true,
-        "dismissAction": "action",
+        "commandCost": "none",
+        "objectDescription": "Familiar spirit taking animal form; persists until dismissed or replaced.",
         "formOptions": [
           "Bat",
           "Cat",
@@ -49,40 +62,13 @@
           "Spider",
           "Weasel"
         ],
-        "statBlock": {
-          "ac": 11,
-          "hp": 1,
-          "speed": 5,
-          "flySpeed": 60,
-          "abilities": {
-            "str": 3,
-            "dex": 13,
-            "con": 8,
-            "int": 2,
-            "wis": 12,
-            "cha": 7
-          },
-          "senses": [
-            "Darkvision 120 ft",
-            "Passive Perception 11"
-          ],
-          "skills": {
-            "Perception": 3,
-            "Stealth": 3
-          },
-          "size": "Tiny",
-          "type": "Celestial, Fey, or Fiend (caster choice)"
-        },
-        "commandCost": "none",
-        "commandsPerTurn": 1,
-        "initiative": "shared",
         "telepathyRange": 100,
         "sharedSenses": true,
         "sharedSensesCost": "action",
         "specialActions": [
           {
             "name": "Touch Delivery",
-            "description": "Your familiar can deliver a spell with a range of touch as if it had cast the spell. Your familiar must be within 100 feet of you, and it must use its reaction to deliver the spell when you cast it. If the spell requires an attack roll, you use your attack modifier for the roll.",
+            "description": "Familiar delivers touch spells within 100 feet using its reaction.",
             "cost": "reaction"
           }
         ]

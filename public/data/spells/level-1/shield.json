@@ -56,10 +56,8 @@
       "defenseType": "ac_bonus",
       "acBonus": 5,
       "duration": {
-        "type": "timed",
-        "value": 1,
-        "unit": "round",
-        "concentration": false
+        "type": "rounds",
+        "value": 1
       },
       "reactionTrigger": {
         "event": "when_hit"
@@ -79,10 +77,8 @@
         "force"
       ],
       "duration": {
-        "type": "timed",
-        "value": 1,
-        "unit": "round",
-        "concentration": false
+        "type": "rounds",
+        "value": 1
       },
       "reactionTrigger": {
         "event": "when_targeted",

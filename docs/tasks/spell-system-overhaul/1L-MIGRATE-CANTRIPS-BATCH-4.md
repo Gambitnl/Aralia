@@ -34,3 +34,7 @@
 - friends: Data ✅ / Validation ✅ / Integration ✅ (notes: Added to Sorcerer, Wizard lists; was already in Bard, Warlock)
 - frostbite: Data ✅ / Validation ✅ / Integration ✅ (notes: Added to Artificer, Druid, Sorcerer, Warlock, Wizard lists)
 - mage-hand: Data ✅ / Validation ✅ / Integration ✅ (notes: Already in all class lists)
+
+## Batch execution log
+- `2025-XX-XX`: Regenerated spell manifest (`npx tsx scripts/regenerate-manifest.ts`) so Batch 4 cantrips point to level-0 paths.
+- `2025-XX-XX`: `npm run validate` initially surfaced unrelated legacy spell issues (barkskin, conjure-animals, find-familiar, mage-armor, protection-from-evil-and-good, shield, shield-of-faith, tenser's-floating-disk, unseen-servant). These were converted to the current schema and now validate cleanly (`npm run validate` passes).

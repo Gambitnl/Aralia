@@ -1,57 +1,60 @@
 {
-    "id": "conjure-animals",
-    "name": "Conjure Animals",
-    "level": 3,
-    "school": "Conjuration",
-    "classes": [
-        "Druid",
-        "Ranger"
+  "id": "conjure-animals",
+  "name": "Conjure Animals",
+  "level": 3,
+  "school": "Conjuration",
+  "classes": [
+    "Druid",
+    "Ranger"
+  ],
+  "description": "You summon fey spirits that take the form of beasts and appear in unoccupied spaces that you can see within range.",
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 60,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": [
+      "self"
     ],
-    "castingTime": {
-        "value": 1,
-        "unit": "action"
-    },
-    "range": {
-        "type": "point",
-        "distance": 60
-    },
-    "components": {
-        "verbal": true,
-        "somatic": true
-    },
-    "duration": {
-        "type": "hours",
-        "value": 1,
-        "concentration": true
-    },
-    "effects": [
-        {
-            "type": "SUMMONING",
-            "summon": {
-                "entityType": "creature",
-                "persistent": false,
-                "count": 1,
-                "statBlock": {
-                    "name": "Conjured Beast",
-                    "type": "Beast",
-                    "size": "Medium",
-                    "ac": 12,
-                    "hp": 19,
-                    "speed": 40,
-                    "abilities": {
-                        "str": 14,
-                        "dex": 14,
-                        "con": 12,
-                        "int": 2,
-                        "wis": 12,
-                        "cha": 6
-                    }
-                },
-                "commandCost": "free",
-                "initiative": "rolled",
-                "specialActions": []
-            }
-        }
-    ],
-    "description": "You summon fey spirits that take the form of beasts and appear in unoccupied spaces that you can see within range. Choose one of the following options for what appears:\n\n- One beast of challenge rating 2 or lower\n- Two beasts of challenge rating 1 or lower\n- Four beasts of challenge rating 1/2 or lower\n- Eight beasts of challenge rating 1/4 or lower\n\nEach beast is also considered fey, and it disappears when it drops to 0 hit points or when the spell ends.\n\nThe summoned creatures are friendly to you and your companions. Roll initiative for the summoned creatures as a group, which has its own turns. They obey any verbal commands that you issue to them (no action required by you). If you don't issue any commands to them, they defend themselves from hostile creatures, but otherwise take no actions.\n\nThe GM has the creatures' statistics."
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "SUMMONING",
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
+      "summon": {
+        "entityType": "creature",
+        "persistent": false,
+        "count": 1,
+        "commandCost": "free",
+        "initiative": "rolled",
+        "objectDescription": "Summons fey spirits in beast form (GM determines CR and number as per spell options)."
+      }
+    }
+  ]
 }

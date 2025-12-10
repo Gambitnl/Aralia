@@ -8,50 +8,44 @@
   ],
   "castingTime": {
     "value": 1,
-    "unit": "action"
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
   },
   "range": {
-    "type": "point",
+    "type": "ranged",
     "distance": 30
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialComponents": "a drop of mercury"
+    "materialDescription": "a drop of mercury"
   },
   "duration": {
-    "type": "minutes",
-    "value": 60
+    "type": "timed",
+    "value": 60,
+    "unit": "minute",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": [
+      "self"
+    ],
+    "lineOfSight": false
   },
   "effects": [
     {
       "type": "SUMMONING",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
       "summon": {
-        "entityType": "construct",
+        "entityType": "object",
         "persistent": false,
         "count": 1,
-        "objectDescription": "A circular, horizontal plane of force, 3 feet in diameter and 1 inch thick.",
-        "statBlock": {
-          "name": "Floating Disk",
-          "size": "Medium",
-          "type": "Object",
-          "speed": 0,
-          "abilities": {
-            "str": 0,
-            "dex": 0,
-            "con": 0,
-            "int": 0,
-            "wis": 0,
-            "cha": 0
-          }
-        },
-        "carryCapacity": 500,
-        "followDistance": 20,
-        "hoverHeight": 3,
-        "terrainRestrictions": [
-          "cannot ascend > 10ft vertical"
-        ],
+        "objectDescription": "A 3-foot-wide floating disk of force that carries up to 500 lbs, follows within 20 ft, hovers 3 ft above ground, cannot ascend more than 10 ft vertically.",
         "commandCost": "free"
       }
     }

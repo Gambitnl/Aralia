@@ -59,12 +59,14 @@
       "condition": {
         "type": "always"
       },
-      "defenseType": "disadvantage_on_attacks",
+      "defenseType": "advantage_on_saves",
+      "savingThrow": [
+        "Wisdom",
+        "Charisma"
+      ],
       "duration": {
-        "type": "timed",
-        "value": 10,
-        "unit": "minute",
-        "concentration": true
+        "type": "minutes",
+        "value": 10
       },
       "attackerFilter": {
         "creatureTypes": [

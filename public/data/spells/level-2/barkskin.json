@@ -52,18 +52,16 @@
             "trigger": {
                 "type": "immediate"
             },
-            "condition": {
-                "type": "always"
-            },
-            "defenseType": "ac_minimum",
-            "acMinimum": 16,
-            "duration": {
-                "type": "timed",
-                "value": 1,
-                "unit": "hour",
-                "concentration": true
-            },
-            "description": "Target's AC cannot be less than 16."
-        }
-    ]
+      "condition": {
+        "type": "always"
+      },
+      "defenseType": "ac_minimum",
+      "acMinimum": 16,
+      "duration": {
+        "type": "minutes",
+        "value": 60
+      },
+      "description": "Target's AC cannot be less than 16."
+    }
+  ]
 }

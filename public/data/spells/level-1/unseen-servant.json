@@ -10,54 +10,43 @@
   ],
   "castingTime": {
     "value": 1,
-    "unit": "action"
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
   },
   "range": {
-    "type": "point",
+    "type": "ranged",
     "distance": 60
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialComponents": "a piece of string and a bit of wood"
+    "materialDescription": "a piece of string and a bit of wood"
   },
   "duration": {
-    "type": "minutes",
-    "value": 60
+    "type": "timed",
+    "value": 60,
+    "unit": "minute",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": ["self"],
+    "lineOfSight": false
   },
   "effects": [
     {
       "type": "SUMMONING",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
       "summon": {
         "entityType": "servant",
         "persistent": false,
         "count": 1,
-        "statBlock": {
-          "name": "Unseen Servant",
-          "ac": 10,
-          "hp": 1,
-          "speed": 15,
-          "abilities": {
-            "str": 2,
-            "dex": 10,
-            "con": 10,
-            "int": 1,
-            "wis": 10,
-            "cha": 1
-          },
-          "size": "Medium",
-          "type": "Construct"
-        },
-        "commandCost": "bonus_action",
-        "carryCapacity": 20,
-        "specialActions": [
-          {
-            "name": "Perform Task",
-            "description": "The servant performs a simple task such as fetching an object, cleaning, mending, folding clothes, lighting fires, serving food, or pouring wine.",
-            "cost": "action"
-          }
-        ]
+        "objectDescription": "Invisible servant (AC 10, 1 hp, Str 2, speed 15 ft) that performs simple tasks; cannot attack.",
+        "commandCost": "bonus_action"
       }
     }
   ],

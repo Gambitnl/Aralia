@@ -61,10 +61,8 @@
       "defenseType": "ac_bonus",
       "acBonus": 2,
       "duration": {
-        "type": "timed",
-        "value": 10,
-        "unit": "minute",
-        "concentration": true
+        "type": "minutes",
+        "value": 10
       },
       "description": "Target gains a +2 bonus to AC."
     }
