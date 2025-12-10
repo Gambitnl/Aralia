@@ -31,7 +31,7 @@ This file tracks the migration of Cantrips (Level 0 spells) to the new component
 | Frostbite | frostbite | [ ] Pending | [ ] Not Started | | Cold damage + disadvantage |
 | Green-Flame Blade | green-flame-blade | [ ] Pending | [ ] Not Started | | Melee weapon + AoE |
 | Guidance | guidance | [ ] Pending | [ ] Not Started | | Buff/skill bonus |
-| Light | light | [ ] Pending | [ ] Not Started | | Utility/light source |
+| Light | light | [D] Data Only | [ ] Not Started | | Utility/light source. Reference created. |
 | Lightning Lure | lightning-lure | [ ] Pending | [ ] Not Started | | Lightning + pull effect |
 | Mage Hand | mage-hand | [ ] Pending | [ ] Not Started | | Utility cantrip |
 | Magic Stone | magic-stone | [ ] Pending | [ ] Not Started | | Ranged weapon buff |

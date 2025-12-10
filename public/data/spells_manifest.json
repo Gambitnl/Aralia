@@ -1811,6 +1811,12 @@
     "school": "Transmutation",
     "path": "/data/spells/sequester.json"
   },
+  "shape-water": {
+    "name": "Shape Water",
+    "level": 0,
+    "school": "Transmutation",
+    "path": "/data/spells/level-0/shape-water.json"
+  },
   "shapechange": {
     "name": "Shapechange",
     "level": 9,
@@ -2020,6 +2026,12 @@
     "level": 5,
     "school": "Transmutation",
     "path": "/data/spells/swift-quiver.json"
+  },
+  "sword-burst": {
+    "name": "Sword Burst",
+    "level": 0,
+    "school": "Conjuration",
+    "path": "/data/spells/level-0/sword-burst.json"
   },
   "symbol": {
     "name": "Symbol",

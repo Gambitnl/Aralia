@@ -21,17 +21,16 @@ tags:
     </div>
   </div>
   <div class="spell-description">
-    <p>You touch one object that is no larger than 10 feet in any dimension. Until the spell ends, the object sheds bright light in a 20-foot radius and dim light for an additional 20 feet. The light can be colored as you like. Completely covering the object with something opaque blocks the light. The spell ends if you cast it again or dismiss it as an action.</p>
-    <p>If you target an object held or worn by a hostile creature, that creature must succeed on a Dexterity saving throw to avoid the spell.</p>
+    <p>You touch one Large or smaller object that isn't being worn or carried by someone else. Until the spell ends, the object sheds bright light in a 20-foot radius and dim light for an additional 20 feet. The light can be colored as you like. Covering the object with something opaque blocks the light. The spell ends if you cast it again.</p>
   </div>
   <div class="spell-classes">
-    <strong>Classes:</strong> Artificer, Bard, Cleric, Sorcerer, Wizard, Warlock (Celestial)
+    <strong>Classes:</strong> Artificer, Bard, Cleric, Sorcerer, Wizard, Warlock (Celestial Patron)
   </div>
 </div>
 
 ## Mechanics
 - **Casting Time**: 1 action
-- **Range**: Touch (5 ft)
+- **Range**: Touch (0 ft)
 - **Duration**: 1 hour
 - **Target**: Object
 - **Effect**: Sheds light (20ft bright + 20ft dim)
