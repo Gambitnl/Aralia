@@ -69,14 +69,14 @@ from code reviews and feature planning. Each item is rated by urgency/impact and
         3.  Outline the necessary steps for a full implementation: (a) Define feat data structures in `src/data/feats/`. (b) Create a `FeatSelection.tsx` component for character creation. (c) Integrate feat effects into character stats and game mechanics.
     *   **Status**: DONE *(Feat System section exists in FEATURES_TODO.md lines 50-58 with current state and implementation steps)*
 
-7.  **[Medium Urgency - UI Polish] Review User-Facing Error Messages (Existing #11, still valid)**:
+7.  **[DONE] [Medium Urgency - UI Polish] Review User-Facing Error Messages (Existing #11, completed)**:
     *   **Description**: The application currently uses native `alert()` for some user-facing errors (e.g., save game failure). This is jarring and not thematically consistent.
     *   **Approach**:
         1.  Identify all instances of `alert()` in the codebase (e.g., `saveLoadService.ts`).
         2.  Implement a more integrated notification system. This could be a new component that displays a styled "toast" message at the top or bottom of the screen.
         3.  The notification state could be managed within `appState.ts`.
         4.  Replace `alert()` calls with dispatches to this new notification system.
-    *   **Status**: PENDING
+    *   **Status**: COMPLETED - All `alert()` calls in `saveLoadService.ts` have been replaced with notification system calls using `notify?.({ message: result.message, type: 'success' })` pattern.
 
 ## Low Urgency / Polish & Minor Refactors
 1.  **[Low Urgency - Code Quality] Enhance Type Specificity (Long-Term) (Review Rec #2)**:

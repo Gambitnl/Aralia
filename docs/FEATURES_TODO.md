@@ -104,11 +104,11 @@ TODOs remain in this file when:
 
 ### 🔴 Priority 1: Data Integrity & Core Functionality
 
-4.  **[TODO]** **HOTFIX: Village Building Selection Logic** *(PR #14 Critical Bug)*
+4.  **[DONE]** **HOTFIX: Village Building Selection Logic** *(Completed)*
     *   **Issue**: Nested building selection needs reverse iteration to prevent incorrect placement
     *   **Location**: `src/services/villageGenerator.ts` - building placement loop
     *   **Impact**: HIGH - Building layouts incorrect
-    *   **Fix**: Reverse iteration order for building selection
+    *   **Fix**: Building placement system now uses proper priority system with `setTileWithPriority()` that prevents overwriting civic structures
 
 ### 🟡 Priority 2: Performance & UX Polish
 
@@ -118,17 +118,17 @@ TODOs remain in this file when:
     *   **Impact**: LOW - Performance degrades with many saves
     *   **Fix**: Cache metadata, only refresh on write operations
 
-10. **[TODO]** **Combat Hook Performance Optimizations** *(PR #12 Performance)*
+10. **[DONE]** **Combat Hook Performance Optimizations** *(Completed)*
     *   **Issue**: Missing `useCallback`/`useMemo` opportunities in battle map hooks
     *   **Location**: `src/hooks/combat/useTurnManager.ts`
     *   **Impact**: LOW - Unnecessary re-renders during combat
-    *   **Fix**: Add proper memoization to combat hooks
+    *   **Fix**: Added 15+ `useCallback` calls and multiple `useMemo` calls with proper dependency arrays
 
-11. **[TODO]** **Remove Dead Code from Village Generator** *(PR #14 Code Quality)*
+11. **[DONE]** **Remove Dead Code from Village Generator** *(Completed)*
     *   **Issue**: Plaza boost logic that never executes
     *   **Location**: `src/services/villageGenerator.ts`
     *   **Impact**: LOW - Code clarity
-    *   **Fix**: Remove or fix unreachable code
+    *   **Fix**: No unreachable plaza boost logic found - all plaza code is actively used in building generation
 
 ### 🔵 Priority 3: Incomplete Lane 1 Tasks
 
@@ -168,14 +168,14 @@ TODOs remain in this file when:
 
 ### 🧹 Priority 4: Incomplete Lane 5 Cleanup
 
-18. **[TODO]** **Delete Obsolete Component Files** *(Lane 5 Incomplete)*
-    *   Delete `src/components/PlayerPane.tsx`
-    *   Delete `src/components/StartScreen.tsx`
-    *   Delete `src/components/Spellbook.tsx`
-    *   Delete `src/battleMapDemo.tsx`
-    *   Delete `src/components/CharacterCreator/Race/FlexibleAsiSelection.tsx`
-    *   Delete `src/hooks/OLD_useGameActions.ts`
-    *   Delete obsolete racial spellcasting components (4 files)
+18. **[DONE]** **Delete Obsolete Component Files** *(Completed)*
+    *   Delete `src/components/PlayerPane.tsx` ✅
+    *   Delete `src/components/StartScreen.tsx` ✅
+    *   Delete `src/components/Spellbook.tsx` ✅
+    *   Delete `src/battleMapDemo.tsx` ✅
+    *   Delete `src/components/CharacterCreator/Race/FlexibleAsiSelection.tsx` ✅
+    *   Delete `src/hooks/OLD_useGameActions.ts` ✅
+    *   Delete obsolete racial spellcasting components (4 files) ✅
 
 19. **[TODO]** **Delete Obsolete Documentation Files** *(Lane 5 Incomplete)*
     *   Delete corresponding README files for above components

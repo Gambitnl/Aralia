@@ -32,6 +32,8 @@ import {
 import { FEATS_DATA } from '../../data/feats/featsData';
 import { evaluateFeatPrerequisites } from '../../utils/characterUtils';
 import RaceSelection from './Race/RaceSelection';
+import AgeSelection from './AgeSelection';
+import BackgroundSelection from './BackgroundSelection';
 import ClassSelection from './ClassSelection';
 import AbilityScoreAllocation from './AbilityScoreAllocation';
 import SkillSelection from './SkillSelection';
@@ -242,6 +244,25 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
     switch (state.step) {
       case CreationStep.Race:
         return <RaceSelection races={Object.values(RACES_DATA)} onRaceSelect={handleRaceSelect} />;
+      case CreationStep.AgeSelection:
+        if (!selectedRace) { dispatch({type: 'SET_STEP', payload: CreationStep.Race }); return null; }
+        return <AgeSelection
+          selectedRace={selectedRace}
+          currentAge={state.characterAge}
+          onAgeChange={(age) => dispatch({ type: 'SET_AGE', payload: age })}
+          onNext={() => dispatch({ type: 'SET_STEP', payload: getNextStep(state, selectedRace, state.racialSelections) })}
+          onBack={goBack}
+        />;
+      case CreationStep.BackgroundSelection:
+        if (!selectedRace) { dispatch({type: 'SET_STEP', payload: CreationStep.Race }); return null; }
+        return <BackgroundSelection
+          selectedRace={selectedRace}
+          characterAge={state.characterAge}
+          currentBackground={state.selectedBackground}
+          onBackgroundChange={(backgroundId) => dispatch({ type: 'SELECT_BACKGROUND', payload: backgroundId })}
+          onNext={() => dispatch({ type: 'SET_STEP', payload: getNextStep(state, selectedRace, state.racialSelections) })}
+          onBack={goBack}
+        />;
       case CreationStep.DragonbornAncestry:
         return <DragonbornAncestrySelection onAncestrySelect={handleDragonbornAncestrySelect} onBack={goBack} />;
       case CreationStep.ElvenLineage:

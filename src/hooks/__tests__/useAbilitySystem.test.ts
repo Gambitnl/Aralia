@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAbilitySystem } from '../useAbilitySystem';
 import { CombatCharacter, Ability } from '../../types/combat';
 import { Spell } from '../../types/spells';
+import { Item } from '../../types';
 
 // Mock dependencies
 vi.mock('../combat/useTargeting', () => ({
@@ -83,6 +84,19 @@ const defender: CombatCharacter = {
     level: 1
 } as any;
 
+const swordItem: Item = {
+    id: 'sword',
+    name: 'Longsword',
+    description: 'A sharp blade',
+    type: 'weapon',
+    damageDice: '1d8',
+    damageType: 'Slashing',
+    properties: ['Versatile'],
+    cost: '15 gp',
+    weight: 3,
+    isMartial: true
+};
+
 const basicAttack: Ability = {
     id: 'attack',
     name: 'Attack',
@@ -91,7 +105,8 @@ const basicAttack: Ability = {
     targeting: 'single_enemy',
     effects: [], // damage
     cost: { type: 'action' },
-    isProficient: true
+    isProficient: true,
+    weapon: swordItem
 } as any;
 
 describe('useAbilitySystem - Reactions', () => {

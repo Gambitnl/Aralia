@@ -391,6 +391,7 @@ const DefensiveEffect = BaseEffect.extend({
   damageType: z.array(z.string()).optional(),
   savingThrow: z.array(SavingThrowAbility).optional(),
   duration: EffectDuration,
+  attackerFilter: TargetConditionFilter.optional(),
 
   // Reaction trigger (for shield)
   reactionTrigger: z.object({

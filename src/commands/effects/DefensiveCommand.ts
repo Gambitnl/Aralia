@@ -68,6 +68,9 @@ export class DefensiveCommand extends BaseEffectCommand {
                 case 'advantage_on_saves':
                     newState = this.applyAdvantageOnSaves(newState, target, effect)
                     break
+                case 'disadvantage_on_attacks':
+                    newState = this.applyDisadvantageOnAttacks(newState, target, effect)
+                    break
             }
         }
 
@@ -85,7 +88,8 @@ export class DefensiveCommand extends BaseEffectCommand {
             value: bonus,
             duration: effect.duration || { type: 'rounds', value: 1 },
             appliedTurn: state.turnState.currentTurn,
-            source: this.context.spellName || this.context.spellId || 'Unknown'
+            source: this.context.spellName || this.context.spellId || 'Unknown',
+            attackerFilter: effect.attackerFilter
         }
 
         // Add effect to character first
@@ -265,7 +269,8 @@ export class DefensiveCommand extends BaseEffectCommand {
             appliedTurn: state.turnState.currentTurn,
             source: this.context.spellName || this.context.spellId || 'Unknown',
             description: 'Advantage on saving throws',
-            savingThrows: effect.savingThrow
+            savingThrows: effect.savingThrow,
+            attackerFilter: effect.attackerFilter
         }
 
         const updatedState = this.updateCharacter(state, target.id, {
@@ -276,6 +281,29 @@ export class DefensiveCommand extends BaseEffectCommand {
         return this.addLogEntry(updatedState, {
             type: 'status',
             message: `${target.name} gains advantage on ${saveTypes} saving throws`,
+            characterId: target.id,
+            data: { defensiveEffect: effect }
+        })
+    }
+
+    private applyDisadvantageOnAttacks(state: CombatState, target: CombatCharacter, effect: DefensiveEffect): CombatState {
+        const activeEffect: ActiveEffect = {
+            type: 'disadvantage_on_attacks',
+            name: `Disadvantage to attackers from ${this.context.spellName}`,
+            duration: effect.duration || { type: 'rounds', value: 1 },
+            appliedTurn: state.turnState.currentTurn,
+            source: this.context.spellName || this.context.spellId || 'Unknown',
+            description: 'Attackers have disadvantage',
+            attackerFilter: effect.attackerFilter
+        }
+
+        const updatedState = this.updateCharacter(state, target.id, {
+            activeEffects: [...(target.activeEffects || []), activeEffect]
+        })
+
+        return this.addLogEntry(updatedState, {
+            type: 'status',
+            message: `Attacks against ${target.name} result in disadvantage`,
             characterId: target.id,
             data: { defensiveEffect: effect }
         })
@@ -295,6 +323,8 @@ export class DefensiveCommand extends BaseEffectCommand {
                     return `Grants ${effect.value || 0} temporary HP`
                 case 'advantage_on_saves':
                     return `Grants advantage on ${effect.savingThrow?.join(', ') || 'all'} saves`
+                case 'disadvantage_on_attacks':
+                    return `Attackers have disadvantage`
             }
         }
         return 'Grants defensive effect'

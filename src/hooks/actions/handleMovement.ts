@@ -327,6 +327,61 @@ export async function handleQuickTravel({
     },
     biomeId: gameState.mapData?.tiles[parseInt(gameState.currentLocationId.split('_')[2], 10)][parseInt(gameState.currentLocationId.split('_')[1], 10)].biomeId || 'plains',
   };
+}
+
+interface HandleApproachSettlementProps {
+  gameState: GameState;
+  dispatch: React.Dispatch<AppAction>;
+  addMessage: AddMessageFn;
+  action: Action;
+}
+
+export async function handleApproachSettlement({
+  gameState,
+  dispatch,
+  addMessage,
+  action,
+}: HandleApproachSettlementProps): Promise<void> {
+  const isVillage = action.type === 'APPROACH_VILLAGE';
+  const settlementType = isVillage ? 'village' : 'town';
+
+  addMessage(`You cautiously approach the nearby ${settlementType}, staying alert for any signs of danger or opportunity.`, 'system');
+
+  // Could add movement logic here, or just provide descriptive feedback
+  // For now, this gives players a safe way to get closer to settlements
+}
+
+interface HandleObserveSettlementProps {
+  gameState: GameState;
+  dispatch: React.Dispatch<AppAction>;
+  addMessage: AddMessageFn;
+  addGeminiLog: AddGeminiLogFn;
+  action: Action;
+}
+
+export async function handleObserveSettlement({
+  gameState,
+  dispatch,
+  addMessage,
+  addGeminiLog,
+  action,
+}: HandleObserveSettlementProps): Promise<void> {
+  const isVillage = action.type === 'OBSERVE_VILLAGE';
+  const settlementType = isVillage ? 'village' : 'town';
+
+  addMessage(`You take a moment to observe the ${settlementType} from a distance, noting its layout and activity.`, 'system');
+
+  // This could trigger Gemini to generate descriptions of what the player sees
+  // For now, just provide basic feedback
+  const observationPrompt = `The player is observing a ${settlementType} from a distance. Generate a brief description of what they might see based on the settlement type and surroundings.`;
+
+  addGeminiLog({
+    type: 'system',
+    content: observationPrompt,
+    timestamp: new Date(),
+    context: 'settlement_observation'
+  });
+}
 
   const { effectiveTerrainType } = getSubmapTileInfo(
     gameState.worldSeed,
@@ -358,4 +413,3 @@ export async function handleQuickTravel({
   if (effectiveTerrainType === 'village_area') {
     addMessage("You stand before a village. You can enter if you wish.", "system");
   }
-}

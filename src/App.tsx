@@ -22,6 +22,7 @@ import { appReducer, initialGameState } from './state/appState';
 import { useAudio } from './hooks/useAudio';
 import { useGameActions } from './hooks/useGameActions';
 import { useGameInitialization } from './hooks/useGameInitialization';
+import { determineSettlementInfo } from './utils/settlementGeneration';
 
 // Utility functions
 import { determineActiveDynamicNpcsForLocation } from './utils/locationUtils';
@@ -566,6 +567,9 @@ const App: React.FC = () => {
     const worldCoords = currentLocationData.mapCoordinates;
     const biome = currentLocationData.biomeId || 'plains';
 
+    // Determine settlement characteristics for culturally appropriate generation
+    const settlementInfo = determineSettlementInfo(currentLocationData, gameState);
+
     mainContent = (
       <ErrorBoundary fallbackMessage="An error occurred in the Village Scene.">
         <TownCanvas
@@ -573,6 +577,7 @@ const App: React.FC = () => {
           worldX={worldCoords?.x || 50}
           worldY={worldCoords?.y || 50}
           biome={biome}
+          settlementInfo={settlementInfo}
           onAction={processAction}
           gameTime={gameState.gameTime}
           currentLocation={currentLocationData}

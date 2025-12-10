@@ -172,6 +172,14 @@ export function useGameActions({
           case 'ENTER_VILLAGE':
             dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.VILLAGE_VIEW });
             break;
+          case 'APPROACH_VILLAGE':
+          case 'APPROACH_TOWN':
+            await handleApproachSettlement({ gameState, dispatch, addMessage, action });
+            break;
+          case 'OBSERVE_VILLAGE':
+          case 'OBSERVE_TOWN':
+            await handleObserveSettlement({ gameState, dispatch, addMessage, addGeminiLog, action });
+            break;
           case 'look_around':
             await handleLookAround({ gameState, dispatch, addMessage, addGeminiLog, generalActionContext, getTileTooltipText });
             break;

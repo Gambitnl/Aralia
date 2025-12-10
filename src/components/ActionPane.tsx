@@ -181,7 +181,8 @@ const ActionPane: React.FC<ActionPaneProps> = ({
     });
   }
 
-  // Check for Village Entry
+  // Check for Village/Town Entry
+  // Method 1: Procedural village terrain on coordinate locations
   if (currentLocation.id.startsWith('coord_') && subMapCoordinates && worldSeed !== undefined) {
     const { effectiveTerrainType } = getSubmapTileInfo(
       worldSeed,
@@ -193,7 +194,54 @@ const ActionPane: React.FC<ActionPaneProps> = ({
 
     if (effectiveTerrainType === 'village_area') {
       generalActions.push({ type: 'ENTER_VILLAGE', label: 'Enter Village' });
+    } else {
+      // Check adjacent tiles for villages (seeing towns in distance)
+      const adjacentOffsets = [
+        { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }, { x: 0, y: 1 },
+        { x: -1, y: -1 }, { x: -1, y: 1 }, { x: 1, y: -1 }, { x: 1, y: 1 }
+      ];
+
+      let nearbyVillages = 0;
+      for (const offset of adjacentOffsets) {
+        const checkX = subMapCoordinates.x + offset.x;
+        const checkY = subMapCoordinates.y + offset.y;
+
+        // Only check within submap bounds
+        if (checkX >= 0 && checkX < SUBMAP_DIMENSIONS.cols &&
+            checkY >= 0 && checkY < SUBMAP_DIMENSIONS.rows) {
+          const { effectiveTerrainType: adjacentType } = getSubmapTileInfo(
+            worldSeed,
+            currentLocation.mapCoordinates,
+            currentLocation.biomeId,
+            SUBMAP_DIMENSIONS,
+            { x: checkX, y: checkY }
+          );
+
+          if (adjacentType === 'village_area') {
+            nearbyVillages++;
+          }
+        }
+      }
+
+      if (nearbyVillages > 0) {
+        generalActions.push({ type: 'APPROACH_VILLAGE', label: 'Approach Village' });
+        generalActions.push({ type: 'OBSERVE_VILLAGE', label: 'Observe Village' });
+      }
     }
+  }
+
+  // Method 2: Predefined town/settlement locations
+  const townKeywords = ['town', 'village', 'city', 'settlement', 'hamlet'];
+  const isTownLocation = townKeywords.some(keyword =>
+    currentLocation.name.toLowerCase().includes(keyword) ||
+    currentLocation.id.toLowerCase().includes(keyword)
+  );
+
+  if (isTownLocation && !currentLocation.id.startsWith('coord_')) {
+    generalActions.push({ type: 'ENTER_VILLAGE', label: 'Enter Town' });
+    // Add contextually appropriate actions when at a town location
+    generalActions.push({ type: 'OBSERVE_TOWN', label: 'Observe Town' });
+    generalActions.push({ type: 'APPROACH_TOWN', label: 'Approach Cautiously' });
   }
 
   const handleAskOracleClick = () => setIsOracleInputVisible(true);

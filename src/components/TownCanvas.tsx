@@ -35,6 +35,7 @@ interface TownCanvasProps {
     worldX: number;
     worldY: number;
     biome: string;
+    settlementInfo?: any; // Settlement type information for culturally appropriate generation
     onAction: (action: any) => void;
     // Additional props to match VillageScene signature if needed
     gameTime?: Date;
@@ -53,6 +54,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     worldX,
     worldY,
     biome: araliaBiome,
+    settlementInfo,
     onAction
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);

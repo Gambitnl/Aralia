@@ -15,20 +15,34 @@ import { createSeededRandom } from '../utils/submapUtils';
  * 7. Return both a tile matrix and building footprints for hit-testing.
  */
 
-export type VillageTileType =
-  | 'grass'
-  | 'path'
-  | 'plaza'
-  | 'market'
-  | 'well'
-  | 'guard_post'
-  | 'house_small'
-  | 'house_medium'
-  | 'house_large'
-  | 'shop_blacksmith'
-  | 'shop_general'
-  | 'shop_tavern'
-  | 'shop_temple';
+// Base terrain types
+type TerrainTileType = 'grass' | 'path' | 'dirt' | 'stone' | 'water' | 'trees';
+
+// Civic structures
+type CivicTileType = 'plaza' | 'market' | 'well' | 'fountain' | 'statue' | 'guard_post' | 'watchtower' | 'gatehouse';
+
+// Residential buildings
+type ResidentialTileType = 'house_small' | 'house_medium' | 'house_large' | 'apartment' | 'manor' | 'estate';
+
+// Commercial buildings
+type CommercialTileType = 'shop_blacksmith' | 'shop_general' | 'shop_tavern' | 'shop_temple' | 'inn' | 'bank' | 'guildhall' | 'stable';
+
+// Cultural/Architectural variants
+type CulturalTileType =
+  // Elven
+  | 'treehouse_small' | 'treehouse_large' | 'ancient_circle' | 'weaver_hall'
+  // Dwarven
+  | 'stone_hall_small' | 'stone_hall_large' | 'forge_temple' | 'underground_entrance'
+  // Orcish
+  | 'hide_tent' | 'longhouse' | 'totem_pole' | 'war_memorial'
+  // Aquatic/Marine
+  | 'dock' | 'lighthouse' | 'shipwright' | 'fish_market'
+  // Magical
+  | 'magic_academy' | 'arcane_tower' | 'healers_hut' | 'alchemist_shop'
+  // Exotic
+  | 'caravan_stop' | 'nomad_yurt' | 'trading_post' | 'shrine';
+
+export type VillageTileType = TerrainTileType | CivicTileType | ResidentialTileType | CommercialTileType | CulturalTileType;
 
 export interface VillageBuildingFootprint {
   id: string;
@@ -43,6 +57,10 @@ export interface VillagePersonality {
   culture: 'stoic' | 'festive' | 'scholarly' | 'martial';
   biomeStyle: 'temperate' | 'arid' | 'coastal' | 'swampy';
   population: 'small' | 'medium' | 'large';
+  dominantRace?: 'human' | 'elf' | 'dwarf' | 'orc' | 'halfling' | 'gnome' | 'dragonborn' | 'tiefling' | 'other';
+  architecturalStyle: 'colonial' | 'medieval' | 'tribal' | 'magical' | 'industrial' | 'nomadic' | 'aquatic';
+  governingBody: 'mayor' | 'council' | 'elder' | 'warlord' | 'guild' | 'temple' | 'monarch' | 'anarchy';
+  primaryIndustry: 'agriculture' | 'mining' | 'fishing' | 'trade' | 'crafting' | 'magic' | 'military' | 'scholarship';
 }
 
 export interface VillageLayout {
@@ -61,42 +79,71 @@ interface GenerationOptions {
   biomeId: string;
 }
 
-const TILE_TYPES_PRIORITY: VillageTileType[] = [
-  'plaza',
-  'market',
-  'well',
-  'guard_post',
-  'shop_blacksmith',
-  'shop_general',
-  'shop_tavern',
-  'shop_temple',
-  'house_large',
-  'house_medium',
-  'house_small',
-  'path',
-  'grass'
-];
+// Dynamic priority list based on personality
+const getTilePriorityList = (personality: VillagePersonality): VillageTileType[] => {
+  const basePriorities: VillageTileType[] = [];
 
-/**
- * Keeps all tile writes consistent by comparing against a single priority list.
- * Using an explicit helper prevents later tile stamping (for example, guard
- * posts or houses) from accidentally overwriting the plaza or civic core. That
- * bug previously caused plaza tiles to flip to whatever the last building write
- * was, creating confusing hit testing results for the UI. Centralising the
- * comparison also reduces the chance of new placement code forgetting about the
- * intended layering rules.
- */
-const getPriorityIndex = (type: VillageTileType): number => {
-  const idx = TILE_TYPES_PRIORITY.indexOf(type);
-  return idx === -1 ? TILE_TYPES_PRIORITY.length : idx;
+  // Add cultural civic buildings first
+  if (personality.architecturalStyle === 'magical') {
+    basePriorities.push('ancient_circle', 'arcane_tower', 'healers_hut');
+  } else if (personality.architecturalStyle === 'tribal') {
+    basePriorities.push('totem_pole', 'war_memorial');
+  } else if (personality.architecturalStyle === 'aquatic') {
+    basePriorities.push('dock', 'lighthouse');
+  }
+
+  // Add standard civic buildings
+  basePriorities.push('plaza', 'market', 'well', 'fountain', 'guard_post', 'watchtower');
+
+  // Add commercial buildings based on primary industry
+  if (personality.primaryIndustry === 'mining' || personality.primaryIndustry === 'crafting') {
+    basePriorities.push('shop_blacksmith', 'forge_temple');
+  } else if (personality.primaryIndustry === 'fishing') {
+    basePriorities.push('fish_market', 'dock');
+  } else if (personality.primaryIndustry === 'trade') {
+    basePriorities.push('caravan_stop', 'trading_post');
+  } else if (personality.primaryIndustry === 'military') {
+    basePriorities.push('guard_post', 'watchtower');
+  } else if (personality.primaryIndustry === 'scholarship') {
+    basePriorities.push('magic_academy', 'shop_temple');
+  }
+
+  basePriorities.push('shop_general', 'shop_tavern', 'inn', 'shop_temple', 'guildhall', 'bank');
+
+  // Add residential buildings
+  if (personality.architecturalStyle === 'magical') {
+    basePriorities.push('treehouse_large', 'treehouse_small');
+  } else if (personality.architecturalStyle === 'industrial') {
+    basePriorities.push('stone_hall_large', 'stone_hall_small');
+  } else if (personality.architecturalStyle === 'tribal') {
+    basePriorities.push('longhouse', 'hide_tent');
+  } else {
+    basePriorities.push('manor', 'estate', 'house_large', 'house_medium', 'house_small', 'apartment');
+  }
+
+  // Terrain and paths
+  basePriorities.push('path', 'stone', 'dirt', 'water', 'trees', 'grass');
+
+  return [...new Set(basePriorities)]; // Remove duplicates
 };
 
-const setTileWithPriority = (tiles: VillageTileType[][], x: number, y: number, type: VillageTileType) => {
+/**
+ * Keeps all tile writes consistent by comparing against a personality-based priority list.
+ * Using an explicit helper prevents later tile stamping from accidentally overwriting
+ * important structures. The priority list is now dynamic based on settlement personality.
+ */
+const getPriorityIndex = (type: VillageTileType, personality: VillagePersonality): number => {
+  const priorityList = getTilePriorityList(personality);
+  const idx = priorityList.indexOf(type);
+  return idx === -1 ? priorityList.length : idx;
+};
+
+const setTileWithPriority = (tiles: VillageTileType[][], x: number, y: number, type: VillageTileType, personality: VillagePersonality) => {
   if (!tiles[y] || typeof tiles[y][x] === 'undefined') return;
 
   const current = tiles[y][x];
-  const incomingPriority = getPriorityIndex(type);
-  const currentPriority = getPriorityIndex(current);
+  const incomingPriority = getPriorityIndex(type, personality);
+  const currentPriority = getPriorityIndex(current, personality);
 
   // Lower index means higher priority. Only replace when we know the newcomer
   // outranks what is already there. This keeps roads from overrunning civic
@@ -121,7 +168,134 @@ const inferBiomeStyle = (biomeId: string): VillagePersonality['biomeStyle'] => {
   return 'temperate';
 };
 
-const rollPersonality = (rng: () => number, biomeId: string): VillagePersonality => {
+const inferArchitecturalStyle = (biomeId: string, dominantRace?: string): VillagePersonality['architecturalStyle'] => {
+  // Race takes precedence over biome for architectural style
+  if (dominantRace) {
+    switch (dominantRace) {
+      case 'elf': return 'magical';
+      case 'dwarf': return 'industrial'; // Mining/industrial aesthetic
+      case 'orc': return 'tribal';
+      case 'halfling': return 'colonial'; // Cozy, settled feel
+      case 'gnome': return 'magical';
+      case 'dragonborn': return 'martial'; // Fortified, military
+      case 'tiefling': return 'magical'; // Infernal influences
+    }
+  }
+
+  // Fallback to biome-based styles
+  switch (biomeId) {
+    case 'forest': return 'magical';
+    case 'mountain': return 'industrial';
+    case 'desert': return 'nomadic';
+    case 'ocean': return 'aquatic';
+    case 'swamp': return 'tribal';
+    default: return 'medieval';
+  }
+};
+
+const getShopTypesForPersonality = (personality: VillagePersonality): VillageTileType[] => {
+  const shops: VillageTileType[] = [];
+
+  // Base shops that appear in most settlements
+  shops.push('shop_general', 'shop_tavern');
+
+  // Add culturally specific shops
+  if (personality.architecturalStyle === 'magical') {
+    shops.push('alchemist_shop', 'magic_academy', 'healers_hut');
+  } else if (personality.architecturalStyle === 'industrial') {
+    shops.push('shop_blacksmith', 'forge_temple');
+  } else if (personality.architecturalStyle === 'aquatic') {
+    shops.push('fish_market', 'shipwright');
+  } else if (personality.architecturalStyle === 'nomadic') {
+    shops.push('caravan_stop', 'trading_post');
+  } else {
+    shops.push('shop_blacksmith', 'shop_temple');
+  }
+
+  // Add industry-specific shops
+  if (personality.primaryIndustry === 'military') {
+    shops.push('guard_post');
+  } else if (personality.primaryIndustry === 'trade') {
+    shops.push('bank', 'caravan_stop');
+  }
+
+  return shops.slice(0, 4); // Limit to 4 shop types per settlement
+};
+
+const getHouseTypesForPersonality = (personality: VillagePersonality): VillageTileType[] => {
+  if (personality.architecturalStyle === 'magical') {
+    return ['treehouse_large', 'treehouse_small'];
+  } else if (personality.architecturalStyle === 'industrial') {
+    return ['stone_hall_large', 'stone_hall_small'];
+  } else if (personality.architecturalStyle === 'tribal') {
+    return ['longhouse', 'hide_tent'];
+  } else if (personality.architecturalStyle === 'aquatic') {
+    return ['house_large', 'house_medium']; // Elevated or waterfront homes
+  } else {
+    return ['house_large', 'house_medium', 'house_small'];
+  }
+};
+
+const rollPersonality = (rng: () => number, biomeId: string, dominantRace?: string, isStartingSettlement = false): VillagePersonality => {
+  // For starting settlements: Character-driven with high engagement
+  if (isStartingSettlement && dominantRace) {
+    return generateCharacterDrivenPersonality(rng, biomeId, dominantRace);
+  }
+
+  // For regular settlements: Natural variation with occasional cultural influence
+  return generateNaturalPersonality(rng, biomeId, dominantRace);
+};
+
+const generateCharacterDrivenPersonality = (rng: () => number, biomeId: string, dominantRace: string): VillagePersonality => {
+  // High character engagement: Settlement strongly reflects character's culture
+  const personality = generateNaturalPersonality(rng, biomeId, dominantRace);
+
+  // Override with character-appropriate traits for maximum engagement
+  switch (dominantRace) {
+    case 'elf':
+      return {
+        ...personality,
+        dominantRace: 'elf',
+        architecturalStyle: 'magical',
+        culture: rng() > 0.6 ? 'scholarly' : 'stoic',
+        governingBody: 'council',
+        primaryIndustry: rng() > 0.5 ? 'crafting' : 'scholarship'
+      };
+    case 'dwarf':
+      return {
+        ...personality,
+        dominantRace: 'dwarf',
+        architecturalStyle: 'industrial',
+        culture: 'stoic',
+        governingBody: 'elder',
+        primaryIndustry: rng() > 0.7 ? 'mining' : 'crafting'
+      };
+    case 'orc':
+      return {
+        ...personality,
+        dominantRace: 'orc',
+        architecturalStyle: 'tribal',
+        culture: 'martial',
+        governingBody: 'warlord',
+        primaryIndustry: rng() > 0.6 ? 'military' : 'agriculture'
+      };
+    case 'halfling':
+      return {
+        ...personality,
+        dominantRace: 'halfling',
+        architecturalStyle: 'colonial',
+        culture: 'festive',
+        governingBody: 'mayor',
+        primaryIndustry: 'agriculture'
+      };
+    // Add more races as needed
+    default:
+      return personality;
+  }
+};
+
+const generateNaturalPersonality = (rng: () => number, biomeId: string, dominantRace?: string): VillagePersonality => {
+  // Natural variation: More organic world generation
   const wealthRoll = rng();
   const wealth: VillagePersonality['wealth'] = wealthRoll > 0.7 ? 'rich' : wealthRoll > 0.35 ? 'comfortable' : 'poor';
 
@@ -132,11 +306,54 @@ const rollPersonality = (rng: () => number, biomeId: string): VillagePersonality
   const populationRoll = rng();
   const population: VillagePersonality['population'] = populationRoll > 0.7 ? 'large' : populationRoll > 0.35 ? 'medium' : 'small';
 
+  // Natural governing body determination
+  const governingRoll = rng();
+  let governingBody: VillagePersonality['governingBody'];
+  if (culture === 'martial') {
+    governingBody = governingRoll > 0.6 ? 'warlord' : governingRoll > 0.3 ? 'council' : 'mayor';
+  } else if (culture === 'scholarly') {
+    governingBody = governingRoll > 0.5 ? 'council' : 'guild';
+  } else if (wealth === 'rich') {
+    governingBody = governingRoll > 0.6 ? 'monarch' : governingRoll > 0.3 ? 'council' : 'mayor';
+  } else {
+    governingBody = governingRoll > 0.5 ? 'mayor' : governingRoll > 0.25 ? 'elder' : 'council';
+  }
+
+  // Natural industry determination
+  const industryRoll = rng();
+  let primaryIndustry: VillagePersonality['primaryIndustry'];
+  switch (biomeId) {
+    case 'mountain':
+      primaryIndustry = industryRoll > 0.6 ? 'mining' : 'crafting';
+      break;
+    case 'forest':
+      primaryIndustry = industryRoll > 0.5 ? 'crafting' : 'agriculture';
+      break;
+    case 'ocean':
+      primaryIndustry = industryRoll > 0.7 ? 'fishing' : 'trade';
+      break;
+    case 'desert':
+      primaryIndustry = industryRoll > 0.5 ? 'trade' : 'crafting';
+      break;
+    default:
+      if (culture === 'scholarly') primaryIndustry = 'scholarship';
+      else if (culture === 'martial') primaryIndustry = 'military';
+      else primaryIndustry = industryRoll > 0.5 ? 'agriculture' : 'trade';
+  }
+
+  // Occasional cultural influence for flavor (but not dominant)
+  const hasCulturalInfluence = rng() > 0.7; // 30% chance
+  const actualDominantRace = hasCulturalInfluence ? dominantRace : undefined;
+
   return {
     wealth,
     culture,
     biomeStyle: inferBiomeStyle(biomeId),
-    population
+    population,
+    dominantRace: actualDominantRace as VillagePersonality['dominantRace'],
+    architecturalStyle: inferArchitecturalStyle(biomeId, actualDominantRace),
+    governingBody,
+    primaryIndustry
   };
 };
 
@@ -144,9 +361,9 @@ const createGrid = (width: number, height: number, defaultTile: VillageTileType)
   return Array.from({ length: height }, () => Array.from({ length: width }, () => defaultTile));
 };
 
-const carvePath = (tiles: VillageTileType[][], points: { x: number; y: number }[]) => {
+const carvePath = (tiles: VillageTileType[][], points: { x: number; y: number }[], personality: VillagePersonality) => {
   points.forEach(({ x, y }) => {
-    setTileWithPriority(tiles, x, y, 'path');
+    setTileWithPriority(tiles, x, y, 'path', personality);
   });
 };
 
@@ -165,7 +382,8 @@ const areaIsFree = (tiles: VillageTileType[][], x: number, y: number, width: num
 
 const stampBuilding = (
   tiles: VillageTileType[][],
-  building: VillageBuildingFootprint
+  building: VillageBuildingFootprint,
+  personality: VillagePersonality
 ) => {
   const { footprint, type } = building;
   for (let dy = 0; dy < footprint.height; dy++) {
@@ -173,7 +391,7 @@ const stampBuilding = (
       const x = footprint.x + dx;
       const y = footprint.y + dy;
       if (!tiles[y] || typeof tiles[y][x] === 'undefined') continue;
-      setTileWithPriority(tiles, x, y, type);
+      setTileWithPriority(tiles, x, y, type, personality);
     }
   }
 };
@@ -193,7 +411,7 @@ const getConnectionPath = (
   return points;
 };
 
-const addWindingRoads = (tiles: VillageTileType[][], rng: () => number) => {
+const addWindingRoads = (tiles: VillageTileType[][], rng: () => number, personality: VillagePersonality) => {
   const height = tiles.length;
   const width = tiles[0]?.length || 0;
   // Lay subtle curvature so roads feel organic instead of perfectly orthogonal.
@@ -201,17 +419,29 @@ const addWindingRoads = (tiles: VillageTileType[][], rng: () => number) => {
     const wobble = Math.floor(rng() * 3) - 1;
     for (let x = 0; x < width; x++) {
       const rowY = clamp(y + wobble, 1, height - 2);
-      setTileWithPriority(tiles, x, rowY, 'path');
+      setTileWithPriority(tiles, x, rowY, 'path', personality);
     }
   }
 };
 
-export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: GenerationOptions): VillageLayout => {
+interface ExtendedGenerationOptions extends GenerationOptions {
+  dominantRace?: string; // For character-driven starting settlements
+  isStartingSettlement?: boolean; // Flag for high-engagement starting areas
+}
+
+export const generateVillageLayout = ({
+  worldSeed,
+  worldX,
+  worldY,
+  biomeId,
+  dominantRace,
+  isStartingSettlement = false
+}: ExtendedGenerationOptions): VillageLayout => {
   const width = 48;
   const height = 32;
-  const biomeSeedText = `${biomeId}_village`;
+  const biomeSeedText = `${biomeId}_village${dominantRace ? `_${dominantRace}` : ''}`;
   const rng = createSeededRandom(worldSeed, { x: worldX, y: worldY }, biomeSeedText, 'village_rng');
-  const personality = rollPersonality(rng, biomeId);
+  const personality = rollPersonality(rng, biomeId, dominantRace, isStartingSettlement);
   // Keep a ready-made integration profile so UI layers and AI hooks can share
   // the same narrative cues without recomputing or duplicating logic.
   const integrationProfile = resolveVillageIntegrationProfile(personality);
@@ -224,15 +454,17 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
   // Carve main axial roads touching every edge to guarantee connectivity
   carvePath(
     tiles,
-    Array.from({ length: width }, (_, x) => ({ x, y: center.y }))
+    Array.from({ length: width }, (_, x) => ({ x, y: center.y })),
+    personality
   );
   carvePath(
     tiles,
-    Array.from({ length: height }, (_, y) => ({ x: center.x, y }))
+    Array.from({ length: height }, (_, y) => ({ x: center.x, y })),
+    personality
   );
 
   // Winding secondary roads create neighborhoods and variety
-  addWindingRoads(tiles, rng);
+  addWindingRoads(tiles, rng, personality);
 
   // Central plaza anchors civic life
   const plazaSize = 6;
@@ -243,7 +475,7 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
     footprint: { x: plazaTopLeft.x, y: plazaTopLeft.y, width: plazaSize, height: plazaSize },
     ...pickColor('plaza', rng)
   };
-  stampBuilding(tiles, plazaBuilding);
+  stampBuilding(tiles, plazaBuilding, personality);
   buildings.push(plazaBuilding);
 
   // Well sits in the heart of the plaza, deterministic placement for player cues
@@ -253,7 +485,7 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
     footprint: { x: center.x - 1, y: center.y - 1, width: 2, height: 2 },
     ...pickColor('well', rng)
   };
-  stampBuilding(tiles, well);
+  stampBuilding(tiles, well, personality);
   buildings.push(well);
 
   // Market covers most of the plaza, leaving breathing room for paths
@@ -263,7 +495,7 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
     footprint: { x: plazaTopLeft.x + 1, y: plazaTopLeft.y + 1, width: plazaSize - 2, height: plazaSize - 2 },
     ...pickColor('market', rng)
   };
-  stampBuilding(tiles, market);
+  stampBuilding(tiles, market, personality);
   buildings.push(market);
 
   // Guard posts watch over northern and southern gates
@@ -275,13 +507,13 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
       footprint: { x: center.x - 1, y: center.y + offset * (Math.floor(height / 2) - 3), width: 2, height: 2 },
       ...pickColor('guard_post', rng)
     };
-    stampBuilding(tiles, guard);
-    carvePath(tiles, getConnectionPath({ x: center.x, y: center.y }, { x: guard.footprint.x, y: guard.footprint.y }));
+    stampBuilding(tiles, guard, personality);
+    carvePath(tiles, getConnectionPath({ x: center.x, y: center.y }, { x: guard.footprint.x, y: guard.footprint.y }), personality);
     buildings.push(guard);
   });
 
-  // Shops cluster close to the plaza for foot traffic
-  const shopTypes: VillageTileType[] = ['shop_blacksmith', 'shop_general', 'shop_tavern', 'shop_temple'];
+  // Shops cluster close to the plaza for foot traffic - culturally appropriate
+  const shopTypes: VillageTileType[] = getShopTypesForPersonality(personality);
   shopTypes.forEach((type, idx) => {
     const radius = 4 + idx;
     const angle = rng() * Math.PI * 2;
@@ -295,15 +527,15 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
       footprint,
       ...pickColor(type, rng)
     };
-    stampBuilding(tiles, shop);
-    carvePath(tiles, getConnectionPath({ x: shop.footprint.x, y: shop.footprint.y }, center));
+    stampBuilding(tiles, shop, personality);
+    carvePath(tiles, getConnectionPath({ x: shop.footprint.x, y: shop.footprint.y }, center), personality);
     buildings.push(shop);
   });
 
   // Residential districts radiate outward, size based on population / wealth
   const houseBudget = personality.population === 'large' ? 22 : personality.population === 'medium' ? 16 : 10;
   const wealthBias = personality.wealth === 'rich' ? 0.7 : personality.wealth === 'comfortable' ? 0.5 : 0.3;
-  const houseTypes: VillageTileType[] = ['house_large', 'house_medium', 'house_small'];
+  const houseTypes: VillageTileType[] = getHouseTypesForPersonality(personality);
 
   for (let i = 0; i < houseBudget; i++) {
     const typeRoll = rng();
@@ -326,8 +558,8 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
       footprint,
       ...pickColor(chosenType, rng)
     };
-    stampBuilding(tiles, house);
-    carvePath(tiles, getConnectionPath({ x: footprint.x, y: footprint.y }, center));
+    stampBuilding(tiles, house, personality);
+    carvePath(tiles, getConnectionPath({ x: footprint.x, y: footprint.y }, center), personality);
     buildings.push(house);
   }
 
@@ -336,7 +568,7 @@ export const generateVillageLayout = ({ worldSeed, worldX, worldY, biomeId }: Ge
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const tile = tiles[y][x];
-      if (getPriorityIndex(tile) === TILE_TYPES_PRIORITY.length) {
+      if (getPriorityIndex(tile, personality) === getTilePriorityList(personality).length) {
         tiles[y][x] = 'grass';
       }
     }
@@ -365,8 +597,8 @@ export const findBuildingAt = (layout: VillageLayout, x: number, y: number): Vil
 
     // Using priority comparison here keeps overlapping civic structures
     // deterministic for UI hit-testing (e.g., plaza beneath market).
-    const buildingPriority = getPriorityIndex(b.type);
-    const chosenPriority = chosen ? getPriorityIndex(chosen.type) : TILE_TYPES_PRIORITY.length;
+    const buildingPriority = getPriorityIndex(b.type, layout.personality);
+    const chosenPriority = chosen ? getPriorityIndex(chosen.type, layout.personality) : getTilePriorityList(layout.personality).length;
 
     return buildingPriority <= chosenPriority ? b : chosen;
   }, undefined);

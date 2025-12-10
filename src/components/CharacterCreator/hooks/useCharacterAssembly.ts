@@ -16,10 +16,223 @@ import {
   Item,
 } from '../../../types';
 import { SKILLS_DATA, WEAPONS_DATA, RACES_DATA, TIEFLING_LEGACIES } from '../../../constants';
-import { CharacterCreationState } from '../state/characterCreatorState'; 
+import { BACKGROUNDS } from '../../../data/backgrounds';
+import { CharacterCreationState } from '../state/characterCreatorState';
 import { getAbilityModifierValue, applyAllFeats } from '../../../utils/characterUtils';
 
 // --- Helper Functions for Character Assembly ---
+
+// Age ranges and categories for different races (mechanical effects)
+const getAgeDataForAssembly = (raceId: string) => {
+  switch (raceId) {
+    case 'human':
+      return {
+        categories: {
+          child: { max: 12, sizeModifier: 'Small', statPenalty: -2 },
+          adolescent: { max: 17, statPenalty: -1 },
+          adult: { max: 50, statPenalty: 0 },
+          middleAged: { max: 70, statPenalty: -1 },
+          elderly: { max: 90, statPenalty: -2 }
+        }
+      };
+    case 'elf':
+    case 'eladrin':
+      return {
+        categories: {
+          child: { max: 80, sizeModifier: 'Small', statPenalty: -2 },
+          adolescent: { max: 99, statPenalty: -1 },
+          adult: { max: 400, statPenalty: 0 },
+          middleAged: { max: 600, statPenalty: -1 },
+          elderly: { max: 800, statPenalty: -2 }
+        }
+      };
+    case 'dwarf':
+    case 'duergar':
+      return {
+        categories: {
+          child: { max: 35, sizeModifier: 'Small', statPenalty: -2 },
+          adolescent: { max: 49, statPenalty: -1 },
+          adult: { max: 200, statPenalty: 0 },
+          middleAged: { max: 300, statPenalty: -1 },
+          elderly: { max: 400, statPenalty: -2 }
+        }
+      };
+    case 'halfling':
+      return {
+        categories: {
+          child: { max: 15, sizeModifier: 'Tiny', statPenalty: -2 },
+          adolescent: { max: 19, statPenalty: -1 },
+          adult: { max: 80, statPenalty: 0 },
+          middleAged: { max: 120, statPenalty: -1 },
+          elderly: { max: 160, statPenalty: -2 }
+        }
+      };
+    case 'gnome':
+      return {
+        categories: {
+          child: { max: 30, sizeModifier: 'Tiny', statPenalty: -2 },
+          adolescent: { max: 39, statPenalty: -1 },
+          adult: { max: 275, statPenalty: 0 },
+          middleAged: { max: 400, statPenalty: -1 },
+          elderly: { max: 550, statPenalty: -2 }
+        }
+      };
+    case 'dragonborn':
+      return {
+        categories: {
+          child: { max: 12, sizeModifier: 'Medium', statPenalty: -2 },
+          adolescent: { max: 14, statPenalty: -1 },
+          adult: { max: 45, statPenalty: 0 },
+          middleAged: { max: 65, statPenalty: -1 },
+          elderly: { max: 90, statPenalty: -2 }
+        }
+      };
+    case 'orc':
+      return {
+        categories: {
+          child: { max: 9, sizeModifier: 'Medium', statPenalty: -2 },
+          adolescent: { max: 11, statPenalty: -1 },
+          adult: { max: 30, statPenalty: 0 },
+          middleAged: { max: 40, statPenalty: -1 },
+          elderly: { max: 55, statPenalty: -2 }
+        }
+      };
+    case 'tiefling':
+    case 'aasimar':
+      return {
+        categories: {
+          child: { max: 12, sizeModifier: 'Small', statPenalty: -2 },
+          adolescent: { max: 17, statPenalty: -1 },
+          adult: { max: 55, statPenalty: 0 },
+          middleAged: { max: 80, statPenalty: -1 },
+          elderly: { max: 110, statPenalty: -2 }
+        }
+      };
+    case 'air_genasi':
+    case 'earth_genasi':
+    case 'fire_genasi':
+    case 'water_genasi':
+      return {
+        categories: {
+          child: { max: 12, sizeModifier: 'Small', statPenalty: -2 },
+          adolescent: { max: 17, statPenalty: -1 },
+          adult: { max: 65, statPenalty: 0 },
+          middleAged: { max: 95, statPenalty: -1 },
+          elderly: { max: 130, statPenalty: -2 }
+        }
+      };
+    case 'goliath':
+      return {
+        categories: {
+          child: { max: 12, sizeModifier: 'Medium', statPenalty: -2 },
+          adolescent: { max: 14, statPenalty: -1 },
+          adult: { max: 45, statPenalty: 0 },
+          middleAged: { max: 65, statPenalty: -1 },
+          elderly: { max: 90, statPenalty: -2 }
+        }
+      };
+    case 'firbolg':
+      return {
+        categories: {
+          child: { max: 25, sizeModifier: 'Medium', statPenalty: -2 },
+          adolescent: { max: 29, statPenalty: -1 },
+          adult: { max: 275, statPenalty: 0 },
+          middleAged: { max: 400, statPenalty: -1 },
+          elderly: { max: 550, statPenalty: -2 }
+        }
+      };
+    case 'bugbear':
+      return {
+        categories: {
+          child: { max: 12, sizeModifier: 'Medium', statPenalty: -2 },
+          adolescent: { max: 15, statPenalty: -1 },
+          adult: { max: 45, statPenalty: 0 },
+          middleAged: { max: 65, statPenalty: -1 },
+          elderly: { max: 90, statPenalty: -2 }
+        }
+      };
+    case 'goblin':
+      return {
+        categories: {
+          child: { max: 6, sizeModifier: 'Small', statPenalty: -2 },
+          adolescent: { max: 7, statPenalty: -1 },
+          adult: { max: 35, statPenalty: 0 },
+          middleAged: { max: 50, statPenalty: -1 },
+          elderly: { max: 65, statPenalty: -2 }
+        }
+      };
+    case 'githyanki':
+    case 'githzerai':
+      return {
+        categories: {
+          child: { max: 12, sizeModifier: 'Small', statPenalty: -2 },
+          adolescent: { max: 17, statPenalty: -1 },
+          adult: { max: 55, statPenalty: 0 },
+          middleAged: { max: 80, statPenalty: -1 },
+          elderly: { max: 110, statPenalty: -2 }
+        }
+      };
+    case 'aarakocra':
+      return {
+        categories: {
+          child: { max: 12, sizeModifier: 'Small', statPenalty: -2 },
+          adolescent: { max: 14, statPenalty: -1 },
+          adult: { max: 20, statPenalty: 0 },
+          middleAged: { max: 25, statPenalty: -1 },
+          elderly: { max: 35, statPenalty: -2 }
+        }
+      };
+    case 'centaur':
+      return {
+        categories: {
+          child: { max: 12, sizeModifier: 'Large', statPenalty: -2 },
+          adolescent: { max: 17, statPenalty: -1 },
+          adult: { max: 55, statPenalty: 0 },
+          middleAged: { max: 80, statPenalty: -1 },
+          elderly: { max: 110, statPenalty: -2 }
+        }
+      };
+    case 'fairy':
+      return {
+        categories: {
+          child: { max: 50, sizeModifier: 'Tiny', statPenalty: -2 },
+          adolescent: { max: 99, statPenalty: -1 },
+          adult: { max: 550, statPenalty: 0 },
+          middleAged: { max: 800, statPenalty: -1 },
+          elderly: { max: 1100, statPenalty: -2 }
+        }
+      };
+    case 'changeling':
+      return {
+        categories: {
+          child: { max: 12, sizeModifier: 'Small', statPenalty: -2 },
+          adolescent: { max: 14, statPenalty: -1 },
+          adult: { max: 45, statPenalty: 0 },
+          middleAged: { max: 65, statPenalty: -1 },
+          elderly: { max: 90, statPenalty: -2 }
+        }
+      };
+    default:
+      return {
+        categories: {
+          child: { max: 12, statPenalty: -2 },
+          adolescent: { max: 17, statPenalty: -1 },
+          adult: { max: 55, statPenalty: 0 },
+          middleAged: { max: 80, statPenalty: -1 },
+          elderly: { max: 110, statPenalty: -2 }
+        }
+      };
+  }
+};
+
+const getAgeCategoryForAssembly = (age: number, ageData: any) => {
+  if (age <= ageData.categories.child.max) return ageData.categories.child;
+  if (age <= ageData.categories.adolescent.max) return ageData.categories.adolescent;
+  if (age <= ageData.categories.adult.max) return ageData.categories.adult;
+  if (age <= ageData.categories.middleAged.max) return ageData.categories.middleAged;
+  return ageData.categories.elderly;
+};
+
 function validateAllSelectionsMade(state: CharacterCreationState): boolean {
   const {
     selectedRace, selectedClass, finalAbilityScores, baseAbilityScores,
@@ -170,9 +383,9 @@ function assembleCastingProperties(state: CharacterCreationState): {
 
 
 function assembleFinalSkills(state: CharacterCreationState): Skill[] {
-    const { selectedRace, selectedSkills, racialSelections } = state;
-    const BUGBEAR_AUTO_SKILL_ID = 'stealth'; 
-    let finalSkillsList: Skill[] = [...selectedSkills]; 
+    const { selectedRace, selectedSkills, racialSelections, selectedBackground } = state;
+    const BUGBEAR_AUTO_SKILL_ID = 'stealth';
+    let finalSkillsList: Skill[] = [...selectedSkills];
 
     const humanSkillId = racialSelections['human']?.skillIds?.[0];
     if (selectedRace?.id === 'human' && humanSkillId) {
@@ -193,6 +406,15 @@ function assembleFinalSkills(state: CharacterCreationState): Skill[] {
         changelingSkillIds.forEach(skillId => {
             const instinctSkill = SKILLS_DATA[skillId];
             if (instinctSkill) finalSkillsList.push(instinctSkill);
+        });
+    }
+
+    // Add background skill proficiencies
+    if (selectedBackground && BACKGROUNDS[selectedBackground]) {
+        const background = BACKGROUNDS[selectedBackground];
+        background.skillProficiencies.forEach(skillId => {
+            const skill = SKILLS_DATA[skillId];
+            if (skill) finalSkillsList.push(skill);
         });
     }
 
@@ -225,13 +447,14 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       id: `${Date.now()}-${(currentName || "char").replace(/\s+/g, '-')}`,
       name: currentName || "Adventurer",
       age: currentState.characterAge,
+      background: currentState.selectedBackground || undefined,
       level: 1,
       xp: 0,
       proficiencyBonus: 2,
       race: selectedRace,
       class: finalClass,
-      abilityScores: baseAbilityScores, 
-      finalAbilityScores, 
+      abilityScores: baseAbilityScores,
+      finalAbilityScores,
       skills: assembleFinalSkills(currentState),
       hp: calculateCharacterMaxHp(selectedClass, finalAbilityScores, selectedRace),
       maxHp: calculateCharacterMaxHp(selectedClass, finalAbilityScores, selectedRace),
@@ -242,7 +465,7 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       selectedWeaponMasteries: currentState.selectedWeaponMasteries || [],
       feats: currentState.selectedFeat ? [currentState.selectedFeat] : [],
       featChoices: currentState.featChoices || {},
-      equippedItems: {}, 
+      equippedItems: {},
       ...castingProperties,
       selectedFightingStyle: currentState.selectedFightingStyle || undefined,
       selectedDivineOrder: currentState.selectedDivineOrder || undefined,
@@ -250,6 +473,38 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       selectedWarlockPatron: currentState.selectedWarlockPatron || undefined,
       racialSelections: currentState.racialSelections,
     };
+
+    // Apply age-based modifications
+    if (currentState.characterAge) {
+      const ageData = getAgeDataForAssembly(selectedRace.id);
+      const ageCategory = getAgeCategoryForAssembly(currentState.characterAge, ageData);
+
+      if (ageCategory.statPenalty !== 0) {
+        // Apply stat penalty to all ability scores
+        const modifiedAbilityScores = { ...assembledCharacter.abilityScores };
+        const modifiedFinalAbilityScores = { ...assembledCharacter.finalAbilityScores };
+
+        (Object.keys(modifiedAbilityScores) as Array<keyof typeof modifiedAbilityScores>).forEach(key => {
+          modifiedAbilityScores[key] = Math.max(1, modifiedAbilityScores[key] + ageCategory.statPenalty);
+          modifiedFinalAbilityScores[key] = Math.max(1, modifiedFinalAbilityScores[key] + ageCategory.statPenalty);
+        });
+
+        assembledCharacter.abilityScores = modifiedAbilityScores;
+        assembledCharacter.finalAbilityScores = modifiedFinalAbilityScores;
+
+        // Recalculate HP with modified stats
+        assembledCharacter.hp = calculateCharacterMaxHp(selectedClass, modifiedFinalAbilityScores, selectedRace);
+        assembledCharacter.maxHp = calculateCharacterMaxHp(selectedClass, modifiedFinalAbilityScores, selectedRace);
+
+        // Recalculate AC if it depends on Dex modifier
+        assembledCharacter.armorClass = 10 + getAbilityModifierValue(modifiedFinalAbilityScores.Dexterity);
+      }
+
+      // Apply size modifier for children
+      if (ageCategory.sizeModifier) {
+        assembledCharacter.ageSizeOverride = ageCategory.sizeModifier as any;
+      }
+    }
 
     // Apply feat benefits after the baseline character is assembled so derived stats update.
     if (assembledCharacter.feats && assembledCharacter.feats.length > 0) {

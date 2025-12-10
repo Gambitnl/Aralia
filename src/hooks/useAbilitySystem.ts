@@ -410,7 +410,29 @@ export const useAbilitySystem = ({
 
         if (ability.type === 'attack') {
           // Task 09: Attack Roll Implementation
-          const d20 = rollDice('1d20');
+
+          // Check for Disadvantage from target's active effects (e.g., Protection from Evil and Good)
+          const hasDisadvantage = target.activeEffects?.some(e =>
+            e.type === 'disadvantage_on_attacks' &&
+            SpellCommandFactory.matchesFilter(caster, e.attackerFilter)
+          );
+
+          let d20 = rollDice('1d20');
+          if (hasDisadvantage) {
+            const d20_second = rollDice('1d20');
+            d20 = Math.min(d20, d20_second);
+            if (onLogEntry) {
+              onLogEntry({
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'status',
+                message: `Attack has Disadvantage! (Rolled ${d20})`,
+                characterId: caster.id,
+                targetIds: [targetId]
+              });
+            }
+          }
+
           const strMod = Math.floor((caster.stats.strength - 10) / 2);
           const dexMod = Math.floor((caster.stats.dexterity - 10) / 2);
 
@@ -542,7 +564,7 @@ export const useAbilitySystem = ({
   }, [onExecuteAction, characters, applyAbilityEffects, onCharacterUpdate, cancelTargeting, executeSpell, onLogEntry, onAbilityEffect]);
 
   const executeAbility = useCallback((...args: Parameters<typeof executeAbilityInternal>) => {
-    executeAbilityInternal(...args);
+    return executeAbilityInternal(...args);
   }, [executeAbilityInternal]);
 
 
@@ -652,6 +674,7 @@ export const useAbilitySystem = ({
     previewAoE,
     isValidTarget,
     executeSpell,
+    executeAbility,
 
     dropConcentration,
     pendingReaction,

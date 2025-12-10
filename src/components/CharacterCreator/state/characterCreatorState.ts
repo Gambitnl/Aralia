@@ -28,6 +28,8 @@ import { calculateFixedRacialBonuses, evaluateFeatPrerequisites } from '../../..
 // --- Enums and Types ---
 export enum CreationStep {
   Race,
+  AgeSelection,
+  BackgroundSelection,
   DragonbornAncestry,
   ElvenLineage,
   GnomeSubrace,
@@ -81,6 +83,7 @@ export interface CharacterCreationState {
   };
   characterName: string;
   characterAge: number;
+  selectedBackground: string | null;
   featStepSkipped?: boolean;
 }
 
@@ -119,6 +122,7 @@ export type CharacterCreatorAction =
   | { type: 'CONFIRM_FEAT_STEP' }
   | { type: 'SET_CHARACTER_NAME'; payload: string }
   | { type: 'SET_CHARACTER_AGE'; payload: number }
+  | { type: 'SELECT_BACKGROUND'; payload: string }
   | { type: 'GO_BACK' };
 
 // --- Initial State ---
@@ -142,12 +146,21 @@ export const initialCharacterCreatorState: CharacterCreationState = {
   featChoices: {},
   characterName: '',
   characterAge: 25, // Default age
+  selectedBackground: null,
   featStepSkipped: false,
 };
 
 // --- Reducer Helper Functions ---
 
 function determineNextStepAfterRace(race: Race): CreationStep {
+  return CreationStep.AgeSelection;
+}
+
+function determineNextStepAfterAge(age: number, race: Race): CreationStep {
+  return CreationStep.BackgroundSelection;
+}
+
+function determineNextStepAfterBackground(race: Race): CreationStep {
   if (race.id === 'dragonborn') return CreationStep.DragonbornAncestry;
   if (race.id === 'elf') return CreationStep.ElvenLineage;
   if (race.id === 'gnome') return CreationStep.GnomeSubrace;
@@ -265,7 +278,9 @@ interface StepDefinition {
 
 const stepDefinitions: Record<CreationStep, StepDefinition> = {
   [CreationStep.Race]: { previousStep: () => CreationStep.Race },
-  [CreationStep.DragonbornAncestry]: { previousStep: () => CreationStep.Race },
+  [CreationStep.AgeSelection]: { previousStep: () => CreationStep.Race },
+  [CreationStep.BackgroundSelection]: { previousStep: () => CreationStep.AgeSelection },
+  [CreationStep.DragonbornAncestry]: { previousStep: () => CreationStep.BackgroundSelection },
   [CreationStep.ElvenLineage]: { previousStep: () => CreationStep.Race },
   [CreationStep.GnomeSubrace]: { previousStep: () => CreationStep.Race },
   [CreationStep.GiantAncestry]: { previousStep: () => CreationStep.Race },
@@ -472,6 +487,8 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       return { ...state, characterName: action.payload };
     case 'SET_CHARACTER_AGE':
       return { ...state, characterAge: action.payload };
+    case 'SELECT_BACKGROUND':
+      return { ...state, selectedBackground: action.payload };
     case 'GO_BACK': {
       const currentStep = state.step;
       if (currentStep === CreationStep.Race) return state;

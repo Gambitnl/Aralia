@@ -103,6 +103,7 @@ export interface ActiveEffect {
   source: string;  // Spell ID or effect name
   description?: string;
   savingThrows?: SavingThrowAbility[];  // For advantage_on_saves
+  attackerFilter?: any; // TargetConditionFilter
 }
 
 export type AbilityType = 'attack' | 'spell' | 'skill' | 'movement' | 'utility';

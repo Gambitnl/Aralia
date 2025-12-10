@@ -256,6 +256,9 @@ export type TransportMode = 'foot' | 'mounted';
 export interface PlayerCharacter {
   id?: string;
   name: string;
+  age?: number;
+  ageSizeOverride?: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Gargantuan';
+  background?: string; // Background ID
   level?: number;
   xp?: number;
   proficiencyBonus?: number;
