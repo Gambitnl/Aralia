@@ -3,21 +3,11 @@
   "name": "Light",
   "level": 0,
   "school": "Evocation",
-  "classes": [
-    "Artificer",
-    "Bard",
-    "Cleric",
-    "Sorcerer",
-    "Wizard",
-    "Warlock - Celestial Patron"
-  ],
-  "tags": [
-    "utility",
-    "creation",
-    "light"
-  ],
-  "description": "You touch one object that is no larger than 10 feet in any dimension. Until the spell ends, the object sheds bright light in a 20-foot radius and dim light for an additional 20 feet.",
+  "classes": ["Bard", "Cleric", "Sorcerer", "Wizard"],
+  "description": "You touch one Large or smaller object that isn't being worn or carried by someone else. Until the spell ends, the object sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet. The light can be colored as you like. Covering the object with something opaque blocks the light. The spell ends if you cast it again.",
+  "tags": ["utility", "light", "cantrip"],
   "ritual": false,
+
   "castingTime": {
     "value": 1,
     "unit": "action",
@@ -25,29 +15,32 @@
       "type": "action"
     }
   },
+
   "range": {
     "type": "touch"
   },
+
   "components": {
     "verbal": true,
     "somatic": false,
     "material": true,
     "materialDescription": "a firefly or phosphorescent moss"
   },
+
   "duration": {
     "type": "timed",
     "value": 1,
     "unit": "hour",
     "concentration": false
   },
+
   "targeting": {
     "type": "single",
     "range": 5,
-    "validTargets": [
-      "objects"
-    ],
+    "validTargets": ["objects"],
     "lineOfSight": true
   },
+
   "effects": [
     {
       "type": "UTILITY",
@@ -57,14 +50,8 @@
       "condition": {
         "type": "always"
       },
-      "utilityType": "light",
-      "description": "Object sheds bright light in a 20-foot radius and dim light for an additional 20 feet.",
-      "light": {
-        "brightRadius": 20,
-        "dimRadius": 20,
-        "attachedTo": "target",
-        "color": "warm"
-      }
+      "utilityType": "other",
+      "description": "Object sheds Bright Light (20ft) and Dim Light (20ft)"
     }
   ]
 }
