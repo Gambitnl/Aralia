@@ -44,7 +44,12 @@ export class SummoningCommand extends BaseEffectCommand {
                 type: 'action',
                 message: `${caster.name} summons ${summonedChar.name}`,
                 characterId: caster.id,
-                data: { summonEffect: effect, summonedId: summonedChar.id, position: spawnPosition }
+                data: {
+                    summonEffect: effect,
+                    summonedId: summonedChar.id,
+                    position: spawnPosition,
+                    spellId: this.context.spellId
+                }
             })
         }
 
