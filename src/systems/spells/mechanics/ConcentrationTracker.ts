@@ -1,5 +1,5 @@
 import type { Spell } from '@/types/spells'
-import type { CombatCharacter, CombatState } from '@/types'
+import type { CombatCharacter, CombatState, ConcentrationState } from '@/types'
 import { DiceRoller } from './DiceRoller'
 
 /**
@@ -38,9 +38,37 @@ export class ConcentrationTracker {
     spell: Spell,
     gameState: CombatState
   ): CombatState {
-    // TODO: Implement in Phase 2
-    console.warn('ConcentrationTracker.startConcentration not yet implemented')
-    return gameState
+    // 1. Break existing concentration if any
+    let currentState = gameState
+    if (character.concentratingOn) {
+      currentState = this.breakConcentration(character, gameState)
+    }
+
+    // 2. Create new concentration state
+    const concentrationState: ConcentrationState = {
+      spellId: spell.id,
+      spellName: spell.name,
+      spellLevel: spell.level,
+      startedTurn: currentState.turnState.currentTurn,
+      effectIds: [], // Will be populated when effects are applied
+      canDropAsFreeAction: true
+    }
+
+    // 3. Apply to character
+    const newCharacters = currentState.characters.map(c => {
+      if (c.id === character.id) {
+        return {
+          ...c,
+          concentratingOn: concentrationState
+        }
+      }
+      return c
+    })
+
+    return {
+      ...currentState,
+      characters: newCharacters
+    }
   }
 
   /**
@@ -54,9 +82,44 @@ export class ConcentrationTracker {
     character: CombatCharacter,
     gameState: CombatState
   ): CombatState {
-    // TODO: Implement in Phase 2
-    console.warn('ConcentrationTracker.breakConcentration not yet implemented')
-    return gameState
+    if (!character.concentratingOn) {
+      return gameState
+    }
+
+    const effectIdsToRemove = new Set(character.concentratingOn.effectIds)
+
+    // Update characters:
+    // 1. Remove effects linked to this concentration
+    // 2. Remove concentration from the caster
+    const newCharacters = gameState.characters.map(c => {
+      let newC = c
+
+      // Remove effects if any match
+      if (c.statusEffects && c.statusEffects.length > 0 && effectIdsToRemove.size > 0) {
+        const remainingEffects = c.statusEffects.filter(e => !effectIdsToRemove.has(e.id))
+        if (remainingEffects.length !== c.statusEffects.length) {
+          newC = {
+            ...newC,
+            statusEffects: remainingEffects
+          }
+        }
+      }
+
+      // Remove concentration if it's the caster
+      if (c.id === character.id) {
+        newC = {
+          ...newC,
+          concentratingOn: undefined
+        }
+      }
+
+      return newC
+    })
+
+    return {
+      ...gameState,
+      characters: newCharacters
+    }
   }
 
   /**
