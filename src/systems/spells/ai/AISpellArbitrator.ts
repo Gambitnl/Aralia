@@ -244,9 +244,14 @@ Current Conditions:
     }
 
     private calculateSpellDC(caster: CombatCharacter): number {
-        // TODO: Get real stats when available
-        const spellcastingMod = 3
-        const proficiencyBonus = 2
+        const level = caster.level || 1
+        const proficiencyBonus = 2 + Math.floor(Math.max(0, level - 1) / 4)
+
+        // Identify spellcasting ability from class, default to Intelligence if unknown
+        const abilityName = caster.class?.spellcasting?.ability || 'Intelligence'
+        const score = (caster.stats[abilityName.toLowerCase() as keyof typeof caster.stats] || 10) as number
+        const spellcastingMod = Math.floor((score - 10) / 2)
+
         return 8 + proficiencyBonus + spellcastingMod
     }
 }
