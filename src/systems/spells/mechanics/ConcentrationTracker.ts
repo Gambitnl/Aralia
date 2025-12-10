@@ -1,5 +1,5 @@
 import type { Spell } from '@/types/spells'
-import type { CombatCharacter, CombatState } from '@/types'
+import type { CombatCharacter, CombatState, CombatLogEntry } from '@/types'
 import { DiceRoller } from './DiceRoller'
 
 /**
@@ -54,9 +54,59 @@ export class ConcentrationTracker {
     character: CombatCharacter,
     gameState: CombatState
   ): CombatState {
-    // TODO: Implement in Phase 2
-    console.warn('ConcentrationTracker.breakConcentration not yet implemented')
-    return gameState
+    // Return early if not concentrating
+    if (!character.concentratingOn) {
+      return gameState
+    }
+
+    const concentration = character.concentratingOn
+
+    // Create new characters array with updated character
+    const newCharacters = gameState.characters.map(c => {
+      if (c.id === character.id) {
+        // Deep copy character and remove concentration
+        const updatedChar = { ...c }
+        delete updatedChar.concentratingOn
+        return updatedChar
+      }
+      return c
+    })
+
+    // Filter out status effects tied to this concentration (from all characters)
+    // Concentration effects could be buffs on allies or debuffs on enemies
+    const effectIdsToRemove = new Set(concentration.effectIds)
+    const charactersWithEffectsRemoved = newCharacters.map(c => {
+        if (!c.statusEffects) return c;
+
+        const hasEffectsToRemove = c.statusEffects.some(effect => effectIdsToRemove.has(effect.id));
+        if (!hasEffectsToRemove) return c;
+
+        return {
+            ...c,
+            statusEffects: c.statusEffects.filter(effect => !effectIdsToRemove.has(effect.id))
+        }
+    })
+
+    // Remove active light sources tied to this spell
+    const newActiveLightSources = gameState.activeLightSources.filter(
+        ls => !(ls.casterId === character.id && ls.sourceSpellId === concentration.spellId)
+    )
+
+    // Add log entry
+    const logEntry: CombatLogEntry = {
+      id: crypto.randomUUID(),
+      timestamp: Date.now(),
+      type: 'status',
+      message: `${character.name} lost concentration on ${concentration.spellName}`,
+      characterId: character.id
+    }
+
+    return {
+      ...gameState,
+      characters: charactersWithEffectsRemoved,
+      activeLightSources: newActiveLightSources,
+      combatLog: [...gameState.combatLog, logEntry]
+    }
   }
 
   /**

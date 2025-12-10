@@ -638,7 +638,7 @@ describe('ScalingEngine', () => {
 ## Acceptance Criteria
 
 - [ ] SavingThrowResolver calculates saves with modifiers
-- [ ] ConcentrationTracker (stub for Phase 2, basic methods working)
+- [x] ConcentrationTracker (`breakConcentration` implemented, others pending)
 - [ ] ResistanceCalculator applies resistance/vulnerability/immunity
 - [ ] ScalingEngine scales by slot level and character level
 - [ ] DiceRoller rolls dice with advantage/disadvantage

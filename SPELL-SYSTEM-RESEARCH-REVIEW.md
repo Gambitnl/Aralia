@@ -60,7 +60,7 @@ This is a **design/research document**, not a current architecture document. It 
 | **AI DM Arbitration Layer** | ❌ Not built | N/A | Types defined ([spells.ts:406-418](src/types/spells.ts#L406-L418)), no service |
 | **AISpellArbitrator Service** | ❌ Not built | N/A | File does not exist |
 | **Material Tagging System** | ❌ Not built | N/A | BattleMapTile has no `material` field |
-| **Concentration Tracking** | ❌ Not built | N/A | Mentioned in types, not enforced in combat |
+| **Concentration Tracking** | ⚠️ Partially | [src/systems/spells/mechanics/ConcentrationTracker.ts](src/systems/spells/mechanics/ConcentrationTracker.ts) | `breakConcentration` implemented, enforcement logic pending |
 | **Resistance/Vulnerability** | ❌ Not built | N/A | Not implemented |
 | **Saving Throw System** | ⚠️ Partial | N/A | Types exist, execution logic incomplete |
 | **Hybrid Spells (Ice Knife)** | ⚠️ Partial | [src/types/spells.ts:210-214](src/types/spells.ts#L210-L214) | Type defined, no examples in data |
@@ -86,7 +86,7 @@ This is a **design/research document**, not a current architecture document. It 
 
 4. **"Only 1 concentration spell active at a time"** (Section 2.3.3)
    - Research describes correct D&D 5e rules
-   - **NOT ENFORCED** in current codebase
+   - **PARTIALLY ENFORCED** `breakConcentration` logic exists, but full enforcement pending
 
 5. **External Sources**
    - All web links cited (D&D Beyond, Red Blob Games, etc.) appear legitimate

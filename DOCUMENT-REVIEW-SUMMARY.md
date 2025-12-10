@@ -106,7 +106,7 @@ Comprehensive 400+ line review report with:
 | Targeting System | ✅ Implemented | [src/types/spells.ts:159-214](src/types/spells.ts#L159-L214) |
 | Scaling Formulas | ✅ Implemented | [src/commands/factory/SpellCommandFactory.ts:70-196](src/commands/factory/SpellCommandFactory.ts#L70-L196) |
 | AoE (all shapes) | ❌ Not built | Only circle exists |
-| Concentration | ❌ Not built | Types only |
+| Concentration | ⚠️ Partial | `breakConcentration` implemented |
 | AI Arbitration | ❌ Not built | Types only |
 | Material Tagging | ❌ Not built | Not in types |
 
