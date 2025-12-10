@@ -66,13 +66,20 @@ const mockSummonEffect = {
     duration: { type: 'special' }
 };
 
+// New mock effect without explicit statBlock but with formOptions
+const mockVariableSummonEffect = {
+    entityType: 'familiar',
+    formOptions: ['Cat', 'Frog', 'Owl'],
+    duration: { type: 'special' }
+};
+
 describe('useSummons Hook', () => {
     it('should initialize with empty summons', () => {
         const { result } = renderHook(() => useSummons());
         expect(result.current.summonedEntities).toEqual([]);
     });
 
-    it('should add a summon correctly', () => {
+    it('should add a summon correctly with explicit statBlock', () => {
         const { result } = renderHook(() => useSummons());
 
         let newSummon: CombatCharacter | undefined;
@@ -99,6 +106,92 @@ describe('useSummons Hook', () => {
             expect(newSummon.summonMetadata).toBeDefined();
             expect(newSummon.summonMetadata?.casterId).toBe(mockCaster.id);
         }
+    });
+
+    it('should select correct form based on formIndex when statBlock is missing', () => {
+        const { result } = renderHook(() => useSummons());
+
+        let catSummon: CombatCharacter | undefined;
+        let frogSummon: CombatCharacter | undefined;
+
+        // Index 0: Cat
+        act(() => {
+            catSummon = result.current.addSummon(
+                mockCaster,
+                mockSpell,
+                mockVariableSummonEffect,
+                { x: 2, y: 2 },
+                0
+            );
+        });
+
+        // Index 1: Frog
+        act(() => {
+            frogSummon = result.current.addSummon(
+                mockCaster,
+                mockSpell,
+                mockVariableSummonEffect,
+                { x: 3, y: 3 },
+                1
+            );
+        });
+
+        expect(result.current.summonedEntities).toHaveLength(2);
+
+        // Verify Cat
+        expect(catSummon).toBeDefined();
+        if (catSummon) {
+            expect(catSummon.name).toBe('Cat');
+            expect(catSummon.maxHP).toBe(2); // From template
+        }
+
+        // Verify Frog
+        expect(frogSummon).toBeDefined();
+        if (frogSummon) {
+            expect(frogSummon.name).toBe('Frog');
+            expect(frogSummon.maxHP).toBe(1); // From template
+        }
+    });
+
+    it('should fallback to first option if formIndex is invalid', () => {
+        const { result } = renderHook(() => useSummons());
+        let defaultSummon: CombatCharacter | undefined;
+
+        act(() => {
+            defaultSummon = result.current.addSummon(
+                mockCaster,
+                mockSpell,
+                mockVariableSummonEffect,
+                { x: 4, y: 4 },
+                99 // Invalid index
+            );
+        });
+
+        expect(defaultSummon).toBeDefined();
+        if (defaultSummon) {
+            // Should default to first option: Cat
+            expect(defaultSummon.name).toBe('Cat');
+        }
+    });
+
+    it('should warn and not summon if no statBlock and no valid form options', () => {
+        const { result } = renderHook(() => useSummons());
+        const consoleSpy = vi.spyOn(console, 'warn');
+
+        const invalidEffect = { entityType: 'unknown', duration: { type: 'special' } };
+
+        act(() => {
+             result.current.addSummon(
+                mockCaster,
+                mockSpell,
+                invalidEffect,
+                { x: 0, y: 0 }
+            );
+        });
+
+        expect(result.current.summonedEntities).toHaveLength(0);
+        expect(consoleSpy).toHaveBeenCalledWith("Attempted to summon entity without stat block definition.");
+        consoleSpy.mockRestore();
     });
 
     it('should remove a summon by id', () => {
