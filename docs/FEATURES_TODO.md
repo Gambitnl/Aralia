@@ -112,7 +112,17 @@ TODOs remain in this file when:
 
 ### 🔴 Priority 1: Data Integrity & Core Functionality
 
-4.  **[DONE]** **HOTFIX: Village Building Selection Logic** *(Completed)*
+5.  **[TODO]** **Canvas Rendering Initialization Error** *(Deployment Test 2025-11-26)*
+    *   **Issue**: `TypeError: Cannot read properties of undefined (reading 'canvas')` - PIXI/canvas fails to initialize
+    *   **Location**: Canvas/PIXI initialization code, game initialization hooks
+    *   **Impact**: CRITICAL - Blocking core game rendering functionality
+    *   **Investigation**:
+        - Check canvas/PIXI initialization order
+        - Verify rendering dependencies load correctly
+        - Ensure canvas element exists in DOM before access
+    *   **Related**: See [03-CANVAS-MAP.md](tasks/testing-overhaul/03-CANVAS-MAP.md) for testing coverage
+
+6.  **[DONE]** **HOTFIX: Village Building Selection Logic** *(Completed)*
     *   **Issue**: Nested building selection needs reverse iteration to prevent incorrect placement
     *   **Location**: `src/services/villageGenerator.ts` - building placement loop
     *   **Impact**: HIGH - Building layouts incorrect
@@ -120,19 +130,31 @@ TODOs remain in this file when:
 
 ### 🟡 Priority 2: Performance & UX Polish
 
+8.  **[TODO]** **Combat Log Anomalies After Initiative Reordering**
+    *   **Issue**: Turn-start guards trigger unexpectedly after initiative reordering
+    *   **Location**: Combat hooks / turn management system
+    *   **Impact**: MEDIUM - Unexpected behavior during combat
+    *   **Fix**: Capture and replay combat log anomalies to diagnose; review turn-start guard logic
+
 9.  **[TODO]** **Optimize Save Slot Metadata Operations** *(PR #15 Performance)*
     *   **Issue**: Inefficient read-sort-filter pattern on every metadata operation
     *   **Location**: `src/services/saveLoadService.ts`
     *   **Impact**: LOW - Performance degrades with many saves
     *   **Fix**: Cache metadata, only refresh on write operations
 
-10. **[DONE]** **Combat Hook Performance Optimizations** *(Completed)*
+10. **[TODO]** **AI AoE Sampling Performance Hotspots**
+    *   **Issue**: AI AoE sampling may have performance hotspots; reachability and AoE tile sets recalculated each evaluation
+    *   **Location**: AI combat evaluation / AoE targeting system
+    *   **Impact**: LOW - Potential performance degradation during AI turns
+    *   **Fix**: Profile AI AoE sampling; consider caching reachability and AoE tile sets per ability per turn
+
+11. **[DONE]** **Combat Hook Performance Optimizations** *(Completed)*
     *   **Issue**: Missing `useCallback`/`useMemo` opportunities in battle map hooks
     *   **Location**: `src/hooks/combat/useTurnManager.ts`
     *   **Impact**: LOW - Unnecessary re-renders during combat
     *   **Fix**: Added 15+ `useCallback` calls and multiple `useMemo` calls with proper dependency arrays
 
-11. **[DONE]** **Remove Dead Code from Village Generator** *(Completed)*
+12. **[DONE]** **Remove Dead Code from Village Generator** *(Completed)*
     *   **Issue**: Plaza boost logic that never executes
     *   **Location**: `src/services/villageGenerator.ts`
     *   **Impact**: LOW - Code clarity
@@ -142,41 +164,41 @@ TODOs remain in this file when:
 
 *Lane 1 (Core Types & Game Systems) only completed 1 of 7 assigned tasks. The following remain:*
 
-12. **[TODO]** **Feat System Integration** *(Lane 1 Incomplete)*
+13. **[TODO]** **Feat System Integration** *(Lane 1 Incomplete)*
     *   Create feat data structures in `src/data/feats/`
     *   Add feat slots to `PlayerCharacter` type
     *   Create `FeatSelection.tsx` component for character creation
     *   Integrate feat effects into character stats
 
-13. **[TODO]** **Character Age Selection** *(Lane 1 Incomplete)*
+14. **[TODO]** **Character Age Selection** *(Lane 1 Incomplete)*
     *   Add `age` field to `PlayerCharacter` type
     *   Define logical age ranges for each race
     *   Add age selection step to CharacterCreator
 
-14. **[TODO]** **Quest System Implementation** *(Lane 1 Incomplete)*
+15. **[TODO]** **Quest System Implementation** *(Lane 1 Incomplete)*
     *   Define Quest, QuestObjective, QuestReward types
     *   Implement quest tracking in `questReducer`
     *   Create QuestLogOverlay component
     *   Add quest completion rewards
 
-15. **[TODO]** **Item Containers & Comparison UI** *(Lane 1 Incomplete)*
+16. **[TODO]** **Item Containers & Comparison UI** *(Lane 1 Incomplete)*
     *   Add container properties to Item type
     *   Implement nested inventory logic
     *   Create ItemComparisonTooltip component
 
-16. **[TODO]** **NPC Routines & Factions** *(Lane 1 Incomplete)*
+17. **[TODO]** **NPC Routines & Factions** *(Lane 1 Incomplete)*
     *   Add faction and dailyRoutine to NPC type
     *   Define faction data structures
     *   Implement routine scheduling system
 
-17. **[TODO]** **Notification System** *(Lane 1 Incomplete)*
+18. **[TODO]** **Notification System** *(Lane 1 Incomplete)*
     *   Add notifications array to GameState
     *   Create NotificationToast component
     *   Replace all `alert()` calls with notification dispatches
 
 ### 🧹 Priority 4: Incomplete Lane 5 Cleanup
 
-18. **[DONE]** **Delete Obsolete Component Files** *(Completed)*
+19. **[DONE]** **Delete Obsolete Component Files** *(Completed)*
     *   Delete `src/components/PlayerPane.tsx` ✅
     *   Delete `src/components/StartScreen.tsx` ✅
     *   Delete `src/components/Spellbook.tsx` ✅
@@ -185,11 +207,11 @@ TODOs remain in this file when:
     *   Delete `src/hooks/OLD_useGameActions.ts` ✅
     *   Delete obsolete racial spellcasting components (4 files) ✅
 
-19. **[TODO]** **Delete Obsolete Documentation Files** *(Lane 5 Incomplete)*
+20. **[TODO]** **Delete Obsolete Documentation Files** *(Lane 5 Incomplete)*
     *   Delete corresponding README files for above components
     *   Update `docs/@README-INDEX.md` to remove references
 
-20. **[TODO]** **Verify No Import References Remain** *(Lane 5 Incomplete)*
+21. **[TODO]** **Verify No Import References Remain** *(Lane 5 Incomplete)*
     *   Global search for imports of deleted files
     *   Remove any remaining import statements
     *   Test application build

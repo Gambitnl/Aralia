@@ -102,14 +102,36 @@ from code reviews and feature planning. Each item is rated by urgency/impact and
         3.  Refactor the `getFieldsToResetOnGoBack` helper function to be more granular, only resetting the state for the step being exited, rather than all subsequent steps. This is a complex change that requires careful dependency mapping.
     *   **Status**: PENDING
 
-4.  **[Low Urgency - Performance] Monitor Submap Hover Effects (Review Rec #6)**:
+4.  **[Low Urgency - UX] Character Creator Feat Step Feedback**:
+    *   **Description**: When the feat step is automatically skipped (e.g., race doesn't grant a feat), players may be confused about why they bypassed that screen.
+    *   **Approach**:
+        1.  Add a banner/notification when the feat step is skipped explaining why (e.g., "Feat selection skipped - your race does not grant a bonus feat").
+        2.  Add a UI confirmation toast after using the Skip control to confirm the feat choice was intentionally cleared.
+    *   **Status**: PENDING
+
+5.  **[Low Urgency - UX] Point-Buy Ability Score Feedback Enhancement**:
+    *   **Description**: When players have remaining points but can't afford certain scores, it's unclear which scores are unaffordable.
+    *   **Approach**:
+        1.  Highlight the first unaffordable ability score in the point-buy UI.
+        2.  Add visual feedback (e.g., greyed out increment button, tooltip) to reduce scanning when points remain but are insufficient.
+    *   **Status**: PENDING
+
+6.  **[Low Urgency - Code Quality] CharacterCreator exhaustive-deps Coverage**:
+    *   **Description**: Expand exhaustive-deps linting coverage across CharacterCreator callbacks to keep lint noise low and dependencies explicit.
+    *   **Approach**:
+        1.  Review all `useCallback` and `useMemo` hooks in CharacterCreator components.
+        2.  Ensure dependency arrays are complete and accurate.
+        3.  Address any eslint-disable comments for exhaustive-deps.
+    *   **Status**: PENDING
+
+7.  **[Low Urgency - Performance] Monitor Submap Hover Effects (Review Rec #6)**:
     *   **Description**: The CSS `transform: scale(1.5)` on submap tile hover is visually appealing but can be performance-intensive on large grids, as it may trigger repaints on adjacent elements.
     *   **Approach**:
         1.  Use browser developer tools (Performance tab) to check for paint/layout shifts during hover events on the submap.
         2.  If performance degradation is noticeable, consider replacing the `transform` with a less intensive property like `filter: brightness(1.2)` or a `box-shadow` transition, which are often better optimized by browsers.
     *   **Status**: PENDING
 
-5.  **[Low Urgency - State Management] Reducer Complexity (Future) (Review Rec #7)**:
+8.  **[Low Urgency - State Management] Reducer Complexity (Future) (Review Rec #7)**:
     *   **Description**: As more features are added, the main `appReducer` could become very large. Planning for this complexity is good practice.
     *   **Approach**:
         1.  When `appReducer` exceeds a certain line count or logical complexity (e.g., 300+ lines), consider splitting it.
@@ -117,7 +139,7 @@ from code reviews and feature planning. Each item is rated by urgency/impact and
         3.  Create a root reducer that combines these slice reducers to manage the overall `GameState` object.
     *   **Status**: PENDING (Future consideration)
 
-6.  **[DONE] [Low Urgency - Documentation] Scrub `@README-INDEX.md` (Review Rec #9)**:
+9.  **[DONE] [Low Urgency - Documentation] Scrub `@README-INDEX.md` (Review Rec #9)**:
     *   **Description**: With ongoing refactoring, links in the documentation index can become outdated.
     *   **Approach**:
         1.  Periodically (e.g., after every major feature merge), review every link in `docs/@README-INDEX.md`.
@@ -125,14 +147,14 @@ from code reviews and feature planning. Each item is rated by urgency/impact and
         3.  Update or remove any broken or incorrect entries.
     *   **Status**: DONE *(PR #16 - Added placeholder back for race selection READMEs after PR #13 cleanup)*
 
-7.  **[DONE] [Low Urgency - Documentation] Ensure Hook READMEs are Current (Review Rec #10)**:
+10.  **[DONE] [Low Urgency - Documentation] Ensure Hook READMEs are Current (Review Rec #10)**:
     *   **Description**: The custom hooks are the core of the application's logic. Their documentation must be kept accurate.
     *   **Approach**:
         1.  After any significant change to a custom hook in `src/hooks/`, immediately update its corresponding README file.
         2.  Ensure the "Props" (or dependencies), "Return Value," and "Core Functionality" sections accurately reflect the new logic.
     *   **Status**: DONE *(PR #16 - Updated 3 hook READMEs: useGameActions, useGameInitialization, useSubmapProceduralData)*
 
-8.  **[Low Urgency - UI Polish] UI Button Consistency (Existing #12, still valid)**:
+11.  **[Low Urgency - UI Polish] UI Button Consistency (Existing #12, still valid)**:
     *   **Description**: While generally consistent, minor variations in button padding, font size, or hover/focus states may exist across the app, particularly in multi-step processes like character creation.
     *   **Approach**:
         1.  Perform a visual audit of all buttons in the application.
@@ -140,14 +162,14 @@ from code reviews and feature planning. Each item is rated by urgency/impact and
         3.  Apply these base classes consistently to ensure a uniform look and feel.
     *   **Status**: PENDING
 
-9.  **[Low Urgency - UI Polish] Refine Tooltip.tsx Positioning (Existing #13, still valid)**:
+12.  **[Low Urgency - UI Polish] Refine Tooltip.tsx Positioning (Existing #13, still valid)**:
     *   **Description**: The `Tooltip.tsx` component's positioning logic is robust for most cases but might have edge cases where it appears slightly off-screen or awkwardly placed when the trigger element is at the very edge of the viewport.
     *   **Approach**:
         1.  Intentionally test the tooltip by placing trigger elements at the extreme corners and edges of the screen.
         2.  If issues are found, refine the `calculateAndSetPosition` function in `Tooltip.tsx`. This might involve adding more margin from the viewport edge or more sophisticated logic to choose between top/bottom/left/right placement.
     *   **Status**: PENDING (Currently considered stable)
 
-10. **[Low Urgency - Future Consideration] Performance Review of App.tsx Callbacks (Existing #15, still valid)**:
+13. **[Low Urgency - Future Consideration] Performance Review of App.tsx Callbacks (Existing #15, still valid)**:
     *   **Description**: `App.tsx` and its hooks use `useCallback` to memoize functions. Incorrect or overly broad dependency arrays can lead to unnecessary re-renders of child components.
     *   **Approach**:
         1.  Use the React DevTools Profiler to identify components that are re-rendering unexpectedly.
@@ -155,16 +177,47 @@ from code reviews and feature planning. Each item is rated by urgency/impact and
         3.  Ensure the dependency array is minimal and only includes values that should actually trigger the callback's re-creation. This is a low-priority task unless performance issues are observed.
     *   **Status**: PENDING (Future consideration)
 
-11. **[Low Urgency - Documentation] Add Hook Lifecycle Diagrams**:
+14. **[Low Urgency - Documentation] Add Hook Lifecycle Diagrams**:
     *   **Description**: Hook interactions (initialization, combat, audio) can be complex. Visual diagrams would help developers understand the expected sequencing and state ownership.
     *   **Approach**:
         1.  Create diagrams showing the lifecycle and dependencies of key hooks (`useGameInitialization`, `useGameActions`, `useBattleMap`, `useAudio`).
         2.  Add these diagrams to the relevant hook README files or a dedicated `docs/diagrams/` directory.
     *   **Status**: PENDING
 
-12. **[Low Urgency - Architecture] Define Styling Source-of-Truth Policy**:
+15. **[Low Urgency - Architecture] Define Styling Source-of-Truth Policy**:
     *   **Description**: Clarify when to use Tailwind utilities versus `src/index.css` and `public/styles.css` overrides.
     *   **Approach**:
         1.  Document a clear policy in `docs/@DOCUMENTATION-GUIDE.md` or a new `STYLING_GUIDE.md`.
         2.  Guidelines should cover: when to use inline Tailwind classes, when to add custom utilities to `index.css`, and when `styles.css` overrides are appropriate.
+    *   **Status**: PENDING
+
+16. **[Low Urgency - Code Quality] Consolidate Action-Economy Reset Logic**:
+    *   **Description**: Action-economy reset logic (resetting actions, bonus actions, reactions, movement at turn start) is currently coupled to the hook lifecycle, making it difficult to unit test independently.
+    *   **Approach**:
+        1.  Extract action-economy reset logic into a pure function (e.g., `resetActionEconomy(combatant)`) in a utility module.
+        2.  Write unit tests for the extracted function covering edge cases (e.g., conditions that affect action availability).
+        3.  Update the combat hook to call the extracted utility instead of inline logic.
+    *   **Status**: PENDING
+
+17. **[Low Urgency - QA] Cross-Browser Testing**:
+    *   **Description**: Ensure the application works consistently across major browsers.
+    *   **Approach**:
+        1.  Test on Chrome (latest), Firefox (latest), Safari (if available), Edge (latest).
+        2.  Document any browser-specific issues or workarounds needed.
+    *   **Status**: PENDING
+
+18. **[Low Urgency - QA] Mobile Responsiveness Check**:
+    *   **Description**: Verify UI scales appropriately on mobile devices and tablets.
+    *   **Approach**:
+        1.  Test on mobile device or DevTools mobile view.
+        2.  Test on tablet size viewport.
+        3.  Verify touch interactions work correctly.
+    *   **Status**: PENDING
+
+19. **[Low Urgency - QA] Console Error Clean-Up**:
+    *   **Description**: Achieve zero console errors/warnings on page load and during typical gameplay.
+    *   **Approach**:
+        1.  Fix any remaining canvas or initialization errors.
+        2.  Address any deprecation warnings.
+        3.  Verify no errors during typical gameplay flows.
     *   **Status**: PENDING

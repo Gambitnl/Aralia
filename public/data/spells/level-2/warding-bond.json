@@ -1,0 +1,64 @@
+{
+  "id": "warding-bond",
+  "name": "Warding Bond",
+  "level": 2,
+  "school": "Abjuration",
+  "classes": ["Cleric", "Paladin"],
+  "description": "You touch a willing creature to create a mystic link between you. While within 60 feet, the target gains +1 bonus to AC and saving throws, and resistance to all damage. Each time it takes damage, you take the same amount. The spell ends if you drop to 0 hit points, the target drops to 0 hit points, or if you and the target become separated by more than 60 feet.",
+  "higherLevels": "None",
+  "tags": ["abjuration", "defense", "link"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a pair of platinum rings worth at least 50 gp each, which you and the target must wear for the duration",
+    "materialCost": 100,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 5,
+    "validTargets": ["creatures", "allies"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DEFENSIVE",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "defenseType": "ac_bonus",
+      "value": 1,
+      "duration": { "type": "minutes", "value": 60 }
+    },
+    {
+      "type": "DEFENSIVE",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "defenseType": "resistance",
+      "damageType": ["All"],
+      "duration": { "type": "minutes", "value": 60 }
+    },
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "other",
+      "description": "While the link persists (within 60 ft), you take the same amount of damage the target takes. Ends if either drops to 0 HP or you exceed 60 ft separation."
+    }
+  ]
+}

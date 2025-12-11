@@ -1,0 +1,58 @@
+{
+  "id": "suggestion",
+  "name": "Suggestion",
+  "level": 2,
+  "school": "Enchantment",
+  "classes": ["Bard", "Cleric", "Druid", "Sorcerer", "Warlock", "Wizard"],
+  "description": "You suggest a course of activity (limited to a sentence or two) and magically influence a creature you can see within range that can hear and understand you. Creatures that can't be charmed are immune. The suggestion must sound reasonable. On a failed save, the target follows the described course of action as best it can. The suggestion ends if you or your companions damage the target.",
+  "higherLevels": "None",
+  "tags": ["enchantment", "control", "charm", "concentration"],
+  "arbitrationType": "ai_dm",
+  "aiContext": {
+    "prompt": "Evaluate the reasonableness of the suggestion '{playerInput}' given the situation. If reasonable, describe the target's compliance.",
+    "playerInputRequired": true,
+    "inputPrompt": "What is your suggestion?"
+  },
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": true,
+    "materialDescription": "a snake's tongue and either a bit of honeycomb or a drop of sweet oil"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 8,
+    "unit": "hour",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 30,
+    "validTargets": ["creatures"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "negates_condition",
+        "targetFilter": { "excludeCreatureTypes": ["Construct", "Undead"] }
+      },
+      "utilityType": "control",
+      "description": "On failed save, target follows the reasonable suggestion for up to 8 hours; ends if target is damaged or companions harm it."
+    }
+  ]
+}

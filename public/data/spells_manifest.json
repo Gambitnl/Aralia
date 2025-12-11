@@ -2007,7 +2007,7 @@
     "name": "Suggestion",
     "level": 2,
     "school": "Enchantment",
-    "path": "/data/spells/suggestion.json"
+    "path": "/data/spells/level-2/suggestion.json"
   },
   "sunbeam": {
     "name": "Sunbeam",
@@ -2229,7 +2229,7 @@
     "name": "Warding Bond",
     "level": 2,
     "school": "Abjuration",
-    "path": "/data/spells/warding-bond.json"
+    "path": "/data/spells/level-2/warding-bond.json"
   },
   "water-breathing": {
     "name": "Water Breathing",
@@ -2247,7 +2247,7 @@
     "name": "Web",
     "level": 2,
     "school": "Conjuration",
-    "path": "/data/spells/web.json"
+    "path": "/data/spells/level-2/web.json"
   },
   "weird": {
     "name": "Weird",
@@ -2301,6 +2301,6 @@
     "name": "Zone of Truth",
     "level": 2,
     "school": "Enchantment",
-    "path": "/data/spells/zone-of-truth.json"
+    "path": "/data/spells/level-2/zone-of-truth.json"
   }
 }

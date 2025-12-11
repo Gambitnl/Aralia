@@ -1,0 +1,75 @@
+{
+  "id": "web",
+  "name": "Web",
+  "level": 2,
+  "school": "Conjuration",
+  "classes": ["Sorcerer", "Wizard"],
+  "description": "You conjure a mass of thick, sticky webbing in a 20-foot cube anchored between solid masses or layered across a floor/wall. The webs are difficult terrain and lightly obscure the area. Each creature that starts its turn in the webs or enters them must make a Dexterity saving throw. On a failed save, the creature is restrained as long as it remains in the webs or until it breaks free. A restrained creature can use its action to make a Strength check against your spell save DC to break free. The webs are flammable; a 5-foot cube of webs that is ignited deals 2d4 fire damage to any creature starting its turn in the fire.",
+  "higherLevels": "None",
+  "tags": ["control", "terrain", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a bit of spiderweb"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "area",
+    "range": 60,
+    "validTargets": ["creatures"],
+    "areaOfEffect": { "shape": "Cube", "size": 20 },
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "TERRAIN",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "terrainType": "difficult",
+      "areaOfEffect": { "shape": "Cube", "size": 20 },
+      "duration": { "type": "minutes", "value": 60 }
+    },
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": { "type": "turn_start", "frequency": "every_time" },
+      "condition": {
+        "type": "save",
+        "saveType": "Dexterity",
+        "saveEffect": "negates_condition"
+      },
+      "statusCondition": {
+        "name": "Restrained",
+        "duration": { "type": "minutes", "value": 60 },
+        "escapeCheck": {
+          "ability": "Strength",
+          "dc": "spell_save_dc",
+          "actionCost": "action"
+        }
+      },
+      "description": "On a failed Dex save, a creature entering or starting its turn in the webs is restrained."
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "turn_start", "frequency": "every_time" },
+      "condition": { "type": "always" },
+      "damage": { "dice": "2d4", "type": "Fire" },
+      "description": "If a 5-foot cube of web is ignited, a creature starting its turn in that burning area takes fire damage."
+    }
+  ]
+}
