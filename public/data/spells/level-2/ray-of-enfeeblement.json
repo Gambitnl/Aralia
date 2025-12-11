@@ -1,0 +1,56 @@
+{
+  "id": "ray-of-enfeeblement",
+  "name": "Ray of Enfeeblement",
+  "level": 2,
+  "school": "Necromancy",
+  "classes": ["Warlock", "Wizard"],
+  "description": "A black beam of enervating energy springs from your finger toward a creature within range. Make a ranged spell attack; on a hit, the target deals only half damage with weapon attacks that use Strength until the spell ends. At the end of each of its turns, it can make a Constitution saving throw to end the effect.",
+  "higherLevels": "None",
+  "tags": ["debuff", "necromancy", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 60,
+    "validTargets": ["creatures", "enemies"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "hit" },
+      "utilityType": "control",
+      "description": "On a hit, target deals half damage with Str-based weapon attacks until spell ends. At the end of each of its turns, it can make a Con save to end.",
+      "statusCondition": {
+        "name": "Enfeebled",
+        "duration": { "type": "minutes", "value": 1 },
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Constitution",
+          "successEnds": true,
+          "useOriginalDC": true
+        }
+      }
+    }
+  ]
+}

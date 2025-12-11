@@ -1,0 +1,46 @@
+{
+  "id": "skywrite",
+  "name": "Skywrite",
+  "level": 2,
+  "school": "Transmutation",
+  "classes": ["Artificer", "Bard", "Druid", "Wizard"],
+  "description": "You cause up to ten words to form in the sky, made of clouds, lasting for the duration. The words are visible up to 50 miles away. The message dissipates if strong winds (at least 20 mph) disperse the clouds.",
+  "higherLevels": "None",
+  "tags": ["utility", "ritual", "transmutation"],
+  "ritual": true,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 0
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "point",
+    "range": 0,
+    "validTargets": ["point"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "communication",
+      "description": "Creates up to ten words of cloud-writing in the sky, visible up to 50 miles, lasting for the duration unless dispersed by strong wind."
+    }
+  ]
+}

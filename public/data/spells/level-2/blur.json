@@ -1,0 +1,45 @@
+{
+  "id": "blur",
+  "name": "Blur",
+  "level": 2,
+  "school": "Illusion",
+  "classes": ["Sorcerer", "Wizard"],
+  "description": "Your body becomes blurred, shifting and wavering to all who can see you. For the duration, any creature has disadvantage on attack rolls against you. An attacker is immune if it doesn’t rely on sight or can see through illusions.",
+  "higherLevels": "None",
+  "tags": ["defense", "illusion", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": ["self"],
+    "lineOfSight": false
+  },
+  "effects": [
+    {
+      "type": "DEFENSIVE",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "defenseType": "ac_bonus",
+      "duration": { "type": "minutes", "value": 1 },
+      "description": "Creatures have disadvantage on attack rolls against you; immune if they don’t rely on sight or can see through illusions."
+    }
+  ]
+}

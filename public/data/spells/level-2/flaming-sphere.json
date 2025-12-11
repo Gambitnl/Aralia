@@ -1,0 +1,63 @@
+{
+  "id": "flaming-sphere",
+  "name": "Flaming Sphere",
+  "level": 2,
+  "school": "Conjuration",
+  "classes": ["Druid", "Wizard"],
+  "description": "A 5-foot-diameter sphere of fire appears in an unoccupied space within range and lasts for the duration. Any creature that ends its turn within 5 feet of the sphere must make a Dexterity saving throw, taking 2d6 fire damage on a failed save, or half as much on a successful one. As a bonus action, you can move the sphere up to 30 feet; if you ram it into a creature, that creature makes the save against the sphere's damage. The sphere ignites flammable objects not worn or carried.",
+  "higherLevels": "Damage increases by 1d6 for each slot level above 2nd.",
+  "tags": ["damage", "fire", "area", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a bit of tallow, a pinch of brimstone, and a dusting of powdered iron"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "area",
+    "range": 60,
+    "validTargets": ["creatures"],
+    "areaOfEffect": { "shape": "Sphere", "size": 5 },
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "turn_end", "frequency": "every_time" },
+      "condition": {
+        "type": "always"
+      },
+      "damage": { "dice": "2d6", "type": "Fire" },
+      "description": "Creatures ending their turn within 5 feet of the sphere take damage (Dex save half).",
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d6" }
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "on_caster_action" },
+      "condition": {
+        "type": "save",
+        "saveType": "Dexterity",
+        "saveEffect": "half"
+      },
+      "damage": { "dice": "2d6", "type": "Fire" },
+      "description": "Bonus action ram: move sphere up to 30 feet; target makes Dex save, taking damage on fail or half on success.",
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d6" }
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "id": "magic-weapon",
+  "name": "Magic Weapon",
+  "level": 2,
+  "school": "Transmutation",
+  "classes": ["Artificer", "Paladin", "Wizard"],
+  "description": "You touch a nonmagical weapon. Until the spell ends, that weapon becomes magical and has a +1 bonus to attack and damage rolls.",
+  "higherLevels": "When cast with a slot of 4th level or higher, the bonus increases to +2. At 6th level or higher, the bonus increases to +3.",
+  "tags": ["buff", "transmutation", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action",
+    "combatCost": { "type": "bonus_action" }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 5,
+    "validTargets": ["objects", "weapons"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "other",
+      "description": "Weapon becomes magical and gains +1 to attack and damage rolls; bonus becomes +2 at slot 4th+ and +3 at slot 6th+."
+    }
+  ]
+}

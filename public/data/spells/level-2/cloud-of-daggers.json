@@ -1,0 +1,60 @@
+{
+  "id": "cloud-of-daggers",
+  "name": "Cloud of Daggers",
+  "level": 2,
+  "school": "Conjuration",
+  "classes": ["Bard", "Sorcerer", "Warlock", "Wizard"],
+  "description": "You fill the air with spinning daggers in a 5-foot cube centered on a point you choose within range. A creature takes slashing damage when it enters the area for the first time on a turn or starts its turn there.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 2d4 for each slot level above 2nd.",
+  "tags": ["damage", "area", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a sliver of glass"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "area",
+    "range": 60,
+    "validTargets": ["creatures"],
+    "areaOfEffect": { "shape": "Cube", "size": 5 },
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "on_enter_area",
+        "frequency": "first_per_turn"
+      },
+      "condition": { "type": "always" },
+      "damage": { "dice": "4d4", "type": "Slashing" },
+      "description": "A creature takes damage when it enters the area for the first time on a turn.",
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+2d4" }
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "on_end_turn_in_area", "frequency": "every_time" },
+      "condition": { "type": "always" },
+      "damage": { "dice": "4d4", "type": "Slashing" },
+      "description": "A creature takes damage when it starts/ends its turn in the area.",
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+2d4" }
+    }
+  ]
+}

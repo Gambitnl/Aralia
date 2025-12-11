@@ -1,0 +1,45 @@
+{
+  "id": "see-invisibility",
+  "name": "See Invisibility",
+  "level": 2,
+  "school": "Divination",
+  "classes": ["Bard", "Sorcerer", "Wizard"],
+  "description": "For the duration, you see invisible creatures and objects as if they were visible, and you can see into the Ethereal Plane. Ethereal creatures and objects appear ghostly and translucent.",
+  "higherLevels": "None",
+  "tags": ["divination", "utility"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a pinch of talc and a small sprinkling of powdered silver"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": ["self"],
+    "lineOfSight": false
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "sensory",
+      "description": "See invisible creatures/objects and into the Ethereal Plane for 1 hour."
+    }
+  ]
+}

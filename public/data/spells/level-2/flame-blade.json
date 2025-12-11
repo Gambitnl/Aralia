@@ -1,0 +1,50 @@
+{
+  "id": "flame-blade",
+  "name": "Flame Blade",
+  "level": 2,
+  "school": "Evocation",
+  "classes": ["Druid"],
+  "description": "You evoke a fiery blade in your free hand. It lasts for the duration. You can use your action to make a melee spell attack with the blade; on a hit, the target takes 3d6 fire damage. The blade sheds bright light in a 10-foot radius and dim light for an additional 10 feet.",
+  "higherLevels": "When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d6 for every two slot levels above 2nd.",
+  "tags": ["damage", "fire", "melee", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action",
+    "combatCost": { "type": "bonus_action" }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "leaf of sumac"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 10,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "melee",
+    "range": 5,
+    "validTargets": ["creatures", "enemies"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "on_caster_action" },
+      "condition": { "type": "hit" },
+      "damage": { "dice": "3d6", "type": "Fire" },
+      "scaling": {
+        "type": "custom",
+        "customFormula": "+1d6 at slot 4th and 6th"
+      },
+      "description": "Melee spell attack with the summoned blade deals fire damage."
+    }
+  ]
+}

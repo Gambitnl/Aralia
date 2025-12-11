@@ -1,0 +1,51 @@
+{
+  "id": "calm-emotions",
+  "name": "Calm Emotions",
+  "level": 2,
+  "school": "Enchantment",
+  "classes": ["Bard", "Cleric"],
+  "description": "You attempt to suppress strong emotions in a group. Each humanoid in a 20-foot-radius sphere centered on a point you choose within range makes a Charisma saving throw. On a failed save, choose: (1) suppress any effect causing a target to be charmed or frightened; or (2) make the target indifferent about creatures of your choice it is hostile toward. The effect ends if the target is attacked or witnesses harm to its allies.",
+  "higherLevels": "None",
+  "tags": ["enchantment", "control", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "area",
+    "range": 60,
+    "validTargets": ["humanoids"],
+    "areaOfEffect": { "shape": "Sphere", "size": 20 },
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Charisma",
+        "saveEffect": "negates_condition"
+      },
+      "utilityType": "control",
+      "description": "On failed save, you either suppress charm/fear effects or make targets indifferent to chosen creatures they are hostile toward (ends if they’re attacked or see harm to allies)."
+    }
+  ]
+}

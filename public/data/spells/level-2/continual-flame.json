@@ -1,0 +1,46 @@
+{
+  "id": "continual-flame",
+  "name": "Continual Flame",
+  "level": 2,
+  "school": "Evocation",
+  "classes": ["Artificer", "Cleric", "Wizard"],
+  "description": "A flame, equivalent in brightness to a torch, springs from an object you touch. The flame looks normal but creates no heat and does not consume oxygen. It can be covered or quenched like a normal flame. The spell ends if dispelled.",
+  "higherLevels": "None",
+  "tags": ["utility", "light"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "ruby dust worth 50 gp, sprinkled on the flame",
+    "materialCost": 50,
+    "isConsumed": true
+  },
+  "duration": {
+    "type": "until_dispelled",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 5,
+    "validTargets": ["objects"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "light",
+      "description": "Creates a heatless, oxygen-free flame on an object, shedding torch-like light until dispelled."
+    }
+  ]
+}

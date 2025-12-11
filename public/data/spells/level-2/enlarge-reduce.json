@@ -1,0 +1,51 @@
+{
+  "id": "enlarge-reduce",
+  "name": "Enlarge/Reduce",
+  "level": 2,
+  "school": "Transmutation",
+  "classes": ["Sorcerer", "Wizard"],
+  "description": "You cause a creature or object you can see within range to grow larger or smaller for the duration. Enlarge: size +1 category, advantage on Strength checks/saves, weapon attacks deal +1d4 damage. Reduce: size -1 category, disadvantage on Strength checks/saves, weapon attacks deal -1d4 damage. Target can make a Constitution saving throw at the end of each of its turns to end the effect.",
+  "higherLevels": "None",
+  "tags": ["transmutation", "buff", "debuff", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a pinch of iron powder"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 30,
+    "validTargets": ["creatures", "objects"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "negates_condition"
+      },
+      "utilityType": "control",
+      "description": "Choose Enlarge or Reduce. Enlarge: target size +1, adv on Str checks/saves, +1d4 weapon damage. Reduce: size -1, disadv on Str checks/saves, -1d4 weapon damage. Target repeats Con save at end of each turn to end."
+    }
+  ]
+}

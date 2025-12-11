@@ -1,0 +1,44 @@
+{
+  "id": "locate-animals-or-plants",
+  "name": "Locate Animals or Plants",
+  "level": 2,
+  "school": "Divination",
+  "classes": ["Bard", "Druid", "Ranger"],
+  "description": "Describe or name a specific kind of beast or plant. You sense the direction and distance to the closest creature or plant of that kind within 5 miles, if any are present.",
+  "higherLevels": "None",
+  "tags": ["divination", "detection", "ritual"],
+  "ritual": true,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" },
+    "explorationCost": { "value": 11, "unit": "minute" }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a bit of fur from a bloodhound"
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": ["self"],
+    "lineOfSight": false
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "information",
+      "description": "Learn direction and distance to the nearest beast or plant of the named kind within 5 miles."
+    }
+  ]
+}

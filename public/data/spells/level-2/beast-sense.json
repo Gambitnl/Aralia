@@ -1,0 +1,46 @@
+{
+  "id": "beast-sense",
+  "name": "Beast Sense",
+  "level": 2,
+  "school": "Divination",
+  "classes": ["Druid", "Ranger"],
+  "description": "You touch a willing beast and can use your action to see through its eyes and hear what it hears. While doing so, you gain its special senses and are deaf and blind to your own senses until you return to them.",
+  "higherLevels": "None",
+  "tags": ["divination", "ritual", "sensory"],
+  "ritual": true,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" },
+    "explorationCost": { "value": 1, "unit": "minute" }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": false,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 5,
+    "validTargets": ["beasts", "allies"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "sensory",
+      "description": "Use your action to see/hear through the beast's senses; you are deaf/blind to your own senses while doing so."
+    }
+  ]
+}

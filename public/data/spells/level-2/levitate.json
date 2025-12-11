@@ -1,0 +1,56 @@
+{
+  "id": "levitate",
+  "name": "Levitate",
+  "level": 2,
+  "school": "Transmutation",
+  "classes": ["Artificer", "Sorcerer", "Wizard"],
+  "description": "One creature or object you can see within range rises vertically up to 20 feet and remains suspended. The spell can affect an object up to 500 pounds. An unwilling creature that succeeds on a Constitution saving throw is unaffected. You can use your action to move the target up or down by up to 20 feet; if you are the target, you can move up to 20 feet as part of the same action.",
+  "higherLevels": "None",
+  "tags": ["control", "movement", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a small leather loop or a piece of golden wire bent into a cup shape"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 10,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 60,
+    "validTargets": ["creatures", "objects"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "MOVEMENT",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "negates_condition"
+      },
+      "movementType": "teleport",
+      "forcedMovement": {
+        "direction": "caster_choice",
+        "maxDistance": "20 ft vertical"
+      },
+      "duration": { "type": "minutes", "value": 10 },
+      "description": "Target rises up to 20 ft and remains suspended; you can adjust height by 20 ft as an action."
+    }
+  ]
+}

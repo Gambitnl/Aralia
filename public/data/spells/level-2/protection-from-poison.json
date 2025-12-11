@@ -1,0 +1,45 @@
+{
+  "id": "protection-from-poison",
+  "name": "Protection from Poison",
+  "level": 2,
+  "school": "Abjuration",
+  "classes": ["Cleric", "Druid", "Paladin", "Ranger"],
+  "description": "You touch a creature. If it is poisoned, you neutralize one poison affecting it. For the duration, the target has advantage on saving throws against being poisoned and resistance to poison damage.",
+  "higherLevels": "None",
+  "tags": ["abjuration", "protection"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 5,
+    "validTargets": ["creatures", "allies"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "other",
+      "description": "Neutralize one poison. Target gains advantage on saves vs poison and resistance to poison damage for 1 hour."
+    }
+  ]
+}

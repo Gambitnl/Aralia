@@ -1,0 +1,46 @@
+{
+  "id": "darkvision",
+  "name": "Darkvision",
+  "level": 2,
+  "school": "Transmutation",
+  "classes": ["Druid", "Ranger", "Sorcerer", "Wizard"],
+  "description": "You touch a willing creature to grant it the ability to see in dim light as if it were bright light, and in darkness as if it were dim light, out to a range of 60 feet. The target can’t discern color in darkness, only shades of gray.",
+  "higherLevels": "None",
+  "tags": ["utility", "transmutation", "vision"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "either a pinch of dried carrot or an agate"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 8,
+    "unit": "hour",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 5,
+    "validTargets": ["creatures", "allies"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "sensory",
+      "description": "Target gains darkvision to 60 feet; sees in dim as bright and darkness as dim (gray scale)."
+    }
+  ]
+}

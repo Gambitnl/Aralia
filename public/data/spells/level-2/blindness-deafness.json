@@ -1,0 +1,64 @@
+{
+  "id": "blindness-deafness",
+  "name": "Blindness/Deafness",
+  "level": 2,
+  "school": "Necromancy",
+  "classes": ["Bard", "Cleric", "Sorcerer", "Wizard"],
+  "description": "You can blind or deafen one creature you can see within range. The target makes a Constitution saving throw. On a failed save, the target is either blinded or deafened (your choice) for the duration. At the end of each of its turns, the target can make a Constitution saving throw. On a success, the spell ends.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, you can target one additional creature for each slot level above 2nd.",
+  "tags": ["debuff", "control", "necromancy"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "multi",
+    "range": 30,
+    "maxTargets": 1,
+    "validTargets": ["creatures", "enemies"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "negates_condition"
+      },
+      "statusCondition": {
+        "name": "Blinded/Deafened",
+        "duration": { "type": "minutes", "value": 1 },
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Constitution",
+          "successEnds": true,
+          "useOriginalDC": true
+        }
+      },
+      "description": "On a failed save, target is either blinded or deafened (your choice) for the duration; repeat Con save at end of each turn to end."
+    }
+  ],
+  "scaling": {
+    "type": "slot_level",
+    "bonusPerLevel": "+1 target"
+  }
+}

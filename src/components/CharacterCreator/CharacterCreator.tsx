@@ -72,14 +72,8 @@ const getNextStep = (state: any, selectedRace: any, racialSelections: any): Crea
     case CreationStep.AgeSelection:
       return CreationStep.BackgroundSelection;
     case CreationStep.BackgroundSelection:
-      // Logic based on determineNextStepAfterBackground from state file
-      if (selectedRace.id === 'dragonborn') return CreationStep.DragonbornAncestry;
-      if (selectedRace.id === 'elf') return CreationStep.ElvenLineage;
-      if (selectedRace.id === 'gnome') return CreationStep.GnomeSubrace;
-      if (selectedRace.id === 'goliath') return CreationStep.GiantAncestry;
-      if (selectedRace.id === 'tiefling') return CreationStep.TieflingLegacy;
-      if (selectedRace.id === 'centaur') return CreationStep.CentaurNaturalAffinitySkill;
-      if (selectedRace.id === 'changeling') return CreationStep.ChangelingInstincts;
+      // After background, always proceed to class selection.
+      // Race-specific steps are now handled immediately after race selection.
       return CreationStep.Class;
     default:
       return CreationStep.Class; // fallback

@@ -1,0 +1,51 @@
+{
+  "id": "spike-growth",
+  "name": "Spike Growth",
+  "level": 2,
+  "school": "Transmutation",
+  "classes": ["Druid", "Ranger"],
+  "description": "The ground in a 20-foot radius centered on a point within range twists into hard spikes and thorns. The area becomes difficult terrain. When a creature moves into or within the area, it takes 2d4 piercing damage for every 5 feet it travels. The transformation is camouflaged to look natural; a Perception check against your spell save DC reveals the area as hazardous.",
+  "higherLevels": "None",
+  "tags": ["control", "terrain", "damage", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 150
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "seven sharp thorns or seven small twigs, each sharpened to a point"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 10,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "area",
+    "range": 150,
+    "validTargets": ["creatures"],
+    "areaOfEffect": { "shape": "Sphere", "size": 20 },
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "TERRAIN",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "terrainType": "damaging",
+      "areaOfEffect": { "shape": "Sphere", "size": 20 },
+      "duration": { "type": "minutes", "value": 10 },
+      "damage": { "dice": "2d4", "type": "Piercing" },
+      "description": "Difficult terrain; creatures take damage per 5 ft traveled within the area; camouflaged (Perception vs save DC to notice)."
+    }
+  ]
+}

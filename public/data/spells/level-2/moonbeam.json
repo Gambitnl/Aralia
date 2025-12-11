@@ -1,0 +1,78 @@
+{
+  "id": "moonbeam",
+  "name": "Moonbeam",
+  "level": 2,
+  "school": "Evocation",
+  "classes": ["Druid"],
+  "description": "A silvery beam of pale light shines down in a 5-foot-radius, 40-foot-high cylinder centered on a point within range. When a creature enters the area for the first time on a turn or starts its turn there, it makes a Constitution saving throw, taking 2d10 radiant damage on a failed save, or half as much on a successful one. Shapechangers make the save with disadvantage; on a failure, they revert to their original form and can't assume a different form until leaving the light.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d10 for each slot level above 2nd.",
+  "tags": ["damage", "radiant", "area", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 120
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "several seeds of any moonseed plant and a piece of opalescent feldspar"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "area",
+    "range": 120,
+    "validTargets": ["creatures"],
+    "areaOfEffect": { "shape": "Cylinder", "size": 5, "height": 40 },
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "on_enter_area", "frequency": "first_per_turn" },
+      "condition": {
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "half",
+        "saveModifiers": [
+          {
+            "type": "disadvantage",
+            "appliesTo": { "creatureTypes": ["Shapechanger"] },
+            "reason": "Shapechangers have disadvantage on the saving throw."
+          }
+        ]
+      },
+      "damage": { "dice": "2d10", "type": "Radiant" },
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d10" }
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "turn_start", "frequency": "every_time" },
+      "condition": {
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "half",
+        "saveModifiers": [
+          {
+            "type": "disadvantage",
+            "appliesTo": { "creatureTypes": ["Shapechanger"] },
+            "reason": "Shapechangers have disadvantage on the saving throw."
+          }
+        ]
+      },
+      "damage": { "dice": "2d10", "type": "Radiant" },
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d10" },
+      "description": "Creatures starting their turn in the beam take damage; shapechangers save with disadvantage and revert on failed save."
+    }
+  ]
+}

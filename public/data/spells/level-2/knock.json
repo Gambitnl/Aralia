@@ -1,0 +1,46 @@
+{
+  "id": "knock",
+  "name": "Knock",
+  "level": 2,
+  "school": "Transmutation",
+  "classes": ["Bard", "Sorcerer", "Wizard"],
+  "description": "Choose an object you can see within range that is locked, stuck, or barred. A loud knock is audible from as far away as 300 feet. The target is opened (or unlocked) for 10 minutes if it is a mundane lock, or suppresses one Arcane Lock spell on it for the duration. If the object has multiple locks, only one is unlocked.",
+  "higherLevels": "None",
+  "tags": ["utility", "transmutation"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 10,
+    "unit": "minute",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 60,
+    "validTargets": ["objects", "doors", "containers"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "other",
+      "description": "Unlocks or opens one locked/stuck object; suppresses Arcane Lock for 10 minutes; audible knock heard up to 300 feet."
+    }
+  ]
+}

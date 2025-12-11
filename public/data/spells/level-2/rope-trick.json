@@ -1,0 +1,46 @@
+{
+  "id": "rope-trick",
+  "name": "Rope Trick",
+  "level": 2,
+  "school": "Transmutation",
+  "classes": ["Artificer", "Wizard"],
+  "description": "You touch a rope up to 60 feet long. One end rises into the air and hangs perpendicular to the ground, creating an invisible entrance to an extradimensional space at the upper end. The space can hold up to 8 Medium creatures. The rope can be pulled into the space, making it inaccessible. Attacks and spells can’t cross through the entrance, and those inside can see out but not be seen. Objects that don’t fit through the opening are excluded, and anything inside drops out when the spell ends.",
+  "higherLevels": "None",
+  "tags": ["utility", "transmutation"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "powdered corn extract and a twisted loop of parchment"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "point",
+    "range": 0,
+    "validTargets": ["objects", "point"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "other",
+      "description": "Creates an extradimensional space at the rope’s upper end, accessible through the entrance; can pull rope inside to hide the entrance; contains up to 8 Medium creatures; items that don’t fit are excluded."
+    }
+  ]
+}

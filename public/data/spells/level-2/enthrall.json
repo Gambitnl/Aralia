@@ -1,0 +1,51 @@
+{
+  "id": "enthrall",
+  "name": "Enthrall",
+  "level": 2,
+  "school": "Enchantment",
+  "classes": ["Bard", "Warlock"],
+  "description": "You weave distracting words. Each creature of your choice that you can see within range and that can hear you must make a Wisdom saving throw. On a failed save, the target has disadvantage on Wisdom (Perception) checks made to perceive any creature other than you until the spell ends or you can no longer speak. The effect ends if you or your companions do anything harmful to it.",
+  "higherLevels": "None",
+  "tags": ["enchantment", "control"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "area",
+    "range": 60,
+    "validTargets": ["creatures", "humanoids"],
+    "areaOfEffect": { "shape": "Sphere", "size": 60 },
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "negates_condition"
+      },
+      "utilityType": "control",
+      "description": "On failed save, targets have disadvantage on Perception checks to notice creatures other than you until spell ends or you stop speaking; ends if you/companions harm it."
+    }
+  ]
+}

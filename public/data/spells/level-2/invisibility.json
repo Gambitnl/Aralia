@@ -1,0 +1,47 @@
+{
+  "id": "invisibility",
+  "name": "Invisibility",
+  "level": 2,
+  "school": "Illusion",
+  "classes": ["Bard", "Sorcerer", "Warlock", "Wizard"],
+  "description": "A creature you touch becomes invisible until the spell ends. The spell ends for a target that attacks or casts a spell. At higher levels, you can target additional creatures.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, you can target one additional creature for each slot level above 2nd.",
+  "tags": ["illusion", "control", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "an eyelash encased in gum arabic"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "multi",
+    "range": 5,
+    "maxTargets": 1,
+    "validTargets": ["creatures", "allies"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "control",
+      "description": "Target becomes invisible until it attacks or casts a spell; scales to additional targets with higher slots."
+    }
+  ]
+}

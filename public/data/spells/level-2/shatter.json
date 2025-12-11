@@ -1,0 +1,57 @@
+{
+  "id": "shatter",
+  "name": "Shatter",
+  "level": 2,
+  "school": "Evocation",
+  "classes": ["Bard", "Sorcerer", "Warlock", "Wizard"],
+  "description": "A sudden, painfully intense ringing noise erupts from a point within range. Each creature in a 10-foot-radius sphere centered on that point makes a Constitution saving throw, taking 3d8 thunder damage on a failed save, or half as much on a successful one. A creature made of inorganic material such as stone, crystal, or metal has disadvantage on the saving throw. A nonmagical object that isn’t being worn or carried also takes the damage if it’s in the spell’s area.",
+  "higherLevels": "When cast with a slot of 3rd level or higher, damage increases by 1d8 for each slot level above 2nd.",
+  "tags": ["damage", "thunder", "area"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a chip of mica"
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "area",
+    "range": 60,
+    "validTargets": ["creatures", "objects"],
+    "areaOfEffect": { "shape": "Sphere", "size": 10 },
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "half",
+        "saveModifiers": [
+          {
+            "type": "disadvantage",
+            "appliesTo": { "creatureTypes": ["Construct", "Stone", "Metal", "Crystal"] },
+            "reason": "Inorganic materials have disadvantage"
+          }
+        ]
+      },
+      "damage": { "dice": "3d8", "type": "Thunder" },
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d8" }
+    }
+  ]
+}

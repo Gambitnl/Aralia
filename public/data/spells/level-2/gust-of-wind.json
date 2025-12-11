@@ -1,0 +1,62 @@
+{
+  "id": "gust-of-wind",
+  "name": "Gust of Wind",
+  "level": 2,
+  "school": "Evocation",
+  "classes": ["Druid", "Sorcerer", "Wizard"],
+  "description": "A line of strong wind 60 feet long and 10 feet wide blasts from you in a direction you choose for the duration. Each creature that starts its turn in the line must succeed on a Strength saving throw or be pushed 15 feet away from you in the direction the line moves. The gust disperses gas or vapor and extinguishes candles, torches, and similar unprotected flames in the area.",
+  "higherLevels": "None",
+  "tags": ["control", "movement", "area", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "area",
+    "range": 0,
+    "validTargets": ["creatures", "objects"],
+    "areaOfEffect": { "shape": "Line", "size": 60, "height": 10 },
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "MOVEMENT",
+      "trigger": { "type": "turn_start", "frequency": "every_time" },
+      "condition": {
+        "type": "save",
+        "saveType": "Strength",
+        "saveEffect": "none"
+      },
+      "movementType": "push",
+      "duration": { "type": "minutes", "value": 1 },
+      "forcedMovement": {
+        "direction": "away_from_caster",
+        "maxDistance": "15 ft"
+      },
+      "description": "Creatures starting their turn in the line must make a Strength save or be pushed 15 feet away along the line."
+    },
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "control",
+      "description": "Disperses gas/vapor and extinguishes unprotected flames in the line."
+    }
+  ]
+}

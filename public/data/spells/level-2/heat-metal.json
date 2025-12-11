@@ -1,0 +1,63 @@
+{
+  "id": "heat-metal",
+  "name": "Heat Metal",
+  "level": 2,
+  "school": "Transmutation",
+  "classes": ["Artificer", "Bard", "Druid"],
+  "description": "Choose a manufactured metal object you can see within range (weapon, armor, etc.). It glows red-hot. A creature holding or wearing the object takes 2d8 fire damage when you cast the spell. Until the spell ends, you can use a bonus action on each of your subsequent turns to cause this damage again. If a creature is holding or wearing the object and takes damage, it must succeed on a Constitution saving throw or drop the object if it can; if it doesn’t drop it, it has disadvantage on attack rolls and ability checks until the start of your next turn.",
+  "higherLevels": "When cast with a slot of 3rd level or higher, damage increases by 1d8 for each slot level above 2nd.",
+  "tags": ["damage", "fire", "control", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a piece of iron and a flame"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 60,
+    "validTargets": ["objects"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "damage": { "dice": "2d8", "type": "Fire" },
+      "description": "Initial heating deals 2d8 fire to the holder/wearer (if any).",
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d8" }
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "on_caster_action" },
+      "condition": { "type": "always" },
+      "damage": { "dice": "2d8", "type": "Fire" },
+      "description": "Bonus action each turn to repeat the damage on the same object.",
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d8" }
+    },
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "control",
+      "description": "If a creature takes this damage while holding/wearing the object, it must Con save or drop it if possible; otherwise it has disadvantage on attacks and ability checks until your next turn."
+    }
+  ]
+}

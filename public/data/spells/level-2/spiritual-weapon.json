@@ -1,0 +1,58 @@
+{
+  "id": "spiritual-weapon",
+  "name": "Spiritual Weapon",
+  "level": 2,
+  "school": "Evocation",
+  "classes": ["Cleric"],
+  "description": "You create a floating, spectral weapon within range that lasts for the duration or until you cast this spell again. When you cast the spell, you can make a melee spell attack against a creature within 5 feet of the weapon. On a hit, the target takes 1d8 + your spellcasting ability modifier force damage. As a bonus action on your turn, you can move the weapon up to 20 feet and repeat the attack. The weapon can take any form you choose. It deals force damage and is not a creature.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for every two slot levels above 2nd.",
+  "tags": ["damage", "force", "bonus-action"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action",
+    "combatCost": { "type": "bonus_action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "area",
+    "range": 60,
+    "validTargets": ["creatures", "enemies"],
+    "lineOfSight": true,
+    "areaOfEffect": { "shape": "Sphere", "size": 5 }
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "hit" },
+      "damage": { "dice": "1d8+spellcasting_mod", "type": "Force" },
+      "description": "Initial melee spell attack when the weapon appears."
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "on_caster_action" },
+      "condition": { "type": "hit" },
+      "damage": { "dice": "1d8+spellcasting_mod", "type": "Force" },
+      "description": "Bonus action each turn to move the weapon up to 20 ft and attack.",
+      "scaling": {
+        "type": "custom",
+        "customFormula": "Damage increases by 1d8 at slots 3/4, and another 1d8 at 5/6, etc."
+      }
+    }
+  ]
+}

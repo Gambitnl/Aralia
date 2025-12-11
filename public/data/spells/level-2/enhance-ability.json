@@ -1,0 +1,48 @@
+{
+  "id": "enhance-ability",
+  "name": "Enhance Ability",
+  "level": 2,
+  "school": "Transmutation",
+  "classes": ["Bard", "Cleric", "Druid", "Sorcerer"],
+  "description": "You touch a creature and bestow a magical enhancement. Choose one: Bear's Endurance (advantage on Con checks, 2d6 temp HP), Bull's Strength (advantage on Str checks, carry capacity doubled), Cat's Grace (advantage on Dex checks, no fall damage if not incapacitated), Eagle's Splendor (advantage on Cha checks), Fox's Cunning (advantage on Int checks), Owl's Wisdom (advantage on Wis checks).",
+  "higherLevels": "You can target one additional creature for each slot level above 2nd.",
+  "tags": ["buff", "transmutation", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "fur or feather from a beast"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "multi",
+    "range": 5,
+    "maxTargets": 1,
+    "validTargets": ["creatures", "allies"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "other",
+      "description": "Choose one ability enhancement: Bear's Endurance (adv Con checks, +2d6 temp HP), Bull's Strength (adv Str checks, double carry), Cat's Grace (adv Dex checks, no fall damage if not incapacitated), Eagle's Splendor (adv Cha checks), Fox's Cunning (adv Int checks), Owl's Wisdom (adv Wis checks).",
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+1 target" }
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "id": "spider-climb",
+  "name": "Spider Climb",
+  "level": 2,
+  "school": "Transmutation",
+  "classes": ["Artificer", "Sorcerer", "Wizard"],
+  "description": "One willing creature you touch gains the ability to move up, down, and across vertical surfaces and upside down along ceilings while leaving its hands free. The target also gains a climbing speed equal to its walking speed.",
+  "higherLevels": "None",
+  "tags": ["movement", "transmutation", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a drop of bitumen and a spider"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 5,
+    "validTargets": ["creatures", "allies"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "other",
+      "description": "Target can climb difficult surfaces and ceilings without checks, and gains climb speed equal to walk speed."
+    }
+  ]
+}

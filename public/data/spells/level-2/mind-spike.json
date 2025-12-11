@@ -1,0 +1,61 @@
+{
+  "id": "mind-spike",
+  "name": "Mind Spike",
+  "level": 2,
+  "school": "Divination",
+  "classes": ["Sorcerer", "Warlock", "Wizard"],
+  "description": "You reach into the mind of one creature you can see within range. The target must make a Wisdom saving throw, taking 3d8 psychic damage on a failed save, or half as much on a successful one. On a failed save, you also know the target’s location until the spell ends, but only while the two of you are on the same plane of existence.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for each slot level above 2nd.",
+  "tags": ["damage", "psychic", "divination", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 60,
+    "validTargets": ["creatures", "enemies"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "half"
+      },
+      "damage": { "dice": "3d8", "type": "Psychic" },
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d8" }
+    },
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "none"
+      },
+      "utilityType": "information",
+      "description": "On a failed save, you know the target’s location for the duration while on the same plane."
+    }
+  ]
+}

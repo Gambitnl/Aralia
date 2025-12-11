@@ -1,0 +1,54 @@
+{
+  "id": "pyrotechnics",
+  "name": "Pyrotechnics",
+  "level": 2,
+  "school": "Transmutation",
+  "classes": ["Artificer", "Bard", "Sorcerer", "Wizard"],
+  "description": "Choose an area of flame that fits in a 5-foot cube within range. You can extinguish the fire in that area, creating either fireworks (bright light flash and potential blindness) or smoke (heavily obscures a 20-foot cube for 1 minute). Creatures in the fireworks make a Constitution saving throw or are blinded until the end of your next turn; smoke disperses with strong wind.",
+  "higherLevels": "None",
+  "tags": ["control", "utility", "transmutation"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "area",
+    "range": 60,
+    "validTargets": ["creatures", "objects"],
+    "areaOfEffect": { "shape": "Cube", "size": 20 },
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "control",
+      "description": "Fireworks: extinguish the flame; each creature in a 10-foot radius makes a Con save or is blinded until end of your next turn."
+    },
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "control",
+      "description": "Smoke: extinguish the flame; create a 20-foot cube of smoke (heavily obscured) for 1 minute, dispersible by strong wind."
+    }
+  ]
+}

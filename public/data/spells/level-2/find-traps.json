@@ -1,0 +1,45 @@
+{
+  "id": "find-traps",
+  "name": "Find Traps",
+  "level": 2,
+  "school": "Divination",
+  "classes": ["Cleric", "Druid", "Ranger"],
+  "description": "You sense the presence of any trap within line of sight and range. A trap for this spell includes anything that would inflict a sudden or unexpected effect you consider harmful or undesirable, which was specifically intended as a trap. This spell only reveals that a trap is present; you learn the general nature of the danger but not its exact location or trigger.",
+  "higherLevels": "None",
+  "tags": ["divination", "detection"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 120
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "area",
+    "range": 120,
+    "validTargets": ["point", "objects"],
+    "areaOfEffect": { "shape": "Sphere", "size": 120 },
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "information",
+      "description": "Sense presence and general nature of any traps in line of sight within range; does not reveal exact location or trigger."
+    }
+  ]
+}

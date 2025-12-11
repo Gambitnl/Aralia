@@ -1,0 +1,47 @@
+{
+  "id": "magic-mouth",
+  "name": "Magic Mouth",
+  "level": 2,
+  "school": "Illusion",
+  "classes": ["Bard", "Wizard"],
+  "description": "You implant a message within an object you can see within range. The message is spoken aloud when a trigger condition occurs. You choose the triggering circumstance, which can be visual, audible, or based on proximity. When triggered, the mouth speaks the message in your voice at the same volume you spoke when casting. The spell ends after delivering the message.",
+  "higherLevels": "None",
+  "tags": ["illusion", "utility"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "minute",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a small bit of honeycomb and jade dust worth at least 10 gp, which the spell consumes",
+    "materialCost": 10,
+    "isConsumed": true
+  },
+  "duration": {
+    "type": "until_dispelled_or_triggered",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 30,
+    "validTargets": ["objects"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "on_enter_area" },
+      "condition": { "type": "always" },
+      "utilityType": "communication",
+      "description": "Stores a spoken message and a trigger condition; when triggered, the mouth appears and speaks the message, then the spell ends."
+    }
+  ]
+}

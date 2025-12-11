@@ -1,0 +1,46 @@
+{
+  "id": "misty-step",
+  "name": "Misty Step",
+  "level": 2,
+  "school": "Conjuration",
+  "classes": ["Sorcerer", "Warlock", "Wizard"],
+  "description": "Briefly surrounded by silvery mist, you teleport up to 30 feet to an unoccupied space that you can see.",
+  "higherLevels": "None",
+  "tags": ["movement", "conjuration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action",
+    "combatCost": { "type": "bonus_action" }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": ["self"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "MOVEMENT",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "movementType": "teleport",
+      "forcedMovement": {
+        "direction": "caster_choice",
+        "maxDistance": "30 ft"
+      },
+      "duration": { "type": "rounds", "value": 0 }
+    }
+  ]
+}

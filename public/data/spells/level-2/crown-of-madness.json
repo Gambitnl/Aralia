@@ -1,0 +1,50 @@
+{
+  "id": "crown-of-madness",
+  "name": "Crown of Madness",
+  "level": 2,
+  "school": "Enchantment",
+  "classes": ["Bard", "Sorcerer", "Warlock", "Wizard"],
+  "description": "One humanoid must succeed on a Wisdom saving throw or be charmed by you. While charmed, the target must use its action before moving on each of its turns to make a melee attack against a creature other than itself that you mentally choose. After making the attack, it can move. The target can repeat the saving throw at the end of each of its turns, ending the effect on a success.",
+  "higherLevels": "None",
+  "tags": ["control", "enchantment", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 120
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 120,
+    "validTargets": ["humanoids"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "negates_condition"
+      },
+      "utilityType": "control",
+      "description": "On failed save, target is charmed. Each turn before moving, it must use its action to make a melee attack against a creature you choose. At end of each of its turns, it can repeat the Wisdom save to end the effect."
+    }
+  ]
+}

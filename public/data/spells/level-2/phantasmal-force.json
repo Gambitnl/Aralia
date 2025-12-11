@@ -1,0 +1,58 @@
+{
+  "id": "phantasmal-force",
+  "name": "Phantasmal Force",
+  "level": 2,
+  "school": "Illusion",
+  "classes": ["Bard", "Sorcerer", "Wizard"],
+  "description": "You craft an illusion that takes root in the mind of a creature you can see within range. The target makes an Intelligence saving throw. On a failed save, you create a phantasmal object, creature, or other visible phenomenon no larger than a 10-foot cube that is perceivable only to the target. The phantasm is logical and affected by its chosen environment. The target rationalizes illogical outcomes. While affected, the target treats the phantasm as real and can take damage from it (1d6 psychic per turn from hazardous phantasms you design). The target can use an action to examine the phantasm with an Intelligence (Investigation) check against your spell save DC, ending the spell on a success.",
+  "higherLevels": "None",
+  "tags": ["illusion", "control", "psychic", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a bit of fleece"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 60,
+    "validTargets": ["creatures"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Intelligence",
+        "saveEffect": "negates_condition"
+      },
+      "utilityType": "control",
+      "description": "Create a persistent illusion in the target's mind on failed Int save; target rationalizes and can end it with an Investigation check (action)."
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "turn_start", "frequency": "every_time" },
+      "condition": { "type": "always" },
+      "damage": { "dice": "1d6", "type": "Psychic" },
+      "description": "Illusions with hazardous interactions can deal 1d6 psychic per turn while the target remains affected."
+    }
+  ]
+}

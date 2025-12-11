@@ -1,0 +1,45 @@
+{
+  "id": "locate-object",
+  "name": "Locate Object",
+  "level": 2,
+  "school": "Divination",
+  "classes": ["Bard", "Cleric", "Druid", "Paladin", "Ranger", "Wizard"],
+  "description": "Describe or name an object familiar to you. You sense the direction to the object's location, as long as it is within 1,000 feet. The spell can locate an object known to you or an object of a particular kind, unless any thickness of lead blocks a direct path between you and the object. If the object is in motion, you know the direction of its movement.",
+  "higherLevels": "None",
+  "tags": ["divination", "detection", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a forked twig"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 10,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": ["self"],
+    "lineOfSight": false
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "information",
+      "description": "Sense direction to a familiar or specific-kind object within 1,000 feet unless blocked by lead; learn movement direction if it moves."
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "id": "darkness",
+  "name": "Darkness",
+  "level": 2,
+  "school": "Evocation",
+  "classes": ["Sorcerer", "Warlock", "Wizard"],
+  "description": "Magical darkness spreads from a point you choose within range to fill a 15-foot-radius sphere for the duration. The darkness spreads around corners. Nonmagical light can’t illuminate it, and creatures with darkvision can’t see through it. If the point is on an object you hold or isn’t worn/carried by another, you can move it up to 60 feet as an action.",
+  "higherLevels": "None",
+  "tags": ["utility", "area", "control", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": true,
+    "materialDescription": "bat fur and a drop of pitch or piece of coal"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 10,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "area",
+    "range": 60,
+    "validTargets": ["point", "objects"],
+    "areaOfEffect": { "shape": "Sphere", "size": 15 },
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "control",
+      "description": "Creates a 15-foot-radius sphere of magical darkness blocking sight and nonmagical light; can be moved if cast on an object you hold or on an unattended point."
+    }
+  ]
+}

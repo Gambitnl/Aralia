@@ -1,0 +1,58 @@
+{
+  "id": "find-steed",
+  "name": "Find Steed",
+  "level": 2,
+  "school": "Conjuration",
+  "classes": ["Paladin"],
+  "description": "You summon a spirit that takes the form of a loyal steed in an unoccupied space within range. The steed uses the statistics of a warhorse, pony, camel, elk, or mastiff (your choice) with a celestial, fey, or fiendish type. The steed is a mount under your control; it acts on its own initiative, and while mounted you can make any spell you cast that targets only you also target your steed. The steed disappears if it drops to 0 HP or if you dismiss it as an action; resummon with this spell.",
+  "higherLevels": "None",
+  "tags": ["summoning", "mount", "utility"],
+  "ritual": false,
+  "castingTime": {
+    "value": 10,
+    "unit": "minute",
+    "combatCost": { "type": "action" },
+    "explorationCost": { "value": 10, "unit": "minute" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "until_dispelled",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "point",
+    "range": 30,
+    "validTargets": ["point"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "SUMMONING",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "summon": {
+        "entityType": "mount",
+        "persistent": true,
+        "dismissAction": "action",
+        "formOptions": ["Warhorse", "Pony", "Camel", "Elk", "Mastiff"],
+        "statBlock": {
+          "type": "Celestial/Fey/Fiend",
+          "size": "Large",
+          "hp": 19,
+          "ac": 11,
+          "speed": 60
+        },
+        "telepathyRange": 60,
+        "commandCost": "none"
+      }
+    }
+  ]
+}

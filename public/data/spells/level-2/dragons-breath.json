@@ -1,0 +1,61 @@
+{
+  "id": "dragons-breath",
+  "name": "Dragon's Breath",
+  "level": 2,
+  "school": "Transmutation",
+  "classes": ["Artificer", "Sorcerer", "Wizard"],
+  "description": "You touch one willing creature and imbue it with a chosen breath weapon: acid, cold, fire, lightning, or poison. Until the spell ends, the creature can use its action to exhale a 15-foot cone of that type. Each creature in the cone makes a Dexterity saving throw, taking 3d6 damage on a failed save, or half as much on a successful one.",
+  "higherLevels": "Damage increases by 1d6 for each slot level above 2nd.",
+  "tags": ["damage", "elemental", "control", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action",
+    "combatCost": { "type": "bonus_action" }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a hot pepper"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 5,
+    "validTargets": ["creatures", "allies"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "other",
+      "description": "Target gains a breath action (15-foot cone, Dex save half) dealing 3d6 chosen damage (acid, cold, fire, lightning, or poison) for the duration."
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "on_caster_action" },
+      "condition": {
+        "type": "save",
+        "saveType": "Dexterity",
+        "saveEffect": "half"
+      },
+      "damage": {
+        "dice": "3d6",
+        "type": "Acid/Cold/Fire/Lightning/Poison"
+      },
+      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d6" },
+      "description": "Represents the breath weapon damage when the target uses the granted action."
+    }
+  ]
+}
