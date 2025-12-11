@@ -46,7 +46,36 @@ export const useSummons = ({ onSummonAdded, onSummonRemoved }: UseSummonsProps =
                 speed: statBlock.speed || 30,
                 cr: statBlock.cr ? String(statBlock.cr) : "0"
             },
-            abilities: [], // TODO: Parse special actions into abilities
+            abilities: (summonEffect.specialActions || []).map((action: any, index: number) => {
+                const isAttack = !!action.damage;
+                // Calculate average damage for the value field (e.g., "1d6" -> 3.5 -> 3)
+                let effectValue = 0;
+                if (action.damage?.dice) {
+                   const match = action.damage.dice.match(/^(\d+)d(\d+)([+-]\d+)?$/);
+                   if (match) {
+                       const num = parseInt(match[1], 10);
+                       const die = parseInt(match[2], 10);
+                       const mod = match[3] ? parseInt(match[3], 10) : 0;
+                       effectValue = Math.floor(num * (die + 1) / 2 + mod);
+                   }
+                }
+
+                return {
+                    id: `summon_action_${index}`,
+                    name: action.name,
+                    description: action.description,
+                    type: isAttack ? 'attack' : 'utility',
+                    cost: { type: action.cost || 'action' },
+                    targeting: isAttack ? 'single_enemy' : 'self', // Default assumption
+                    range: isAttack ? 5 : 0, // Default to melee range
+                    effects: action.damage ? [{
+                        type: 'damage',
+                        value: effectValue,
+                        damageType: action.damage.type || 'physical'
+                    }] : [],
+                    icon: isAttack ? '⚔️' : '✨'
+                };
+            }),
             statusEffects: [],
             conditions: [],
             level: 1, // Default for summons
