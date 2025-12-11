@@ -1,5 +1,6 @@
 import React, { useMemo, useEffect, useRef } from 'react';
 import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 
 interface GlossaryContentRendererProps {
   markdownContent: string;
@@ -62,7 +63,7 @@ export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = (
         }
     });
 
-    return finalContainer.innerHTML;
+    return DOMPurify.sanitize(finalContainer.innerHTML);
   }, [markdownContent]);
 
   useEffect(() => {
