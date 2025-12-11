@@ -1,5 +1,6 @@
 import { Spell } from '../types';
 import { fetchWithTimeout } from '../utils/networkUtils';
+import { logger } from '../utils/logger';
 
 // Define a type for the manifest entry
 export interface SpellManifestInfo {
@@ -17,7 +18,7 @@ class SpellService {
   private spellCache: Map<string, Promise<Spell | null>> = new Map();
 
   private constructor() {
-    console.log('[SpellService] initialized', { BASE_URL: import.meta.env.BASE_URL });
+    logger.info('[SpellService] initialized', { BASE_URL: import.meta.env.BASE_URL });
   }
 
   public static getInstance(): SpellService {
@@ -33,7 +34,7 @@ class SpellService {
         `${import.meta.env.BASE_URL}data/spells_manifest.json`,
         { timeoutMs: 15000 }
       ).catch(err => {
-        console.error(err);
+        logger.error('Failed to fetch spell manifest', { error: err });
         return null;
       });
     }
@@ -47,7 +48,7 @@ class SpellService {
 
     const manifest = await this.getAllSpellInfo();
     if (!manifest || !manifest[spellId]) {
-      console.error(`Spell with id "${spellId}" not found in manifest.`);
+      logger.error(`Spell with id "${spellId}" not found in manifest.`);
       return null;
     }
 
@@ -56,11 +57,11 @@ class SpellService {
     // we need to construct the full path correctly
     const normalizedPath = spellPath.startsWith('/') ? spellPath.slice(1) : spellPath;
     const fullUrl = `${import.meta.env.BASE_URL}${normalizedPath}`;
-    console.log('[SpellService] Fetching spell:', { spellId, BASE_URL: import.meta.env.BASE_URL, fullUrl });
+    logger.debug('[SpellService] Fetching spell:', { spellId, BASE_URL: import.meta.env.BASE_URL, fullUrl });
 
     const spellPromise = fetchWithTimeout<Spell>(fullUrl, { timeoutMs: 10000 })
       .catch(err => {
-        console.error(err);
+        logger.error('Failed to fetch spell details', { spellId, fullUrl, error: err });
         this.spellCache.delete(spellId); // Remove from cache on error
         return null;
       });
