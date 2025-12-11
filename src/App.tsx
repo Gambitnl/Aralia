@@ -308,6 +308,19 @@ const App: React.FC = () => {
     }
 
     if (tile.discovered && tile.locationId && tile.locationId !== gameState.currentLocationId) {
+      // Check if this is a town location - prevent direct quick travel to towns
+      const townKeywords = ['town', 'village', 'city', 'settlement', 'hamlet'];
+      const targetLocation = LOCATIONS[tile.locationId];
+      const isTownLocation = targetLocation && townKeywords.some(keyword =>
+        targetLocation.name.toLowerCase().includes(keyword) ||
+        targetLocation.id.toLowerCase().includes(keyword)
+      );
+
+      if (isTownLocation) {
+        addMessage(`You cannot quick travel directly into ${targetLocation.name}. Towns must be approached carefully on foot.`, 'system');
+        return;
+      }
+
       const newSubMapCoordinates = { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) };
       let newMapDataForDispatch = gameState.mapData;
       if (newMapDataForDispatch) {
@@ -590,9 +603,17 @@ const App: React.FC = () => {
           itemsInLocation={itemsInCurrentLocation}
           geminiGeneratedActions={gameState.geminiGeneratedActions || []}
           isDevDummyActive={USE_DUMMY_CHARACTER_FOR_DEV}
-
           unreadDiscoveryCount={gameState.unreadDiscoveryCount}
           hasNewRateLimitError={gameState.hasNewRateLimitError}
+          // Player navigation props
+          playerPosition={gameState.townState?.playerPosition}
+          onPlayerMove={(direction) => {
+            dispatch({ type: 'MOVE_IN_TOWN', payload: { direction } });
+          }}
+          onExitTown={() => {
+            dispatch({ type: 'EXIT_TOWN' });
+            dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.PLAYING });
+          }}
         />
       </ErrorBoundary>
     );

@@ -15,6 +15,46 @@ import { MONSTERS_DATA } from '../constants';
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, FAST_MODEL, COMPLEX_MODEL } from '../config/geminiConfig';
 import * as ItemTemplates from '../data/item_templates';
 
+
+
+// --- Adaptive Rate Limiting State ---
+let lastRequestTimestamp = 0;
+
+/**
+ * Selects an appropriate model based on interaction complexity and frequency (spam protection).
+ * 
+ * Rules:
+ * 1. Spam Protection: If < 15s since last request, downgrade to FAST_MODEL.
+ * 2. Complexity Check: If userInput is provided and < 6 words, downgrade to FAST_MODEL.
+ * 3. Default: Use preferredModel.
+ * 
+ * @param preferredModel The model the feature *wants* to use (e.g., COMPLEX_MODEL).
+ * @param userInputForComplexityCheck Optional user input string to check for word count.
+ * @returns The selected model ID.
+ */
+function chooseModelForComplexity(preferredModel: string, userInputForComplexityCheck: string | null = null): string {
+  const now = Date.now();
+  const elapsed = now - lastRequestTimestamp;
+
+  // 1. Spam Protection (Timer)
+  if (elapsed < 15000) { // 15 seconds
+    // console.debug("Adaptive Model: Downgrading due to frequency (<15s)."); 
+    return FAST_MODEL;
+  }
+
+  // 2. Complexity Check (if input provided)
+  if (userInputForComplexityCheck) {
+    // Simple heuristic: split by spaces
+    const wordCount = userInputForComplexityCheck.trim().split(/\s+/).length;
+    if (wordCount < 6) {
+      // console.debug(`Adaptive Model: Downgrading due to low complexity (${wordCount} words).`);
+      return FAST_MODEL;
+    }
+  }
+
+  return preferredModel;
+}
+
 const defaultSystemInstruction =
   "You are a storyteller for a text-based high fantasy RPG set in a world of dragons, ancient magic, and looming conflict (like Krynn). Your responses MUST be EXTREMELY BRIEF, MAXIMUM 1-2 sentences. Provide ONLY essential 'breadcrumb' details. Focus on atmosphere and key information. NO long descriptions. Be concise.";
 
@@ -107,6 +147,9 @@ export async function generateText(
         config: config,
       });
 
+      // Update timestamp on successful request
+      lastRequestTimestamp = Date.now();
+
       const responseText = response.text?.trim();
 
       if (!responseText && !expectJson) {
@@ -143,6 +186,8 @@ export async function generateText(
         console.warn(`Gemini API error with model ${model}:`, error);
         continue;
       }
+    } finally {
+      lastRequestTimestamp = Date.now();
     }
   }
 
@@ -193,7 +238,8 @@ export async function generateNPCResponse(
   fullPrompt: string,
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
-  return await generateText(fullPrompt, personalityPrompt, false, 'generateNPCResponse', devModelOverride, FAST_MODEL);
+  const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, null);
+  return await generateText(fullPrompt, personalityPrompt, false, 'generateNPCResponse', devModelOverride, adaptiveModel);
 }
 
 export async function generateActionOutcome(
@@ -207,12 +253,14 @@ export async function generateActionOutcome(
     ? "You are a Dungeon Master narrating the outcome of a player's specific, creative action. The response should be a brief, 2-3 sentence description of what happens next."
     : "You are a Dungeon Master narrating the outcome of a player's action. The response should be a brief, 2-3 sentence description.";
 
+  const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, playerAction); // Default to PRO for quality narration, downgrades if spammy/short
+
   let prompt = `Player action: "${playerAction}"\nContext: ${context}`;
   if (playerAction.toLowerCase().includes("look around") && worldMapTileTooltip) {
     prompt += `\nBroader context for 'look around': ${worldMapTileTooltip}`;
   }
 
-  return await generateText(prompt, systemInstruction, false, 'generateActionOutcome', devModelOverride, FAST_MODEL);
+  return await generateText(prompt, systemInstruction, false, 'generateActionOutcome', devModelOverride, adaptiveModel);
 }
 
 export async function generateDynamicEvent(
@@ -231,8 +279,11 @@ export async function generateOracleResponse(
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
   const systemInstruction = "You are the Oracle, a mysterious, wise entity. Respond to the player's query. Your response MUST be enigmatic and brief (1-2 sentences MAX). Speak in the first person. Do NOT give a direct answer; provide a cryptic clue.";
+
+  const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, playerQuery);
+
   const prompt = `A player asks me, the Oracle: "${playerQuery}"\nMy context: ${context}\nMy brief, cryptic, first-person response is:`;
-  return await generateText(prompt, systemInstruction, false, 'generateOracleResponse', devModelOverride);
+  return await generateText(prompt, systemInstruction, false, 'generateOracleResponse', devModelOverride, adaptiveModel);
 }
 
 export async function generateCharacterName(
@@ -312,7 +363,8 @@ export async function generateEncounter(
   let rateLimitHitInChain = false;
   let lastModelUsed = '';
 
-  const initialModel = devModelOverride || COMPLEX_MODEL;
+  const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, null);
+  const initialModel = devModelOverride || adaptiveModel;
   const modelsToTry = [initialModel, ...GEMINI_TEXT_MODEL_FALLBACK_CHAIN.filter(m => m !== initialModel)];
 
   for (const model of modelsToTry) {
@@ -372,6 +424,8 @@ export async function generateEncounter(
         console.warn(`Gemini API error with model ${model}:`, error);
       }
       continue;
+    } finally {
+      lastRequestTimestamp = Date.now();
     }
   }
 

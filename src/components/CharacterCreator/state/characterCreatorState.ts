@@ -153,15 +153,12 @@ export const initialCharacterCreatorState: CharacterCreationState = {
 
 // --- Reducer Helper Functions ---
 
+/**
+ * Determines the next step after race selection.
+ * Race-specific sub-selections (ancestry, lineage, etc.) come BEFORE age/background.
+ */
 function determineNextStepAfterRace(race: Race): CreationStep {
-  return CreationStep.AgeSelection;
-}
-
-function determineNextStepAfterAge(age: number, race: Race): CreationStep {
-  return CreationStep.BackgroundSelection;
-}
-
-function determineNextStepAfterBackground(race: Race): CreationStep {
+  // Race-specific sub-selections happen immediately after race choice
   if (race.id === 'dragonborn') return CreationStep.DragonbornAncestry;
   if (race.id === 'elf') return CreationStep.ElvenLineage;
   if (race.id === 'gnome') return CreationStep.GnomeSubrace;
@@ -169,6 +166,19 @@ function determineNextStepAfterBackground(race: Race): CreationStep {
   if (race.id === 'tiefling') return CreationStep.TieflingLegacy;
   if (race.id === 'centaur') return CreationStep.CentaurNaturalAffinitySkill;
   if (race.id === 'changeling') return CreationStep.ChangelingInstincts;
+  // Races without sub-selections go directly to age
+  return CreationStep.AgeSelection;
+}
+
+function determineNextStepAfterAge(age: number, race: Race): CreationStep {
+  return CreationStep.BackgroundSelection;
+}
+
+/**
+ * After background selection, proceed to class selection.
+ * (Race-specific steps now happen earlier, right after race selection)
+ */
+function determineNextStepAfterBackground(race: Race): CreationStep {
   return CreationStep.Class;
 }
 
@@ -212,58 +222,58 @@ const getFeatStepOrReview = (state: CharacterCreationState): { step: CreationSte
 };
 
 const getFieldsToResetOnGoBack = (state: CharacterCreationState, exitedStep: CreationStep): Partial<CharacterCreationState> => {
-    const resetFields: Partial<CharacterCreationState> = {};
-    const pruneRacialSelection = (key: string) => {
-        const nextSelections = { ...state.racialSelections };
-        delete nextSelections[key];
-        resetFields.racialSelections = nextSelections;
-    };
+  const resetFields: Partial<CharacterCreationState> = {};
+  const pruneRacialSelection = (key: string) => {
+    const nextSelections = { ...state.racialSelections };
+    delete nextSelections[key];
+    resetFields.racialSelections = nextSelections;
+  };
 
-    switch (exitedStep) {
-        case CreationStep.DragonbornAncestry: pruneRacialSelection('dragonborn'); break;
-        case CreationStep.ElvenLineage: pruneRacialSelection('elf'); break;
-        case CreationStep.GnomeSubrace: pruneRacialSelection('gnome'); break;
-        case CreationStep.GiantAncestry: pruneRacialSelection('goliath'); break;
-        case CreationStep.TieflingLegacy: pruneRacialSelection('tiefling'); break;
-        case CreationStep.CentaurNaturalAffinitySkill: pruneRacialSelection('centaur'); break;
-        case CreationStep.ChangelingInstincts: pruneRacialSelection('changeling'); break;
-        case CreationStep.RacialSpellAbilityChoice:
-            // Clearing the spell ability ensures the dropdown re-validates against updated ability scores when the user revisits
-            // the step (for example after adjusting point-buy totals) instead of silently reusing stale data.
-            if (state.selectedRace) { pruneRacialSelection(state.selectedRace.id); }
-            break;
-        case CreationStep.Class:
-            resetFields.selectedClass = null;
-            break;
-        case CreationStep.AbilityScores:
-            resetFields.baseAbilityScores = null;
-            resetFields.finalAbilityScores = null;
-            break;
-        case CreationStep.HumanSkillChoice:
-            pruneRacialSelection('human');
-            break;
-        case CreationStep.Skills:
-            resetFields.selectedSkills = [];
-            break;
-        case CreationStep.ClassFeatures:
-            resetFields.selectedFightingStyle = null;
-            resetFields.selectedDivineOrder = null;
-            resetFields.selectedDruidOrder = null;
-            resetFields.selectedWarlockPatron = null;
-            resetFields.selectedCantrips = [];
-            resetFields.selectedSpellsL1 = [];
-            break;
-        case CreationStep.WeaponMastery:
-            resetFields.selectedWeaponMasteries = null;
-            break;
-        case CreationStep.FeatSelection:
-            resetFields.selectedFeat = null;
-            break;
-        case CreationStep.NameAndReview:
-            break;
-        default: break;
-    }
-    return resetFields;
+  switch (exitedStep) {
+    case CreationStep.DragonbornAncestry: pruneRacialSelection('dragonborn'); break;
+    case CreationStep.ElvenLineage: pruneRacialSelection('elf'); break;
+    case CreationStep.GnomeSubrace: pruneRacialSelection('gnome'); break;
+    case CreationStep.GiantAncestry: pruneRacialSelection('goliath'); break;
+    case CreationStep.TieflingLegacy: pruneRacialSelection('tiefling'); break;
+    case CreationStep.CentaurNaturalAffinitySkill: pruneRacialSelection('centaur'); break;
+    case CreationStep.ChangelingInstincts: pruneRacialSelection('changeling'); break;
+    case CreationStep.RacialSpellAbilityChoice:
+      // Clearing the spell ability ensures the dropdown re-validates against updated ability scores when the user revisits
+      // the step (for example after adjusting point-buy totals) instead of silently reusing stale data.
+      if (state.selectedRace) { pruneRacialSelection(state.selectedRace.id); }
+      break;
+    case CreationStep.Class:
+      resetFields.selectedClass = null;
+      break;
+    case CreationStep.AbilityScores:
+      resetFields.baseAbilityScores = null;
+      resetFields.finalAbilityScores = null;
+      break;
+    case CreationStep.HumanSkillChoice:
+      pruneRacialSelection('human');
+      break;
+    case CreationStep.Skills:
+      resetFields.selectedSkills = [];
+      break;
+    case CreationStep.ClassFeatures:
+      resetFields.selectedFightingStyle = null;
+      resetFields.selectedDivineOrder = null;
+      resetFields.selectedDruidOrder = null;
+      resetFields.selectedWarlockPatron = null;
+      resetFields.selectedCantrips = [];
+      resetFields.selectedSpellsL1 = [];
+      break;
+    case CreationStep.WeaponMastery:
+      resetFields.selectedWeaponMasteries = null;
+      break;
+    case CreationStep.FeatSelection:
+      resetFields.selectedFeat = null;
+      break;
+    case CreationStep.NameAndReview:
+      break;
+    default: break;
+  }
+  return resetFields;
 };
 
 // Centralizes the step that immediately precedes the feat screen so we can reuse the same logic for back navigation from review.
@@ -281,7 +291,7 @@ const stepDefinitions: Record<CreationStep, StepDefinition> = {
   [CreationStep.Race]: { previousStep: () => CreationStep.Race },
   [CreationStep.AgeSelection]: { previousStep: () => CreationStep.Race },
   [CreationStep.BackgroundSelection]: { previousStep: () => CreationStep.AgeSelection },
-  [CreationStep.DragonbornAncestry]: { previousStep: () => CreationStep.BackgroundSelection },
+  [CreationStep.DragonbornAncestry]: { previousStep: () => CreationStep.Race },
   [CreationStep.ElvenLineage]: { previousStep: () => CreationStep.Race },
   [CreationStep.GnomeSubrace]: { previousStep: () => CreationStep.Race },
   [CreationStep.GiantAncestry]: { previousStep: () => CreationStep.Race },
@@ -290,12 +300,7 @@ const stepDefinitions: Record<CreationStep, StepDefinition> = {
   [CreationStep.ChangelingInstincts]: { previousStep: () => CreationStep.Race },
   [CreationStep.RacialSpellAbilityChoice]: { previousStep: () => CreationStep.AbilityScores },
   [CreationStep.Class]: {
-    previousStep: (state) => {
-      if (!state.selectedRace) return CreationStep.Race;
-      // Go back to the race-specific step if it exists, otherwise back to Race selection
-      const raceStep = determineNextStepAfterRace(state.selectedRace);
-      return raceStep !== CreationStep.Class ? raceStep : CreationStep.Race;
-    },
+    previousStep: () => CreationStep.BackgroundSelection,
   },
   [CreationStep.AbilityScores]: { previousStep: () => CreationStep.Class },
   [CreationStep.HumanSkillChoice]: { previousStep: (state) => state.racialSpellChoiceContext ? CreationStep.RacialSpellAbilityChoice : CreationStep.AbilityScores },
@@ -317,7 +322,7 @@ const stepDefinitions: Record<CreationStep, StepDefinition> = {
 
 function isClassFeatureFinalSelectionAction(action: CharacterCreatorAction): action is ClassFeatureFinalSelectionAction {
   return [
-    'SELECT_FIGHTER_FEATURES', 'SELECT_CLERIC_FEATURES', 'SELECT_WIZARD_FEATURES', 'SELECT_ARTIFICER_FEATURES', 
+    'SELECT_FIGHTER_FEATURES', 'SELECT_CLERIC_FEATURES', 'SELECT_WIZARD_FEATURES', 'SELECT_ARTIFICER_FEATURES',
     'SELECT_SORCERER_FEATURES', 'SELECT_RANGER_FEATURES', 'SELECT_PALADIN_FEATURES',
     'SELECT_BARD_FEATURES', 'SELECT_DRUID_FEATURES', 'SELECT_WARLOCK_FEATURES'
   ].includes(action.type);
@@ -383,12 +388,12 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       const race = action.payload;
       const nextStep = determineNextStepAfterRace(race);
       const spellChoiceContext = race.racialSpellChoice
-          ? {
-              raceName: race.name,
-              traitName: race.racialSpellChoice.traitName,
-              traitDescription: race.racialSpellChoice.traitDescription,
-            }
-          : null;
+        ? {
+          raceName: race.name,
+          traitName: race.racialSpellChoice.traitName,
+          traitDescription: race.racialSpellChoice.traitDescription,
+        }
+        : null;
 
       return {
         ...state,
@@ -398,44 +403,44 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
         step: nextStep,
       };
     }
-    case 'SELECT_DRAGONBORN_ANCESTRY': return { ...state, racialSelections: { ...state.racialSelections, dragonborn: { choiceId: action.payload } }, step: CreationStep.Class };
-    case 'SELECT_ELVEN_LINEAGE': return { ...state, racialSelections: { ...state.racialSelections, elf: { choiceId: action.payload.lineageId, spellAbility: action.payload.spellAbility } }, step: CreationStep.Class };
-    case 'SELECT_GNOME_SUBRACE': return { ...state, racialSelections: { ...state.racialSelections, gnome: { choiceId: action.payload.subraceId, spellAbility: action.payload.spellAbility } }, step: CreationStep.Class };
-    case 'SELECT_GIANT_ANCESTRY': return { ...state, racialSelections: { ...state.racialSelections, goliath: { choiceId: action.payload } }, step: CreationStep.Class };
-    case 'SELECT_TIEFLING_LEGACY': return { ...state, racialSelections: { ...state.racialSelections, tiefling: { choiceId: action.payload.legacyId, spellAbility: action.payload.spellAbility } }, step: CreationStep.Class };
-    case 'SELECT_CENTAUR_NATURAL_AFFINITY_SKILL': return { ...state, racialSelections: { ...state.racialSelections, centaur: { skillIds: [action.payload] } }, step: CreationStep.Class };
-    case 'SELECT_CHANGELING_INSTINCTS': return { ...state, racialSelections: { ...state.racialSelections, changeling: { skillIds: action.payload } }, step: CreationStep.Class };
+    case 'SELECT_DRAGONBORN_ANCESTRY': return { ...state, racialSelections: { ...state.racialSelections, dragonborn: { choiceId: action.payload } }, step: CreationStep.AgeSelection };
+    case 'SELECT_ELVEN_LINEAGE': return { ...state, racialSelections: { ...state.racialSelections, elf: { choiceId: action.payload.lineageId, spellAbility: action.payload.spellAbility } }, step: CreationStep.AgeSelection };
+    case 'SELECT_GNOME_SUBRACE': return { ...state, racialSelections: { ...state.racialSelections, gnome: { choiceId: action.payload.subraceId, spellAbility: action.payload.spellAbility } }, step: CreationStep.AgeSelection };
+    case 'SELECT_GIANT_ANCESTRY': return { ...state, racialSelections: { ...state.racialSelections, goliath: { choiceId: action.payload } }, step: CreationStep.AgeSelection };
+    case 'SELECT_TIEFLING_LEGACY': return { ...state, racialSelections: { ...state.racialSelections, tiefling: { choiceId: action.payload.legacyId, spellAbility: action.payload.spellAbility } }, step: CreationStep.AgeSelection };
+    case 'SELECT_CENTAUR_NATURAL_AFFINITY_SKILL': return { ...state, racialSelections: { ...state.racialSelections, centaur: { skillIds: [action.payload] } }, step: CreationStep.AgeSelection };
+    case 'SELECT_CHANGELING_INSTINCTS': return { ...state, racialSelections: { ...state.racialSelections, changeling: { skillIds: action.payload } }, step: CreationStep.AgeSelection };
     case 'SELECT_RACIAL_SPELL_ABILITY': {
-        if (!state.racialSpellChoiceContext || !state.selectedRace) return state;
-        const raceId = state.selectedRace.id;
-        const ability = action.payload;
-        const nextStep = state.selectedRace?.id === 'human' ? CreationStep.HumanSkillChoice : CreationStep.Skills;
-        
-        return {
-            ...state,
-            racialSelections: {
-                ...state.racialSelections,
-                [raceId]: {
-                    ...state.racialSelections[raceId],
-                    spellAbility: ability
-                }
-            },
-            step: nextStep,
-        };
+      if (!state.racialSpellChoiceContext || !state.selectedRace) return state;
+      const raceId = state.selectedRace.id;
+      const ability = action.payload;
+      const nextStep = state.selectedRace?.id === 'human' ? CreationStep.HumanSkillChoice : CreationStep.Skills;
+
+      return {
+        ...state,
+        racialSelections: {
+          ...state.racialSelections,
+          [raceId]: {
+            ...state.racialSelections[raceId],
+            spellAbility: ability
+          }
+        },
+        step: nextStep,
+      };
     }
     case 'SELECT_CLASS':
       return { ...state, selectedClass: action.payload, step: CreationStep.AbilityScores };
     case 'SET_ABILITY_SCORES': {
       const { baseScores } = action.payload;
       const finalScores = calculateFixedRacialBonuses(baseScores, state.selectedRace);
-      
+
       let nextStep: CreationStep;
       if (state.racialSpellChoiceContext) {
-          nextStep = CreationStep.RacialSpellAbilityChoice;
+        nextStep = CreationStep.RacialSpellAbilityChoice;
       } else if (state.selectedRace?.id === 'human') {
-          nextStep = CreationStep.HumanSkillChoice;
+        nextStep = CreationStep.HumanSkillChoice;
       } else {
-          nextStep = CreationStep.Skills;
+        nextStep = CreationStep.Skills;
       }
 
       return { ...state, baseAbilityScores: baseScores, finalAbilityScores: finalScores, step: nextStep };

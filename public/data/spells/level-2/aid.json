@@ -1,0 +1,54 @@
+{
+  "id": "aid",
+  "name": "Aid",
+  "level": 2,
+  "school": "Abjuration",
+  "classes": ["Artificer", "Cleric", "Paladin"],
+  "description": "Your spell bolsters allies with toughness and resolve. Choose up to three creatures within range. Each target's hit point maximum and current hit points increase by 5 for the duration.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, a target's hit points increase by 5 for each slot level above 2nd.",
+  "tags": ["buff", "abjuration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a tiny strip of white cloth"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 8,
+    "unit": "hour",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "multi",
+    "range": 30,
+    "maxTargets": 3,
+    "validTargets": ["creatures", "allies"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DEFENSIVE",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "defenseType": "temporary_hp",
+      "value": 5,
+      "duration": { "type": "minutes", "value": 480 },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+5 hp per target"
+      },
+      "description": "Each target's maximum and current hit points increase by 5 for the duration."
+    }
+  ]
+}

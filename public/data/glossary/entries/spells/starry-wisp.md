@@ -1,4 +1,3 @@
-
 ---
 id: "starry-wisp"
 title: "Starry Wisp"

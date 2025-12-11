@@ -1,0 +1,46 @@
+{
+  "id": "arcane-lock",
+  "name": "Arcane Lock",
+  "level": 2,
+  "school": "Abjuration",
+  "classes": ["Artificer", "Wizard"],
+  "description": "You touch a closed door, window, gate, chest, or other entryway and inscribe it with a magical lock. Until dispelled or suppressed, the DC to open the object increases by 10. You can set a password that suppresses the effect for 1 minute when spoken within 5 feet, or you can specify creatures that can open the object as normal.",
+  "higherLevels": "None",
+  "tags": ["abjuration", "utility", "ward"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "gold dust worth at least 25 gp, sprinkled over the target",
+    "materialCost": 25,
+    "isConsumed": true
+  },
+  "duration": {
+    "type": "until_dispelled",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 5,
+    "validTargets": ["objects", "structures", "doors"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "control",
+      "description": "Magically locks the target object; increases the DC to open by 10. You may set a password that suppresses the lock for 1 minute when spoken within 5 feet, or designate creatures who can open it normally."
+    }
+  ]
+}

@@ -6,11 +6,13 @@
   "classes": [
     "Wizard"
   ],
+  "ritual": true,
   "castingTime": {
     "value": 1,
     "unit": "hour",
-    "combatCost": {
-      "type": "action"
+    "explorationCost": {
+      "value": 1,
+      "unit": "hour"
     }
   },
   "range": {

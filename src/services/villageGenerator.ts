@@ -48,8 +48,9 @@ export interface VillageBuildingFootprint {
   id: string;
   type: VillageTileType;
   footprint: { x: number; y: number; width: number; height: number };
-  color: string;
+  fill: string;
   accent: string;
+  pattern?: 'stripe' | 'check' | 'dot';
 }
 
 export interface VillagePersonality {
@@ -383,7 +384,8 @@ const areaIsFree = (tiles: VillageTileType[][], x: number, y: number, width: num
 const stampBuilding = (
   tiles: VillageTileType[][],
   building: VillageBuildingFootprint,
-  personality: VillagePersonality
+  personality: VillagePersonality,
+  plazaBoost = false
 ) => {
   const { footprint, type } = building;
   for (let dy = 0; dy < footprint.height; dy++) {
@@ -391,7 +393,10 @@ const stampBuilding = (
       const x = footprint.x + dx;
       const y = footprint.y + dy;
       if (!tiles[y] || typeof tiles[y][x] === 'undefined') continue;
-      setTileWithPriority(tiles, x, y, type, personality);
+
+      // plazaBoost: make market tiles appear as plaza tiles for visual cohesion
+      const targetType = plazaBoost && type === 'market' ? 'plaza' : type;
+      setTileWithPriority(tiles, x, y, targetType, personality);
     }
   }
 };
@@ -475,7 +480,7 @@ export const generateVillageLayout = ({
     footprint: { x: plazaTopLeft.x, y: plazaTopLeft.y, width: plazaSize, height: plazaSize },
     ...pickColor('plaza', rng)
   };
-  stampBuilding(tiles, plazaBuilding, personality);
+  stampBuilding(tiles, plazaBuilding, personality, false);
   buildings.push(plazaBuilding);
 
   // Well sits in the heart of the plaza, deterministic placement for player cues
@@ -485,7 +490,7 @@ export const generateVillageLayout = ({
     footprint: { x: center.x - 1, y: center.y - 1, width: 2, height: 2 },
     ...pickColor('well', rng)
   };
-  stampBuilding(tiles, well, personality);
+  stampBuilding(tiles, well, personality, false);
   buildings.push(well);
 
   // Market covers most of the plaza, leaving breathing room for paths
@@ -495,7 +500,7 @@ export const generateVillageLayout = ({
     footprint: { x: plazaTopLeft.x + 1, y: plazaTopLeft.y + 1, width: plazaSize - 2, height: plazaSize - 2 },
     ...pickColor('market', rng)
   };
-  stampBuilding(tiles, market, personality);
+  stampBuilding(tiles, market, personality, true); // plazaBoost for visual cohesion
   buildings.push(market);
 
   // Guard posts watch over northern and southern gates
@@ -507,7 +512,7 @@ export const generateVillageLayout = ({
       footprint: { x: center.x - 1, y: center.y + offset * (Math.floor(height / 2) - 3), width: 2, height: 2 },
       ...pickColor('guard_post', rng)
     };
-    stampBuilding(tiles, guard, personality);
+    stampBuilding(tiles, guard, personality, false);
     carvePath(tiles, getConnectionPath({ x: center.x, y: center.y }, { x: guard.footprint.x, y: guard.footprint.y }), personality);
     buildings.push(guard);
   });
@@ -527,7 +532,7 @@ export const generateVillageLayout = ({
       footprint,
       ...pickColor(type, rng)
     };
-    stampBuilding(tiles, shop, personality);
+    stampBuilding(tiles, shop, personality, false);
     carvePath(tiles, getConnectionPath({ x: shop.footprint.x, y: shop.footprint.y }, center), personality);
     buildings.push(shop);
   });
@@ -558,7 +563,7 @@ export const generateVillageLayout = ({
       footprint,
       ...pickColor(chosenType, rng)
     };
-    stampBuilding(tiles, house, personality);
+    stampBuilding(tiles, house, personality, false);
     carvePath(tiles, getConnectionPath({ x: footprint.x, y: footprint.y }, center), personality);
     buildings.push(house);
   }

@@ -154,3 +154,17 @@ from code reviews and feature planning. Each item is rated by urgency/impact and
         2.  Trace the props causing the re-render. If it's a memoized callback, review its dependency array in `useGameActions.ts`, `useGameInitialization.ts`, etc.
         3.  Ensure the dependency array is minimal and only includes values that should actually trigger the callback's re-creation. This is a low-priority task unless performance issues are observed.
     *   **Status**: PENDING (Future consideration)
+
+11. **[Low Urgency - Documentation] Add Hook Lifecycle Diagrams**:
+    *   **Description**: Hook interactions (initialization, combat, audio) can be complex. Visual diagrams would help developers understand the expected sequencing and state ownership.
+    *   **Approach**:
+        1.  Create diagrams showing the lifecycle and dependencies of key hooks (`useGameInitialization`, `useGameActions`, `useBattleMap`, `useAudio`).
+        2.  Add these diagrams to the relevant hook README files or a dedicated `docs/diagrams/` directory.
+    *   **Status**: PENDING
+
+12. **[Low Urgency - Architecture] Define Styling Source-of-Truth Policy**:
+    *   **Description**: Clarify when to use Tailwind utilities versus `src/index.css` and `public/styles.css` overrides.
+    *   **Approach**:
+        1.  Document a clear policy in `docs/@DOCUMENTATION-GUIDE.md` or a new `STYLING_GUIDE.md`.
+        2.  Guidelines should cover: when to use inline Tailwind classes, when to add custom utilities to `index.css`, and when `styles.css` overrides are appropriate.
+    *   **Status**: PENDING

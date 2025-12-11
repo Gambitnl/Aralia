@@ -15,7 +15,7 @@
     "name": "Aid",
     "level": 2,
     "school": "Abjuration",
-    "path": "/data/spells/aid.json"
+    "path": "/data/spells/level-2/aid.json"
   },
   "alarm": {
     "name": "Alarm",
@@ -27,7 +27,7 @@
     "name": "Alter Self",
     "level": 2,
     "school": "Transmutation",
-    "path": "/data/spells/alter-self.json"
+    "path": "/data/spells/level-2/alter-self.json"
   },
   "animal-friendship": {
     "name": "Animal Friendship",
@@ -39,7 +39,7 @@
     "name": "Animal Messenger",
     "level": 2,
     "school": "Enchantment",
-    "path": "/data/spells/animal-messenger.json"
+    "path": "/data/spells/level-2/animal-messenger.json"
   },
   "animal-shapes": {
     "name": "Animal Shapes",
@@ -87,7 +87,7 @@
     "name": "Arcane Lock",
     "level": 2,
     "school": "Abjuration",
-    "path": "/data/spells/arcane-lock.json"
+    "path": "/data/spells/level-2/arcane-lock.json"
   },
   "armor-of-agathys": {
     "name": "Armor of Agathys",
@@ -111,7 +111,7 @@
     "name": "Augury",
     "level": 2,
     "school": "Divination",
-    "path": "/data/spells/augury.json"
+    "path": "/data/spells/level-2/augury.json"
   },
   "aura-of-life": {
     "name": "Aura of Life",
@@ -1017,7 +1017,7 @@
     "name": "Green-Flame Blade",
     "level": 0,
     "school": "Evocation",
-    "path": "/data/spells/green-flame-blade.json"
+    "path": "/data/spells/level-0/green-flame-blade.json"
   },
   "guardian-of-faith": {
     "name": "Guardian of Faith",
@@ -1269,7 +1269,7 @@
     "name": "Lightning Lure",
     "level": 0,
     "school": "Evocation",
-    "path": "/data/spells/lightning-lure.json"
+    "path": "/data/spells/level-0/lightning-lure.json"
   },
   "locate-animals-or-plants": {
     "name": "Locate Animals or Plants",

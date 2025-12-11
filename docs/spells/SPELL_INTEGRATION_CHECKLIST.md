@@ -1,6 +1,6 @@
 # Spell Integration Checklist
 
-**Last Updated:** 2025-12-04 (Document Review)
+**Last Updated:** 2025-12-11 (Document Review + Status Refresh)
 
 This comprehensive checklist tracks not only spell data conversion but also **component integration** across the entire codebase. Each spell should pass through this checklist to ensure it works properly in all systems.
 
@@ -8,7 +8,8 @@ This comprehensive checklist tracks not only spell data conversion but also **co
 - File is nested: `public/data/spells/level-{N}/{id}.json` (cantrips → `level-0`); no flat `public/data/spells/{id}.json` remains after field comparison.
 - Required base fields: `ritual` present, `castingTime.combatCost.type` present, every effect has `trigger` + `condition`; enums/casing exact (`validTargets` plural, effect types ALL CAPS, Title Case damage types/schools/classes).
 - Use current schema primitives when applicable: `on_attack_hit`, `controlOptions`, `taunt`, `forcedMovement`, AoE `Square/height`, `saveModifiers`, `requiresStatus`, `escapeCheck`, `familiarContract`, `dispersedByStrongWind`.
-- Run `npx tsx scripts/check-spell-integrity.ts` to catch missing glossary cards/level tags or class spell-list IDs not present in the manifest (fails fast with a summary of issues).
+- Run `npx tsx scripts/check-spell-integrity.ts` to catch missing glossary cards/level tags or class spell-list IDs not present in the manifest (fails fast with a summary of issues). This is required after manifest regeneration and validation.
+- Status: Level 0 (cantrips) and Level 1 are fully migrated; see `docs/spells/STATUS_LEVEL_0.md` and `docs/spells/STATUS_LEVEL_1.md` for batch mapping.
 
 ---
 
@@ -171,9 +172,9 @@ Depends on: Core Systems + Character Sheet
 **Dependencies**: Exploration systems are loosely coupled - glossary is separate from spell JSON
 
 **Integration Gap - Glossary**:
-Currently, glossary spell entries are **separate markdown files** in `public/data/glossary/entries/spells/`. This creates **duplication**.
+Currently, glossary spell entries are **separate markdown files** in `public/data/glossary/entries/spells/`. This creates **duplication** and drift from spell JSON.
 
-**Recommendation**: Glossary spell entries should **reference** spell JSON data instead of duplicating descriptions. The `SingleGlossaryEntryModal` should fetch spell details from `SpellContext` when viewing a spell entry.
+**Recommendation**: Glossary spell entries should **reference** spell JSON data instead of duplicating descriptions. The `SingleGlossaryEntryModal` should fetch spell details from `SpellContext` when viewing a spell entry, using the markdown frontmatter only for metadata (id/title/tags).
 
 ---
 

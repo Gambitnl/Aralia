@@ -21,109 +21,114 @@ import { logReducer } from './reducers/logReducer';
 import { encounterReducer } from './reducers/encounterReducer';
 import { npcReducer } from './reducers/npcReducer';
 import { questReducer } from './reducers/questReducer';
+import { townReducer } from './reducers/townReducer';
 
 
 // Helper function to create a date at 07:00 AM on an arbitrary fixed date
 const createInitialGameTime = (): Date => {
-  const initialTime = new Date(351, 0, 1, 7, 0, 0, 0); 
-  return initialTime;
+    const initialTime = new Date(351, 0, 1, 7, 0, 0, 0);
+    return initialTime;
 };
 
 
 export const initialGameState: GameState = {
-  phase: USE_DUMMY_CHARACTER_FOR_DEV && DUMMY_PARTY_FOR_DEV && DUMMY_PARTY_FOR_DEV.length > 0 && !SaveLoadService.hasSaveGame() ? GamePhase.PLAYING : GamePhase.MAIN_MENU,
-  party: USE_DUMMY_CHARACTER_FOR_DEV && !SaveLoadService.hasSaveGame() ? DUMMY_PARTY_FOR_DEV : [],
-  tempParty: USE_DUMMY_CHARACTER_FOR_DEV && !SaveLoadService.hasSaveGame() ? DUMMY_PARTY_FOR_DEV.map(p => ({ id: p.id || crypto.randomUUID(), level: p.level || 1, classId: p.class.id })) : null,
-  inventory: USE_DUMMY_CHARACTER_FOR_DEV && !SaveLoadService.hasSaveGame() ? [...initialInventoryForDummyCharacter] : [],
-  gold: 10, // Default starting gold
-  currentLocationId: STARTING_LOCATION_ID,
-  subMapCoordinates: USE_DUMMY_CHARACTER_FOR_DEV && !SaveLoadService.hasSaveGame() ? { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2) , y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) } : null,
-  messages: [],
-  isLoading: USE_DUMMY_CHARACTER_FOR_DEV && !!DUMMY_PARTY_FOR_DEV && DUMMY_PARTY_FOR_DEV.length > 0 && !SaveLoadService.hasSaveGame(),
-  loadingMessage: USE_DUMMY_CHARACTER_FOR_DEV && !!DUMMY_PARTY_FOR_DEV && DUMMY_PARTY_FOR_DEV.length > 0 && !SaveLoadService.hasSaveGame() ? "Aralia is weaving fate..." : null,
-  isImageLoading: false, 
-  error: null,
-  worldSeed: Date.now(), // Default seed, will be overwritten on new game
-  mapData: null,
-  isMapVisible: false,
-  isSubmapVisible: false,
-  isPartyOverlayVisible: false,
-  isNpcTestModalVisible: false,
-  isLogbookVisible: false,
-  isGameGuideVisible: false,
-  dynamicLocationItemIds: {},
-  currentLocationActiveDynamicNpcIds: null,
-  geminiGeneratedActions: null,
-  characterSheetModal: { 
-    isOpen: false,
-    character: null,
-  },
-  gameTime: createInitialGameTime(),
-  
-  // Dev Mode specific state
-  isDevMenuVisible: false,
-  isPartyEditorVisible: false,
-  isGeminiLogViewerVisible: false,
-  geminiInteractionLog: [],
-  hasNewRateLimitError: false,
-  devModelOverride: null,
+    phase: USE_DUMMY_CHARACTER_FOR_DEV && DUMMY_PARTY_FOR_DEV && DUMMY_PARTY_FOR_DEV.length > 0 && !SaveLoadService.hasSaveGame() ? GamePhase.PLAYING : GamePhase.MAIN_MENU,
+    party: USE_DUMMY_CHARACTER_FOR_DEV && !SaveLoadService.hasSaveGame() ? DUMMY_PARTY_FOR_DEV : [],
+    tempParty: USE_DUMMY_CHARACTER_FOR_DEV && !SaveLoadService.hasSaveGame() ? DUMMY_PARTY_FOR_DEV.map(p => ({ id: p.id || crypto.randomUUID(), level: p.level || 1, classId: p.class.id })) : null,
+    inventory: USE_DUMMY_CHARACTER_FOR_DEV && !SaveLoadService.hasSaveGame() ? [...initialInventoryForDummyCharacter] : [],
+    gold: 10, // Default starting gold
+    currentLocationId: STARTING_LOCATION_ID,
+    subMapCoordinates: USE_DUMMY_CHARACTER_FOR_DEV && !SaveLoadService.hasSaveGame() ? { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) } : null,
+    messages: [],
+    isLoading: USE_DUMMY_CHARACTER_FOR_DEV && !!DUMMY_PARTY_FOR_DEV && DUMMY_PARTY_FOR_DEV.length > 0 && !SaveLoadService.hasSaveGame(),
+    loadingMessage: USE_DUMMY_CHARACTER_FOR_DEV && !!DUMMY_PARTY_FOR_DEV && DUMMY_PARTY_FOR_DEV.length > 0 && !SaveLoadService.hasSaveGame() ? "Aralia is weaving fate..." : null,
+    isImageLoading: false,
+    error: null,
+    worldSeed: Date.now(), // Default seed, will be overwritten on new game
+    mapData: null,
+    isMapVisible: false,
+    isSubmapVisible: false,
+    isPartyOverlayVisible: false,
+    isNpcTestModalVisible: false,
+    isLogbookVisible: false,
+    isGameGuideVisible: false,
+    dynamicLocationItemIds: {},
+    currentLocationActiveDynamicNpcIds: null,
+    geminiGeneratedActions: null,
+    characterSheetModal: {
+        isOpen: false,
+        character: null,
+    },
+    gameTime: createInitialGameTime(),
 
-  // Encounter Modal State
-  isEncounterModalVisible: false,
-  generatedEncounter: null,
-  encounterSources: null,
-  encounterError: null,
-  
-  // Battle Map State
-  currentEnemies: null,
+    // Dev Mode specific state
+    isDevMenuVisible: false,
+    isPartyEditorVisible: false,
+    isGeminiLogViewerVisible: false,
+    geminiInteractionLog: [],
+    hasNewRateLimitError: false,
+    devModelOverride: null,
 
-  // Fields for save/load
-  saveVersion: undefined,
-  saveTimestamp: undefined,
+    // Encounter Modal State
+    isEncounterModalVisible: false,
+    generatedEncounter: null,
+    encounterSources: null,
+    encounterError: null,
 
-  // NPC interaction context
-  lastInteractedNpcId: null,
-  lastNpcResponse: null,
+    // Battle Map State
+    currentEnemies: null,
 
-  inspectedTileDescriptions: {}, 
+    // Fields for save/load
+    saveVersion: undefined,
+    saveTimestamp: undefined,
 
-  // Discovery Journal State
-  discoveryLog: [],
-  unreadDiscoveryCount: 0,
-  isDiscoveryLogVisible: false,
-  isGlossaryVisible: false, 
-  selectedGlossaryTermForModal: undefined, 
+    // NPC interaction context
+    lastInteractedNpcId: null,
+    lastNpcResponse: null,
 
-  // NPC Memory
-  npcMemory: Object.keys(NPCS).reduce((acc, npcId) => {
-    const npcData = NPCS[npcId];
-    acc[npcId] = { 
-        disposition: 0, 
-        knownFacts: [], 
-        suspicion: SuspicionLevel.Unaware,
-        goals: npcData?.goals ? [...npcData.goals] : [], 
-    };
-    return acc;
-  }, {} as GameState['npcMemory']),
-  
-  // World State
-  locationResidues: {},
-  
-  // Character Logbook
-  metNpcIds: [],
-  
-  // Merchant State
-  merchantModal: {
-      isOpen: false,
-      merchantName: '',
-      merchantInventory: [],
-  },
+    inspectedTileDescriptions: {},
 
-  // Quest System
-  questLog: [],
+    // Discovery Journal State
+    discoveryLog: [],
+    unreadDiscoveryCount: 0,
+    isDiscoveryLogVisible: false,
+    isGlossaryVisible: false,
+    selectedGlossaryTermForModal: undefined,
 
-  // Notification System
-  notifications: [],
+    // NPC Memory
+    npcMemory: Object.keys(NPCS).reduce((acc, npcId) => {
+        const npcData = NPCS[npcId];
+        acc[npcId] = {
+            disposition: 0,
+            knownFacts: [],
+            suspicion: SuspicionLevel.Unaware,
+            goals: npcData?.goals ? [...npcData.goals] : [],
+        };
+        return acc;
+    }, {} as GameState['npcMemory']),
+
+    // World State
+    locationResidues: {},
+
+    // Character Logbook
+    metNpcIds: [],
+
+    // Merchant State
+    merchantModal: {
+        isOpen: false,
+        merchantName: '',
+        merchantInventory: [],
+    },
+
+    // Quest System
+    questLog: [],
+    isQuestLogVisible: false,
+
+    // Town Exploration
+    townState: null,
+
+    // Notification System
+    notifications: [],
 };
 
 
@@ -131,10 +136,10 @@ export function appReducer(state: GameState, action: AppAction): GameState {
     // 1. Handle actions with cross-cutting concerns first
     switch (action.type) {
         case 'SET_GAME_PHASE':
-            let additionalUpdates: Partial<GameState> = { 
+            let additionalUpdates: Partial<GameState> = {
                 loadingMessage: null,
                 previousPhase: state.phase !== action.payload ? state.phase : state.previousPhase, // Track previous phase
-            }; 
+            };
             if (action.payload === GamePhase.MAIN_MENU || action.payload === GamePhase.CHARACTER_CREATION) {
                 // Reset a wide range of UI and game context state when returning to menu or starting creation
                 additionalUpdates = {
@@ -143,14 +148,14 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     isMapVisible: false,
                     isSubmapVisible: false,
                     error: null,
-                    characterSheetModal: { isOpen: false, character: null }, 
+                    characterSheetModal: { isOpen: false, character: null },
                     lastInteractedNpcId: null,
                     lastNpcResponse: null,
                     currentLocationActiveDynamicNpcIds: null,
-                    isDevMenuVisible: false, 
+                    isDevMenuVisible: false,
                     isGeminiLogViewerVisible: false,
-                    isDiscoveryLogVisible: false, 
-                    isGlossaryVisible: false, 
+                    isDiscoveryLogVisible: false,
+                    isGlossaryVisible: false,
                     selectedGlossaryTermForModal: undefined,
                     isPartyOverlayVisible: false,
                     isNpcTestModalVisible: false,
@@ -160,32 +165,32 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 };
                 if (action.payload === GamePhase.CHARACTER_CREATION) {
                     // Full reset for a new game
-                     additionalUpdates = {
+                    additionalUpdates = {
                         ...additionalUpdates,
-                        gameTime: createInitialGameTime(), 
-                        discoveryLog: [], 
+                        gameTime: createInitialGameTime(),
+                        discoveryLog: [],
                         unreadDiscoveryCount: 0,
-                        inventory: [], 
+                        inventory: [],
                         tempParty: null,
                         metNpcIds: [],
                         gold: 0,
                         questLog: [],
-                     }
+                    }
                 }
             }
             return { ...state, phase: action.payload, ...additionalUpdates };
 
         case 'START_NEW_GAME_SETUP':
             return {
-                ...initialGameState, 
+                ...initialGameState,
                 phase: GamePhase.CHARACTER_CREATION,
                 worldSeed: action.payload.worldSeed,
                 mapData: action.payload.mapData,
                 dynamicLocationItemIds: action.payload.dynamicLocationItemIds,
-                inventory: [], 
+                inventory: [],
                 currentLocationActiveDynamicNpcIds: determineActiveDynamicNpcsForLocation(STARTING_LOCATION_ID, LOCATIONS),
                 gameTime: createInitialGameTime(),
-                isLoading: false, 
+                isLoading: false,
                 loadingMessage: null,
                 gold: 0,
                 questLog: [],
@@ -197,12 +202,12 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             if (!generatedParty || generatedParty.length === 0) return { ...state, error: "Dummy character data not available.", phase: GamePhase.MAIN_MENU, isLoading: false, loadingMessage: null };
             const initialDummyLocation = LOCATIONS[STARTING_LOCATION_ID];
             return {
-                ...initialGameState, 
+                ...initialGameState,
                 phase: GamePhase.PLAYING,
                 worldSeed: worldSeed,
                 party: generatedParty,
                 tempParty: generatedParty.map(p => ({ id: p.id || crypto.randomUUID(), level: p.level || 1, classId: p.class.id })),
-                inventory: [...initialInventoryForDummyCharacter], 
+                inventory: [...initialInventoryForDummyCharacter],
                 gold: 100, // Dummy gets some spending money
                 currentLocationId: STARTING_LOCATION_ID,
                 subMapCoordinates: { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) },
@@ -213,7 +218,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 mapData: mapData,
                 dynamicLocationItemIds: dynamicLocationItemIds,
                 currentLocationActiveDynamicNpcIds: determineActiveDynamicNpcsForLocation(STARTING_LOCATION_ID, LOCATIONS),
-                isLoading: false, 
+                isLoading: false,
                 loadingMessage: null,
                 questLog: [],
                 isQuestLogVisible: false,
@@ -249,7 +254,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 mapData: restOfPayload.mapData,
                 dynamicLocationItemIds: restOfPayload.dynamicLocationItemIds,
                 currentLocationActiveDynamicNpcIds: restOfPayload.initialActiveDynamicNpcIds,
-                isLoading: false, 
+                isLoading: false,
                 loadingMessage: null,
                 questLog: [],
                 isQuestLogVisible: false,
@@ -261,7 +266,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             const loadedState = action.payload;
             const gameTimeFromLoad = typeof loadedState.gameTime === 'string' ? new Date(loadedState.gameTime) : loadedState.gameTime;
             const partyFromLoad = (loadedState.party && loadedState.party.length > 0) ? loadedState.party : (((loadedState as any).playerCharacter) ? [(loadedState as any).playerCharacter] : []);
-            
+
             for (const npcId in loadedState.npcMemory) {
                 const memory = loadedState.npcMemory[npcId];
                 if (memory.knownFacts.length > 0 && typeof memory.knownFacts[0] === 'string') {
@@ -290,11 +295,11 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             }
 
             return {
-                ...loadedState, 
-                phase: GamePhase.LOAD_TRANSITION, 
+                ...loadedState,
+                phase: GamePhase.LOAD_TRANSITION,
                 isLoading: false, loadingMessage: null, isImageLoading: false, error: null,
                 isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isPartyEditorVisible: false,
-                isPartyOverlayVisible: false, isGeminiLogViewerVisible: false, isDiscoveryLogVisible: false, 
+                isPartyOverlayVisible: false, isGeminiLogViewerVisible: false, isDiscoveryLogVisible: false,
                 isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isLogbookVisible: false,
                 isGameGuideVisible: false,
                 geminiGeneratedActions: null,
@@ -304,10 +309,10 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 currentLocationActiveDynamicNpcIds: determineActiveDynamicNpcsForLocation(loadedState.currentLocationId, LOCATIONS),
                 characterSheetModal: loadedState.characterSheetModal || { isOpen: false, character: null },
                 gameTime: gameTimeFromLoad,
-                geminiInteractionLog: loadedState.geminiInteractionLog || [], 
+                geminiInteractionLog: loadedState.geminiInteractionLog || [],
                 inspectedTileDescriptions: loadedState.inspectedTileDescriptions || {},
-                discoveryLog: loadedState.discoveryLog || [], 
-                unreadDiscoveryCount: loadedState.unreadDiscoveryCount || 0, 
+                discoveryLog: loadedState.discoveryLog || [],
+                unreadDiscoveryCount: loadedState.unreadDiscoveryCount || 0,
                 metNpcIds: loadedState.metNpcIds || [],
                 locationResidues: loadedState.locationResidues || {},
                 merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
@@ -325,13 +330,13 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 mapData: action.payload.mapData || state.mapData,
                 currentLocationActiveDynamicNpcIds: action.payload.activeDynamicNpcIds,
                 geminiGeneratedActions: null,
-                lastInteractedNpcId: null, 
+                lastInteractedNpcId: null,
                 lastNpcResponse: null,
                 merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
             };
         }
-        
-         case 'INITIALIZE_DUMMY_PLAYER_STATE':
+
+        case 'INITIALIZE_DUMMY_PLAYER_STATE':
             return {
                 ...state,
                 messages: [
@@ -343,7 +348,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 mapData: action.payload.mapData,
                 isSubmapVisible: false,
                 dynamicLocationItemIds: action.payload.dynamicLocationItemIds,
-                inventory: [...initialInventoryForDummyCharacter], 
+                inventory: [...initialInventoryForDummyCharacter],
                 gold: 100,
                 currentLocationActiveDynamicNpcIds: action.payload.initialActiveDynamicNpcIds,
                 gameTime: createInitialGameTime(),
@@ -354,13 +359,13 @@ export function appReducer(state: GameState, action: AppAction): GameState {
 
         case 'APPLY_TAKE_ITEM_UPDATE': {
             const { item, locationId, discoveryEntry } = action.payload;
-            
+
             const dynamicItems = { ...state.dynamicLocationItemIds };
             // Safely remove item from location if it exists in the map
             if (dynamicItems[locationId]) {
                 dynamicItems[locationId] = dynamicItems[locationId].filter(id => id !== item.id);
             }
-            
+
             return {
                 ...state,
                 inventory: [...state.inventory, item],
@@ -372,7 +377,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 lastNpcResponse: null,
             };
         }
-        
+
         case 'SETUP_BATTLE_MAP_DEMO': {
             const playerParty = state.party;
             if (!playerParty || playerParty.length === 0) {
@@ -384,12 +389,12 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 isMapVisible: false, isSubmapVisible: false, isDiscoveryLogVisible: false, isGlossaryVisible: false, merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] }
             };
         }
-        
+
         case 'START_BATTLE_MAP_ENCOUNTER': {
-             const combatants = action.payload.monsters.flatMap((monster, monsterIndex) => 
+            const combatants = action.payload.monsters.flatMap((monster, monsterIndex) =>
                 Array.from({ length: monster.quantity }, (_, i) => createEnemyFromMonster(monster, i))
-             );
-             return {
+            );
+            return {
                 ...state,
                 phase: GamePhase.COMBAT, // Now transitions to the actual combat phase
                 currentEnemies: combatants,
@@ -397,7 +402,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 isMapVisible: false, isSubmapVisible: false, isDiscoveryLogVisible: false, isGlossaryVisible: false, merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] }
             };
         }
-        
+
         case 'END_BATTLE': {
             const rewards = action.payload?.rewards;
             let newState = {
@@ -463,6 +468,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ...encounterReducer(state, action),
                 ...npcReducer(state, action),
                 ...questReducer(state, action),
+                ...townReducer(state, action),
             };
 
             if (Object.keys(changes).length === 0) {

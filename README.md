@@ -2,7 +2,7 @@
 
 Welcome to the Aralia RPG project! This document provides a high-level overview of the project, its core features, technology stack, and development practices.
 
-For a complete index of all documentation, please see the [README Index](./docs/README_INDEX.md).
+For a complete index of all documentation, please see the [README Index](./docs/@README-INDEX.md).
 
 ## 1. Core Features
 
@@ -18,14 +18,16 @@ For a complete index of all documentation, please see the [README Index](./docs/
 ## 2. Technology Stack & Architecture
 
 ### Core Stack
-*   **Framework**: **React** (v19) using modern features like hooks.
-*   **Language**: **TypeScript** for type safety.
+*   **Framework**: **React** (v19.1) using modern features like hooks.
+*   **Language**: **TypeScript** (~5.8) for type safety.
 *   **Styling**: **Tailwind CSS** (via CDN) plus the utility definitions in `src/index.css` and the curated styles aggregated in `public/styles.css`.
-*   **Build Tooling**: **Vite** for both the dev server (`npm run dev`) and production bundling (`npm run build` / `npm run preview`).
-    *   **Dual dependency system**: Vite bundles everything declared in `package.json`, while the `index.html` import map loads dependencies directly from a CDN for browser-based imports (React, `@google/genai`, `framer-motion`, markdown tooling, PIXI, etc.).
-    *   **Synchronization requirement**: Keep the semver ranges in `package.json` and the import map aligned so CDN imports match the bundled output.
-        *   When you bump a dependency, update it in both places (including browser polyfills for Node.js modules like `fs` and `path`).
+*   **Build Tooling**: **Vite** (v7) for both the dev server (`npm run dev`) and production bundling (`npm run build` / `npm run preview`).
+*   **Testing**: **Vitest** for unit testing with **@testing-library/react** for component tests.
+*   **Validation**: **Zod** for runtime data validation of game data files.
 *   **AI Integration**: The app uses the **`@google/genai`** SDK for all interactions with the Gemini models. This is a core, unchangeable requirement.
+*   **Animation**: **Framer Motion** for UI animations.
+*   **Graphics**: **PixiJS** (v8) for canvas-based rendering (battle maps, village scenes).
+*   **Icons**: **Lucide React** for UI icons.
 
 ### Architectural Constraints (What I Can't Do)
 
@@ -36,13 +38,12 @@ Because this is a client-side experience packaged and served through Vite, there
 
 ### Architectural Possibilities (Thinking Outside the Box)
 
-Even though everything runs in the browser, we **can** expand the experience by adding client-side libraries through `package.json` or the import-map. This is where you can guide me to build more advanced features. For inspiration, refer to the `docs/POTENTIAL_TOOL_INTEGRATIONS.README.md` file.
+Even though everything runs in the browser, we **can** expand the experience by adding client-side libraries through `package.json`. This is where you can guide me to build more advanced features. For inspiration, refer to the [`docs/@POTENTIAL-TOOL-INTEGRATIONS.README.md`](./docs/@POTENTIAL-TOOL-INTEGRATIONS.README.md) file.
 
 **You could ask me to:**
 *   "Integrate **Zustand** to manage our game state more effectively instead of passing props everywhere."
 *   "Use **Headless UI** to build a new, fully accessible modal component."
 *   "Refactor the Oracle query form to use **React Hook Form** for better state management and validation."
-*   "Animate the appearance of the new quest log using **Framer Motion**."
 
 Mentioning these possibilities helps me understand that you're open to evolving the tech stack within our constraints.
 
@@ -50,7 +51,7 @@ Mentioning these possibilities helps me understand that you're open to evolving 
 
 The project follows a component-based architecture with a clear separation of concerns.
 
-*   **`index.html`**: The main entry point. Loads Tailwind CSS, fonts, and the root React script. Contains the `importmap`.
+*   **`index.html`**: The main entry point. Loads Tailwind CSS, fonts, and the root React script.
 *   **`index.tsx`**: Renders the `App` component into the DOM.
 *   **`src/`**: The main source code directory.
     *   **`App.tsx`**: The root React component, managing overall game state and logic. See [`src/App.README.md`](./src/App.README.md).
@@ -79,21 +80,45 @@ The project follows a component-based architecture with a clear separation of co
 *   **`docs/`**: All project documentation, including this overview, guides, and READMEs for different modules.
 *   **`public/`**: Static assets like images or data files that need to be publicly accessible.
     *   **`public/data/glossary/`**: Contains the Markdown source files and generated JSON indexes for the in-game glossary.
-*   **`scripts/`**: Build scripts, such as the one for generating the glossary index.
+*   **`scripts/`**: Build scripts, such as the one for generating the glossary index and data validation.
+*   **`tests/`**: Test files for Vitest.
 
-## 4. Key Development Practices
+## 4. Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start the Vite development server |
+| `npm run build` | Build for production |
+| `npm run preview` | Preview the production build locally |
+| `npm run validate` | Validate game data files (spells, items, etc.) against schemas |
+| `npm run test` | Run unit tests with Vitest |
+| `npm run test:types` | Run type definition tests |
+| `npm run typecheck` | Run TypeScript type checking without emitting |
+| `npm run lint` | Run ESLint on source and script files |
+
+## 5. Key Development Practices
 
 ### Dummy Character for Development
 *   The `USE_DUMMY_CHARACTER_FOR_DEV` flag in `src/constants.ts` can be set to `true`.
 *   This bypasses the character creation screen and starts the game immediately with a predefined character, speeding up development and testing of game mechanics.
 
-### Code Formatting
+### Code Quality
 *   Code is formatted using Prettier with default settings to ensure consistency.
+*   ESLint enforces code quality standards with plugins for React, accessibility (jsx-a11y), and import ordering.
+*   TypeScript strict mode ensures type safety throughout the codebase.
 
-## 5. How to Add New Game Content
+## 6. How to Add New Game Content
 
 ### Adding a New Race
 Please follow the detailed guide: **[`docs/guides/RACE_ADDITION_GUIDE.md`](./docs/guides/RACE_ADDITION_GUIDE.md)**
 
 ### Adding a New Class
 Please follow the detailed guide: **[`docs/guides/CLASS_ADDITION_GUIDE.md`](./docs/guides/CLASS_ADDITION_GUIDE.md)**
+
+### Adding Spells
+Please follow the detailed guide: **[`docs/guides/SPELL_ADDITION_WORKFLOW_GUIDE.md`](./docs/guides/SPELL_ADDITION_WORKFLOW_GUIDE.md)**
+
+For spell implementation status by level, see the **[`docs/spells/`](./docs/spells/)** directory.
+
+### Adding Glossary Entries
+Please follow the detailed guide: **[`docs/guides/GLOSSARY_ENTRY_DESIGN_GUIDE.md`](./docs/guides/GLOSSARY_ENTRY_DESIGN_GUIDE.md)**

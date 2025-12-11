@@ -1,7 +1,10 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { TownGenerator } from '../services/RealmSmithTownGenerator';
 import { AssetPainter } from '../services/RealmSmithAssetPainter';
 import { TownOptions, BiomeType, TownDensity, BuildingType, Building, TownMap } from '../types/realmsmith';
+import { TownPosition, TownDirection, TOWN_DIRECTION_VECTORS } from '../types/town';
+import { isPositionWalkable, getAdjacentBuildings } from '../utils/walkabilityUtils';
+import TownNavigationControls from './TownNavigationControls';
 import { RefreshCw, Download, Map as MapIcon, Compass, TreeDeciduous, Home, Sparkles, BookOpen, ZoomIn, ZoomOut, Maximize, Move, Moon, Sun, Grid } from 'lucide-react';
 
 const BUILDING_DESCRIPTIONS: Record<BuildingType, { name: string; desc: string }> = {
@@ -47,6 +50,10 @@ interface TownCanvasProps {
     isDevDummyActive?: boolean;
     unreadDiscoveryCount?: number;
     hasNewRateLimitError?: boolean;
+    // Player navigation props
+    playerPosition?: TownPosition;
+    onPlayerMove?: (direction: TownDirection) => void;
+    onExitTown?: () => void;
 }
 
 const TownCanvas: React.FC<TownCanvasProps> = ({
@@ -55,7 +62,13 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     worldY,
     biome: araliaBiome,
     settlementInfo,
-    onAction
+    onAction,
+    gameTime,
+    disabled = false,
+    isDevDummyActive = false,
+    playerPosition,
+    onPlayerMove,
+    onExitTown,
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -182,7 +195,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
             ctx.fillText("Rendering Error. Check console for details.", 20, 30);
         }
 
-    }, [mapData, isNight, showGrid]);
+    }, [mapData, isNight, showGrid, playerPosition]);
 
     const handleDownload = () => {
         if (!canvasRef.current) return;
@@ -213,22 +226,12 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     };
 
     const handleMouseDown = (e: React.MouseEvent) => {
-        setIsDragging(true);
-        setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
-        setHoveredBuilding(null); // Clear tooltip on drag start
+        // Panning disabled - only clear tooltip on click
+        setHoveredBuilding(null); // Clear tooltip on click
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
-        // 1. Handle Pan
-        if (isDragging) {
-            setPan({
-                x: e.clientX - dragStart.x,
-                y: e.clientY - dragStart.y
-            });
-            return;
-        }
-
-        // 2. Handle Hover (Building Detection)
+        // Panning disabled - only handle hover (Building Detection)
         if (canvasRef.current && mapData) {
             const rect = canvasRef.current.getBoundingClientRect();
 
@@ -294,6 +297,41 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
         setPan({ x: 0, y: 0 });
     };
 
+    // Compute blocked directions for navigation
+    const blockedDirections = useMemo((): TownDirection[] => {
+        if (!mapData || !playerPosition) return [];
+        const blocked: TownDirection[] = [];
+        const directions: TownDirection[] = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'];
+
+        for (const dir of directions) {
+            const delta = TOWN_DIRECTION_VECTORS[dir];
+            const targetPos = {
+                x: playerPosition.x + delta.x,
+                y: playerPosition.y + delta.y,
+            };
+            if (!isPositionWalkable(targetPos, mapData)) {
+                blocked.push(dir);
+            }
+        }
+        return blocked;
+    }, [mapData, playerPosition]);
+
+    // Get adjacent buildings for interaction display
+    const adjacentBuildingData = useMemo(() => {
+        if (!mapData || !playerPosition) return [];
+        const buildingIds = getAdjacentBuildings(playerPosition, mapData);
+        return buildingIds.map(id => {
+            const building = mapData.buildings.find(b => b.id === id);
+            if (!building) return null;
+            const desc = BUILDING_DESCRIPTIONS[building.type];
+            return {
+                id: building.id,
+                name: desc?.name || 'Unknown Building',
+                type: building.type,
+            };
+        }).filter(Boolean) as Array<{ id: string; name: string; type: string }>;
+    }, [mapData, playerPosition]);
+
     return (
         <div className="flex flex-col items-center w-full h-full min-h-screen bg-gray-900 text-gray-100 p-6">
 
@@ -309,106 +347,108 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                     </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 bg-gray-800 p-4 rounded-xl shadow-xl border border-gray-700 w-full xl:w-auto">
+                {isDevDummyActive && (
+                    <div className="flex flex-wrap items-center gap-4 bg-gray-800 p-4 rounded-xl shadow-xl border border-gray-700 w-full xl:w-auto">
 
-                    {/* Seed Control */}
-                    <div className="flex flex-col">
-                        <label className="text-xs text-gray-500 font-mono uppercase mb-1">Seed</label>
-                        <div className="flex gap-2">
-                            <input
-                                type="number"
-                                value={seed}
-                                onChange={(e) => setSeed(parseInt(e.target.value) || 0)}
-                                className="bg-gray-900 border border-gray-700 text-white text-sm rounded px-2 py-1 w-24 focus:outline-none focus:border-blue-500 font-mono"
-                            />
-                            <button onClick={handleRandomize} title="Randomize" className="bg-gray-700 hover:bg-gray-600 p-1 rounded text-white">
-                                <RefreshCw size={16} />
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="h-8 w-px bg-gray-600 mx-1 hidden md:block"></div>
-
-                    {/* Biome Control */}
-                    <div className="flex flex-col">
-                        <label className="text-xs text-gray-500 font-mono uppercase mb-1 flex items-center gap-1"><TreeDeciduous size={10} /> Biome</label>
-                        <select
-                            value={biome}
-                            onChange={(e) => setBiome(e.target.value as BiomeType)}
-                            className="bg-gray-900 border border-gray-700 text-white text-sm rounded px-2 py-1 focus:outline-none focus:border-blue-500 max-w-[150px]"
-                        >
-                            {Object.values(BiomeType).map((b) => (
-                                <option key={b} value={b}>{b.replace('_', ' ')}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Density Control */}
-                    <div className="flex flex-col">
-                        <label className="text-xs text-gray-500 font-mono uppercase mb-1 flex items-center gap-1"><Home size={10} /> Density</label>
-                        <select
-                            value={density}
-                            onChange={(e) => setDensity(e.target.value as TownDensity)}
-                            className="bg-gray-900 border border-gray-700 text-white text-sm rounded px-2 py-1 focus:outline-none focus:border-blue-500"
-                        >
-                            <option value={TownDensity.VERY_SPARSE}>Very Sparse</option>
-                            <option value={TownDensity.SPARSE}>Sparse</option>
-                            <option value={TownDensity.MEDIUM}>Medium</option>
-                            <option value={TownDensity.HIGH}>High</option>
-                            <option value={TownDensity.EXTREME}>Extreme</option>
-                        </select>
-                    </div>
-
-                    <div className="h-8 w-px bg-gray-600 mx-1 hidden md:block"></div>
-
-                    {/* Connections Control */}
-                    <div className="flex flex-col">
-                        <label className="text-xs text-gray-500 font-mono uppercase mb-1 flex items-center gap-1"><Compass size={10} /> Exits</label>
-                        <div className="flex gap-1">
-                            {['north', 'south', 'east', 'west'].map((dir) => (
-                                <button
-                                    key={dir}
-                                    onClick={() => toggleConnection(dir as keyof typeof connections)}
-                                    className={`w-6 h-6 flex items-center justify-center rounded text-xs font-bold border ${connections[dir as keyof typeof connections]
-                                        ? 'bg-blue-600 border-blue-500 text-white'
-                                        : 'bg-gray-900 border-gray-700 text-gray-500 hover:border-gray-500'
-                                        }`}
-                                    title={`Toggle ${dir} exit`}
-                                >
-                                    {dir[0].toUpperCase()}
+                        {/* Seed Control */}
+                        <div className="flex flex-col">
+                            <label className="text-xs text-gray-500 font-mono uppercase mb-1">Seed</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="number"
+                                    value={seed}
+                                    onChange={(e) => setSeed(parseInt(e.target.value) || 0)}
+                                    className="bg-gray-900 border border-gray-700 text-white text-sm rounded px-2 py-1 w-24 focus:outline-none focus:border-blue-500 font-mono"
+                                />
+                                <button onClick={handleRandomize} title="Randomize" className="bg-gray-700 hover:bg-gray-600 p-1 rounded text-white">
+                                    <RefreshCw size={16} />
                                 </button>
-                            ))}
+                            </div>
                         </div>
+
+                        <div className="h-8 w-px bg-gray-600 mx-1 hidden md:block"></div>
+
+                        {/* Biome Control */}
+                        <div className="flex flex-col">
+                            <label className="text-xs text-gray-500 font-mono uppercase mb-1 flex items-center gap-1"><TreeDeciduous size={10} /> Biome</label>
+                            <select
+                                value={biome}
+                                onChange={(e) => setBiome(e.target.value as BiomeType)}
+                                className="bg-gray-900 border border-gray-700 text-white text-sm rounded px-2 py-1 focus:outline-none focus:border-blue-500 max-w-[150px]"
+                            >
+                                {Object.values(BiomeType).map((b) => (
+                                    <option key={b} value={b}>{b.replace('_', ' ')}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Density Control */}
+                        <div className="flex flex-col">
+                            <label className="text-xs text-gray-500 font-mono uppercase mb-1 flex items-center gap-1"><Home size={10} /> Density</label>
+                            <select
+                                value={density}
+                                onChange={(e) => setDensity(e.target.value as TownDensity)}
+                                className="bg-gray-900 border border-gray-700 text-white text-sm rounded px-2 py-1 focus:outline-none focus:border-blue-500"
+                            >
+                                <option value={TownDensity.VERY_SPARSE}>Very Sparse</option>
+                                <option value={TownDensity.SPARSE}>Sparse</option>
+                                <option value={TownDensity.MEDIUM}>Medium</option>
+                                <option value={TownDensity.HIGH}>High</option>
+                                <option value={TownDensity.EXTREME}>Extreme</option>
+                            </select>
+                        </div>
+
+                        <div className="h-8 w-px bg-gray-600 mx-1 hidden md:block"></div>
+
+                        {/* Connections Control */}
+                        <div className="flex flex-col">
+                            <label className="text-xs text-gray-500 font-mono uppercase mb-1 flex items-center gap-1"><Compass size={10} /> Exits</label>
+                            <div className="flex gap-1">
+                                {['north', 'south', 'east', 'west'].map((dir) => (
+                                    <button
+                                        key={dir}
+                                        onClick={() => toggleConnection(dir as keyof typeof connections)}
+                                        className={`w-6 h-6 flex items-center justify-center rounded text-xs font-bold border ${connections[dir as keyof typeof connections]
+                                            ? 'bg-blue-600 border-blue-500 text-white'
+                                            : 'bg-gray-900 border-gray-700 text-gray-500 hover:border-gray-500'
+                                            }`}
+                                        title={`Toggle ${dir} exit`}
+                                    >
+                                        {dir[0].toUpperCase()}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="h-8 w-px bg-gray-600 mx-1 hidden md:block"></div>
+
+                        {/* Actions */}
+                        <button
+                            onClick={() => generateMap()}
+                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors font-bold shadow-lg ml-auto md:ml-0"
+                            disabled={loading}
+                        >
+                            <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
+                            <span className="hidden md:inline">Regenerate</span>
+                        </button>
+
+                        <button
+                            onClick={() => onAction({ type: 'TOGGLE_GLOSSARY_VISIBILITY', label: 'Open Codex' })}
+                            className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition-colors font-bold"
+                            title="Open Codex"
+                        >
+                            <BookOpen size={18} />
+                        </button>
+
+                        <button
+                            onClick={handleDownload}
+                            className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-2 rounded-lg transition-colors font-bold"
+                            title="Download PNG"
+                        >
+                            <Download size={18} />
+                        </button>
                     </div>
-
-                    <div className="h-8 w-px bg-gray-600 mx-1 hidden md:block"></div>
-
-                    {/* Actions */}
-                    <button
-                        onClick={() => generateMap()}
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors font-bold shadow-lg ml-auto md:ml-0"
-                        disabled={loading}
-                    >
-                        <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
-                        <span className="hidden md:inline">Regenerate</span>
-                    </button>
-
-                    <button
-                        onClick={() => onAction({ type: 'TOGGLE_GLOSSARY_VISIBILITY', label: 'Open Codex' })}
-                        className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg transition-colors font-bold"
-                        title="Open Codex"
-                    >
-                        <BookOpen size={18} />
-                    </button>
-
-                    <button
-                        onClick={handleDownload}
-                        className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-2 rounded-lg transition-colors font-bold"
-                        title="Download PNG"
-                    >
-                        <Download size={18} />
-                    </button>
-                </div>
+                )}
             </header>
 
             {/* Main Canvas Viewport */}
@@ -489,11 +529,10 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
 
                 {/* Drag Indicator */}
                 <div className="absolute top-4 left-4 z-20 pointer-events-none opacity-50 flex items-center gap-2 bg-black/40 p-2 rounded text-xs">
-                    <Move size={14} />
-                    <span>Drag to Pan • Scroll to Zoom</span>
+                    <span>Scroll to Zoom</span>
                 </div>
 
-                <div className="w-full h-full flex items-center justify-center cursor-grab active:cursor-grabbing overflow-hidden">
+                <div className="w-full h-full flex items-center justify-center cursor-default overflow-hidden">
                     <div
                         style={{
                             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
@@ -509,6 +548,32 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                     </div>
                 </div>
             </main>
+
+            {/* Navigation Controls - shown when in player navigation mode */}
+            {playerPosition && onPlayerMove && onExitTown && (
+                <div className="fixed bottom-6 left-6 z-30">
+                    <TownNavigationControls
+                        onMove={onPlayerMove}
+                        onExit={onExitTown}
+                        blockedDirections={blockedDirections}
+                        disabled={disabled}
+                        adjacentBuildings={adjacentBuildingData}
+                        onBuildingInteract={(buildingId) => {
+                            const building = mapData?.buildings.find(b => b.id === buildingId);
+                            if (building) {
+                                onAction({
+                                    type: 'OPEN_DYNAMIC_MERCHANT',
+                                    label: `Visit ${BUILDING_DESCRIPTIONS[building.type]?.name}`,
+                                    payload: {
+                                        merchantType: building.type,
+                                        buildingId: building.id
+                                    }
+                                });
+                            }
+                        }}
+                    />
+                </div>
+            )}
 
             <footer className="mt-6 text-gray-500 text-xs flex gap-6">
                 <span>Left-Click: View Details (N/A)</span>

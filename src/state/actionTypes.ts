@@ -15,12 +15,12 @@ export type AppAction =
   | { type: 'SET_IMAGE_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'ADD_MESSAGE'; payload: GameMessage }
-  | { type: 'MOVE_PLAYER'; payload: { newLocationId: string; newSubMapCoordinates: {x: number; y:number}; mapData?: MapData; activeDynamicNpcIds: string[] | null } }
+  | { type: 'MOVE_PLAYER'; payload: { newLocationId: string; newSubMapCoordinates: { x: number; y: number }; mapData?: MapData; activeDynamicNpcIds: string[] | null } }
   | { type: 'APPLY_TAKE_ITEM_UPDATE'; payload: { item: Item; locationId: string; discoveryEntry: DiscoveryEntry } }
   | { type: 'TOGGLE_MAP_VISIBILITY' }
   | { type: 'TOGGLE_SUBMAP_VISIBILITY' }
   | { type: 'SET_MAP_DATA'; payload: MapData }
-  | { type: 'INITIALIZE_DUMMY_PLAYER_STATE'; payload: { mapData: MapData; dynamicLocationItemIds: Record<string, string[]>; initialLocationDescription: string; initialSubMapCoordinates: {x:number; y:number}, initialActiveDynamicNpcIds: string[] | null } }
+  | { type: 'INITIALIZE_DUMMY_PLAYER_STATE'; payload: { mapData: MapData; dynamicLocationItemIds: Record<string, string[]>; initialLocationDescription: string; initialSubMapCoordinates: { x: number; y: number }, initialActiveDynamicNpcIds: string[] | null } }
   | { type: 'SET_GEMINI_ACTIONS'; payload: Action[] | null }
   | { type: 'OPEN_CHARACTER_SHEET'; payload: PlayerCharacter }
   | { type: 'CLOSE_CHARACTER_SHEET' }
@@ -40,9 +40,9 @@ export type AppAction =
   | { type: 'MARK_ALL_DISCOVERIES_READ' }
   | { type: 'TOGGLE_DISCOVERY_LOG_VISIBILITY' }
   | { type: 'TOGGLE_GLOSSARY_VISIBILITY'; payload?: { initialTermId?: string } }
-  | { type: 'SET_GLOSSARY_TERM_FOR_MODAL'; payload: string } 
-  | { type: 'CLEAR_GLOSSARY_TERM_FOR_MODAL' } 
-  | { type: 'UPDATE_QUEST_IN_DISCOVERY_LOG'; payload: { questId: string; newStatus: string; newContent?: string } } 
+  | { type: 'SET_GLOSSARY_TERM_FOR_MODAL'; payload: string }
+  | { type: 'CLEAR_GLOSSARY_TERM_FOR_MODAL' }
+  | { type: 'UPDATE_QUEST_IN_DISCOVERY_LOG'; payload: { questId: string; newStatus: string; newContent?: string } }
   | { type: 'CLEAR_DISCOVERY_LOG' }
   // Item Interaction Actions
   | { type: 'EQUIP_ITEM'; payload: any }
@@ -77,7 +77,7 @@ export type AppAction =
   | { type: 'ADD_NPC_KNOWN_FACT'; payload: { npcId: string; fact: KnownFact } }
   | { type: 'UPDATE_NPC_SUSPICION'; payload: { npcId: string; newLevel: SuspicionLevel } }
   | { type: 'UPDATE_NPC_GOAL_STATUS'; payload: { npcId: string; goalId: string; newStatus: GoalStatus } }
-  | { type: 'PROCESS_Gossip_UPDATES'; payload: GossipUpdatePayload } 
+  | { type: 'PROCESS_Gossip_UPDATES'; payload: GossipUpdatePayload }
   | { type: 'UPDATE_NPC_INTERACTION_TIMESTAMP'; payload: { npcId: string; timestamp: number } }
   | { type: 'BATCH_UPDATE_NPC_MEMORY'; payload: GameState['npcMemory'] }
   // Character Logbook Actions
@@ -107,4 +107,10 @@ export type AppAction =
   | { type: 'ADD_NOTIFICATION'; payload: { type: 'success' | 'error' | 'info' | 'warning'; message: string; duration?: number } }
   | { type: 'REMOVE_NOTIFICATION'; payload: { id: string } }
   // Quest UI Actions
-  | { type: 'TOGGLE_QUEST_LOG' };
+  | { type: 'TOGGLE_QUEST_LOG' }
+  // Town Navigation Actions
+  | { type: 'ENTER_TOWN'; payload: { townMap: import('../types/town').TownState['townMap']; entryPoint: import('../types/town').TownState['entryPoint']; spawnPosition: import('../types/town').TownPosition } }
+  | { type: 'MOVE_IN_TOWN'; payload: { direction: import('../types/town').TownDirection } }
+  | { type: 'STOP_MOVING_IN_TOWN' }
+  | { type: 'SET_TOWN_VIEWPORT'; payload: { center?: import('../types/town').TownPosition; zoom?: number } }
+  | { type: 'EXIT_TOWN' };

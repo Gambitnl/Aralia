@@ -1,0 +1,44 @@
+{
+  "id": "alter-self",
+  "name": "Alter Self",
+  "level": 2,
+  "school": "Transmutation",
+  "classes": ["Artificer", "Sorcerer", "Wizard"],
+  "description": "You assume a different form. Choose one option: change your appearance (including height/weight within 1 foot, same limb arrangement); gain natural weapons (1d6 bludgeoning/piercing/slashing, using spellcasting mod for attack/damage, magical); or adapt to an aquatic environment (swim speed equal to walking speed and breathe underwater). Physical inspection reveals the illusion if scrutinized.",
+  "higherLevels": "None",
+  "tags": ["utility", "transmutation", "self-buff", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": ["self"],
+    "lineOfSight": false
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "control",
+      "description": "Choose one: reshape appearance (same limb layout, +/-1 foot height/size); gain magical natural weapons (1d6, choose damage type) using spellcasting ability; or gain swim speed = walk speed and breathe underwater. Physical inspection can reveal the illusion."
+    }
+  ]
+}

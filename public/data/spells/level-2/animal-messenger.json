@@ -1,0 +1,48 @@
+{
+  "id": "animal-messenger",
+  "name": "Animal Messenger",
+  "level": 2,
+  "school": "Enchantment",
+  "classes": ["Bard", "Druid", "Ranger"],
+  "description": "By whispering to a Tiny beast, you send it to deliver a message. The creature travels to a location you describe and delivers the message to the creature you designate. If mounted flying speed is used, the messenger can travel up to 50 miles in 24 hours; otherwise 25 miles.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the duration increases by 48 hours for each slot level above 2nd.",
+  "tags": ["utility", "communication", "ritual"],
+  "ritual": true,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": { "type": "action" },
+    "explorationCost": { "value": 10, "unit": "minute" }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a morsel of food"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 24,
+    "unit": "hour",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 30,
+    "validTargets": ["beasts"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "communication",
+      "description": "Instruct a Tiny beast to carry and deliver your spoken message to a designated creature at a described location; travels ~25 miles in 24 hours (50 miles if it can fly for that duration). Duration extends with higher slots."
+    }
+  ]
+}

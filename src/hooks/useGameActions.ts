@@ -13,7 +13,7 @@ import * as GeminiService from '../services/geminiService';
 import { AddMessageFn, PlayPcmAudioFn, GetCurrentLocationFn, GetCurrentNPCsFn, GetTileTooltipTextFn, AddGeminiLogFn, LogDiscoveryFn } from './actions/actionHandlerTypes';
 
 // Import specific action handlers
-import { handleMovement, handleQuickTravel } from './actions/handleMovement';
+import { handleMovement, handleQuickTravel, handleApproachSettlement, handleObserveSettlement } from './actions/handleMovement';
 import { handleLookAround, handleInspectSubmapTile, handleAnalyzeSituation } from './actions/handleObservation';
 import { handleTalk } from './actions/handleNpcInteraction';
 import { handleTakeItem, handleEquipItem, handleUnequipItem, handleUseItem, handleDropItem, handleHarvestResource } from './actions/handleItemInteraction';
