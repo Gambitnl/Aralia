@@ -12,6 +12,7 @@ import { Location, Action, NPC, Item } from '../types';
 import { getSubmapTileInfo } from '../utils/submapUtils';
 import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import { BTN_BASE, BTN_SIZE_LG } from '../styles/buttonStyles';
+import { canUseDevTools } from '../utils/permissions';
 
 interface ActionPaneProps {
   currentLocation: Location;
@@ -132,7 +133,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
       { action: { type: 'TOGGLE_GAME_GUIDE', label: 'Game Guide' } },
       { action: { type: 'save_game', label: 'Save Game' } },
       { action: { type: 'go_to_main_menu', label: 'Main Menu' } },
-      isDevDummyActive
+      canUseDevTools()
         ? { action: { type: 'toggle_dev_menu', label: 'Dev Menu' }, hasNotification: hasNewRateLimitError }
         : null,
     ].filter(Boolean) as { action: Action; badgeCount?: number; hasNotification?: boolean }[],

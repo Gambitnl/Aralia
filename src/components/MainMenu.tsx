@@ -11,6 +11,7 @@ import LoadGameModal from './LoadGameModal';
 import SaveSlotSelector from './SaveSlotSelector';
 import { deleteSaveGame, getSaveSlots, SaveSlotSummary } from '../services/saveLoadService';
 import { VersionDisplay } from './VersionDisplay';
+import { canUseDevTools } from '../utils/permissions';
 
 interface MainMenuProps {
   onNewGame: () => void;
@@ -134,7 +135,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
           >
             Save to Slot
           </button>
-          {isDevDummyActive && (
+          {canUseDevTools() && (
             <button
               onClick={onSkipCharacterCreator}
               className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-opacity-75"
