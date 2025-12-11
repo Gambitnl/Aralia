@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SaveSlotSummary } from '../services/saveLoadService';
+import ConfirmationModal from './ConfirmationModal';
 
 interface LoadGameModalProps {
   slots: SaveSlotSummary[];
@@ -13,8 +14,25 @@ interface LoadGameModalProps {
  * presentation/selection; persistence and side-effects remain in the caller.
  */
 const LoadGameModal: React.FC<LoadGameModalProps> = ({ slots, onClose, onLoadSlot, onDeleteSlot }) => {
+  const [slotToDelete, setSlotToDelete] = useState<SaveSlotSummary | null>(null);
+
   const manualSlots = slots.filter(slot => !slot.isAutoSave);
   const autoSlots = slots.filter(slot => slot.isAutoSave);
+
+  const handleDeleteClick = (slot: SaveSlotSummary) => {
+    setSlotToDelete(slot);
+  };
+
+  const handleConfirmDelete = () => {
+    if (slotToDelete) {
+      onDeleteSlot(slotToDelete.slotId);
+      setSlotToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setSlotToDelete(null);
+  };
 
   const renderSlotCard = (slot: SaveSlotSummary) => (
     <div key={slot.slotId} className="border border-gray-700 rounded-lg p-4 bg-gray-800 flex flex-col shadow-sm">
@@ -31,11 +49,9 @@ const LoadGameModal: React.FC<LoadGameModalProps> = ({ slots, onClose, onLoadSlo
             Load
           </button>
           <button
-            onClick={() => {
-              const confirmed = window.confirm(`Delete save slot "${slot.slotName}"? This cannot be undone.`);
-              if (confirmed) onDeleteSlot(slot.slotId);
-            }}
+            onClick={() => handleDeleteClick(slot)}
             className="px-3 py-2 bg-red-700 hover:bg-red-600 text-white rounded-lg text-sm font-semibold"
+            aria-label={`Delete save ${slot.slotName}`}
           >
             Delete
           </button>
@@ -103,6 +119,22 @@ const LoadGameModal: React.FC<LoadGameModalProps> = ({ slots, onClose, onLoadSlo
           )}
         </div>
       </div>
+
+      <ConfirmationModal
+        isOpen={!!slotToDelete}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Save Slot"
+        confirmLabel="Delete"
+        cancelLabel="Keep Save"
+      >
+        <p>
+          Are you sure you want to delete <span className="font-semibold text-amber-200">{slotToDelete?.slotName}</span>?
+        </p>
+        <p className="mt-2 text-red-300">
+          This action cannot be undone. The save data will be permanently lost.
+        </p>
+      </ConfirmationModal>
     </div>
   );
 };
