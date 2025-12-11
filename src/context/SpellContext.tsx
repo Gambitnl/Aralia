@@ -2,6 +2,7 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { Spell } from '../types';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { env } from '@/config/env';
 
 export type SpellDataRecord = Record<string, Spell>;
 
@@ -16,7 +17,7 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   useEffect(() => {
     const fetchAllSpells = async () => {
       try {
-        const manifestResponse = await fetch(`${import.meta.env.BASE_URL}data/spells_manifest.json`);
+        const manifestResponse = await fetch(`${env.APP.BASE_URL}data/spells_manifest.json`);
         if (!manifestResponse.ok) {
           throw new Error(`Failed to load spell manifest: ${manifestResponse.statusText}`);
         }
@@ -36,7 +37,7 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           const spellPromises = batch.map(async ([id, info]: [string, any]) => {
             try {
               // Ensure spell asset requests respect the configured base path (useful when the app is served from a subdirectory).
-              const normalizedPath = `${import.meta.env.BASE_URL}${String(info.path || '').replace(/^\//, '')}`;
+              const normalizedPath = `${env.APP.BASE_URL}${String(info.path || '').replace(/^\//, '')}`;
               // Explicitly request JSON to prevent Vite from returning the index.html fallback for SPAs
               const res = await fetch(normalizedPath, { headers: { 'Accept': 'application/json' } });
               if (!res.ok) {

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { GlossaryEntry } from "../types";
+import { env } from '@/config/env';
 import level1GapsMd from "../../docs/tasks/spell-system-overhaul/gaps/LEVEL-1-GAPS.md?raw";
 import cantripGapsMd from "../../docs/tasks/spell-system-overhaul/1I-MIGRATE-CANTRIPS-BATCH-1.md?raw";
 
@@ -53,7 +54,7 @@ const buildKnownGapSet = (): Set<string> => {
 };
 
 const fetchGlossaryCard = async (id: string) => {
-  const url = `${import.meta.env.BASE_URL}data/glossary/entries/spells/${id}.md`;
+  const url = `${env.APP.BASE_URL}data/glossary/entries/spells/${id}.md`;
   const res = await fetch(url);
   if (!res.ok) return null;
   return res.text();
@@ -90,7 +91,7 @@ export const useSpellGateChecks = (entries: GlossaryEntry[] | null) => {
 
     const run = async () => {
       try {
-        const res = await fetch(`${import.meta.env.BASE_URL}data/spells_manifest.json`);
+        const res = await fetch(`${env.APP.BASE_URL}data/spells_manifest.json`);
         if (!res.ok) throw new Error(`Failed to load spells_manifest.json: ${res.statusText}`);
         const manifest = await res.json();
 

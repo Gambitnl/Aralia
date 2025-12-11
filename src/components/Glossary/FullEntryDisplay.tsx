@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { GlossaryEntry } from '../../types';
 import { GlossaryContentRenderer } from './GlossaryContentRenderer';
+import { env } from '@/config/env';
 
 const stripYamlFrontmatter = (markdownContent: string): string => {
   const yamlFrontmatterRegex = /^\s*---([\s\S]*?)---(?:\r?\n|\r|$)/;
@@ -31,7 +32,7 @@ export const FullEntryDisplay: React.FC<FullEntryDisplayProps> = ({ entry, onNav
     setError(null);
     setMarkdownContent(null);
 
-    const fullPath = `${import.meta.env.BASE_URL}${filePath.replace(/^\//, '')}`;
+    const fullPath = `${env.APP.BASE_URL}${filePath.replace(/^\//, '')}`;
     fetch(fullPath)
       .then(res => {
         if (!res.ok) throw new Error(`Failed to fetch glossary content from ${filePath}: ${res.status} ${res.statusText}`);
