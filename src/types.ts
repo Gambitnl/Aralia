@@ -132,7 +132,7 @@ export interface Feat {
 
     // Skill proficiency options
     skillProficiencies?: string[];
-    /** Number of skills player must choose (e.g., Skilled = 3). TODO: Implement skill selection UI in character builder */
+    /** Number of skills player must choose (e.g., Skilled = 3). */
     selectableSkillCount?: number;
 
     // Saving throw proficiency options

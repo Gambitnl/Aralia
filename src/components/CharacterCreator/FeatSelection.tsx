@@ -11,6 +11,7 @@ import React, { useContext, useCallback, useMemo } from 'react';
 import { Feat, AbilityScoreName, MagicInitiateSource, FeatGrantedSpell } from '../../types';
 import SpellContext from '../../context/SpellContext';
 import FeatSpellPicker from './FeatSpellPicker';
+import FeatSkillPicker from './FeatSkillPicker';
 import SpellSourceSelector from './SpellSourceSelector';
 import { getSchoolIcon } from '../../utils/spellFilterUtils';
 
@@ -23,6 +24,7 @@ interface FeatSelectionProps {
   availableFeats: FeatOption[];
   selectedFeatId?: string;
   featChoices?: { [featId: string]: { selectedAbilityScore?: AbilityScoreName; [key: string]: any } };
+  knownSkillIds?: Set<string>;
   onSelectFeat: (featId: string) => void;
   onSetFeatChoice: (featId: string, choiceType: string, value: any) => void;
   onConfirm: () => void;
@@ -90,6 +92,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
   availableFeats,
   selectedFeatId,
   featChoices = {},
+  knownSkillIds = new Set(),
   onSelectFeat,
   onSetFeatChoice,
   onConfirm,
@@ -103,11 +106,12 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
 
     const newFeatId = selectedFeatId === featId ? '' : featId;
 
-    // Clear spell choices when feat changes
+    // Clear choices when feat changes
     if (selectedFeatId && selectedFeatId !== newFeatId) {
       onSetFeatChoice(selectedFeatId, 'selectedCantrips', []);
       onSetFeatChoice(selectedFeatId, 'selectedLeveledSpells', []);
       onSetFeatChoice(selectedFeatId, 'selectedSpellSource', undefined);
+      onSetFeatChoice(selectedFeatId, 'selectedSkills', []);
     }
 
     onSelectFeat(newFeatId);
@@ -122,6 +126,10 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
   const hasSpellBenefits = !!spellBenefits;
   const currentChoices = selectedFeatId ? featChoices[selectedFeatId] : undefined;
   const selectedSpellSource = currentChoices?.selectedSpellSource as MagicInitiateSource | undefined;
+
+  // Skill benefits
+  const hasSkillSelection = !!selectedFeat?.benefits?.selectableSkillCount;
+  const selectedSkills = (currentChoices?.selectedSkills as string[]) || [];
 
   // Helper to check if all spell choices are complete
   const areSpellChoicesComplete = useMemo(() => {
@@ -143,6 +151,11 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
 
     return true;
   }, [spellBenefits, selectedSpellSource, currentChoices]);
+
+  const areSkillChoicesComplete = useMemo(() => {
+    if (!hasSkillSelection) return true;
+    return selectedSkills.length === selectedFeat?.benefits?.selectableSkillCount;
+  }, [hasSkillSelection, selectedSkills, selectedFeat]);
 
   // Handle spell source change - clear spell selections
   const handleSpellSourceChange = useCallback((source: MagicInitiateSource) => {
@@ -216,6 +229,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
                           {feat.benefits.hpMaxIncreasePerLevel && <li>HP Max +{feat.benefits.hpMaxIncreasePerLevel} per level</li>}
                           {feat.benefits.resistance && <li>Resistance: {feat.benefits.resistance.join(', ')}</li>}
                           {feat.benefits.skillProficiencies && <li>Skills: {feat.benefits.skillProficiencies.join(', ')}</li>}
+                          {feat.benefits.selectableSkillCount && <li>Choose {feat.benefits.selectableSkillCount} Skills</li>}
                           {feat.benefits.savingThrowProficiencies && <li>Saving Throws: {feat.benefits.savingThrowProficiencies.join(', ')}</li>}
                       </ul>
                   </div>
@@ -329,6 +343,24 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
               )}
             </div>
           )}
+
+          {/* Skill Selection Section */}
+          {hasSkillSelection && (
+             <div className="mt-4 pt-4 border-t border-gray-700/50">
+               <FeatSkillPicker
+                 knownSkillIds={knownSkillIds}
+                 maxSelections={selectedFeat?.benefits?.selectableSkillCount || 0}
+                 selectedSkillIds={selectedSkills}
+                 onSelectionChange={(ids) => onSetFeatChoice(selectedFeatId, 'selectedSkills', ids)}
+               />
+               {!areSkillChoicesComplete && (
+                   <p className="text-xs text-amber-300 mt-2">
+                       Please select {selectedFeat?.benefits?.selectableSkillCount} skills.
+                   </p>
+               )}
+             </div>
+          )}
+
         </div>
       )}
 
@@ -372,7 +404,8 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
             disabled={
               (!!selectedFeatId && !availableFeats.find(f => f.id === selectedFeatId)?.isEligible) ||
               (hasSelectableASI && !selectedASI) ||
-              (hasSpellBenefits && !areSpellChoicesComplete)
+              (hasSpellBenefits && !areSpellChoicesComplete) ||
+              (hasSkillSelection && !areSkillChoicesComplete)
             }
           >
             Continue

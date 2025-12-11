@@ -29,6 +29,7 @@ import {
   RACES_DATA,
   CLASSES_DATA,
 } from '../../constants';
+import { BACKGROUNDS } from '../../data/backgrounds'; // Import BACKGROUNDS
 import { FEATS_DATA } from '../../data/feats/featsData';
 import { evaluateFeatPrerequisites } from '../../utils/characterUtils';
 import RaceSelection from './Race/RaceSelection';
@@ -104,7 +105,34 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
     onCharacterCreate
   });
 
-  const { selectedRace, selectedClass, finalAbilityScores, racialSpellChoiceContext } = state;
+  const { selectedRace, selectedClass, finalAbilityScores, racialSpellChoiceContext, selectedSkills, racialSelections, selectedBackground } = state;
+
+  const knownSkillIds = useMemo(() => {
+    const ids = new Set<string>();
+
+    // Add selected class skills
+    selectedSkills.forEach(skill => ids.add(skill.id));
+
+    // Add racial skills
+    if (selectedRace) {
+        // Human skill
+        if (selectedRace.id === 'human' && racialSelections['human']?.skillIds) {
+            racialSelections['human'].skillIds.forEach(id => ids.add(id));
+        }
+        // Note: Other racial skills (Elf Keen Senses, Centaur Natural Affinity, Changeling Instincts)
+        // are added to state.selectedSkills during the SkillSelection step, so they are included automatically.
+    }
+
+    // Add background skills
+    if (selectedBackground) {
+        const bg = BACKGROUNDS[selectedBackground];
+        if (bg) {
+            bg.skillProficiencies.forEach(id => ids.add(id));
+        }
+    }
+
+    return ids;
+  }, [selectedSkills, selectedRace, racialSelections, selectedBackground]);
 
   const featOptions = useMemo(() => {
     const abilityScores = finalAbilityScores || state.baseAbilityScores || {
@@ -370,6 +398,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
             availableFeats={featOptions}
             selectedFeatId={state.selectedFeat || undefined}
             featChoices={state.featChoices}
+            knownSkillIds={knownSkillIds}
             onSelectFeat={handleFeatSelect}
             onSetFeatChoice={(featId, choiceType, value) => {
               dispatch({ type: 'SET_FEAT_CHOICE', payload: { featId, choiceType, value } });
