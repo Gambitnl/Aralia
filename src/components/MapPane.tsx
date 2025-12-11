@@ -6,15 +6,16 @@
  * keyboard navigation using arrow keys and roving tabindex, and an icon glossary.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { MapData, MapTile, Biome, GlossaryDisplayItem, MapMarker } from '../types'; // Changed GlossaryItem to GlossaryDisplayItem
-import { BIOMES, LOCATIONS } from '../constants'; // To get biome details like color and icon
+import { MapData, MapTile as MapTileType, GlossaryDisplayItem, MapMarker } from '../types'; // Changed GlossaryItem to GlossaryDisplayItem
+import { BIOMES } from '../constants'; // To get biome details like color and icon
 import GlossaryDisplay from './GlossaryDisplay'; // Import the new component
 import { POIS } from '../data/world/pois';
 import { buildPoiMarkers } from '../utils/locationUtils';
+import MapTile from './MapTile';
 
 interface MapPaneProps {
   mapData: MapData;
-  onTileClick: (x: number, y: number, tile: MapTile) => void;
+  onTileClick: (x: number, y: number, tile: MapTileType) => void;
   onClose: () => void;
 }
 
@@ -297,48 +298,17 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
             ref={gridRef}
           >
             {tiles.flat().map((tile, index) => {
-              const biome = BIOMES[tile.biomeId];
               const isFocused = focusedCoords?.x === tile.x && focusedCoords?.y === tile.y;
-              const isClickable = tile.discovered || tile.isPlayerCurrent; 
-              const tooltipText = getTileTooltip(tile);
+              const markers = markersByCoordinate.get(`${tile.x}-${tile.y}`);
+
               return (
-                <button
+                <MapTile
                   key={`${tile.x}-${tile.y}-${index}`}
-                  data-x={tile.x}
-                  data-y={tile.y}
-                  onClick={() => isClickable && onTileClick(tile.x, tile.y, tile)}
-                  className={`relative flex items-center justify-center text-lg focus:outline-none transition-all duration-150
-                    ${isFocused ? 'ring-2 ring-offset-1 ring-offset-gray-800 ring-sky-400' : ''}
-                  `}
-                  style={getTileStyle(tile)}
-                  disabled={!isClickable}
-                  tabIndex={isFocused ? 0 : -1}
-                  role="gridcell"
-                  aria-label={tooltipText}
-                  title={tooltipText} // Use title attribute for basic tooltip
-                  aria-selected={isFocused}
-                >
-                  {tile.discovered && biome?.icon && (
-                    <span role="img" aria-label={biome.name} className="text-base sm:text-xl pointer-events-none">{biome.icon}</span>
-                  )}
-                  {tile.isPlayerCurrent && (
-                     <span role="img" aria-label="Player Location" className="absolute text-xl text-red-500 pointer-events-none">📍</span>
-                  )}
-                  {markersByCoordinate.get(`${tile.x}-${tile.y}`)?.map(marker => (
-                    <span
-                      key={marker.id}
-                      role="img"
-                      aria-label={marker.label}
-                      className="absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 text-lg pointer-events-none drop-shadow"
-                      title={marker.label}
-                    >
-                      {marker.icon}
-                    </span>
-                  ))}
-                  {!tile.discovered && (
-                    <span className="text-gray-500 pointer-events-none">?</span>
-                  )}
-                </button>
+                  tile={tile}
+                  isFocused={isFocused}
+                  markers={markers}
+                  onClick={onTileClick}
+                />
               );
             })}
           </div>
