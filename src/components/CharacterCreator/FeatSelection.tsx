@@ -12,6 +12,7 @@ import { Feat, AbilityScoreName, MagicInitiateSource, FeatGrantedSpell } from '.
 import SpellContext from '../../context/SpellContext';
 import FeatSpellPicker from './FeatSpellPicker';
 import SpellSourceSelector from './SpellSourceSelector';
+import DamageTypeSelector from './DamageTypeSelector';
 import { getSchoolIcon } from '../../utils/spellFilterUtils';
 
 interface FeatOption extends Feat {
@@ -116,6 +117,11 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
   const selectedFeat = selectedFeatId ? availableFeats.find(f => f.id === selectedFeatId) : null;
   const hasSelectableASI = selectedFeat?.benefits?.selectableAbilityScores && selectedFeat.benefits.selectableAbilityScores.length > 0;
   const selectedASI = selectedFeatId ? featChoices[selectedFeatId]?.selectedAbilityScore : undefined;
+
+  // Damage type selection
+  const selectableDamageTypes = selectedFeat?.benefits?.selectableDamageTypes;
+  const hasSelectableDamageType = !!selectableDamageTypes && selectableDamageTypes.length > 0;
+  const selectedDamageType = selectedFeatId ? featChoices[selectedFeatId]?.selectedDamageType : undefined;
 
   // Spell benefits
   const spellBenefits = selectedFeat?.benefits?.spellBenefits;
@@ -282,6 +288,15 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
             </div>
           )}
 
+          {/* Damage Type Selection */}
+          {hasSelectableDamageType && selectableDamageTypes && (
+            <DamageTypeSelector
+              availableTypes={selectableDamageTypes}
+              selectedType={selectedDamageType}
+              onSelect={(type) => onSetFeatChoice(selectedFeatId, 'selectedDamageType', type)}
+            />
+          )}
+
           {/* Spell Benefits Section */}
           {hasSpellBenefits && spellBenefits && (
             <div className="mt-4 pt-4 border-t border-gray-700/50 space-y-6">
@@ -372,6 +387,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
             disabled={
               (!!selectedFeatId && !availableFeats.find(f => f.id === selectedFeatId)?.isEligible) ||
               (hasSelectableASI && !selectedASI) ||
+              (hasSelectableDamageType && !selectedDamageType) ||
               (hasSpellBenefits && !areSpellChoicesComplete)
             }
           >
