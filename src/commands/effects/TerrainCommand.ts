@@ -226,6 +226,44 @@ export class TerrainCommand extends BaseEffectCommand {
 
     private createEnvironmentalStatusEffect(effect: TerrainEffect): StatusEffect {
         const duration = this.resolveDuration(effect.duration)
+
+        // Parse damage dice if available to set value?
+        // Actually, status effects usually have a numeric value, but damage is often dice (e.g. 2d6).
+        // The current engine (useTurnManager) expects 'value' to be the damage amount if > 0.
+        // Since we can't easily resolve dice here (it happens at execution time), we might need to change 'value' semantics or pass dice string.
+        // However, looking at useTurnManager: it rolls dice for `damage_per_turn` effects if the effect comes from a SpellZone.
+        // For tile environmental effects, I implemented: `const damage = env.effect.effect.value || 0;`
+        // This expects a flat number.
+        // TerrainEffect has `damage: { dice: string, type: string }`.
+        // We should probably rely on `SpellZone` logic for complex dice damage, but for simple hazardous terrain (like spikes 2d4),
+        // we can't represent "2d4" in a number field.
+        // For now, to satisfy the requirement that it "modifies the map state" effectively:
+        // Let's set value to 0, but ensure the name is descriptive.
+        // Wait, if I set value to 0, my new logic in useTurnManager does nothing (logs "enters hazard").
+        // I should update useTurnManager to handle dice if possible, OR I update this to put a "average" damage?
+        // No, let's keep it 0 and rely on the log.
+        // BUT, if I want actual damage, I should probably change `value` to be `dice` string if possible?
+        // `StatusEffect.effect.value` is `number`.
+        // Let's stick to the current implementation. The reviewer point was about TerrainCommand "failing to update" map data.
+        // I see it UPDATES map data.
+        // The issue might be that `value: 0` makes it effectively harmless mechanically (just logs).
+        // If I want it to be harmful, I need to put a number.
+        // Let's parse the dice string and put average damage?
+        // e.g. "2d6" -> 7.
+        // This is a reasonable approximation for "hazardous terrain" if the system doesn't support dice storage in status effects.
+
+        let estimatedDamage = 0;
+        if (effect.damage?.dice) {
+            const match = effect.damage.dice.match(/(\d+)d(\d+)/);
+            if (match) {
+                const num = parseInt(match[1]);
+                const sides = parseInt(match[2]);
+                estimatedDamage = Math.floor(num * (sides + 1) / 2);
+            } else if (!isNaN(parseInt(effect.damage.dice))) {
+                 estimatedDamage = parseInt(effect.damage.dice);
+            }
+        }
+
         return {
             id: `env-effect-${Date.now()}-${Math.random()}`,
             name: `${effect.damage?.type ?? 'Hazard'} Area`,
@@ -233,7 +271,7 @@ export class TerrainCommand extends BaseEffectCommand {
             duration,
             effect: {
                 type: 'damage_per_turn',
-                value: 0 // Damage value is usually calculated by the command/system, not stored in status
+                value: estimatedDamage
             },
             icon: 'hazard'
         }
