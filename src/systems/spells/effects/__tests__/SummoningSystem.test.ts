@@ -63,6 +63,14 @@ const mockSummonEffect = {
             str: 3, dex: 13, con: 8, int: 2, wis: 12, cha: 7
         }
     },
+    specialActions: [
+        {
+            name: 'Talons',
+            description: 'Melee Weapon Attack',
+            cost: 'action',
+            damage: { dice: '1d4', type: 'slashing' }
+        }
+    ],
     duration: { type: 'special' }
 };
 
@@ -105,6 +113,13 @@ describe('useSummons Hook', () => {
             expect(newSummon.isSummon).toBe(true);
             expect(newSummon.summonMetadata).toBeDefined();
             expect(newSummon.summonMetadata?.casterId).toBe(mockCaster.id);
+
+            // Verify Special Actions parsed to Abilities
+            expect(newSummon.abilities).toHaveLength(1);
+            expect(newSummon.abilities[0].name).toBe('Talons');
+            expect(newSummon.abilities[0].type).toBe('attack');
+            // Average of 1d4 is 2.5 -> floor(2.5) = 2
+            expect(newSummon.abilities[0].effects[0].value).toBe(2);
         }
     });
 
