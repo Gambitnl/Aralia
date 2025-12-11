@@ -151,7 +151,6 @@ const CreationSidebar: React.FC<CreationSidebarProps> = ({
   return (
     <aside
       className="w-64 bg-gray-850 border-r border-gray-700 flex flex-col h-full hidden md:flex"
-      style={{ backgroundColor: '#1a1d23' }} // Slightly darker than bg-gray-800
       aria-label="Character creation progress"
     >
       {/* Header */}
