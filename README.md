@@ -15,7 +15,45 @@ For a complete index of all documentation, please see the [README Index](./docs/
 *   **Developer Mode**: Includes a "dummy character" to bypass character creation for rapid testing and a developer menu for quick actions like save/load.
 *   **Save/Load System**: Persists game state to the browser's Local Storage.
 
-## 2. Technology Stack & Architecture
+## 2. Getting Started
+
+Follow these steps to set up the project locally.
+
+### Prerequisites
+
+*   **Node.js**: Ensure you have Node.js installed (v18+ recommended).
+*   **Gemini API Key**: You need a Google Gemini API key to run the game's AI features. Get one [here](https://aistudio.google.com/app/apikey).
+
+### Installation
+
+1.  **Clone the repository**:
+    ```bash
+    git clone <repository-url>
+    cd aralia-rpg
+    ```
+
+2.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
+
+3.  **Configure Environment**:
+    Copy the example environment file to `.env`:
+    ```bash
+    cp .env.example .env
+    ```
+    Open `.env` and paste your Gemini API key:
+    ```env
+    GEMINI_API_KEY=your_api_key_here
+    ```
+
+4.  **Run the development server**:
+    ```bash
+    npm run dev
+    ```
+    Open [http://localhost:3000](http://localhost:3000) (or the port shown in your terminal) to view the game.
+
+## 3. Technology Stack & Architecture
 
 ### Core Stack
 *   **Framework**: **React** (v19) using modern features like hooks.
@@ -46,7 +84,7 @@ Even though everything runs in the browser, we **can** expand the experience by 
 
 Mentioning these possibilities helps me understand that you're open to evolving the tech stack within our constraints.
 
-## 3. Project Structure
+## 4. Project Structure
 
 The project follows a component-based architecture with a clear separation of concerns.
 
@@ -81,7 +119,7 @@ The project follows a component-based architecture with a clear separation of co
     *   **`public/data/glossary/`**: Contains the Markdown source files and generated JSON indexes for the in-game glossary.
 *   **`scripts/`**: Build scripts, such as the one for generating the glossary index.
 
-## 4. Key Development Practices
+## 5. Key Development Practices
 
 ### Dummy Character for Development
 *   The `USE_DUMMY_CHARACTER_FOR_DEV` flag in `src/constants.ts` can be set to `true`.
@@ -90,7 +128,7 @@ The project follows a component-based architecture with a clear separation of co
 ### Code Formatting
 *   Code is formatted using Prettier with default settings to ensure consistency.
 
-## 5. How to Add New Game Content
+## 6. How to Add New Game Content
 
 ### Adding a New Race
 Please follow the detailed guide: **[`docs/guides/RACE_ADDITION_GUIDE.md`](./docs/guides/RACE_ADDITION_GUIDE.md)**
