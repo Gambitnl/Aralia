@@ -5,6 +5,7 @@
  * an optional callback) instead of relying on intrusive `alert()` calls.
  */
 import { GameState, GamePhase, NotificationType } from '../types';
+import { SafeStorage, SafeSession } from '../utils/storageUtils';
 
 //
 // Save slot configuration
@@ -131,7 +132,7 @@ export async function saveGame(
     };
 
     const serializedState = JSON.stringify(payload);
-    localStorage.setItem(storageKey, serializedState);
+    SafeStorage.setItem(storageKey, serializedState);
     upsertSlotMetadata({
       slotId: storageKey,
       slotName: slotLabel,
@@ -174,7 +175,7 @@ export async function saveGame(
 export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: NotifyFn): Promise<SaveLoadResult> {
   try {
     const storageKey = resolveSlotKey(slotName);
-    const serializedState = localStorage.getItem(storageKey);
+    const serializedState = SafeStorage.getItem(storageKey);
     if (!serializedState) {
       console.log(`No save game found in slot: ${storageKey}`);
       const result = { success: false, message: "No save game found." } as const;
@@ -244,7 +245,7 @@ export function hasSaveGame(slotName: string = DEFAULT_SAVE_SLOT): boolean {
   try {
     const slots = getSaveSlots();
     if (slots.length > 0) return true;
-    return localStorage.getItem(resolveSlotKey(slotName)) !== null;
+    return SafeStorage.getItem(resolveSlotKey(slotName)) !== null;
   } catch (error) {
     console.error("Error checking save existence:", error);
     return false;
@@ -263,7 +264,7 @@ export function getLatestSaveTimestamp(slotName: string = DEFAULT_SAVE_SLOT): nu
       return slots.sort((a, b) => b.lastSaved - a.lastSaved)[0]?.lastSaved ?? null;
     }
 
-    const serializedState = localStorage.getItem(resolveSlotKey(slotName));
+    const serializedState = SafeStorage.getItem(resolveSlotKey(slotName));
     if (!serializedState) return null;
 
     const parsedData = JSON.parse(serializedState);
@@ -282,7 +283,7 @@ export function getLatestSaveTimestamp(slotName: string = DEFAULT_SAVE_SLOT): nu
 export function deleteSaveGame(slotName: string = DEFAULT_SAVE_SLOT): void {
   try {
     const storageKey = resolveSlotKey(slotName);
-    localStorage.removeItem(storageKey);
+    SafeStorage.removeItem(storageKey);
     removeSlotMetadata(storageKey);
     console.log(`Save game deleted from slot: ${storageKey}`);
   } catch (error) {
@@ -321,7 +322,7 @@ export function getSaveSlots(): SaveSlotSummary[] {
  */
 export function refreshSaveSlotIndex(): SaveSlotSummary[] {
   slotIndexCache = null;
-  sessionStorage.removeItem(SESSION_CACHE_KEY);
+  SafeSession.removeItem(SESSION_CACHE_KEY);
   return getSaveSlots();
 }
 
@@ -452,10 +453,10 @@ function removeSlotMetadata(slotId: string) {
 }
 
 function persistSlotIndex(next: SaveSlotSummary[]) {
-  localStorage.setItem(SLOT_INDEX_KEY, JSON.stringify(next));
+  SafeStorage.setItem(SLOT_INDEX_KEY, JSON.stringify(next));
   slotIndexCache = [...next];
   try {
-    sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(next));
+    SafeSession.setItem(SESSION_CACHE_KEY, JSON.stringify(next));
   } catch (error) {
     console.warn("Session storage is unavailable, caching disabled:", error);
   }
@@ -463,7 +464,7 @@ function persistSlotIndex(next: SaveSlotSummary[]) {
 
 function getSessionCache(): SaveSlotSummary[] | null {
   try {
-    const cached = sessionStorage.getItem(SESSION_CACHE_KEY);
+    const cached = SafeSession.getItem(SESSION_CACHE_KEY);
     return cached ? JSON.parse(cached) : null;
   } catch (error) {
     console.warn("Failed to read from session storage, cache ignored:", error);
@@ -472,7 +473,7 @@ function getSessionCache(): SaveSlotSummary[] | null {
 }
 
 function buildSlotIndex(): SaveSlotSummary[] {
-  const storedIndex = localStorage.getItem(SLOT_INDEX_KEY);
+  const storedIndex = SafeStorage.getItem(SLOT_INDEX_KEY);
   const parsedIndex: SaveSlotSummary[] = storedIndex ? JSON.parse(storedIndex) : [];
   return mergeWithLegacySaves(parsedIndex).sort((a, b) => b.lastSaved - a.lastSaved);
 }
@@ -481,8 +482,9 @@ function mergeWithLegacySaves(index: SaveSlotSummary[]): SaveSlotSummary[] {
   const merged = [...index];
 
   const legacyKeys = [DEFAULT_SAVE_SLOT, AUTO_SAVE_SLOT];
-  for (let i = 0; i < localStorage.length; i += 1) {
-    const key = localStorage.key(i);
+  const allKeys = SafeStorage.getAllKeys();
+
+  for (const key of allKeys) {
     if (!key || (!key.startsWith(SLOT_PREFIX) && !legacyKeys.includes(key))) {
       continue;
     }
@@ -491,7 +493,7 @@ function mergeWithLegacySaves(index: SaveSlotSummary[]): SaveSlotSummary[] {
     if (alreadyIndexed) continue;
 
     try {
-      const raw = localStorage.getItem(key);
+      const raw = SafeStorage.getItem(key);
       if (!raw) continue;
       const parsed = JSON.parse(raw) as StoredSavePayload | GameState;
       const state = (parsed as StoredSavePayload).state || (parsed as GameState);
