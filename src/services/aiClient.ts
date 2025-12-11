@@ -8,18 +8,19 @@
  * for use by other services (geminiService, ttsService).
  */
 import { GoogleGenAI } from "@google/genai";
+import { ENV } from "../config/env";
 
 // Ensure API_KEY is available from the environment.
 let aiInstance: GoogleGenAI | null = null;
 
-if (!process.env.API_KEY) {
+if (!ENV.API_KEY) {
   const errorMessage =
     "Gemini API Key (API_KEY) is not set in the environment. " +
     "AI features will not work, and the application cannot initialize the AI client.";
   console.error(errorMessage);
   // Do not throw here to prevent app crash. Instead, aiInstance remains null.
 } else {
-    aiInstance = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    aiInstance = new GoogleGenAI({ apiKey: ENV.API_KEY });
 }
 
 /**

@@ -41,6 +41,7 @@ import {
 } from './constants';
 import { SUBMAP_DIMENSIONS } from './config/mapConfig';
 import { canUseDevTools } from './utils/permissions';
+import { validateEnv } from './config/env';
 
 import { NotificationSystem } from './components/NotificationSystem';
 import GameLayout from './components/layout/GameLayout';
@@ -57,6 +58,11 @@ import LoadGameTransition from './components/LoadGameTransition';
 
 
 const App: React.FC = () => {
+  // Validate environment variables on startup
+  useEffect(() => {
+    validateEnv();
+  }, []);
+
   const [gameState, dispatch] = useReducer(appReducer, initialGameState);
 
   // 🏹 Ranger: Sync GamePhase with URL history
