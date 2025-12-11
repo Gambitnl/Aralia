@@ -2,7 +2,8 @@
  * Lightweight toast system that replaces browser alerts and provides
  * non-blocking feedback to the player.
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useCallback } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Notification } from '../types';
 
 interface NotificationSystemProps {
@@ -11,25 +12,14 @@ interface NotificationSystemProps {
 }
 
 const NotificationToast: React.FC<{ notification: Notification; onDismiss: (id: string) => void }> = ({ notification, onDismiss }) => {
-  const [isExiting, setIsExiting] = useState(false);
-
   useEffect(() => {
     const duration = notification.duration || 5000;
     const timer = setTimeout(() => {
-      setIsExiting(true);
+      onDismiss(notification.id);
     }, duration);
 
     return () => clearTimeout(timer);
-  }, [notification]);
-
-  useEffect(() => {
-    if (isExiting) {
-      const timer = setTimeout(() => {
-        onDismiss(notification.id);
-      }, 300); // Wait for exit animation
-      return () => clearTimeout(timer);
-    }
-  }, [isExiting, notification.id, onDismiss]);
+  }, [notification, onDismiss]);
 
   const bgColor = {
     success: 'bg-green-600',
@@ -39,11 +29,14 @@ const NotificationToast: React.FC<{ notification: Notification; onDismiss: (id: 
   }[notification.type];
 
   return (
-    <div
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.2 }}
       className={`
         pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 ${bgColor} text-white
-        transition-all duration-300 ease-in-out transform
-        ${isExiting ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}
       `}
       role="alert"
     >
@@ -56,7 +49,7 @@ const NotificationToast: React.FC<{ notification: Notification; onDismiss: (id: 
             <button
               type="button"
               className="inline-flex rounded-md bg-transparent text-white hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
-              onClick={() => setIsExiting(true)}
+              onClick={() => onDismiss(notification.id)}
             >
               <span className="sr-only">Close</span>
               <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -66,11 +59,15 @@ const NotificationToast: React.FC<{ notification: Notification; onDismiss: (id: 
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
 export const NotificationSystem: React.FC<NotificationSystemProps> = ({ notifications, dispatch }) => {
+  const handleDismiss = useCallback((id: string) => {
+    dispatch({ type: 'REMOVE_NOTIFICATION', payload: { id } });
+  }, [dispatch]);
+
   // Mounted at the App root so every pane can dispatch notifications instead of using blocking alerts.
   return (
     <div
@@ -78,13 +75,15 @@ export const NotificationSystem: React.FC<NotificationSystemProps> = ({ notifica
       className="pointer-events-none fixed inset-0 flex flex-col items-end px-4 py-6 sm:items-start sm:p-6 z-50 gap-2"
     >
       <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
-        {notifications.map((notification) => (
-          <NotificationToast
-            key={notification.id}
-            notification={notification}
-            onDismiss={(id) => dispatch({ type: 'REMOVE_NOTIFICATION', payload: { id } })}
-          />
-        ))}
+        <AnimatePresence mode="popLayout" initial={false}>
+          {notifications.map((notification) => (
+            <NotificationToast
+              key={notification.id}
+              notification={notification}
+              onDismiss={handleDismiss}
+            />
+          ))}
+        </AnimatePresence>
       </div>
     </div>
   );

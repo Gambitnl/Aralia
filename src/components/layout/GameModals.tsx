@@ -30,7 +30,8 @@ import { AnimatePresence } from 'framer-motion';
 import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, MapTile } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { SUBMAP_DIMENSIONS } from '../../config/mapConfig';
-import { USE_DUMMY_CHARACTER_FOR_DEV, NPCS } from '../../constants';
+import { NPCS } from '../../constants';
+import { canUseDevTools } from '../../utils/permissions';
 
 import ErrorBoundary from '../ErrorBoundary';
 import MapPane from '../MapPane';
@@ -167,7 +168,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                         npcsInLocation={npcsInLocation}
                         itemsInLocation={itemsInLocation}
                         geminiGeneratedActions={gameState.geminiGeneratedActions}
-                        isDevDummyActive={USE_DUMMY_CHARACTER_FOR_DEV}
+                        isDevDummyActive={canUseDevTools()}
                         unreadDiscoveryCount={gameState.unreadDiscoveryCount}
                         hasNewRateLimitError={gameState.hasNewRateLimitError}
                     />
@@ -190,7 +191,7 @@ const GameModals: React.FC<GameModalsProps> = ({
             )}
 
             {/* Developer Tools Menu */}
-            {gameState.isDevMenuVisible && USE_DUMMY_CHARACTER_FOR_DEV && (
+            {gameState.isDevMenuVisible && canUseDevTools() && (
                 <ErrorBoundary fallbackMessage="Error in Developer Menu.">
                     <DevMenu
                         isOpen={gameState.isDevMenuVisible}
@@ -217,7 +218,7 @@ const GameModals: React.FC<GameModalsProps> = ({
             )}
 
             {/* Party Editor (Dev Tool) */}
-            {gameState.isPartyEditorVisible && USE_DUMMY_CHARACTER_FOR_DEV && (
+            {gameState.isPartyEditorVisible && canUseDevTools() && (
                 <ErrorBoundary fallbackMessage="Error in Party Editor.">
                     <PartyEditorModal
                         isOpen={gameState.isPartyEditorVisible}
@@ -229,7 +230,7 @@ const GameModals: React.FC<GameModalsProps> = ({
             )}
 
             {/* AI Log Viewer (Dev Tool) */}
-            {gameState.isGeminiLogViewerVisible && USE_DUMMY_CHARACTER_FOR_DEV && (
+            {gameState.isGeminiLogViewerVisible && canUseDevTools() && (
                 <ErrorBoundary fallbackMessage="Error in Gemini Log Viewer.">
                     <GeminiLogViewer
                         isOpen={gameState.isGeminiLogViewerVisible}
@@ -240,7 +241,7 @@ const GameModals: React.FC<GameModalsProps> = ({
             )}
 
             {/* NPC AI Test Modal (Dev Tool) */}
-            {gameState.isNpcTestModalVisible && USE_DUMMY_CHARACTER_FOR_DEV && (
+            {gameState.isNpcTestModalVisible && canUseDevTools() && (
                 <ErrorBoundary fallbackMessage="Error in NPC Test Plan Modal.">
                     <NpcInteractionTestModal
                         isOpen={gameState.isNpcTestModalVisible}

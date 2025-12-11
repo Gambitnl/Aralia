@@ -69,7 +69,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   }, [party, enemies, allSpells]);
 
   // Use the map generation hook
-  const { mapData, positionedCharacters } = useBattleMapGeneration(biome, seed, initialCharacters);
+  const { mapData, positionedCharacters, setMapData } = useBattleMapGeneration(biome, seed, initialCharacters);
 
   // Update main characters state when map places them
   useEffect(() => {
@@ -92,6 +92,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
     onCharacterUpdate: handleCharacterUpdate,
     onLogEntry: handleLogEntry,
     autoCharacters, // Pass auto characters to turn manager if needed, but easier to modify turnManager props to accept "isAuto" check
+    onMapUpdate: setMapData,
     difficulty: 'normal'
   });
 
@@ -143,7 +144,8 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
     onAbilityEffect: turnManager.addDamageNumber, // Pass the callback to show visual feedback
     onRequestInput: handleRequestInput,
     reactiveTriggers: turnManager.reactiveTriggers,
-    onReactiveTriggerUpdate: turnManager.setReactiveTriggers
+    onReactiveTriggerUpdate: turnManager.setReactiveTriggers,
+    onMapUpdate: setMapData
   });
 
   const handleToggleAuto = useCallback((characterId: string) => {

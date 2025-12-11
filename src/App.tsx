@@ -36,10 +36,10 @@ import {
   ITEMS,
   NPCS,
   DUMMY_PARTY_FOR_DEV,
-  USE_DUMMY_CHARACTER_FOR_DEV,
   BIOMES,
 } from './constants';
 import { SUBMAP_DIMENSIONS } from './config/mapConfig';
+import { canUseDevTools } from './utils/permissions';
 
 import { NotificationSystem } from './components/NotificationSystem';
 import GameLayout from './components/layout/GameLayout';
@@ -103,7 +103,7 @@ const App: React.FC = () => {
         const biome = BIOMES[worldTile.biomeId];
 
         const subMapExits: { [direction: string]: string } = {};
-        Object.keys(USE_DUMMY_CHARACTER_FOR_DEV ? {} : {}).forEach(dir => {
+        Object.keys(canUseDevTools() ? {} : {}).forEach(dir => {
           subMapExits[dir] = dir;
         });
 
@@ -202,7 +202,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (
-      USE_DUMMY_CHARACTER_FOR_DEV &&
+      canUseDevTools() &&
       DUMMY_PARTY_FOR_DEV.length > 0 &&
       gameState.phase === GamePhase.PLAYING &&
       gameState.party.length > 0 &&
@@ -526,7 +526,7 @@ const App: React.FC = () => {
           onShowCompendium={handleOpenGlossary}
           hasSaveGame={SaveLoadService.hasSaveGame()}
           latestSaveTimestamp={SaveLoadService.getLatestSaveTimestamp()}
-          isDevDummyActive={USE_DUMMY_CHARACTER_FOR_DEV}
+          isDevDummyActive={canUseDevTools()}
           onSkipCharacterCreator={handleSkipCharacterCreator}
           onGoBack={canGoBack ? handleGoBackFromMainMenu : undefined}
           canGoBack={canGoBack}
@@ -602,7 +602,7 @@ const App: React.FC = () => {
           npcsInLocation={npcs}
           itemsInLocation={itemsInCurrentLocation}
           geminiGeneratedActions={gameState.geminiGeneratedActions || []}
-          isDevDummyActive={USE_DUMMY_CHARACTER_FOR_DEV}
+          isDevDummyActive={canUseDevTools()}
           unreadDiscoveryCount={gameState.unreadDiscoveryCount}
           hasNewRateLimitError={gameState.hasNewRateLimitError}
           // Player navigation props
@@ -633,7 +633,7 @@ const App: React.FC = () => {
         unreadDiscoveryCount={gameState.unreadDiscoveryCount}
         hasNewRateLimitError={gameState.hasNewRateLimitError}
         worldSeed={gameState.worldSeed}
-        isDevDummyActive={USE_DUMMY_CHARACTER_FOR_DEV}
+        isDevDummyActive={canUseDevTools()}
         disabled={!isUIInteractive}
         onAction={processAction}
       />

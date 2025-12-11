@@ -1,4 +1,5 @@
 import { Spell } from '../types';
+import { fetchWithTimeout } from '../utils/networkUtils';
 
 // Define a type for the manifest entry
 export interface SpellManifestInfo {
@@ -28,17 +29,13 @@ class SpellService {
 
   public async getAllSpellInfo(): Promise<SpellManifest | null> {
     if (!this.manifest) {
-      this.manifest = fetch(`${import.meta.env.BASE_URL}data/spells_manifest.json`)
-        .then(res => {
-          if (!res.ok) {
-            throw new Error(`Failed to load spell manifest: ${res.statusText}`);
-          }
-          return res.json();
-        })
-        .catch(err => {
-          console.error(err);
-          return null;
-        });
+      this.manifest = fetchWithTimeout<SpellManifest>(
+        `${import.meta.env.BASE_URL}data/spells_manifest.json`,
+        { timeoutMs: 15000 }
+      ).catch(err => {
+        console.error(err);
+        return null;
+      });
     }
     return this.manifest;
   }
@@ -61,13 +58,7 @@ class SpellService {
     const fullUrl = `${import.meta.env.BASE_URL}${normalizedPath}`;
     console.log('[SpellService] Fetching spell:', { spellId, BASE_URL: import.meta.env.BASE_URL, fullUrl });
 
-    const spellPromise = fetch(fullUrl)
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`Failed to fetch spell details for ${spellId} at ${spellPath}`);
-        }
-        return res.json() as Promise<Spell>;
-      })
+    const spellPromise = fetchWithTimeout<Spell>(fullUrl, { timeoutMs: 10000 })
       .catch(err => {
         console.error(err);
         this.spellCache.delete(spellId); // Remove from cache on error

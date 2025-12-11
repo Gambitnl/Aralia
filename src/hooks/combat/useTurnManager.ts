@@ -29,6 +29,7 @@ interface UseTurnManagerProps {
   onCharacterUpdate: (character: CombatCharacter) => void;
   onLogEntry: (entry: CombatLogEntry) => void;
   autoCharacters?: Set<string>;
+  onMapUpdate?: (mapData: BattleMapData) => void;
 }
 
 export const useTurnManager = ({
@@ -37,6 +38,7 @@ export const useTurnManager = ({
   onCharacterUpdate,
   onLogEntry,
   autoCharacters,
+  onMapUpdate,
   difficulty = 'normal'
 }: UseTurnManagerProps) => {
   // --- Core turn tracking (whose turn, which phase, order, and what they've done) ---
@@ -198,6 +200,57 @@ export const useTurnManager = ({
     return updatedCharacter;
   }, [addDamageNumber, onLogEntry, processRepeatSaves]);
 
+  /**
+   * Checks the tile at character's position for environmental effects (fire, webs, etc.)
+   * and applies them.
+   */
+  const processTileEffects = useCallback((character: CombatCharacter, tilePos: { x: number, y: number }): CombatCharacter => {
+    if (!mapData) return character;
+
+    const tileKey = `${tilePos.x}-${tilePos.y}`;
+    const tile = mapData.tiles.get(tileKey);
+    if (!tile || !tile.environmentalEffect) return character;
+
+    let updatedChar = { ...character };
+    const env = tile.environmentalEffect;
+
+    // Apply Effect based on type/structure
+    if (env.effect.effect.type === 'damage_per_turn') {
+        const damage = env.effect.effect.value || 0;
+        if (damage > 0) {
+            updatedChar = handleDamage(updatedChar, damage, env.effect.name, env.type === 'fire' ? 'fire' : 'physical');
+        } else {
+            // Log warning or informative message
+             onLogEntry({
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'status',
+                message: `${character.name} enters ${env.effect.name}.`,
+                characterId: character.id
+            });
+        }
+    } else if (env.effect.effect.type === 'condition') {
+        // Apply status condition (e.g. difficult terrain marker, or webbed)
+        const hasCondition = updatedChar.statusEffects.some(s => s.name === env.effect.name);
+        if (!hasCondition) {
+            updatedChar.statusEffects = [...updatedChar.statusEffects, {
+                ...env.effect,
+                id: generateId(),
+                duration: 1
+            }];
+             onLogEntry({
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'status',
+                message: `${character.name} is affected by ${env.effect.name}.`,
+                characterId: character.id
+            });
+        }
+    }
+
+    return updatedChar;
+  }, [mapData, handleDamage, onLogEntry]);
+
   const rollInitiative = useCallback((character: CombatCharacter): number => {
     const dexModifier = Math.floor((character.stats.dexterity - 10) / 2);
     const roll = Math.floor(Math.random() * 20) + 1;
@@ -322,6 +375,9 @@ export const useTurnManager = ({
   const processEndOfTurnEffects = useCallback((character: CombatCharacter) => {
     let updatedCharacter = { ...character };
 
+    // 1. Process Tile Environmental Effects (Hazards) - End of Turn
+    updatedCharacter = processTileEffects(updatedCharacter, updatedCharacter.position);
+
     // Resolve any lingering zone effects
     const tracker = new AreaEffectTracker(spellZones);
     const zoneResults = tracker.processEndTurn(updatedCharacter, turnState.currentTurn);
@@ -416,6 +472,58 @@ export const useTurnManager = ({
       setMovementDebuffs(prev => prev.filter(d => d.expiresAtRound > turnState.currentTurn + 1 && !d.hasTriggered));
       setReactiveTriggers(prev => prev.filter(t => !t.expiresAtRound || t.expiresAtRound > turnState.currentTurn + 1));
 
+      // Process Map Tile Effect Expiration
+      if (mapData && onMapUpdate) {
+        let mapModified = false;
+        const newTiles = new Map(mapData.tiles);
+
+        for (const [key, tile] of newTiles) {
+            if (tile.environmentalEffect) {
+                // Decrement duration (assuming rounds type logic for now)
+                const newDuration = tile.environmentalEffect.duration - 1;
+
+                if (newDuration <= 0) {
+                    const newTile = { ...tile };
+                    newTile.environmentalEffect = undefined;
+                    // Restore original movement cost logic
+                    if (tile.environmentalEffect.type === 'difficult_terrain') {
+                        // If it was difficult terrain, revert.
+                        // If base terrain is also difficult (cost 2), we should keep it 2.
+                        // Since we don't store baseCost, we check terrain type.
+                        if (newTile.terrain === 'difficult') {
+                            newTile.movementCost = 2;
+                        } else {
+                            newTile.movementCost = 1;
+                        }
+                    }
+                    newTiles.set(key, newTile);
+                    mapModified = true;
+                } else {
+                    const newTile = { ...tile };
+                    newTile.environmentalEffect = {
+                        ...tile.environmentalEffect,
+                        duration: newDuration
+                    };
+                    newTiles.set(key, newTile);
+                    mapModified = true;
+                }
+            }
+        }
+
+        if (mapModified) {
+            onMapUpdate({
+                ...mapData,
+                tiles: newTiles
+            });
+             onLogEntry({
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'status',
+                message: `Environmental effects updated for Round ${turnState.currentTurn + 1}.`,
+            });
+        }
+      }
+
       onLogEntry({
         id: generateId(),
         timestamp: Date.now(),
@@ -432,7 +540,7 @@ export const useTurnManager = ({
       actionsThisTurn: []
     }));
 
-  }, [turnState, characters, processEndOfTurnEffects, onLogEntry, spellZones]);
+  }, [turnState, characters, processEndOfTurnEffects, onLogEntry, spellZones, mapData, onMapUpdate]);
 
 
   const executeAction = useCallback((action: CombatAction): boolean => {
@@ -516,6 +624,9 @@ export const useTurnManager = ({
         cost: (action.cost && 'movement' in action.cost) ? (action.cost as any).movement : 0,
         isForced: false
       });
+
+      // Process Tile Environmental Effects (Hazards)
+      updatedCharacter = processTileEffects(updatedCharacter, action.targetPosition);
 
       const moveTriggerResults = processMovementTriggers(movementDebuffs, updatedCharacter, turnState.currentTurn);
 
