@@ -90,7 +90,7 @@ const CollapsibleTrait: React.FC<{ name: string; description: string, onSpellCli
     const toKebabCase = (str: string) => str.toLowerCase().replace(/[\s/]+/g, '-');
 
     return (
-        <div className="bg-[#1F2937]/50 border border-gray-700 rounded-md">
+        <div className="bg-gray-800/50 border border-gray-700 rounded-md">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-full flex justify-between items-center p-3 text-lg font-semibold text-sky-300 hover:bg-sky-900/30 transition-colors"
@@ -167,7 +167,7 @@ const RaceDetailModal: React.FC<RaceDetailModalProps> = ({ race, onSelect, onClo
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" onClick={onClose} aria-modal="true" role="dialog" aria-labelledby={`race-modal-title-${race.id}`}>
-        <div className="bg-[#111827] text-gray-300 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-5xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="bg-gray-900 text-gray-300 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-5xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
           {/* Header */}
           <div className="flex justify-between items-center mb-4 flex-shrink-0">
             <h2 id={`race-modal-title-${race.id}`} className="text-4xl font-bold text-amber-400 font-cinzel">{race.name}</h2>
@@ -184,7 +184,7 @@ const RaceDetailModal: React.FC<RaceDetailModalProps> = ({ race, onSelect, onClo
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-2xl" aria-hidden="true">🔍</div>
                   </div>
               )}
-               <div className="p-4 bg-[#1F2937]/50 border border-gray-700 rounded-lg">
+               <div className="p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
                 <h3 className="text-xl font-semibold text-sky-300 mb-2">Racial Stats</h3>
                 <ul className="space-y-1.5 text-sm">
                   {race.baseTraits.type && <li><strong>Type:</strong> <span className="text-sky-400">{race.baseTraits.type}</span></li>}
@@ -197,7 +197,7 @@ const RaceDetailModal: React.FC<RaceDetailModalProps> = ({ race, onSelect, onClo
 
             {/* Right Column (Description & Feats) */}
             <div className="md:col-span-3 space-y-4">
-              <div className="p-4 bg-[#1F2937]/50 border border-gray-700 rounded-lg">
+              <div className="p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
                 <h3 className="text-xl font-semibold text-sky-300 mb-2">Race Description</h3>
                 <p className="whitespace-pre-wrap text-sm leading-relaxed">{race.description}</p>
               </div>
@@ -205,7 +205,7 @@ const RaceDetailModal: React.FC<RaceDetailModalProps> = ({ race, onSelect, onClo
                 <CollapsibleTrait key={feat.name} name={feat.name} description={feat.description} onSpellClick={setInfoSpellId} />
               ))}
               {race.furtherChoicesNote && (
-                 <div className="p-4 bg-[#1F2937]/50 border border-gray-700 rounded-lg">
+                 <div className="p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
                     <h3 className="text-lg font-semibold text-sky-300 mb-2">Further Choices</h3>
                     <p className="text-sm text-gray-400">{race.furtherChoicesNote}</p>
                  </div>
