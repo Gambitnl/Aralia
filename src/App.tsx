@@ -24,6 +24,7 @@ import { useGameActions } from './hooks/useGameActions';
 import { useGameInitialization } from './hooks/useGameInitialization';
 import { useHistorySync } from './hooks/useHistorySync';
 import { determineSettlementInfo } from './utils/settlementGeneration';
+import { t } from './utils/i18n';
 
 // Utility functions
 import { determineActiveDynamicNpcsForLocation } from './utils/locationUtils';
@@ -40,6 +41,7 @@ import {
 } from './constants';
 import { SUBMAP_DIMENSIONS } from './config/mapConfig';
 import { canUseDevTools } from './utils/permissions';
+import { validateEnv } from './config/env';
 
 import { NotificationSystem } from './components/NotificationSystem';
 import GameLayout from './components/layout/GameLayout';
@@ -49,13 +51,18 @@ import MainMenu from './components/MainMenu';
 import TownCanvas from './components/TownCanvas';
 import ErrorBoundary from './components/ErrorBoundary';
 import * as SaveLoadService from './services/saveLoadService';
-import LoadingSpinner from './components/LoadingSpinner';
+import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import BattleMapDemo from './components/BattleMapDemo';
 import CombatView from './components/CombatView';
 import LoadGameTransition from './components/LoadGameTransition';
 
 
 const App: React.FC = () => {
+  // Validate environment variables on startup
+  useEffect(() => {
+    validateEnv();
+  }, []);
+
   const [gameState, dispatch] = useReducer(appReducer, initialGameState);
 
   // 🏹 Ranger: Sync GamePhase with URL history
@@ -154,16 +161,25 @@ const App: React.FC = () => {
   const getTileTooltipText = useCallback((worldMapTile: MapTile): string => {
     const biome = BIOMES[worldMapTile.biomeId];
     if (!worldMapTile.discovered) {
-      return `Undiscovered area (${worldMapTile.x}, ${worldMapTile.y}). Potential biome: ${biome?.name || 'Unknown'}.`;
+      return t('app.tooltip.undiscovered', {
+        x: worldMapTile.x,
+        y: worldMapTile.y,
+        biome: biome?.name || t('app.tooltip.undiscovered_biome_unknown')
+      });
     }
-    let tooltip = `${biome?.name || 'Unknown Area'} at world map coordinates (${worldMapTile.x}, ${worldMapTile.y})`;
+    let tooltip = t('app.tooltip.discovered', {
+      biome: biome?.name || t('app.tooltip.biome_unknown'),
+      x: worldMapTile.x,
+      y: worldMapTile.y
+    });
+
     if (worldMapTile.locationId && LOCATIONS[worldMapTile.locationId]) {
-      tooltip += ` - Location: ${LOCATIONS[worldMapTile.locationId].name}.`;
+      tooltip += t('app.tooltip.location', { locationName: LOCATIONS[worldMapTile.locationId].name });
     } else {
-      tooltip += ".";
+      tooltip += t('app.tooltip.dot');
     }
     if (biome?.description) {
-      tooltip += ` General description: ${biome.description}`;
+      tooltip += t('app.tooltip.description', { description: biome.description });
     }
     return tooltip;
   }, []);
@@ -641,7 +657,7 @@ const App: React.FC = () => {
   } else if (gameState.phase === GamePhase.GAME_OVER) {
     mainContent = (
       <div className="flex items-center justify-center h-screen bg-black text-red-600 text-4xl font-serif">
-        GAME OVER
+        {t('app.game_over')}
       </div>
     );
   } else if (gameState.phase === GamePhase.LOAD_TRANSITION) {

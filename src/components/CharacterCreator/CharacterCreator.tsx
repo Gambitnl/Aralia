@@ -81,7 +81,7 @@ const getNextStep = (state: any, selectedRace: any, racialSelections: any): Crea
 };
 import { useCharacterAssembly } from './hooks/useCharacterAssembly';
 import SpellContext from '../../context/SpellContext';
-import LoadingSpinner from '../LoadingSpinner';
+import { LoadingSpinner } from '../ui/LoadingSpinner';
 
 
 interface CharacterCreatorProps {

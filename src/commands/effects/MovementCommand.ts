@@ -157,7 +157,7 @@ export class MovementCommand extends BaseEffectCommand {
             })
         }
 
-        const clampedDestination = this.clampToBounds(requestedDestination)
+        const clampedDestination = this.clampToBounds(requestedDestination, state)
 
         // Final validation: is it occupied?
         if (!this.validatePosition(state, clampedDestination, target.id)) {
@@ -319,12 +319,22 @@ export class MovementCommand extends BaseEffectCommand {
         }
     }
 
-    private clampToBounds(position: Position): Position {
-        const mapData: any = this.context.gameState?.mapData
-        const width = mapData?.dimensions?.width ?? mapData?.gridSize?.cols
-        const height = mapData?.dimensions?.height ?? mapData?.gridSize?.rows
+    private clampToBounds(position: Position, state: CombatState): Position {
+        let width: number | undefined
+        let height: number | undefined
 
-        if (typeof width !== 'number' || typeof height !== 'number') {
+        // 1. Try Battle Map
+        if (state.mapData) {
+            width = state.mapData.dimensions.width
+            height = state.mapData.dimensions.height
+        }
+        // 2. Try World Map
+        else if (this.context.gameState?.mapData) {
+            width = this.context.gameState.mapData.gridSize.cols
+            height = this.context.gameState.mapData.gridSize.rows
+        }
+
+        if (width === undefined || height === undefined) {
             return position
         }
 
@@ -341,7 +351,7 @@ export class MovementCommand extends BaseEffectCommand {
      */
     private validatePosition(state: CombatState, position: Position, excludeCharacterId?: string): boolean {
         // 1. Check bounds
-        const clamped = this.clampToBounds(position)
+        const clamped = this.clampToBounds(position, state)
         if (clamped.x !== position.x || clamped.y !== position.y) {
             return false // Was out of bounds
         }

@@ -1,0 +1,16 @@
+{
+  "app": {
+    "game_over": "GAME OVER",
+    "tooltip": {
+      "undiscovered": "Undiscovered area ({x}, {y}). Potential biome: {biome}.",
+      "undiscovered_biome_unknown": "Unknown",
+      "discovered": "{biome} at world map coordinates ({x}, {y})",
+      "biome_unknown": "Unknown Area",
+      "location": " - Location: {locationName}.",
+      "dot": ".",
+      "description": " General description: {description}"
+    },
+    "unknown_terrain_nature": "The nature of this terrain is unknown.",
+    "impassable_reason": "You cannot travel to the {biome}. It is impassable by normal means."
+  }
+}

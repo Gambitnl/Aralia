@@ -3,7 +3,7 @@ import { GlossaryEntry } from '../types';
 import GlossaryContext from '../context/GlossaryContext';
 import { FullEntryDisplay } from './Glossary/FullEntryDisplay';
 import { AnimatePresence, motion } from 'framer-motion';
-import LoadingSpinner from './LoadingSpinner';
+import { LoadingSpinner } from './ui/LoadingSpinner';
 import { findGlossaryEntryAndPath } from '../utils/glossaryUtils';
 
 interface SingleGlossaryEntryModalProps {

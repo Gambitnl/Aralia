@@ -1,4 +1,7 @@
 /**
+ * Copyright (c) 2024 Aralia RPG.
+ * Licensed under the MIT License.
+ *
  * @file saveLoadService.ts
  * This service handles saving and loading game state to/from Local Storage.
  * All user feedback has been routed through the global NotificationSystem (via
@@ -148,7 +151,9 @@ export async function saveGame(
     // real-world time instead of double-counting the segment we just recorded.
     resetSessionTimer(stateToSave.saveTimestamp!);
 
-    console.log(`Game saved to slot: ${storageKey} at ${new Date(stateToSave.saveTimestamp!).toLocaleString()}`);
+    if (import.meta.env.DEV) {
+      console.log(`Game saved to slot: ${storageKey} at ${new Date(stateToSave.saveTimestamp!).toLocaleString()}`);
+    }
     const result = { success: true, message: "Game saved successfully." } as const;
     notify?.({ message: result.message, type: 'success' });
     return result;
@@ -177,7 +182,9 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     const storageKey = resolveSlotKey(slotName);
     const serializedState = SafeStorage.getItem(storageKey);
     if (!serializedState) {
-      console.log(`No save game found in slot: ${storageKey}`);
+      if (import.meta.env.DEV) {
+        console.log(`No save game found in slot: ${storageKey}`);
+      }
       const result = { success: false, message: "No save game found." } as const;
       notify?.({ message: result.message, type: 'info' });
       return result;
@@ -223,7 +230,9 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
       playtimeSeconds: (parsedData as StoredSavePayload).preview?.playtimeSeconds,
     });
 
-    console.log(`Game loaded from slot: ${storageKey}, saved at ${new Date(loadedState.saveTimestamp!).toLocaleString()}`);
+    if (import.meta.env.DEV) {
+      console.log(`Game loaded from slot: ${storageKey}, saved at ${new Date(loadedState.saveTimestamp!).toLocaleString()}`);
+    }
     const result = { success: true, message: "Game loaded successfully.", data: loadedState } as const;
     notify?.({ message: result.message, type: 'success' });
     resetSessionTimer();
@@ -285,7 +294,9 @@ export function deleteSaveGame(slotName: string = DEFAULT_SAVE_SLOT): void {
     const storageKey = resolveSlotKey(slotName);
     SafeStorage.removeItem(storageKey);
     removeSlotMetadata(storageKey);
-    console.log(`Save game deleted from slot: ${storageKey}`);
+    if (import.meta.env.DEV) {
+      console.log(`Save game deleted from slot: ${storageKey}`);
+    }
   } catch (error) {
     console.error("Error deleting save game:", error);
   }

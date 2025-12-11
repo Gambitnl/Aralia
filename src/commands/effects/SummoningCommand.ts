@@ -73,7 +73,7 @@ export class SummoningCommand extends BaseEffectCommand {
                     const pos = { x, y }
 
                     // Check map boundaries using state.mapData if available
-                    if (!this.isWithinBounds(pos)) continue
+                    if (!this.isWithinBounds(pos, state)) continue
 
                     // For now, simple collision check with other characters
                     if (!this.isOccupied(state, pos)) {
@@ -89,18 +89,22 @@ export class SummoningCommand extends BaseEffectCommand {
         return state.characters.some(c => c.position.x === pos.x && c.position.y === pos.y)
     }
 
-    private isWithinBounds(pos: Position): boolean {
-        const mapData: any = this.context.gameState?.mapData
-        if (!mapData) return true // Assume infinite map if no data
-
-        const width = mapData?.dimensions?.width ?? mapData?.gridSize?.cols
-        const height = mapData?.dimensions?.height ?? mapData?.gridSize?.rows
-
-        if (typeof width !== 'number' || typeof height !== 'number') {
-            return true
+    private isWithinBounds(pos: Position, state: CombatState): boolean {
+        // 1. Try Battle Map (CombatState)
+        if (state.mapData) {
+            const { width, height } = state.mapData.dimensions
+            return pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height
         }
 
-        return pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height
+        // 2. Try World Map (GameState fallback)
+        const worldMap = this.context.gameState?.mapData
+        if (worldMap) {
+            const { cols, rows } = worldMap.gridSize
+            return pos.x >= 0 && pos.x < cols && pos.y >= 0 && pos.y < rows
+        }
+
+        // 3. Assume infinite if no map data
+        return true
     }
 
     private createSummonedCharacter(
@@ -128,6 +132,7 @@ export class SummoningCommand extends BaseEffectCommand {
         return {
             id: uniqueId,
             name: `${name} ${index + 1}`,
+            level: 1, // Default to level 1 for summons
             class: CLASSES_DATA['fighter'], // Placeholder class
             position: position,
             stats: stats,
