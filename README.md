@@ -4,7 +4,43 @@ Welcome to the Aralia RPG project! This document provides a high-level overview 
 
 For a complete index of all documentation, please see the [README Index](./docs/README_INDEX.md).
 
-## 1. Core Features
+## 1. Getting Started
+
+### Prerequisites
+*   Node.js (v18 or higher recommended)
+*   pnpm (v9 or higher recommended)
+    *   *Note: This project uses `pnpm-lock.yaml`. Please use `pnpm` to install dependencies to ensure consistent versions.*
+
+### Installation
+
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/your-username/aralia-rpg.git
+    cd aralia-rpg
+    ```
+
+2.  **Install dependencies**
+    ```bash
+    pnpm install
+    ```
+
+3.  **Configure Environment**
+    Create a `.env` file from the example:
+    ```bash
+    cp .env.example .env
+    ```
+    Open `.env` and add your Google Gemini API key:
+    ```
+    GEMINI_API_KEY=your_actual_api_key_here
+    ```
+
+4.  **Run Development Server**
+    ```bash
+    pnpm run dev
+    ```
+    Open your browser to `http://localhost:3000`.
+
+## 2. Core Features
 
 *   **Dynamic Storytelling**: Utilizes the Google Gemini API to generate dynamic location descriptions, NPC dialogue, and action outcomes, creating a unique adventure every time.
 *   **Text-Based RPG Core**: Classic text adventure gameplay loop focusing on exploration, interaction, and choice.
@@ -15,13 +51,13 @@ For a complete index of all documentation, please see the [README Index](./docs/
 *   **Developer Mode**: Includes a "dummy character" to bypass character creation for rapid testing and a developer menu for quick actions like save/load.
 *   **Save/Load System**: Persists game state to the browser's Local Storage.
 
-## 2. Technology Stack & Architecture
+## 3. Technology Stack & Architecture
 
 ### Core Stack
 *   **Framework**: **React** (v19) using modern features like hooks.
 *   **Language**: **TypeScript** for type safety.
 *   **Styling**: **Tailwind CSS** (via CDN) plus the utility definitions in `src/index.css` and the curated styles aggregated in `public/styles.css`.
-*   **Build Tooling**: **Vite** for both the dev server (`npm run dev`) and production bundling (`npm run build` / `npm run preview`).
+*   **Build Tooling**: **Vite** for both the dev server (`pnpm run dev`) and production bundling (`pnpm run build` / `pnpm run preview`).
     *   **Dual dependency system**: Vite bundles everything declared in `package.json`, while the `index.html` import map loads dependencies directly from a CDN for browser-based imports (React, `@google/genai`, `framer-motion`, markdown tooling, PIXI, etc.).
     *   **Synchronization requirement**: Keep the semver ranges in `package.json` and the import map aligned so CDN imports match the bundled output.
         *   When you bump a dependency, update it in both places (including browser polyfills for Node.js modules like `fs` and `path`).
@@ -46,7 +82,7 @@ Even though everything runs in the browser, we **can** expand the experience by 
 
 Mentioning these possibilities helps me understand that you're open to evolving the tech stack within our constraints.
 
-## 3. Project Structure
+## 4. Project Structure
 
 The project follows a component-based architecture with a clear separation of concerns.
 
@@ -81,7 +117,7 @@ The project follows a component-based architecture with a clear separation of co
     *   **`public/data/glossary/`**: Contains the Markdown source files and generated JSON indexes for the in-game glossary.
 *   **`scripts/`**: Build scripts, such as the one for generating the glossary index.
 
-## 4. Key Development Practices
+## 5. Key Development Practices
 
 ### Dummy Character for Development
 *   The `USE_DUMMY_CHARACTER_FOR_DEV` flag in `src/constants.ts` can be set to `true`.
@@ -90,7 +126,7 @@ The project follows a component-based architecture with a clear separation of co
 ### Code Formatting
 *   Code is formatted using Prettier with default settings to ensure consistency.
 
-## 5. How to Add New Game Content
+## 6. How to Add New Game Content
 
 ### Adding a New Race
 Please follow the detailed guide: **[`docs/guides/RACE_ADDITION_GUIDE.md`](./docs/guides/RACE_ADDITION_GUIDE.md)**
