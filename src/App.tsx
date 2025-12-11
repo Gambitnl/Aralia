@@ -49,7 +49,7 @@ import MainMenu from './components/MainMenu';
 import TownCanvas from './components/TownCanvas';
 import ErrorBoundary from './components/ErrorBoundary';
 import * as SaveLoadService from './services/saveLoadService';
-import LoadingSpinner from './components/LoadingSpinner';
+import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import BattleMapDemo from './components/BattleMapDemo';
 import CombatView from './components/CombatView';
 import LoadGameTransition from './components/LoadGameTransition';

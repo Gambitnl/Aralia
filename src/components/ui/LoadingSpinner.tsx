@@ -1,4 +1,3 @@
-
 /**
  * @file LoadingSpinner.tsx
  * This component displays a loading spinner overlay, typically shown
@@ -8,7 +7,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-interface LoadingSpinnerProps {
+export interface LoadingSpinnerProps {
   message?: string | null; // Optional message to display
 }
 
@@ -18,7 +17,7 @@ interface LoadingSpinnerProps {
  * @param {LoadingSpinnerProps} props - The props for the component.
  * @returns {React.FC} The rendered LoadingSpinner component.
  */
-const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message }) => {
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message }) => {
   const displayMessage = message || "Aralia is weaving fate...";
   return (
     <motion.div
@@ -42,5 +41,3 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message }) => {
     </motion.div>
   );
 };
-
-export default LoadingSpinner;
