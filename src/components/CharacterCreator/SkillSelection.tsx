@@ -5,7 +5,6 @@
  * For Elves, it also handles the "Keen Senses" skill choice.
  * It now prevents selecting class skills already granted by Human, Elf, Bugbear, Centaur or Changeling racial traits.
  *
- * TODO: Minor styling inconsistency (2025-12-11)
  * - Header uses `mb-2` instead of standard `mb-6` (intentional due to subtitle below)
  * - This is acceptable since there's explanatory text immediately after the header
  */
@@ -196,7 +195,7 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
           return (
             <label
               key={skill.id}
-              className={`flex items-center p-3 rounded-lg transition-colors ${
+              className={`flex items-start p-3 rounded-lg transition-colors ${
                 selectedClassSkillIds.has(skill.id)
                   ? 'bg-sky-600 ring-2 ring-sky-400' 
                   : isDisabledForSelection && isSkillRaciallyGranted
@@ -209,7 +208,7 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
                 checked={selectedClassSkillIds.has(skill.id)}
                 onChange={() => handleClassSkillToggle(skill.id)}
                 disabled={isDisabledForSelection}
-                className="form-checkbox h-5 w-5 text-sky-500 bg-gray-800 border-gray-600 rounded focus:ring-sky-500 mr-3 disabled:opacity-50"
+                className="form-checkbox h-5 w-5 text-sky-500 bg-gray-800 border-gray-600 rounded focus:ring-sky-500 mr-3 mt-0.5 disabled:opacity-50"
                 aria-label={`Select class skill ${skill.name}${isSkillRaciallyGranted ? ` (already granted by ${racialGrantSource})` : ''}`}
               />
               <span className="text-gray-200">
@@ -248,7 +247,7 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
             {keenSensesOptions.map((skill) => (
               <label
                 key={`keen-${skill.id}`}
-                className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors ${
+                className={`flex items-start p-3 rounded-lg cursor-pointer transition-colors ${
                   selectedKeenSensesSkillId === skill.id
                     ? 'bg-amber-600 ring-2 ring-amber-400'
                     : 'bg-gray-700 hover:bg-gray-600'
@@ -259,7 +258,7 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
                   name="keenSensesSkill"
                   checked={selectedKeenSensesSkillId === skill.id}
                   onChange={() => handleKeenSensesSelect(skill.id)}
-                  className="form-radio h-4 w-4 text-amber-500 bg-gray-800 border-gray-600 focus:ring-amber-500 mr-3"
+                  className="form-radio h-4 w-4 text-amber-500 bg-gray-800 border-gray-600 focus:ring-amber-500 mr-3 mt-1"
                   aria-label={`Select Keen Senses skill ${skill.name}`}
                 />
                 <span className="text-gray-200">
