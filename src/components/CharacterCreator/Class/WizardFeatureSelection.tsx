@@ -53,7 +53,6 @@ const WizardFeatureSelection: React.FC<WizardFeatureSelectionProps> = ({
       newSelection.add(id);
     }
     setSelection(newSelection);
-    console.log(`WizardFeatureSelection: Toggled ${type} ${id}. New count: ${newSelection.size}/${limit}`);
   };
   
   /**
@@ -63,17 +62,13 @@ const WizardFeatureSelection: React.FC<WizardFeatureSelectionProps> = ({
     if (selectedCantripIds.size === spellcastingInfo.knownCantrips && selectedSpellL1Ids.size === spellcastingInfo.knownSpellsL1) {
       const cantrips = Array.from(selectedCantripIds).map(id => allSpells[String(id)]);
       const spellsL1 = Array.from(selectedSpellL1Ids).map(id => allSpells[String(id)]);
-      console.log(`WizardFeatureSelection: Confirming spells. Cantrips: ${cantrips.map(c=>c.name)}, Spells L1: ${spellsL1.map(s=>s.name)}`);
       onWizardFeaturesSelect(cantrips, spellsL1);
     } else {
-        console.log("WizardFeatureSelection: handleSubmit called but conditions not met.");
-        console.log(`WizardFeatureSelection: Cantrips: ${selectedCantripIds.size}/${spellcastingInfo.knownCantrips}, Spells L1: ${selectedSpellL1Ids.size}/${spellcastingInfo.knownSpellsL1}`);
         // Optionally provide UI feedback
     }
   };
 
   const isButtonDisabled = selectedCantripIds.size !== spellcastingInfo.knownCantrips || selectedSpellL1Ids.size !== spellcastingInfo.knownSpellsL1;
-  console.log(`WizardFeatureSelection: Render. Cantrips: ${selectedCantripIds.size}/${spellcastingInfo.knownCantrips}, Spells L1: ${selectedSpellL1Ids.size}/${spellcastingInfo.knownSpellsL1}. Button disabled: ${isButtonDisabled}`);
 
   return (
     <div>
