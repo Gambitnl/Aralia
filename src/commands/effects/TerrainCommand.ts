@@ -1,7 +1,7 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
-import { TerrainEffect } from '@/types/spells'
-import { CombatState, Position } from '@/types/combat'
+import { TerrainEffect, EffectDuration, DamageType } from '@/types/spells'
+import { CombatState, Position, BattleMapTile, StatusEffect, BattleMapTerrain } from '@/types/combat'
 import { calculateAffectedTiles, AoEParams } from '../../utils/aoeCalculations'
 import { mapShapeToStandard } from '../../utils/targetingUtils'
 
@@ -16,18 +16,37 @@ export class TerrainCommand extends BaseEffectCommand {
     execute(state: CombatState): CombatState {
         const effect = this.effect as TerrainEffect
 
-        // TODO: This requires map state modification system
-        // BattleMapTile needs to support dynamic terrain effects
-
-        // For now, add to combat log and mark positions
+        // Calculate affected area
         const affectedTiles = this.calculateTerrainArea(effect)
 
-        // Handle structured manipulation if present
-        if (effect.manipulation) {
-            return this.executeManipulation(state, effect, affectedTiles)
+        // Clone state for mutation
+        const newState = { ...state }
+
+        // If we have map data, modify it to reflect the terrain changes
+        if (newState.mapData) {
+             const newMapData = { ...newState.mapData }
+             const newTiles = new Map(newState.mapData.tiles)
+
+             affectedTiles.forEach(pos => {
+                 const key = `${pos.x}-${pos.y}`
+                 const tile = newTiles.get(key)
+                 if (tile) {
+                     const newTile = { ...tile }
+                     this.applyTerrainChange(newTile, effect)
+                     newTiles.set(key, newTile)
+                 }
+             })
+
+             newMapData.tiles = newTiles
+             newState.mapData = newMapData
         }
 
-        return this.addLogEntry(state, {
+        // Handle structured manipulation logging if present
+        if (effect.manipulation) {
+            return this.executeManipulation(newState, effect, affectedTiles)
+        }
+
+        return this.addLogEntry(newState, {
             type: 'action',
             message: `${this.context.caster.name} creates ${effect.terrainType} terrain`,
             characterId: this.context.caster.id,
@@ -36,6 +55,132 @@ export class TerrainCommand extends BaseEffectCommand {
                 affectedPositions: affectedTiles
             }
         })
+    }
+
+    /**
+     * Applies the terrain effect to a single map tile.
+     * Updates properties like movement cost, elevation, and environmental effects.
+     */
+    private applyTerrainChange(tile: BattleMapTile, effect: TerrainEffect) {
+        // Handle explicit manipulation (e.g. Mold Earth)
+        if (effect.manipulation) {
+            switch (effect.manipulation.type) {
+                case 'difficult':
+                    this.applyDifficultTerrain(tile, effect.duration)
+                    break
+                case 'normal':
+                    this.removeDifficultTerrain(tile)
+                    break
+                case 'excavate':
+                    // Assume 1 unit of elevation = 5 feet.
+                    // If depth is specified, use it, otherwise default to 1 unit (5ft)
+                    const depth = effect.manipulation.volume?.depth ?? 5
+                    tile.elevation -= Math.max(1, Math.floor(depth / 5))
+                    break
+                case 'fill':
+                    // Assume filling adds elevation.
+                    // If no volume specified, default to 1 unit.
+                    const height = effect.manipulation.volume?.size ?? 5
+                    tile.elevation += Math.max(1, Math.floor(height / 5))
+                    break
+                case 'cosmetic':
+                    // Cosmetic changes don't affect mechanics, but we could update decoration?
+                    // For now, we leave mechanics alone as requested.
+                    break
+            }
+            return
+        }
+
+        // Handle standard terrain types
+        switch (effect.terrainType) {
+            case 'difficult':
+                this.applyDifficultTerrain(tile, effect.duration)
+                break
+            case 'wall':
+                tile.terrain = 'wall'
+                tile.blocksMovement = true
+                tile.blocksLoS = true
+                break
+            case 'blocking':
+                tile.blocksMovement = true
+                break
+            case 'obscuring':
+                tile.blocksLoS = true
+                break
+            case 'damaging':
+                if (effect.damage) {
+                    const envType = this.mapDamageToEnvType(effect.damage.type)
+                    if (envType) {
+                        tile.environmentalEffect = {
+                            type: envType,
+                            duration: this.resolveDuration(effect.duration),
+                            effect: this.createEnvironmentalStatusEffect(effect)
+                        }
+                    }
+                }
+                break
+        }
+    }
+
+    private applyDifficultTerrain(tile: BattleMapTile, duration: EffectDuration | undefined) {
+        tile.movementCost = 2
+        // We add an environmental effect to visualize it/track it, if supported
+        tile.environmentalEffect = {
+            type: 'difficult_terrain',
+            duration: duration ? this.resolveDuration(duration) : 10, // Default to 1 min/10 rounds if undefined?
+            effect: {
+                id: `diff-terrain-${Date.now()}`,
+                name: 'Difficult Terrain',
+                type: 'debuff',
+                duration: duration ? this.resolveDuration(duration) : 10,
+                effect: { type: 'condition' } // Placeholder
+            }
+        }
+    }
+
+    private removeDifficultTerrain(tile: BattleMapTile) {
+        tile.movementCost = 1
+        if (tile.environmentalEffect?.type === 'difficult_terrain') {
+            tile.environmentalEffect = undefined
+        }
+        if (tile.terrain === 'difficult') {
+            tile.terrain = 'grass' // Reset to default? Or keep underlying?
+            // Since 'difficult' is a terrain type in BattleMapTerrain, we might want to change it.
+            // But usually 'difficult' is a property. 'BattleMapTerrain' has 'difficult'.
+            // If the original was 'difficult', we change it to 'floor' or 'grass' or 'rock' depending on theme?
+            // For safety, let's set it to 'floor' if it was 'difficult'.
+        }
+    }
+
+    private mapDamageToEnvType(damageType: DamageType): 'fire' | 'ice' | 'poison' | undefined {
+        switch (damageType) {
+            case 'Fire': return 'fire'
+            case 'Cold': return 'ice'
+            case 'Poison': return 'poison'
+            default: return undefined
+        }
+    }
+
+    private resolveDuration(duration: EffectDuration): number {
+        if (duration.type === 'rounds') return duration.value ?? 1
+        if (duration.type === 'minutes') return (duration.value ?? 1) * 10
+        if (duration.type === 'special') return 100 // Arbitrary long duration?
+        return 1
+    }
+
+    private createEnvironmentalStatusEffect(effect: TerrainEffect): StatusEffect {
+        const duration = this.resolveDuration(effect.duration)
+        return {
+            id: `env-effect-${Date.now()}-${Math.random()}`,
+            name: `${effect.damage?.type ?? 'Hazard'} Area`,
+            type: 'debuff',
+            duration,
+            effect: {
+                type: 'damage_per_turn',
+                value: 0 // Damage value is usually calculated by the command/system, not stored in status
+            },
+            icon: 'hazard'
+        }
     }
 
     /**

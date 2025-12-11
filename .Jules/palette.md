@@ -1,0 +1,3 @@
+## 2024-05-24 - Accessibility Patterns in Action Components
+**Learning:** Highly interactive components like `ActionPane` and `InventoryList` often hide form controls (inputs, selects) inside conditional rendering loops or lists, making them easy to miss during standard accessibility sweeps. The "micro-interaction" of typing into an Oracle box or moving an item is a high-friction point if focus management and labelling are missing.
+**Action:** When auditing list-based or conditionally rendered UI, specifically grep for `<input`, `<select`, and `<textarea` to ensure they all have associated labels or aria-labels, and consider `autoFocus` for inputs that appear via user intent (like clicking "Ask Oracle").
