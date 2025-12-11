@@ -45,3 +45,6 @@ nul
 
 # Generated assets
 public/assets/images/
+
+# Jules Agent Personas
+.jules/

@@ -1,0 +1,64 @@
+{
+  "id": "catapult",
+  "name": "Catapult",
+  "level": 1,
+  "school": "Transmutation",
+  "classes": ["Artificer", "Sorcerer", "Wizard"],
+  "description": "Choose one unattended object weighing 1 to 5 pounds within range. The object flies in a straight line up to 90 feet in a direction you choose, stopping early if it would strike a creature or solid surface. A creature in the path must make a Dexterity saving throw or take 3d8 bludgeoning damage from the impact; on a successful save, the object continues along its path until it hits something.",
+  "higherLevels": "The damage increases by 1d8 for each spell slot level above 1st.",
+  "tags": ["damage", "bludgeoning", "control"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": false,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "area",
+    "range": 60,
+    "validTargets": ["creatures", "objects"],
+    "areaOfEffect": {
+      "shape": "Line",
+      "size": 90
+    },
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Dexterity",
+        "saveEffect": "none"
+      },
+      "damage": { "dice": "3d8", "type": "Bludgeoning" },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d8"
+      }
+    },
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "control",
+      "description": "Select an unattended object 1–5 lb. The object travels up to 90 ft in a straight line, stopping on the first impact (creature or surface)."
+    }
+  ]
+}

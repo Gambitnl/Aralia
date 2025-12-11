@@ -216,6 +216,13 @@ function getLineAoE(origin: Position, target: Position, width: number): Position
     return affected;
 }
 
+/**
+ * Projects a point from the origin at a specified compass direction and distance.
+ * @param origin - The starting position
+ * @param directionDegrees - Compass direction in degrees (0° = North, 90° = East, 180° = South, 270° = West)
+ * @param distanceFeet - Distance to project in feet
+ * @returns The projected position on the grid
+ */
 function projectPoint(origin: Position, directionDegrees: number, distanceFeet: number): Position {
     const distTiles = distanceFeet / TILE_SIZE;
     // Convert Compass (0=N, 90=E) to Math (0=E, -90=N)?

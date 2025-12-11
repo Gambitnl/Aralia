@@ -51,7 +51,6 @@ const ActionButton: React.FC<{
   else if (action.type === 'ANALYZE_SITUATION') colorClasses = "btn-indigo";
   else if (action.type === 'TOGGLE_DISCOVERY_LOG') colorClasses = "btn-lime";
   else if (action.type === 'TOGGLE_LOGBOOK') colorClasses = "btn-amber";
-  else if (action.type === 'TOGGLE_QUEST_LOG') colorClasses = "btn-amber";
   else if (action.type === 'TOGGLE_GLOSSARY_VISIBILITY') colorClasses = "btn-indigo-dark";
   else if (action.type === 'TOGGLE_GAME_GUIDE') colorClasses = "btn-blue";
 
@@ -183,8 +182,8 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   }
 
   // Check for Village/Town Entry
-  // Method 1: Procedural village terrain on coordinate locations
-  if (currentLocation.id.startsWith('coord_') && subMapCoordinates && worldSeed !== undefined) {
+  // Method 1: Procedural village terrain on coordinate locations AND predefined locations
+  if (subMapCoordinates && worldSeed !== undefined) {
     const { effectiveTerrainType } = getSubmapTileInfo(
       worldSeed,
       currentLocation.mapCoordinates,
@@ -193,41 +192,48 @@ const ActionPane: React.FC<ActionPaneProps> = ({
       subMapCoordinates
     );
 
-    if (effectiveTerrainType === 'village_area') {
-      generalActions.push({ type: 'ENTER_VILLAGE', label: 'Enter Village' });
-    } else {
-      // Check adjacent tiles for villages (seeing towns in distance)
-      const adjacentOffsets = [
-        { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }, { x: 0, y: 1 },
-        { x: -1, y: -1 }, { x: -1, y: 1 }, { x: 1, y: -1 }, { x: 1, y: 1 }
-      ];
 
-      let nearbyVillages = 0;
-      for (const offset of adjacentOffsets) {
-        const checkX = subMapCoordinates.x + offset.x;
-        const checkY = subMapCoordinates.y + offset.y;
+    // Check current tile and adjacent tiles for villages
+    const checkOffsets = [
+      { x: 0, y: 0 }, // Current tile
+      { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }, { x: 0, y: 1 },
+      { x: -1, y: -1 }, { x: -1, y: 1 }, { x: 1, y: -1 }, { x: 1, y: 1 }
+    ];
 
-        // Only check within submap bounds
-        if (checkX >= 0 && checkX < SUBMAP_DIMENSIONS.cols &&
-            checkY >= 0 && checkY < SUBMAP_DIMENSIONS.rows) {
-          const { effectiveTerrainType: adjacentType } = getSubmapTileInfo(
-            worldSeed,
-            currentLocation.mapCoordinates,
-            currentLocation.biomeId,
-            SUBMAP_DIMENSIONS,
-            { x: checkX, y: checkY }
-          );
+    let nearbyVillages = 0;
+    let onVillageTile = false;
 
-          if (adjacentType === 'village_area') {
-            nearbyVillages++;
+    for (const offset of checkOffsets) {
+      const checkX = subMapCoordinates.x + offset.x;
+      const checkY = subMapCoordinates.y + offset.y;
+
+      // Only check within submap bounds
+      if (checkX >= 0 && checkX < SUBMAP_DIMENSIONS.cols &&
+          checkY >= 0 && checkY < SUBMAP_DIMENSIONS.rows) {
+        const { effectiveTerrainType: checkType } = getSubmapTileInfo(
+          worldSeed,
+          currentLocation.mapCoordinates,
+          currentLocation.biomeId,
+          SUBMAP_DIMENSIONS,
+          { x: checkX, y: checkY }
+        );
+
+        if (checkType === 'village_area') {
+          nearbyVillages++;
+          if (offset.x === 0 && offset.y === 0) {
+            onVillageTile = true;
           }
         }
       }
+    }
 
-      if (nearbyVillages > 0) {
-        generalActions.push({ type: 'APPROACH_VILLAGE', label: 'Approach Village' });
-        generalActions.push({ type: 'OBSERVE_VILLAGE', label: 'Observe Village' });
-      }
+    if (onVillageTile) {
+      console.log('Player is ON village tile - adding ENTER_VILLAGE');
+      generalActions.push({ type: 'ENTER_VILLAGE', label: 'Enter Village' });
+    } else if (nearbyVillages > 0) {
+      console.log('Player is NEAR village tiles:', nearbyVillages, '- adding approach actions');
+      generalActions.push({ type: 'APPROACH_VILLAGE', label: 'Approach Village' });
+      generalActions.push({ type: 'OBSERVE_VILLAGE', label: 'Observe Village' });
     }
   }
 

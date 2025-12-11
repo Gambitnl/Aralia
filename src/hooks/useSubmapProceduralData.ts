@@ -273,8 +273,9 @@ export function useSubmapProceduralData({
         }
       }
     });
+
     return features;
-  }, [seededFeaturesConfig, submapDimensions, simpleHash, pathDetails, caGrid]);
+  }, [seededFeaturesConfig, submapDimensions, simpleHash, pathDetails, caGrid, currentWorldBiomeId, parentWorldMapCoords]);
 
   return { simpleHash, activeSeededFeatures, pathDetails, caGrid, wfcGrid, biomeBlendContext };
 }

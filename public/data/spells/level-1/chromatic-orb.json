@@ -1,0 +1,55 @@
+{
+  "id": "chromatic-orb",
+  "name": "Chromatic Orb",
+  "level": 1,
+  "school": "Evocation",
+  "classes": ["Sorcerer", "Wizard"],
+  "description": "You hurl a 4-inch-diameter sphere of energy at a creature within range. Choose acid, cold, fire, lightning, poison, or thunder for the orb's damage type, then make a ranged spell attack. On a hit, the target takes 3d8 damage of the chosen type.",
+  "higherLevels": "The damage increases by 1d8 for each spell slot level above 1st.",
+  "tags": ["damage", "evocation", "elemental"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 90
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a diamond worth at least 50 gp",
+    "materialCost": 50,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 90,
+    "validTargets": ["creatures"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "hit" },
+      "damage": {
+        "dice": "3d8",
+        "type": "Acid/Cold/Fire/Lightning/Poison/Thunder"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d8"
+      }
+    }
+  ]
+}

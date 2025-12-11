@@ -376,10 +376,64 @@ export async function handleApproachSettlement({
   const isVillage = action.type === 'APPROACH_VILLAGE';
   const settlementType = isVillage ? 'village' : 'town';
 
-  addMessage(`You cautiously approach the nearby ${settlementType}, staying alert for any signs of danger or opportunity.`, 'system');
+  // Find the nearest village/town tile
+  const currentLoc = LOCATIONS[gameState.currentLocationId] || {
+    id: gameState.currentLocationId,
+    mapCoordinates: {
+      x: parseInt(gameState.currentLocationId.split('_')[1], 10),
+      y: parseInt(gameState.currentLocationId.split('_')[2], 10),
+    },
+    biomeId: gameState.mapData?.tiles[parseInt(gameState.currentLocationId.split('_')[2], 10)][parseInt(gameState.currentLocationId.split('_')[1], 10)].biomeId || 'plains',
+  };
 
-  // Could add movement logic here, or just provide descriptive feedback
-  // For now, this gives players a safe way to get closer to settlements
+  const checkOffsets = [
+    { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }, { x: 0, y: 1 },
+    { x: -1, y: -1 }, { x: -1, y: 1 }, { x: 1, y: -1 }, { x: 1, y: 1 }
+  ];
+
+  let nearestVillageTile = null;
+  let minDistance = Infinity;
+
+  for (const offset of checkOffsets) {
+    const checkX = gameState.subMapCoordinates.x + offset.x;
+    const checkY = gameState.subMapCoordinates.y + offset.y;
+
+    if (checkX >= 0 && checkX < SUBMAP_DIMENSIONS.cols &&
+        checkY >= 0 && checkY < SUBMAP_DIMENSIONS.rows) {
+      const { effectiveTerrainType } = getSubmapTileInfo(
+        gameState.worldSeed,
+        currentLoc.mapCoordinates,
+        currentLoc.biomeId,
+        SUBMAP_DIMENSIONS,
+        { x: checkX, y: checkY }
+      );
+
+      if (effectiveTerrainType === 'village_area') {
+        const distance = Math.abs(offset.x) + Math.abs(offset.y);
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearestVillageTile = { x: checkX, y: checkY };
+        }
+      }
+    }
+  }
+
+  if (nearestVillageTile) {
+    // Move to the village tile
+    dispatch({
+      type: 'MOVE_PLAYER',
+      payload: {
+        newLocationId: gameState.currentLocationId,
+        newSubMapCoordinates: nearestVillageTile,
+        mapData: gameState.mapData || undefined,
+        activeDynamicNpcIds: gameState.currentLocationActiveDynamicNpcIds
+      }
+    });
+
+    addMessage(`You approach the nearby ${settlementType} and arrive at its outskirts.`, 'system');
+  } else {
+    addMessage(`You cautiously approach the area, but can't find the ${settlementType} you thought you saw.`, 'system');
+  }
 }
 
 interface HandleObserveSettlementProps {

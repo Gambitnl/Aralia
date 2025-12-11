@@ -1,0 +1,68 @@
+{
+  "id": "color-spray",
+  "name": "Color Spray",
+  "level": 1,
+  "school": "Illusion",
+  "classes": ["Sorcerer", "Wizard"],
+  "description": "A dazzling array of flashing, colored light springs from your hand. Roll 6d10; the total is the pool of hit points that this spell can affect. Creatures in a 15-foot cone originating from you are affected in ascending order of their current hit points, ignoring unconscious creatures. Each affected creature is blinded until the spell ends.",
+  "higherLevels": "The hit point pool increases by 2d10 for each spell slot level above 1st.",
+  "tags": ["control", "blindness", "illusion", "aoe"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a pinch of colored sand, crystal, or glass powder"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "round",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "area",
+    "range": 0,
+    "validTargets": ["creatures"],
+    "areaOfEffect": {
+      "shape": "Cone",
+      "size": 15
+    },
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "control",
+      "description": "Roll 6d10 (plus scaling by slot). Starting with the lowest current HP creatures in the cone, subtract from the pool until it is depleted; affected creatures are blinded until the spell ends. Unconscious creatures are ignored.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+2d10 to HP pool"
+      }
+    },
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "statusCondition": {
+        "name": "Blinded",
+        "duration": {
+          "type": "rounds",
+          "value": 1
+        }
+      }
+    }
+  ]
+}

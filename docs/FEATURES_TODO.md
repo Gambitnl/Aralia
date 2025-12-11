@@ -66,6 +66,14 @@ TODOs remain in this file when:
 
 ## World & Exploration
 
+*   **Town Description System**:
+    *   **[PLANNED]** Implement dynamic town descriptions that generate rich details on-demand when players approach settlements. *(Complete project documentation created in `docs/projects/town-description-system/`)*
+        *   **Basic Metadata**: Generate town names and core properties during world creation
+        *   **Lazy Loading**: Rich descriptions generate when players get near towns (configurable range)
+        *   **Cultural Adaptation**: Descriptions adapt based on race, biome, culture, and player background
+        *   **Performance Optimized**: Only nearby towns have detailed descriptions loaded
+    *   **Next Steps**: Create `TownMetadata` interface, implement `TownNameGenerator`, add proximity detection system
+
 *   **Advanced World Map Features**:
     *   **[TODO]** Implement more sophisticated procedural generation algorithms for biome zones (e.g., Perlin noise, cellular automata).
     *   **[TODO]** Allow procedural generation of actual `Location` data for unkeyed map tiles.

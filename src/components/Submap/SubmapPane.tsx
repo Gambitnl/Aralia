@@ -343,22 +343,36 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
         const dy = Math.abs(submapY - playerSubmapCoords.y);
         const isAdjacent = (dx <= 1 && dy <= 1) && !(dx === 0 && dy === 0);
 
-        let hintKey = 'default';
+        // Build hint keys to try in order of specificity
+        const hintKeys = [];
+
         if (featureConfig) {
-            hintKey = featureConfig.id;
-        } else if (effectiveTerrain !== 'default') {
-            hintKey = effectiveTerrain;
+            // Try biome-specific feature hints first (e.g., 'plains_village')
+            hintKeys.push(`${currentWorldBiomeId}_${featureConfig.id}`);
+            // Then generic feature hints (e.g., 'village')
+            hintKeys.push(featureConfig.id);
         }
 
-        const biomeDefaultKey = `${currentWorldBiomeId}_default`;
+        if (effectiveTerrain !== 'default') {
+            // Try biome-specific terrain hints (e.g., 'plains_village_area')
+            hintKeys.push(`${currentWorldBiomeId}_${effectiveTerrain}`);
+            // Then generic terrain hints (e.g., 'village_area')
+            hintKeys.push(effectiveTerrain);
+        }
+
+        // Fallback to biome default
+        hintKeys.push(`${currentWorldBiomeId}_default`);
+        hintKeys.push('default');
 
         if (isAdjacent) {
-            if (submapTileHints[hintKey] && submapTileHints[hintKey].length > 0) {
-                return submapTileHints[hintKey][simpleHash(submapX, submapY, 'hint_adj_feature') % submapTileHints[hintKey].length];
-            } else if (submapTileHints[biomeDefaultKey] && submapTileHints[biomeDefaultKey].length > 0) {
-                return submapTileHints[biomeDefaultKey][simpleHash(submapX, submapY, 'hint_adj_biome') % submapTileHints[biomeDefaultKey].length];
+            // Try each hint key in order until we find one with hints
+            for (const key of hintKeys) {
+                if (submapTileHints[key] && submapTileHints[key].length > 0) {
+                    return submapTileHints[key][simpleHash(submapX, submapY, 'hint_adj') % submapTileHints[key].length];
+                }
             }
         } else {
+            // For distant tiles, use feature/terrain names
             if (featureConfig?.name) return `An area featuring a ${featureConfig.name.toLowerCase()}.`;
             if (effectiveTerrain !== 'default' && effectiveTerrain !== 'path_adj' && effectiveTerrain !== 'path') return `A patch of ${effectiveTerrain.replace(/_/g, ' ')}.`;
             return `A patch of ${currentBiome?.name || 'terrain'}.`;

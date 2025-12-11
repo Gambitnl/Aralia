@@ -1,0 +1,76 @@
+{
+  "id": "charm-person",
+  "name": "Charm Person",
+  "level": 1,
+  "school": "Enchantment",
+  "classes": ["Bard", "Druid", "Sorcerer", "Warlock", "Wizard"],
+  "description": "You attempt to charm a humanoid you can see within range. It makes a Wisdom saving throw (with advantage if you or your companions are fighting it). On a failed save, the target is charmed by you for the duration. When the spell ends, the creature knows it was charmed, and the effect ends early if you or your companions do anything harmful to it.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st.",
+  "tags": ["enchantment", "charm", "control", "social"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "multi",
+    "range": 30,
+    "maxTargets": 1,
+    "validTargets": ["humanoids", "creatures"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "negates_condition",
+        "targetFilter": { "creatureTypes": ["Humanoid"] },
+        "saveModifiers": [
+          {
+            "type": "advantage",
+            "reason": "The target has advantage on the saving throw if you or your companions are fighting it."
+          }
+        ]
+      },
+      "statusCondition": {
+        "name": "Charmed",
+        "duration": {
+          "type": "minutes",
+          "value": 60
+        }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1 target"
+      }
+    },
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "information",
+      "description": "The spell ends early if you or your companions do anything harmful to the creature. When the spell ends, the creature knows it was charmed by you."
+    }
+  ]
+}

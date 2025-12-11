@@ -1,0 +1,67 @@
+{
+  "id": "absorb-elements",
+  "name": "Absorb Elements",
+  "level": 1,
+  "school": "Abjuration",
+  "classes": ["Artificer", "Druid", "Ranger", "Sorcerer", "Wizard"],
+  "description": "The spell captures some of the incoming energy, lessening its effect on you and storing it for your next melee attack. You gain resistance to the triggering damage type until the start of your next turn. The first time you hit with a melee attack on your next turn, the target takes an extra 1d6 damage of the triggering type, and the spell ends.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the extra damage increases by 1d6 for each slot level above 1st.",
+  "tags": ["reaction", "defense", "damage", "elemental"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "reaction",
+    "combatCost": {
+      "type": "reaction",
+      "condition": "when you take acid, cold, fire, lightning, or thunder damage"
+    }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": false,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "round",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": ["self"]
+  },
+  "effects": [
+    {
+      "type": "DEFENSIVE",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "defenseType": "resistance",
+      "damageType": ["Acid", "Cold", "Fire", "Lightning", "Thunder"],
+      "duration": { "type": "rounds", "value": 1 }
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "on_attack_hit",
+        "consumption": "first_hit",
+        "attackFilter": {
+          "weaponType": "melee",
+          "attackType": "weapon"
+        }
+      },
+      "condition": { "type": "always" },
+      "damage": {
+        "dice": "1d6",
+        "type": "Acid/Cold/Fire/Lightning/Thunder"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d6"
+      }
+    }
+  ]
+}
