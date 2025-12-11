@@ -34,9 +34,20 @@ export async function fetchWithTimeout<T>(
   const { timeoutMs = 10000, ...fetchOptions } = options;
   const controller = new AbortController();
 
-  // If the caller provided a signal, we should respect it too, but AbortController chaining is complex.
-  // For now, we assume we control the signal.
-  // TODO: Merge signals if needed in future.
+  // Handle external signal if provided
+  const externalSignal = fetchOptions.signal;
+
+  const onExternalAbort = () => {
+    controller.abort(externalSignal?.reason);
+  };
+
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      controller.abort(externalSignal.reason);
+    } else {
+      externalSignal.addEventListener('abort', onExternalAbort);
+    }
+  }
 
   const id = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -46,6 +57,9 @@ export async function fetchWithTimeout<T>(
       signal: controller.signal,
     });
     clearTimeout(id);
+    if (externalSignal) {
+        externalSignal.removeEventListener('abort', onExternalAbort);
+    }
 
     if (!response.ok) {
       throw new NetworkError(
@@ -58,7 +72,21 @@ export async function fetchWithTimeout<T>(
     return (await response.json()) as T;
   } catch (error: any) {
     clearTimeout(id);
+    if (externalSignal) {
+        externalSignal.removeEventListener('abort', onExternalAbort);
+    }
+
     if (error.name === 'AbortError') {
+      // Differentiate between timeout and external abort
+      if (externalSignal?.aborted) {
+        // If external signal was aborted, rethrow the abort error (or wrap it)
+        // Usually, calling code expects AbortError if they aborted it.
+        // But fetchWithTimeout currently wraps everything in NetworkError or rethrows.
+        // Let's create a NetworkError that indicates abortion, or just rethrow original error
+        // if we want to mimic standard fetch behavior for aborts.
+        // The existing code threw NetworkError for timeouts.
+        throw new NetworkError('Request aborted by user', undefined, undefined, error);
+      }
       throw new NetworkError(`Request to ${url} timed out after ${timeoutMs}ms`);
     }
     if (error instanceof NetworkError) {
