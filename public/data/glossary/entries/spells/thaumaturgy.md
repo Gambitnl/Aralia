@@ -2,7 +2,7 @@
 id: "thaumaturgy"
 title: "Thaumaturgy"
 category: "Spells"
-tags: ["cantrip", "transmutation", "utility", "cleric"]
+tags: ["level 0", "cantrip", "transmutation", "utility", "cleric"]
 excerpt: "Manifest a minor wonder, a sign of supernatural power, within range."
 seeAlso: ["druidcraft", "prestidigitation"]
 ---

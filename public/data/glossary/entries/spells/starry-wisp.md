@@ -3,7 +3,7 @@
 id: "starry-wisp"
 title: "Starry Wisp"
 category: "Spells"
-tags: ["cantrip", "evocation", "radiant", "damage", "bard", "druid"]
+tags: ["level 0", "cantrip", "evocation", "radiant", "damage", "bard", "druid"]
 excerpt: "Launch a mote of light that deals radiant damage and prevents a target from being invisible."
 seeAlso: ["eldritch_blast", "fire_bolt", "guidance", "druidcraft"]
 filePath: "/data/glossary/entries/spells/starry-wisp.md"

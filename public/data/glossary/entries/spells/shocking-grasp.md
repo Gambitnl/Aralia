@@ -2,7 +2,7 @@
 id: "shocking-grasp"
 title: "Shocking Grasp"
 category: "Spells"
-tags: ["cantrip", "evocation", "damage", "lightning", "control", "artificer", "sorcerer", "wizard"]
+tags: ["level 0", "cantrip", "evocation", "damage", "lightning", "control", "artificer", "sorcerer", "wizard"]
 excerpt: "Deliver a shock to a creature, dealing lightning damage and preventing it from taking reactions."
 seeAlso: ["lightning-lure", "witch-bolt"]
 ---

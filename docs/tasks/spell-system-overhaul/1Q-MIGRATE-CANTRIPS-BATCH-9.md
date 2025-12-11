@@ -26,5 +26,5 @@
 4. Stay within approved schema; no new fields; ASCII only.
 
 ## Per-Spell Checklist (record here)
-- elementalism: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- starry-wisp: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
+- elementalism: Data ✅ / Validation ✅ / Integration ✅ (notes: Utility cantrip, already in level-0)
+- starry-wisp: Data ✅ / Validation ✅ / Integration ✅ (notes: Ranged radiant cantrip; suppresses invisibility briefly)

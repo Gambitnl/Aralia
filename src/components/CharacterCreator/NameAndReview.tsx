@@ -18,8 +18,6 @@ interface NameAndReviewProps {
   onConfirm: (name: string) => void; // Callback when character is confirmed
   onBack: () => void; // Function to go back to the previous step
   initialName?: string; // Optional initial name for the input field
-  initialAge?: number;
-  onAgeChange?: (age: number) => void;
   featStepSkipped?: boolean;
 }
 
@@ -27,9 +25,8 @@ interface NameAndReviewProps {
  * NameAndReview component.
  * Allows final review of character details and naming before creation.
  */
-const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfirm, onBack, initialName = '', initialAge = 25, onAgeChange, featStepSkipped }) => {
+const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfirm, onBack, initialName = '', featStepSkipped }) => {
   const [name, setName] = useState(initialName);
-  const [age, setAge] = useState(initialAge);
 
   const { 
     race, 
@@ -55,18 +52,6 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
   useEffect(() => {
     setName(initialName);
   }, [initialName]);
-
-  useEffect(() => {
-      setAge(initialAge);
-  }, [initialAge]);
-
-  const handleAgeChangeLocal = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const val = parseInt(e.target.value);
-      // Clamp to a friendly, lore-friendly range so we never serialize impossible values.
-      const sanitizedAge = Number.isNaN(val) ? 1 : Math.max(1, Math.min(999, val));
-      setAge(sanitizedAge);
-      if (onAgeChange) onAgeChange(sanitizedAge);
-  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,7 +85,7 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
       <div className="bg-gray-700 p-4 rounded-lg mb-6 max-h-72 overflow-y-auto scrollable-content border border-gray-600">
         <h3 className="text-xl font-semibold text-amber-400 mb-3">Character Summary</h3>
         <p><strong>Race:</strong> {getCharacterRaceDisplayString(characterPreview)}</p>
-        <p><strong>Age:</strong> {age} years</p>
+        <p><strong>Age:</strong> {characterPreview.age || 25} years</p>
 
         {selectedDraconicAncestry && (
           <p className="text-sm ml-2">
@@ -242,21 +227,6 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
           />
         </div>
 
-        <div>
-            <label htmlFor="characterAge" className="block text-md font-medium text-gray-300 mb-1">
-                Character Age:
-            </label>
-            <input
-                type="number"
-              id="characterAge"
-              value={age}
-              onChange={handleAgeChangeLocal}
-              min={1}
-                max={999}
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
-                aria-label="Enter your character's age"
-            />
-        </div>
         
         <div className="flex gap-4 pt-2">
             <button

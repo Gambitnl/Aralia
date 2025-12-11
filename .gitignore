@@ -42,3 +42,6 @@ dist-ssr
 # Backup folder
 Backup/
 nul
+
+# Generated assets
+public/assets/images/

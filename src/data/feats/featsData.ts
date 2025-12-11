@@ -110,6 +110,9 @@ export const FEATS_DATA: Feat[] = [
       skillProficiencies: ['investigation', 'insight'],
     },
   },
+  // Updated 2025-12-11: Changed from hardcoded Constitution to selectable ability score
+  // Player chooses one of six abilities; gains +1 to that ability AND proficiency in that saving throw
+  // TODO: Implement UI for ability selection and logic to apply matching save proficiency
   {
     id: 'resilient',
     name: 'Resilient',
@@ -120,6 +123,8 @@ export const FEATS_DATA: Feat[] = [
       savingThrowLinkedToAbility: true,
     },
   },
+  // Updated 2025-12-11: Changed from hardcoded skills to selectable
+  // TODO: Implement UI for selecting 3 skills from the full skill list
   {
     id: 'skilled',
     name: 'Skilled',
@@ -181,6 +186,8 @@ export const FEATS_DATA: Feat[] = [
       abilityScoreIncrease: { Strength: 1 },
     },
   },
+  // Updated 2025-12-11: Changed from giving both STR+1 and CON+1 to selecting one
+  // TODO: Implement UI for ability selection; also needs improvised weapon and unarmed strike mechanics
   {
     id: 'tavern_brawler',
     name: 'Tavern Brawler',
@@ -218,6 +225,8 @@ export const FEATS_DATA: Feat[] = [
       abilityScoreIncrease: { Dexterity: 1 },
     },
   },
+  // Updated 2025-12-11: Added selectableDamageTypes for the elemental choice
+  // TODO: Implement UI for damage type selection and combat logic for ignoring resistance / treating 1s as 2s
   {
     id: 'elemental_adept',
     name: 'Elemental Adept',
@@ -460,6 +469,8 @@ export const FEATS_DATA: Feat[] = [
       abilityScoreIncrease: { Dexterity: 1 },
     },
   },
+  // Updated 2025-12-11: Changed from giving both STR+1 and DEX+1 to selecting one
+  // TODO: Implement UI for ability selection; also needs combat mechanics for speed reduction and crit effect
   {
     id: 'slasher',
     name: 'Slasher',

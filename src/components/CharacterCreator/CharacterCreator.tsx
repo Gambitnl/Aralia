@@ -64,6 +64,26 @@ import {
   characterCreatorReducer,
   initialCharacterCreatorState,
 } from './state/characterCreatorState';
+
+// Helper function to determine the next step based on current step and state
+const getNextStep = (state: any, selectedRace: any, racialSelections: any): CreationStep => {
+  switch (state.step) {
+    case CreationStep.AgeSelection:
+      return CreationStep.BackgroundSelection;
+    case CreationStep.BackgroundSelection:
+      // Logic based on determineNextStepAfterBackground from state file
+      if (selectedRace.id === 'dragonborn') return CreationStep.DragonbornAncestry;
+      if (selectedRace.id === 'elf') return CreationStep.ElvenLineage;
+      if (selectedRace.id === 'gnome') return CreationStep.GnomeSubrace;
+      if (selectedRace.id === 'goliath') return CreationStep.GiantAncestry;
+      if (selectedRace.id === 'tiefling') return CreationStep.TieflingLegacy;
+      if (selectedRace.id === 'centaur') return CreationStep.CentaurNaturalAffinitySkill;
+      if (selectedRace.id === 'changeling') return CreationStep.ChangelingInstincts;
+      return CreationStep.Class;
+    default:
+      return CreationStep.Class; // fallback
+  }
+};
 import { useCharacterAssembly } from './hooks/useCharacterAssembly';
 import SpellContext from '../../context/SpellContext';
 import LoadingSpinner from '../LoadingSpinner';
@@ -249,7 +269,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
         return <AgeSelection
           selectedRace={selectedRace}
           currentAge={state.characterAge}
-          onAgeChange={(age) => dispatch({ type: 'SET_AGE', payload: age })}
+          onAgeChange={(age) => dispatch({ type: 'SET_CHARACTER_AGE', payload: age })}
           onNext={() => dispatch({ type: 'SET_STEP', payload: getNextStep(state, selectedRace, state.racialSelections) })}
           onBack={goBack}
         />;
@@ -372,8 +392,6 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
                 characterPreview={characterToPreview}
                 onConfirm={handleNameAndReviewSubmit}
                 initialName={state.characterName}
-                initialAge={state.characterAge}
-                onAgeChange={handleAgeChange}
                 onBack={goBack}
                 featStepSkipped={state.featStepSkipped}
             />

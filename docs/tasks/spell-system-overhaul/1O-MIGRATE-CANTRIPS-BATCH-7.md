@@ -29,8 +29,8 @@
 4. Stay within approved schema; no new fields; ASCII only.
 
 ## Per-Spell Checklist (record here)
-- shillelagh: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- shocking-grasp: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- spare-the-dying: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- thaumaturgy: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
-- thorn-whip: Data ✅ / Validation ✅ / Integration ✅ (notes: …)
+- shillelagh: Data ✅ / Validation ✅ / Integration ✅ (notes: Already migrated)
+- shocking-grasp: Data ✅ / Validation ✅ / Integration ✅ (notes: Added reaction-suppression condition, melee cantrip)
+- spare-the-dying: Data ✅ / Validation ✅ / Integration ✅ (notes: Stabilize utility; scaling range retained)
+- thaumaturgy: Data ✅ / Validation ✅ / Integration ✅ (notes: Utility minor wonders; Cleric-only)
+- thorn-whip: Data ✅ / Validation ✅ / Integration ✅ (notes: Adds pull movement on hit)

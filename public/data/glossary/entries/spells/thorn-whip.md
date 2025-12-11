@@ -2,7 +2,7 @@
 id: "thorn-whip"
 title: "Thorn Whip"
 category: "Spells"
-tags: ["cantrip", "transmutation", "damage", "piercing", "control", "artificer", "druid"]
+tags: ["level 0", "cantrip", "transmutation", "damage", "piercing", "control", "artificer", "druid"]
 excerpt: "Lash out with a thorny vine to deal damage and pull a creature closer."
 seeAlso: ["lightning-lure", "shillelagh"]
 ---

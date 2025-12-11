@@ -32,3 +32,10 @@
 - **React**: Functional components with hooks, proper useCallback/useMemo usage
 - **Error Handling**: ErrorBoundary components wrapping major UI sections
 - **State**: Immutable updates with proper payload typing for actions
+
+## Documentation Conventions
+- **Before creating/renaming docs**: Read `docs/@DOC-NAMING-CONVENTIONS.md`
+- **Static docs** use `@` prefix: `@WORKFLOW-GUIDE.md`
+- **Task docs** use numbered format: `1A-TASK-NAME.md`
+- **Retired docs** use tilde: `1A~TASK-NAME.md`
+

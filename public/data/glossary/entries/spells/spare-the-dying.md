@@ -2,7 +2,7 @@
 id: "spare-the-dying"
 title: "Spare the Dying"
 category: "Spells"
-tags: ["cantrip", "necromancy", "healing", "artificer", "cleric", "druid"]
+tags: ["level 0", "cantrip", "necromancy", "healing", "artificer", "cleric", "druid"]
 excerpt: "Touch a living creature that has 0 hit points to stabilize it."
 seeAlso: ["cure-wounds", "healing-word"]
 ---

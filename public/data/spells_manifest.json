@@ -1857,7 +1857,7 @@
     "name": "Shocking Grasp",
     "level": 0,
     "school": "Evocation",
-    "path": "/data/spells/shocking-grasp.json"
+    "path": "/data/spells/level-0/shocking-grasp.json"
   },
   "silence": {
     "name": "Silence",
@@ -1917,7 +1917,7 @@
     "name": "Spare the Dying",
     "level": 0,
     "school": "Necromancy",
-    "path": "/data/spells/spare-the-dying.json"
+    "path": "/data/spells/level-0/spare-the-dying.json"
   },
   "speak-with-animals": {
     "name": "Speak with Animals",
@@ -1971,7 +1971,7 @@
     "name": "Starry Wisp",
     "level": 0,
     "school": "Evocation",
-    "path": "/data/spells/starry-wisp.json"
+    "path": "/data/spells/level-0/starry-wisp.json"
   },
   "steel-wind-strike": {
     "name": "Steel Wind Strike",
@@ -2085,13 +2085,13 @@
     "name": "Thaumaturgy",
     "level": 0,
     "school": "Transmutation",
-    "path": "/data/spells/thaumaturgy.json"
+    "path": "/data/spells/level-0/thaumaturgy.json"
   },
   "thorn-whip": {
     "name": "Thorn Whip",
     "level": 0,
     "school": "Transmutation",
-    "path": "/data/spells/thorn-whip.json"
+    "path": "/data/spells/level-0/thorn-whip.json"
   },
   "thunderclap": {
     "name": "Thunderclap",

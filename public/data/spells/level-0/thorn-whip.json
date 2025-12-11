@@ -1,0 +1,68 @@
+{
+  "id": "thorn-whip",
+  "name": "Thorn Whip",
+  "level": 0,
+  "school": "Transmutation",
+  "classes": ["Artificer", "Druid"],
+  "description": "You create a vine-like whip covered in thorns. Make a melee spell attack. On a hit, the target takes piercing damage. If the target is Large or smaller, you can pull it up to 10 feet closer to you.",
+  "higherLevels": "The damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6).",
+  "tags": ["damage", "control", "piercing", "cantrip"],
+  "ritual": false,
+  "attackType": "melee",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "the stem of a plant with thorns"
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 30,
+    "validTargets": ["creatures"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "hit" },
+      "damage": {
+        "dice": "1d6",
+        "type": "Piercing"
+      },
+      "scaling": {
+        "type": "character_level",
+        "bonusPerLevel": "+1d6",
+        "customFormula": "1d6 at 1, 2d6 at 5, 3d6 at 11, 4d6 at 17"
+      }
+    },
+    {
+      "type": "MOVEMENT",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "hit",
+        "targetFilter": {
+          "sizes": ["Large", "Medium", "Small", "Tiny"]
+        }
+      },
+      "movementType": "pull",
+      "distance": 10,
+      "duration": { "type": "special" }
+    }
+  ]
+}

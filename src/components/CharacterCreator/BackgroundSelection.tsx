@@ -102,21 +102,21 @@ const BackgroundSelection: React.FC<BackgroundSelectionProps> = ({
       exit={{ opacity: 0, x: -50 }}
       className="max-w-4xl mx-auto p-6"
     >
-      <div className="bg-white rounded-lg shadow-lg p-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+      <div className="bg-gray-700 rounded-lg shadow-lg p-8 border border-gray-600">
+        <h2 className="text-3xl font-bold text-gray-100 mb-6 text-center">
           Background Selection
         </h2>
 
         <div className="mb-6">
-          <p className="text-gray-600 text-center mb-4">
+          <p className="text-gray-300 text-center mb-4">
             Choose your {selectedRace?.name}'s background. This determines your skills, equipment, and life experience.
           </p>
 
-          <div className="bg-blue-50 p-4 rounded-lg mb-6">
-            <h3 className="font-semibold text-blue-800 mb-2">
+          <div className="bg-blue-900 bg-opacity-30 p-4 rounded-lg mb-6 border border-blue-800 border-opacity-50">
+            <h3 className="font-semibold text-blue-300 mb-2">
               Age Category: <span className="capitalize">{ageCategory}</span>
             </h3>
-            <p className="text-blue-700 text-sm">
+            <p className="text-blue-200 text-sm">
               Showing backgrounds appropriate for {ageCategory} characters ({characterAge} years old).
             </p>
           </div>
@@ -129,14 +129,14 @@ const BackgroundSelection: React.FC<BackgroundSelectionProps> = ({
                 onClick={() => handleBackgroundSelect(background.id)}
                 className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                   selectedBackgroundId === background.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-blue-500 bg-blue-900 bg-opacity-30'
+                    : 'border-gray-600 hover:border-gray-500'
                 }`}
               >
-                <h3 className="font-bold text-lg mb-2">{background.name}</h3>
-                <p className="text-sm text-gray-600 mb-3">{background.description}</p>
+                <h3 className="font-bold text-lg mb-2 text-gray-100">{background.name}</h3>
+                <p className="text-sm text-gray-300 mb-3">{background.description}</p>
 
-                <div className="text-xs space-y-1">
+                <div className="text-xs text-gray-400 space-y-1">
                   <div><strong>Skills:</strong> {background.skillProficiencies.join(', ')}</div>
                   {background.toolProficiencies && (
                     <div><strong>Tools:</strong> {background.toolProficiencies.join(', ')}</div>
@@ -152,18 +152,18 @@ const BackgroundSelection: React.FC<BackgroundSelectionProps> = ({
 
           {/* Selected Background Details */}
           {selectedBackground && (
-            <div className="bg-green-50 border border-green-200 p-6 rounded-lg">
-              <h3 className="text-xl font-bold text-green-800 mb-4">
+            <div className="bg-green-900 bg-opacity-30 border border-green-800 p-6 rounded-lg">
+              <h3 className="text-xl font-bold text-green-300 mb-4">
                 {selectedBackground.name}
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-semibold mb-2">Background Feature</h4>
-                  <p className="text-sm mb-4">{selectedBackground.feature.description}</p>
+                  <h4 className="font-semibold mb-2 text-gray-200">Background Feature</h4>
+                  <p className="text-sm mb-4 text-gray-300">{selectedBackground.feature.description}</p>
 
-                  <h4 className="font-semibold mb-2">Proficiencies</h4>
-                  <ul className="text-sm space-y-1">
+                  <h4 className="font-semibold mb-2 text-gray-200">Proficiencies</h4>
+                  <ul className="text-sm text-gray-300 space-y-1">
                     <li><strong>Skills:</strong> {selectedBackground.skillProficiencies.join(', ')}</li>
                     {selectedBackground.toolProficiencies && (
                       <li><strong>Tools:</strong> {selectedBackground.toolProficiencies.join(', ')}</li>
@@ -173,14 +173,14 @@ const BackgroundSelection: React.FC<BackgroundSelectionProps> = ({
                     )}
                   </ul>
 
-                  <h4 className="font-semibold mb-2 mt-4">Starting Equipment</h4>
-                  <p className="text-sm">{selectedBackground.equipment.join(', ')}</p>
+                  <h4 className="font-semibold mb-2 mt-4 text-gray-200">Starting Equipment</h4>
+                  <p className="text-sm text-gray-300">{selectedBackground.equipment.join(', ')}</p>
                 </div>
 
                 {selectedBackground.suggestedCharacteristics && (
                   <div>
-                    <h4 className="font-semibold mb-2">Suggested Characteristics</h4>
-                    <div className="text-sm space-y-2">
+                    <h4 className="font-semibold mb-2 text-gray-200">Suggested Characteristics</h4>
+                    <div className="text-sm text-gray-300 space-y-2">
                       <div>
                         <strong>Personality Traits:</strong>
                         <ul className="ml-4 mt-1 space-y-1">
@@ -208,7 +208,7 @@ const BackgroundSelection: React.FC<BackgroundSelectionProps> = ({
         <div className="flex justify-between">
           <button
             onClick={onBack}
-            className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors"
           >
             Back
           </button>
@@ -216,7 +216,7 @@ const BackgroundSelection: React.FC<BackgroundSelectionProps> = ({
           <button
             onClick={handleSubmit}
             disabled={!selectedBackgroundId}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
           >
             Next
           </button>

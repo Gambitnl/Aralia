@@ -129,11 +129,21 @@ export interface Feat {
     abilityScoreIncrease?: Partial<AbilityScores>;
     // If abilityScoreIncrease is empty object {}, it means "select one" - options defined in selectableAbilityScores
     selectableAbilityScores?: AbilityScoreName[]; // Which abilities can be chosen for ASI
+
+    // Skill proficiency options
     skillProficiencies?: string[];
-    selectableSkillCount?: number; // Number of skills to choose (e.g., Skilled = 3)
+    /** Number of skills player must choose (e.g., Skilled = 3). TODO: Implement skill selection UI in character builder */
+    selectableSkillCount?: number;
+
+    // Saving throw proficiency options
     savingThrowProficiencies?: AbilityScoreName[];
-    savingThrowLinkedToAbility?: boolean; // If true, saving throw proficiency matches selected ability (for Resilient)
-    selectableDamageTypes?: string[]; // Damage types to choose from (e.g., Elemental Adept)
+    /** If true, saving throw proficiency matches the selected ability score (for Resilient feat).
+     *  TODO: Implement logic in applyFeatToCharacter to grant save proficiency based on selected ability */
+    savingThrowLinkedToAbility?: boolean;
+
+    /** Damage types player can choose from (e.g., Elemental Adept). TODO: Implement damage type selection UI */
+    selectableDamageTypes?: string[];
+
     speedIncrease?: number;
     initiativeBonus?: number;
     hpMaxIncreasePerLevel?: number;

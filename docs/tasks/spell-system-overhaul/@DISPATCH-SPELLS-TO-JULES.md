@@ -1,6 +1,91 @@
-# Task Prompts for Jules - Spell Migration
+# Jules Spell Migration - IDE Agent Instructions
 
-This document contains ready-to-use task prompts for Jules to migrate spells to the new JSON format.
+> **Audience**: IDE Agent (Gemini CLI, Cursor, etc.)
+> **Purpose**: This file teaches YOU how to craft and dispatch spell migration tasks to Jules.
+
+## Workflow
+
+1. **You (IDE agent)** read this file
+2. **You** select pending spells from `docs/spells/STATUS_LEVEL_*.md`
+3. **You** craft a task prompt using the template below
+4. **You** dispatch via: `jules new "<task prompt>"`
+5. **Jules** does the migration work asynchronously
+
+---
+
+## Quick Kick-Off Prompt (Copy-Paste Ready)
+
+```
+SPELL MIGRATION TASK
+
+## MANDATORY READING ORDER (Read ALL before coding)
+1. docs/tasks/spell-system-overhaul/JULES_ACCEPTANCE_CRITERIA.md
+   ↳ "Iron Rules" - Definition of Done, JSON compliance, gap protocol
+2. docs/spells/SPELL_JSON_EXAMPLES.md
+   ↳ 10 validated examples - use these as templates
+3. docs/tasks/spell-system-overhaul/gaps/LEVEL-1-GAPS.md
+   ↳ Known system limitations - check before flagging new gaps
+
+## Your Assignment
+Migrate these 5 spells to the new JSON format:
+1. [SPELL_1]
+2. [SPELL_2]
+3. [SPELL_3]
+4. [SPELL_4]
+5. [SPELL_5]
+
+Batch File: docs/tasks/spell-system-overhaul/[BATCH_FILE].md
+↳ Log your progress here, NOT in shared status files
+
+## Output Files (per spell)
+- JSON: public/data/spells/level-{N}/{spell-id}.json
+- Glossary: public/data/glossary/entries/spells/{spell-id}.md
+
+## Iron Rules (from JULES_ACCEPTANCE_CRITERIA.md)
+1. Every effect MUST have `trigger` + `condition` fields
+2. Effect types ALL CAPS: DAMAGE, HEALING, DEFENSIVE, STATUS_CONDITION
+3. Schools/Damage/Classes Title Case: Evocation, Fire, Wizard
+4. Time units lower_snake: action, bonus_action, reaction
+5. validTargets PLURAL: creatures, objects, allies, enemies, self, point
+6. Cantrips: level=0, ritual=false, scaling uses "character_level"
+7. Leveled spells: scaling uses "slot_level"
+8. Files MUST be nested: public/data/spells/level-{N}/{id}.json
+
+## Field Comparison Check (CRITICAL)
+If old file exists at public/data/spells/{id}.json:
+1. Read old file FIRST
+2. Check for: ritual, castingTime.combatCost, tags, arbitrationType
+3. Copy valuable fields missing from new file
+4. DELETE old file ONLY after comparison
+
+## Solved Gaps (Use These!)
+- "On Hit" rider: trigger { type: "on_attack_hit" }
+- "Enters Area": trigger { type: "on_enter_area", frequency: "first_per_turn" }
+- "Undead only": condition { targetFilter: { creatureType: ["Undead"] } }
+
+## Before Creating PR
+1. npx tsx scripts/regenerate-manifest.ts
+2. npm run validate (must be 0 errors)
+3. Mark spells complete in your BATCH FILE
+
+## If You Encounter a Gap
+1. Check gaps/LEVEL-1-GAPS.md first
+2. Use UTILITY or closest valid type as fallback
+3. Put complex mechanic in description field
+4. Log gap in your Batch File under "## System Gaps & Follow-up"
+```
+
+---
+
+## Document Reference
+
+| Category | Key Files |
+|:---|:---|
+| **Iron Rules** | `JULES_ACCEPTANCE_CRITERIA.md` |
+| **Examples** | `SPELL_JSON_EXAMPLES.md`, `SPELL_PROPERTIES_REFERENCE.md` |
+| **Gap Analysis** | `gaps/LEVEL-1-GAPS.md`, `gaps/GAP-*.md` (20 files) |
+| **Batch Tracking** | `1I-MIGRATE-CANTRIPS-BATCH-1.md` through `1Q-MIGRATE-CANTRIPS-BATCH-9.md` |
+| **Status Tracking** | `STATUS_LEVEL_0.md`, `STATUS_LEVEL_1.md`, etc. (read-only for agents) |
 
 ---
 

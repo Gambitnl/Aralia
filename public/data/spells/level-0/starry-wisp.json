@@ -1,0 +1,61 @@
+{
+  "id": "starry-wisp",
+  "name": "Starry Wisp",
+  "level": 0,
+  "school": "Evocation",
+  "classes": ["Bard", "Druid"],
+  "description": "Launch a mote of starlight at a creature or object. On a hit, it takes radiant damage and sheds dim light while losing the benefit of invisibility until the end of your next turn.",
+  "higherLevels": "The damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).",
+  "tags": ["damage", "utility", "radiant", "cantrip"],
+  "ritual": false,
+  "attackType": "ranged",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 60,
+    "validTargets": ["creatures", "objects"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "hit" },
+      "damage": {
+        "dice": "1d8",
+        "type": "Radiant"
+      },
+      "scaling": {
+        "type": "character_level",
+        "bonusPerLevel": "+1d8",
+        "customFormula": "1d8 at 1, 2d8 at 5, 3d8 at 11, 4d8 at 17"
+      }
+    },
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "hit" },
+      "utilityType": "sensory",
+      "description": "Target sheds dim light in a 10-foot radius and cannot benefit from invisibility until end of your next turn."
+    }
+  ]
+}

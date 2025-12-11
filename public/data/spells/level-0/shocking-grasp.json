@@ -1,0 +1,62 @@
+{
+  "id": "shocking-grasp",
+  "name": "Shocking Grasp",
+  "level": 0,
+  "school": "Evocation",
+  "classes": ["Artificer", "Sorcerer", "Wizard"],
+  "description": "Lightning springs from your hand to deliver a shock. Make a melee spell attack against the target. On a hit, the target takes lightning damage and can't take reactions until the start of its next turn.",
+  "higherLevels": "The damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).",
+  "tags": ["damage", "lightning", "cantrip", "melee", "control"],
+  "ritual": false,
+  "attackType": "melee",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 5,
+    "validTargets": ["creatures"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "hit" },
+      "damage": {
+        "dice": "1d8",
+        "type": "Lightning"
+      },
+      "scaling": {
+        "type": "character_level",
+        "bonusPerLevel": "+1d8",
+        "customFormula": "1d8 at 1, 2d8 at 5, 3d8 at 11, 4d8 at 17"
+      }
+    },
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "hit" },
+      "statusCondition": {
+        "name": "Reactions Suppressed",
+        "duration": { "type": "rounds", "value": 1 }
+      }
+    }
+  ]
+}
