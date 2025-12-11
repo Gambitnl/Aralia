@@ -124,7 +124,7 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
   const handleSubmit = () => {
     if (pointsRemaining === 0) {
       onAbilityScoresSet(baseScores);
-      setFeedback({ type: 'success', message: 'Scores locked in. You can still go back if you want to tweak them.' });
+      setFeedback({ type: 'success', message: 'Attributes confirmed. You may return to adjust them if needed.' });
     } else {
       // Point people toward a concrete next move instead of leaving them to hunt for an under-spent stat.
       const candidateToBoost = ABILITY_SCORE_NAMES.find(name => baseScores[name] < POINT_BUY_MAX_SCORE);
@@ -134,8 +134,8 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
       setFeedback({
         type: 'error',
         message: candidateToBoost
-          ? `Spend all ${POINT_BUY_TOTAL_POINTS} points. You still have ${pointsRemaining}. Try raising ${candidateToBoost} to ${suggestedScore} (costs ${suggestedCost} point${suggestedCost === 1 ? '' : 's'}).`
-          : `Spend all ${POINT_BUY_TOTAL_POINTS} points. You still have ${pointsRemaining}.`,
+          ? `You must spend all ${POINT_BUY_TOTAL_POINTS} points. ${pointsRemaining} remain. Consider raising ${candidateToBoost} to ${suggestedScore} (costs ${suggestedCost}).`
+          : `You must spend all ${POINT_BUY_TOTAL_POINTS} points. ${pointsRemaining} remain.`,
         targetAbility: candidateToBoost,
       });
     }
@@ -188,10 +188,10 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
         Allocate Ability Scores (Point Buy)
       </h2>
       <p className="text-sm text-gray-400 mb-1 text-center">
-        You have <span className="font-bold text-amber-300">{POINT_BUY_TOTAL_POINTS}</span> points to spend. All scores start at 8.
+        You have <span className="font-bold text-amber-300">{POINT_BUY_TOTAL_POINTS}</span> points to forge your attributes. All abilities begin at a base of 8.
       </p>
       <p className="text-xs text-gray-500 mb-4 text-center">
-        Scores 9-13 cost 1 point each. Scores 14-15 cost 2 points each. Max score before racial bonus is 15.
+        Attributes up to 13 cost 1 point per increase. Attributes 14 and 15 cost 2 points. The maximum base score is 15.
       </p>
       
       {selectedClass && (selectedClass.statRecommendationFocus || selectedClass.statRecommendationDetails) && (
