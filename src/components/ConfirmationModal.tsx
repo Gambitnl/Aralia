@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { BTN_CONFIRM, BTN_CANCEL } from '../styles/buttonStyles';
+import { Button } from './ui/Button';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -89,20 +89,22 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           {children}
         </div>
         <div className="mt-4 flex justify-end space-x-3">
-          <button
+          <Button
             ref={cancelRef}
             onClick={onClose}
-            className={BTN_CANCEL}
+            variant="secondary"
+            size="md"
           >
             {cancelLabel}
-          </button>
-          <button
+          </Button>
+          <Button
             ref={confirmRef}
             onClick={onConfirm}
-            className={BTN_CONFIRM}
+            variant="action"
+            size="md"
           >
             {confirmLabel}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
