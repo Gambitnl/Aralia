@@ -1,4 +1,7 @@
 /**
+ * Copyright (c) 2024 Aralia RPG.
+ * Licensed under the MIT License.
+ *
  * @file aiClient.ts
  * This service module centralizes the initialization of the GoogleGenAI client.
  * It ensures the API key is present and exports a single, shared AI client instance
