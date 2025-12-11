@@ -12,6 +12,7 @@ import * as SaveLoadService from '../services/saveLoadService';
 import { determineActiveDynamicNpcsForLocation } from '../utils/locationUtils';
 import { applyXpAndHandleLevelUps, createPlayerCharacterFromTemp } from '../utils/characterUtils';
 import { createEnemyFromMonster } from '../utils/combatUtils';
+import { SafeStorage } from '../utils/storageUtils';
 
 // Import slice reducers
 import { uiReducer } from './reducers/uiReducer';
@@ -66,7 +67,7 @@ export const initialGameState: GameState = {
   isGeminiLogViewerVisible: false,
   geminiInteractionLog: [],
   hasNewRateLimitError: false,
-  devModelOverride: null,
+  devModelOverride: SafeStorage.getItem('aralia_dev_model_override'),
 
   // Encounter Modal State
   isEncounterModalVisible: false,

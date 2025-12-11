@@ -24,6 +24,7 @@ import { useGameActions } from './hooks/useGameActions';
 import { useGameInitialization } from './hooks/useGameInitialization';
 import { useHistorySync } from './hooks/useHistorySync';
 import { determineSettlementInfo } from './utils/settlementGeneration';
+import { SafeStorage } from './utils/storageUtils';
 
 // Utility functions
 import { determineActiveDynamicNpcsForLocation } from './utils/locationUtils';
@@ -193,6 +194,20 @@ const App: React.FC = () => {
   const handleBattleMapDemo = useCallback(() => {
     dispatch({ type: 'SETUP_BATTLE_MAP_DEMO' });
   }, [dispatch]);
+
+  // Persist devModelOverride to localStorage when it changes
+  useEffect(() => {
+      const DEV_MODEL_OVERRIDE_KEY = 'aralia_dev_model_override';
+      try {
+          if (gameState.devModelOverride) {
+              SafeStorage.setItem(DEV_MODEL_OVERRIDE_KEY, gameState.devModelOverride);
+          } else {
+              SafeStorage.removeItem(DEV_MODEL_OVERRIDE_KEY);
+          }
+      } catch (e) {
+          console.warn('Failed to persist dev model override setting', e);
+      }
+  }, [gameState.devModelOverride]);
 
   useEffect(() => {
     return () => {
