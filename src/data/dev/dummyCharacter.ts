@@ -2,8 +2,9 @@
  * @file src/data/dev/dummyCharacter.ts
  * Defines the dummy character data for development and testing purposes.
  */
-import { PlayerCharacter, Race, Class as CharClass, AbilityScores, Skill, FightingStyle, Item, EquipmentSlotType, Spell, LimitedUses, SpellSlots, SpellbookData } from '../../types';
+import { PlayerCharacter, Race, Class as CharClass, AbilityScores, Skill, LimitedUses, SpellSlots, SpellbookData, Item } from '../../types';
 import { getAbilityModifierValue, calculateArmorClass, calculateFixedRacialBonuses } from '../../utils/statUtils';
+import { FEATURES } from '../../config/features';
 
 // --- DUMMY CHARACTER FOR DEVELOPMENT ---
 
@@ -138,7 +139,7 @@ export function initializeDummyCharacterData(
     return [tempFighter, tempCleric];
 }
 
-export const USE_DUMMY_CHARACTER_FOR_DEV = true;
+export const USE_DUMMY_CHARACTER_FOR_DEV = FEATURES.ENABLE_DEV_TOOLS;
 
 export { DUMMY_PARTY_FOR_DEV };
 
