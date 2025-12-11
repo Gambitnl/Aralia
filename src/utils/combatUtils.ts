@@ -19,30 +19,50 @@ export function generateId(): string {
 
 /**
  * Parses a dice notation string (e.g., '2d8', '3d6+5') and returns the rolled total.
+ * Supports complex formulas like '1d8 + 1d6 + 2'.
  * @param diceString The dice notation to roll (e.g., '2d8+3')
  * @returns The total rolled value
  */
 export function rollDice(diceString: string): number {
   if (!diceString || diceString === '0') return 0;
 
-  // Parse format: XdY+Z or XdY-Z or XdY
-  const match = diceString.match(/^(\d+)d(\d+)([+-]\d+)?$/);
-  if (!match) {
-    // If not dice notation, try parsing as plain number
-    const num = parseInt(diceString, 10);
-    return isNaN(num) ? 0 : num;
-  }
+  // Remove spaces for easier parsing
+  const formula = diceString.replace(/\s+/g, '');
 
-  const numDice = parseInt(match[1], 10);
-  const dieSize = parseInt(match[2], 10);
-  const modifier = match[3] ? parseInt(match[3], 10) : 0;
+  // Regex to match terms:
+  // Group 1: Optional sign ([+-]?)
+  // Group 2, 3: Dice notation (\d+)d(\d+)
+  // Group 4: Flat number (\d+)
+  const regex = /([+-]?)(?:(\d+)d(\d+)|(\d+))/g;
 
   let total = 0;
-  for (let i = 0; i < numDice; i++) {
-    total += Math.floor(Math.random() * dieSize) + 1;
+  let match;
+
+  while ((match = regex.exec(formula)) !== null) {
+    // Avoid infinite loops if regex matches empty string (though ours shouldn't)
+    if (match.index === regex.lastIndex) {
+      regex.lastIndex++;
+    }
+
+    const sign = match[1] === '-' ? -1 : 1;
+
+    if (match[2] && match[3]) {
+      // It's a dice roll: XdY
+      const numDice = parseInt(match[2], 10);
+      const dieSize = parseInt(match[3], 10);
+      let subTotal = 0;
+      for (let i = 0; i < numDice; i++) {
+        subTotal += Math.floor(Math.random() * dieSize) + 1;
+      }
+      total += sign * subTotal;
+    } else if (match[4]) {
+      // It's a flat number
+      const val = parseInt(match[4], 10);
+      total += sign * val;
+    }
   }
 
-  return total + modifier;
+  return total;
 }
 
 export function getActionMessage(action: CombatAction, character: CombatCharacter): string {

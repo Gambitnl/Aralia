@@ -12,6 +12,7 @@ import GlossaryDisplay from './GlossaryDisplay'; // Import the new component
 import { POIS } from '../data/world/pois';
 import { buildPoiMarkers } from '../utils/locationUtils';
 import MapTile from './MapTile';
+import oldPaperBg from '../assets/images/old-paper.svg';
 
 interface MapPaneProps {
   mapData: MapData;
@@ -264,7 +265,7 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
     >
       <div 
         className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-3xl max-h-[90vh] flex flex-col"
-        style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/old-paper.png')", backgroundSize: 'cover' }} 
+        style={{ backgroundImage: `url(${oldPaperBg})`, backgroundSize: 'cover' }}
       >
         <div className="flex justify-between items-center mb-4">
           <h2 id="map-pane-title" className="text-3xl font-bold text-amber-600 font-cinzel">World Map</h2>
