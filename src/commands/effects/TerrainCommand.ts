@@ -1,7 +1,7 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { TerrainEffect, EffectDuration, DamageType } from '@/types/spells'
-import { CombatState, Position, BattleMapTile, StatusEffect, BattleMapTerrain } from '@/types/combat'
+import { CombatState, Position, BattleMapTile, StatusEffect, BattleMapTerrain, EnvironmentalEffect } from '@/types/combat'
 import { calculateAffectedTiles, AoEParams } from '../../utils/aoeCalculations'
 import { mapShapeToStandard } from '../../utils/targetingUtils'
 
@@ -32,7 +32,7 @@ export class TerrainCommand extends BaseEffectCommand {
                  const tile = newTiles.get(key)
                  if (tile) {
                      const newTile = { ...tile }
-                     this.applyTerrainChange(newTile, effect)
+                     this.applyTerrainChange(newTile, effect, newState.mapData?.theme)
                      newTiles.set(key, newTile)
                  }
              })
@@ -61,7 +61,12 @@ export class TerrainCommand extends BaseEffectCommand {
      * Applies the terrain effect to a single map tile.
      * Updates properties like movement cost, elevation, and environmental effects.
      */
-    private applyTerrainChange(tile: BattleMapTile, effect: TerrainEffect) {
+    private applyTerrainChange(tile: BattleMapTile, effect: TerrainEffect, theme?: string) {
+        // Initialize environmentalEffects if not present
+        if (!tile.environmentalEffects) {
+            tile.environmentalEffects = []
+        }
+
         // Handle explicit manipulation (e.g. Mold Earth)
         if (effect.manipulation) {
             switch (effect.manipulation.type) {
@@ -69,7 +74,7 @@ export class TerrainCommand extends BaseEffectCommand {
                     this.applyDifficultTerrain(tile, effect.duration)
                     break
                 case 'normal':
-                    this.removeDifficultTerrain(tile)
+                    this.removeDifficultTerrain(tile, theme)
                     break
                 case 'excavate':
                     // Assume 1 unit of elevation = 5 feet.
@@ -111,11 +116,14 @@ export class TerrainCommand extends BaseEffectCommand {
                 if (effect.damage) {
                     const envType = this.mapDamageToEnvType(effect.damage.type)
                     if (envType) {
-                        tile.environmentalEffect = {
+                        this.addEnvironmentalEffect(tile, {
+                            id: `env-${Date.now()}-${Math.random()}`,
                             type: envType,
                             duration: this.resolveDuration(effect.duration),
-                            effect: this.createEnvironmentalStatusEffect(effect)
-                        }
+                            effect: this.createEnvironmentalStatusEffect(effect),
+                            sourceSpellId: this.context.spellId,
+                            casterId: this.context.caster.id
+                        })
                     }
                 }
                 break
@@ -123,33 +131,81 @@ export class TerrainCommand extends BaseEffectCommand {
     }
 
     private applyDifficultTerrain(tile: BattleMapTile, duration: EffectDuration | undefined) {
-        tile.movementCost = 2
-        // We add an environmental effect to visualize it/track it, if supported
-        tile.environmentalEffect = {
+        // Always add the effect to allow stacking of different durations (e.g. 1 round vs 10 minutes)
+        // The system can later clean up expired effects.
+        this.addEnvironmentalEffect(tile, {
+            id: `diff-terrain-${Date.now()}-${Math.random()}`,
             type: 'difficult_terrain',
-            duration: duration ? this.resolveDuration(duration) : 10, // Default to 1 min/10 rounds if undefined?
+            duration: duration ? this.resolveDuration(duration) : 10,
             effect: {
-                id: `diff-terrain-${Date.now()}`,
+                id: `diff-terrain-status-${Date.now()}`,
                 name: 'Difficult Terrain',
                 type: 'debuff',
                 duration: duration ? this.resolveDuration(duration) : 10,
                 effect: { type: 'condition' } // Placeholder
-            }
-        }
+            },
+            sourceSpellId: this.context.spellId,
+            casterId: this.context.caster.id
+        })
+
+        this.recalculateMovementCost(tile)
     }
 
-    private removeDifficultTerrain(tile: BattleMapTile) {
-        tile.movementCost = 1
-        if (tile.environmentalEffect?.type === 'difficult_terrain') {
-            tile.environmentalEffect = undefined
+    private removeDifficultTerrain(tile: BattleMapTile, theme?: string) {
+        // Remove difficult terrain effect
+        if (tile.environmentalEffects) {
+            tile.environmentalEffects = tile.environmentalEffects.filter(e => e.type !== 'difficult_terrain')
         }
+
+        // If terrain itself is 'difficult', this method (often called by 'normal' manipulation)
+        // implies we should normalize the ground.
         if (tile.terrain === 'difficult') {
-            tile.terrain = 'grass' // Reset to default? Or keep underlying?
-            // Since 'difficult' is a terrain type in BattleMapTerrain, we might want to change it.
-            // But usually 'difficult' is a property. 'BattleMapTerrain' has 'difficult'.
-            // If the original was 'difficult', we change it to 'floor' or 'grass' or 'rock' depending on theme?
-            // For safety, let's set it to 'floor' if it was 'difficult'.
+            // Default to grass, but try to respect theme
+            if (theme === 'cave' || theme === 'dungeon') {
+                tile.terrain = 'floor'
+            } else if (theme === 'desert') {
+                tile.terrain = 'sand'
+            } else if (theme === 'swamp') {
+                tile.terrain = 'mud'
+            } else {
+                tile.terrain = 'grass'
+            }
         }
+
+        this.recalculateMovementCost(tile)
+    }
+
+    private recalculateMovementCost(tile: BattleMapTile) {
+        let baseCost = 1
+
+        // Base terrain cost
+        if (tile.terrain === 'difficult') {
+            baseCost = 2
+        } else if (tile.terrain === 'water' || tile.terrain === 'mud') {
+            baseCost = 2
+        }
+
+        // Apply effects
+        let cost = baseCost
+        if (tile.environmentalEffects) {
+            // Check for difficult terrain or web
+            const hasDifficultTerrain = tile.environmentalEffects.some(e => e.type === 'difficult_terrain')
+            const hasWeb = tile.environmentalEffects.some(e => e.type === 'web')
+
+            if (hasDifficultTerrain || hasWeb) {
+                // In 5e, difficult terrain adds +1 foot cost per foot (doubles cost).
+                // Usually effects don't stack multiplicatively, they just create difficult terrain.
+                cost = Math.max(cost, 2)
+            }
+        }
+
+        tile.movementCost = cost
+    }
+
+    private addEnvironmentalEffect(tile: BattleMapTile, effect: EnvironmentalEffect) {
+        // Create a new array to avoid mutating the previous state
+        const currentEffects = tile.environmentalEffects || []
+        tile.environmentalEffects = [...currentEffects, effect]
     }
 
     private mapDamageToEnvType(damageType: DamageType): 'fire' | 'ice' | 'poison' | undefined {
