@@ -54,6 +54,7 @@ export interface CombatCharacter {
   creatureTypes?: string[]; // e.g., ['Undead', 'Humanoid']
   alignment?: string; // e.g., 'Chaotic Evil', 'Lawful Good'
   class: Class;
+  savingThrowProficiencies?: AbilityScoreName[]; // For characters that have additional saving throw proficiencies (e.g. from feats)
   position: Position;
   stats: CharacterStats;
   abilities: Ability[];
