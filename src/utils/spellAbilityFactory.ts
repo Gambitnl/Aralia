@@ -4,6 +4,10 @@
  * A factory service that converts static Spell JSON data (from src/types)
  * into functional Ability objects for the Combat System (from src/types/combat).
  * 
+ * Strategy:
+ * 1. "Gold Standard": Prefer explicit structured data from the spell JSON (e.g., `effects` array).
+ * 2. "Silver Standard": Fallback to parsing the description text for legacy spells or simple mechanics.
+ *
  * This allows us to define a spell ONCE in the JSON data, and have it automatically
  * work in the BattleMap without writing manual code for every single spell.
  */
@@ -14,6 +18,12 @@ import { getAbilityModifierValue } from './characterUtils';
 
 /**
  * Determines the appropriate targeting type based on the spell definition.
+ *
+ * Handles the D&D 5e distinction between "Range: Self" (buffs) and
+ * "Range: Self (Area)" (cones/lines originating from caster).
+ *
+ * @param spell - The spell data to analyze
+ * @returns 'area' for shapes, 'self' for buffs, or 'single_ally'/'single_enemy' otherwise.
  */
 const inferTargeting = (spell: Spell): TargetingType => {
     const desc = spell.description.toLowerCase();
@@ -44,6 +54,11 @@ const inferTargeting = (spell: Spell): TargetingType => {
 
 /**
  * Parses the Area of Effect from spell description or metadata.
+ *
+ * Converts real-world measurements (feet) into grid units (tiles).
+ * Assumes 1 tile = 5 feet.
+ *
+ * @returns The shape and size in tiles, or undefined if no AoE detected.
  */
 const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
     const desc = spell.description.toLowerCase();
@@ -158,6 +173,9 @@ const inferEffectsFromDescription = (description: string, modifier: number): Abi
 
 /**
  * Main Factory Function
+ *
+ * Bridges static Spell Data (JSON) with the dynamic Combat Engine (Ability).
+ * Converts cost, range, and effects into a format the BattleMap can execute.
  */
 export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): Ability {
     const spellcastingStat = caster.spellcastingAbility 
@@ -273,6 +291,6 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
         range: rangeTiles,
         targeting: inferTargeting(spell),
         areaOfEffect: inferAoE(spell),
-        effects: effects.length > 0 ? effects : undefined,
+        effects: effects,
     };
 }
