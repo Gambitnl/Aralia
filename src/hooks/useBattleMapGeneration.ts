@@ -101,5 +101,5 @@ export const useBattleMapGeneration = (
 
     }, [biome, seed, initialCharacters.length]); // Only re-run if biome, seed or character count changes
 
-    return { mapData, positionedCharacters };
+    return { mapData, positionedCharacters, setMapData };
 };

@@ -38,6 +38,7 @@ interface UseAbilitySystemProps {
   onRequestInput?: (spell: Spell, onConfirm: (input: string) => void) => void;
   reactiveTriggers?: ReactiveTrigger[];
   onReactiveTriggerUpdate?: (triggers: ReactiveTrigger[]) => void;
+  onMapUpdate?: (mapData: BattleMapData) => void;
 }
 
 export interface PendingReaction {
@@ -57,7 +58,8 @@ export const useAbilitySystem = ({
   onLogEntry,
   onRequestInput,
   reactiveTriggers,
-  onReactiveTriggerUpdate
+  onReactiveTriggerUpdate,
+  onMapUpdate
 }: UseAbilitySystemProps) => {
 
   // Delegate Selection/Targeting State to specialized hook
@@ -144,6 +146,15 @@ export const useAbilitySystem = ({
       // 6. Propagate Reactive Triggers
       if (onReactiveTriggerUpdate && result.finalState.reactiveTriggers !== currentState.reactiveTriggers) {
         onReactiveTriggerUpdate(result.finalState.reactiveTriggers);
+      }
+
+      // 7. Propagate Map Changes
+      if (onMapUpdate && result.finalState.mapData) {
+        // Simple check if mapData was modified. In TerrainCommand, we clone mapData if we modify it.
+        // If the reference changed, we update.
+        if (result.finalState.mapData !== mapData) {
+          onMapUpdate(result.finalState.mapData);
+        }
       }
 
     } else {
