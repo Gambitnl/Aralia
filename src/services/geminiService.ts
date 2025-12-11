@@ -8,7 +8,7 @@
 import { GenerateContentResponse } from "@google/genai";
 import { ai } from './aiClient'; // Import the shared AI client
 import { Action, PlayerCharacter, InspectSubmapTilePayload, SeededFeatureConfig, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState, VillageActionContext } from "../types";
-import { SUBMAP_ICON_MEANINGS } from '../data/glossaryData'; 
+import { SUBMAP_ICON_MEANINGS } from '../data/glossaryData';
 import { XP_BY_CR } from '../data/dndData';
 import { CLASSES_DATA } from '../data/classes';
 import { MONSTERS_DATA } from '../constants';
@@ -30,7 +30,7 @@ export interface StandardizedResult<T> {
   data: T | null;
   error: string | null;
   // Optional metadata attached even on error for logging purposes
-  metadata?: GeminiMetadata; 
+  metadata?: GeminiMetadata;
 }
 
 export interface GeminiTextData extends GeminiMetadata {
@@ -42,24 +42,24 @@ export interface GeminiCustomActionData extends GeminiTextData {
 }
 
 export interface GeminiSocialCheckData extends GeminiTextData {
-    outcomeText: string;
-    dispositionChange: number;
-    memoryFactText: string;
-    goalUpdate: GoalUpdatePayload | null;
+  outcomeText: string;
+  dispositionChange: number;
+  memoryFactText: string;
+  goalUpdate: GoalUpdatePayload | null;
 }
 
 export interface GeminiEncounterData extends GeminiMetadata {
-    encounter: Monster[];
-    sources: GroundingChunk[];
+  encounter: Monster[];
+  sources: GroundingChunk[];
 }
 
 export interface GeminiInventoryData extends GeminiMetadata {
-    inventory: Item[];
-    economy: EconomyState;
+  inventory: Item[];
+  economy: EconomyState;
 }
 
 export interface GeminiHarvestData extends GeminiMetadata {
-    items: Item[];
+  items: Item[];
 }
 
 
@@ -88,7 +88,7 @@ export async function generateText(
     lastModelUsed = model;
     try {
       const useThinking = thinkingBudget && (model.includes('gemini-2.5') || model.includes('gemini-3'));
-      
+
       const config: any = {
         systemInstruction: systemInstruction || defaultSystemInstruction,
         temperature: useThinking ? undefined : 0.7,
@@ -98,7 +98,7 @@ export async function generateText(
       };
 
       if (useThinking) {
-          config.thinkingConfig = { thinkingBudget };
+        config.thinkingConfig = { thinkingBudget };
       }
 
       const response: GenerateContentResponse = await ai.models.generateContent({
@@ -108,7 +108,7 @@ export async function generateText(
       });
 
       const responseText = response.text?.trim();
-      
+
       if (!responseText && !expectJson) {
         // Treat empty text as a soft error but return valid data structure to avoid crashes
         return {
@@ -121,13 +121,13 @@ export async function generateText(
           error: null
         };
       }
-      
+
       return {
         data: {
-            text: responseText || "",
-            promptSent: fullPromptForLogging,
-            rawResponse: JSON.stringify(response),
-            rateLimitHit: rateLimitHitInChain,
+          text: responseText || "",
+          promptSent: fullPromptForLogging,
+          rawResponse: JSON.stringify(response),
+          rateLimitHit: rateLimitHitInChain,
         },
         error: null
       };
@@ -141,7 +141,7 @@ export async function generateText(
         continue;
       } else {
         console.warn(`Gemini API error with model ${model}:`, error);
-        continue; 
+        continue;
       }
     }
   }
@@ -151,9 +151,9 @@ export async function generateText(
     data: null,
     error: `Gemini API error in ${functionName} (Last model: ${lastModelUsed}): ${errorMessage}`,
     metadata: {
-        promptSent: fullPromptForLogging,
-        rawResponse: JSON.stringify(lastError, Object.getOwnPropertyNames(lastError)),
-        rateLimitHit: rateLimitHitInChain
+      promptSent: fullPromptForLogging,
+      rawResponse: JSON.stringify(lastError, Object.getOwnPropertyNames(lastError)),
+      rateLimitHit: rateLimitHitInChain
     }
   };
 }
@@ -166,25 +166,25 @@ export async function generateLocationDescription(
 ): Promise<StandardizedResult<GeminiTextData>> {
   const systemInstruction = "Describe a new location in a high fantasy RPG. Response MUST be EXTREMELY BRIEF: 1-2 sentences MAX. Give ONLY key sights, sounds, or atmosphere. No fluff.";
   const prompt = `Player arrives at "${locationName}". Context: ${context}. Provide an EXTREMELY BRIEF description (1-2 sentences MAX) of the area's key features.`;
-  
+
   return await generateText(prompt, systemInstruction, false, 'generateLocationDescription', devModelOverride, FAST_MODEL);
 }
 
 export async function generateWildernessLocationDescription(
   biomeName: string,
-  worldMapCoords: {x: number, y: number},
-  subMapCoords: {x: number, y: number},
+  worldMapCoords: { x: number, y: number },
+  subMapCoords: { x: number, y: number },
   playerContext: string,
   worldMapTileTooltip?: string | null,
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
-    const systemInstruction = "You are a concise storyteller describing a wilderness location in a fantasy RPG. Response MUST be 2-3 sentences. Focus on immediate sensory details. No long descriptions.";
-    const prompt = `Player (${playerContext}) has moved to a new spot.
+  const systemInstruction = "You are a concise storyteller describing a wilderness location in a fantasy RPG. Response MUST be 2-3 sentences. Focus on immediate sensory details. No long descriptions.";
+  const prompt = `Player (${playerContext}) has moved to a new spot.
     Location: A wilderness area at sub-tile (${subMapCoords.x},${subMapCoords.y}) within world sector (${worldMapCoords.x},${worldMapCoords.y}).
     Biome: ${biomeName}.
     Broader Context: ${worldMapTileTooltip || 'No additional context.'}
     Provide a brief, 2-3 sentence description.`;
-  
+
   return await generateText(prompt, systemInstruction, false, 'generateWildernessLocationDescription', devModelOverride, FAST_MODEL);
 }
 
@@ -203,13 +203,13 @@ export async function generateActionOutcome(
   worldMapTileTooltip?: string | null,
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
-  const systemInstruction = isCustomGeminiAction 
+  const systemInstruction = isCustomGeminiAction
     ? "You are a Dungeon Master narrating the outcome of a player's specific, creative action. The response should be a brief, 2-3 sentence description of what happens next."
     : "You are a Dungeon Master narrating the outcome of a player's action. The response should be a brief, 2-3 sentence description.";
 
   let prompt = `Player action: "${playerAction}"\nContext: ${context}`;
   if (playerAction.toLowerCase().includes("look around") && worldMapTileTooltip) {
-      prompt += `\nBroader context for 'look around': ${worldMapTileTooltip}`;
+    prompt += `\nBroader context for 'look around': ${worldMapTileTooltip}`;
   }
 
   return await generateText(prompt, systemInstruction, false, 'generateActionOutcome', devModelOverride, FAST_MODEL);
@@ -236,51 +236,51 @@ export async function generateOracleResponse(
 }
 
 export async function generateCharacterName(
-    race: string, 
-    className: string, 
-    gender: string, 
-    setting: string, 
-    devModelOverride: string | null = null
-): Promise<StandardizedResult<{name: string | null} & GeminiMetadata>> {
-    const prompt = `Generate a single, fitting, full character name (first and last) for a ${gender} ${race} ${className} in a ${setting}-style fantasy world. Return ONLY the name, nothing else.`;
-    const result = await generateText(prompt, "You are a fantasy name generator.", false, 'generateCharacterName', devModelOverride, FAST_MODEL);
-    
-    if (result.error || !result.data) {
-        return { data: null, error: result.error, metadata: result.metadata };
-    }
+  race: string,
+  className: string,
+  gender: string,
+  setting: string,
+  devModelOverride: string | null = null
+): Promise<StandardizedResult<{ name: string | null } & GeminiMetadata>> {
+  const prompt = `Generate a single, fitting, full character name (first and last) for a ${gender} ${race} ${className} in a ${setting}-style fantasy world. Return ONLY the name, nothing else.`;
+  const result = await generateText(prompt, "You are a fantasy name generator.", false, 'generateCharacterName', devModelOverride, FAST_MODEL);
 
-    return {
-        data: {
-            name: result.data.text,
-            promptSent: result.data.promptSent,
-            rawResponse: result.data.rawResponse,
-            rateLimitHit: result.data.rateLimitHit
-        },
-        error: null
-    };
+  if (result.error || !result.data) {
+    return { data: null, error: result.error, metadata: result.metadata };
+  }
+
+  return {
+    data: {
+      name: result.data.text,
+      promptSent: result.data.promptSent,
+      rawResponse: result.data.rawResponse,
+      rateLimitHit: result.data.rateLimitHit
+    },
+    error: null
+  };
 }
 
 export async function generateTileInspectionDetails(
-    tileDetails: InspectSubmapTilePayload,
-    playerCharacter: PlayerCharacter,
-    gameTime: string,
-    devModelOverride: string | null = null
+  tileDetails: InspectSubmapTilePayload,
+  playerCharacter: PlayerCharacter,
+  gameTime: string,
+  devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
   const systemInstruction = `You are a Dungeon Master describing what a player character observes when they carefully inspect a nearby area in a fantasy RPG. Your response must be an evocative, 2-3 sentence description. CRITICAL: Do NOT use game jargon. Focus on sensory details.`;
 
   let featureContext = "no specific large feature.";
   if (tileDetails.activeFeatureConfig) {
-      const feature = tileDetails.activeFeatureConfig;
-      featureContext = `a notable feature: a ${feature.name || feature.id}. This feature is represented visually by the icon '${feature.icon}'.`;
-      const iconMeaning = SUBMAP_ICON_MEANINGS[feature.icon];
-      if (iconMeaning) {
-          featureContext += ` (The icon '${feature.icon}' generally signifies: ${iconMeaning}).`;
-      }
+    const feature = tileDetails.activeFeatureConfig;
+    featureContext = `a notable feature: a ${feature.name || feature.id}. This feature is represented visually by the icon '${feature.icon}'.`;
+    const iconMeaning = SUBMAP_ICON_MEANINGS[feature.icon];
+    if (iconMeaning) {
+      featureContext += ` (The icon '${feature.icon}' generally signifies: ${iconMeaning}).`;
+    }
   }
-  
+
   let terrainContext = tileDetails.effectiveTerrainType;
-  if(terrainContext === 'path_adj') terrainContext = 'area immediately adjacent to a discernible path';
-  if(terrainContext === 'path') terrainContext = 'a discernible path';
+  if (terrainContext === 'path_adj') terrainContext = 'area immediately adjacent to a discernible path';
+  if (terrainContext === 'path') terrainContext = 'a discernible path';
 
   const prompt = `Player Character (${playerCharacter.name}) is inspecting a specific spot.
   - Current Time: ${gameTime}
@@ -293,10 +293,10 @@ export async function generateTileInspectionDetails(
 }
 
 export async function generateEncounter(
-    xpBudget: number, 
-    themeTags: string[], 
-    party: TempPartyMember[], 
-    devModelOverride: string | null = null
+  xpBudget: number,
+  themeTags: string[],
+  party: TempPartyMember[],
+  devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiEncounterData>> {
   const partyComposition = party.map(p => `Level ${p.level} ${CLASSES_DATA[p.classId]?.name || 'Adventurer'}`).join(', ');
   const systemInstruction = `You are an expert D&D Dungeon Master creating a balanced combat encounter using Google Search for monster ideas.
@@ -310,31 +310,41 @@ export async function generateEncounter(
   const fullPromptForLogging = `System Instruction: ${systemInstruction}\nUser Prompt: ${prompt}`;
   let lastError: any = null;
   let rateLimitHitInChain = false;
-  
-  const model = devModelOverride || COMPLEX_MODEL;
-  
-  try {
+  let lastModelUsed = '';
+
+  const initialModel = devModelOverride || COMPLEX_MODEL;
+  const modelsToTry = [initialModel, ...GEMINI_TEXT_MODEL_FALLBACK_CHAIN.filter(m => m !== initialModel)];
+
+  for (const model of modelsToTry) {
+    lastModelUsed = model;
+    try {
+      const useThinking = model.includes('gemini-2.5') || model.includes('gemini-3');
+      const config: any = {
+        systemInstruction: systemInstruction,
+        tools: [{ googleSearch: {} }],
+      };
+
+      if (useThinking) {
+        config.thinkingConfig = { thinkingBudget: 32768 };
+      }
+
       const response = await ai.models.generateContent({
         model: model,
         contents: prompt,
-        config: {
-          systemInstruction: systemInstruction,
-          tools: [{googleSearch: {}}],
-          thinkingConfig: { thinkingBudget: 32768 },
-        },
+        config: config,
       });
-      
+
       const responseText = response.text?.trim();
       let encounter: Monster[] = [];
-      
+
       if (responseText) {
-          try {
-              const jsonString = responseText.replace(/```json\n|```/g, '').trim();
-              encounter = JSON.parse(jsonString);
-          } catch (e) {
-              console.error(`Failed to parse JSON from generateEncounter with model ${model}:`, responseText, e);
-              throw new Error("The AI returned a malformed encounter suggestion.");
-          }
+        try {
+          const jsonString = responseText.replace(/```json\n|```/g, '').trim();
+          encounter = JSON.parse(jsonString);
+        } catch (e) {
+          console.error(`Failed to parse JSON from generateEncounter with model ${model}:`, responseText, e);
+          throw new Error("The AI returned a malformed encounter suggestion.");
+        }
       }
 
       const groundingChunksFromApi = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
@@ -343,86 +353,91 @@ export async function generateEncounter(
         .filter((chunk): chunk is GroundingChunk => chunk !== null);
 
       return {
-          data: {
-              encounter,
-              sources,
-              promptSent: fullPromptForLogging,
-              rawResponse: JSON.stringify(response),
-              rateLimitHit: rateLimitHitInChain,
-          },
-          error: null
+        data: {
+          encounter,
+          sources,
+          promptSent: fullPromptForLogging,
+          rawResponse: JSON.stringify(response),
+          rateLimitHit: rateLimitHitInChain,
+        },
+        error: null
       };
     } catch (error) {
-        lastError = error;
-        const errorString = JSON.stringify(error, Object.getOwnPropertyNames(error));
-        if (errorString.includes('"code":429') || errorString.includes('RESOURCE_EXHAUSTED')) {
-             rateLimitHitInChain = true;
-        }
+      lastError = error;
+      const errorString = JSON.stringify(error, Object.getOwnPropertyNames(error));
+      if (errorString.includes('"code":429') || errorString.includes('RESOURCE_EXHAUSTED')) {
+        rateLimitHitInChain = true;
+        console.warn(`Gemini API rate limit error with model ${model}. Retrying...`);
+      } else {
+        console.warn(`Gemini API error with model ${model}:`, error);
+      }
+      continue;
     }
+  }
 
-    const errorMessage = lastError instanceof Error ? lastError.message : String(lastError);
-    return {
-        data: null,
-        error: `Failed to generate encounter with model ${model}: ${errorMessage}`,
-        metadata: {
-            promptSent: fullPromptForLogging,
-            rawResponse: JSON.stringify(lastError, Object.getOwnPropertyNames(lastError)),
-            rateLimitHit: rateLimitHitInChain
-        }
-    };
+  const errorMessage = lastError instanceof Error ? lastError.message : String(lastError);
+  return {
+    data: null,
+    error: `Failed to generate encounter (Last model: ${lastModelUsed}): ${errorMessage}`,
+    metadata: {
+      promptSent: fullPromptForLogging,
+      rawResponse: JSON.stringify(lastError, Object.getOwnPropertyNames(lastError)),
+      rateLimitHit: rateLimitHitInChain
+    }
+  };
 }
 
 
 export async function generateCustomActions(
-    sceneDescription: string,
-    context: string,
-    devModelOverride: string | null = null
+  sceneDescription: string,
+  context: string,
+  devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiCustomActionData>> {
-    const systemInstruction = `You are a creative Dungeon Master suggesting actions.
+  const systemInstruction = `You are a creative Dungeon Master suggesting actions.
     Based on the scene, suggest up to 3 brief, non-navigational, context-aware actions.
     Format as a valid JSON array of objects with keys: 'label', 'geminiPrompt'.
     Optional keys: 'type' (e.g., 'ENTER_VILLAGE'), 'check' (skill name), 'targetNpcId', 'eventResidue' ({text, discoveryDc}), 'isEgregious' (boolean).
     Provide ONLY the JSON array.`;
-    const prompt = `Scene: "${sceneDescription}"\nContext: ${context}`;
-    
-    const result = await generateText(prompt, systemInstruction, true, 'generateCustomActions', devModelOverride, FAST_MODEL);
+  const prompt = `Scene: "${sceneDescription}"\nContext: ${context}`;
 
-    if (result.error || !result.data) {
-        return { data: null, error: result.error, metadata: result.metadata };
-    }
+  const result = await generateText(prompt, systemInstruction, true, 'generateCustomActions', devModelOverride, FAST_MODEL);
 
-    let actions: Action[] = [];
-    try {
-        const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
-        const parsedActions: any[] = JSON.parse(jsonString);
+  if (result.error || !result.data) {
+    return { data: null, error: result.error, metadata: result.metadata };
+  }
 
-        actions = parsedActions.map(a => ({
-            type: a.type === 'ENTER_VILLAGE' ? 'ENTER_VILLAGE' : 'gemini_custom_action',
-            label: a.label,
-            payload: {
-                geminiPrompt: a.geminiPrompt,
-                check: a.check,
-                targetNpcId: a.targetNpcId,
-                eventResidue: a.eventResidue,
-                isEgregious: a.isEgregious,
-            },
-        }));
-    } catch (e) {
-        console.error("Failed to parse JSON from generateCustomActions:", result.data.text, e);
-        return { 
-            data: null, 
-            error: "Failed to parse custom actions JSON.", 
-            metadata: { ...result.data, rawResponse: result.data.text } // Pass text for debugging
-        };
-    }
-    
+  let actions: Action[] = [];
+  try {
+    const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
+    const parsedActions: any[] = JSON.parse(jsonString);
+
+    actions = parsedActions.map(a => ({
+      type: a.type === 'ENTER_VILLAGE' ? 'ENTER_VILLAGE' : 'gemini_custom_action',
+      label: a.label,
+      payload: {
+        geminiPrompt: a.geminiPrompt,
+        check: a.check,
+        targetNpcId: a.targetNpcId,
+        eventResidue: a.eventResidue,
+        isEgregious: a.isEgregious,
+      },
+    }));
+  } catch (e) {
+    console.error("Failed to parse JSON from generateCustomActions:", result.data.text, e);
     return {
-        data: {
-            ...result.data,
-            actions
-        },
-        error: null
+      data: null,
+      error: "Failed to parse custom actions JSON.",
+      metadata: { ...result.data, rawResponse: result.data.text } // Pass text for debugging
     };
+  }
+
+  return {
+    data: {
+      ...result.data,
+      actions
+    },
+    error: null
+  };
 }
 
 export async function generateSocialCheckOutcome(
@@ -432,50 +447,50 @@ export async function generateSocialCheckOutcome(
   context: string,
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiSocialCheckData>> {
-    const systemInstruction = `You are a Dungeon Master narrating the outcome of a social skill check.
+  const systemInstruction = `You are a Dungeon Master narrating the outcome of a social skill check.
     Response MUST be a valid JSON object with keys: "outcomeText", "dispositionChange" (number), "memoryFactText", and optional "goalUpdate" ({npcId, goalId, newStatus}).
     Provide ONLY the JSON object.`;
-    const prompt = `A player attempted a ${skillName} check against ${npcName} and ${wasSuccess ? 'SUCCEEDED' : 'FAILED'}.
+  const prompt = `A player attempted a ${skillName} check against ${npcName} and ${wasSuccess ? 'SUCCEEDED' : 'FAILED'}.
     Context: ${context}`;
 
-    const result = await generateText(prompt, systemInstruction, true, 'generateSocialCheckOutcome', devModelOverride);
+  const result = await generateText(prompt, systemInstruction, true, 'generateSocialCheckOutcome', devModelOverride);
 
-    if (result.error || !result.data) {
-         // Fallback data for graceful degradation
-         return {
-             data: {
-                 text: "Error parsing AI response.",
-                 promptSent: result.metadata?.promptSent || "",
-                 rawResponse: result.metadata?.rawResponse || "",
-                 rateLimitHit: result.metadata?.rateLimitHit,
-                 outcomeText: wasSuccess ? `${npcName} seems to consider your words.` : `${npcName} seems unconvinced.`,
-                 dispositionChange: wasSuccess ? 2 : -2,
-                 memoryFactText: `The player's ${skillName} check was ${wasSuccess ? 'successful' : 'unsuccessful'}.`,
-                 goalUpdate: null
-             },
-             error: result.error
-         };
-    }
-    
-    try {
-        const parsed = JSON.parse(result.data.text.replace(/```json\n|```/g, '').trim());
-        return {
-          data: {
-            ...result.data,
-            outcomeText: parsed.outcomeText || "The situation evolves...",
-            dispositionChange: parsed.dispositionChange || (wasSuccess ? 1 : -1),
-            memoryFactText: parsed.memoryFactText || `Player check: ${skillName} (${wasSuccess ? 'Success' : 'Fail'})`,
-            goalUpdate: parsed.goalUpdate || null,
-          },
-          error: null
-        };
-    } catch (e) {
-        return { 
-            data: null, 
-            error: "Failed to parse social outcome JSON.",
-            metadata: result.data
-        };
-    }
+  if (result.error || !result.data) {
+    // Fallback data for graceful degradation
+    return {
+      data: {
+        text: "Error parsing AI response.",
+        promptSent: result.metadata?.promptSent || "",
+        rawResponse: result.metadata?.rawResponse || "",
+        rateLimitHit: result.metadata?.rateLimitHit,
+        outcomeText: wasSuccess ? `${npcName} seems to consider your words.` : `${npcName} seems unconvinced.`,
+        dispositionChange: wasSuccess ? 2 : -2,
+        memoryFactText: `The player's ${skillName} check was ${wasSuccess ? 'successful' : 'unsuccessful'}.`,
+        goalUpdate: null
+      },
+      error: result.error
+    };
+  }
+
+  try {
+    const parsed = JSON.parse(result.data.text.replace(/```json\n|```/g, '').trim());
+    return {
+      data: {
+        ...result.data,
+        outcomeText: parsed.outcomeText || "The situation evolves...",
+        dispositionChange: parsed.dispositionChange || (wasSuccess ? 1 : -1),
+        memoryFactText: parsed.memoryFactText || `Player check: ${skillName} (${wasSuccess ? 'Success' : 'Fail'})`,
+        goalUpdate: parsed.goalUpdate || null,
+      },
+      error: null
+    };
+  } catch (e) {
+    return {
+      data: null,
+      error: "Failed to parse social outcome JSON.",
+      metadata: result.data
+    };
+  }
 }
 
 export async function rephraseFactForGossip(
@@ -486,7 +501,7 @@ export async function rephraseFactForGossip(
 ): Promise<StandardizedResult<GeminiTextData>> {
   const systemInstruction = `You are an editor for an RPG. Rephrase a fact as a rumor from one character to another. Response MUST be ONLY the rephrased sentence.`;
   const prompt = `Speaker: "${speakerPersonality}". Listener: "${listenerPersonality}". Original fact: "${factText}". Rephrase for the listener.`;
-  
+
   return await generateText(prompt, systemInstruction, false, 'rephraseFactForGossip', devModelOverride, FAST_MODEL);
 }
 
@@ -494,83 +509,83 @@ export async function generateSituationAnalysis(
   context: string,
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
-    const systemInstruction = `You are a helpful Dungeon Master assistant. Analyze the game context and offer a brief, strategic hint (2-3 sentences).`;
-    const prompt = `Analyze this game state and provide a hint: ${context}`;
-    
-    return await generateText(prompt, systemInstruction, false, 'generateSituationAnalysis', devModelOverride, FAST_MODEL);
+  const systemInstruction = `You are a helpful Dungeon Master assistant. Analyze the game context and offer a brief, strategic hint (2-3 sentences).`;
+  const prompt = `Analyze this game state and provide a hint: ${context}`;
+
+  return await generateText(prompt, systemInstruction, false, 'generateSituationAnalysis', devModelOverride, FAST_MODEL);
 }
 
 
 export async function generateMerchantInventory(
-    villageContext: VillageActionContext | undefined,
-    shopType: string,
-    devModelOverride: string | null = null
+  villageContext: VillageActionContext | undefined,
+  shopType: string,
+  devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiInventoryData>> {
-    const templateString = Object.entries(ItemTemplates).map(([key, tmpl]) => `${key}: ${JSON.stringify(tmpl)}`).join('\n\n');
-    // Spell out the village context so Gemini receives the culture/biome cues
-    // alongside the building description. This keeps inventories consistent with
-    // the generated settlement instead of relying on a generic fallback.
-    const contextDescription = villageContext
-      ? `A ${shopType} near ${villageContext.buildingType} at (${villageContext.worldX}, ${villageContext.worldY}) in biome ${villageContext.biomeId}. Personality prompt: ${villageContext.integrationPrompt}. Cultural signature: ${villageContext.culturalSignature}. Hooks: ${(villageContext.encounterHooks || []).join(' | ')}. Location detail: ${villageContext.description}`
-      : `A ${shopType} with no specific village context; default to a frontier trading post vibe.`;
-    const systemInstruction = `You are a Game Master generating a shop inventory.
+  const templateString = Object.entries(ItemTemplates).map(([key, tmpl]) => `${key}: ${JSON.stringify(tmpl)}`).join('\n\n');
+  // Spell out the village context so Gemini receives the culture/biome cues
+  // alongside the building description. This keeps inventories consistent with
+  // the generated settlement instead of relying on a generic fallback.
+  const contextDescription = villageContext
+    ? `A ${shopType} near ${villageContext.buildingType} at (${villageContext.worldX}, ${villageContext.worldY}) in biome ${villageContext.biomeId}. Personality prompt: ${villageContext.integrationPrompt}. Cultural signature: ${villageContext.culturalSignature}. Hooks: ${(villageContext.encounterHooks || []).join(' | ')}. Location detail: ${villageContext.description}`
+    : `A ${shopType} with no specific village context; default to a frontier trading post vibe.`;
+  const systemInstruction = `You are a Game Master generating a shop inventory.
     Context: ${contextDescription}.
     Return a JSON object with keys: "inventory" (array of items using provided schemas) and "economy" (scarcity/surplus data).
     ITEM SCHEMAS: ${templateString}`;
 
-    const prompt = `Generate inventory for ${shopType}.`;
+  const prompt = `Generate inventory for ${shopType}.`;
 
-    const result = await generateText(prompt, systemInstruction, true, 'generateMerchantInventory', devModelOverride);
+  const result = await generateText(prompt, systemInstruction, true, 'generateMerchantInventory', devModelOverride);
 
-    if (result.error || !result.data) {
-        return { data: null, error: result.error, metadata: result.metadata };
-    }
+  if (result.error || !result.data) {
+    return { data: null, error: result.error, metadata: result.metadata };
+  }
 
-    try {
-        const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
-        const parsed = JSON.parse(jsonString);
-        return {
-            data: {
-                ...result.data,
-                inventory: parsed.inventory,
-                economy: parsed.economy
-            },
-            error: null
-        };
-    } catch (e) {
-        return { data: null, error: "Failed to parse inventory JSON.", metadata: result.data };
-    }
+  try {
+    const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
+    const parsed = JSON.parse(jsonString);
+    return {
+      data: {
+        ...result.data,
+        inventory: parsed.inventory,
+        economy: parsed.economy
+      },
+      error: null
+    };
+  } catch (e) {
+    return { data: null, error: "Failed to parse inventory JSON.", metadata: result.data };
+  }
 }
 
 export async function generateHarvestLoot(
-    sourceName: string,
-    biome: string,
-    skillCheckResult: number,
-    devModelOverride: string | null = null
+  sourceName: string,
+  biome: string,
+  skillCheckResult: number,
+  devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiHarvestData>> {
-    const relevantTemplates = { Food: ItemTemplates.FoodDrinkTemplate, Material: ItemTemplates.CraftingMaterialTemplate, Base: ItemTemplates.BaseItemTemplate };
-    const systemInstruction = `You are a Game Master resolving a harvest attempt.
+  const relevantTemplates = { Food: ItemTemplates.FoodDrinkTemplate, Material: ItemTemplates.CraftingMaterialTemplate, Base: ItemTemplates.BaseItemTemplate };
+  const systemInstruction = `You are a Game Master resolving a harvest attempt.
     Context: Harvesting "${sourceName}" in "${biome}". Check: ${skillCheckResult} (DC 10/15/20).
     Return a JSON array of Item objects.
     SCHEMAS: ${JSON.stringify(relevantTemplates)}`;
 
-    const prompt = `Harvesting ${sourceName}. Generate items.`;
-    const result = await generateText(prompt, systemInstruction, true, 'generateHarvestLoot', devModelOverride);
+  const prompt = `Harvesting ${sourceName}. Generate items.`;
+  const result = await generateText(prompt, systemInstruction, true, 'generateHarvestLoot', devModelOverride);
 
-    if (result.error || !result.data) {
-        return { data: null, error: result.error, metadata: result.metadata };
-    }
+  if (result.error || !result.data) {
+    return { data: null, error: result.error, metadata: result.metadata };
+  }
 
-    try {
-        const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
-        const items = JSON.parse(jsonString);
-        return {
-            data: { ...result.data, items },
-            error: null
-        };
-    } catch (e) {
-        return { data: null, error: "Failed to parse harvest JSON.", metadata: result.data };
-    }
+  try {
+    const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
+    const items = JSON.parse(jsonString);
+    return {
+      data: { ...result.data, items },
+      error: null
+    };
+  } catch (e) {
+    return { data: null, error: "Failed to parse harvest JSON.", metadata: result.data };
+  }
 }
 
 export async function generateGuideResponse(
@@ -582,14 +597,14 @@ export async function generateGuideResponse(
   Your goal is to answer player questions. You can also output a JSON object with 'tool': 'create_character' configuration if asked to create a character.`;
 
   const prompt = `User Query: "${query}"\nCurrent Game Context: ${context}`;
-  
+
   return await generateText(
-      prompt, 
-      systemInstruction, 
-      false, 
-      'generateGuideResponse', 
-      devModelOverride, 
-      COMPLEX_MODEL, 
-      32768 
+    prompt,
+    systemInstruction,
+    false,
+    'generateGuideResponse',
+    devModelOverride,
+    COMPLEX_MODEL,
+    32768
   );
 }

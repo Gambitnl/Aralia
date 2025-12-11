@@ -9,7 +9,12 @@
       "Bash(grep:*)",
       "Bash(xargs -I {} bash -c 'echo \"\"\"\"{}:\"\"\"\" && ls {} | wc -l')",
       "Bash(npx tsc --noEmit)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(rm:*)",
+      "Bash(mv:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(timeout 15 npm run dev:*)"
     ],
     "deny": [],
     "ask": []

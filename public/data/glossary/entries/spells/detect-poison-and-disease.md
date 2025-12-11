@@ -2,8 +2,8 @@
 id: "detect-poison-and-disease"
 title: "Detect Poison and Disease"
 category: "Spells"
-tags: ["level 1", "divination", "detection", "concentration"]
-excerpt: "Sense poisons, poisonous creatures, or magical contagions within 30 feet for up to 10 minutes."
+tags: ["level 1", "divination", "detection", "concentration", "ritual"]
+excerpt: "Sense poisons, poisonous creatures, or magical contagions within 30 feet for up to 10 minutes; can be cast as a ritual."
 seeAlso: ["detect-evil-and-good", "detect-magic"]
 filePath: "/data/glossary/entries/spells/detect-poison-and-disease.md"
 ---

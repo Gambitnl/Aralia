@@ -123,7 +123,8 @@ export type CharacterCreatorAction =
   | { type: 'SET_CHARACTER_NAME'; payload: string }
   | { type: 'SET_CHARACTER_AGE'; payload: number }
   | { type: 'SELECT_BACKGROUND'; payload: string }
-  | { type: 'GO_BACK' };
+  | { type: 'GO_BACK' }
+  | { type: 'NAVIGATE_TO_STEP'; payload: CreationStep };
 
 // --- Initial State ---
 export const initialCharacterCreatorState: CharacterCreationState = {
@@ -497,6 +498,14 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       // Reset only the data captured on the step we are leaving while leaving
       // subsequent choices intact for a non-destructive review.
       return { ...state, ...fieldsToReset, step: targetPrevStep };
+    }
+    case 'NAVIGATE_TO_STEP': {
+      // Allow navigation to any completed step (for sidebar navigation)
+      // This does NOT reset data - it just changes the current view
+      const targetStep = action.payload;
+      // Don't allow navigating forward past current progress
+      if (targetStep > state.step) return state;
+      return { ...state, step: targetStep };
     }
     default:
       return state;

@@ -7,7 +7,7 @@
  * Weapon Mastery selection, and finally Naming and Reviewing the character.
  * It manages the state for each step using a useReducer hook.
  */
-import React, { useReducer, useCallback, useContext, useMemo } from 'react';
+import React, { useReducer, useCallback, useContext, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   PlayerCharacter,
@@ -34,7 +34,7 @@ import { evaluateFeatPrerequisites } from '../../utils/characterUtils';
 import RaceSelection from './Race/RaceSelection';
 import AgeSelection from './AgeSelection';
 import BackgroundSelection from './BackgroundSelection';
-import ClassSelection from './ClassSelection';
+import ClassSelection from './Class/ClassSelection';
 import AbilityScoreAllocation from './AbilityScoreAllocation';
 import SkillSelection from './SkillSelection';
 import HumanSkillSelection from './Race/HumanSkillSelection';
@@ -59,6 +59,7 @@ import CentaurNaturalAffinitySkillSelection from './Race/CentaurNaturalAffinityS
 import ChangelingInstinctsSelection from './Race/ChangelingInstinctsSelection';
 import RacialSpellAbilitySelection from './Race/RacialSpellAbilitySelection';
 import NameAndReview from './NameAndReview';
+import CreationSidebar from './CreationSidebar';
 import {
   CreationStep,
   characterCreatorReducer,
@@ -99,6 +100,9 @@ interface CharacterCreatorProps {
 const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, onExitToMainMenu, dispatch: appDispatch }) => {
   const [state, dispatch] = useReducer(characterCreatorReducer, initialCharacterCreatorState);
   const allSpells = useContext(SpellContext);
+
+  // Dev toggle for sidebar - remove or set to true for production
+  const [showSidebar, setShowSidebar] = useState(true);
 
   const { assembleAndSubmitCharacter, generatePreviewCharacter } = useCharacterAssembly({
     onCharacterCreate
@@ -256,6 +260,9 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
     dispatch({ type: 'GO_BACK' });
   }, [dispatch]);
 
+  const handleNavigateToStep = useCallback((step: CreationStep) => {
+    dispatch({ type: 'NAVIGATE_TO_STEP', payload: step });
+  }, [dispatch]);
 
   const renderStep = (): React.ReactElement | null => {
     if (!allSpells) {
@@ -401,55 +408,75 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
     }
   };
 
+  // With sidebar, we use full-screen layout for all steps
   const isFullScreenStep = state.step === CreationStep.Race || state.step === CreationStep.Class;
 
   return (
-    <div 
-      className={
-        isFullScreenStep 
-          ? "h-screen bg-gray-900 text-gray-200" 
-          : "min-h-screen bg-gray-900 text-gray-200 p-4 flex flex-col items-center justify-center"
-      }
-    >
-      <div 
-        className={
-          isFullScreenStep
-            ? "bg-gray-800 rounded-xl shadow-2xl border border-gray-700 w-full h-full flex flex-col" 
-            : "bg-gray-800 p-6 md:p-10 rounded-xl shadow-2xl border border-gray-700 w-full max-w-4xl relative" 
-        }
-      >
-        <h1 
-          className={`text-3xl md:text-4xl font-bold text-amber-400 text-center font-cinzel 
-            ${isFullScreenStep ? 'p-4 sm:p-6 md:p-8 flex-shrink-0' : 'mb-8'}`
-          }
-        >
-          Create Your Adventurer
-        </h1>
-        <div 
+    <div className="h-screen bg-gray-900 text-gray-200 flex">
+      {/* Sidebar */}
+      {showSidebar && (
+        <CreationSidebar
+          currentStep={state.step}
+          state={state}
+          onNavigateToStep={handleNavigateToStep}
+        />
+      )}
+
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <div
           className={
-            isFullScreenStep 
-              ? 'flex-grow overflow-y-auto scrollable-content px-4 sm:px-6 md:px-8 pb-4 sm:pb-6 md:pb-8' 
-              : ''
+            showSidebar
+              ? "bg-gray-800 flex-1 flex flex-col overflow-hidden"
+              : isFullScreenStep
+                ? "bg-gray-800 rounded-xl shadow-2xl border border-gray-700 w-full h-full flex flex-col"
+                : "bg-gray-800 p-6 md:p-10 rounded-xl shadow-2xl border border-gray-700 w-full max-w-4xl mx-auto my-auto relative"
           }
         >
-          <AnimatePresence mode="wait">
-            {renderStep()}
-          </AnimatePresence>
-        </div>
-        <div 
-          className={`border-t border-gray-700 
-            ${isFullScreenStep ? 'p-4 sm:p-6 md:p-8 mt-auto flex-shrink-0' : 'mt-8 pt-6'}`
-          }
-        >
-          <button
-            onClick={onExitToMainMenu}
-            className="w-full bg-red-700 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-150"
-            aria-label="Exit character creation and return to main menu"
+          <h1
+            className={`text-3xl md:text-4xl font-bold text-amber-400 text-center font-cinzel
+              ${showSidebar || isFullScreenStep ? 'p-4 sm:p-6 md:p-8 flex-shrink-0' : 'mb-8'}`
+            }
           >
-            Back to Main Menu
-          </button>
+            Create Your Adventurer
+          </h1>
+          <div
+            className={
+              showSidebar || isFullScreenStep
+                ? 'flex-grow overflow-y-auto scrollable-content px-4 sm:px-6 md:px-8 pb-4 sm:pb-6 md:pb-8'
+                : ''
+            }
+          >
+            <AnimatePresence mode="wait">
+              {renderStep()}
+            </AnimatePresence>
+          </div>
+          <div
+            className={`border-t border-gray-700
+              ${showSidebar || isFullScreenStep ? 'p-4 sm:p-6 md:p-8 mt-auto flex-shrink-0' : 'mt-8 pt-6'}`
+            }
+          >
+            <button
+              type="button"
+              onClick={onExitToMainMenu}
+              className="w-full bg-red-700 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition-colors duration-150"
+              aria-label="Exit character creation and return to main menu"
+            >
+              Back to Main Menu
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Dev toggle button */}
+      <button
+        type="button"
+        onClick={() => setShowSidebar(!showSidebar)}
+        className="fixed bottom-4 right-4 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs px-3 py-2 rounded-lg shadow-lg border border-gray-600 z-50"
+        aria-label="Toggle sidebar visibility"
+      >
+        {showSidebar ? 'Hide' : 'Show'} Sidebar
+      </button>
     </div>
   );
 };

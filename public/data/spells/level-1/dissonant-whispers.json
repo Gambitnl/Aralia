@@ -64,7 +64,7 @@
         "saveType": "Wisdom",
         "saveEffect": "negates_condition"
       },
-      "movementType": "stop",
+      "movementType": "push",
       "duration": {
         "type": "rounds"
       },
