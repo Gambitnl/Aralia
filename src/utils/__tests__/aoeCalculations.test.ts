@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { calculateAffectedTiles } from '../aoeCalculations'
+import { calculateAffectedTiles, AoEParams } from '../aoeCalculations'
+import { Position } from '../../types/combat'
 
 describe('calculateAffectedTiles', () => {
   describe('Sphere', () => {
@@ -20,9 +21,33 @@ describe('calculateAffectedTiles', () => {
 
       // Rough bounds: area should be in a reasonable range for a radius-4 circle on grid
       expect(result.length).toBeGreaterThan(30)
-      expect(result.length).toBeLessThan(60)
+      // Chebyshev radius 4 (20ft) creates a 9x9 square (81 tiles)
+      expect(result.length).toBe(81)
     })
-  })
+
+    it('should calculate sphere correctly (Chebyshev consistency)', () => {
+        const params: AoEParams = {
+            shape: 'Sphere',
+            origin: { x: 0, y: 0 },
+            size: 15 // 3 tiles radius
+        };
+        const tiles = calculateAffectedTiles(params);
+
+        // Center
+        expect(tiles).toContainEqual({ x: 0, y: 0 });
+
+        // Edge (3,0) -> Distance 3 tiles = 15ft. Included.
+        expect(tiles).toContainEqual({ x: 3, y: 0 });
+
+        // Diagonal (3,3)
+        // Euclidean: sqrt(9+9) = 4.24 tiles > 3 tiles. Excluded.
+        // Chebyshev: max(3,3) = 3 tiles = 15ft. Included.
+        expect(tiles).toContainEqual({ x: 3, y: 3 });
+
+        // Out of range (4,0) -> 4 tiles > 3. Excluded.
+        expect(tiles).not.toContainEqual({ x: 4, y: 0 });
+    });
+  });
 
   describe('Cone', () => {
     it('calculates a 15-foot cone facing North (0 deg)', () => {
@@ -95,5 +120,22 @@ describe('calculateAffectedTiles', () => {
       expect(result.length).toBeGreaterThan(0)
       expect(result.some(p => p.x > 0 && p.y < 0)).toBe(true)
     })
+
+    it('should calculate a horizontal line correctly', () => {
+        const params: AoEParams = {
+          shape: 'Line',
+          origin: { x: 0, y: 0 },
+          size: 15,
+          targetPoint: { x: 3, y: 0 },
+          width: 5
+        };
+
+        const tiles = calculateAffectedTiles(params);
+
+        expect(tiles).toContainEqual({ x: 0, y: 0 });
+        expect(tiles).toContainEqual({ x: 1, y: 0 });
+        expect(tiles).toContainEqual({ x: 2, y: 0 });
+        expect(tiles).toContainEqual({ x: 3, y: 0 });
+    });
   })
 })

@@ -51,8 +51,9 @@ export function calculateAffectedTiles(params: AoEParams): Position[] {
 
 /**
  * Calculates tiles within a radius (Sphere/Circle).
- * Uses Euclidean distance (standard D&D 5e variant, often loose or "center-to-center").
- * Here we use center-to-center distance check <= radius.
+ * Uses Chebyshev distance to match grid movement (Standard 5e on Grid variant).
+ * "If you can move there in X feet, you are hit by X feet radius."
+ * This results in a square area on the grid.
  */
 function getSphereAoE(origin: Position, radius: number): Position[] {
     const affected: Position[] = [];
@@ -65,10 +66,11 @@ function getSphereAoE(origin: Position, radius: number): Position[] {
 
     for (let x = startX; x <= endX; x++) {
         for (let y = startY; y <= endY; y++) {
-            const distance = Math.sqrt(Math.pow(x - origin.x, 2) + Math.pow(y - origin.y, 2)) * TILE_SIZE;
-            // Many VTTs give a bit of wiggle room (e.g. +0.5 tile partial coverage), but strict <= radius is safest start.
-            // D&D 5e raw: if 50% of square is covered.
-            // Center-to-center distance <= radius approximates 50% coverage logic roughly.
+            // Chebyshev distance: Max(dx, dy)
+            const dx = Math.abs(x - origin.x);
+            const dy = Math.abs(y - origin.y);
+            const distance = Math.max(dx, dy) * TILE_SIZE;
+
             if (distance <= radius) {
                 affected.push({ x, y });
             }
