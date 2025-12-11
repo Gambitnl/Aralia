@@ -138,7 +138,7 @@ export function initializeDummyCharacterData(
     return [tempFighter, tempCleric];
 }
 
-export const USE_DUMMY_CHARACTER_FOR_DEV = true;
+export const USE_DUMMY_CHARACTER_FOR_DEV = false;
 
 export { DUMMY_PARTY_FOR_DEV };
 
