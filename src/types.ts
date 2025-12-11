@@ -1,5 +1,8 @@
 
 /**
+ * Copyright (c) 2024 Aralia RPG.
+ * Licensed under the MIT License.
+ *
  * @file src/types/index.ts
  * This file contains all the core TypeScript type definitions and interfaces
  * used throughout the Aralia RPG application.
