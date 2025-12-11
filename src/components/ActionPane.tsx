@@ -283,6 +283,8 @@ const ActionPane: React.FC<ActionPaneProps> = ({
             placeholder="Ask your question..."
             className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md text-gray-200 focus:ring-1 focus:ring-purple-500 outline-none mb-2"
             onKeyDown={(e) => e.key === 'Enter' && handleOracleSubmit()}
+            autoFocus
+            aria-label="Ask the Oracle"
           />
           <div className="flex gap-2">
             <button onClick={handleOracleSubmit} disabled={disabled || !oracleQuery.trim()} className="flex-1 bg-green-600 text-white py-1 rounded hover:bg-green-500">Submit</button>

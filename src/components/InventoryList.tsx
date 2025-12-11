@@ -336,6 +336,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                           className="text-xs bg-gray-800 border border-gray-600 text-gray-200 rounded px-1 py-0.5"
                           value={containerAssignments[child.instanceId] || ROOT_CONTAINER_ID}
                           onChange={e => handleMoveToContainer(child.instanceId, e.target.value)}
+                          aria-label={`Move ${child.name} to container`}
                         >
                           <option value={ROOT_CONTAINER_ID}>Backpack</option>
                           {containerEntries.map(container => (
