@@ -1,8 +1,23 @@
 // src/context/GlossaryContext.tsx
 import React, { createContext, useState, useEffect, ReactNode } from "react";
-import { GlossaryEntry } from '../types'; // Use GlossaryEntry from types.ts
+import { GlossaryEntry } from '../types';
+import { fetchWithTimeout } from '../utils/networkUtils';
 
 const GlossaryContext = createContext<GlossaryEntry[] | null>(null);
+
+interface GlossaryIndexFile {
+  index_files: string[];
+}
+
+// Type guard to check if the response is a nested index
+function isGlossaryIndexFile(data: unknown): data is GlossaryIndexFile {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'index_files' in data &&
+    Array.isArray((data as GlossaryIndexFile).index_files)
+  );
+}
 
 export const GlossaryProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [entries, setEntries] = useState<GlossaryEntry[] | null>(null);
@@ -10,26 +25,31 @@ export const GlossaryProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   useEffect(() => {
     const fetchAndProcessIndex = async (filePath: string): Promise<GlossaryEntry[]> => {
-      const response = await fetch(filePath);
-      if (!response.ok) {
-        console.error(`Failed to fetch glossary index file: ${filePath}`);
-        throw new Error(`Failed to fetch ${filePath}: ${response.statusText}`);
-      }
-      const data = await response.json();
+      try {
+        // Use fetchWithTimeout for resilience
+        const data = await fetchWithTimeout<GlossaryIndexFile | GlossaryEntry[]>(filePath);
 
-      // Check if it's a nested index file (like the new rules_glossary.json)
-      if (data.index_files && Array.isArray(data.index_files)) {
-        const promises = data.index_files.map((nestedPath: string) => fetchAndProcessIndex(`${import.meta.env.BASE_URL}${nestedPath.replace(/^\//, '')}`));
-        const results = await Promise.all(promises);
-        return results.flat(); // Flatten the array of arrays of entries
-      } 
-      // Otherwise, it's a data file containing an array of entries
-      else if (Array.isArray(data)) {
-        return data as GlossaryEntry[];
+        // Check if it's a nested index file (like the new rules_glossary.json)
+        if (isGlossaryIndexFile(data)) {
+          const promises = data.index_files.map((nestedPath: string) =>
+            fetchAndProcessIndex(`${import.meta.env.BASE_URL}${nestedPath.replace(/^\//, '')}`)
+          );
+          const results = await Promise.all(promises);
+          return results.flat(); // Flatten the array of arrays of entries
+        }
+        // Otherwise, it's a data file containing an array of entries
+        else if (Array.isArray(data)) {
+          return data as GlossaryEntry[];
+        }
+
+        console.warn(`Glossary file at ${filePath} has an unknown or unexpected format.`);
+        return [];
+      } catch (err) {
+        // Rethrow with context or handle gracefully.
+        // fetchWithTimeout throws NetworkError which has status info.
+        console.error(`Error processing glossary file ${filePath}:`, err);
+        throw err;
       }
-      
-      console.warn(`Glossary file at ${filePath} has an unknown or unexpected format.`);
-      return [];
     };
 
     const fetchAllData = async () => {
