@@ -4,6 +4,7 @@ import { isDamageEffect } from '../../types/spells'
 import { checkConcentration } from '../../utils/concentrationUtils';
 import { calculateSpellDC, rollSavingThrow, calculateSaveDamage } from '../../utils/savingThrowUtils';
 import { BreakConcentrationCommand } from './ConcentrationCommands'
+import { ResistanceCalculator } from '../../systems/spells/mechanics/ResistanceCalculator';
 
 /**
  * Command to apply damage to targets.
@@ -17,14 +18,21 @@ export class DamageCommand extends BaseEffectCommand {
     }
 
     let currentState = state
+    const caster = this.getCaster(currentState);
+
+    // Elemental Adept: Treat 1s as 2s
+    let minRoll = 1;
+    const elementalAdeptChoice = caster.featChoices?.['elemental_adept']?.selectedDamageType;
+    if (elementalAdeptChoice && elementalAdeptChoice.toLowerCase() === this.effect.damage.type.toLowerCase()) {
+      minRoll = 2;
+    }
 
     for (const target of this.getTargets(currentState)) {
       // 1. Calculate base damage
-      let damageRoll = this.rollDamage(this.effect.damage.dice);
+      let damageRoll = this.rollDamage(this.effect.damage.dice, minRoll);
 
       // 2. Handle Saving Throw (if applicable)
       if (this.effect.condition.type === 'save' && this.effect.condition.saveType) {
-        const caster = this.getCaster(currentState);
         const dc = calculateSpellDC(caster);
         const saveResult = rollSavingThrow(target, this.effect.condition.saveType, dc);
 
@@ -45,17 +53,25 @@ export class DamageCommand extends BaseEffectCommand {
       }
 
       // 3. Apply Damage
-      const newHP = Math.max(0, target.currentHP - damageRoll);
+      // Apply Resistances/Vulnerabilities (including Elemental Adept check)
+      const finalDamage = ResistanceCalculator.applyResistances(
+        damageRoll,
+        this.effect.damage.type,
+        target,
+        caster
+      );
+
+      const newHP = Math.max(0, target.currentHP - finalDamage);
       currentState = this.updateCharacter(currentState, target.id, {
         currentHP: newHP
       });
 
       currentState = this.addLogEntry(currentState, {
         type: 'damage',
-        message: `${target.name} takes ${damageRoll} ${this.effect.damage.type.toLowerCase()} damage`,
+        message: `${target.name} takes ${finalDamage} ${this.effect.damage.type.toLowerCase()} damage`,
         characterId: target.id,
         targetIds: [target.id],
-        data: { value: damageRoll, type: this.effect.damage.type }
+        data: { value: finalDamage, type: this.effect.damage.type }
       });
 
       // 4. Check Concentration
@@ -108,9 +124,10 @@ export class DamageCommand extends BaseEffectCommand {
   /**
    * Helper to parse dice string (e.g., "2d6+3") and roll damage.
    * @param diceString The dice notation string.
+   * @param minRoll Minimum value for each die roll (default 1).
    * @returns The total calculated damage.
    */
-  private rollDamage(diceString: string): number {
+  private rollDamage(diceString: string, minRoll: number = 1): number {
     const match = diceString.match(/(\d+)d(\d+)(?:\+(\d+))?/)
     if (!match) return 0
 
@@ -121,7 +138,9 @@ export class DamageCommand extends BaseEffectCommand {
 
     let total = 0
     for (let i = 0; i < count; i++) {
-      total += Math.floor(Math.random() * size) + 1
+      let roll = Math.floor(Math.random() * size) + 1;
+      if (roll < minRoll) roll = minRoll;
+      total += roll;
     }
     return total + mod
   }

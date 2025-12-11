@@ -1,13 +1,6 @@
 /**
  * @file AgeSelection.tsx
  * Allows players to select their character's age, with race-appropriate age ranges.
- *
- * TODO: Styling inconsistency audit (2025-12-11)
- * - Header uses `text-3xl font-bold text-gray-100` instead of standard `text-2xl text-sky-300`
- * - Primary button uses `bg-blue-600` instead of `bg-green-600` (confirm) or `bg-sky-700` (action)
- * - Info panels use `bg-blue-900 bg-opacity-30 border-blue-800` instead of standard gray tones
- * - Container wrapper uses `bg-gray-700 p-8 border` but other steps have no wrapper
- * - Consider aligning with RaceSelection.tsx/ClassSelection.tsx styling patterns
  */
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -289,103 +282,100 @@ const AgeSelection: React.FC<AgeSelectionProps> = ({
       initial={{ opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
-      className="max-w-2xl mx-auto p-6"
     >
-      <div className="bg-gray-700 rounded-lg shadow-lg p-8 border border-gray-600">
-        <h2 className="text-3xl font-bold text-gray-100 mb-6 text-center">
-          Age Selection
-        </h2>
+      <h2 className="text-2xl text-sky-300 mb-6 text-center">
+        Age Selection
+      </h2>
 
-        <div className="mb-6">
-          <p className="text-gray-300 text-center mb-4">
-            Choose your {selectedRace?.name}'s age. Age affects ability scores, size, hit points, and armor class.
+      <div className="mb-6 max-w-2xl mx-auto">
+        <p className="text-gray-300 text-center mb-4">
+          Choose your {selectedRace?.name}'s age. Age affects ability scores, size, hit points, and armor class.
+        </p>
+
+        <div className="bg-gray-700 p-4 rounded-lg mb-6 border border-gray-600">
+          <h3 className="font-semibold text-amber-400 mb-2">Age Range for {selectedRace?.name}s</h3>
+          <p className="text-gray-200 mb-2">
+            Total lifespan: {ageData.min}-{ageData.max} years
           </p>
-
-          <div className="bg-blue-900 bg-opacity-30 p-4 rounded-lg mb-6 border border-blue-800 border-opacity-50">
-            <h3 className="font-semibold text-blue-300 mb-2">Age Range for {selectedRace?.name}s</h3>
-            <p className="text-blue-200 mb-2">
-              Total lifespan: {ageData.min}-{ageData.max} years
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-blue-100">
-              <div><strong>Child:</strong> {ageData.min}-{ageData.categories.child.max}y</div>
-              <div><strong>Adolescent:</strong> {ageData.categories.child.max + 1}-{ageData.categories.adolescent.max}y</div>
-              <div><strong>Adult:</strong> {ageData.categories.adolescent.max + 1}-{ageData.categories.adult.max}y</div>
-              <div><strong>Middle-aged:</strong> {ageData.categories.adult.max + 1}-{ageData.categories.middleAged.max}y</div>
-              <div><strong>Elderly:</strong> {ageData.categories.middleAged.max + 1}-{ageData.max}y</div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-300">
+            <div><strong>Child:</strong> {ageData.min}-{ageData.categories.child.max}y</div>
+            <div><strong>Adolescent:</strong> {ageData.categories.child.max + 1}-{ageData.categories.adolescent.max}y</div>
+            <div><strong>Adult:</strong> {ageData.categories.adolescent.max + 1}-{ageData.categories.adult.max}y</div>
+            <div><strong>Middle-aged:</strong> {ageData.categories.adult.max + 1}-{ageData.categories.middleAged.max}y</div>
+            <div><strong>Elderly:</strong> {ageData.categories.middleAged.max + 1}-{ageData.max}y</div>
           </div>
+        </div>
 
-          {ageCategory && (
-            <div className={`p-4 rounded-lg mb-6 border ${
-              ageCategory.statPenalty === 0
-                ? 'bg-green-900 bg-opacity-30 border-green-800'
-                : 'bg-orange-900 bg-opacity-30 border-orange-800'
-            }`}>
-              <h3 className="font-semibold text-gray-200 mb-2">
-                Current Age Category: <span className={`font-bold ${
-                  ageCategory.statPenalty === 0 ? 'text-green-400' : 'text-orange-400'
-                }`}>
-                  {ageCategory.name}
-                </span>
-              </h3>
-              <div className="text-sm text-gray-300 space-y-1">
-                {ageCategory.sizeModifier && (
-                  <p><strong>Size:</strong> {ageCategory.sizeModifier} (normally {selectedRace?.traits.find(t => t.includes('Size:'))?.split(':')[1]?.trim() || 'Medium'})</p>
-                )}
-                <p><strong>Ability Scores:</strong> {ageCategory.statPenalty >= 0 ? '+' : ''}{ageCategory.statPenalty} to all (Strength, Dexterity, Constitution, Intelligence, Wisdom, Charisma)</p>
-                <p><strong>Hit Points:</strong> Recalculated based on modified Constitution</p>
-                <p><strong>Armor Class:</strong> Recalculated if Dexterity is modified</p>
-                <div className="mt-2 p-2 bg-black bg-opacity-30 rounded text-xs text-gray-300">
-                  {ageCategory.statPenalty === 0
-                    ? "✅ Adult characters have full ability scores and are at peak physical/mental condition."
-                    : ageCategory.statPenalty === -1
-                    ? "⚠️ This age applies -1 to all ability scores, representing reduced physical/mental capabilities."
-                    : "⚠️ This age applies -2 to all ability scores, representing significantly reduced capabilities."
-                  }
-                </div>
+        {ageCategory && (
+          <div className={`p-4 rounded-lg mb-6 border ${
+            ageCategory.statPenalty === 0
+              ? 'bg-green-900 bg-opacity-30 border-green-800'
+              : 'bg-orange-900 bg-opacity-30 border-orange-800'
+          }`}>
+            <h3 className="font-semibold text-gray-200 mb-2">
+              Current Age Category: <span className={`font-bold ${
+                ageCategory.statPenalty === 0 ? 'text-green-400' : 'text-orange-400'
+              }`}>
+                {ageCategory.name}
+              </span>
+            </h3>
+            <div className="text-sm text-gray-300 space-y-1">
+              {ageCategory.sizeModifier && (
+                <p><strong>Size:</strong> {ageCategory.sizeModifier} (normally {selectedRace?.traits.find(t => t.includes('Size:'))?.split(':')[1]?.trim() || 'Medium'})</p>
+              )}
+              <p><strong>Ability Scores:</strong> {ageCategory.statPenalty >= 0 ? '+' : ''}{ageCategory.statPenalty} to all (Strength, Dexterity, Constitution, Intelligence, Wisdom, Charisma)</p>
+              <p><strong>Hit Points:</strong> Recalculated based on modified Constitution</p>
+              <p><strong>Armor Class:</strong> Recalculated if Dexterity is modified</p>
+              <div className="mt-2 p-2 bg-black bg-opacity-30 rounded text-xs text-gray-300">
+                {ageCategory.statPenalty === 0
+                  ? "✅ Adult characters have full ability scores and are at peak physical/mental condition."
+                  : ageCategory.statPenalty === -1
+                  ? "⚠️ This age applies -1 to all ability scores, representing reduced physical/mental capabilities."
+                  : "⚠️ This age applies -2 to all ability scores, representing significantly reduced capabilities."
+                }
               </div>
             </div>
-          )}
-
-          <div className="flex flex-col items-center space-y-4">
-            <label htmlFor="age" className="text-lg font-medium text-gray-300">
-              Character Age (years):
-            </label>
-
-            <input
-              id="age"
-              type="number"
-              value={ageInput}
-              onChange={(e) => handleAgeChange(e.target.value)}
-              min={ageData.min}
-              max={ageData.max}
-              className="w-32 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-center text-lg font-semibold text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500"
-            />
-
-            {!isValidAge && ageInput && (
-              <p className="text-red-400 text-sm">
-                Age must be between {ageData.min} and {ageData.max} years
-              </p>
-            )}
           </div>
-        </div>
+        )}
 
-        <div className="flex justify-between">
-          <button
-            onClick={onBack}
-            className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors"
-          >
-            Back
-          </button>
+        <div className="flex flex-col items-center space-y-4">
+          <label htmlFor="age" className="text-lg font-medium text-gray-300">
+            Character Age (years):
+          </label>
 
-          <button
-            onClick={handleSubmit}
-            disabled={!isValidAge}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
-          >
-            Next
-          </button>
+          <input
+            id="age"
+            type="number"
+            value={ageInput}
+            onChange={(e) => handleAgeChange(e.target.value)}
+            min={ageData.min}
+            max={ageData.max}
+            className="w-32 px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-center text-lg font-semibold text-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 placeholder-gray-500"
+          />
+
+          {!isValidAge && ageInput && (
+            <p className="text-red-400 text-sm">
+              Age must be between {ageData.min} and {ageData.max} years
+            </p>
+          )}
         </div>
+      </div>
+
+      <div className="flex justify-between max-w-2xl mx-auto">
+        <button
+          onClick={onBack}
+          className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors"
+        >
+          Back
+        </button>
+
+        <button
+          onClick={handleSubmit}
+          disabled={!isValidAge}
+          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-500 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
+        >
+          Next
+        </button>
       </div>
     </motion.div>
   );

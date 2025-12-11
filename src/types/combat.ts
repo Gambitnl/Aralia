@@ -54,6 +54,7 @@ export interface CombatCharacter {
   creatureTypes?: string[]; // e.g., ['Undead', 'Humanoid']
   alignment?: string; // e.g., 'Chaotic Evil', 'Lawful Good'
   class: Class;
+  savingThrowProficiencies?: AbilityScoreName[]; // For characters that have additional saving throw proficiencies (e.g. from feats)
   position: Position;
   stats: CharacterStats;
   abilities: Ability[];
@@ -294,6 +295,15 @@ export interface LightSource {
 export type BattleMapTerrain = 'grass' | 'rock' | 'water' | 'difficult' | 'wall' | 'floor' | 'sand' | 'mud';
 export type BattleMapDecoration = 'tree' | 'boulder' | 'stalagmite' | 'pillar' | 'cactus' | 'mangrove' | null;
 
+export interface EnvironmentalEffect {
+  id: string;
+  type: 'fire' | 'ice' | 'poison' | 'difficult_terrain' | 'web' | 'fog';
+  duration: number;
+  effect: StatusEffect;
+  sourceSpellId?: string;
+  casterId?: string;
+}
+
 export interface BattleMapTile {
   id: string; // "x-y"
   coordinates: { x: number; y: number };
@@ -305,11 +315,7 @@ export interface BattleMapTile {
   decoration: BattleMapDecoration;
   effects: string[]; // IDs of active effects
   providesCover?: boolean;
-  environmentalEffect?: {
-    type: 'fire' | 'ice' | 'poison' | 'difficult_terrain';
-    duration: number;
-    effect: StatusEffect;
-  };
+  environmentalEffects?: EnvironmentalEffect[];
 }
 
 export interface BattleMapData {

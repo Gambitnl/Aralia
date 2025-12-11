@@ -25,7 +25,8 @@ export class ResistanceCalculator {
   static applyResistances(
     baseDamage: number,
     damageType: DamageType,
-    target: CombatCharacter
+    target: CombatCharacter,
+    source?: CombatCharacter
   ): number {
     let finalDamage = baseDamage
 
@@ -35,7 +36,12 @@ export class ResistanceCalculator {
     }
 
     // 2. Resistance (Damage -> floor(Damage / 2))
-    if (this.isResistant(target, damageType)) {
+    // Check for Elemental Adept ignore resistance
+    const elementalAdeptChoice = source?.featChoices?.['elemental_adept']?.selectedDamageType;
+    const ignoresResistance = elementalAdeptChoice &&
+                              elementalAdeptChoice.toLowerCase() === damageType.toLowerCase();
+
+    if (this.isResistant(target, damageType) && !ignoresResistance) {
       finalDamage = Math.floor(finalDamage / 2)
     }
 

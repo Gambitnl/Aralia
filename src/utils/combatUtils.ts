@@ -383,6 +383,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     },
     spellbook: player.spellbook,
     spellSlots: player.spellSlots,
+    savingThrowProficiencies: player.savingThrowProficiencies,
   };
 }
 

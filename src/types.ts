@@ -456,6 +456,7 @@ export interface PlayerCharacter {
   abilityScores: AbilityScores;
   finalAbilityScores: AbilityScores;
   skills: Skill[];
+  savingThrowProficiencies?: AbilityScoreName[];
   feats?: string[]; // IDs of selected feats
   initiativeBonus?: number;
   hp: number;
