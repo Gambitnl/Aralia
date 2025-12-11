@@ -266,10 +266,20 @@ export interface EffectCondition {
 export interface TargetConditionFilter {
   /** Creature types this effect applies to (e.g., ["Undead", "Construct"]) */
   creatureType?: string[];
+  /** Preferred plural field for creature types (e.g., ["Undead", "Construct"]) */
+  creatureTypes?: string[];
+  /** Creature types excluded from the effect */
+  excludeCreatureTypes?: string[];
   /** Size categories this effect applies to (e.g., ["Large", "Huge"]) */
   size?: string[];
+  /** Preferred plural field for sizes */
+  sizes?: string[];
   /** Alignments this effect applies to (e.g., ["Evil"]) */
   alignment?: string[];
+  /** Preferred plural field for alignments */
+  alignments?: string[];
+  /** Conditions the target must have (e.g., ["Prone", "Charmed"]) */
+  hasCondition?: string[];
 }
 
 /** Base interface for all spell effects. */
