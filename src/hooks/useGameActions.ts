@@ -40,6 +40,7 @@ import {
 } from './actions/handleSystemAndUi';
 import { getDiegeticPlayerActionMessage } from '../utils/actionUtils';
 import { getSubmapTileInfo } from '../utils/submapUtils';
+import { formatGameTime } from '../utils/timeUtils';
 
 
 interface UseGameActionsProps {
@@ -109,7 +110,7 @@ export function useGameActions({
       dispatch({
         type: 'ADD_DISCOVERY_ENTRY',
         payload: {
-          gameTime: gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+          gameTime: formatGameTime(gameState.gameTime),
           type: DiscoveryType.LOCATION_DISCOVERY,
           title: `Location Discovered: ${newLocation.name}`,
           content: `You have discovered ${newLocation.name}. ${newLocation.baseDescription}`,
@@ -157,7 +158,7 @@ export function useGameActions({
       const submapTileInfo = gameState.subMapCoordinates ? getSubmapTileInfo(gameState.worldSeed, currentLoc.mapCoordinates, currentLoc.biomeId, SUBMAP_DIMENSIONS, gameState.subMapCoordinates) : null;
 
       const subMapCtx = submapTileInfo ? `You are standing on a '${submapTileInfo.effectiveTerrainType}' tile. ` : '';
-      const detailedLocationContext = `${subMapCtx}The location is ${currentLoc.name}. Biome: ${BIOMES[currentLoc.biomeId]?.name || 'Unknown'}. Game Time: ${gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}`;
+      const detailedLocationContext = `${subMapCtx}The location is ${currentLoc.name}. Biome: ${BIOMES[currentLoc.biomeId]?.name || 'Unknown'}. Game Time: ${formatGameTime(gameState.gameTime)}`;
       const generalActionContext = `Player context: ${playerContext}. Location context: ${detailedLocationContext}. NPCs present: ${npcsInLocation.map((n) => n.name).join(', ') || 'no one'}. Visible items: ${itemsInLocationNames}.`;
 
       try {

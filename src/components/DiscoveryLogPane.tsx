@@ -6,6 +6,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { GameState, DiscoveryEntry, DiscoveryType, DiscoveryFlag, DiscoverySource, NPC, KnownFact } from '../types';
 import Tooltip from './Tooltip';
+import { formatRealTime, formatRealDate } from '../utils/timeUtils';
 
 interface DiscoveryLogPaneProps {
   isOpen: boolean;
@@ -242,7 +243,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
                         )}
                         <span className={`flex-grow truncate ${!entry.isRead ? 'font-semibold' : ''}`}>{entry.title}</span>
                         </div>
-                        <span className="text-xs text-gray-500 block mt-0.5">{entry.type} - {new Date(entry.timestamp).toLocaleDateString()}</span>
+                        <span className="text-xs text-gray-500 block mt-0.5">{entry.type} - {formatRealDate(entry.timestamp)}</span>
                     </button>
                     </li>
                 ))}
@@ -257,7 +258,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
                 <h3 className="text-2xl font-semibold text-amber-300 mb-2 font-cinzel tracking-wide">{selectedEntry.title}</h3>
                 <div className="text-xs text-gray-500 mb-3 space-x-3">
                   <span><strong className="text-gray-400">Type:</strong> {selectedEntry.type}</span>
-                  <span><strong className="text-gray-400">Logged:</strong> {new Date(selectedEntry.timestamp).toLocaleString()}</span>
+                  <span><strong className="text-gray-400">Logged:</strong> {formatRealTime(selectedEntry.timestamp)}</span>
                   <span><strong className="text-gray-400">In-Game Time:</strong> {selectedEntry.gameTime}</span>
                 </div>
                 {selectedEntry.source && (

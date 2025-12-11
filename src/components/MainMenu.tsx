@@ -11,6 +11,7 @@ import LoadGameModal from './LoadGameModal';
 import SaveSlotSelector from './SaveSlotSelector';
 import { deleteSaveGame, getSaveSlots, SaveSlotSummary } from '../services/saveLoadService';
 import { VersionDisplay } from './VersionDisplay';
+import { formatRealTime } from '../utils/timeUtils';
 
 interface MainMenuProps {
   onNewGame: () => void;
@@ -63,8 +64,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
 
   const formatTimestamp = (timestamp: number | null): string => {
     if (!timestamp) return '';
-    const date = new Date(timestamp);
-    return `Last played: ${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    return `Last played: ${formatRealTime(timestamp)}`;
   };
 
   const handleLoadSlot = (slotId?: string) => {

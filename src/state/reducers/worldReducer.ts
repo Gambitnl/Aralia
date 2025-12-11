@@ -4,6 +4,7 @@
  */
 import { GameState, DiscoveryResidue } from '../../types';
 import { AppAction } from '../actionTypes';
+import { addSecondsToDate } from '../../utils/timeUtils';
 
 export function worldReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
@@ -38,9 +39,7 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         return { geminiGeneratedActions: action.payload };
 
     case 'ADVANCE_TIME':
-      const newTime = new Date(state.gameTime.getTime());
-      newTime.setSeconds(newTime.getSeconds() + action.payload.seconds);
-      return { gameTime: newTime };
+      return { gameTime: addSecondsToDate(state.gameTime, action.payload.seconds) };
     
     case 'ADD_MET_NPC': {
       const { npcId } = action.payload;

@@ -5,6 +5,7 @@
  */
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { formatGameTime } from '../utils/timeUtils';
 
 interface TimeInputState {
   minutes: number;
@@ -70,7 +71,7 @@ const PassTimeModal: React.FC<PassTimeModalProps> = ({ isOpen, onClose, onConfir
   const formatGameTimeForModal = (date: Date): string => {
     const diffMs = date.getTime() - new Date(351, 0, 1, 0, 0, 0).getTime();
     const dayNumber = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
-    const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    const timeString = formatGameTime(date);
     return `Day ${dayNumber}, ${timeString}`;
   };
 

@@ -5,6 +5,7 @@
  * an optional callback) instead of relying on intrusive `alert()` calls.
  */
 import { GameState, GamePhase, NotificationType } from '../types';
+import { formatRealTime } from '../utils/timeUtils';
 
 //
 // Save slot configuration
@@ -147,7 +148,7 @@ export async function saveGame(
     // real-world time instead of double-counting the segment we just recorded.
     resetSessionTimer(stateToSave.saveTimestamp!);
 
-    console.log(`Game saved to slot: ${storageKey} at ${new Date(stateToSave.saveTimestamp!).toLocaleString()}`);
+    console.log(`Game saved to slot: ${storageKey} at ${formatRealTime(stateToSave.saveTimestamp!)}`);
     const result = { success: true, message: "Game saved successfully." } as const;
     notify?.({ message: result.message, type: 'success' });
     return result;
@@ -222,7 +223,7 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
       playtimeSeconds: (parsedData as StoredSavePayload).preview?.playtimeSeconds,
     });
 
-    console.log(`Game loaded from slot: ${storageKey}, saved at ${new Date(loadedState.saveTimestamp!).toLocaleString()}`);
+    console.log(`Game loaded from slot: ${storageKey}, saved at ${formatRealTime(loadedState.saveTimestamp!)}`);
     const result = { success: true, message: "Game loaded successfully.", data: loadedState } as const;
     notify?.({ message: result.message, type: 'success' });
     resetSessionTimer();

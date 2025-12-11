@@ -6,6 +6,7 @@
 import React, { useEffect, useRef } from 'react';
 import { GameMessage } from '../types'; // Path relative to src/components/
 import Tooltip from './Tooltip'; // Import the new Tooltip component
+import { formatGameTime } from '../utils/timeUtils';
 
 interface WorldPaneProps {
   messages: GameMessage[];
@@ -112,10 +113,7 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
               {processMessageText(msg.text)}
             </p>
             <p className="text-xs text-gray-500 mt-1">
-              {new Date(msg.timestamp).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
+              {formatGameTime(new Date(msg.timestamp))}
             </p>
           </div>
         ))}

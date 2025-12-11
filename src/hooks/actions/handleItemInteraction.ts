@@ -11,6 +11,7 @@ import { ITEMS, LOCATIONS, SKILLS_DATA } from '../../constants';
 import * as GeminiService from '../../services/geminiService';
 import { getAbilityModifierValue } from '../../utils/characterUtils';
 import { INITIAL_QUESTS } from '../../data/quests';
+import { formatGameTime } from '../../utils/timeUtils';
 
 interface HandleTakeItemProps {
   action: Action;
@@ -43,7 +44,7 @@ export async function handleTakeItem({
     // Create the discovery entry here in the handler
     const newDiscoveryEntry: DiscoveryEntry = {
         id: crypto.randomUUID(),
-        gameTime: gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+        gameTime: formatGameTime(gameState.gameTime),
         type: DiscoveryType.ITEM_ACQUISITION,
         title: `Item Acquired: ${itemToTake.name}`,
         content: `You found and picked up ${itemToTake.name}. ${itemToTake.description}`,
@@ -157,7 +158,7 @@ export async function handleHarvestResource({
                 type: 'ADD_DISCOVERY_ENTRY', 
                 payload: {
                     id: crypto.randomUUID(),
-                    gameTime: gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+                    gameTime: formatGameTime(gameState.gameTime),
                     type: DiscoveryType.HARVEST,
                     title: `Harvested: ${item.name}`,
                     content: `You successfully harvested ${item.name}. ${item.description}`,

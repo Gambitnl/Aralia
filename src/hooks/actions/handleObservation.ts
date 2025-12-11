@@ -9,6 +9,7 @@ import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn, GetTileTooltipTextFn } from './actionHandlerTypes';
 import { DIRECTION_VECTORS } from '../../config/mapConfig';
+import { formatGameTime } from '../../utils/timeUtils';
 
 interface HandleLookAroundProps {
   gameState: GameState;
@@ -100,7 +101,7 @@ export async function handleInspectSubmapTile({
   }
   const { inspectTileDetails } = action.payload;
   const playerChar = gameState.party[0];
-  const gameTimeStr = gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+  const gameTimeStr = formatGameTime(gameState.gameTime, true);
 
   const inspectionResult = await GeminiService.generateTileInspectionDetails(
     inspectTileDetails as InspectSubmapTilePayload, 
