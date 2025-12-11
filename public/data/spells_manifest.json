@@ -21,7 +21,7 @@
     "name": "Alarm",
     "level": 1,
     "school": "Abjuration",
-    "path": "/data/spells/alarm.json"
+    "path": "/data/spells/level-1/alarm.json"
   },
   "alter-self": {
     "name": "Alter Self",
@@ -33,7 +33,7 @@
     "name": "Animal Friendship",
     "level": 1,
     "school": "Enchantment",
-    "path": "/data/spells/animal-friendship.json"
+    "path": "/data/spells/level-1/animal-friendship.json"
   },
   "animal-messenger": {
     "name": "Animal Messenger",
@@ -93,13 +93,13 @@
     "name": "Armor of Agathys",
     "level": 1,
     "school": "Abjuration",
-    "path": "/data/spells/armor-of-agathys.json"
+    "path": "/data/spells/level-1/armor-of-agathys.json"
   },
   "arms-of-hadar": {
     "name": "Arms of Hadar",
     "level": 1,
     "school": "Conjuration",
-    "path": "/data/spells/arms-of-hadar.json"
+    "path": "/data/spells/level-1/arms-of-hadar.json"
   },
   "astral-projection": {
     "name": "Astral Projection",
@@ -141,7 +141,7 @@
     "name": "Bane",
     "level": 1,
     "school": "Enchantment",
-    "path": "/data/spells/bane.json"
+    "path": "/data/spells/level-1/bane.json"
   },
   "banishment": {
     "name": "Banishment",

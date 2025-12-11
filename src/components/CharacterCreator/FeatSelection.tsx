@@ -1,3 +1,12 @@
+/**
+ * @file FeatSelection.tsx
+ *
+ * TODO: Styling inconsistency audit (2025-12-11)
+ * - Header uses `mb-4` instead of standard `mb-6`
+ * - Card backgrounds use `bg-gray-800` instead of `bg-gray-700` (standard)
+ * - Selected card uses amber accent (bg-amber-900/40 border-amber-500) which is unique but intentional
+ * - Consider standardizing header margin to `mb-6` for consistency
+ */
 import React, { useContext, useCallback, useMemo } from 'react';
 import { Feat, AbilityScoreName, MagicInitiateSource, FeatGrantedSpell } from '../../types';
 import SpellContext from '../../context/SpellContext';

@@ -1,0 +1,65 @@
+{
+  "id": "animal-friendship",
+  "name": "Animal Friendship",
+  "level": 1,
+  "school": "Enchantment",
+  "classes": ["Bard", "Druid", "Ranger"],
+  "description": "Convince a beast you mean no harm. The beast must see and hear you. If its Intelligence is 4 or higher, the spell fails. Otherwise it must succeed on a Wisdom save or be charmed for the duration. If you or your companions harm the target, the spell ends.",
+  "higherLevels": "When cast with a slot of 2nd level or higher, affect one additional beast per slot level above 1st.",
+  "tags": ["utility", "enchantment", "charm"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a morsel of food"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 24,
+    "unit": "hour",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 30,
+    "validTargets": ["creatures"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "negates_condition"
+      },
+      "statusCondition": {
+        "name": "Charmed",
+        "duration": {
+          "type": "minutes",
+          "value": 1440
+        },
+        "targetFilter": {
+          "creatureTypes": ["Beast"]
+        }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1 target"
+      }
+    }
+  ]
+}

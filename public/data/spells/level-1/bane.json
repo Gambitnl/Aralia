@@ -1,0 +1,60 @@
+{
+  "id": "bane",
+  "name": "Bane",
+  "level": 1,
+  "school": "Enchantment",
+  "classes": ["Bard", "Cleric", "Paladin", "Warlock"],
+  "description": "Up to three creatures of your choice within range make Charisma saves. On a failed save, whenever a target makes an attack roll or saving throw before the spell ends, it rolls a d4 and subtracts the number rolled.",
+  "higherLevels": "Target one additional creature for each slot level above 1st.",
+  "tags": ["debuff", "enchantment", "concentration"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a drop of blood"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "multi",
+    "range": 30,
+    "maxTargets": 3,
+    "validTargets": ["creatures"],
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Charisma",
+        "saveEffect": "none"
+      },
+      "statusCondition": {
+        "name": "Bane",
+        "duration": { "type": "minutes", "value": 1 }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1 target"
+      }
+    }
+  ]
+}

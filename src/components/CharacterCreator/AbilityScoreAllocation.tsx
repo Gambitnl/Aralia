@@ -5,6 +5,10 @@
  * It displays the base scores, racial bonuses, final calculated scores, and remaining points.
  * It also includes a Stat Recommender section based on the selected class and a button
  * to apply class-recommended stats.
+ *
+ * TODO: Minor styling inconsistency (2025-12-11)
+ * - Header uses `mb-2` instead of standard `mb-6` (intentional due to subtitle below)
+ * - This is acceptable since there's explanatory text immediately after the header
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { AbilityScores, Race, AbilityScoreName, Class as CharClass } from '../../types'; // Path relative to src/components/CharacterCreator/

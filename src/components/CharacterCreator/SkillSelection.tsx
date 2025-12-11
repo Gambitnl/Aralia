@@ -4,6 +4,10 @@
  * for their character from a list available to their chosen class.
  * For Elves, it also handles the "Keen Senses" skill choice.
  * It now prevents selecting class skills already granted by Human, Elf, Bugbear, Centaur or Changeling racial traits.
+ *
+ * TODO: Minor styling inconsistency (2025-12-11)
+ * - Header uses `mb-2` instead of standard `mb-6` (intentional due to subtitle below)
+ * - This is acceptable since there's explanatory text immediately after the header
  */
 import React, { useState, useEffect } from 'react';
 import {

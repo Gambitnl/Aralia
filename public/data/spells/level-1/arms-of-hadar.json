@@ -1,0 +1,72 @@
+{
+  "id": "arms-of-hadar",
+  "name": "Arms of Hadar",
+  "level": 1,
+  "school": "Conjuration",
+  "classes": ["Warlock"],
+  "description": "Tendrils of dark energy erupt from you. Each creature within 10 feet must make a Strength save. On a failed save, a target takes necrotic damage and can't take reactions until its next turn. On a success, it takes half damage only.",
+  "higherLevels": "Damage increases by 1d6 per slot level above 1st.",
+  "tags": ["damage", "area", "control"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "area",
+    "range": 0,
+    "validTargets": ["creatures"],
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 10
+    },
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Strength",
+        "saveEffect": "half"
+      },
+      "damage": {
+        "dice": "2d6",
+        "type": "Necrotic"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d6"
+      }
+    },
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": { "type": "immediate" },
+      "condition": {
+        "type": "save",
+        "saveType": "Strength",
+        "saveEffect": "none"
+      },
+      "statusCondition": {
+        "name": "Reactions Suppressed",
+        "duration": { "type": "rounds", "value": 1 }
+      }
+    }
+  ]
+}

@@ -1,6 +1,13 @@
 /**
  * @file BackgroundSelection.tsx
  * Allows players to select their character's background, with age-appropriate options.
+ *
+ * TODO: Styling inconsistency audit (2025-12-11)
+ * - Header uses `text-3xl font-bold text-gray-100` instead of standard `text-2xl text-sky-300`
+ * - Primary button uses `bg-blue-600` instead of `bg-green-600` (confirm) or `bg-sky-700` (action)
+ * - Selected card uses `border-blue-500 bg-blue-900` instead of `bg-sky-600 ring-2 ring-sky-400`
+ * - Container wrapper uses `bg-gray-700 p-8 border` but other steps have no wrapper
+ * - Consider aligning with RaceSelection.tsx/ClassSelection.tsx styling patterns
  */
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';

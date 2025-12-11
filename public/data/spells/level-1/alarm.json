@@ -1,0 +1,57 @@
+{
+  "id": "alarm",
+  "name": "Alarm",
+  "level": 1,
+  "school": "Abjuration",
+  "classes": ["Artificer", "Ranger", "Wizard"],
+  "description": "You set an alarm against unwanted intrusion on a door, window, or an area up to a 20-foot cube. Choose creatures that won’t trigger it. The alarm can be mental (ping in your mind within 1 mile) or audible (hand bell for 10 seconds within 60 feet).",
+  "higherLevels": "None",
+  "tags": ["utility", "detection", "ritual"],
+  "ritual": true,
+  "castingTime": {
+    "value": 1,
+    "unit": "minute",
+    "combatCost": {
+      "type": "action"
+    },
+    "explorationCost": {
+      "value": 1,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a tiny bell and a piece of fine silver wire"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 8,
+    "unit": "hour",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "area",
+    "range": 30,
+    "validTargets": ["point"],
+    "areaOfEffect": {
+      "shape": "Cube",
+      "size": 20
+    },
+    "lineOfSight": true
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "utilityType": "sensory",
+      "description": "Create a mental or audible alarm that triggers when a creature enters the warded area."
+    }
+  ]
+}

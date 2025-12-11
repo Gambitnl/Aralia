@@ -1,0 +1,65 @@
+{
+  "id": "armor-of-agathys",
+  "name": "Armor of Agathys",
+  "level": 1,
+  "school": "Abjuration",
+  "classes": ["Warlock"],
+  "description": "A protective magical force surrounds you as spectral frost. You gain 5 temporary hit points for the duration. If a creature hits you with a melee attack while you have these hit points, it takes 5 cold damage.",
+  "higherLevels": "When cast with a higher slot, the temporary hit points and cold damage each increase by 5 per slot level.",
+  "tags": ["defense", "damage", "cold"],
+  "ritual": false,
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "self"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a cup of water"
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": ["self"],
+    "lineOfSight": false
+  },
+  "effects": [
+    {
+      "type": "DEFENSIVE",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "defenseType": "temporary_hp",
+      "value": 5,
+      "duration": { "type": "minutes", "value": 60 },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+5 temp HP"
+      }
+    },
+    {
+      "type": "DAMAGE",
+      "trigger": { "type": "on_target_attack" },
+      "condition": { "type": "always" },
+      "damage": {
+        "dice": "5",
+        "type": "Cold"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+5"
+      }
+    }
+  ]
+}

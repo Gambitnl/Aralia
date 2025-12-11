@@ -1,6 +1,13 @@
 /**
  * @file AgeSelection.tsx
  * Allows players to select their character's age, with race-appropriate age ranges.
+ *
+ * TODO: Styling inconsistency audit (2025-12-11)
+ * - Header uses `text-3xl font-bold text-gray-100` instead of standard `text-2xl text-sky-300`
+ * - Primary button uses `bg-blue-600` instead of `bg-green-600` (confirm) or `bg-sky-700` (action)
+ * - Info panels use `bg-blue-900 bg-opacity-30 border-blue-800` instead of standard gray tones
+ * - Container wrapper uses `bg-gray-700 p-8 border` but other steps have no wrapper
+ * - Consider aligning with RaceSelection.tsx/ClassSelection.tsx styling patterns
  */
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
