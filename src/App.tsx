@@ -22,6 +22,7 @@ import { appReducer, initialGameState } from './state/appState';
 import { useAudio } from './hooks/useAudio';
 import { useGameActions } from './hooks/useGameActions';
 import { useGameInitialization } from './hooks/useGameInitialization';
+import { useHistorySync } from './hooks/useHistorySync';
 import { determineSettlementInfo } from './utils/settlementGeneration';
 
 // Utility functions
@@ -56,6 +57,9 @@ import LoadGameTransition from './components/LoadGameTransition';
 
 const App: React.FC = () => {
   const [gameState, dispatch] = useReducer(appReducer, initialGameState);
+
+  // 🏹 Ranger: Sync GamePhase with URL history
+  useHistorySync(gameState, dispatch);
 
   // State for Missing Choice Modal
   const [missingChoiceModal, setMissingChoiceModal] = useState<{
