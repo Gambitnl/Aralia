@@ -1,11 +1,5 @@
 /**
  * @file FeatSelection.tsx
- *
- * TODO: Styling inconsistency audit (2025-12-11)
- * - Header uses `mb-4` instead of standard `mb-6`
- * - Card backgrounds use `bg-gray-800` instead of `bg-gray-700` (standard)
- * - Selected card uses amber accent (bg-amber-900/40 border-amber-500) which is unique but intentional
- * - Consider standardizing header margin to `mb-6` for consistency
  */
 import React, { useContext, useCallback, useMemo } from 'react';
 import { Feat, AbilityScoreName, MagicInitiateSource, FeatGrantedSpell } from '../../types';
@@ -158,7 +152,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      <h2 className="text-2xl text-sky-300 mb-4 text-center">Select a Feat</h2>
+      <h2 className="text-2xl text-sky-300 mb-6 text-center">Select a Feat</h2>
       <p className="text-gray-400 text-center mb-6">
         Choose a feat to customize your character's abilities. This step is optional&mdash;continue without a selection if no feat fits your build.
       </p>
@@ -181,7 +175,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
                 ${disabled ? 'bg-gray-900 border-gray-800 cursor-not-allowed opacity-70'
                   : isSelected
                     ? 'bg-amber-900/40 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.3)]'
-                    : 'bg-gray-800 border-gray-700 hover:border-gray-500 hover:bg-gray-700/80'
+                    : 'bg-gray-700 border-gray-700 hover:border-gray-500 hover:bg-gray-600 shadow'
                 }
               `}
             >
