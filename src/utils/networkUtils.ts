@@ -17,26 +17,23 @@ export class NetworkError extends Error {
 
 interface FetchOptions extends RequestInit {
   timeoutMs?: number;
+  responseType?: 'json' | 'text';
 }
 
 /**
  * A wrapper around fetch that adds timeout support and typed error handling.
- * Automatically parses JSON response.
+ * Automatically parses JSON response by default, or text if specified.
  *
  * @param url The URL to fetch
- * @param options Fetch options plus an optional timeoutMs (default 10000ms)
- * @returns Promise<T> The parsed JSON response cast to T
+ * @param options Fetch options plus an optional timeoutMs (default 10000ms) and responseType (default 'json')
+ * @returns Promise<T> The parsed response cast to T
  */
 export async function fetchWithTimeout<T>(
   url: string,
   options: FetchOptions = {}
 ): Promise<T> {
-  const { timeoutMs = 10000, ...fetchOptions } = options;
+  const { timeoutMs = 10000, responseType = 'json', ...fetchOptions } = options;
   const controller = new AbortController();
-
-  // If the caller provided a signal, we should respect it too, but AbortController chaining is complex.
-  // For now, we assume we control the signal.
-  // TODO: Merge signals if needed in future.
 
   const id = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -53,6 +50,10 @@ export async function fetchWithTimeout<T>(
         response.status,
         response.statusText
       );
+    }
+
+    if (responseType === 'text') {
+      return (await response.text()) as unknown as T;
     }
 
     return (await response.json()) as T;
