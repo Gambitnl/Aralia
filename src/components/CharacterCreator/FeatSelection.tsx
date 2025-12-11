@@ -117,6 +117,10 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
   const hasSelectableASI = selectedFeat?.benefits?.selectableAbilityScores && selectedFeat.benefits.selectableAbilityScores.length > 0;
   const selectedASI = selectedFeatId ? featChoices[selectedFeatId]?.selectedAbilityScore : undefined;
 
+  // Damage type selection (Elemental Adept)
+  const hasSelectableDamageType = selectedFeat?.benefits?.selectableDamageTypes && selectedFeat.benefits.selectableDamageTypes.length > 0;
+  const selectedDamageType = selectedFeatId ? featChoices[selectedFeatId]?.selectedDamageType : undefined;
+
   // Spell benefits
   const spellBenefits = selectedFeat?.benefits?.spellBenefits;
   const hasSpellBenefits = !!spellBenefits;
@@ -282,6 +286,39 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
             </div>
           )}
 
+          {hasSelectableDamageType && (
+            <div className="mt-3">
+              <label className="block text-sm text-gray-300 mb-2">
+                Select Damage Type:
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {selectedFeat.benefits.selectableDamageTypes!.map((damageType) => (
+                  <button
+                    key={damageType}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSetFeatChoice(selectedFeatId, 'selectedDamageType', damageType);
+                    }}
+                    className={`
+                      px-3 py-2 rounded border text-sm transition-colors
+                      ${selectedDamageType === damageType
+                        ? 'bg-red-900 border-red-500 text-white'
+                        : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
+                      }
+                    `}
+                  >
+                    {damageType}
+                  </button>
+                ))}
+              </div>
+              {!selectedDamageType && (
+                <p className="text-xs text-amber-300 mt-2">
+                  Please select a damage type.
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Spell Benefits Section */}
           {hasSpellBenefits && spellBenefits && (
             <div className="mt-4 pt-4 border-t border-gray-700/50 space-y-6">
@@ -372,6 +409,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
             disabled={
               (!!selectedFeatId && !availableFeats.find(f => f.id === selectedFeatId)?.isEligible) ||
               (hasSelectableASI && !selectedASI) ||
+              (hasSelectableDamageType && !selectedDamageType) ||
               (hasSpellBenefits && !areSpellChoicesComplete)
             }
           >
