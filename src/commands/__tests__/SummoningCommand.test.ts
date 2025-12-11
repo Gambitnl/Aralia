@@ -138,7 +138,7 @@ describe('SummoningCommand', () => {
             } as any
         })
 
-        const createMockState = (characters: CombatCharacter[] = [mockCaster]): CombatState => ({
+        const createMockState = (characters: CombatCharacter[] = [mockCaster], mapData?: any): CombatState => ({
             isActive: true,
             characters,
             turnState: {} as any,
@@ -149,7 +149,8 @@ describe('SummoningCommand', () => {
             validMoves: [],
             combatLog: [],
             reactiveTriggers: [],
-            activeLightSources: []
+            activeLightSources: [],
+            mapData: mapData
         })
 
         const mockEffect: SummoningEffect = {
@@ -167,9 +168,9 @@ describe('SummoningCommand', () => {
             }
 
             const casterAtCorner = { ...mockCaster, position: { x: 0, y: 0 } }
-            const context = { ...createMockContext(mapData), caster: casterAtCorner }
+            const context = { ...createMockContext(undefined), caster: casterAtCorner }
             const command = new SummoningCommand(mockEffect, context)
-            const state = createMockState([casterAtCorner])
+            const state = createMockState([casterAtCorner], mapData)
 
             const newState = command.execute(state)
 
@@ -196,9 +197,9 @@ describe('SummoningCommand', () => {
             }
 
             const casterAtCorner = { ...mockCaster, position: { x: 9, y: 9 } }
-            const context = { ...createMockContext(mapData), caster: casterAtCorner }
+            const context = { ...createMockContext(undefined), caster: casterAtCorner }
             const command = new SummoningCommand(mockEffect, context)
-            const state = createMockState([casterAtCorner])
+            const state = createMockState([casterAtCorner], mapData)
 
             const newState = command.execute(state)
 
@@ -222,9 +223,9 @@ describe('SummoningCommand', () => {
             }
 
             const casterAtCorner = { ...mockCaster, position: { x: 0, y: 0 } }
-            const context = { ...createMockContext(mapData), caster: casterAtCorner }
+            const context = { ...createMockContext(undefined), caster: casterAtCorner }
             const command = new SummoningCommand(mockEffect, context)
-            const state = createMockState([casterAtCorner])
+            const state = createMockState([casterAtCorner], mapData)
 
             const newState = command.execute(state)
 
