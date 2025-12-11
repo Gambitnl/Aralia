@@ -4,6 +4,7 @@ import { GameState } from '../../../types'
 import { generateText } from '../../../services/geminiService'
 import { Position } from '../../../types/map'
 import { MaterialTagService } from './MaterialTagService'
+import { sanitizeAIInput, detectSuspiciousInput } from '../../../utils/securityUtils'
 
 export interface ArbitrationRequest {
     spell: Spell
@@ -148,11 +149,24 @@ class AISpellArbitrator {
             return { allowed: false, reason: 'No AI DM prompt defined' }
         }
 
+        // 🔒 SECURITY: Detect suspicious input first
+        const rawInput = playerInput || 'N/A';
+        if (detectSuspiciousInput(rawInput)) {
+             return {
+                allowed: false,
+                reason: 'Input rejected by security filter.'
+            }
+        }
+
+        // 🔒 SECURITY: Sanitize user input before injecting into prompt
+        const safeInput = sanitizeAIInput(rawInput, 500);
+
         const context = this.buildGameStateContext(caster, combatState, gameState)
         const targetNames = targets.map(t => t.name).join(', ') || 'None';
+
         const promptWithInput = spell.aiContext.prompt
             .replace('{target}', targetNames)
-            .replace('{playerInput}', playerInput || 'N/A')
+            .replace('{playerInput}', safeInput)
             .replace('{spellDC}', this.calculateSpellDC(caster).toString())
 
         try {
