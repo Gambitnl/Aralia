@@ -21,11 +21,13 @@ import { logReducer } from './reducers/logReducer';
 import { encounterReducer } from './reducers/encounterReducer';
 import { npcReducer } from './reducers/npcReducer';
 import { questReducer } from './reducers/questReducer';
+import { GAME_EPOCH } from '../utils/timeUtils';
 
 
 // Helper function to create a date at 07:00 AM on an arbitrary fixed date
 const createInitialGameTime = (): Date => {
-  const initialTime = new Date(351, 0, 1, 7, 0, 0, 0); 
+  const initialTime = new Date(GAME_EPOCH.getTime());
+  initialTime.setHours(7);
   return initialTime;
 };
 
