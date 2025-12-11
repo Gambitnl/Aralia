@@ -1,7 +1,7 @@
 
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { Spell } from '../types';
-import LoadingSpinner from '../components/LoadingSpinner';
+import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { fetchWithTimeout } from '../utils/networkUtils';
 
 export type SpellDataRecord = Record<string, Spell>;

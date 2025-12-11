@@ -34,7 +34,7 @@ Typically, this component is rendered conditionally in `App.tsx` based on a load
 
 ```tsx
 // Example in App.tsx
-import LoadingSpinner from './components/LoadingSpinner';
+import { LoadingSpinner } from './components/ui/LoadingSpinner';
 
 // ...
 {gameState.isLoading && <LoadingSpinner message={gameState.loadingMessage} />}
