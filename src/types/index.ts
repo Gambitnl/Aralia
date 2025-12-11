@@ -267,6 +267,7 @@ export interface PlayerCharacter {
   abilityScores: AbilityScores;
   finalAbilityScores: AbilityScores;
   skills: Skill[];
+  savingThrowProficiencies?: AbilityScoreName[];
   hp: number;
   maxHp: number;
   armorClass: number;

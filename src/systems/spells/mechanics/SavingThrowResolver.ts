@@ -67,7 +67,10 @@ export class SavingThrowResolver {
 
     let proficiency = 0
     // Check if character has a class and if that class has proficiency in this save
-    if (character.class?.savingThrowProficiencies?.includes(saveType)) {
+    const classHasProficiency = character.class?.savingThrowProficiencies?.includes(saveType);
+    const charHasProficiency = character.savingThrowProficiencies?.includes(saveType);
+
+    if (classHasProficiency || charHasProficiency) {
       proficiency = this.getProficiencyBonus(character.level)
     }
 

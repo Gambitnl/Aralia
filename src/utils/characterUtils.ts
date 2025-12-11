@@ -498,6 +498,20 @@ export const applyFeatToCharacter = (
     updated.initiativeBonus = (updated.initiativeBonus || 0) + benefit.initiativeBonus;
   }
 
+  // Handle saving throw proficiencies
+  if (benefit?.savingThrowLinkedToAbility && options?.selectedAbilityScore) {
+    const currentProfs = updated.savingThrowProficiencies || [];
+    if (!currentProfs.includes(options.selectedAbilityScore)) {
+      updated.savingThrowProficiencies = [...currentProfs, options.selectedAbilityScore];
+    }
+  } else if (benefit?.savingThrowProficiencies) {
+     const currentProfs = updated.savingThrowProficiencies || [];
+     const newProfs = benefit.savingThrowProficiencies.filter(p => !currentProfs.includes(p));
+     if (newProfs.length > 0) {
+        updated.savingThrowProficiencies = [...currentProfs, ...newProfs];
+     }
+  }
+
   if (benefit?.hpMaxIncreasePerLevel && applyHpBonus) {
     const hpBonus = benefit.hpMaxIncreasePerLevel * (updated.level || 1);
     updated.maxHp = (updated.maxHp || 0) + hpBonus;

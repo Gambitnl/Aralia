@@ -76,13 +76,14 @@ export function rollSavingThrow(
     let mod = Math.floor((score - 10) / 2);
 
     // Add proficiency if applicable
-    // Check if class has proficiency in this save
-    const isProficient = target.class?.savingThrowProficiencies?.includes(ability.slice(0, 3) as any) || target.class?.savingThrowProficiencies?.includes(ability);
+    // Check if class or character has proficiency in this save
+    const classHasProficiency = target.class?.savingThrowProficiencies?.includes(ability.slice(0, 3) as any) || target.class?.savingThrowProficiencies?.includes(ability);
+    const charHasProficiency = target.savingThrowProficiencies?.includes(ability.slice(0, 3) as any) || target.savingThrowProficiencies?.includes(ability);
 
     // Note: SavingThrowAbility is "Strength", "Dexterity", etc.
-    // Class.savingThrowProficiencies is AbilityScoreName ("Strength", etc.)
+    // Class.savingThrowProficiencies and target.savingThrowProficiencies are AbilityScoreName ("Strength", etc.)
     // So direct comparison should work.
-    if (target.class?.savingThrowProficiencies?.includes(ability as any)) {
+    if (classHasProficiency || charHasProficiency) {
         mod += calculateProficiencyBonus(target.level || 1);
     }
 
