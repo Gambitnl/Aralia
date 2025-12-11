@@ -447,6 +447,7 @@ export const applyFeatToCharacter = (
     selectedCantrips?: string[];
     selectedLeveledSpells?: string[];
     selectedSpellSource?: MagicInitiateSource;
+    selectedSkills?: string[];
   }
 ): PlayerCharacter => {
   let updated: PlayerCharacter = { ...character };
@@ -481,9 +482,20 @@ export const applyFeatToCharacter = (
     updated.abilityScores = nextBase;
   }
 
+  // Handle fixed skill proficiencies
   if (benefit?.skillProficiencies) {
     const newSkills = new Map(updated.skills.map(s => [s.id, s]));
     benefit.skillProficiencies.forEach(skillId => {
+      const skill = SKILLS_DATA[skillId];
+      if (skill) newSkills.set(skillId, skill);
+    });
+    updated.skills = Array.from(newSkills.values());
+  }
+
+  // Handle selectable skill proficiencies (e.g. Skilled feat)
+  if (options?.selectedSkills && options.selectedSkills.length > 0) {
+    const newSkills = new Map(updated.skills.map(s => [s.id, s]));
+    options.selectedSkills.forEach(skillId => {
       const skill = SKILLS_DATA[skillId];
       if (skill) newSkills.set(skillId, skill);
     });
@@ -539,6 +551,7 @@ export const applyAllFeats = (
       selectedCantrips: choices?.selectedCantrips as string[] | undefined,
       selectedLeveledSpells: choices?.selectedLeveledSpells as string[] | undefined,
       selectedSpellSource: choices?.selectedSpellSource as MagicInitiateSource | undefined,
+      selectedSkills: choices?.selectedSkills as string[] | undefined,
     });
   }, { ...character });
 };
@@ -641,6 +654,7 @@ export const performLevelUp = (
       updatedCharacter = applyFeatToCharacter(updatedCharacter, feat, {
         applyHpBonus: false,
         selectedAbilityScore: featChoice?.selectedAbilityScore,
+        selectedSkills: featChoice?.selectedSkills as string[] | undefined,
       });
 
       // Store feat choices on the character if provided

@@ -8,11 +8,12 @@
  * - Consider standardizing header margin to `mb-6` for consistency
  */
 import React, { useContext, useCallback, useMemo } from 'react';
-import { Feat, AbilityScoreName, MagicInitiateSource, FeatGrantedSpell } from '../../types';
+import { Feat, AbilityScoreName, MagicInitiateSource, FeatGrantedSpell, Skill } from '../../types';
 import SpellContext from '../../context/SpellContext';
 import FeatSpellPicker from './FeatSpellPicker';
 import SpellSourceSelector from './SpellSourceSelector';
 import { getSchoolIcon } from '../../utils/spellFilterUtils';
+import { SKILLS_DATA } from '../../constants';
 
 interface FeatOption extends Feat {
   isEligible: boolean;
@@ -103,11 +104,12 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
 
     const newFeatId = selectedFeatId === featId ? '' : featId;
 
-    // Clear spell choices when feat changes
+    // Clear spell and skill choices when feat changes
     if (selectedFeatId && selectedFeatId !== newFeatId) {
       onSetFeatChoice(selectedFeatId, 'selectedCantrips', []);
       onSetFeatChoice(selectedFeatId, 'selectedLeveledSpells', []);
       onSetFeatChoice(selectedFeatId, 'selectedSpellSource', undefined);
+      onSetFeatChoice(selectedFeatId, 'selectedSkills', []);
     }
 
     onSelectFeat(newFeatId);
@@ -122,6 +124,11 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
   const hasSpellBenefits = !!spellBenefits;
   const currentChoices = selectedFeatId ? featChoices[selectedFeatId] : undefined;
   const selectedSpellSource = currentChoices?.selectedSpellSource as MagicInitiateSource | undefined;
+
+  // Skill Selection
+  const selectableSkillCount = selectedFeat?.benefits?.selectableSkillCount || 0;
+  const hasSkillSelection = selectableSkillCount > 0;
+  const selectedSkills = (currentChoices?.selectedSkills as string[]) || [];
 
   // Helper to check if all spell choices are complete
   const areSpellChoicesComplete = useMemo(() => {
@@ -155,6 +162,19 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
     }
     onSetFeatChoice(selectedFeatId, 'selectedSpellSource', source);
   }, [selectedFeatId, selectedSpellSource, onSetFeatChoice]);
+
+  const toggleSkill = (skillId: string) => {
+    if (!selectedFeatId) return;
+    const newSelection = new Set(selectedSkills);
+    if (newSelection.has(skillId)) {
+      newSelection.delete(skillId);
+    } else {
+      if (newSelection.size < selectableSkillCount) {
+        newSelection.add(skillId);
+      }
+    }
+    onSetFeatChoice(selectedFeatId, 'selectedSkills', Array.from(newSelection));
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -282,6 +302,53 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
             </div>
           )}
 
+          {/* Skill Selection Section */}
+          {hasSkillSelection && (
+            <div className="mt-4 pt-4 border-t border-gray-700/50">
+               <h3 className="text-lg text-sky-300 font-cinzel mb-2">Skill Proficiencies</h3>
+               <p className="text-sm text-gray-400 mb-3">
+                  Choose {selectableSkillCount} skills to gain proficiency in:
+               </p>
+               <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-60 overflow-y-auto pr-2">
+                 {Object.values(SKILLS_DATA).map((skill) => {
+                   const isSelected = selectedSkills.includes(skill.id);
+                   const isMaxReached = selectedSkills.length >= selectableSkillCount;
+                   const isDisabled = !isSelected && isMaxReached;
+
+                   return (
+                     <div
+                        key={skill.id}
+                        onClick={() => !isDisabled && toggleSkill(skill.id)}
+                        className={`
+                          flex items-center p-2 rounded border cursor-pointer text-sm transition-colors
+                          ${isSelected
+                            ? 'bg-sky-900/50 border-sky-500 text-sky-100'
+                            : isDisabled
+                                ? 'bg-gray-800 border-gray-700 text-gray-500 cursor-not-allowed opacity-60'
+                                : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
+                          }
+                        `}
+                     >
+                       <div className={`w-4 h-4 rounded border mr-2 flex items-center justify-center
+                          ${isSelected ? 'bg-sky-500 border-sky-500' : 'border-gray-500'}
+                       `}>
+                          {isSelected && (
+                             <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                             </svg>
+                          )}
+                       </div>
+                       <span>{skill.name}</span>
+                     </div>
+                   );
+                 })}
+               </div>
+               <div className="text-right text-xs text-gray-400 mt-2">
+                  Selected: <span className={`${selectedSkills.length === selectableSkillCount ? 'text-green-400' : 'text-amber-400'}`}>{selectedSkills.length}</span> / {selectableSkillCount}
+               </div>
+            </div>
+          )}
+
           {/* Spell Benefits Section */}
           {hasSpellBenefits && spellBenefits && (
             <div className="mt-4 pt-4 border-t border-gray-700/50 space-y-6">
@@ -372,7 +439,8 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
             disabled={
               (!!selectedFeatId && !availableFeats.find(f => f.id === selectedFeatId)?.isEligible) ||
               (hasSelectableASI && !selectedASI) ||
-              (hasSpellBenefits && !areSpellChoicesComplete)
+              (hasSpellBenefits && !areSpellChoicesComplete) ||
+              (hasSkillSelection && selectedSkills.length !== selectableSkillCount)
             }
           >
             Continue
