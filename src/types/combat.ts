@@ -4,10 +4,8 @@
  * This file contains all combat-related TypeScript type definitions and interfaces
  * used throughout the Aralia RPG application's battle map feature.
  */
-import { Class, SpellbookData, SpellSlots, Item } from './index';
+import { Class, SpellbookData, SpellSlots, Item, AbilityScoreName } from './index';
 import { Spell, DamageType, SavingThrowAbility, ConditionName, EffectDuration, SpellEffect } from './spells'; // Import Spell
-
-export type { SpellSlots };
 
 // --- NEW COMBAT SYSTEM TYPES ---
 
@@ -123,7 +121,7 @@ export interface AbilityCost {
   };
 }
 
-export interface AreaOfEffect {
+export interface CombatAreaOfEffect {
   shape: 'circle' | 'cone' | 'line' | 'square';
   size: number; // radius for circle, length for line/cone, side for square
   angle?: number; // for cone abilities
@@ -175,7 +173,7 @@ export interface Ability {
    */
   areaShape?: 'circle' | 'cone' | 'line' | 'square';
   areaSize?: number;
-  areaOfEffect?: AreaOfEffect;
+  areaOfEffect?: CombatAreaOfEffect;
   effects: AbilityEffect[];
   cooldown?: number;
   currentCooldown?: number;

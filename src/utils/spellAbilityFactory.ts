@@ -11,8 +11,8 @@
  * This allows us to define a spell ONCE in the JSON data, and have it automatically
  * work in the BattleMap without writing manual code for every single spell.
  */
-import { Spell, AbilityScoreName } from '../types';
-import { Ability, AbilityCost, AbilityEffect, AreaOfEffect, TargetingType } from '../types/combat';
+import { LegacySpell as Spell, AbilityScoreName } from '../types';
+import { Ability, AbilityCost, AbilityEffect, CombatAreaOfEffect as AreaOfEffect, TargetingType } from '../types/combat';
 import { PlayerCharacter } from '../types';
 import { getAbilityModifierValue } from './characterUtils';
 

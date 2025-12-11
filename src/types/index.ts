@@ -8,11 +8,17 @@ import React from 'react';
 import { CombatCharacter, CharacterStats, Position, CombatState } from './combat'; // Adjusted import path for sibling file
 import type { VillageTileType } from '../services/villageGenerator';
 
-export type { CombatCharacter, CharacterStats, Position, CombatState };
-
+export * from './combat';
 export * from './spells';
+// Core D&D Attributes
+export * from './stats';
+// Item types
+export * from './items';
+// Legacy types
+export * from './legacy';
 
-export * from './spells';
+import { AbilityScoreName, AbilityScores, Skill, RacialAbilityBonus } from './stats';
+import { Item, EquipmentSlotType, ArmorCategory, Mastery } from './items';
 
 export enum GamePhase {
   MAIN_MENU,
@@ -23,35 +29,6 @@ export enum GamePhase {
   LOAD_TRANSITION,
   VILLAGE_VIEW,
   COMBAT, // New phase for active combat encounters
-}
-
-// Core D&D Attributes
-export type AbilityScoreName =
-  | 'Strength'
-  | 'Dexterity'
-  | 'Constitution'
-  | 'Intelligence'
-  | 'Wisdom'
-  | 'Charisma';
-
-export interface AbilityScores {
-  Strength: number;
-  Dexterity: number;
-  Constitution: number;
-  Intelligence: number;
-  Wisdom: number;
-  Charisma: number;
-}
-
-export interface Skill {
-  id: string;
-  name: string;
-  ability: AbilityScoreName;
-}
-
-export interface RacialAbilityBonus {
-  ability: AbilityScoreName;
-  bonus: number;
 }
 
 export type ElvenLineageType = 'drow' | 'high_elf' | 'wood_elf';
@@ -118,6 +95,143 @@ export interface RacialSpell {
   spellId: string;
 }
 
+export interface Feat {
+  id: string;
+  name: string;
+  description: string;
+  prerequisites?: {
+    minLevel?: number;
+    abilityScores?: Partial<AbilityScores>;
+    raceId?: string;
+    classId?: string;
+    requiresFightingStyle?: boolean; // For Fighting Style feats
+  };
+  benefits?: {
+    abilityScoreIncrease?: Partial<AbilityScores>;
+    // If abilityScoreIncrease is empty object {}, it means "select one" - options defined in selectableAbilityScores
+    selectableAbilityScores?: AbilityScoreName[]; // Which abilities can be chosen for ASI
+
+    // Skill proficiency options
+    skillProficiencies?: string[];
+    /** Number of skills player must choose (e.g., Skilled = 3). TODO: Implement skill selection UI in character builder */
+    selectableSkillCount?: number;
+
+    // Saving throw proficiency options
+    savingThrowProficiencies?: AbilityScoreName[];
+    /** If true, saving throw proficiency matches the selected ability score (for Resilient feat).
+     *  TODO: Implement logic in applyFeatToCharacter to grant save proficiency based on selected ability */
+    savingThrowLinkedToAbility?: boolean;
+
+    /** Damage types player can choose from (e.g., Elemental Adept). TODO: Implement damage type selection UI */
+    selectableDamageTypes?: string[];
+
+    speedIncrease?: number;
+    initiativeBonus?: number;
+    hpMaxIncreasePerLevel?: number;
+    resistance?: string[];
+    // Spell-granting benefits for feats like Magic Initiate, Fey-Touched, etc.
+    spellBenefits?: FeatSpellBenefits;
+  };
+}
+
+// ============================================================================
+// SPELL-GRANTING FEAT TYPES
+// ============================================================================
+
+/**
+ * The eight schools of magic in D&D 5e.
+ */
+export type SpellSchool =
+  | 'Abjuration'
+  | 'Conjuration'
+  | 'Divination'
+  | 'Enchantment'
+  | 'Evocation'
+  | 'Illusion'
+  | 'Necromancy'
+  | 'Transmutation';
+
+/**
+ * Spellcasting classes available for Magic Initiate feat.
+ */
+export type MagicInitiateSource =
+  | 'bard'
+  | 'cleric'
+  | 'druid'
+  | 'sorcerer'
+  | 'warlock'
+  | 'wizard';
+
+/**
+ * Configuration for a spell choice requirement in a feat.
+ * Supports filtering by level, school, and attack type.
+ */
+export interface FeatSpellRequirement {
+  /** How many spells must be chosen */
+  count: number;
+  /** Spell level (0 = cantrip, 1 = 1st level, etc.) */
+  level: number;
+  /** Filter by spell school(s) */
+  schools?: SpellSchool[];
+  /** Only spells that require an attack roll */
+  requiresAttack?: boolean;
+  /** Description shown to user explaining what they can pick */
+  description: string;
+}
+
+/**
+ * A spell automatically granted by a feat, with usage restrictions.
+ */
+export interface FeatGrantedSpell {
+  /** The spell ID (must match spell data) */
+  spellId: string;
+  /** How often the spell can be cast */
+  castingMethod: 'at_will' | 'once_per_long_rest' | 'once_per_short_rest';
+  /** Special notes about modifications (e.g., "Range extended to 60 ft") */
+  specialNotes?: string;
+}
+
+/**
+ * Spell-related benefits for a feat.
+ */
+export interface FeatSpellBenefits {
+  /** For Magic Initiate: which class spell lists can be chosen from */
+  selectableSpellSource?: MagicInitiateSource[];
+  /** Spells that require player choice */
+  spellChoices?: FeatSpellRequirement[];
+  /** Spells automatically granted (no choice needed) */
+  grantedSpells?: FeatGrantedSpell[];
+}
+
+export interface FeatPrerequisiteContext {
+  level: number;
+  abilityScores: AbilityScores;
+  raceId?: string;
+  classId?: string;
+  knownFeats?: string[];
+  hasFightingStyle?: boolean; // Whether character's class has Fighting Style feature
+}
+
+export interface LevelUpChoices {
+  abilityScoreIncreases?: Partial<AbilityScores>;
+  featId?: string;
+  featChoices?: {
+    // Store choices made for feats during level-up (e.g., selected ability score, spells, etc.)
+    [featId: string]: {
+      selectedAbilityScore?: AbilityScoreName;
+      selectedSpells?: string[];
+      selectedCantrips?: string[];        // Cantrips chosen for spell-granting feats
+      selectedLeveledSpells?: string[];   // Leveled spells chosen for spell-granting feats
+      selectedSpellSource?: MagicInitiateSource; // Class source for Magic Initiate
+      selectedSkills?: string[];
+      selectedWeapons?: string[];
+      selectedTools?: string[];
+      selectedDamageType?: string;
+      [key: string]: any; // Allow for future choice types
+    };
+  };
+}
+
 export interface Race {
   id: string;
   name: string;
@@ -157,6 +271,22 @@ export type DraconicDamageType =
 export interface DraconicAncestryInfo {
   type: DraconicAncestorType;
   damageType: DraconicDamageType;
+}
+
+/**
+ * A comprehensive type that bundles all race-related data, including lineages,
+ * subraces, and other unique racial choices. This provides a single, strongly-typed
+ * source for all non-core race data.
+ */
+// Why: This type supports the RACE_DATA_BUNDLE export from `src/data/races/index.ts`.
+// By defining a clear type for the bundle, we ensure type safety and provide
+// better autocompletion for developers. This makes the data easier to work with
+// and reduces the likelihood of runtime errors.
+export interface RaceDataBundle {
+  dragonbornAncestries: Record<DraconicAncestorType, DraconicAncestryInfo>;
+  goliathGiantAncestries: GiantAncestryBenefit[];
+  tieflingLegacies: FiendishLegacy[];
+  gnomeSubraces: GnomeSubrace[];
 }
 
 export interface ClassFeature {
@@ -217,10 +347,6 @@ export interface Class {
   recommendedPointBuyPriorities?: AbilityScoreName[];
 }
 
-export type EquipmentSlotType =
-  | 'Head' | 'Neck' | 'Torso' | 'Cloak' | 'Belt'
-  | 'MainHand' | 'OffHand' | 'Wrists' | 'Ring' | 'Ring1' | 'Ring2' | 'Feet' | 'Legs' | 'Hands';
-
 export interface ResourceVial {
   current: number;
   max: number;
@@ -268,6 +394,8 @@ export interface PlayerCharacter {
   finalAbilityScores: AbilityScores;
   skills: Skill[];
   savingThrowProficiencies?: AbilityScoreName[];
+  feats?: string[]; // IDs of selected feats
+  initiativeBonus?: number;
   hp: number;
   maxHp: number;
   armorClass: number;
@@ -302,47 +430,6 @@ export interface PlayerCharacter {
 export interface CanEquipResult {
   can: boolean;
   reason?: string;
-}
-
-export type ArmorCategory = 'Light' | 'Medium' | 'Heavy' | 'Shield';
-
-export interface Mastery {
-  id: string;
-  name: string;
-  description: string;
-}
-
-export interface Item {
-  id: string;
-  name: string;
-  description: string;
-  type: 'weapon' | 'armor' | 'accessory' | 'clothing' | 'consumable' | 'potion' | 'food_drink' | 'poison_toxin' | 'tool' | 'light_source' | 'ammunition' | 'trap' | 'note' | 'book' | 'map' | 'scroll' | 'key' | 'spell_component' | 'crafting_material' | 'treasure';
-  icon?: string;
-  slot?: EquipmentSlotType;
-  effect?: string;
-  mastery?: string;
-  category?: string;
-  armorCategory?: ArmorCategory;
-  baseArmorClass?: number;
-  addsDexterityModifier?: boolean;
-  maxDexterityBonus?: number;
-  strengthRequirement?: number;
-  stealthDisadvantage?: boolean;
-  armorClassBonus?: number;
-  damageDice?: string;
-  damageType?: string;
-  properties?: string[];
-  isMartial?: boolean;
-  donTime?: string;
-  doffTime?: string;
-  weight?: number;
-  cost?: string;
-  costInGp?: number;
-  isConsumed?: boolean;
-  substitutable?: boolean;
-  shelfLife?: string;
-  nutritionValue?: number;
-  perishable?: boolean;
 }
 
 export interface LocationDynamicNpcConfig {
@@ -468,6 +555,40 @@ export interface MapTile {
 export interface MapData {
   gridSize: { rows: number; cols: number };
   tiles: MapTile[][];
+}
+
+export interface PointOfInterest {
+  /** Unique ID to reference this POI within UI elements. */
+  id: string;
+  /** Human readable name shown inside tooltips and legends. */
+  name: string;
+  /** Short description for hover tooltips. */
+  description: string;
+  /** World-map aligned coordinates (tile space, not pixels). */
+  coordinates: { x: number; y: number };
+  /** Emoji or small string icon used on the map surface. */
+  icon: string;
+  /** Category helps the legend group similar markers. */
+  category: 'settlement' | 'landmark' | 'ruin' | 'cave' | 'wilderness';
+  /** Optional link back to a formal Location entry. */
+  locationId?: string;
+}
+
+export interface MapMarker {
+  /** ID of the originating POI or generated marker. */
+  id: string;
+  /** Tile-space coordinates where the marker should render. */
+  coordinates: { x: number; y: number };
+  /** Icon rendered on both the minimap canvas and the large map grid. */
+  icon: string;
+  /** Text label shown in tooltips or alongside the icon. */
+  label: string;
+  /** Optional grouping used by the legend to style or describe the marker. */
+  category?: string;
+  /** Whether the marker should render as "known" (tile discovered or player present). */
+  isDiscovered: boolean;
+  /** Associated Location ID, if any, to aid tooltips. */
+  relatedLocationId?: string;
 }
 
 export enum QuestStatus {

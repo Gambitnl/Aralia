@@ -4,7 +4,7 @@
  * Extracts pure logic from useAbilitySystem hooks to keep components focused.
  */
 
-import { Position, AreaOfEffect, CombatCharacter } from '../types/combat';
+import { Position, CombatAreaOfEffect as AreaOfEffect, CombatCharacter } from '../types/combat';
 import { AoEShape, AoEParams } from './aoeCalculations';
 
 /**

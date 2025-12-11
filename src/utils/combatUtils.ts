@@ -3,7 +3,7 @@
  * @file src/utils/combatUtils.ts
  * Utility functions for the combat system.
  */
-import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect } from '../types/combat';
+import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, CombatAreaOfEffect as AreaOfEffect } from '../types/combat';
 import { PlayerCharacter, Monster } from '../types';
 import { Spell } from '../types/spells'; // Explicit import to avoid conflicts
 import { CLASSES_DATA, MONSTERS_DATA } from '../constants';

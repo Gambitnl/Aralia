@@ -1,4 +1,5 @@
-import type { Position, AreaOfEffect } from '@/types'
+import type { Position } from '@/types'
+import type { AreaOfEffect } from '@/types/spells'
 import { getCone } from './gridAlgorithms/cone'
 import { getCube } from './gridAlgorithms/cube'
 import { getSphere } from './gridAlgorithms/sphere'
