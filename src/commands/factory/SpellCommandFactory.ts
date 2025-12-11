@@ -1,4 +1,4 @@
-import { Spell, SpellEffect } from '@/types/spells'
+import { Spell, SpellEffect, TargetConditionFilter } from '@/types/spells'
 import { CombatCharacter, CombatState } from '@/types/combat'
 import { isDamageEffect, isHealingEffect } from '@/types/spells'
 import { SpellCommand, CommandContext } from '../base/SpellCommand'
@@ -115,12 +115,13 @@ export class SpellCommandFactory {
   /**
    * Check if a target matches the filter
    */
-  public static matchesFilter(target: CombatCharacter, filter: any): boolean {
+  public static matchesFilter(target: CombatCharacter, filter: TargetConditionFilter): boolean {
     if (!filter) return true
 
-    // Creature Type
-    if (filter.creatureTypes && filter.creatureTypes.length > 0) {
-      if (!target.creatureTypes || !filter.creatureTypes.some((t: string) => target.creatureTypes!.includes(t))) {
+    // Creature Type (supports both singular and plural from schema)
+    const allowedTypes = filter.creatureTypes || filter.creatureType
+    if (allowedTypes && allowedTypes.length > 0) {
+      if (!target.creatureTypes || !allowedTypes.some((t: string) => target.creatureTypes!.includes(t))) {
         return false
       }
     }
