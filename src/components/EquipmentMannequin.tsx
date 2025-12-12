@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import { PlayerCharacter, EquipmentSlotType, Item, ArmorCategory } from '../types';
-import Tooltip from './Tooltip';
+import Tooltip from './ui/Tooltip';
 
 // Import default icon components
 import HeadIcon from '../assets/icons/HeadIcon';
