@@ -1,3 +1,0 @@
-- Explore extracting the themed overwrite modal into a shared component so future confirmations inherit the focus trap and keyboard handling by default.
-- Add an automated accessibility check (axe-core or equivalent) for the save slot selector to prevent regressions in focus management.
-- Consider persisting the slot metadata cache to sessionStorage between reloads to avoid rebuilding previews after a soft refresh.

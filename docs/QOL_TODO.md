@@ -221,3 +221,69 @@ from code reviews and feature planning. Each item is rated by urgency/impact and
         2.  Address any deprecation warnings.
         3.  Verify no errors during typical gameplay flows.
     *   **Status**: PENDING
+
+20. **[Low Urgency - Architecture] Race Data Synchronization & Validation**:
+    *   **Description**: Improve race data architecture to ensure synchronization between `ACTIVE_RACES` and `ALL_RACES_DATA`, add validation, and reduce import scatter.
+    *   **Approach**:
+        1.  Derive `ACTIVE_RACES` directly from `ALL_RACES_DATA` (or vice versa) to guarantee synchronization without manual copying.
+        2.  Add validation helpers that assert required fields (speed, abilities, feature lists) during aggregation so incomplete race definitions fail fast.
+        3.  Extend duplicate-ID detection to cover subrace/lineage identifiers to prevent downstream selector collisions.
+        4.  Group related exports (ancestries, legacies, benefits) into typed bundles to reduce scattered imports in gameplay hooks.
+    *   **Status**: PENDING
+
+21. **[Low Urgency - Documentation] Update Race Addition Workflow Guide**:
+    *   **Description**: Document the streamlined race addition workflow to reflect the curated list and immutability rules.
+    *   **Approach**:
+        1.  Review and update `docs/guides/RACE_ADDITION_GUIDE.md`.
+        2.  Document the relationship between `ACTIVE_RACES` and `ALL_RACES_DATA`.
+        3.  Add validation requirements and testing steps for new races.
+    *   **Status**: PENDING
+
+22. **[Low Urgency - Architecture] Extract Themed Confirmation Modal Component**:
+    *   **Description**: The overwrite confirmation modal in the save system has focus trap and keyboard handling that should be reusable for future confirmation dialogs.
+    *   **Approach**:
+        1.  Extract the themed overwrite modal into a shared component (e.g., `ThemedConfirmationModal.tsx`).
+        2.  Ensure focus trap and keyboard handling (Escape to cancel, Enter to confirm) are inherited by default.
+        3.  Update save slot selector to use the shared component.
+    *   **Status**: PENDING
+
+23. **[Low Urgency - QA] Save Slot Selector Accessibility Testing**:
+    *   **Description**: Add automated accessibility checks to prevent regressions in focus management for the save slot selector.
+    *   **Approach**:
+        1.  Integrate axe-core or equivalent accessibility testing library.
+        2.  Add accessibility tests for the save slot selector component.
+        3.  Verify focus management, keyboard navigation, and screen reader compatibility.
+    *   **Status**: PENDING
+
+24. **[Low Urgency - Performance] Persist Save Slot Metadata Cache**:
+    *   **Description**: Save slot metadata is rebuilt on every page load; persisting to sessionStorage would improve soft refresh performance.
+    *   **Approach**:
+        1.  Cache slot metadata to sessionStorage after initial load.
+        2.  On page load, check sessionStorage before rebuilding previews.
+        3.  Invalidate cache when save operations modify slot data.
+    *   **Related**: See FEATURES_TODO.md item #9 for broader save slot optimization.
+    *   **Status**: PENDING
+
+25. **[Low Urgency - Performance] Cache Village Building Lookups**:
+    *   **Description**: `findBuildingAt` lookups are repeated for every hover/click overlay render, causing redundant priority calculations in dense markets.
+    *   **Approach**:
+        1.  Cache `findBuildingAt` results by tile coordinate during village rendering.
+        2.  Invalidate cache only when village layout changes.
+        3.  Profile to verify performance improvement in dense village areas.
+    *   **Status**: PENDING
+
+26. **[Low Urgency - UX] Village Canvas Integration Affordances**:
+    *   **Description**: Players may not notice personality-driven interactions (integrationTagline) on village buildings before clicking.
+    *   **Approach**:
+        1.  Add UI affordances (icons or tooltips) for `integrationTagline` on the village canvas.
+        2.  Consider hover state indicators showing available interactions.
+        3.  Ensure affordances are subtle enough not to clutter the visual display.
+    *   **Status**: PENDING
+
+27. **[Low Urgency - Content] Expand Village Integration Profiles**:
+    *   **Description**: `villageIntegrationProfiles` has limited biome-specific variants; arid/forest/coastal settlements should have unique hooks beyond current curated entries.
+    *   **Approach**:
+        1.  Audit existing `villageIntegrationProfiles` for biome coverage.
+        2.  Add biome-specific variants (arid, forest, coastal, mountain, etc.).
+        3.  Ensure each biome has distinct flavor text and interaction options.
+    *   **Status**: PENDING

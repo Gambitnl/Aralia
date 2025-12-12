@@ -24,7 +24,8 @@
       "Bash(npm run build:*)",
       "Bash(npm run lint:*)",
       "Bash(git checkout:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(dir /b \"c:\\Users\\gambi\\Documents\\Git\\AraliaV4\\Aralia\\*.md\")"
     ],
     "deny": [],
     "ask": []
