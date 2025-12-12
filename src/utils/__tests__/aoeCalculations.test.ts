@@ -18,9 +18,11 @@ describe('calculateAffectedTiles', () => {
       expect(edge).toBeDefined()
       expect(outside).toBeUndefined()
 
-      // Rough bounds: area should be in a reasonable range for a radius-4 circle on grid
-      expect(result.length).toBeGreaterThan(30)
-      expect(result.length).toBeLessThan(60)
+      // Radius 20ft = 4 tiles
+      // Chebyshev Square with radius 4 means:
+      // Side length = 2*r + 1 = 9 tiles.
+      // Total area = 9 * 9 = 81 tiles.
+      expect(result.length).toBe(81)
     })
   })
 

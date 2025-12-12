@@ -79,7 +79,11 @@ function getSphereAoE(origin: Position, radius: number): Position[] {
 
     for (let x = startX; x <= endX; x++) {
         for (let y = startY; y <= endY; y++) {
-            const distance = Math.sqrt(Math.pow(x - origin.x, 2) + Math.pow(y - origin.y, 2)) * TILE_SIZE;
+            // Use Chebyshev distance (5-5-5 rule) to align with grid movement
+            const dx = Math.abs(x - origin.x);
+            const dy = Math.abs(y - origin.y);
+            const distance = Math.max(dx, dy) * TILE_SIZE;
+
             if (distance <= radius) {
                 affected.push({ x, y });
             }
