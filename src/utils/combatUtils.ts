@@ -3,8 +3,8 @@
  * @file src/utils/combatUtils.ts
  * Utility functions for the combat system.
  */
-import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect } from '../types/combat';
-import { PlayerCharacter, Monster } from '../types';
+import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect } from '../types/combat';
+import { PlayerCharacter, Monster, Item } from '../types';
 import { Spell } from '../types/spells'; // Explicit import to avoid conflicts
 import { CLASSES_DATA, MONSTERS_DATA } from '../constants';
 import { createAbilityFromSpell } from './spellAbilityFactory';
@@ -271,10 +271,14 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
   const offHand = player.equippedItems?.OffHand;
 
   // Helper to create weapon ability
-  const createWeaponAbility = (weapon: any, idSuffix: string, isOffHand: boolean = false): Ability => {
+  const createWeaponAbility = (weapon: Item, idSuffix: string, isOffHand: boolean = false): Ability => {
     // Determine damage
     let damageValue = 1;
-    let damageType: any = 'physical';
+    let damageType: AbilityEffect['damageType'] = 'physical';
+
+    // Safely cast string damageType from item to AbilityEffect damageType if valid
+    // For now we default to physical as per previous implementation logic
+    // but the variable is available for future expansion
 
     // Parse damage from weapon stats if available, otherwise default
     // Simplify for now: most weapons in our data have a 'damage' string like '1d8'
@@ -295,12 +299,12 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       type: 'attack',
       cost: { type: isOffHand ? 'bonus' : 'action' },
       targeting: 'single_enemy',
-      range: (weapon.properties?.some((p: string) => p === 'reach')) ? 2 : 1, // Simple reach check
+      range: (weapon.properties?.some((p) => p === 'reach')) ? 2 : 1, // Simple reach check
       // For ranged weapons, we'd check properties too
       effects: [{
         type: 'damage',
         value: 0, // Value 0 signals "roll weapon damage" to the system
-        damageType: 'physical'
+        damageType: damageType
       }],
       icon: '⚔️',
       weapon: weapon, // Link source weapon

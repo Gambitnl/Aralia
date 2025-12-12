@@ -310,6 +310,14 @@ export interface Mastery {
   description: string;
 }
 
+export type ItemEffect =
+  | { type: 'heal'; value: number; dice?: string }
+  | { type: 'buff'; stat: AbilityScoreName; value: number; duration?: number }
+  | { type: 'damage'; damageType: string; dice: string }
+  | { type: 'restore_resource'; resource: string; amount: number }
+  | { type: 'utility'; description: string }
+  | string; // For backward compatibility temporarily
+
 export interface Item {
   id: string;
   name: string;
@@ -317,7 +325,7 @@ export interface Item {
   type: 'weapon' | 'armor' | 'accessory' | 'clothing' | 'consumable' | 'potion' | 'food_drink' | 'poison_toxin' | 'tool' | 'light_source' | 'ammunition' | 'trap' | 'note' | 'book' | 'map' | 'scroll' | 'key' | 'spell_component' | 'crafting_material' | 'treasure';
   icon?: string;
   slot?: EquipmentSlotType;
-  effect?: string;
+  effect?: ItemEffect;
   mastery?: string;
   category?: string;
   armorCategory?: ArmorCategory;
