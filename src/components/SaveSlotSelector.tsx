@@ -233,8 +233,7 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
       >
         <p>
           Overwriting <span className="font-semibold text-amber-200">{pendingOverwrite?.targetName}</span> will
-          replace the existing save data for that slot. This prompt uses the game's themed modal instead of the browser
-          confirm so the player always gets consistent visual feedback.
+          replace the existing save data for that slot. This action cannot be undone.
         </p>
       </ConfirmationModal>
     </div>
