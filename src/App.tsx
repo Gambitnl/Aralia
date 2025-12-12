@@ -1,4 +1,7 @@
 /**
+ * Copyright (c) 2024 Aralia RPG.
+ * Licensed under the MIT License.
+ *
  * @file App.tsx
  * EXECUTION FLOW SEGMENT 2: Root Application Component
  * 
