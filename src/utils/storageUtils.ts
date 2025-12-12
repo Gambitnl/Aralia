@@ -47,6 +47,21 @@ export const SafeStorage = {
    * Safely retrieves all keys from localStorage.
    * Accessing localStorage.length or localStorage.key(i) can throw in some restricted contexts.
    */
+  /**
+   * Safely retrieves and parses a JSON item from localStorage.
+   * Returns null if the item doesn't exist, is invalid JSON, or storage is inaccessible.
+   */
+  getParsedItem<T>(key: string): T | null {
+    const item = this.getItem(key);
+    if (!item) return null;
+    try {
+      return JSON.parse(item);
+    } catch (error) {
+      console.warn(`SafeStorage: Error parsing ${key}`, error);
+      return null;
+    }
+  },
+
   getAllKeys(): string[] {
     try {
       const keys: string[] = [];
@@ -74,6 +89,21 @@ export const SafeSession = {
       return sessionStorage.getItem(key);
     } catch (error) {
       console.warn(`SafeSession: Error reading ${key}`, error);
+      return null;
+    }
+  },
+
+  /**
+   * Safely retrieves and parses a JSON item from sessionStorage.
+   * Returns null if the item doesn't exist, is invalid JSON, or storage is inaccessible.
+   */
+  getParsedItem<T>(key: string): T | null {
+    const item = this.getItem(key);
+    if (!item) return null;
+    try {
+      return JSON.parse(item);
+    } catch (error) {
+      console.warn(`SafeSession: Error parsing ${key}`, error);
       return null;
     }
   },

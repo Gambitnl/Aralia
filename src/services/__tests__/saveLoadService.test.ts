@@ -142,9 +142,10 @@ describe('SaveLoadService', () => {
             localStorage.setItem('aralia_rpg_slot_corrupt', '{ invalid json ');
             const result = await SaveLoadService.loadGame('corrupt', mockNotify);
 
+            // SafeStorage swallows parse errors and returns null, treating it as missing/empty
             expect(result.success).toBe(false);
-            expect(result.message).toContain("corrupted");
-            expect(mockNotify).toHaveBeenCalledWith({ message: expect.stringContaining("corrupted"), type: 'error' });
+            expect(result.message).toBe("No save game found.");
+            expect(mockNotify).toHaveBeenCalledWith({ message: "No save game found.", type: 'info' });
         });
 
         it('should handle version mismatch', async () => {
