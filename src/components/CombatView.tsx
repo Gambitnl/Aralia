@@ -7,11 +7,11 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import BattleMap from './BattleMap/BattleMap';
 import { PlayerCharacter, Item } from '../types';
-import { CombatCharacter, CombatLogEntry } from '../types/combat';
+import { BattleMapData, CombatCharacter, CombatLogEntry } from '../types/combat';
 import ErrorBoundary from './ErrorBoundary';
 import { useTurnManager } from '../hooks/combat/useTurnManager';
 import { useAbilitySystem } from '../hooks/useAbilitySystem';
-import { useBattleMapGeneration } from '../hooks/useBattleMapGeneration';
+import { generateBattleSetup } from '../hooks/useBattleMapGeneration';
 import { useSummons } from '../hooks/combat/useSummons';
 import InitiativeTracker from './BattleMap/InitiativeTracker';
 import AbilityPalette from './BattleMap/AbilityPalette';
@@ -38,7 +38,11 @@ interface CombatViewProps {
 const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattleEnd }) => {
   const [seed] = useState(Date.now()); // Generate map once
   const [combatLog, setCombatLog] = useState<CombatLogEntry[]>([]);
+
+  // Single source of truth for map and characters
+  const [mapData, setMapData] = useState<BattleMapData | null>(null);
   const [characters, setCharacters] = useState<CombatCharacter[]>([]);
+
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [sheetCharacter, setSheetCharacter] = useState<PlayerCharacter | null>(null);
 
@@ -58,25 +62,22 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   // NEW: Get spell data to hydrate combat abilities
   const allSpells = useContext(SpellContext);
 
-  // Initialize base combat characters
-  const [initialCharacters, setInitialCharacters] = useState<CombatCharacter[]>([]);
-
+  // Initialization Effect
   useEffect(() => {
-    if (allSpells) {
+    // Only run initialization if we have spell data and haven't initialized map yet (or if biome/seed changed, though seed is state constant here)
+    if (allSpells && !mapData) {
+      // 1. Create base characters
       const partyCombatants = party.map(p => createPlayerCombatCharacter(p, allSpells as unknown as Record<string, Spell>));
-      setInitialCharacters([...partyCombatants, ...enemies]);
-    }
-  }, [party, enemies, allSpells]);
+      const initialCombatants = [...partyCombatants, ...enemies];
 
-  // Use the map generation hook
-  const { mapData, positionedCharacters, setMapData } = useBattleMapGeneration(biome, seed, initialCharacters);
+      // 2. Generate map and positions
+      const result = generateBattleSetup(biome, seed, initialCombatants);
 
-  // Update main characters state when map places them
-  useEffect(() => {
-    if (positionedCharacters.length > 0) {
-      setCharacters(positionedCharacters);
+      // 3. Batch updates
+      setMapData(result.mapData);
+      setCharacters(result.positionedCharacters);
     }
-  }, [positionedCharacters]);
+  }, [party, enemies, biome, seed, allSpells, mapData]);
 
   const handleCharacterUpdate = useCallback((updatedChar: CombatCharacter) => {
     setCharacters(prev => prev.map(c => c.id === updatedChar.id ? updatedChar : c));
