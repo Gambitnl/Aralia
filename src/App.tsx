@@ -662,6 +662,19 @@ const App: React.FC = () => {
     );
   } else if (gameState.phase === GamePhase.LOAD_TRANSITION) {
     mainContent = <LoadGameTransition character={gameState.party[0]} />;
+  } else if (gameState.phase === GamePhase.NOT_FOUND) {
+    mainContent = (
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-amber-100 font-serif">
+        <h1 className="text-6xl mb-4">404</h1>
+        <p className="text-2xl mb-8">You seem to have lost your way in the mists.</p>
+        <button
+          onClick={() => dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU })}
+          className="px-6 py-3 bg-red-900 hover:bg-red-800 rounded border border-amber-600 text-lg transition-colors"
+        >
+          Return to Safety
+        </button>
+      </div>
+    );
   }
 
   // --- Root Render ---

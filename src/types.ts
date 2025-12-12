@@ -22,6 +22,7 @@ export enum GamePhase {
   LOAD_TRANSITION,
   VILLAGE_VIEW,
   COMBAT, // New phase for active combat encounters
+  NOT_FOUND, // 404 Phase
 }
 
 // Core D&D Attributes
