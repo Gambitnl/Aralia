@@ -11,6 +11,16 @@
       "description": " General description: {description}"
     },
     "unknown_terrain_nature": "The nature of this terrain is unknown.",
-    "impassable_reason": "You cannot travel to the {biome}. It is impassable by normal means."
+    "impassable_reason": "You cannot travel to the {biome}. It is impassable by normal means.",
+    "ui": {
+      "loading": {
+        "default": "Aralia is weaving fate...",
+        "image": "A vision forms in the æther..."
+      },
+      "error": {
+        "message": "Error: {message}",
+        "dismiss": "Dismiss"
+      }
+    }
   }
 }
