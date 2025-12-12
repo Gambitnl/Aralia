@@ -9,6 +9,7 @@
  */
 import { GameState, GamePhase, NotificationType } from '../types';
 import { SafeStorage, SafeSession } from '../utils/storageUtils';
+import { logger } from '../utils/logger';
 
 //
 // Save slot configuration
@@ -151,14 +152,17 @@ export async function saveGame(
     // real-world time instead of double-counting the segment we just recorded.
     resetSessionTimer(stateToSave.saveTimestamp!);
 
-    if (import.meta.env.DEV) {
-      console.log(`Game saved to slot: ${storageKey} at ${new Date(stateToSave.saveTimestamp!).toLocaleString()}`);
-    }
+    logger.info("Game saved", {
+      slotId: storageKey,
+      timestamp: new Date(stateToSave.saveTimestamp!).toISOString()
+    });
+
     const result = { success: true, message: "Game saved successfully." } as const;
     notify?.({ message: result.message, type: 'success' });
     return result;
   } catch (error) {
-    console.error("Error saving game:", error);
+    logger.error("Error saving game", { error, slotName });
+
     // Handle potential errors like Local Storage being full
     if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.code === 22)) {
       const failure = { success: false, message: "Failed to save: Local storage is full." } as const;
@@ -182,9 +186,7 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     const storageKey = resolveSlotKey(slotName);
     const serializedState = SafeStorage.getItem(storageKey);
     if (!serializedState) {
-      if (import.meta.env.DEV) {
-        console.log(`No save game found in slot: ${storageKey}`);
-      }
+      logger.info("No save game found", { slotId: storageKey });
       const result = { success: false, message: "No save game found." } as const;
       notify?.({ message: result.message, type: 'info' });
       return result;
@@ -194,7 +196,10 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     const loadedState: GameState = (parsedData as StoredSavePayload).state || parsedData;
 
     if (loadedState.saveVersion && loadedState.saveVersion !== SAVE_GAME_VERSION) {
-      console.warn(`Save game version mismatch. Expected ${SAVE_GAME_VERSION}, found ${loadedState.saveVersion}. Load aborted.`);
+      logger.warn("Save game version mismatch", {
+        expected: SAVE_GAME_VERSION,
+        actual: loadedState.saveVersion
+      });
       const failure = { success: false, message: `Save file incompatible (v${loadedState.saveVersion}). Expected v${SAVE_GAME_VERSION}.` } as const;
       notify?.({ message: failure.message, type: 'warning' });
       return failure;
@@ -230,15 +235,17 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
       playtimeSeconds: (parsedData as StoredSavePayload).preview?.playtimeSeconds,
     });
 
-    if (import.meta.env.DEV) {
-      console.log(`Game loaded from slot: ${storageKey}, saved at ${new Date(loadedState.saveTimestamp!).toLocaleString()}`);
-    }
+    logger.info("Game loaded", {
+      slotId: storageKey,
+      timestamp: new Date(loadedState.saveTimestamp!).toISOString()
+    });
+
     const result = { success: true, message: "Game loaded successfully.", data: loadedState } as const;
     notify?.({ message: result.message, type: 'success' });
     resetSessionTimer();
     return result;
   } catch (error) {
-    console.error("Error loading game:", error);
+    logger.error("Error loading game", { error });
     const failure = { success: false, message: "Failed to load game. Data corrupted." } as const;
     notify?.({ message: failure.message, type: 'error' });
     return failure;
@@ -256,7 +263,7 @@ export function hasSaveGame(slotName: string = DEFAULT_SAVE_SLOT): boolean {
     if (slots.length > 0) return true;
     return SafeStorage.getItem(resolveSlotKey(slotName)) !== null;
   } catch (error) {
-    console.error("Error checking save existence:", error);
+    logger.error("Error checking save existence", { error });
     return false;
   }
 }
@@ -280,7 +287,7 @@ export function getLatestSaveTimestamp(slotName: string = DEFAULT_SAVE_SLOT): nu
     const legacyState: Partial<GameState> = (parsedData as StoredSavePayload).state || parsedData;
     return legacyState.saveTimestamp || null;
   } catch (error) {
-    console.error("Error retrieving save timestamp:", error);
+    logger.error("Error retrieving save timestamp", { error });
     return null;
   }
 }
@@ -294,11 +301,9 @@ export function deleteSaveGame(slotName: string = DEFAULT_SAVE_SLOT): void {
     const storageKey = resolveSlotKey(slotName);
     SafeStorage.removeItem(storageKey);
     removeSlotMetadata(storageKey);
-    if (import.meta.env.DEV) {
-      console.log(`Save game deleted from slot: ${storageKey}`);
-    }
+    logger.info("Save game deleted", { slotId: storageKey });
   } catch (error) {
-    console.error("Error deleting save game:", error);
+    logger.error("Error deleting save game", { error });
   }
 }
 
@@ -321,7 +326,7 @@ export function getSaveSlots(): SaveSlotSummary[] {
     persistSlotIndex(merged); // This also updates the in-memory cache
     return [...merged];
   } catch (error) {
-    console.error("Error loading save slot metadata:", error);
+    logger.error("Error loading save slot metadata", { error });
     return mergeWithLegacySaves([]).sort((a, b) => b.lastSaved - a.lastSaved);
   }
 }
@@ -450,7 +455,7 @@ function upsertSlotMetadata(summary: SaveSlotSummary) {
     const next = [...current, summary].sort((a, b) => b.lastSaved - a.lastSaved);
     persistSlotIndex(next);
   } catch (error) {
-    console.error("Error updating save slot metadata index:", error);
+    logger.error("Error updating save slot metadata index", { error });
   }
 }
 
@@ -459,7 +464,7 @@ function removeSlotMetadata(slotId: string) {
     const current = getSaveSlots().filter(slot => slot.slotId !== slotId);
     persistSlotIndex(current);
   } catch (error) {
-    console.error("Error removing save slot metadata:", error);
+    logger.error("Error removing save slot metadata", { error });
   }
 }
 
@@ -469,7 +474,7 @@ function persistSlotIndex(next: SaveSlotSummary[]) {
   try {
     SafeSession.setItem(SESSION_CACHE_KEY, JSON.stringify(next));
   } catch (error) {
-    console.warn("Session storage is unavailable, caching disabled:", error);
+    logger.warn("Session storage is unavailable, caching disabled", { error });
   }
 }
 
@@ -478,7 +483,7 @@ function getSessionCache(): SaveSlotSummary[] | null {
     const cached = SafeSession.getItem(SESSION_CACHE_KEY);
     return cached ? JSON.parse(cached) : null;
   } catch (error) {
-    console.warn("Failed to read from session storage, cache ignored:", error);
+    logger.warn("Failed to read from session storage, cache ignored", { error });
     return null;
   }
 }
@@ -521,7 +526,7 @@ function mergeWithLegacySaves(index: SaveSlotSummary[]): SaveSlotSummary[] {
         playtimeSeconds: preview?.playtimeSeconds,
       });
     } catch (error) {
-      console.error(`Failed to parse save slot ${key}:`, error);
+      logger.error(`Failed to parse save slot ${key}`, { error });
     }
   }
 
