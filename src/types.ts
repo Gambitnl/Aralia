@@ -140,8 +140,7 @@ export interface Feat {
 
     // Saving throw proficiency options
     savingThrowProficiencies?: AbilityScoreName[];
-    /** If true, saving throw proficiency matches the selected ability score (for Resilient feat).
-     *  TODO: Implement logic in applyFeatToCharacter to grant save proficiency based on selected ability */
+    /** If true, saving throw proficiency matches the selected ability score (for Resilient feat). */
     savingThrowLinkedToAbility?: boolean;
 
     /** Damage types player can choose from (e.g., Elemental Adept). TODO: Implement damage type selection UI */
