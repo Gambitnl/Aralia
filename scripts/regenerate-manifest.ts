@@ -45,5 +45,6 @@ const sortedManifest = Object.keys(manifest).sort().reduce((obj, key) => {
     return obj;
 }, {} as Record<string, any>);
 
-fs.writeFileSync(manifestPath, JSON.stringify(sortedManifest, null, 2));
+// Minify the JSON output to save bytes
+fs.writeFileSync(manifestPath, JSON.stringify(sortedManifest));
 console.log(`Generated manifest with ${Object.keys(sortedManifest).length} spells.`);
