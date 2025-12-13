@@ -1,4 +1,7 @@
 /**
+ * Copyright (c) 2024 Aralia RPG.
+ * Licensed under the MIT License.
+ *
  * @file index.tsx
  * This is the main entry point for the Aralia RPG React application.
  * It renders the root App component into the DOM.
