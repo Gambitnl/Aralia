@@ -34,8 +34,13 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
     // Initial Load: URL takes precedence (if valid)
     if (isInitialMount.current) {
       isInitialMount.current = false;
+      const rawPhase = params.get('phase');
+
       if (urlPhase !== null) {
         safeNavigate(urlPhase); // Deep link
+      } else if (rawPhase && urlPhase === null) {
+        // Ranger: Handle 404 (valid parameter but invalid phase)
+        safeNavigate(GamePhase.NOT_FOUND);
       } else {
         // No URL param? Sync state to URL without pushing history
         params.set('phase', getPhaseSlug(gameState.phase));
