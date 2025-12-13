@@ -4,6 +4,7 @@
  */
 
 import { VillagePersonality } from '../services/villageGenerator';
+import { Location, GameState } from '../types';
 
 export interface SettlementType {
   name: string;
@@ -14,6 +15,7 @@ export interface SettlementType {
   primaryIndustry: VillagePersonality['primaryIndustry'];
   culture: VillagePersonality['culture'];
   wealth: VillagePersonality['wealth'];
+  population?: string;
 }
 
 // Race-appropriate settlement types
@@ -149,7 +151,7 @@ export const SETTLEMENT_TYPES: Record<string, SettlementType> = {
 /**
  * Determines the most appropriate settlement type for a given race and context
  */
-export const getSettlementTypeForRace = (raceId: string, biomeId: string = 'plains'): SettlementType => {
+export const getSettlementTypeForRace = (raceId?: string, biomeId: string = 'plains'): SettlementType => {
   // Direct race matches
   if (raceId === 'human') return SETTLEMENT_TYPES.human_town;
   if (raceId === 'elf') return SETTLEMENT_TYPES.elven_glade;
@@ -188,7 +190,7 @@ export const createPersonalityFromSettlementType = (settlementType: SettlementTy
 /**
  * Determines settlement information for town generation based on location
  */
-export const determineSettlementInfo = (location: any, gameState: any) => {
+export const determineSettlementInfo = (location: Location, gameState: GameState): SettlementType => {
   // For predefined town locations, determine settlement type based on location name/id
   if (!location.id.startsWith('coord_')) {
     const locationName = location.name.toLowerCase();
@@ -215,7 +217,7 @@ export const determineSettlementInfo = (location: any, gameState: any) => {
 
   // For coordinate-based locations (procedural settlements), use biome and character info
   const biomeId = location.biomeId || 'plains';
-  const characterRace = gameState?.party?.[0]?.race; // Get player's race if available
+  const characterRace = gameState?.party?.[0]?.race?.id; // Get player's race id if available
 
   return getSettlementTypeForRace(characterRace, biomeId);
 };
