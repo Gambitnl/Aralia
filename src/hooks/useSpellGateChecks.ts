@@ -12,6 +12,15 @@ const normalizeId = (raw: string): string =>
 
 export type GateStatus = "pass" | "gap" | "fail";
 
+export interface LayoutChecks {
+  hasSpellCard: boolean;
+  hasHeader: boolean;
+  hasStatsGrid: boolean;
+  hasDescription: boolean;
+  hasTagsSection: boolean;
+  usesMarkdownFormat: boolean; // Detects incorrect ## or - **bold:** markdown format
+}
+
 export interface GateChecklist {
   manifestPathOk: boolean;
   glossaryExists: boolean;
@@ -25,6 +34,7 @@ export interface GateResult {
   reasons: string[];
   level?: number;
   checklist: GateChecklist;
+  layout?: LayoutChecks;
 }
 
 const extractIdsFromMarkdown = (md: string): Set<string> => {

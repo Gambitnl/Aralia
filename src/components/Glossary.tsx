@@ -4,6 +4,7 @@ import { GlossaryEntry } from '../types';
 import { FullEntryDisplay } from './Glossary/FullEntryDisplay';
 import { findGlossaryEntryAndPath } from '../utils/glossaryUtils';
 import { useSpellGateChecks } from '../hooks/useSpellGateChecks';
+import SpellCardTemplate, { SpellData } from './Glossary/SpellCardTemplate';
 
 interface GlossaryProps {
   isOpen: boolean;
@@ -31,6 +32,11 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
   const [expandedParentEntries, setExpandedParentEntries] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
   const [lastGenerated, setLastGenerated] = useState<string | null>(null);
+
+  // V3 Template-based rendering toggle
+  const [renderMode, setRenderMode] = useState<'markdown' | 'json'>('markdown');
+  const [spellJsonData, setSpellJsonData] = useState<SpellData | null>(null);
+  const [spellJsonLoading, setSpellJsonLoading] = useState(false);
 
   // Resize state - all useState hooks must be at the top before any effects
   const [modalSize, setModalSize] = useState(() => {
@@ -268,6 +274,33 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
       })
       .catch(() => setLastGenerated(null));
   }, [isOpen]);
+
+  // Fetch spell JSON when in JSON mode and a spell is selected
+  useEffect(() => {
+    if (!selectedEntry || selectedEntry.category !== 'Spells' || renderMode !== 'json') {
+      setSpellJsonData(null);
+      return;
+    }
+
+    // Get spell level from gate results or default to searching
+    const gateResult = gateResults[selectedEntry.id];
+    const level = gateResult?.level ?? 0;
+
+    setSpellJsonLoading(true);
+    fetch(`${import.meta.env.BASE_URL}data/spells/level-${level}/${selectedEntry.id}.json`)
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to load spell JSON');
+        return res.json();
+      })
+      .then((data: SpellData) => {
+        setSpellJsonData(data);
+        setSpellJsonLoading(false);
+      })
+      .catch(() => {
+        setSpellJsonData(null);
+        setSpellJsonLoading(false);
+      });
+  }, [selectedEntry, renderMode, gateResults]);
 
   const handleEntrySelect = useCallback((entry: GlossaryEntry) => {
     setSelectedEntry(entry);
@@ -629,7 +662,31 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
         />
         <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-600">
           <h2 id="glossary-title" className="text-3xl font-bold text-amber-400 font-cinzel">Game Glossary</h2>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {/* Render Mode Toggle */}
+            <div className="flex items-center gap-1 text-xs">
+              <span className="text-gray-400">Render:</span>
+              <button
+                type="button"
+                onClick={() => setRenderMode('markdown')}
+                className={`px-2 py-0.5 rounded-l border ${renderMode === 'markdown'
+                  ? 'bg-sky-600 border-sky-500 text-white'
+                  : 'bg-gray-700 border-gray-600 text-gray-400 hover:bg-gray-600'}`}
+                title="Render spells from markdown files"
+              >
+                MD
+              </button>
+              <button
+                type="button"
+                onClick={() => setRenderMode('json')}
+                className={`px-2 py-0.5 rounded-r border-t border-b border-r ${renderMode === 'json'
+                  ? 'bg-emerald-600 border-emerald-500 text-white'
+                  : 'bg-gray-700 border-gray-600 text-gray-400 hover:bg-gray-600'}`}
+                title="Render spells from JSON (V3 template system)"
+              >
+                JSON
+              </button>
+            </div>
             <button
               type="button"
               onClick={handleResetLayout}
@@ -684,7 +741,21 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
           <div className="flex-grow md:w-2/3 border border-gray-700 rounded-lg bg-gray-800/50 p-4 overflow-y-auto scrollable-content glossary-entry-container" style={{ transition: columnResizeState.isResizing ? 'none' : 'width 0.2s ease' }}>
             {selectedEntry ? (
               <>
-                <FullEntryDisplay entry={selectedEntry} onNavigate={handleNavigateToGlossary} />
+                {/* Conditional rendering based on render mode */}
+                {renderMode === 'json' && selectedEntry.category === 'Spells' ? (
+                  spellJsonLoading ? (
+                    <p className="text-gray-400 italic">Loading spell data...</p>
+                  ) : spellJsonData ? (
+                    <SpellCardTemplate spell={spellJsonData} />
+                  ) : (
+                    <div className="text-red-400">
+                      <p>Failed to load JSON for this spell.</p>
+                      <p className="text-sm text-gray-500 mt-2">JSON file may not exist at: /data/spells/level-{gateResults[selectedEntry.id]?.level ?? '?'}/{selectedEntry.id}.json</p>
+                    </div>
+                  )
+                ) : (
+                  <FullEntryDisplay entry={selectedEntry} onNavigate={handleNavigateToGlossary} />
+                )}
                 {selectedEntry.category === 'Spells' && gateResults[selectedEntry.id] && (
                   <div className="mt-4 p-3 border border-gray-700 rounded bg-gray-900/70 text-sm">
                     <div className="font-semibold mb-2 text-gray-200">Spell Gate Checks: {selectedEntry.title}</div>

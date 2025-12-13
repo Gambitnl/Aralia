@@ -1,4 +1,3 @@
-
 ---
 id: "acid-splash"
 title: "Acid Splash"
