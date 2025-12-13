@@ -3,6 +3,7 @@ import { SpellCommandFactory } from '../factory/SpellCommandFactory'
 import { DamageCommand } from '../effects/DamageCommand'
 import type { Spell } from '@/types/spells'
 import type { CombatCharacter, CombatState } from '@/types/combat'
+import { createMockGameState } from '@/utils/factories'
 
 // Mocks
 const mockCaster = { id: 'c1', name: 'Caster', level: 5 } as CombatCharacter
@@ -37,7 +38,7 @@ describe('SpellCommandFactory', () => {
         mockCaster,
         [mockTarget],
         3,
-        {} as any
+        createMockGameState()
       )
 
       expect(commands).toHaveLength(1)
@@ -61,7 +62,7 @@ describe('SpellCommandFactory', () => {
         mockCaster,
         [mockTarget],
         2, // Cast at level 2 (+1 level)
-        {} as any
+        createMockGameState()
       )
 
       const cmd = commands[0] as DamageCommand
@@ -97,7 +98,7 @@ describe('SpellCommandFactory', () => {
         mockCaster,
         [undeadTarget, humanTarget],
         1,
-        {} as any
+        createMockGameState()
       )
 
       expect(commands).toHaveLength(1)
@@ -130,7 +131,7 @@ describe('SpellCommandFactory', () => {
         mockCaster,
         [humanTarget],
         1,
-        {} as any
+        createMockGameState()
       )
 
       expect(commands).toHaveLength(0)
@@ -156,7 +157,7 @@ describe('SpellCommandFactory', () => {
         mockCaster,
         [smallTarget, mediumTarget],
         1,
-        {} as any
+        createMockGameState()
       )
 
       expect(commands).toHaveLength(1)
@@ -187,7 +188,7 @@ describe('SpellCommandFactory', () => {
         mockCaster,
         [evilTarget, goodTarget],
         1,
-        {} as any
+        createMockGameState()
       )
 
       expect(commands).toHaveLength(1)
@@ -222,7 +223,7 @@ describe('SpellCommandFactory', () => {
         mockCaster,
         [frozenTarget, normalTarget],
         1,
-        {} as any
+        createMockGameState()
       )
 
       expect(commands).toHaveLength(1)
