@@ -1,3 +1,9 @@
+/**
+ * Copyright (c) 2024 Aralia RPG.
+ * Licensed under the MIT License.
+ *
+ * @file combatAI.ts
+ */
 import { CombatCharacter, CombatAction, BattleMapData, Ability, Position, BattleMapTile } from '../../types/combat';
 import { computeAoETiles, getDistance, generateId, resolveAreaDefinition } from '../../utils/combatUtils';
 import { hasLineOfSight } from '../../utils/lineOfSight';
