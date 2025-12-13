@@ -22,8 +22,10 @@ SPELL MIGRATION TASK
 1. docs/tasks/spell-system-overhaul/JULES_ACCEPTANCE_CRITERIA.md
    ↳ "Iron Rules" - Definition of Done, JSON compliance, gap protocol
 2. docs/spells/SPELL_JSON_EXAMPLES.md
-   ↳ 10 validated examples - use these as templates
-3. docs/tasks/spell-system-overhaul/gaps/LEVEL-1-GAPS.md
+   ↳ Validated examples - use these as templates
+3. docs/tasks/spell-system-overhaul/LEVEL-{N}-BATCHES.md
+   ↳ Use the correct level roll-up doc for notes/checklists
+4. docs/tasks/spell-system-overhaul/gaps/LEVEL-{N}-GAPS.md
    ↳ Known system limitations - check before flagging new gaps
 
 ## Your Assignment
@@ -34,12 +36,17 @@ Migrate these 5 spells to the new JSON format:
 4. [SPELL_4]
 5. [SPELL_5]
 
-Batch File: docs/tasks/spell-system-overhaul/[BATCH_FILE].md
-↳ Log your progress here, NOT in shared status files
+Batch Doc: docs/tasks/spell-system-overhaul/LEVEL-{N}-BATCHES.md (use the matching level section)
+↳ Log your progress there, NOT in shared status files
 
 ## Output Files (per spell)
 - JSON: public/data/spells/level-{N}/{spell-id}.json
-- Glossary: public/data/glossary/entries/spells/{spell-id}.md
+- Glossary: public/data/glossary/entries/spells/level-{N}/{spell-id}.md (frontmatter filePath must match)
+
+## Reference Examples (review before coding)
+- Level 2: public/data/spells/level-2/web.json + public/data/glossary/entries/spells/level-2/web.md
+- Level 2: public/data/spells/level-2/moonbeam.json + public/data/glossary/entries/spells/level-2/moonbeam.md
+- Level 1: public/data/spells/level-1/thunderwave.json + public/data/glossary/entries/spells/level-1/thunderwave.md
 
 ## Iron Rules (from JULES_ACCEPTANCE_CRITERIA.md)
 1. Every effect MUST have `trigger` + `condition` fields
@@ -49,7 +56,7 @@ Batch File: docs/tasks/spell-system-overhaul/[BATCH_FILE].md
 5. validTargets PLURAL: creatures, objects, allies, enemies, self, point
 6. Cantrips: level=0, ritual=false, scaling uses "character_level"
 7. Leveled spells: scaling uses "slot_level"
-8. Files MUST be nested: public/data/spells/level-{N}/{id}.json
+8. Files MUST be nested: public/data/spells/level-{N}/{id}.json and public/data/glossary/entries/spells/level-{N}/{id}.md (remove any flat leftovers)
 
 ## Field Comparison Check (CRITICAL)
 If old file exists at public/data/spells/{id}.json:
@@ -66,6 +73,7 @@ If old file exists at public/data/spells/{id}.json:
 ## Before Creating PR
 1. npx tsx scripts/regenerate-manifest.ts
 2. npm run validate (must be 0 errors)
+3. npx tsx scripts/check-spell-integrity.ts (must be 0 errors)
 3. Mark spells complete in your BATCH FILE
 
 ## If You Encounter a Gap
@@ -83,8 +91,8 @@ If old file exists at public/data/spells/{id}.json:
 |:---|:---|
 | **Iron Rules** | `JULES_ACCEPTANCE_CRITERIA.md` |
 | **Examples** | `SPELL_JSON_EXAMPLES.md`, `SPELL_PROPERTIES_REFERENCE.md` |
-| **Gap Analysis** | `gaps/LEVEL-1-GAPS.md`, `gaps/GAP-*.md` (20 files) |
-| **Batch Tracking** | `1I-MIGRATE-CANTRIPS-BATCH-1.md` through `1Q-MIGRATE-CANTRIPS-BATCH-9.md` |
+| **Gap Analysis** | `gaps/LEVEL-{N}-GAPS.md`, `gaps/GAP-*.md` (system gaps) |
+| **Batch Tracking** | `LEVEL-{N}-BATCHES.md` (roll-up per level) |
 | **Status Tracking** | `STATUS_LEVEL_0.md`, `STATUS_LEVEL_1.md`, etc. (read-only for agents) |
 
 ---
@@ -138,6 +146,7 @@ CRITICAL REQUIREMENTS:
 7. Run Validation Before Creating PR
    a. Update Manifest: npx tsx scripts/regenerate-manifest.ts (refreshes public/data/spells_manifest.json for SpellContext lookups)
    b. Execute: npm run validate
+   c. Execute: npx tsx scripts/check-spell-integrity.ts
    Fix any errors before committing.
 
 COMPLETE EXAMPLE TO FOLLOW:
@@ -212,11 +221,12 @@ WORKFLOW:
    d. Fill in the spell-specific values
    e. Verify all BaseEffect fields are present (trigger, condition)
 3. Create glossary markdown files
-4. Update docs/spells/STATUS_LEVEL_0.md
+4. Log completion in the assigned batch doc (do NOT edit shared status files)
 5. Run: npx tsx scripts/regenerate-manifest.ts
 6. Run: npm run validate
-7. Fix any validation errors
-8. Create PR with title: "feat: migrate 5 cantrips to new spell format"
+7. Run: npx tsx scripts/check-spell-integrity.ts
+8. Fix any validation errors
+9. Create PR with title: "feat: migrate 5 cantrips to new spell format"
 
 DO NOT:
 - Skip the BaseEffect fields (trigger, condition)
@@ -322,16 +332,16 @@ CRITICAL REQUIREMENTS:
        - components.isConsumed: true/false
 
 9. Create Both JSON and Glossary Files
-   - Spell JSON: public/data/spells/[spell-id].json
-   - Glossary entry: public/data/glossary/entries/spells/[spell-id].md
+   - Spell JSON: public/data/spells/level-{N}/[spell-id].json
+   - Glossary entry: public/data/glossary/entries/spells/level-{N}/[spell-id].md (frontmatter filePath must match)
 
-10. Update Status File
-    - File: docs/spells/STATUS_LEVEL_1.md
-    - Mark each spell as "[D] Data Only"
+10. Log Progress in Batch Doc
+    - Use the level roll-up file (e.g., docs/tasks/spell-system-overhaul/LEVEL-1-BATCHES.md). Do NOT edit shared status files.
 
 11. Run Validation Before Creating PR
     a. Update Manifest: npx tsx scripts/regenerate-manifest.ts
     b. Execute: npm run validate
+    c. Execute: npx tsx scripts/check-spell-integrity.ts
     Fix any errors before committing.
 
 EXAMPLES TO REFERENCE:
@@ -364,8 +374,9 @@ WORKFLOW:
 4. Status: Do NOT edit shared status files; log completion in the batch file you’re working in.
 5. Run: npx tsx scripts/regenerate-manifest.ts
 6. Run: npm run validate
-7. Fix any validation errors
-8. Create PR with title: "feat: migrate 5 level 1 spells to new spell format"
+7. Run: npx tsx scripts/check-spell-integrity.ts
+8. Fix any validation errors
+9. Create PR with title: "feat: migrate 5 level 1 spells to new spell format"
 
 DO NOT:
 - Skip the BaseEffect fields (trigger, condition)

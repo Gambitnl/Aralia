@@ -1,5 +1,5 @@
 ---
-id: "deep_gnome"
+id: "deep_gnome_subrace"
 title: "Deep Gnome (Subrace) - DEPRECATED"
 category: "Character Races"
 tags: ["gnome", "deep gnome", "svirfneblin", "subrace", "lineage", "underdark", "darkvision", "deprecated"]

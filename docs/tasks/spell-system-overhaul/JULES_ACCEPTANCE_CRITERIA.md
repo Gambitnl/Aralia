@@ -17,11 +17,14 @@ You are NOT done with a spell until **ALL** of the following are true.
 
 ### A. Required Reference Material (Source of Truth)
 - [ ] **Examples Used**: You have read and followed `docs/spells/SPELL_JSON_EXAMPLES.md`.
-- [ ] **Templates Used**: You have used the templates provided in `docs/tasks/spell-system-overhaul/JULES_TASK_PROMPTS.md` (if applicable).
+- [ ] **Level-Aware Examples Reviewed**: Inspect at least one complete leveled spell pair (JSON + glossary) such as:
+  - `public/data/spells/level-2/web.json` and `public/data/glossary/entries/spells/level-2/web.md`
+  - `public/data/spells/level-2/moonbeam.json` and `public/data/glossary/entries/spells/level-2/moonbeam.md`
+  - `public/data/spells/level-1/thunderwave.json` and `public/data/glossary/entries/spells/level-1/thunderwave.md`
 
 ### B. Deliverables
 - [ ] **JSON File Created**: `public/data/spells/level-{N}/{id}.json` exists (always nested by level; no flattened `public/data/spells/{id}.json` files).
-- [ ] **Glossary Entry Created**: `public/data/glossary/entries/spells/{id}.md` exists.
+- [ ] **Glossary Entry Created**: `public/data/glossary/entries/spells/level-{N}/{id}.md` exists (frontmatter `filePath` must match the level-aware path). Remove any stale flat glossary copies if present.
 - [ ] **Class Spell Lists Updated**: If the spell is new, add its ID to the appropriate class spell list(s) in `src/data/classes/index.ts` (e.g., `DRUID_SPELL_LIST`, `WIZARD_SPELL_LIST`). The `classes` array in the JSON must match the lists the spell is added to.
 - [ ] **Field Comparison Check (CRITICAL)**: If an old file exists at `public/data/spells/{id}.json`:
     1. **Read the old file FIRST** — It may contain fields not in the new template
@@ -60,10 +63,11 @@ You are NOT done with a spell until **ALL** of the following are true.
 - [ ] **Manifest Updated**: You have run `npx tsx scripts/regenerate-manifest.ts`.
 - [ ] **Manifest Paths Correct**: Generated manifest paths are nested (`/data/spells/level-{N}/{id}.json`); fix any flattened paths before commit.
 - [ ] **Validation Passed**: You have run `npm run validate` and it reports **0 errors** for your files.
+- [ ] **Integrity Passed**: You have run `npx tsx scripts/check-spell-integrity.ts` and resolved any errors.
 
 ### E. Logging
-- [ ] **Batch File Updated**: You have marked the spell as complete in the assigned Batch File (e.g., `1K-MIGRATE-CANTRIPS-BATCH-3.md`).
-- [ ] **No Side Effects**: You have **NOT** edited shared status files (like `STATUS_LEVEL_0.md`).
+- [ ] **Batch File Updated**: Mark completion in the level roll-up batch doc (e.g., `docs/tasks/spell-system-overhaul/LEVEL-1-BATCHES.md` or `LEVEL-2-BATCHES.md`) and add new issues to the matching gaps doc (e.g., `gaps/LEVEL-1-GAPS.md`).
+- [ ] **No Side Effects**: You have **NOT** edited shared status files (like `STATUS_LEVEL_0.md`/`STATUS_LEVEL_1.md`).
 
 ---
 
@@ -87,7 +91,7 @@ During migration, you may encounter spell mechanics that the current system (Typ
 *   **"On Hit" Rider**: Use `trigger: { type: "on_attack_hit" }` with `consumption` (e.g., `unlimited` for Hunter's Mark, `first_hit` for Smites).
 
 ### How to Log Gaps
-Append a section titled `## System Gaps & Follow-up` to the bottom of your Batch File if it doesn't exist, and add an entry.
+Append a section titled `## System Gaps & Follow-up` to the bottom of your Batch File if it doesn't exist, and add an entry. For consolidated level docs, append to the corresponding `gaps/LEVEL-{N}-GAPS.md`.
 
 **Format for Batch File Log:**
 ```markdown

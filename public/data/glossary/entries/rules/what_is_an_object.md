@@ -1,9 +1,10 @@
-
 ---
 id: "what_is_an_object"
 title: "What is an Object?"
 category: "Rules Glossary"
+tags: ["rules", "objects", "definitions"]
 excerpt: "Defining an object in game terms."
+seeAlso: []
 filePath: "/data/glossary/entries/rules/what_is_an_object.md"
 ---
 # What Is an Object?

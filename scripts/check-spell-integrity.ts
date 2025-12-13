@@ -76,7 +76,28 @@ const loadManifest = (): Record<string, SpellManifestEntry> => {
   return JSON.parse(raw);
 };
 
+const GLOSSARY_MAIN_INDEX = path.join(process.cwd(), 'public', 'data', 'glossary', 'index', 'main.json');
+
+const getGlossaryLastGenerated = (): string | null => {
+  try {
+    if (!fs.existsSync(GLOSSARY_MAIN_INDEX)) return null;
+    const data = JSON.parse(fs.readFileSync(GLOSSARY_MAIN_INDEX, 'utf-8'));
+    return data.lastGenerated || null;
+  } catch {
+    return null;
+  }
+};
+
 const main = () => {
+  // Display last glossary generation time
+  const lastGenerated = getGlossaryLastGenerated();
+  if (lastGenerated) {
+    const date = new Date(lastGenerated);
+    console.log(`[Glossary Index] Last generated: ${date.toLocaleString()}`);
+  } else {
+    console.warn('[Glossary Index] Warning: Could not read last generation timestamp');
+  }
+
   const manifest = loadManifest();
   const manifestIds = new Set(Object.keys(manifest));
 
@@ -93,10 +114,11 @@ const main = () => {
 
   const missingGlossary: string[] = [];
   const missingLevelTags: string[] = [];
+  const incorrectLayout: string[] = [];
   Object.entries(manifest).forEach(([id, entry]) => {
     // Only enforce for nested spells (already filtered by validation)
     if (!entry.path.includes('/level-')) return;
-    const glossaryPath = path.join(GLOSSARY_BASE, `${id}.md`);
+    const glossaryPath = path.join(GLOSSARY_BASE, `level-${entry.level}`, `${id}.md`);
     if (!fs.existsSync(glossaryPath)) {
       missingGlossary.push(id);
       return;
@@ -107,12 +129,37 @@ const main = () => {
       if (!levelTagMatches(tags, entry.level)) {
         missingLevelTags.push(id);
       }
+      // Check for correct spell-card HTML layout
+      if (!md.includes('<div class="spell-card">') || !md.includes('spell-card-stats-grid')) {
+        incorrectLayout.push(id);
+      }
     } catch (e) {
       missingGlossary.push(id);
     }
   });
 
-  if (missingFromManifest.length === 0 && missingGlossary.length === 0 && missingLevelTags.length === 0) {
+  // Check for underscore-named files (should use kebab-case)
+  const underscoreFiles: string[] = [];
+  const levelDirs = fs.readdirSync(GLOSSARY_BASE).filter((d) => d.startsWith('level-'));
+  levelDirs.forEach((levelDir) => {
+    const dirPath = path.join(GLOSSARY_BASE, levelDir);
+    if (fs.statSync(dirPath).isDirectory()) {
+      fs.readdirSync(dirPath).forEach((file) => {
+        if (file.endsWith('.md') && file.includes('_')) {
+          underscoreFiles.push(`${levelDir}/${file}`);
+        }
+      });
+    }
+  });
+  // Also check root for stray underscore files
+  fs.readdirSync(GLOSSARY_BASE).forEach((file) => {
+    const filePath = path.join(GLOSSARY_BASE, file);
+    if (fs.statSync(filePath).isFile() && file.endsWith('.md') && file.includes('_')) {
+      underscoreFiles.push(file);
+    }
+  });
+
+  if (missingFromManifest.length === 0 && missingGlossary.length === 0 && missingLevelTags.length === 0 && underscoreFiles.length === 0 && incorrectLayout.length === 0) {
     console.log('[Spell Integrity] All checks passed: class lists match manifest, glossary cards/tags present.');
     return;
   }
@@ -130,6 +177,14 @@ const main = () => {
   if (missingLevelTags.length > 0) {
     console.error(`  - Missing level tags in glossary frontmatter: ${missingLevelTags.length}`);
     console.error(`      ${missingLevelTags.slice(0, 10).join(', ')}` + (missingLevelTags.length > 10 ? ' ...' : ''));
+  }
+  if (underscoreFiles.length > 0) {
+    console.error(`  - Underscore filenames (should use kebab-case): ${underscoreFiles.length}`);
+    console.error(`      ${underscoreFiles.slice(0, 10).join(', ')}` + (underscoreFiles.length > 10 ? ' ...' : ''));
+  }
+  if (incorrectLayout.length > 0) {
+    console.error(`  - Incorrect layout (missing spell-card HTML): ${incorrectLayout.length}`);
+    console.error(`      ${incorrectLayout.slice(0, 10).join(', ')}` + (incorrectLayout.length > 10 ? ' ...' : ''));
   }
 
   process.exit(1);

@@ -16,10 +16,10 @@ const toKebabCase = (str) =>
     .replace(/[\s_]+/g, '-') // replace all spaces and low dash
     .toLowerCase();
 
-const createJsonTemplate = (id, name, ritual, rarity) => `{
+const createJsonTemplate = (id, name, level, ritual, rarity) => `{
   "id": "${id}",
   "name": "${name}",
-  "level": 1,
+  "level": ${level},
   "school": "Abjuration",
   "classes": [],
   "tags": [],
@@ -63,14 +63,14 @@ const createJsonTemplate = (id, name, ritual, rarity) => `{
   }
 }`;
 
-const createMarkdownTemplate = (id, name) => `---
+const createMarkdownTemplate = (id, name, level) => `---
 id: "${id}"
 title: "${name}"
 category: "Spells"
-tags: ["level 1", "abjuration"]
+tags: ["level ${level}", "abjuration"]
 excerpt: "ADD A SHORT, ONE-SENTENCE EXCERPT HERE."
 seeAlso: []
-filePath: "/data/glossary/entries/spells/${id}.md"
+filePath: "/data/glossary/entries/spells/level-${level}/${id}.md"
 ---
 <div class="spell-card">
   <div class="spell-card-header">
@@ -136,81 +136,94 @@ filePath: "/data/glossary/entries/spells/${id}.md"
 // --- Main Script Logic ---
 
 rl.question('Enter the spell name: ', (spellName) => {
-  rl.question('Is this a ritual spell? (y/n): ', (isRitual) => {
-    rl.question('Enter the spell rarity (common, uncommon, rare, very_rare, legendary): ', (rarity) => {
-      const spellId = toKebabCase(spellName);
-      const __dirname = path.dirname(new URL(import.meta.url).pathname);
+  rl.question('Enter the spell level (0-9): ', (levelStr) => {
+    const level = parseInt(levelStr, 10);
+    if (isNaN(level) || level < 0 || level > 9) {
+      console.error('Error: Spell level must be a number between 0 and 9.');
+      rl.close();
+      process.exit(1);
+    }
 
-      const spellJsonPath = path.join(__dirname, `../public/data/spells/${spellId}.json`);
-      const spellMdPath = path.join(__dirname, `../public/data/glossary/entries/spells/${spellId}.md`);
-      const manifestPath = path.join(__dirname, `../public/data/spells_manifest.json`);
+    rl.question('Is this a ritual spell? (y/n): ', (isRitual) => {
+      rl.question('Enter the spell rarity (common, uncommon, rare, very_rare, legendary): ', (rarity) => {
+        const spellId = toKebabCase(spellName);
+        const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
-      // Check if files already exist
-      if (fs.existsSync(spellJsonPath) || fs.existsSync(spellMdPath)) {
-        console.error(`Error: Files for spell ID "${spellId}" already exist. Please choose a different name or delete the existing files.`);
-        rl.close();
-        process.exit(1);
-      }
+        const spellJsonPath = path.join(__dirname, `../public/data/spells/level-${level}/${spellId}.json`);
+        const spellMdPath = path.join(__dirname, `../public/data/glossary/entries/spells/level-${level}/${spellId}.md`);
+        const manifestPath = path.join(__dirname, `../public/data/spells_manifest.json`);
 
-      // 1. Create JSON file
-      fs.writeFileSync(spellJsonPath, createJsonTemplate(spellId, spellName, isRitual === 'y', rarity));
-      console.log(`Created spell data file: ${spellJsonPath}`);
-
-      // 2. Create Markdown file
-      const mdDir = path.dirname(spellMdPath);
-      if (!fs.existsSync(mdDir)) {
-          fs.mkdirSync(mdDir, { recursive: true });
-      }
-      fs.writeFileSync(spellMdPath, createMarkdownTemplate(spellId, spellName));
-      console.log(`Created glossary entry file: ${spellMdPath}`);
-
-      // 3. Update manifest
-      try {
-        const manifestData = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-        manifestData[spellId] = {
-          name: spellName,
-          level: 1, // Default, user should update
-          school: "Abjuration", // Default, user should update
-          path: `/data/spells/${spellId}.json`
-        };
-
-        const sortedManifest = Object.keys(manifestData).sort().reduce(
-          (obj, key) => {
-            obj[key] = manifestData[key];
-            return obj;
-          },
-          {}
-        );
-
-        fs.writeFileSync(manifestPath, JSON.stringify(sortedManifest, null, 2));
-        console.log(`Updated spell manifest: ${manifestPath}`);
-      } catch (e) {
-        console.error(`Failed to update manifest: ${e.message}`);
-        rl.close();
-        process.exit(1);
-      }
-
-      // 4. Regenerate glossary index
-      try {
-          console.log('Running glossary indexer...');
-          buildGlossaryIndex();
-          console.log('Glossary index updated successfully.');
-      } catch (e) {
-          console.error(`\n--- SCRIPT HALTED ---`);
-          console.error(`Failed to run glossary indexer. This is likely due to a data integrity issue (e.g., duplicate ID, filename mismatch, or YAML syntax error) in one of the glossary's .md files.`);
-          console.error(`Please check the specific error message above to identify the problematic file.`);
+        // Check if files already exist
+        if (fs.existsSync(spellJsonPath) || fs.existsSync(spellMdPath)) {
+          console.error(`Error: Files for spell ID "${spellId}" already exist. Please choose a different name or delete the existing files.`);
           rl.close();
           process.exit(1);
-      }
+        }
+
+        // 1. Create JSON file (ensure level directory exists)
+        const jsonDir = path.dirname(spellJsonPath);
+        if (!fs.existsSync(jsonDir)) {
+          fs.mkdirSync(jsonDir, { recursive: true });
+        }
+        fs.writeFileSync(spellJsonPath, createJsonTemplate(spellId, spellName, level, isRitual === 'y', rarity));
+        console.log(`Created spell data file: ${spellJsonPath}`);
+
+        // 2. Create Markdown file
+        const mdDir = path.dirname(spellMdPath);
+        if (!fs.existsSync(mdDir)) {
+            fs.mkdirSync(mdDir, { recursive: true });
+        }
+        fs.writeFileSync(spellMdPath, createMarkdownTemplate(spellId, spellName, level));
+        console.log(`Created glossary entry file: ${spellMdPath}`);
+
+        // 3. Update manifest
+        try {
+          const manifestData = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+          manifestData[spellId] = {
+            name: spellName,
+            level: level,
+            school: "Abjuration", // Default, user should update
+            path: `/data/spells/level-${level}/${spellId}.json`
+          };
+
+          const sortedManifest = Object.keys(manifestData).sort().reduce(
+            (obj, key) => {
+              obj[key] = manifestData[key];
+              return obj;
+            },
+            {}
+          );
+
+          fs.writeFileSync(manifestPath, JSON.stringify(sortedManifest, null, 2));
+          console.log(`Updated spell manifest: ${manifestPath}`);
+        } catch (e) {
+          console.error(`Failed to update manifest: ${e.message}`);
+          rl.close();
+          process.exit(1);
+        }
+
+        // 4. Regenerate glossary index
+        try {
+            console.log('Running glossary indexer...');
+            buildGlossaryIndex();
+            console.log('Glossary index updated successfully.');
+        } catch (e) {
+            console.error(`\n--- SCRIPT HALTED ---`);
+            console.error(`Failed to run glossary indexer. This is likely due to a data integrity issue (e.g., duplicate ID, filename mismatch, or YAML syntax error) in one of the glossary's .md files.`);
+            console.error(`Please check the specific error message above to identify the problematic file.`);
+            rl.close();
+            process.exit(1);
+        }
 
 
-      console.log(`\n✅ Spell "${spellName}" added successfully!`);
-      console.log('\nNext steps:');
-      console.log(`   1. Edit the placeholder content in the JSON file: public/data/spells/${spellId}.json`);
-      console.log(`   2. Edit the placeholder content in the Markdown file: public/data/glossary/entries/spells/${spellId}.md`);
-      console.log(`   3. Update class spell lists in src/data/classes/index.ts if necessary.`);
+        console.log(`\n✅ Spell "${spellName}" added successfully!`);
+        console.log('\nNext steps:');
+        console.log(`   1. Edit the placeholder content in the JSON file: public/data/spells/level-${level}/${spellId}.json`);
+        console.log(`   2. Edit the placeholder content in the Markdown file: public/data/glossary/entries/spells/level-${level}/${spellId}.md`);
+        console.log(`   3. Update class spell lists in src/data/classes/index.ts if necessary.`);
 
-      rl.close();
+        rl.close();
+      });
     });
   });
 });

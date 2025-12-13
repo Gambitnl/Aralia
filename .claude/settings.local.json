@@ -25,7 +25,17 @@
       "Bash(npm run lint:*)",
       "Bash(git checkout:*)",
       "Bash(git merge:*)",
-      "Bash(dir /b \"c:\\Users\\gambi\\Documents\\Git\\AraliaV4\\Aralia\\*.md\")"
+      "Bash(dir /b \"c:\\Users\\gambi\\Documents\\Git\\AraliaV4\\Aralia\\*.md\")",
+      "Bash(dir:*)",
+      "Bash(mkdir:*)",
+      "Bash(npx tsx:*)",
+      "Bash(node --check:*)",
+      "Bash(node scripts/generateGlossaryIndex.js:*)",
+      "Bash(npm run validate:*)",
+      "Bash(echo:*)",
+      "Bash(node -e:*)",
+      "Bash(node --trace-warnings scripts/generateGlossaryIndex.js:*)",
+      "Bash(node scripts/fix-spell-frontmatter.js:*)"
     ],
     "deny": [],
     "ask": []

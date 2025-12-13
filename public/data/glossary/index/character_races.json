@@ -1,319 +1,766 @@
-
 [
   {
     "id": "aarakocra",
     "title": "Aarakocra (Race)",
     "category": "Character Races",
-    "tags": ["race", "aarakocra", "birdfolk", "humanoid", "flight", "talons", "wind caller"],
+    "tags": [
+      "race",
+      "aarakocra",
+      "birdfolk",
+      "humanoid",
+      "flight",
+      "talons",
+      "wind caller"
+    ],
     "excerpt": "A winged people from the Elemental Plane of Air, aarakocra soar through the sky, commanding echoes of their ancestors' power over wind.",
-    "seeAlso": ["humanoid", "flight", "gust_of_wind"],
+    "aliases": [],
+    "seeAlso": [
+      "humanoid",
+      "flight",
+      "gust_of_wind"
+    ],
     "filePath": "/data/glossary/entries/races/aarakocra.md"
   },
   {
     "id": "aasimar",
     "title": "Aasimar (Race)",
     "category": "Character Races",
-    "tags": ["race", "aasimar", "celestial", "angelic", "humanoid", "darkvision", "healing hands", "light bearer", "celestial revelation"],
+    "tags": [
+      "race",
+      "aasimar",
+      "celestial",
+      "angelic",
+      "humanoid",
+      "darkvision",
+      "healing hands",
+      "light bearer",
+      "celestial revelation"
+    ],
     "excerpt": "Mortals infused with celestial power, aasimar possess divine traits like healing touch, light generation, and transformative revelations, reflecting their angelic heritage.",
-    "aliases": ["angel-kin", "celestial-touched"],
-    "seeAlso": ["humanoid", "celestial_resistance", "darkvision", "healing_hands", "light_bearer", "celestial_revelation", "necrotic_damage", "radiant_damage", "proficiency_bonus", "light_cantrip"],
+    "aliases": [
+      "angel-kin",
+      "celestial-touched"
+    ],
+    "seeAlso": [
+      "humanoid",
+      "celestial_resistance",
+      "darkvision",
+      "healing_hands",
+      "light_bearer",
+      "celestial_revelation",
+      "necrotic_damage",
+      "radiant_damage",
+      "proficiency_bonus",
+      "light_cantrip"
+    ],
     "filePath": "/data/glossary/entries/races/aasimar.md"
   },
   {
     "id": "bugbear",
     "title": "Bugbear (Race)",
     "category": "Character Races",
-    "tags": ["race", "bugbear", "goblinoid", "fey", "stealth", "surprise attack"],
+    "tags": [
+      "race",
+      "bugbear",
+      "goblinoid",
+      "fey",
+      "stealth",
+      "surprise attack"
+    ],
     "excerpt": "Hulking cousins of goblins, bugbears are quiet skulkers with a fey gift for lurking, enhanced reach, and the ability to deal a devastating surprise attack.",
-    "seeAlso": ["goblinoid", "darkvision", "fey_ancestry", "powerful_build", "stealth"],
+    "aliases": [],
+    "seeAlso": [
+      "goblinoid",
+      "darkvision",
+      "fey_ancestry",
+      "powerful_build",
+      "stealth"
+    ],
     "filePath": "/data/glossary/entries/races/bugbear.md"
   },
   {
     "id": "centaur",
     "title": "Centaur (Race)",
     "category": "Character Races",
-    "tags": ["race", "centaur", "fey", "equine", "charge", "hooves"],
+    "tags": [
+      "race",
+      "centaur",
+      "fey",
+      "equine",
+      "charge",
+      "hooves"
+    ],
     "excerpt": "Hailing from the Feywild, centaurs have the upper body of an elf and the lower body of a horse, combining natural speed with a mystical connection to the wild.",
-    "seeAlso": ["fey", "charge", "hooves", "natural_affinity"],
+    "aliases": [],
+    "seeAlso": [
+      "fey",
+      "charge",
+      "hooves",
+      "natural_affinity"
+    ],
     "filePath": "/data/glossary/entries/races/centaur.md"
   },
   {
     "id": "changeling",
     "title": "Changeling (Race)",
     "category": "Character Races",
-    "tags": ["race", "changeling", "fey", "shapechanger", "deception"],
+    "tags": [
+      "race",
+      "changeling",
+      "fey",
+      "shapechanger",
+      "deception"
+    ],
     "excerpt": "With ever-changing appearances, changelings can supernaturally adopt any face they like, channeling either the peril or the joy of their Feywild origins.",
-    "seeAlso": ["fey", "changeling_instincts", "shapechanger"],
+    "aliases": [],
+    "seeAlso": [
+      "fey",
+      "changeling_instincts",
+      "shapechanger"
+    ],
     "filePath": "/data/glossary/entries/races/changeling.md"
+  },
+  {
+    "id": "goliath_ancestry_cloud",
+    "title": "Cloud's Jaunt (Cloud Giant)",
+    "category": "Character Races",
+    "tags": [
+      "goliath",
+      "giant ancestry",
+      "cloud giant",
+      "teleportation",
+      "bonus action"
+    ],
+    "excerpt": "A Giant Ancestry boon allowing magical teleportation as a Bonus Action.",
+    "aliases": [],
+    "seeAlso": [
+      "goliath",
+      "bonus_action",
+      "teleport"
+    ],
+    "filePath": "/data/glossary/entries/races/goliath_ancestries/cloud_giant.md"
+  },
+  {
+    "id": "deep_gnome_subrace",
+    "title": "Deep Gnome (Subrace) - DEPRECATED",
+    "category": "Character Races",
+    "tags": [
+      "gnome",
+      "deep gnome",
+      "svirfneblin",
+      "subrace",
+      "lineage",
+      "underdark",
+      "darkvision",
+      "deprecated"
+    ],
+    "excerpt": "This subrace has been promoted to a standalone race. See the 'Deep Gnome (Svirfneblin)' main race entry.",
+    "aliases": [
+      "svirfneblin"
+    ],
+    "seeAlso": [
+      "deep_gnome"
+    ],
+    "filePath": "/data/glossary/entries/races/gnome_subraces/deep_gnome.md"
   },
   {
     "id": "deep_gnome",
     "title": "Deep Gnome (Svirfneblin)",
     "category": "Character Races",
-    "tags": ["race", "gnome", "deep gnome", "svirfneblin", "underdark", "humanoid", "darkvision", "magic resistance"],
+    "tags": [
+      "race",
+      "gnome",
+      "deep gnome",
+      "svirfneblin",
+      "underdark",
+      "humanoid",
+      "darkvision",
+      "magic resistance"
+    ],
     "excerpt": "Natives of the Underdark, deep gnomes are suffused with subterranean magic, allowing them to camouflage themselves and resist magical effects.",
-    "aliases": ["svirfneblin"],
-    "seeAlso": ["darkvision", "gnomish_magic_resistance", "svirfneblin_camouflage", "disguise_self", "nondetection", "humanoid"],
+    "aliases": [
+      "svirfneblin"
+    ],
+    "seeAlso": [
+      "darkvision",
+      "gnomish_magic_resistance",
+      "svirfneblin_camouflage",
+      "disguise_self",
+      "nondetection",
+      "humanoid"
+    ],
     "filePath": "/data/glossary/entries/races/deep_gnome.md"
   },
   {
-    "id": "dragonborn",
-    "title": "Dragonborn (Race)",
+    "id": "drow_lineage",
+    "title": "Drow Lineage",
     "category": "Character Races",
-    "tags": ["race", "dragonborn", "draconic", "scales", "breath weapon", "humanoid"],
-    "excerpt": "Dragonborn are proud, honorable humanoids descended from dragons, known for their draconic ancestry which grants them a breath weapon and damage resistance.",
-    "aliases": ["dragon-kin", "scaled ones"],
-    "seeAlso": ["draconic_ancestry", "breath_weapon", "damage_resistance", "darkvision"],
-    "filePath": "/data/glossary/entries/races/dragonborn.md"
+    "tags": [
+      "elf",
+      "drow",
+      "lineage",
+      "subrace",
+      "darkvision",
+      "underdark"
+    ],
+    "excerpt": "Descended from elves of the Underdark, drow possess superior darkvision and unique innate magic.",
+    "aliases": [
+      "dark elf"
+    ],
+    "seeAlso": [
+      "elf",
+      "darkvision",
+      "dancing_lights",
+      "faerie_fire",
+      "darkness",
+      "spellcasting_ability"
+    ],
+    "filePath": "/data/glossary/entries/races/elf_lineages/drow.md"
   },
   {
     "id": "duergar",
     "title": "Duergar (Race)",
     "category": "Character Races",
-    "tags": ["race", "duergar", "dwarf", "underdark", "psionic", "darkvision"],
+    "tags": [
+      "race",
+      "duergar",
+      "dwarf",
+      "underdark",
+      "psionic",
+      "darkvision"
+    ],
     "excerpt": "Dwarves transformed by centuries in the Underdark, duergar possess psionic powers and innate magic allowing them to enlarge or turn invisible.",
-    "seeAlso": ["dwarf", "darkvision", "duergar_magic", "dwarven_resilience", "psionic_fortitude"],
+    "aliases": [],
+    "seeAlso": [
+      "dwarf",
+      "darkvision",
+      "duergar_magic",
+      "dwarven_resilience",
+      "psionic_fortitude"
+    ],
     "filePath": "/data/glossary/entries/races/duergar.md"
   },
   {
-    "id": "dwarf",
-    "title": "Dwarf (Race)",
+    "id": "earth_genasi",
+    "title": "Earth Genasi (Race)",
     "category": "Character Races",
-    "tags": ["race", "dwarf", "humanoid", "sturdy", "mountain", "stonecunning", "darkvision", "dwarven resilience", "dwarven toughness", "moradin", "reorx"],
-    "excerpt": "Stout and resilient folk from mountainous realms, known for their skill in smithing, mining, and their deep connection to stone and metal.",
-    "aliases": ["mountain folk", "deep delver", "stout folk"],
-    "seeAlso": ["darkvision", "dwarven_resilience", "dwarven_toughness", "stonecunning", "humanoid", "medium_size"],
-    "filePath": "/data/glossary/entries/races/dwarf.md"
+    "tags": [
+      "race",
+      "genasi",
+      "earth",
+      "dao",
+      "stone"
+    ],
+    "excerpt": "Inheriting steadfast strength from their dao ancestors, Earth Genasi can traverse difficult terrain with ease and magically merge with stone.",
+    "aliases": [],
+    "seeAlso": [
+      "earth_walk",
+      "merge_with_stone",
+      "darkvision"
+    ],
+    "filePath": "/data/glossary/entries/races/earth_genasi.md"
   },
   {
     "id": "eladrin",
     "title": "Eladrin (Race)",
     "category": "Character Races",
-    "tags": ["race", "eladrin", "elf", "fey", "teleport", "seasons"],
+    "tags": [
+      "race",
+      "eladrin",
+      "elf",
+      "fey",
+      "teleport",
+      "seasons"
+    ],
     "excerpt": "Elves of the Feywild, eladrin can teleport with a fey step and resonate with the emotions of the seasons, altering their mood and abilities.",
-    "seeAlso": ["elf", "fey_ancestry", "fey_step", "keen_senses", "trance"],
+    "aliases": [],
+    "seeAlso": [
+      "elf",
+      "fey_ancestry",
+      "fey_step",
+      "keen_senses",
+      "trance"
+    ],
     "filePath": "/data/glossary/entries/races/eladrin.md"
   },
   {
     "id": "elf",
     "title": "Elf (Race)",
     "category": "Character Races",
-    "tags": ["race", "elf", "fey", "darkvision", "trance", "elven lineage", "humanoid", "corellon", "lolth"],
+    "tags": [
+      "race",
+      "elf",
+      "fey",
+      "darkvision",
+      "trance",
+      "elven lineage",
+      "humanoid",
+      "corellon",
+      "lolth"
+    ],
     "excerpt": "A magical people of otherworldly grace, elves live long lives, possess keen senses, and have a deep connection to the Feywild. They are known for their distinct lineages: Drow, High Elf, and Wood Elf.",
-    "aliases": ["elfkind", "firstborn", "elves"],
-    "seeAlso": ["darkvision", "elven_lineage", "fey_ancestry", "trance", "keen_senses", "drow_lineage", "high_elf_lineage", "wood_elf_lineage"],
-    "filePath": "/data/glossary/entries/races/elf.md",
-    "subEntries": [
-      {
-        "id": "drow_lineage",
-        "title": "Drow Lineage",
-        "category": "Character Races",
-        "tags": ["elf", "drow", "lineage", "subrace"],
-        "excerpt": "Descended from elves of the Underdark, drow possess superior darkvision and unique innate magic.",
-        "filePath": "/data/glossary/entries/races/elf_lineages/drow.md"
-      },
-      {
-        "id": "high_elf_lineage",
-        "title": "High Elf Lineage",
-        "category": "Character Races",
-        "tags": ["elf", "high elf", "lineage", "subrace"],
-        "excerpt": "Heirs to elves infused with the magic of the Feywild, high elves are naturally adept at arcane arts.",
-        "filePath": "/data/glossary/entries/races/elf_lineages/high_elf.md"
-      },
-      {
-        "id": "wood_elf_lineage",
-        "title": "Wood Elf Lineage",
-        "category": "Character Races",
-        "tags": ["elf", "wood elf", "lineage", "subrace"],
-        "excerpt": "Embodying the spirit of primeval forests, wood elves are swift, perceptive, and have a primal connection to nature.",
-        "filePath": "/data/glossary/entries/races/elf_lineages/wood_elf.md"
-      }
-    ]
+    "aliases": [
+      "elfkind",
+      "firstborn",
+      "elves"
+    ],
+    "seeAlso": [
+      "darkvision",
+      "elven_lineage",
+      "fey_ancestry",
+      "trance",
+      "keen_senses",
+      "drow_lineage",
+      "high_elf_lineage",
+      "wood_elf_lineage",
+      "dancing_lights",
+      "faerie_fire",
+      "darkness",
+      "prestidigitation",
+      "detect_magic",
+      "misty_step",
+      "druidcraft",
+      "longstrider",
+      "pass_without_trace"
+    ],
+    "filePath": "/data/glossary/entries/races/elf.md"
   },
   {
     "id": "fairy",
     "title": "Fairy (Race)",
     "category": "Character Races",
-    "tags": ["race", "fairy", "fey", "flight", "small"],
+    "tags": [
+      "race",
+      "fairy",
+      "fey",
+      "flight",
+      "small"
+    ],
     "excerpt": "A wee folk from the Feywild, fairies are infused with its magic, granting them insectile wings for flight and innate magical abilities.",
-    "seeAlso": ["fey", "fairy_magic", "flight"],
+    "aliases": [],
+    "seeAlso": [
+      "fey",
+      "fairy_magic",
+      "flight"
+    ],
     "filePath": "/data/glossary/entries/races/fairy.md"
   },
   {
     "id": "firbolg",
     "title": "Firbolg (Race)",
     "category": "Character Races",
-    "tags": ["race", "firbolg", "giant-kin", "fey", "stealth", "nature"],
+    "tags": [
+      "race",
+      "firbolg",
+      "giant-kin",
+      "fey",
+      "stealth",
+      "nature"
+    ],
     "excerpt": "Distant cousins of giants, firbolgs are forest-dwellers with obscuring magic that allows them to turn invisible and speak with beasts and plants.",
-    "seeAlso": ["firbolg_magic", "hidden_step", "powerful_build", "speech_of_beast_and_leaf"],
+    "aliases": [],
+    "seeAlso": [
+      "firbolg_magic",
+      "hidden_step",
+      "powerful_build",
+      "speech_of_beast_and_leaf"
+    ],
     "filePath": "/data/glossary/entries/races/firbolg.md"
+  },
+  {
+    "id": "fire_genasi",
+    "title": "Fire Genasi (Race)",
+    "category": "Character Races",
+    "tags": [
+      "race",
+      "genasi",
+      "fire",
+      "efreeti",
+      "fire resistance"
+    ],
+    "excerpt": "Descended from efreet, Fire Genasi channel the destructive nature of flame, with skin tones of charcoal and red and hair like threads of fire.",
+    "aliases": [],
+    "seeAlso": [
+      "fire_resistance",
+      "reach_to_the_blaze",
+      "darkvision"
+    ],
+    "filePath": "/data/glossary/entries/races/fire_genasi.md"
+  },
+  {
+    "id": "goliath_ancestry_fire",
+    "title": "Fire's Burn (Fire Giant)",
+    "category": "Character Races",
+    "tags": [
+      "goliath",
+      "giant ancestry",
+      "fire giant",
+      "fire damage"
+    ],
+    "excerpt": "A Giant Ancestry boon allowing you to deal extra Fire damage on a successful attack.",
+    "aliases": [],
+    "seeAlso": [
+      "goliath",
+      "fire_damage"
+    ],
+    "filePath": "/data/glossary/entries/races/goliath_ancestries/fire_giant.md"
+  },
+  {
+    "id": "forest_gnome_lineage",
+    "title": "Forest Gnome",
+    "category": "Character Races",
+    "tags": [
+      "gnome",
+      "forest gnome",
+      "subrace",
+      "lineage",
+      "illusion",
+      "speak with animals"
+    ],
+    "excerpt": "Forest gnomes have a natural knack for illusion and inherent quickness, often dwelling in wooded burrows.",
+    "aliases": [
+      "wild gnome"
+    ],
+    "seeAlso": [
+      "gnome",
+      "minor_illusion",
+      "speak_with_animals",
+      "spellcasting_ability"
+    ],
+    "filePath": "/data/glossary/entries/races/gnome_subraces/forest_gnome.md"
+  },
+  {
+    "id": "goliath_ancestry_frost",
+    "title": "Frost's Chill (Frost Giant)",
+    "category": "Character Races",
+    "tags": [
+      "goliath",
+      "giant ancestry",
+      "frost giant",
+      "cold damage",
+      "slow"
+    ],
+    "excerpt": "A Giant Ancestry boon allowing you to deal extra Cold damage and reduce an enemy's speed.",
+    "aliases": [],
+    "seeAlso": [
+      "goliath",
+      "cold_damage",
+      "speed"
+    ],
+    "filePath": "/data/glossary/entries/races/goliath_ancestries/frost_giant.md"
   },
   {
     "id": "genasi",
     "title": "Genasi (Race)",
     "category": "Character Races",
-    "tags": ["race", "genasi", "elemental", "genie", "humanoid", "air", "earth", "fire", "water"],
+    "tags": [
+      "race",
+      "genasi",
+      "elemental",
+      "genie",
+      "humanoid",
+      "air",
+      "earth",
+      "fire",
+      "water"
+    ],
     "excerpt": "Tracing their ancestry to the genies of the Elemental Planes, each genasi can tap into the power of one of the four elements: air, earth, fire, and water.",
-    "seeAlso": ["air_genasi", "earth_genasi", "fire_genasi", "water_genasi"],
-    "filePath": "/data/glossary/entries/races/genasi.md",
-    "subEntries": [
-        {
-            "id": "air_genasi",
-            "title": "Air Genasi",
-            "category": "Character Races",
-            "tags": ["race", "genasi", "air", "djinn", "lightning resistance"],
-            "excerpt": "Descended from djinn, Air Genasi embody the airy traits of their ancestors, with an affinity for wind and lightning.",
-            "seeAlso": ["genasi", "unending_breath", "lightning_resistance", "mingle_with_the_wind"],
-            "filePath": "/data/glossary/entries/races/air_genasi.md"
-        },
-        {
-            "id": "earth_genasi",
-            "title": "Earth Genasi",
-            "category": "Character Races",
-            "tags": ["race", "genasi", "earth", "dao", "stone"],
-            "excerpt": "Inheriting steadfast strength from their dao ancestors, Earth Genasi can traverse difficult terrain with ease and magically merge with stone.",
-            "seeAlso": ["earth_walk", "merge_with_stone", "darkvision"],
-            "filePath": "/data/glossary/entries/races/earth_genasi.md"
-        },
-        {
-            "id": "fire_genasi",
-            "title": "Fire Genasi",
-            "category": "Character Races",
-            "tags": ["race", "genasi", "fire", "efreeti", "fire resistance"],
-            "excerpt": "Descended from efreet, Fire Genasi channel the destructive nature of flame, with skin tones of charcoal and red and hair like threads of fire.",
-            "seeAlso": ["fire_resistance", "reach_to_the_blaze", "darkvision"],
-            "filePath": "/data/glossary/entries/races/fire_genasi.md"
-        },
-        {
-            "id": "water_genasi",
-            "title": "Water Genasi",
-            "category": "Character Races",
-            "tags": ["race", "genasi", "water", "aquatic", "amphibious", "swim"],
-            "excerpt": "Descended from marids, Water Genasi are suited to life underwater, carrying the power of the waves and possessing acid resistance and the ability to breathe water.",
-            "seeAlso": ["acid_resistance", "amphibious", "call_to_the_wave", "darkvision"],
-            "filePath": "/data/glossary/entries/races/water_genasi.md"
-        }
-    ]
+    "aliases": [],
+    "seeAlso": [
+      "air_genasi",
+      "earth_genasi",
+      "fire_genasi",
+      "water_genasi"
+    ],
+    "filePath": "/data/glossary/entries/races/genasi.md"
   },
   {
     "id": "githyanki",
     "title": "Githyanki (Race)",
     "category": "Character Races",
-    "tags": ["race", "githyanki", "astral plane", "psionic", "humanoid"],
+    "tags": [
+      "race",
+      "githyanki",
+      "astral plane",
+      "psionic",
+      "humanoid"
+    ],
     "excerpt": "Hailing from the Astral Plane, Githyanki are psionic warriors who escaped servitude to mind flayers, using their mental powers and knowledge of the silver void.",
-    "seeAlso": ["astral_knowledge", "githyanki_psionics", "psychic_resilience"],
+    "aliases": [],
+    "seeAlso": [
+      "astral_knowledge",
+      "githyanki_psionics",
+      "psychic_resilience"
+    ],
     "filePath": "/data/glossary/entries/races/githyanki.md"
   },
   {
     "id": "githzerai",
     "title": "Githzerai (Race)",
     "category": "Character Races",
-    "tags": ["race", "githzerai", "limbo", "psionic", "humanoid", "monk"],
+    "tags": [
+      "race",
+      "githzerai",
+      "limbo",
+      "psionic",
+      "humanoid",
+      "monk"
+    ],
     "excerpt": "Disciplined monks who carved a home from the chaos of Limbo, Githzerai use their potent psionic power to protect themselves and probe the minds of others.",
-    "seeAlso": ["githzerai_psionics", "mental_discipline", "psychic_resilience"],
+    "aliases": [],
+    "seeAlso": [
+      "githzerai_psionics",
+      "mental_discipline",
+      "psychic_resilience"
+    ],
     "filePath": "/data/glossary/entries/races/githzerai.md"
   },
   {
     "id": "gnome",
     "title": "Gnome (Race)",
     "category": "Character Races",
-    "tags": ["race", "gnome", "fey-touched", "illusion", "invention", "darkvision", "humanoid", "garl glittergold", "small", "svirfneblin"],
+    "tags": [
+      "race",
+      "gnome",
+      "fey-touched",
+      "illusion",
+      "invention",
+      "darkvision",
+      "humanoid",
+      "garl glittergold",
+      "small",
+      "svirfneblin"
+    ],
     "excerpt": "Magical folk known for their cleverness, illusions, and invention. Gnomes have distinct lineages: Forest Gnome and Rock Gnome, granting unique abilities.",
-    "aliases": ["gnomes", "rock gnome", "forest gnome", "svirfneblin"],
-    "seeAlso": ["darkvision", "gnomish_cunning", "gnomish_lineage", "forest_gnome_lineage", "rock_gnome_lineage", "deep_gnome_lineage", "minor_illusion", "speak_with_animals", "mending", "prestidigitation", "humanoid", "small_size", "nondetection"],
-    "filePath": "/data/glossary/entries/races/gnome.md",
-    "subEntries": [
-      {
-        "id": "forest_gnome_lineage",
-        "title": "Forest Gnome",
-        "category": "Character Races",
-        "tags": ["gnome", "forest gnome", "subrace", "lineage"],
-        "excerpt": "Forest gnomes have a natural knack for illusion and inherent quickness, often dwelling in wooded burrows.",
-        "filePath": "/data/glossary/entries/races/gnome_subraces/forest_gnome.md"
-      },
-      {
-        "id": "rock_gnome_lineage",
-        "title": "Rock Gnome",
-        "category": "Character Races",
-        "tags": ["gnome", "rock gnome", "subrace", "lineage", "tinker"],
-        "excerpt": "Rock gnomes are the most common type of gnome, known for their natural inventiveness, hardiness, and tinkering.",
-        "filePath": "/data/glossary/entries/races/gnome_subraces/rock_gnome.md"
-      }
-    ]
+    "aliases": [
+      "gnomes",
+      "rock gnome",
+      "forest gnome",
+      "svirfneblin"
+    ],
+    "seeAlso": [
+      "darkvision",
+      "gnomish_cunning",
+      "gnomish_lineage",
+      "forest_gnome_lineage",
+      "rock_gnome_lineage",
+      "deep_gnome_lineage",
+      "minor_illusion",
+      "speak_with_animals",
+      "mending",
+      "prestidigitation",
+      "humanoid",
+      "small_size",
+      "nondetection"
+    ],
+    "filePath": "/data/glossary/entries/races/gnome.md"
   },
   {
     "id": "goblin",
     "title": "Goblin (Race)",
     "category": "Character Races",
-    "tags": ["race", "goblin", "goblinoid", "fey", "stealth", "nimble escape"],
+    "tags": [
+      "race",
+      "goblin",
+      "goblinoid",
+      "fey",
+      "stealth",
+      "nimble escape"
+    ],
     "excerpt": "A subterranean folk with fey origins, goblins use their supernatural knack for finding weak spots and their Nimble Escape to survive and thrive.",
-    "seeAlso": ["goblinoid", "darkvision", "fey_ancestry", "fury_of_the_small", "nimble_escape"],
+    "aliases": [],
+    "seeAlso": [
+      "goblinoid",
+      "darkvision",
+      "fey_ancestry",
+      "fury_of_the_small",
+      "nimble_escape"
+    ],
     "filePath": "/data/glossary/entries/races/goblin.md"
   },
   {
     "id": "goliath",
     "title": "Goliath (Race)",
     "category": "Character Races",
-    "tags": ["race", "goliath", "giant", "humanoid", "strength", "powerful build"],
+    "tags": [
+      "race",
+      "goliath",
+      "giant",
+      "humanoid",
+      "strength",
+      "powerful build"
+    ],
     "excerpt": "Distant descendants of giants, goliaths are towering humanoids who can manifest supernatural boons from their giant ancestry and temporarily grow to Large size.",
-    "aliases": ["giant-kin"],
-    "seeAlso": ["giant_ancestry", "large_form", "powerful_build", "humanoid", "proficiency_bonus", "bonus_action", "reaction"],
-    "filePath": "/data/glossary/entries/races/goliath.md",
-    "subEntries": [
-      {
-        "id": "goliath_ancestry_cloud",
-        "title": "Cloud's Jaunt (Cloud Giant)",
-        "category": "Character Races",
-        "tags": ["goliath", "giant ancestry", "cloud giant", "teleportation", "bonus action"],
-        "excerpt": "A Giant Ancestry boon allowing magical teleportation as a Bonus Action.",
-        "seeAlso": ["goliath", "bonus_action", "teleport"],
-        "filePath": "/data/glossary/entries/races/goliath_ancestries/cloud_giant.md"
-      },
-      {
-        "id": "goliath_ancestry_fire",
-        "title": "Fire's Burn (Fire Giant)",
-        "category": "Character Races",
-        "tags": ["goliath", "giant ancestry", "fire giant", "fire damage"],
-        "excerpt": "A Giant Ancestry boon allowing you to deal extra Fire damage on a successful attack.",
-        "seeAlso": ["goliath", "fire_damage"],
-        "filePath": "/data/glossary/entries/races/goliath_ancestries/fire_giant.md"
-      },
-      {
-        "id": "goliath_ancestry_frost",
-        "title": "Frost's Chill (Frost Giant)",
-        "category": "Character Races",
-        "tags": ["goliath", "giant ancestry", "frost giant", "cold damage", "slow"],
-        "excerpt": "A Giant Ancestry boon allowing you to deal extra Cold damage and reduce an enemy's speed.",
-        "seeAlso": ["goliath", "cold_damage", "speed"],
-        "filePath": "/data/glossary/entries/races/goliath_ancestries/frost_giant.md"
-      },
-      {
-        "id": "goliath_ancestry_hill",
-        "title": "Hill's Tumble (Hill Giant)",
-        "category": "Character Races",
-        "tags": ["goliath", "giant ancestry", "hill giant", "prone"],
-        "excerpt": "A Giant Ancestry boon allowing you to knock an enemy Prone on a successful attack.",
-        "seeAlso": ["goliath", "prone_condition"],
-        "filePath": "/data/glossary/entries/races/goliath_ancestries/hill_giant.md"
-      },
-      {
-        "id": "goliath_ancestry_stone",
-        "title": "Stone's Endurance (Stone Giant)",
-        "category": "Character Races",
-        "tags": ["goliath", "giant ancestry", "stone giant", "damage reduction", "reaction"],
-        "excerpt": "A Giant Ancestry boon allowing you to use your Reaction to reduce incoming damage.",
-        "seeAlso": ["goliath", "reaction", "constitution"],
-        "filePath": "/data/glossary/entries/races/goliath_ancestries/stone_giant.md"
-      },
-      {
-        "id": "goliath_ancestry_storm",
-        "title": "Storm's Thunder (Storm Giant)",
-        "category": "Character Races",
-        "tags": ["goliath", "giant ancestry", "storm giant", "thunder damage", "reaction"],
-        "excerpt": "A Giant Ancestry boon allowing you to deal reactive Thunder damage to an attacker.",
-        "seeAlso": ["goliath", "reaction", "thunder_damage"],
-        "filePath": "/data/glossary/entries/races/goliath_ancestries/storm_giant.md"
-      }
-    ]
+    "aliases": [
+      "giant-kin"
+    ],
+    "seeAlso": [
+      "giant_ancestry",
+      "large_form",
+      "powerful_build",
+      "humanoid",
+      "proficiency_bonus",
+      "bonus_action",
+      "reaction"
+    ],
+    "filePath": "/data/glossary/entries/races/goliath.md"
+  },
+  {
+    "id": "high_elf_lineage",
+    "title": "High Elf Lineage",
+    "category": "Character Races",
+    "tags": [
+      "elf",
+      "high elf",
+      "lineage",
+      "subrace",
+      "arcane",
+      "wizard cantrip"
+    ],
+    "excerpt": "Heirs to elves infused with the magic of the Feywild, high elves are naturally adept at arcane arts.",
+    "aliases": [
+      "sun elf",
+      "moon elf"
+    ],
+    "seeAlso": [
+      "elf",
+      "cantrip",
+      "prestidigitation",
+      "detect_magic",
+      "misty_step",
+      "spellcasting_ability"
+    ],
+    "filePath": "/data/glossary/entries/races/elf_lineages/high_elf.md"
+  },
+  {
+    "id": "goliath_ancestry_hill",
+    "title": "Hill's Tumble (Hill Giant)",
+    "category": "Character Races",
+    "tags": [
+      "goliath",
+      "giant ancestry",
+      "hill giant",
+      "prone"
+    ],
+    "excerpt": "A Giant Ancestry boon allowing you to knock an enemy Prone on a successful attack.",
+    "aliases": [],
+    "seeAlso": [
+      "goliath",
+      "prone_condition"
+    ],
+    "filePath": "/data/glossary/entries/races/goliath_ancestries/hill_giant.md"
+  },
+  {
+    "id": "rock_gnome_lineage",
+    "title": "Rock Gnome",
+    "category": "Character Races",
+    "tags": [
+      "gnome",
+      "rock gnome",
+      "subrace",
+      "lineage",
+      "tinker",
+      "artificer"
+    ],
+    "excerpt": "Rock gnomes are the most common type of gnome, known for their natural inventiveness, hardiness, and tinkering.",
+    "aliases": [
+      "tinker gnome"
+    ],
+    "seeAlso": [
+      "gnome",
+      "mending",
+      "prestidigitation",
+      "artificers_lore"
+    ],
+    "filePath": "/data/glossary/entries/races/gnome_subraces/rock_gnome.md"
+  },
+  {
+    "id": "goliath_ancestry_stone",
+    "title": "Stone's Endurance (Stone Giant)",
+    "category": "Character Races",
+    "tags": [
+      "goliath",
+      "giant ancestry",
+      "stone giant",
+      "damage reduction",
+      "reaction"
+    ],
+    "excerpt": "A Giant Ancestry boon allowing you to use your Reaction to reduce incoming damage.",
+    "aliases": [],
+    "seeAlso": [
+      "goliath",
+      "reaction",
+      "constitution"
+    ],
+    "filePath": "/data/glossary/entries/races/goliath_ancestries/stone_giant.md"
+  },
+  {
+    "id": "goliath_ancestry_storm",
+    "title": "Storm's Thunder (Storm Giant)",
+    "category": "Character Races",
+    "tags": [
+      "goliath",
+      "giant ancestry",
+      "storm giant",
+      "thunder damage",
+      "reaction"
+    ],
+    "excerpt": "A Giant Ancestry boon allowing you to deal reactive Thunder damage to an attacker.",
+    "aliases": [],
+    "seeAlso": [
+      "goliath",
+      "reaction",
+      "thunder_damage"
+    ],
+    "filePath": "/data/glossary/entries/races/goliath_ancestries/storm_giant.md"
+  },
+  {
+    "id": "water_genasi",
+    "title": "Water Genasi (Race)",
+    "category": "Character Races",
+    "tags": [
+      "race",
+      "genasi",
+      "water",
+      "aquatic",
+      "amphibious",
+      "swim"
+    ],
+    "excerpt": "Descended from marids, Water Genasi are suited to life underwater, carrying the power of the waves and possessing acid resistance and the ability to breathe water.",
+    "aliases": [],
+    "seeAlso": [
+      "acid_resistance",
+      "amphibious",
+      "call_to_the_wave",
+      "darkvision"
+    ],
+    "filePath": "/data/glossary/entries/races/water_genasi.md"
+  },
+  {
+    "id": "wood_elf_lineage",
+    "title": "Wood Elf Lineage",
+    "category": "Character Races",
+    "tags": [
+      "elf",
+      "wood elf",
+      "lineage",
+      "subrace",
+      "speed",
+      "stealth"
+    ],
+    "excerpt": "Embodying the spirit of primeval forests, wood elves are swift, perceptive, and have a primal connection to nature.",
+    "aliases": [
+      "wild elf",
+      "green elf"
+    ],
+    "seeAlso": [
+      "elf",
+      "druidcraft",
+      "longstrider",
+      "pass_without_trace",
+      "speed",
+      "spellcasting_ability"
+    ],
+    "filePath": "/data/glossary/entries/races/elf_lineages/wood_elf.md"
   }
 ]

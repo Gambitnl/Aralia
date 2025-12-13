@@ -16,6 +16,7 @@ export interface GateChecklist {
   manifestPathOk: boolean;
   glossaryExists: boolean;
   levelTagOk: boolean;
+  layoutOk: boolean;
   knownGap: boolean;
 }
 
@@ -52,8 +53,8 @@ const buildKnownGapSet = (): Set<string> => {
   return set;
 };
 
-const fetchGlossaryCard = async (id: string) => {
-  const url = `${import.meta.env.BASE_URL}data/glossary/entries/spells/${id}.md`;
+const fetchGlossaryCard = async (id: string, level: number) => {
+  const url = `${import.meta.env.BASE_URL}data/glossary/entries/spells/level-${level}/${id}.md`;
   const res = await fetch(url);
   if (!res.ok) return null;
   return res.text();
@@ -67,9 +68,9 @@ const parseFrontmatter = (raw: string) => {
   const idMatch = /id:\s*["']?([a-z0-9\-_]+)["']?/i.exec(block);
   const tags = tagsMatch
     ? tagsMatch[1]
-        .split(",")
-        .map(t => t.trim().replace(/['"]/g, ""))
-        .filter(Boolean)
+      .split(",")
+      .map(t => t.trim().replace(/['"]/g, ""))
+      .filter(Boolean)
     : [];
   const id = idMatch ? idMatch[1] : null;
   return { id, tags };
@@ -103,6 +104,7 @@ export const useSpellGateChecks = (entries: GlossaryEntry[] | null) => {
             manifestPathOk: false,
             glossaryExists: false,
             levelTagOk: false,
+            layoutOk: false,
             knownGap: knownGaps.has(id),
           };
           const reasons: string[] = [];
@@ -117,20 +119,23 @@ export const useSpellGateChecks = (entries: GlossaryEntry[] | null) => {
 
           let tags: string[] = [];
           let cardFound = false;
+          let cardContent: string | null = null;
 
-          // Prefer context entry, but fall back to fetching the markdown directly
-          const entry = entryMap.get(id);
-          if (entry) {
+          // Always fetch the card content to check layout
+          cardContent = await fetchGlossaryCard(id, level);
+
+          if (cardContent) {
             cardFound = true;
-            tags = entry.tags?.map(t => t.toLowerCase()) || [];
+            const fm = parseFrontmatter(cardContent);
+            if (fm?.id && normalizeId(fm.id) === id) {
+              tags = (fm.tags || []).map(t => t.toLowerCase());
+            }
           } else {
-            const card = await fetchGlossaryCard(id);
-            if (card) {
+            // Fallback to context entry for tags if fetch failed
+            const entry = entryMap.get(id);
+            if (entry) {
               cardFound = true;
-              const fm = parseFrontmatter(card);
-              if (fm?.id && normalizeId(fm.id) === id) {
-                tags = (fm.tags || []).map(t => t.toLowerCase());
-              }
+              tags = entry.tags?.map(t => t.toLowerCase()) || [];
             }
           }
 
@@ -139,6 +144,14 @@ export const useSpellGateChecks = (entries: GlossaryEntry[] | null) => {
           } else {
             status = "fail";
             reasons.push("No glossary card found");
+          }
+
+          // Check for correct spell-card HTML layout
+          if (cardContent && cardContent.includes('<div class="spell-card">') && cardContent.includes('spell-card-stats-grid')) {
+            checklist.layoutOk = true;
+          } else if (cardFound) {
+            status = "fail";
+            reasons.push("Incorrect layout (missing spell-card HTML)");
           }
 
           const levelTag = `level ${level}`;
