@@ -4,6 +4,7 @@
  */
 import React, { useEffect, useRef } from 'react';
 import { GeminiLogEntry } from '../types';
+import { Z_INDEX } from '../constants/zIndex';
 
 interface GeminiLogViewerProps {
   isOpen: boolean;
@@ -44,7 +45,8 @@ const GeminiLogViewer: React.FC<GeminiLogViewerProps> = ({ isOpen, onClose, logE
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-85 flex items-center justify-center z-[70] p-4" // Higher z-index than DevMenu
+      className="fixed inset-0 bg-black bg-opacity-85 flex items-center justify-center p-4" // Higher z-index than DevMenu
+      style={{ zIndex: Z_INDEX.MODAL_3 }}
       aria-modal="true"
       role="dialog"
       aria-labelledby="gemini-log-viewer-title"

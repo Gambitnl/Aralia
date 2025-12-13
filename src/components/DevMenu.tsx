@@ -4,6 +4,7 @@
  */
 import React, { useEffect, useRef } from 'react';
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN } from '../config/geminiConfig';
+import { Z_INDEX } from '../constants/zIndex';
 
 type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan';
 
@@ -57,7 +58,8 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60] p-4" // Higher z-index than map/submap
+      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4" // Higher z-index than map/submap
+      style={{ zIndex: Z_INDEX.MODAL_2 }}
       aria-modal="true"
       role="dialog"
       aria-labelledby="dev-menu-title"

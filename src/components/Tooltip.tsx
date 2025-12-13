@@ -6,6 +6,7 @@
  */
 import React, { useState, useRef, useEffect, useCallback, ReactElement, HTMLAttributes } from 'react';
 import ReactDOM from 'react-dom';
+import { Z_INDEX } from '../constants/zIndex';
 
 interface TooltipProps {
   children: ReactElement<HTMLAttributes<HTMLElement>>; // Ensures children accept HTML event attributes
@@ -125,8 +126,9 @@ const Tooltip: React.FC<TooltipProps> = ({
           ref={tooltipRef}
           id={tooltipId}
           role="tooltip"
-          className="fixed z-[9999] px-3 py-2 text-sm font-normal text-white bg-gray-700 rounded-lg shadow-xl transition-opacity duration-150 max-w-sm max-h-60 overflow-y-auto scrollable-content"
+          className="fixed px-3 py-2 text-sm font-normal text-white bg-gray-700 rounded-lg shadow-xl transition-opacity duration-150 max-w-sm max-h-60 overflow-y-auto scrollable-content"
           style={{
+            zIndex: Z_INDEX.TOOLTIP,
             top: coords?.top ? `${coords.top}px` : '-9999px',
             left: coords?.left ? `${coords.left}px` : '-9999px',
             opacity: coords ? 1 : 0,

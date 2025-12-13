@@ -22,6 +22,7 @@ import ActionPane from '../ActionPane';
 import SubmapTile from '../SubmapTile';
 import { CaTileType } from '../../services/cellularAutomataService';
 import SubmapRendererPixi from '../SubmapRendererPixi';
+import { Z_INDEX } from '../../constants/zIndex';
 
 // Modularized imports
 import { submapTileHints } from './submapData';
@@ -638,7 +639,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                             {/* Dynamic SVG Path Overlay */}
                             {isQuickTravelMode && quickTravelData.orderedPath.length > 0 && (
                                 <svg
-                                    className="absolute inset-0 w-full h-full pointer-events-none z-[20]"
+                                    className="absolute inset-0 w-full h-full pointer-events-none z-20"
                                     viewBox={`0 0 ${submapDimensions.cols} ${submapDimensions.rows}`}
                                     preserveAspectRatio="none" // Stretch to fit container
                                 >
@@ -733,7 +734,11 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                 </div>
 
                 {isGlossaryOpen && (
-                    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[60]" onClick={(e) => e.target === e.currentTarget && setIsGlossaryOpen(false)}>
+                    <div
+                        className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center"
+                        style={{ zIndex: Z_INDEX.MODAL_2 }}
+                        onClick={(e) => e.target === e.currentTarget && setIsGlossaryOpen(false)}
+                    >
                         <div className="bg-gray-800 p-4 rounded-lg shadow-xl max-w-md w-full max-h-[70vh] overflow-y-auto scrollable-content border border-gray-600" onClick={e => e.stopPropagation()}>
                             <div className="flex justify-between items-center mb-3">
                                 <h3 className="text-lg font-semibold text-amber-400">Submap Legend</h3>
@@ -747,7 +752,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                 {isQuickTravelMode && (
                     <div
                         className="fixed bg-gray-900/80 text-white text-xs px-2 py-1 rounded-md shadow-lg pointer-events-none"
-                        style={{ top: mousePosition.y + 20, left: mousePosition.x + 20, zIndex: 100 }}
+                        style={{ top: mousePosition.y + 20, left: mousePosition.x + 20, zIndex: Z_INDEX.TOP_TIER }}
                     >
                         {quickTravelData.isBlocked ? (
                             <span className="text-red-400 font-bold">Path Blocked</span>
