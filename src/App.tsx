@@ -677,14 +677,14 @@ const App: React.FC = () => {
 
         {/* Global Loading Spinner */}
         <AnimatePresence>
-          {(gameState.isLoading || gameState.isImageLoading) && <LoadingSpinner message={gameState.loadingMessage || (gameState.isImageLoading ? "A vision forms in the æther..." : "Aralia is weaving fate...")} />}
+          {(gameState.isLoading || gameState.isImageLoading) && <LoadingSpinner message={gameState.loadingMessage || (gameState.isImageLoading ? t('app.ui.loading.image') : t('app.ui.loading.default'))} />}
         </AnimatePresence>
 
         {/* Global Error Message Banner */}
         {gameState.error && (
           <div className="bg-red-800 text-white p-4 fixed top-0 left-0 right-0 z-[100] text-center">
-            Error: {gameState.error}
-            <button onClick={() => dispatch({ type: 'SET_ERROR', payload: null })} className="ml-4 bg-red-600 px-2 py-1 rounded">Dismiss</button>
+            {t('app.ui.error.message', { message: gameState.error })}
+            <button onClick={() => dispatch({ type: 'SET_ERROR', payload: null })} className="ml-4 bg-red-600 px-2 py-1 rounded">{t('app.ui.error.dismiss')}</button>
           </div>
         )}
 

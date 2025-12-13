@@ -6,6 +6,7 @@
  */
 import React from 'react';
 import { motion } from 'framer-motion';
+import { t } from '../../utils/i18n';
 
 export interface LoadingSpinnerProps {
   message?: string | null; // Optional message to display
@@ -18,7 +19,7 @@ export interface LoadingSpinnerProps {
  * @returns {React.FC} The rendered LoadingSpinner component.
  */
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message }) => {
-  const displayMessage = message || "Aralia is weaving fate...";
+  const displayMessage = message || t('app.ui.loading.default');
   return (
     <motion.div
       {...{
