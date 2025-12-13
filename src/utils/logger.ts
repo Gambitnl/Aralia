@@ -6,6 +6,11 @@ interface LogContext {
 
 class Logger {
   private log(level: LogLevel, message: string, context?: LogContext) {
+    // Security: Suppress debug logs in production to prevent information leakage
+    if (level === 'debug' && import.meta.env.PROD) {
+      return;
+    }
+
     const timestamp = new Date().toISOString();
     const prefix = `[${timestamp}] [${level.toUpperCase()}]`;
 
