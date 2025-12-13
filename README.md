@@ -4,7 +4,39 @@ Welcome to the Aralia RPG project! This document provides a high-level overview 
 
 For a complete index of all documentation, please see the [README Index](./docs/@README-INDEX.md).
 
-## 1. Core Features
+## 1. Getting Started
+
+### Prerequisites
+*   **Node.js**: (Version 18+ recommended)
+*   **pnpm**: This project uses `pnpm` for dependency management. If you don't have it installed:
+    ```bash
+    npm install -g pnpm
+    ```
+
+### Installation
+
+1.  **Install dependencies**:
+    ```bash
+    pnpm install
+    ```
+
+2.  **Configure environment variables**:
+    *   Copy the example environment file:
+        ```bash
+        cp .env.example .env
+        ```
+    *   Open `.env` and add your **Google Gemini API Key**:
+        ```
+        GEMINI_API_KEY=your_actual_api_key_here
+        ```
+    *   (Optional) Enable developer tools by setting `VITE_ENABLE_DEV_TOOLS=true`.
+
+3.  **Run the development server**:
+    ```bash
+    pnpm run dev
+    ```
+
+## 2. Core Features
 
 *   **Dynamic Storytelling**: Utilizes the Google Gemini API to generate dynamic location descriptions, NPC dialogue, and action outcomes, creating a unique adventure every time.
 *   **Text-Based RPG Core**: Classic text adventure gameplay loop focusing on exploration, interaction, and choice.
@@ -15,7 +47,7 @@ For a complete index of all documentation, please see the [README Index](./docs/
 *   **Developer Mode**: Includes a "dummy character" to bypass character creation for rapid testing and a developer menu for quick actions like save/load.
 *   **Save/Load System**: Persists game state to the browser's Local Storage.
 
-## 2. Technology Stack & Architecture
+## 3. Technology Stack & Architecture
 
 ### Core Stack
 *   **Framework**: **React** (v19.1) using modern features like hooks.
@@ -47,7 +79,7 @@ Even though everything runs in the browser, we **can** expand the experience by 
 
 Mentioning these possibilities helps me understand that you're open to evolving the tech stack within our constraints.
 
-## 3. Project Structure
+## 4. Project Structure
 
 The project follows a component-based architecture with a clear separation of concerns.
 
@@ -83,20 +115,20 @@ The project follows a component-based architecture with a clear separation of co
 *   **`scripts/`**: Build scripts, such as the one for generating the glossary index and data validation.
 *   **`tests/`**: Test files for Vitest.
 
-## 4. Available Scripts
+## 5. Available Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start the Vite development server |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview the production build locally |
-| `npm run validate` | Validate game data files (spells, items, etc.) against schemas |
-| `npm run test` | Run unit tests with Vitest |
-| `npm run test:types` | Run type definition tests |
-| `npm run typecheck` | Run TypeScript type checking without emitting |
-| `npm run lint` | Run ESLint on source and script files |
+| `pnpm run dev` | Start the Vite development server |
+| `pnpm run build` | Build for production |
+| `pnpm run preview` | Preview the production build locally |
+| `pnpm run validate` | Validate game data files (spells, items, etc.) against schemas |
+| `pnpm run test` | Run unit tests with Vitest |
+| `pnpm run test:types` | Run type definition tests |
+| `pnpm run typecheck` | Run TypeScript type checking without emitting |
+| `pnpm run lint` | Run ESLint on source and script files |
 
-## 5. Key Development Practices
+## 6. Key Development Practices
 
 ### Dummy Character for Development
 *   The `USE_DUMMY_CHARACTER_FOR_DEV` flag in `src/constants.ts` can be set to `true`.
@@ -107,7 +139,7 @@ The project follows a component-based architecture with a clear separation of co
 *   ESLint enforces code quality standards with plugins for React, accessibility (jsx-a11y), and import ordering.
 *   TypeScript strict mode ensures type safety throughout the codebase.
 
-## 6. How to Add New Game Content
+## 7. How to Add New Game Content
 
 ### Adding a New Race
 Please follow the detailed guide: **[`docs/guides/RACE_ADDITION_GUIDE.md`](./docs/guides/RACE_ADDITION_GUIDE.md)**
