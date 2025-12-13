@@ -1,18 +1,13 @@
 /**
  * @file BackgroundSelection.tsx
  * Allows players to select their character's background, with age-appropriate options.
- *
- * TODO: Styling inconsistency audit (2025-12-11)
- * - Header uses `text-3xl font-bold text-gray-100` instead of standard `text-2xl text-sky-300`
- * - Primary button uses `bg-blue-600` instead of `bg-green-600` (confirm) or `bg-sky-700` (action)
- * - Selected card uses `border-blue-500 bg-blue-900` instead of `bg-sky-600 ring-2 ring-sky-400`
- * - Container wrapper uses `bg-gray-700 p-8 border` but other steps have no wrapper
- * - Consider aligning with RaceSelection.tsx/ClassSelection.tsx styling patterns
  */
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Race } from '../../types';
 import { BACKGROUNDS, AGE_APPROPRIATE_BACKGROUNDS } from '../../data/backgrounds';
+import { SelectionCard } from '../ui/SelectionCard';
+import { BTN_PRIMARY, BTN_SECONDARY } from '../../styles/buttonStyles';
 
 interface BackgroundSelectionProps {
   selectedRace: Race | null;
@@ -110,7 +105,7 @@ const BackgroundSelection: React.FC<BackgroundSelectionProps> = ({
       className="max-w-4xl mx-auto p-6"
     >
       <div className="bg-gray-700 rounded-lg shadow-lg p-8 border border-gray-600">
-        <h2 className="text-3xl font-bold text-gray-100 mb-6 text-center">
+        <h2 className="text-2xl text-sky-300 mb-6 text-center">
           Background Selection
         </h2>
 
@@ -131,18 +126,13 @@ const BackgroundSelection: React.FC<BackgroundSelectionProps> = ({
           {/* Background Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             {availableBackgrounds.map((background) => (
-              <div
+              <SelectionCard
                 key={background.id}
+                title={background.name}
+                selected={selectedBackgroundId === background.id}
                 onClick={() => handleBackgroundSelect(background.id)}
-                className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                  selectedBackgroundId === background.id
-                    ? 'border-blue-500 bg-blue-900 bg-opacity-30'
-                    : 'border-gray-600 hover:border-gray-500'
-                }`}
               >
-                <h3 className="font-bold text-lg mb-2 text-gray-100">{background.name}</h3>
-                <p className="text-sm text-gray-300 mb-3">{background.description}</p>
-
+                <p className="mb-3">{background.description}</p>
                 <div className="text-xs text-gray-400 space-y-1">
                   <div><strong>Skills:</strong> {background.skillProficiencies.join(', ')}</div>
                   {background.toolProficiencies && (
@@ -153,7 +143,7 @@ const BackgroundSelection: React.FC<BackgroundSelectionProps> = ({
                   )}
                   <div><strong>Feature:</strong> {background.feature.name}</div>
                 </div>
-              </div>
+              </SelectionCard>
             ))}
           </div>
 
@@ -215,7 +205,7 @@ const BackgroundSelection: React.FC<BackgroundSelectionProps> = ({
         <div className="flex justify-between">
           <button
             onClick={onBack}
-            className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors"
+            className={`${BTN_SECONDARY} px-6 py-3 rounded-lg`}
           >
             Back
           </button>
@@ -223,7 +213,7 @@ const BackgroundSelection: React.FC<BackgroundSelectionProps> = ({
           <button
             onClick={handleSubmit}
             disabled={!selectedBackgroundId}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
+            className={`${BTN_PRIMARY} px-6 py-3 rounded-lg`}
           >
             Next
           </button>
@@ -234,4 +224,3 @@ const BackgroundSelection: React.FC<BackgroundSelectionProps> = ({
 };
 
 export default BackgroundSelection;
-
