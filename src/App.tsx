@@ -81,11 +81,11 @@ const App: React.FC = () => {
         id: Date.now() + Math.random(),
         text,
         sender,
-        timestamp: new Date(),
+        timestamp: gameState.gameTime, // Use game time instead of real time for messages log
       };
       dispatch({ type: 'ADD_MESSAGE', payload: newMessage });
     },
-    [],
+    [gameState.gameTime],
   );
 
   const { playPcmAudio, cleanupAudioContext } = useAudio(addMessage);

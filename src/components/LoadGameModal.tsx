@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SaveSlotSummary } from '../services/saveLoadService';
+import { formatGameDateTime } from '../utils/timeUtils';
 import ConfirmationModal from './ConfirmationModal';
 
 interface LoadGameModalProps {
@@ -39,7 +40,7 @@ const LoadGameModal: React.FC<LoadGameModalProps> = ({ slots, onClose, onLoadSlo
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold text-amber-200">{slot.slotName}</h3>
-          <p className="text-xs text-gray-400">Saved {new Date(slot.lastSaved).toLocaleString()}</p>
+          <p className="text-xs text-gray-400">Saved {formatGameDateTime(new Date(slot.lastSaved))}</p>
         </div>
         <div className="space-x-2">
           <button

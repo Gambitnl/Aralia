@@ -1,10 +1,11 @@
 import React from 'react';
 import { Quest, QuestStatus } from '../types';
+import { formatGameDateTime } from '../utils/timeUtils';
 
 // Helper to show human friendly timestamps inside the modal
 const formatQuestDate = (timestamp?: number): string => {
   if (!timestamp) return '—';
-  return new Date(timestamp).toLocaleString();
+  return formatGameDateTime(new Date(timestamp));
 };
 
 const statusBadgeStyles: Record<QuestStatus, string> = {

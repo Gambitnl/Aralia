@@ -38,7 +38,7 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         return { geminiGeneratedActions: action.payload };
 
     case 'ADVANCE_TIME':
-      const newTime = new Date(state.gameTime.getTime());
+      const newTime = new Date(state.gameTime);
       newTime.setSeconds(newTime.getSeconds() + action.payload.seconds);
       return { gameTime: newTime };
     

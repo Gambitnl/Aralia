@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { AUTO_SAVE_SLOT_KEY, SaveSlotSummary, getSlotStorageKey } from '../services/saveLoadService';
+import { formatGameDateTime } from '../utils/timeUtils';
 import ConfirmationModal from './ConfirmationModal';
 
 interface SaveSlotSelectorProps {
@@ -149,7 +150,7 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
             >
               <div className="flex items-center justify-between">
                 <span className="text-lg font-semibold text-emerald-200">{slot.slotName}</span>
-                <span className="text-xs text-gray-400">{new Date(slot.lastSaved).toLocaleString()}</span>
+                <span className="text-xs text-gray-400">{formatGameDateTime(new Date(slot.lastSaved))}</span>
               </div>
               {renderPreview(slot)}
             </button>

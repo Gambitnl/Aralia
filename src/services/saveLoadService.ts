@@ -9,6 +9,7 @@
  */
 import { GameState, GamePhase, NotificationType } from '../types';
 import { SafeStorage, SafeSession } from '../utils/storageUtils';
+import { formatGameDateTime } from '../utils/timeUtils';
 
 //
 // Save slot configuration
@@ -152,7 +153,7 @@ export async function saveGame(
     resetSessionTimer(stateToSave.saveTimestamp!);
 
     if (import.meta.env.DEV) {
-      console.log(`Game saved to slot: ${storageKey} at ${new Date(stateToSave.saveTimestamp!).toLocaleString()}`);
+      console.log(`Game saved to slot: ${storageKey} at ${formatGameDateTime(new Date(stateToSave.saveTimestamp!))}`);
     }
     const result = { success: true, message: "Game saved successfully." } as const;
     notify?.({ message: result.message, type: 'success' });
@@ -231,7 +232,7 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     });
 
     if (import.meta.env.DEV) {
-      console.log(`Game loaded from slot: ${storageKey}, saved at ${new Date(loadedState.saveTimestamp!).toLocaleString()}`);
+      console.log(`Game loaded from slot: ${storageKey}, saved at ${formatGameDateTime(new Date(loadedState.saveTimestamp!))}`);
     }
     const result = { success: true, message: "Game loaded successfully.", data: loadedState } as const;
     notify?.({ message: result.message, type: 'success' });

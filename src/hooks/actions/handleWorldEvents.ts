@@ -7,6 +7,7 @@ import React from 'react';
 import { GameState, KnownFact, GossipUpdatePayload, DiscoveryType, NpcMemory } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
+import { formatGameTime } from '../../utils/timeUtils';
 import { AddGeminiLogFn } from './actionHandlerTypes';
 import { NPCS, LOCATIONS } from '../../constants';
 import * as NpcBehaviorConfig from '../../config/npcBehaviorConfig';
@@ -147,7 +148,7 @@ export async function handleResidueChecks(
           type: 'ADD_DISCOVERY_ENTRY',
           payload: {
             id: discoveryEntryId,
-            gameTime: new Date(gameState.gameTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            gameTime: formatGameTime(new Date(gameState.gameTime), { hour: '2-digit', minute: '2-digit' }),
             type: DiscoveryType.ACTION_DISCOVERED,
             title: 'Past Action Discovered',
             content: `While you were resting, ${discovererNpc.name} discovered the evidence you left at ${location.name}. They now know that "${residue.text}"`,

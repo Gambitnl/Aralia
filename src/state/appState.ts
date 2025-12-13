@@ -12,6 +12,7 @@ import * as SaveLoadService from '../services/saveLoadService';
 import { determineActiveDynamicNpcsForLocation } from '../utils/locationUtils';
 import { applyXpAndHandleLevelUps, createPlayerCharacterFromTemp } from '../utils/characterUtils';
 import { createEnemyFromMonster } from '../utils/combatUtils';
+import { getInitialGameTime } from '../utils/timeUtils';
 
 // Import slice reducers
 import { uiReducer } from './reducers/uiReducer';
@@ -22,13 +23,6 @@ import { encounterReducer } from './reducers/encounterReducer';
 import { npcReducer } from './reducers/npcReducer';
 import { questReducer } from './reducers/questReducer';
 import { townReducer } from './reducers/townReducer';
-
-
-// Helper function to create a date at 07:00 AM on an arbitrary fixed date
-const createInitialGameTime = (): Date => {
-    const initialTime = new Date(351, 0, 1, 7, 0, 0, 0);
-    return initialTime;
-};
 
 
 export const initialGameState: GameState = {
@@ -59,7 +53,7 @@ export const initialGameState: GameState = {
         isOpen: false,
         character: null,
     },
-    gameTime: createInitialGameTime(),
+    gameTime: getInitialGameTime(),
 
     // Dev Mode specific state
     isDevMenuVisible: false,
@@ -167,7 +161,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     // Full reset for a new game
                     additionalUpdates = {
                         ...additionalUpdates,
-                        gameTime: createInitialGameTime(),
+                        gameTime: getInitialGameTime(),
                         discoveryLog: [],
                         unreadDiscoveryCount: 0,
                         inventory: [],
@@ -189,7 +183,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 dynamicLocationItemIds: action.payload.dynamicLocationItemIds,
                 inventory: [],
                 currentLocationActiveDynamicNpcIds: determineActiveDynamicNpcsForLocation(STARTING_LOCATION_ID, LOCATIONS),
-                gameTime: createInitialGameTime(),
+                gameTime: getInitialGameTime(),
                 isLoading: false,
                 loadingMessage: null,
                 gold: 0,
@@ -212,8 +206,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 currentLocationId: STARTING_LOCATION_ID,
                 subMapCoordinates: { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) },
                 messages: [
-                    { id: Date.now(), text: `Welcome, ${generatedParty[0].name} and party! Your adventure begins (Dev Mode).`, sender: 'system', timestamp: new Date() },
-                    { id: Date.now() + 1, text: initialDummyLocation.baseDescription, sender: 'system', timestamp: new Date() }
+                    { id: Date.now(), text: `Welcome, ${generatedParty[0].name} and party! Your adventure begins (Dev Mode).`, sender: 'system', timestamp: getInitialGameTime() },
+                    { id: Date.now() + 1, text: initialDummyLocation.baseDescription, sender: 'system', timestamp: getInitialGameTime() }
                 ],
                 mapData: mapData,
                 dynamicLocationItemIds: dynamicLocationItemIds,
@@ -246,8 +240,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 inventory: filteredInventory,
                 gold: startingGold,
                 messages: [
-                    { id: Date.now() + Math.random(), text: `Welcome, ${restOfPayload.character.name} the ${restOfPayload.character.race.name} ${restOfPayload.character.class.name}! Your adventure begins.`, sender: 'system', timestamp: new Date() },
-                    { id: Date.now() + Math.random() + 1, text: restOfPayload.initialLocationDescription, sender: 'system', timestamp: new Date() }
+                    { id: Date.now() + Math.random(), text: `Welcome, ${restOfPayload.character.name} the ${restOfPayload.character.race.name} ${restOfPayload.character.class.name}! Your adventure begins.`, sender: 'system', timestamp: getInitialGameTime() },
+                    { id: Date.now() + Math.random() + 1, text: restOfPayload.initialLocationDescription, sender: 'system', timestamp: getInitialGameTime() }
                 ],
                 currentLocationId: STARTING_LOCATION_ID,
                 subMapCoordinates: restOfPayload.initialSubMapCoordinates,
@@ -340,8 +334,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             return {
                 ...state,
                 messages: [
-                    { id: Date.now() + Math.random(), text: `Welcome, ${state.party[0]!.name} and party! Your adventure begins (Dev Mode - Auto Start).`, sender: 'system', timestamp: new Date() },
-                    { id: Date.now() + Math.random() + 1, text: action.payload.initialLocationDescription, sender: 'system', timestamp: new Date() }
+                    { id: Date.now() + Math.random(), text: `Welcome, ${state.party[0]!.name} and party! Your adventure begins (Dev Mode - Auto Start).`, sender: 'system', timestamp: getInitialGameTime() },
+                    { id: Date.now() + Math.random() + 1, text: action.payload.initialLocationDescription, sender: 'system', timestamp: getInitialGameTime() }
                 ],
                 subMapCoordinates: action.payload.initialSubMapCoordinates,
                 isLoading: false, loadingMessage: null, isImageLoading: false,
@@ -351,7 +345,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 inventory: [...initialInventoryForDummyCharacter],
                 gold: 100,
                 currentLocationActiveDynamicNpcIds: action.payload.initialActiveDynamicNpcIds,
-                gameTime: createInitialGameTime(),
+                gameTime: getInitialGameTime(),
                 questLog: [],
                 isQuestLogVisible: false,
                 notifications: [],
@@ -424,7 +418,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                         id: Date.now() + index + 1,
                         text: `${member.name} reached level ${member.level}!`,
                         sender: 'system',
-                        timestamp: new Date()
+                        timestamp: state.gameTime
                     }));
 
                 const itemsFoundMessage = rewards.items.length > 0
@@ -442,7 +436,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                             id: Date.now(),
                             text: `Victory! The party gained ${rewards.xp} XP and ${rewards.gold || 0} gold. ${itemsFoundMessage}`,
                             sender: 'system',
-                            timestamp: new Date()
+                            timestamp: state.gameTime
                         },
                         ...levelUpMessages,
                     ]
@@ -452,7 +446,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     id: Date.now(),
                     text: `The battle ends.`,
                     sender: 'system',
-                    timestamp: new Date()
+                    timestamp: state.gameTime
                 });
             }
             return newState;

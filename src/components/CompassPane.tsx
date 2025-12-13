@@ -10,6 +10,7 @@ import React, { useMemo, useState } from 'react';
 import { Action, Location, MapData } from '../types';
 import { BIOMES } from '../constants'; // To get biome details like color
 import { DIRECTION_VECTORS, SUBMAP_DIMENSIONS } from '../config/mapConfig';
+import { getGameEpoch, getTimeSinceEpoch } from '../utils/timeUtils';
 import Tooltip from './Tooltip'; // Import Tooltip
 import PassTimeModal from './PassTimeModal'; // Import the new modal
 
@@ -58,8 +59,6 @@ const CompassPane: React.FC<CompassPaneProps> = ({
 }) => {
   const [isPassTimeModalOpen, setIsPassTimeModalOpen] = useState(false); // State for the modal
 
-  const gameStartDate = useMemo(() => new Date(351, 0, 1, 0, 0, 0), []); // Start of Day 1
-
   const isCompassActionDisabled = (point: CompassPoint): boolean => {
     if (disabled) return true; 
     if (point.actionType === 'look_around') return false;
@@ -95,7 +94,7 @@ const CompassPane: React.FC<CompassPaneProps> = ({
   };
 
   const formatGameTime = (date: Date): string => {
-    const diffMs = date.getTime() - gameStartDate.getTime();
+    const diffMs = getTimeSinceEpoch(date);
     const dayNumber = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
     const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
     return `Day ${dayNumber}, ${timeString}`;
