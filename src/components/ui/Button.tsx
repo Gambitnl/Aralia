@@ -1,4 +1,5 @@
 import React from 'react';
+import { Spinner } from './Spinner';
 import {
   BTN_BASE,
   BTN_SIZE_SM, BTN_SIZE_MD, BTN_SIZE_LG,
@@ -32,6 +33,9 @@ const SIZE_MAP: Record<ButtonSize, string> = {
 /**
  * A reusable Button component that encapsulates standard application styles.
  *
+ * Enhanced with a non-layout-shifting loading state using a spinner overlay.
+ * Uses opacity-0 instead of invisible to ensure screen readers can still read the button text.
+ *
  * Usage:
  * <Button variant="primary" size="md" onClick={handleClick}>Click Me</Button>
  */
@@ -43,11 +47,19 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         ref={ref}
-        className={`${BTN_BASE} ${sizeClass} ${variantClass} ${className}`}
+        className={`${BTN_BASE} ${sizeClass} ${variantClass} relative ${className}`}
         disabled={disabled || isLoading}
+        aria-busy={isLoading}
         {...props}
       >
-        {isLoading ? 'Loading...' : children}
+        {isLoading && (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <Spinner className="h-5 w-5" />
+          </span>
+        )}
+        <span className={`${isLoading ? 'opacity-0' : ''}`}>
+          {children}
+        </span>
       </button>
     );
   }
