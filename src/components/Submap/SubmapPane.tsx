@@ -393,6 +393,20 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
         return grid;
     }, [submapDimensions.rows, submapDimensions.cols, getTileVisuals]);
 
+    /**
+     * OPTIMIZATION: Memoize tooltip generation.
+     * We attach the computed tooltip text to the grid data so that `SubmapTile` receives a stable string.
+     * This prevents 600 string generations on every render (e.g. mouse hover in Quick Travel mode).
+     * `getHintForTile` updates when player moves (changing adjacency context), which is correct.
+     * But it remains stable during hover events.
+     */
+    const submapGridWithTooltips = useMemo(() => {
+        return submapGrid.map(tile => ({
+            ...tile,
+            tooltipContent: getHintForTile(tile.c, tile.r, tile.visuals.effectiveTerrainType, tile.visuals.activeSeededFeatureConfigForTile)
+        }));
+    }, [submapGrid, getHintForTile]);
+
     const inspectableTiles = useMemo(() => {
         const tiles = new Set<string>();
         if (!isInspecting || !playerSubmapCoords) return tiles;
@@ -599,7 +613,8 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                             <p id="submap-grid-description" className="sr-only">
                                 Submap grid showing local terrain features. Your current position is marked with a person icon.
                             </p>
-                            {submapGrid.map(({ r, c, visuals }) => {
+                            {/* OPTIMIZATION: Use submapGridWithTooltips to avoid re-generating strings on hover */}
+                            {submapGridWithTooltips.map(({ r, c, visuals, tooltipContent }) => {
                                 const isPlayerPos = playerSubmapCoords?.x === c && playerSubmapCoords?.y === r;
                                 const tileKey = `${c},${r}`;
                                 const isHighlightedForInspection = isInspecting && inspectableTiles.has(tileKey);
@@ -608,10 +623,6 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                                 const isBlockedForTravel = pathfindingGrid.get(tileKey)?.blocksMovement === true;
                                 const isHovered = hoveredTile?.x === c && hoveredTile?.y === r;
                                 const isDestination = isQuickTravelMode && isHovered;
-
-                                // Calculate the tooltip content here, during render time. 
-                                // This keeps the 'visuals' object in submapGrid stable for React.memo
-                                const tooltipContent = getHintForTile(c, r, visuals.effectiveTerrainType, visuals.activeSeededFeatureConfigForTile);
 
                                 return (
                                     <SubmapTile
