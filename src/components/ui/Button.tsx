@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import { Spinner } from './Spinner';
 import {
   BTN_BASE,
@@ -9,7 +10,8 @@ import {
 export type ButtonVariant = 'primary' | 'action' | 'success' | 'danger' | 'secondary' | 'ghost';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+// Extend HTMLMotionProps directly so consumers get all standard button props + motion props
+export interface ButtonProps extends HTMLMotionProps<"button"> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   isLoading?: boolean;
@@ -36,6 +38,9 @@ const SIZE_MAP: Record<ButtonSize, string> = {
  * Enhanced with a non-layout-shifting loading state using a spinner overlay.
  * Uses opacity-0 instead of invisible to ensure screen readers can still read the button text.
  *
+ * ✨ Illusionist Motion:
+ * - Adds a subtle scale-down effect on tap/click for tactile feedback.
+ *
  * Usage:
  * <Button variant="primary" size="md" onClick={handleClick}>Click Me</Button>
  */
@@ -44,12 +49,16 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const variantClass = VARIANT_MAP[variant];
     const sizeClass = SIZE_MAP[size];
 
+    const isInteractive = !disabled && !isLoading;
+
     return (
-      <button
+      <motion.button
         ref={ref}
         className={`${BTN_BASE} ${sizeClass} ${variantClass} relative ${className}`}
         disabled={disabled || isLoading}
         aria-busy={isLoading}
+        whileTap={isInteractive ? { scale: 0.97 } : undefined}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
         {...props}
       >
         {isLoading && (
@@ -60,7 +69,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         <span className={`${isLoading ? 'opacity-0' : ''}`}>
           {children}
         </span>
-      </button>
+      </motion.button>
     );
   }
 );
