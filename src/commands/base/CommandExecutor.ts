@@ -1,5 +1,6 @@
 import { CombatState } from '@/types/combat'
 import { SpellCommand } from './SpellCommand'
+import { logger } from '@/utils/logger'
 
 export interface ExecutionResult {
   success: boolean
@@ -27,10 +28,10 @@ export class CommandExecutor {
         executedCommands.push(command)
 
         // Log execution (debug level)
-        // console.debug(`[CommandExecutor] Executed: ${command.description}`, {
-        //   commandId: command.id,
-        //   metadata: command.metadata
-        // })
+        logger.debug(`[CommandExecutor] Executed: ${command.description}`, {
+          commandId: command.id,
+          metadata: command.metadata
+        })
       }
 
       return {
@@ -39,7 +40,12 @@ export class CommandExecutor {
         executedCommands
       }
     } catch (error) {
-      console.error('[CommandExecutor] Command execution failed:', error)
+      logger.error('[CommandExecutor] Command execution failed', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        failedCommandId: commands[executedCommands.length]?.id,
+        commandsExecuted: executedCommands.length
+      })
 
       return {
         success: false,
@@ -67,7 +73,10 @@ export class CommandExecutor {
 
     if (!result.success && result.executedCommands.length > 0) {
       // Attempt rollback
-      console.warn('[CommandExecutor] Rolling back executed commands...')
+      logger.warn('[CommandExecutor] Rolling back executed commands...', {
+        count: result.executedCommands.length,
+        failedCommandId: result.failedCommand?.id
+      })
 
       try {
         let rolledBackState = result.finalState
@@ -77,7 +86,7 @@ export class CommandExecutor {
           if (command.undo) {
             rolledBackState = command.undo(rolledBackState)
           } else {
-             console.warn(`[CommandExecutor] Command ${command.id} does not support undo. Rollback incomplete.`)
+             logger.warn(`[CommandExecutor] Command ${command.id} does not support undo. Rollback incomplete.`)
           }
         }
 
@@ -86,7 +95,10 @@ export class CommandExecutor {
           finalState: rolledBackState
         }
       } catch (rollbackError) {
-        console.error('[CommandExecutor] Rollback failed:', rollbackError)
+        logger.error('[CommandExecutor] Rollback failed', {
+          error: rollbackError instanceof Error ? rollbackError.message : String(rollbackError),
+          originalError: result.error?.message
+        })
         return result
       }
     }
