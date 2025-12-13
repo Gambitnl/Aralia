@@ -107,7 +107,7 @@ describe('Glossary', () => {
     fireEvent.click(screen.getByText('Spell Entry'));
 
     expect(screen.getAllByTitle('Missing level tag').length).toBeGreaterThan(0);
-    expect(screen.getByText('Spell Gate Checks')).toBeInTheDocument();
+    expect(screen.getByText(/Spell Gate Checks/)).toBeInTheDocument();
     expect(screen.getByText(/Missing level tag/)).toBeInTheDocument();
   });
 
