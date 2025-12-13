@@ -13,15 +13,14 @@ interface PathNode {
 }
 
 /**
- * Calculates the Manhattan distance between two tiles.
+ * Calculates the Chebyshev distance between two tiles.
  * Used as the heuristic for A* pathfinding.
  *
- * Note: For 8-way movement, Manhattan distance is technically inadmissible (it overestimates
- * diagonal costs), effectively turning A* into a Greedy Best-First Search. This prioritizes
- * speed over finding the strictly shortest path.
+ * Note: For 8-way movement with uniform cost (Chebyshev distance), this is an admissible
+ * heuristic (it never overestimates the cost), guaranteeing that A* finds the shortest path.
  */
-function heuristic(a: BattleMapTile, b: BattleMapTile): number {
-  return Math.abs(a.coordinates.x - b.coordinates.x) + Math.abs(a.coordinates.y - b.coordinates.y);
+export function heuristic(a: BattleMapTile, b: BattleMapTile): number {
+  return Math.max(Math.abs(a.coordinates.x - b.coordinates.x), Math.abs(a.coordinates.y - b.coordinates.y));
 }
 
 /**
