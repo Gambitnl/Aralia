@@ -9,13 +9,10 @@ import { Spell } from '../types/spells'; // Explicit import to avoid conflicts
 import { CLASSES_DATA, MONSTERS_DATA } from '../constants';
 import { createAbilityFromSpell } from './spellAbilityFactory';
 import { isWeaponProficient } from './weaponUtils';
+import { generateId } from './idGenerator';
 
 // Re-export for consumers
-export { createAbilityFromSpell };
-
-export function generateId(): string {
-  return Math.random().toString(36).substr(2, 9);
-}
+export { createAbilityFromSpell, generateId };
 
 /**
  * Parses a dice notation string (e.g., '2d8', '3d6+5') and returns the rolled total.
@@ -273,22 +270,10 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
   // Helper to create weapon ability
   const createWeaponAbility = (weapon: Item, idSuffix: string, isOffHand: boolean = false): Ability => {
     // Determine damage
-    let damageValue = 1;
-    let damageType: AbilityEffect['damageType'] = 'physical';
-
-    // Safely cast string damageType from item to AbilityEffect damageType if valid
-    // For now we default to physical as per previous implementation logic
-    // but the variable is available for future expansion
-
-    // Parse damage from weapon stats if available, otherwise default
-    // Simplify for now: most weapons in our data have a 'damage' string like '1d8'
-    // We will store the dice string in the effect value if we supported it, 
-    // but the current system expects a number.
-    // For now, let's keep using a fixed average or simple parsing if possible.
-    // However, the `calculateDamage` in combatUtils currently just returns baseDamage.
-    // We will update useAbilitySystem to allow dice rolling later.
-    // For this step, let's try to parse the dice string to get an average or just pass 0 and handle rolling in execution.
-    // Actually, let's check the weapon data structure.
+    // Note: 'damageValue' 0 signals "roll weapon damage" to the system later.
+    // In the future, we can parse `weapon.damageDice` here if we want pre-calculated averages.
+    const damageValue = 0;
+    const damageType: AbilityEffect['damageType'] = 'physical';
 
     const isProficient = isWeaponProficient(player, weapon);
 
@@ -303,7 +288,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       // For ranged weapons, we'd check properties too
       effects: [{
         type: 'damage',
-        value: 0, // Value 0 signals "roll weapon damage" to the system
+        value: damageValue,
         damageType: damageType
       }],
       icon: '⚔️',
