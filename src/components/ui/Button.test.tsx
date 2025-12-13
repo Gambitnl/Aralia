@@ -23,10 +23,26 @@ describe('Button Component', () => {
     expect(button.className).toContain(BTN_SIZE_LG);
   });
 
-  it('displays loading text when isLoading is true', () => {
+  it('displays spinner and maintains accessible text when isLoading is true', () => {
     render(<Button isLoading>Submit</Button>);
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
-    expect(screen.queryByText('Submit')).not.toBeInTheDocument();
+
+    // Button should still be accessible by name "Submit" even if visually hidden (opacity: 0)
+    // getByRole('button', { name: ... }) will find it if it's in the A11y tree.
+    const button = screen.getByRole('button', { name: /submit/i });
+
+    expect(button).toBeInTheDocument();
+    expect(button).toHaveAttribute('aria-busy', 'true');
+    expect(button).toBeDisabled();
+
+    // Check that spinner is present
+    const spinner = screen.getByRole('status', { hidden: true });
+    expect(spinner).toBeInTheDocument();
+
+    // Verify text container has opacity-0 class but NOT invisible
+    // getByText returns the element containing the text (the span)
+    const textElement = screen.getByText('Submit');
+    expect(textElement).toHaveClass('opacity-0');
+    expect(textElement).not.toHaveClass('invisible');
   });
 
   it('is disabled when isLoading is true', () => {
