@@ -5,6 +5,7 @@
  * It's used within the CharacterSheetModal.
  */
 import React, { useEffect, useMemo, useState } from 'react';
+import { ChevronRight, ChevronDown, FilterX, AlertTriangle } from 'lucide-react';
 import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType } from '../types';
 import { canEquipItem } from '../utils/characterUtils';
 import Tooltip from './Tooltip';
@@ -260,11 +261,11 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
           <div className="flex items-center gap-2">
             {containerItem ? (
               <button
-                className="text-xs text-amber-400 hover:text-amber-200"
+                className="text-amber-400 hover:text-amber-200 transition-colors p-0.5 rounded focus:ring-1 focus:ring-amber-400/50"
                 onClick={() => setCollapsedContainers(prev => ({ ...prev, [bucketId]: !prev[bucketId] }))}
-                aria-label={`Toggle ${containerName} contents`}
+                aria-label={isCollapsed ? `Expand ${containerName}` : `Collapse ${containerName}`}
               >
-                {isCollapsed ? '▶' : '▼'}
+                {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
               </button>
             ) : null}
             <div className="flex flex-col">
@@ -302,29 +303,30 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
               const isFood = child.type === 'food_drink';
               const isExpired = false; // Placeholder logic for now
               const childIsContainer = isContainerItem(child);
-              // REVIEW Q14: hasWarning is true whenever cantEquipReason exists. But with our permissive system,
-              // cantEquipReason is set even when canBeEquipped is true. This means all non-proficient weapons
-              // will show a warning even though they CAN be equipped. Is this the intended UX?
-              // ANSWER: Yes, this is intentional. The warning indicates "you CAN equip, but there are penalties."
+
+              // UX IMPROVEMENT: Distinguish between "Cannot Equip" (Blocked/Red) and "Warning" (Penalty/Amber)
               const hasWarning = !!cantEquipReason;
+              const isBlocked = isEquippableType && child.slot && !canBeEquipped;
+              const isWarningOnly = isEquippableType && child.slot && canBeEquipped && hasWarning;
+
+              let rowStyle = 'bg-gray-700/70 border-gray-600/40';
+              if (isBlocked) {
+                rowStyle = 'bg-red-950/30 border-red-500/40 hover:bg-red-900/30';
+              } else if (isWarningOnly) {
+                rowStyle = 'bg-amber-950/30 border-amber-500/40 hover:bg-amber-900/30';
+              }
 
               return (
                 <React.Fragment key={key}>
-                  {/* REVIEW Q15: The red styling on the <li> is based on hasWarning, not on canBeEquipped.
-                   * So items that CAN be equipped but have a warning still get red styling.
-                   * Is this confusing? User might think red = cannot equip.
-                   * ANSWER: Valid UX concern. Consider using amber/orange for "warning but allowed" vs red for "blocked". */}
-                  <li className={`p-2 rounded-md border flex items-center justify-between transition-colors ${hasWarning
-                    ? 'bg-red-900/10 border-red-500/30 hover:bg-red-900/20'
-                    : 'bg-gray-700/70 border-gray-600/40'
-                    }`}>
+                  <li className={`p-2 rounded-md border flex items-center justify-between transition-colors ${rowStyle}`}>
                     <div className="flex items-center gap-2 min-w-0">
                       {child.icon && <span className="text-xl w-6 text-center flex-shrink-0 filter drop-shadow-sm">{child.icon}</span>}
                       <Tooltip content={getItemTooltipContent(child, cantEquipReason)}>
                         <div className="flex flex-col min-w-0">
                           <div className="flex items-center gap-1">
                             <span className="font-medium text-amber-200 text-sm cursor-help truncate" title={child.name}>{child.name}</span>
-                            {hasWarning && <span className="text-[10px]" title={cantEquipReason}>⚠️</span>}
+                            {isWarningOnly && <AlertTriangle size={12} className="text-amber-500" aria-label="Warning" />}
+                            {isBlocked && <span className="text-[10px]" role="img" aria-label="Blocked">⛔</span>}
                           </div>
                           {child.perishable && <span className="text-[10px] text-orange-300">Expires: {child.shelfLife || 'Unknown'}</span>}
                         </div>
@@ -405,9 +407,10 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
           <button
             type="button"
             onClick={onClearFilter}
-            className="text-xs bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded transition-colors"
+            className="flex items-center gap-1 text-xs bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded transition-colors shadow-sm focus:ring-1 focus:ring-gray-400"
             aria-label="Clear filter"
           >
+            <FilterX size={12} />
             Clear
           </button>
         </div>
