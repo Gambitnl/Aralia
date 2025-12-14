@@ -3,6 +3,8 @@
   "name": "Booming Blade",
   "level": 0,
   "school": "Evocation",
+  "source": "Tasha's Cauldron of Everything",
+  "legacy": true,
   "classes": [
     "Artificer",
     "Sorcerer",

@@ -23,7 +23,7 @@ filePath: "/data/glossary/entries/spells/level-0/poison-spray.md"
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Range/Area</span>
-      <span class="spell-card-stat-value">10 ft.</span>
+      <span class="spell-card-stat-value">30 ft.</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Components</span>
@@ -39,7 +39,7 @@ filePath: "/data/glossary/entries/spells/level-0/poison-spray.md"
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Attack/Save</span>
-      <span class="spell-card-stat-value">CON Save</span>
+      <span class="spell-card-stat-value">Ranged</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Damage/Effect</span>
@@ -48,7 +48,7 @@ filePath: "/data/glossary/entries/spells/level-0/poison-spray.md"
   </div>
   <div class="spell-card-divider"></div>
   <p class="spell-card-description">
-    You extend your hand toward a creature you can see within range and project a puff of noxious gas from your palm. The creature must succeed on a Constitution saving throw or take 1d12 poison damage.
+    You spray toxic mist at a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d12 Poison damage.
   </p>
   <p class="spell-card-description">
     <strong>Cantrip Upgrade.</strong> The damage increases by 1d12 when you reach levels 5 (2d12), 11 (3d12), and 17 (4d12).

@@ -32,8 +32,8 @@
   "duration": {
     "type": "timed",
     "value": 1,
-    "unit": "round",
-    "concentration": false
+    "unit": "minute",
+    "concentration": true
   },
   "targeting": {
     "type": "self",
@@ -51,18 +51,16 @@
       "condition": {
         "type": "always"
       },
-      "defenseType": "resistance",
-      "damageType": [
-        "Bludgeoning",
-        "Piercing",
-        "Slashing"
-      ],
+      "defenseType": "attack_penalty",
+      "penaltyDice": "1d4",
       "duration": {
-        "type": "rounds",
-        "value": 1
-      }
+        "type": "timed",
+        "value": 1,
+        "unit": "minute"
+      },
+      "description": "Attackers subtract 1d4 from their attack rolls against you."
     }
   ],
-  "description": "You extend your hand and trace a sigil of warding in the air. Until the end of your next turn, you have resistance against bludgeoning, piercing, and slashing damage dealt by weapon attacks.",
+  "description": "Whenever a creature makes an attack roll against you before the spell ends, that creature subtracts 1d4 from the attack roll.",
   "higherLevels": ""
 }

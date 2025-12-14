@@ -10,7 +10,7 @@
     "Warlock",
     "Wizard"
   ],
-  "description": "You extend your hand toward a creature you can see within range and project a puff of noxious gas from your palm. The creature must succeed on a Constitution saving throw or take 1d12 poison damage.",
+  "description": "You spray toxic mist at a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d12 Poison damage.",
   "higherLevels": "This spell's damage increases by 1d12 when you reach 5th level (2d12), 11th level (3d12), and 17th level (4d12).",
   "tags": [
     "damage",
@@ -27,7 +27,7 @@
   },
   "range": {
     "type": "ranged",
-    "distance": 10
+    "distance": 30
   },
   "components": {
     "verbal": true,
@@ -40,7 +40,7 @@
   },
   "targeting": {
     "type": "single",
-    "range": 10,
+    "range": 30,
     "validTargets": [
       "creatures"
     ],
@@ -53,9 +53,7 @@
         "type": "immediate"
       },
       "condition": {
-        "type": "save",
-        "saveType": "Constitution",
-        "saveEffect": "none"
+        "type": "hit"
       },
       "damage": {
         "dice": "1d12",

@@ -2,7 +2,7 @@
 id: "chill-touch"
 title: "Chill Touch"
 category: "Spells"
-tags: ["level 0", "cantrip", "necromancy", "damage", "necrotic", "ranged", "sorcerer", "warlock", "wizard"]
+tags: ["level 0", "cantrip", "necromancy", "damage", "necrotic", "melee", "sorcerer", "warlock", "wizard"]
 excerpt: "You create a ghostly, skeletal hand in the space of a creature within range. On a hit, the target takes 1d8 necrotic damage, and it can't regain hit points until the start of your next turn."
 seeAlso: ["ray-of-frost", "fire-bolt"]
 filePath: "/data/glossary/entries/spells/level-0/chill-touch.md"
@@ -23,7 +23,7 @@ filePath: "/data/glossary/entries/spells/level-0/chill-touch.md"
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Range/Area</span>
-      <span class="spell-card-stat-value">120 ft.</span>
+      <span class="spell-card-stat-value">Touch</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Components</span>
@@ -39,7 +39,7 @@ filePath: "/data/glossary/entries/spells/level-0/chill-touch.md"
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Attack/Save</span>
-      <span class="spell-card-stat-value">Ranged</span>
+      <span class="spell-card-stat-value">Melee</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Damage/Effect</span>
@@ -48,7 +48,7 @@ filePath: "/data/glossary/entries/spells/level-0/chill-touch.md"
   </div>
   <div class="spell-card-divider"></div>
   <p class="spell-card-description">
-    You create a ghostly, skeletal hand in the space of a creature within range. Make a ranged spell attack against the creature to assail it with the chill of the grave. On a hit, the target takes 1d8 necrotic damage, and it can't regain hit points until the start of your next turn.
+    You touch one creature. Make a melee spell attack against the target. On a hit, the target takes 1d10 Necrotic damage, and it can't regain Hit Points until the end of your next turn.
   </p>
   <p class="spell-card-description">
     If you hit an undead target, it also has disadvantage on attack rolls against you until the end of your next turn.

@@ -47,16 +47,22 @@
   },
   "effects": [
     {
-      "type": "UTILITY",
+      "type": "DEFENSIVE",
       "trigger": {
         "type": "immediate"
       },
       "condition": {
         "type": "always"
       },
-      "utilityType": "other",
-      "description": "Once before the spell ends, the target can roll a d4 and add the number rolled to one saving throw of its choice."
+      "defenseType": "damage_reduction",
+      "reductionDice": "1d4",
+      "damageTypeChoice": true,
+      "excludedDamageTypes": [
+        "Force",
+        "Psychic"
+      ],
+      "description": "Choose a damage type. When the creature takes that damage, reduce by 1d4 (once per turn)."
     }
   ],
-  "description": "You touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one saving throw of its choice. It can roll the die before or after the saving throw. The spell then ends."
+  "description": "You touch a willing creature and choose a damage type: Acid, Bludgeoning, Cold, Fire, Lightning, Necrotic, Piercing, Poison, Radiant, Slashing, or Thunder. For the duration, when the creature takes damage of the chosen type, it reduces that damage by 1d4 (once per turn)."
 }

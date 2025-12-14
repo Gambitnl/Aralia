@@ -31,7 +31,7 @@ filePath: "/data/glossary/entries/spells/level-0/blade-ward.md"
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">Duration</span>
-      <span class="spell-card-stat-value">1 Round</span>
+      <span class="spell-card-stat-value">Concentration, up to 1 minute</span>
     </div>
     <div class="spell-card-stat">
       <span class="spell-card-stat-label">School</span>
@@ -48,7 +48,7 @@ filePath: "/data/glossary/entries/spells/level-0/blade-ward.md"
   </div>
   <div class="spell-card-divider"></div>
   <p class="spell-card-description">
-    You extend your hand and trace a sigil of warding in the air. Until the end of your next turn, you have resistance against bludgeoning, piercing, and slashing damage dealt by weapon attacks.
+    Whenever a creature makes an attack roll against you before the spell ends, that creature subtracts 1d4 from the attack roll.
   </p>
   <div class="spell-card-tags-section">
     <span class="spell-card-tags-label">Spell Tags:</span>

@@ -3,10 +3,20 @@
   "name": "Green-Flame Blade",
   "level": 0,
   "school": "Evocation",
-  "classes": ["Sorcerer", "Warlock", "Wizard"],
+  "source": "Tasha's Cauldron of Everything",
+  "legacy": true,
+  "classes": [
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
   "description": "As part of casting the spell, make a melee attack with a weapon against one creature within 5 feet. On a hit, the target takes the attack's normal damage, and green fire leaps to a second creature of your choice within 5 feet of the target, dealing fire damage equal to your spellcasting ability modifier. The primary target and secondary fire damage scale as you gain levels.",
   "higherLevels": "At 5th level, the melee attack also deals an extra 1d8 fire damage to the primary target, and the secondary target takes an extra 1d8 fire damage. Both extra dice increase by 1d8 at 11th level and 17th level.",
-  "tags": ["melee", "damage", "fire"],
+  "tags": [
+    "melee",
+    "damage",
+    "fire"
+  ],
   "ritual": false,
   "castingTime": {
     "value": 1,
@@ -31,14 +41,21 @@
   "targeting": {
     "type": "melee",
     "range": 5,
-    "validTargets": ["creatures", "enemies"],
+    "validTargets": [
+      "creatures",
+      "enemies"
+    ],
     "lineOfSight": true
   },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "hit" },
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "hit"
+      },
       "damage": {
         "dice": "1d8",
         "type": "Fire"
@@ -51,8 +68,12 @@
     },
     {
       "type": "DAMAGE",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
       "damage": {
         "dice": "spellcasting_mod",
         "type": "Fire"
