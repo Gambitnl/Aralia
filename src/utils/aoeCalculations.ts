@@ -113,7 +113,8 @@ function getConeAoE(origin: Position, direction: number, length: number): Positi
         for (let y = startY; y <= endY; y++) {
             const dx = x - origin.x;
             const dy = y - origin.y;
-            const distance = Math.sqrt(dx * dx + dy * dy) * TILE_SIZE;
+            // Use Chebyshev distance (5-5-5 rule) to align with grid movement
+            const distance = Math.max(Math.abs(dx), Math.abs(dy)) * TILE_SIZE;
 
             if (distance > length) continue;
             // Exclude origin tile
