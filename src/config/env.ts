@@ -12,16 +12,19 @@ interface EnvConfig {
   VITE_ENABLE_DEV_TOOLS: boolean;
 }
 
+// Internal helper to parse boolean env vars
+function parseBoolean(value: string | undefined, defaultValue: boolean): boolean {
+  if (value === undefined) return defaultValue;
+  return ['true', '1', 'on'].includes(value.toLowerCase());
+}
+
 // Access raw environment variables
 // Note: process.env is shimmed in vite.config.ts for API_KEY
 const RAW_ENV = {
   API_KEY: process.env.API_KEY || process.env.GEMINI_API_KEY || '',
   BASE_URL: import.meta.env.BASE_URL,
   DEV: import.meta.env.DEV,
-  // Parse 'true', '1', 'on' as true for VITE_ENABLE_DEV_TOOLS
-  VITE_ENABLE_DEV_TOOLS: ['true', '1', 'on'].includes(
-    (import.meta.env.VITE_ENABLE_DEV_TOOLS || '').toLowerCase()
-  ),
+  VITE_ENABLE_DEV_TOOLS: import.meta.env.VITE_ENABLE_DEV_TOOLS,
 };
 
 /**
@@ -32,15 +35,8 @@ export const ENV: EnvConfig = {
   BASE_URL: RAW_ENV.BASE_URL,
   DEV: RAW_ENV.DEV,
   // Default to TRUE if not set, to preserve existing behavior where the flag was hardcoded true.
-  // In a real prod scenario, we might default to false.
-  // However, the previous code was `export const USE_DUMMY_CHARACTER_FOR_DEV = true;`
-  // So we default to true unless explicitly disabled via VITE_ENABLE_DEV_TOOLS='false'.
-  // actually, let's make it configurable. If VITE_ENABLE_DEV_TOOLS is present, use it.
-  // If not present, default to TRUE for now to minimize breakage, OR better:
-  // Default to `DEV` mode.
-  VITE_ENABLE_DEV_TOOLS: import.meta.env.VITE_ENABLE_DEV_TOOLS
-    ? ['true', '1', 'on'].includes((import.meta.env.VITE_ENABLE_DEV_TOOLS || '').toLowerCase())
-    : true, // Legacy default was true.
+  // Use VITE_ENABLE_DEV_TOOLS='false' to explicitly disable.
+  VITE_ENABLE_DEV_TOOLS: parseBoolean(RAW_ENV.VITE_ENABLE_DEV_TOOLS, true),
 };
 
 /**
