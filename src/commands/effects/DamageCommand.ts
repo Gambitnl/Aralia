@@ -6,6 +6,24 @@ import { calculateSpellDC, rollSavingThrow, calculateSaveDamage } from '../../ut
 import { BreakConcentrationCommand } from './ConcentrationCommands'
 import { ResistanceCalculator } from '../../systems/spells/mechanics/ResistanceCalculator';
 
+const DAMAGE_VERBS: Record<string, string[]> = {
+  acid: ['melts', 'corrodes', 'dissolves', 'burns'],
+  bludgeoning: ['batters', 'crushes', 'pummels', 'bludgeons'],
+  cold: ['freezes', 'chills', 'frosts', 'numbs'],
+  fire: ['scorches', 'incinerates', 'burns', 'chars'],
+  force: ['blasts', 'slams', 'impacts', 'strikes'],
+  lightning: ['shocks', 'electrocutes', 'zaps', 'jolts'],
+  necrotic: ['withers', 'decays', 'rots', 'drains'],
+  piercing: ['impales', 'punctures', 'pierces', 'stabs'],
+  poison: ['sickens', 'infects', 'poisons', 'taints'],
+  psychic: ['shatters', 'stuns', 'assaults', 'confuses'],
+  radiant: ['sears', 'blinds', 'burns', 'purifies'],
+  slashing: ['slashes', 'cleaves', 'cuts', 'slices'],
+  thunder: ['deafens', 'booms', 'blasts', 'shatters'],
+};
+
+const DEFAULT_VERBS = ['damages', 'hits', 'strikes', 'hurts'];
+
 /**
  * Command to apply damage to targets.
  * Handles damage calculation, HP reduction, and triggers concentration saves.
@@ -66,9 +84,26 @@ export class DamageCommand extends BaseEffectCommand {
         currentHP: newHP
       });
 
+      // --- IMPROVED LOGGING ---
+      const damageType = this.effect.damage.type.toLowerCase();
+      const verbs = DAMAGE_VERBS[damageType] || DEFAULT_VERBS;
+      // Simple randomization for variety (seeded by damage value to be deterministic-ish or use standard random)
+      const verbIndex = Math.floor(Math.random() * verbs.length);
+      const verb = verbs[verbIndex];
+
+      const sourceName = this.context.spellName;
+      let logMessage = '';
+
+      if (sourceName && sourceName !== 'Attack') {
+        logMessage = `${caster.name} ${verb} ${target.name} with ${sourceName} for ${finalDamage} ${damageType} damage`;
+      } else {
+         // Generic or "Attack" source
+        logMessage = `${caster.name} ${verb} ${target.name} for ${finalDamage} ${damageType} damage`;
+      }
+
       currentState = this.addLogEntry(currentState, {
         type: 'damage',
-        message: `${target.name} takes ${finalDamage} ${this.effect.damage.type.toLowerCase()} damage`,
+        message: logMessage,
         characterId: target.id,
         targetIds: [target.id],
         data: { value: finalDamage, type: this.effect.damage.type }

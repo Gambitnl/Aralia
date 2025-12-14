@@ -40,5 +40,17 @@
     "glossary_aria": "View game glossary",
     "glossary_title": "View Game Glossary",
     "powered_by": "Powered by Gemini"
+  },
+  "encounter_modal": {
+    "loading": "Conjuring Monsters...",
+    "loading_flavor": "The Dungeon Master is consulting ancient tomes and searching the planes...",
+    "error_title": "An Error Occurred",
+    "no_encounter": "No encounter was generated. Try adjusting the party.",
+    "generated_for": "Generated For Party:",
+    "sources": "Sources",
+    "title": "Generated Encounter",
+    "close_aria": "Close encounter details",
+    "simulate": "Simulate Battle",
+    "close": "Close"
   }
 }
