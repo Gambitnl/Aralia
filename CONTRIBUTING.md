@@ -54,6 +54,20 @@ We prefer to catch bugs before they reach the dungeon.
     ```
     *Checks for code style and potential errors.*
 
+## 📐 Documentation Standards
+
+*   **TSDOC is Mandatory**: All new components, functions, and types must have TSDoc comments.
+    ```typescript
+    /**
+     * Calculates the damage for a spell.
+     * @param spell - The spell object being cast.
+     * @param target - The target character.
+     * @returns The total damage value.
+     */
+    export function calculateDamage(spell: Spell, target: Character): number { ... }
+    ```
+*   **File Headers**: Include a `@file` tag at the top of each file explaining its purpose.
+
 ## 📝 Making Changes
 
 1.  **Create a Branch**: Use a descriptive name (e.g., `feat/add-inventory-sort`, `fix/broken-link`).

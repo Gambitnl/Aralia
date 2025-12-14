@@ -36,7 +36,7 @@
 - **Naming**: PascalCase for components, camelCase for functions/variables
 - **TypeScript**: Strict mode enabled, comprehensive type definitions
 - **Data Validation**: Ensure JSON data validity using `npm run validate`
-- **JSDoc**: Extensive file-level documentation with @file tags
+- **JSDoc/TSDoc**: Mandatory for new code. Use `@file` tags for files, and document all exported functions/components with params and return values.
 - **React**: Functional components with hooks, proper useCallback/useMemo usage
 - **Error Handling**: ErrorBoundary components wrapping major UI sections
 - **State**: Immutable updates with proper payload typing for actions
