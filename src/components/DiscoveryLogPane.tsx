@@ -164,7 +164,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
         {/* Header */}
         <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-700">
           <h2 id="discovery-log-title" className="text-3xl font-bold text-amber-400 font-cinzel">
-            Discovery Journal
+            Discovery Log
           </h2>
           <button
             ref={firstFocusableElementRef}
@@ -324,7 +324,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
             onClick={onClose}
             className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow"
           >
-            Close Journal
+            Close Log
           </button>
         </div>
       </div>

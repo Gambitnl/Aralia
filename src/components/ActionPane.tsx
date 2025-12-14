@@ -125,7 +125,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
    */
   const systemMenuActions = useMemo(
     () => [
-      { action: { type: 'TOGGLE_DISCOVERY_LOG', label: 'Journal' }, badgeCount: unreadDiscoveryCount },
+      { action: { type: 'TOGGLE_DISCOVERY_LOG', label: 'Discoveries' }, badgeCount: unreadDiscoveryCount },
       { action: { type: 'TOGGLE_QUEST_LOG', label: 'Quests' } },
       { action: { type: 'TOGGLE_LOGBOOK', label: 'Logbook' } },
       { action: { type: 'TOGGLE_GLOSSARY_VISIBILITY', label: 'Glossary' } },

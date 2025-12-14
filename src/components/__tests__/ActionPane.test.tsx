@@ -110,7 +110,7 @@ describe('ActionPane', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /system/i }));
     expect(screen.getByRole('menu')).toBeInTheDocument();
-    expect(screen.getByText('Journal')).toBeInTheDocument();
+    expect(screen.getByText('Discoveries')).toBeInTheDocument();
     expect(screen.getByText('Save Game')).toBeInTheDocument();
     expect(screen.getByText('7')).toBeInTheDocument();
 
