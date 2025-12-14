@@ -27,6 +27,8 @@ let currentLocale = 'en';
  * // en.json: { "greeting": "Hello, {name}!" }
  * t('greeting', { name: 'World' }); // Returns "Hello, World!"
  * t('missing.key'); // Returns "missing.key"
+ *
+ * @see src/utils/__tests__/i18n.test.ts for comprehensive test cases and usage examples.
  */
 export const t = (key: string, params?: Record<string, string | number>): string => {
   const keys = key.split('.');
