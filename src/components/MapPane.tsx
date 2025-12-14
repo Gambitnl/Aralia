@@ -45,6 +45,9 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
     return map;
   }, [poiMarkers]);
 
+  // Flatten tiles once per map update to avoid O(N) flattening on every render
+  const flattenedTiles = useMemo(() => tiles.flat(), [tiles]);
+
   // New state for pan and zoom
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -57,14 +60,14 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
 
   // Set initial focus when map opens
   useEffect(() => {
-    const playerTile = tiles.flat().find(tile => tile.isPlayerCurrent);
+    const playerTile = flattenedTiles.find(tile => tile.isPlayerCurrent);
     if (playerTile) {
       setFocusedCoords({ x: playerTile.x, y: playerTile.y });
     } else if (tiles.length > 0 && tiles[0].length > 0) {
       setFocusedCoords({ x: tiles[0][0].x, y: tiles[0][0].y });
     }
     closeButtonRef.current?.focus();
-  }, [tiles]); 
+  }, [flattenedTiles, tiles]); // Updated dependency
 
   // Focus the specific tile when focusedCoords change
   useEffect(() => {
@@ -298,7 +301,7 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
             role="grid" 
             ref={gridRef}
           >
-            {tiles.flat().map((tile, index) => {
+            {flattenedTiles.map((tile, index) => {
               const isFocused = focusedCoords?.x === tile.x && focusedCoords?.y === tile.y;
               const markers = markersByCoordinate.get(`${tile.x}-${tile.y}`);
 
