@@ -1,52 +1,63 @@
-# 💣 Sapper Mission Report: Removal of Root `components/` Directory
+# 💣 Sapper Target Dossier: Root `components/` Directory
 
 **Agent:** Sapper
 **Date:** 2024-12-13
-**Target:** Root-level `components/` directory
-**Status:** 💣 DETONATED (Removed)
+**Status:** 🎯 TARGET ACQUIRED (Pending Removal)
 
-## 1. 🔍 LOCATE: The Discovery
+## 1. 🔍 The Target
 
-During the reconnaissance phase, two `components/` directories were identified in the codebase:
-1. `src/components/`: Containing the active source code for the React application.
-2. `components/`: A directory sitting at the root of the repository.
+**Location:** `./components/` (Root Directory)
+**Contents:**
+- `ActionPane.tsx`
+- `ImagePane.tsx`
+- `LoadingSpinner.tsx`
+- `WorldPane.tsx`
 
-A file listing revealed they contained similar file names (e.g., `ActionPane.tsx`, `ImagePane.tsx`), suggesting one was a duplicate or a misplaced artifact.
+**Suspicion:** This directory appears to be a duplicate or artifact. The active source code for the application resides in `src/`. The presence of a `components` folder at the root level, outside of `src`, violates standard Vite/React project structure.
 
-## 2. 🎯 MARK: Evidence of Dead Code
+## 2. 🎯 Evidence of Dead Code
 
-To ensure the root `components/` directory was truly dead code, a rigorous investigation was conducted.
+I have conducted a preliminary investigation and gathered the following evidence suggesting this code is unused:
 
-### A. Entry Point Analysis
-The application entry point is `index.html`.
-- `index.html` loads `/index.tsx`.
+### A. Entry Point Isolation
+- The application entry point is `index.html`.
+- `index.html` imports `/index.tsx`.
 - `index.tsx` imports `./src/App`.
-- `src/App.tsx` imports components using relative paths like `./components/...` (resolving to `src/components/`) or aliases like `@/components/...` (configured in `tsconfig.json` to point to `src/*`).
+- `src/App.tsx` imports components.
 
-### B. Import Analysis (Grep)
-A search for imports referencing the root directory was performed:
-- Command: `grep -r "from [\"']\.\{0,2\}/components/" .`
-- **Result:** No active source files in `src/` were found to import from `../components`. All imports within `src/` pointed to `src/components`.
+### B. Import Analysis
+I performed a search for imports referencing this directory:
+- **Command:** `grep -r "from [\"']\.\{0,2\}/components/" .`
+- **Finding:** No active source files in `src/` appear to import from `../components`. All component imports within `src/` use `./components` (relative to the file in `src/`) or `@/components` (aliased to `src/components`).
 
 ### C. Build Configuration
-- `vite.config.ts` and `tsconfig.json` are configured to treat `src/` as the source root.
-- The root `components/` folder was outside the scope of the standard build process initiated by `index.html`.
+- `vite.config.ts` and `tsconfig.json` are configured with `src/` as the root or alias target.
+- Files outside `src/` are typically excluded from the build unless explicitly imported.
 
-## 3. 💣 DETONATE: The Removal
+## 3. ⚠️ INSTRUCTIONS FOR NEXT AGENT
 
-The `components/` directory was deleted. This action removed the duplicate files which served no purpose other than to confuse developers and potentially hide out-of-sync code.
+**CRITICAL:** You must verify my findings before detonating. Do not assume I am correct.
 
-## 4. ✅ VERIFY: Safety Checks
+### Step 1: Verify Usages
+Run the following command to ensure no file is secretly importing from the root `components/` folder:
+```bash
+grep -r "from [\"']\.\./components" src/
+```
+*Expected Result:* No output, or only output from test files that might be misplaced (though I found none).
 
-### A. Build Verification
-Ran `pnpm build`.
-- **Outcome:** ✅ Success. The build completed without errors, proving that the deleted files were not required for the application to compile.
+### Step 2: Verify Build Integrity
+1.  **Delete** the `components/` directory.
+2.  Run `pnpm build`.
+    *   If the build fails, **ABORT**. Restore the files and investigate why they are needed.
+    *   If the build passes, proceed.
 
-### B. Test Verification
-Ran `pnpm test`.
-- **Outcome:** ✅ Success (with unrelated known failures).
-- The tests for active components (e.g., `src/components/__tests__/ActionPane.test.tsx`) continued to pass, confirming they were testing the correct, active files in `src/components/`.
+### Step 3: Verify Tests
+Run `pnpm test`.
+*   Ensure that tests for *active* components (e.g., `src/components/__tests__/ActionPane.test.tsx`) still pass.
+*   The removal of the root folder should not affect the tests of the active components.
 
-## 5. 💡 Conclusion
+## 4. 💣 Recommendation
 
-The root `components/` directory was a "Zombie" artifact—likely a leftover from a previous refactor or a copy-paste error. Its removal adheres to the Sapper philosophy: **"Dead code hides bugs."** By removing it, we eliminate ambiguity and ensure that future development is focused solely on the active codebase in `src/`.
+If all verifications pass, this directory is confirmed as "Zombie Code". It serves no purpose and poses a risk of confusion (developers editing the wrong file).
+
+**Action:** Delete the `./components/` directory.
