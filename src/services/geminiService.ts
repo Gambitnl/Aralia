@@ -8,6 +8,7 @@
 // TODO: Add client-side rate limiting and request queuing for AI API calls to prevent overwhelming the service during heavy usage
 import { GenerateContentResponse } from "@google/genai";
 import { ai } from './aiClient'; // Import the shared AI client
+import { logger } from '../utils/logger';
 import { Action, PlayerCharacter, InspectSubmapTilePayload, SeededFeatureConfig, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState, VillageActionContext } from "../types";
 import { SUBMAP_ICON_MEANINGS } from '../data/glossaryData';
 import { XP_BY_CR } from '../data/dndData';
@@ -38,9 +39,8 @@ function chooseModelForComplexity(preferredModel: string, userInputForComplexity
   const elapsed = now - lastRequestTimestamp;
 
   // 1. Spam Protection (Timer)
-  // TODO: Centralize all logging calls through a dedicated logger module (e.g., src/utils/logger.ts) to enable log levels, structured output, and production filtering
   if (elapsed < 15000) { // 15 seconds
-    // console.debug("Adaptive Model: Downgrading due to frequency (<15s)."); 
+    logger.debug("Adaptive Model: Downgrading due to frequency (<15s).", { elapsed });
     return FAST_MODEL;
   }
 
@@ -183,10 +183,10 @@ export async function generateText(
       const errorString = JSON.stringify(error, Object.getOwnPropertyNames(error));
       if (errorString.includes('"code":429') || errorString.includes('RESOURCE_EXHAUSTED')) {
         rateLimitHitInChain = true;
-        console.warn(`Gemini API rate limit error with model ${model}. Retrying...`);
+        logger.warn(`Gemini API rate limit error with model ${model}. Retrying...`, { model });
         continue;
       } else {
-        console.warn(`Gemini API error with model ${model}:`, error);
+        logger.warn(`Gemini API error with model ${model}:`, { error, model });
         continue;
       }
     } finally {
@@ -397,7 +397,7 @@ export async function generateEncounter(
           const jsonString = responseText.replace(/```json\n|```/g, '').trim();
           encounter = JSON.parse(jsonString);
         } catch (e) {
-          console.error(`Failed to parse JSON from generateEncounter with model ${model}:`, responseText, e);
+          logger.error(`Failed to parse JSON from generateEncounter with model ${model}:`, { responseText, error: e });
           throw new Error("The AI returned a malformed encounter suggestion.");
         }
       }
@@ -422,9 +422,9 @@ export async function generateEncounter(
       const errorString = JSON.stringify(error, Object.getOwnPropertyNames(error));
       if (errorString.includes('"code":429') || errorString.includes('RESOURCE_EXHAUSTED')) {
         rateLimitHitInChain = true;
-        console.warn(`Gemini API rate limit error with model ${model}. Retrying...`);
+        logger.warn(`Gemini API rate limit error with model ${model}. Retrying...`);
       } else {
-        console.warn(`Gemini API error with model ${model}:`, error);
+        logger.warn(`Gemini API error with model ${model}:`, { error });
       }
       continue;
     } finally {
@@ -480,7 +480,7 @@ export async function generateCustomActions(
       },
     }));
   } catch (e) {
-    console.error("Failed to parse JSON from generateCustomActions:", result.data.text, e);
+    logger.error("Failed to parse JSON from generateCustomActions:", { rawText: result.data.text, error: e });
     return {
       data: null,
       error: "Failed to parse custom actions JSON.",
