@@ -186,8 +186,8 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
             }
 
             const buttonTitle = equippedItem
-              ? `${equippedItem.name} (In ${slotInfo.label})${proficiencyMismatch ? ` - Proficiency Mismatch! ${mismatchReason}` : ''}${damageDisplay ? ` | Damage: ${damageDisplay}` : ''}${onSlotClick ? ' - Click to Unequip' : ''}`
-              : `Empty ${slotInfo.label} Slot (Max Armor: ${characterMaxProficiencyLevel})${onSlotClick ? ' - Click to Filter Inventory' : ''}`;
+              ? `${equippedItem.name} (In ${slotInfo.label})${proficiencyMismatch ? ` - Proficiency Mismatch! ${mismatchReason}` : ''}${damageDisplay ? ` | Damage: ${damageDisplay}` : ''}${onSlotClick ? ' - Unequip' : ''}`
+              : `Empty ${slotInfo.label} Slot (Max Armor: ${characterMaxProficiencyLevel})${onSlotClick ? ' - Filter' : ''}`;
 
             return (
               <Tooltip key={slotInfo.id} content={buttonTitle}>
