@@ -14,6 +14,7 @@ import { CLASSES_DATA } from '../data/classes';
 import { MONSTERS_DATA } from '../constants';
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, FAST_MODEL, COMPLEX_MODEL } from '../config/geminiConfig';
 import * as ItemTemplates from '../data/item_templates';
+import { sanitizeAIInput } from '../utils/securityUtils';
 
 
 
@@ -45,7 +46,10 @@ function chooseModelForComplexity(preferredModel: string, userInputForComplexity
   // 2. Complexity Check (if input provided)
   if (userInputForComplexityCheck) {
     // Simple heuristic: split by spaces
-    const wordCount = userInputForComplexityCheck.trim().split(/\s+/).length;
+    // Note: We use the sanitized input for this check if passed correctly by the caller,
+    // but the caller might pass raw input. We'll sanitize it here just for the count check to be safe.
+    const safeInput = sanitizeAIInput(userInputForComplexityCheck);
+    const wordCount = safeInput.trim().split(/\s+/).length;
     if (wordCount < 6) {
       // console.debug(`Adaptive Model: Downgrading due to low complexity (${wordCount} words).`);
       return FAST_MODEL;
@@ -253,10 +257,12 @@ export async function generateActionOutcome(
     ? "You are a Dungeon Master narrating the outcome of a player's specific, creative action. The response should be a brief, 2-3 sentence description of what happens next."
     : "You are a Dungeon Master narrating the outcome of a player's action. The response should be a brief, 2-3 sentence description.";
 
-  const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, playerAction); // Default to PRO for quality narration, downgrades if spammy/short
+  const sanitizedAction = sanitizeAIInput(playerAction);
 
-  let prompt = `Player action: "${playerAction}"\nContext: ${context}`;
-  if (playerAction.toLowerCase().includes("look around") && worldMapTileTooltip) {
+  const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, sanitizedAction); // Default to PRO for quality narration, downgrades if spammy/short
+
+  let prompt = `Player action: "${sanitizedAction}"\nContext: ${context}`;
+  if (sanitizedAction.toLowerCase().includes("look around") && worldMapTileTooltip) {
     prompt += `\nBroader context for 'look around': ${worldMapTileTooltip}`;
   }
 
@@ -280,9 +286,11 @@ export async function generateOracleResponse(
 ): Promise<StandardizedResult<GeminiTextData>> {
   const systemInstruction = "You are the Oracle, a mysterious, wise entity. Respond to the player's query. Your response MUST be enigmatic and brief (1-2 sentences MAX). Speak in the first person. Do NOT give a direct answer; provide a cryptic clue.";
 
-  const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, playerQuery);
+  const sanitizedQuery = sanitizeAIInput(playerQuery);
 
-  const prompt = `A player asks me, the Oracle: "${playerQuery}"\nMy context: ${context}\nMy brief, cryptic, first-person response is:`;
+  const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, sanitizedQuery);
+
+  const prompt = `A player asks me, the Oracle: "${sanitizedQuery}"\nMy context: ${context}\nMy brief, cryptic, first-person response is:`;
   return await generateText(prompt, systemInstruction, false, 'generateOracleResponse', devModelOverride, adaptiveModel);
 }
 
@@ -650,7 +658,9 @@ export async function generateGuideResponse(
   const systemInstruction = `You are the 'Game Guide', a helpful AI assistant for the Aralia RPG.
   Your goal is to answer player questions. You can also output a JSON object with 'tool': 'create_character' configuration if asked to create a character.`;
 
-  const prompt = `User Query: "${query}"\nCurrent Game Context: ${context}`;
+  const sanitizedQuery = sanitizeAIInput(query);
+
+  const prompt = `User Query: "${sanitizedQuery}"\nCurrent Game Context: ${context}`;
 
   return await generateText(
     prompt,
