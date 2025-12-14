@@ -3,6 +3,13 @@ import {
   SpellSchool,
   SpellRarity,
   SpellAttackType,
+  // CastingTime, // Leaving these in for later use
+  // Range, // Leaving these in for later use
+  // Components, // Leaving these in for later use
+  // Duration, // Leaving these in for later use
+  // SpellTargeting, // Leaving these in for later use
+  // SpellEffect, // Leaving these in for later use
+  // BaseEffect, // Leaving these in for later use
   DamageEffect
 } from '@/types/spells';
 
@@ -12,9 +19,23 @@ import {
   GamePhase,
   PlayerCharacter,
   CombatCharacter,
+  // Item, // Leaving these in for later use
+  // GameMessage, // Leaving these in for later use
+  // MapData, // Leaving these in for later use
+  // DiscoveryEntry, // Leaving these in for later use
+  // Quest, // Leaving these in for later use
+  // Monster, // Leaving these in for later use
+  // GroundingChunk, // Leaving these in for later use
+  // TempPartyMember, // Leaving these in for later use
+  // Action, // Leaving these in for later use
+  // GeminiLogEntry, // Leaving these in for later use
+  // NpcMemory, // Leaving these in for later use
+  // DiscoveryResidue, // Leaving these in for later use
+  // EconomyState, // Leaving these in for later use
   AbilityScores,
   Race,
   Class,
+  // Skill, // Leaving these in for later use
   TransportMode
 } from '@/types/index';
 
