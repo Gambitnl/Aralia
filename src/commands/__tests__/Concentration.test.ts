@@ -3,50 +3,8 @@ import { StartConcentrationCommand, BreakConcentrationCommand } from '../effects
 import { DamageCommand } from '../effects/DamageCommand'
 import { SpellCommandFactory } from '../factory/SpellCommandFactory'
 import { calculateConcentrationDC, checkConcentration } from '../../utils/concentrationUtils'
-import type { Spell } from '@/types/spells'
-import type { CombatCharacter, CombatState, ConcentrationState } from '@/types/combat'
-
-// Mocks
-const mockCaster = {
-    id: 'c1',
-    name: 'Caster',
-    level: 5,
-    currentHP: 20,
-    maxHP: 20,
-    stats: { constitution: 14 } // +2 modifier
-} as CombatCharacter
-
-const mockTarget = {
-    id: 't1',
-    name: 'Target',
-    currentHP: 30,
-    maxHP: 30,
-    stats: { constitution: 10 }, // +0 modifier
-    concentratingOn: {
-        spellId: 'spell1',
-        spellName: 'Bless',
-        spellLevel: 1,
-        startedTurn: 1,
-        effectIds: [],
-        canDropAsFreeAction: true
-    }
-} as CombatCharacter
-
-const createMockSpell = (overrides: Partial<Spell> = {}): Spell => ({
-    id: 'test_spell',
-    name: 'Test Spell',
-    level: 1,
-    school: 'Evocation',
-    classes: ['Wizard'],
-    castingTime: { value: 1, unit: 'action' },
-    range: { type: 'ranged', distance: 60 },
-    components: { verbal: true, somatic: false, material: false },
-    duration: { type: 'instantaneous', concentration: false },
-    targeting: { type: 'single', range: 60, validTargets: ['creatures'] },
-    effects: [],
-    description: 'Test spell',
-    ...overrides
-})
+import { createMockSpell, createMockCombatCharacter, createMockCombatState } from '../../utils/factories'
+import type { CombatCharacter } from '@/types/combat'
 
 describe('Concentration System', () => {
 
@@ -59,13 +17,9 @@ describe('Concentration System', () => {
         })
 
         it('checks concentration success', () => {
-            // Target has +0 Con modifier
-            // DC 10
-            // We simulate roles by mocking Math.random in a real test environment,
-            // or we just trust the logic: roll (1..20) + mod >= DC
-
-            // Checking structure only for unit test without mocking random here to keep it simple,
-            // but for real robust tests we should mock random.
+            const mockTarget = createMockCombatCharacter({
+                stats: { constitution: 10 } as any // Simplified for test
+            });
 
             const result = checkConcentration(mockTarget, 10);
             expect(result.dc).toBe(10);
@@ -79,8 +33,10 @@ describe('Concentration System', () => {
             const spell = createMockSpell({
                 duration: { type: 'timed', value: 1, unit: 'minute', concentration: true }
             });
+            const mockCaster = createMockCombatCharacter({ name: 'Caster' });
+            const mockState = createMockCombatState({ characters: [mockCaster] });
 
-            const commands = await SpellCommandFactory.createCommands(spell, mockCaster, [], 1, {} as any);
+            const commands = await SpellCommandFactory.createCommands(spell, mockCaster, [], 1, mockState);
             const startCmd = commands.find(c => c instanceof StartConcentrationCommand);
             expect(startCmd).toBeDefined();
         })
@@ -90,12 +46,20 @@ describe('Concentration System', () => {
                 duration: { type: 'timed', value: 1, unit: 'minute', concentration: true }
             });
 
-            const casterConcentrating = {
-                ...mockCaster,
-                concentratingOn: { spellId: 'old', spellName: 'Old', spellLevel: 1, startedTurn: 0, effectIds: [], canDropAsFreeAction: true }
-            };
+            const casterConcentrating = createMockCombatCharacter({
+                name: 'Caster',
+                concentratingOn: {
+                    spellId: 'old',
+                    spellName: 'Old',
+                    spellLevel: 1,
+                    startedTurn: 0,
+                    effectIds: [],
+                    canDropAsFreeAction: true
+                }
+            });
+            const mockState = createMockCombatState({ characters: [casterConcentrating] });
 
-            const commands = await SpellCommandFactory.createCommands(spell, casterConcentrating, [], 1, {} as any);
+            const commands = await SpellCommandFactory.createCommands(spell, casterConcentrating, [], 1, mockState);
 
             expect(commands[0]).toBeInstanceOf(BreakConcentrationCommand);
             const startCmd = commands.find(c => c instanceof StartConcentrationCommand);
@@ -105,8 +69,22 @@ describe('Concentration System', () => {
 
     describe('DamageCommand & Saves', () => {
         it('triggers concentration check on damage', () => {
-            // We need to execute the command to test logic
             const spell = createMockSpell();
+            const mockCaster = createMockCombatCharacter({ id: 'c1', name: 'Caster' });
+            const mockTarget = createMockCombatCharacter({
+                id: 't1',
+                name: 'Target',
+                stats: { constitution: 10 } as any, // +0 modifier
+                concentratingOn: {
+                    spellId: 'spell1',
+                    spellName: 'Bless',
+                    spellLevel: 1,
+                    startedTurn: 1,
+                    effectIds: [],
+                    canDropAsFreeAction: true
+                }
+            });
+
             const damageEffect = {
                 type: 'DAMAGE',
                 damage: { dice: '10d1', type: 'Force' }, // Fixed heavy damage: 10 damage
@@ -114,22 +92,21 @@ describe('Concentration System', () => {
                 condition: { type: 'hit' }
             };
 
+            const mockState = createMockCombatState({
+                characters: [mockCaster, mockTarget],
+                combatLog: []
+            });
+
             const command = new DamageCommand(damageEffect as any, {
                 spellId: spell.id,
                 spellName: spell.name,
                 castAtLevel: 1,
                 caster: mockCaster,
                 targets: [mockTarget],
-                gameState: {} as any
+                gameState: mockState
             });
 
-            const state = { characters: [mockCaster, mockTarget], combatLog: [] } as any;
-
-            // Mock random to force failure? Or just check if log has entry.
-            // With 10 damage, DC is 10. Target has +0. Needs 10+ on d20. 55% chance success.
-            // Let's rely on log output or state change. If fail, concentratingOn becomes undefined.
-
-            const newState = command.execute(state);
+            const newState = command.execute(mockState);
 
             // Check if log contains concentration check message
             const logMessages = newState.combatLog.map((l: any) => l.message).join(' ');
@@ -140,17 +117,23 @@ describe('Concentration System', () => {
     describe('Commands', () => {
         it('StartConcentrationCommand sets state', () => {
             const spell = createMockSpell();
+            const mockCaster = createMockCombatCharacter();
+            const mockState = createMockCombatState({
+                characters: [mockCaster],
+                turnState: { currentTurn: 5 } as any,
+                combatLog: []
+            });
+
             const command = new StartConcentrationCommand(spell, {
                 spellId: spell.id,
                 spellName: spell.name,
                 castAtLevel: 1,
                 caster: mockCaster,
                 targets: [],
-                gameState: {} as any
+                gameState: mockState
             });
 
-            const state = { characters: [mockCaster], turnState: { currentTurn: 5 }, combatLog: [] } as any;
-            const newState = command.execute(state);
+            const newState = command.execute(mockState);
 
             expect(newState.characters[0].concentratingOn).toBeDefined();
             expect(newState.characters[0].concentratingOn!.spellId).toBe(spell.id);
@@ -158,17 +141,31 @@ describe('Concentration System', () => {
         })
 
         it('BreakConcentrationCommand clears state', () => {
+            const mockTarget = createMockCombatCharacter({
+                 concentratingOn: {
+                    spellId: 'spell1',
+                    spellName: 'Bless',
+                    spellLevel: 1,
+                    startedTurn: 1,
+                    effectIds: [],
+                    canDropAsFreeAction: true
+                }
+            });
+            const mockState = createMockCombatState({
+                characters: [mockTarget],
+                combatLog: []
+            });
+
             const command = new BreakConcentrationCommand({
                 spellId: 'any',
                 spellName: 'any',
                 castAtLevel: 1,
-                caster: mockTarget, // Target is concentrating
+                caster: mockTarget,
                 targets: [],
-                gameState: {} as any
+                gameState: mockState
             });
 
-            const state = { characters: [mockTarget], combatLog: [] } as any;
-            const newState = command.execute(state);
+            const newState = command.execute(mockState);
 
             expect(newState.characters[0].concentratingOn).toBeUndefined();
             const logMessages = newState.combatLog.map((l: any) => l.message).join(' ');
