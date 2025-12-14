@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { GlossaryEntry } from "../types";
 import level1GapsMd from "../../docs/tasks/spell-system-overhaul/gaps/LEVEL-1-GAPS.md?raw";
 import cantripGapsMd from "../../docs/tasks/spell-system-overhaul/1I-MIGRATE-CANTRIPS-BATCH-1.md?raw";
+import { fetchWithTimeout } from "../utils/networkUtils";
 
 const normalizeId = (raw: string): string =>
   raw
@@ -63,11 +64,13 @@ const buildKnownGapSet = (): Set<string> => {
   return set;
 };
 
-const fetchGlossaryCard = async (id: string, level: number) => {
+const fetchGlossaryCard = async (id: string, level: number, signal?: AbortSignal) => {
   const url = `${import.meta.env.BASE_URL}data/glossary/entries/spells/level-${level}/${id}.md`;
-  const res = await fetch(url);
-  if (!res.ok) return null;
-  return res.text();
+  try {
+    return await fetchWithTimeout<string>(url, { responseType: 'text', signal });
+  } catch {
+    return null;
+  }
 };
 
 const parseFrontmatter = (raw: string) => {
@@ -98,15 +101,19 @@ export const useSpellGateChecks = (entries: GlossaryEntry[] | null) => {
 
   useEffect(() => {
     if (!entries) return;
+    const controller = new AbortController();
 
     const run = async () => {
       try {
-        const res = await fetch(`${import.meta.env.BASE_URL}data/spells_manifest.json`);
-        if (!res.ok) throw new Error(`Failed to load spells_manifest.json: ${res.statusText}`);
-        const manifest = await res.json();
+        const manifest = await fetchWithTimeout<Record<string, any>>(
+          `${import.meta.env.BASE_URL}data/spells_manifest.json`,
+          { signal: controller.signal }
+        );
 
         const next: Record<string, GateResult> = {};
-        await Promise.all(Object.entries<any>(manifest).map(async ([id, data]) => {
+        await Promise.all(Object.entries(manifest).map(async ([id, data]) => {
+          if (controller.signal.aborted) return;
+
           const level = data.level;
           if (typeof level !== "number") return;
 
@@ -132,7 +139,7 @@ export const useSpellGateChecks = (entries: GlossaryEntry[] | null) => {
           let cardContent: string | null = null;
 
           // Always fetch the card content to check layout
-          cardContent = await fetchGlossaryCard(id, level);
+          cardContent = await fetchGlossaryCard(id, level, controller.signal);
 
           if (cardContent) {
             cardFound = true;
@@ -181,14 +188,19 @@ export const useSpellGateChecks = (entries: GlossaryEntry[] | null) => {
           next[id] = { status, reasons, level, checklist };
         }));
 
-        setResults(next);
-      } catch (err) {
-        console.error("Spell gate check failed:", err);
-        setResults({});
+        if (!controller.signal.aborted) {
+          setResults(next);
+        }
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.error("Spell gate check failed:", err);
+          setResults({});
+        }
       }
     };
 
     run();
+    return () => controller.abort();
   }, [entries, entryMap, knownGaps]);
 
   return results;

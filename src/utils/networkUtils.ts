@@ -21,6 +21,43 @@ interface FetchOptions extends RequestInit {
 }
 
 /**
+ * Merges multiple AbortSignals into one.
+ * The returned signal aborts when any of the input signals abort.
+ */
+function mergeSignals(...signals: (AbortSignal | undefined | null)[]): AbortSignal {
+  const controller = new AbortController();
+
+  // If no valid signals, return a fresh one (not aborted)
+  const validSignals = signals.filter((s): s is AbortSignal => !!s);
+  if (validSignals.length === 0) {
+    return controller.signal;
+  }
+
+  // Check if any are already aborted
+  for (const signal of validSignals) {
+    if (signal.aborted) {
+      controller.abort(signal.reason);
+      return controller.signal;
+    }
+  }
+
+  // Listen to all
+  const onAbort = (event: Event) => {
+    // We can't easily get the reason from the event in a generic way,
+    // so we try to find which signal aborted.
+    const sourceSignal = event.target as AbortSignal;
+    controller.abort(sourceSignal.reason);
+  };
+
+  for (const signal of validSignals) {
+    signal.addEventListener('abort', onAbort, { once: true });
+  }
+
+  return controller.signal;
+}
+
+
+/**
  * A wrapper around fetch that adds timeout support and typed error handling.
  * Automatically parses JSON response by default, or text if specified.
  *
@@ -33,14 +70,16 @@ export async function fetchWithTimeout<T>(
   options: FetchOptions = {}
 ): Promise<T> {
   const { timeoutMs = 10000, responseType = 'json', ...fetchOptions } = options;
-  const controller = new AbortController();
+  const timeoutController = new AbortController();
 
-  const id = setTimeout(() => controller.abort(), timeoutMs);
+  const id = setTimeout(() => timeoutController.abort(new Error(`Request to ${url} timed out after ${timeoutMs}ms`)), timeoutMs);
+
+  const mergedSignal = mergeSignals(timeoutController.signal, fetchOptions.signal);
 
   try {
     const response = await fetch(url, {
       ...fetchOptions,
-      signal: controller.signal,
+      signal: mergedSignal,
     });
     clearTimeout(id);
 
@@ -59,9 +98,17 @@ export async function fetchWithTimeout<T>(
     return (await response.json()) as T;
   } catch (error: any) {
     clearTimeout(id);
-    if (error.name === 'AbortError') {
-      throw new NetworkError(`Request to ${url} timed out after ${timeoutMs}ms`);
+
+    // Check if it was a timeout or user abort
+    if (timeoutController.signal.aborted) {
+        throw new NetworkError(`Request to ${url} timed out after ${timeoutMs}ms`);
     }
+
+    // If the user's signal aborted, fetch throws AbortError (DOMException)
+    if (error.name === 'AbortError') {
+       throw error;
+    }
+
     if (error instanceof NetworkError) {
       throw error;
     }

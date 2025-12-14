@@ -6,17 +6,10 @@ describe('fetchWithTimeout', () => {
     vi.useFakeTimers();
     // Reset mocks
     global.fetch = vi.fn();
-
-    // In JSDOM, AbortController exists. We should spy on it or replace it carefully.
-    vi.stubGlobal('AbortController', class {
-      abort = vi.fn();
-      signal = { aborted: false } as any;
-    });
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    vi.unstubAllGlobals();
   });
 
   it('should return parsed JSON data on success (default)', async () => {
@@ -61,9 +54,50 @@ describe('fetchWithTimeout', () => {
   });
 
   it('should throw timeout error when request times out', async () => {
-    // To simulate timeout, we can make the fetch promise reject with an AbortError
-    (global.fetch as any).mockRejectedValue({ name: 'AbortError' });
+    (global.fetch as any).mockImplementation(async (url: string, { signal }: { signal: AbortSignal }) => {
+        return new Promise((_, reject) => {
+            if (signal.aborted) {
+                reject(signal.reason || new DOMException('Aborted', 'AbortError'));
+                return;
+            }
+            signal.addEventListener('abort', () => {
+                reject(signal.reason || new DOMException('Aborted', 'AbortError'));
+            });
+        });
+    });
 
-    await expect(fetchWithTimeout('/api/test', { timeoutMs: 100 })).rejects.toThrow('Request to /api/test timed out after 100ms');
+    const promise = fetchWithTimeout('/api/test', { timeoutMs: 100 });
+
+    // Fast-forward time
+    vi.advanceTimersByTime(100);
+
+    await expect(promise).rejects.toThrow('Request to /api/test timed out after 100ms');
+  });
+
+  it('should respect external AbortSignal', async () => {
+    // For this test, do NOT use fake timers because JSDOM event propagation might rely on real scheduling,
+    // or simply because we don't want to advance timers for 'timeout' related logic, just abort immediately.
+    vi.useRealTimers();
+
+    const userController = new AbortController();
+
+    (global.fetch as any).mockImplementation(async (url: string, { signal }: { signal: AbortSignal }) => {
+        return new Promise((_, reject) => {
+            if (signal.aborted) {
+                 reject(signal.reason || new DOMException('Aborted', 'AbortError'));
+                 return;
+            }
+            signal.addEventListener('abort', () => {
+                 reject(signal.reason || new DOMException('Aborted', 'AbortError'));
+            });
+        });
+    });
+
+    const promise = fetchWithTimeout('/api/test', { signal: userController.signal });
+
+    // Abort from outside
+    setTimeout(() => userController.abort(new DOMException('Aborted', 'AbortError')), 10);
+
+    await expect(promise).rejects.toThrow('Aborted');
   });
 });
