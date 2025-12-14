@@ -1,24 +1,54 @@
 import { useState, useCallback } from 'react';
 import { SafeStorage } from '../utils/storageUtils';
+import { z } from 'zod';
+
+export interface UseLocalStorageOptions<T> {
+  schema?: z.Schema<T>;
+  onError?: (error: unknown) => void;
+}
 
 /**
  * A custom hook to manage state synchronized with localStorage.
- * Handles JSON parsing/stringification and errors safely.
+ * Handles JSON parsing/stringification, schema validation, and errors safely.
  *
  * @param key The key to store the data under in localStorage
- * @param initialValue The initial value to use if no data exists
+ * @param initialValue The initial value to use if no data exists or validation fails
+ * @param options Configuration options including Zod schema and error handler
  * @returns [storedValue, setValue, removeValue]
  */
-export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T | ((val: T) => T)) => void, () => void] {
+export function useLocalStorage<T>(
+  key: string,
+  initialValue: T,
+  options: UseLocalStorageOptions<T> = {}
+): [T, (value: T | ((val: T) => T)) => void, () => void] {
+  const { schema, onError } = options;
+
   // State to store our value
   // Pass initial state function to useState so logic is only executed once
   const [storedValue, setStoredValue] = useState<T>(() => {
     const item = SafeStorage.getItem(key);
     if (item) {
       try {
-        return JSON.parse(item);
+        const parsed = JSON.parse(item);
+
+        if (schema) {
+          const validationResult = schema.safeParse(parsed);
+          if (!validationResult.success) {
+            console.warn(`Schema validation failed for localStorage key "${key}":`, validationResult.error);
+            // If validation fails, we treat it as if the data is corrupted/invalid and return initialValue.
+            // We do NOT automatically clear storage here to avoid data loss if it's just a schema mismatch that might be recoverable manually,
+            // but effectively for the app it acts as a reset.
+            // Optional: We could call onError here too.
+            if (onError) onError(validationResult.error);
+            return initialValue;
+          }
+          return validationResult.data;
+        }
+
+        return parsed;
       } catch (error) {
         console.warn(`Error parsing localStorage key "${key}":`, error);
+        if (onError) onError(error);
         return initialValue;
       }
     }
@@ -41,11 +71,13 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
         SafeStorage.setItem(key, JSON.stringify(valueToStore));
       } catch (writeError) {
          console.warn(`Error writing to localStorage key "${key}":`, writeError);
+         if (onError) onError(writeError);
       }
     } catch (error) {
       console.warn(`Error setting value for key "${key}":`, error);
+      if (onError) onError(error);
     }
-  }, [key, storedValue]);
+  }, [key, storedValue, onError]);
 
   const removeValue = useCallback(() => {
       SafeStorage.removeItem(key);

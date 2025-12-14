@@ -1,9 +1,13 @@
 /**
  * @file src/hooks/useAudio.ts
  * Custom hook for managing audio context and PCM audio playback.
+ *
+ * Manages persisted volume settings and handles audio context lifecycle.
  */
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 import { GameMessage } from '../types';
+import { useLocalStorage } from './useLocalStorage';
+import { z } from 'zod';
 
 const AUDIO_CONTEXT_SAMPLE_RATE = 24000;
 const PCM_AUDIO_SAMPLE_RATE = 24000;
@@ -13,8 +17,37 @@ const NUMBER_OF_CHANNELS = 1;
 
 type AddMessageFn = (text: string, sender?: 'system' | 'player' | 'npc') => void;
 
+// Define schema for audio settings
+const audioSettingsSchema = z.object({
+  volume: z.number().min(0).max(1), // Volume from 0.0 to 1.0
+  isMuted: z.boolean().default(false),
+});
+
+type AudioSettings = z.infer<typeof audioSettingsSchema>;
+
+const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
+  volume: 1.0,
+  isMuted: false,
+};
+
 export function useAudio(addMessage: AddMessageFn) {
   const audioContextRef = useRef<AudioContext | null>(null);
+  const gainNodeRef = useRef<GainNode | null>(null);
+
+  // Persist audio settings with validation
+  const [audioSettings, setAudioSettings] = useLocalStorage<AudioSettings>(
+    'aralia_audio_settings',
+    DEFAULT_AUDIO_SETTINGS,
+    { schema: audioSettingsSchema }
+  );
+
+  // Update gain node when volume changes
+  useEffect(() => {
+    if (gainNodeRef.current && audioContextRef.current) {
+      const targetVolume = audioSettings.isMuted ? 0 : audioSettings.volume;
+      gainNodeRef.current.gain.setValueAtTime(targetVolume, audioContextRef.current.currentTime);
+    }
+  }, [audioSettings.volume, audioSettings.isMuted]);
 
   // TODO: Suspend/resume the AudioContext on tab visibility changes (Reason: background tabs keep the context alive and waste CPU/battery; Expectation: automatically pause playback pipeline until the user returns).
   const playPcmAudio = useCallback(
@@ -22,6 +55,14 @@ export function useAudio(addMessage: AddMessageFn) {
       if (!audioContextRef.current) {
         try {
           audioContextRef.current = new AudioContext({ sampleRate: AUDIO_CONTEXT_SAMPLE_RATE });
+          // Create a global gain node for volume control
+          gainNodeRef.current = audioContextRef.current.createGain();
+          gainNodeRef.current.connect(audioContextRef.current.destination);
+
+          // Apply initial volume
+          const targetVolume = audioSettings.isMuted ? 0 : audioSettings.volume;
+          gainNodeRef.current.gain.value = targetVolume;
+
         } catch (e) {
           console.error('Error creating AudioContext: ', e);
           addMessage(
@@ -34,7 +75,9 @@ export function useAudio(addMessage: AddMessageFn) {
         }
       }
       const audioContext = audioContextRef.current;
-      if (!audioContext) return;
+      const gainNode = gainNodeRef.current;
+
+      if (!audioContext || !gainNode) return;
 
       try {
         const pcmString = atob(base64PcmData);
@@ -60,7 +103,10 @@ export function useAudio(addMessage: AddMessageFn) {
         audioBuffer.copyToChannel(pcmFloat32Data, 0);
         const source = audioContext.createBufferSource();
         source.buffer = audioBuffer;
-        source.connect(audioContext.destination);
+
+        // Connect source -> GainNode -> Destination
+        source.connect(gainNode);
+
         source.start();
       } catch (error) {
         console.error('Failed to play PCM audio:', error);
@@ -72,15 +118,31 @@ export function useAudio(addMessage: AddMessageFn) {
         );
       }
     },
-    [addMessage],
+    [addMessage, audioSettings.volume, audioSettings.isMuted]
   );
 
   const cleanupAudioContext = useCallback(() => {
     if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
       audioContextRef.current.close().catch(e => console.error("Error closing AudioContext: ", e));
       audioContextRef.current = null;
+      gainNodeRef.current = null;
     }
   }, []);
 
-  return { playPcmAudio, cleanupAudioContext };
+  const setVolume = useCallback((volume: number) => {
+    setAudioSettings(prev => ({ ...prev, volume: Math.max(0, Math.min(1, volume)) }));
+  }, [setAudioSettings]);
+
+  const toggleMute = useCallback(() => {
+    setAudioSettings(prev => ({ ...prev, isMuted: !prev.isMuted }));
+  }, [setAudioSettings]);
+
+  return {
+    playPcmAudio,
+    cleanupAudioContext,
+    volume: audioSettings.volume,
+    isMuted: audioSettings.isMuted,
+    setVolume,
+    toggleMute
+  };
 }

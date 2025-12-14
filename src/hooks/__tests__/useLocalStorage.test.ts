@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useLocalStorage } from '../useLocalStorage';
+import { z } from 'zod';
 
 // Mock the SafeStorage utility
 const mockGetItem = vi.fn();
@@ -78,8 +79,9 @@ describe('useLocalStorage', () => {
     mockGetItem.mockReturnValue(null);
     mockSetItem.mockImplementation(() => { throw new Error('QuotaExceeded'); });
     const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const onError = vi.fn();
 
-    const { result } = renderHook(() => useLocalStorage('test-key', 'initial'));
+    const { result } = renderHook(() => useLocalStorage('test-key', 'initial', { onError }));
 
     act(() => {
       result.current[1]('new-value');
@@ -88,6 +90,7 @@ describe('useLocalStorage', () => {
     // State should still update even if storage fails
     expect(result.current[0]).toBe('new-value');
     expect(consoleSpy).toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledWith(expect.any(Error));
   });
 
   it('should remove value from storage', () => {
@@ -100,5 +103,51 @@ describe('useLocalStorage', () => {
 
     expect(result.current[0]).toBe('initial');
     expect(mockRemoveItem).toHaveBeenCalledWith('test-key');
+  });
+
+  describe('Schema Validation', () => {
+    const schema = z.object({
+        count: z.number(),
+        active: z.boolean(),
+    });
+
+    it('should return stored value if it matches schema', () => {
+        const validData = { count: 10, active: true };
+        mockGetItem.mockReturnValue(JSON.stringify(validData));
+
+        const { result } = renderHook(() =>
+            useLocalStorage('test-key', { count: 0, active: false }, { schema })
+        );
+
+        expect(result.current[0]).toEqual(validData);
+    });
+
+    it('should fallback to initial value if data does not match schema', () => {
+        const invalidData = { count: "10", active: "yes" }; // Wrong types
+        mockGetItem.mockReturnValue(JSON.stringify(invalidData));
+        const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const onError = vi.fn();
+
+        const { result } = renderHook(() =>
+            useLocalStorage('test-key', { count: 0, active: false }, { schema, onError })
+        );
+
+        expect(result.current[0]).toEqual({ count: 0, active: false });
+        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Schema validation failed'), expect.any(Object));
+        expect(onError).toHaveBeenCalled();
+    });
+
+    it('should strip unknown keys if using z.object (depending on schema definition)', () => {
+        // Zod by default strips unknown keys if not strict
+        const dataWithExtra = { count: 5, active: true, extra: 'junk' };
+        mockGetItem.mockReturnValue(JSON.stringify(dataWithExtra));
+
+        const { result } = renderHook(() =>
+            useLocalStorage('test-key', { count: 0, active: false }, { schema })
+        );
+
+        expect(result.current[0]).toEqual({ count: 5, active: true });
+        // The extra key is gone
+    });
   });
 });
