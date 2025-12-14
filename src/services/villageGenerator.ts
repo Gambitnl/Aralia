@@ -59,7 +59,7 @@ export interface VillagePersonality {
   biomeStyle: 'temperate' | 'arid' | 'coastal' | 'swampy';
   population: 'small' | 'medium' | 'large';
   dominantRace?: 'human' | 'elf' | 'dwarf' | 'orc' | 'halfling' | 'gnome' | 'dragonborn' | 'tiefling' | 'other';
-  architecturalStyle: 'colonial' | 'medieval' | 'tribal' | 'magical' | 'industrial' | 'nomadic' | 'aquatic';
+  architecturalStyle: 'colonial' | 'medieval' | 'tribal' | 'magical' | 'industrial' | 'nomadic' | 'aquatic' | 'martial';
   governingBody: 'mayor' | 'council' | 'elder' | 'warlord' | 'guild' | 'temple' | 'monarch' | 'anarchy';
   primaryIndustry: 'agriculture' | 'mining' | 'fishing' | 'trade' | 'crafting' | 'magic' | 'military' | 'scholarship';
 }
