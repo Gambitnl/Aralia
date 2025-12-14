@@ -6,9 +6,9 @@
 
 import React, { useCallback, useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
-import { CaTileType } from '../services/cellularAutomataService';
-import { WfcGrid } from '../services/wfcService';
-import type { SeededFeatureConfig } from '../types';
+import { CaTileType } from '../../services/cellularAutomataService';
+import { WfcGrid } from '../../services/wfcService';
+import type { SeededFeatureConfig } from '../../types';
 
 interface SubmapRendererPixiProps {
   dimensions: { rows: number; cols: number };
