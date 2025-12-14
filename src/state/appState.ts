@@ -26,7 +26,7 @@ import { townReducer } from './reducers/townReducer';
 
 // Helper function to create a date at 07:00 AM on an arbitrary fixed date
 const createInitialGameTime = (): Date => {
-    const initialTime = new Date(351, 0, 1, 7, 0, 0, 0);
+    const initialTime = new Date(Date.UTC(351, 0, 1, 7, 0, 0, 0));
     return initialTime;
 };
 

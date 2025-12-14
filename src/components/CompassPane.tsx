@@ -10,7 +10,7 @@ import React, { useMemo, useState } from 'react';
 import { Action, Location, MapData } from '../types';
 import { BIOMES } from '../constants'; // To get biome details like color
 import { DIRECTION_VECTORS, SUBMAP_DIMENSIONS } from '../config/mapConfig';
-import { getGameEpoch } from '@/utils/timeUtils';
+import { getGameEpoch, formatGameTime } from '@/utils/timeUtils';
 import Tooltip from './Tooltip'; // Import Tooltip
 import PassTimeModal from './PassTimeModal'; // Import the new modal
 
@@ -95,10 +95,10 @@ const CompassPane: React.FC<CompassPaneProps> = ({
     return true;
   };
 
-  const formatGameTime = (date: Date): string => {
+  const formatGameTimeDisplay = (date: Date): string => {
     const diffMs = date.getTime() - gameStartDate.getTime();
     const dayNumber = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
-    const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    const timeString = formatGameTime(date, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
     return `Day ${dayNumber}, ${timeString}`;
   };
   
@@ -192,7 +192,7 @@ const CompassPane: React.FC<CompassPaneProps> = ({
           </Tooltip>
         </div>
         <div className="mt-2 text-center">
-          <p className="text-xs text-gray-300">Time: <span className="font-semibold text-amber-300">{formatGameTime(gameTime)}</span></p>
+          <p className="text-xs text-gray-300">Time: <span className="font-semibold text-amber-300">{formatGameTimeDisplay(gameTime)}</span></p>
         </div>
       </div>
     </>
