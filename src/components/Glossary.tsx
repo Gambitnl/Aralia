@@ -6,6 +6,7 @@ import { findGlossaryEntryAndPath } from '../utils/glossaryUtils';
 import { useSpellGateChecks } from '../hooks/useSpellGateChecks';
 import SpellCardTemplate, { SpellData } from './Glossary/SpellCardTemplate';
 import { SafeStorage } from '../utils/storageUtils';
+import { ENV } from '../config/env';
 
 interface GlossaryProps {
   isOpen: boolean;
@@ -267,7 +268,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
   // Fetch lastGenerated timestamp from glossary main.json
   useEffect(() => {
     if (!isOpen) return;
-    fetch(`${import.meta.env.BASE_URL}data/glossary/index/main.json`)
+    fetch(`${ENV.BASE_URL}data/glossary/index/main.json`)
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data?.lastGenerated) {
@@ -289,7 +290,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
     const level = gateResult?.level ?? 0;
 
     setSpellJsonLoading(true);
-    fetch(`${import.meta.env.BASE_URL}data/spells/level-${level}/${selectedEntry.id}.json`)
+    fetch(`${ENV.BASE_URL}data/spells/level-${level}/${selectedEntry.id}.json`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to load spell JSON');
         return res.json();
