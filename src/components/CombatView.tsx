@@ -36,12 +36,29 @@ interface CombatViewProps {
 }
 
 const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattleEnd }) => {
-  const [seed] = useState(Date.now()); // Generate map once
+  // NEW: Get spell data to hydrate combat abilities
+  const allSpells = useContext(SpellContext);
+
+  // Ensure we have spell data (guaranteed by SpellProvider, but type safety check)
+  if (!allSpells) throw new Error("CombatView must be used within a SpellProvider");
+
+  const [seed] = useState(() => Date.now()); // Generate map once
   const [combatLog, setCombatLog] = useState<CombatLogEntry[]>([]);
 
+  // Initialize map and characters directly from props (Lazy Initialization)
+  // This avoids a double-render and "Preparing..." flash that occurred with useEffect
+  const [initialState] = useState(() => {
+    // 1. Create base characters
+    const partyCombatants = party.map(p => createPlayerCombatCharacter(p, allSpells as unknown as Record<string, Spell>));
+    const initialCombatants = [...partyCombatants, ...enemies];
+
+    // 2. Generate map and positions
+    return generateBattleSetup(biome, seed, initialCombatants);
+  });
+
   // Single source of truth for map and characters
-  const [mapData, setMapData] = useState<BattleMapData | null>(null);
-  const [characters, setCharacters] = useState<CombatCharacter[]>([]);
+  const [mapData, setMapData] = useState<BattleMapData | null>(initialState.mapData);
+  const [characters, setCharacters] = useState<CombatCharacter[]>(initialState.positionedCharacters);
 
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [sheetCharacter, setSheetCharacter] = useState<PlayerCharacter | null>(null);
@@ -58,26 +75,6 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   const [inputModalSpell, setInputModalSpell] = useState<Spell | null>(null);
   // Callback to resume execution once input is confirmed
   const [inputModalCallback, setInputModalCallback] = useState<((input: string) => void) | null>(null);
-
-  // NEW: Get spell data to hydrate combat abilities
-  const allSpells = useContext(SpellContext);
-
-  // Initialization Effect
-  useEffect(() => {
-    // Only run initialization if we have spell data and haven't initialized map yet (or if biome/seed changed, though seed is state constant here)
-    if (allSpells && !mapData) {
-      // 1. Create base characters
-      const partyCombatants = party.map(p => createPlayerCombatCharacter(p, allSpells as unknown as Record<string, Spell>));
-      const initialCombatants = [...partyCombatants, ...enemies];
-
-      // 2. Generate map and positions
-      const result = generateBattleSetup(biome, seed, initialCombatants);
-
-      // 3. Batch updates
-      setMapData(result.mapData);
-      setCharacters(result.positionedCharacters);
-    }
-  }, [party, enemies, biome, seed, allSpells, mapData]);
 
   const handleCharacterUpdate = useCallback((updatedChar: CombatCharacter) => {
     setCharacters(prev => prev.map(c => c.id === updatedChar.id ? updatedChar : c));
@@ -209,8 +206,6 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   };
 
   const currentCharacter = turnManager.getCurrentCharacter();
-
-  if (!allSpells) return <div>Loading Spell Data for Combat...</div>;
 
   return (
     <div className="bg-gray-900 text-white min-h-screen flex flex-col p-4 relative">
