@@ -22,5 +22,23 @@
         "dismiss": "Dismiss"
       }
     }
+  },
+  "main_menu": {
+    "title": "Aralia RPG",
+    "back": "Back",
+    "back_aria": "Go back to previous screen",
+    "continue": "Continue",
+    "last_played": "Last played: {date}",
+    "new_game": "New Game",
+    "save_to_slot": "Save to Slot",
+    "skip_character_creator": "Skip Character Creator (Dev)",
+    "load_game": "Load Game",
+    "load_game_aria": "Load a saved game",
+    "load_game_empty_aria": "Load a saved game (no save file found)",
+    "load_game_empty_title": "Load Game (No save file found)",
+    "glossary": "Glossary",
+    "glossary_aria": "View game glossary",
+    "glossary_title": "View Game Glossary",
+    "powered_by": "Powered by Gemini"
   }
 }

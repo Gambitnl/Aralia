@@ -12,6 +12,7 @@ import SaveSlotSelector from './SaveSlotSelector';
 import { deleteSaveGame, getSaveSlots, SaveSlotSummary } from '../services/saveLoadService';
 import { VersionDisplay } from './VersionDisplay';
 import { canUseDevTools } from '../utils/permissions';
+import { t } from '../utils/i18n';
 
 interface MainMenuProps {
   onNewGame: () => void;
@@ -65,7 +66,14 @@ const MainMenu: React.FC<MainMenuProps> = ({
   const formatTimestamp = (timestamp: number | null): string => {
     if (!timestamp) return '';
     const date = new Date(timestamp);
-    return `Last played: ${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    const formattedDate = new Intl.DateTimeFormat(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+    return t('main_menu.last_played', { date: formattedDate });
   };
 
   const handleLoadSlot = (slotId?: string) => {
@@ -91,18 +99,18 @@ const MainMenu: React.FC<MainMenuProps> = ({
     <div className="min-h-screen bg-gray-900 text-gray-200 flex flex-col items-center justify-center p-8">
       <div className="bg-gray-800 p-8 md:p-12 rounded-xl shadow-2xl border border-gray-700 w-full max-w-md text-center">
         <h1 className="text-5xl font-bold text-amber-400 mb-12 font-cinzel tracking-wider">
-          Aralia RPG
+          {t('main_menu.title')}
         </h1>
         {canGoBack && onGoBack && (
           <button
             onClick={onGoBack}
             className="w-full mb-4 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg shadow-md text-lg transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 flex items-center justify-center gap-2"
-            aria-label="Go back to previous screen"
+            aria-label={t('main_menu.back_aria')}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
-            Back
+            {t('main_menu.back')}
           </button>
         )}
         <div className="space-y-4">
@@ -112,7 +120,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
               className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75"
               aria-label="Continue your last adventure"
             >
-              Continue
+              {t('main_menu.continue')}
               {(latestSlot?.lastSaved || latestSaveTimestamp) && (
                 <span className="block text-xs text-emerald-200 mt-1">
                   {formatTimestamp(latestSlot?.lastSaved || latestSaveTimestamp)}
@@ -123,46 +131,46 @@ const MainMenu: React.FC<MainMenuProps> = ({
           <button
             onClick={onNewGame}
             className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75"
-            aria-label="Start a new game"
+            aria-label={t('main_menu.new_game')}
           >
-            New Game
+            {t('main_menu.new_game')}
           </button>
           <button
             onClick={() => setIsSaveModalOpen(true)}
             disabled={!onSaveGame}
             className={`w-full bg-amber-600 hover:bg-amber-500 text-gray-900 font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-opacity-75 ${!onSaveGame ? 'opacity-50 cursor-not-allowed' : ''}`}
-            aria-label="Save to a specific slot"
+            aria-label={t('main_menu.save_to_slot')}
           >
-            Save to Slot
+            {t('main_menu.save_to_slot')}
           </button>
           {canUseDevTools() && (
             <button
               onClick={onSkipCharacterCreator}
               className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-opacity-75"
-              aria-label="Skip character creation and start with dev character"
+              aria-label={t('main_menu.skip_character_creator')}
             >
-              Skip Character Creator (Dev)
+              {t('main_menu.skip_character_creator')}
             </button>
           )}
           <button
             onClick={() => setIsLoadModalOpen(true)}
             disabled={!hasSaveGame && saveSlots.length === 0}
             className={`w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75 ${(!hasSaveGame && saveSlots.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
-            aria-label={hasSaveGame || saveSlots.length > 0 ? "Load a saved game" : "Load a saved game (no save file found)"}
-            title={hasSaveGame || saveSlots.length > 0 ? "Load Game" : "Load Game (No save file found)"}
+            aria-label={hasSaveGame || saveSlots.length > 0 ? t('main_menu.load_game_aria') : t('main_menu.load_game_empty_aria')}
+            title={hasSaveGame || saveSlots.length > 0 ? t('main_menu.load_game') : t('main_menu.load_game_empty_title')}
           >
-            Load Game
+            {t('main_menu.load_game')}
           </button>
           <button
             onClick={onShowCompendium} // This prop now correctly opens the Glossary
             className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-opacity-75"
-            aria-label="View game glossary"
-            title="View Game Glossary" 
+            aria-label={t('main_menu.glossary_aria')}
+            title={t('main_menu.glossary_title')}
           >
-            Glossary
+            {t('main_menu.glossary')}
           </button>
         </div>
-        <p className="text-sm text-gray-500 mt-12">Powered by Gemini</p>
+        <p className="text-sm text-gray-500 mt-12">{t('main_menu.powered_by')}</p>
       </div>
 
       {isSaveModalOpen && (
