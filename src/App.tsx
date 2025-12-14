@@ -664,8 +664,14 @@ const App: React.FC = () => {
     );
   } else if (gameState.phase === GamePhase.GAME_OVER) {
     mainContent = (
-      <div className="flex items-center justify-center h-screen bg-black text-red-600 text-4xl font-serif">
-        {t('app.game_over')}
+      <div className="flex flex-col items-center justify-center h-screen bg-black text-red-600 font-serif gap-8">
+        <h1 className="text-6xl tracking-wider">{t('app.game_over')}</h1>
+        <button
+          onClick={() => dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU })}
+          className="px-8 py-3 bg-red-900/50 hover:bg-red-800/80 border border-red-700 rounded text-xl text-red-100 transition-colors"
+        >
+          Return to Main Menu
+        </button>
       </div>
     );
   } else if (gameState.phase === GamePhase.LOAD_TRANSITION) {
