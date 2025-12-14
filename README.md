@@ -7,7 +7,7 @@ For a complete index of all documentation, please see the [README Index](./docs/
 ## 1. Getting Started
 
 ### Prerequisites
-*   **Node.js**: (Version 18+ recommended)
+*   **Node.js**: (Version 18+ recommended). [Download here](https://nodejs.org/).
 *   **pnpm**: This project uses `pnpm` for dependency management. If you don't have it installed:
     ```bash
     npm install -g pnpm
@@ -21,14 +21,11 @@ For a complete index of all documentation, please see the [README Index](./docs/
     ```
 
 2.  **Configure environment variables**:
-    *   Copy the example environment file:
-        ```bash
-        cp .env.example .env
-        ```
-    *   Open `.env` and add your **Google Gemini API Key**:
-        ```
-        GEMINI_API_KEY=your_actual_api_key_here
-        ```
+    *   Create your local environment file by copying the example:
+        *   **Mac/Linux**: `cp .env.example .env`
+        *   **Windows**: `copy .env.example .env`
+    *   Open the new `.env` file in your editor.
+    *   Replace `your_api_key_here` with your actual **Google Gemini API Key**.
     *   (Optional) Enable developer tools by setting `VITE_ENABLE_DEV_TOOLS=true`.
 
 3.  **Run the development server**:
