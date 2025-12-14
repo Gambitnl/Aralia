@@ -4,6 +4,7 @@
  * This file contains all the core TypeScript type definitions and interfaces
  * used throughout the Aralia RPG application.
  */
+// TODO: Implement Zod schemas for all game data structures (spells, NPCs, items) to ensure data integrity and provide better error messages
 import React from 'react';
 import { CombatCharacter, CharacterStats, Position, CombatState } from './combat'; // Adjusted import path for sibling file
 import type { VillageTileType } from '../services/villageGenerator';

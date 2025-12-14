@@ -5,6 +5,7 @@
  * It provides functions to generate various types of text content for the RPG.
  * All functions now return a StandardizedResult object for consistent error handling.
  */
+// TODO: Add client-side rate limiting and request queuing for AI API calls to prevent overwhelming the service during heavy usage
 import { GenerateContentResponse } from "@google/genai";
 import { ai } from './aiClient'; // Import the shared AI client
 import { Action, PlayerCharacter, InspectSubmapTilePayload, SeededFeatureConfig, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState, VillageActionContext } from "../types";
@@ -37,6 +38,7 @@ function chooseModelForComplexity(preferredModel: string, userInputForComplexity
   const elapsed = now - lastRequestTimestamp;
 
   // 1. Spam Protection (Timer)
+  // TODO: Centralize all logging calls through a dedicated logger module (e.g., src/utils/logger.ts) to enable log levels, structured output, and production filtering
   if (elapsed < 15000) { // 15 seconds
     // console.debug("Adaptive Model: Downgrading due to frequency (<15s)."); 
     return FAST_MODEL;
@@ -73,6 +75,7 @@ export interface StandardizedResult<T> {
   metadata?: GeminiMetadata;
 }
 
+// TODO: Scrub or redact user-provided text before storing GeminiMetadata (Reason: prompts can carry PII and are currently logged verbatim; Expectation: keep telemetry safe while still diagnosing model issues).
 export interface GeminiTextData extends GeminiMetadata {
   text: string;
 }

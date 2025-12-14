@@ -1,4 +1,3 @@
-
 ---
 id: "diviner_subclass"
 title: "Diviner"

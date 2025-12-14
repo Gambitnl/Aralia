@@ -1,3 +1,4 @@
+// TODO: Add comprehensive unit and integration tests for combat mechanics, attack resolution, and damage calculation
 export interface AttackEvent {
     attackerId: string;
     targetId: string;
@@ -105,6 +106,7 @@ export class AttackEventEmitter {
 }
 
 export const attackEvents = AttackEventEmitter.getInstance();
+
 
 
 

@@ -16,6 +16,7 @@ type AddMessageFn = (text: string, sender?: 'system' | 'player' | 'npc') => void
 export function useAudio(addMessage: AddMessageFn) {
   const audioContextRef = useRef<AudioContext | null>(null);
 
+  // TODO: Suspend/resume the AudioContext on tab visibility changes (Reason: background tabs keep the context alive and waste CPU/battery; Expectation: automatically pause playback pipeline until the user returns).
   const playPcmAudio = useCallback(
     async (base64PcmData: string) => {
       if (!audioContextRef.current) {

@@ -1,4 +1,3 @@
-
 ---
 id: "abjurer_subclass"
 title: "Abjurer"

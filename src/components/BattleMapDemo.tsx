@@ -5,6 +5,7 @@
  * It allows selecting a biome and seed to generate and display a procedural battle map.
  * It now accepts the characters for the battle as a prop.
  */
+// TODO: Add ARIA labels, keyboard navigation, and screen reader support for interactive elements in battle maps and UI components
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import BattleMap from './BattleMap/BattleMap';
 import { PlayerCharacter } from '../types';

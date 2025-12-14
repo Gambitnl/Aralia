@@ -6,6 +6,7 @@
   margin: 1.5rem 0;
   font-size: 0.9rem;
 }
+
 .spell-stat-block-grid {
   display: flex;
   flex-wrap: wrap;
@@ -14,6 +15,7 @@
   border-bottom: 2px solid #a77b00;
   margin-bottom: 1rem;
 }
+
 .spell-stat-block-item {
   display: flex;
   flex-direction: column;
@@ -24,17 +26,21 @@
   min-width: 120px;
   text-align: center;
 }
+
 .spell-stat-block-property {
   font-weight: 600;
   font-size: 0.75rem;
-  color: #9ca3af; /* gray-400 */
+  color: #9ca3af;
+  /* gray-400 */
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+
 .spell-stat-block-value {
   font-weight: 500;
   font-size: 1rem;
-  color: #d1d5db; /* gray-300 */
+  color: #d1d5db;
+  /* gray-300 */
 }
 
 /* Spell Card from Image Styles (Rich) */
@@ -42,23 +48,29 @@
   background-color: transparent;
   padding: 1.5rem 0;
   font-family: 'Roboto', sans-serif;
-  color: #d1d5db; /* gray-300 */
+  color: #d1d5db;
+  /* gray-300 */
 }
+
 .spell-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.75rem;
 }
+
 .spell-card-title {
   font-size: 2rem;
   font-weight: 700;
-  color: #e5e7eb; /* gray-200 */
+  color: #fcd34d;
+  /* amber-300 */
 }
+
 .spell-card-symbol {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #9ca3af; /* gray-400 */
+  color: #9ca3af;
+  /* gray-400 */
   border: 2px solid #9ca3af;
   width: 2.25rem;
   height: 2.25rem;
@@ -67,43 +79,54 @@
   justify-content: center;
   transform: rotate(45deg);
 }
+
 .spell-card-symbol-inner {
   display: inline-block;
   transform: rotate(-45deg);
 }
+
 .spell-card-divider {
   height: 2px;
-  background-color: #8b5cf6; /* purple-500 */
+  background-color: #8b5cf6;
+  /* purple-500 */
   margin: 1.25rem 0;
 }
+
 .spell-card-stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem 1rem;
 }
+
 @media (min-width: 640px) {
   .spell-card-stats-grid {
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
 .spell-card-stat {
   display: flex;
   flex-direction: column;
 }
+
 .spell-card-stat-label {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #9ca3af; /* gray-400 */
+  color: #9ca3af;
+  /* gray-400 */
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.25rem;
 }
+
 .spell-card-stat-value {
   font-size: 1rem;
-  color: #e5e7eb; /* gray-200 */
+  color: #e5e7eb;
+  /* gray-200 */
   display: flex;
   align-items: center;
 }
+
 .spell-card-stat-value .concentration-icon {
   display: inline-block;
   width: 0.75rem;
@@ -112,17 +135,27 @@
   transform: rotate(45deg);
   margin-right: 0.5rem;
 }
+
 .spell-card-description {
   margin-top: 1.5rem;
   font-size: 1rem;
   line-height: 1.6;
 }
+
+.spell-card-description strong {
+  color: #fcd34d;
+  /* amber-300 for "Cantrip Upgrade." and "At Higher Levels." */
+  font-weight: 700;
+}
+
 .spell-card-material-note {
   font-size: 0.875rem;
-  color: #9ca3af; /* gray-400 */
+  color: #9ca3af;
+  /* gray-400 */
   margin-top: 0.75rem;
   font-style: italic;
 }
+
 .spell-card-tags-section {
   margin-top: 1.5rem;
   display: flex;
@@ -130,17 +163,23 @@
   gap: 0.75rem;
   flex-wrap: wrap;
 }
+
 .spell-card-tags-label {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #9ca3af; /* gray-400 */
+  color: #9ca3af;
+  /* gray-400 */
   margin-right: 0.5rem;
 }
+
 .spell-card-tag {
   font-size: 0.75rem;
-  background-color: #374151; /* gray-700 */
-  color: #d1d5db; /* gray-300 */
+  background-color: #374151;
+  /* gray-700 */
+  color: #d1d5db;
+  /* gray-300 */
   padding: 0.25rem 0.75rem;
   border-radius: 0.25rem;
-  border: 1px solid #4b5563; /* gray-600 */
+  border: 1px solid #4b5563;
+  /* gray-600 */
 }

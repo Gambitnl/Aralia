@@ -84,6 +84,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   }, []);
 
   const handleLogEntry = useCallback((entry: CombatLogEntry) => {
+    // TODO: Cap and virtualize combatLog length (Reason: long fights will append thousands of entries and bloat memory/UI diffing; Expectation: keep only the most recent N turns while streaming older logs to a history panel).
     setCombatLog(prev => [...prev, entry]);
   }, []);
 
@@ -110,6 +111,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
       setCharacters(prev => [...prev, summon]);
       turnManager.joinCombat(summon, { initiative: summon.initiative }); // Use preset initiative if available (e.g. shared)
     },
+    // TODO: Integrate summon removal directly into turn manager by calling turnManager.leaveCombat(summonId) to immediately remove from turn order instead of relying on HP checks
     onSummonRemoved: (summonId) => {
       setCharacters(prev => prev.filter(c => c.id !== summonId));
       // TurnManager handles removal gracefully on next turn cycle usually, 
@@ -282,6 +284,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
       )}
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold text-red-500 font-cinzel">Combat Encounter</h1>
+        {/* TODO: Wrap debug buttons with process.env.NODE_ENV check to hide in production builds (e.g., {import.meta.env.DEV && <button>...}) */}
         <button
           onClick={() => setBattleState('victory')} // Debug escape hatch
           className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg shadow text-sm"

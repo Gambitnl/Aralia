@@ -1,4 +1,3 @@
-
 ---
 id: "evoker_subclass"
 title: "Evoker"

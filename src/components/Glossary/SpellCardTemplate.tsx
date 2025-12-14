@@ -38,6 +38,7 @@ export interface SpellData {
     };
     targeting?: {
         type: string;
+        range?: number;
         areaOfEffect?: {
             shape: string;
             size: number;
@@ -76,11 +77,18 @@ const formatCastingTime = (castingTime?: SpellData['castingTime']): string => {
 
 /**
  * Helper to format range/area
+ * For melee blade cantrips (range.type: "self" but targeting.range exists), show the weapon reach
  */
 const formatRange = (range?: SpellData['range'], targeting?: SpellData['targeting']): string => {
     if (!range) return 'Self';
 
-    if (range.type === 'self') return 'Self';
+    // Handle melee blade cantrips: range is "self" but targeting.range specifies weapon reach
+    if (range.type === 'self') {
+        if (targeting?.range) {
+            return `${targeting.range} ft.`;
+        }
+        return 'Self';
+    }
     if (range.type === 'touch') return 'Touch';
 
     let result = range.distance ? `${range.distance} ft.` : range.type;
@@ -136,12 +144,30 @@ const formatDuration = (duration?: SpellData['duration']): string => {
 
 /**
  * Helper to determine attack/save type
+ * Uses tags, targeting.type, and range.type to determine melee vs ranged attacks
  */
-const formatAttackSave = (effects?: SpellData['effects']): string => {
+const formatAttackSave = (
+    effects?: SpellData['effects'],
+    tags?: string[],
+    targeting?: SpellData['targeting'],
+    range?: SpellData['range']
+): string => {
     if (!effects || effects.length === 0) return 'None';
 
     for (const effect of effects) {
-        if (effect.condition?.type === 'hit') return 'Ranged';
+        if (effect.condition?.type === 'hit') {
+            // Determine if this is a melee or ranged attack
+            // Check tags first (most reliable indicator)
+            if (tags?.includes('melee')) return 'Melee';
+            // Check targeting type
+            if (targeting?.type === 'melee') return 'Melee';
+            // Check range type
+            if (range?.type === 'ranged' || (range?.distance && range.distance > 10)) return 'Ranged';
+            // Self-range with targeting.range typically means melee weapon reach
+            if (range?.type === 'self' && targeting?.range) return 'Melee';
+            // Default to Ranged for spell attacks without melee indicators
+            return 'Ranged';
+        }
         if (effect.condition?.type === 'save' && effect.condition.saveType) {
             return `${effect.condition.saveType.slice(0, 3).toUpperCase()} Save`;
         }
@@ -217,7 +243,7 @@ const SpellCardTemplate: React.FC<SpellCardTemplateProps> = ({ spell }) => {
                 </div>
                 <div className="spell-card-stat">
                     <span className="spell-card-stat-label">Attack/Save</span>
-                    <span className="spell-card-stat-value">{formatAttackSave(spell.effects)}</span>
+                    <span className="spell-card-stat-value">{formatAttackSave(spell.effects, spell.tags, spell.targeting, spell.range)}</span>
                 </div>
                 <div className="spell-card-stat">
                     <span className="spell-card-stat-label">Damage/Effect</span>

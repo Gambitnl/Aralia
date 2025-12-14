@@ -1,4 +1,3 @@
-
 ---
 id: "wizard"
 title: "Wizard (Class)"

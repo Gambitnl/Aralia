@@ -287,3 +287,24 @@ from code reviews and feature planning. Each item is rated by urgency/impact and
         2.  Add biome-specific variants (arid, forest, coastal, mountain, etc.).
         3.  Ensure each biome has distinct flavor text and interaction options.
     *   **Status**: PENDING
+
+28. **[Low Urgency - UI/UX] Implement Feat Selection UI Improvements**:
+    *   **Description**: Enhance the feat selection UI to support all feat choice types (ability scores, skills, damage types, spells) for a better character creation experience.
+    *   **Approach**:
+        1.  Implement UI for Resilient feat: Ability selection and logic to apply matching save proficiency.
+        2.  Implement UI for Skilled feat: Selecting 3 skills from the full skill list.
+        3.  Implement UI for Tavern Brawler feat: Ability selection and improvised weapon/unarmed strike mechanics.
+        4.  Implement UI for Elemental Adept feat: Damage type selection and combat logic for ignoring resistance/treating 1s as 2s.
+        5.  Implement UI for Slasher feat: Ability selection and combat mechanics for speed reduction/crit effect.
+        6.  Implement skill selection UI in character builder for feats with selectable skills.
+        7.  Implement damage type selection UI for feats with selectable damage types.
+    *   **Status**: PENDING
+
+29. **[Low Urgency - Architecture] Add Feat Slots to PlayerCharacter Type**:
+    *   **Description**: Update the PlayerCharacter type to include feat slots and integrate feat effects into character assembly.
+    *   **Approach**:
+        1.  Add `feats` array to `PlayerCharacter` interface in `src/types.ts`.
+        2.  Update character assembly logic to apply feat benefits during character creation.
+        3.  Ensure feat effects are properly applied to derived stats, proficiencies, and abilities.
+        4.  Add feat data structures in src/data/feats/ and integrate feat effects into character stats.
+    *   **Status**: PENDING

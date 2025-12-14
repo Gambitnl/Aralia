@@ -30,6 +30,9 @@ This file serves as a central index for all README documentation within the Aral
 *   **[`FEATURES_TODO.md`](./FEATURES_TODO.md)**: Active planned features, enhancements, and tasks for future development.
 *   **[`archive/@FEATURES-COMPLETED.md`](./archive/@FEATURES-COMPLETED.md)**: Archive of completed features and tasks moved from FEATURES_TODO.md.
 *   **[`QOL_TODO.md`](./QOL_TODO.md)**: Lists Quality of Life improvements and general TODO items identified from code reviews and planning.
+*   **[`docs/tasks/feat-implementation-plan.md`](./tasks/feat-implementation-plan.md)**: Detailed implementation plan for the feat system including UI improvements and character integration.
+*   **[`docs/tasks/feat-system-gaps.md`](./tasks/feat-system-gaps.md)**: Tracks feats and feat features that require additional implementation beyond basic ability score increases and proficiencies.
+*   **[`docs/tasks/feat-ui-implementation-plan.md`](./tasks/feat-ui-implementation-plan.md)**: Detailed implementation plan for feat UI improvements.
 *   **[`@POTENTIAL-TOOL-INTEGRATIONS.README.md`](./@POTENTIAL-TOOL-INTEGRATIONS.README.md)**: Lists potential tools and libraries that could be integrated to enhance the application.
 *   **[`SPELL_INTEGRATION_STATUS.md`](./SPELL_INTEGRATION_STATUS.md)**: The central hub for tracking the implementation status of spells across Data, Combat, Narrative, and Economy pillars.
 *   **[`@VERIFICATION-OF-CHANGES-GUIDE.md`](./@VERIFICATION-OF-CHANGES-GUIDE.md)**: A guide for AI assistants on how to ensure code changes are verifiable.

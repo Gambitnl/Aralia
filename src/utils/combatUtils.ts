@@ -13,6 +13,7 @@ import { isWeaponProficient } from './weaponUtils';
 // Re-export for consumers
 export { createAbilityFromSpell };
 
+// TODO: Replace Math.random() with crypto.randomUUID() for stronger ID generation to prevent potential collisions in long sessions
 export function generateId(): string {
   return Math.random().toString(36).substr(2, 9);
 }

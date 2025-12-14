@@ -20,6 +20,7 @@ const entryMatchesSearch = (entry: GlossaryEntry, term: string): boolean => {
   return false;
 };
 
+// TODO: Split this 800+ line component into smaller sub-components (e.g., GlossaryHeader, GlossarySearch, GlossarySidebar, GlossaryEntryView) for better maintainability and testability
 const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) => {
   const firstFocusableElementRef = useRef<HTMLButtonElement>(null);
   const glossaryIndex = useContext(GlossaryContext);

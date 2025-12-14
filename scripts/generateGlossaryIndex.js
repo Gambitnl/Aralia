@@ -143,6 +143,109 @@ function buildIndex() {
     }
   }
 
+  // Special handling for Character Classes: group subclasses under their parent class
+  if (entriesByCategory["Character Classes"]) {
+    try {
+      const classEntries = entriesByCategory["Character Classes"];
+
+      // Define the 13 main class names (used to identify main class entries)
+      const mainClassNames = [
+        'artificer', 'barbarian', 'bard', 'cleric', 'druid',
+        'fighter', 'monk', 'paladin', 'ranger', 'rogue',
+        'sorcerer', 'warlock', 'wizard'
+      ];
+
+      // Separate main classes from subclasses/spell lists/other
+      const mainClasses = new Map();
+      const subclassEntries = [];
+      const spellListEntries = [];
+      const otherEntries = [];
+
+      classEntries.forEach(entry => {
+        const id = entry.id.toLowerCase();
+        const filePath = entry.filePath || '';
+
+        // Check if this is a main class (exact match of main class name as id)
+        if (mainClassNames.includes(id)) {
+          mainClasses.set(id, { ...entry, subEntries: [] });
+        }
+        // Check if this is a subclass (contains "_subclass" in id or is in a subclasses folder)
+        else if (id.includes('_subclass') || filePath.includes('_subclasses/')) {
+          // Find parent class from tags or file path
+          let parentClass = null;
+          for (const className of mainClassNames) {
+            if (entry.tags?.some(t => t.toLowerCase() === className) ||
+              filePath.includes(`${className}_subclasses/`)) {
+              parentClass = className;
+              break;
+            }
+          }
+          subclassEntries.push({ ...entry, parentClass, type: 'subclass' });
+        }
+        // Check if this is a spell list
+        else if (id.includes('_spell_list') || id.includes('spell_list')) {
+          let parentClass = null;
+          for (const className of mainClassNames) {
+            if (id.startsWith(className) || entry.tags?.some(t => t.toLowerCase() === className)) {
+              parentClass = className;
+              break;
+            }
+          }
+          spellListEntries.push({ ...entry, parentClass, type: 'spell_list' });
+        }
+        // Check if this is artificer infusions (special case)
+        else if (id === 'artificer_infusions') {
+          otherEntries.push({ ...entry, parentClass: 'artificer', type: 'feature' });
+        }
+        // Any other entries
+        else {
+          otherEntries.push(entry);
+        }
+      });
+
+      // Nest subclasses under their parent class
+      subclassEntries.forEach(subclass => {
+        if (subclass.parentClass && mainClasses.has(subclass.parentClass)) {
+          mainClasses.get(subclass.parentClass).subEntries.push(subclass);
+        } else {
+          console.warn(`WARN: Could not find parent class for subclass: ${subclass.id}`);
+          otherEntries.push(subclass);
+        }
+      });
+
+      // Nest spell lists under their parent class
+      spellListEntries.forEach(spellList => {
+        if (spellList.parentClass && mainClasses.has(spellList.parentClass)) {
+          mainClasses.get(spellList.parentClass).subEntries.push(spellList);
+        } else {
+          console.warn(`WARN: Could not find parent class for spell list: ${spellList.id}`);
+          otherEntries.push(spellList);
+        }
+      });
+
+      // Nest other related entries (like artificer_infusions) under their parent class
+      otherEntries.forEach(other => {
+        if (other.parentClass && mainClasses.has(other.parentClass)) {
+          mainClasses.get(other.parentClass).subEntries.push(other);
+        }
+      });
+
+      // Sort subEntries within each main class alphabetically
+      mainClasses.forEach(mainClass => {
+        mainClass.subEntries.sort((a, b) => a.title.localeCompare(b.title));
+      });
+
+      // Convert to array and sort main classes alphabetically
+      const classGroups = [...mainClasses.values()].sort((a, b) => a.title.localeCompare(b.title));
+
+      console.log(`Organized ${classGroups.length} main classes with ${subclassEntries.length} subclasses and ${spellListEntries.length} spell lists nested.`);
+
+      entriesByCategory["Character Classes"] = classGroups;
+    } catch (e) {
+      console.error("Failed to organize class index:", e.message);
+    }
+  }
+
   // Create directory if it doesn't exist (for local dev)
   if (process.env.NODE_ENV !== 'test_ai_studio' && !fs.existsSync(OUT_INDEX_DIR)) {
     fs.mkdirSync(OUT_INDEX_DIR, { recursive: true });
@@ -155,8 +258,8 @@ function buildIndex() {
     const categoryFilePath = path.join(OUT_INDEX_DIR, categoryFileName);
     const categoryEntries = entriesByCategory[categoryName];
 
-    // Simple alphabetical sort for consistency (skip for Spells to preserve level ordering)
-    if (categoryName !== "Spells") {
+    // Simple alphabetical sort for consistency (skip for Spells and Character Classes - already organized)
+    if (categoryName !== "Spells" && categoryName !== "Character Classes") {
       categoryEntries.sort((a, b) => a.title.localeCompare(b.title));
     }
 

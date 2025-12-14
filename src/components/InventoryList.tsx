@@ -301,6 +301,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
                   canEquipItem(character, child) : { can: false, reason: undefined };
 
               const isFood = child.type === 'food_drink';
+              // TODO: Implement food expiration system by comparing item.acquiredAt timestamp with item.shelfLife duration to compute actual expiration state
               const isExpired = false; // Placeholder logic for now
               const childIsContainer = isContainerItem(child);
 

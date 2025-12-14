@@ -160,6 +160,8 @@ export function useGameActions({
       const detailedLocationContext = `${subMapCtx}The location is ${currentLoc.name}. Biome: ${BIOMES[currentLoc.biomeId]?.name || 'Unknown'}. Game Time: ${gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}`;
       const generalActionContext = `Player context: ${playerContext}. Location context: ${detailedLocationContext}. NPCs present: ${npcsInLocation.map((n) => n.name).join(', ') || 'no one'}. Visible items: ${itemsInLocationNames}.`;
 
+      // TODO: Refactor this switch statement into an action handler registry map (e.g., const handlers: Record<ActionType, Handler>) for better maintainability, testability, and type safety
+      // TODO: Wrap handler dispatches in a centralized try/finally that clears loading/error state (Reason: thrown handlers can leave the global spinner stuck; Expectation: UI returns to idle even when an action aborts mid-flow).
       try {
         switch (action.type) {
           case 'move':

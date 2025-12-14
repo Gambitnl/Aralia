@@ -46,6 +46,13 @@ TODOs remain in this file when:
     *   **[TODO]** Improving stats or choosing feats.
 *   **Feat System**:
     *   **[TODO]** Integrate feats as part of character creation and progression. See dedicated section below.
+    *   **[TODO]** Implement UI for feat selection choices (ability scores, skills, damage types, spells).
+    *   **[TODO]** Add feat slots to `PlayerCharacter` type and integrate feat effects into character assembly.
+    *   **[TODO]** Implement UI for Resilient feat: Ability selection and logic to apply matching save proficiency.
+    *   **[TODO]** Implement UI for Skilled feat: Selecting 3 skills from the full skill list.
+    *   **[TODO]** Implement UI for Tavern Brawler feat: Ability selection and improvised weapon/unarmed strike mechanics.
+    *   **[TODO]** Implement UI for Elemental Adept feat: Damage type selection and combat logic for ignoring resistance/treating 1s as 2s.
+    *   **[TODO]** Implement UI for Slasher feat: Ability selection and combat mechanics for speed reduction/crit effect.
 *   **Secure Dice Roll Handling**:
     *   **[TODO]** Implement server-side or secure client-side dice rolls that are not vulnerable to client-side manipulation.
 *   **Party Members**:
@@ -59,10 +66,17 @@ TODOs remain in this file when:
 
 *   **Current State**:
     *   The Human "Versatile" trait describes an extra feat, but no mechanical feat selection or application pipeline exists.
+    *   Feat data structures exist in `src/data/feats/featsData.ts` with support for selectable ability scores, skills, damage types, and spells.
+    *   Basic `FeatSelection.tsx` UI component exists but lacks full implementation for feat choices.
 *   **Implementation Steps**:
-    *   Define structured feat data in `src/data/feats/` (including prerequisites, benefits, and usage limits) and aggregate exports in `src/constants.ts`.
-    *   Create a `FeatSelection` UI component for the character creator to surface eligible feats, enforce prerequisites, and capture the player's choice.
-    *   Integrate feat effects into character assembly so selected feats adjust derived stats, proficiencies, or abilities across combat and exploration systems.
+    *   Enhance `FeatSelection.tsx` to support all feat choice types (ability scores, skills, damage types, spells).
+    *   Implement UI for Resilient feat: Ability selection and logic to apply matching save proficiency.
+    *   Implement UI for Skilled feat: Selecting 3 skills from the full skill list.
+    *   Implement UI for Tavern Brawler feat: Ability selection and improvised weapon/unarmed strike mechanics.
+    *   Implement UI for Elemental Adept feat: Damage type selection and combat logic for ignoring resistance/treating 1s as 2s.
+    *   Implement UI for Slasher feat: Ability selection and combat mechanics for speed reduction/crit effect.
+    *   Add feat slots to `PlayerCharacter` type and integrate feat effects into character assembly.
+    *   Update character creation state to store feat choices and apply them during character assembly.
 
 ## World & Exploration
 
@@ -165,10 +179,13 @@ TODOs remain in this file when:
 *Lane 1 (Core Types & Game Systems) only completed 1 of 7 assigned tasks. The following remain:*
 
 13. **[TODO]** **Feat System Integration** *(Lane 1 Incomplete)*
-    *   Create feat data structures in `src/data/feats/`
     *   Add feat slots to `PlayerCharacter` type
-    *   Create `FeatSelection.tsx` component for character creation
     *   Integrate feat effects into character stats
+    *   Implement UI for Resilient feat: Ability selection and logic to apply matching save proficiency
+    *   Implement UI for Skilled feat: Selecting 3 skills from the full skill list
+    *   Implement UI for Tavern Brawler feat: Ability selection and improvised weapon/unarmed strike mechanics
+    *   Implement UI for Elemental Adept feat: Damage type selection and combat logic for ignoring resistance/treating 1s as 2s
+    *   Implement UI for Slasher feat: Ability selection and combat mechanics for speed reduction/crit effect
 
 14. **[TODO]** **Character Age Selection** *(Lane 1 Incomplete)*
     *   Add `age` field to `PlayerCharacter` type

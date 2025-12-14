@@ -117,6 +117,7 @@ export async function saveGame(
       characterSheetModal: { isOpen: false, character: null },
       notifications: [], // Don't save transient notifications
     };
+    // TODO: Add checksum and rolling backup writes before persisting (Reason: partial writes/quota failures can corrupt saves; Expectation: detect and recover from bad payloads instead of silently overwriting progress).
     const storageKey = resolveSlotKey(slotName, options?.isAutoSave);
     // Persist a trimmed display name so slot labels stay consistent even if
     // upstream callers send padded values. We still default to the provided

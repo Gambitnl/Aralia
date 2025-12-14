@@ -62,6 +62,7 @@ export function townReducer(state: GameState, action: AppAction): Partial<GameSt
             };
 
             // Check if the new position is walkable
+            // TODO: Add audio feedback (bump sound) and screen shake when player attempts to move into blocked tiles for better UX
             if (!isPositionWalkable(newPosition, townMap)) {
                 // Can't move there - maybe play a bump sound?
                 return {};
@@ -89,6 +90,7 @@ export function townReducer(state: GameState, action: AppAction): Partial<GameSt
             };
         }
 
+        // TODO: Implement ZOOM_TOWN_MAP action to allow scroll wheel zoom control - zoomLevel state exists but is never modified by user input
         case 'SET_TOWN_VIEWPORT': {
             if (!state.townState) return {};
 

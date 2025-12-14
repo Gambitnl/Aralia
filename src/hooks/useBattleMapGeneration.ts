@@ -68,6 +68,7 @@ export const generateBattleSetup = (
 
     // Choose a random spawn configuration
     const spawnConfigs: SpawnConfig[] = ['left-right', 'top-bottom', 'corners-tl-br', 'corners-tr-bl'];
+    // TODO: Replace Math.random with a seeded RNG derived from `seed` (Reason: spawn layout is currently non-deterministic even with fixed map seeds; Expectation: rerunning a battle with the same seed yields identical placements for testing and replays).
     const randomConfig = spawnConfigs[Math.floor(Math.random() * spawnConfigs.length)];
 
     // Get spawn tiles based on the random configuration

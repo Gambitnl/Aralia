@@ -131,6 +131,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     const generateMap = () => {
         setLoading(true);
         setHoveredBuilding(null);
+        // TODO: Cancel pending generation/painter work on unmount or prop changes (Reason: the setTimeout + canvas draws can fire after navigation and set state on an unmounted component; Expectation: smoother transitions without leaking contexts or triggering React warnings).
         // Yield to UI thread so loading spinner shows
         setTimeout(() => {
             try {

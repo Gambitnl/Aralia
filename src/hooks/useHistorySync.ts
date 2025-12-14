@@ -27,6 +27,7 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
     if (targetPhase !== gameState.phase) dispatch({ type: 'SET_GAME_PHASE', payload: targetPhase });
   };
 
+  // TODO: Persist location/submap coordinates in history state alongside phase (Reason: refreshes after deep links drop spatial context and respawn the player arbitrarily; Expectation: reloading a URL restores both phase and where the party was standing).
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const urlPhase = getPhaseFromSlug(params.get('phase'));

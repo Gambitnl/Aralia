@@ -175,9 +175,18 @@ These feats have mechanics that require combat system support.
 
 ### High Priority (UI Implementation)
 1. ASI selection UI for all feats with `selectableAbilityScores`
+   - Resilient feat: Ability selection and logic to apply matching save proficiency
+   - Tavern Brawler feat: Ability selection (STR or CON)
+   - Slasher feat: Ability selection (STR or DEX)
+   - Elemental Adept feat: Ability selection (INT, WIS, or CHA)
 2. Skill selection UI for Skilled and Skill Expert
+   - Skilled feat: Selecting 3 skills from the full skill list
+   - Skill Expert feat: Skill selection and expertise selection
 3. Damage type selection UI for Elemental Adept
+   - Elemental Adept feat: Select damage type (Acid, Cold, Fire, Lightning, Thunder)
 4. Spell selection UI for Magic Initiate, Fey-Touched, Shadow-Touched, Spell Sniper
+5. Create FeatSelection.tsx component for character creation to surface eligible feats
+6. Add feat slots to PlayerCharacter type and integrate feat effects into character assembly
 
 ### Medium Priority (Data Model Additions)
 1. Tool selection for Crafter

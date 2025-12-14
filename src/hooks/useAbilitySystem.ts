@@ -389,6 +389,7 @@ export const useAbilitySystem = ({
   ) => {
 
     // --- Path A: Spell System (Command Pattern) ---
+    // TODO: Add defensive validation for ability.spell properties (e.g., check for required fields like id, level, effects) before passing to executeSpell to catch data issues early
     if (ability.spell) {
       const targets = targetCharacterIds
         .map(id => characters.find(c => c.id === id))

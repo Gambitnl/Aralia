@@ -109,6 +109,7 @@ export function generateMap(
   }
 
 
+  // TODO: Add a connectivity pass that guarantees a walkable path from STARTING_LOCATION_ID to other discoverable tiles (Reason: random clustering can strand the player on unreachable islands; Expectation: every generated map remains explorable without soft-locks).
   return {
     gridSize: { rows, cols },
     tiles,

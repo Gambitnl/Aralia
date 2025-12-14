@@ -68,6 +68,7 @@ export const NotificationSystem: React.FC<NotificationSystemProps> = ({ notifica
     dispatch({ type: 'REMOVE_NOTIFICATION', payload: { id } });
   }, [dispatch]);
 
+  // TODO: Respect prefers-reduced-motion and manage focus for screen readers (Reason: current animations and auto-dismiss toasts can disorient users relying on accessibility tech; Expectation: accessible announcements without motion sickness or lost focus).
   // Mounted at the App root so every pane can dispatch notifications instead of using blocking alerts.
   return (
     <div

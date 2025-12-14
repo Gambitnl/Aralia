@@ -1,4 +1,3 @@
-
 ---
 id: "illusionist_subclass"
 title: "Illusionist"

@@ -3,6 +3,7 @@
  * This component catches JavaScript errors anywhere in its child component tree,
  * logs those errors, and displays a fallback UI.
  */
+// TODO: Enhance ErrorBoundary component to capture and report error details, stack traces, and user context for better debugging
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 interface Props {

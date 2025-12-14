@@ -56,10 +56,13 @@ import ErrorBoundary from './components/ErrorBoundary';
 import * as SaveLoadService from './services/saveLoadService';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import BattleMapDemo from './components/BattleMapDemo';
+// TODO: Implement code splitting and lazy loading for large components like CombatView and TownCanvas to reduce initial bundle size
 import CombatView from './components/CombatView';
 import LoadGameTransition from './components/LoadGameTransition';
 
 
+// TODO: Add React.memo and useMemo to prevent unnecessary re-renders in performance-critical components like GameLayout, CombatView, and TownCanvas
+// TODO: Add service worker and offline functionality to allow basic gameplay without internet connection for core features
 const App: React.FC = () => {
   // Validate environment variables on startup
   useEffect(() => {
@@ -92,6 +95,8 @@ const App: React.FC = () => {
   );
 
   const { playPcmAudio, cleanupAudioContext } = useAudio(addMessage);
+
+  // TODO: Add proper cleanup for event listeners, timers, and audio contexts in useEffect cleanup functions to prevent memory leaks
 
   const getCurrentLocation = useCallback((): Location => {
     const currentId = gameState.currentLocationId;
