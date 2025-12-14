@@ -6,6 +6,7 @@ import { findGlossaryEntryAndPath } from '../utils/glossaryUtils';
 import { useSpellGateChecks } from '../hooks/useSpellGateChecks';
 import SpellCardTemplate, { SpellData } from './Glossary/SpellCardTemplate';
 import { SafeStorage } from '../utils/storageUtils';
+import { fetchWithTimeout } from '../utils/networkUtils';
 
 interface GlossaryProps {
   isOpen: boolean;
@@ -267,14 +268,25 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
   // Fetch lastGenerated timestamp from glossary main.json
   useEffect(() => {
     if (!isOpen) return;
-    fetch(`${import.meta.env.BASE_URL}data/glossary/index/main.json`)
-      .then(res => res.ok ? res.json() : null)
+
+    const controller = new AbortController();
+
+    fetchWithTimeout<{ lastGenerated?: string }>(
+      `${import.meta.env.BASE_URL}data/glossary/index/main.json`,
+      { signal: controller.signal }
+    )
       .then(data => {
         if (data?.lastGenerated) {
           setLastGenerated(data.lastGenerated);
         }
       })
-      .catch(() => setLastGenerated(null));
+      .catch((error) => {
+        if (error.name !== 'AbortError') {
+          setLastGenerated(null);
+        }
+      });
+
+    return () => controller.abort();
   }, [isOpen]);
 
   // Fetch spell JSON when in JSON mode and a spell is selected
@@ -284,24 +296,31 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
       return;
     }
 
+    const controller = new AbortController();
+
     // Get spell level from gate results or default to searching
     const gateResult = gateResults[selectedEntry.id];
     const level = gateResult?.level ?? 0;
 
     setSpellJsonLoading(true);
-    fetch(`${import.meta.env.BASE_URL}data/spells/level-${level}/${selectedEntry.id}.json`)
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to load spell JSON');
-        return res.json();
-      })
+    fetchWithTimeout<SpellData>(
+      `${import.meta.env.BASE_URL}data/spells/level-${level}/${selectedEntry.id}.json`,
+      { signal: controller.signal }
+    )
       .then((data: SpellData) => {
         setSpellJsonData(data);
         setSpellJsonLoading(false);
       })
-      .catch(() => {
-        setSpellJsonData(null);
-        setSpellJsonLoading(false);
+      .catch((error) => {
+        // Only clear data if it wasn't an abort (which means the component unmounted or changed selection)
+        // If it was an abort, we might have already started a new fetch
+        if (error.name !== 'AbortError') {
+            setSpellJsonData(null);
+            setSpellJsonLoading(false);
+        }
       });
+
+    return () => controller.abort();
   }, [selectedEntry, renderMode, gateResults]);
 
   const handleEntrySelect = useCallback((entry: GlossaryEntry) => {
