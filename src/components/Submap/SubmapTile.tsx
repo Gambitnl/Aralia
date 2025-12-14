@@ -7,8 +7,8 @@
  * - ./SubmapPane.tsx
  */
 import React from 'react';
-import Tooltip from './Tooltip';
-import { SeededFeatureConfig } from '../types';
+import Tooltip from '../Tooltip';
+import { SeededFeatureConfig } from '../../types';
 
 // Define the structure for the visuals object passed from the parent
 interface TileVisuals {

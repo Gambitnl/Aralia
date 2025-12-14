@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { AUTO_SAVE_SLOT_KEY, SaveSlotSummary, getSlotStorageKey } from '../services/saveLoadService';
-import ConfirmationModal from './ConfirmationModal';
+import { ConfirmationModal } from './ui/ConfirmationModal';
 
 interface SaveSlotSelectorProps {
   slots: SaveSlotSummary[];

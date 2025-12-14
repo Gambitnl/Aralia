@@ -13,6 +13,7 @@ import {
   DamageEffect
 } from '@/types/spells';
 
+import { getGameEpoch } from '@/utils/timeUtils';
 import {
   GameState,
   GamePhase,
@@ -35,8 +36,15 @@ import {
   Race,
   Class,
   Skill,
-  TransportMode
+  TransportMode,
+  CombatState
 } from '@/types/index';
+
+import {
+  TurnState,
+  CombatAction,
+  Position
+} from '@/types/combat';
 
 /**
  * Creates a mock Spell object with sensible defaults.
@@ -181,7 +189,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isOpen: false,
       character: null
     },
-    gameTime: new Date("2024-01-01T12:00:00"),
+    gameTime: getGameEpoch(),
 
     isDevMenuVisible: false,
     isPartyEditorVisible: false,
@@ -243,7 +251,7 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
     features: []
   };
 
-  return {
+  const defaults: CombatCharacter = {
     id: `combat-char-${crypto.randomUUID()}`,
     name: "Mock Combatant",
     level: 1,
@@ -253,26 +261,70 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
     initiative: 10,
     position: { x: 0, y: 0 },
     stats: {
-        strength: 10,
-        dexterity: 10,
-        constitution: 10,
-        intelligence: 10,
-        wisdom: 10,
-        charisma: 10,
-        baseInitiative: 0,
-        speed: 30,
-        cr: "1/4"
+      strength: 10,
+      dexterity: 10,
+      constitution: 10,
+      intelligence: 10,
+      wisdom: 10,
+      charisma: 10,
+      baseInitiative: 0,
+      speed: 30,
+      cr: "1/4"
     },
     abilities: [],
     statusEffects: [],
     actionEconomy: {
-        action: { used: false, remaining: 1 },
-        bonusAction: { used: false, remaining: 1 },
-        reaction: { used: false, remaining: 1 },
-        movement: { used: 0, total: 30 },
-        freeActions: 1
+      action: { used: false, remaining: 1 },
+      bonusAction: { used: false, remaining: 1 },
+      reaction: { used: false, remaining: 1 },
+      movement: { used: 0, total: 30 },
+      freeActions: 1
     },
     class: mockClass,
+    // Add missing fields that are commonly needed
+    concentratingOn: undefined,
+    conditions: [],
+    activeEffects: [],
+    riders: [],
+    savePenaltyRiders: [],
+    activeLightSources: []
+  } as unknown as CombatCharacter; // Using unknown first to avoid strict checks if I missed a minor field, but the structure matches.
+
+  return { ...defaults, ...overrides };
+}
+
+/**
+ * Creates a mock CombatState object with sensible defaults.
+ * @param overrides Partial<CombatState> to override default values.
+ * @returns A complete CombatState object.
+ */
+export function createMockCombatState(overrides: Partial<CombatState> = {}): CombatState {
+  const defaultTurnState: TurnState = {
+    currentTurn: 0,
+    turnOrder: [],
+    currentCharacterId: null,
+    phase: 'planning',
+    actionsThisTurn: []
+  };
+
+  return {
+    isActive: true,
+    characters: [],
+    turnState: defaultTurnState,
+    selectedCharacterId: null,
+    selectedAbilityId: null,
+    actionMode: 'select',
+    validTargets: [],
+    validMoves: [],
+    combatLog: [],
+    reactiveTriggers: [],
+    activeLightSources: [],
+    mapData: {
+      dimensions: { width: 20, height: 20 },
+      tiles: new Map(),
+      theme: 'forest',
+      seed: 12345
+    },
     ...overrides
-  } as CombatCharacter;
+  };
 }

@@ -8,6 +8,7 @@
 // TODO: Add client-side rate limiting and request queuing for AI API calls to prevent overwhelming the service during heavy usage
 import { GenerateContentResponse } from "@google/genai";
 import { ai } from './aiClient'; // Import the shared AI client
+import { logger } from '../utils/logger';
 import { Action, PlayerCharacter, InspectSubmapTilePayload, SeededFeatureConfig, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState, VillageActionContext } from "../types";
 import { SUBMAP_ICON_MEANINGS } from '../data/glossaryData';
 import { XP_BY_CR } from '../data/dndData';
@@ -15,6 +16,7 @@ import { CLASSES_DATA } from '../data/classes';
 import { MONSTERS_DATA } from '../constants';
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, FAST_MODEL, COMPLEX_MODEL } from '../config/geminiConfig';
 import * as ItemTemplates from '../data/item_templates';
+import { sanitizeAIInput } from '../utils/securityUtils';
 
 
 
@@ -38,16 +40,18 @@ function chooseModelForComplexity(preferredModel: string, userInputForComplexity
   const elapsed = now - lastRequestTimestamp;
 
   // 1. Spam Protection (Timer)
-  // TODO: Centralize all logging calls through a dedicated logger module (e.g., src/utils/logger.ts) to enable log levels, structured output, and production filtering
   if (elapsed < 15000) { // 15 seconds
-    // console.debug("Adaptive Model: Downgrading due to frequency (<15s)."); 
+    logger.debug("Adaptive Model: Downgrading due to frequency (<15s).", { elapsed });
     return FAST_MODEL;
   }
 
   // 2. Complexity Check (if input provided)
   if (userInputForComplexityCheck) {
     // Simple heuristic: split by spaces
-    const wordCount = userInputForComplexityCheck.trim().split(/\s+/).length;
+    // Note: We use the sanitized input for this check if passed correctly by the caller,
+    // but the caller might pass raw input. We'll sanitize it here just for the count check to be safe.
+    const safeInput = sanitizeAIInput(userInputForComplexityCheck);
+    const wordCount = safeInput.trim().split(/\s+/).length;
     if (wordCount < 6) {
       // console.debug(`Adaptive Model: Downgrading due to low complexity (${wordCount} words).`);
       return FAST_MODEL;
@@ -183,10 +187,10 @@ export async function generateText(
       const errorString = JSON.stringify(error, Object.getOwnPropertyNames(error));
       if (errorString.includes('"code":429') || errorString.includes('RESOURCE_EXHAUSTED')) {
         rateLimitHitInChain = true;
-        console.warn(`Gemini API rate limit error with model ${model}. Retrying...`);
+        logger.warn(`Gemini API rate limit error with model ${model}. Retrying...`, { model });
         continue;
       } else {
-        console.warn(`Gemini API error with model ${model}:`, error);
+        logger.warn(`Gemini API error with model ${model}:`, { error, model });
         continue;
       }
     } finally {
@@ -256,10 +260,12 @@ export async function generateActionOutcome(
     ? "You are a Dungeon Master narrating the outcome of a player's specific, creative action. The response should be a brief, 2-3 sentence description of what happens next."
     : "You are a Dungeon Master narrating the outcome of a player's action. The response should be a brief, 2-3 sentence description.";
 
-  const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, playerAction); // Default to PRO for quality narration, downgrades if spammy/short
+  const sanitizedAction = sanitizeAIInput(playerAction);
 
-  let prompt = `Player action: "${playerAction}"\nContext: ${context}`;
-  if (playerAction.toLowerCase().includes("look around") && worldMapTileTooltip) {
+  const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, sanitizedAction); // Default to PRO for quality narration, downgrades if spammy/short
+
+  let prompt = `Player action: "${sanitizedAction}"\nContext: ${context}`;
+  if (sanitizedAction.toLowerCase().includes("look around") && worldMapTileTooltip) {
     prompt += `\nBroader context for 'look around': ${worldMapTileTooltip}`;
   }
 
@@ -283,9 +289,11 @@ export async function generateOracleResponse(
 ): Promise<StandardizedResult<GeminiTextData>> {
   const systemInstruction = "You are the Oracle, a mysterious, wise entity. Respond to the player's query. Your response MUST be enigmatic and brief (1-2 sentences MAX). Speak in the first person. Do NOT give a direct answer; provide a cryptic clue.";
 
-  const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, playerQuery);
+  const sanitizedQuery = sanitizeAIInput(playerQuery);
 
-  const prompt = `A player asks me, the Oracle: "${playerQuery}"\nMy context: ${context}\nMy brief, cryptic, first-person response is:`;
+  const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, sanitizedQuery);
+
+  const prompt = `A player asks me, the Oracle: "${sanitizedQuery}"\nMy context: ${context}\nMy brief, cryptic, first-person response is:`;
   return await generateText(prompt, systemInstruction, false, 'generateOracleResponse', devModelOverride, adaptiveModel);
 }
 
@@ -397,7 +405,7 @@ export async function generateEncounter(
           const jsonString = responseText.replace(/```json\n|```/g, '').trim();
           encounter = JSON.parse(jsonString);
         } catch (e) {
-          console.error(`Failed to parse JSON from generateEncounter with model ${model}:`, responseText, e);
+          logger.error(`Failed to parse JSON from generateEncounter with model ${model}:`, { responseText, error: e });
           throw new Error("The AI returned a malformed encounter suggestion.");
         }
       }
@@ -422,9 +430,9 @@ export async function generateEncounter(
       const errorString = JSON.stringify(error, Object.getOwnPropertyNames(error));
       if (errorString.includes('"code":429') || errorString.includes('RESOURCE_EXHAUSTED')) {
         rateLimitHitInChain = true;
-        console.warn(`Gemini API rate limit error with model ${model}. Retrying...`);
+        logger.warn(`Gemini API rate limit error with model ${model}. Retrying...`);
       } else {
-        console.warn(`Gemini API error with model ${model}:`, error);
+        logger.warn(`Gemini API error with model ${model}:`, { error });
       }
       continue;
     } finally {
@@ -480,7 +488,7 @@ export async function generateCustomActions(
       },
     }));
   } catch (e) {
-    console.error("Failed to parse JSON from generateCustomActions:", result.data.text, e);
+    logger.error("Failed to parse JSON from generateCustomActions:", { rawText: result.data.text, error: e });
     return {
       data: null,
       error: "Failed to parse custom actions JSON.",
@@ -653,7 +661,9 @@ export async function generateGuideResponse(
   const systemInstruction = `You are the 'Game Guide', a helpful AI assistant for the Aralia RPG.
   Your goal is to answer player questions. You can also output a JSON object with 'tool': 'create_character' configuration if asked to create a character.`;
 
-  const prompt = `User Query: "${query}"\nCurrent Game Context: ${context}`;
+  const sanitizedQuery = sanitizeAIInput(query);
+
+  const prompt = `User Query: "${sanitizedQuery}"\nCurrent Game Context: ${context}`;
 
   return await generateText(
     prompt,

@@ -3,7 +3,7 @@
  * Custom hook to manage the state and logic of a procedural battle map.
  * Refactored to accept mapData from props instead of generating it internally.
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition, AbilityCost } from '../types/combat';
 import { findPath } from '../utils/pathfinding';
 
@@ -25,20 +25,19 @@ export function useBattleMap(
     turnManager: any, // TurnManager Hook
     abilitySystem: any,
 ): UseBattleMapReturn {
-  const [characterPositions, setCharacterPositions] = useState<Map<string, CharacterPosition>>(new Map());
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [validMoves, setValidMoves] = useState<Set<string>>(new Set());
   const [activePath, setActivePath] = useState<BattleMapTile[]>([]);
   const [actionMode, setActionMode] = useState<'move' | 'ability' | null>(null);
   const [attackableTargets, setAttackableTargets] = useState<Set<string>>(new Set());
 
-  // Sync character positions when the characters prop changes
-  useEffect(() => {
+  // Derived state: Map of character IDs to their positions
+  const characterPositions = useMemo(() => {
     const newPositions = new Map<string, CharacterPosition>();
     characters.forEach(char => {
-        newPositions.set(char.id, { characterId: char.id, coordinates: char.position });
+      newPositions.set(char.id, { characterId: char.id, coordinates: char.position });
     });
-    setCharacterPositions(newPositions);
+    return newPositions;
   }, [characters]);
 
 

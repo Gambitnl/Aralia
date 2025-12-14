@@ -19,9 +19,9 @@ import CompassPane from '../CompassPane';
 import { biomeVisualsConfig, defaultBiomeVisuals } from '../../config/submapVisualsConfig';
 import { findPath } from '../../utils/pathfinding';
 import ActionPane from '../ActionPane';
-import SubmapTile from '../SubmapTile';
+import SubmapTile from './SubmapTile';
 import { CaTileType } from '../../services/cellularAutomataService';
-import SubmapRendererPixi from '../SubmapRendererPixi';
+import SubmapRendererPixi from './SubmapRendererPixi';
 
 // Modularized imports
 import { submapTileHints } from './submapData';
