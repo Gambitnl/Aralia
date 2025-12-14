@@ -5,6 +5,7 @@ import { FullEntryDisplay } from './Glossary/FullEntryDisplay';
 import { findGlossaryEntryAndPath } from '../utils/glossaryUtils';
 import { useSpellGateChecks } from '../hooks/useSpellGateChecks';
 import SpellCardTemplate, { SpellData } from './Glossary/SpellCardTemplate';
+import { SafeStorage } from '../utils/storageUtils';
 
 interface GlossaryProps {
   isOpen: boolean;
@@ -41,7 +42,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
 
   // Resize state - all useState hooks must be at the top before any effects
   const [modalSize, setModalSize] = useState(() => {
-    const saved = localStorage.getItem('glossary-modal-size');
+    const saved = SafeStorage.getItem('glossary-modal-size');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -399,7 +400,12 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
     const handleMouseUp = () => {
       const finalSize = modalSize;
       setResizeState(prev => ({ ...prev, isResizing: false, handle: null }));
-      localStorage.setItem('glossary-modal-size', JSON.stringify(finalSize));
+      // Save only on mouse up to avoid layout thrashing/lag
+      try {
+        SafeStorage.setItem('glossary-modal-size', JSON.stringify(finalSize));
+      } catch (e) {
+        console.warn('Failed to save glossary size:', e);
+      }
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -484,7 +490,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
   const handleResetLayout = useCallback(() => {
     const defaultSize = { width: 1024, height: 835 };
     setModalSize(defaultSize);
-    localStorage.removeItem('glossary-modal-size');
+    SafeStorage.removeItem('glossary-modal-size');
 
     // Reset to centered position
     const left = (window.innerWidth - defaultSize.width) / 2;
