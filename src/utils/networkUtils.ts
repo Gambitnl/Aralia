@@ -23,6 +23,7 @@ interface FetchOptions extends RequestInit {
 /**
  * A wrapper around fetch that adds timeout support and typed error handling.
  * Automatically parses JSON response by default, or text if specified.
+ * Supports merging external AbortSignal with the internal timeout signal.
  *
  * @param url The URL to fetch
  * @param options Fetch options plus an optional timeoutMs (default 10000ms) and responseType (default 'json')
@@ -36,6 +37,18 @@ export async function fetchWithTimeout<T>(
   const controller = new AbortController();
 
   const id = setTimeout(() => controller.abort(), timeoutMs);
+
+  // Merge external signal
+  const externalSignal = options.signal;
+  const onExternalAbort = () => controller.abort();
+
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      controller.abort();
+    } else {
+      externalSignal.addEventListener('abort', onExternalAbort, { once: true });
+    }
+  }
 
   try {
     const response = await fetch(url, {
@@ -59,12 +72,31 @@ export async function fetchWithTimeout<T>(
     return (await response.json()) as T;
   } catch (error: any) {
     clearTimeout(id);
+
+    // Clean up external signal listener
+    if (externalSignal) {
+      externalSignal.removeEventListener('abort', onExternalAbort);
+    }
+
     if (error.name === 'AbortError') {
+      // If the external signal was aborted, rethrow the AbortError (or a wrapped version)
+      // to indicate it was a user cancellation, not a timeout.
+      if (externalSignal?.aborted) {
+        // We can either throw the original error or a specific "Cancelled" error.
+        // Throwing the original error is usually best for AbortSignal patterns.
+        throw error;
+      }
+      // Otherwise, it was our timeout
       throw new NetworkError(`Request to ${url} timed out after ${timeoutMs}ms`);
     }
+
     if (error instanceof NetworkError) {
       throw error;
     }
     throw new NetworkError(error.message || 'Unknown network error', undefined, undefined, error);
+  } finally {
+     if (externalSignal) {
+      externalSignal.removeEventListener('abort', onExternalAbort);
+    }
   }
 }
