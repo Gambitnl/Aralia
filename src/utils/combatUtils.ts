@@ -9,14 +9,10 @@ import { Spell } from '../types/spells'; // Explicit import to avoid conflicts
 import { CLASSES_DATA, MONSTERS_DATA } from '../constants';
 import { createAbilityFromSpell } from './spellAbilityFactory';
 import { isWeaponProficient } from './weaponUtils';
+import { generateId } from './idGenerator';
 
 // Re-export for consumers
-export { createAbilityFromSpell };
-
-// TODO: Replace Math.random() with crypto.randomUUID() for stronger ID generation to prevent potential collisions in long sessions
-export function generateId(): string {
-  return Math.random().toString(36).substr(2, 9);
-}
+export { createAbilityFromSpell, generateId };
 
 /**
  * Parses a dice notation string (e.g., '2d8', '3d6+5') and returns the rolled total.
