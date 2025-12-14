@@ -13,6 +13,7 @@ import {
   DamageEffect
 } from '@/types/spells';
 
+import { getGameEpoch } from '@/utils/timeUtils';
 import {
   GameState,
   GamePhase,
@@ -181,7 +182,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isOpen: false,
       character: null
     },
-    gameTime: new Date("2024-01-01T12:00:00"),
+    gameTime: getGameEpoch(),
 
     isDevMenuVisible: false,
     isPartyEditorVisible: false,
