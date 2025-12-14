@@ -66,7 +66,7 @@ The `SubmapPane` was identified as a performance bottleneck. Initially, any stat
 
 To solve this, the rendering logic was refactored:
 
-1.  **`SubmapTile.tsx` Component**: A new, dedicated component (`src/components/SubmapTile.tsx`) was created to handle the rendering of a single tile.
+1.  **`SubmapTile.tsx` Component**: A new, dedicated component (`src/components/Submap/SubmapTile.tsx`) was created to handle the rendering of a single tile.
 2.  **`React.memo`**: The `SubmapTile` component is wrapped in `React.memo`, a higher-order component that prevents a component from re-rendering if its props have not changed.
 3.  **Memoized Callbacks**: In `SubmapPane.tsx`, any functions passed down as props to `SubmapTile` (like click handlers) are memoized using the `useCallback` hook. This is crucial, as passing a new function reference on every render would defeat the purpose of `React.memo`.
 
