@@ -737,6 +737,14 @@ export interface GameState {
   };
 
   questLog: Quest[];
+
+  // Notification System
+  notifications: Array<{
+    id: string;
+    type: 'info' | 'success' | 'warning' | 'error';
+    message: string;
+    duration: number;
+  }>;
 }
 
 export interface InspectSubmapTilePayload {

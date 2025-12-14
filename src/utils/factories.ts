@@ -24,6 +24,7 @@ import {
   MapData,
   DiscoveryEntry,
   Quest,
+  QuestStatus,
   Monster,
   GroundingChunk,
   TempPartyMember,
@@ -38,6 +39,24 @@ import {
   Skill,
   TransportMode
 } from '@/types/index';
+
+/**
+ * Creates a mock Quest object with sensible defaults.
+ */
+export function createMockQuest(overrides: Partial<Quest> = {}): Quest {
+  return {
+    id: `quest-${crypto.randomUUID()}`,
+    title: "Mock Quest",
+    description: "A quest for testing purposes.",
+    giverId: "npc-1",
+    status: QuestStatus.Active,
+    objectives: [
+      { id: "obj-1", description: "First Objective", isCompleted: false }
+    ],
+    dateStarted: Date.now(),
+    ...overrides
+  };
+}
 
 /**
  * Creates a mock Spell object with sensible defaults.
@@ -221,6 +240,8 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
     },
 
     questLog: [],
+
+    notifications: [],
 
     ...overrides
   };
