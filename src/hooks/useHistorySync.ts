@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { GamePhase, GameState } from '../types';
 import { AppAction } from '../state/actionTypes';
+import { LOCATIONS } from '../constants';
+import { determineActiveDynamicNpcsForLocation } from '../utils/locationUtils';
 
 // Helper to convert GamePhase enum <-> URL slug
 const getPhaseSlug = (phase: GamePhase): string => GamePhase[phase]?.toLowerCase() || '';
@@ -18,7 +20,6 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
     const protectedPhases = [GamePhase.PLAYING, GamePhase.COMBAT, GamePhase.VILLAGE_VIEW, GamePhase.BATTLE_MAP_DEMO];
     if (protectedPhases.includes(targetPhase) && gameState.party.length === 0) {
       console.warn(`[Ranger] Blocked nav to ${GamePhase[targetPhase]} - no party.`);
-      // Revert URL to current safe state
       const params = new URLSearchParams(window.location.search);
       params.set('phase', getPhaseSlug(gameState.phase));
       window.history.replaceState({ phase: gameState.phase }, '', `${window.location.pathname}?${params.toString()}`);
@@ -27,7 +28,20 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
     if (targetPhase !== gameState.phase) dispatch({ type: 'SET_GAME_PHASE', payload: targetPhase });
   };
 
-  // TODO: Persist location/submap coordinates in history state alongside phase (Reason: refreshes after deep links drop spatial context and respawn the player arbitrarily; Expectation: reloading a URL restores both phase and where the party was standing).
+  // Helper to sync state params
+  const syncParams = (params: URLSearchParams, phase: GamePhase) => {
+      params.set('phase', getPhaseSlug(phase));
+      if (phase === GamePhase.PLAYING || phase === GamePhase.VILLAGE_VIEW) {
+        if (gameState.subMapCoordinates) {
+            params.set('x', gameState.subMapCoordinates.x.toString());
+            params.set('y', gameState.subMapCoordinates.y.toString());
+        }
+        if (gameState.currentLocationId) params.set('loc', gameState.currentLocationId);
+      } else {
+        ['x', 'y', 'loc'].forEach(k => params.delete(k));
+      }
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const urlPhase = getPhaseFromSlug(params.get('phase'));
@@ -39,12 +53,21 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
 
       if (urlPhase !== null) {
         safeNavigate(urlPhase); // Deep link
+        // Ranger: Restore location context if available and safe
+        const [x, y, loc] = [params.get('x'), params.get('y'), params.get('loc')];
+        if (x && y && loc && urlPhase === GamePhase.PLAYING && gameState.party.length > 0) {
+             dispatch({ type: 'MOVE_PLAYER', payload: {
+                 newLocationId: loc,
+                 newSubMapCoordinates: { x: parseInt(x), y: parseInt(y) },
+                 activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(loc, LOCATIONS)
+             }});
+        }
       } else if (rawPhase && urlPhase === null) {
         // Ranger: Handle 404 (valid parameter but invalid phase)
         safeNavigate(GamePhase.NOT_FOUND);
       } else {
         // No URL param? Sync state to URL without pushing history
-        params.set('phase', getPhaseSlug(gameState.phase));
+        syncParams(params, gameState.phase);
         window.history.replaceState({ phase: gameState.phase }, '', `${window.location.pathname}?${params.toString()}`);
       }
       return;
@@ -52,17 +75,40 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
 
     // State -> URL Sync (User Action)
     const stateSlug = getPhaseSlug(gameState.phase);
-    if (getPhaseFromSlug(params.get('phase')) !== gameState.phase) {
-      params.set('phase', stateSlug);
-      window.history.pushState({ phase: gameState.phase }, '', `${window.location.pathname}?${params.toString()}`);
+    const shouldUpdatePhase = getPhaseFromSlug(params.get('phase')) !== gameState.phase;
+
+    syncParams(params, gameState.phase);
+
+    // Use pushState for phase changes, replaceState for updates (like movement)
+    const method = shouldUpdatePhase ? 'pushState' : 'replaceState';
+
+    // Only update if URL actually changed to avoid thrashing
+    const currentSearch = new URLSearchParams(window.location.search).toString();
+    if (currentSearch !== params.toString()) {
+        window.history[method]({ phase: gameState.phase }, '', `${window.location.pathname}?${params.toString()}`);
     }
-  }, [gameState.phase]); // Only re-run when state phase changes
+
+  }, [gameState.phase, gameState.currentLocationId, gameState.subMapCoordinates]);
 
   // PopState (Back/Forward) Listener
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
-      const target = e.state?.phase ?? getPhaseFromSlug(new URLSearchParams(window.location.search).get('phase'));
-      if (target !== null) safeNavigate(target);
+      const params = new URLSearchParams(window.location.search);
+      const target = e.state?.phase ?? getPhaseFromSlug(params.get('phase'));
+
+      if (target !== null) {
+        safeNavigate(target);
+
+        // Restore coordinates on Back/Forward
+        const [x, y, loc] = [params.get('x'), params.get('y'), params.get('loc')];
+        if (x && y && loc && target === GamePhase.PLAYING) {
+             dispatch({ type: 'MOVE_PLAYER', payload: {
+                 newLocationId: loc,
+                 newSubMapCoordinates: { x: parseInt(x), y: parseInt(y) },
+                 activeDynamicNpcIds: determineActiveDynamicNpcsForLocation(loc, LOCATIONS)
+             }});
+        }
+      }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
