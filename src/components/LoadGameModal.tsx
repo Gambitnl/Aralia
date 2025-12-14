@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SaveSlotSummary } from '../services/saveLoadService';
-import ConfirmationModal from './ConfirmationModal';
+import { ConfirmationModal } from './ui/ConfirmationModal';
 
 interface LoadGameModalProps {
   slots: SaveSlotSummary[];
