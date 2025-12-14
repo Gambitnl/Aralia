@@ -264,7 +264,7 @@ function buildIndex() {
     }
 
     if (process.env.NODE_ENV !== 'test_ai_studio') {
-      fs.writeFileSync(categoryFilePath, JSON.stringify(categoryEntries, null, 2));
+      fs.writeFileSync(categoryFilePath, JSON.stringify(categoryEntries));
     }
     console.log(`Conceptually generated ${categoryEntries.length} entries into ${categoryFileName}`);
     categoryIndexFiles.push(`/data/glossary/index/${categoryFileName}`);
@@ -276,7 +276,7 @@ function buildIndex() {
     index_files: categoryIndexFiles.sort()
   };
   if (process.env.NODE_ENV !== 'test_ai_studio') {
-    fs.writeFileSync(MAIN_INDEX_FILE, JSON.stringify(mainIndexContent, null, 2));
+    fs.writeFileSync(MAIN_INDEX_FILE, JSON.stringify(mainIndexContent));
   }
   console.log(`Conceptually generated main index file: ${MAIN_INDEX_FILE} listing ${categoryIndexFiles.length} category files.`);
   console.log(`Timestamp: ${mainIndexContent.lastGenerated}`);
