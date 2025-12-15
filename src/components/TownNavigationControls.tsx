@@ -35,14 +35,28 @@ interface TownNavigationControlsProps {
  * Mapping of directions to their arrow icons
  */
 const DIRECTION_ICONS: Record<TownDirection, React.ReactNode> = {
-    north: <ArrowUp size={20} />,
-    northeast: <ArrowUpRight size={18} />,
-    east: <ArrowRight size={20} />,
-    southeast: <ArrowDownRight size={18} />,
-    south: <ArrowDown size={20} />,
-    southwest: <ArrowDownLeft size={18} />,
-    west: <ArrowLeft size={20} />,
-    northwest: <ArrowUpLeft size={18} />,
+    north: <ArrowUp size={20} aria-hidden="true" />,
+    northeast: <ArrowUpRight size={18} aria-hidden="true" />,
+    east: <ArrowRight size={20} aria-hidden="true" />,
+    southeast: <ArrowDownRight size={18} aria-hidden="true" />,
+    south: <ArrowDown size={20} aria-hidden="true" />,
+    southwest: <ArrowDownLeft size={18} aria-hidden="true" />,
+    west: <ArrowLeft size={20} aria-hidden="true" />,
+    northwest: <ArrowUpLeft size={18} aria-hidden="true" />,
+};
+
+/**
+ * Human-readable labels for directions
+ */
+const DIRECTION_LABELS: Record<TownDirection, string> = {
+    north: "Move North",
+    northeast: "Move Northeast",
+    east: "Move East",
+    southeast: "Move Southeast",
+    south: "Move South",
+    southwest: "Move Southwest",
+    west: "Move West",
+    northwest: "Move Northwest",
 };
 
 /**
@@ -121,7 +135,7 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
 
     // Button styling
     const getButtonClass = (direction: TownDirection) => {
-        const base = 'w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-150 border';
+        const base = 'w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-150 border focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500';
         const isCorner = ['northwest', 'northeast', 'southwest', 'southeast'].includes(direction);
 
         if (disabled) {
@@ -139,19 +153,20 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
         <div className="flex flex-col items-center gap-4 p-4 bg-gray-900/90 rounded-xl border border-gray-700 backdrop-blur-sm">
             {/* Tile Description */}
             {tileDescription && (
-                <div className="text-center text-sm text-gray-300 max-w-[200px] leading-tight">
+                <div className="text-center text-sm text-gray-300 max-w-[200px] leading-tight" role="status" aria-live="polite">
                     {tileDescription}
                 </div>
             )}
 
             {/* 3x3 Compass Grid */}
-            <div className="grid grid-cols-3 gap-1">
+            <div className="grid grid-cols-3 gap-1" role="group" aria-label="Town Navigation Controls">
                 {/* Row 1: NW, N, NE */}
                 <button
                     className={getButtonClass('northwest')}
                     onClick={() => handleDirectionClick('northwest')}
                     disabled={disabled || isBlocked('northwest')}
                     title="Move Northwest (Q)"
+                    aria-label={DIRECTION_LABELS.northwest}
                 >
                     {DIRECTION_ICONS.northwest}
                 </button>
@@ -160,6 +175,7 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
                     onClick={() => handleDirectionClick('north')}
                     disabled={disabled || isBlocked('north')}
                     title="Move North (W / ↑)"
+                    aria-label={DIRECTION_LABELS.north}
                 >
                     {DIRECTION_ICONS.north}
                 </button>
@@ -168,6 +184,7 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
                     onClick={() => handleDirectionClick('northeast')}
                     disabled={disabled || isBlocked('northeast')}
                     title="Move Northeast (E)"
+                    aria-label={DIRECTION_LABELS.northeast}
                 >
                     {DIRECTION_ICONS.northeast}
                 </button>
@@ -178,22 +195,25 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
                     onClick={() => handleDirectionClick('west')}
                     disabled={disabled || isBlocked('west')}
                     title="Move West (A / ←)"
+                    aria-label={DIRECTION_LABELS.west}
                 >
                     {DIRECTION_ICONS.west}
                 </button>
                 <button
-                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-amber-600 border border-amber-500 text-white hover:bg-amber-500 active:scale-95 transition-all duration-150"
+                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-amber-600 border border-amber-500 text-white hover:bg-amber-500 active:scale-95 transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
                     onClick={onExit}
                     disabled={disabled}
                     title="Leave Town (Escape)"
+                    aria-label="Leave Town"
                 >
-                    <DoorOpen size={20} />
+                    <DoorOpen size={20} aria-hidden="true" />
                 </button>
                 <button
                     className={getButtonClass('east')}
                     onClick={() => handleDirectionClick('east')}
                     disabled={disabled || isBlocked('east')}
                     title="Move East (D / →)"
+                    aria-label={DIRECTION_LABELS.east}
                 >
                     {DIRECTION_ICONS.east}
                 </button>
@@ -204,6 +224,7 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
                     onClick={() => handleDirectionClick('southwest')}
                     disabled={disabled || isBlocked('southwest')}
                     title="Move Southwest (Z)"
+                    aria-label={DIRECTION_LABELS.southwest}
                 >
                     {DIRECTION_ICONS.southwest}
                 </button>
@@ -212,6 +233,7 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
                     onClick={() => handleDirectionClick('south')}
                     disabled={disabled || isBlocked('south')}
                     title="Move South (S / ↓)"
+                    aria-label={DIRECTION_LABELS.south}
                 >
                     {DIRECTION_ICONS.south}
                 </button>
@@ -220,6 +242,7 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
                     onClick={() => handleDirectionClick('southeast')}
                     disabled={disabled || isBlocked('southeast')}
                     title="Move Southeast (C)"
+                    aria-label={DIRECTION_LABELS.southeast}
                 >
                     {DIRECTION_ICONS.southeast}
                 </button>
@@ -227,17 +250,18 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
 
             {/* Adjacent Buildings */}
             {adjacentBuildings.length > 0 && (
-                <div className="w-full border-t border-gray-700 pt-3 mt-1">
+                <div className="w-full border-t border-gray-700 pt-3 mt-1" role="region" aria-label="Nearby Buildings">
                     <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">Nearby</div>
                     <div className="flex flex-col gap-1">
                         {adjacentBuildings.map((building) => (
                             <button
                                 key={building.id}
-                                className="w-full text-left px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm text-gray-200 transition-colors border border-gray-700 hover:border-amber-500"
+                                className="w-full text-left px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm text-gray-200 transition-colors border border-gray-700 hover:border-amber-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                                 onClick={() => onBuildingInteract?.(building.id)}
+                                aria-label={`Enter ${building.name} (${building.type})`}
                             >
                                 <span className="font-medium">{building.name}</span>
-                                <span className="text-xs text-gray-500 ml-2">({building.type})</span>
+                                <span className="text-xs text-gray-500 ml-2" aria-hidden="true">({building.type})</span>
                             </button>
                         ))}
                     </div>
@@ -245,7 +269,7 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
             )}
 
             {/* Keyboard Hints */}
-            <div className="text-xs text-gray-500 flex gap-3">
+            <div className="text-xs text-gray-500 flex gap-3" aria-hidden="true">
                 <span>WASD to move</span>
                 <span>ESC to exit</span>
             </div>
