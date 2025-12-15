@@ -5,7 +5,7 @@
  */
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { getGameEpoch, formatGameTime } from '@/utils/timeUtils';
+import { formatGameTime, getGameDay, addGameTime } from '@/utils/timeUtils';
 
 interface TimeInputState {
   minutes: number;
@@ -41,36 +41,16 @@ const PassTimeModal: React.FC<PassTimeModalProps> = ({ isOpen, onClose, onConfir
     }));
   };
 
-  // Calculate total seconds to advance.
-  // Note: For months and years, this is an approximation for the preview.
-  // The Date object handles the actual date changes correctly.
-  const totalSecondsToAdvance = useMemo(() => {
-    const newDate = new Date(currentTime.getTime());
-    newDate.setFullYear(newDate.getFullYear() + time.years);
-    newDate.setMonth(newDate.getMonth() + time.months);
-    newDate.setDate(newDate.getDate() + (time.weeks * 7) + time.days);
-    newDate.setHours(newDate.getHours() + time.hours);
-    newDate.setMinutes(newDate.getMinutes() + time.minutes);
-    
-    return (newDate.getTime() - currentTime.getTime()) / 1000;
-
-  }, [time, currentTime]);
-
   const newTimePreview = useMemo(() => {
-    if (totalSecondsToAdvance <= 0) return null;
-    const newDate = new Date(currentTime.getTime());
-    // Use Date object methods for accurate date changes
-    newDate.setFullYear(newDate.getFullYear() + time.years);
-    newDate.setMonth(newDate.getMonth() + time.months);
-    newDate.setDate(newDate.getDate() + (time.weeks * 7) + time.days);
-    newDate.setHours(newDate.getHours() + time.hours);
-    newDate.setMinutes(newDate.getMinutes() + time.minutes);
-    return newDate;
-  }, [currentTime, time, totalSecondsToAdvance]);
+    return addGameTime(currentTime, time);
+  }, [currentTime, time]);
+
+  const totalSecondsToAdvance = useMemo(() => {
+    return (newTimePreview.getTime() - currentTime.getTime()) / 1000;
+  }, [newTimePreview, currentTime]);
   
   const formatGameTimeForModal = (date: Date): string => {
-    const diffMs = date.getTime() - getGameEpoch().getTime();
-    const dayNumber = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+    const dayNumber = getGameDay(date);
     const timeString = formatGameTime(date, { hour: '2-digit', minute: '2-digit', hour12: true });
     return `Day ${dayNumber}, ${timeString}`;
   };
@@ -133,7 +113,7 @@ const PassTimeModal: React.FC<PassTimeModalProps> = ({ isOpen, onClose, onConfir
             ))}
         </div>
         
-        {newTimePreview && (
+        {totalSecondsToAdvance > 0 && (
             <div className="text-center mt-4 p-2 bg-gray-900/50 rounded">
                 <p className="text-sm text-gray-400">New Time will be:</p>
                 <p className="text-md font-semibold text-amber-300">{formatGameTimeForModal(newTimePreview)}</p>

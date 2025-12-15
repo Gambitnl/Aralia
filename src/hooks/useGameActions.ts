@@ -40,6 +40,7 @@ import {
 } from './actions/handleSystemAndUi';
 import { getDiegeticPlayerActionMessage } from '../utils/actionUtils';
 import { getSubmapTileInfo } from '../utils/submapUtils';
+import { formatDuration } from '@/utils/timeUtils';
 
 
 interface UseGameActionsProps {
@@ -51,32 +52,6 @@ interface UseGameActionsProps {
   getCurrentNPCs: GetCurrentNPCsFn;
   getTileTooltipText: GetTileTooltipTextFn;
 }
-
-const formatDuration = (totalSeconds: number): string => {
-  if (totalSeconds <= 0) return "a moment";
-
-  const years = Math.floor(totalSeconds / 31536000);
-  totalSeconds %= 31536000;
-  const months = Math.floor(totalSeconds / 2592000);
-  totalSeconds %= 2592000;
-  const weeks = Math.floor(totalSeconds / 604800);
-  totalSeconds %= 604800;
-  const days = Math.floor(totalSeconds / 86400);
-  totalSeconds %= 86400;
-  const hours = Math.floor(totalSeconds / 3600);
-  totalSeconds %= 3600;
-  const minutes = Math.floor(totalSeconds / 60);
-
-  const parts = [];
-  if (years > 0) parts.push(`${years} year${years > 1 ? 's' : ''}`);
-  if (months > 0) parts.push(`${months} month${months > 1 ? 's' : ''}`);
-  if (weeks > 0) parts.push(`${weeks} week${weeks > 1 ? 's' : ''}`);
-  if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
-  if (hours > 0) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
-  if (minutes > 0) parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
-
-  return parts.length > 0 ? parts.join(', ') : "less than a minute";
-};
 
 
 export function useGameActions({
