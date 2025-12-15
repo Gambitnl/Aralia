@@ -206,8 +206,17 @@ function projectPoint(origin: Position, directionDegrees: number, distanceFeet: 
     const mathAngleDeg = directionDegrees - 90;
     const radians = mathAngleDeg * (Math.PI / 180);
 
+    const cos = Math.cos(radians);
+    const sin = Math.sin(radians);
+
+    // Scale vector to match Chebyshev distance (square projection instead of circle)
+    // In Chebyshev, a diagonal move of length 1 covers {x:1, y:1}, distance 1.
+    // Euclidean unit vector would be {x:0.707, y:0.707}, distance 1 (Euclidean).
+    // To reach the Chebyshev square perimeter, we scale by 1 / max(|cos|, |sin|).
+    const scale = 1 / Math.max(Math.abs(cos), Math.abs(sin));
+
     return {
-        x: origin.x + Math.cos(radians) * distTiles,
-        y: origin.y + Math.sin(radians) * distTiles
+        x: origin.x + (cos * scale) * distTiles,
+        y: origin.y + (sin * scale) * distTiles
     };
 }

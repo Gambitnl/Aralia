@@ -97,5 +97,35 @@ describe('calculateAffectedTiles', () => {
       expect(result.length).toBeGreaterThan(0)
       expect(result.some(p => p.x > 0 && p.y < 0)).toBe(true)
     })
+
+    it('should reach 6 tiles diagonally for a 30ft Line (Chebyshev logic)', () => {
+        // In D&D 5e (played on grid often using 5-5-5 or 5-10-5), pure Chebyshev (5-5-5) means diagonal costs 5ft.
+        // So 30ft = 6 squares.
+        // A diagonal line of 30ft should reach {x+6, y+6} (or similar) from origin.
+
+        const origin = { x: 10, y: 10 };
+        const length = 30; // 6 tiles
+
+        // 135 is SE (0=N, 90=E, 180=S)
+        const result = calculateAffectedTiles({
+            shape: 'Line',
+            origin,
+            size: length,
+            direction: 135
+        });
+
+        // Calculate maximum Chebyshev distance from origin
+        let maxDist = 0;
+        result.forEach(p => {
+            const dx = Math.abs(p.x - origin.x);
+            const dy = Math.abs(p.y - origin.y);
+            const dist = Math.max(dx, dy);
+            if (dist > maxDist) maxDist = dist;
+        });
+
+        // Euclidean: 30ft (6 tiles) * cos(45) ~= 4.24 tiles -> maxDist 4
+        // Chebyshev: 6 tiles diagonal -> maxDist 6
+        expect(maxDist).toBe(6);
+    });
   })
 })
