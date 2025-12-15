@@ -185,13 +185,13 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
   return (
     <div>
       <h2 className="text-2xl text-sky-300 mb-2 text-center">
-        Allocate Ability Scores (Point Buy)
+        Assign Ability Scores (Point Buy)
       </h2>
       <p className="text-sm text-gray-400 mb-1 text-center">
-        You have <span className="font-bold text-amber-300">{POINT_BUY_TOTAL_POINTS}</span> points to forge your attributes. All abilities begin at a base of 8.
+        You have <span className="font-bold text-amber-300">{POINT_BUY_TOTAL_POINTS}</span> points to assign to your ability scores. All abilities begin at a base of 8.
       </p>
       <p className="text-xs text-gray-500 mb-4 text-center">
-        Attributes up to 13 cost 1 point per increase. Attributes 14 and 15 cost 2 points. The maximum base score is 15.
+        Ability scores up to 13 cost 1 point per increase. Scores of 14 and 15 cost 2 points. The maximum base score is 15.
       </p>
       
       {selectedClass && (selectedClass.statRecommendationFocus || selectedClass.statRecommendationDetails) && (
