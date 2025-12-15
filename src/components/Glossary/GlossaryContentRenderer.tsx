@@ -17,9 +17,10 @@ export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = (
     const preppedMarkdown = markdownContent.replace(/^---$/gm, '<hr />');
     
     const rawHtml = marked.parse(preppedMarkdown, { gfm: true, breaks: true, async: false }) as string;
+    const safeHtml = DOMPurify.sanitize(rawHtml);
 
     const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = rawHtml;
+    tempDiv.innerHTML = safeHtml;
 
     const finalContainer = document.createElement('div');
     let currentDetails: HTMLDetailsElement | null = null;
