@@ -206,8 +206,21 @@ function projectPoint(origin: Position, directionDegrees: number, distanceFeet: 
     const mathAngleDeg = directionDegrees - 90;
     const radians = mathAngleDeg * (Math.PI / 180);
 
+    // Calculate normalized direction vector
+    const dx = Math.cos(radians);
+    const dy = Math.sin(radians);
+
+    // Chebyshev Scale Factor:
+    // In Chebyshev geometry (5-5-5 rule), movement along the diagonal costs the same as cardinal.
+    // We want the resulting point (x,y) to have a Chebyshev distance of distTiles from origin.
+    // Chebyshev Distance = max(|x|, |y|) = scale * max(|dx|, |dy|)
+    // Therefore: scale = distTiles / max(|dx|, |dy|)
+    // This stretches diagonals so 30ft diagonal = 6 tiles displacement on BOTH axes.
+    const maxComponent = Math.max(Math.abs(dx), Math.abs(dy));
+    const scale = maxComponent > 0 ? distTiles / maxComponent : 0;
+
     return {
-        x: origin.x + Math.cos(radians) * distTiles,
-        y: origin.y + Math.sin(radians) * distTiles
+        x: origin.x + dx * scale,
+        y: origin.y + dy * scale
     };
 }

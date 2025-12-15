@@ -97,5 +97,20 @@ describe('calculateAffectedTiles', () => {
       expect(result.length).toBeGreaterThan(0)
       expect(result.some(p => p.x > 0 && p.y < 0)).toBe(true)
     })
+
+    it('correctly projects diagonal distance using Chebyshev (5-5-5 rule)', () => {
+      // 30 feet = 6 tiles
+      // Diagonal projection (45 deg, NE) should reach (6, -6)
+      // Euclidean would only reach ~4.2 tiles (21 feet)
+      const result = calculateAffectedTiles({
+        shape: 'Line',
+        origin: { x: 0, y: 0 },
+        size: 30,
+        direction: 45
+      })
+
+      const endPoint = result.find(p => p.x === 6 && p.y === -6)
+      expect(endPoint).toBeDefined()
+    })
   })
 })
