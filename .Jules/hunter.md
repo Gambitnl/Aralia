@@ -148,13 +148,6 @@ If you leave work for another persona, add: `// TODO(PersonaName): Description`
 // [2025-12-14 22:35 CET] Edge case handled: Catches network timeouts and retries up to 3x
 ```
 
-### Session Close-Out
-- After finishing a session, review opened or edited files and surface up to 5 follow-ups or risks.
-- Propose TODOs or comments directly above the code they reference; avoid owner tags.
-- If you add a TODO in a central TODO file, cross-link it: the code comment should mention the TODO entry, and the TODO entry should include the file:line so it can be cleared.
-- Non-existing future features are allowed if clearly motivated by the session.
-- Summarize proposed edits (file + line + comment text) before applying them.
-
 ### When Blocked or Uncertain
 - Ambiguous requirements → **Stop and ask**
 - Conflicting patterns → Document both, pick the more common
