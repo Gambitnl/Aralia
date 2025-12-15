@@ -125,9 +125,9 @@ const ActionPane: React.FC<ActionPaneProps> = ({
    */
   const systemMenuActions = useMemo(
     () => [
-      { action: { type: 'TOGGLE_DISCOVERY_LOG', label: 'Journal' }, badgeCount: unreadDiscoveryCount },
+      { action: { type: 'TOGGLE_DISCOVERY_LOG', label: 'Discoveries' }, badgeCount: unreadDiscoveryCount },
       { action: { type: 'TOGGLE_QUEST_LOG', label: 'Quests' } },
-      { action: { type: 'TOGGLE_LOGBOOK', label: 'Logbook' } },
+      { action: { type: 'TOGGLE_LOGBOOK', label: 'Dossiers' } },
       { action: { type: 'TOGGLE_GLOSSARY_VISIBILITY', label: 'Glossary' } },
       { action: { type: 'toggle_party_overlay', label: 'Party' } },
       { action: { type: 'TOGGLE_GAME_GUIDE', label: 'Game Guide' } },
@@ -233,8 +233,8 @@ const ActionPane: React.FC<ActionPaneProps> = ({
       generalActions.push({ type: 'ENTER_VILLAGE', label: 'Enter Village' });
     } else if (nearbyVillages > 0) {
       console.log('Player is NEAR village tiles:', nearbyVillages, '- adding approach actions');
-      generalActions.push({ type: 'APPROACH_VILLAGE', label: 'Approach Village' });
-      generalActions.push({ type: 'OBSERVE_VILLAGE', label: 'Observe Village' });
+      generalActions.push({ type: 'APPROACH_VILLAGE', label: 'Approach Cautiously' });
+      generalActions.push({ type: 'OBSERVE_VILLAGE', label: 'Scout Village' });
     }
   }
 
@@ -248,7 +248,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   if (isTownLocation && !currentLocation.id.startsWith('coord_')) {
     generalActions.push({ type: 'ENTER_VILLAGE', label: 'Enter Town' });
     // Add contextually appropriate actions when at a town location
-    generalActions.push({ type: 'OBSERVE_TOWN', label: 'Observe Town' });
+    generalActions.push({ type: 'OBSERVE_TOWN', label: 'Scout Town' });
     generalActions.push({ type: 'APPROACH_TOWN', label: 'Approach Cautiously' });
   }
 
@@ -275,7 +275,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
           />
         )}
         <ActionButton
-          action={{ type: 'ANALYZE_SITUATION', label: 'Analyze Situation' }}
+          action={{ type: 'ANALYZE_SITUATION', label: 'Survey Surroundings' }}
           onClick={onAction}
           disabled={disabled}
         />
@@ -342,7 +342,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
           aria-expanded={isMenuOpen}
         >
           {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
-          <span>System</span>
+          <span>Menu</span>
           {(unreadDiscoveryCount > 0 || hasNewRateLimitError) && (
             <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 border-2 border-gray-800 animate-pulse"></span>
           )}
