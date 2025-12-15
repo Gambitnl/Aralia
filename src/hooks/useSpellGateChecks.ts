@@ -1,6 +1,7 @@
 // TODO: Create automated validation scripts to check spell data consistency between JSON and Markdown files before deployment
 import { useEffect, useMemo, useState } from "react";
 import { GlossaryEntry } from "../types";
+import { ENV } from "../config/env";
 import level1GapsMd from "../../docs/tasks/spell-system-overhaul/gaps/LEVEL-1-GAPS.md?raw";
 import cantripGapsMd from "../../docs/tasks/spell-system-overhaul/1I-MIGRATE-CANTRIPS-BATCH-1.md?raw";
 
@@ -74,7 +75,7 @@ const buildKnownGapSet = (): Set<string> => {
 };
 
 const fetchGlossaryCard = async (id: string, level: number) => {
-  const url = `${import.meta.env.BASE_URL}data/glossary/entries/spells/level-${level}/${id}.md`;
+  const url = `${ENV.BASE_URL}data/glossary/entries/spells/level-${level}/${id}.md`;
   const res = await fetch(url);
   if (!res.ok) return null;
   return res.text();
@@ -114,7 +115,7 @@ const parseFieldFromMd = (content: string, fieldLabel: string): string | null =>
 
 /** Fetch spell JSON data */
 const fetchSpellJson = async (id: string, level: number): Promise<any | null> => {
-  const url = `${import.meta.env.BASE_URL}data/spells/level-${level}/${id}.json`;
+  const url = `${ENV.BASE_URL}data/spells/level-${level}/${id}.json`;
   try {
     const res = await fetch(url);
     if (!res.ok) return null;
@@ -311,7 +312,7 @@ export const useSpellGateChecks = (entries: GlossaryEntry[] | null) => {
 
     const run = async () => {
       try {
-        const res = await fetch(`${import.meta.env.BASE_URL}data/spells_manifest.json`);
+        const res = await fetch(`${ENV.BASE_URL}data/spells_manifest.json`);
         if (!res.ok) throw new Error(`Failed to load spells_manifest.json: ${res.statusText}`);
         const manifest = await res.json();
 

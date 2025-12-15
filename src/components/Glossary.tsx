@@ -7,6 +7,7 @@ import { useSpellGateChecks } from '../hooks/useSpellGateChecks';
 import SpellCardTemplate, { SpellData } from './Glossary/SpellCardTemplate';
 import { SafeStorage } from '../utils/storageUtils';
 import { fetchWithTimeout } from '../utils/networkUtils';
+import { ENV } from '../config/env';
 
 interface GlossaryProps {
   isOpen: boolean;
@@ -272,7 +273,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
     const controller = new AbortController();
 
     fetchWithTimeout<{ lastGenerated?: string }>(
-      `${import.meta.env.BASE_URL}data/glossary/index/main.json`,
+      `${ENV.BASE_URL}data/glossary/index/main.json`,
       { signal: controller.signal }
     )
       .then(data => {
@@ -304,7 +305,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
 
     setSpellJsonLoading(true);
     fetchWithTimeout<SpellData>(
-      `${import.meta.env.BASE_URL}data/spells/level-${level}/${selectedEntry.id}.json`,
+      `${ENV.BASE_URL}data/spells/level-${level}/${selectedEntry.id}.json`,
       { signal: controller.signal }
     )
       .then((data: SpellData) => {

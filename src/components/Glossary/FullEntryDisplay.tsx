@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { GlossaryEntry } from '../../types';
 import { GlossaryContentRenderer } from './GlossaryContentRenderer';
 import { fetchWithTimeout } from '../../utils/networkUtils';
+import { ENV } from '../../config/env';
 
 const stripYamlFrontmatter = (markdownContent: string): string => {
   const yamlFrontmatterRegex = /^\s*---([\s\S]*?)---(?:\r?\n|\r|$)/;
@@ -32,7 +33,7 @@ export const FullEntryDisplay: React.FC<FullEntryDisplayProps> = ({ entry, onNav
     setError(null);
     setMarkdownContent(null);
 
-    const fullPath = `${import.meta.env.BASE_URL}${filePath.replace(/^\//, '')}`;
+    const fullPath = `${ENV.BASE_URL}${filePath.replace(/^\//, '')}`;
 
     fetchWithTimeout<string>(fullPath, { responseType: 'text' })
       .then(text => {
