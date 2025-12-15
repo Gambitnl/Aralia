@@ -1,5 +1,7 @@
-
 /**
+ * Copyright (c) 2024 Aralia RPG.
+ * Licensed under the MIT License.
+ *
  * @file src/utils/combatUtils.ts
  * Utility functions for the combat system.
  */
