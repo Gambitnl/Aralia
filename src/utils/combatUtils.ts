@@ -270,8 +270,8 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
   // Helper to create weapon ability
   const createWeaponAbility = (weapon: Item, idSuffix: string, isOffHand: boolean = false): Ability => {
     // Determine damage
-    let damageValue = 1;
-    let damageType: AbilityEffect['damageType'] = 'physical';
+    const damageValue = 1;
+    const damageType: AbilityEffect['damageType'] = 'physical';
 
     // Safely cast string damageType from item to AbilityEffect damageType if valid
     // For now we default to physical as per previous implementation logic

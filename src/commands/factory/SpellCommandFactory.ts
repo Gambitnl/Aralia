@@ -1,6 +1,5 @@
-import { Spell, SpellEffect, TargetConditionFilter } from '@/types/spells'
+import { Spell, SpellEffect, TargetConditionFilter , isDamageEffect, isHealingEffect } from '@/types/spells'
 import { CombatCharacter, CombatState } from '@/types/combat'
-import { isDamageEffect, isHealingEffect } from '@/types/spells'
 import { SpellCommand, CommandContext } from '../base/SpellCommand'
 import { DamageCommand } from '../effects/DamageCommand'
 import { HealingCommand } from '../effects/HealingCommand'

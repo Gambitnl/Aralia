@@ -116,7 +116,7 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
     // If modifier key is pressed, don't interfere (allows browser shortcuts)
     if (event.ctrlKey || event.metaKey || event.altKey) return;
 
-    let { x, y } = focusedCoords || { x: 0, y: 0 }; // Default to 0,0 if null
+    const { x, y } = focusedCoords || { x: 0, y: 0 }; // Default to 0,0 if null
     let newX = x;
     let newY = y;
     let handled = false;

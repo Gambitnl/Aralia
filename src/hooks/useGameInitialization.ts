@@ -134,7 +134,7 @@ export function useGameInitialization({
       const initialSubMapCoords = { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) };
       const initialActiveDynamicNpcs = determineActiveDynamicNpcsForLocation(STARTING_LOCATION_ID, LOCATIONS);
 
-      let dynamicItemsToUse: Record<string, string[]> = {};
+      const dynamicItemsToUse: Record<string, string[]> = {};
       Object.values(LOCATIONS).forEach(loc => {
           dynamicItemsToUse[loc.id] = loc.itemIds ? [...loc.itemIds] : [];
       });

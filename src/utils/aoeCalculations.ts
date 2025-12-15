@@ -124,7 +124,7 @@ function getConeAoE(origin: Position, direction: number, length: number): Positi
             // atan2 returns angle in radians relative to +x axis (East)
             // Range: -PI to +PI
             const angleRad = Math.atan2(dy, dx);
-            let angleDeg = angleRad * (180 / Math.PI);
+            const angleDeg = angleRad * (180 / Math.PI);
 
             // Convert Math Angle to Compass Angle
             // Math: 0=E, 90=S, 180=W, -90=N

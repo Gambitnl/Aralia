@@ -27,7 +27,7 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         // server from hanging during development and ensures a smoother loading experience.
         const batchSize = 50;
         const spellEntries = Object.entries(manifest);
-        let allSpellResults = [];
+        const allSpellResults = [];
         const totalSpells = spellEntries.length;
         const collectedIssues: string[] = [];
 

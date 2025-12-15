@@ -109,7 +109,7 @@ export const calculateFinalAC = (components: ACComponents): number => {
   // Standard: baseAC + dexMod + unarmoredBonus
   // Spell (Set Base): value + dexMod (usually)
 
-  let standardTotal = baseAC + (stdBaseIncludesDex ? 0 : dexMod) + unarmoredBonus;
+  const standardTotal = baseAC + (stdBaseIncludesDex ? 0 : dexMod) + unarmoredBonus;
 
   // Check for Set Base AC effects (Mage Armor)
   // These usually replace the calculation: "Your AC becomes 13 + Dex"

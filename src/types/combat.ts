@@ -1,10 +1,11 @@
-
 /**
  * @file src/types/combat.ts
  * This file contains all combat-related TypeScript type definitions and interfaces
  * used throughout the Aralia RPG application's battle map feature.
  */
-import { Class, SpellbookData, SpellSlots, Item } from './index';
+import { Class, SpellbookData, SpellSlots } from './character';
+import { Item } from './items';
+import { AbilityScoreName } from './core';
 import { Spell, DamageType, SavingThrowAbility, ConditionName, EffectDuration, SpellEffect } from './spells'; // Import Spell
 
 export type { SpellSlots };

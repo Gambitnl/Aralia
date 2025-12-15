@@ -292,7 +292,7 @@ export class AssetPainter {
         let waterColor = '#3b82f6';
         let waterDeepColor = '#1e3a8a';
         let roofOverride: string | null = null;
-        let wallOverride: string | null = null;
+        const wallOverride: string | null = null;
 
         switch (biome) {
             case BiomeType.SWAMP: grassHue = 60; waterColor = '#4d7c0f'; waterDeepColor = '#3f6212'; roofOverride = '#365314'; break; // Yellow-green, murky

@@ -135,7 +135,7 @@ export async function handleHarvestResource({
     
     addMessage(`You attempt to harvest resources from the ${harvestContext || 'area'}... (${usedSkillName} check: ${roll} + ${bonus} = ${total})`, 'system');
     
-    let biome = 'wilds';
+    const biome = 'wilds';
     if (gameState.currentLocationId.startsWith('coord_')) {
          // Logic to get biome from map data if needed
     }
