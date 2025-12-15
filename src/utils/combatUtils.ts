@@ -76,10 +76,16 @@ export function getActionMessage(action: CombatAction, character: CombatCharacte
   }
 }
 
+/**
+ * Calculates the distance between two positions in tiles.
+ * Uses Chebyshev distance (5-5-5 rule) to support 8-way movement on the grid.
+ * @param pos1 - The first position.
+ * @param pos2 - The second position.
+ * @returns The distance in tiles (maximum coordinate difference).
+ */
 export function getDistance(pos1: Position, pos2: Position): number {
   const dx = pos1.x - pos2.x;
   const dy = pos1.y - pos2.y;
-  // Use Chebyshev distance (moves on a grid including diagonals)
   return Math.max(Math.abs(dx), Math.abs(dy));
 }
 
@@ -267,25 +273,13 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
   const mainHand = player.equippedItems?.MainHand;
   const offHand = player.equippedItems?.OffHand;
 
-  // Helper to create weapon ability
+  /**
+   * Creates a combat Ability from an equipped weapon item.
+   * Handles damage type defaults, reach properties, and Weapon Mastery validation.
+   */
   const createWeaponAbility = (weapon: Item, idSuffix: string, isOffHand: boolean = false): Ability => {
-    // Determine damage
-    let damageValue = 1;
-    let damageType: AbilityEffect['damageType'] = 'physical';
-
-    // Safely cast string damageType from item to AbilityEffect damageType if valid
-    // For now we default to physical as per previous implementation logic
-    // but the variable is available for future expansion
-
-    // Parse damage from weapon stats if available, otherwise default
-    // Simplify for now: most weapons in our data have a 'damage' string like '1d8'
-    // We will store the dice string in the effect value if we supported it, 
-    // but the current system expects a number.
-    // For now, let's keep using a fixed average or simple parsing if possible.
-    // However, the `calculateDamage` in combatUtils currently just returns baseDamage.
-    // We will update useAbilitySystem to allow dice rolling later.
-    // For this step, let's try to parse the dice string to get an average or just pass 0 and handle rolling in execution.
-    // Actually, let's check the weapon data structure.
+    // Default to physical damage. Future expansion can parse damage types from item data.
+    const damageType: AbilityEffect['damageType'] = 'physical';
 
     const isProficient = isWeaponProficient(player, weapon);
 
@@ -308,11 +302,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       isProficient: isProficient
     };
 
-    // Task 10: Weapon Mastery Integration
-    // Only attach mastery if:
-    // 1. Character is proficient with the weapon.
-    // 2. Character has unlocked mastery for this specific choice (stored in selectedWeaponMasteries as Item ID).
-    // 3. The weapon actually has a mastery property.
+    // Attach Weapon Mastery if the character is proficient, has unlocked it, and the weapon supports it.
     if (isProficient && weapon.mastery && player.selectedWeaponMasteries?.includes(weapon.id)) {
       ability.mastery = weapon.mastery;
     }
