@@ -9,6 +9,7 @@ import { ChevronRight, ChevronDown, FilterX, AlertTriangle } from 'lucide-react'
 import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType } from '../types';
 import { canEquipItem } from '../utils/characterUtils';
 import Tooltip from './Tooltip';
+import CoinDisplay from './ui/CoinDisplay';
 
 interface InventoryListProps {
   inventory: Item[];
@@ -82,20 +83,6 @@ const getItemTooltipContent = (item: Item, warning?: string): React.ReactNode =>
 
   return <pre className="text-xs whitespace-pre-wrap">{details}</pre>;
 };
-
-const CoinDisplay: React.FC<{ label: string, amount: number, color: string, icon: string, tooltip: string }> = ({ label, amount, color, icon, tooltip }) => (
-  <Tooltip content={tooltip}>
-    <div
-      className={`flex flex-col items-center justify-center p-2 rounded bg-gray-800 border border-gray-600 min-w-[3.5rem] focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent cursor-help`}
-      tabIndex={0}
-      aria-label={`${amount} ${tooltip}`}
-    >
-      <span className="text-lg filter drop-shadow-md" aria-hidden="true">{icon}</span>
-      <span className={`text-xs font-bold ${color}`} aria-hidden="true">{amount}</span>
-      <span className="text-[9px] text-gray-500 uppercase tracking-wider" aria-hidden="true">{label}</span>
-    </div>
-  </Tooltip>
-);
 
 const ROOT_CONTAINER_ID = 'root-backpack';
 
