@@ -1,0 +1,1 @@
+## 2024-05-24 - Google Fonts Optimization **Learning:** Analyzing codebase usage of font weights revealed that `Cinzel Decorative: 900` and `Roboto: 300` were requested but never used. Removing these saves bandwidth on initial load. **Action:** Regularly audit external resource requests against actual usage to prevent bloat.
