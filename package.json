@@ -11,7 +11,7 @@
     "validate": "tsx scripts/validate-data.ts",
     "test": "vitest",
     "test:types": "tsd src/types/__tests__/spells.test-d.ts",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc -b",
     "lint": "eslint --ext .ts,.tsx src scripts tests"
   },
   "dependencies": {

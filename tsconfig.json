@@ -28,7 +28,15 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
+  "include": [
+    "src"
+  ],
   "exclude": [
     "scripts/**/*.js"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
   ]
 }
