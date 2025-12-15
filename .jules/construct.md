@@ -1,0 +1,1 @@
+## 2025-05-18 - [Construct Initialized] **Learning:** Component isolation is critical for testability. `CoinDisplay` was trapped inside `InventoryList`, making it impossible to reuse in other parts of the UI (e.g., Shop, Loot). **Action:** Always look for UI atoms inside large complex components.
