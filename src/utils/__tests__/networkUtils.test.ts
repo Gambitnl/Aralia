@@ -71,7 +71,7 @@ describe('fetchWithTimeout', () => {
     const signal = controller.signal;
 
     // Mock fetch to wait for abort
-    (global.fetch as any).mockImplementation((url, options) => {
+    (global.fetch as any).mockImplementation((url: string, options: any) => {
         return new Promise((resolve, reject) => {
              if (options.signal) {
                  if (options.signal.aborted) {
