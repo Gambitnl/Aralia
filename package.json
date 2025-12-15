@@ -11,7 +11,7 @@
     "validate": "tsx scripts/validate-data.ts",
     "test": "vitest",
     "test:types": "tsd src/types/__tests__/spells.test-d.ts",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc -b",
     "lint": "eslint --ext .ts,.tsx src scripts tests"
   },
   "dependencies": {
@@ -50,7 +50,7 @@
     "rimraf": "^6.1.2",
     "tsd": "^0.33.0",
     "tsx": "^4.20.6",
-    "typescript": "~5.8.2",
+    "typescript": "~5.9.3",
     "vite": "^7.2.7",
     "vitest": "^4.0.15"
   }

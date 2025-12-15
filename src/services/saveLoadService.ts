@@ -10,6 +10,7 @@
 import { GameState, GamePhase, NotificationType } from '../types';
 import { SafeStorage, SafeSession } from '../utils/storageUtils';
 import { logger } from '../utils/logger';
+import { simpleHash } from '../utils/hashUtils';
 
 //
 // Save slot configuration
@@ -44,6 +45,7 @@ interface StoredSavePayload {
   thumbnail?: string;
   preview?: SavePreview;
   state: GameState;
+  checksum?: number;
 }
 
 interface SaveGameOptions {
@@ -117,7 +119,7 @@ export async function saveGame(
       characterSheetModal: { isOpen: false, character: null },
       notifications: [], // Don't save transient notifications
     };
-    // TODO: Add checksum and rolling backup writes before persisting (Reason: partial writes/quota failures can corrupt saves; Expectation: detect and recover from bad payloads instead of silently overwriting progress).
+
     const storageKey = resolveSlotKey(slotName, options?.isAutoSave);
     // Persist a trimmed display name so slot labels stay consistent even if
     // upstream callers send padded values. We still default to the provided
@@ -126,6 +128,10 @@ export async function saveGame(
     const slotLabel = (options?.displayName ?? slotName).trim() || slotName;
     const existingSlotSummary = getSaveSlots().find(slot => slot.slotId === storageKey);
     const playtimeSeconds = calculatePlaytimeSeconds(existingSlotSummary);
+    // Calculate checksum of the state to save for integrity check
+    const serializedStateForHash = JSON.stringify(stateToSave);
+    const checksum = simpleHash(serializedStateForHash);
+
     const payload: StoredSavePayload = {
       version: SAVE_GAME_VERSION,
       slotId: storageKey,
@@ -134,10 +140,11 @@ export async function saveGame(
       thumbnail: options?.thumbnail,
       preview: extractPreview(stateToSave, playtimeSeconds),
       state: stateToSave,
+      checksum,
     };
 
-    const serializedState = JSON.stringify(payload);
-    SafeStorage.setItem(storageKey, serializedState);
+    const serializedPayload = JSON.stringify(payload);
+    SafeStorage.setItem(storageKey, serializedPayload);
     upsertSlotMetadata({
       slotId: storageKey,
       slotName: slotLabel,
@@ -195,6 +202,21 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
 
     const parsedData = JSON.parse(serializedState);
     const loadedState: GameState = (parsedData as StoredSavePayload).state || parsedData;
+    const storedChecksum = (parsedData as StoredSavePayload).checksum;
+
+    if (storedChecksum) {
+      const computedChecksum = simpleHash(JSON.stringify(loadedState));
+      if (computedChecksum !== storedChecksum) {
+        logger.error("Save game checksum mismatch", {
+          expected: storedChecksum,
+          actual: computedChecksum,
+          slotId: storageKey
+        });
+        const failure = { success: false, message: "Save data corrupted (integrity check failed)." } as const;
+        notify?.({ message: failure.message, type: 'error' });
+        return failure;
+      }
+    }
 
     if (loadedState.saveVersion && loadedState.saveVersion !== SAVE_GAME_VERSION) {
       logger.warn("Save game version mismatch", {

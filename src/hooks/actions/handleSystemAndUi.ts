@@ -7,7 +7,7 @@ import { GameState, GamePhase } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import * as SaveLoadService from '../../services/saveLoadService';
 import { AddMessageFn } from './actionHandlerTypes';
-import { USE_DUMMY_CHARACTER_FOR_DEV } from '../../constants';
+import { canUseDevTools } from '../../utils/permissions';
 
 interface HandleSystemAndUiProps {
   gameState: GameState;
@@ -39,7 +39,7 @@ export async function handleGoToMainMenu({
   addMessage,
 }: Omit<HandleSystemAndUiProps, 'action'>): Promise<void> {
   addMessage("Returning to Main Menu...", 'system');
-  if (!USE_DUMMY_CHARACTER_FOR_DEV) {
+  if (!canUseDevTools()) {
     const result = await SaveLoadService.saveGame(gameState);
     if (!result.success) {
       dispatch({ type: 'ADD_NOTIFICATION', payload: { type: 'error', message: "Failed to save game on exit." } });

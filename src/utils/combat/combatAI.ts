@@ -7,6 +7,7 @@
 import { CombatCharacter, CombatAction, BattleMapData, Ability, Position, BattleMapTile } from '../../types/combat';
 import { computeAoETiles, getDistance, generateId, resolveAreaDefinition } from '../../utils/combatUtils';
 import { hasLineOfSight } from '../../utils/lineOfSight';
+import { logger } from '../logger';
 
 // Scoring weights used throughout the planner. Tweakable knobs to steer priorities.
 const WEIGHTS = {
@@ -45,7 +46,14 @@ export function evaluateCombatTurn(
   const enemies = characters.filter(c => c.team !== character.team && c.currentHP > 0);
   const allies = characters.filter(c => c.team === character.team && c.currentHP > 0);
 
+  logger.debug(`[AI] evaluating turn for ${character.name}`, {
+    hp: `${character.currentHP}/${character.maxHP}`,
+    enemiesCount: enemies.length,
+    alliesCount: allies.length
+  });
+
   if (enemies.length === 0) {
+    logger.debug(`[AI] No enemies found. Ending turn.`);
     return createEndTurnAction(character);
   }
 
@@ -95,9 +103,21 @@ export function evaluateCombatTurn(
 
   // Sort plans by score descending
   possiblePlans.sort((a, b) => b.score - a.score);
+
+  // Log top plans
+  if (possiblePlans.length > 0) {
+    logger.debug(`[AI] Considered ${possiblePlans.length} plans. Top 3:`, {
+      plans: possiblePlans.slice(0, 3).map(p => ({ desc: p.description, score: p.score }))
+    });
+  } else {
+    logger.debug(`[AI] No viable plans found.`);
+  }
+
   const bestPlan = possiblePlans[0];
 
   if (bestPlan && bestPlan.score > 0) {
+    logger.info(`[AI] ${character.name} chose: ${bestPlan.description} (Score: ${bestPlan.score.toFixed(1)})`);
+
     // If the plan is an ability but we are currently out of range/LoS, perform the movement leg first.
     if (bestPlan.actionType === 'ability' && bestPlan.targetPosition) {
       const dist = getDistance(character.position, bestPlan.targetPosition);
@@ -105,7 +125,10 @@ export function evaluateCombatTurn(
       const inRange = ability ? dist <= ability.range : true;
       if (ability && (!inRange || !hasClearShot(character.position, bestPlan.targetPosition, mapData))) {
         const moveAction = planMovement(character, bestPlan.targetPosition, ability.range, mapData, reachableTiles);
-        if (moveAction) return moveAction;
+        if (moveAction) {
+          logger.debug(`[AI] Moving to position to execute plan.`, { target: moveAction.targetPosition });
+          return moveAction;
+        }
       }
     }
 
@@ -125,9 +148,13 @@ export function evaluateCombatTurn(
   const nearestEnemy = getNearestEnemy(character, enemies);
   if (nearestEnemy) {
     const moveAction = planMovement(character, nearestEnemy.position, 1, mapData, reachableTiles);
-    if (moveAction) return moveAction;
+    if (moveAction) {
+      logger.info(`[AI] No good abilities. Moving towards nearest enemy.`);
+      return moveAction;
+    }
   }
 
+  logger.info(`[AI] No valid actions or movement. Ending turn.`);
   return createEndTurnAction(character);
 }
 

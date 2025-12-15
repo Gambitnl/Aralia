@@ -85,7 +85,7 @@ describe('ActionPane', () => {
     const onAction = vi.fn();
     render(<ActionPane {...defaultProps} disabled={true} onAction={onAction} />);
 
-    fireEvent.click(screen.getByText('Analyze Situation'));
+    fireEvent.click(screen.getByText('Survey Surroundings'));
     expect(onAction).not.toHaveBeenCalled();
   });
 
@@ -108,9 +108,9 @@ describe('ActionPane', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /system/i }));
+    fireEvent.click(screen.getByRole('button', { name: /menu/i }));
     expect(screen.getByRole('menu')).toBeInTheDocument();
-    expect(screen.getByText('Journal')).toBeInTheDocument();
+    expect(screen.getByText('Discoveries')).toBeInTheDocument();
     expect(screen.getByText('Save Game')).toBeInTheDocument();
     expect(screen.getByText('7')).toBeInTheDocument();
 
@@ -128,7 +128,7 @@ describe('ActionPane', () => {
       />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /system/i }));
+    fireEvent.click(screen.getByRole('button', { name: /menu/i }));
     expect(screen.getByText('Dev Menu')).toBeInTheDocument();
   });
 });

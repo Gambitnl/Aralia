@@ -23,38 +23,38 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         );
 
         // Why: The Vite dev server can be overwhelmed by hundreds of concurrent fetch requests.
-        // Batching these requests into smaller chunks (e.g., 50 at a time) prevents the
-        // server from hanging during development and ensures a smoother loading experience.
-        const batchSize = 50;
+        // We use a concurrency limit (e.g., 50) to prevent this.
+        // Previously we used strict batching, but that caused head-of-line blocking.
+        // Now we use a sliding window (pool) for faster total load times.
+        const concurrencyLimit = 50;
         const spellEntries = Object.entries(manifest);
-        let allSpellResults = [];
-        const totalSpells = spellEntries.length;
         const collectedIssues: string[] = [];
 
-        for (let i = 0; i < totalSpells; i += batchSize) {
-          const batch = spellEntries.slice(i, i + batchSize);
-          const spellPromises = batch.map(async ([id, info]: [string, any]) => {
-            try {
-              // Ensure spell asset requests respect the configured base path (useful when the app is served from a subdirectory).
-              const normalizedPath = `${import.meta.env.BASE_URL}${String(info.path || '').replace(/^\//, '')}`;
-              // Explicitly request JSON to prevent Vite from returning the index.html fallback for SPAs
-              const spellJson = await fetchWithTimeout<Spell>(normalizedPath, {
-                 headers: { 'Accept': 'application/json' },
-                 timeoutMs: 10000
-              });
+        const fetchSpell = async ([id, info]: [string, any]) => {
+          try {
+            // Ensure spell asset requests respect the configured base path
+            const normalizedPath = `${import.meta.env.BASE_URL}${String(info.path || '').replace(/^\//, '')}`;
+            // Explicitly request JSON to prevent Vite from returning the index.html fallback for SPAs
+            const spellJson = await fetchWithTimeout<Spell>(normalizedPath, {
+              headers: { 'Accept': 'application/json' },
+              timeoutMs: 10000
+            });
 
-              return { id, spell: spellJson };
-            } catch (e) {
-              const msg = `Error processing spell file for ${id}: ${String(e)}`;
-              console.error(msg);
-              collectedIssues.push(msg);
-              return null;
-            }
-          });
-          const batchResults = await Promise.all(spellPromises);
-          allSpellResults.push(...batchResults);
-          setLoadingProgress(((i + batch.length) / totalSpells) * 100);
-        }
+            return { id, spell: spellJson };
+          } catch (e) {
+            const msg = `Error processing spell file for ${id}: ${String(e)}`;
+            console.error(msg);
+            collectedIssues.push(msg);
+            return null;
+          }
+        };
+
+        const allSpellResults = await fetchWithConcurrency(
+          spellEntries,
+          concurrencyLimit,
+          fetchSpell,
+          (completed, total) => setLoadingProgress((completed / total) * 100)
+        );
 
         const spellResults = allSpellResults.filter(Boolean);
 
@@ -121,3 +121,38 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 };
 
 export default SpellContext;
+
+/**
+ * Helper function to run async tasks with a concurrency limit.
+ * Efficiently processes a list of items using a pool of workers.
+ */
+async function fetchWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  fn: (item: T) => Promise<R>,
+  onProgress?: (completed: number, total: number) => void
+): Promise<R[]> {
+  const results: R[] = [];
+  const total = items.length;
+  let completed = 0;
+
+  const iterator = items.entries();
+
+  const worker = async () => {
+    for (const [_, item] of iterator) {
+      // No try-catch here; we expect fn to handle errors or bubble them up
+      // if the caller wants to fail fast. In SpellContext, we handle errors inside fetchSpell.
+      const res = await fn(item);
+      results.push(res);
+      completed++;
+      if (onProgress) onProgress(completed, total);
+    }
+  };
+
+  // Start up to 'concurrency' workers
+  const workerCount = Math.min(concurrency, total);
+  const workers = Array.from({ length: workerCount }, () => worker());
+
+  await Promise.all(workers);
+  return results;
+}

@@ -47,7 +47,7 @@ describe('AbilityScoreAllocation', () => {
       />
     );
 
-    expect(screen.getByText('Allocate Ability Scores (Point Buy)')).toBeDefined();
+    expect(screen.getByText('Assign Ability Scores (Point Buy)')).toBeDefined();
     expect(screen.getByText(/Points Remaining:/)).toBeDefined();
   });
 });

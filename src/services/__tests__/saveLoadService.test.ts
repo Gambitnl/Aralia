@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as SaveLoadService from '../saveLoadService';
 import { GameState, GamePhase, NotificationType } from '../../types';
+import { simpleHash } from '../../utils/hashUtils';
 
 // Mock NotificationSystem callback
 const mockNotify = vi.fn();
@@ -162,6 +163,27 @@ describe('SaveLoadService', () => {
             expect(result.success).toBe(false);
             expect(result.message).toContain("incompatible");
             expect(mockNotify).toHaveBeenCalledWith({ message: expect.stringContaining("incompatible"), type: 'warning' });
+        });
+
+        it('should detect checksum mismatch', async () => {
+             await SaveLoadService.saveGame(mockGameState, 'checksum_test');
+             const key = SaveLoadService.getSlotStorageKey('checksum_test');
+
+             // Read the valid save
+             const raw = localStorage.getItem(key);
+             const payload = JSON.parse(raw!);
+
+             // Mutate the state but keep the checksum original
+             payload.state.gold = 999999;
+
+             // Write back the corrupted payload
+             localStorage.setItem(key, JSON.stringify(payload));
+
+             const result = await SaveLoadService.loadGame('checksum_test', mockNotify);
+
+             expect(result.success).toBe(false);
+             expect(result.message).toContain("integrity check failed");
+             expect(mockNotify).toHaveBeenCalledWith({ message: expect.stringContaining("integrity check failed"), type: 'error' });
         });
     });
 

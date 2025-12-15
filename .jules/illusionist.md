@@ -1,0 +1,1 @@
+## 2024-05-22 - Modal Animations **Learning:** `framer-motion`'s `AnimatePresence` is essential for handling exit animations of components that are conditionally rendered (unmounted). **Action:** Always wrap conditionally rendered modals with `AnimatePresence` and use `exit` prop on the `motion.div` to ensure smooth closing transitions.
