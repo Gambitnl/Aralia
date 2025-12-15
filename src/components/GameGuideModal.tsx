@@ -10,6 +10,7 @@ import { generateCharacterFromConfig, CharacterGenerationConfig } from '../servi
 import { PlayerCharacter } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { RACES_DATA, AVAILABLE_CLASSES } from '../constants';
+import { t } from '../utils/i18n';
 
 interface GameGuideModalProps {
   isOpen: boolean;
@@ -63,9 +64,9 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                       const character = generateCharacterFromConfig(toolData.config as CharacterGenerationConfig);
                       if (character) {
                           setGeneratedCharacter(character);
-                          setResponse(`I've drafted a character sheet for ${character.name}. Would you like to recruit them?`);
+                          setResponse(t('game_guide.recruit_prompt', { name: character.name }));
                       } else {
-                          setResponse("I tried to create a character, but the configuration was invalid.");
+                          setResponse(t('game_guide.error_invalid_config'));
                       }
                   } else {
                       setResponse(responseText); 
@@ -78,11 +79,11 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
               setResponse(responseText);
           }
       } else {
-          setResponse("I'm having trouble connecting to the archives. Please try again.");
+          setResponse(t('game_guide.error_connection'));
       }
 
     } catch (err) {
-      setResponse("An error occurred while consulting the guide.");
+      setResponse(t('game_guide.error_general'));
     } finally {
       setLoading(false);
     }
@@ -120,7 +121,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
       <div className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-blue-500/50 w-full max-w-lg flex flex-col max-h-[90vh]">
         <div className="flex justify-between items-center mb-4">
           <h2 id="game-guide-title" className="text-2xl font-bold text-blue-300 font-cinzel">
-            Game Guide
+            {t('game_guide.title')}
           </h2>
           <button
             onClick={onClose}
@@ -132,12 +133,12 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
         </div>
 
         <div className="mb-4 text-sm text-gray-300">
-            <p>Ask a question about gameplay, rules, or ask me to create a new character for your party.</p>
+            <p>{t('game_guide.intro')}</p>
             <button 
                 onClick={() => setShowCreationTools(!showCreationTools)}
                 className="text-sky-400 text-xs hover:underline mt-2 flex items-center gap-1"
             >
-                {showCreationTools ? '▼ Hide Creation Tools' : '▶ Show Creation Tools'}
+                {showCreationTools ? t('game_guide.toggle_tools_hide') : t('game_guide.toggle_tools_show')}
             </button>
         </div>
 
@@ -151,10 +152,10 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                     } as any}
                     className="mb-4 overflow-hidden bg-gray-900/50 p-3 rounded-lg border border-gray-700"
                 >
-                    <h3 className="text-xs font-bold text-gray-400 uppercase mb-2">Quick Character Creator</h3>
+                    <h3 className="text-xs font-bold text-gray-400 uppercase mb-2">{t('game_guide.quick_creator_title')}</h3>
                     <div className="grid grid-cols-2 gap-2 mb-3">
                         <div>
-                            <label className="block text-[10px] text-gray-500 mb-1">Race</label>
+                            <label className="block text-[10px] text-gray-500 mb-1">{t('game_guide.label_race')}</label>
                             <select 
                                 value={quickRace} 
                                 onChange={(e) => setQuickRace(e.target.value)}
@@ -166,7 +167,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                             </select>
                         </div>
                         <div>
-                            <label className="block text-[10px] text-gray-500 mb-1">Class</label>
+                            <label className="block text-[10px] text-gray-500 mb-1">{t('game_guide.label_class')}</label>
                             <select 
                                 value={quickClass} 
                                 onChange={(e) => setQuickClass(e.target.value)}
@@ -183,7 +184,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                         disabled={loading}
                         className="w-full bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold py-2 rounded shadow-sm transition-colors disabled:bg-gray-600"
                     >
-                        Generate Character
+                        {t('game_guide.button_generate')}
                     </button>
                 </motion.div>
             )}
@@ -196,7 +197,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="e.g., What is a saving throw?"
+                placeholder={t('game_guide.placeholder_query')}
                 className="flex-grow px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none"
             />
             <button
@@ -204,7 +205,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                 disabled={loading || !query.trim()}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 text-white font-semibold rounded-lg transition-colors"
             >
-                {loading ? 'Thinking...' : 'Ask'}
+                {loading ? t('game_guide.button_thinking') : t('game_guide.button_ask')}
             </button>
           </div>
         </form>
@@ -237,20 +238,20 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
             >
                 <h3 className="text-lg font-bold text-amber-400 mb-2">{generatedCharacter.name}</h3>
                 <div className="text-sm text-gray-300 grid grid-cols-2 gap-2 mb-3">
-                    <p>Race: <span className="text-white">{generatedCharacter.race.name}</span></p>
-                    <p>Class: <span className="text-white">{generatedCharacter.class.name}</span></p>
-                    <p>HP: <span className="text-green-400">{generatedCharacter.maxHp}</span></p>
-                    <p>AC: <span className="text-blue-400">{generatedCharacter.armorClass}</span></p>
+                    <p>{t('game_guide.character_label_race')} <span className="text-white">{generatedCharacter.race.name}</span></p>
+                    <p>{t('game_guide.character_label_class')} <span className="text-white">{generatedCharacter.class.name}</span></p>
+                    <p>{t('game_guide.character_label_hp')} <span className="text-green-400">{generatedCharacter.maxHp}</span></p>
+                    <p>{t('game_guide.character_label_ac')} <span className="text-blue-400">{generatedCharacter.armorClass}</span></p>
                 </div>
                 {onAction ? (
                     <button 
                         onClick={handleAddCharacter}
                         className="w-full bg-green-600 hover:bg-green-500 text-white py-2 rounded font-bold shadow-md transition-colors"
                     >
-                        Add to Party
+                        {t('game_guide.button_add_party')}
                     </button>
                 ) : (
-                    <p className="text-xs text-red-400 italic">Cannot add to party: Action handler missing.</p>
+                    <p className="text-xs text-red-400 italic">{t('game_guide.error_handler_missing')}</p>
                 )}
             </motion.div>
         )}
