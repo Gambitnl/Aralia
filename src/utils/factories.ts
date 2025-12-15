@@ -3,6 +3,11 @@ import {
   SpellSchool,
   SpellRarity,
   SpellAttackType,
+  CastingTime,
+  Range,
+  Components,
+  Duration,
+  SpellTargeting,
   DamageEffect
 } from '@/types/spells';
 
@@ -12,15 +17,31 @@ import {
   GamePhase,
   PlayerCharacter,
   CombatCharacter,
+  Item,
+  GameMessage,
+  MapData,
+  DiscoveryEntry,
+  Quest,
+  Monster,
+  GroundingChunk,
+  TempPartyMember,
+  Action,
+  GeminiLogEntry,
+  NpcMemory,
+  DiscoveryResidue,
+  EconomyState,
   AbilityScores,
   Race,
   Class,
+  Skill,
   TransportMode,
   CombatState
 } from '@/types/index';
 
 import {
-  TurnState
+  TurnState,
+  CombatAction,
+  Position
 } from '@/types/combat';
 
 /**
@@ -29,6 +50,18 @@ import {
  * @returns A complete Spell object.
  */
 export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
+  const defaultCastingTime: CastingTime = { value: 1, unit: "action" };
+  const defaultRange: Range = { type: "ranged", distance: 60 };
+  const defaultComponents: Components = { verbal: true, somatic: true, material: false };
+  const defaultDuration: Duration = { type: "instantaneous", concentration: false };
+
+  // Explicitly using SpellTargeting and DamageEffect for clarity/defaults
+  const defaultTargeting: SpellTargeting = {
+    type: "single",
+    range: 60,
+    validTargets: ["creatures", "enemies"]
+  };
+
   const defaultDamageEffect: DamageEffect = {
     type: "DAMAGE",
     trigger: { type: "immediate" },
@@ -46,35 +79,47 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
     rarity: "common" as SpellRarity,
     attackType: "ranged" as SpellAttackType,
 
-    castingTime: {
-      value: 1,
-      unit: "action"
-    },
-
-    range: {
-      type: "ranged",
-      distance: 60
-    },
-
-    components: {
-      verbal: true,
-      somatic: true,
-      material: false
-    },
-
-    duration: {
-      type: "instantaneous",
-      concentration: false
-    },
-
-    targeting: {
-      type: "single",
-      range: 60,
-      validTargets: ["creatures", "enemies"]
-    },
+    castingTime: defaultCastingTime,
+    range: defaultRange,
+    components: defaultComponents,
+    duration: defaultDuration,
+    targeting: defaultTargeting,
 
     effects: [defaultDamageEffect],
 
+    ...overrides
+  };
+}
+
+/**
+ * Creates a mock Item object with sensible defaults.
+ */
+export function createMockItem(overrides: Partial<Item> = {}): Item {
+  return {
+    id: `item-${crypto.randomUUID()}`,
+    name: "Mock Item",
+    type: "weapon",
+    description: "A generic mock item.",
+    rarity: "common", // Note: Item interface doesn't strictly type this as a union yet, assumed common string
+    weight: 1,
+    // value: 10, // Removed: value is not in Item interface
+    ...overrides
+  };
+}
+
+/**
+ * Creates a mock Quest object with sensible defaults.
+ */
+export function createMockQuest(overrides: Partial<Quest> = {}): Quest {
+  return {
+    id: `quest-${crypto.randomUUID()}`,
+    title: "Mock Quest",
+    description: "A quest for testing purposes.",
+    status: "Active", // Matches QuestStatus.Active enum string value
+    objectives: [],
+    giverId: "npc-123",
+    dateStarted: getGameEpoch().getTime(),
+    rewards: { xp: 100, gold: 50 },
     ...overrides
   };
 }
@@ -113,6 +158,8 @@ export function createMockPlayerCharacter(overrides: Partial<PlayerCharacter> = 
     Charisma: 10
   };
 
+  const mockSkills: Skill[] = [];
+
   return {
     id: `char-${crypto.randomUUID()}`,
     name: "Mock Hero",
@@ -120,7 +167,7 @@ export function createMockPlayerCharacter(overrides: Partial<PlayerCharacter> = 
     class: mockClass,
     abilityScores: mockAbilities,
     finalAbilityScores: mockAbilities,
-    skills: [],
+    skills: mockSkills,
     hp: 10,
     maxHp: 10,
     armorClass: 10,
@@ -140,19 +187,19 @@ export function createMockPlayerCharacter(overrides: Partial<PlayerCharacter> = 
 export function createMockGameState(overrides: Partial<GameState> = {}): GameState {
   return {
     phase: GamePhase.PLAYING,
-    party: [],
-    tempParty: null,
-    inventory: [],
+    party: [] as PlayerCharacter[],
+    tempParty: null as TempPartyMember[] | null,
+    inventory: [] as Item[],
     gold: 100,
     currentLocationId: "village-center",
     subMapCoordinates: { x: 0, y: 0 },
-    messages: [],
+    messages: [] as GameMessage[],
     isLoading: false,
     loadingMessage: null,
     isImageLoading: false,
     error: null,
     worldSeed: 12345,
-    mapData: null,
+    mapData: null as MapData | null,
     isMapVisible: true,
     isSubmapVisible: true,
     isPartyOverlayVisible: true,
@@ -161,7 +208,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
     isGameGuideVisible: false,
     dynamicLocationItemIds: {},
     currentLocationActiveDynamicNpcIds: null,
-    geminiGeneratedActions: [],
+    geminiGeneratedActions: [] as Action[],
     characterSheetModal: {
       isOpen: false,
       character: null
@@ -171,13 +218,13 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
     isDevMenuVisible: false,
     isPartyEditorVisible: false,
     isGeminiLogViewerVisible: false,
-    geminiInteractionLog: [],
+    geminiInteractionLog: [] as GeminiLogEntry[],
     hasNewRateLimitError: false,
     devModelOverride: null,
 
     isEncounterModalVisible: false,
-    generatedEncounter: null,
-    encounterSources: null,
+    generatedEncounter: null as Monster[] | null,
+    encounterSources: null as GroundingChunk[] | null,
     encounterError: null,
 
     currentEnemies: null,
@@ -187,24 +234,25 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
 
     inspectedTileDescriptions: {},
 
-    discoveryLog: [],
+    discoveryLog: [] as DiscoveryEntry[],
     unreadDiscoveryCount: 0,
     isDiscoveryLogVisible: false,
     isGlossaryVisible: false,
 
-    npcMemory: {},
+    npcMemory: {} as Record<string, NpcMemory>,
 
-    locationResidues: {},
+    locationResidues: {} as Record<string, DiscoveryResidue>,
 
     metNpcIds: [],
 
     merchantModal: {
       isOpen: false,
       merchantName: "",
-      merchantInventory: [],
+      merchantInventory: [] as Item[],
+      economy: undefined as EconomyState | undefined,
     },
 
-    questLog: [],
+    questLog: [] as Quest[],
 
     ...overrides
   };
@@ -228,6 +276,8 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
     features: []
   };
 
+  const defaultPosition: Position = { x: 0, y: 0 };
+
   const defaults: CombatCharacter = {
     id: `combat-char-${crypto.randomUUID()}`,
     name: "Mock Combatant",
@@ -236,7 +286,7 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
     currentHP: 10,
     maxHP: 10,
     initiative: 10,
-    position: { x: 0, y: 0 },
+    position: defaultPosition,
     stats: {
       strength: 10,
       dexterity: 10,
@@ -265,7 +315,7 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
     riders: [],
     savePenaltyRiders: [],
     activeLightSources: []
-  } as unknown as CombatCharacter; // Using unknown first to avoid strict checks if I missed a minor field, but the structure matches.
+  } as unknown as CombatCharacter;
 
   return { ...defaults, ...overrides };
 }
@@ -281,7 +331,7 @@ export function createMockCombatState(overrides: Partial<CombatState> = {}): Com
     turnOrder: [],
     currentCharacterId: null,
     phase: 'planning',
-    actionsThisTurn: []
+    actionsThisTurn: [] as CombatAction[]
   };
 
   return {
