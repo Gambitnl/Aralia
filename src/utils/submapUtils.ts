@@ -8,6 +8,7 @@ import { SeededFeatureConfig, PathDetails, BiomeVisuals } from '../types';
 import { LOCATIONS, STARTING_LOCATION_ID, BIOMES } from '../constants';
 import { biomeVisualsConfig, defaultBiomeVisuals } from '../config/submapVisualsConfig';
 import { CellularAutomataGenerator } from '../services/cellularAutomataService';
+import { simpleHash as generalHash } from './hashUtils';
 
 // --- Hashing ---
 /**
@@ -16,12 +17,8 @@ import { CellularAutomataGenerator } from '../services/cellularAutomataService';
  * seeded RNG helpers without re-implementing the hash algorithm.
  */
 export const simpleHash = (worldSeed: number, worldX: number, worldY: number, biomeSeedText: string, submapX: number, submapY: number, seedSuffix: string): number => {
-    let h = 0;
     const str = `${worldSeed},${worldX},${worldY},${submapX},${submapY},${biomeSeedText},${seedSuffix}`;
-    for (let i = 0; i < str.length; i++) {
-        h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
-    }
-    return Math.abs(h);
+    return generalHash(str);
 };
 
 /**
