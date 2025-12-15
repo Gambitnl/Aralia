@@ -16,19 +16,9 @@ import {
   Item,
 } from '../../../types';
 import { SKILLS_DATA, WEAPONS_DATA, RACES_DATA, TIEFLING_LEGACIES } from '../../../constants';
-<<<<<<< ours
-<<<<<<< ours
 import { BACKGROUNDS } from '../../../data/backgrounds';
 import { CharacterCreationState } from '../state/characterCreatorState';
 import { getAbilityModifierValue, applyAllFeats } from '../../../utils/characterUtils';
-=======
-import { CharacterCreationState } from '../state/characterCreatorState'; 
-import { getAbilityModifierValue } from '../../../utils/characterUtils';
->>>>>>> theirs
-=======
-import { CharacterCreationState } from '../state/characterCreatorState'; 
-import { getAbilityModifierValue } from '../../../utils/characterUtils';
->>>>>>> theirs
 
 // --- Helper Functions for Character Assembly ---
 
@@ -453,7 +443,7 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
     
     const castingProperties = assembleCastingProperties(currentState);
     
-    const assembledCharacter: PlayerCharacter = {
+    let assembledCharacter: PlayerCharacter = {
       id: `${Date.now()}-${(currentName || "char").replace(/\s+/g, '-')}`,
       name: currentName || "Adventurer",
       age: currentState.characterAge,
@@ -483,8 +473,6 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       selectedWarlockPatron: currentState.selectedWarlockPatron || undefined,
       racialSelections: currentState.racialSelections,
     };
-<<<<<<< ours
-<<<<<<< ours
 
     // Apply age-based modifications
     if (currentState.characterAge) {
@@ -523,12 +511,6 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       assembledCharacter = applyAllFeats(assembledCharacter, assembledCharacter.feats, currentState.featChoices);
     }
 
-=======
-    
->>>>>>> theirs
-=======
-    
->>>>>>> theirs
     return assembledCharacter;
 
   }, []);
