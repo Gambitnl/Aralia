@@ -606,9 +606,8 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-80 z-50 p-4"
+      className="fixed inset-0 bg-black bg-opacity-80 z-50 p-4 overflow-visible"
       aria-modal="true" role="dialog" aria-labelledby="glossary-title"
-      style={{ overflow: 'visible' }}
       onMouseDown={(e) => {
         if (resizeState.isResizing) {
           e.preventDefault();
@@ -617,7 +616,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
     >
       <div
         ref={modalRef}
-        className="bg-gray-900 text-gray-200 p-6 rounded-xl shadow-2xl border border-gray-700 flex flex-col relative"
+        className="bg-gray-900 text-gray-200 p-6 rounded-xl shadow-2xl border border-gray-700 flex flex-col relative overflow-visible"
         style={{
           width: `${modalSize.width}px`,
           height: `${modalSize.height}px`,
@@ -631,59 +630,50 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
           transform: modalPosition ? 'none' : 'translate(-50%, -50%)',
           margin: modalPosition ? '0' : undefined,
           userSelect: resizeState.isResizing ? 'none' : undefined,
-          overflow: 'visible',
         }}
       >
         {/* Modal resize handles - subtle, appear on hover */}
         {/* Corner grips - small dots that glow on hover */}
         <div
-          className="absolute -top-1 -left-1 w-2.5 h-2.5 cursor-nwse-resize rounded-full z-[120] bg-amber-400/30 hover:bg-amber-400 hover:shadow-[0_0_6px_rgba(251,191,36,0.6)] transition-all duration-200"
+          className="absolute -top-1 -left-1 w-2.5 h-2.5 cursor-nwse-resize rounded-full z-[120] bg-amber-400/30 hover:bg-amber-400 hover:shadow-[0_0_6px_rgba(251,191,36,0.6)] transition-all duration-200 select-none pointer-events-auto"
           onMouseDown={(e) => handleResizeStart(e, 'top-left')}
-          style={{ userSelect: 'none', pointerEvents: 'auto' }}
           title="Resize"
         />
         <div
-          className="absolute -top-1 -right-1 w-2.5 h-2.5 cursor-nesw-resize rounded-full z-[120] bg-amber-400/30 hover:bg-amber-400 hover:shadow-[0_0_6px_rgba(251,191,36,0.6)] transition-all duration-200"
+          className="absolute -top-1 -right-1 w-2.5 h-2.5 cursor-nesw-resize rounded-full z-[120] bg-amber-400/30 hover:bg-amber-400 hover:shadow-[0_0_6px_rgba(251,191,36,0.6)] transition-all duration-200 select-none pointer-events-auto"
           onMouseDown={(e) => handleResizeStart(e, 'top-right')}
-          style={{ userSelect: 'none', pointerEvents: 'auto' }}
           title="Resize"
         />
         <div
-          className="absolute -bottom-1 -left-1 w-2.5 h-2.5 cursor-nesw-resize rounded-full z-[120] bg-amber-400/30 hover:bg-amber-400 hover:shadow-[0_0_6px_rgba(251,191,36,0.6)] transition-all duration-200"
+          className="absolute -bottom-1 -left-1 w-2.5 h-2.5 cursor-nesw-resize rounded-full z-[120] bg-amber-400/30 hover:bg-amber-400 hover:shadow-[0_0_6px_rgba(251,191,36,0.6)] transition-all duration-200 select-none pointer-events-auto"
           onMouseDown={(e) => handleResizeStart(e, 'bottom-left')}
-          style={{ userSelect: 'none', pointerEvents: 'auto' }}
           title="Resize"
         />
         <div
-          className="absolute -bottom-1 -right-1 w-2.5 h-2.5 cursor-nwse-resize rounded-full z-[120] bg-amber-400/30 hover:bg-amber-400 hover:shadow-[0_0_6px_rgba(251,191,36,0.6)] transition-all duration-200"
+          className="absolute -bottom-1 -right-1 w-2.5 h-2.5 cursor-nwse-resize rounded-full z-[120] bg-amber-400/30 hover:bg-amber-400 hover:shadow-[0_0_6px_rgba(251,191,36,0.6)] transition-all duration-200 select-none pointer-events-auto"
           onMouseDown={(e) => handleResizeStart(e, 'bottom-right')}
-          style={{ userSelect: 'none', pointerEvents: 'auto' }}
           title="Resize"
         />
 
         {/* Edge handles - thin bars that appear on hover */}
         <div
-          className="absolute -top-0.5 left-1/2 transform -translate-x-1/2 w-12 h-1 cursor-ns-resize z-[110] rounded-full bg-amber-400/20 hover:bg-amber-400/80 hover:shadow-[0_0_4px_rgba(251,191,36,0.5)] transition-all duration-200"
+          className="absolute -top-0.5 left-1/2 transform -translate-x-1/2 w-12 h-1 cursor-ns-resize z-[110] rounded-full bg-amber-400/20 hover:bg-amber-400/80 hover:shadow-[0_0_4px_rgba(251,191,36,0.5)] transition-all duration-200 select-none pointer-events-auto"
           onMouseDown={(e) => handleResizeStart(e, 'top')}
-          style={{ userSelect: 'none', pointerEvents: 'auto' }}
           title="Resize"
         />
         <div
-          className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 w-12 h-1 cursor-ns-resize z-[110] rounded-full bg-amber-400/20 hover:bg-amber-400/80 hover:shadow-[0_0_4px_rgba(251,191,36,0.5)] transition-all duration-200"
+          className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 w-12 h-1 cursor-ns-resize z-[110] rounded-full bg-amber-400/20 hover:bg-amber-400/80 hover:shadow-[0_0_4px_rgba(251,191,36,0.5)] transition-all duration-200 select-none pointer-events-auto"
           onMouseDown={(e) => handleResizeStart(e, 'bottom')}
-          style={{ userSelect: 'none', pointerEvents: 'auto' }}
           title="Resize"
         />
         <div
-          className="absolute -left-0.5 top-1/2 transform -translate-y-1/2 w-1 h-12 cursor-ew-resize z-[110] rounded-full bg-amber-400/20 hover:bg-amber-400/80 hover:shadow-[0_0_4px_rgba(251,191,36,0.5)] transition-all duration-200"
+          className="absolute -left-0.5 top-1/2 transform -translate-y-1/2 w-1 h-12 cursor-ew-resize z-[110] rounded-full bg-amber-400/20 hover:bg-amber-400/80 hover:shadow-[0_0_4px_rgba(251,191,36,0.5)] transition-all duration-200 select-none pointer-events-auto"
           onMouseDown={(e) => handleResizeStart(e, 'left')}
-          style={{ userSelect: 'none', pointerEvents: 'auto' }}
           title="Resize"
         />
         <div
-          className="absolute -right-0.5 top-1/2 transform -translate-y-1/2 w-1 h-12 cursor-ew-resize z-[110] rounded-full bg-amber-400/20 hover:bg-amber-400/80 hover:shadow-[0_0_4px_rgba(251,191,36,0.5)] transition-all duration-200"
+          className="absolute -right-0.5 top-1/2 transform -translate-y-1/2 w-1 h-12 cursor-ew-resize z-[110] rounded-full bg-amber-400/20 hover:bg-amber-400/80 hover:shadow-[0_0_4px_rgba(251,191,36,0.5)] transition-all duration-200 select-none pointer-events-auto"
           onMouseDown={(e) => handleResizeStart(e, 'right')}
-          style={{ userSelect: 'none', pointerEvents: 'auto' }}
           title="Resize"
         />
         <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-600">
