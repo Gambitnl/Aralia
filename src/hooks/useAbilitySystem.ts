@@ -389,8 +389,14 @@ export const useAbilitySystem = ({
   ) => {
 
     // --- Path A: Spell System (Command Pattern) ---
-    // TODO: Add defensive validation for ability.spell properties (e.g., check for required fields like id, level, effects) before passing to executeSpell to catch data issues early
     if (ability.spell) {
+      // Validate Spell Integrity
+      if (!ability.spell.id || ability.spell.level === undefined || !ability.spell.effects) {
+        console.error("Invalid spell data: Missing required fields (id, level, or effects)", ability.spell);
+        cancelTargeting();
+        return;
+      }
+
       const targets = targetCharacterIds
         .map(id => characters.find(c => c.id === id))
         .filter((c): c is CombatCharacter => !!c);
