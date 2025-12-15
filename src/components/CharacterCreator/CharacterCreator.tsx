@@ -7,7 +7,15 @@
  * Weapon Mastery selection, and finally Naming and Reviewing the character.
  * It manages the state for each step using a useReducer hook.
  */
+<<<<<<< ours
+<<<<<<< ours
 import React, { useReducer, useCallback, useContext, useMemo, useState } from 'react';
+=======
+import React, { useReducer, useCallback, useContext } from 'react';
+>>>>>>> theirs
+=======
+import React, { useReducer, useCallback, useContext } from 'react';
+>>>>>>> theirs
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   PlayerCharacter,
@@ -30,7 +38,6 @@ import {
   CLASSES_DATA,
 } from '../../constants';
 import { FEATS_DATA } from '../../data/feats/featsData';
-import { evaluateFeatPrerequisites } from '../../utils/characterUtils';
 import RaceSelection from './Race/RaceSelection';
 import AgeSelection from './AgeSelection';
 import BackgroundSelection from './BackgroundSelection';
@@ -104,6 +111,8 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
 
   const { selectedRace, selectedClass, finalAbilityScores, racialSpellChoiceContext } = state;
 
+<<<<<<< ours
+<<<<<<< ours
   const featOptions = useMemo(() => {
     const abilityScores = finalAbilityScores || state.baseAbilityScores || {
       Strength: 0, Dexterity: 0, Constitution: 0, Intelligence: 0, Wisdom: 0, Charisma: 0,
@@ -128,6 +137,10 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
   // A quick availability check lets us skip the feat screen when no picks are valid and helps the UI explain why skipping is fine.
   const hasEligibleFeats = useMemo(() => featOptions.some(option => option.isEligible), [featOptions]);
 
+=======
+>>>>>>> theirs
+=======
+>>>>>>> theirs
   const handleRaceSelect = useCallback((raceId: string) => {
     dispatch({ type: 'SELECT_RACE', payload: RACES_DATA[raceId] });
   }, [dispatch]);
@@ -366,6 +379,8 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
          if (!selectedClass) { dispatch({type: 'SET_STEP', payload: CreationStep.Class }); return null; }
          return <WeaponMasterySelection charClass={selectedClass} onMasteriesSelect={handleWeaponMasteriesSelect} onBack={goBack} />
       case CreationStep.FeatSelection:
+<<<<<<< ours
+<<<<<<< ours
          return (
           <FeatSelection
             availableFeats={featOptions}
@@ -381,6 +396,12 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
             dispatch={appDispatch}
           />
         );
+=======
+         return <FeatSelection availableFeats={FEATS_DATA} selectedFeatId={state.selectedFeat || undefined} onSelectFeat={handleFeatSelect} onBack={goBack} />;
+>>>>>>> theirs
+=======
+         return <FeatSelection availableFeats={FEATS_DATA} selectedFeatId={state.selectedFeat || undefined} onSelectFeat={handleFeatSelect} onBack={goBack} />;
+>>>>>>> theirs
       case CreationStep.NameAndReview:
         const characterToPreview: PlayerCharacter | null = generatePreviewCharacter(state, state.characterName);
         if (!characterToPreview) {

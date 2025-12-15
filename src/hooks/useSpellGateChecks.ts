@@ -1,5 +1,5 @@
 // TODO: Create automated validation scripts to check spell data consistency between JSON and Markdown files before deployment
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { GlossaryEntry } from "../types";
 import level1GapsMd from "../../docs/tasks/spell-system-overhaul/gaps/LEVEL-1-GAPS.md?raw";
 import cantripGapsMd from "../../docs/tasks/spell-system-overhaul/1I-MIGRATE-CANTRIPS-BATCH-1.md?raw";
@@ -298,6 +298,8 @@ const compareFields = async (
 
 export const useSpellGateChecks = (entries: GlossaryEntry[] | null) => {
   const [results, setResults] = useState<Record<string, GateResult>>({});
+  const [recheckTrigger, setRecheckTrigger] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   const knownGaps = useMemo(buildKnownGapSet, []);
   const entryMap = useMemo(() => {
@@ -306,9 +308,15 @@ export const useSpellGateChecks = (entries: GlossaryEntry[] | null) => {
     return map;
   }, [entries]);
 
+  // Callback to trigger a recheck
+  const recheck = useCallback(() => {
+    setRecheckTrigger(prev => prev + 1);
+  }, []);
+
   useEffect(() => {
     if (!entries) return;
 
+    setIsLoading(true);
     const run = async () => {
       try {
         const res = await fetch(`${import.meta.env.BASE_URL}data/spells_manifest.json`);
@@ -406,14 +414,16 @@ export const useSpellGateChecks = (entries: GlossaryEntry[] | null) => {
         }));
 
         setResults(next);
+        setIsLoading(false);
       } catch (err) {
         console.error("Spell gate check failed:", err);
         setResults({});
+        setIsLoading(false);
       }
     };
 
     run();
-  }, [entries, entryMap, knownGaps]);
+  }, [entries, entryMap, knownGaps, recheckTrigger]);
 
-  return results;
+  return { results, recheck, isLoading };
 };

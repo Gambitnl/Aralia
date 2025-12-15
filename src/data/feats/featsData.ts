@@ -1,119 +1,75 @@
 import { Feat } from '../../types';
 
-/**
- * Central feat catalogue. These entries intentionally focus on the
- * mechanical pieces the character builder and level-up systems need
- * (prerequisites + numerical benefits) rather than full rule text.
- */
 export const FEATS_DATA: Feat[] = [
-  {
-    id: 'ability_score_improvement',
-    name: 'Ability Score Improvement',
-    description: 'Increase one ability score by 2, or two ability scores by 1 (to a max of 20).',
-    benefits: {
-      abilityScoreIncrease: {},
-    },
-  },
   {
     id: 'actor',
     name: 'Actor',
-    description: 'Gain advantage on Performance and Deception checks made to adopt a persona and learn mimicry.',
-    prerequisites: { abilityScores: { Charisma: 13 } },
+    description: 'Skilled at mimicry and dramatics.',
+<<<<<<< ours
     benefits: {
-      abilityScoreIncrease: { Charisma: 1 },
-      skillProficiencies: ['deception', 'performance'],
-    },
+        abilityScoreIncrease: { Charisma: 1 },
+    }
   },
   {
     id: 'alert',
     name: 'Alert',
-    description: 'You stay wary at all times, improving your initiative and awareness.',
+    description: 'Always on the lookout for danger.',
     benefits: {
-      initiativeBonus: 5,
-    },
+        initiativeBonus: 5,
+    }
   },
   {
     id: 'athlete',
     name: 'Athlete',
-    description: 'Conditioning improves your balance, agility, and stamina.',
+    description: 'Undergone extensive physical training.',
     benefits: {
-      abilityScoreIncrease: { Strength: 1, Dexterity: 1 },
-    },
+        abilityScoreIncrease: { Strength: 1 }, // or Dexterity
+    }
   },
   {
     id: 'charger',
     name: 'Charger',
-    description: 'Harness your momentum to hit harder when dashing into melee.',
-    prerequisites: { minLevel: 4 },
-    benefits: {
-      abilityScoreIncrease: { Strength: 1 },
-    },
+    description: 'When you use your action to Dash, you can use a bonus action to make one melee weapon attack or to shove a creature.',
   },
   {
-    id: 'chef',
-    name: 'Chef',
-    description: 'Culinary training grants you hearty meals and better stamina.',
-    prerequisites: { minLevel: 4 },
-    benefits: {
-      abilityScoreIncrease: { Constitution: 1, Wisdom: 1 },
-      hpMaxIncreasePerLevel: 1,
-    },
+      id: 'dungeon_delver',
+      name: 'Dungeon Delver',
+      description: 'Alert to the hidden traps and secret doors found in many dungeons.',
+      benefits: {
+          resistance: ['traps'], // Simplified for data
+      }
   },
   {
-    id: 'dungeon_delver',
-    name: 'Dungeon Delver',
-    description: 'Heightened senses help you avoid traps and hidden dangers underground.',
-    prerequisites: { minLevel: 4 },
-    benefits: {
-      resistance: ['traps'],
-      skillProficiencies: ['investigation', 'perception'],
-    },
+      id: 'durable',
+      name: 'Durable',
+      description: 'Hardy and resilient, you gain benefits when you roll Hit Dice.',
+      benefits: {
+          abilityScoreIncrease: { Constitution: 1 }
+      }
   },
   {
-    id: 'durable',
-    name: 'Durable',
-    description: 'Hardy and resilient, you recover more health when resting.',
-    benefits: {
-      abilityScoreIncrease: { Constitution: 1 },
-      hpMaxIncreasePerLevel: 1,
-    },
+      id: 'healer',
+      name: 'Healer',
+      description: 'You are an able physician, allowing you to mend wounds quickly and get your allies back in the fight.',
   },
   {
-    id: 'healer',
-    name: 'Healer',
-    description: 'Battlefield medicine keeps your allies in the fight.',
-    benefits: {
-      abilityScoreIncrease: { Wisdom: 1 },
-      skillProficiencies: ['medicine'],
-    },
+      id: 'lucky',
+      name: 'Lucky',
+      description: 'You have inexplicable luck that seems to kick in at just the right moment.',
   },
   {
-    id: 'lucky',
-    name: 'Lucky',
-    description: 'Fortune favors you when the stakes are high.',
-  },
-  {
-    id: 'mobile',
-    name: 'Mobile',
-    description: 'Exceptional speed and footwork let you dart around the battlefield.',
-    benefits: {
-      speedIncrease: 10,
-      abilityScoreIncrease: { Dexterity: 1 },
-    },
-  },
-  {
-    id: 'observant',
-    name: 'Observant',
-    description: 'Attentive eyes and ears sharpen your awareness of your surroundings.',
-    benefits: {
-      abilityScoreIncrease: { Intelligence: 1, Wisdom: 1 },
-      skillProficiencies: ['investigation', 'insight'],
-    },
+      id: 'mobile',
+      name: 'Mobile',
+      description: 'You are exceptionally speedy and agile.',
+      benefits: {
+          speedIncrease: 10
+      }
   },
   // Updated 2025-12-11: Changed from hardcoded Constitution to selectable ability score
   // Player chooses one of six abilities; gains +1 to that ability AND proficiency in that saving throw
   // TODO: Implement UI for ability selection and logic to apply matching save proficiency
   {
+<<<<<<< ours
     id: 'resilient',
     name: 'Resilient',
     description: 'Bolster a saving throw of your choice. Increase the chosen ability by 1 and gain proficiency in saving throws using that ability.',
@@ -122,10 +78,19 @@ export const FEATS_DATA: Feat[] = [
       selectableAbilityScores: ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'],
       savingThrowLinkedToAbility: true,
     },
+=======
+      id: 'observer',
+      name: 'Observer',
+      description: 'Quick to notice details of your environment.',
+      benefits: {
+          abilityScoreIncrease: { Intelligence: 1 }, // or Wisdom
+      }
+>>>>>>> theirs
   },
   // Updated 2025-12-11: Changed from hardcoded skills to selectable
   // TODO: Implement UI for selecting 3 skills from the full skill list
   {
+<<<<<<< ours
     id: 'skilled',
     name: 'Skilled',
     description: 'You gain proficiency in three skills of your choice.',
@@ -185,10 +150,24 @@ export const FEATS_DATA: Feat[] = [
     benefits: {
       abilityScoreIncrease: { Strength: 1 },
     },
+=======
+    benefits: {
+        abilityScoreIncrease: { Charisma: 1 },
+    }
+  },
+  {
+    id: 'alert',
+    name: 'Alert',
+    description: 'Always on the lookout for danger.',
+    benefits: {
+        initiativeBonus: 5,
+    }
+>>>>>>> theirs
   },
   // Updated 2025-12-11: Changed from giving both STR+1 and CON+1 to selecting one
   // TODO: Implement UI for ability selection; also needs improvised weapon and unarmed strike mechanics
   {
+<<<<<<< ours
     id: 'tavern_brawler',
     name: 'Tavern Brawler',
     description:
@@ -644,4 +623,89 @@ export const FEATS_DATA: Feat[] = [
       requiresFightingStyle: true,
     },
   },
+=======
+      id: 'resilient',
+      name: 'Resilient',
+      description: 'Choose one ability score. You gain proficiency in saving throws using the chosen ability.',
+      benefits: {
+          abilityScoreIncrease: { Constitution: 1 } // Placeholder, usually requires choice
+      }
+  },
+  {
+=======
+    id: 'athlete',
+    name: 'Athlete',
+    description: 'Undergone extensive physical training.',
+    benefits: {
+        abilityScoreIncrease: { Strength: 1 }, // or Dexterity
+    }
+  },
+  {
+    id: 'charger',
+    name: 'Charger',
+    description: 'When you use your action to Dash, you can use a bonus action to make one melee weapon attack or to shove a creature.',
+  },
+  {
+      id: 'dungeon_delver',
+      name: 'Dungeon Delver',
+      description: 'Alert to the hidden traps and secret doors found in many dungeons.',
+      benefits: {
+          resistance: ['traps'], // Simplified for data
+      }
+  },
+  {
+      id: 'durable',
+      name: 'Durable',
+      description: 'Hardy and resilient, you gain benefits when you roll Hit Dice.',
+      benefits: {
+          abilityScoreIncrease: { Constitution: 1 }
+      }
+  },
+  {
+      id: 'healer',
+      name: 'Healer',
+      description: 'You are an able physician, allowing you to mend wounds quickly and get your allies back in the fight.',
+  },
+  {
+      id: 'lucky',
+      name: 'Lucky',
+      description: 'You have inexplicable luck that seems to kick in at just the right moment.',
+  },
+  {
+      id: 'mobile',
+      name: 'Mobile',
+      description: 'You are exceptionally speedy and agile.',
+      benefits: {
+          speedIncrease: 10
+      }
+  },
+  {
+      id: 'observer',
+      name: 'Observer',
+      description: 'Quick to notice details of your environment.',
+      benefits: {
+          abilityScoreIncrease: { Intelligence: 1 }, // or Wisdom
+      }
+  },
+  {
+      id: 'resilient',
+      name: 'Resilient',
+      description: 'Choose one ability score. You gain proficiency in saving throws using the chosen ability.',
+      benefits: {
+          abilityScoreIncrease: { Constitution: 1 } // Placeholder, usually requires choice
+      }
+  },
+  {
+>>>>>>> theirs
+      id: 'tough',
+      name: 'Tough',
+      description: 'Your hit point maximum increases by an amount equal to twice your level when you gain this feat.',
+      benefits: {
+          hpMaxIncreasePerLevel: 2
+      }
+  }
+<<<<<<< ours
+>>>>>>> theirs
+=======
+>>>>>>> theirs
 ];

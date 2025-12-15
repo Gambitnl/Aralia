@@ -187,6 +187,8 @@ const getResetStateForNewRace = (): Partial<CharacterCreationState> => {
   return { ...resettableFields, racialSelections: {} };
 };
 
+<<<<<<< ours
+<<<<<<< ours
 // Determine whether the feat step should even appear for the current snapshot of the character.
 // We compute this in the reducer so navigation/backtracking logic can skip the screen entirely when nothing qualifies.
 const canOfferFeatAtLevelOne = (state: CharacterCreationState): boolean => {
@@ -281,6 +283,54 @@ const getPreviousStepBeforeFeat = (state: CharacterCreationState): CreationStep 
   return (state.selectedClass?.weaponMasterySlots ?? 0) > 0
     ? CreationStep.WeaponMastery
     : (state.selectedClass?.fightingStyles || state.selectedClass?.spellcasting ? CreationStep.ClassFeatures : CreationStep.Skills);
+=======
+=======
+>>>>>>> theirs
+const getFieldsToResetOnGoBack = (exitedStep: CreationStep): Partial<CharacterCreationState> => {
+    const resetFields: Partial<CharacterCreationState> = {};
+    switch (exitedStep) {
+        case CreationStep.DragonbornAncestry:
+        case CreationStep.ElvenLineage:
+        case CreationStep.GnomeSubrace:
+        case CreationStep.GiantAncestry:
+        case CreationStep.TieflingLegacy:
+        case CreationStep.CentaurNaturalAffinitySkill:
+        case CreationStep.ChangelingInstincts:
+            resetFields.racialSelections = {}; // Simplest approach: clear all on going back to race
+            break;
+        case CreationStep.Class:
+            resetFields.selectedClass = null;
+            break;
+        case CreationStep.AbilityScores:
+            resetFields.baseAbilityScores = null;
+            resetFields.finalAbilityScores = null;
+            break;
+        case CreationStep.HumanSkillChoice:
+            // This specific selection is now inside racialSelections
+            break;
+        case CreationStep.Skills:
+            resetFields.selectedSkills = [];
+            break;
+        case CreationStep.ClassFeatures:
+            resetFields.selectedFightingStyle = null;
+            resetFields.selectedDivineOrder = null;
+            resetFields.selectedDruidOrder = null;
+            resetFields.selectedWarlockPatron = null;
+            resetFields.selectedCantrips = [];
+            resetFields.selectedSpellsL1 = [];
+            break;
+        case CreationStep.WeaponMastery:
+            resetFields.selectedWeaponMasteries = null;
+            break;
+        case CreationStep.FeatSelection:
+            resetFields.selectedFeat = null;
+            break;
+        case CreationStep.NameAndReview:
+            break;
+        default: break;
+    }
+    return resetFields;
+>>>>>>> theirs
 };
 
 interface StepDefinition {
@@ -499,10 +549,17 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       const currentStep = state.step;
       if (currentStep === CreationStep.Race) return state;
       const targetPrevStep = stepDefinitions[currentStep]?.previousStep(state) ?? CreationStep.Race;
-      const fieldsToReset = getFieldsToResetOnGoBack(state, currentStep);
-      // Reset only the data captured on the step we are leaving while leaving
-      // subsequent choices intact for a non-destructive review.
-      return { ...state, ...fieldsToReset, step: targetPrevStep };
+      const fieldsToReset = getFieldsToResetOnGoBack(currentStep);
+      // Only reset fields if going back from a selection that would invalidate them is too complex for this reducer structure.
+      // However, the task requests fixing destructive "Back" button behavior.
+      // Simply commenting out the reset logic or making it selective:
+      // Current logic: wipes all subsequent state.
+      // New logic: Only reset if the user *changes* the selection (which happens in the SELECT_... actions).
+      // So here, on GO_BACK, we should NOT reset anything. Just change the step.
+
+      // return { ...state, ...fieldsToReset, step: targetPrevStep };
+      return { ...state, step: targetPrevStep };
+<<<<<<< ours
     }
     case 'NAVIGATE_TO_STEP': {
       // Allow navigation to any completed step (for sidebar navigation)
@@ -511,6 +568,8 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
       // Don't allow navigating forward past current progress
       if (targetStep > state.step) return state;
       return { ...state, step: targetStep };
+=======
+>>>>>>> theirs
     }
     default:
       return state;
