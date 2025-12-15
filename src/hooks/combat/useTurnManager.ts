@@ -3,7 +3,7 @@
  * Manages the turn-based combat state using the new action economy system.
  * Now integrates AI decision making, Damage Numbers, and Spell Effect Triggers.
  */
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { CombatCharacter, TurnState, CombatAction, CombatLogEntry, BattleMapData, DamageNumber, Animation, ReactiveTrigger, ActiveCondition, StatusEffect } from '../../types/combat';
 import { EffectDuration } from '../../types/spells';
 import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
@@ -66,8 +66,6 @@ export const useTurnManager = ({
 
   const { canAfford, consumeAction } = useActionEconomy();
 
-  const lastTurnStartKey = useRef<string | null>(null);
-
   const addDamageNumber = useCallback((value: number, position: { x: number, y: number }, type: 'damage' | 'heal' | 'miss') => {
     const newDn: DamageNumber = createDamageNumber(value, position, type);
     setDamageNumbers(prev => [...prev, newDn]);
@@ -87,10 +85,6 @@ export const useTurnManager = ({
       if (timing === 'on_action' && effect.id !== actionEffectId) return;
       if (repeat.timing !== timing) return;
 
-      // Determine caster for DC (fallback to self/team logic if unknown - ideally stored on effect)
-      // For now we assume DC is on effect or use character's own stats if needed (rare)
-      // Actually spellValidator schema has useOriginalDC. StatusEffect needs to carry this info.
-      // We'll calculate a standard DC or use a fixed one if present.
       const dc = repeat.dc || 10;
 
       let hasAdvantage = false;
@@ -107,28 +101,18 @@ export const useTurnManager = ({
       }
 
       const saveType = repeat.saveType as any;
-
-      // Get any active save penalty modifiers on the character
       const savePenalties = savePenaltySystem.getActivePenalties(character);
-
-      // Roll with penalties applied
       const roll = rollSavingThrow(character, saveType, dc, savePenalties);
-
-      // Apply advantage/disadvantage logic manually to roll? rollSavingThrow support?
-      // rollSavingThrow returns { total, die, bonus, success ... } based on basic stats.
-      // It doesn't take advantage param in current util signature?
-      // If I can't pass advantage, I might need to reroll.
 
       let finalSuccess = roll.success;
       if (hasAdvantage) {
         const roll2 = rollSavingThrow(character, saveType, dc, savePenalties);
-        finalSuccess = roll.success || roll2.success; // Advantage: succeeds if either roll succeeds
+        finalSuccess = roll.success || roll2.success;
       } else if (hasDisadvantage) {
         const roll2 = rollSavingThrow(character, saveType, dc, savePenalties);
-        finalSuccess = roll.success && roll2.success; // Disadvantage: succeeds only if both rolls succeed
+        finalSuccess = roll.success && roll2.success;
       }
 
-      // Log penalty details if any were applied
       if (roll.modifiersApplied && roll.modifiersApplied.length > 0) {
         const penaltyDetails = roll.modifiersApplied.map(m => `${m.value} from ${m.source}`).join(', ');
         onLogEntry({
@@ -164,10 +148,8 @@ export const useTurnManager = ({
 
     if (savedEffectIds.length > 0) {
       updatedCharacter.statusEffects = updatedCharacter.statusEffects.filter(e => !savedEffectIds.includes(e.id));
-      // Also potentially remove from activeEffects / conditions if mapped
     }
 
-    // Consume next_save penalties after the save(s)
     if (updatedCharacter.savePenaltyRiders && updatedCharacter.savePenaltyRiders.length > 0) {
       updatedCharacter = {
         ...updatedCharacter,
@@ -194,16 +176,11 @@ export const useTurnManager = ({
       data: { damage: amount, damageType, source }
     });
 
-    // Trigger on_damage repeat saves
     updatedCharacter = processRepeatSaves(updatedCharacter, 'on_damage');
 
     return updatedCharacter;
   }, [addDamageNumber, onLogEntry, processRepeatSaves]);
 
-  /**
-   * Checks the tile at character's position for environmental effects (fire, webs, etc.)
-   * and applies them.
-   */
   const processTileEffects = useCallback((character: CombatCharacter, tilePos: { x: number, y: number }): CombatCharacter => {
     if (!mapData) return character;
 
@@ -214,13 +191,11 @@ export const useTurnManager = ({
     let updatedChar = { ...character };
     const env = tile.environmentalEffect;
 
-    // Apply Effect based on type/structure
     if (env.effect.effect.type === 'damage_per_turn') {
         const damage = env.effect.effect.value || 0;
         if (damage > 0) {
             updatedChar = handleDamage(updatedChar, damage, env.effect.name, env.type === 'fire' ? 'fire' : 'physical');
         } else {
-            // Log warning or informative message
              onLogEntry({
                 id: generateId(),
                 timestamp: Date.now(),
@@ -230,7 +205,6 @@ export const useTurnManager = ({
             });
         }
     } else if (env.effect.effect.type === 'condition') {
-        // Apply status condition (e.g. difficult terrain marker, or webbed)
         const hasCondition = updatedChar.statusEffects.some(s => s.name === env.effect.name);
         if (!hasCondition) {
             updatedChar.statusEffects = [...updatedChar.statusEffects, {
@@ -280,7 +254,15 @@ export const useTurnManager = ({
       riders: character.riders?.map(r => ({ ...r, usedThisTurn: false }))
     };
     onCharacterUpdate(updatedChar);
-  }, [onCharacterUpdate, resetEconomy]);
+
+    onLogEntry({
+      id: generateId(),
+      timestamp: Date.now(),
+      type: 'turn_start',
+      message: `${character.name}'s turn.`,
+      characterId: character.id
+    });
+  }, [onCharacterUpdate, resetEconomy, onLogEntry]);
 
   const initializeCombat = useCallback((initialCharacters: CombatCharacter[]) => {
     const charactersWithInitiative = initialCharacters.map(char => ({
@@ -292,9 +274,19 @@ export const useTurnManager = ({
       .sort((a, b) => b.initiative - a.initiative)
       .map(char => char.id);
 
+    // Reset economy for everyone
     charactersWithInitiative.forEach(char => {
       onCharacterUpdate(resetEconomy(char));
     });
+
+    // Start turn for the first character immediately
+    const firstCharId = turnOrder[0];
+    if (firstCharId) {
+      const firstChar = charactersWithInitiative.find(c => c.id === firstCharId);
+      if (firstChar) {
+        startTurnFor(firstChar);
+      }
+    }
 
     setTurnState({
       currentTurn: 1,
@@ -313,48 +305,20 @@ export const useTurnManager = ({
       ).join(' → ')}`,
       data: { turnOrder, initiatives: charactersWithInitiative.map(c => ({ id: c.id, initiative: c.initiative })) }
     });
-
-    lastTurnStartKey.current = null;
-  }, [onCharacterUpdate, onLogEntry, resetEconomy, rollInitiative]);
+  }, [onCharacterUpdate, onLogEntry, resetEconomy, rollInitiative, startTurnFor]);
 
   const joinCombat = useCallback((character: CombatCharacter, options: { initiative?: number } = {}) => {
-    // 1. Determine Initiative
     const initiative = options.initiative ?? rollInitiative(character);
     const charWithInit = { ...character, initiative };
 
-    // 2. Initialize Economy
     const readyChar = resetEconomy(charWithInit);
     onCharacterUpdate(readyChar);
 
-    // 3. Insert into Turn Order
     setTurnState(prev => {
       const newOrder = [...prev.turnOrder];
-      // Insert based on initiative sort
-      // We need to look up existing initiatives. Since we don't have them easily accessible in a map 
-      // without scanning characters, and characters prop might not be updated yet (async),
-      // we'll append and resort if we can access the full list, OR just insert based on current turn order assumption.
-      // Better: Just append for now or try to be smart?
-      // Let's rely on resorting.
-
-      // Wait, turnOrder is just IDs. We need the actual characters to compare initiatives.
-      // We can't rely on `characters` prop being up to date immediately if this is called in same cycle as setCharacters.
-      // But we can assume the caller will handle setCharacters.
-
-      // Simple approach: Add to end of order for now, or insert after current turn?
-      // If "immediate", likely after caster.
-      // If "rolled", sorted.
-
-      // Let's just append for now to be safe, logic can be refined.
-      // Ideally we rewrite the whole order based on all characters + this new one.
-
-      // Insert at end
       if (!newOrder.includes(readyChar.id)) {
         newOrder.push(readyChar.id);
       }
-
-      // If we want to sort, we need initiatives of all ID's.
-      // The `characters` array has them.
-
       return {
         ...prev,
         turnOrder: newOrder
@@ -364,7 +328,7 @@ export const useTurnManager = ({
     onLogEntry({
       id: generateId(),
       timestamp: Date.now(),
-      type: 'turn_start', // Closest type
+      type: 'turn_start',
       message: `${readyChar.name} joins the combat! (Init: ${initiative})`,
       characterId: readyChar.id,
       data: { initiative }
@@ -375,10 +339,8 @@ export const useTurnManager = ({
   const processEndOfTurnEffects = useCallback((character: CombatCharacter) => {
     let updatedCharacter = { ...character };
 
-    // 1. Process Tile Environmental Effects (Hazards) - End of Turn
     updatedCharacter = processTileEffects(updatedCharacter, updatedCharacter.position);
 
-    // Resolve any lingering zone effects
     const tracker = new AreaEffectTracker(spellZones);
     const zoneResults = tracker.processEndTurn(updatedCharacter, turnState.currentTurn);
     for (const result of zoneResults) {
@@ -399,12 +361,11 @@ export const useTurnManager = ({
       }
     }
 
-    // Iterate statuses
     updatedCharacter.statusEffects.forEach(effect => {
       switch (effect.effect.type) {
         case 'damage_per_turn':
           const dmg = effect.effect.value || 0;
-          updatedCharacter = handleDamage(updatedCharacter, dmg, effect.name, 'necrotic'); // assume necrotic/stat based for now
+          updatedCharacter = handleDamage(updatedCharacter, dmg, effect.name, 'necrotic');
           break;
         case 'heal_per_turn':
           const heal = effect.effect.value || 0;
@@ -422,7 +383,6 @@ export const useTurnManager = ({
       }
     });
 
-    // Check Concentration Sustain
     if (updatedCharacter.concentratingOn?.sustainCost && !updatedCharacter.concentratingOn.sustainedThisTurn) {
       onLogEntry({
         id: generateId(),
@@ -434,10 +394,8 @@ export const useTurnManager = ({
       updatedCharacter.concentratingOn = undefined;
     }
 
-    // Process End of Turn Repeat Saves
     updatedCharacter = processRepeatSaves(updatedCharacter, 'turn_end');
 
-    // Reset damagedThisTurn at the very end of processing turns
     updatedCharacter.damagedThisTurn = false;
 
     onCharacterUpdate(updatedCharacter);
@@ -466,30 +424,32 @@ export const useTurnManager = ({
     const isNewRound = nextIndex <= currentIndex && attempts < turnState.turnOrder.length;
     const nextCharacterId = turnState.turnOrder[nextIndex];
 
+    // Trigger start turn logic for the next character
+    const nextCharacter = characters.find(c => c.id === nextCharacterId);
+    if (nextCharacter) {
+      // NOTE: We use startTurnFor to handle resource reset and duration ticks.
+      // This explicitly replaces the old useEffect behavior.
+      startTurnFor(nextCharacter);
+    }
+
     if (isNewRound) {
       resetZoneTurnTracking(spellZones);
       setSpellZones(prev => prev.filter(z => !z.expiresAtRound || z.expiresAtRound > turnState.currentTurn + 1));
       setMovementDebuffs(prev => prev.filter(d => d.expiresAtRound > turnState.currentTurn + 1 && !d.hasTriggered));
       setReactiveTriggers(prev => prev.filter(t => !t.expiresAtRound || t.expiresAtRound > turnState.currentTurn + 1));
 
-      // Process Map Tile Effect Expiration
       if (mapData && onMapUpdate) {
         let mapModified = false;
         const newTiles = new Map(mapData.tiles);
 
         for (const [key, tile] of newTiles) {
             if (tile.environmentalEffect) {
-                // Decrement duration (assuming rounds type logic for now)
                 const newDuration = tile.environmentalEffect.duration - 1;
 
                 if (newDuration <= 0) {
                     const newTile = { ...tile };
                     newTile.environmentalEffect = undefined;
-                    // Restore original movement cost logic
                     if (tile.environmentalEffect.type === 'difficult_terrain') {
-                        // If it was difficult terrain, revert.
-                        // If base terrain is also difficult (cost 2), we should keep it 2.
-                        // Since we don't store baseCost, we check terrain type.
                         if (newTile.terrain === 'difficult') {
                             newTile.movementCost = 2;
                         } else {
@@ -540,7 +500,7 @@ export const useTurnManager = ({
       actionsThisTurn: []
     }));
 
-  }, [turnState, characters, processEndOfTurnEffects, onLogEntry, spellZones, mapData, onMapUpdate]);
+  }, [turnState, characters, processEndOfTurnEffects, onLogEntry, spellZones, mapData, onMapUpdate, startTurnFor]);
 
 
   const executeAction = useCallback((action: CombatAction): boolean => {
@@ -609,7 +569,6 @@ export const useTurnManager = ({
 
     if (action.type === 'break_free' && action.targetEffectId) {
       updatedCharacter = processRepeatSaves(updatedCharacter, 'on_action', action.targetEffectId);
-      // Log handled in processRepeatSaves
     }
 
     if (action.type === 'move' && action.targetPosition) {
@@ -625,7 +584,6 @@ export const useTurnManager = ({
         isForced: false
       });
 
-      // Process Tile Environmental Effects (Hazards)
       updatedCharacter = processTileEffects(updatedCharacter, action.targetPosition);
 
       const moveTriggerResults = processMovementTriggers(movementDebuffs, updatedCharacter, turnState.currentTurn);
@@ -655,16 +613,11 @@ export const useTurnManager = ({
           switch (effect.type) {
             case 'damage':
               if (effect.dice) {
-                // Handle saving throws for damage effects
                 let damage = rollDice(effect.dice);
                 let saveMessage = '';
 
                 if (effect.requiresSave && effect.saveType) {
-                  // For area effects, we need to determine the caster. Use the first player character as a fallback.
-                  // In a real implementation, this should track which character cast the spell that created the zone.
-                  const caster = updatedCharacter.team === 'player' ? updatedCharacter :
-                    // Fallback: find a player character or use the current character
-                    updatedCharacter;
+                  const caster = updatedCharacter.team === 'player' ? updatedCharacter : updatedCharacter;
 
                   const dc = calculateSpellDC(caster);
                   const saveResult = rollSavingThrow(updatedCharacter, effect.saveType, dc);
@@ -697,7 +650,7 @@ export const useTurnManager = ({
                 onLogEntry({
                   id: generateId(),
                   timestamp: Date.now(),
-                  type: 'damage', // Reuse damage type for heal display
+                  type: 'damage',
                   message: `${updatedCharacter.name} heals ${actualHealing} HP from zone effect!`,
                   characterId: updatedCharacter.id,
                   data: { healing: actualHealing, trigger: result.triggerType || 'on_enter_area' }
@@ -707,12 +660,10 @@ export const useTurnManager = ({
 
             case 'status_condition':
               if (effect.statusName) {
-                // Handle saving throws for status conditions
                 let appliedCondition = false;
                 let saveMessage = '';
 
                 if (effect.requiresSave && effect.saveType) {
-                  // For area effects, we need to determine the caster. Use the first player character as a fallback.
                   const caster = updatedCharacter.team === 'player' ? updatedCharacter : updatedCharacter;
 
                   const dc = calculateSpellDC(caster);
@@ -732,20 +683,18 @@ export const useTurnManager = ({
                     saveMessage = ' (resisted)';
                   }
                 } else {
-                  // No save required, apply condition directly
                   appliedCondition = true;
                 }
 
                 if (appliedCondition) {
-                  // Apply the status condition
-                  const durationRounds = 1; // Default duration, could be made configurable
+                  const durationRounds = 1;
                   const statusEffect = {
                     id: generateId(),
                     name: effect.statusName,
                     type: 'debuff' as const,
                     duration: durationRounds,
                     effect: { type: 'condition' as const },
-                    icon: '💀' // Default icon
+                    icon: '💀'
                   };
 
                   const activeCondition = {
@@ -865,37 +814,6 @@ export const useTurnManager = ({
   }, [characters, turnState.currentCharacterId]);
 
   const getCurrentCharacter = useCallback(() => currentCharacter, [currentCharacter]);
-
-  useEffect(() => {
-    const activeId = turnState.currentCharacterId;
-    if (!activeId) return;
-
-    const turnStartKey = `${turnState.currentTurn}:${activeId}`;
-    if (lastTurnStartKey.current === turnStartKey) {
-      onLogEntry({
-        id: generateId(),
-        timestamp: Date.now(),
-        type: 'action',
-        message: `[DEBUG] Turn start guard triggered for ${activeId} on turn ${turnState.currentTurn}.`,
-        data: { lastKey: lastTurnStartKey.current, currentKey: turnStartKey },
-      });
-      return;
-    }
-
-    const character = characters.find(c => c.id === activeId);
-    if (!character) return;
-
-    lastTurnStartKey.current = turnStartKey;
-    startTurnFor(character);
-    onLogEntry({
-      id: generateId(),
-      timestamp: Date.now(),
-      type: 'turn_start',
-      message: `${character.name}'s turn.`,
-      characterId: character.id
-    });
-
-  }, [turnState.currentCharacterId, turnState.currentTurn, characters, startTurnFor, onLogEntry]);
 
   useCombatAI({
     difficulty,
