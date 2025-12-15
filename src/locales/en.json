@@ -52,5 +52,28 @@
     "close_aria": "Close encounter details",
     "simulate": "Simulate Battle",
     "close": "Close"
+  },
+  "game_guide": {
+    "title": "Game Guide",
+    "intro": "Ask a question about gameplay, rules, or ask me to create a new character for your party.",
+    "toggle_tools_hide": "▼ Hide Creation Tools",
+    "toggle_tools_show": "▶ Show Creation Tools",
+    "quick_creator_title": "Quick Character Creator",
+    "label_race": "Race",
+    "label_class": "Class",
+    "button_generate": "Generate Character",
+    "placeholder_query": "e.g., What is a saving throw?",
+    "button_thinking": "Thinking...",
+    "button_ask": "Ask",
+    "character_label_race": "Race:",
+    "character_label_class": "Class:",
+    "character_label_hp": "HP:",
+    "character_label_ac": "AC:",
+    "button_add_party": "Add to Party",
+    "error_handler_missing": "Cannot add to party: Action handler missing.",
+    "error_connection": "I'm having trouble connecting to the archives. Please try again.",
+    "error_general": "An error occurred while consulting the guide.",
+    "error_invalid_config": "I tried to create a character, but the configuration was invalid.",
+    "recruit_prompt": "I've drafted a character sheet for {name}. Would you like to recruit them?"
   }
 }
