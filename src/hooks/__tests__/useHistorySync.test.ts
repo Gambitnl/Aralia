@@ -142,6 +142,14 @@ describe('useHistorySync', () => {
         // It sees no party.
 
         expect(dispatch).not.toHaveBeenCalledWith({ type: 'SET_GAME_PHASE', payload: GamePhase.PLAYING });
+        expect(dispatch).toHaveBeenCalledWith({
+            type: 'ADD_NOTIFICATION',
+            payload: {
+                message: "You cannot travel there without an active party.",
+                type: 'warning',
+                duration: 4000
+            }
+        });
         expect(replaceStateMock).toHaveBeenCalledWith(
             { phase: GamePhase.MAIN_MENU },
             '',

@@ -20,6 +20,17 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
     const protectedPhases = [GamePhase.PLAYING, GamePhase.COMBAT, GamePhase.VILLAGE_VIEW, GamePhase.BATTLE_MAP_DEMO];
     if (protectedPhases.includes(targetPhase) && gameState.party.length === 0) {
       console.warn(`[Ranger] Blocked nav to ${GamePhase[targetPhase]} - no party.`);
+
+      // Notify user why navigation was blocked
+      dispatch({
+        type: 'ADD_NOTIFICATION',
+        payload: {
+          message: "You cannot travel there without an active party.",
+          type: 'warning',
+          duration: 4000
+        }
+      });
+
       const params = new URLSearchParams(window.location.search);
       params.set('phase', getPhaseSlug(gameState.phase));
       window.history.replaceState({ phase: gameState.phase }, '', `${window.location.pathname}?${params.toString()}`);
