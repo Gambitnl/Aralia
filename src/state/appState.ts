@@ -6,7 +6,8 @@
  */
 import { GameState, GamePhase, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, SuspicionLevel, KnownFact, QuestStatus } from '../types';
 import { AppAction } from './actionTypes';
-import { STARTING_LOCATION_ID, DUMMY_PARTY_FOR_DEV, USE_DUMMY_CHARACTER_FOR_DEV, LOCATIONS, ITEMS, initialInventoryForDummyCharacter, CLASSES_DATA, NPCS } from '../constants';
+import { STARTING_LOCATION_ID, DUMMY_PARTY_FOR_DEV, LOCATIONS, ITEMS, initialInventoryForDummyCharacter, CLASSES_DATA, NPCS } from '../constants';
+import { canUseDevTools } from '../utils/permissions';
 import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import * as SaveLoadService from '../services/saveLoadService';
 import { determineActiveDynamicNpcsForLocation } from '../utils/locationUtils';
@@ -32,16 +33,16 @@ const createInitialGameTime = (): Date => {
 
 
 export const initialGameState: GameState = {
-    phase: USE_DUMMY_CHARACTER_FOR_DEV && DUMMY_PARTY_FOR_DEV && DUMMY_PARTY_FOR_DEV.length > 0 && !SaveLoadService.hasSaveGame() ? GamePhase.PLAYING : GamePhase.MAIN_MENU,
-    party: USE_DUMMY_CHARACTER_FOR_DEV && !SaveLoadService.hasSaveGame() ? DUMMY_PARTY_FOR_DEV : [],
-    tempParty: USE_DUMMY_CHARACTER_FOR_DEV && !SaveLoadService.hasSaveGame() ? DUMMY_PARTY_FOR_DEV.map(p => ({ id: p.id || crypto.randomUUID(), level: p.level || 1, classId: p.class.id })) : null,
-    inventory: USE_DUMMY_CHARACTER_FOR_DEV && !SaveLoadService.hasSaveGame() ? [...initialInventoryForDummyCharacter] : [],
+    phase: canUseDevTools() && DUMMY_PARTY_FOR_DEV && DUMMY_PARTY_FOR_DEV.length > 0 && !SaveLoadService.hasSaveGame() ? GamePhase.PLAYING : GamePhase.MAIN_MENU,
+    party: canUseDevTools() && !SaveLoadService.hasSaveGame() ? DUMMY_PARTY_FOR_DEV : [],
+    tempParty: canUseDevTools() && !SaveLoadService.hasSaveGame() ? DUMMY_PARTY_FOR_DEV.map(p => ({ id: p.id || crypto.randomUUID(), level: p.level || 1, classId: p.class.id })) : null,
+    inventory: canUseDevTools() && !SaveLoadService.hasSaveGame() ? [...initialInventoryForDummyCharacter] : [],
     gold: 10, // Default starting gold
     currentLocationId: STARTING_LOCATION_ID,
-    subMapCoordinates: USE_DUMMY_CHARACTER_FOR_DEV && !SaveLoadService.hasSaveGame() ? { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) } : null,
+    subMapCoordinates: canUseDevTools() && !SaveLoadService.hasSaveGame() ? { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) } : null,
     messages: [],
-    isLoading: USE_DUMMY_CHARACTER_FOR_DEV && !!DUMMY_PARTY_FOR_DEV && DUMMY_PARTY_FOR_DEV.length > 0 && !SaveLoadService.hasSaveGame(),
-    loadingMessage: USE_DUMMY_CHARACTER_FOR_DEV && !!DUMMY_PARTY_FOR_DEV && DUMMY_PARTY_FOR_DEV.length > 0 && !SaveLoadService.hasSaveGame() ? "Aralia is weaving fate..." : null,
+    isLoading: canUseDevTools() && !!DUMMY_PARTY_FOR_DEV && DUMMY_PARTY_FOR_DEV.length > 0 && !SaveLoadService.hasSaveGame(),
+    loadingMessage: canUseDevTools() && !!DUMMY_PARTY_FOR_DEV && DUMMY_PARTY_FOR_DEV.length > 0 && !SaveLoadService.hasSaveGame() ? "Aralia is weaving fate..." : null,
     isImageLoading: false,
     error: null,
     worldSeed: Date.now(), // Default seed, will be overwritten on new game
