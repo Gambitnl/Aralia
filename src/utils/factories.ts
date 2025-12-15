@@ -286,9 +286,8 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
     conditions: [],
     activeEffects: [],
     riders: [],
-    savePenaltyRiders: [],
-    activeLightSources: []
-  } as unknown as CombatCharacter; // Using unknown first to avoid strict checks if I missed a minor field, but the structure matches.
+    savePenaltyRiders: []
+  };
 
   return { ...defaults, ...overrides };
 }
