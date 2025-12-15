@@ -45,5 +45,5 @@ export function hasPermission(permission: Permission): boolean {
  * Convenience function specifically for checking if Dev Tools should be accessible.
  */
 export function canUseDevTools(): boolean {
-    return hasPermission('ACCESS_DEV_TOOLS');
+  return hasPermission('ACCESS_DEV_TOOLS');
 }
