@@ -40,7 +40,7 @@ export const FACTIONS: Record<string, Faction> = {
         motto: 'Gold never rusts.',
         colors: { primary: '#FFD700', secondary: '#4B5563' }, // Gold and Slate
         ranks: [RANK_INITIATE, RANK_MEMBER, RANK_VETERAN],
-        allies: [],
+        allies: ['house_vane'],
         enemies: ['unseen_hand'],
         rivals: [],
         values: ['wealth', 'honesty_in_contracts', 'stability'],
@@ -68,7 +68,7 @@ export const FACTIONS: Record<string, Faction> = {
         motto: 'Steel and Honor.',
         colors: { primary: '#DC2626', secondary: '#FCD34D' }, // Red and Gold
         ranks: [RANK_INITIATE, RANK_MEMBER, RANK_VETERAN],
-        allies: [],
+        allies: ['iron_ledger'],
         enemies: ['unseen_hand'],
         rivals: [],
         values: ['honor', 'strength', 'tradition'],
