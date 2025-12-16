@@ -24,6 +24,7 @@ import { encounterReducer } from './reducers/encounterReducer';
 import { npcReducer } from './reducers/npcReducer';
 import { questReducer } from './reducers/questReducer';
 import { townReducer } from './reducers/townReducer';
+import { crimeReducer } from './reducers/crimeReducer';
 
 
 // Helper function to create a date at 07:00 AM on an arbitrary fixed date
@@ -125,6 +126,13 @@ export const initialGameState: GameState = {
     // Quest System
     questLog: [],
     isQuestLogVisible: false,
+
+    // Notoriety System
+    notoriety: {
+        globalHeat: 0,
+        localHeat: {},
+        knownCrimes: [],
+    },
 
     // Town Exploration
     townState: null,
@@ -324,6 +332,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
                 questLog: loadedState.questLog || [],
                 isQuestLogVisible: false,
+                notoriety: loadedState.notoriety || { globalHeat: 0, localHeat: {}, knownCrimes: [] },
                 notifications: [],
             };
         }
@@ -475,6 +484,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ...npcReducer(state, action),
                 ...questReducer(state, action),
                 ...townReducer(state, action),
+                ...crimeReducer(state, action),
             };
 
             if (Object.keys(changes).length === 0) {
