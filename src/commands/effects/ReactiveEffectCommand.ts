@@ -9,6 +9,7 @@ import { movementEvents, MovementEventEmitter, MovementEvent } from '../../syste
 import { attackEvents, AttackEventEmitter, AttackEvent } from '../../systems/combat/AttackEventEmitter';
 import { combatEvents, CastEvent } from '../../systems/events/CombatEvents';
 import { sustainActionSystem, SustainedSpell } from '../../systems/combat/SustainActionSystem';
+import { logger } from '../../utils/logger';
 
 type ReactiveEvent = MovementEvent | AttackEvent | CastEvent;
 
@@ -166,7 +167,7 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
         // This would execute the actual effect when triggered
         // For now, we'll emit a log message - in a full implementation,
         // this would create and execute the appropriate command
-        console.log(`Reactive effect triggered: ${this.effect.type} for ${this.context.spellName}`, event);
+        logger.info(`Reactive effect triggered: ${this.effect.type} for ${this.context.spellName}`, { event });
     }
 
     /**
