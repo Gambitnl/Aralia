@@ -1,3 +1,5 @@
+import { redactSensitiveData } from './securityUtils';
+
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 interface LogContext {
@@ -9,23 +11,26 @@ class Logger {
     const timestamp = new Date().toISOString();
     const prefix = `[${timestamp}] [${level.toUpperCase()}]`;
 
+    // Redact sensitive data from context before logging
+    const safeContext = context ? redactSensitiveData(context) : undefined;
+
     // Direct mapping to console methods to avoid index signature issues
     // and preserve method context if needed
     switch (level) {
       case 'debug':
-        if (context) console.debug(`${prefix} ${message}`, context);
+        if (safeContext) console.debug(`${prefix} ${message}`, safeContext);
         else console.debug(`${prefix} ${message}`);
         break;
       case 'info':
-        if (context) console.info(`${prefix} ${message}`, context);
+        if (safeContext) console.info(`${prefix} ${message}`, safeContext);
         else console.info(`${prefix} ${message}`);
         break;
       case 'warn':
-        if (context) console.warn(`${prefix} ${message}`, context);
+        if (safeContext) console.warn(`${prefix} ${message}`, safeContext);
         else console.warn(`${prefix} ${message}`);
         break;
       case 'error':
-        if (context) console.error(`${prefix} ${message}`, context);
+        if (safeContext) console.error(`${prefix} ${message}`, safeContext);
         else console.error(`${prefix} ${message}`);
         break;
     }
