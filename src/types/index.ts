@@ -17,6 +17,7 @@ import { Companion } from './companions';
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 export * from './spells';
+export * from './deity';
 export * from './factions';
 export * from './companions';
 
