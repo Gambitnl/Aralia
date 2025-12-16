@@ -1,0 +1,1 @@
+## 2024-06-12 - [Accessibility: Ability Buttons] **Learning:** Using `aria-disabled="true"` instead of native `disabled` allows mouse events (like tooltips) to fire on disabled elements, solving the "why is this disabled?" mystery for users. **Action:** Apply this pattern to all disabled UI elements that require explanation.
