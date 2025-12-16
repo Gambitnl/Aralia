@@ -501,3 +501,44 @@ export function createEnemyFromMonster(monster: Monster, index: number): CombatC
     },
   };
 }
+
+export interface AttackResult {
+  isHit: boolean;
+  isCritical: boolean;
+  isAutoMiss: boolean;
+  total: number;
+}
+
+/**
+ * Resolves an attack roll against a target's Armor Class according to 5e rules.
+ * Handles Natural 1 (Auto Miss), Natural 20 (Auto Hit/Crit), and Critical Ranges.
+ *
+ * @param d20Roll - The raw d20 roll (before modifiers).
+ * @param modifiers - Total attack bonus (ability mod + proficiency + others).
+ * @param targetAC - The target's Armor Class.
+ * @param critThreshold - The minimum die roll required for a critical hit (default 20).
+ * @returns An object containing hit/miss status and critical details.
+ */
+export function resolveAttack(
+  d20Roll: number,
+  modifiers: number,
+  targetAC: number,
+  critThreshold: number = 20
+): AttackResult {
+  const total = d20Roll + modifiers;
+  let isHit = false;
+  let isCritical = false;
+  let isAutoMiss = false;
+
+  if (d20Roll === 1) {
+    isAutoMiss = true;
+    isHit = false;
+  } else if (d20Roll >= critThreshold) {
+    isCritical = true;
+    isHit = true;
+  } else {
+    isHit = total >= targetAC;
+  }
+
+  return { isHit, isCritical, isAutoMiss, total };
+}
