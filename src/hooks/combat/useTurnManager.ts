@@ -346,6 +346,7 @@ export const useTurnManager = ({
     for (const result of zoneResults) {
       for (const effect of result.effects) {
         if (effect.type === 'damage' && effect.dice) {
+          // TODO: Apply the same save/saveEffect handling used for movement-triggered hazards before end-of-turn damage is applied.
           const damage = rollDice(effect.dice);
           updatedCharacter = { ...updatedCharacter, currentHP: Math.max(0, updatedCharacter.currentHP - damage) };
           addDamageNumber(damage, updatedCharacter.position, 'damage');
@@ -619,6 +620,7 @@ export const useTurnManager = ({
                 let saveMessage = '';
 
                 if (effect.requiresSave && effect.saveType) {
+                  // TODO: Use the originating caster/spell DC (from the zone or effect) instead of the moving unit as the caster when rolling zone saves.
                   const caster = updatedCharacter.team === 'player' ? updatedCharacter : updatedCharacter;
 
                   const dc = calculateSpellDC(caster);
@@ -633,6 +635,7 @@ export const useTurnManager = ({
                   });
 
                   if (saveResult.success) {
+                    // TODO: Respect effect.condition.saveEffect (none/half/negates) instead of always halving on success.
                     damage = Math.floor(damage / 2);
                     saveMessage = ' (save)';
                   }

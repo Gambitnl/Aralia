@@ -301,6 +301,7 @@ export class MovementCommand extends BaseEffectCommand {
         }
 
         const origin = target.position
+        // TODO: Enforce teleport range even when effect.distance is missing; a zero-distance teleport currently treats validMoves as unbounded.
         const validMoves = (state.validMoves || []).filter(pos => getDistance(origin, pos) <= (maxTiles || Infinity))
         if (validMoves.length > 0) {
             return validMoves[0]
@@ -336,6 +337,7 @@ export class MovementCommand extends BaseEffectCommand {
             height = this.context.gameState.mapData.gridSize.rows
         }
 
+        // TODO: Derive fallback bounds from combat context (e.g., character extents) when no map data is present so teleports cannot clamp out of map implicitly.
         if (width === undefined || height === undefined) {
             return position
         }

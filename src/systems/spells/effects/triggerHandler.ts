@@ -368,6 +368,7 @@ export function processAreaEndTurnTriggers(
 export function convertSpellEffectToProcessed(effect: SpellEffect): ProcessedEffect[] {
     const processed: ProcessedEffect[] = [];
 
+    // TODO: Include source metadata (spellId, casterId, optional saveDC) on ProcessedEffect to avoid downstream guesswork in handlers.
     switch (effect.type) {
         case 'DAMAGE':
             processed.push({

@@ -40,6 +40,7 @@ export class TerrainCommand extends BaseEffectCommand {
              newMapData.tiles = newTiles
              newState.mapData = newMapData
         }
+        // TODO: When map data is absent, persist a lightweight terrain zone so the effect survives beyond logging (e.g., for battle map-less encounters).
 
         // Handle structured manipulation logging if present
         if (effect.manipulation) {

@@ -70,6 +70,7 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
   gameState: {} as any
 })
 
+// TODO: Add a zero-distance teleport case that includes validMoves to ensure range enforcement is bounded when effect.distance is omitted.
 describe('MovementCommand', () => {
   it('teleports to a valid UI-provided tile when available', () => {
     const caster = makeCharacter('caster', { x: 0, y: 0 })
@@ -193,4 +194,3 @@ describe('TerrainCommand', () => {
     expect(terrainLog?.data?.manipulation?.type).toBe('difficult')
   })
 })
-
