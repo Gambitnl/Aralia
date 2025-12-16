@@ -8,6 +8,8 @@ import { GameState, GamePhase, PlayerCharacter, Item, MapData, TempPartyMember, 
 import { AppAction } from './actionTypes';
 import { STARTING_LOCATION_ID, DUMMY_PARTY_FOR_DEV, LOCATIONS, ITEMS, initialInventoryForDummyCharacter, CLASSES_DATA, NPCS } from '../constants';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../data/factions';
+import { DEITIES } from '../data/deities';
+import { TEMPLES } from '../data/temples';
 import { canUseDevTools } from '../utils/permissions';
 import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import * as SaveLoadService from '../services/saveLoadService';
@@ -17,6 +19,7 @@ import { createEnemyFromMonster } from '../utils/combatUtils';
 
 // Import slice reducers
 import { uiReducer } from './reducers/uiReducer';
+import { religionReducer } from './reducers/religionReducer';
 import { characterReducer } from './reducers/characterReducer';
 import { worldReducer } from './reducers/worldReducer';
 import { logReducer } from './reducers/logReducer';
@@ -143,6 +146,16 @@ export const initialGameState: GameState = {
     // Faction System
     factions: FACTIONS,
     playerFactionStandings: INITIAL_FACTION_STANDINGS,
+
+    // Religion System
+    divineFavor: DEITIES.reduce((acc, deity) => {
+        acc[deity.id] = { deityId: deity.id, favor: 0, history: [] };
+        return acc;
+    }, {} as GameState['divineFavor']),
+    temples: TEMPLES.reduce((acc, temple) => {
+        acc[temple.id] = temple;
+        return acc;
+    }, {} as GameState['temples']),
 };
 
 
@@ -477,6 +490,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         default: {
             const changes = {
                 ...uiReducer(state, action),
+                ...religionReducer(state, action),
                 ...characterReducer(state, action),
                 ...worldReducer(state, action),
                 ...logReducer(state, action),

@@ -13,6 +13,7 @@ import { CombatCharacter, CharacterStats, Position, CombatState } from './combat
 import type { VillageTileType } from '../services/villageGenerator';
 import { Faction, PlayerFactionStanding } from './factions';
 import { Companion } from './companions';
+import { DivineFavor, Temple } from './deity';
 
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
@@ -614,7 +615,8 @@ export type ActionType =
   | 'ACCEPT_QUEST'
   | 'UPDATE_QUEST_OBJECTIVE'
   | 'COMPLETE_QUEST'
-  | 'TOGGLE_QUEST_LOG';
+  | 'TOGGLE_QUEST_LOG'
+  | 'PRAY';
 
 
 export enum DiscoveryType {
@@ -783,6 +785,10 @@ export interface GameState {
   factions: Record<string, Faction>; // All active factions in the world
   playerFactionStandings: Record<string, PlayerFactionStanding>; // Player's standing with factions
   companions: Record<string, Companion>; // Keyed by Companion ID
+
+  // Templar: Religion System
+  divineFavor: Record<string, DivineFavor>; // Keyed by Deity ID
+  temples: Record<string, Temple>; // Keyed by Temple ID (or Location ID)
 }
 
 export interface InspectSubmapTilePayload {
