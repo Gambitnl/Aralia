@@ -101,6 +101,7 @@ export interface GiantAncestryBenefit {
 
 export type FiendishLegacyType = 'abyssal' | 'chthonic' | 'infernal';
 
+// TODO: Reconcile FiendishLegacy spell ids against PHB 2024 normalized ids and new level-{N} files so traits don’t point at missing spells post-migration.
 export interface FiendishLegacy {
   id: FiendishLegacyType;
   name: string;
@@ -184,6 +185,7 @@ export type MagicInitiateSource =
   | 'warlock'
   | 'wizard';
 
+// TODO: Constrain feat spell requirements to the migrated spell manifest (ids, levels, ritual flags) to prevent dangling choices after PHB 2024 data refresh.
 /**
  * Configuration for a spell choice requirement in a feat.
  * Supports filtering by level, school, and attack type.
@@ -331,6 +333,7 @@ export interface SpellEffect {
   special?: string;
 }
 
+// TODO: Realign Spell to the PHB 2024 schema (source/ritual/targeting/effects/scaling) before ingesting migrated JSON.
 export interface Spell {
   id: string;
   name: string;

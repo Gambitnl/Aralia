@@ -137,6 +137,7 @@ function buildIndex() {
         subEntries: levelsMap.get(level).sort((a, b) => a.title.localeCompare(b.title)),
       }));
 
+      // TODO: Surface hasCard in the glossary UI so missing cards are flagged without extra fetches.
       entriesByCategory["Spells"] = spellGroups;
     } catch (e) {
       console.error("Failed to enrich spell index from manifest:", e.message);

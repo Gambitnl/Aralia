@@ -146,6 +146,7 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
         const effectAny = this.effect as any;
         let duration = effectAny.duration;
 
+        // TODO: Use the originating spell duration for sustain/reactive windows (e.g., Witch Bolt) when effect duration is absent.
         // 2. Fallback to spell duration from context if not on effect
         // triggers like 'on_caster_action' for sustain rely on the spell's duration
         if (!duration && this.context.effectDuration) {

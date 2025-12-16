@@ -191,6 +191,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
 
               <p className="text-sm text-gray-400 mb-2">{feat.description}</p>
 
+              {/* TODO: Add selectableSkillCount UI/validation so feats like Skilled enforce choosing the required skills. */}
               {feat.benefits && (
                   <div className="text-xs text-gray-500 mt-2">
                       <strong className="text-gray-400">Benefits:</strong>

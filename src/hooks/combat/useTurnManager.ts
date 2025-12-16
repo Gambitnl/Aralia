@@ -424,6 +424,7 @@ export const useTurnManager = ({
     const isNewRound = nextIndex <= currentIndex && attempts < turnState.turnOrder.length;
     const nextCharacterId = turnState.turnOrder[nextIndex];
 
+    // TODO: startTurnFor also runs in the turn-start effect; avoid double-resetting economy/status when advancing turns.
     // Trigger start turn logic for the next character
     const nextCharacter = characters.find(c => c.id === nextCharacterId);
     if (nextCharacter) {
@@ -512,17 +513,18 @@ export const useTurnManager = ({
     const startCharacter = characters.find(c => c.id === action.characterId);
     if (!startCharacter) return false;
 
-    if (!canAfford(startCharacter, action.cost)) {
-      onLogEntry({
-        id: generateId(),
-        timestamp: Date.now(),
-        type: 'action',
+  if (!canAfford(startCharacter, action.cost)) {
+    onLogEntry({
+      id: generateId(),
+      timestamp: Date.now(),
+      type: 'action',
         message: `${startCharacter.name} cannot perform this action (not enough resources or action already used).`,
         characterId: startCharacter.id
       });
       return false;
     }
 
+    // TODO: consumeAction result is ignored; ensure resource deductions persist (use returned state or persisted mutation).
     consumeAction(startCharacter, action.cost);
     let updatedCharacter = { ...startCharacter };
 
@@ -647,6 +649,7 @@ export const useTurnManager = ({
                 const actualHealing = newHP - updatedCharacter.currentHP;
                 updatedCharacter = { ...updatedCharacter, currentHP: newHP };
                 addDamageNumber(actualHealing, action.targetPosition, 'heal');
+                // TODO: log uses type 'damage'; switch to a heal log type so UI/filters treat this as healing.
                 onLogEntry({
                   id: generateId(),
                   timestamp: Date.now(),

@@ -75,6 +75,7 @@ const buildKnownGapSet = (): Set<string> => {
   return set;
 };
 
+// TODO: Avoid per-spell markdown fetches on glossary load; derive hasCard/level tags from the index or manifest cache.
 const fetchGlossaryCard = async (id: string, level: number): Promise<string | null> => {
   const url = `${import.meta.env.BASE_URL}data/glossary/entries/spells/level-${level}/${id}.md`;
   try {

@@ -82,6 +82,7 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         console.error("Failed to load spell data:", errorMessage);
         setError(errorMessage);
+        // TODO: Fail closed on spell load errors (leave spellData null) so downstream UIs can block rather than operating on an empty map.
         setSpellData({}); // Provide empty object on error
         setIssues(prev => prev.length ? prev : [`SpellContext fatal error: ${errorMessage}`]);
       }

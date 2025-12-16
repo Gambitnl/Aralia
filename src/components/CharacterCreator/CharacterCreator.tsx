@@ -266,6 +266,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
       case CreationStep.Race:
         return <RaceSelection races={Object.values(RACES_DATA)} onRaceSelect={handleRaceSelect} />;
       case CreationStep.AgeSelection:
+        // TODO: Route AgeSelection through the clamped handler so negative/NaN ages never enter reducer state.
         if (!selectedRace) { dispatch({type: 'SET_STEP', payload: CreationStep.Race }); return null; }
         return <AgeSelection
           selectedRace={selectedRace}
@@ -356,6 +357,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
         if (selectedClass.id === 'artificer' && selectedClass.spellcasting) {
           return <ArtificerFeatureSelection spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} abilityScores={finalAbilityScores} onArtificerFeaturesSelect={handleArtificerFeaturesSelect} onBack={goBack} />;
         }
+        // TODO: Move this auto-advance out of render to avoid strict-mode double dispatch and to keep side effects out of render.
         if ((selectedClass.weaponMasterySlots ?? 0) > 0) {
             dispatch({ type: 'SET_STEP', payload: CreationStep.WeaponMastery });
         } else {

@@ -144,6 +144,7 @@ export class MovementCommand extends BaseEffectCommand {
         })
     }
 
+    // TODO: Honor UI-provided teleport destinations when valid before falling back to clamp/alt search (see MovementCommand.test teleports case).
     private applyTeleport(state: CombatState, target: CombatCharacter, effect: MovementEffect): CombatState {
         const origin = target.position
         const maxTiles = Math.max(0, Math.floor((effect.distance || 0) / 5))
@@ -213,6 +214,7 @@ export class MovementCommand extends BaseEffectCommand {
         if (effect.forcedMovement) {
             const caster = this.getCaster(state)
 
+            // TODO: When usesReaction is set, spend/track the target's reaction and path via a safest-route pathfinder (respecting obstacles/terrain) instead of straight-line stepping.
             const distanceFeet = effect.forcedMovement.maxDistance === 'target_speed'
                 ? target.stats.speed
                 : effect.forcedMovement.maxDistance

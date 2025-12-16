@@ -1,3 +1,4 @@
+<!-- TODO: Update scope to levels 1–9 and sync batching/acceptance details; header still says Level 3+. -->
 # SPELL MIGRATION TASK (Level 3+)
 
 ## CORE PRINCIPLE: JSON = SOURCE OF TRUTH
@@ -121,6 +122,7 @@ Log gaps in `docs/tasks/spell-system-overhaul/gaps/LEVEL-{N}-GAPS.md`.
 
 ---
 
+<!-- TODO: Swap validation steps to the current pnpm pipeline and mirror the manifest/validation sequence used in cantrip batches. -->
 ## VALIDATION
 
 ```bash

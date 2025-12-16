@@ -48,6 +48,7 @@ export class UtilityCommand extends BaseEffectCommand {
             const lightConfig = effect.light
             const targets = this.getTargets(newState)
 
+            // TODO: Remove/expire light sources when duration ends or concentration breaks, and trigger renderer/vision updates so light affects the map.
             // Determine attachment target
             let attachedToCharacterId: string | undefined
             let position: { x: number; y: number } | undefined
@@ -97,6 +98,7 @@ export class UtilityCommand extends BaseEffectCommand {
                 data: { controlOptions: effect.controlOptions }
             })
 
+            // TODO: Accept a selected control option from UI/AI instead of always auto-picking the first.
             // Execute a basic fallback: pick the first option provided.
             const chosen = effect.controlOptions[0]
             const targets = this.getTargets(newState)
@@ -151,6 +153,7 @@ export class UtilityCommand extends BaseEffectCommand {
     }
 
     private applyTaunt(state: CombatState, target: CombatCharacter, effect: UtilityEffect): CombatState {
+        // TODO: Enforce taunt effects (disadvantage vs others, leash distance, break conditions) instead of only tagging a status with placeholder duration.
         const status: StatusEffect = {
             id: generateId(),
             name: 'Taunted',
