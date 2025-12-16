@@ -252,4 +252,17 @@ describe('useHistorySync', () => {
             }
         });
     });
+
+    it('should navigate to NOT_FOUND when phase param is invalid', () => {
+        // Setup URL with invalid phase
+        mockLocation.search = '?phase=invalid_phase';
+
+        renderHook(() => useHistorySync(gameState, dispatch));
+
+        // Check if dispatch was called with NOT_FOUND
+        expect(dispatch).toHaveBeenCalledWith({
+            type: 'SET_GAME_PHASE',
+            payload: GamePhase.NOT_FOUND
+        });
+    });
 });
