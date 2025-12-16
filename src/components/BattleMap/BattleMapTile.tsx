@@ -11,10 +11,10 @@ interface BattleMapTileProps {
   isInPath: boolean;
   isTargetable: boolean;
   isAoePreview: boolean;
-  onClick: () => void;
+  onTileClick: (tile: BattleMapTileData) => void;
 }
 
-const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidMove, isInPath, isTargetable, isAoePreview, onClick }) => {
+const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidMove, isInPath, isTargetable, isAoePreview, onTileClick }) => {
   const getTerrainColor = (terrain: string) => {
     switch (terrain) {
       case 'grass': return 'bg-green-800';
@@ -60,7 +60,7 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
   return (
     <div
       className={`${tileBaseClasses} ${terrainColor} relative transition-colors duration-150`}
-      onClick={onClick}
+      onClick={() => onTileClick(tile)}
       style={{ cursor: (isValidMove || isTargetable) ? 'pointer' : 'default' }}
       title={`(${tile.coordinates.x}, ${tile.coordinates.y}) - ${tile.terrain} - Elev: ${tile.elevation}`}
     >

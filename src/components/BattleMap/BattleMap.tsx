@@ -69,11 +69,74 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
     return Array.from(mapData.tiles.values());
   }, [mapData]);
 
+  const currentCharacter = characters.find(c => c.id === turnState.currentCharacterId);
+
+  // --- OPTIMIZATION START ---
+  // Memoize sets to reduce O(N) lookups in render loop and prevent re-calcs on mouse move
+
+  // 1. AoE Set: Validates if a tile is in the AoE preview
+  const aoeSet = useMemo(() => {
+    const set = new Set<string>();
+    if (abilitySystem?.aoePreview?.affectedTiles) {
+      abilitySystem.aoePreview.affectedTiles.forEach((p: { x: number; y: number }) => {
+        set.add(`${p.x}-${p.y}`);
+      });
+    }
+    return set;
+  }, [abilitySystem?.aoePreview]);
+
+  // 2. Active Path Set: Validates if a tile is in the current movement path
+  const activePathSet = useMemo(() => {
+    const set = new Set<string>();
+    activePath.forEach(p => set.add(p.id));
+    return set;
+  }, [activePath]);
+
+  // 3. Valid Target Set: Validates if a tile is a valid target for the selected ability
+  // This is the most expensive check (LoS), so memoization here is critical.
+  // We only re-calculate if targeting mode, ability, caster, or map changes.
+  // Notably, this does NOT depend on aoePreview (mouse move), preventing re-calcs during hover.
+  const validTargetSet = useMemo(() => {
+    const set = new Set<string>();
+    if (abilitySystem?.targetingMode && abilitySystem?.selectedAbility && currentCharacter && mapData) {
+      // We iterate all tiles to pre-calculate valid targets.
+      // This is O(MapSize) but happens only when targeting state changes, not on every render.
+      // For large maps, we might want to restrict this to range, but iterating map is cleaner for now.
+
+      // Optimization: Only check tiles within range of caster
+      // This reduces iterations from MapSize (e.g. 400) to RangeArea (e.g. ~40 for 30ft range)
+      const range = abilitySystem.selectedAbility.range;
+      const casterX = currentCharacter.position.x;
+      const casterY = currentCharacter.position.y;
+
+      // Bounding box for range
+      const minX = Math.max(0, casterX - range);
+      const maxX = Math.min(mapData.dimensions.width - 1, casterX + range);
+      const minY = Math.max(0, casterY - range);
+      const maxY = Math.min(mapData.dimensions.height - 1, casterY + range);
+
+      for (let x = minX; x <= maxX; x++) {
+        for (let y = minY; y <= maxY; y++) {
+          if (abilitySystem.isValidTarget(abilitySystem.selectedAbility, currentCharacter, { x, y })) {
+            set.add(`${x}-${y}`);
+          }
+        }
+      }
+    }
+    return set;
+  }, [
+      abilitySystem?.targetingMode,
+      abilitySystem?.selectedAbility,
+      currentCharacter, // Re-calc if caster moves
+      mapData,
+      characters // Re-calc if any character moves (blocking)
+      // Note: We deliberately exclude abilitySystem itself or aoePreview to keep this stable
+  ]);
+  // --- OPTIMIZATION END ---
+
   if (!mapData) {
     return <div>Generating map...</div>;
   }
-  
-  const currentCharacter = characters.find(c => c.id === turnState.currentCharacterId);
 
   return (
     <div className="relative">
@@ -112,18 +175,21 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
           onMouseMove={handleGridMouseMove}
         >
           {tileArray.map(tile => {
-            const isTargetable = abilitySystem.targetingMode && abilitySystem.isValidTarget(abilitySystem.selectedAbility, currentCharacter, tile.coordinates);
-            const isAoePreview = abilitySystem.aoePreview?.affectedTiles.some((p: { x: number; y: number; }) => p.x === tile.coordinates.x && p.y === tile.coordinates.y);
+            // Optimised lookups using Sets (O(1)) instead of Array searches/Calculations (O(N))
+            const isTargetable = validTargetSet.has(tile.id);
+            const isAoePreview = aoeSet.has(tile.id);
+            const isValidMove = actionMode === 'move' && validMoves.has(tile.id);
+            const isInPath = activePathSet.has(tile.id);
 
             return (
               <BattleMapTile
                 key={tile.id}
                 tile={tile}
-                isValidMove={actionMode === 'move' && validMoves.has(tile.id)}
-                isInPath={activePath.some(p => p.id === tile.id)}
+                isValidMove={isValidMove}
+                isInPath={isInPath}
                 isTargetable={isTargetable}
                 isAoePreview={isAoePreview}
-                onClick={() => handleTileClick(tile)}
+                onTileClick={handleTileClick}
               />
             )
           })}
