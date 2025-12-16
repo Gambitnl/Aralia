@@ -28,6 +28,7 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@types/axe-core": "^2.0.2",
@@ -37,6 +38,7 @@
     "@typescript-eslint/eslint-plugin": "^8.48.1",
     "@typescript-eslint/parser": "^8.48.1",
     "@vitejs/plugin-react": "^5.0.0",
+    "autoprefixer": "^10.4.23",
     "axe-core": "^4.11.0",
     "eslint": "^8.57.1",
     "eslint-import-resolver-typescript": "^4.4.4",
@@ -48,6 +50,7 @@
     "jsdom": "^27.2.0",
     "postcss": "^8.5.6",
     "rimraf": "^6.1.2",
+    "tailwindcss": "^3.4.17",
     "tsd": "^0.33.0",
     "tsx": "^4.20.6",
     "typescript": "~5.9.3",
