@@ -1,19 +1,17 @@
 
 /**
- * Copyright (c) 2024 Aralia RPG
- * Licensed under the MIT License
+ * Copyright (c) 2024 Aralia RPG.
+ * Licensed under the MIT License.
  *
  * @file src/types/index.ts
  * This file contains all the core TypeScript type definitions and interfaces
  * used throughout the Aralia RPG application.
  */
-// TODO: Implement Zod schemas for all game data structures (spells, NPCs, items) to ensure data integrity and provide better error messages
 import React from 'react';
-import { CombatCharacter, CharacterStats, Position, CombatState } from './combat'; // Adjusted import path for sibling file
+import { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
 import type { VillageTileType } from '../services/villageGenerator';
 
 export type { CombatCharacter, CharacterStats, Position, CombatState };
-
 export * from './spells';
 
 export enum GamePhase {
@@ -25,6 +23,7 @@ export enum GamePhase {
   LOAD_TRANSITION,
   VILLAGE_VIEW,
   COMBAT, // New phase for active combat encounters
+  NOT_FOUND, // 404 Phase
 }
 
 // Core D&D Attributes
@@ -120,6 +119,142 @@ export interface RacialSpell {
   spellId: string;
 }
 
+export interface Feat {
+  id: string;
+  name: string;
+  description: string;
+  prerequisites?: {
+    minLevel?: number;
+    abilityScores?: Partial<AbilityScores>;
+    raceId?: string;
+    classId?: string;
+    requiresFightingStyle?: boolean; // For Fighting Style feats
+  };
+  benefits?: {
+    abilityScoreIncrease?: Partial<AbilityScores>;
+    // If abilityScoreIncrease is empty object {}, it means "select one" - options defined in selectableAbilityScores
+    selectableAbilityScores?: AbilityScoreName[]; // Which abilities can be chosen for ASI
+
+    // Skill proficiency options
+    skillProficiencies?: string[];
+    /** Number of skills player must choose (e.g., Skilled = 3). TODO: Implement skill selection UI in character builder */
+    selectableSkillCount?: number;
+
+    // Saving throw proficiency options
+    savingThrowProficiencies?: AbilityScoreName[];
+    /** If true, saving throw proficiency matches the selected ability score (for Resilient feat). */
+    savingThrowLinkedToAbility?: boolean;
+
+    /** Damage types player can choose from (e.g., Elemental Adept). TODO: Implement damage type selection UI */
+    selectableDamageTypes?: string[];
+
+    speedIncrease?: number;
+    initiativeBonus?: number;
+    hpMaxIncreasePerLevel?: number;
+    resistance?: string[];
+    // Spell-granting benefits for feats like Magic Initiate, Fey-Touched, etc.
+    spellBenefits?: FeatSpellBenefits;
+  };
+}
+
+// ============================================================================
+// SPELL-GRANTING FEAT TYPES
+// ============================================================================
+
+/**
+ * The eight schools of magic in D&D 5e.
+ */
+export type SpellSchool =
+  | 'Abjuration'
+  | 'Conjuration'
+  | 'Divination'
+  | 'Enchantment'
+  | 'Evocation'
+  | 'Illusion'
+  | 'Necromancy'
+  | 'Transmutation';
+
+/**
+ * Spellcasting classes available for Magic Initiate feat.
+ */
+export type MagicInitiateSource =
+  | 'bard'
+  | 'cleric'
+  | 'druid'
+  | 'sorcerer'
+  | 'warlock'
+  | 'wizard';
+
+/**
+ * Configuration for a spell choice requirement in a feat.
+ * Supports filtering by level, school, and attack type.
+ */
+export interface FeatSpellRequirement {
+  /** How many spells must be chosen */
+  count: number;
+  /** Spell level (0 = cantrip, 1 = 1st level, etc.) */
+  level: number;
+  /** Filter by spell school(s) */
+  schools?: SpellSchool[];
+  /** Only spells that require an attack roll */
+  requiresAttack?: boolean;
+  /** Description shown to user explaining what they can pick */
+  description: string;
+}
+
+/**
+ * A spell automatically granted by a feat, with usage restrictions.
+ */
+export interface FeatGrantedSpell {
+  /** The spell ID (must match spell data) */
+  spellId: string;
+  /** How often the spell can be cast */
+  castingMethod: 'at_will' | 'once_per_long_rest' | 'once_per_short_rest';
+  /** Special notes about modifications (e.g., "Range extended to 60 ft") */
+  specialNotes?: string;
+}
+
+/**
+ * Spell-related benefits for a feat.
+ */
+export interface FeatSpellBenefits {
+  /** For Magic Initiate: which class spell lists can be chosen from */
+  selectableSpellSource?: MagicInitiateSource[];
+  /** Spells that require player choice */
+  spellChoices?: FeatSpellRequirement[];
+  /** Spells automatically granted (no choice needed) */
+  grantedSpells?: FeatGrantedSpell[];
+}
+
+export interface FeatPrerequisiteContext {
+  level: number;
+  abilityScores: AbilityScores;
+  raceId?: string;
+  classId?: string;
+  knownFeats?: string[];
+  hasFightingStyle?: boolean; // Whether character's class has Fighting Style feature
+}
+
+export interface LevelUpChoices {
+  abilityScoreIncreases?: Partial<AbilityScores>;
+  featId?: string;
+  featChoices?: {
+    // Store choices made for feats during level-up (e.g., selected ability score, spells, etc.)
+    [featId: string]: {
+      selectedAbilityScore?: AbilityScoreName;
+      selectedSpells?: string[];
+      selectedCantrips?: string[];        // Cantrips chosen for spell-granting feats
+      selectedLeveledSpells?: string[];   // Leveled spells chosen for spell-granting feats
+      selectedSpellSource?: MagicInitiateSource; // Class source for Magic Initiate
+      selectedSkills?: string[];
+      selectedWeapons?: string[];
+      selectedTools?: string[];
+      selectedDamageType?: string;
+      [key: string]: any; // Allow for future choice types
+    };
+  };
+}
+
 export interface Race {
   id: string;
   name: string;
@@ -159,6 +294,64 @@ export type DraconicDamageType =
 export interface DraconicAncestryInfo {
   type: DraconicAncestorType;
   damageType: DraconicDamageType;
+}
+
+/**
+ * A comprehensive type that bundles all race-related data, including lineages,
+ * subraces, and other unique racial choices. This provides a single, strongly-typed
+ * source for all non-core race data.
+ */
+// Why: This type supports the RACE_DATA_BUNDLE export from `src/data/races/index.ts`.
+// By defining a clear type for the bundle, we ensure type safety and provide
+// better autocompletion for developers. This makes the data easier to work with
+// and reduces the likelihood of runtime errors.
+export interface RaceDataBundle {
+  dragonbornAncestries: Record<DraconicAncestorType, DraconicAncestryInfo>;
+  goliathGiantAncestries: GiantAncestryBenefit[];
+  tieflingLegacies: FiendishLegacy[];
+  gnomeSubraces: GnomeSubrace[];
+}
+
+export interface SpellEffect {
+  type: string;
+  damage?: {
+    dice: string;
+    type: string;
+  };
+  healing?: {
+    dice?: string;
+    special?: string;
+  };
+  attack?: {
+    type: string;
+  };
+  areaOfEffect?: {
+    shape: string;
+    size: number;
+  };
+  special?: string;
+}
+
+export interface Spell {
+  id: string;
+  name: string;
+  level: number;
+  description: string;
+  school?: string;
+  castingTime?: string | { value: number; unit: string };
+  range?: string | { type: string; distance?: number };
+  components?: {
+    verbal?: boolean;
+    somatic?: boolean;
+    material?: boolean;
+    materialDescription?: string;
+  };
+  duration?: string | { value: number | null; unit: string; concentration?: boolean };
+  higherLevelsDescription?: string;
+  classes?: string[];
+  tags?: string[];
+  effects?: SpellEffect[];
+  areaOfEffect?: { shape: string; size: number };
 }
 
 export interface ClassFeature {
@@ -221,7 +414,7 @@ export interface Class {
 
 export type EquipmentSlotType =
   | 'Head' | 'Neck' | 'Torso' | 'Cloak' | 'Belt'
-  | 'MainHand' | 'OffHand' | 'Wrists' | 'Ring' | 'Ring1' | 'Ring2' | 'Feet' | 'Legs' | 'Hands';
+  | 'MainHand' | 'OffHand' | 'Wrists' | 'Ring1' | 'Ring2' | 'Feet' | 'Legs' | 'Hands';
 
 export interface ResourceVial {
   current: number;
@@ -256,11 +449,22 @@ export interface RacialSelectionData {
 export type TransportMode = 'foot' | 'mounted';
 
 export interface PlayerCharacter {
+  ageSizeOverride?: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Gargantuan';
+  background?: string; // Background ID
+  featChoices?: {
+    [featId: string]: {
+      selectedAbilityScore?: AbilityScoreName; // Use imported type or simple string if locally defined
+      selectedSpells?: string[];
+      selectedSkills?: string[];
+      selectedWeapons?: string[];
+      selectedTools?: string[];
+      selectedDamageType?: string;
+      [key: string]: any;
+    };
+  };
   id?: string;
   name: string;
   age?: number;
-  ageSizeOverride?: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Gargantuan';
-  background?: string; // Background ID
   level?: number;
   xp?: number;
   proficiencyBonus?: number;
@@ -270,6 +474,8 @@ export interface PlayerCharacter {
   finalAbilityScores: AbilityScores;
   skills: Skill[];
   savingThrowProficiencies?: AbilityScoreName[];
+  feats?: string[]; // IDs of selected feats
+  initiativeBonus?: number;
   hp: number;
   maxHp: number;
   armorClass: number;
@@ -286,18 +492,6 @@ export interface PlayerCharacter {
   selectedDruidOrder?: 'Magician' | 'Warden';
   selectedWarlockPatron?: string;
   racialSelections?: Record<string, RacialSelectionData>;
-  featChoices?: {
-    // Store choices made for feats (e.g., selected ability score, spells, etc.)
-    [featId: string]: {
-      selectedAbilityScore?: AbilityScoreName;
-      selectedSpells?: string[];
-      selectedSkills?: string[];
-      selectedWeapons?: string[];
-      selectedTools?: string[];
-      selectedDamageType?: string;
-      [key: string]: any; // Allow for future choice types
-    };
-  };
   equippedItems: Partial<Record<EquipmentSlotType, Item>>;
 }
 
@@ -332,6 +526,16 @@ export interface Item {
   effect?: ItemEffect;
   mastery?: string;
   category?: string;
+  /** Optional pointer to the container/bag this item currently resides in. */
+  containerId?: string;
+  /** When true, this item behaves like a container capable of holding other items. */
+  isContainer?: boolean;
+  /** Slot capacity limit if the item is a container. */
+  capacitySlots?: number;
+  /** Weight capacity limit if the item is a container. */
+  capacityWeight?: number;
+  /** Restrict what item types can be placed in this container. */
+  allowedItemTypes?: Item['type'][];
   armorCategory?: ArmorCategory;
   baseArmorClass?: number;
   addsDexterityModifier?: boolean;
@@ -353,6 +557,17 @@ export interface Item {
   shelfLife?: string;
   nutritionValue?: number;
   perishable?: boolean;
+  statBonuses?: Partial<AbilityScores>;
+  requirements?: {
+    minLevel?: number;
+    classId?: string[];
+    minStrength?: number;
+    minDexterity?: number;
+    minConstitution?: number;
+    minIntelligence?: number;
+    minWisdom?: number;
+    minCharisma?: number;
+  };
 }
 
 export interface LocationDynamicNpcConfig {
@@ -361,11 +576,19 @@ export interface LocationDynamicNpcConfig {
   baseSpawnChance: number;
 }
 
+export interface Exit {
+  direction: string;
+  targetId: string;
+  travelTime?: number;
+  description?: string;
+  isHidden?: boolean;
+}
+
 export interface Location {
   id: string;
   name: string;
   baseDescription: string;
-  exits: { [direction: string]: string };
+  exits: { [direction: string]: string | Exit }; // Allow both string (legacy) and Exit object
   itemIds?: string[];
   npcIds?: string[];
   dynamicNpcConfig?: LocationDynamicNpcConfig;
@@ -460,6 +683,7 @@ export interface Biome {
   id: string;
   name: string;
   color: string;
+  rgbaColor: string;
   icon?: string;
   description: string;
   passable: boolean;
@@ -478,6 +702,40 @@ export interface MapTile {
 export interface MapData {
   gridSize: { rows: number; cols: number };
   tiles: MapTile[][];
+}
+
+export interface PointOfInterest {
+  /** Unique ID to reference this POI within UI elements. */
+  id: string;
+  /** Human readable name shown inside tooltips and legends. */
+  name: string;
+  /** Short description for hover tooltips. */
+  description: string;
+  /** World-map aligned coordinates (tile space, not pixels). */
+  coordinates: { x: number; y: number };
+  /** Emoji or small string icon used on the map surface. */
+  icon: string;
+  /** Category helps the legend group similar markers. */
+  category: 'settlement' | 'landmark' | 'ruin' | 'cave' | 'wilderness';
+  /** Optional link back to a formal Location entry. */
+  locationId?: string;
+}
+
+export interface MapMarker {
+  /** ID of the originating POI or generated marker. */
+  id: string;
+  /** Tile-space coordinates where the marker should render. */
+  coordinates: { x: number; y: number };
+  /** Icon rendered on both the minimap canvas and the large map grid. */
+  icon: string;
+  /** Text label shown in tooltips or alongside the icon. */
+  label: string;
+  /** Optional grouping used by the legend to style or describe the marker. */
+  category?: string;
+  /** Whether the marker should render as "known" (tile discovered or player present). */
+  isDiscovered: boolean;
+  /** Associated Location ID, if any, to aid tooltips. */
+  relatedLocationId?: string;
 }
 
 export enum QuestStatus {
@@ -508,7 +766,33 @@ export interface Quest {
   rewards?: QuestReward;
   dateStarted: number;
   dateCompleted?: number;
+  /** Optional world-region hint for UI grouping */
+  regionHint?: string;
+  /** Narrative tag such as "Main", "Side", "Guild" for filtering */
+  questType?: 'Main' | 'Side' | 'Guild' | 'Dynamic';
 }
+
+export interface QuestTemplate extends Omit<Quest, 'status' | 'objectives' | 'dateStarted' | 'dateCompleted'> {
+  objectives: Array<Omit<QuestObjective, 'isCompleted'>>;
+  repeatable?: boolean;
+}
+
+/**
+ * ItemContainer is a specialization of Item that can hold other items.
+ * It keeps the base Item contract intact so existing inventory logic can
+ * treat containers as regular items while UI-specific code can read the
+ * additional metadata to build hierarchies.
+ */
+export interface ItemContainer extends Item {
+  isContainer: true;
+  capacitySlots?: number;
+  capacityWeight?: number;
+  allowedItemTypes?: Item['type'][];
+  contents?: Item[];
+}
+
+/** Helper discriminated union for any inventory entry (bag or loose item). */
+export type InventoryEntry = Item | ItemContainer;
 
 export interface GeminiLogEntry {
   timestamp: Date;
@@ -561,10 +845,6 @@ export type ActionType =
   | 'REMOVE_LOCATION_RESIDUE'
   | 'QUICK_TRAVEL'
   | 'ENTER_VILLAGE'
-  | 'APPROACH_VILLAGE'
-  | 'OBSERVE_VILLAGE'
-  | 'APPROACH_TOWN'
-  | 'OBSERVE_TOWN'
   | 'OPEN_MERCHANT'
   | 'CLOSE_MERCHANT'
   | 'BUY_ITEM'
@@ -578,6 +858,10 @@ export type ActionType =
   | 'ACCEPT_QUEST'
   | 'UPDATE_QUEST_OBJECTIVE'
   | 'COMPLETE_QUEST'
+  | 'APPROACH_VILLAGE'
+  | 'OBSERVE_VILLAGE'
+  | 'APPROACH_TOWN'
+  | 'OBSERVE_TOWN'
   | 'TOGGLE_QUEST_LOG';
 
 
@@ -668,8 +952,8 @@ export interface EconomyState {
 }
 
 export interface GameState {
-  phase: GamePhase;
   previousPhase?: GamePhase; // Track previous phase for back navigation
+  phase: GamePhase;
   party: PlayerCharacter[];
   tempParty: TempPartyMember[] | null;
   inventory: Item[];
@@ -739,7 +1023,21 @@ export interface GameState {
     economy?: EconomyState; // Added economy state
   };
 
+  /** Town exploration state - present when in VILLAGE_VIEW phase */
+  townState: import('./town').TownState | null;
+
   questLog: Quest[];
+  isQuestLogVisible: boolean;
+  notifications: Notification[];
+}
+
+export type NotificationType = 'success' | 'error' | 'info' | 'warning';
+
+export interface Notification {
+  id: string;
+  message: string;
+  type: NotificationType;
+  duration?: number;
 }
 
 export interface InspectSubmapTilePayload {
