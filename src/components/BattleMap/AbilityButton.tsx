@@ -38,12 +38,16 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
         tooltipContent += `\nCooldown: ${ability.currentCooldown} turns`;
     }
 
+    const accessibleLabel = `${ability.name}, ${costText} cost${isOnCooldown ? `, ${ability.currentCooldown} turn cooldown` : ''}`;
+
     return (
         <Tooltip content={<pre className="text-xs whitespace-pre-wrap">{tooltipContent.trim()}</pre>}>
             <button
                 onClick={onSelect}
                 disabled={isDisabled}
-                className={`relative w-16 h-16 rounded-lg flex flex-col items-center justify-center p-1 text-white border-2 transition-all
+                aria-label={accessibleLabel}
+                aria-disabled={isDisabled}
+                className={`relative w-16 h-16 rounded-lg flex flex-col items-center justify-center p-1 text-white border-2 transition-all outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800
                     ${isDisabled ? 'bg-gray-600/50 border-gray-500 cursor-not-allowed opacity-60' : 'bg-sky-700 hover:bg-sky-600 border-sky-500 cursor-pointer'}
                 `}
             >
