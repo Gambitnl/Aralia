@@ -11,10 +11,12 @@
 import React from 'react';
 import { CombatCharacter, CharacterStats, Position, CombatState } from './combat'; // Adjusted import path for sibling file
 import type { VillageTileType } from '../services/villageGenerator';
+import { Faction, PlayerFactionStanding } from './factions';
 
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 export * from './spells';
+export * from './factions';
 
 export enum GamePhase {
   MAIN_MENU,
@@ -741,6 +743,10 @@ export interface GameState {
   };
 
   questLog: Quest[];
+
+  // Intriguer: Faction System
+  factions: Record<string, Faction>; // All active factions in the world
+  playerFactionStandings: Record<string, PlayerFactionStanding>; // Player's standing with factions
 }
 
 export interface InspectSubmapTilePayload {
