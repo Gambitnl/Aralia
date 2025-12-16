@@ -43,12 +43,6 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         return;
       }
 
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        onConfirm();
-        return;
-      }
-
       if (event.key === 'Tab') {
         event.preventDefault();
         const dialog = dialogRef.current;

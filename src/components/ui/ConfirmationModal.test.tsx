@@ -50,9 +50,20 @@ describe('ConfirmationModal', () => {
         expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it('calls onConfirm when Enter key is pressed', () => {
+    it('focuses the Confirm button by default', () => {
         render(<ConfirmationModal {...defaultProps} />);
+        expect(screen.getByRole('button', { name: 'Confirm' })).toHaveFocus();
+    });
+
+    it('does not call onConfirm when Enter key is pressed globally if focus is elsewhere', () => {
+        render(<ConfirmationModal {...defaultProps} />);
+        const cancelButton = screen.getByText('Cancel');
+        cancelButton.focus();
+
+        // Fire Enter on the document (simulating the previous global listener behavior)
         fireEvent.keyDown(document, { key: 'Enter' });
-        expect(onConfirm).toHaveBeenCalledTimes(1);
+
+        // Should NOT trigger onConfirm because global listener is gone
+        expect(onConfirm).not.toHaveBeenCalled();
     });
 });
