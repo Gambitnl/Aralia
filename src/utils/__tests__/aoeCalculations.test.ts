@@ -53,6 +53,43 @@ describe('calculateAffectedTiles', () => {
       expect(result).toContainEqual({ x: 8, y: 5 })
       expect(result).not.toContainEqual({ x: 9, y: 5 })
     })
+
+    it('calculates a 15-foot cone facing North-East (45 deg)', () => {
+      // 15 ft = 3 tiles
+      // Origin: (5, 5)
+      // Direction: 45 degrees (NE)
+      const result = calculateAffectedTiles({
+        shape: 'Cone',
+        origin: { x: 5, y: 5 },
+        size: 15,
+        direction: 45
+      })
+
+      // Expected tiles analysis:
+      // (8, 2) -> 3 East, 3 North. Delta (3, -3).
+      // Angle: atan2(-3, 3) = -45 deg.
+      // Grid Angle: -45 + 90 = 45 deg. Exact match. Distance: 3 tiles (15ft). IN.
+      expect(result).toContainEqual({ x: 8, y: 2 })
+
+      // (6, 4) -> 1 East, 1 North. Delta (1, -1).
+      // Angle: -45 deg. Grid: 45. Distance: 1 tile. IN.
+      expect(result).toContainEqual({ x: 6, y: 4 })
+
+      // (8, 5) -> 3 East, 0 North. Delta (3, 0).
+      // Angle: atan2(0, 3) = 0. Grid: 90 deg.
+      // Diff: |90 - 45| = 45. Max allowed: 53/2 = 26.5.
+      // OUT.
+      expect(result).not.toContainEqual({ x: 8, y: 5 })
+
+      // (5, 2) -> 0 East, 3 North. Delta (0, -3).
+      // Angle: atan2(-3, 0) = -90. Grid: 0.
+      // Diff: |0 - 45| = 45.
+      // OUT.
+      expect(result).not.toContainEqual({ x: 5, y: 2 })
+
+      // Ensure origin is excluded (handled by implementation)
+      expect(result).not.toContainEqual({ x: 5, y: 5 })
+    })
   })
 
   describe('Cube', () => {
