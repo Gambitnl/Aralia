@@ -8,6 +8,7 @@ import { GameState, Action, Item, EconomyState, VillageActionContext } from '../
 import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
+import { applyEventsToEconomy, generateMarketEvents } from '@/utils/economyUtils';
 
 interface HandleMerchantInteractionProps {
   action: Action;
@@ -59,6 +60,21 @@ export async function handleOpenDynamicMerchant({
 
   if (inventoryResult.data) {
       const { inventory, economy } = inventoryResult.data;
+
+      // 3. Apply Simulated World Events to Economy
+      // We generate events deterministically based on game time (epoch) to ensure consistency for now,
+      // but in the future this could be pulled from global GameState events.
+      const currentEvents = generateMarketEvents(gameState.gameTime.getTime());
+
+      const modifiedEconomy = economy
+        ? applyEventsToEconomy(economy, currentEvents)
+        : applyEventsToEconomy({ marketFactors: { scarcity: [], surplus: [] }, buyMultiplier: 1, sellMultiplier: 0.5 }, currentEvents);
+
+      // Notify player of active events affecting prices
+      if (currentEvents.length > 0) {
+        const eventNames = currentEvents.map(e => e.name).join(', ');
+        addMessage(`Market News: ${eventNames} are affecting prices.`, 'system');
+      }
       
       // 2. Open modal with generated data
       dispatch({ 
@@ -66,7 +82,7 @@ export async function handleOpenDynamicMerchant({
           payload: { 
               merchantName: merchantType, 
               inventory: inventory,
-              economy: economy
+              economy: modifiedEconomy
           } 
       });
       addMessage(`You browse the wares at the ${merchantType}.`, "system");

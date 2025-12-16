@@ -1,0 +1,1 @@
+## 2024-05-24 - Dynamic Market Events **Learning:** Creating deterministic market events based on game time (epoch) provides a stable simulation without needing persistent state in the database. **Action:** Use `generateMarketEvents(gameTime.getTime())` to simulate economy shifts; verify the economy object exists before applying modifications to avoid runtime crashes.
