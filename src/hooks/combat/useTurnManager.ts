@@ -3,16 +3,16 @@
  * Manages the turn-based combat state using the new action economy system.
  * Now integrates AI decision making, Damage Numbers, and Spell Effect Triggers.
  */
-import { useState, useCallback, useMemo, useRef } from 'react';
-import { CombatCharacter, TurnState, CombatAction, CombatLogEntry, BattleMapData, DamageNumber, Animation, ReactiveTrigger, ActiveCondition, StatusEffect } from '../../types/combat';
-import { EffectDuration } from '../../types/spells';
+import { useState, useCallback, useMemo } from 'react';
+import { CombatCharacter, TurnState, CombatAction, CombatLogEntry, BattleMapData, ReactiveTrigger, ActiveCondition, StatusEffect } from '../../types/combat';
 import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
-import { createDamageNumber, generateId, getActionMessage, rollDice } from '../../utils/combatUtils';
+import { generateId, getActionMessage, rollDice } from '../../utils/combatUtils';
 import { resetEconomy } from '../../utils/combat/actionEconomyUtils';
-import { calculateSpellDC, rollSavingThrow, SavingThrowModifier } from '../../utils/savingThrowUtils';
+import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 import { useActionEconomy } from './useActionEconomy';
 import { useCombatAI } from './useCombatAI';
+import { useCombatVisuals } from './useCombatVisuals';
 import {
   ActiveSpellZone,
   MovementTriggerDebuff,
@@ -50,9 +50,8 @@ export const useTurnManager = ({
     actionsThisTurn: []
   });
 
-  // Damage/heal popups and lightweight FX to show the player what just happened.
-  const [damageNumbers, setDamageNumbers] = useState<DamageNumber[]>([]);
-  const [animations, setAnimations] = useState<Animation[]>([]);
+  // Use the new visual feedback hook
+  const { damageNumbers, animations, addDamageNumber, queueAnimation } = useCombatVisuals();
 
   // Spell trigger tracking: zones (Create Bonfire, etc.) and debuffs (Booming Blade, etc.)
   const [spellZones, setSpellZones] = useState<ActiveSpellZone[]>([]);
@@ -65,14 +64,6 @@ export const useTurnManager = ({
   const managedAutoCharacters = autoCharacters ?? defaultAutoCharacters;
 
   const { canAfford, consumeAction } = useActionEconomy();
-
-  const addDamageNumber = useCallback((value: number, position: { x: number, y: number }, type: 'damage' | 'heal' | 'miss') => {
-    const newDn: DamageNumber = createDamageNumber(value, position, type);
-    setDamageNumbers(prev => [...prev, newDn]);
-    setTimeout(() => {
-      setDamageNumbers(prev => prev.filter(dn => dn.id !== newDn.id));
-    }, newDn.duration);
-  }, []);
 
   const processRepeatSaves = useCallback((character: CombatCharacter, timing: 'turn_end' | 'turn_start' | 'on_damage' | 'on_action', actionEffectId?: string): CombatCharacter => {
     let updatedCharacter = { ...character };
@@ -229,13 +220,6 @@ export const useTurnManager = ({
     const dexModifier = Math.floor((character.stats.dexterity - 10) / 2);
     const roll = Math.floor(Math.random() * 20) + 1;
     return roll + dexModifier + character.stats.baseInitiative;
-  }, []);
-
-  const queueAnimation = useCallback((animation: Animation) => {
-    setAnimations(prev => [...prev, animation]);
-    setTimeout(() => {
-      setAnimations(prev => prev.filter(anim => anim.id !== animation.id));
-    }, animation.duration);
   }, []);
 
   const startTurnFor = useCallback((character: CombatCharacter) => {
