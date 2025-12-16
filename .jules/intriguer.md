@@ -1,5 +1,7 @@
-# Intriguer's Journal
+## 2024-05-22 - Multi-Layered Identity System
+**Learning:** A robust identity system requires separating the *actor* (Player) from the *persona* (Alias). By decoupling reputation from the player and attaching it to an Alias, we allow for "clean slate" gameplay and spy mechanics. However, simple disguises are boring; they need *vulnerabilities* (specific triggers like 'speech' or 'combat') to create tension.
 
-## 2025-10-26 - Dual-Layer Reputation System
-**Learning:** A "Public vs Secret" reputation system is essential for intrigue. It allows a player to be publicly denounced by a faction while secretly being their top agent, or publicly a hero while secretly despised. This creates emergent "double agent" gameplay without complex scripting.
-**Action:** Always expose "Public Standing" in the UI, but keep "Secret Standing" hidden or hinted at via "Insight" checks.
+**Action:**
+1. Always check `activeDisguise` before calculating reputation/reaction.
+2. When designing NPCs, give them specific `detection` capabilities (e.g., a Guard Captain might have a bonus to detecting 'combat' disguise flaws).
+3. Use `isExposed` on an Alias to trigger "burned spy" consequences—where the Alias becomes a liability rather than an asset.

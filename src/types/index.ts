@@ -13,6 +13,7 @@ import { CombatCharacter, CharacterStats, Position, CombatState } from './combat
 import type { VillageTileType } from '../services/villageGenerator';
 import { Faction, PlayerFactionStanding } from './factions';
 import { Companion } from './companions';
+import { PlayerIdentityState } from './identity';
 
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
@@ -20,6 +21,7 @@ export * from './spells';
 export * from './deity';
 export * from './factions';
 export * from './companions';
+export * from './identity';
 
 export enum GamePhase {
   MAIN_MENU,
@@ -783,6 +785,9 @@ export interface GameState {
   factions: Record<string, Faction>; // All active factions in the world
   playerFactionStandings: Record<string, PlayerFactionStanding>; // Player's standing with factions
   companions: Record<string, Companion>; // Keyed by Companion ID
+
+  // Intriguer: Identity System
+  identity?: PlayerIdentityState;
 }
 
 export interface InspectSubmapTilePayload {
