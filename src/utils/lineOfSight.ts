@@ -12,7 +12,7 @@ import { BattleMapTile, BattleMapData } from '../types/combat';
  * @param y1 - End Y coordinate
  * @returns An array of coordinates representing the line.
  */
-function bresenhamLine(x0: number, y0: number, x1: number, y1: number): { x: number, y: number }[] {
+export function bresenhamLine(x0: number, y0: number, x1: number, y1: number): { x: number, y: number }[] {
   const points: { x: number, y: number }[] = [];
   const dx = Math.abs(x1 - x0);
   const dy = Math.abs(y1 - y0);

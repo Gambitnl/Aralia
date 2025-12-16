@@ -14,8 +14,39 @@ import { isWeaponProficient } from './weaponUtils';
 import { generateId } from './idGenerator';
 import { getAbilityModifierValue } from './statUtils';
 
+import { bresenhamLine } from './lineOfSight';
+
 // Re-export for consumers
 export { createAbilityFromSpell, generateId };
+
+/**
+ * Calculates cover bonus for a target from a specific origin.
+ * @param origin - The attacker's position.
+ * @param target - The target's position.
+ * @param mapData - The battle map data.
+ * @returns The cover bonus to AC (0, 2, or 5).
+ */
+export function calculateCover(origin: Position, target: Position, mapData: BattleMapData): number {
+  if (!mapData) return 0;
+
+  // Get the line of tiles between attacker and target
+  const line = bresenhamLine(origin.x, origin.y, target.x, target.y);
+
+  // Check each tile along the path, excluding start and end
+  // If any tile provides cover, grant +2 AC (Half Cover)
+  // TODO: Add logic for Three-Quarters Cover (+5) if we have height/obstacle type data
+  for (let i = 1; i < line.length - 1; i++) {
+    const point = line[i];
+    const tile = mapData.tiles.get(`${point.x}-${point.y}`);
+
+    if (tile && tile.providesCover) {
+      // Found an obstacle that provides cover
+      return 2;
+    }
+  }
+
+  return 0;
+}
 
 /**
  * Parses a dice notation string (e.g., '2d8', '3d6+5') and returns the rolled total.
