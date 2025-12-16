@@ -33,19 +33,30 @@ export function calculateCover(origin: Position, target: Position, mapData: Batt
   const line = bresenhamLine(origin.x, origin.y, target.x, target.y);
 
   // Check each tile along the path, excluding start and end
-  // If any tile provides cover, grant +2 AC (Half Cover)
-  // TODO: Add logic for Three-Quarters Cover (+5) if we have height/obstacle type data
+  // If any tile provides cover, we determine the cover bonus (Half: +2 or Three-Quarters: +5)
+  // and apply the highest bonus found along the path.
+  let maxCover = 0;
+
   for (let i = 1; i < line.length - 1; i++) {
     const point = line[i];
     const tile = mapData.tiles.get(`${point.x}-${point.y}`);
 
     if (tile && tile.providesCover) {
-      // Found an obstacle that provides cover
-      return 2;
+      // Default to Half Cover (+2)
+      let currentCover = 2;
+
+      // Pillars provide Three-Quarters Cover (+5) due to their width and solidity
+      if (tile.decoration === 'pillar') {
+        currentCover = 5;
+      }
+
+      if (currentCover > maxCover) {
+        maxCover = currentCover;
+      }
     }
   }
 
-  return 0;
+  return maxCover;
 }
 
 /**
