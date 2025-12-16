@@ -68,6 +68,11 @@ export const ITEMS: Record<string, Item> = {
     id: 'shiny_coin', name: 'Shiny Coin', icon: '🪙', description: 'A gold coin, surprisingly clean.', type: 'treasure', weight: 0.02, cost: "1 GP"
   },
 
+  // --- Light Sources ---
+  'torch': { id: 'torch', name: 'Torch', icon: '🔥', description: 'A wooden torch wrapped in cloth and pitch. Burns for 1 hour, providing bright light for 20 feet and dim light for another 20 feet.', type: 'consumable', weight: 1, cost: '1 CP' },
+  'hooded_lantern': { id: 'hooded_lantern', name: 'Hooded Lantern', icon: '🏮', description: 'A metal lantern with shutters. Burns oil for 6 hours. Can be shuttered to reduce light.', type: 'misc', weight: 2, cost: '5 GP' },
+  'oil_flask': { id: 'oil_flask', name: 'Oil (flask)', icon: '🍶', description: 'A flask of oil. Can be used to fuel a lantern or as a weapon.', type: 'consumable', weight: 1, cost: '1 SP' },
+
   // --- Coins ---
   'platinum_piece': { id: 'platinum_piece', name: 'Platinum Piece', icon: '🪙', description: 'A heavy, shimmering platinum coin. Worth 10 GP.', type: 'treasure', weight: 0.02, cost: '1 PP', costInGp: 10 },
   'gold_piece': { id: 'gold_piece', name: 'Gold Piece', icon: '🪙', description: 'A standard gold coin.', type: 'treasure', weight: 0.02, cost: '1 GP', costInGp: 1 },
