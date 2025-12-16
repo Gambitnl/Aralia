@@ -24,11 +24,11 @@ export interface SavingThrowResult {
 
 /**
  * Modifier to apply to a saving throw from external effects.
- * Used by SavePenaltySystem for spells like Mind Sliver.
+ * Supports both bonuses (Bless) and penalties (Mind Sliver).
  */
 export interface SavingThrowModifier {
-    dice?: string;    // e.g. "1d4" - will be rolled and subtracted
-    flat?: number;    // e.g. -2 - static penalty (should be negative)
+    dice?: string;    // e.g. "1d4" (bonus) or "-1d4" (penalty). Will be rolled and ADDED.
+    flat?: number;    // e.g. 2 (bonus) or -2 (penalty). Will be ADDED.
     source: string;   // Name of the effect that caused this modifier
 }
 
@@ -94,9 +94,9 @@ export function rollSavingThrow(
         for (const modifier of modifiers) {
             if (modifier.dice) {
                 const diceRoll = rollDice(modifier.dice);
-                // Dice penalties are subtracted (e.g., Mind Sliver subtracts 1d4)
-                mod -= diceRoll;
-                modifiersApplied.push({ source: modifier.source, value: -diceRoll });
+                // Dice result is ADDED (positive string = bonus, negative string = penalty)
+                mod += diceRoll;
+                modifiersApplied.push({ source: modifier.source, value: diceRoll });
             }
             if (modifier.flat !== undefined) {
                 // Flat modifiers are applied directly (already signed)

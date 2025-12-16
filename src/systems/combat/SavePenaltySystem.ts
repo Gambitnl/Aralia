@@ -9,15 +9,7 @@
 
 import { CombatState, CombatCharacter, SavePenaltyRider } from '@/types/combat';
 import { rollDice } from '@/utils/combatUtils';
-
-/**
- * Modifier to apply to a saving throw, computed from active save penalty riders.
- */
-export interface SavingThrowModifier {
-    dice?: string;    // e.g. "1d4" - will be rolled
-    flat?: number;    // e.g. -2 - static penalty
-    source: string;   // Name of the effect that caused this penalty
-}
+import { SavingThrowModifier } from '@/utils/savingThrowUtils';
 
 /**
  * System for registering, consuming, and expiring save penalty riders.
@@ -49,6 +41,7 @@ export class SavePenaltySystem {
     /**
      * Get all active save penalty modifiers for a target.
      * Converts SavePenaltyRider[] to SavingThrowModifier[] for easy use in rollSavingThrow.
+     * Ensures penalties are formatted as negative strings (e.g. "-1d4") if not already.
      * @param target The target character
      * @returns Array of modifiers to apply
      */
@@ -57,11 +50,21 @@ export class SavePenaltySystem {
             return [];
         }
 
-        return target.savePenaltyRiders.map(rider => ({
-            dice: rider.dice,
-            flat: rider.flat,
-            source: rider.sourceName
-        }));
+        return target.savePenaltyRiders.map(rider => {
+            let dice = rider.dice;
+            // Ensure dice string implies subtraction for penalties
+            if (dice && !dice.startsWith('-')) {
+                dice = `-${dice}`;
+            }
+
+            // Note: We leave flat modifiers as-is, assuming the caller provides signed values (e.g., -2)
+            // or that positive values might be valid in future contexts (though this is a 'Penalty' system).
+            return {
+                dice: dice,
+                flat: rider.flat,
+                source: rider.sourceName
+            };
+        });
     }
 
     /**
@@ -180,12 +183,14 @@ export class SavePenaltySystem {
 
         for (const mod of modifiers) {
             if (mod.dice) {
+                // Roll the dice (which should now be negative string, e.g., -1d4)
                 const diceRoll = rollDice(mod.dice);
-                total -= diceRoll; // Subtract the rolled value
-                details.push(`-${diceRoll} (${mod.dice} from ${mod.source})`);
+                // ADD the value (which is negative)
+                total += diceRoll;
+                details.push(`${diceRoll} (${mod.dice} from ${mod.source})`);
             }
             if (mod.flat) {
-                total += mod.flat; // flat is already negative
+                total += mod.flat;
                 details.push(`${mod.flat} from ${mod.source}`);
             }
         }
