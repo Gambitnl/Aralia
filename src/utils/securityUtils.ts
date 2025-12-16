@@ -3,6 +3,8 @@
  * Shared security utility functions for input sanitization and validation.
  */
 
+import { ENV } from '../config/env';
+
 /**
  * Sanitizes user input intended for AI prompts to prevent injection attacks and DoS.
  *
@@ -60,4 +62,51 @@ export function detectSuspiciousInput(input: string): boolean {
   ];
 
   return suspiciousPatterns.some(pattern => lowerInput.includes(pattern));
+}
+
+/**
+ * Recursively redacts sensitive information (like API keys) from data.
+ * Safe to use on Error objects (converts them to string).
+ *
+ * @param data The data to scrub (string, object, Error, etc.)
+ * @param secret The secret to redact. Defaults to ENV.API_KEY.
+ * @returns A safe string representation or object with the secret replaced.
+ */
+export function redactSensitiveData(data: any, secret?: string): any {
+  if (data === null || data === undefined) return data;
+
+  const keyToRedact = secret !== undefined ? secret : ENV.API_KEY;
+  if (!keyToRedact || keyToRedact.length < 5) return data; // Avoid redacting common short strings
+
+  let stringified: string;
+  try {
+    if (data instanceof Error) {
+      // JSON.stringify(error) returns {} usually, so we use property names
+      stringified = JSON.stringify(data, Object.getOwnPropertyNames(data));
+    } else if (typeof data === 'object') {
+      stringified = JSON.stringify(data);
+    } else {
+      stringified = String(data);
+    }
+  } catch (e) {
+    return '[Unable to sanitize data]';
+  }
+
+  if (stringified.includes(keyToRedact)) {
+    // Escape special regex characters in the key if we were using regex,
+    // but split/join is safer and faster for simple string replacement.
+    const redacted = stringified.split(keyToRedact).join('[REDACTED]');
+
+    // Attempt to parse back to object if it was an object/JSON
+    if (typeof data === 'object' && !(data instanceof Error)) {
+      try {
+        return JSON.parse(redacted);
+      } catch {
+        return redacted;
+      }
+    }
+    return redacted;
+  }
+
+  return data;
 }
