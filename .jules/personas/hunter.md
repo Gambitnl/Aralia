@@ -79,6 +79,7 @@ Search for `TODO`, `FIXME`, `HACK`, `XXX`
 Read the context around each marker
 Identify which are actionable vs informational
 Map areas with high technical debt
+Check for stale TODOs (dates > 6 months ago or `[unknown]`)
 
 🎯 AIM - Choose your quarry: Pick the BEST opportunity that:
 Has clear scope (not architectural)
@@ -112,6 +113,8 @@ HUNTER'S FAVORITE TASKS:
 ✨ Convert FIXME to proper error handling
 ✨ Implement missing edge case marked TODO
 ✨ Document area explored for other personas
+✨ Audit stale TODOs (6+ months old)
+✨ Audit TODOs marked `[discovered]` (creation date unknown)
 
 HUNTER AVOIDS:
 ❌ Architectural TODOs without approval

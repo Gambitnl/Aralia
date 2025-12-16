@@ -19,26 +19,40 @@ These are prompts for reflection, not rigid rules.
 
 ## TODO Format
 
-### Basic
+### Basic (with date)
 ```typescript
-// TODO: Brief, actionable description
+// TODO [2025-12-16]: Brief, actionable description
 ```
+
+**Always include the date.** This enables staleness detection - TODOs older than 6 months should be reviewed.
 
 ### With Persona Routing
 ```typescript
-// TODO(Oracle): Add proper return type to this function
-// TODO(Vanguard): Add test coverage for this edge case
-// TODO(Gardener): This duplicates logic in utils/spellHelpers.ts
-// TODO(Vector): Verify this matches 5e SRD rules
-// TODO(Scribe): This function needs JSDoc
+// TODO(Oracle) [2025-12-16]: Add proper return type to this function
+// TODO(Vanguard) [2025-12-16]: Add test coverage for this edge case
+// TODO(Gardener) [2025-12-16]: This duplicates logic in utils/spellHelpers.ts
+// TODO(Vector) [2025-12-16]: Verify this matches 5e SRD rules
+// TODO(Scribe) [2025-12-16]: This function needs JSDoc
 ```
 
 ### With Priority (Optional)
 ```typescript
-// TODO: [P0] Critical - blocks functionality
-// TODO: [P1] Important - should fix soon
-// TODO: [P2] Nice to have - when time permits
+// TODO [2025-12-16] [P0]: Critical - blocks functionality
+// TODO [2025-12-16] [P1]: Important - should fix soon
+// TODO [2025-12-16] [P2]: Nice to have - when time permits
 ```
+
+### Legacy TODOs (no date)
+If you encounter a TODO without a date while editing a file, tag it with the discovery date:
+```typescript
+// Before: // TODO: Fix this
+// After:  // TODO [discovered 2025-12-16]: Fix this
+```
+
+**Important:**
+- First verify today's date - don't assume
+- Use `[discovered YYYY-MM-DD]` to indicate you found it, not created it
+- This enables staleness tracking without falsely claiming authorship
 
 ---
 
@@ -57,17 +71,17 @@ These are prompts for reflection, not rigid rules.
 
 ### Good TODOs
 ```typescript
-// TODO: Handle empty spell list with EmptyState component
-// TODO(Vector): Damage calculation doesn't account for resistance
-// TODO: [P1] Add loading state while fetching spells
+// TODO [2025-12-16]: Handle empty spell list with EmptyState component
+// TODO(Vector) [2025-12-16]: Damage calculation doesn't account for resistance
+// TODO [2025-12-16] [P1]: Add loading state while fetching spells
 ```
 
 ### Bad TODOs
 ```typescript
-// TODO: Fix this (fix what?)
-// TODO: Make better (how?)
-// TODO: ??? (not actionable)
-// TODO: Refactor everything (too vague, too big)
+// TODO: Fix this                    // No date, not actionable
+// TODO [2025-12-16]: Make better    // Has date but not actionable
+// TODO: ???                         // Not actionable
+// TODO: Refactor everything         // Too vague, too big, no date
 ```
 
 ### When to Create
@@ -160,8 +174,42 @@ See [_ROSTER.md](../_ROSTER.md) for complete persona list.
 
 - Don't leave TODOs in code you're actively working on
 - If you create a TODO, it should be for *later* or *someone else*
-- Stale TODOs (6+ months) should be evaluated: still relevant?
+- **Always include date** - enables staleness detection
 - Large TODOs should be broken down or moved to an issue
+
+---
+
+## Staleness Audit
+
+TODOs older than 6 months should be reviewed. Run periodically:
+
+```bash
+# Find all TODOs with dates
+grep -rE "TODO.*\[20[0-9]{2}-[0-9]{2}-[0-9]{2}\]" src/
+
+# Find TODOs without dates (legacy)
+grep -rE "// TODO[^[]" src/
+
+# Find TODOs marked [discovered] (legacy, date unknown at creation)
+grep -r "TODO.*\[discovered" src/
+```
+
+### Staleness Review Process
+
+For each stale TODO:
+
+1. **Still relevant?** - If yes, update the date and optionally add context
+2. **Already done?** - Mark with `RESOLVED?` pattern, verify, then delete
+3. **No longer needed?** - Delete with brief PR explanation
+4. **Too big?** - Break into smaller TODOs or create an issue
+
+### Hunter's Responsibility
+
+Hunter should periodically audit for:
+- TODOs older than 6 months
+- TODOs marked `[discovered]` (unknown original creation date)
+- TODOs still without any date (not yet encountered by any agent)
+- High-density TODO areas (tech debt hotspots)
 
 ---
 

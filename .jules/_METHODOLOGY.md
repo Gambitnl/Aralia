@@ -38,13 +38,82 @@ Before any PR:
 ## Quick TODO Reference
 
 ```typescript
-// TODO: Brief description
-// TODO(Persona): Routes to specific persona
-// FIXME: Something broken
-// HACK: Temporary workaround
+// TODO [2025-12-16]: Brief description
+// TODO(Persona) [2025-12-16]: Routes to specific persona
+// FIXME [2025-12-16]: Something broken
+// HACK [2025-12-16]: Temporary workaround
 ```
 
 See [todos.md](guides/todos.md) for full protocol.
+
+---
+
+## Cross-Cutting: TODO Date Tagging
+
+**All personas must tag undated TODOs when encountered.**
+
+When you encounter a TODO/FIXME/HACK/XXX without a date:
+
+1. **Check today's date first** - Don't assume, verify the current date
+2. **Add `[discovered YYYY-MM-DD]`** to mark when you found it
+3. **Do not claim you created it** - Use "discovered" not the creation format
+
+```typescript
+// Before: // TODO: Fix validation
+// After:  // TODO [discovered 2025-12-16]: Fix validation
+
+// Before: // FIXME: Race condition here
+// After:  // FIXME [discovered 2025-12-16]: Race condition here
+```
+
+This is a **passive duty** - do it whenever you're already editing a file and notice an undated marker. Don't create PRs just for date tagging.
+
+---
+
+## Cross-Cutting: Visitation Tracking (Upkeep Personas Only)
+
+**Applies to:** Scribe, Hunter, Gardener, Sentinel (audit/upkeep personas)
+
+**Does NOT apply to:** Oracle, Vanguard, Bolt, Steward, Vector, etc. (code modification personas)
+
+Upkeep personas should leave a visitation marker at the end of files they've audited:
+
+```typescript
+// @visited Scribe 2025-12-16
+```
+
+### Purpose
+- Lets the persona skip already-visited files on subsequent runs
+- Focus effort on unvisited areas of the codebase
+- Prevents redundant audits of the same files
+
+### Rules
+1. **Check today's date first** - verify before adding marker
+2. **Add marker at file end** - after all code, before any existing markers
+3. **One line per persona** - each persona tracks separately
+4. **Update on revisit** - if you do revisit, update your date
+
+```typescript
+// End of file
+// @visited Scribe 2025-12-16
+// @visited Hunter 2025-12-14
+// @visited Gardener 2025-12-10
+```
+
+### Finding Unvisited Files
+
+```bash
+# Files Scribe hasn't visited
+find src -name "*.ts" -o -name "*.tsx" | xargs grep -L "@visited Scribe"
+
+# Files not visited by any upkeep persona
+find src -name "*.ts" -o -name "*.tsx" | xargs grep -L "@visited"
+```
+
+### When to Revisit
+- File was significantly modified since last visit (check git blame)
+- 3+ months since last visit
+- Specifically requested
 
 ---
 
