@@ -15,6 +15,7 @@ import type { VillageTileType } from '../services/villageGenerator';
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 export * from './spells';
+export * from './deity';
 
 export enum GamePhase {
   MAIN_MENU,
