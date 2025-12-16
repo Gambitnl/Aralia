@@ -5,7 +5,7 @@
  * It uses the centralized AI client from aiClient.ts.
  */
 import { GenerateContentResponse } from '@google/genai';
-import { ai } from './aiClient'; // Import the shared AI client
+import { ai, isAiEnabled } from './aiClient'; // Import the shared AI client
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN } from '../config/geminiConfig';
 
 const DEFAULT_VOICE_NAME = 'Kore'; // A default Gemini TTS voice
@@ -26,6 +26,15 @@ export async function synthesizeSpeech(
   voiceName: string = DEFAULT_VOICE_NAME,
   devModelOverride: string | null = null
 ): Promise<{ audioData: string | null; error?: Error; rateLimitHit?: boolean }> {
+  if (!isAiEnabled()) {
+    console.warn("Gemini API disabled: synthesizeSpeech skipped.");
+    return {
+      audioData: null,
+      error: new Error("Gemini API disabled (Missing API Key)."),
+      rateLimitHit: false,
+    };
+  }
+
   let lastError: any = null;
   let rateLimitHitInChain = false;
 
