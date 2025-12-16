@@ -62,5 +62,18 @@ See [pr-workflow.md](guides/pr-workflow.md) for full guidelines.
 
 ---
 
+## Cross-Cutting: D&D World Awareness
+
+**Every feature must wire up to D&D mechanics and respect the living world simulation.**
+
+Before implementing, ask:
+- Does this respect information propagation? (See [dnd-domain.md](guides/dnd-domain.md#world-simulation--information-propagation))
+- Would this make sense in a D&D world where magic exists but isn't universal?
+- Are there mechanical hooks (skills, spells, abilities) that should interact with this?
+
+> *"The world is simulated, not scripted. Events happen independently. Information travels realistically. Magic is powerful but not omnipresent."*
+
+---
+
 *See [_CODEBASE.md](_CODEBASE.md) for technical standards.*
 *See [_ROSTER.md](_ROSTER.md) for persona domains.*

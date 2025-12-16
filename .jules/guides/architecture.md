@@ -179,6 +179,40 @@ src/
 
 ---
 
+## D&D World Simulation
+
+Every feature must consider how it wires up to D&D mechanics and the living world simulation.
+
+### Core Questions
+
+Before building any feature, ask:
+
+1. **Does this respect information propagation?**
+   - Player shouldn't know about distant events instantly
+   - NPCs form opinions based on what they *witness* or *hear*
+   - See [dnd-domain.md](dnd-domain.md#world-simulation--information-propagation) for details
+
+2. **Does time matter?**
+   - The world doesn't wait for the player
+   - Events proceed independently
+   - Distance affects response time
+
+3. **Does magic bypass normal rules?**
+   - Court wizards can use Sending for instant communication
+   - Scrying can observe distant events
+   - But these require resources and access
+
+4. **Are there D&D mechanical hooks?**
+   - New systems should connect to existing mechanics where appropriate
+   - Abilities, skills, spells should interact with new features
+   - Factions, reputation, and alignment can be affected
+
+### Self-Check Prompt
+
+> *"Is this feature world-aware? Does it respect information propagation? Would this make sense in a D&D world where magic exists but isn't universal?"*
+
+---
+
 ## Performance Considerations
 
 ### Bundle Size
