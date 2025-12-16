@@ -1,0 +1,1 @@
+## 2025-05-23 - Context Structure **Learning:** Grouping context into clear sections (Player, Location, Recent Events) with line breaks significantly improves AI adherence to continuity. **Action:** Always format context as structured text blocks rather than a single compressed string.

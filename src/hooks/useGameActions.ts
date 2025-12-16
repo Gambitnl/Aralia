@@ -7,8 +7,8 @@
 import React, { useCallback } from 'react';
 import { GameState, Action, NPC, Location, MapTile, PlayerCharacter, GeminiLogEntry, EquipItemPayload, UnequipItemPayload, DropItemPayload, UseItemPayload, ShowEncounterModalPayload, StartBattleMapEncounterPayload, Monster, TempPartyMember, DiscoveryType, KnownFact, QuickTravelPayload, GamePhase, Item, VillageActionContext } from '../types';
 import { AppAction } from '../state/actionTypes';
-import { ITEMS, BIOMES, LOCATIONS, NPCS, WEAPONS_DATA } from '../constants';
-import { DIRECTION_VECTORS, SUBMAP_DIMENSIONS } from '../config/mapConfig';
+import { ITEMS, LOCATIONS, NPCS, WEAPONS_DATA } from '../constants';
+import { DIRECTION_VECTORS } from '../config/mapConfig';
 import * as GeminiService from '../services/geminiService';
 import { AddMessageFn, PlayPcmAudioFn, GetCurrentLocationFn, GetCurrentNPCsFn, GetTileTooltipTextFn, AddGeminiLogFn, LogDiscoveryFn } from './actions/actionHandlerTypes';
 
@@ -39,8 +39,8 @@ import {
   handleToggleQuestLog
 } from './actions/handleSystemAndUi';
 import { getDiegeticPlayerActionMessage } from '../utils/actionUtils';
-import { getSubmapTileInfo } from '../utils/submapUtils';
 import { formatDuration } from '@/utils/timeUtils';
+import { generateGeneralActionContext } from '../utils/contextUtils';
 
 
 interface UseGameActionsProps {
@@ -127,13 +127,14 @@ export function useGameActions({
 
       const currentLoc = getCurrentLocation();
       const npcsInLocation = getCurrentNPCs();
-      const itemsInLocationNames = currentLoc.itemIds?.map((id) => ITEMS[id]?.name).filter(Boolean).join(', ') || 'nothing special';
 
-      const submapTileInfo = gameState.subMapCoordinates ? getSubmapTileInfo(gameState.worldSeed, currentLoc.mapCoordinates, currentLoc.biomeId, SUBMAP_DIMENSIONS, gameState.subMapCoordinates) : null;
-
-      const subMapCtx = submapTileInfo ? `You are standing on a '${submapTileInfo.effectiveTerrainType}' tile. ` : '';
-      const detailedLocationContext = `${subMapCtx}The location is ${currentLoc.name}. Biome: ${BIOMES[currentLoc.biomeId]?.name || 'Unknown'}. Game Time: ${gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}`;
-      const generalActionContext = `Player context: ${playerContext}. Location context: ${detailedLocationContext}. NPCs present: ${npcsInLocation.map((n) => n.name).join(', ') || 'no one'}. Visible items: ${itemsInLocationNames}.`;
+      // Use the centralized context generator for consistent, rich narrative context
+      const generalActionContext = generateGeneralActionContext({
+        gameState,
+        playerCharacter,
+        currentLocation: currentLoc,
+        npcsInLocation
+      });
 
       // TODO: Refactor this switch statement into an action handler registry map (e.g., const handlers: Record<ActionType, Handler>) for better maintainability, testability, and type safety
       // TODO: Wrap handler dispatches in a centralized try/finally that clears loading/error state (Reason: thrown handlers can leave the global spinner stuck; Expectation: UI returns to idle even when an action aborts mid-flow).

@@ -257,14 +257,14 @@ export async function generateActionOutcome(
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
   const systemInstruction = isCustomGeminiAction
-    ? "You are a Dungeon Master narrating the outcome of a player's specific, creative action. The response should be a brief, 2-3 sentence description of what happens next."
-    : "You are a Dungeon Master narrating the outcome of a player's action. The response should be a brief, 2-3 sentence description.";
+    ? "You are a Dungeon Master narrating the outcome of a player's specific, creative action. Maintain continuity with Recent Events if provided. If the action contradicts the setting, describe the failure. The response should be a brief, 2-3 sentence description of what happens next."
+    : "You are a Dungeon Master narrating the outcome of a player's action. Maintain continuity with Recent Events if provided. The response should be a brief, 2-3 sentence description.";
 
   const sanitizedAction = sanitizeAIInput(playerAction);
 
   const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, sanitizedAction); // Default to PRO for quality narration, downgrades if spammy/short
 
-  let prompt = `Player action: "${sanitizedAction}"\nContext: ${context}`;
+  let prompt = `Player action: "${sanitizedAction}"\n\nContext:\n${context}`;
   if (sanitizedAction.toLowerCase().includes("look around") && worldMapTileTooltip) {
     prompt += `\nBroader context for 'look around': ${worldMapTileTooltip}`;
   }
