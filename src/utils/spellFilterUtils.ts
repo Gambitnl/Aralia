@@ -3,7 +3,7 @@
  * Artisanal utilities for filtering and displaying spells in feat selection.
  * Provides school-aware filtering, attack spell detection, and visual helpers.
  */
-import { Spell, SpellSchool, FeatSpellRequirement } from '../types';
+import { Spell, SpellSchool, FeatSpellRequirement, SpellEffect } from '../types';
 import { SpellDataRecord } from '../context/SpellContext';
 import { CLASSES_DATA } from '../constants';
 
@@ -18,9 +18,14 @@ import { CLASSES_DATA } from '../constants';
 export function isAttackSpell(spell: Spell): boolean {
   if (!spell.effects || !Array.isArray(spell.effects)) return false;
 
-  return spell.effects.some(
-    (effect) => effect.type === 'DAMAGE' && effect.condition?.type === 'hit'
-  );
+  return spell.effects.some((effect) => {
+    if (effect.type !== 'DAMAGE') return false;
+    // Cast to unknown first to avoid "Property 'condition' does not exist" error,
+    // then to a shape that has the optional condition property.
+    // This is necessary because the global SpellEffect type is incomplete.
+    const damageEffect = effect as unknown as { condition?: { type: string } };
+    return damageEffect.condition?.type === 'hit';
+  });
 }
 
 /**
@@ -165,10 +170,14 @@ export function formatCastingTime(castingTime: Spell['castingTime']): string {
     special: 'Special',
   };
 
-  const label = unitLabels[castingTime.unit] || castingTime.unit;
+  const isString = typeof castingTime === 'string';
+  const unit = isString ? castingTime : castingTime.unit;
+  const value = isString ? 1 : castingTime.value;
 
-  if (castingTime.value === 1) {
+  const label = unitLabels[unit] || unit;
+
+  if (value === 1) {
     return label;
   }
-  return `${castingTime.value} ${label}${castingTime.value > 1 ? 's' : ''}`;
+  return `${value} ${label}${value > 1 ? 's' : ''}`;
 }

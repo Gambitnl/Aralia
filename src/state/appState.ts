@@ -7,6 +7,7 @@
 import { GameState, GamePhase, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, SuspicionLevel, KnownFact, QuestStatus } from '../types';
 import { AppAction } from './actionTypes';
 import { STARTING_LOCATION_ID, DUMMY_PARTY_FOR_DEV, LOCATIONS, ITEMS, initialInventoryForDummyCharacter, CLASSES_DATA, NPCS } from '../constants';
+import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../data/factions';
 import { canUseDevTools } from '../utils/permissions';
 import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import * as SaveLoadService from '../services/saveLoadService';
@@ -130,6 +131,10 @@ export const initialGameState: GameState = {
 
     // Notification System
     notifications: [],
+
+    // Faction System
+    factions: FACTIONS,
+    playerFactionStandings: INITIAL_FACTION_STANDINGS,
 };
 
 

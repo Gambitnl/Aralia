@@ -16,7 +16,7 @@ import { CLASSES_DATA } from '../data/classes';
 import { MONSTERS_DATA } from '../constants';
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, FAST_MODEL, COMPLEX_MODEL } from '../config/geminiConfig';
 import * as ItemTemplates from '../data/item_templates';
-import { sanitizeAIInput } from '../utils/securityUtils';
+import { sanitizeAIInput, redactSensitiveData } from '../utils/securityUtils';
 
 
 
@@ -190,7 +190,9 @@ export async function generateText(
         logger.warn(`Gemini API rate limit error with model ${model}. Retrying...`, { model });
         continue;
       } else {
-        logger.warn(`Gemini API error with model ${model}:`, { error, model });
+        // Redact potential API keys from the error object before logging
+        const safeError = redactSensitiveData(error);
+        logger.warn(`Gemini API error with model ${model}:`, { error: safeError, model });
         continue;
       }
     } finally {
@@ -432,7 +434,8 @@ export async function generateEncounter(
         rateLimitHitInChain = true;
         logger.warn(`Gemini API rate limit error with model ${model}. Retrying...`);
       } else {
-        logger.warn(`Gemini API error with model ${model}:`, { error });
+        const safeError = redactSensitiveData(error);
+        logger.warn(`Gemini API error with model ${model}:`, { error: safeError });
       }
       continue;
     } finally {
