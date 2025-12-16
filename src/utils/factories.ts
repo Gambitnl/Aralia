@@ -241,6 +241,15 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
     },
 
     questLog: [],
+    worldEvents: [],
+    factions: {},
+    playerFactionStandings: {},
+    companions: {},
+    notoriety: {
+        globalHeat: 0,
+        localHeat: {},
+        knownCrimes: []
+    },
 
     ...overrides
   };

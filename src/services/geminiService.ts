@@ -17,6 +17,7 @@ import { MONSTERS_DATA } from '../constants';
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, FAST_MODEL, COMPLEX_MODEL } from '../config/geminiConfig';
 import * as ItemTemplates from '../data/item_templates';
 import { sanitizeAIInput, redactSensitiveData } from '../utils/securityUtils';
+import { generateLocalEconomy } from './economyService';
 
 
 
@@ -658,12 +659,32 @@ export async function generateMerchantInventory(
     : `A ${shopType} with no specific village context; default to a frontier trading post vibe.`;
   const systemInstruction = `You are a Game Master generating a shop inventory.
     Context: ${contextDescription}.
-    Return a JSON object with keys: "inventory" (array of items using provided schemas) and "economy" (scarcity/surplus data).
+    Return a JSON object with keys: "inventory" (array of items using provided schemas).
     ITEM SCHEMAS: ${templateString}`;
 
   const prompt = `Generate inventory for ${shopType}.`;
 
   const result = await generateText(prompt, systemInstruction, true, 'generateMerchantInventory', devModelOverride);
+
+  // Helper to ensure we have a valid economy state even if AI fails or omits it
+  const getEconomyState = () => {
+    if (villageContext) {
+      return generateLocalEconomy(
+        {
+          id: `village_${villageContext.worldX}_${villageContext.worldY}`,
+          name: villageContext.buildingType, // Placeholder
+          baseDescription: villageContext.description,
+          exits: {},
+          mapCoordinates: { x: villageContext.worldX, y: villageContext.worldY },
+          biomeId: villageContext.biomeId
+        },
+        [] // TODO: Pass real global events here when available in state
+      );
+    }
+    return { scarcity: [], surplus: [], buyMultiplier: 1.0, sellMultiplier: 0.5 };
+  };
+
+  const economyState = getEconomyState();
 
   // If the API call itself failed
   if (result.error || !result.data) {
@@ -674,7 +695,7 @@ export async function generateMerchantInventory(
         rawResponse: result.metadata?.rawResponse || "",
         rateLimitHit: result.metadata?.rateLimitHit,
         inventory: getFallbackInventory(shopType),
-        economy: { scarcity: [], surplus: [], sentiment: "neutral" }
+        economy: economyState
       },
       error: result.error,
       metadata: result.metadata
@@ -688,7 +709,7 @@ export async function generateMerchantInventory(
       data: {
         ...result.data,
         inventory: parsed.inventory,
-        economy: parsed.economy
+        economy: economyState
       },
       error: null
     };
@@ -699,7 +720,7 @@ export async function generateMerchantInventory(
       data: {
         ...result.data,
         inventory: getFallbackInventory(shopType),
-        economy: { scarcity: [], surplus: [], sentiment: "neutral" }
+        economy: economyState
       },
       error: "Failed to parse inventory JSON. Using fallback.",
       metadata: result.data

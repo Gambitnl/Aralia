@@ -13,6 +13,7 @@ import { CombatCharacter, CharacterStats, Position, CombatState } from './combat
 import type { VillageTileType } from '../services/villageGenerator';
 import { Faction, PlayerFactionStanding } from './factions';
 import { Companion } from './companions';
+import { WorldEvent } from './economy';
 
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
@@ -20,6 +21,7 @@ export * from './spells';
 export * from './deity';
 export * from './factions';
 export * from './companions';
+export * from './economy';
 
 export enum GamePhase {
   MAIN_MENU,
@@ -778,6 +780,9 @@ export interface GameState {
   notoriety: NotorietyState;
 
   questLog: Quest[];
+
+  // Economist: World Events
+  worldEvents: WorldEvent[];
 
   // Intriguer: Faction System
   factions: Record<string, Faction>; // All active factions in the world
