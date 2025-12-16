@@ -46,6 +46,8 @@ import {
   Position
 } from '@/types/combat';
 
+import { CommandContext } from '@/commands/base/SpellCommand';
+
 /**
  * Creates a mock Spell object with sensible defaults.
  * @param overrides Partial<Spell> to override default values.
@@ -98,6 +100,35 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
 
     effects: [defaultDamageEffect],
 
+    ...overrides
+  };
+}
+
+/**
+ * Creates a mock CommandContext object with sensible defaults.
+ * @param overrides Partial<CommandContext> to override default values.
+ * @returns A complete CommandContext object.
+ */
+export function createMockCommandContext(overrides: Partial<CommandContext> = {}): CommandContext {
+  // Use existing factories for complex sub-objects to ensure validity
+  const caster = createMockCombatCharacter({
+    id: `caster-${crypto.randomUUID()}`,
+    name: 'Mock Caster'
+  });
+
+  const target = createMockCombatCharacter({
+    id: `target-${crypto.randomUUID()}`,
+    name: 'Mock Target'
+  });
+
+  return {
+    spellId: `spell-${crypto.randomUUID()}`,
+    spellName: 'Mock Spell',
+    castAtLevel: 1,
+    caster,
+    targets: [target],
+    gameState: createMockGameState(),
+    // Optional fields remain undefined unless overridden
     ...overrides
   };
 }

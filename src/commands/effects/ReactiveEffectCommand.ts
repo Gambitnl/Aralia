@@ -1,10 +1,12 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
 import { CombatState } from '../../types/combat';
 import { generateId } from '../../utils/combatUtils';
-import { movementEvents, MovementEventEmitter } from '../../systems/combat/MovementEventEmitter';
-import { attackEvents, AttackEventEmitter } from '../../systems/combat/AttackEventEmitter';
-import { combatEvents } from '../../systems/events/CombatEvents';
+import { movementEvents, MovementEventEmitter, MovementEvent } from '../../systems/combat/MovementEventEmitter';
+import { attackEvents, AttackEventEmitter, AttackEvent } from '../../systems/combat/AttackEventEmitter';
+import { combatEvents, CastEvent } from '../../systems/events/CombatEvents';
 import { sustainActionSystem, SustainedSpell } from '../../systems/combat/SustainActionSystem';
+
+type ReactiveEvent = MovementEvent | AttackEvent | CastEvent;
 
 export class ReactiveEffectCommand extends BaseEffectCommand {
     private registeredListeners: (() => void)[] = []; // Store cleanup functions
@@ -57,7 +59,7 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
         switch (trigger.type) {
             case 'on_target_move':
                 if (targetId) {
-                    const listener = async (event: any) => {
+                    const listener = async (event: MovementEvent) => {
                         // Check if movement matches our criteria
                         if (event.creatureId !== targetId) return;
 
@@ -75,7 +77,7 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
 
             case 'on_target_attack':
                 if (targetId) {
-                    const listener = async (event: any) => {
+                    const listener = async (event: AttackEvent) => {
                         // Check if this is an attack against our target
                         if (event.targetId !== targetId) return;
 
@@ -90,7 +92,7 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
 
             case 'on_target_cast':
                 if (targetId) {
-                    const listener = (event: any) => {
+                    const listener = (event: CastEvent) => {
                         if (event.casterId !== targetId) return;
                         this.executeReactiveEffect(event);
                     };
@@ -121,7 +123,7 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
         sustainActionSystem.registerSustainedSpell(sustainedSpell);
     }
 
-    private async executeReactiveEffect(event: any): Promise<void> {
+    private async executeReactiveEffect(event: ReactiveEvent): Promise<void> {
         // This would execute the actual effect when triggered
         // For now, we'll emit a log message - in a full implementation,
         // this would create and execute the appropriate command

@@ -6,10 +6,11 @@
 import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition } from '../types/combat';
 import { BATTLE_MAP_DIMENSIONS } from '../config/mapConfig';
 import { BattleMapGenerator } from '../services/battleMapGenerator';
+import { SeededRandom } from '../utils/seededRandom';
 
 type SpawnConfig = 'left-right' | 'top-bottom' | 'corners-tl-br' | 'corners-tr-bl';
 
-const getSpawnTiles = (mapData: BattleMapData, config: SpawnConfig): { playerTiles: BattleMapTile[], enemyTiles: BattleMapTile[] } => {
+const getSpawnTiles = (mapData: BattleMapData, config: SpawnConfig, rng: SeededRandom): { playerTiles: BattleMapTile[], enemyTiles: BattleMapTile[] } => {
     const playerSpawnTiles: BattleMapTile[] = [];
     const enemySpawnTiles: BattleMapTile[] = [];
     const { width, height } = mapData.dimensions;
@@ -47,7 +48,7 @@ const getSpawnTiles = (mapData: BattleMapData, config: SpawnConfig): { playerTil
     // Shuffle results
     const shuffle = (array: BattleMapTile[]) => {
         for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
+            const j = Math.floor(rng.next() * (i + 1));
             [array[i], array[j]] = [array[j], array[i]];
         }
         return array;
@@ -63,16 +64,16 @@ export const generateBattleSetup = (
 ): { mapData: BattleMapData, positionedCharacters: CombatCharacter[] } => {
     const generator = new BattleMapGenerator(BATTLE_MAP_DIMENSIONS.width, BATTLE_MAP_DIMENSIONS.height);
     const mapData = generator.generate(biome, seed);
+    const rng = new SeededRandom(seed);
 
     const newPositions = new Map<string, CharacterPosition>();
 
     // Choose a random spawn configuration
     const spawnConfigs: SpawnConfig[] = ['left-right', 'top-bottom', 'corners-tl-br', 'corners-tr-bl'];
-    // TODO: Replace Math.random with a seeded RNG derived from `seed` (Reason: spawn layout is currently non-deterministic even with fixed map seeds; Expectation: rerunning a battle with the same seed yields identical placements for testing and replays).
-    const randomConfig = spawnConfigs[Math.floor(Math.random() * spawnConfigs.length)];
+    const randomConfig = spawnConfigs[Math.floor(rng.next() * spawnConfigs.length)];
 
     // Get spawn tiles based on the random configuration
-    const { playerTiles, enemyTiles } = getSpawnTiles(mapData, randomConfig);
+    const { playerTiles, enemyTiles } = getSpawnTiles(mapData, randomConfig, rng);
 
     let playerSpawnIndex = 0;
     let enemySpawnIndex = 0;
