@@ -50,4 +50,5 @@ export interface CommandContext {
   gameState: GameState
   effectDuration?: EffectDuration
   attackType?: SpellAttackType
+  isCritical?: boolean // Tracks if this execution is a critical hit (5e: doubles damage dice)
 }

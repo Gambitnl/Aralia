@@ -49,12 +49,41 @@ export function calculateCover(origin: Position, target: Position, mapData: Batt
 }
 
 /**
+ * Helper to roll a single group of dice (e.g., "2d8").
+ * @param count Number of dice
+ * @param sides Sides per die
+ * @param minRoll Minimum value per die
+ * @returns Total rolled value
+ */
+function rollDieGroup(count: number, sides: number, minRoll: number = 1): number {
+  let subTotal = 0;
+  for (let i = 0; i < count; i++) {
+    let roll = Math.floor(Math.random() * sides) + 1;
+    if (roll < minRoll) roll = minRoll;
+    subTotal += roll;
+  }
+  return subTotal;
+}
+
+/**
  * Parses a dice notation string (e.g., '2d8', '3d6+5') and returns the rolled total.
  * Supports complex formulas like '1d8 + 1d6 + 2'.
  * @param diceString The dice notation to roll (e.g., '2d8+3')
  * @returns The total rolled value
  */
 export function rollDice(diceString: string): number {
+  return rollDamage(diceString, false);
+}
+
+/**
+ * Rolls damage, optionally doubling the dice for a critical hit.
+ *
+ * @param diceString The dice notation (e.g., '2d6+3').
+ * @param isCritical Whether this is a critical hit (doubles dice).
+ * @param minRoll Optional minimum value for each die (e.g. for Elemental Adept).
+ * @returns The total damage.
+ */
+export function rollDamage(diceString: string, isCritical: boolean, minRoll: number = 1): number {
   if (!diceString || diceString === '0') return 0;
 
   // Remove spaces for easier parsing
@@ -70,7 +99,7 @@ export function rollDice(diceString: string): number {
   let match;
 
   while ((match = regex.exec(formula)) !== null) {
-    // Avoid infinite loops if regex matches empty string (though ours shouldn't)
+    // Avoid infinite loops
     if (match.index === regex.lastIndex) {
       regex.lastIndex++;
     }
@@ -81,10 +110,11 @@ export function rollDice(diceString: string): number {
       // It's a dice roll: XdY
       const numDice = parseInt(match[2], 10);
       const dieSize = parseInt(match[3], 10);
-      let subTotal = 0;
-      for (let i = 0; i < numDice; i++) {
-        subTotal += Math.floor(Math.random() * dieSize) + 1;
-      }
+
+      // CRITICAL HIT LOGIC: Roll dice twice
+      const actualNumDice = isCritical ? numDice * 2 : numDice;
+
+      const subTotal = rollDieGroup(actualNumDice, dieSize, minRoll);
       total += sign * subTotal;
     } else if (match[4]) {
       // It's a flat number
