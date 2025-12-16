@@ -4,15 +4,58 @@ Process guidelines for all personas. Start here, dive into guides as needed.
 
 ---
 
+## Core Philosophy: Thoroughness Over Brevity
+
+**DO NOT take shortcuts.** Every feature should be:
+- **Complete** - Not a stub, mock, or partial implementation
+- **Documented** - JSDoc for functions, inline comments explaining "why"
+- **Tested** - If it's important enough to write, it's important enough to test
+- **Robust** - Handle edge cases, not just the happy path
+
+> *"Go the extra mile. A half-finished feature is worse than no feature."*
+
+---
+
+## Code Documentation Requirements
+
+**All new code must include:**
+
+1. **JSDoc for functions/classes:**
+```typescript
+/**
+ * Calculates damage after applying resistances and vulnerabilities.
+ * @param baseDamage - Raw damage before modifications
+ * @param damageType - The type of damage (fire, cold, etc.)
+ * @param target - The character receiving damage
+ * @returns Final damage value, minimum 0
+ */
+function calculateDamage(baseDamage: number, damageType: DamageType, target: Character): number
+```
+
+2. **Inline comments explaining "why":**
+```typescript
+// We sort by level first to match PHB spell list ordering
+// (players expect cantrips at top, 9th-level at bottom)
+const sortedSpells = spells.sort((a, b) => a.level - b.level);
+```
+
+3. **Complex logic explanations:**
+```typescript
+// Advantage/disadvantage cancel out regardless of how many of each
+// PHB p.173: "If circumstances cause a roll to have both, you have neither"
+const hasAdvantage = advantages > 0 && disadvantages === 0;
+```
+
+---
+
 ## Verification Checklist
 
 Before any PR:
 - [ ] `pnpm build` passes
 - [ ] `pnpm test` passes
 - [ ] No `console.log` left behind
-- [ ] Changes < 50 lines (or justified)
-
----
+- [ ] **New code has JSDoc and inline comments**
+- [ ] **Implementation is complete, not stubbed**
 
 ## Guides
 
