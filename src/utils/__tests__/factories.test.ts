@@ -1,6 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import { createMockSpell } from '../factories';
-import { isSpell, AreaTargeting } from '@/types/spells';
+import {
+  createMockSpell,
+  createMockPlayerCharacter,
+  createMockGameState,
+  createMockCombatCharacter,
+  createMockCombatState,
+  createMockItem,
+  createMockQuest,
+  createMockMonster,
+  createMockGameMessage
+} from '../factories';
+import { isSpell } from '@/types/spells';
 
 describe('Mimic Factories', () => {
   describe('createMockSpell', () => {
@@ -45,6 +55,66 @@ describe('Mimic Factories', () => {
       } else {
          throw new Error("Targeting type mismatch");
       }
+    });
+  });
+
+  describe('createMockItem', () => {
+    it('creates a default item', () => {
+      const item = createMockItem();
+      expect(item).toBeDefined();
+      expect(item.name).toBe('Mock Item');
+      expect(item.type).toBe('misc');
+    });
+
+    it('accepts overrides', () => {
+      const item = createMockItem({ name: 'Sword', type: 'weapon' });
+      expect(item.name).toBe('Sword');
+      expect(item.type).toBe('weapon');
+    });
+  });
+
+  describe('createMockQuest', () => {
+    it('creates a default quest', () => {
+      const quest = createMockQuest();
+      expect(quest).toBeDefined();
+      expect(quest.name).toBe('Mock Quest');
+      expect(quest.status).toBe('Active');
+    });
+
+    it('accepts overrides', () => {
+      const quest = createMockQuest({ name: 'Save the King', status: 'Completed' });
+      expect(quest.name).toBe('Save the King');
+      expect(quest.status).toBe('Completed');
+    });
+  });
+
+  describe('createMockMonster', () => {
+    it('creates a default monster', () => {
+      const monster = createMockMonster();
+      expect(monster).toBeDefined();
+      expect(monster.name).toBe('Mock Monster');
+      expect(monster.hp).toBe(20);
+    });
+
+    it('accepts overrides', () => {
+      const monster = createMockMonster({ name: 'Dragon', hp: 200 });
+      expect(monster.name).toBe('Dragon');
+      expect(monster.hp).toBe(200);
+    });
+  });
+
+  describe('createMockGameMessage', () => {
+    it('creates a default message', () => {
+      const msg = createMockGameMessage();
+      expect(msg).toBeDefined();
+      expect(msg.text).toBe('This is a mock message.');
+      expect(msg.type).toBe('info');
+    });
+
+    it('accepts overrides', () => {
+      const msg = createMockGameMessage({ text: 'Error!', type: 'error' });
+      expect(msg.text).toBe('Error!');
+      expect(msg.type).toBe('error');
     });
   });
 });

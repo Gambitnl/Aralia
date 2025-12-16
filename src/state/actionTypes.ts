@@ -3,7 +3,7 @@
  * @file src/state/actionTypes.ts
  * Defines the main AppAction type for the application's state management.
  */
-import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry } from '../types';
+import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType } from '../types';
 
 export type AppAction =
   | { type: 'SET_GAME_PHASE'; payload: GamePhase }
@@ -113,4 +113,7 @@ export type AppAction =
   | { type: 'MOVE_IN_TOWN'; payload: { direction: import('../types/town').TownDirection } }
   | { type: 'STOP_MOVING_IN_TOWN' }
   | { type: 'SET_TOWN_VIEWPORT'; payload: { center?: import('../types/town').TownPosition; zoom?: number } }
-  | { type: 'EXIT_TOWN' };
+  | { type: 'EXIT_TOWN' }
+  // Notoriety Actions
+  | { type: 'COMMIT_CRIME'; payload: { type: CrimeType; locationId: string; severity: number; witnessed: boolean } }
+  | { type: 'LOWER_HEAT'; payload: { amount: number; locationId?: string } };

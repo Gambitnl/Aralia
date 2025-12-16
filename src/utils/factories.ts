@@ -3,13 +3,6 @@ import {
   SpellSchool,
   SpellRarity,
   SpellAttackType,
-  CastingTime,
-  Range,
-  Components,
-  Duration,
-  SpellTargeting,
-  SpellEffect,
-  BaseEffect,
   DamageEffect
 } from '@/types/spells';
 
@@ -21,29 +14,18 @@ import {
   CombatCharacter,
   Item,
   GameMessage,
-  MapData,
-  DiscoveryEntry,
   Quest,
   Monster,
-  GroundingChunk,
-  TempPartyMember,
-  Action,
-  GeminiLogEntry,
-  NpcMemory,
-  DiscoveryResidue,
-  EconomyState,
   AbilityScores,
   Race,
   Class,
-  Skill,
   TransportMode,
-  CombatState
+  CombatState,
+  QuestStatus
 } from '@/types/index';
 
 import {
-  TurnState,
-  CombatAction,
-  Position
+  TurnState
 } from '@/types/combat';
 
 import { CommandContext } from '@/commands/base/SpellCommand';
@@ -355,6 +337,70 @@ export function createMockCombatState(overrides: Partial<CombatState> = {}): Com
       theme: 'forest',
       seed: 12345
     },
+    ...overrides
+  };
+}
+
+/**
+ * Creates a mock Item object.
+ */
+export function createMockItem(overrides: Partial<Item> = {}): Item {
+  return {
+    id: `item-${crypto.randomUUID()}`,
+    name: "Mock Item",
+    type: "misc",
+    description: "A generic mock item.",
+    ...overrides
+  };
+}
+
+/**
+ * Creates a mock Quest object.
+ */
+export function createMockQuest(overrides: Partial<Quest> = {}): Quest {
+  return {
+    id: `quest-${crypto.randomUUID()}`,
+    name: "Mock Quest",
+    description: "A quest to test the quest system.",
+    status: QuestStatus.Active,
+    objectives: [],
+    ...overrides
+  };
+}
+
+/**
+ * Creates a mock Monster object.
+ */
+export function createMockMonster(overrides: Partial<Monster> = {}): Monster {
+  return {
+    id: `monster-${crypto.randomUUID()}`,
+    name: "Mock Monster",
+    type: "beast",
+    cr: 1,
+    hp: 20,
+    ac: 12,
+    stats: {
+      strength: 14,
+      dexterity: 12,
+      constitution: 12,
+      intelligence: 6,
+      wisdom: 10,
+      charisma: 6
+    },
+    actions: [],
+    ...overrides
+  };
+}
+
+/**
+ * Creates a mock GameMessage object.
+ */
+export function createMockGameMessage(overrides: Partial<GameMessage> = {}): GameMessage {
+  return {
+    id: `msg-${crypto.randomUUID()}`,
+    text: "This is a mock message.",
+    timestamp: Date.now(),
+    type: "info",
     ...overrides
   };
 }

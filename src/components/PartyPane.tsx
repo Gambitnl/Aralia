@@ -28,7 +28,7 @@ const PartyCharacterButton: React.FC<PartyCharacterButtonProps> = ({ character, 
         <button
         onClick={onClick}
         className="w-full bg-gray-700 hover:bg-gray-600 p-3 rounded-lg shadow-md transition-colors border border-gray-600 focus:outline-none focus:ring-2 focus:ring-sky-500 text-left"
-        aria-label={`View details for ${character.name}, AC: ${character.armorClass}, HP: ${character.hp}/${character.maxHp}`}
+        aria-label={`View details for ${character.name}, Armor Class: ${character.armorClass}, Hit Points: ${character.hp} of ${character.maxHp}`}
         >
         <div className="flex justify-between items-center mb-1.5">
             <p className="text-lg font-semibold text-amber-300 truncate pr-6" title={character.name}>{character.name}</p>
@@ -65,7 +65,7 @@ const PartyCharacterButton: React.FC<PartyCharacterButtonProps> = ({ character, 
             </div>
             <div className="absolute inset-0 flex items-center justify-center">
             <p className="text-xs font-bold text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)]">
-                {character.hp} / {character.maxHp} HP
+                {character.hp} / {character.maxHp} Hit Points
             </p>
             </div>
         </div>

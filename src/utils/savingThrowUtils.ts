@@ -6,6 +6,7 @@ import {
     CombatCharacter,
 } from '../types/combat';
 import { rollDice } from './combatUtils';
+import { getAbilityModifierValue } from './statUtils';
 import {
     SavingThrowAbility,
     // StatusConditionEffect // Not used yet but good for future
@@ -51,7 +52,7 @@ export function calculateSpellDC(caster: CombatCharacter): number {
     // Identify spellcasting ability from class, default to Intelligence if unknown
     const abilityName = caster.class?.spellcasting?.ability || 'Intelligence';
     const score = (caster.stats[abilityName.toLowerCase() as keyof typeof caster.stats] || 10) as number;
-    const mod = Math.floor((score - 10) / 2);
+    const mod = getAbilityModifierValue(score);
 
     return 8 + pb + mod;
 }
@@ -73,7 +74,7 @@ export function rollSavingThrow(
 
     // Get ability modifier
     const score = (target.stats[ability.toLowerCase() as keyof typeof target.stats] || 10) as number;
-    let mod = Math.floor((score - 10) / 2);
+    let mod = getAbilityModifierValue(score);
 
     // Add proficiency if applicable
     // Check if class or character has proficiency in this save

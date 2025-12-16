@@ -12,7 +12,7 @@
 
 // React hooks - useReducer for complex state management, useCallback for memoized functions,
 // useEffect for side effects, useState for local component state
-import React, { useReducer, useCallback, useEffect, useState } from 'react';
+import React, { useReducer, useCallback, useEffect, useState, lazy, Suspense } from 'react';
 // Framer Motion - provides animation components like AnimatePresence for smooth UI transitions
 import { AnimatePresence } from 'framer-motion';
 
@@ -47,19 +47,20 @@ import { canUseDevTools } from './utils/permissions';
 import { validateEnv } from './config/env';
 
 import { NotificationSystem } from './components/NotificationSystem';
-import GameLayout from './components/layout/GameLayout';
 import GameModals from './components/layout/GameModals';
-import CharacterCreator from './components/CharacterCreator/CharacterCreator';
 import MainMenu from './components/MainMenu';
-import TownCanvas from './components/TownCanvas';
 import ErrorBoundary from './components/ErrorBoundary';
 import * as SaveLoadService from './services/saveLoadService';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
-import BattleMapDemo from './components/BattleMapDemo';
-// TODO: Implement code splitting and lazy loading for large components like CombatView and TownCanvas to reduce initial bundle size
-import CombatView from './components/CombatView';
-import LoadGameTransition from './components/LoadGameTransition';
-import NotFound from './components/NotFound';
+
+// Lazy load large components to reduce initial bundle size
+const CombatView = lazy(() => import('./components/CombatView'));
+const TownCanvas = lazy(() => import('./components/TownCanvas'));
+const BattleMapDemo = lazy(() => import('./components/BattleMapDemo'));
+const CharacterCreator = lazy(() => import('./components/CharacterCreator/CharacterCreator'));
+const GameLayout = lazy(() => import('./components/layout/GameLayout'));
+const LoadGameTransition = lazy(() => import('./components/LoadGameTransition'));
+const NotFound = lazy(() => import('./components/NotFound'));
 
 
 // TODO: Add React.memo and useMemo to prevent unnecessary re-renders in performance-critical components like GameLayout, CombatView, and TownCanvas
@@ -707,7 +708,9 @@ const App: React.FC = () => {
         )}
 
         {/* Primary View */}
-        {mainContent}
+        <Suspense fallback={<LoadingSpinner />}>
+          {mainContent}
+        </Suspense>
 
         {/* Modal Manager: Handles all overlays (Inventory, Map, Logs, etc.) */}
         <GameModals

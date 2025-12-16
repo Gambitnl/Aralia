@@ -14,6 +14,7 @@ import { determineActiveDynamicNpcsForLocation } from '../../utils/locationUtils
 import { handleGossipEvent } from './handleWorldEvents';
 import { getSubmapTileInfo } from '../../utils/submapUtils';
 import { INITIAL_QUESTS } from '../../data/quests';
+import { generateTravelEvent } from '../../services/travelEventService';
 
 interface HandleMovementProps {
   action: Action;
@@ -229,6 +230,15 @@ export async function handleMovement({
         timeToAdvanceSeconds = entryTileInfo.effectiveTerrainType === 'path' ? 15 * 60 : 30 * 60;
       } else {
         timeToAdvanceSeconds = 3600;
+      }
+
+      const travelEvent = generateTravelEvent(targetBiome.id);
+      if (travelEvent) {
+        addMessage(travelEvent.description, 'system');
+        if (travelEvent.effect?.type === 'delay') {
+          timeToAdvanceSeconds += (travelEvent.effect.amount * 60);
+          addMessage(`(Travel delayed by ${travelEvent.effect.amount} minutes)`, 'system');
+        }
       }
 
       const newTiles = newMapDataForDispatch.tiles.map(row => row.map(tile => ({ ...tile, isPlayerCurrent: false })));
