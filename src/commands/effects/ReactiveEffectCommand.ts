@@ -1,10 +1,11 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
 import { CombatState } from '../../types/combat';
 import { generateId } from '../../utils/combatUtils';
-import { movementEvents, MovementEventEmitter } from '../../systems/combat/MovementEventEmitter';
-import { attackEvents, AttackEventEmitter } from '../../systems/combat/AttackEventEmitter';
+import { movementEvents } from '../../systems/combat/MovementEventEmitter';
+import { attackEvents } from '../../systems/combat/AttackEventEmitter';
 import { combatEvents } from '../../systems/events/CombatEvents';
 import { sustainActionSystem, SustainedSpell } from '../../systems/combat/SustainActionSystem';
+import { logger } from '../../utils/logger';
 
 export class ReactiveEffectCommand extends BaseEffectCommand {
     private registeredListeners: (() => void)[] = []; // Store cleanup functions
@@ -51,21 +52,28 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
 
     private registerEventListeners(triggerId: string): void {
         const trigger = this.effect.trigger;
-        const casterId = this.context.caster.id;
         const targetId = this.context.targets[0]?.id;
 
         switch (trigger.type) {
             case 'on_target_move':
                 if (targetId) {
                     const listener = async (event: any) => {
-                        // Check if movement matches our criteria
-                        if (event.creatureId !== targetId) return;
+                        try {
+                            // Check if movement matches our criteria
+                            if (event.creatureId !== targetId) return;
 
-                        const movementType = trigger.movementType || 'any';
-                        if (movementType !== 'any' && event.movementType !== movementType) return;
+                            const movementType = trigger.movementType || 'any';
+                            if (movementType !== 'any' && event.movementType !== movementType) return;
 
-                        // Trigger the effect
-                        await this.executeReactiveEffect(event);
+                            // Trigger the effect
+                            await this.executeReactiveEffect(event);
+                        } catch (error) {
+                            logger.error('Error in reactive movement listener', {
+                                error,
+                                spellName: this.context.spellName,
+                                trigger: 'on_target_move'
+                            });
+                        }
                     };
 
                     movementEvents.onMovement(listener);
@@ -76,11 +84,19 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
             case 'on_target_attack':
                 if (targetId) {
                     const listener = async (event: any) => {
-                        // Check if this is an attack against our target
-                        if (event.targetId !== targetId) return;
+                        try {
+                            // Check if this is an attack against our target
+                            if (event.targetId !== targetId) return;
 
-                        // Trigger the effect (save vs lose attack for compelled duel)
-                        await this.executeReactiveEffect(event);
+                            // Trigger the effect (save vs lose attack for compelled duel)
+                            await this.executeReactiveEffect(event);
+                        } catch (error) {
+                            logger.error('Error in reactive attack listener', {
+                                error,
+                                spellName: this.context.spellName,
+                                trigger: 'on_target_attack'
+                            });
+                        }
                     };
 
                     attackEvents.onPreAttack(listener);
@@ -91,8 +107,24 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
             case 'on_target_cast':
                 if (targetId) {
                     const listener = (event: any) => {
-                        if (event.casterId !== targetId) return;
-                        this.executeReactiveEffect(event);
+                        try {
+                            if (event.casterId !== targetId) return;
+                            // Note: executeReactiveEffect is async, but combatEvents (EventEmitter)
+                            // might not await listeners. We should still catch synchronous errors here.
+                            this.executeReactiveEffect(event).catch(error => {
+                                logger.error('Error in reactive cast listener (async)', {
+                                    error,
+                                    spellName: this.context.spellName,
+                                    trigger: 'on_target_cast'
+                                });
+                            });
+                        } catch (error) {
+                            logger.error('Error in reactive cast listener (sync)', {
+                                error,
+                                spellName: this.context.spellName,
+                                trigger: 'on_target_cast'
+                            });
+                        }
                     };
 
                     combatEvents.on('unit_cast', listener);
@@ -125,7 +157,12 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
         // This would execute the actual effect when triggered
         // For now, we'll emit a log message - in a full implementation,
         // this would create and execute the appropriate command
-        console.log(`Reactive effect triggered: ${this.effect.type} for ${this.context.spellName}`, event);
+        logger.info('Reactive effect triggered', {
+            effectType: this.effect.type,
+            spellName: this.context.spellName,
+            trigger: this.effect.trigger.type,
+            event
+        });
     }
 
     /**
