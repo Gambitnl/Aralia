@@ -28,7 +28,6 @@ export function useBattleMap(
     abilitySystem: ReturnType<typeof useAbilitySystem>,
 ): UseBattleMapReturn {
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
-  const [validMoves, setValidMoves] = useState<Set<string>>(new Set());
   const [activePath, setActivePath] = useState<BattleMapTile[]>([]);
   const [actionMode, setActionMode] = useState<'move' | 'ability' | null>(null);
   const [attackableTargets, setAttackableTargets] = useState<Set<string>>(new Set());
@@ -42,9 +41,14 @@ export function useBattleMap(
     return newPositions;
   }, [characters]);
 
+  // Derived state: Calculate valid moves for the selected character
+  // This replaces the stateful 'validMoves' which required manual synchronization.
+  const validMoves = useMemo(() => {
+    if (!selectedCharacterId || !mapData) return new Set<string>();
 
-  const calculateValidMoves = useCallback((character: CombatCharacter) => {
-    if (!mapData) return new Set<string>();
+    const character = characters.find(c => c.id === selectedCharacterId);
+    if (!character) return new Set<string>();
+
     const startPos = characterPositions.get(character.id)?.coordinates;
     if (!startPos) return new Set<string>();
     const startNode = mapData.tiles.get(`${startPos.x}-${startPos.y}`);
@@ -54,8 +58,10 @@ export function useBattleMap(
     const queue: { tile: BattleMapTile; cost: number }[] = [{ tile: startNode, cost: 0 }];
     const visited = new Set<string>([startNode.id]);
     
+    // Use the current movement values. If the character moves, this will update automatically.
     const movementRemaining = character.actionEconomy.movement.total - character.actionEconomy.movement.used;
 
+    // BFS for reachable tiles
     while (queue.length > 0) {
       const { tile, cost } = queue.shift()!;
       reachableTiles.add(tile.id);
@@ -80,7 +86,7 @@ export function useBattleMap(
       }
     }
     return reachableTiles;
-  }, [mapData, characterPositions]);
+  }, [selectedCharacterId, mapData, characters, characterPositions]);
   
   const selectCharacter = useCallback((character: CombatCharacter) => {
     if (character.team !== 'player') return; // Prevent selecting enemy characters
@@ -89,10 +95,9 @@ export function useBattleMap(
     setSelectedCharacterId(character.id);
     setActionMode('move');
 
-    const moves = calculateValidMoves(character);
-    setValidMoves(moves);
+    // validMoves is now derived, no need to set it manually.
     setActivePath([]);
-  }, [turnManager.turnState.currentCharacterId, calculateValidMoves]);
+  }, [turnManager.turnState.currentCharacterId]);
   
   const handleCharacterClick = useCallback((character: CombatCharacter) => {
     if (abilitySystem.targetingMode) {
@@ -138,7 +143,7 @@ export function useBattleMap(
             targetPosition: tile.coordinates,
             timestamp: Date.now()
         })) {
-             setValidMoves(new Set());
+             // validMoves is automatically updated by the change in character position/economy
              setActivePath([]);
         }
       }
