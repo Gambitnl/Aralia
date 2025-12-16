@@ -1,0 +1,1 @@
+## 2024-05-24 - Naval Foundation **Learning:** To make ships distinct, they need stats beyond speed/hp and a crew that affects those stats. **Action:** Implement Ship and Crew interfaces with morale, loyalty, and ship classes.
