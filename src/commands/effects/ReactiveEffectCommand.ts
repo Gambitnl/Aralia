@@ -1,3 +1,7 @@
+/**
+ * @file src/commands/effects/ReactiveEffectCommand.ts
+ * Command for handling effects that trigger based on future events or require sustaining.
+ */
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
 import { CombatState } from '../../types/combat';
 import { generateId } from '../../utils/combatUtils';
@@ -8,9 +12,28 @@ import { sustainActionSystem, SustainedSpell } from '../../systems/combat/Sustai
 
 type ReactiveEvent = MovementEvent | AttackEvent | CastEvent;
 
+/**
+ * Command that registers reactive triggers or sustain requirements for a spell.
+ *
+ * Unlike standard commands (like DamageCommand) which apply their effects immediately upon execution,
+ * ReactiveEffectCommand sets up listeners for future events or registers the spell as needing
+ * sustain actions in subsequent turns.
+ *
+ * Use cases:
+ * - **Reactions:** Spells like *Shield* or *Hellish Rebuke* that trigger off specific events (attacks, damage).
+ * - **Sustained Effects:** Spells like *Witch Bolt* or *Call Lightning* that allow/require actions in future turns.
+ * - **Traps/Wards:** Effects like *Glyph of Warding* that wait for a trigger condition.
+ */
 export class ReactiveEffectCommand extends BaseEffectCommand {
     private registeredListeners: (() => void)[] = []; // Store cleanup functions
 
+    /**
+     * Executes the command by registering the appropriate triggers in the combat state
+     * and setting up event listeners for the reactive effect.
+     *
+     * @param state - The current combat state.
+     * @returns The updated combat state with new reactive triggers.
+     */
     execute(state: CombatState): CombatState {
         const trigger = this.effect.trigger;
         const newTriggers = [...(state.reactiveTriggers || [])];
@@ -51,6 +74,12 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
         });
     }
 
+    /**
+     * Registers the actual event listeners with the system event emitters (Movement, Attack, Combat).
+     * These listeners will fire `executeReactiveEffect` when conditions are met.
+     *
+     * @param triggerId - The unique ID of the trigger being registered.
+     */
     private registerEventListeners(triggerId: string): void {
         const trigger = this.effect.trigger;
         const casterId = this.context.caster.id;
@@ -108,6 +137,11 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
         }
     }
 
+    /**
+     * Registers the spell with the SustainActionSystem if it requires ongoing concentration/actions.
+     *
+     * @param triggerId - The unique ID of the trigger associated with the sustain requirement.
+     */
     private registerSustainRequirement(triggerId: string): void {
         if (!this.effect.trigger.sustainCost) return;
 
@@ -123,6 +157,11 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
         sustainActionSystem.registerSustainedSpell(sustainedSpell);
     }
 
+    /**
+     * The callback executed when a registered event fires.
+     *
+     * @param event - The event data (Movement, Attack, or Cast).
+     */
     private async executeReactiveEffect(event: ReactiveEvent): Promise<void> {
         // This would execute the actual effect when triggered
         // For now, we'll emit a log message - in a full implementation,
@@ -131,7 +170,8 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
     }
 
     /**
-     * Cleanup method to remove registered listeners when effect expires
+     * Cleanup method to remove registered listeners when effect expires or is removed.
+     * Prevents memory leaks and zombie triggers.
      */
     cleanup(): void {
         this.registeredListeners.forEach(cleanup => cleanup());

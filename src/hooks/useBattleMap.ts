@@ -6,6 +6,8 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition, AbilityCost } from '../types/combat';
 import { findPath } from '../utils/pathfinding';
+import { useTurnManager } from './combat/useTurnManager';
+import { useAbilitySystem } from './useAbilitySystem';
 
 interface UseBattleMapReturn {
     characterPositions: Map<string, CharacterPosition>;
@@ -22,8 +24,8 @@ interface UseBattleMapReturn {
 export function useBattleMap(
     mapData: BattleMapData | null,
     characters: CombatCharacter[],
-    turnManager: any, // TurnManager Hook
-    abilitySystem: any,
+    turnManager: ReturnType<typeof useTurnManager>,
+    abilitySystem: ReturnType<typeof useAbilitySystem>,
 ): UseBattleMapReturn {
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [validMoves, setValidMoves] = useState<Set<string>>(new Set());
@@ -94,8 +96,11 @@ export function useBattleMap(
   
   const handleCharacterClick = useCallback((character: CombatCharacter) => {
     if (abilitySystem.targetingMode) {
-      if(abilitySystem.isValidTarget(abilitySystem.selectedAbility, turnManager.getCurrentCharacter(), character.position)) {
-        abilitySystem.selectTarget(character.position, turnManager.getCurrentCharacter());
+      const currentActor = turnManager.getCurrentCharacter();
+      const selectedAbility = abilitySystem.selectedAbility;
+
+      if (currentActor && selectedAbility && abilitySystem.isValidTarget(selectedAbility, currentActor, character.position)) {
+        abilitySystem.selectTarget(character.position, currentActor);
       }
     } else {
         selectCharacter(character);
@@ -109,7 +114,7 @@ export function useBattleMap(
     if (!character) return;
 
     if (actionMode === 'ability' && abilitySystem.targetingMode) {
-        if(abilitySystem.isValidTarget(abilitySystem.selectedAbility, character, tile.coordinates)) {
+        if (abilitySystem.selectedAbility && abilitySystem.isValidTarget(abilitySystem.selectedAbility, character, tile.coordinates)) {
            abilitySystem.selectTarget(tile.coordinates, character);
         } else {
            abilitySystem.cancelTargeting();

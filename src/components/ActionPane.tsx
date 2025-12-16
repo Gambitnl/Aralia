@@ -229,10 +229,10 @@ const ActionPane: React.FC<ActionPaneProps> = ({
     }
 
     if (onVillageTile) {
-      console.log('Player is ON village tile - adding ENTER_VILLAGE');
+      if (canUseDevTools()) console.log('Player is ON village tile - adding ENTER_VILLAGE');
       generalActions.push({ type: 'ENTER_VILLAGE', label: 'Enter Village' });
     } else if (nearbyVillages > 0) {
-      console.log('Player is NEAR village tiles:', nearbyVillages, '- adding approach actions');
+      if (canUseDevTools()) console.log('Player is NEAR village tiles:', nearbyVillages, '- adding approach actions');
       generalActions.push({ type: 'APPROACH_VILLAGE', label: 'Approach Cautiously' });
       generalActions.push({ type: 'OBSERVE_VILLAGE', label: 'Scout Village' });
     }

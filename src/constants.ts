@@ -1,4 +1,7 @@
 /**
+ * Copyright (c) 2024 Aralia RPG.
+ * Licensed under the MIT License.
+ *
  * @file src/constants.ts
  * This file (now at src/constants.ts) defines global constants and foundational game data
  * for the Aralia RPG application. It includes game phases, D&D related data

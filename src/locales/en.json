@@ -70,10 +70,10 @@
     "character_label_hp": "HP:",
     "character_label_ac": "AC:",
     "button_add_party": "Add to Party",
-    "error_handler_missing": "Cannot add to party: Action handler missing.",
+    "error_handler_missing": "You cannot recruit new allies here.",
     "error_connection": "I'm having trouble connecting to the archives. Please try again.",
     "error_general": "An error occurred while consulting the guide.",
-    "error_invalid_config": "I tried to create a character, but the configuration was invalid.",
+    "error_invalid_config": "I attempted to form this hero from the mists, but the vision was unclear. Please try again.",
     "recruit_prompt": "I've drafted a character sheet for {name}. Would you like to recruit them?"
   }
 }
