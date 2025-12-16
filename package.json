@@ -24,14 +24,12 @@
     "pixi.js": "^8.2.5",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "sharp": "^0.34.5",
     "zod": "^4.1.13"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.16",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
-    "@types/axe-core": "^2.0.2",
     "@types/node": "^22.14.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
