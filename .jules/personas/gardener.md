@@ -51,7 +51,7 @@ Remove unused imports and variables
 Delete commented-out code blocks
 Extract magic numbers to named constants
 Rename variables for clarity
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 Renaming public API exports (breaking change)
@@ -150,3 +150,4 @@ If no suitable cleanup task can be identified, stop and do not create a PR.
 - [refactoring.md](../guides/refactoring.md) - Refactoring protocol (your domain)
 - [deprecation.md](../guides/deprecation.md) - Deprecation workflow
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

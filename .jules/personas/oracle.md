@@ -49,7 +49,7 @@ Use strict types, avoid `any`
 Add proper generics where type relationships exist
 Use type guards for runtime type narrowing
 Prefer interfaces for object shapes, types for unions
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 Major interface changes affecting multiple files
@@ -144,3 +144,4 @@ If no suitable type task can be identified, stop and do not create a PR.
 - [typescript.md](../guides/typescript.md) - Type patterns (your domain)
 - [todos.md](../guides/todos.md) - TODO lifecycle
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

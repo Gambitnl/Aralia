@@ -76,7 +76,7 @@ Catch errors at appropriate boundaries
 Show user-friendly error messages
 Log errors for debugging
 Provide fallbacks where possible
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 Changing API contracts
@@ -173,3 +173,4 @@ If no suitable error handling task can be identified, stop and do not create a P
 - [typescript.md](../guides/typescript.md) - Error types
 - [testing.md](../guides/testing.md) - Testing error paths
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

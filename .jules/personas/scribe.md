@@ -57,7 +57,7 @@ Use TSDoc format (/** */) for functions and classes
 Clarify "Why" not just "What"
 Update READMEs when processes change
 Fix typos and grammatical errors
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 Changing public API documentation significantly
@@ -153,3 +153,4 @@ If no suitable documentation task can be identified, stop and do not create a PR
 - [comments.md](../guides/comments.md) - Comment standards (your domain)
 - [dnd-domain.md](../guides/dnd-domain.md) - D&D terminology
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

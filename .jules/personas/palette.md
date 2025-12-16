@@ -59,7 +59,7 @@ Add ARIA labels to icon buttons
 Ensure keyboard accessibility
 Respect prefers-reduced-motion
 Add loading/disabled states
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 Major design changes
@@ -156,3 +156,4 @@ If no suitable UX task can be identified, stop and do not create a PR.
 - [react-patterns.md](../guides/react-patterns.md) - Component patterns
 - [naming.md](../guides/naming.md) - Naming conventions
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

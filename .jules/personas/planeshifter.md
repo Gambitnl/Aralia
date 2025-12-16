@@ -57,7 +57,7 @@ Make each plane mechanically distinct
 Require meaningful portal activation
 Add plane-specific rules and hazards
 Create wonder and danger
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 New planes beyond core D&D
@@ -153,3 +153,4 @@ If no suitable planar task can be identified, stop and do not create a PR.
 - [dnd-domain.md](../guides/dnd-domain.md) - D&D planar lore
 - [architecture.md](../guides/architecture.md) - Key files
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

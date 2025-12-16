@@ -69,7 +69,7 @@ Follow established naming conventions
 Keep related files together
 Update imports when moving files
 Use index files for clean exports
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 Major directory restructuring
@@ -166,3 +166,4 @@ If no suitable quality task can be identified, stop and do not create a PR.
 - [naming.md](../guides/naming.md) - Naming conventions
 - [refactoring.md](../guides/refactoring.md) - Code organization
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

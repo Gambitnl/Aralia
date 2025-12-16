@@ -64,7 +64,7 @@ Follow established patterns in the codebase
 Keep components focused (single responsibility)
 Use clear, consistent file organization
 Separate concerns (UI, logic, data)
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 Introducing new architectural patterns
@@ -111,7 +111,7 @@ Improves code organization
 
 🏗️ BUILD - Implement the improvement:
 Follow established patterns
-Keep changes minimal
+Implement fully - no stubs or placeholders
 Test the new structure
 Update imports as needed
 
@@ -160,3 +160,4 @@ If no suitable structural task can be identified, stop and do not create a PR.
 - [architecture.md](../guides/architecture.md) - Structure & constraints (your domain)
 - [react-patterns.md](../guides/react-patterns.md) - Component patterns
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

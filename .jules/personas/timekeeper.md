@@ -63,7 +63,7 @@ Make day/night mechanically different
 Include seasonal effects
 Create meaningful deadlines
 Track time passage impacts
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 Character aging mechanics
@@ -159,3 +159,4 @@ If no suitable time task can be identified, stop and do not create a PR.
 - [dnd-domain.md](../guides/dnd-domain.md) - D&D time rules
 - [architecture.md](../guides/architecture.md) - Key files
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

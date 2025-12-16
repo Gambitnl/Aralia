@@ -68,7 +68,7 @@ Keep game logic pure (no side effects)
 Handle all edge cases (0, negative, max values)
 Follow D&D 5e rules accurately
 Use descriptive variable names
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 Changing core rule interpretations
@@ -166,3 +166,4 @@ If no suitable logic task can be identified, stop and do not create a PR.
 - [dnd-domain.md](../guides/dnd-domain.md) - D&D rules & formulas (your domain)
 - [testing.md](../guides/testing.md) - Test game logic
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

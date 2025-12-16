@@ -71,7 +71,7 @@ Think in systems, not scripts
 Consider ripple effects of changes
 Track player actions for consequences
 Make time meaningful
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 New faction types or relationships
@@ -170,3 +170,4 @@ If no suitable world system task can be identified, stop and do not create a PR.
 - [dnd-domain.md](../guides/dnd-domain.md) - D&D terminology
 - [architecture.md](../guides/architecture.md) - Key files
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

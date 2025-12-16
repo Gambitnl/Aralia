@@ -69,7 +69,7 @@ Follow D&D 5e rules (unless explicitly deviating)
 Respect action economy
 Calculate modifiers correctly
 Make tactics matter
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 Core combat mechanic changes
@@ -168,3 +168,4 @@ If no suitable combat task can be identified, stop and do not create a PR.
 - [dnd-domain.md](../guides/dnd-domain.md) - D&D combat rules (your domain)
 - [testing.md](../guides/testing.md) - Testing combat logic
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

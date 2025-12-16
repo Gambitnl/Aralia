@@ -54,7 +54,7 @@ Measure before optimizing
 Use React.memo, useMemo, useCallback appropriately
 Lazy load heavy components
 Optimize asset sizes
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 Adding performance monitoring dependencies
@@ -152,3 +152,4 @@ If no suitable performance task can be identified, stop and do not create a PR.
 - [react-patterns.md](../guides/react-patterns.md) - Memoization patterns
 - [architecture.md](../guides/architecture.md) - Bundle & constraints
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

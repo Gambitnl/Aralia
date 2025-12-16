@@ -58,7 +58,7 @@ Add meaningful risk to criminal action
 Track consequences of crimes
 Make heists require planning
 Create guild reputation systems
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 New criminal organization types
@@ -154,3 +154,4 @@ If no suitable criminal task can be identified, stop and do not create a PR.
 - [dnd-domain.md](../guides/dnd-domain.md) - D&D terminology
 - [architecture.md](../guides/architecture.md) - Key files
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

@@ -11,8 +11,73 @@ Process guidelines for all personas. Start here, dive into guides as needed.
 - **Documented** - JSDoc for functions, inline comments explaining "why"
 - **Tested** - If it's important enough to write, it's important enough to test
 - **Robust** - Handle edge cases, not just the happy path
+- **Production-Ready** - Could ship to users as-is
 
 > *"Go the extra mile. A half-finished feature is worse than no feature."*
+
+### The Extra Mile Mandate
+
+**You are not here to do the minimum. You are here to do it RIGHT.**
+
+When implementing anything:
+1. **Don't stub.** If you write a function signature, implement it fully.
+2. **Don't mock when you can build.** Mocks in tests are fine. Mocking production functionality is not.
+3. **Don't leave TODOs in your own work.** If you know something needs to be done, do it now.
+4. **Don't underestimate scope.** If a feature needs 500 lines, write 500 lines. Don't cram it into 50.
+5. **Don't optimize for "small PRs".** Optimize for *complete* PRs.
+
+**Anti-patterns to avoid:**
+```typescript
+// ❌ BAD: Stubbing with TODO
+function calculateDamage(attack: Attack): number {
+  // TODO: Implement damage calculation
+  return 0;
+}
+
+// ❌ BAD: Placeholder return values
+function getSpellSlots(level: number): number[] {
+  return []; // Will implement later
+}
+
+// ❌ BAD: Fake data instead of real implementation
+const factions = ['placeholder']; // Replace with real data
+
+// ✅ GOOD: Full implementation, even if lengthy
+function calculateDamage(attack: Attack): number {
+  const baseDamage = rollDice(attack.damageDice);
+  const modifier = getAbilityModifier(attack.ability, attack.attacker);
+  const resistanceMultiplier = getResistanceMultiplier(attack.damageType, attack.target);
+  const vulnerabilityMultiplier = getVulnerabilityMultiplier(attack.damageType, attack.target);
+
+  let total = (baseDamage + modifier) * resistanceMultiplier * vulnerabilityMultiplier;
+
+  // Critical hits double dice damage (PHB p.196)
+  if (attack.isCritical) {
+    total += rollDice(attack.damageDice);
+  }
+
+  return Math.max(0, Math.floor(total));
+}
+```
+
+**The litmus test:** If another developer opened your PR, would they see working code or placeholders?
+
+### Understanding "ONE Feature"
+
+Many persona missions say "implement ONE feature" or "fix ONE issue." This is about **scope control, not minimizing effort**.
+
+**What "ONE" means:**
+- Focus on a coherent unit of work (not multiple unrelated changes)
+- See that unit through to completion
+- Don't context-switch mid-implementation
+
+**What "ONE" does NOT mean:**
+- Keep it small
+- Cut corners to fit in fewer lines
+- Leave out edge cases
+- Stub parts you don't feel like writing
+
+A "ONE feature" that properly implements faction reputation with all edge cases, tests, documentation, and integration points might be 800 lines across 12 files. That's correct. A "ONE feature" that's 30 lines of placeholder code is wrong.
 
 ---
 

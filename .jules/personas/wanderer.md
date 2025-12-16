@@ -59,7 +59,7 @@ Add variety through procedural generation
 Make discoveries meaningful
 Create travel decisions, not just time skips
 Connect exploration to world state
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 New biome types
@@ -155,3 +155,4 @@ If no suitable exploration task can be identified, stop and do not create a PR.
 - [dnd-domain.md](../guides/dnd-domain.md) - D&D terminology
 - [architecture.md](../guides/architecture.md) - Key files
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

@@ -59,7 +59,7 @@ Give companions personality and goals
 Make relationship changes meaningful
 Include approval/disapproval system
 Connect relationships to gameplay
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 Romance mechanics
@@ -155,3 +155,4 @@ If no suitable companion task can be identified, stop and do not create a PR.
 - [dnd-domain.md](../guides/dnd-domain.md) - D&D companion rules
 - [react-patterns.md](../guides/react-patterns.md) - State patterns
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

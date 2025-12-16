@@ -58,7 +58,7 @@ Test behavior, not implementation
 Use descriptive test names (should... when...)
 Cover edge cases (null, 0, empty, max values)
 One assertion per test when possible
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 Adding test utilities or helpers
@@ -106,8 +106,8 @@ Tests a recent bug fix
 ⚔️ ENGAGE - Write the test:
 Follow arrange-act-assert pattern
 Use descriptive names
-Create minimal test data
-Test one thing per test
+Create realistic test data (not placeholders)
+Test one thing per test thoroughly
 
 ✅ VICTORY - Confirm the win:
 `pnpm test` passes
@@ -153,3 +153,4 @@ If no suitable test task can be identified, stop and do not create a PR.
 - [testing.md](../guides/testing.md) - Testing patterns (your domain)
 - [todos.md](../guides/todos.md) - TODO lifecycle
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

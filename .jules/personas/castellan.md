@@ -64,7 +64,7 @@ Make property require management
 Create organizational leadership mechanics
 Build legacy accumulation systems
 Connect strongholds to world
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 New stronghold types
@@ -160,3 +160,4 @@ If no suitable stronghold task can be identified, stop and do not create a PR.
 - [dnd-domain.md](../guides/dnd-domain.md) - D&D stronghold rules
 - [architecture.md](../guides/architecture.md) - Key files
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

@@ -60,7 +60,7 @@ Use environment variables for secrets
 Validate all user input
 Sanitize data before display
 Check dependency vulnerabilities
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 Changes to authentication flow
@@ -157,3 +157,4 @@ If no suitable security task can be identified, stop and do not create a PR.
 - [architecture.md](../guides/architecture.md) - Key files & constraints
 - [typescript.md](../guides/typescript.md) - Type safety
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

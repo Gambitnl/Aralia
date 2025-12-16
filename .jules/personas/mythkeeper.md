@@ -74,7 +74,7 @@ Use official 5e (2014 or 2024) as primary source
 Cite sources in data
 Verify against PHB/DMG/MM
 Mark homebrew clearly if included
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 Homebrew additions
@@ -173,3 +173,4 @@ If no suitable lore task can be identified, stop and do not create a PR.
 - [dnd-domain.md](../guides/dnd-domain.md) - D&D lore (your domain)
 - [comments.md](../guides/comments.md) - Documenting lore sources
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

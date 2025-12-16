@@ -75,7 +75,7 @@ Add risk to intrigue actions
 Track who knows what
 Create consequences for exposure
 Layer public/private information
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 New faction types
@@ -174,3 +174,4 @@ If no suitable intrigue task can be identified, stop and do not create a PR.
 - [dnd-domain.md](../guides/dnd-domain.md) - D&D lore context
 - [typescript.md](../guides/typescript.md) - Type safety
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

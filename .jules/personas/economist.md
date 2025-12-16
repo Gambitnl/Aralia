@@ -59,7 +59,7 @@ Make prices respond to world state
 Add meaningful choices to economic actions
 Track supply and demand
 Connect trade to world events
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 New currency types
@@ -155,3 +155,4 @@ If no suitable economy task can be identified, stop and do not create a PR.
 - [dnd-domain.md](../guides/dnd-domain.md) - D&D terminology
 - [typescript.md](../guides/typescript.md) - Type safety
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

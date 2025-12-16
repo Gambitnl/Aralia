@@ -76,7 +76,7 @@ Provide rich context to AI
 Validate AI output
 Maintain consistency with world state
 Keep prompts focused and constrained
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 New AI model usage
@@ -174,3 +174,4 @@ If no suitable AI narrative task can be identified, stop and do not create a PR.
 - [architecture.md](../guides/architecture.md) - Key files (geminiService.ts)
 - [testing.md](../guides/testing.md) - Testing AI interactions
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

@@ -68,7 +68,7 @@ Use custom hooks for reusable state logic
 Derive state where possible (useMemo)
 Keep hooks focused (single purpose)
 Document hook return values
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 Adding new context providers
@@ -164,3 +164,4 @@ If no suitable state/hook task can be identified, stop and do not create a PR.
 - [react-patterns.md](../guides/react-patterns.md) - State & hooks (your domain)
 - [typescript.md](../guides/typescript.md) - Type patterns
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

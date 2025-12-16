@@ -55,7 +55,7 @@ Make light mechanically important
 Create alien civilizations, not just monsters
 Add madness/horror elements
 Use depth layers for progression
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 New Underdark factions
@@ -151,3 +151,4 @@ If no suitable Underdark task can be identified, stop and do not create a PR.
 - [dnd-domain.md](../guides/dnd-domain.md) - D&D Underdark lore
 - [architecture.md](../guides/architecture.md) - Key files
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

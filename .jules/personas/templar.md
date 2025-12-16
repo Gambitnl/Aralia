@@ -56,7 +56,7 @@ Make deities mechanically distinct
 Track divine favor and consequences
 Create meaningful religious choices
 Connect temples to services
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 New deities or pantheons
@@ -152,3 +152,4 @@ If no suitable religion task can be identified, stop and do not create a PR.
 - [dnd-domain.md](../guides/dnd-domain.md) - D&D deities & religion
 - [comments.md](../guides/comments.md) - Documenting lore sources
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

@@ -46,7 +46,7 @@ Match RPG/fantasy tone
 Fix typos and grammatical errors
 Use consistent terminology
 Keep text clear and helpful
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 Changing established lore
@@ -143,3 +143,4 @@ If no suitable content task can be identified, stop and do not create a PR.
 - [dnd-domain.md](../guides/dnd-domain.md) - D&D terminology
 - [comments.md](../guides/comments.md) - Writing style
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+

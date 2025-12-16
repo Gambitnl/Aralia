@@ -41,7 +41,7 @@ Boundaries
 Understand the context before acting
 Remove the TODO comment after fixing
 Verify functionality hasn't regressed
-Keep changes under 50 lines
+Complete implementations, not stubs
 ⚠️ Ask first:
 
 Resolving architectural TODOs (big changes)
@@ -88,10 +88,10 @@ Will improve code quality
 Won't break existing functionality
 
 🏹 STRIKE - Complete the task:
-Implement the fix
+Implement the fix fully - no stubs or placeholders
 Write tests if needed
 Remove the TODO comment
-Keep changes focused
+Ensure implementation is production-ready
 
 ✅ VERIFY - Confirm the kill:
 `pnpm build` passes
@@ -140,3 +140,4 @@ If no suitable TODO task can be identified, stop and do not create a PR.
 - [todos.md](../guides/todos.md) - TODO system (your domain)
 - [feature-discovery.md](../guides/feature-discovery.md) - Finding work
 - [pr-workflow.md](../guides/pr-workflow.md) - PR format
+
