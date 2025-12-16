@@ -6,6 +6,8 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition, AbilityCost } from '../types/combat';
 import { findPath } from '../utils/pathfinding';
+import { useTurnManager } from './combat/useTurnManager';
+import { useAbilitySystem } from './useAbilitySystem';
 
 interface UseBattleMapReturn {
     characterPositions: Map<string, CharacterPosition>;
@@ -22,8 +24,8 @@ interface UseBattleMapReturn {
 export function useBattleMap(
     mapData: BattleMapData | null,
     characters: CombatCharacter[],
-    turnManager: any, // TurnManager Hook
-    abilitySystem: any,
+    turnManager: ReturnType<typeof useTurnManager>,
+    abilitySystem: ReturnType<typeof useAbilitySystem>,
 ): UseBattleMapReturn {
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [validMoves, setValidMoves] = useState<Set<string>>(new Set());
@@ -93,9 +95,10 @@ export function useBattleMap(
   }, [turnManager.turnState.currentCharacterId, calculateValidMoves]);
   
   const handleCharacterClick = useCallback((character: CombatCharacter) => {
-    if (abilitySystem.targetingMode) {
-      if(abilitySystem.isValidTarget(abilitySystem.selectedAbility, turnManager.getCurrentCharacter(), character.position)) {
-        abilitySystem.selectTarget(character.position, turnManager.getCurrentCharacter());
+    if (abilitySystem.targetingMode && abilitySystem.selectedAbility) {
+      const currentCharacter = turnManager.getCurrentCharacter();
+      if (currentCharacter && abilitySystem.isValidTarget(abilitySystem.selectedAbility, currentCharacter, character.position)) {
+        abilitySystem.selectTarget(character.position, currentCharacter);
       }
     } else {
         selectCharacter(character);
@@ -108,7 +111,7 @@ export function useBattleMap(
     const character = characters.find(c => c.id === selectedCharacterId);
     if (!character) return;
 
-    if (actionMode === 'ability' && abilitySystem.targetingMode) {
+    if (actionMode === 'ability' && abilitySystem.targetingMode && abilitySystem.selectedAbility) {
         if(abilitySystem.isValidTarget(abilitySystem.selectedAbility, character, tile.coordinates)) {
            abilitySystem.selectTarget(tile.coordinates, character);
         } else {

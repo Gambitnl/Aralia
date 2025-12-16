@@ -3,8 +3,10 @@
  * The primary component for rendering the procedural battle map grid, tiles, and character tokens.
  */
 import React, { useMemo, useRef, useCallback } from 'react';
-import { BattleMapData, CombatCharacter } from '../../types/combat';
+import { BattleMapData, CombatCharacter, TurnState } from '../../types/combat';
 import { useBattleMap } from '../../hooks/useBattleMap';
+import { useTurnManager } from '../../hooks/combat/useTurnManager';
+import { useAbilitySystem } from '../../hooks/useAbilitySystem';
 import BattleMapTile from './BattleMapTile';
 import CharacterToken from './CharacterToken';
 import BattleMapOverlay from '../BattleMapOverlay';
@@ -15,9 +17,9 @@ interface BattleMapProps {
   mapData: BattleMapData | null;
   characters: CombatCharacter[];
   combatState: {
-    turnManager: any; // The full turn manager hook return object
-    turnState: any; // Simplified for now
-    abilitySystem: any; // Simplified for now
+    turnManager: ReturnType<typeof useTurnManager>;
+    turnState: TurnState;
+    abilitySystem: ReturnType<typeof useAbilitySystem>;
     isCharacterTurn: (id: string) => boolean;
     onCharacterUpdate: (character: CombatCharacter) => void;
   };
@@ -112,8 +114,8 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
           onMouseMove={handleGridMouseMove}
         >
           {tileArray.map(tile => {
-            const isTargetable = abilitySystem.targetingMode && abilitySystem.isValidTarget(abilitySystem.selectedAbility, currentCharacter, tile.coordinates);
-            const isAoePreview = abilitySystem.aoePreview?.affectedTiles.some((p: { x: number; y: number; }) => p.x === tile.coordinates.x && p.y === tile.coordinates.y);
+            const isTargetable = !!(abilitySystem.targetingMode && abilitySystem.selectedAbility && currentCharacter && abilitySystem.isValidTarget(abilitySystem.selectedAbility, currentCharacter, tile.coordinates));
+            const isAoePreview = abilitySystem.aoePreview?.affectedTiles.some((p: { x: number; y: number; }) => p.x === tile.coordinates.x && p.y === tile.coordinates.y) ?? false;
 
             return (
               <BattleMapTile
