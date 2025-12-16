@@ -85,3 +85,93 @@ export const formatDuration = (totalSeconds: number): string => {
 
   return parts.length > 0 ? parts.join(', ') : "less than a minute";
 };
+
+// --- Timekeeper Extensions ---
+
+export enum Season {
+  Spring = 'Spring',
+  Summer = 'Summer',
+  Autumn = 'Autumn',
+  Winter = 'Winter',
+}
+
+export enum TimeOfDay {
+  Dawn = 'Dawn',
+  Day = 'Day',
+  Dusk = 'Dusk',
+  Night = 'Night',
+}
+
+export interface TimeModifiers {
+  travelCostMultiplier: number; // > 1 is slower
+  visionModifier: number; // -1 to 1 (conceptually) or light level 0-1
+  description: string;
+}
+
+export const getSeason = (date: Date): Season => {
+  const month = date.getUTCMonth(); // 0-11
+  // Winter: Dec (11), Jan (0), Feb (1)
+  if (month === 11 || month === 0 || month === 1) return Season.Winter;
+  // Spring: Mar (2), Apr (3), May (4)
+  if (month >= 2 && month <= 4) return Season.Spring;
+  // Summer: Jun (5), Jul (6), Aug (7)
+  if (month >= 5 && month <= 7) return Season.Summer;
+  // Autumn: Sep (8), Oct (9), Nov (10)
+  return Season.Autumn;
+};
+
+export const getTimeOfDay = (date: Date): TimeOfDay => {
+  const hour = date.getUTCHours();
+  if (hour >= 5 && hour < 7) return TimeOfDay.Dawn;
+  if (hour >= 7 && hour < 17) return TimeOfDay.Day;
+  if (hour >= 17 && hour < 20) return TimeOfDay.Dusk;
+  return TimeOfDay.Night;
+};
+
+export const getTimeModifiers = (date: Date): TimeModifiers => {
+  const season = getSeason(date);
+  const timeOfDay = getTimeOfDay(date);
+  let travelCostMultiplier = 1.0;
+  let description = '';
+
+  // Season Modifiers
+  switch (season) {
+    case Season.Winter:
+      travelCostMultiplier *= 1.25; // Snow/Cold slows travel
+      description += 'The air is biting cold. ';
+      break;
+    case Season.Summer:
+      // travelCostMultiplier *= 1.0; // Standard
+      description += 'The air is warm and heavy. ';
+      break;
+    case Season.Autumn:
+      description += 'Leaves crunch underfoot. ';
+      break;
+    case Season.Spring:
+      description += 'The world is blooming. ';
+      break;
+  }
+
+  // Time of Day Modifiers
+  switch (timeOfDay) {
+    case TimeOfDay.Night:
+      travelCostMultiplier *= 1.5; // Difficult to navigate in dark
+      description += 'Darkness covers the land.';
+      break;
+    case TimeOfDay.Dawn:
+      description += 'The sun is rising.';
+      break;
+    case TimeOfDay.Dusk:
+      description += 'Shadows are lengthening.';
+      break;
+    case TimeOfDay.Day:
+      description += 'The sun is high.';
+      break;
+  }
+
+  return {
+    travelCostMultiplier,
+    visionModifier: timeOfDay === TimeOfDay.Night ? 0.2 : 1.0,
+    description: description.trim(),
+  };
+};

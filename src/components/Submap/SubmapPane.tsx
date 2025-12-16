@@ -18,6 +18,7 @@ import { useSubmapProceduralData, PathDetails } from '../../hooks/useSubmapProce
 import CompassPane from '../CompassPane';
 import { biomeVisualsConfig, defaultBiomeVisuals } from '../../config/submapVisualsConfig';
 import { findPath } from '../../utils/pathfinding';
+import { getTimeOfDay, getTimeModifiers, TimeOfDay } from '../../utils/timeUtils';
 import ActionPane from '../ActionPane';
 import SubmapTile from './SubmapTile';
 import { CaTileType } from '../../services/cellularAutomataService';
@@ -72,14 +73,17 @@ interface SubmapPaneProps {
 }
 
 const getDayNightOverlayClass = (gameTime: Date): string => {
-    const hour = gameTime.getHours();
-    if (hour >= 18 && hour < 21) { // Evening: 6 PM to 9 PM
-        return 'bg-amber-700/20 mix-blend-overlay';
+    const timeOfDay = getTimeOfDay(gameTime);
+    switch (timeOfDay) {
+        case TimeOfDay.Dusk:
+            return 'bg-amber-700/20 mix-blend-overlay';
+        case TimeOfDay.Night:
+            return 'bg-indigo-900/40 mix-blend-multiply';
+        case TimeOfDay.Dawn:
+            return 'bg-amber-300/10 mix-blend-soft-light';
+        default:
+            return '';
     }
-    if (hour >= 21 || hour < 5) { // Night: 9 PM to 5 AM
-        return 'bg-indigo-900/40 mix-blend-multiply';
-    }
-    return ''; // Day
 };
 
 
@@ -280,6 +284,12 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                     movementCost = Infinity;
                 }
 
+                // Apply Time Modifiers (e.g., Night/Winter slows travel)
+                const modifiers = getTimeModifiers(gameTime);
+                if (movementCost !== Infinity) {
+                    movementCost *= modifiers.travelCostMultiplier;
+                }
+
                 grid.set(`${c}-${r}`, {
                     id: `${c}-${r}`,
                     coordinates: { x: c, y: r },
@@ -289,7 +299,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
             }
         }
         return grid;
-    }, [submapDimensions, getTileVisuals, playerCharacter]);
+    }, [submapDimensions, getTileVisuals, playerCharacter, gameTime]);
 
     const quickTravelData = useMemo(() => {
         if (!isQuickTravelMode || !hoveredTile || !playerSubmapCoords) {
