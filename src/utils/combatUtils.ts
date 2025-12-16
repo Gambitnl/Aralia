@@ -12,6 +12,7 @@ import { CLASSES_DATA, MONSTERS_DATA } from '../constants';
 import { createAbilityFromSpell } from './spellAbilityFactory';
 import { isWeaponProficient } from './weaponUtils';
 import { generateId } from './idGenerator';
+import { getAbilityModifierValue } from './statUtils';
 
 // Re-export for consumers
 export { createAbilityFromSpell, generateId };
@@ -263,7 +264,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     intelligence: player.finalAbilityScores.Intelligence,
     wisdom: player.finalAbilityScores.Wisdom,
     charisma: player.finalAbilityScores.Charisma,
-    baseInitiative: Math.floor((player.finalAbilityScores.Dexterity - 10) / 2),
+    baseInitiative: getAbilityModifierValue(player.finalAbilityScores.Dexterity),
     speed: player.speed,
     cr: 'N/A',
   };
@@ -324,7 +325,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       cost: { type: 'action' },
       targeting: 'single_enemy',
       range: 1,
-      effects: [{ type: 'damage', value: 1 + Math.floor((stats.strength - 10) / 2), damageType: 'physical' }],
+      effects: [{ type: 'damage', value: 1 + getAbilityModifierValue(stats.strength), damageType: 'physical' }],
       icon: '✊'
     });
   }
