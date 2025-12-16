@@ -130,6 +130,11 @@ export const initialGameState: GameState = {
 
     // Notification System
     notifications: [],
+
+    // Faction System
+    factions: {},
+    playerReputation: {},
+    worldEvents: [],
 };
 
 
