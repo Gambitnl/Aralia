@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 export interface SelectionCardProps extends React.HTMLAttributes<HTMLDivElement> {
   title: string;
@@ -14,6 +15,9 @@ export interface SelectionCardProps extends React.HTMLAttributes<HTMLDivElement>
 /**
  * A reusable card component for selection grids (Race, Class, Background, etc.).
  * Supports both interactive (whole card clickable) and container modes.
+ *
+ * ✨ Illusionist Motion:
+ * - Added tactile scale effects (hover/tap) using Framer Motion.
  */
 export const SelectionCard: React.FC<SelectionCardProps> = ({
   title,
@@ -24,12 +28,13 @@ export const SelectionCard: React.FC<SelectionCardProps> = ({
   className = '',
   ...props
 }) => {
-  const baseClasses = "rounded-lg shadow flex flex-col justify-between transition-all duration-150 ease-in-out border-2";
+  // Use transition-colors for border/bg changes, but let Framer handle layout/transform
+  const baseClasses = "rounded-lg shadow flex flex-col justify-between transition-colors duration-150 ease-in-out border-2";
   const paddingClasses = "p-4";
 
-  // Interactive styles
+  // Interactive styles - removed manual transform/hover:scale to avoid conflict with Framer Motion
   const interactiveClasses = onClick
-    ? "cursor-pointer transform hover:scale-[1.01] focus:outline-none focus:ring-2 focus:ring-sky-500"
+    ? "cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-500"
     : "";
 
   // Selected state styles
@@ -38,7 +43,7 @@ export const SelectionCard: React.FC<SelectionCardProps> = ({
     : "bg-gray-700 border-gray-600 hover:border-gray-500";
 
   return (
-    <div
+    <motion.div
       onClick={onClick}
       className={`${baseClasses} ${paddingClasses} ${bgClass} ${interactiveClasses} ${className}`}
       role={onClick ? "button" : undefined}
@@ -51,6 +56,9 @@ export const SelectionCard: React.FC<SelectionCardProps> = ({
         }
         props.onKeyDown?.(e);
       }}
+      whileHover={onClick ? { scale: 1.01 } : undefined}
+      whileTap={onClick ? { scale: 0.98 } : undefined}
+      transition={{ type: "spring", stiffness: 400, damping: 17 }}
       {...props}
     >
       <div className="flex-grow">
@@ -66,6 +74,6 @@ export const SelectionCard: React.FC<SelectionCardProps> = ({
             {footer}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
