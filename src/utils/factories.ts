@@ -3,13 +3,6 @@ import {
   SpellSchool,
   SpellRarity,
   SpellAttackType,
-  CastingTime,
-  Range,
-  Components,
-  Duration,
-  SpellTargeting,
-  SpellEffect,
-  BaseEffect,
   DamageEffect
 } from '@/types/spells';
 
@@ -19,31 +12,15 @@ import {
   GamePhase,
   PlayerCharacter,
   CombatCharacter,
-  Item,
-  GameMessage,
-  MapData,
-  DiscoveryEntry,
-  Quest,
-  Monster,
-  GroundingChunk,
-  TempPartyMember,
-  Action,
-  GeminiLogEntry,
-  NpcMemory,
-  DiscoveryResidue,
-  EconomyState,
   AbilityScores,
   Race,
   Class,
-  Skill,
   TransportMode,
   CombatState
 } from '@/types/index';
 
 import {
-  TurnState,
-  CombatAction,
-  Position
+  TurnState
 } from '@/types/combat';
 
 import { CommandContext } from '@/commands/base/SpellCommand';

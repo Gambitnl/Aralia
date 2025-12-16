@@ -11,9 +11,8 @@
  * This allows us to define a spell ONCE in the JSON data, and have it automatically
  * work in the BattleMap without writing manual code for every single spell.
  */
-import { Spell, AbilityScoreName } from '../types';
+import { Spell, AbilityScoreName, PlayerCharacter } from '../types';
 import { Ability, AbilityCost, AbilityEffect, AreaOfEffect, TargetingType } from '../types/combat';
-import { PlayerCharacter } from '../types';
 import { getAbilityModifierValue } from './characterUtils';
 
 /**
@@ -258,7 +257,7 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
                         name: spell.name,
                         type: 'buff',
                         duration: (typeof spell.duration === 'object' && spell.duration?.concentration) ? 10 : 100, // Approximation
-                        // Simple visual effect. In a full engine, this would hook into actual stat modifiers.
+                        // Simple visual effect. In real app, this would hook into actual stat modifiers.
                         // For now, we use a placeholder stat modifier to allow the UI to show it.
                         effect: { type: 'stat_modifier', value: 1 } 
                     }
