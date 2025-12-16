@@ -35,7 +35,10 @@
       "Bash(echo:*)",
       "Bash(node -e:*)",
       "Bash(node --trace-warnings scripts/generateGlossaryIndex.js:*)",
-      "Bash(node scripts/fix-spell-frontmatter.js:*)"
+      "Bash(node scripts/fix-spell-frontmatter.js:*)",
+      "Bash(npm install:*)",
+      "Bash(git pull:*)",
+      "Bash(npx vitest run:*)"
     ],
     "deny": [],
     "ask": []
