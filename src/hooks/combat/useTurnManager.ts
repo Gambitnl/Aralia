@@ -652,11 +652,10 @@ export const useTurnManager = ({
                 const actualHealing = newHP - updatedCharacter.currentHP;
                 updatedCharacter = { ...updatedCharacter, currentHP: newHP };
                 addDamageNumber(actualHealing, action.targetPosition, 'heal');
-                // TODO: log uses type 'damage'; switch to a heal log type so UI/filters treat this as healing.
                 onLogEntry({
                   id: generateId(),
                   timestamp: Date.now(),
-                  type: 'damage',
+                  type: 'heal',
                   message: `${updatedCharacter.name} heals ${actualHealing} HP from zone effect!`,
                   characterId: updatedCharacter.id,
                   data: { healing: actualHealing, trigger: result.triggerType || 'on_enter_area' }
