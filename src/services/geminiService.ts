@@ -109,6 +109,34 @@ export interface GeminiHarvestData extends GeminiMetadata {
   items: Item[];
 }
 
+// --- Helper Functions ---
+
+/**
+ * Returns a basic inventory based on the shop type to be used as a fallback
+ * when the AI fails to generate a valid inventory.
+ */
+function getFallbackInventory(shopType: string): Item[] {
+  const defaults: Item[] = [];
+  const type = shopType.toLowerCase();
+
+  // Generic fallback items available everywhere
+  defaults.push({ ...ItemTemplates.FoodDrinkTemplate, name: "Rations", description: "Standard travel rations.", cost: 5 });
+  defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Torch", description: "A simple torch.", cost: 1 });
+
+  if (type.includes('blacksmith') || type.includes('weapon') || type.includes('armor')) {
+     defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Iron Dagger", description: "A simple iron dagger.", cost: 10 });
+     defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Whetstone", description: "For sharpening blades.", cost: 2 });
+  } else if (type.includes('alchemist') || type.includes('potion') || type.includes('magic')) {
+     defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Empty Vial", description: "A glass vial.", cost: 5 });
+     defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Herbal Poultice", description: "Basic healing herbs.", cost: 15 });
+  } else if (type.includes('general') || type.includes('goods')) {
+     defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Rope (50ft)", description: "Hempen rope.", cost: 10 });
+     defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Waterskin", description: "For carrying water.", cost: 2 });
+  }
+
+  return defaults;
+}
+
 
 /**
  * Generic function to generate text content using the Gemini API.
@@ -467,8 +495,29 @@ export async function generateCustomActions(
 
   const result = await generateText(prompt, systemInstruction, true, 'generateCustomActions', devModelOverride, FAST_MODEL);
 
+  // Fallback actions
+  const fallbackActions: Action[] = [{
+    type: 'gemini_custom_action',
+    label: 'Look around cautiously',
+    payload: {
+      geminiPrompt: 'Describe the immediate surroundings in detail.',
+      check: 'Perception',
+      isEgregious: false
+    }
+  }];
+
   if (result.error || !result.data) {
-    return { data: null, error: result.error, metadata: result.metadata };
+    return {
+      data: {
+        text: "Error calling AI service.",
+        promptSent: result.metadata?.promptSent || "",
+        rawResponse: result.metadata?.rawResponse || "",
+        rateLimitHit: result.metadata?.rateLimitHit,
+        actions: fallbackActions
+      },
+      error: result.error,
+      metadata: result.metadata
+    };
   }
 
   let actions: Action[] = [];
@@ -490,9 +539,12 @@ export async function generateCustomActions(
   } catch (e) {
     logger.error("Failed to parse JSON from generateCustomActions:", { rawText: result.data.text, error: e });
     return {
-      data: null,
-      error: "Failed to parse custom actions JSON.",
-      metadata: { ...result.data, rawResponse: result.data.text } // Pass text for debugging
+      data: {
+        ...result.data,
+        actions: fallbackActions
+      },
+      error: "Failed to parse custom actions JSON. Using fallback.",
+      metadata: { ...result.data, rawResponse: result.data.text }
     };
   }
 
@@ -520,6 +572,14 @@ export async function generateSocialCheckOutcome(
 
   const result = await generateText(prompt, systemInstruction, true, 'generateSocialCheckOutcome', devModelOverride);
 
+  // Define fallback data generator for consistency
+  const getFallbackData = () => ({
+    outcomeText: wasSuccess ? `${npcName} seems to consider your words.` : `${npcName} seems unconvinced.`,
+    dispositionChange: wasSuccess ? 2 : -2,
+    memoryFactText: `The player's ${skillName} check was ${wasSuccess ? 'successful' : 'unsuccessful'}.`,
+    goalUpdate: null
+  });
+
   if (result.error || !result.data) {
     // Fallback data for graceful degradation
     return {
@@ -528,10 +588,7 @@ export async function generateSocialCheckOutcome(
         promptSent: result.metadata?.promptSent || "",
         rawResponse: result.metadata?.rawResponse || "",
         rateLimitHit: result.metadata?.rateLimitHit,
-        outcomeText: wasSuccess ? `${npcName} seems to consider your words.` : `${npcName} seems unconvinced.`,
-        dispositionChange: wasSuccess ? 2 : -2,
-        memoryFactText: `The player's ${skillName} check was ${wasSuccess ? 'successful' : 'unsuccessful'}.`,
-        goalUpdate: null
+        ...getFallbackData()
       },
       error: result.error
     };
@@ -551,8 +608,11 @@ export async function generateSocialCheckOutcome(
     };
   } catch (e) {
     return {
-      data: null,
-      error: "Failed to parse social outcome JSON.",
+      data: {
+        ...result.data,
+        ...getFallbackData()
+      },
+      error: "Failed to parse social outcome JSON. Using fallback.",
       metadata: result.data
     };
   }
@@ -602,8 +662,20 @@ export async function generateMerchantInventory(
 
   const result = await generateText(prompt, systemInstruction, true, 'generateMerchantInventory', devModelOverride);
 
+  // If the API call itself failed
   if (result.error || !result.data) {
-    return { data: null, error: result.error, metadata: result.metadata };
+    return {
+      data: {
+        text: "Failed to generate inventory.",
+        promptSent: result.metadata?.promptSent || "",
+        rawResponse: result.metadata?.rawResponse || "",
+        rateLimitHit: result.metadata?.rateLimitHit,
+        inventory: getFallbackInventory(shopType),
+        economy: { scarcity: [], surplus: [], sentiment: "neutral" }
+      },
+      error: result.error,
+      metadata: result.metadata
+    };
   }
 
   try {
@@ -618,7 +690,17 @@ export async function generateMerchantInventory(
       error: null
     };
   } catch (e) {
-    return { data: null, error: "Failed to parse inventory JSON.", metadata: result.data };
+    // If the API succeeded but returned malformed JSON
+    logger.warn("Failed to parse inventory JSON. Using fallback.", { error: e });
+    return {
+      data: {
+        ...result.data,
+        inventory: getFallbackInventory(shopType),
+        economy: { scarcity: [], surplus: [], sentiment: "neutral" }
+      },
+      error: "Failed to parse inventory JSON. Using fallback.",
+      metadata: result.data
+    };
   }
 }
 
@@ -638,7 +720,17 @@ export async function generateHarvestLoot(
   const result = await generateText(prompt, systemInstruction, true, 'generateHarvestLoot', devModelOverride);
 
   if (result.error || !result.data) {
-    return { data: null, error: result.error, metadata: result.metadata };
+    return {
+      data: {
+        text: "Failed to harvest.",
+        promptSent: result.metadata?.promptSent || "",
+        rawResponse: result.metadata?.rawResponse || "",
+        rateLimitHit: result.metadata?.rateLimitHit,
+        items: []
+      },
+      error: result.error,
+      metadata: result.metadata
+    };
   }
 
   try {
@@ -649,7 +741,14 @@ export async function generateHarvestLoot(
       error: null
     };
   } catch (e) {
-    return { data: null, error: "Failed to parse harvest JSON.", metadata: result.data };
+    return {
+      data: {
+        ...result.data,
+        items: []
+      },
+      error: "Failed to parse harvest JSON. Found nothing.",
+      metadata: result.data
+    };
   }
 }
 
