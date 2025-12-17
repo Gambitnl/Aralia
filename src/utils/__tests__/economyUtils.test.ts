@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { generateMarketEvents, applyEventsToEconomy, calculateTradeRouteProfit, POSSIBLE_MARKET_EVENTS, MarketEvent } from '../economyUtils';
-import { EconomyState } from '@/types';
+import { generateMarketEvents, applyEventsToEconomy, calculateTradeRouteProfit, POSSIBLE_MARKET_EVENTS } from '../economyUtils';
+import { EconomyState, MarketEvent } from '@/types';
 
 describe('economyUtils', () => {
   describe('generateMarketEvents', () => {
@@ -9,6 +9,30 @@ describe('economyUtils', () => {
       const events1 = generateMarketEvents(seed);
       const events2 = generateMarketEvents(seed);
       expect(events1).toEqual(events2);
+    });
+
+    it('should be deterministic based on seed AND location', () => {
+      const seed = 12345;
+      const location = 'town_a';
+      const events1 = generateMarketEvents(seed, location);
+      const events2 = generateMarketEvents(seed, location);
+      expect(events1).toEqual(events2);
+    });
+
+    it('should return different results for different locations with same time seed', () => {
+      const seed = 12345;
+
+      let foundDifference = false;
+      // Try a few seeds to avoid bad RNG luck where both get "no event"
+      for (let i = 0; i < 100; i++) {
+          const events1 = generateMarketEvents(seed + i, 'town_a');
+          const events2 = generateMarketEvents(seed + i, 'town_b');
+          if (JSON.stringify(events1) !== JSON.stringify(events2)) {
+             foundDifference = true;
+             break;
+         }
+      }
+      expect(foundDifference).toBe(true);
     });
 
     it('should return different results for different seeds', () => {
