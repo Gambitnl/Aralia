@@ -1,5 +1,3 @@
-# Intriguer's Journal
+## 2024-05-22 - Identity System Architecture **Learning:** Separating `Identity` (base type) from `Alias` (fabricated) and `Disguise` (physical) allows for complex persona management where a player can have a "true" identity, multiple "aliases" (with their own reputation tracks), and "disguises" that act as modifiers to detection. **Action:** Future faction systems should check `currentPersonaId` instead of `characterId` to determine reputation, enabling players to burn an alias without ruining their true standing.
 
-## 2025-10-26 - Dual-Layer Reputation System
-**Learning:** A "Public vs Secret" reputation system is essential for intrigue. It allows a player to be publicly denounced by a faction while secretly being their top agent, or publicly a hero while secretly despised. This creates emergent "double agent" gameplay without complex scripting.
-**Action:** Always expose "Public Standing" in the UI, but keep "Secret Standing" hidden or hinted at via "Insight" checks.
+## 2024-05-22 - Information as Currency **Learning:** Modeling secrets with `value`, `verification` status, and `knownBy` lists creates a tangible economy for information. This allows secrets to be traded, leaked, or used as leverage in a structured way. **Action:** When implementing dialogue, add a "Reveal Secret" action that transfers the secret object to the NPC's known list and triggers a reaction based on its value and tags.
