@@ -1,1 +1,3 @@
-## 2024-05-24 - Naval Foundation **Learning:** To make ships distinct, they need stats beyond speed/hp and a crew that affects those stats. **Action:** Implement Ship and Crew interfaces with morale, loyalty, and ship classes.
+## 2024-05-22 - Naval Combat & Personality **Learning:** Ship mechanics need personality to feel distinct, not just stats. Adding a "Crew" system with names and traits immediately makes a ship feel like a home. **Action:** Always include procedural generation for crew names/roles when implementing vehicles or bases.
+
+## 2024-05-22 - Combat Tactics **Learning:** Simple rock-paper-scissors tactics (Ram > Broadside > Evasive) create meaningful decisions without complex grids. **Action:** Use tactic enums with clear offensive/defensive trade-offs for vehicle combat.

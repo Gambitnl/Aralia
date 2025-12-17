@@ -127,3 +127,38 @@ export interface CargoManifest {
   totalWeight: number;
   capacityUsed: number;
 }
+
+// ============================================================================
+// NAVAL COMBAT & ENVIRONMENT
+// ============================================================================
+
+export type WeatherCondition = 'Calm' | 'Breezy' | 'Stormy' | 'Gale' | 'Foggy';
+
+export type WindDirection = 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW';
+
+export type CombatRange = 'Long' | 'Medium' | 'Short' | 'Boarding';
+
+export type NavalTactic =
+  | 'Broadside'         // Standard attack
+  | 'Ram'               // High risk, high damage
+  | 'Board'             // Attempt to enter boarding range
+  | 'EvasiveManeuvers'  // Defensive, harder to hit
+  | 'FullSail'          // Close distance / Flee
+  | 'Repair';           // Field repairs
+
+export interface NavalCombatParticipant {
+  ship: Ship;
+  initiative: number;
+  currentTactic?: NavalTactic;
+  role: 'player' | 'enemy' | 'ally';
+}
+
+export interface NavalCombatState {
+  id: string;
+  participants: NavalCombatParticipant[];
+  range: CombatRange;
+  weather: WeatherCondition;
+  windDirection: WindDirection;
+  round: number;
+  log: string[];
+}

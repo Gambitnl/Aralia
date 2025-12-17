@@ -6,8 +6,9 @@
  * Logic for ship mechanics, crew management, and naval calculations.
  */
 
-import { Ship, ShipStats, CrewMember, ShipModification } from '../types/naval';
+import { Ship, ShipStats, CrewMember, ShipModification, WeatherCondition, WindDirection, NavalCombatState, NavalTactic } from '../types/naval';
 import { SHIP_TEMPLATES } from '../data/ships';
+import { WEATHER_EFFECTS, TACTIC_DESCRIPTIONS } from '../data/navalCombat';
 
 /**
  * Creates a new ship instance from a template.
@@ -189,4 +190,95 @@ export function checkMutinyRisk(ship: Ship): boolean {
   if (unrest > 90) return true;
 
   return false;
+}
+
+/**
+ * Generates a random weather condition.
+ */
+export function generateWeather(): { condition: WeatherCondition; windDirection: WindDirection } {
+  const conditions: WeatherCondition[] = ['Calm', 'Breezy', 'Breezy', 'Breezy', 'Stormy', 'Gale', 'Foggy'];
+  const directions: WindDirection[] = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+
+  return {
+    condition: conditions[Math.floor(Math.random() * conditions.length)],
+    windDirection: directions[Math.floor(Math.random() * directions.length)],
+  };
+}
+
+/**
+ * Resolves a round of naval combat.
+ *
+ * @param state Current combat state
+ * @returns Updated combat state with log messages
+ */
+export function resolveNavalRound(state: NavalCombatState): NavalCombatState {
+  const newState = { ...state, round: state.round + 1, log: [] as string[] };
+  const weatherEffect = WEATHER_EFFECTS[newState.weather];
+
+  newState.log.push(`Round ${newState.round}: Weather is ${weatherEffect.description}`);
+
+  // Sort participants by initiative
+  const sortedParticipants = [...newState.participants].sort((a, b) => b.initiative - a.initiative);
+
+  for (const participant of sortedParticipants) {
+    if (participant.ship.stats.hullPoints <= 0) continue; // Skip sunk ships
+
+    const tactic = participant.currentTactic || 'Broadside';
+    const tacticData = TACTIC_DESCRIPTIONS[tactic];
+
+    // Identify target (first enemy)
+    const target = newState.participants.find(p => p.role !== participant.role && p.ship.stats.hullPoints > 0);
+
+    if (!target) {
+       newState.log.push(`${participant.ship.name} has no valid targets.`);
+       continue;
+    }
+
+    // Apply Tactic
+    newState.log.push(`${participant.ship.name} attempts ${tacticData.name} against ${target.ship.name}.`);
+
+    // Simple resolution logic
+    // 1. Calculate Attack Roll
+    const attackRoll = Math.floor(Math.random() * 20) + 1;
+    const weatherMod = weatherEffect.roughSeas ? -2 : 0;
+    const tacticMod = tacticData.offensiveBonus || 0;
+    const crewMod = participant.ship.crew.quality === 'Elite' ? 4 : participant.ship.crew.quality === 'Veteran' ? 2 : 0;
+
+    const totalAttack = attackRoll + weatherMod + tacticMod + crewMod;
+
+    // 2. Calculate AC
+    const targetAC = calculateShipStats(target.ship).armorClass;
+    const targetTacticDef = target.currentTactic ? (TACTIC_DESCRIPTIONS[target.currentTactic].defensiveBonus || 0) : 0;
+    const totalAC = targetAC + targetTacticDef;
+
+    // 3. Resolve
+    if (tactic === 'Repair') {
+        const repairAmount = Math.floor(Math.random() * 10) + 5 + crewMod;
+        participant.ship.stats.hullPoints = Math.min(participant.ship.stats.maxHullPoints, participant.ship.stats.hullPoints + repairAmount);
+        newState.log.push(`${participant.ship.name} repairs ${repairAmount} hull points.`);
+    } else if (tactic === 'EvasiveManeuvers') {
+        newState.log.push(`${participant.ship.name} is taking evasive action (AC ${totalAC}).`);
+    } else if (totalAttack >= totalAC) {
+        // Hit!
+        // Base damage calculation (placeholder - should come from weapons)
+        let damage = 0;
+        if (tactic === 'Ram') {
+            damage = Math.floor(Math.random() * 50) + 25; // 25-75 damage
+        } else {
+             // Broadside
+             damage = Math.floor(Math.random() * 20) + 10; // 10-30 damage
+        }
+
+        target.ship.stats.hullPoints -= damage;
+        newState.log.push(`HIT! ${participant.ship.name} deals ${damage} damage to ${target.ship.name}!`);
+
+        if (target.ship.stats.hullPoints <= 0) {
+            newState.log.push(`${target.ship.name} has been SUNK!`);
+        }
+    } else {
+        newState.log.push(`MISS! (${totalAttack} vs AC ${totalAC})`);
+    }
+  }
+
+  return newState;
 }
