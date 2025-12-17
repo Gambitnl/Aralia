@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as geminiService from '../geminiService';
-import { ai } from '../aiClient';
+import { ai, isAiEnabled } from '../aiClient';
 
 // Mock the AI client
 vi.mock('../aiClient', () => ({
@@ -23,9 +23,22 @@ vi.mock('../utils/logger', () => ({
   },
 }));
 
+// Mock configuration to have a single model in the chain to simplify timeout testing
+// Correct path relative to this test file: ../../config/geminiConfig
+vi.mock('../../config/geminiConfig', () => ({
+  GEMINI_TEXT_MODEL_FALLBACK_CHAIN: ['gemini-test-model'],
+  FAST_MODEL: 'gemini-test-model',
+  COMPLEX_MODEL: 'gemini-test-model',
+}));
+
 describe('geminiService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(isAiEnabled).mockReturnValue(true);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   describe('generateMerchantInventory', () => {
@@ -37,7 +50,6 @@ describe('geminiService', () => {
 
       const result = await geminiService.generateMerchantInventory(undefined, 'General Store');
 
-      // Desired behavior: Data is not null, contains fallback items
       expect(result.data).not.toBeNull();
       expect(result.data?.inventory.length).toBeGreaterThan(0);
       expect(result.error).toContain('Failed to parse inventory JSON');
@@ -53,7 +65,6 @@ describe('geminiService', () => {
 
       const result = await geminiService.generateSocialCheckOutcome('Persuasion', 'Guard', true, 'Context');
 
-      // Desired behavior: Data is not null, contains fallback text
       expect(result.data).not.toBeNull();
       expect(result.data?.outcomeText).toBeDefined();
       expect(result.data?.dispositionChange).toBeDefined();
@@ -70,7 +81,6 @@ describe('geminiService', () => {
 
       const result = await geminiService.generateCustomActions('Scene', 'Context');
 
-      // Desired behavior: Data is not null, contains fallback actions
       expect(result.data).not.toBeNull();
       expect(result.data?.actions).toBeDefined();
       expect(result.data?.actions.length).toBeGreaterThan(0);
@@ -87,7 +97,6 @@ describe('geminiService', () => {
 
       const result = await geminiService.generateHarvestLoot('Bush', 'Forest', 15);
 
-      // Desired behavior: Data is not null, contains empty or fallback items
       expect(result.data).not.toBeNull();
       expect(result.data?.items).toBeDefined();
       expect(result.error).toContain('Failed to parse harvest JSON');
@@ -96,7 +105,6 @@ describe('geminiService', () => {
 
   describe('AI Disabled State', () => {
     it('should return error gracefully when AI is disabled', async () => {
-      const { isAiEnabled } = await import('../aiClient');
       vi.mocked(isAiEnabled).mockReturnValue(false);
 
       const result = await geminiService.generateText('test');
@@ -104,6 +112,37 @@ describe('geminiService', () => {
       expect(result.data).toBeNull();
       expect(result.error).toContain('Gemini API disabled');
       expect(ai.models.generateContent).not.toHaveBeenCalled();
+    });
+  });
+
+  // WARDEN - TIMEOUT TEST
+  describe('Timeout Handling', () => {
+    it('should time out if the API call takes too long', async () => {
+        vi.useFakeTimers();
+        const mockGenerateContent = ai.models.generateContent as any;
+
+        // Mock implementation that never resolves (hangs)
+        mockGenerateContent.mockImplementation(() => new Promise(() => {}));
+
+        // Start the call
+        const promise = geminiService.generateText(
+          'test prompt',
+          undefined,
+          false,
+          'testTimeout'
+        );
+
+        // Fast-forward time past the 20s timeout.
+        // Because we mocked GEMINI_TEXT_MODEL_FALLBACK_CHAIN to have only 1 model,
+        // this single advance should trigger the timeout for that model,
+        // causing the loop to finish and the function to return the error.
+        vi.advanceTimersByTime(21000);
+
+        // Await the result
+        const result = await promise;
+
+        // Check that we got the timeout error message
+        expect(result.error).toContain('Request timed out');
     });
   });
 });
