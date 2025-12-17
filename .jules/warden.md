@@ -1,0 +1,1 @@
+## 2024-05-24 - AI Service Timeouts **Learning:** External AI services (like Gemini) can occasionally hang indefinitely without throwing an error. Relying on default fetch timeouts is insufficient. **Action:** Always wrap AI generation calls in a `Promise.race` with a defensive timeout (e.g., 20s) to ensure the application remains responsive and can trigger fallback logic.

@@ -18,7 +18,7 @@ import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, FAST_MODEL, COMPLEX_MODEL } from '../
 import * as ItemTemplates from '../data/item_templates';
 import { sanitizeAIInput, redactSensitiveData } from '../utils/securityUtils';
 
-
+const API_TIMEOUT_MS = 20000; // 20 seconds
 
 // --- Adaptive Rate Limiting State ---
 let lastRequestTimestamp = 0;
@@ -191,12 +191,19 @@ export async function generateText(
         config.thinkingConfig = { thinkingBudget };
       }
 
-      // TODO: Wrap generateContent with an AbortController/timeout so callers can cancel hung requests when unmounting or when a prompt exceeds latency budgets.
-      const response: GenerateContentResponse = await ai.models.generateContent({
-        model: model,
-        contents: promptContent,
-        config: config,
+      // Wrap generateContent with a timeout to prevent hung requests when a prompt exceeds latency budgets.
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error(`Request timed out after ${API_TIMEOUT_MS}ms`)), API_TIMEOUT_MS);
       });
+
+      const response: GenerateContentResponse = await Promise.race([
+        ai.models.generateContent({
+          model: model,
+          contents: promptContent,
+          config: config,
+        }),
+        timeoutPromise
+      ]);
 
       // Update timestamp on successful request
       lastRequestTimestamp = Date.now();
