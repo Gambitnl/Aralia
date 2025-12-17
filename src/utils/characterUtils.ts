@@ -5,22 +5,17 @@
  */
 import {
   PlayerCharacter,
-  Race,
   Item,
   ArmorCategory,
   ArmorProficiencyLevel,
   TempPartyMember,
   AbilityScores,
-  Class as CharClass,
   DraconicAncestryInfo,
-  EquipmentSlotType,
   Feat,
   FeatPrerequisiteContext,
   LevelUpChoices,
   AbilityScoreName,
   MagicInitiateSource,
-  SpellbookData,
-  LimitedUses,
 } from '../types';
 import { RACES_DATA, GIANT_ANCESTRIES, TIEFLING_LEGACIES, CLASSES_DATA, DRAGONBORN_ANCESTRIES, SKILLS_DATA } from '../constants';
 import { FEATS_DATA } from '../data/feats/featsData';

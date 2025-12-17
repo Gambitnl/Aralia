@@ -4,11 +4,9 @@
  * Utilities for validating character data and detecting missing choices
  * that may result from AI generation or legacy saves.
  */
-import { PlayerCharacter, MissingChoice, Race, Class as CharClass } from '../types';
+import { PlayerCharacter, MissingChoice } from '../types';
 import { 
   DRAGONBORN_ANCESTRIES, 
-  RACES_DATA, 
-  GIANT_ANCESTRIES, 
   TIEFLING_LEGACIES,
   RELEVANT_SPELLCASTING_ABILITIES,
 } from '../constants';
