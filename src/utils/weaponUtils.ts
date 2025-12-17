@@ -110,4 +110,3 @@ export function isWeaponProficient(
 
 // Export helper function for reuse
 export { isWeaponMartial };
-
