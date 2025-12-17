@@ -1,6 +1,38 @@
 
 import { describe, it, expect } from 'vitest';
-import { redactSensitiveData } from '../securityUtils';
+import { redactSensitiveData, safeJSONParse } from '../securityUtils';
+
+describe('safeJSONParse', () => {
+    it('parses valid JSON correctly', () => {
+        const json = '{"key": "value", "num": 123}';
+        const result = safeJSONParse(json);
+        expect(result).toEqual({ key: 'value', num: 123 });
+    });
+
+    it('returns fallback for invalid JSON', () => {
+        const json = 'invalid json';
+        const fallback = { error: true };
+        const result = safeJSONParse(json, fallback);
+        expect(result).toEqual(fallback);
+    });
+
+    it('returns null by default for invalid JSON', () => {
+        const json = 'invalid json';
+        const result = safeJSONParse(json);
+        expect(result).toBeNull();
+    });
+
+    it('handles null/undefined input gracefully', () => {
+        expect(safeJSONParse(null)).toBeNull();
+        expect(safeJSONParse(undefined)).toBeNull();
+    });
+
+    it('parses arrays correctly', () => {
+        const json = '[1, 2, 3]';
+        const result = safeJSONParse(json);
+        expect(result).toEqual([1, 2, 3]);
+    });
+});
 
 describe('redactSensitiveData', () => {
   const FAKE_KEY = 'TEST_API_KEY_12345';

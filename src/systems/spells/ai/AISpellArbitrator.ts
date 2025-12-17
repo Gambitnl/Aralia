@@ -4,7 +4,7 @@ import { GameState } from '../../../types'
 import { generateText } from '../../../services/geminiService'
 import { Position } from '../../../types/map'
 import { MaterialTagService } from './MaterialTagService'
-import { sanitizeAIInput, detectSuspiciousInput } from '../../../utils/securityUtils'
+import { sanitizeAIInput, detectSuspiciousInput, safeJSONParse } from '../../../utils/securityUtils'
 
 export interface ArbitrationRequest {
     spell: Spell
@@ -118,7 +118,14 @@ class AISpellArbitrator {
                 }
             }
 
-            const responseData = JSON.parse(result.data.text.replace(/```json\n|```/g, '').trim())
+            const responseData = safeJSONParse<any>(result.data.text.replace(/```json\n|```/g, '').trim())
+
+            if (!responseData) {
+                return {
+                    allowed: false,
+                    reason: 'AI validation failed to parse response'
+                }
+            }
 
             return {
                 allowed: responseData.valid === true,
@@ -186,7 +193,14 @@ class AISpellArbitrator {
                 }
             }
 
-            const responseData = JSON.parse(result.data.text.replace(/```json\n|```/g, '').trim())
+            const responseData = safeJSONParse<any>(result.data.text.replace(/```json\n|```/g, '').trim())
+
+            if (!responseData) {
+                return {
+                    allowed: false,
+                    reason: 'AI DM service failed to parse response'
+                }
+            }
 
             return {
                 allowed: responseData.allowed !== false, // Default to true if missing

@@ -1,112 +1,97 @@
-/**
- * @file src/utils/securityUtils.ts
- * Shared security utility functions for input sanitization and validation.
- */
-
 import { ENV } from '../config/env';
 
 /**
- * Sanitizes user input intended for AI prompts to prevent injection attacks and DoS.
- *
- * @param input The raw user input string.
- * @param maxLength The maximum allowed length (default: 500).
- * @returns The sanitized, truncated string.
- */
-export function sanitizeAIInput(input: string, maxLength: number = 500): string {
-  if (!input) return '';
-
-  // 1. Truncate to maximum length to prevent token exhaustion/DoS
-  let sanitized = input.slice(0, maxLength);
-
-  // 2. Remove or escape potential prompt injection delimiters
-  // Users shouldn't be able to fake "System Instruction:" or "Context:" blocks
-  sanitized = sanitized
-    .replace(/System Instruction:/gi, '[REDACTED]')
-    .replace(/User Prompt:/gi, '[REDACTED]')
-    .replace(/Context:/gi, '[REDACTED]')
-    .replace(/```/g, "'''"); // Break markdown code blocks
-
-  // 3. Basic whitespace trimming
-  sanitized = sanitized.trim();
-
-  // 4. Encode HTML special characters to prevent basic XSS if reflected in UI
-  // (Though this is primarily for AI prompt safety, good practice)
-  sanitized = sanitized
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-
-  return sanitized;
-}
-
-/**
- * Validates if the input contains suspicious patterns often used in prompt injection.
- *
- * @param input The user input to check.
- * @returns True if suspicious, False if clean.
- */
-export function detectSuspiciousInput(input: string): boolean {
-  const lowerInput = input.toLowerCase();
-
-  // Common injection patterns
-  const suspiciousPatterns = [
-    "ignore all previous instructions",
-    "ignore previous instructions",
-    "you are now",
-    "system override",
-    "debug mode",
-    "reveal your prompt",
-    "reveal system prompt"
-  ];
-
-  return suspiciousPatterns.some(pattern => lowerInput.includes(pattern));
-}
-
-/**
- * Recursively redacts sensitive information (like API keys) from data.
- * Safe to use on Error objects (converts them to string).
- *
- * @param data The data to scrub (string, object, Error, etc.)
+ * Redacts sensitive data (like API keys) from strings or objects.
+ * Useful for logging or error reporting.
+ * @param data The data to clean.
  * @param secret The secret to redact. Defaults to ENV.API_KEY.
- * @returns A safe string representation or object with the secret replaced.
  */
 export function redactSensitiveData(data: any, secret?: string): any {
-  if (data === null || data === undefined) return data;
-
   const keyToRedact = secret !== undefined ? secret : ENV.API_KEY;
-  if (!keyToRedact || keyToRedact.length < 5) return data; // Avoid redacting common short strings
+  if (!keyToRedact) return data;
 
-  let stringified: string;
-  try {
-    if (data instanceof Error) {
-      // JSON.stringify(error) returns {} usually, so we use property names
-      stringified = JSON.stringify(data, Object.getOwnPropertyNames(data));
-    } else if (typeof data === 'object') {
-      stringified = JSON.stringify(data);
-    } else {
-      stringified = String(data);
-    }
-  } catch (e) {
-    return '[Unable to sanitize data]';
+  if (typeof data === 'string') {
+    return data.replaceAll(keyToRedact, '[REDACTED]');
   }
 
-  if (stringified.includes(keyToRedact)) {
-    // Escape special regex characters in the key if we were using regex,
-    // but split/join is safer and faster for simple string replacement.
-    const redacted = stringified.split(keyToRedact).join('[REDACTED]');
-
-    // Attempt to parse back to object if it was an object/JSON
-    if (typeof data === 'object' && !(data instanceof Error)) {
-      try {
-        return JSON.parse(redacted);
-      } catch {
-        return redacted;
+  if (typeof data === 'object' && data !== null) {
+    // Handle Errors specifically to clean message and stack
+    if (data instanceof Error) {
+      const cleanError = new Error(data.message.replaceAll(keyToRedact, '[REDACTED]'));
+      if (data.stack) {
+        cleanError.stack = data.stack.replaceAll(keyToRedact, '[REDACTED]');
       }
+      return cleanError;
     }
-    return redacted;
+
+    // Recursively clean objects/arrays
+    try {
+        const json = JSON.stringify(data);
+        const redacted = json.replaceAll(keyToRedact, '[REDACTED]');
+        return JSON.parse(redacted);
+    } catch {
+        // If circular structure or other error, return as is (or shallow copy if needed)
+        return data;
+    }
   }
 
   return data;
+}
+
+/**
+ * Basic input sanitization for AI prompts.
+ * Removes common injection patterns or excessive whitespace.
+ * @param input The user input string.
+ */
+export function sanitizeAIInput(input: string, maxLength: number = 500): string {
+  if (!input) return '';
+  // 1. Trim whitespace
+  let clean = input.trim();
+  // 2. Remove null bytes (common attack vector in some systems, less likely here but good practice)
+  clean = clean.replace(/\0/g, '');
+  // 3. Limit length (example: 500 chars) - prevents huge prompt costs/DoS
+  //    (Adjust limit as needed for gameplay)
+  if (clean.length > maxLength) {
+    clean = clean.substring(0, maxLength);
+  }
+  return clean;
+}
+
+/**
+ * Detects suspicious input that might be trying to jailbreak or inject commands.
+ * @param input The user input string.
+ * @returns True if suspicious, false otherwise.
+ */
+export function detectSuspiciousInput(input: string): boolean {
+  if (!input) return false;
+  const lower = input.toLowerCase();
+
+  // Basic heuristic for jailbreak attempts
+  const suspiciousPhrases = [
+    'ignore all previous instructions',
+    'ignore previous instructions',
+    'system override',
+    'you are not a', // "You are not a DM..."
+    'debug mode',
+    'developer mode'
+  ];
+
+  return suspiciousPhrases.some(phrase => lower.includes(phrase));
+}
+
+/**
+ * Safely parses a JSON string.
+ * Wraps JSON.parse in a try-catch block to prevent crashes from malformed data.
+ *
+ * @param jsonString The string to parse.
+ * @param fallback The value to return if parsing fails. Defaults to null.
+ * @returns The parsed object or the fallback value.
+ */
+export function safeJSONParse<T>(jsonString: string | null | undefined, fallback: T | null = null): T | null {
+  if (!jsonString) return fallback;
+  try {
+    return JSON.parse(jsonString);
+  } catch {
+    return fallback;
+  }
 }

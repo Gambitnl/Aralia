@@ -11,6 +11,7 @@ import { GameState, GamePhase, NotificationType } from '../types';
 import { SafeStorage, SafeSession } from '../utils/storageUtils';
 import { logger } from '../utils/logger';
 import { simpleHash } from '../utils/hashUtils';
+import { safeJSONParse } from '../utils/securityUtils';
 
 //
 // Save slot configuration
@@ -505,7 +506,7 @@ function persistSlotIndex(next: SaveSlotSummary[]) {
 function getSessionCache(): SaveSlotSummary[] | null {
   try {
     const cached = SafeSession.getItem(SESSION_CACHE_KEY);
-    return cached ? JSON.parse(cached) : null;
+    return safeJSONParse(cached);
   } catch (error) {
     logger.warn("Failed to read from session storage, cache ignored", { error });
     return null;
@@ -514,8 +515,8 @@ function getSessionCache(): SaveSlotSummary[] | null {
 
 function buildSlotIndex(): SaveSlotSummary[] {
   const storedIndex = SafeStorage.getItem(SLOT_INDEX_KEY);
-  const parsedIndex: SaveSlotSummary[] = storedIndex ? JSON.parse(storedIndex) : [];
-  return mergeWithLegacySaves(parsedIndex).sort((a, b) => b.lastSaved - a.lastSaved);
+  const parsedIndex: SaveSlotSummary[] = safeJSONParse(storedIndex, []);
+  return mergeWithLegacySaves(parsedIndex || []).sort((a, b) => b.lastSaved - a.lastSaved);
 }
 
 function mergeWithLegacySaves(index: SaveSlotSummary[]): SaveSlotSummary[] {
@@ -535,7 +536,9 @@ function mergeWithLegacySaves(index: SaveSlotSummary[]): SaveSlotSummary[] {
     try {
       const raw = SafeStorage.getItem(key);
       if (!raw) continue;
-      const parsed = JSON.parse(raw) as StoredSavePayload | GameState;
+      const parsed = safeJSONParse<StoredSavePayload | GameState>(raw);
+      if (!parsed) continue;
+
       const state = (parsed as StoredSavePayload).state || (parsed as GameState);
       const preview = (parsed as StoredSavePayload).preview || extractPreview(state as GameState);
       const fallbackTimestamp = (state as GameState).saveTimestamp || Date.now();

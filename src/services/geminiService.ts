@@ -16,7 +16,7 @@ import { CLASSES_DATA } from '../data/classes';
 import { MONSTERS_DATA } from '../constants';
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, FAST_MODEL, COMPLEX_MODEL } from '../config/geminiConfig';
 import * as ItemTemplates from '../data/item_templates';
-import { sanitizeAIInput, redactSensitiveData } from '../utils/securityUtils';
+import { sanitizeAIInput, redactSensitiveData, safeJSONParse } from '../utils/securityUtils';
 
 
 
@@ -459,11 +459,12 @@ export async function generateEncounter(
       let encounter: Monster[] = [];
 
       if (responseText) {
-        try {
-          const jsonString = responseText.replace(/```json\n|```/g, '').trim();
-          encounter = JSON.parse(jsonString);
-        } catch (e) {
-          logger.error(`Failed to parse JSON from generateEncounter with model ${model}:`, { responseText, error: e });
+        const jsonString = responseText.replace(/```json\n|```/g, '').trim();
+        const parsed = safeJSONParse<Monster[]>(jsonString);
+        if (parsed) {
+          encounter = parsed;
+        } else {
+          logger.error(`Failed to parse JSON from generateEncounter with model ${model}:`, { responseText });
           throw new Error("The AI returned a malformed encounter suggestion.");
         }
       }
@@ -552,10 +553,10 @@ export async function generateCustomActions(
   }
 
   let actions: Action[] = [];
-  try {
-    const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
-    const parsedActions: any[] = JSON.parse(jsonString);
+  const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
+  const parsedActions = safeJSONParse<any[]>(jsonString);
 
+  if (parsedActions) {
     actions = parsedActions.map(a => ({
       type: a.type === 'ENTER_VILLAGE' ? 'ENTER_VILLAGE' : 'gemini_custom_action',
       label: a.label,
@@ -567,8 +568,8 @@ export async function generateCustomActions(
         isEgregious: a.isEgregious,
       },
     }));
-  } catch (e) {
-    logger.error("Failed to parse JSON from generateCustomActions:", { rawText: result.data.text, error: e });
+  } else {
+    logger.error("Failed to parse JSON from generateCustomActions:", { rawText: result.data.text });
     return {
       data: {
         ...result.data,
@@ -625,8 +626,8 @@ export async function generateSocialCheckOutcome(
     };
   }
 
-  try {
-    const parsed = JSON.parse(result.data.text.replace(/```json\n|```/g, '').trim());
+  const parsed = safeJSONParse<any>(result.data.text.replace(/```json\n|```/g, '').trim());
+  if (parsed) {
     return {
       data: {
         ...result.data,
@@ -637,7 +638,7 @@ export async function generateSocialCheckOutcome(
       },
       error: null
     };
-  } catch (e) {
+  } else {
     return {
       data: {
         ...result.data,
@@ -709,9 +710,9 @@ export async function generateMerchantInventory(
     };
   }
 
-  try {
-    const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
-    const parsed = JSON.parse(jsonString);
+  const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
+  const parsed = safeJSONParse<any>(jsonString);
+  if (parsed) {
     return {
       data: {
         ...result.data,
@@ -720,9 +721,9 @@ export async function generateMerchantInventory(
       },
       error: null
     };
-  } catch (e) {
+  } else {
     // If the API succeeded but returned malformed JSON
-    logger.warn("Failed to parse inventory JSON. Using fallback.", { error: e });
+    logger.warn("Failed to parse inventory JSON. Using fallback.");
     return {
       data: {
         ...result.data,
@@ -764,14 +765,14 @@ export async function generateHarvestLoot(
     };
   }
 
-  try {
-    const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
-    const items = JSON.parse(jsonString);
+  const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
+  const items = safeJSONParse<Item[]>(jsonString);
+  if (items) {
     return {
       data: { ...result.data, items },
       error: null
     };
-  } catch (e) {
+  } else {
     return {
       data: {
         ...result.data,
