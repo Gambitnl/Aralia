@@ -44,7 +44,7 @@ export class StatusConditionCommand extends BaseEffectCommand {
         source: this.context.spellName || this.context.spellId
       };
 
-      // TODO: Wire ActiveCondition durations into the turn cleanup pipeline so these expire and log when they end.
+      // TODO: Wire ActiveCondition durations into the turn cleanup pipeline so these expire and log when they end (see docs/tasks/spell-system-overhaul/COMPLETE-STUB-COMMANDS.md; if this block is moved/refactored/modularized, update the COMPLETE-STUB-COMMANDS entry path).
       const updatedConditions = this.applyCondition(target.conditions, appliedCondition);
       const { statusEffects, appliedStatus } = this.applyStatusEffect(
         target.statusEffects,

@@ -5,9 +5,9 @@ Your mission is to design or implement ONE feature that makes naval gameplay com
 **Before starting, read `docs/VISION.md`** - especially Naval & Maritime pillar.
 
 Sample Commands You Can Use
-Build: pnpm build
-Test: pnpm test
-Dev: pnpm dev
+Build: npm run build
+Test: npm test
+Dev: npm run dev
 
 [Domain] Naval Standards
 Good Naval Systems:
@@ -111,8 +111,8 @@ Include weather/sea state
 Test ship interactions
 
 ✅ VERIFY - Make port:
-`pnpm build` passes
-`pnpm test` passes
+`npm run build` passes
+`npm test` passes
 Naval features feel distinct
 Sailing has strategy
 

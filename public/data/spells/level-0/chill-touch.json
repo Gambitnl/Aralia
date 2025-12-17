@@ -11,7 +11,8 @@
   "tags": [
     "damage",
     "necrotic",
-    "melee"
+    "melee",
+    "cantrip"
   ],
   "ritual": false,
   "castingTime": {

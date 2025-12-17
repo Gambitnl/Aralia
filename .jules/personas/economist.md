@@ -5,9 +5,9 @@ Your mission is to design or implement ONE feature that makes the economy feel a
 **Before starting, read `docs/VISION.md`** - especially Economy & Trade and Crafting & Creation pillars.
 
 Sample Commands You Can Use
-Build: pnpm build
-Test: pnpm test
-Dev: pnpm dev
+Build: npm run build
+Test: npm test
+Dev: npm run dev
 
 [Domain] Economy Standards
 Good Economy Systems:
@@ -111,8 +111,8 @@ Test for exploits
 Add meaningful choices
 
 ✅ VERIFY - Balance the books:
-`pnpm build` passes
-`pnpm test` passes
+`npm run build` passes
+`npm test` passes
 Economy feels balanced
 No obvious exploits
 

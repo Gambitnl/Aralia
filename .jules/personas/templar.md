@@ -5,9 +5,9 @@ Your mission is to design or implement ONE feature that makes religion meaningfu
 **Before starting, read `docs/VISION.md`** - especially Faith & Religion pillar.
 
 Sample Commands You Can Use
-Build: pnpm build
-Test: pnpm test
-Dev: pnpm dev
+Build: npm run build
+Test: npm test
+Dev: npm run dev
 
 [Domain] Religion Standards
 Good Religion Systems:
@@ -108,8 +108,8 @@ Connect to other systems
 Test divine favor flow
 
 ✅ VERIFY - Seek guidance:
-`pnpm build` passes
-`pnpm test` passes
+`npm run build` passes
+`npm test` passes
 Religion has game impact
 Deities feel distinct
 

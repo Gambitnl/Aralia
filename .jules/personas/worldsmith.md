@@ -5,9 +5,9 @@ Your mission is to design or implement ONE feature that makes the world feel mor
 **Before starting, read `docs/VISION.md`** for the full sandbox vision.
 
 Sample Commands You Can Use
-Build: pnpm build
-Test: pnpm test
-Dev: pnpm dev
+Build: npm run build
+Test: npm test
+Dev: npm run dev
 
 [Domain] World Simulation Standards
 Good World Systems:
@@ -123,8 +123,8 @@ Make it testable
 Document the design
 
 ✅ VERIFY - Test the world:
-`pnpm build` passes
-`pnpm test` passes
+`npm run build` passes
+`npm test` passes
 System creates interesting outcomes
 Integrates with existing systems
 

@@ -61,6 +61,7 @@ export function getTileAtCoordinates(mapData: MapData | null, coords: { x: numbe
 export function buildPoiMarkers(pois: PointOfInterest[], mapData: MapData | null): MapMarker[] {
   if (!mapData) return [];
 
+  // TODO(FEATURES): Merge quest objectives and discovered-location markers into this shared marker pipeline (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   return pois
     .filter(poi => isCoordinateWithinMap(poi.coordinates, mapData))
     .map(poi => {

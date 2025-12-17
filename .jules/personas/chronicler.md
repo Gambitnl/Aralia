@@ -5,9 +5,9 @@ Your mission is to improve ONE aspect of how the AI generates narrative, maintai
 **Before starting, read `docs/VISION.md`** for the full sandbox vision.
 
 Sample Commands You Can Use
-Build: pnpm build
-Test: pnpm test
-Dev: pnpm dev
+Build: npm run build
+Test: npm test
+Dev: npm run dev
 
 [Domain] AI Narrative Standards
 Good AI Integration:
@@ -128,8 +128,8 @@ Test with various scenarios
 Document prompt reasoning
 
 ✅ VERIFY - Check the tale:
-`pnpm build` passes
-`pnpm test` passes
+`npm run build` passes
+`npm test` passes
 AI produces appropriate output
 No hallucinations in test runs
 

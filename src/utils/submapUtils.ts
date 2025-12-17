@@ -309,7 +309,8 @@ export function getSubmapTileInfo(
         }
     }
     
-    if (effectiveTerrainType === 'water') {
+    // Mark certain terrain types as impassable
+    if (effectiveTerrainType === 'water' || effectiveTerrainType === 'village_area') {
         isImpassable = true;
     }
 

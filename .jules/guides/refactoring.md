@@ -70,7 +70,7 @@ Open an issue or RFC first. Get buy-in before coding.
 
 ```bash
 # Check coverage for the file
-pnpm test --coverage src/utils/spellHelpers.ts
+npm test --coverage src/utils/spellHelpers.ts
 ```
 
 If no tests:
@@ -87,9 +87,9 @@ If no tests:
 ### 3. Verify
 
 ```bash
-pnpm build   # No type errors
-pnpm test    # No regressions
-pnpm lint    # Style passes
+npm run build   # No type errors
+npm test    # No regressions
+npm run lint    # Style passes
 ```
 
 ### 4. Review the Diff

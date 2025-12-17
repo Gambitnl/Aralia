@@ -258,7 +258,7 @@ export interface Feat {
 
     // Skill proficiency options
     skillProficiencies?: string[];
-    /** Number of skills player must choose (e.g., Skilled = 3). TODO: Implement skill selection UI in character builder */
+    /** Number of skills player must choose (e.g., Skilled = 3). TODO(FEATURES): Implement skill selection UI in character builder (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path). */
     selectableSkillCount?: number;
 
     // Saving throw proficiency options
@@ -266,7 +266,7 @@ export interface Feat {
     /** If true, saving throw proficiency matches the selected ability score (for Resilient feat). */
     savingThrowLinkedToAbility?: boolean;
 
-    /** Damage types player can choose from (e.g., Elemental Adept). TODO: Implement damage type selection UI */
+    /** Damage types player can choose from (e.g., Elemental Adept). TODO(FEATURES): Implement damage type selection UI (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path). */
     selectableDamageTypes?: string[];
 
     speedIncrease?: number;

@@ -19,6 +19,7 @@ const buildPrompt = (personality: VillagePersonality, summary: string) =>
 
 const DEFAULT_VILLAGE_PROFILE_ID = 'stoic_poor_temperate';
 
+// TODO(QOL): Expand biome-specific profiles (arid/forest/coastal/mountain, etc.) so each biome has distinct hooks and flavor (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
 export const villageIntegrationProfiles: Record<string, VillageIntegrationProfile> = {
   [DEFAULT_VILLAGE_PROFILE_ID]: {
     id: DEFAULT_VILLAGE_PROFILE_ID,

@@ -66,6 +66,7 @@ The project employs a multi-level system of uniquely named README files to provi
             *   List any major data structures or constants it relies on (e.g., from `src/constants.ts` or other `src/data/` modules).
         *   **Styling Notes (Optional):**
             *   Highlight any significant or complex styling approaches if not obvious from Tailwind CSS classes or component structure.
+            <!-- TODO(QOL): Document styling source-of-truth (Tailwind vs index.css vs public/styles.css) and link it here (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path). -->
         *   **Example Usage (Optional but Recommended for Reusable Components/Services):**
             *   A brief code snippet showing how the component or service might be typically used.
         *   **Accessibility Notes (If Applicable):**

@@ -14,7 +14,8 @@
   "tags": [
     "damage",
     "thunder",
-    "melee"
+    "melee",
+    "cantrip"
   ],
   "ritual": false,
   "castingTime": {

@@ -61,6 +61,7 @@ function chooseModelForComplexity(preferredModel: string, userInputForComplexity
   return preferredModel;
 }
 
+// TODO(FEATURES): Improve storyteller consistency via shared prompt scaffolds, memory summaries, and response validation (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 const defaultSystemInstruction =
   "You are a storyteller for a text-based high fantasy RPG set in a world of dragons, ancient magic, and looming conflict (like Krynn). Your responses MUST be EXTREMELY BRIEF, MAXIMUM 1-2 sentences. Provide ONLY essential 'breadcrumb' details. Focus on atmosphere and key information. NO long descriptions. Be concise.";
 

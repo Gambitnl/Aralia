@@ -51,6 +51,8 @@ import MerchantModal from '../MerchantModal';
 import GameGuideModal from '../GameGuideModal';
 import MissingChoiceModal from '../MissingChoiceModal';
 
+// TODO(FEATURES): Add centralized focus management and keyboard navigation patterns across modals for stronger accessibility (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+
 interface GameModalsProps {
     /** The full game state object, needed for various modal visibility flags and data. */
     gameState: GameState;

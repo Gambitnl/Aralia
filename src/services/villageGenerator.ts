@@ -73,6 +73,7 @@ export interface VillageLayout {
   integrationProfile: VillageIntegrationProfile;
 }
 
+// TODO(FEATURES): Emit town metadata (name, population, cultural tags) alongside layout for the Town Description System (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 interface GenerationOptions {
   worldSeed: number;
   worldX: number;

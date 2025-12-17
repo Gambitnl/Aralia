@@ -88,6 +88,7 @@ export const useTurnOrder = ({ characters }: UseTurnOrderProps): TurnOrderResult
   }, []);
 
   const advanceTurn = useCallback(() => {
+    // TODO(FEATURES): Capture/replay turn-order transitions after initiative changes to diagnose combat log anomalies (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
     // Calculate next state based on CURRENT turnState
     // We access turnState directly from the closure (which is fresh on every render)
     const prev = turnState;

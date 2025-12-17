@@ -9,6 +9,11 @@
 - `npm run lint` - Run ESLint
 - `npm run typecheck` - Run TypeScript type checking
 
+## Manual QA
+<!-- TODO(QOL): Add cross-browser testing checklist (Chrome/Firefox/Safari/Edge) for feature QA (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path). -->
+<!-- TODO(QOL): Add mobile responsiveness checklist (phone/tablet breakpoints, touch interactions) (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path). -->
+<!-- TODO(QOL): Add a console-error cleanup checklist to ensure zero warnings during core flows (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path). -->
+
 ## Architecture Overview
 - **React 19 + TypeScript** RPG game with D&D-style mechanics
 - **Vite** for build system and dev server

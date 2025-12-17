@@ -197,7 +197,7 @@ export class DefensiveCommand extends BaseEffectCommand {
         const currentResistances = target.resistances || []
 
         // Add new resistances (avoid duplicates)
-        // TODO: Track duration and remove expired resistances/immunities so later spells recalc AC/mitigation correctly.
+        // TODO: Track duration and remove expired resistances/immunities so later spells recalc AC/mitigation correctly (see docs/tasks/spell-system-overhaul/COMPLETE-STUB-COMMANDS.md; if this block is moved/refactored/modularized, update the COMPLETE-STUB-COMMANDS entry path).
         const newResistances = [...currentResistances]
         for (const type of damageTypes) {
             if (!newResistances.includes(type)) {
@@ -224,7 +224,7 @@ export class DefensiveCommand extends BaseEffectCommand {
         const currentImmunities = target.immunities || []
 
         // Add new immunities (avoid duplicates)
-        // TODO: Track immunity duration and clean up expired entries to prevent permanent immunity when the buff ends.
+        // TODO: Track immunity duration and clean up expired entries to prevent permanent immunity when the buff ends (see docs/tasks/spell-system-overhaul/COMPLETE-STUB-COMMANDS.md; if this block is moved/refactored/modularized, update the COMPLETE-STUB-COMMANDS entry path).
         const newImmunities = [...currentImmunities]
         for (const type of damageTypes) {
             if (!newImmunities.includes(type)) {
@@ -249,7 +249,7 @@ export class DefensiveCommand extends BaseEffectCommand {
         const currentTempHP = target.tempHP || 0
 
         // D&D Rule: Temporary HP doesn't stack, take the higher value
-        // TODO: Drop temp HP when the defensive effect duration ends and avoid reapplying weaker values on refresh cycles.
+        // TODO: Drop temp HP when the defensive effect duration ends and avoid reapplying weaker values on refresh cycles (see docs/tasks/spell-system-overhaul/COMPLETE-STUB-COMMANDS.md; if this block is moved/refactored/modularized, update the COMPLETE-STUB-COMMANDS entry path).
         const newTempHP = Math.max(currentTempHP, tempHPValue)
 
         const updatedState = this.updateCharacter(state, target.id, {

@@ -14,7 +14,8 @@
     "damage",
     "fire",
     "area",
-    "concentration"
+    "concentration",
+    "cantrip"
   ],
   "ritual": false,
   "castingTime": {

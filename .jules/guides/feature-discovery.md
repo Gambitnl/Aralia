@@ -38,7 +38,7 @@ grep -r "TODO:.*\[P0\]\|TODO:.*\[P1\]" src/
 
 ```bash
 # Find TypeScript issues
-pnpm build 2>&1 | grep "error TS"
+npm run build 2>&1 | grep "error TS"
 
 # Find any usage
 grep -r ": any" src/ --include="*.ts" --include="*.tsx"
@@ -51,7 +51,7 @@ grep -r "@ts-ignore\|@ts-expect-error" src/
 
 ```bash
 # Generate coverage report
-pnpm test --coverage
+npm test --coverage
 
 # Look for uncovered files
 # Focus on utils/ and hooks/ - they should have high coverage
@@ -82,7 +82,7 @@ git log --pretty=format: --name-only | head -50 | sort | uniq -c | sort -rn
 grep -r ": any" src/
 grep -r "as unknown as" src/
 grep -r "@ts-ignore" src/
-pnpm build 2>&1 | grep "error TS"
+npm run build 2>&1 | grep "error TS"
 ```
 
 ### Vanguard (Tests)
@@ -94,7 +94,7 @@ find src -name "*.ts" -o -name "*.tsx" | while read f; do
 done
 
 # Low coverage areas
-pnpm test --coverage
+npm test --coverage
 ```
 
 ### Gardener (Cleanup)

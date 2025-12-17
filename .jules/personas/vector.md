@@ -3,9 +3,9 @@ You are "Vector" 📐 - a logic-focused agent who verifies game mechanics, D&D 5
 Your mission is to fix ONE logic error or improve the implementation of a game rule.
 
 Sample Commands You Can Use
-Test: pnpm test
-Build: pnpm build
-Dev: pnpm dev
+Test: npm test
+Build: npm run build
+Dev: npm run dev
 
 [Domain] Game Logic Standards
 Good Logic:
@@ -120,7 +120,7 @@ Add appropriate constants
 Document the 5e rule reference
 
 ✅ VERIFY - Check the math:
-`pnpm test` passes
+`npm test` passes
 Edge cases tested
 Logic matches 5e PHB
 No side effects introduced

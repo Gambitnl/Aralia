@@ -1,11 +1,18 @@
 
 import { Building, BuildingType, DoodadType, Tile, TileType, BiomeType, RoofStyle, WallTexture } from '../types/realmsmith';
+import { TownDirection } from '../types/town';
 
 const TILE_SIZE = 32;
 
 export interface DrawOptions {
     isNight: boolean;
     showGrid: boolean;
+    /** Player position for rendering (can include fractional values for animation) */
+    playerPosition?: { x: number; y: number };
+    /** Direction the player is facing */
+    playerFacing?: TownDirection;
+    /** Whether the player is currently moving (for walk animation) */
+    isMoving?: boolean;
 }
 
 export class AssetPainter {
@@ -98,16 +105,23 @@ export class AssetPainter {
             }
         }
 
-        // 7. Roof Pass
+        // 7. Player Pass (after doodads, before roofs for proper depth)
+        if (options.playerPosition) {
+            const px = options.playerPosition.x * TILE_SIZE;
+            const py = options.playerPosition.y * TILE_SIZE;
+            this.drawPlayer(px, py, options.playerFacing || 'south', options.isMoving || false);
+        }
+
+        // 8. Roof Pass
         const sortedBuildings = [...buildings].sort((a, b) => (a.y + a.height) - (b.y + b.height));
         sortedBuildings.forEach(b => this.drawBuildingRoof(b, biome));
 
-        // 8. Night Mode / Lighting Pass
+        // 9. Night Mode / Lighting Pass
         if (options.isNight) {
             this.drawNightOverlay(width, height, tiles, buildings);
         }
 
-        // 9. Grid Pass
+        // 10. Grid Pass
         if (options.showGrid) {
             this.drawGrid(width, height);
         }
@@ -1119,5 +1133,160 @@ export class AssetPainter {
         this.ctx.fill();
         this.ctx.fillStyle = '#166534'; // Stem
         this.ctx.fillRect(x + 15, y + 12, 2, 4);
+    }
+
+    /**
+     * Draw the player character sprite at the given position
+     * @param x - Pixel X coordinate (can be fractional for animation)
+     * @param y - Pixel Y coordinate (can be fractional for animation)
+     * @param facing - Direction the player is facing
+     * @param isMoving - Whether to show walking animation frame
+     */
+    public drawPlayer(x: number, y: number, facing: TownDirection, isMoving: boolean) {
+        this.ctx.save();
+
+        // Center the sprite in the tile (sprite is ~24x28, tile is 32x32)
+        const centerX = x + TILE_SIZE / 2;
+        const centerY = y + TILE_SIZE / 2;
+
+        // Determine if we need to flip horizontally for east-facing directions
+        const shouldFlip = facing === 'east' || facing === 'northeast' || facing === 'southeast';
+
+        // Map facing to base direction (we draw west-facing and flip for east)
+        const baseDirection = shouldFlip
+            ? (facing === 'east' ? 'west' : facing === 'northeast' ? 'northwest' : 'southwest')
+            : facing;
+
+        // Apply flip transform if needed
+        if (shouldFlip) {
+            this.ctx.translate(centerX, centerY);
+            this.ctx.scale(-1, 1);
+            this.ctx.translate(-centerX, -centerY);
+        }
+
+        // Draw shadow
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        this.ctx.beginPath();
+        this.ctx.ellipse(centerX, y + 28, 8, 3, 0, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Walking offset (bob up/down)
+        const walkOffset = isMoving ? Math.sin(Date.now() * 0.02) * 2 : 0;
+
+        // Draw the character based on facing direction
+        this.drawCharacterSprite(centerX, centerY + walkOffset, baseDirection, isMoving);
+
+        this.ctx.restore();
+    }
+
+    /**
+     * Draw the actual character sprite
+     */
+    private drawCharacterSprite(cx: number, cy: number, facing: TownDirection, isMoving: boolean) {
+        // Leg spread for walking animation
+        const legSpread = isMoving ? Math.abs(Math.sin(Date.now() * 0.015)) * 4 : 0;
+
+        // Colors
+        const skinColor = '#d4a574';
+        const cloakColor = '#374151';
+        const cloakHighlight = '#4b5563';
+        const accentColor = '#f59e0b';
+        const bootColor = '#1f2937';
+        const hairColor = '#451a03';
+
+        // Body proportions (pixel-art style)
+        const bodyWidth = 10;
+        const bodyHeight = 12;
+
+        // Adjust body angle based on facing
+        let bodyOffsetY = 0;
+        let headOffsetY = 0;
+
+        if (facing === 'north' || facing === 'northwest' || facing === 'northeast') {
+            // Looking away - show back
+            bodyOffsetY = -1;
+        } else if (facing === 'south' || facing === 'southwest' || facing === 'southeast') {
+            // Looking toward camera
+            bodyOffsetY = 1;
+        }
+
+        // === LEGS ===
+        this.ctx.fillStyle = bootColor;
+        // Left leg
+        this.ctx.fillRect(cx - 4 - legSpread / 2, cy + 4, 3, 8);
+        // Right leg
+        this.ctx.fillRect(cx + 1 + legSpread / 2, cy + 4, 3, 8);
+
+        // === BODY (Cloak/Armor) ===
+        this.ctx.fillStyle = cloakColor;
+        this.ctx.beginPath();
+        this.roundedRect(cx - bodyWidth / 2, cy - bodyHeight / 2 + bodyOffsetY, bodyWidth, bodyHeight, 2);
+        this.ctx.fill();
+
+        // Cloak highlight (lighter edge)
+        this.ctx.fillStyle = cloakHighlight;
+        this.ctx.fillRect(cx - bodyWidth / 2 + 1, cy - bodyHeight / 2 + bodyOffsetY + 1, 2, bodyHeight - 2);
+
+        // Accent belt/trim
+        this.ctx.fillStyle = accentColor;
+        this.ctx.fillRect(cx - bodyWidth / 2, cy + 2 + bodyOffsetY, bodyWidth, 2);
+
+        // === HEAD ===
+        const headY = cy - bodyHeight / 2 - 6 + headOffsetY + bodyOffsetY;
+
+        // Hair (back layer for back-facing)
+        if (facing === 'north' || facing === 'northwest' || facing === 'northeast') {
+            this.ctx.fillStyle = hairColor;
+            this.ctx.beginPath();
+            this.ctx.arc(cx, headY + 2, 6, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+
+        // Head/face
+        this.ctx.fillStyle = skinColor;
+        this.ctx.beginPath();
+        this.ctx.arc(cx, headY, 5, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Hair (front layer for front-facing)
+        if (facing === 'south' || facing === 'southwest' || facing === 'southeast') {
+            this.ctx.fillStyle = hairColor;
+            // Hair tuft on top
+            this.ctx.beginPath();
+            this.ctx.ellipse(cx, headY - 4, 4, 2, 0, 0, Math.PI * 2);
+            this.ctx.fill();
+        } else if (facing === 'west') {
+            // Side view - hair on one side
+            this.ctx.fillStyle = hairColor;
+            this.ctx.beginPath();
+            this.ctx.ellipse(cx - 2, headY - 3, 4, 3, -0.3, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+
+        // Eyes (only for south-facing)
+        if (facing === 'south' || facing === 'southwest' || facing === 'southeast') {
+            this.ctx.fillStyle = '#1f2937';
+            this.ctx.fillRect(cx - 2, headY - 1, 1, 2);
+            this.ctx.fillRect(cx + 1, headY - 1, 1, 2);
+        } else if (facing === 'west') {
+            // Side view - one eye
+            this.ctx.fillStyle = '#1f2937';
+            this.ctx.fillRect(cx - 2, headY - 1, 1, 2);
+        }
+
+        // === ARMS ===
+        this.ctx.fillStyle = skinColor;
+        if (facing === 'south' || facing === 'southwest' || facing === 'southeast') {
+            // Arms at sides
+            this.ctx.fillRect(cx - bodyWidth / 2 - 2, cy - 2 + bodyOffsetY, 2, 6);
+            this.ctx.fillRect(cx + bodyWidth / 2, cy - 2 + bodyOffsetY, 2, 6);
+        } else if (facing === 'west') {
+            // Side view - one arm visible
+            this.ctx.fillRect(cx + bodyWidth / 2 - 1, cy - 2 + bodyOffsetY, 2, 6);
+        } else {
+            // Back view - arms slightly visible
+            this.ctx.fillRect(cx - bodyWidth / 2 - 1, cy - 1 + bodyOffsetY, 2, 5);
+            this.ctx.fillRect(cx + bodyWidth / 2 - 1, cy - 1 + bodyOffsetY, 2, 5);
+        }
     }
 }

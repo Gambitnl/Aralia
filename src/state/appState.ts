@@ -139,6 +139,7 @@ export const initialGameState: GameState = {
 
     // Town Exploration
     townState: null,
+    townEntryDirection: null,
 
     // Notification System
     notifications: [],

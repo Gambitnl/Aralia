@@ -15,6 +15,8 @@ import { Spell, AbilityScoreName, PlayerCharacter } from '../types';
 import { Ability, AbilityCost, AbilityEffect, AreaOfEffect, TargetingType } from '../types/combat';
 import { getAbilityModifierValue } from './characterUtils';
 
+// TODO(FEATURES): Expand spell-to-ability translation coverage (conditions, multi-step effects, unique spell riders) so more spells execute without bespoke handlers (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+
 /**
  * Determines the appropriate targeting type based on the spell definition.
  *

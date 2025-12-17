@@ -194,6 +194,7 @@ const App: React.FC = () => {
     return tooltip;
   }, []);
 
+  // TODO(QOL): If re-render hotspots appear, profile callback dependencies here and in useGameActions/useGameInitialization (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
   const { processAction } = useGameActions({
     gameState,
     dispatch,
@@ -632,10 +633,12 @@ const App: React.FC = () => {
           unreadDiscoveryCount={gameState.unreadDiscoveryCount}
           hasNewRateLimitError={gameState.hasNewRateLimitError}
           // Player navigation props
+          // Only pass external handlers when townState exists (otherwise TownCanvas uses local state)
           playerPosition={gameState.townState?.playerPosition}
-          onPlayerMove={(direction) => {
+          entryDirection={gameState.townEntryDirection}
+          onPlayerMove={gameState.townState ? (direction) => {
             dispatch({ type: 'MOVE_IN_TOWN', payload: { direction } });
-          }}
+          } : undefined}
           onExitTown={() => {
             dispatch({ type: 'EXIT_TOWN' });
             dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.PLAYING });

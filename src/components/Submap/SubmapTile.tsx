@@ -8,6 +8,7 @@
  */
 import React from 'react';
 import Tooltip from '../Tooltip';
+import PlayerSprite from '../PlayerSprite';
 import { SeededFeatureConfig } from '../../types';
 
 // Define the structure for the visuals object passed from the parent
@@ -125,8 +126,8 @@ const SubmapTile: React.FC<SubmapTileProps> = React.memo(({
         </span>
         
         {isPlayerPos && (
-            <div className="absolute inset-0 flex items-center justify-center text-lg text-yellow-300 filter drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)] z-[100]">
-                <span role="img" aria-label="Your Position">🧍</span>
+            <div className="absolute inset-0 flex items-center justify-center z-[100]">
+                <PlayerSprite facing="south" size={20} />
             </div>
         )}
 

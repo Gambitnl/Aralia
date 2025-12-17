@@ -50,6 +50,7 @@ export function useAudio(addMessage: AddMessageFn) {
   }, [audioSettings.volume, audioSettings.isMuted]);
 
   // TODO: Suspend/resume the AudioContext on tab visibility changes (Reason: background tabs keep the context alive and waste CPU/battery; Expectation: automatically pause playback pipeline until the user returns).
+  // TODO(FEATURES): Add ambient music and biome-based sound layers alongside TTS playback (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   const playPcmAudio = useCallback(
     async (base64PcmData: string) => {
       if (!audioContextRef.current) {

@@ -42,6 +42,7 @@ export function evaluateCombatTurn(
   characters: CombatCharacter[],
   mapData: BattleMapData
 ): CombatAction {
+  // TODO(FEATURES): Extend AI planning to cover allied party members (auto-battle companions) with player-configurable tactics (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   // 1. Identify Potential Targets
   const enemies = characters.filter(c => c.team !== character.team && c.currentHP > 0);
   const allies = characters.filter(c => c.team === character.team && c.currentHP > 0);
@@ -390,6 +391,7 @@ function evaluateAoEPlan(
   // Cache computed AoE tile sets to avoid redundant calculations for the same
   // ability cast from the same tile at the same center. The key combines ability,
   // target center, and the chosen cast position.
+  // TODO(FEATURES): Persist AoE reachability/impact caches across evaluations per turn to reduce repeated sampling costs (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   const aoeCache = new Map<string, Position[]>();
 
   for (const center of candidateCenters) {

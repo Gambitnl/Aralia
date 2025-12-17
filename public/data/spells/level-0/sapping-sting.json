@@ -9,7 +9,8 @@
   "tags": [
     "damage",
     "necrotic",
-    "debuff"
+    "debuff",
+    "cantrip"
   ],
   "description": "You sap the vitality of one creature you can see in range. The target must succeed on a Constitution saving throw or take 1d4 necrotic damage and fall prone.",
   "ritual": false,
@@ -36,7 +37,10 @@
   "targeting": {
     "type": "single",
     "range": 30,
-    "validTargets": ["creatures", "enemies"],
+    "validTargets": [
+      "creatures",
+      "enemies"
+    ],
     "lineOfSight": true
   },
   "effects": [

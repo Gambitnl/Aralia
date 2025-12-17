@@ -112,7 +112,7 @@ export const FEATS_DATA: Feat[] = [
   },
   // Updated 2025-12-11: Changed from hardcoded Constitution to selectable ability score
   // Player chooses one of six abilities; gains +1 to that ability AND proficiency in that saving throw
-  // TODO: Implement UI for ability selection and logic to apply matching save proficiency
+  // TODO(FEATURES): Implement UI for ability selection and logic to apply matching save proficiency (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   {
     id: 'resilient',
     name: 'Resilient',
@@ -124,7 +124,7 @@ export const FEATS_DATA: Feat[] = [
     },
   },
   // Updated 2025-12-11: Changed from hardcoded skills to selectable
-  // TODO: Implement UI for selecting 3 skills from the full skill list
+  // TODO(FEATURES): Implement UI for selecting 3 skills from the full skill list (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   {
     id: 'skilled',
     name: 'Skilled',
@@ -187,7 +187,7 @@ export const FEATS_DATA: Feat[] = [
     },
   },
   // Updated 2025-12-11: Changed from giving both STR+1 and CON+1 to selecting one
-  // TODO: Implement UI for ability selection; also needs improvised weapon and unarmed strike mechanics
+  // TODO(FEATURES): Implement UI for ability selection; also needs improvised weapon and unarmed strike mechanics (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   {
     id: 'tavern_brawler',
     name: 'Tavern Brawler',
@@ -226,7 +226,7 @@ export const FEATS_DATA: Feat[] = [
     },
   },
   // Updated 2025-12-11: Added selectableDamageTypes for the elemental choice
-  // TODO: Implement UI for damage type selection and combat logic for ignoring resistance / treating 1s as 2s
+  // TODO(FEATURES): Implement UI for damage type selection and combat logic for ignoring resistance / treating 1s as 2s (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   {
     id: 'elemental_adept',
     name: 'Elemental Adept',
@@ -470,7 +470,7 @@ export const FEATS_DATA: Feat[] = [
     },
   },
   // Updated 2025-12-11: Changed from giving both STR+1 and DEX+1 to selecting one
-  // TODO: Implement UI for ability selection; also needs combat mechanics for speed reduction and crit effect
+  // TODO(FEATURES): Implement UI for ability selection; also needs combat mechanics for speed reduction and crit effect (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   {
     id: 'slasher',
     name: 'Slasher',

@@ -64,6 +64,7 @@ export async function handleTakeItem({
     });
     addMessage(`You take the ${itemToTake.name}.`, 'system');
 
+    // TODO(FEATURES): Swap hardcoded item quest triggers for data-driven quest hooks tied to item metadata (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
     // Check for quest triggers based on item ID
     if (action.targetId === 'old_map_fragment') {
        // Trigger 'The Lost Map' quest if not already active/completed

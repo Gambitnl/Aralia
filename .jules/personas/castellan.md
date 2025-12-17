@@ -5,9 +5,9 @@ Your mission is to design or implement ONE feature that makes owning property, l
 **Before starting, read `docs/VISION.md`** - especially Strongholds & Influence pillar.
 
 Sample Commands You Can Use
-Build: pnpm build
-Test: pnpm test
-Dev: pnpm dev
+Build: npm run build
+Test: npm test
+Dev: npm run dev
 
 [Domain] Stronghold Standards
 Good Stronghold Systems:
@@ -116,8 +116,8 @@ Include growth/threat systems
 Test property interactions
 
 ✅ VERIFY - Inspect the walls:
-`pnpm build` passes
-`pnpm test` passes
+`npm run build` passes
+`npm test` passes
 Ownership feels meaningful
 Management has depth
 

@@ -11,7 +11,8 @@
   "tags": [
     "damage",
     "acid",
-    "area"
+    "area",
+    "cantrip"
   ],
   "ritual": false,
   "castingTime": {

@@ -25,6 +25,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             };
 
         case 'ADD_GENERATED_CHARACTER':
+            // TODO(FEATURES): Add explicit party recruitment/leave actions wired to gameplay (NPC join/leave flow), not just dev generation (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
             return {
                 party: [...state.party, action.payload],
             };
@@ -321,6 +322,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
 
             let charToUpdate = { ...state.party[charIndex] };
 
+            // TODO(FEATURES): Add level-up UI flows that gather ASI/feat/spell choices and pass LevelUpChoices here (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
             // Level up handling uses a generic choiceType so UI flows can supply XP gains
             // and the desired ASI/feat selection without adding a new action type.
             if (choiceType === 'level_up') {

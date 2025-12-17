@@ -29,6 +29,8 @@ const isContainerItem = (item: InventoryEntry): item is ItemContainer =>
   typeof (item as ItemContainer).capacitySlots === 'number' ||
   typeof (item as ItemContainer).capacityWeight === 'number';
 
+// TODO(FEATURES): Add container browsing UI and item comparison panels for inventory entries (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+
 const getItemTooltipContent = (item: Item, warning?: string): React.ReactNode => {
   let details = `${item.description}\nType: ${item.type}`;
   if (item.slot) details += `\nSlot: ${item.slot}`;

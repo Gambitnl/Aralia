@@ -129,6 +129,7 @@ const VillageScene: React.FC<VillageSceneProps> = ({ worldSeed, worldX, worldY, 
     const rect = canvasRef.current.getBoundingClientRect();
     const x = Math.floor((event.clientX - rect.left) / TILE_SIZE);
     const y = Math.floor((event.clientY - rect.top) / TILE_SIZE);
+    // TODO(QOL): Cache findBuildingAt results by tile coordinate while layout is stable to avoid repeated scans in dense markets (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
     const building = findBuildingAt(layout, x, y);
     const tileType: VillageTileType = building?.type || layout.tiles[y]?.[x] || 'grass';
     const label = interactionLabels[tileType] || 'Investigate';
@@ -185,6 +186,7 @@ const VillageScene: React.FC<VillageSceneProps> = ({ worldSeed, worldX, worldY, 
         </span>
         <span>Population: {layout.personality.population}</span>
       </div>
+      {/* TODO(QOL): Add subtle on-canvas affordances (icons/hover hints) that surface integrationTagline before click (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path). */}
       <canvas
         ref={canvasRef}
         width={layout.width * TILE_SIZE}

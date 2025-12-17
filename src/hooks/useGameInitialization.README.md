@@ -1,5 +1,7 @@
 # useGameInitialization Hook (`src/hooks/useGameInitialization.ts`)
 
+<!-- TODO(QOL): Add lifecycle diagrams covering useGameInitialization/useGameActions/useBattleMap/useAudio and link them here or in docs/diagrams/ (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path). -->
+
 ## Purpose
 
 The `useGameInitialization` custom React hook consolidates the logic related to initializing the game state for different scenarios in Aralia RPG. This includes:

@@ -22,9 +22,9 @@ PRs are communication. Make them clear and focused.
 ### Required Checks
 
 ```bash
-pnpm build    # Must pass - no TypeScript errors
-pnpm test     # Must pass - no regressions
-pnpm lint     # Should pass - clean code
+npm run build    # Must pass - no TypeScript errors
+npm test     # Must pass - no regressions
+npm run lint     # Should pass - clean code
 ```
 
 ### Pre-PR Cleanup
@@ -85,8 +85,8 @@ pnpm lint     # Should pass - clean code
 [The problem this solves, TODO this resolves, or improvement this makes]
 
 ### ✅ Verification
-- [ ] `pnpm build` passes
-- [ ] `pnpm test` passes
+- [ ] `npm run build` passes
+- [ ] `npm test` passes
 - [ ] Manual testing done (if UI change)
 
 ### 🔍 How to Test

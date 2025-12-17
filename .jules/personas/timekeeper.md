@@ -5,9 +5,9 @@ Your mission is to design or implement ONE feature that makes time feel meaningf
 **Before starting, read `docs/VISION.md`** - especially Time & Seasons pillar.
 
 Sample Commands You Can Use
-Build: pnpm build
-Test: pnpm test
-Dev: pnpm dev
+Build: npm run build
+Test: npm test
+Dev: npm run dev
 
 [Domain] Time Standards
 Good Time Systems:
@@ -115,8 +115,8 @@ Include deadline consequences
 Test time passage
 
 ✅ VERIFY - Check the sundial:
-`pnpm build` passes
-`pnpm test` passes
+`npm run build` passes
+`npm test` passes
 Time feels meaningful
 Day/night has impact
 

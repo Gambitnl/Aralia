@@ -185,26 +185,20 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   // Check for Village/Town Entry
   // Method 1: Procedural village terrain on coordinate locations AND predefined locations
   if (subMapCoordinates && worldSeed !== undefined) {
-    const { effectiveTerrainType } = getSubmapTileInfo(
-      worldSeed,
-      currentLocation.mapCoordinates,
-      currentLocation.biomeId,
-      SUBMAP_DIMENSIONS,
-      subMapCoordinates
-    );
-
-
-    // Check current tile and adjacent tiles for villages
-    const checkOffsets = [
-      { x: 0, y: 0 }, // Current tile
-      { x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: -1 }, { x: 0, y: 1 },
-      { x: -1, y: -1 }, { x: -1, y: 1 }, { x: 1, y: -1 }, { x: 1, y: 1 }
+    // Only check cardinal directions (N/E/S/W) for village entry - no diagonals
+    // The offset represents where the VILLAGE is relative to the player
+    // So if village is at offset {x: 1, y: 0}, player enters from the WEST
+    const cardinalOffsets = [
+      { x: 0, y: -1, entryDirection: 'south' },  // Village is north of player -> enter from south
+      { x: 0, y: 1, entryDirection: 'north' },   // Village is south of player -> enter from north
+      { x: -1, y: 0, entryDirection: 'east' },   // Village is west of player -> enter from east
+      { x: 1, y: 0, entryDirection: 'west' },    // Village is east of player -> enter from west
     ];
 
-    let nearbyVillages = 0;
-    let onVillageTile = false;
+    let adjacentToVillage = false;
+    let entryDirection: string | null = null;
 
-    for (const offset of checkOffsets) {
+    for (const offset of cardinalOffsets) {
       const checkX = subMapCoordinates.x + offset.x;
       const checkY = subMapCoordinates.y + offset.y;
 
@@ -220,20 +214,20 @@ const ActionPane: React.FC<ActionPaneProps> = ({
         );
 
         if (checkType === 'village_area') {
-          nearbyVillages++;
-          if (offset.x === 0 && offset.y === 0) {
-            onVillageTile = true;
-          }
+          adjacentToVillage = true;
+          entryDirection = offset.entryDirection;
+          break; // Use first found village direction
         }
       }
     }
 
-    if (onVillageTile) {
-      if (canUseDevTools()) console.log('Player is ON village tile - adding ENTER_VILLAGE');
-      generalActions.push({ type: 'ENTER_VILLAGE', label: 'Enter Village' });
-    } else if (nearbyVillages > 0) {
-      if (canUseDevTools()) console.log('Player is NEAR village tiles:', nearbyVillages, '- adding approach actions');
-      generalActions.push({ type: 'APPROACH_VILLAGE', label: 'Approach Cautiously' });
+    if (adjacentToVillage && entryDirection) {
+      if (canUseDevTools()) console.log('Player is cardinally adjacent to village - entry from', entryDirection);
+      generalActions.push({
+        type: 'ENTER_VILLAGE',
+        label: 'Enter Village',
+        payload: { entryDirection } // Pass entry direction for spawn positioning
+      });
       generalActions.push({ type: 'OBSERVE_VILLAGE', label: 'Scout Village' });
     }
   }

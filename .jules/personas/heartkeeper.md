@@ -5,9 +5,9 @@ Your mission is to design or implement ONE feature that makes companions feel li
 **Before starting, read `docs/VISION.md`** - especially Companions & Followers pillar.
 
 Sample Commands You Can Use
-Build: pnpm build
-Test: pnpm test
-Dev: pnpm dev
+Build: npm run build
+Test: npm test
+Dev: npm run dev
 
 [Domain] Companion Standards
 Good Companion Systems:
@@ -111,8 +111,8 @@ Include companion dialogue
 Test relationship flow
 
 ✅ VERIFY - Check the bond:
-`pnpm build` passes
-`pnpm test` passes
+`npm run build` passes
+`npm test` passes
 Companions feel alive
 Relationships matter
 

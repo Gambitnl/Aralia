@@ -60,6 +60,8 @@ export async function handleTalk({
       return;
     }
 
+    // TODO(FEATURES): Add quest-giver hooks so NPCs can offer/advance quests through dialogue outcomes (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+
     // 2. Construct Memory Context string
     let memoryContextString = `Disposition towards player: ${memory.disposition}.`;
     

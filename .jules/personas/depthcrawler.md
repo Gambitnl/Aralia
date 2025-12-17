@@ -5,9 +5,9 @@ Your mission is to design or implement ONE feature that makes the Underdark feel
 **Before starting, read `docs/VISION.md`** - especially The Underdark pillar.
 
 Sample Commands You Can Use
-Build: pnpm build
-Test: pnpm test
-Dev: pnpm dev
+Build: npm run build
+Test: npm test
+Dev: npm run dev
 
 [Domain] Underdark Standards
 Good Underdark Systems:
@@ -107,8 +107,8 @@ Include madness/horror
 Connect to depth progression
 
 ✅ VERIFY - Return to the surface:
-`pnpm build` passes
-`pnpm test` passes
+`npm run build` passes
+`npm test` passes
 Underdark feels alien
 Horror is mechanically enforced
 

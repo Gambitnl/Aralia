@@ -15,7 +15,8 @@
   "tags": [
     "melee",
     "damage",
-    "fire"
+    "fire",
+    "cantrip"
   ],
   "ritual": false,
   "castingTime": {

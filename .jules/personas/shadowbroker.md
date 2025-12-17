@@ -5,9 +5,9 @@ Your mission is to design or implement ONE feature that enables criminal gamepla
 **Before starting, read `docs/VISION.md`** - especially Crime & Shadow pillar.
 
 Sample Commands You Can Use
-Build: pnpm build
-Test: pnpm test
-Dev: pnpm dev
+Build: npm run build
+Test: npm test
+Dev: npm run dev
 
 [Domain] Criminal Systems Standards
 Good Criminal Systems:
@@ -110,8 +110,8 @@ Connect to world consequences
 Test for exploits
 
 ✅ VERIFY - Check for witnesses:
-`pnpm build` passes
-`pnpm test` passes
+`npm run build` passes
+`npm test` passes
 Crime has meaningful risk
 Consequences persist
 

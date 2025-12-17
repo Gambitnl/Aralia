@@ -132,6 +132,8 @@ const SubmapRendererPixi: React.FC<SubmapRendererPixiProps> = ({
     // Draw seeded features scaled to their true size (rectangular or circular) so Pixi mirrors gameplay placement.
     seededFeatures.forEach((feature) => {
       const overlay = new PIXI.Graphics();
+      // TODO: Verify lineStyle({...}) object syntax is still valid in PixiJS v8.
+      // May need migration to new Graphics API if deprecated. See PixiJS v8 migration guide.
       overlay.lineStyle({
         color: 0xf39c12,
         width: 2,
@@ -191,6 +193,7 @@ const SubmapRendererPixi: React.FC<SubmapRendererPixiProps> = ({
 
   useEffect(() => {
     // Initialize Pixi once on mount - PixiJS v8 requires async initialization
+    // TODO(FEATURES): Guard against Pixi init races (ensure app.canvas exists before append) to fix canvas init errors (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
     if (canvasRef.current && !appRef.current) {
       (async () => {
         try {
@@ -212,6 +215,8 @@ const SubmapRendererPixi: React.FC<SubmapRendererPixiProps> = ({
           }
         } catch (error) {
           console.error('PixiJS initialization error:', error);
+          // TODO: Surface WebGL/PixiJS failures to user via ErrorBoundary or fallback UI.
+          // Currently users see blank canvas on WebGL failure (common on mobile/older browsers).
         }
       })();
     }
@@ -231,6 +236,11 @@ const SubmapRendererPixi: React.FC<SubmapRendererPixiProps> = ({
     }
   }, [dimensions.cols, dimensions.rows]);
 
+  // TODO: RACE CONDITION RISK - renderGrid may fire before async app.init() completes.
+  // The appRef.current null-check guards this, but consider adding isInitialized state
+  // to explicitly defer rendering until initialization is confirmed complete.
+  // NOTE: PixiJS implementation has not demonstrated clear value over DOM-based rendering.
+  // Evaluate whether GPU acceleration benefits justify the complexity. See FEATURES_TODO.md #5.
   useEffect(() => {
     // Trigger draw when inputs change but avoid tearing down the Pixi instance.
     if (appRef.current) {

@@ -5,9 +5,9 @@ Your mission is to design or implement ONE feature that makes exploration feel r
 **Before starting, read `docs/VISION.md`** - especially Nature & Wilderness pillar.
 
 Sample Commands You Can Use
-Build: pnpm build
-Test: pnpm test
-Dev: pnpm dev
+Build: npm run build
+Test: npm test
+Dev: npm run dev
 
 [Domain] Exploration Standards
 Good Exploration Systems:
@@ -111,8 +111,8 @@ Test variety and coherence
 Connect to world state
 
 ✅ VERIFY - Check the map:
-`pnpm build` passes
-`pnpm test` passes
+`npm run build` passes
+`npm test` passes
 Exploration feels rewarding
 Variety is appropriate
 

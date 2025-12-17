@@ -5,9 +5,9 @@ Your mission is to improve ONE aspect of combat mechanics or design warfare syst
 **Before starting, read `docs/VISION.md`** - especially War & Conflict pillar.
 
 Sample Commands You Can Use
-Build: pnpm build
-Test: pnpm test
-Dev: pnpm dev
+Build: npm run build
+Test: npm test
+Dev: npm run dev
 
 [Domain] Combat Standards
 Good Combat Systems:
@@ -121,8 +121,8 @@ Consider edge cases
 Balance risk/reward
 
 ✅ VERIFY - Count the casualties:
-`pnpm build` passes
-`pnpm test` passes
+`npm run build` passes
+`npm test` passes
 Combat feels satisfying
 Rules are correctly implemented
 

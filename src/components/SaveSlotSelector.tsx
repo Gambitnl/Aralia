@@ -84,6 +84,7 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
   };
 
   useEffect(() => {
+    // TODO(QOL): Add automated accessibility tests (axe) to verify focus trap and keyboard navigation in SaveSlotSelector (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
     // The dependency axe-core is large, so we only want to load it in development.
     // Only run axe in development; ensure ENV.DEV tree-shakes like import.meta.env.DEV so axe-core stays out of production bundles.
     if (ENV.DEV && rootRef.current) {

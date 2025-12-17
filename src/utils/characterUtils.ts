@@ -670,6 +670,7 @@ export const performLevelUp = (
     }
   }
 
+  // TODO(FEATURES): Grant class abilities/spells on level-up (beyond ASI/feats) and persist new spellbook entries (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   // Recalculate derived scores after ASI/feat adjustments.
   updatedCharacter.finalAbilityScores = calculateFinalAbilityScores(updatedCharacter.abilityScores, updatedCharacter.race, updatedCharacter.equippedItems);
 

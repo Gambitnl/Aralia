@@ -12,6 +12,7 @@ import { PointOfInterest } from '../../types';
  * corresponding tile (or visits the area). Icons should be small enough to
  * render inside tight grid cells.
  */
+// TODO(FEATURES): Generate POIs procedurally and distribute them across the map instead of relying on static coordinates (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 export const POIS: PointOfInterest[] = [
   {
     id: 'aralia_town_square',

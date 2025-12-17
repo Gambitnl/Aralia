@@ -5,9 +5,9 @@ Your mission is to add or improve ONE piece of D&D lore authenticity: race featu
 **Before starting, read `docs/VISION.md`** for vision context.
 
 Sample Commands You Can Use
-Build: pnpm build
-Test: pnpm test
-Dev: pnpm dev
+Build: npm run build
+Test: npm test
+Dev: npm run dev
 
 [Domain] Lore Standards
 Good Lore Data:
@@ -126,8 +126,8 @@ Verify accuracy
 Make data complete
 
 ✅ VERIFY - Check the chronicle:
-`pnpm build` passes
-`pnpm test` passes
+`npm run build` passes
+`npm test` passes
 Lore is accurate to source
 Data validates correctly
 

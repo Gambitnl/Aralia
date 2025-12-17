@@ -6,7 +6,7 @@ import { TownPosition, TownDirection, TOWN_DIRECTION_VECTORS } from '../types/to
 import { isPositionWalkable, getAdjacentBuildings } from '../utils/walkabilityUtils';
 import TownNavigationControls from './TownNavigationControls';
 import { TownDevControls } from './TownDevControls';
-import { RefreshCw, Map as MapIcon, Sparkles, ZoomIn, ZoomOut, Maximize, Move, Moon, Sun, Grid } from 'lucide-react';
+import { RefreshCw, Map as MapIcon, Sparkles, ZoomIn, ZoomOut, Maximize, Move, Moon, Sun, Grid, Settings, X } from 'lucide-react';
 
 const BUILDING_DESCRIPTIONS: Record<BuildingType, { name: string; desc: string }> = {
     [BuildingType.HOUSE_SMALL]: { name: 'Small House', desc: 'A modest residence for common folk.' },
@@ -53,9 +53,21 @@ interface TownCanvasProps {
     hasNewRateLimitError?: boolean;
     // Player navigation props
     playerPosition?: TownPosition;
+    /** Direction player entered the town from (north/east/south/west) - affects spawn position */
+    entryDirection?: 'north' | 'east' | 'south' | 'west' | null;
     onPlayerMove?: (direction: TownDirection) => void;
     onExitTown?: () => void;
 }
+
+// Animation constants
+const MOVEMENT_DURATION_MS = 150; // Time to animate between tiles
+const CAMERA_LERP_FACTOR = 0.15; // Camera smoothing (0-1, lower = smoother)
+
+// Easing function for smooth movement
+const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
+
+// Linear interpolation helper
+const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
 
 const TownCanvas: React.FC<TownCanvasProps> = ({
     worldSeed,
@@ -68,10 +80,25 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     disabled = false,
     isDevDummyActive = false,
     playerPosition,
+    entryDirection,
     onPlayerMove,
     onExitTown,
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    // Local player position state (used when no external playerPosition is provided)
+    const [localPlayerPosition, setLocalPlayerPosition] = useState<TownPosition | null>(null);
+
+    // Use external playerPosition if provided, otherwise use local state
+    const effectivePlayerPosition = playerPosition ?? localPlayerPosition;
+
+    // Animation state
+    const [animatedPosition, setAnimatedPosition] = useState<TownPosition | null>(null);
+    const [isAnimating, setIsAnimating] = useState(false);
+    const previousPositionRef = useRef<TownPosition | null>(null);
+    const animationStartTimeRef = useRef<number>(0);
+    const animationFrameRef = useRef<number | null>(null);
+    const [playerFacing, setPlayerFacing] = useState<TownDirection>('south');
 
     // Map Aralia biome to Realmsmith biome
     const mapBiome = (b: string): BiomeType => {
@@ -114,6 +141,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     // View Options
     const [isNight, setIsNight] = useState(false);
     const [showGrid, setShowGrid] = useState(false);
+    const [showDevControls, setShowDevControls] = useState(false);
 
     const [loading, setLoading] = useState<boolean>(false);
     const [mapData, setMapData] = useState<TownMap | null>(null);
@@ -127,6 +155,103 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     // Hover State
     const [hoveredBuilding, setHoveredBuilding] = useState<Building | null>(null);
     const [hoverPos, setHoverPos] = useState<{ x: number, y: number } | null>(null);
+
+    // Initialize animated position when effectivePlayerPosition first becomes available
+    useEffect(() => {
+        if (effectivePlayerPosition && !animatedPosition) {
+            setAnimatedPosition(effectivePlayerPosition);
+            previousPositionRef.current = effectivePlayerPosition;
+        }
+    }, [effectivePlayerPosition, animatedPosition]);
+
+    // Animation effect - triggered when effectivePlayerPosition changes
+    useEffect(() => {
+        if (!effectivePlayerPosition || !previousPositionRef.current) return;
+
+        // Check if position actually changed
+        const prevPos = previousPositionRef.current;
+        if (prevPos.x === effectivePlayerPosition.x && prevPos.y === effectivePlayerPosition.y) return;
+
+        // Determine facing direction based on movement
+        const dx = effectivePlayerPosition.x - prevPos.x;
+        const dy = effectivePlayerPosition.y - prevPos.y;
+
+        let newFacing: TownDirection = 'south';
+        if (dx > 0 && dy < 0) newFacing = 'northeast';
+        else if (dx > 0 && dy > 0) newFacing = 'southeast';
+        else if (dx < 0 && dy < 0) newFacing = 'northwest';
+        else if (dx < 0 && dy > 0) newFacing = 'southwest';
+        else if (dx > 0) newFacing = 'east';
+        else if (dx < 0) newFacing = 'west';
+        else if (dy < 0) newFacing = 'north';
+        else if (dy > 0) newFacing = 'south';
+
+        setPlayerFacing(newFacing);
+
+        // Start animation
+        setIsAnimating(true);
+        animationStartTimeRef.current = performance.now();
+
+        const animate = (currentTime: number) => {
+            const elapsed = currentTime - animationStartTimeRef.current;
+            const progress = Math.min(elapsed / MOVEMENT_DURATION_MS, 1);
+            const easedProgress = easeOutCubic(progress);
+
+            // Interpolate position
+            const newX = lerp(prevPos.x, effectivePlayerPosition.x, easedProgress);
+            const newY = lerp(prevPos.y, effectivePlayerPosition.y, easedProgress);
+
+            setAnimatedPosition({ x: newX, y: newY });
+
+            if (progress < 1) {
+                animationFrameRef.current = requestAnimationFrame(animate);
+            } else {
+                // Animation complete
+                setAnimatedPosition(effectivePlayerPosition);
+                setIsAnimating(false);
+                previousPositionRef.current = effectivePlayerPosition;
+            }
+        };
+
+        // Cancel any existing animation
+        if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+        }
+
+        animationFrameRef.current = requestAnimationFrame(animate);
+
+        // Cleanup on unmount
+        return () => {
+            if (animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+            }
+        };
+    }, [effectivePlayerPosition]);
+
+    // Camera follow effect - smooth pan to keep player centered
+    useEffect(() => {
+        if (!animatedPosition || !mapData || !canvasRef.current) return;
+
+        const canvas = canvasRef.current;
+        const containerWidth = canvas.parentElement?.clientWidth || canvas.width;
+        const containerHeight = canvas.parentElement?.clientHeight || canvas.height;
+
+        const TILE_SIZE = 32;
+
+        // Calculate target pan to center player
+        const playerPixelX = animatedPosition.x * TILE_SIZE + TILE_SIZE / 2;
+        const playerPixelY = animatedPosition.y * TILE_SIZE + TILE_SIZE / 2;
+
+        // Center the player in the viewport
+        const targetPanX = (containerWidth / 2) / zoom - playerPixelX;
+        const targetPanY = (containerHeight / 2) / zoom - playerPixelY;
+
+        // Smooth lerp toward target
+        setPan(currentPan => ({
+            x: lerp(currentPan.x, targetPanX, CAMERA_LERP_FACTOR),
+            y: lerp(currentPan.y, targetPanY, CAMERA_LERP_FACTOR),
+        }));
+    }, [animatedPosition, mapData, zoom]);
 
     // Generate function
     const generateMap = () => {
@@ -146,6 +271,67 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 const generator = new TownGenerator(options);
                 const map = generator.generate();
                 setMapData(map);
+
+                // Initialize local player position if no external position provided
+                if (!playerPosition) {
+                    // Calculate spawn position based on entry direction
+                    // Player enters from the opposite side of the town from where they were standing
+                    // e.g., if they were north of the town (entryDirection='south'), spawn on north edge
+                    let targetX: number;
+                    let targetY: number;
+                    const centerX = Math.floor(map.width / 2);
+                    const centerY = Math.floor(map.height / 2);
+
+                    switch (entryDirection) {
+                        case 'north':
+                            // Player was south of town, spawn on south edge
+                            targetX = centerX;
+                            targetY = map.height - 2; // Near bottom edge
+                            break;
+                        case 'south':
+                            // Player was north of town, spawn on north edge
+                            targetX = centerX;
+                            targetY = 1; // Near top edge
+                            break;
+                        case 'east':
+                            // Player was west of town, spawn on west edge
+                            targetX = 1; // Near left edge
+                            targetY = centerY;
+                            break;
+                        case 'west':
+                            // Player was east of town, spawn on east edge
+                            targetX = map.width - 2; // Near right edge
+                            targetY = centerY;
+                            break;
+                        default:
+                            // Fallback to center if no entry direction
+                            targetX = centerX;
+                            targetY = centerY;
+                    }
+
+                    let spawnPos = { x: targetX, y: targetY };
+
+                    // Search for a walkable tile near the target position
+                    if (!isPositionWalkable(spawnPos, map)) {
+                        // Spiral outward from target to find walkable position
+                        outer: for (let radius = 1; radius < Math.max(map.width, map.height); radius++) {
+                            for (let dx = -radius; dx <= radius; dx++) {
+                                for (let dy = -radius; dy <= radius; dy++) {
+                                    const testPos = { x: targetX + dx, y: targetY + dy };
+                                    // Ensure within bounds
+                                    if (testPos.x < 0 || testPos.x >= map.width || testPos.y < 0 || testPos.y >= map.height) {
+                                        continue;
+                                    }
+                                    if (isPositionWalkable(testPos, map)) {
+                                        spawnPos = testPos;
+                                        break outer;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    setLocalPlayerPosition(spawnPos);
+                }
             } catch (error) {
                 console.error("Failed to generate map:", error);
             } finally {
@@ -190,7 +376,14 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
 
         try {
             const painter = new AssetPainter(ctx);
-            painter.drawMap(mapData.tiles, mapData.buildings, mapData.biome, { isNight, showGrid });
+            painter.drawMap(mapData.tiles, mapData.buildings, mapData.biome, {
+                isNight,
+                showGrid,
+                // Use animated position for smooth movement, fall back to effectivePlayerPosition
+                playerPosition: animatedPosition ?? effectivePlayerPosition ?? undefined,
+                playerFacing,
+                isMoving: isAnimating,
+            });
         } catch (err) {
             console.error("AssetPainter failed:", err);
             ctx.fillStyle = '#ef4444'; // Red error for visibility
@@ -198,7 +391,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
             ctx.fillText("Rendering Error. Check console for details.", 20, 30);
         }
 
-    }, [mapData, isNight, showGrid, playerPosition]);
+    }, [mapData, isNight, showGrid, effectivePlayerPosition, animatedPosition, playerFacing, isAnimating]);
 
     const handleDownload = () => {
         if (!canvasRef.current) return;
@@ -216,15 +409,34 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
         setConnections(prev => ({ ...prev, [dir]: !prev[dir] }));
     };
 
+    // Local movement handler (used when no external onPlayerMove is provided)
+    const handleLocalMove = useCallback((direction: TownDirection) => {
+        if (!mapData || !effectivePlayerPosition) return;
+
+        const delta = TOWN_DIRECTION_VECTORS[direction];
+        const targetPos = {
+            x: effectivePlayerPosition.x + delta.x,
+            y: effectivePlayerPosition.y + delta.y,
+        };
+
+        if (isPositionWalkable(targetPos, mapData)) {
+            setLocalPlayerPosition(targetPos);
+        }
+    }, [mapData, effectivePlayerPosition]);
+
+    // Use external move handler if provided, otherwise use local
+    const handleMove = onPlayerMove ?? handleLocalMove;
+
     // --- Zoom & Pan Handlers ---
 
     const handleWheel = (e: React.WheelEvent) => {
-        if (e.ctrlKey || e.metaKey) {
-            e.preventDefault(); // Prevent browser zoom
-        }
+        // Always prevent default to avoid page scrolling when zooming
+        e.preventDefault();
+        e.stopPropagation();
+
         // Zoom logic
         const scaleAmount = -e.deltaY * 0.001;
-        const newZoom = Math.min(Math.max(0.1, zoom + scaleAmount * zoom), 5);
+        const newZoom = Math.min(Math.max(0.5, zoom + scaleAmount * zoom), 3);
         setZoom(newZoom);
     };
 
@@ -302,27 +514,27 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
 
     // Compute blocked directions for navigation
     const blockedDirections = useMemo((): TownDirection[] => {
-        if (!mapData || !playerPosition) return [];
+        if (!mapData || !effectivePlayerPosition) return [];
         const blocked: TownDirection[] = [];
         const directions: TownDirection[] = ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'];
 
         for (const dir of directions) {
             const delta = TOWN_DIRECTION_VECTORS[dir];
             const targetPos = {
-                x: playerPosition.x + delta.x,
-                y: playerPosition.y + delta.y,
+                x: effectivePlayerPosition.x + delta.x,
+                y: effectivePlayerPosition.y + delta.y,
             };
             if (!isPositionWalkable(targetPos, mapData)) {
                 blocked.push(dir);
             }
         }
         return blocked;
-    }, [mapData, playerPosition]);
+    }, [mapData, effectivePlayerPosition]);
 
     // Get adjacent buildings for interaction display
     const adjacentBuildingData = useMemo(() => {
-        if (!mapData || !playerPosition) return [];
-        const buildingIds = getAdjacentBuildings(playerPosition, mapData);
+        if (!mapData || !effectivePlayerPosition) return [];
+        const buildingIds = getAdjacentBuildings(effectivePlayerPosition, mapData);
         return buildingIds.map(id => {
             const building = mapData.buildings.find(b => b.id === id);
             if (!building) return null;
@@ -333,24 +545,24 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 type: building.type,
             };
         }).filter(Boolean) as Array<{ id: string; name: string; type: string }>;
-    }, [mapData, playerPosition]);
+    }, [mapData, effectivePlayerPosition]);
 
     return (
-        <div className="flex flex-col items-center w-full h-full min-h-screen bg-gray-900 text-gray-100 p-6">
-
-            {/* Header & Controls */}
-            <header className="w-full flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-6">
-                <div className="flex items-center gap-3">
-                    <div className="bg-blue-600 p-2 rounded-lg">
-                        <MapIcon size={28} />
+        <div className="relative w-full h-full bg-gray-900 text-gray-100 overflow-hidden">
+            {/* Dev Controls Panel (Slide-in) */}
+            {isDevDummyActive && showDevControls && (
+                <div className="absolute top-0 left-0 z-50 h-full w-80 bg-gray-900/95 border-r border-gray-700 shadow-2xl p-4 overflow-y-auto">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-lg font-bold text-white">Dev Controls</h2>
+                        <button
+                            type="button"
+                            onClick={() => setShowDevControls(false)}
+                            className="p-1 hover:bg-gray-700 rounded"
+                            title="Close Dev Controls"
+                        >
+                            <X size={20} />
+                        </button>
                     </div>
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-wider text-white">Town View</h1>
-                        <p className="text-gray-400 text-sm">Procedural Generation</p>
-                    </div>
-                </div>
-
-                {isDevDummyActive && (
                     <TownDevControls
                         seed={seed}
                         setSeed={setSeed}
@@ -366,17 +578,17 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                         onAction={onAction}
                         handleDownload={handleDownload}
                     />
-                )}
-            </header>
+                </div>
+            )}
 
-            {/* Main Canvas Viewport */}
+            {/* Main Canvas Viewport - fills entire area */}
             <main
-                className="relative w-full flex-1 bg-gray-950 rounded-xl overflow-hidden border-4 border-gray-800 shadow-2xl"
+                className="relative w-full h-full bg-gray-950"
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
-                onClick={handleBuildingClick} // Added click handler
+                onClick={handleBuildingClick}
                 onWheel={handleWheel}
             >
                 {loading && (
@@ -413,41 +625,54 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                     </div>
                 )}
 
+                {/* Top Left Controls - Dev Toggle + Info */}
+                <div className="absolute top-4 left-4 z-20 flex gap-2">
+                    {isDevDummyActive && (
+                        <button
+                            type="button"
+                            onClick={() => setShowDevControls(!showDevControls)}
+                            className={`p-2 rounded-lg transition-colors shadow-lg border ${showDevControls ? 'bg-amber-600 text-white border-amber-500' : 'bg-gray-800 text-gray-400 border-gray-600 hover:bg-gray-700'}`}
+                            title="Toggle Dev Controls"
+                        >
+                            <Settings size={20} />
+                        </button>
+                    )}
+                    <div className="pointer-events-none opacity-60 flex items-center gap-2 bg-black/40 p-2 rounded text-xs text-gray-300">
+                        <span>Scroll to Zoom</span>
+                    </div>
+                </div>
+
                 {/* Map Toggles (Top Right) */}
-                <div className="absolute top-6 right-6 flex gap-2 z-20">
+                <div className="absolute top-4 right-4 flex gap-2 z-20">
                     <button
+                        type="button"
                         onClick={() => setIsNight(!isNight)}
-                        className={`p-3 rounded-lg transition-colors shadow-lg flex items-center gap-2 font-bold ${isNight ? 'bg-indigo-900 text-indigo-200 border border-indigo-500' : 'bg-yellow-100 text-orange-600 border border-yellow-300'}`}
+                        className={`p-2 rounded-lg transition-colors shadow-lg flex items-center gap-2 text-sm font-medium ${isNight ? 'bg-indigo-900 text-indigo-200 border border-indigo-500' : 'bg-yellow-100 text-orange-600 border border-yellow-300'}`}
                         title="Toggle Day/Night"
                     >
-                        {isNight ? <Moon size={20} /> : <Sun size={20} />}
-                        <span>{isNight ? 'Night' : 'Day'}</span>
+                        {isNight ? <Moon size={18} /> : <Sun size={18} />}
                     </button>
                     <button
+                        type="button"
                         onClick={() => setShowGrid(!showGrid)}
-                        className={`p-3 rounded-lg transition-colors shadow-lg border ${showGrid ? 'bg-blue-600 text-white border-blue-400' : 'bg-gray-800 text-gray-400 border-gray-600 hover:bg-gray-700'}`}
+                        className={`p-2 rounded-lg transition-colors shadow-lg border ${showGrid ? 'bg-blue-600 text-white border-blue-400' : 'bg-gray-800 text-gray-400 border-gray-600 hover:bg-gray-700'}`}
                         title="Toggle Grid"
                     >
-                        <Grid size={20} />
+                        <Grid size={18} />
                     </button>
                 </div>
 
                 {/* Zoom Controls (Bottom Right) */}
-                <div className="absolute bottom-6 right-6 flex flex-col gap-2 z-20 bg-gray-800/80 backdrop-blur p-2 rounded-lg border border-gray-700">
-                    <button onClick={() => setZoom(z => Math.min(z + 0.2, 5))} className="p-2 hover:bg-gray-700 rounded text-white transition-colors" title="Zoom In">
-                        <ZoomIn size={20} />
+                <div className="absolute bottom-4 right-4 flex flex-col gap-1 z-20 bg-gray-800/80 backdrop-blur p-1.5 rounded-lg border border-gray-700">
+                    <button type="button" onClick={() => setZoom(z => Math.min(z + 0.2, 3))} className="p-1.5 hover:bg-gray-700 rounded text-white transition-colors" title="Zoom In">
+                        <ZoomIn size={18} />
                     </button>
-                    <button onClick={resetView} className="p-2 hover:bg-gray-700 rounded text-white transition-colors" title="Reset View">
-                        <Maximize size={20} />
+                    <button type="button" onClick={resetView} className="p-1.5 hover:bg-gray-700 rounded text-white transition-colors" title="Reset View">
+                        <Maximize size={18} />
                     </button>
-                    <button onClick={() => setZoom(z => Math.max(z - 0.2, 0.1))} className="p-2 hover:bg-gray-700 rounded text-white transition-colors" title="Zoom Out">
-                        <ZoomOut size={20} />
+                    <button type="button" onClick={() => setZoom(z => Math.max(z - 0.2, 0.5))} className="p-1.5 hover:bg-gray-700 rounded text-white transition-colors" title="Zoom Out">
+                        <ZoomOut size={18} />
                     </button>
-                </div>
-
-                {/* Drag Indicator */}
-                <div className="absolute top-4 left-4 z-20 pointer-events-none opacity-50 flex items-center gap-2 bg-black/40 p-2 rounded text-xs">
-                    <span>Scroll to Zoom</span>
                 </div>
 
                 <div className="w-full h-full flex items-center justify-center cursor-default overflow-hidden">
@@ -467,12 +692,12 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 </div>
             </main>
 
-            {/* Navigation Controls - shown when in player navigation mode */}
-            {playerPosition && onPlayerMove && onExitTown && (
-                <div className="fixed bottom-6 left-6 z-30">
+            {/* Navigation Controls - shown when player position is available */}
+            {effectivePlayerPosition && (
+                <div className="absolute bottom-4 left-4 z-30">
                     <TownNavigationControls
-                        onMove={onPlayerMove}
-                        onExit={onExitTown}
+                        onMove={handleMove}
+                        onExit={onExitTown ?? (() => {})}
                         blockedDirections={blockedDirections}
                         disabled={disabled}
                         adjacentBuildings={adjacentBuildingData}
@@ -492,12 +717,6 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                     />
                 </div>
             )}
-
-            <footer className="mt-6 text-gray-500 text-xs flex gap-6">
-                <span>Left-Click: View Details (N/A)</span>
-                <span>Scroll: Zoom ({Math.round(zoom * 100)}%)</span>
-                <span>Generated with &lt;Canvas /&gt;</span>
-            </footer>
         </div>
     );
 };

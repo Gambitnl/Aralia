@@ -106,8 +106,12 @@ export function townReducer(state: GameState, action: AppAction): Partial<GameSt
         }
 
         case 'EXIT_TOWN': {
-            // Clear town state - App.tsx will handle phase transition
-            return { townState: null };
+            // Clear town state and entry direction - App.tsx will handle phase transition
+            return { townState: null, townEntryDirection: null };
+        }
+
+        case 'SET_TOWN_ENTRY_DIRECTION': {
+            return { townEntryDirection: action.payload.direction };
         }
 
         default:

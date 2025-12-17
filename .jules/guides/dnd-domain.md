@@ -126,7 +126,7 @@ type SpellSchool =
 
 ### Validation
 ```bash
-pnpm validate  # Runs spell validator
+npm run validate  # Runs spell validator
 ```
 
 Validator: `src/utils/spellValidator.ts`

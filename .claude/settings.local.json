@@ -40,7 +40,10 @@
       "Bash(git pull:*)",
       "Bash(npx vitest run:*)",
       "Bash(gh run list:*)",
-      "Bash(pnpm --version:*)"
+      "Bash(pnpm --version:*)",
+      "Bash(xargs sed:*)",
+      "Bash(powershell -Command \"Get-ChildItem -Path ''.jules'' -Filter ''*.md'' -Recurse | ForEach-Object { (Get-Content $_.FullName -Raw) -replace ''pnpm build'', ''npm run build'' -replace ''pnpm test'', ''npm test'' -replace ''pnpm dev'', ''npm run dev'' -replace ''pnpm lint'', ''npm run lint'' -replace ''pnpm install'', ''npm install'' -replace ''pnpm update'', ''npm update'' -replace ''pnpm audit'', ''npm audit'' -replace ''pnpm format'', ''npm run format'' -replace ''pnpm validate'', ''npm run validate'' | Set-Content $_.FullName -NoNewline }\")",
+      "Bash(powershell -ExecutionPolicy Bypass -File fix-pnpm.ps1)"
     ],
     "deny": [],
     "ask": []

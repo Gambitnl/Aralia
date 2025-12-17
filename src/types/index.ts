@@ -570,6 +570,9 @@ export interface GameState {
 
   /** Town exploration state - present when in VILLAGE_VIEW phase */
   townState: import('./town').TownState | null;
+
+  /** Direction from which the player entered the town (north/east/south/west) */
+  townEntryDirection: 'north' | 'east' | 'south' | 'west' | null;
 }
 
 export interface InspectSubmapTilePayload {

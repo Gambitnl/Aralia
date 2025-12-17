@@ -5,9 +5,9 @@ Your mission is to design or implement ONE feature that enables political gamepl
 **Before starting, read `docs/VISION.md`** - especially Politics & Power and Identity & Secrets pillars.
 
 Sample Commands You Can Use
-Build: pnpm build
-Test: pnpm test
-Dev: pnpm dev
+Build: npm run build
+Test: npm test
+Dev: npm run dev
 
 [Domain] Intrigue System Standards
 Good Intrigue Systems:
@@ -127,8 +127,8 @@ Consider discovery mechanics
 Connect to existing systems
 
 ✅ VERIFY - Check for witnesses:
-`pnpm build` passes
-`pnpm test` passes
+`npm run build` passes
+`npm test` passes
 System creates interesting choices
 Risk/reward feels balanced
 

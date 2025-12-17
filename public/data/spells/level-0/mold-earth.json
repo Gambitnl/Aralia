@@ -10,7 +10,8 @@
   ],
   "tags": [
     "utility",
-    "transmutation"
+    "transmutation",
+    "cantrip"
   ],
   "description": "You choose a portion of dirt or stone that you can see within range and that fits within a 5-foot cube. You manipulate it in one of the following ways: excavate it, cause shapes/colors/text to appear, or turn it into difficult terrain (or vice versa).",
   "ritual": false,

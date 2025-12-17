@@ -71,6 +71,7 @@ export function generateMap(
   
   // Basic biome clustering pass (simple iteration)
   // This is a very naive approach, more advanced algorithms (Perlin noise, cellular automata) would be better for real zones.
+  // TODO(FEATURES): Replace naive clustering with richer biome generation (Perlin/cellular automata) for contiguous regions (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   for (let i = 0; i < 3; i++) { // Multiple passes for slightly better clustering
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
@@ -108,7 +109,7 @@ export function generateMap(
     }
   }
 
-
+  // TODO(FEATURES): Generate Location metadata for unkeyed tiles and seeded towns (names, descriptions, persistence) during map build (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
   // TODO: Add a connectivity pass that guarantees a walkable path from STARTING_LOCATION_ID to other discoverable tiles (Reason: random clustering can strand the player on unreachable islands; Expectation: every generated map remains explorable without soft-locks).
   return {
     gridSize: { rows, cols },

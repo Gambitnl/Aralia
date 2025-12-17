@@ -67,7 +67,8 @@ export function calculateCover(origin: Position, target: Position, mapData: Batt
  * @returns Total rolled value
  */
 function rollDieGroup(count: number, sides: number, minRoll: number = 1): number {
-  let subTotal = 0;
+    // TODO(FEATURES): Route dice rolls through a secure or server-validated RNG to prevent client-side manipulation (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+    let subTotal = 0;
   for (let i = 0; i < count; i++) {
     let roll = Math.floor(Math.random() * sides) + 1;
     if (roll < minRoll) roll = minRoll;

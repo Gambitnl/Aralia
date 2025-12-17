@@ -130,6 +130,7 @@ export async function handleMovement({
       geminiFunctionName = 'generateLocationDescription';
       descriptionGenerationFn = () => GeminiService.generateLocationDescription(targetLocation.name, `Player (${playerContext}) enters ${targetLocation.name}.`, gameState.devModelOverride);
 
+      // TODO(FEATURES): Replace hardcoded quest triggers with data-driven location metadata so quests can be discovered from any map tile (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
       // Quest Triggers for named locations
       if (action.targetId === 'ancient_ruins_entrance' || action.targetId === 'ruins_courtyard') {
         const questId = 'explore_ruins';
@@ -161,7 +162,7 @@ export async function handleMovement({
       newLocationId = gameState.currentLocationId;
       activeDynamicNpcIdsForNewLocation = gameState.currentLocationActiveDynamicNpcIds;
 
-      const { effectiveTerrainType } = getSubmapTileInfo(
+      const { effectiveTerrainType, isImpassable } = getSubmapTileInfo(
         gameState.worldSeed,
         currentLoc.mapCoordinates,
         currentLoc.biomeId,
@@ -169,8 +170,17 @@ export async function handleMovement({
         { x: nextSubMapX, y: nextSubMapY }
       );
 
-      if (effectiveTerrainType === 'village_area') {
-        addMessage("You stand before a village. You can enter if you wish.", "system");
+      // Block movement into impassable terrain (water, village tiles, etc.)
+      if (isImpassable) {
+        if (effectiveTerrainType === 'village_area') {
+          addMessage("You cannot walk through the village. Move to an adjacent tile and use the Enter Village action.", "system");
+        } else if (effectiveTerrainType === 'water') {
+          addMessage("You cannot cross the water here.", "system");
+        } else {
+          addMessage("You cannot pass through here.", "system");
+        }
+        dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
+        return;
       }
 
       if (playerCharacter.transportMode === 'foot') {
@@ -338,13 +348,25 @@ export async function handleQuickTravel({
     biomeId: gameState.mapData?.tiles[parseInt(gameState.currentLocationId.split('_')[2], 10)][parseInt(gameState.currentLocationId.split('_')[1], 10)].biomeId || 'plains',
   };
 
-  const { effectiveTerrainType } = getSubmapTileInfo(
+  const { effectiveTerrainType, isImpassable } = getSubmapTileInfo(
     gameState.worldSeed,
     currentLoc.mapCoordinates,
     currentLoc.biomeId,
     SUBMAP_DIMENSIONS,
     destination
   );
+
+  // Block quick travel to impassable terrain (water, village tiles, etc.)
+  if (isImpassable) {
+    if (effectiveTerrainType === 'village_area') {
+      addMessage("You cannot travel directly onto the village. Move to an adjacent tile and use the Enter Village action.", "system");
+    } else if (effectiveTerrainType === 'water') {
+      addMessage("You cannot travel across the water.", "system");
+    } else {
+      addMessage("You cannot travel to that location.", "system");
+    }
+    return;
+  }
 
   // Dispatch move
   dispatch({
@@ -363,11 +385,6 @@ export async function handleQuickTravel({
   }
 
   addMessage(`You travel quickly across the terrain.`, 'system');
-
-  // Check for Village Entry
-  if (effectiveTerrainType === 'village_area') {
-    addMessage("You stand before a village. You can enter if you wish.", "system");
-  }
 }
 
 interface HandleApproachSettlementProps {
@@ -385,6 +402,8 @@ export async function handleApproachSettlement({
 }: HandleApproachSettlementProps): Promise<void> {
   const isVillage = action.type === 'APPROACH_VILLAGE';
   const settlementType = isVillage ? 'village' : 'town';
+
+  // TODO(FEATURES): Hook proximity checks into town metadata/description loading when approaching settlements (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 
   // Find the nearest village/town tile
   const currentLoc = LOCATIONS[gameState.currentLocationId] || {
@@ -405,6 +424,7 @@ export async function handleApproachSettlement({
   let minDistance = Infinity;
 
   for (const offset of checkOffsets) {
+    if (!gameState.subMapCoordinates) continue;
     const checkX = gameState.subMapCoordinates.x + offset.x;
     const checkY = gameState.subMapCoordinates.y + offset.y;
 
@@ -470,10 +490,5 @@ export async function handleObserveSettlement({
   // For now, just provide basic feedback
   const observationPrompt = `The player is observing a ${settlementType} from a distance. Generate a brief description of what they might see based on the settlement type and surroundings.`;
 
-  addGeminiLog({
-    type: 'system',
-    content: observationPrompt,
-    timestamp: new Date(),
-    context: 'settlement_observation'
-  });
+  addGeminiLog('observeSettlement', observationPrompt, 'Observation logged - AI description pending implementation');
 }

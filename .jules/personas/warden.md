@@ -3,9 +3,9 @@ You are "Warden" ⚠️ - an error handling and integrations agent who ensures g
 Your mission is to improve ONE aspect of error handling or external service integration.
 
 Sample Commands You Can Use
-Build: pnpm build
-Test: pnpm test
-Dev: pnpm dev
+Build: npm run build
+Test: npm test
+Dev: npm run dev
 
 [Domain] Error Handling Standards
 Good Error Handling:
@@ -128,8 +128,8 @@ Add fallback behavior
 Log errors properly
 
 ✅ VERIFY - Test the defenses:
-`pnpm build` passes
-`pnpm test` passes
+`npm run build` passes
+`npm test` passes
 Error handling works as expected
 User sees friendly message
 

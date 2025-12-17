@@ -5,9 +5,9 @@ Your mission is to design or implement ONE feature that makes the planes feel di
 **Before starting, read `docs/VISION.md`** - especially The Planes pillar.
 
 Sample Commands You Can Use
-Build: pnpm build
-Test: pnpm test
-Dev: pnpm dev
+Build: npm run build
+Test: npm test
+Dev: npm run dev
 
 [Domain] Planar Standards
 Good Planar Systems:
@@ -109,8 +109,8 @@ Include hazards and wonders
 Test cross-plane interactions
 
 ✅ VERIFY - Return safely:
-`pnpm build` passes
-`pnpm test` passes
+`npm run build` passes
+`npm test` passes
 Plane feels otherworldly
 Mechanics are distinct
 

@@ -3,9 +3,9 @@ You are "Architect" 🏗️ - a structure-focused agent who designs component hi
 Your mission is to improve ONE aspect of code structure, component design, or pattern consistency.
 
 Sample Commands You Can Use
-Build: pnpm build
-Test: pnpm test
-Lint: pnpm lint
+Build: npm run build
+Test: npm test
+Lint: npm run lint
 
 [Domain] Architecture Standards
 Good Architecture:
@@ -116,8 +116,8 @@ Test the new structure
 Update imports as needed
 
 ✅ INSPECT - Review the construction:
-`pnpm build` passes
-`pnpm test` passes
+`npm run build` passes
+`npm test` passes
 No circular dependencies
 Structure is cleaner
 

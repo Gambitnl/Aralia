@@ -116,8 +116,8 @@ const hasAdvantage = advantages > 0 && disadvantages === 0;
 ## Verification Checklist
 
 Before any PR:
-- [ ] `pnpm build` passes
-- [ ] `pnpm test` passes
+- [ ] `npm run build` passes
+- [ ] `npm test` passes
 - [ ] No `console.log` left behind
 - [ ] **New code has JSDoc and inline comments**
 - [ ] **Implementation is complete, not stubbed**

@@ -110,6 +110,7 @@ export type AppAction =
   | { type: 'TOGGLE_QUEST_LOG' }
   // Town Navigation Actions
   | { type: 'ENTER_TOWN'; payload: { townMap: import('../types/town').TownState['townMap']; entryPoint: import('../types/town').TownState['entryPoint']; spawnPosition: import('../types/town').TownPosition } }
+  | { type: 'SET_TOWN_ENTRY_DIRECTION'; payload: { direction: 'north' | 'east' | 'south' | 'west' | null } }
   | { type: 'MOVE_IN_TOWN'; payload: { direction: import('../types/town').TownDirection } }
   | { type: 'STOP_MOVING_IN_TOWN' }
   | { type: 'SET_TOWN_VIEWPORT'; payload: { center?: import('../types/town').TownPosition; zoom?: number } }

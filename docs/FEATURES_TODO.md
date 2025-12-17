@@ -33,207 +33,50 @@ TODOs remain in this file when:
 
 ---
 
-## Core Gameplay Systems
+## Pending
 
-*   **Combat System**:
-    *   **[PARTIALLY DONE]** Implement a full range of abilities and spells. Basic attacks and some spells are supported via `spellAbilityFactory`.
-*   **Quest System**:
-    *   **[TODO]** Implement a robust quest system with objectives, tracking, and rewards.
-    *   **[TODO]** Allow quests to be given by NPCs or discovered in the world.
-*   **Character Progression**:
-    *   **[PARTIALLY DONE]** Leveling up system. *(PR #11 - XP distribution and auto-leveling implemented, but critical bug: rewards not passing to reducer)*
-    *   **[TODO]** Gaining new abilities/spells upon level-up.
-    *   **[TODO]** Improving stats or choosing feats.
-*   **Feat System**:
-    *   **[TODO]** Integrate feats as part of character creation and progression. See dedicated section below.
-    *   **[TODO]** Implement UI for feat selection choices (ability scores, skills, damage types, spells).
-    *   **[TODO]** Add feat slots to `PlayerCharacter` type and integrate feat effects into character assembly.
-    *   **[TODO]** Implement UI for Resilient feat: Ability selection and logic to apply matching save proficiency.
-    *   **[TODO]** Implement UI for Skilled feat: Selecting 3 skills from the full skill list.
-    *   **[TODO]** Implement UI for Tavern Brawler feat: Ability selection and improvised weapon/unarmed strike mechanics.
-    *   **[TODO]** Implement UI for Elemental Adept feat: Damage type selection and combat logic for ignoring resistance/treating 1s as 2s.
-    *   **[TODO]** Implement UI for Slasher feat: Ability selection and combat mechanics for speed reduction/crit effect.
-*   **Secure Dice Roll Handling**:
-    *   **[TODO]** Implement server-side or secure client-side dice rolls that are not vulnerable to client-side manipulation.
-*   **Party Members**:
-    *   **[PARTIALLY DONE]** Implement in-game mechanics for NPCs to join or leave the party (Game Guide can generate sheets, but full recruitment flow is pending).
-    *   **[TODO]** Basic AI for party members in combat.
-*   **Character Age in Creation**:
-    *   **[TODO]** Add Age selection to Character Creation.
-    *   **[TODO]** Define and display logical age ranges for each race.
+### Core Gameplay Systems
+- [ ] Expand spell-to-ability translation coverage for more spells and effects. (`src/utils/spellAbilityFactory.ts:18`)
+- [ ] Add NPC quest-giver hooks for quest offers/updates via dialogue. (`src/hooks/actions/handleNpcInteraction.ts:63`)
+- [ ] Replace hardcoded location quest triggers with data-driven metadata. (`src/hooks/actions/handleMovement.ts:133`)
+- [ ] Replace hardcoded item quest triggers with data-driven metadata. (`src/hooks/actions/handleItemInteraction.ts:67`)
+- [ ] Add party recruitment/leave actions tied to gameplay (NPC join/leave flow). (`src/state/reducers/characterReducer.ts:28`)
+- [ ] Add level-up UI flows for ASI/feat/spell choices. (`src/state/reducers/characterReducer.ts:325`)
+- [ ] Grant class abilities/spells on level-up and persist spellbook updates. (`src/utils/characterUtils.ts:673`)
+- [ ] Add selectableSkillCount UI/validation in feat selection. (`src/components/CharacterCreator/FeatSelection.tsx:194`)
+- [ ] Implement Resilient ability selection and save proficiency logic. (`src/data/feats/featsData.ts:115`)
+- [ ] Implement Skilled skill selection UI. (`src/data/feats/featsData.ts:127`)
+- [ ] Implement Tavern Brawler selection and unarmed/improvised mechanics. (`src/data/feats/featsData.ts:190`)
+- [ ] Implement Elemental Adept damage type selection and resistance rules. (`src/data/feats/featsData.ts:229`)
+- [ ] Implement Slasher selection and speed/crit mechanics. (`src/data/feats/featsData.ts:473`)
+- [ ] Implement feat skill selection UI contracts in types. (`src/types/character.ts:261`)
+- [ ] Implement feat damage type selection UI contracts in types. (`src/types/character.ts:269`)
+- [ ] Route dice rolls through secure or server-validated RNG. (`src/utils/combatUtils.ts:70`)
+- [ ] Extend combat AI to support allied party member tactics. (`src/utils/combat/combatAI.ts:45`)
+- [ ] Persist AoE reachability/impact caches per turn. (`src/utils/combat/combatAI.ts:394`)
 
-### Feat System
+### World & Exploration
+- [ ] Replace naive biome clustering with Perlin/cellular generation. (`src/services/mapService.ts:74`)
+- [ ] Generate Location metadata for unkeyed tiles and towns during map build. (`src/services/mapService.ts:112`)
+- [ ] Emit town metadata alongside village layouts for the description system. (`src/services/villageGenerator.ts:76`)
+- [ ] Hook proximity checks into town metadata/description loading. (`src/hooks/actions/handleMovement.ts:390`)
+- [ ] Merge quest objectives and discovered location markers into map markers. (`src/utils/locationUtils.ts:64`)
+- [ ] Generate POIs procedurally and distribute them across the map. (`src/data/world/pois.ts:15`)
+- [ ] Add NPC routines and faction schedules to world events. (`src/hooks/actions/handleWorldEvents.ts:15`)
+- [ ] Extend season/time modifiers beyond travel cost and surface them in UI. (`src/utils/timeUtils.ts:131`)
 
-*   **Current State**:
-    *   The Human "Versatile" trait describes an extra feat, but no mechanical feat selection or application pipeline exists.
-    *   Feat data structures exist in `src/data/feats/featsData.ts` with support for selectable ability scores, skills, damage types, and spells.
-    *   Basic `FeatSelection.tsx` UI component exists but lacks full implementation for feat choices.
-*   **Implementation Steps**:
-    *   Enhance `FeatSelection.tsx` to support all feat choice types (ability scores, skills, damage types, spells).
-    *   Implement UI for Resilient feat: Ability selection and logic to apply matching save proficiency.
-    *   Implement UI for Skilled feat: Selecting 3 skills from the full skill list.
-    *   Implement UI for Tavern Brawler feat: Ability selection and improvised weapon/unarmed strike mechanics.
-    *   Implement UI for Elemental Adept feat: Damage type selection and combat logic for ignoring resistance/treating 1s as 2s.
-    *   Implement UI for Slasher feat: Ability selection and combat mechanics for speed reduction/crit effect.
-    *   Add feat slots to `PlayerCharacter` type and integrate feat effects into character assembly.
-    *   Update character creation state to store feat choices and apply them during character assembly.
+### AI & Storytelling
+- [ ] Improve Gemini storyteller consistency with shared prompt scaffolds. (`src/services/geminiService.ts:64`)
 
-## World & Exploration
+### UI/UX & Audio
+- [ ] Add container browsing and item comparison UI in inventory. (`src/components/InventoryList.tsx:32`)
+- [ ] Add ambient music and biome-based sound layers. (`src/hooks/useAudio.ts:53`)
+- [ ] Add centralized modal focus management and keyboard navigation. (`src/components/layout/GameModals.tsx:54`)
+- [ ] Re-enable scene visuals when image generation is viable. (`src/components/ImagePane.tsx:6`)
 
-*   **Town Description System**:
-    *   **[PLANNED]** Implement dynamic town descriptions that generate rich details on-demand when players approach settlements. *(Complete project documentation created in `docs/projects/town-description-system/`)*
-        *   **Basic Metadata**: Generate town names and core properties during world creation
-        *   **Lazy Loading**: Rich descriptions generate when players get near towns (configurable range)
-        *   **Cultural Adaptation**: Descriptions adapt based on race, biome, culture, and player background
-        *   **Performance Optimized**: Only nearby towns have detailed descriptions loaded
-    *   **Next Steps**: Create `TownMetadata` interface, implement `TownNameGenerator`, add proximity detection system
-
-*   **Advanced World Map Features**:
-    *   **[TODO]** Implement more sophisticated procedural generation algorithms for biome zones (e.g., Perlin noise, cellular automata).
-    *   **[TODO]** Allow procedural generation of actual `Location` data for unkeyed map tiles.
-    *   **[TODO]** Add map markers for POIs, discovered locations, quests.
-    *   **[TODO]** Implement map panning and zooming.
-*   **Points of Interest (POI) System**:
-    *   **[TODO]** Define and distribute POIs (shrines, landmarks) across map tiles.
-*   **Living NPCs & Social System**:
-    *   **[TODO]** Develop NPC routines and faction affiliations.
-*   **In-Game Time**:
-    *   **[TODO]** Implement season-based mechanics.
-
-## AI & Storytelling (Gemini Integration)
-
-*   **DM (Storyteller) Consistency**:
-    *   **[ONGOING]** Improve consistency of Gemini-powered storyteller.
-
-## UI/UX Enhancements
-
-*   **Quest Indicators**:
-    *   **[TODO]** Visual indicators on map for quest objectives.
-*   **Inventory Management**:
-    *   **[TODO]** Implement item containers (bags) and comparison UI.
-*   **Sound**:
-    *   **[TODO]** Ambient sounds and music.
-*   **Accessibility**:
-    *   **[ONGOING]** ARIA implementations, keyboard navigation.
-*   **Scene Visuals**:
-    *   **[PAUSED]** `ImagePane` component exists, but image generation is currently disabled to manage API quotas; scene panels rely on canvas or textual renderings until quota-friendly image generation is re-enabled.
-
----
-
-## v1.1 Critical Bug Fixes & Follow-up Tasks
-
-*Based on Lane Agent deployment (PRs #11-16), the following critical issues require attention:*
-
-### 🔴 Priority 1: Data Integrity & Core Functionality
-
-5.  **[TODO]** **Canvas Rendering Initialization Error** *(Deployment Test 2025-11-26)*
-    *   **Issue**: `TypeError: Cannot read properties of undefined (reading 'canvas')` - PIXI/canvas fails to initialize
-    *   **Location**: Canvas/PIXI initialization code, game initialization hooks
-    *   **Impact**: CRITICAL - Blocking core game rendering functionality
-    *   **Investigation**:
-        - Check canvas/PIXI initialization order
-        - Verify rendering dependencies load correctly
-        - Ensure canvas element exists in DOM before access
-    *   **Related**: See [03-CANVAS-MAP.md](tasks/testing-overhaul/03-CANVAS-MAP.md) for testing coverage
-
-6.  **[DONE]** **HOTFIX: Village Building Selection Logic** *(Completed)*
-    *   **Issue**: Nested building selection needs reverse iteration to prevent incorrect placement
-    *   **Location**: `src/services/villageGenerator.ts` - building placement loop
-    *   **Impact**: HIGH - Building layouts incorrect
-    *   **Fix**: Building placement system now uses proper priority system with `setTileWithPriority()` that prevents overwriting civic structures
-
-### 🟡 Priority 2: Performance & UX Polish
-
-8.  **[TODO]** **Combat Log Anomalies After Initiative Reordering**
-    *   **Issue**: Turn-start guards trigger unexpectedly after initiative reordering
-    *   **Location**: Combat hooks / turn management system
-    *   **Impact**: MEDIUM - Unexpected behavior during combat
-    *   **Fix**: Capture and replay combat log anomalies to diagnose; review turn-start guard logic
-
-9.  **[TODO]** **Optimize Save Slot Metadata Operations** *(PR #15 Performance)*
-    *   **Issue**: Inefficient read-sort-filter pattern on every metadata operation
-    *   **Location**: `src/services/saveLoadService.ts`
-    *   **Impact**: LOW - Performance degrades with many saves
-    *   **Fix**: Cache metadata, only refresh on write operations
-
-10. **[TODO]** **AI AoE Sampling Performance Hotspots**
-    *   **Issue**: AI AoE sampling may have performance hotspots; reachability and AoE tile sets recalculated each evaluation
-    *   **Location**: AI combat evaluation / AoE targeting system
-    *   **Impact**: LOW - Potential performance degradation during AI turns
-    *   **Fix**: Profile AI AoE sampling; consider caching reachability and AoE tile sets per ability per turn
-
-11. **[DONE]** **Combat Hook Performance Optimizations** *(Completed)*
-    *   **Issue**: Missing `useCallback`/`useMemo` opportunities in battle map hooks
-    *   **Location**: `src/hooks/combat/useTurnManager.ts`
-    *   **Impact**: LOW - Unnecessary re-renders during combat
-    *   **Fix**: Added 15+ `useCallback` calls and multiple `useMemo` calls with proper dependency arrays
-
-12. **[DONE]** **Remove Dead Code from Village Generator** *(Completed)*
-    *   **Issue**: Plaza boost logic that never executes
-    *   **Location**: `src/services/villageGenerator.ts`
-    *   **Impact**: LOW - Code clarity
-    *   **Fix**: No unreachable plaza boost logic found - all plaza code is actively used in building generation
-
-### 🔵 Priority 3: Incomplete Lane 1 Tasks
-
-*Lane 1 (Core Types & Game Systems) only completed 1 of 7 assigned tasks. The following remain:*
-
-13. **[TODO]** **Feat System Integration** *(Lane 1 Incomplete)*
-    *   Add feat slots to `PlayerCharacter` type
-    *   Integrate feat effects into character stats
-    *   Implement UI for Resilient feat: Ability selection and logic to apply matching save proficiency
-    *   Implement UI for Skilled feat: Selecting 3 skills from the full skill list
-    *   Implement UI for Tavern Brawler feat: Ability selection and improvised weapon/unarmed strike mechanics
-    *   Implement UI for Elemental Adept feat: Damage type selection and combat logic for ignoring resistance/treating 1s as 2s
-    *   Implement UI for Slasher feat: Ability selection and combat mechanics for speed reduction/crit effect
-
-14. **[TODO]** **Character Age Selection** *(Lane 1 Incomplete)*
-    *   Add `age` field to `PlayerCharacter` type
-    *   Define logical age ranges for each race
-    *   Add age selection step to CharacterCreator
-
-15. **[TODO]** **Quest System Implementation** *(Lane 1 Incomplete)*
-    *   Define Quest, QuestObjective, QuestReward types
-    *   Implement quest tracking in `questReducer`
-    *   Create QuestLogOverlay component
-    *   Add quest completion rewards
-
-16. **[TODO]** **Item Containers & Comparison UI** *(Lane 1 Incomplete)*
-    *   Add container properties to Item type
-    *   Implement nested inventory logic
-    *   Create ItemComparisonTooltip component
-
-17. **[TODO]** **NPC Routines & Factions** *(Lane 1 Incomplete)*
-    *   Add faction and dailyRoutine to NPC type
-    *   Define faction data structures
-    *   Implement routine scheduling system
-
-18. **[TODO]** **Notification System** *(Lane 1 Incomplete)*
-    *   Add notifications array to GameState
-    *   Create NotificationToast component
-    *   Replace all `alert()` calls with notification dispatches
-
-### 🧹 Priority 4: Incomplete Lane 5 Cleanup
-
-19. **[DONE]** **Delete Obsolete Component Files** *(Completed)*
-    *   Delete `src/components/PlayerPane.tsx` ✅
-    *   Delete `src/components/StartScreen.tsx` ✅
-    *   Delete `src/components/Spellbook.tsx` ✅
-    *   Delete `src/battleMapDemo.tsx` ✅
-    *   Delete `src/components/CharacterCreator/Race/FlexibleAsiSelection.tsx` ✅
-    *   Delete `src/hooks/OLD_useGameActions.ts` ✅
-    *   Delete obsolete racial spellcasting components (4 files) ✅
-
-20. **[TODO]** **Delete Obsolete Documentation Files** *(Lane 5 Incomplete)*
-    *   Delete corresponding README files for above components
-    *   Update `docs/@README-INDEX.md` to remove references
-
-21. **[TODO]** **Verify No Import References Remain** *(Lane 5 Incomplete)*
-    *   Global search for imports of deleted files
-    *   Remove any remaining import statements
-    *   Test application build
-
----
+### Bugs & Performance
+- [ ] Guard Pixi init races that cause canvas initialization errors. (`src/components/Submap/SubmapRendererPixi.tsx:196`)
+- [ ] Capture/replay turn-order transitions to diagnose combat log anomalies. (`src/hooks/combat/useTurnOrder.ts:91`)
 
 ## 📚 See Also
 

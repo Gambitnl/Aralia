@@ -9,7 +9,8 @@
   "tags": [
     "damage",
     "acid",
-    "melee"
+    "melee",
+    "cantrip"
   ],
   "description": "You channel primal magic to cause your teeth or fingernails to sharpen, ready to deliver a corrosive attack. Make a melee spell attack against one creature within 5 feet of you. On a hit, the target takes 1d10 acid damage.",
   "ritual": false,
@@ -35,7 +36,11 @@
   "targeting": {
     "type": "single",
     "range": 5,
-    "validTargets": ["creatures", "objects", "enemies"],
+    "validTargets": [
+      "creatures",
+      "objects",
+      "enemies"
+    ],
     "lineOfSight": true
   },
   "effects": [

@@ -104,13 +104,19 @@ it('handles edge case', () => {});
 
 ---
 
+## Test Tracking
+
+If you create or update tests, add a short entry to `docs/tasks/testing-overhaul/00-MASTER-PLAN.md` noting the new test file(s) and what they cover.
+
+---
+
 ## Running Tests
 
 ```bash
-pnpm test              # Run all tests once
-pnpm test --watch      # Watch mode (re-runs on change)
-pnpm test spell        # Run tests matching "spell"
-pnpm test --coverage   # Generate coverage report
+npm test              # Run all tests once
+npm test --watch      # Watch mode (re-runs on change)
+npm test spell        # Run tests matching "spell"
+npm test --coverage   # Generate coverage report
 ```
 
 ---
