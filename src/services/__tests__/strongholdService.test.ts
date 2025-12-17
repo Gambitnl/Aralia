@@ -31,7 +31,7 @@ describe('StrongholdService', () => {
     });
 
     it('should process daily income', () => {
-        let castle = createStronghold('My Castle', 'castle', 'loc-123');
+        const castle = createStronghold('My Castle', 'castle', 'loc-123');
         // Base income is 10
         const result = processDailyUpkeep(castle);
 

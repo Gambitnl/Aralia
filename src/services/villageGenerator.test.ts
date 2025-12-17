@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { findBuildingAt, VillageLayout, VillageBuildingFootprint, VillageTileType } from './villageGenerator';
-import { VillagePersonality } from '../services/villageGenerator';
+import { findBuildingAt, VillageLayout, VillageBuildingFootprint, VillageTileType , VillagePersonality } from './villageGenerator';
 import { VillageIntegrationProfile } from '../data/villagePersonalityProfiles';
 
 const mockPersonality: VillagePersonality = {

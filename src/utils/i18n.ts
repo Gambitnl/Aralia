@@ -11,7 +11,7 @@ const locales: Record<string, LocaleData> = {
   en,
 };
 
-let currentLocale = 'en';
+const currentLocale = 'en';
 
 /**
  * Retrieves a localized string for the given key.

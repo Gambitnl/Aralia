@@ -56,7 +56,7 @@ export class TownGenerator {
 
     public generate(): TownMap {
         // 1. Initialize Grid
-        let tiles: Tile[][] = [];
+        const tiles: Tile[][] = [];
         for (let x = 0; x < WIDTH; x++) {
             tiles[x] = [];
             for (let y = 0; y < HEIGHT; y++) {
@@ -521,7 +521,7 @@ export class TownGenerator {
                 const plotX = rt.x + dir.x;
                 const plotY = rt.y + dir.y;
 
-                let attemptSizes = [];
+                const attemptSizes = [];
                 // Varied sizes and types based on distance
                 if (dist < 15) {
                     attemptSizes.push({ w: 3, h: 4 });

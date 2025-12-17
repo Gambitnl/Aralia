@@ -6,9 +6,8 @@
  * Utility functions for managing faction reputation and standing.
  */
 
-import { GameState } from '../types';
+import { GameState , GameMessage } from '../types';
 import { PlayerFactionStanding, FactionReputationChange, Faction } from '../types/factions';
-import { GameMessage } from '../types';
 
 export type ReputationTier = 'NEMESIS' | 'HOSTILE' | 'UNFRIENDLY' | 'NEUTRAL' | 'FRIENDLY' | 'HONORED' | 'REVERED';
 

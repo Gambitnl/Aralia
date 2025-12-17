@@ -256,7 +256,7 @@ export const useAbilitySystem = ({
     target: CombatCharacter
   ) => {
     // Clone once so we can safely layer mutations.
-    let modifiedTarget = { ...target, statusEffects: [...target.statusEffects] };
+    const modifiedTarget = { ...target, statusEffects: [...target.statusEffects] };
 
     ability.effects.forEach(effect => {
       switch (effect.type) {

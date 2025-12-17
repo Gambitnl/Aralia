@@ -19,23 +19,52 @@ export class HealingCommand extends BaseEffectCommand {
       // 1. Roll healing
       const healingRoll = this.rollHealing(this.effect.healing.dice)
 
-      // 2. Calculate new HP (capped at maxHP)
-      // TODO: Honor healing.isTemporaryHp by granting temp HP (respect higher-value rule) instead of normal healing when flagged.
-      const newHP = Math.min(target.maxHP, target.currentHP + healingRoll)
-      const actualHealing = newHP - target.currentHP
+      // 2. Calculate new HP (capped at maxHP) or Temp HP
+      if (this.effect.healing.isTemporaryHp) {
+        const currentTempHP = target.tempHP || 0
+        const newTempHP = Math.max(currentTempHP, healingRoll)
+        const gainedTempHP = newTempHP - currentTempHP
 
-      // 3. Update character
-      currentState = this.updateCharacter(currentState, target.id, {
-        currentHP: newHP
-      })
+        if (gainedTempHP > 0) {
+          // 3. Update character (Temp HP)
+          currentState = this.updateCharacter(currentState, target.id, {
+            tempHP: newTempHP
+          })
 
-      // 4. Add combat log entry
-      currentState = this.addLogEntry(currentState, {
-        type: 'heal',
-        message: `${target.name} is healed for ${actualHealing} HP (${target.currentHP} → ${newHP})`,
-        characterId: target.id,
-        data: { value: actualHealing }
-      })
+          // 4. Add combat log entry
+          currentState = this.addLogEntry(currentState, {
+            type: 'heal', // Keeping type 'heal' but message clarifies
+            message: `${target.name} gains ${healingRoll} Temporary HP (Current: ${currentTempHP} → ${newTempHP})`,
+            characterId: target.id,
+            data: { value: healingRoll, isTemporary: true }
+          })
+        } else {
+           // Log that existing temp HP was higher
+           currentState = this.addLogEntry(currentState, {
+            type: 'heal',
+            message: `${target.name} gains no Temporary HP (Current ${currentTempHP} ≥ New ${healingRoll})`,
+            characterId: target.id,
+            data: { value: 0, isTemporary: true }
+          })
+        }
+      } else {
+        // Normal Healing
+        const newHP = Math.min(target.maxHP, target.currentHP + healingRoll)
+        const actualHealing = newHP - target.currentHP
+
+        // 3. Update character (Normal HP)
+        currentState = this.updateCharacter(currentState, target.id, {
+          currentHP: newHP
+        })
+
+        // 4. Add combat log entry
+        currentState = this.addLogEntry(currentState, {
+          type: 'heal',
+          message: `${target.name} is healed for ${actualHealing} HP (${target.currentHP} → ${newHP})`,
+          characterId: target.id,
+          data: { value: actualHealing }
+        })
+      }
     }
 
     return currentState

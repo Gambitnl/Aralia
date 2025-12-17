@@ -50,7 +50,7 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
 
         case 'LOWER_HEAT': {
             const { amount, locationId } = action.payload;
-            let newNotoriety = { ...state.notoriety };
+            const newNotoriety = { ...state.notoriety };
 
             if (locationId) {
                 const current = newNotoriety.localHeat[locationId] || 0;

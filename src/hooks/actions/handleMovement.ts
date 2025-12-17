@@ -65,7 +65,7 @@ export async function handleMovement({
 
   let newLocationId = gameState.currentLocationId;
   let newSubMapCoordinates = { ...gameState.subMapCoordinates };
-  let newMapDataForDispatch: MapData | undefined = gameState.mapData ? { ...gameState.mapData, tiles: gameState.mapData.tiles.map(row => row.map(tile => ({ ...tile }))) } : undefined;
+  const newMapDataForDispatch: MapData | undefined = gameState.mapData ? { ...gameState.mapData, tiles: gameState.mapData.tiles.map(row => row.map(tile => ({ ...tile }))) } : undefined;
   let activeDynamicNpcIdsForNewLocation: string[] | null = null;
   let timeToAdvanceSeconds = 0;
   let movedToNewNamedLocation: Location | null = null;
@@ -153,8 +153,8 @@ export async function handleMovement({
     }
   } else { // Moving via compass direction
     const { dx, dy } = DIRECTION_VECTORS[directionKey];
-    let nextSubMapX = gameState.subMapCoordinates.x + dx;
-    let nextSubMapY = gameState.subMapCoordinates.y + dy;
+    const nextSubMapX = gameState.subMapCoordinates.x + dx;
+    const nextSubMapY = gameState.subMapCoordinates.y + dy;
     newSubMapCoordinates = { x: nextSubMapX, y: nextSubMapY };
 
     if (nextSubMapX >= 0 && nextSubMapX < SUBMAP_DIMENSIONS.cols && nextSubMapY >= 0 && nextSubMapY < SUBMAP_DIMENSIONS.rows) {

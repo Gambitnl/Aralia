@@ -1,8 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { SavingThrowResolver } from '../SavingThrowResolver'
 import { DiceRoller } from '../DiceRoller'
-import type { CombatCharacter } from '@/types'
-import type { Class } from '@/types'
+import type { CombatCharacter , Class } from '@/types'
 
 // Mock character
 const mockCharacter: CombatCharacter = {

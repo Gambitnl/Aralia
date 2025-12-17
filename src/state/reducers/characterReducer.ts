@@ -39,7 +39,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             if (!itemToEquip) return {};
 
             const isOneHandedWeapon = itemToEquip.type === 'weapon' && !itemToEquip.properties?.includes('Two-Handed');
-            let targetSlot = isOneHandedWeapon
+            const targetSlot = isOneHandedWeapon
                 ? (!charToUpdate.equippedItems.MainHand ? 'MainHand' : !charToUpdate.equippedItems.OffHand ? 'OffHand' : 'MainHand')
                 : itemToEquip.slot || null;
 
@@ -154,7 +154,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             const itemToUse = state.inventory.find(item => item.id === itemId);
             if (!itemToUse || itemToUse.type !== 'consumable' || !itemToUse.effect) return {};
 
-            let playerAfterEffect = { ...charToUpdate };
+            const playerAfterEffect = { ...charToUpdate };
 
             // Handle legacy string effects
             if (typeof itemToUse.effect === 'string') {
@@ -256,7 +256,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         case 'LONG_REST': {
             const newParty = state.party.map(char => {
                 const charCopy = { ...char };
-                let hasChanged = true; // Assume change for simplicity
+                const hasChanged = true; // Assume change for simplicity
 
                 // Restore Spell Slots
                 if (charCopy.spellSlots) {

@@ -71,7 +71,7 @@ export const useTurnManager = ({
   // --- Helper: Saving Throws ---
   const processRepeatSaves = useCallback((character: CombatCharacter, timing: 'turn_end' | 'turn_start' | 'on_damage' | 'on_action', actionEffectId?: string): CombatCharacter => {
     let updatedCharacter = { ...character };
-    let savedEffectIds: string[] = [];
+    const savedEffectIds: string[] = [];
     const savePenaltySystem = new SavePenaltySystem();
 
     updatedCharacter.statusEffects.forEach(effect => {

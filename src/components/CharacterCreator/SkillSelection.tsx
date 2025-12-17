@@ -80,7 +80,7 @@ const SkillSelection: React.FC<SkillSelectionProps> = ({
   };
 
   const handleSubmit = () => {
-    let allSelectedSkills: Skill[] = Array.from(selectedClassSkillIds).map(
+    const allSelectedSkills: Skill[] = Array.from(selectedClassSkillIds).map(
       (id: string) => SKILLS_DATA[id],
     );
 

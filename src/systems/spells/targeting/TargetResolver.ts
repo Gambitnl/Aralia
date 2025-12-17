@@ -1,5 +1,4 @@
-import type { SpellTargeting, TargetFilter } from '@/types'
-import type { CombatCharacter, CombatState, Position } from '@/types'
+import type { SpellTargeting, TargetFilter , CombatCharacter, CombatState, Position } from '@/types'
 import { hasLineOfSight } from '../../../utils/lineOfSight'
 
 /**
