@@ -5,6 +5,7 @@ import level1GapsMd from "../../docs/tasks/spell-system-overhaul/gaps/LEVEL-1-GA
 import cantripGapsMd from "../../docs/tasks/spell-system-overhaul/1I-MIGRATE-CANTRIPS-BATCH-1.md?raw";
 import { fetchWithTimeout } from "../utils/networkUtils";
 import { logger } from "../utils/logger";
+import { assetUrl } from "../config/env";
 
 const normalizeId = (raw: string): string =>
   raw
@@ -77,7 +78,7 @@ const buildKnownGapSet = (): Set<string> => {
 
 // TODO: Avoid per-spell markdown fetches on glossary load; derive hasCard/level tags from the index or manifest cache.
 const fetchGlossaryCard = async (id: string, level: number): Promise<string | null> => {
-  const url = `${import.meta.env.BASE_URL}data/glossary/entries/spells/level-${level}/${id}.md`;
+  const url = assetUrl(`data/glossary/entries/spells/level-${level}/${id}.md`);
   try {
     return await fetchWithTimeout<string>(url, { responseType: 'text' });
   } catch (err) {
@@ -121,7 +122,7 @@ const parseFieldFromMd = (content: string, fieldLabel: string): string | null =>
 
 /** Fetch spell JSON data */
 const fetchSpellJson = async (id: string, level: number): Promise<any | null> => {
-  const url = `${import.meta.env.BASE_URL}data/spells/level-${level}/${id}.json`;
+  const url = assetUrl(`data/spells/level-${level}/${id}.json`);
   try {
     return await fetchWithTimeout<any>(url);
   } catch {
@@ -323,9 +324,7 @@ export const useSpellGateChecks = (entries: GlossaryEntry[] | null) => {
     setIsLoading(true);
     const run = async () => {
       try {
-        const manifest = await fetchWithTimeout<any>(
-          `${import.meta.env.BASE_URL}data/spells_manifest.json`
-        );
+        const manifest = await fetchWithTimeout<any>(assetUrl('data/spells_manifest.json'));
 
         const next: Record<string, GateResult> = {};
         await Promise.all(Object.entries<any>(manifest).map(async ([id, data]) => {

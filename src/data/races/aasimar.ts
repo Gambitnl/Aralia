@@ -5,7 +5,7 @@
  * This includes their ID, name, description, and unique celestial traits
  * like Healing Hands and Light Bearer. ASIs are handled flexibly.
  */
-import { Race } from '../../types.ts'; // Path relative to src/data/races/
+import { Race } from '../../types'; // Path relative to src/data/races/
 
 export const AASIMAR_DATA: Race = {
   id: 'aasimar',

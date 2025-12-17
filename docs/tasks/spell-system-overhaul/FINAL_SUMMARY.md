@@ -10,9 +10,11 @@ The working pattern is now established. Time to scale it! Follow-up: Absorb Elem
 ## What You Have Now
 
 ### 1. Complete Spell Template
-**File**: [docs/spells/SPELL_TEMPLATE.json](../../spells/SPELL_TEMPLATE.json)
+**File**: [archive/SPELL_TEMPLATE.json](archive/SPELL_TEMPLATE.json) *(archived - use SPELL_JSON_EXAMPLES.md as primary reference)*
 
 Shows ALL possible spell fields with comments. Answers the question: "What CAN a spell have?"
+
+> **Note**: The template is now archived. Use `SPELL_JSON_EXAMPLES.md` as the primary source of truth, with `src/systems/spells/validation/spellValidator.ts` as the authoritative schema.
 
 ### 2. Working Examples
 **File**: [docs/spells/SPELL_JSON_EXAMPLES.md](../../spells/SPELL_JSON_EXAMPLES.md)

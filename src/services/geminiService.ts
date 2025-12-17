@@ -190,6 +190,7 @@ export async function generateText(
         config.thinkingConfig = { thinkingBudget };
       }
 
+      // TODO: Wrap generateContent with an AbortController/timeout so callers can cancel hung requests when unmounting or when a prompt exceeds latency budgets.
       const response: GenerateContentResponse = await ai.models.generateContent({
         model: model,
         contents: promptContent,

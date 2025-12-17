@@ -3,6 +3,7 @@ import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { Spell } from '../types';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { fetchWithTimeout } from '../utils/networkUtils';
+import { ENV, assetUrl } from '../config/env';
 
 export type SpellDataRecord = Record<string, Spell>;
 
@@ -18,7 +19,7 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const fetchAllSpells = async () => {
       try {
         const manifest = await fetchWithTimeout<Record<string, any>>(
-          `${import.meta.env.BASE_URL}data/spells_manifest.json`,
+          assetUrl('data/spells_manifest.json'),
           { timeoutMs: 15000 }
         );
 
@@ -33,7 +34,7 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         const fetchSpell = async ([id, info]: [string, any]) => {
           try {
             // Ensure spell asset requests respect the configured base path
-            const normalizedPath = `${import.meta.env.BASE_URL}${String(info.path || '').replace(/^\//, '')}`;
+            const normalizedPath = assetUrl(String(info.path || ''));
             // Explicitly request JSON to prevent Vite from returning the index.html fallback for SPAs
             const spellJson = await fetchWithTimeout<Spell>(normalizedPath, {
               headers: { 'Accept': 'application/json' },

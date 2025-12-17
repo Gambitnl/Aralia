@@ -4,7 +4,7 @@
  * This includes their ID, name, description, and unique traits.
  * ASIs are handled flexibly during character creation.
  */
-import { Race } from '../../types.ts'; // Path relative to src/data/races/
+import { Race } from '../../types'; // Path relative to src/data/races/
 
 export const DWARF_DATA: Race = {
   id: 'dwarf',

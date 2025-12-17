@@ -5,7 +5,7 @@
  * them as a consolidated `ALL_RACES_DATA` object, which maps race IDs to their respective Race data.
  * It also re-exports specific data like `DRAGONBORN_ANCESTRIES_DATA`.
  */
-import type { Race } from '../../types.ts'; // Path relative to src/data/races/
+import type { Race } from '../../types'; // Path relative to src/data/races/
 import { AARAKOCRA_DATA } from './aarakocra.ts';
 import { AASIMAR_DATA } from './aasimar.ts';
 import { AIR_GENASI_DATA } from './air_genasi.ts';

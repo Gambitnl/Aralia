@@ -2,6 +2,7 @@
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import { GlossaryEntry } from '../types';
 import { fetchWithTimeout } from '../utils/networkUtils';
+import { assetUrl } from '../config/env';
 
 const GlossaryContext = createContext<GlossaryEntry[] | null>(null);
 
@@ -32,7 +33,7 @@ export const GlossaryProvider: React.FC<{ children: ReactNode }> = ({ children }
         // Check if it's a nested index file (like the new rules_glossary.json)
         if (isGlossaryIndexFile(data)) {
           const promises = data.index_files.map((nestedPath: string) =>
-            fetchAndProcessIndex(`${import.meta.env.BASE_URL}${nestedPath.replace(/^\//, '')}`)
+            fetchAndProcessIndex(assetUrl(nestedPath))
           );
           const results = await Promise.all(promises);
           return results.flat(); // Flatten the array of arrays of entries
@@ -54,7 +55,7 @@ export const GlossaryProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     const fetchAllData = async () => {
       try {
-        const allEntries = await fetchAndProcessIndex(`${import.meta.env.BASE_URL}data/glossary/index/main.json`);
+        const allEntries = await fetchAndProcessIndex(assetUrl('data/glossary/index/main.json'));
         
         const uniqueEntriesMap = new Map<string, GlossaryEntry>();
         
@@ -92,6 +93,9 @@ export const GlossaryProvider: React.FC<{ children: ReactNode }> = ({ children }
     fetchAllData();
   }, []);
 
+  // TODO: Add loading spinner and error UI similar to SpellContext.
+  // Currently renders children while entries=null, risking null reference errors in consumers.
+  // See SpellContext.tsx:94-100 for reference implementation.
   return (
     <GlossaryContext.Provider value={entries}>
       {children}

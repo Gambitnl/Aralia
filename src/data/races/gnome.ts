@@ -3,7 +3,7 @@
  * Defines the data for the Gnome race in the Aralia RPG.
  * This includes base Gnome traits and specific Gnome Subraces: Forest Gnome and Rock Gnome.
  */
-import { Race, GnomeSubrace } from '../../types.ts'; // Path relative to src/data/races/
+import { Race, GnomeSubrace } from '../../types'; // Path relative to src/data/races/
 
 const GNOME_SUBRACES_DATA: GnomeSubrace[] = [
   {

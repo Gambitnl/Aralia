@@ -1,4 +1,4 @@
-<!-- TODO: Update scope to levels 1–9 and sync batching/acceptance details; header still says Level 3+. -->
+<!-- TODO: Expand scope/title to levels 0–9 so this prompt is reusable for all batches, not just “Level 3+”; ensure batching/acceptance text matches the roll-up docs. -->
 # SPELL MIGRATION TASK (Level 3+)
 
 ## CORE PRINCIPLE: JSON = SOURCE OF TRUTH
@@ -24,6 +24,7 @@ Migrate these spells (Level {N}):
 - [ ] {spell-3}
 - [ ] {spell-4}
 - [ ] {spell-5}
+<!-- TODO: Add an explicit step to update class spell lists in src/data/classes/index.ts when new spells are introduced, mirroring acceptance criteria. -->
 
 ---
 

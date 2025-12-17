@@ -3,7 +3,7 @@
  * @file duergar.ts
  * Defines the data for the Duergar race in the Aralia RPG, based on Mordenkainen Presents: Monsters of the Multiverse, pg. 12.
  */
-import { Race } from '../../types.ts'; // Path relative to src/data/races/
+import { Race } from '../../types'; // Path relative to src/data/races/
 
 export const DUERGAR_DATA: Race = {
   id: 'duergar',

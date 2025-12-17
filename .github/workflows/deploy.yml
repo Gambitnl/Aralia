@@ -1,3 +1,11 @@
+# WARNING: GitHub Pages deployment is PUBLIC. The GEMINI_API_KEY is embedded
+# in the built JS bundle and accessible to anyone who views source.
+# Mitigations:
+#   - Restrict the API key to specific referrers in Google AI Studio: https://aistudio.google.com/apikey
+#   - Use Vercel/Netlify with password protection instead
+#   - Disable this workflow if you don't need public hosting
+# See session notes from 2025-11-26 for full discussion.
+
 name: Deploy to GitHub Pages
 
 on:
@@ -31,8 +39,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # TODO: Add pre-deploy validation: npm run typecheck && npm run lint && npm run test
+      # Currently deploys without verifying code quality or catching type errors.
       - name: Build
         env:
+          # TODO: SECURITY - API key is embedded in client bundle at build time.
+          # Anyone can extract it from the deployed JS. Restrict via Google AI Studio referrer settings.
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: npm run build
 

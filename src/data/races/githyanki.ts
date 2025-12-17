@@ -3,7 +3,7 @@
  * @file githyanki.ts
  * Defines the data for the Githyanki race in the Aralia RPG.
  */
-import { Race } from '../../types.ts';
+import { Race } from '../../types';
 
 export const GITHYANKI_DATA: Race = {
   id: 'githyanki',

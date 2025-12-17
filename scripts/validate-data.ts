@@ -3,7 +3,7 @@ import path from 'path';
 import { z } from 'zod';
 import { SpellValidator } from '../src/systems/spells/validation/spellValidator.ts';
 import { ACTIVE_RACES } from '../src/data/races/index.ts';
-import type { Race } from '../src/types.ts';
+import type { Race } from '../src/types';
 
 /**
  * Validates all spell data against the Zod schema.

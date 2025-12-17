@@ -5,7 +5,7 @@
  * and user-provided updated text.
  * ASIs are handled flexibly during character creation, not as fixed racial bonuses.
  */
-import { Race } from '../../types.ts'; // Path relative to src/data/races/
+import { Race } from '../../types'; // Path relative to src/data/races/
 
 export const AARAKOCRA_DATA: Race = {
   id: 'aarakocra',

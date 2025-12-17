@@ -1,379 +1,104 @@
-
 /**
- * Copyright (c) 2024 Aralia RPG
- * Licensed under the MIT License
- *
- * @file src/types/index.ts
- * This file contains all the core TypeScript type definitions and interfaces
- * used throughout the Aralia RPG application.
+ * Consolidated type exports for Aralia RPG.
+ * Core primitives live in ./core, item definitions in ./items, and character-focused
+ * types in ./character. Domain-specific modules (combat, spells, deity, factions, etc.)
+ * remain in sibling files and are re-exported here for convenience.
  */
-// TODO: Implement Zod schemas for all game data structures (spells, NPCs, items) to ensure data integrity and provide better error messages
 import React from 'react';
-import { CombatCharacter, CharacterStats, Position, CombatState } from './combat'; // Adjusted import path for sibling file
 import type { VillageTileType } from '../services/villageGenerator';
+
+import {
+  AbilityScoreName,
+  AbilityScores,
+  Skill,
+  GamePhase,
+} from './core';
+import {
+  EquipmentSlotType,
+  ArmorCategory,
+  Mastery,
+  ItemEffect,
+  Item,
+  ItemContainer,
+  InventoryEntry,
+  CanEquipResult,
+} from './items';
+import {
+  Race,
+  RaceDataBundle,
+  ElvenLineage,
+  GnomeSubrace,
+  GiantAncestryBenefit,
+  FiendishLegacy,
+  FiendishLegacyType,
+  DraconicAncestorType,
+  DraconicDamageType,
+  DraconicAncestryInfo,
+  Class,
+  ClassFeature,
+  FightingStyle,
+  DivineOrderOption,
+  PrimalOrderOption,
+  WarlockPatronOption,
+  ArmorProficiencyLevel,
+  ResourceVial,
+  SpellSlots,
+  SpellbookData,
+  ResetCondition,
+  LimitedUseAbility,
+  LimitedUses,
+  RacialSelectionData,
+  TransportMode,
+  Feat,
+  FeatSpellRequirement,
+  FeatGrantedSpell,
+  FeatSpellBenefits,
+  FeatPrerequisiteContext,
+  LevelUpChoices,
+  PlayerCharacter,
+  SelectableClass,
+  TempPartyMember,
+  MissingChoice,
+  MagicInitiateSource,
+  RacialSpell,
+} from './character';
 import { Faction, PlayerFactionStanding } from './factions';
 import { Companion } from './companions';
 import { DivineFavor, Temple } from './deity';
+import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
 
-export type { CombatCharacter, CharacterStats, Position, CombatState };
-
+export * from './core';
+export * from './items';
+export * from './character';
 export * from './spells';
 export * from './deity';
 export * from './factions';
 export * from './companions';
 export * from './planes';
+export type { CombatCharacter, CharacterStats, Position, CombatState };
 
-export enum GamePhase {
-  MAIN_MENU,
-  CHARACTER_CREATION,
-  PLAYING,
-  GAME_OVER,
-  BATTLE_MAP_DEMO,
-  LOAD_TRANSITION,
-  VILLAGE_VIEW,
-  COMBAT, // New phase for active combat encounters
-  NOT_FOUND, // 404 Phase for invalid URLs
-}
-
-// Core D&D Attributes
-export type AbilityScoreName =
-  | 'Strength'
-  | 'Dexterity'
-  | 'Constitution'
-  | 'Intelligence'
-  | 'Wisdom'
-  | 'Charisma';
-
-export interface AbilityScores {
-  Strength: number;
-  Dexterity: number;
-  Constitution: number;
-  Intelligence: number;
-  Wisdom: number;
-  Charisma: number;
-}
-
-export interface Skill {
-  id: string;
-  name: string;
-  ability: AbilityScoreName;
-}
-
-export interface RacialAbilityBonus {
-  ability: AbilityScoreName;
-  bonus: number;
-}
-
-export type ElvenLineageType = 'drow' | 'high_elf' | 'wood_elf';
-
-export interface ElvenLineageBenefit {
-  level: number;
-  description?: string;
-  cantripId?: string;
-  spellId?: string;
-  speedIncrease?: number;
-  darkvisionRange?: number;
-  canSwapCantrip?: boolean;
-  swappableCantripSource?: 'wizard';
-}
-
-export interface ElvenLineage {
-  id: ElvenLineageType;
-  name: string;
-  description: string;
-  benefits: ElvenLineageBenefit[];
-}
-
-export type GnomeSubraceType = 'forest_gnome' | 'rock_gnome' | 'deep_gnome';
-
-export interface GnomeSubrace {
-  id: GnomeSubraceType;
-  name: string;
-  description: string;
-  traits: string[];
-  grantedCantrip?: { id: string; spellcastingAbilitySource: 'subrace_choice' };
-  grantedSpell?: {
-    id: string;
-    spellcastingAbilitySource: 'subrace_choice';
-    usesDescription: string;
-    level: number;
-  };
-  superiorDarkvision?: boolean;
-}
-
-export type GiantAncestryType = 'Cloud' | 'Fire' | 'Frost' | 'Hill' | 'Stone' | 'Storm';
-
-export interface GiantAncestryBenefit {
-  id: GiantAncestryType;
-  name: string;
-  description: string;
-}
-
-export type FiendishLegacyType = 'abyssal' | 'chthonic' | 'infernal';
-
-export interface FiendishLegacy {
-  id: FiendishLegacyType;
-  name: string;
-  description: string;
-  level1Benefit: {
-    resistanceType: string;
-    cantripId: string;
-  };
-  level3SpellId: string;
-  level5SpellId: string;
-}
-
-export interface RacialSpell {
-  minLevel: number;
-  spellId: string;
-}
-
-export interface Race {
-  id: string;
-  name: string;
-  description: string;
-  abilityBonuses?: RacialAbilityBonus[];
-  traits: string[];
-  elvenLineages?: ElvenLineage[];
-  gnomeSubraces?: GnomeSubrace[];
-  giantAncestryChoices?: GiantAncestryBenefit[];
-  fiendishLegacies?: FiendishLegacy[];
-  imageUrl?: string;
-  racialSpellChoice?: {
-    traitName: string;
-    traitDescription: string;
-  };
-  knownSpells?: RacialSpell[];
-}
-
-export type DraconicAncestorType =
-  | 'Black'
-  | 'Blue'
-  | 'Brass'
-  | 'Bronze'
-  | 'Copper'
-  | 'Gold'
-  | 'Green'
-  | 'Red'
-  | 'Silver'
-  | 'White';
-export type DraconicDamageType =
-  | 'Acid'
-  | 'Lightning'
-  | 'Fire'
-  | 'Poison'
-  | 'Cold';
-
-export interface DraconicAncestryInfo {
-  type: DraconicAncestorType;
-  damageType: DraconicDamageType;
-}
-
-export interface ClassFeature {
-  id: string;
-  name: string;
-  description: string;
-  levelAvailable: number;
-}
-
-export interface FightingStyle extends ClassFeature { }
-
-export interface DivineOrderOption {
-  id: 'Protector' | 'Thaumaturge';
-  name: string;
-  description: string;
-}
-
-export interface PrimalOrderOption {
-  id: 'Magician' | 'Warden';
-  name: string;
-  description: string;
-}
-
-export interface WarlockPatronOption {
-  id: string;
-  name: string;
-  description: string;
-}
-
-export type ArmorProficiencyLevel = 'unarmored' | 'light' | 'medium' | 'heavy';
-
-export interface Class {
-  id: string;
-  name: string;
-  description: string;
-  hitDie: number;
-  primaryAbility: AbilityScoreName[];
-  savingThrowProficiencies: AbilityScoreName[];
-  skillProficienciesAvailable: string[];
-  numberOfSkillProficiencies: number;
-  armorProficiencies: string[];
-  weaponProficiencies: string[];
-  weaponMasterySlots?: number;
-  startingEquipment?: string[];
-  features: ClassFeature[];
-  fightingStyles?: FightingStyle[];
-  divineOrders?: DivineOrderOption[];
-  primalOrders?: PrimalOrderOption[];
-  warlockPatrons?: WarlockPatronOption[];
-  spellcasting?: {
-    ability: AbilityScoreName;
-    knownCantrips: number;
-    knownSpellsL1: number;
-    spellList: string[];
-  };
-  statRecommendationFocus?: AbilityScoreName[];
-  statRecommendationDetails?: string;
-  recommendedPointBuyPriorities?: AbilityScoreName[];
-}
-
-export type EquipmentSlotType =
-  | 'Head' | 'Neck' | 'Torso' | 'Cloak' | 'Belt'
-  | 'MainHand' | 'OffHand' | 'Wrists' | 'Ring' | 'Ring1' | 'Ring2' | 'Feet' | 'Legs' | 'Hands';
-
-export interface ResourceVial {
-  current: number;
-  max: number;
-}
-
-export type SpellSlots = Record<`level_${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9}`, ResourceVial>;
-
-export interface SpellbookData {
-  knownSpells: string[];
-  preparedSpells: string[];
-  cantrips: string[];
-}
-
-export type ResetCondition = 'short_rest' | 'long_rest' | 'daily' | 'combat';
-
-export interface LimitedUseAbility {
-  name: string;
-  current: number;
-  max: number | 'proficiency_bonus' | 'charisma_mod' | 'strength_mod' | 'dexterity_mod' | 'constitution_mod' | 'intelligence_mod' | 'wisdom_mod';
-  resetOn: ResetCondition;
-}
-
-export type LimitedUses = Record<string, LimitedUseAbility>;
-
-export interface RacialSelectionData {
-  choiceId?: string;
-  spellAbility?: AbilityScoreName;
-  skillIds?: string[];
-}
-
-export type TransportMode = 'foot' | 'mounted';
-
-export interface PlayerCharacter {
-  id?: string;
-  name: string;
-  age?: number;
-  ageSizeOverride?: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Gargantuan';
-  background?: string; // Background ID
-  level?: number;
-  xp?: number;
-  proficiencyBonus?: number;
-  race: Race;
-  class: Class;
-  abilityScores: AbilityScores;
-  finalAbilityScores: AbilityScores;
-  skills: Skill[];
-  savingThrowProficiencies?: AbilityScoreName[];
-  hp: number;
-  maxHp: number;
-  armorClass: number;
-  speed: number;
-  darkvisionRange: number;
-  selectedWeaponMasteries?: string[];
-  transportMode: TransportMode;
-  spellcastingAbility?: 'intelligence' | 'wisdom' | 'charisma';
-  spellSlots?: SpellSlots;
-  spellbook?: SpellbookData;
-  limitedUses?: LimitedUses;
-  selectedFightingStyle?: FightingStyle;
-  selectedDivineOrder?: 'Protector' | 'Thaumaturge';
-  selectedDruidOrder?: 'Magician' | 'Warden';
-  selectedWarlockPatron?: string;
-  racialSelections?: Record<string, RacialSelectionData>;
-  featChoices?: {
-    // Store choices made for feats (e.g., selected ability score, spells, etc.)
-    [featId: string]: {
-      selectedAbilityScore?: AbilityScoreName;
-      selectedSpells?: string[];
-      selectedSkills?: string[];
-      selectedWeapons?: string[];
-      selectedTools?: string[];
-      selectedDamageType?: string;
-      [key: string]: any; // Allow for future choice types
-    };
-  };
-  equippedItems: Partial<Record<EquipmentSlotType, Item>>;
-}
-
-export interface CanEquipResult {
-  can: boolean;
-  reason?: string;
-}
-
-export type ArmorCategory = 'Light' | 'Medium' | 'Heavy' | 'Shield';
-
-export interface Mastery {
-  id: string;
-  name: string;
-  description: string;
-}
-
-export type ItemEffect =
-  | { type: 'heal'; value: number; dice?: string }
-  | { type: 'buff'; stat: AbilityScoreName; value: number; duration?: number }
-  | { type: 'damage'; damageType: string; dice: string }
-  | { type: 'restore_resource'; resource: string; amount: number }
-  | { type: 'utility'; description: string }
-  | string; // For backward compatibility temporarily
-
-export interface Item {
-  id: string;
-  name: string;
-  description: string;
-  type: 'weapon' | 'armor' | 'accessory' | 'clothing' | 'consumable' | 'potion' | 'food_drink' | 'poison_toxin' | 'tool' | 'light_source' | 'ammunition' | 'trap' | 'note' | 'book' | 'map' | 'scroll' | 'key' | 'spell_component' | 'crafting_material' | 'treasure';
-  icon?: string;
-  slot?: EquipmentSlotType;
-  effect?: ItemEffect;
-  mastery?: string;
-  category?: string;
-  armorCategory?: ArmorCategory;
-  baseArmorClass?: number;
-  addsDexterityModifier?: boolean;
-  maxDexterityBonus?: number;
-  strengthRequirement?: number;
-  stealthDisadvantage?: boolean;
-  armorClassBonus?: number;
-  damageDice?: string;
-  damageType?: string;
-  properties?: string[];
-  isMartial?: boolean;
-  donTime?: string;
-  doffTime?: string;
-  weight?: number;
-  cost?: string;
-  costInGp?: number;
-  isConsumed?: boolean;
-  substitutable?: boolean;
-  shelfLife?: string;
-  nutritionValue?: number;
-  perishable?: boolean;
-}
-
+// -----------------------------------------------------------------------------
+// World and NPC types
+// -----------------------------------------------------------------------------
 export interface LocationDynamicNpcConfig {
   possibleNpcIds: string[];
   maxSpawnCount: number;
   baseSpawnChance: number;
 }
 
+export interface Exit {
+  direction: string;
+  targetId: string;
+  travelTime?: number;
+  description?: string;
+  isHidden?: boolean;
+}
+
 export interface Location {
   id: string;
   name: string;
   baseDescription: string;
-  exits: { [direction: string]: string };
+  exits: { [direction: string]: string | Exit }; // Allow both string (legacy) and Exit object
   itemIds?: string[];
   npcIds?: string[];
   dynamicNpcConfig?: LocationDynamicNpcConfig;
@@ -469,6 +194,7 @@ export interface Biome {
   id: string;
   name: string;
   color: string;
+  rgbaColor?: string;
   icon?: string;
   description: string;
   passable: boolean;
@@ -489,12 +215,89 @@ export interface MapData {
   tiles: MapTile[][];
 }
 
+export interface PointOfInterest {
+  /** Unique ID to reference this POI within UI elements. */
+  id: string;
+  /** Human readable name shown inside tooltips and legends. */
+  name: string;
+  /** Short description for hover tooltips. */
+  description: string;
+  /** World-map aligned coordinates (tile space, not pixels). */
+  coordinates: { x: number; y: number };
+  /** Emoji or small string icon used on the map surface. */
+  icon: string;
+  /** Category helps the legend group similar markers. */
+  category: 'settlement' | 'landmark' | 'ruin' | 'cave' | 'wilderness';
+  /** Optional link back to a formal Location entry. */
+  locationId?: string;
+}
+
+export interface MapMarker {
+  /** ID of the originating POI or generated marker. */
+  id: string;
+  /** Tile-space coordinates where the marker should render. */
+  coordinates: { x: number; y: number };
+  /** Icon rendered on both the minimap canvas and the large map grid. */
+  icon: string;
+  /** Text label shown in tooltips or alongside the icon. */
+  label: string;
+  /** Optional grouping used by the legend to style or describe the marker. */
+  category?: string;
+  /** Whether the marker should render as "known" (tile discovered or player present). */
+  isDiscovered: boolean;
+  /** Associated Location ID, if any, to aid tooltips. */
+  relatedLocationId?: string;
+}
+
 export enum QuestStatus {
   Active = 'Active',
   Completed = 'Completed',
   Failed = 'Failed'
 }
 
+export interface QuestObjective {
+  id: string;
+  description: string;
+  isCompleted: boolean;
+}
+
+export interface QuestReward {
+  gold?: number;
+  xp?: number;
+  items?: string[]; // Item IDs
+}
+
+export interface Quest {
+  id: string;
+  title: string;
+  description: string;
+  giverId: string; // NPC ID
+  status: QuestStatus;
+  objectives: QuestObjective[];
+  rewards?: QuestReward;
+  dateStarted: number;
+  dateCompleted?: number;
+  /** Optional world-region hint for UI grouping */
+  regionHint?: string;
+  /** Narrative tag such as "Main", "Side", "Guild" for filtering */
+  questType?: 'Main' | 'Side' | 'Guild' | 'Dynamic';
+}
+
+export interface QuestTemplate extends Omit<Quest, 'status' | 'objectives' | 'dateStarted' | 'dateCompleted'> {
+  objectives: Array<Omit<QuestObjective, 'isCompleted'>>;
+  repeatable?: boolean;
+}
+
+export interface GeminiLogEntry {
+  timestamp: Date;
+  functionName: string;
+  prompt: string;
+  response: string;
+}
+
+// -----------------------------------------------------------------------------
+// Crime & notoriety
+// -----------------------------------------------------------------------------
 export enum HeatLevel {
   Unknown = 0,    // No one knows you
   Suspected = 1,  // Rumors, guards watch you
@@ -525,37 +328,9 @@ export interface NotorietyState {
   knownCrimes: Crime[];
 }
 
-export interface QuestObjective {
-  id: string;
-  description: string;
-  isCompleted: boolean;
-}
-
-export interface QuestReward {
-  gold?: number;
-  xp?: number;
-  items?: string[]; // Item IDs
-}
-
-export interface Quest {
-  id: string;
-  title: string;
-  description: string;
-  giverId: string; // NPC ID
-  status: QuestStatus;
-  objectives: QuestObjective[];
-  rewards?: QuestReward;
-  dateStarted: number;
-  dateCompleted?: number;
-}
-
-export interface GeminiLogEntry {
-  timestamp: Date;
-  functionName: string;
-  prompt: string;
-  response: string;
-}
-
+// -----------------------------------------------------------------------------
+// Actions & payloads
+// -----------------------------------------------------------------------------
 export type ActionType =
   | 'move'
   | 'look_around'
@@ -619,7 +394,6 @@ export type ActionType =
   | 'COMPLETE_QUEST'
   | 'TOGGLE_QUEST_LOG'
   | 'PRAY';
-
 
 export enum DiscoveryType {
   LOCATION_DISCOVERY = 'Location Discovery',
@@ -782,6 +556,8 @@ export interface GameState {
   notoriety: NotorietyState;
 
   questLog: Quest[];
+  isQuestLogVisible: boolean;
+  notifications: Notification[];
 
   // Intriguer: Faction System
   factions: Record<string, Faction>; // All active factions in the world
@@ -791,6 +567,9 @@ export interface GameState {
   // Templar: Religion System
   divineFavor: Record<string, DivineFavor>; // Keyed by Deity ID
   temples: Record<string, Temple>; // Keyed by Temple ID (or Location ID)
+
+  /** Town exploration state - present when in VILLAGE_VIEW phase */
+  townState: import('./town').TownState | null;
 }
 
 export interface InspectSubmapTilePayload {
@@ -974,29 +753,7 @@ export interface GlossaryTooltipProps {
   onNavigateToGlossary?: (termId: string) => void;
 }
 
-export interface TempPartyMember {
-  id: string;
-  level: number;
-  classId: string;
-}
-
-export interface SelectableClass {
-  id: string;
-  name: string;
-}
-
-// --- NEW INTERFACE FOR MISSING CHOICES ---
-export interface MissingChoice {
-  id: string; // Unique ID of the choice type (e.g., 'dragonborn_ancestry')
-  label: string; // Display label (e.g., "Draconic Ancestry")
-  description: string;
-  type: 'race' | 'class'; // Source of the missing choice
-  options: { id: string; label: string; description?: string;[key: string]: any }[];
-}
-
-// Village scene integration payloads live here to keep the UI contract
-// explicit. Having a shared type prevents accidental "any" leaks when we send
-// interaction data to higher-level action dispatchers.
+// --- NEW INTERFACE FOR VILLAGE CONTEXT ---
 export interface VillageActionContext {
   worldX: number;
   worldY: number;
@@ -1012,4 +769,14 @@ export interface VillageActionContext {
   integrationTagline: string;
   culturalSignature: string;
   encounterHooks: string[];
+}
+
+// Notifications
+export type NotificationType = 'success' | 'error' | 'info' | 'warning';
+
+export interface Notification {
+  id: string;
+  message: string;
+  type: NotificationType;
+  duration?: number;
 }

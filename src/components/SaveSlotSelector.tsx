@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { AUTO_SAVE_SLOT_KEY, SaveSlotSummary, getSlotStorageKey } from '../services/saveLoadService';
 import { ConfirmationModal } from './ui/ConfirmationModal';
+import { ENV } from '../config/env';
 
 interface SaveSlotSelectorProps {
   slots: SaveSlotSummary[];
@@ -84,10 +85,8 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
 
   useEffect(() => {
     // The dependency axe-core is large, so we only want to load it in development.
-    // Vite's import.meta.env.DEV provides a reliable way to tree-shake this code
-    // from production bundles. The dynamic import() ensures the module isn't loaded
-    // until it's actually needed.
-    if (import.meta.env.DEV && rootRef.current) {
+    // Only run axe in development; ENV.DEV mirrors Vite's dev flag and still tree-shakes.
+    if (ENV.DEV && rootRef.current) {
       const node = rootRef.current;
       import('../utils/testUtils').then(({ runAxe }) => {
         runAxe(node);

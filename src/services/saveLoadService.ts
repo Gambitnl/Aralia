@@ -491,6 +491,7 @@ function removeSlotMetadata(slotId: string) {
   }
 }
 
+// TODO: Guard slot index writes with quota-safe try/catch and fall back to in-memory cache so a full localStorage doesn't crash saveGame().
 function persistSlotIndex(next: SaveSlotSummary[]) {
   SafeStorage.setItem(SLOT_INDEX_KEY, JSON.stringify(next));
   slotIndexCache = [...next];

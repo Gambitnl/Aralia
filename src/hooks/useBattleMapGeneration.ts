@@ -78,6 +78,7 @@ export const generateBattleSetup = (
     let playerSpawnIndex = 0;
     let enemySpawnIndex = 0;
 
+    // TODO: If spawn tiles run out, re-roll config or fall back to nearest walkable tiles so characters never start with undefined positions on dense maps.
     const positionedCharacters = initialCharacters.map(char => {
         let spawnTile;
         if(char.team === 'player' && playerSpawnIndex < playerTiles.length) {

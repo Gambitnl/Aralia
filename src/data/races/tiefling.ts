@@ -3,7 +3,7 @@
  * Defines the data for the Tiefling race in the Aralia RPG, based on Player's Handbook pg. 197.
  * This includes their ID, name, description, traits, and Fiendish Legacy choices.
  */
-import { Race, FiendishLegacy, FiendishLegacyType } from '../../types.ts'; // Path relative to src/data/races/
+import { Race, FiendishLegacy, FiendishLegacyType } from '../../types'; // Path relative to src/data/races/
 
 export const FIENDISH_LEGACIES_DATA: FiendishLegacy[] = [
   {

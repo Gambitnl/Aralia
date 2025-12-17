@@ -4,7 +4,9 @@
 
 ### 1. Complete Spell Template Created
 
-**Location**: `docs/spells/SPELL_TEMPLATE.json`
+**Location**: `docs/tasks/spell-system-overhaul/archive/SPELL_TEMPLATE.json` *(archived)*
+
+> **Note**: The template is archived. Use `docs/spells/SPELL_JSON_EXAMPLES.md` as the primary reference and `src/systems/spells/validation/spellValidator.ts` as the authoritative schema.
 
 This template shows:
 - ALL possible fields a spell can have

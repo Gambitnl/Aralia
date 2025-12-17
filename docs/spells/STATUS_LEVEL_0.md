@@ -27,31 +27,37 @@ This file tracks the migration of Cantrips (Level 0 spells) to the new component
 | Eldritch Blast | eldritch-blast | [D] Data Only | [ ] Not Started | | Warlock signature spell |
 | Elementalism | elementalism | [D] Data Only | [ ] Not Started | | Utility cantrip |
 | Fire Bolt | fire-bolt | [D] Data Only | [ ] Not Started | | Fire damage cantrip |
-| Friends | friends | [ ] Pending | [ ] Not Started | | Social/charm cantrip |
-| Frostbite | frostbite | [ ] Pending | [ ] Not Started | | Cold damage + disadvantage |
-| Green-Flame Blade | green-flame-blade | [ ] Pending | [ ] Not Started | | Melee weapon + AoE |
-| Guidance | guidance | [ ] Pending | [ ] Not Started | | Buff/skill bonus |
-| Light | light | [D] Data Only | [ ] Not Started | | Utility/light source. Reference created. |
-| Lightning Lure | lightning-lure | [ ] Pending | [ ] Not Started | | Lightning + pull effect |
-| Mage Hand | mage-hand | [ ] Pending | [ ] Not Started | | Utility cantrip |
-| Magic Stone | magic-stone | [ ] Pending | [ ] Not Started | | Ranged weapon buff |
-| Mending | mending | [ ] Pending | [ ] Not Started | | Object repair utility |
-| Message | message | [ ] Pending | [ ] Not Started | | Communication utility |
-| Minor Illusion | minor-illusion | [ ] Pending | [ ] Not Started | | Illusion utility |
-| Poison Spray | poison-spray | [ ] Pending | [ ] Not Started | | Poison damage cantrip |
-| Prestidigitation | prestidigitation | [ ] Pending | [ ] Not Started | | Utility cantrip |
-| Produce Flame | produce-flame | [ ] Pending | [ ] Not Started | | Fire damage + light |
-| Ray of Frost | ray-of-frost | [ ] Pending | [ ] Not Started | | Cold damage + slow |
-| Resistance | resistance | [ ] Pending | [ ] Not Started | | Buff/damage reduction |
-| Sacred Flame | sacred-flame | [ ] Pending | [ ] Not Started | | Radiant damage (ignores cover) |
-| Shillelagh | shillelagh | [ ] Pending | [ ] Not Started | | Weapon buff (Druid) |
-| Shocking Grasp | shocking-grasp | [ ] Pending | [ ] Not Started | | Lightning + prevent reactions |
-| Spare the Dying | spare-the-dying | [ ] Pending | [ ] Not Started | | Stabilize dying creature |
-| Starry Wisp | starry-wisp | [ ] Pending | [ ] Not Started | | Radiant damage + reveal invisible |
-| Thaumaturgy | thaumaturgy | [ ] Pending | [ ] Not Started | | Utility cantrip |
-| Thorn Whip | thorn-whip | [ ] Pending | [ ] Not Started | | Piercing damage + pull |
-| Thunderclap | thunderclap | [ ] Pending | [ ] Not Started | | Thunder damage AoE |
-| Toll the Dead | toll-the-dead | [ ] Pending | [ ] Not Started | | Necrotic damage (scales on HP) |
-| True Strike | true-strike | [ ] Pending | [ ] Not Started | | Advantage on next attack |
-| Vicious Mockery | vicious-mockery | [ ] Pending | [ ] Not Started | | Psychic damage + disadvantage |
-| Word of Radiance | word-of-radiance | [ ] Pending | [ ] Not Started | | Radiant damage AoE |
+| Friends | friends | [D] Data Only | [ ] Not Started | | Social/charm cantrip |
+| Frostbite | frostbite | [D] Data Only | [ ] Not Started | | Cold damage + disadvantage |
+| Green-Flame Blade | green-flame-blade | [D] Data Only | [ ] Not Started | | Melee weapon + AoE |
+| Guidance | guidance | [D] Data Only | [ ] Not Started | | Buff/skill bonus |
+| Light | light | [D] Data Only | [ ] Not Started | | Utility/light source |
+| Lightning Lure | lightning-lure | [D] Data Only | [ ] Not Started | | Lightning + pull effect |
+| Mage Hand | mage-hand | [D] Data Only | [ ] Not Started | | Utility cantrip |
+| Magic Stone | magic-stone | [D] Data Only | [ ] Not Started | | Ranged weapon buff |
+| Mending | mending | [D] Data Only | [ ] Not Started | | Object repair utility |
+| Message | message | [D] Data Only | [ ] Not Started | | Communication utility |
+| Mind Sliver | mind-sliver | [D] Data Only | [ ] Not Started | | Psychic damage + save penalty |
+| Minor Illusion | minor-illusion | [D] Data Only | [ ] Not Started | | Illusion utility |
+| Mold Earth | mold-earth | [D] Data Only | [ ] Not Started | | Terrain manipulation utility |
+| Poison Spray | poison-spray | [D] Data Only | [ ] Not Started | | Poison damage cantrip |
+| Prestidigitation | prestidigitation | [D] Data Only | [ ] Not Started | | Utility cantrip |
+| Primal Savagery | primal-savagery | [D] Data Only | [ ] Not Started | | Acid damage melee cantrip |
+| Produce Flame | produce-flame | [D] Data Only | [ ] Not Started | | Fire damage + light |
+| Ray of Frost | ray-of-frost | [D] Data Only | [ ] Not Started | | Cold damage + slow |
+| Resistance | resistance | [D] Data Only | [ ] Not Started | | Buff/damage reduction |
+| Sacred Flame | sacred-flame | [D] Data Only | [ ] Not Started | | Radiant damage (ignores cover) |
+| Sapping Sting | sapping-sting | [D] Data Only | [ ] Not Started | | Necrotic damage + prone |
+| Shape Water | shape-water | [D] Data Only | [ ] Not Started | | Water manipulation utility |
+| Shillelagh | shillelagh | [D] Data Only | [ ] Not Started | | Weapon buff (Druid) |
+| Shocking Grasp | shocking-grasp | [D] Data Only | [ ] Not Started | | Lightning + prevent reactions |
+| Spare the Dying | spare-the-dying | [D] Data Only | [ ] Not Started | | Stabilize dying creature |
+| Starry Wisp | starry-wisp | [D] Data Only | [ ] Not Started | | Radiant damage + reveal invisible |
+| Sword Burst | sword-burst | [D] Data Only | [ ] Not Started | | Force damage AoE |
+| Thaumaturgy | thaumaturgy | [D] Data Only | [ ] Not Started | | Utility cantrip |
+| Thorn Whip | thorn-whip | [D] Data Only | [ ] Not Started | | Piercing damage + pull |
+| Thunderclap | thunderclap | [D] Data Only | [ ] Not Started | | Thunder damage AoE |
+| Toll the Dead | toll-the-dead | [D] Data Only | [ ] Not Started | | Necrotic damage (scales on HP) |
+| True Strike | true-strike | [D] Data Only | [ ] Not Started | | Advantage on next attack |
+| Vicious Mockery | vicious-mockery | [D] Data Only | [ ] Not Started | | Psychic damage + disadvantage |
+| Word of Radiance | word-of-radiance | [D] Data Only | [ ] Not Started | | Radiant damage AoE |

@@ -4,7 +4,7 @@
  * This includes their ID, name, description, and unique traits.
  * Orcs in this version do not have direct ability score bonuses as per the newer PHB style.
  */
-import { Race } from '../../types.ts'; // Path relative to src/data/races/
+import { Race } from '../../types'; // Path relative to src/data/races/
 
 export const ORC_DATA: Race = {
   id: 'orc',

@@ -5,7 +5,7 @@
  * This includes their ID, name, description, and unique traits.
  * ASIs are handled flexibly during character creation, not as fixed racial bonuses.
  */
-import { Race } from '../../types.ts'; // Path relative to src/data/races/
+import { Race } from '../../types'; // Path relative to src/data/races/
 
 // DATA FOR AIR GENASI
 export const AIR_GENASI_DATA: Race = {

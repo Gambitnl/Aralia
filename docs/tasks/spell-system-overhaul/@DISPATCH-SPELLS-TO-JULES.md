@@ -78,6 +78,7 @@ If old file exists at public/data/spells/{id}.json:
 
 ## If You Encounter a Gap
 1. Check gaps/LEVEL-1-GAPS.md first
+<!-- TODO: Parameterize gaps link to gaps/LEVEL-{N}-GAPS.md so prompts stay level-agnostic. -->
 2. Use UTILITY or closest valid type as fallback
 3. Put complex mechanic in description field
 4. Log gap in your Batch File under "## System Gaps & Follow-up"
@@ -139,6 +140,7 @@ CRITICAL REQUIREMENTS:
 5. Create Both JSON and Glossary Files
    - Spell JSON: public/data/spells/level-{N}/[spell-id].json
    - Glossary entry: public/data/glossary/entries/spells/[spell-id].md
+   <!-- TODO: Update glossary path to level-aware (public/data/glossary/entries/spells/level-{N}/{id}.md) to match acceptance criteria. -->
 
 6. Status Updates
    - Do NOT edit shared status files (to avoid conflicts). Record completion inside the active batch file's checklist.

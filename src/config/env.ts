@@ -19,9 +19,9 @@ const RAW_ENV = {
   BASE_URL: import.meta.env.BASE_URL,
   DEV: import.meta.env.DEV,
   // Parse 'true', '1', 'on' as true for VITE_ENABLE_DEV_TOOLS
-  VITE_ENABLE_DEV_TOOLS: ['true', '1', 'on'].includes(
-    (import.meta.env.VITE_ENABLE_DEV_TOOLS || '').toLowerCase()
-  ),
+  VITE_ENABLE_DEV_TOOLS: import.meta.env.VITE_ENABLE_DEV_TOOLS
+    ? ['true', '1', 'on'].includes((import.meta.env.VITE_ENABLE_DEV_TOOLS || '').toLowerCase())
+    : undefined,
 };
 
 /**
@@ -31,16 +31,8 @@ export const ENV: EnvConfig = {
   API_KEY: RAW_ENV.API_KEY,
   BASE_URL: RAW_ENV.BASE_URL,
   DEV: RAW_ENV.DEV,
-  // Default to TRUE if not set, to preserve existing behavior where the flag was hardcoded true.
-  // In a real prod scenario, we might default to false.
-  // However, the previous code was `export const USE_DUMMY_CHARACTER_FOR_DEV = true;`
-  // So we default to true unless explicitly disabled via VITE_ENABLE_DEV_TOOLS='false'.
-  // actually, let's make it configurable. If VITE_ENABLE_DEV_TOOLS is present, use it.
-  // If not present, default to TRUE for now to minimize breakage, OR better:
-  // Default to `DEV` mode.
-  VITE_ENABLE_DEV_TOOLS: import.meta.env.VITE_ENABLE_DEV_TOOLS
-    ? ['true', '1', 'on'].includes((import.meta.env.VITE_ENABLE_DEV_TOOLS || '').toLowerCase())
-    : true, // Legacy default was true.
+  // If not explicitly set, fall back to DEV to mirror previous “always on in dev” behavior.
+  VITE_ENABLE_DEV_TOOLS: RAW_ENV.VITE_ENABLE_DEV_TOOLS ?? RAW_ENV.DEV,
 };
 
 /**
@@ -60,4 +52,12 @@ export function validateEnv() {
     console.error(`Missing required environment variables: ${missing.join(', ')}`);
     // throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
   }
+}
+
+/**
+ * Normalize a relative asset path against the configured BASE_URL.
+ */
+export function assetUrl(path: string): string {
+  // Note: use /^\// not /^\\/ - double backslash breaks esbuild parser
+  return `${ENV.BASE_URL}${path.replace(/^\//, '')}`;
 }

@@ -27,6 +27,11 @@ const ClassNameEnum = z.enum(CLASS_NAMES as [string, ...string[]]);
 
 const SpellRarity = z.enum(["common", "uncommon", "rare", "very_rare", "legendary"]);
 
+const SpellSchool = z.enum([
+  "Abjuration", "Conjuration", "Divination", "Enchantment",
+  "Evocation", "Illusion", "Necromancy", "Transmutation"
+]);
+
 const SavingThrowAbility = z.enum(["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]);
 
 const CastingTime = z.object({
@@ -61,6 +66,40 @@ const Duration = z.object({
   value: z.number().optional(),
   unit: z.enum(["round", "minute", "hour", "day"]).optional(),
   concentration: z.boolean(),
+});
+
+// Targeting Schema
+const ScalableNumber = z.union([
+  z.number(),
+  z.object({
+    base: z.number(),
+    scaling: z.object({
+      type: z.enum(["character_level", "slot_level"]),
+      thresholds: z.record(z.string(), z.number()) // e.g. {"5": 2, "11": 3, "17": 4}
+    })
+  })
+]);
+
+const TargetingAreaOfEffect = z.object({
+  shape: z.enum(["Cone", "Cube", "Cylinder", "Line", "Sphere", "Square"]),
+  size: z.number(),
+  height: z.number().optional()
+});
+
+const ValidTargetType = z.enum([
+  "self", "creatures", "allies", "enemies", "objects", "point", "ground"
+]);
+
+const Targeting = z.object({
+  type: z.enum(["self", "single", "multi", "area", "melee", "ranged", "point"]),
+  range: z.number().optional(),
+  maxTargets: ScalableNumber.optional(),
+  validTargets: z.array(ValidTargetType),
+  lineOfSight: z.boolean().optional(),
+  areaOfEffect: TargetingAreaOfEffect.optional(),
+  // Legacy fields (deprecated, use areaOfEffect instead)
+  shape: z.enum(["sphere", "cone", "cube", "line", "cylinder"]).optional(),
+  radius: z.number().optional()
 });
 
 const EffectDuration = z.object({
@@ -423,15 +462,18 @@ export const SpellValidator = z.object({
   id: z.string(),
   name: z.string(),
   level: z.number(),
-  school: z.string(),
+  school: SpellSchool,
+  source: z.string().optional(),
+  legacy: z.boolean().optional(),
   classes: z.array(ClassNameEnum),
   ritual: z.boolean().optional(),
   rarity: SpellRarity.optional(),
+  attackType: z.enum(["melee", "ranged"]).optional(),
   castingTime: CastingTime,
   range: Range,
   components: Components,
   duration: Duration,
-  targeting: z.any(),
+  targeting: Targeting,
   effects: z.array(SpellEffect),
   arbitrationType: z.string().optional(),
   description: z.string(),
