@@ -13,6 +13,14 @@
  * - src/hooks/actions/handleMovement.ts - Triggers events during movement
  */
 
+export interface Discovery {
+  id: string;
+  name: string;
+  type: string; // 'landmark', 'resource', 'secret'
+  description: string;
+  coordinates: { x: number; y: number };
+}
+
 /**
  * Effect that can be applied when a travel event occurs.
  * Currently supports travel delays, with room for future expansion
@@ -22,6 +30,7 @@ export interface TravelEventEffect {
   type: 'delay' | 'damage' | 'buff' | 'discovery';
   amount: number;
   description?: string;
+  data?: Discovery; // For 'discovery' type
 }
 
 /**
