@@ -15,6 +15,7 @@ import { handleGossipEvent } from './handleWorldEvents';
 import { getSubmapTileInfo } from '../../utils/submapUtils';
 import { INITIAL_QUESTS } from '../../data/quests';
 import { generateTravelEvent } from '../../services/travelEventService';
+import { getTimeModifiers } from '../../utils/timeUtils';
 
 interface HandleMovementProps {
   action: Action;
@@ -69,6 +70,8 @@ export async function handleMovement({
   let activeDynamicNpcIdsForNewLocation: string[] | null = null;
   let timeToAdvanceSeconds = 0;
   let movedToNewNamedLocation: Location | null = null;
+
+  const timeModifiers = getTimeModifiers(gameState.gameTime);
 
   let descriptionGenerationFn: (() => Promise<GeminiService.StandardizedResult<GeminiService.GeminiTextData>>) | null = null;
   let geminiFunctionName = '';
@@ -315,6 +318,18 @@ export async function handleMovement({
     } else if (result.error) {
       addMessage("There was an issue describing your new surroundings.", 'system');
       console.error("Gemini Error during movement description:", result.error);
+    }
+  }
+
+  // Apply Time/Season modifiers to travel time
+  if (timeToAdvanceSeconds > 0) {
+    timeToAdvanceSeconds = Math.round(timeToAdvanceSeconds * timeModifiers.travelCostMultiplier);
+  }
+
+  if (timeModifiers.description && timeModifiers.travelCostMultiplier > 1.0 && timeToAdvanceSeconds > 0) {
+    // Only show the description occasionally to avoid spamming.
+    if (Math.random() < 0.2) {
+      addMessage(timeModifiers.description, 'system');
     }
   }
 
