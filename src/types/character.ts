@@ -115,6 +115,8 @@ export interface Race {
   description: string;
   abilityBonuses?: RacialAbilityBonus[];
   traits: string[];
+  /** Armor proficiency grants (e.g., Mountain Dwarf). Values: 'light armor', 'medium armor', 'heavy armor', 'shields'. */
+  armorProficiencies?: string[];
   elvenLineages?: ElvenLineage[];
   gnomeSubraces?: GnomeSubrace[];
   giantAncestryChoices?: GiantAncestryBenefit[];
@@ -265,6 +267,9 @@ export interface Feat {
     savingThrowProficiencies?: AbilityScoreName[];
     /** If true, saving throw proficiency matches the selected ability score (for Resilient feat). */
     savingThrowLinkedToAbility?: boolean;
+
+    /** Armor proficiency grants (e.g., Lightly Armored). Values: 'light armor', 'medium armor', 'heavy armor', 'shields'. */
+    armorProficiencies?: string[];
 
     /** Damage types player can choose from (e.g., Elemental Adept). TODO: Implement damage type selection UI */
     selectableDamageTypes?: string[];

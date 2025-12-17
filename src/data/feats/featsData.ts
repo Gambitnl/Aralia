@@ -318,6 +318,7 @@ export const FEATS_DATA: Feat[] = [
     description: 'Gain proficiency with light armor and improve Dexterity.',
     benefits: {
       abilityScoreIncrease: { Dexterity: 1 },
+      armorProficiencies: ['light armor'],
     },
   },
   {
@@ -354,6 +355,7 @@ export const FEATS_DATA: Feat[] = [
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Strength', 'Dexterity'],
+      armorProficiencies: ['heavy armor'],
     },
   },
   {
@@ -364,6 +366,7 @@ export const FEATS_DATA: Feat[] = [
     benefits: {
       abilityScoreIncrease: {},
       selectableAbilityScores: ['Strength', 'Dexterity'],
+      armorProficiencies: ['medium armor', 'shields'],
     },
   },
   {

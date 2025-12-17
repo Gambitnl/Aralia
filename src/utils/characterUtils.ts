@@ -103,10 +103,29 @@ export const getArmorCategoryHierarchy = (category?: ArmorCategory): number => {
  * @returns {ArmorProficiencyLevel} The highest level of armor proficiency.
  */
 export const getCharacterMaxArmorProficiency = (character: PlayerCharacter): ArmorProficiencyLevel => {
-  const profs = character.class.armorProficiencies.map(p => p.toLowerCase());
-  if (profs.includes('all armor') || profs.includes('heavy armor')) return 'heavy';
-  if (profs.includes('medium armor')) return 'medium';
-  if (profs.includes('light armor')) return 'light';
+  // 1. Gather proficiencies from Class
+  const profs = new Set(character.class.armorProficiencies.map(p => p.toLowerCase()));
+
+  // 2. Gather proficiencies from Race (e.g. Mountain Dwarf)
+  if (character.race.armorProficiencies) {
+    character.race.armorProficiencies.forEach(p => profs.add(p.toLowerCase()));
+  }
+
+  // 3. Gather proficiencies from Feats
+  if (character.feats) {
+    character.feats.forEach(featId => {
+      const feat = FEATS_DATA.find(f => f.id === featId);
+      if (feat && feat.benefits?.armorProficiencies) {
+        feat.benefits.armorProficiencies.forEach(p => profs.add(p.toLowerCase()));
+      }
+    });
+  }
+
+  // 4. Determine Max Level
+  if (profs.has('all armor') || profs.has('heavy armor')) return 'heavy';
+  if (profs.has('medium armor')) return 'medium';
+  if (profs.has('light armor')) return 'light';
+
   return 'unarmored';
 };
 
