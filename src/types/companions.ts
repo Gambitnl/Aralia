@@ -6,6 +6,7 @@
  * Defines the core types for the Companion and Relationship systems.
  */
 
+// Core types for companion logic
 import { NPC } from './index';
 
 export type RelationshipLevel = 'stranger' | 'acquaintance' | 'friend' | 'close' | 'devoted' | 'romance' | 'rival' | 'enemy';

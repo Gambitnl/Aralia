@@ -188,6 +188,11 @@ export interface GameMessage {
   text: string;
   sender: 'system' | 'player' | 'npc';
   timestamp: Date;
+  metadata?: {
+    companionId?: string;
+    reactionType?: string;
+    [key: string]: any;
+  };
 }
 
 export interface Biome {

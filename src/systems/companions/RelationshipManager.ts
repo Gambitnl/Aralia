@@ -6,6 +6,7 @@
  * Manages companion relationships, approval changes, and loyalty checks.
  */
 
+// Logic for companion approval and relationship progression
 import { Companion, RelationshipLevel, ApprovalEvent, RelationshipEvent } from '../../types/companions';
 import { GameState } from '../../types';
 
