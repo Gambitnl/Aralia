@@ -262,6 +262,7 @@ export const SummonedEntityStatBlock = z.object({
   }).optional(),
   senses: z.array(z.string()).optional(),
   skills: z.record(z.number()).optional(),
+  cr: z.union([z.number(), z.string()]).optional(),
 });
 
 const SummonSpecialAction = z.object({
