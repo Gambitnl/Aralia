@@ -242,12 +242,27 @@ export async function handleMovement({
         timeToAdvanceSeconds = 3600;
       }
 
-      const travelEvent = generateTravelEvent(targetBiome.id);
+      const travelEvent = generateTravelEvent(targetBiome.id, undefined, { worldSeed: gameState.worldSeed, x: targetWorldMapX, y: targetWorldMapY });
       if (travelEvent) {
         addMessage(travelEvent.description, 'system');
+
         if (travelEvent.effect?.type === 'delay') {
           timeToAdvanceSeconds += (travelEvent.effect.amount * 60);
           addMessage(`(Travel delayed by ${travelEvent.effect.amount} minutes)`, 'system');
+        } else if (travelEvent.effect?.type === 'discovery' && travelEvent.effect.data) {
+          // Log the discovery in the game state (UI log/journal)
+          // We construct a Location object to satisfy logDiscovery type signature,
+          // even though it's a procedural landmark
+          const discoveryLocation: Location = {
+            id: travelEvent.effect.data.id,
+            name: travelEvent.effect.data.name,
+            baseDescription: travelEvent.effect.data.description,
+            biomeId: targetBiome.id,
+            mapCoordinates: { x: targetWorldMapX, y: targetWorldMapY },
+            exits: {},
+          };
+          logDiscovery(discoveryLocation);
+          addMessage(`Map updated: ${travelEvent.effect.data.name} recorded.`, 'system');
         }
       }
 

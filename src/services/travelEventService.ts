@@ -18,8 +18,9 @@
  * to work with biome variants without needing duplicate event definitions.
  */
 
-import { TravelEvent } from '../types/exploration';
+import { TravelEvent, Discovery } from '../types/exploration';
 import { TRAVEL_EVENTS } from '../data/travelEvents';
+import { generateLandmark } from './landmarkService';
 
 /** Default probability of a travel event occurring (30%) */
 const DEFAULT_EVENT_CHANCE = 0.3;
@@ -28,12 +29,43 @@ const DEFAULT_EVENT_CHANCE = 0.3;
  * Generates a travel event based on the current biome
  * @param biomeId - The biome identifier (e.g., 'forest', 'mountain', 'swamp')
  * @param eventChance - Optional override for event probability (0-1). Default is 0.3
+ * @param worldContext - Optional context for generating deterministic discoveries
  * @returns A TravelEvent or null if no event occurs
  */
 export function generateTravelEvent(
   biomeId: string,
-  eventChance: number = DEFAULT_EVENT_CHANCE
+  eventChance: number = DEFAULT_EVENT_CHANCE,
+  worldContext?: { worldSeed: number; x: number; y: number }
 ): TravelEvent | null {
+
+  // 1. Check for Discoveries first (if context provided)
+  // This allows landmarks to override random events, making them feel significant
+  if (worldContext) {
+    const landmark = generateLandmark(worldContext.worldSeed, { x: worldContext.x, y: worldContext.y }, biomeId);
+    if (landmark) {
+      const discovery: Discovery = {
+        id: landmark.id,
+        name: landmark.name,
+        type: 'landmark',
+        description: landmark.description,
+        coordinates: { x: worldContext.x, y: worldContext.y },
+      };
+
+      return {
+        id: `discovery_${landmark.id}`,
+        description: `You discovered ${landmark.name}! ${landmark.description}`,
+        effect: {
+          type: 'discovery',
+          amount: 0,
+          description: `Discovered ${landmark.name}`,
+          data: discovery,
+        },
+        weight: 100, // Always returned if generated
+      };
+    }
+  }
+
+  // 2. Standard Random Events
   // Check if an event should occur based on chance
   if (Math.random() > eventChance) {
     return null;

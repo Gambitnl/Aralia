@@ -64,8 +64,15 @@ export function calculateAffectedTiles(params: AoEParams): Position[] {
 }
 
 /**
- * Calculates tiles within a radius (Sphere/Circle).
- * Uses center-to-center Euclidean distance check <= radius.
+ * Calculates tiles within a radius for a Sphere/Circle AoE.
+ *
+ * Uses Chebyshev distance (5-5-5 rule) instead of Euclidean distance to align
+ * with the grid movement system. This results in a square area of effect on
+ * the grid, ensuring that diagonals cost the same as cardinals (1-1-1).
+ *
+ * @param origin - The center point of the sphere
+ * @param radius - The radius in feet
+ * @returns Array of affected grid positions
  */
 function getSphereAoE(origin: Position, radius: number): Position[] {
     const affected: Position[] = [];

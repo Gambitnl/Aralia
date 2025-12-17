@@ -75,6 +75,7 @@ export * from './deity';
 export * from './factions';
 export * from './companions';
 export * from './planes';
+export * from './crime';
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
@@ -296,36 +297,15 @@ export interface GeminiLogEntry {
 }
 
 // -----------------------------------------------------------------------------
-// Crime & notoriety
+// Crime & notoriety (Legacy - migrating to src/types/crime)
 // -----------------------------------------------------------------------------
-export enum HeatLevel {
-  Unknown = 0,    // No one knows you
-  Suspected = 1,  // Rumors, guards watch you
-  Wanted = 2,     // Active arrest on sight
-  Hunted = 3,     // Bounty hunters dispatched
-}
-
-export enum CrimeType {
-  Theft = 'Theft',
-  Assault = 'Assault',
-  Murder = 'Murder',
-  Trespassing = 'Trespassing',
-  Vandalism = 'Vandalism',
-}
-
-export interface Crime {
-  id: string;
-  type: CrimeType;
-  locationId: string;
-  timestamp: number;
-  severity: number; // 1-10 scale
-  witnessed: boolean;
-}
+import { Crime, HeatLevel, Bounty } from './crime';
 
 export interface NotorietyState {
   globalHeat: number;
   localHeat: Record<string, number>; // locationId -> heat level
   knownCrimes: Crime[];
+  bounties: Bounty[];
 }
 
 // -----------------------------------------------------------------------------
