@@ -53,6 +53,7 @@ export interface Faction {
   // What this faction values/hates (for reputation changes)
   values: string[];
   hates: string[];
+  services?: string[]; // Services offered (e.g., 'fence', 'forgery')
 }
 
 export interface PlayerFactionStanding {

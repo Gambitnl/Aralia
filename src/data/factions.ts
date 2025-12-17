@@ -58,7 +58,8 @@ export const FACTIONS: Record<string, Faction> = {
         enemies: ['iron_ledger', 'house_vane'],
         rivals: [],
         values: ['secrecy', 'loyalty', 'cunning'],
-        hates: ['snitches', 'law_enforcement', 'exposure']
+        hates: ['snitches', 'law_enforcement', 'exposure'],
+        services: ['fence', 'forgery', 'safehouse']
     },
     'house_vane': {
         id: 'house_vane',
