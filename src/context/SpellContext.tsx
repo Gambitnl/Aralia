@@ -28,6 +28,7 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         // Previously we used strict batching, but that caused head-of-line blocking.
         // Now we use a sliding window (pool) for faster total load times.
         const concurrencyLimit = 50;
+        // TODO: Validate manifest shape before Object.entries; if missing/invalid, surface a clear error instead of throwing.
         const spellEntries = Object.entries(manifest);
         const collectedIssues: string[] = [];
 

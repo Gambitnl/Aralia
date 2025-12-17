@@ -36,9 +36,11 @@
   },
   "targeting": {
     "type": "area",
-    "shape": "sphere",
     "range": 60,
-    "radius": 5,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 5
+    },
     "validTargets": [
       "creatures"
     ],

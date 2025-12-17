@@ -14,6 +14,7 @@ interface EnvConfig {
 
 // Access raw environment variables
 // Note: process.env is shimmed in vite.config.ts for API_KEY
+// TODO: Avoid shipping API_KEY to the client bundle; route AI calls through a server/proxy and leave ENV.API_KEY empty in browser builds.
 const RAW_ENV = {
   API_KEY: process.env.API_KEY || process.env.GEMINI_API_KEY || '',
   BASE_URL: import.meta.env.BASE_URL,
@@ -59,5 +60,6 @@ export function validateEnv() {
  */
 export function assetUrl(path: string): string {
   // Note: use /^\// not /^\\/ - double backslash breaks esbuild parser
+  // TODO: Normalize ENV.BASE_URL once (ensure trailing slash) and bypass prefixing when path is absolute (http/https) to avoid malformed URLs.
   return `${ENV.BASE_URL}${path.replace(/^\//, '')}`;
 }

@@ -8,10 +8,10 @@ Technical standards for all personas. Start here, dive into guides as needed.
 
 | Command | Purpose |
 |---------|---------|
-| `pnpm dev` | Start dev server |
-| `pnpm build` | Production build (includes tsc) |
-| `pnpm test` | Run tests (Vitest) |
-| `pnpm lint` | ESLint |
+| `npm run dev` | Start dev server |
+| `npm run build` | Production build (includes tsc) |
+| `npm test` | Run tests (Vitest) |
+| `npm run lint` | ESLint |
 
 ---
 
@@ -21,7 +21,7 @@ Technical standards for all personas. Start here, dive into guides as needed.
 |-------|------------|
 | Framework | React 19 + TypeScript |
 | Bundler | Vite |
-| Package Manager | pnpm |
+| Package Manager | npm (**DO NOT use pnpm**) |
 | Styling | Tailwind CSS |
 | AI | Google Gemini (`@google/genai`) |
 | State | React hooks + context |

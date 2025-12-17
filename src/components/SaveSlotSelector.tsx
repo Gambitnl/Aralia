@@ -85,7 +85,7 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
 
   useEffect(() => {
     // The dependency axe-core is large, so we only want to load it in development.
-    // Only run axe in development; ENV.DEV mirrors Vite's dev flag and still tree-shakes.
+    // Only run axe in development; ensure ENV.DEV tree-shakes like import.meta.env.DEV so axe-core stays out of production bundles.
     if (ENV.DEV && rootRef.current) {
       const node = rootRef.current;
       import('../utils/testUtils').then(({ runAxe }) => {

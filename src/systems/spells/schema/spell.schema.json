@@ -14,7 +14,23 @@
       "type": "number"
     },
     "school": {
+      "type": "string",
+      "enum": [
+        "Abjuration",
+        "Conjuration",
+        "Divination",
+        "Enchantment",
+        "Evocation",
+        "Illusion",
+        "Necromancy",
+        "Transmutation"
+      ]
+    },
+    "source": {
       "type": "string"
+    },
+    "legacy": {
+      "type": "boolean"
     },
     "classes": {
       "type": "array",
@@ -27,7 +43,20 @@
     },
     "rarity": {
       "type": "string",
-      "enum": ["common", "uncommon", "rare", "very_rare", "legendary"]
+      "enum": [
+        "common",
+        "uncommon",
+        "rare",
+        "very_rare",
+        "legendary"
+      ]
+    },
+    "attackType": {
+      "type": "string",
+      "enum": [
+        "melee",
+        "ranged"
+      ]
     },
     "castingTime": {
       "type": "object",
@@ -37,14 +66,25 @@
         },
         "unit": {
           "type": "string",
-          "enum": ["action", "bonus_action", "reaction", "minute", "hour", "special"]
+          "enum": [
+            "action",
+            "bonus_action",
+            "reaction",
+            "minute",
+            "hour",
+            "special"
+          ]
         },
         "combatCost": {
           "type": "object",
           "properties": {
             "type": {
               "type": "string",
-              "enum": ["action", "bonus_action", "reaction"]
+              "enum": [
+                "action",
+                "bonus_action",
+                "reaction"
+              ]
             },
             "condition": {
               "type": "string"
@@ -59,7 +99,10 @@
             },
             "unit": {
               "type": "string",
-              "enum": ["minute", "hour"]
+              "enum": [
+                "minute",
+                "hour"
+              ]
             }
           }
         }
@@ -70,7 +113,12 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["self", "touch", "ranged", "special"]
+          "enum": [
+            "self",
+            "touch",
+            "ranged",
+            "special"
+          ]
         },
         "distance": {
           "type": "number"
@@ -105,14 +153,25 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["instantaneous", "timed", "special", "until_dispelled", "until_dispelled_or_triggered"]
+          "enum": [
+            "instantaneous",
+            "timed",
+            "special",
+            "until_dispelled",
+            "until_dispelled_or_triggered"
+          ]
         },
         "value": {
           "type": "number"
         },
         "unit": {
           "type": "string",
-          "enum": ["round", "minute", "hour", "day"]
+          "enum": [
+            "round",
+            "minute",
+            "hour",
+            "day"
+          ]
         },
         "concentration": {
           "type": "boolean"
@@ -120,7 +179,126 @@
       }
     },
     "targeting": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "self",
+            "single",
+            "multi",
+            "area",
+            "melee",
+            "ranged",
+            "point"
+          ]
+        },
+        "range": {
+          "type": "number"
+        },
+        "maxTargets": {
+          "oneOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "number"
+                },
+                "scaling": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "character_level",
+                        "slot_level"
+                      ]
+                    },
+                    "thresholds": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "thresholds"
+                  ]
+                }
+              },
+              "required": [
+                "base",
+                "scaling"
+              ]
+            }
+          ]
+        },
+        "validTargets": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "self",
+              "creatures",
+              "allies",
+              "enemies",
+              "objects",
+              "point",
+              "ground"
+            ]
+          }
+        },
+        "lineOfSight": {
+          "type": "boolean"
+        },
+        "areaOfEffect": {
+          "type": "object",
+          "properties": {
+            "shape": {
+              "type": "string",
+              "enum": [
+                "Cone",
+                "Cube",
+                "Cylinder",
+                "Line",
+                "Sphere",
+                "Square"
+              ]
+            },
+            "size": {
+              "type": "number"
+            },
+            "height": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "shape",
+            "size"
+          ]
+        },
+        "shape": {
+          "type": "string",
+          "enum": [
+            "sphere",
+            "cone",
+            "cube",
+            "line",
+            "cylinder"
+          ]
+        },
+        "radius": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "validTargets"
+      ]
     },
     "effects": {
       "type": "array",
@@ -169,7 +347,20 @@
       }
     }
   },
-  "required": ["id", "name", "level", "school", "classes", "castingTime", "range", "components", "duration", "targeting", "effects", "description"],
+  "required": [
+    "id",
+    "name",
+    "level",
+    "school",
+    "classes",
+    "castingTime",
+    "range",
+    "components",
+    "duration",
+    "targeting",
+    "effects",
+    "description"
+  ],
   "definitions": {
     "DamageEffect": {
       "type": "object",
@@ -178,19 +369,25 @@
           "const": "DAMAGE"
         },
         "damage": {
-            "type": "object",
-            "properties": {
-                "dice": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                }
+          "type": "object",
+          "properties": {
+            "dice": {
+              "type": "string"
             },
-            "required": ["dice", "type"]
+            "type": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "dice",
+            "type"
+          ]
         }
       },
-      "required": ["type", "damage"]
+      "required": [
+        "type",
+        "damage"
+      ]
     },
     "HealingEffect": {
       "type": "object",
@@ -199,19 +396,24 @@
           "const": "HEALING"
         },
         "healing": {
-            "type": "object",
-            "properties": {
-                "dice": {
-                    "type": "string"
-                },
-                "isTemporaryHp": {
-                    "type": "boolean"
-                }
+          "type": "object",
+          "properties": {
+            "dice": {
+              "type": "string"
             },
-            "required": ["dice"]
+            "isTemporaryHp": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "dice"
+          ]
         }
       },
-      "required": ["type", "healing"]
+      "required": [
+        "type",
+        "healing"
+      ]
     },
     "StatusConditionEffect": {
       "type": "object",
@@ -220,22 +422,28 @@
           "const": "STATUS_CONDITION"
         },
         "statusCondition": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "duration": {
-                    "type": "object"
-                },
-                "level": {
-                    "type": "number"
-                }
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
             },
-            "required": ["name", "duration"]
+            "duration": {
+              "type": "object"
+            },
+            "level": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "name",
+            "duration"
+          ]
         }
       },
-      "required": ["type", "statusCondition"]
+      "required": [
+        "type",
+        "statusCondition"
+      ]
     },
     "MovementEffect": {
       "type": "object",
@@ -245,7 +453,13 @@
         },
         "movementType": {
           "type": "string",
-          "enum": ["push", "pull", "teleport", "speed_change", "stop"]
+          "enum": [
+            "push",
+            "pull",
+            "teleport",
+            "speed_change",
+            "stop"
+          ]
         },
         "distance": {
           "type": "number"
@@ -270,7 +484,11 @@
           "type": "object"
         }
       },
-      "required": ["type", "movementType", "duration"]
+      "required": [
+        "type",
+        "movementType",
+        "duration"
+      ]
     },
     "SummoningEffect": {
       "type": "object",
@@ -280,7 +498,10 @@
         },
         "summonType": {
           "type": "string",
-          "enum": ["creature", "object"]
+          "enum": [
+            "creature",
+            "object"
+          ]
         },
         "creatureId": {
           "type": "string"
@@ -295,7 +516,12 @@
           "type": "object"
         }
       },
-      "required": ["type", "summonType", "count", "duration"]
+      "required": [
+        "type",
+        "summonType",
+        "count",
+        "duration"
+      ]
     },
     "TerrainEffect": {
       "type": "object",
@@ -305,7 +531,13 @@
         },
         "terrainType": {
           "type": "string",
-          "enum": ["difficult", "obscuring", "damaging", "blocking", "wall"]
+          "enum": [
+            "difficult",
+            "obscuring",
+            "damaging",
+            "blocking",
+            "wall"
+          ]
         },
         "areaOfEffect": {
           "type": "object"
@@ -320,7 +552,12 @@
           "type": "object"
         }
       },
-      "required": ["type", "terrainType", "areaOfEffect", "duration"]
+      "required": [
+        "type",
+        "terrainType",
+        "areaOfEffect",
+        "duration"
+      ]
     },
     "UtilityEffect": {
       "type": "object",
@@ -330,13 +567,25 @@
         },
         "utilityType": {
           "type": "string",
-          "enum": ["light", "communication", "creation", "information", "control", "sensory", "other"]
+          "enum": [
+            "light",
+            "communication",
+            "creation",
+            "information",
+            "control",
+            "sensory",
+            "other"
+          ]
         },
         "description": {
           "type": "string"
         }
       },
-      "required": ["type", "utilityType", "description"]
+      "required": [
+        "type",
+        "utilityType",
+        "description"
+      ]
     },
     "DefensiveEffect": {
       "type": "object",
@@ -346,7 +595,13 @@
         },
         "defenseType": {
           "type": "string",
-          "enum": ["ac_bonus", "resistance", "immunity", "temporary_hp", "advantage_on_saves"]
+          "enum": [
+            "ac_bonus",
+            "resistance",
+            "immunity",
+            "temporary_hp",
+            "advantage_on_saves"
+          ]
         },
         "value": {
           "type": "number"
@@ -367,7 +622,11 @@
           "type": "object"
         }
       },
-      "required": ["type", "defenseType", "duration"]
+      "required": [
+        "type",
+        "defenseType",
+        "duration"
+      ]
     }
   }
 }
