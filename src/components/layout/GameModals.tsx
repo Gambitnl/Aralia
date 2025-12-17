@@ -43,7 +43,7 @@ import PartyOverlay from '../PartyOverlay';
 import PartyEditorModal from '../PartyEditorModal';
 import GeminiLogViewer from '../GeminiLogViewer';
 import NpcInteractionTestModal from '../NpcInteractionTestModal';
-import LogbookPane from '../LogbookPane';
+import DossierPane from '../DossierPane';
 import DiscoveryLogPane from '../DiscoveryLogPane';
 import Glossary from '../Glossary';
 import EncounterModal from '../EncounterModal';
@@ -254,7 +254,7 @@ const GameModals: React.FC<GameModalsProps> = ({
             {/* Character Logbook (Journal) */}
             {gameState.isLogbookVisible && (
                 <ErrorBoundary fallbackMessage="Error in Character Logbook.">
-                    <LogbookPane
+                    <DossierPane
                         isOpen={gameState.isLogbookVisible}
                         onClose={() => onAction({ type: 'TOGGLE_LOGBOOK', label: 'Close Logbook' })}
                         metNpcIds={gameState.metNpcIds}
