@@ -4,7 +4,9 @@ import {
     DivineFavor,
     DeityAction,
     Temple,
-    TempleService
+    TempleService,
+    DeityReaction,
+    Blessing
 } from '../types';
 import { DEITIES } from '../data/deities';
 
@@ -32,6 +34,51 @@ export const calculateFavorChange = (
             }
         ]
     };
+};
+
+/**
+ * Grants a blessing to the favor record.
+ */
+export const grantBlessing = (
+    currentFavor: DivineFavor,
+    blessing: Blessing
+): DivineFavor => {
+    return {
+        ...currentFavor,
+        blessings: [...currentFavor.blessings, blessing]
+    };
+};
+
+/**
+ * Evaluates an action trigger against a deity's preferences.
+ * Returns the DeityAction object if the deity cares about this trigger, or null.
+ */
+export const evaluateAction = (
+    deityId: string,
+    actionTrigger: string
+): DeityAction | null => {
+    const deity = getDeity(deityId);
+    if (!deity) return null;
+
+    // Check approvals
+    const approval = deity.approves.find(d => d.trigger === actionTrigger);
+    if (approval) {
+        return {
+            description: approval.description,
+            favorChange: approval.favorChange
+        };
+    }
+
+    // Check forbiddances
+    const forbiddance = deity.forbids.find(d => d.trigger === actionTrigger);
+    if (forbiddance) {
+        return {
+            description: forbiddance.description,
+            favorChange: forbiddance.favorChange
+        };
+    }
+
+    return null;
 };
 
 /**
