@@ -21,6 +21,7 @@ export * from './spells';
 export * from './deity';
 export * from './factions';
 export * from './companions';
+export * from './planes';
 
 export enum GamePhase {
   MAIN_MENU,
@@ -379,6 +380,7 @@ export interface Location {
   mapCoordinates: { x: number; y: number };
   biomeId: string;
   gossipLinks?: string[];
+  planeId?: string; // Optional, defaults to 'material'
 }
 
 export interface TTSVoiceOption {

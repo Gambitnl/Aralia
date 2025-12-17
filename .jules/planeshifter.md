@@ -1,0 +1,1 @@
+## 2024-05-22 - Planar System Architecture **Learning:** Established a data-driven planar system where `Plane` objects define physics, magic, and emotional valence, linked to `Location` via `planeId`. **Action:** When adding new planes, define them in `src/data/planes.ts` and ensure distinct `atmosphereDescription` and `traits` to maintain unique mechanical identities.
