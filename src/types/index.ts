@@ -66,6 +66,7 @@ import { Faction, PlayerFactionStanding } from './factions';
 import { Companion } from './companions';
 import { DivineFavor, Temple } from './deity';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
+import { UnderdarkState } from './underdark';
 
 export * from './core';
 export * from './items';
@@ -75,6 +76,7 @@ export * from './deity';
 export * from './factions';
 export * from './companions';
 export * from './planes';
+export * from './underdark';
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
@@ -393,7 +395,12 @@ export type ActionType =
   | 'UPDATE_QUEST_OBJECTIVE'
   | 'COMPLETE_QUEST'
   | 'TOGGLE_QUEST_LOG'
-  | 'PRAY';
+  | 'PRAY'
+  // Underdark Actions
+  | 'ADD_LIGHT_SOURCE'
+  | 'REMOVE_LIGHT_SOURCE'
+  | 'TICK_LIGHT_SOURCES'
+  | 'SET_DEPTH';
 
 export enum DiscoveryType {
   LOCATION_DISCOVERY = 'Location Discovery',
@@ -568,6 +575,9 @@ export interface GameState {
   divineFavor: Record<string, DivineFavor>; // Keyed by Deity ID
   temples: Record<string, Temple>; // Keyed by Temple ID (or Location ID)
 
+  // Depthcrawler: Underdark System
+  underdark: UnderdarkState;
+
   /** Town exploration state - present when in VILLAGE_VIEW phase */
   townState: import('./town').TownState | null;
 }
@@ -679,6 +689,10 @@ export interface Action {
     objectiveId?: string;
     isCompleted?: boolean;
     questId?: string;
+
+    // For Underdark
+    lightSource?: any; // To be refined
+    depth?: number;
 
     [key: string]: any;
   };

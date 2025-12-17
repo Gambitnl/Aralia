@@ -28,6 +28,7 @@ import { npcReducer } from './reducers/npcReducer';
 import { questReducer } from './reducers/questReducer';
 import { townReducer } from './reducers/townReducer';
 import { crimeReducer } from './reducers/crimeReducer';
+import { underdarkReducer, initialUnderdarkState } from './reducers/underdarkReducer';
 
 
 // Helper function to create a date at 07:00 AM on an arbitrary fixed date
@@ -146,6 +147,7 @@ export const initialGameState: GameState = {
     // Faction System
     factions: FACTIONS,
     playerFactionStandings: INITIAL_FACTION_STANDINGS,
+    companions: {},
 
     // Religion System
     divineFavor: DEITIES.reduce((acc, deity) => {
@@ -156,6 +158,9 @@ export const initialGameState: GameState = {
         acc[temple.id] = temple;
         return acc;
     }, {} as GameState['temples']),
+
+    // Underdark System
+    underdark: initialUnderdarkState,
 };
 
 
@@ -347,6 +352,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 isQuestLogVisible: false,
                 notoriety: loadedState.notoriety || { globalHeat: 0, localHeat: {}, knownCrimes: [] },
                 notifications: [],
+                underdark: loadedState.underdark || initialUnderdarkState, // Ensure underdark exists on load
             };
         }
 
@@ -499,6 +505,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ...questReducer(state, action),
                 ...townReducer(state, action),
                 ...crimeReducer(state, action),
+                ...underdarkReducer(state, action),
             };
 
             if (Object.keys(changes).length === 0) {

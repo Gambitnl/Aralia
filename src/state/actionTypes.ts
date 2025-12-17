@@ -4,6 +4,7 @@
  * Defines the main AppAction type for the application's state management.
  */
 import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType } from '../types';
+import { LightSource } from '../types/underdark';
 
 export type AppAction =
   | { type: 'SET_GAME_PHASE'; payload: GamePhase }
@@ -116,4 +117,8 @@ export type AppAction =
   | { type: 'EXIT_TOWN' }
   // Notoriety Actions
   | { type: 'COMMIT_CRIME'; payload: { type: CrimeType; locationId: string; severity: number; witnessed: boolean } }
-  | { type: 'LOWER_HEAT'; payload: { amount: number; locationId?: string } };
+  | { type: 'LOWER_HEAT'; payload: { amount: number; locationId?: string } }
+  // Underdark Actions
+  | { type: 'ADD_LIGHT_SOURCE'; payload: LightSource }
+  | { type: 'REMOVE_LIGHT_SOURCE'; payload: { id: string } }
+  | { type: 'SET_DEPTH'; payload: { depth: number } };
