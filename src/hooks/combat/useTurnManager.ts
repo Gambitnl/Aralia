@@ -4,24 +4,22 @@
  * Now integrates AI decision making, Damage Numbers, and Spell Effect Triggers.
  * REFACTORED:
  * - Turn Order logic extracted to `useTurnOrder`.
- * - Remains the "Combat Engine" handling effects, events, and AI coordination.
+ * - Combat Engine logic extracted to `useCombatEngine`.
+ * - Remains the "Combat Coordinator" handling AI and orchestrating actions.
  */
-import { useState, useCallback, useMemo } from 'react';
-import { CombatCharacter, CombatAction, CombatLogEntry, BattleMapData, ReactiveTrigger, ActiveCondition } from '../../types/combat';
+import { useCallback, useMemo } from 'react';
+import { CombatCharacter, CombatAction, CombatLogEntry, BattleMapData } from '../../types/combat';
 import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
 import { generateId, getActionMessage, rollDice } from '../../utils/combatUtils';
 import { resetEconomy } from '../../utils/combat/actionEconomyUtils';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
-import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 import { useActionEconomy } from './useActionEconomy';
 import { useCombatAI } from './useCombatAI';
 import { useCombatVisuals } from './useCombatVisuals';
-import { useTurnOrder } from './useTurnOrder'; // New dependency
+import { useTurnOrder } from './useTurnOrder';
+import { useCombatEngine } from './engine/useCombatEngine'; // New dependency
 import {
-  ActiveSpellZone,
-  MovementTriggerDebuff,
   processMovementTriggers,
-  resetZoneTurnTracking
 } from '../../systems/spells/effects';
 import { AreaEffectTracker } from '../../systems/spells/effects/AreaEffectTracker';
 import { combatEvents } from '../../systems/events/CombatEvents';
@@ -50,179 +48,43 @@ export const useTurnManager = ({
   const {
     turnState,
     initializeTurnOrder,
-    advanceTurn: advanceTurnOrder, // Alias to distinguish from the full endTurn flow
+    advanceTurn: advanceTurnOrder,
     joinTurnOrder,
     isCharacterTurn: checkIsCharacterTurn,
-    setCurrentCharacter
+    setCurrentCharacter,
+    recordAction
   } = useTurnOrder({ characters });
 
   const { damageNumbers, animations, addDamageNumber, queueAnimation } = useCombatVisuals();
   const { canAfford, consumeAction } = useActionEconomy();
 
-  // --- Engine State (Zones, Triggers) ---
-  const [spellZones, setSpellZones] = useState<ActiveSpellZone[]>([]);
-  const [movementDebuffs, setMovementDebuffs] = useState<MovementTriggerDebuff[]>([]);
-  const [reactiveTriggers, setReactiveTriggers] = useState<ReactiveTrigger[]>([]);
+  const {
+    spellZones,
+    movementDebuffs,
+    reactiveTriggers,
+    addSpellZone,
+    removeSpellZone,
+    addMovementDebuff,
+    addReactiveTrigger,
+    setReactiveTriggers,
+    setMovementDebuffs,
+    handleDamage,
+    processRepeatSaves,
+    processTileEffects,
+    processEndOfTurnEffects,
+    updateRoundBasedEffects
+  } = useCombatEngine({
+    characters,
+    mapData,
+    onCharacterUpdate,
+    onLogEntry,
+    onMapUpdate,
+    addDamageNumber
+  });
 
   // Stabilize optional auto-controlled character set
   const defaultAutoCharacters = useMemo(() => new Set<string>(), []);
   const managedAutoCharacters = autoCharacters ?? defaultAutoCharacters;
-
-  // --- Helper: Saving Throws ---
-  const processRepeatSaves = useCallback((character: CombatCharacter, timing: 'turn_end' | 'turn_start' | 'on_damage' | 'on_action', actionEffectId?: string): CombatCharacter => {
-    let updatedCharacter = { ...character };
-    let savedEffectIds: string[] = [];
-    const savePenaltySystem = new SavePenaltySystem();
-
-    updatedCharacter.statusEffects.forEach(effect => {
-      const repeat = effect.repeatSave;
-      if (!repeat) return;
-      if (timing === 'on_action' && effect.id !== actionEffectId) return;
-      if (repeat.timing !== timing) return;
-
-      const dc = repeat.dc || 10;
-      let hasAdvantage = false;
-      let hasDisadvantage = false;
-
-      if (repeat.modifiers?.advantageOnDamage && character.damagedThisTurn) {
-        hasAdvantage = true;
-      }
-      if (repeat.modifiers?.sizeAdvantage && character.stats.size && repeat.modifiers.sizeAdvantage.includes(character.stats.size)) {
-        hasAdvantage = true;
-      }
-      if (repeat.modifiers?.sizeDisadvantage && character.stats.size && repeat.modifiers.sizeDisadvantage.includes(character.stats.size)) {
-        hasDisadvantage = true;
-      }
-
-      const saveType = repeat.saveType as any;
-      const savePenalties = savePenaltySystem.getActivePenalties(character);
-      const roll = rollSavingThrow(character, saveType, dc, savePenalties);
-
-      let finalSuccess = roll.success;
-      if (hasAdvantage) {
-        const roll2 = rollSavingThrow(character, saveType, dc, savePenalties);
-        finalSuccess = roll.success || roll2.success;
-      } else if (hasDisadvantage) {
-        const roll2 = rollSavingThrow(character, saveType, dc, savePenalties);
-        finalSuccess = roll.success && roll2.success;
-      }
-
-      if (roll.modifiersApplied && roll.modifiersApplied.length > 0) {
-        const penaltyDetails = roll.modifiersApplied.map(m => `${m.value} from ${m.source}`).join(', ');
-        onLogEntry({
-          id: generateId(),
-          timestamp: Date.now(),
-          type: 'status',
-          message: `${character.name}'s save is modified: ${penaltyDetails}`,
-          characterId: character.id
-        });
-      }
-
-      if (finalSuccess) {
-        onLogEntry({
-          id: generateId(),
-          timestamp: Date.now(),
-          type: 'status',
-          message: `${character.name} succeeds on repeat save against ${effect.name}!`,
-          characterId: character.id
-        });
-        if (repeat.successEnds) {
-          savedEffectIds.push(effect.id);
-        }
-      } else {
-        onLogEntry({
-          id: generateId(),
-          timestamp: Date.now(),
-          type: 'status',
-          message: `${character.name} fails repeat save against ${effect.name}.`,
-          characterId: character.id
-        });
-      }
-    });
-
-    if (savedEffectIds.length > 0) {
-      updatedCharacter.statusEffects = updatedCharacter.statusEffects.filter(e => !savedEffectIds.includes(e.id));
-    }
-
-    if (updatedCharacter.savePenaltyRiders && updatedCharacter.savePenaltyRiders.length > 0) {
-      updatedCharacter = {
-        ...updatedCharacter,
-        savePenaltyRiders: updatedCharacter.savePenaltyRiders.filter(r => r.applies !== 'next_save')
-      };
-    }
-
-    return updatedCharacter;
-  }, [onLogEntry]);
-
-
-  // --- Helper: Damage Application ---
-  const handleDamage = useCallback((character: CombatCharacter, amount: number, source: string, damageType?: string): CombatCharacter => {
-    let updatedCharacter = { ...character };
-    updatedCharacter.currentHP = Math.max(0, updatedCharacter.currentHP - amount);
-    updatedCharacter.damagedThisTurn = true;
-
-    addDamageNumber(amount, updatedCharacter.position, 'damage');
-
-    onLogEntry({
-      id: generateId(),
-      timestamp: Date.now(),
-      type: 'damage',
-      message: `${character.name} takes ${amount} ${damageType || ''} damage from ${source}`,
-      characterId: character.id,
-      data: { damage: amount, damageType, source }
-    });
-
-    updatedCharacter = processRepeatSaves(updatedCharacter, 'on_damage');
-
-    return updatedCharacter;
-  }, [addDamageNumber, onLogEntry, processRepeatSaves]);
-
-
-  // --- Helper: Tile Effects ---
-  const processTileEffects = useCallback((character: CombatCharacter, tilePos: { x: number, y: number }): CombatCharacter => {
-    if (!mapData) return character;
-
-    const tileKey = `${tilePos.x}-${tilePos.y}`;
-    const tile = mapData.tiles.get(tileKey);
-    if (!tile || !tile.environmentalEffect) return character;
-
-    let updatedChar = { ...character };
-    const env = tile.environmentalEffect;
-
-    if (env.effect.effect.type === 'damage_per_turn') {
-        const damage = env.effect.effect.value || 0;
-        if (damage > 0) {
-            updatedChar = handleDamage(updatedChar, damage, env.effect.name, env.type === 'fire' ? 'fire' : 'physical');
-        } else {
-             onLogEntry({
-                id: generateId(),
-                timestamp: Date.now(),
-                type: 'status',
-                message: `${character.name} enters ${env.effect.name}.`,
-                characterId: character.id
-            });
-        }
-    } else if (env.effect.effect.type === 'condition') {
-        const hasCondition = updatedChar.statusEffects.some(s => s.name === env.effect.name);
-        if (!hasCondition) {
-            updatedChar.statusEffects = [...updatedChar.statusEffects, {
-                ...env.effect,
-                id: generateId(),
-                duration: 1
-            }];
-             onLogEntry({
-                id: generateId(),
-                timestamp: Date.now(),
-                type: 'status',
-                message: `${character.name} is affected by ${env.effect.name}.`,
-                characterId: character.id
-            });
-        }
-    }
-
-    return updatedChar;
-  }, [mapData, handleDamage, onLogEntry]);
-
 
   // --- Initialization & Setup ---
   const rollInitiative = useCallback((character: CombatCharacter): number => {
@@ -273,9 +135,7 @@ export const useTurnManager = ({
       onCharacterUpdate(resetEconomy(char));
     });
 
-    // 4. Start turn for the first character (now sorted by initiative in turnState, but we need to access the source array here for the first ID)
-    // IMPORTANT: initializeTurnOrder updates state, but it might not be reflected immediately in `turnState`.
-    // We replicate the sort logic here just to find the first ID to start the turn immediately.
+    // 4. Start turn for the first character
     const sorted = [...charactersWithInitiative].sort((a, b) => b.initiative - a.initiative);
     const firstChar = sorted[0];
 
@@ -299,7 +159,6 @@ export const useTurnManager = ({
     const readyChar = resetEconomy(charWithInit);
     onCharacterUpdate(readyChar);
 
-    // Delegate to TurnOrder hook
     joinTurnOrder(readyChar.id);
 
     onLogEntry({
@@ -315,135 +174,19 @@ export const useTurnManager = ({
 
 
   // --- End of Turn Logic ---
-  const processEndOfTurnEffects = useCallback((character: CombatCharacter) => {
-    let updatedCharacter = { ...character };
-
-    updatedCharacter = processTileEffects(updatedCharacter, updatedCharacter.position);
-
-    const tracker = new AreaEffectTracker(spellZones);
-    const zoneResults = tracker.processEndTurn(updatedCharacter, turnState.currentTurn);
-    for (const result of zoneResults) {
-      for (const effect of result.effects) {
-        if (effect.type === 'damage' && effect.dice) {
-          const damage = rollDice(effect.dice);
-          updatedCharacter = { ...updatedCharacter, currentHP: Math.max(0, updatedCharacter.currentHP - damage) };
-          addDamageNumber(damage, updatedCharacter.position, 'damage');
-          onLogEntry({
-            id: generateId(),
-            timestamp: Date.now(),
-            type: 'damage',
-            message: `${character.name} takes ${damage} ${effect.damageType || ''} damage for ending turn in a hazard!`,
-            characterId: character.id,
-            data: { damage, damageType: effect.damageType, trigger: 'on_end_turn_in_area' }
-          });
-        }
-      }
-    }
-
-    updatedCharacter.statusEffects.forEach(effect => {
-      switch (effect.effect.type) {
-        case 'damage_per_turn':
-          const dmg = effect.effect.value || 0;
-          updatedCharacter = handleDamage(updatedCharacter, dmg, effect.name, 'necrotic');
-          break;
-        case 'heal_per_turn':
-          const heal = effect.effect.value || 0;
-          updatedCharacter.currentHP = Math.min(updatedCharacter.maxHP, updatedCharacter.currentHP + heal);
-          addDamageNumber(heal, updatedCharacter.position, 'heal');
-          onLogEntry({
-            id: generateId(),
-            timestamp: Date.now(),
-            type: 'heal',
-            message: `${character.name} heals ${heal} HP from ${effect.name}`,
-            characterId: character.id,
-            data: { heal: heal, source: effect.name }
-          });
-          break;
-      }
-    });
-
-    if (updatedCharacter.concentratingOn?.sustainCost && !updatedCharacter.concentratingOn.sustainedThisTurn) {
-      onLogEntry({
-        id: generateId(),
-        timestamp: Date.now(),
-        type: 'status',
-        message: `${character.name} lost concentration on ${updatedCharacter.concentratingOn.spellName} (failed to sustain).`,
-        characterId: character.id
-      });
-      updatedCharacter.concentratingOn = undefined;
-    }
-
-    updatedCharacter = processRepeatSaves(updatedCharacter, 'turn_end');
-
-    updatedCharacter.damagedThisTurn = false;
-
-    onCharacterUpdate(updatedCharacter);
-  }, [addDamageNumber, onCharacterUpdate, onLogEntry, spellZones, turnState.currentTurn, handleDamage, processRepeatSaves, processTileEffects]);
-
-
-  // --- The Main "End Turn" Command ---
   const endTurn = useCallback(() => {
     const currentCharacter = characters.find(c => c.id === turnState.currentCharacterId);
     if (!currentCharacter) return;
 
-    // 1. Apply end-of-turn effects to the current character
-    processEndOfTurnEffects(currentCharacter);
+    // 1. Apply end-of-turn effects to the current character (Delegated to Engine)
+    processEndOfTurnEffects(currentCharacter, turnState.currentTurn);
 
     // 2. Advance the turn order
     const { isNewRound, nextCharacterId } = advanceTurnOrder();
 
     // 3. Handle New Round Events
     if (isNewRound) {
-      resetZoneTurnTracking(spellZones);
-      setSpellZones(prev => prev.filter(z => !z.expiresAtRound || z.expiresAtRound > turnState.currentTurn + 1));
-      setMovementDebuffs(prev => prev.filter(d => d.expiresAtRound > turnState.currentTurn + 1 && !d.hasTriggered));
-      setReactiveTriggers(prev => prev.filter(t => !t.expiresAtRound || t.expiresAtRound > turnState.currentTurn + 1));
-
-      if (mapData && onMapUpdate) {
-        let mapModified = false;
-        const newTiles = new Map(mapData.tiles);
-
-        for (const [key, tile] of newTiles) {
-            if (tile.environmentalEffect) {
-                const newDuration = tile.environmentalEffect.duration - 1;
-
-                if (newDuration <= 0) {
-                    const newTile = { ...tile };
-                    newTile.environmentalEffect = undefined;
-                    // Reset terrain cost if difficult terrain expires
-                    // Note: This logic assumes difficult terrain was the only modifier.
-                    // Ideally, we recalculate cost from scratch.
-                    if (tile.environmentalEffect.type === 'difficult_terrain') {
-                        // TODO: Better base cost lookup
-                        newTile.movementCost = 1;
-                    }
-                    newTiles.set(key, newTile);
-                    mapModified = true;
-                } else {
-                    const newTile = { ...tile };
-                    newTile.environmentalEffect = {
-                        ...tile.environmentalEffect,
-                        duration: newDuration
-                    };
-                    newTiles.set(key, newTile);
-                    mapModified = true;
-                }
-            }
-        }
-
-        if (mapModified) {
-            onMapUpdate({
-                ...mapData,
-                tiles: newTiles
-            });
-             onLogEntry({
-                id: generateId(),
-                timestamp: Date.now(),
-                type: 'status',
-                message: `Environmental effects updated for Round ${turnState.currentTurn + 1}.`,
-            });
-        }
-      }
+      updateRoundBasedEffects(turnState.currentTurn);
 
       onLogEntry({
         id: generateId(),
@@ -462,7 +205,7 @@ export const useTurnManager = ({
       }
     }
 
-  }, [turnState, characters, processEndOfTurnEffects, onLogEntry, spellZones, mapData, onMapUpdate, startTurnFor, advanceTurnOrder, setSpellZones, setMovementDebuffs, setReactiveTriggers]);
+  }, [turnState, characters, processEndOfTurnEffects, onLogEntry, startTurnFor, advanceTurnOrder, updateRoundBasedEffects]);
 
 
   const executeAction = useCallback((action: CombatAction): boolean => {
@@ -774,7 +517,7 @@ export const useTurnManager = ({
     }
 
     return true;
-  }, [characters, onCharacterUpdate, onLogEntry, canAfford, consumeAction, queueAnimation, addDamageNumber, movementDebuffs, spellZones, turnState.currentTurn, endTurn, reactiveTriggers, handleDamage, processRepeatSaves, processTileEffects]);
+  }, [characters, onCharacterUpdate, onLogEntry, canAfford, consumeAction, queueAnimation, addDamageNumber, movementDebuffs, spellZones, turnState.currentTurn, endTurn, reactiveTriggers, handleDamage, processRepeatSaves, processTileEffects, recordAction, setMovementDebuffs]);
 
   const currentCharacter = useMemo(() => {
     return characters.find(c => c.id === turnState.currentCharacterId);
@@ -791,22 +534,6 @@ export const useTurnManager = ({
     endTurn,
     autoCharacters: managedAutoCharacters
   });
-
-  const addSpellZone = useCallback((zone: ActiveSpellZone) => {
-    setSpellZones(prev => [...prev, zone]);
-  }, []);
-
-  const addMovementDebuff = useCallback((debuff: MovementTriggerDebuff) => {
-    setMovementDebuffs(prev => [...prev, debuff]);
-  }, []);
-
-  const addReactiveTrigger = useCallback((trigger: ReactiveTrigger) => {
-    setReactiveTriggers(prev => [...prev, trigger]);
-  }, []);
-
-  const removeSpellZone = useCallback((zoneId: string) => {
-    setSpellZones(prev => prev.filter(z => z.id !== zoneId));
-  }, []);
 
   return {
     turnState,
