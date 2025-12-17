@@ -49,11 +49,24 @@ export interface Ship {
   flags: Record<string, boolean>; // e.g., { 'isPirate': true }
 }
 
+export type ModifierOperation = 'add' | 'multiply';
+
+export interface ShipStatModifier {
+  stat: keyof ShipStats;
+  operation: ModifierOperation;
+  value: number;
+}
+
 export interface ShipModification {
   id: string;
   name: string;
   description: string;
-  effect: (stats: ShipStats) => ShipStats; // Applied dynamically
+  modifiers: ShipStatModifier[];
+  cost: number;
+  requirements?: {
+    minSize?: ShipSize[];
+    maxSize?: ShipSize[];
+  };
 }
 
 export interface ShipWeapon {

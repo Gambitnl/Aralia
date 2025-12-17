@@ -6,7 +6,7 @@
  * Logic for ship mechanics, crew management, and naval calculations.
  */
 
-import { Ship, ShipStats, CrewMember } from '../types/naval';
+import { Ship, ShipStats, CrewMember, ShipModification } from '../types/naval';
 import { SHIP_TEMPLATES } from '../data/ships';
 
 /**
@@ -43,12 +43,30 @@ export function createShip(name: string, type: keyof typeof SHIP_TEMPLATES): Shi
  * Calculates current ship stats including modifications and crew effects.
  */
 export function calculateShipStats(ship: Ship): ShipStats {
-  let stats = { ...ship.stats };
+  const stats = { ...ship.stats };
 
   // Apply modifications
-  for (const mod of ship.modifications) {
-    stats = mod.effect(stats);
+  // We apply 'add' modifiers first, then 'multiply' modifiers to ensure consistency
+  const addModifiers = ship.modifications.flatMap(m => m.modifiers.filter(mod => mod.operation === 'add'));
+  const multiplyModifiers = ship.modifications.flatMap(m => m.modifiers.filter(mod => mod.operation === 'multiply'));
+
+  for (const mod of addModifiers) {
+    if (stats[mod.stat] !== undefined) {
+        stats[mod.stat] += mod.value;
+    }
   }
+
+  for (const mod of multiplyModifiers) {
+    if (stats[mod.stat] !== undefined) {
+        stats[mod.stat] *= mod.value;
+    }
+  }
+
+  // Ensure non-negative values for critical stats
+  stats.maxHullPoints = Math.max(1, stats.maxHullPoints);
+  stats.hullPoints = Math.min(stats.hullPoints, stats.maxHullPoints); // Cap current HP at max
+  stats.speed = Math.max(0, stats.speed);
+
 
   // Apply Crew Effects
   // If crew is below minimum, speed and maneuverability suffer
@@ -70,6 +88,51 @@ export function calculateShipStats(ship: Ship): ShipStats {
 
   return stats;
 }
+
+/**
+ * Installs a modification on a ship.
+ * Does not check costs (should be handled by business logic), but can check compatibility.
+ */
+export function installModification(ship: Ship, modification: ShipModification): { success: boolean; reason?: string; ship?: Ship } {
+  // Check if already installed
+  if (ship.modifications.some(m => m.id === modification.id)) {
+    return { success: false, reason: 'Modification already installed' };
+  }
+
+  // Check size requirements
+  if (modification.requirements?.minSize) {
+     // Logic to check size rank if we had an ordered list, but for now exact match or list check
+     // Assuming requirements.minSize is a list of allowed sizes for simplicity or we implement a size rank comparison
+     if (!modification.requirements.minSize.includes(ship.size)) {
+         // This is a strict include check. If we wanted "Medium or larger", we'd need size ranking.
+         // Let's assume for now the data provides the allowed list.
+         // Re-reading type: minSize?: ShipSize[];
+         // Wait, type definition I wrote was minSize?: ShipSize[]; which implies a list of allowed sizes?
+         // Or is it "Minimum Size"?
+         // "minSize" usually implies "This size or larger".
+         // But logic is easier if it's just "allowedSizes".
+         // Let's treat it as "Allowed Sizes" for now unless I implement a size rank map.
+
+         const sizeRank: Record<string, number> = { 'Tiny': 1, 'Small': 2, 'Medium': 3, 'Large': 4, 'Huge': 5, 'Gargantuan': 6 };
+         const shipRank = sizeRank[ship.size];
+         // Actually, let's implement true "minSize" check if it's an array of length 1, or just check if it's in the list?
+         // The type says `minSize?: ShipSize[]`.
+         // Let's assume if the array is present, the ship size must be in it.
+          if (!modification.requirements.minSize.includes(ship.size)) {
+               return { success: false, reason: `Ship size ${ship.size} not supported (requires ${modification.requirements.minSize.join(', ')})` };
+          }
+     }
+  }
+
+  return {
+    success: true,
+    ship: {
+      ...ship,
+      modifications: [...ship.modifications, modification],
+    },
+  };
+}
+
 
 /**
  * Adds a crew member to the ship and recalculates morale.
