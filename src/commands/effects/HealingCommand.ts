@@ -20,6 +20,7 @@ export class HealingCommand extends BaseEffectCommand {
       const healingRoll = this.rollHealing(this.effect.healing.dice)
 
       // 2. Calculate new HP (capped at maxHP)
+      // TODO: Honor healing.isTemporaryHp by granting temp HP (respect higher-value rule) instead of normal healing when flagged.
       const newHP = Math.min(target.maxHP, target.currentHP + healingRoll)
       const actualHealing = newHP - target.currentHP
 

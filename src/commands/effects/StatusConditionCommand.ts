@@ -44,6 +44,7 @@ export class StatusConditionCommand extends BaseEffectCommand {
         source: this.context.spellName || this.context.spellId
       };
 
+      // TODO: Wire ActiveCondition durations into the turn cleanup pipeline so these expire and log when they end.
       const updatedConditions = this.applyCondition(target.conditions, appliedCondition);
       const { statusEffects, appliedStatus } = this.applyStatusEffect(
         target.statusEffects,

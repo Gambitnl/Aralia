@@ -23,6 +23,7 @@ export default defineConfig(({ mode }) => {
       build: {
         rollupOptions: {
           output: {
+            // TODO: tighten chunking/lazy-load heavy modules to bring main bundle (~1.6MB) under the 500k warning.
             manualChunks: {
               'vendor-react': ['react', 'react-dom', 'framer-motion'],
               'vendor-pixi': ['pixi.js']

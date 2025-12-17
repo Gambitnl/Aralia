@@ -224,6 +224,7 @@ export const useAbilitySystem = ({
     ability: Ability,
     caster: CombatCharacter
   ): Position[] => {
+    // TODO: cache valid targets per ability + map snapshot; full grid scan each click is expensive on large maps.
     if (!mapData) return [];
     const validPositions: Position[] = [];
 
@@ -283,6 +284,7 @@ export const useAbilitySystem = ({
 
     // --- Rider System Integration ---
     if (ability.type === 'attack') {
+      // TODO: reuse/memoize AttackRiderSystem per combat; constructing per hit recomputes rider rules unnecessarily.
       const riderSystem = new AttackRiderSystem();
 
       const tempState: CombatState = {
@@ -640,6 +642,7 @@ export const useAbilitySystem = ({
    * Uses Command Pattern to ensure proper cleanup/logging.
    */
   const dropConcentration = useCallback((character: CombatCharacter) => {
+    // TODO: include reactiveTriggers in deps or refresh inside to avoid stale trigger cleanup when dropping concentration.
     if (!character.concentratingOn) return;
 
     const currentState: CombatState = {

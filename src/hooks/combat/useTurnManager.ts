@@ -224,6 +224,7 @@ export const useTurnManager = ({
 
   const startTurnFor = useCallback((character: CombatCharacter) => {
     let updatedChar = resetEconomy(character);
+    // TODO: Also tick down conditions/activeEffects here and clean up expired AC/resistance/tempHP effects so defensive math stays accurate.
     updatedChar = {
       ...updatedChar,
       statusEffects: character.statusEffects.map(effect => ({ ...effect, duration: effect.duration - 1 })).filter(effect => effect.duration > 0),
