@@ -254,7 +254,13 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'LONG_REST': {
+            const deniedIds = action.payload?.deniedCharacterIds || [];
+
             const newParty = state.party.map(char => {
+                if (deniedIds.includes(char.id)) {
+                    return char; // No benefits for denied characters
+                }
+
                 const charCopy = { ...char };
                 let hasChanged = true; // Assume change for simplicity
 

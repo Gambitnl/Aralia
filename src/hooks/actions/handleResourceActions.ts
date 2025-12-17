@@ -7,6 +7,7 @@ import { GameState } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
 import { handleGossipEvent, handleResidueChecks, handleLongRestWorldEvents } from './handleWorldEvents'; // Import the new world event handlers.
+import { checkPlanarRestRules } from '../../systems/planar/rest';
 
 interface HandleRestProps {
     gameState: GameState; // Pass full gameState for context
@@ -53,13 +54,27 @@ export async function handleLongRest({ gameState, dispatch, addMessage, addGemin
     await handleGossipEvent(updatedGameStateForGossip, addGeminiLog, dispatch);
     // --- END NEW ---
 
-    // Step 5: Apply the mechanical benefits of the long rest to the player party.
-    dispatch({ type: 'LONG_REST' });
+    // Step 5: Check Planar Rest Rules
+    const restOutcome = checkPlanarRestRules(gameState);
     
-    // Step 6: Advance the in-game clock.
+    if (restOutcome.messages.length > 0) {
+        restOutcome.messages.forEach(msg => addMessage(msg, "system"));
+    }
+
+    // Step 6: Apply the mechanical benefits of the long rest to the player party.
+    dispatch({
+        type: 'LONG_REST',
+        payload: { deniedCharacterIds: restOutcome.deniedCharacterIds }
+    });
+
+    // Step 7: Advance the in-game clock.
     dispatch({ type: 'ADVANCE_TIME', payload: { seconds: 8 * 3600 } }); // 8 hours
 
-    addMessage("You awake feeling refreshed and ready for a new day.", "system");
+    if (restOutcome.deniedCharacterIds.length === gameState.party.length) {
+         addMessage("The party awakes, but finds no comfort in their rest.", "system");
+    } else {
+         addMessage("You awake feeling refreshed and ready for a new day.", "system");
+    }
 }
 
 export function handleShortRest({ dispatch, addMessage }: Omit<HandleRestProps, 'gameState' | 'addGeminiLog'>): void {

@@ -70,7 +70,7 @@ export type AppAction =
   | { type: 'CAST_SPELL'; payload: { characterId: string; spellLevel: number } }
   | { type: 'USE_LIMITED_ABILITY'; payload: { characterId: string; abilityId: string } }
   | { type: 'TOGGLE_PREPARED_SPELL'; payload: { characterId: string; spellId: string } }
-  | { type: 'LONG_REST' }
+  | { type: 'LONG_REST'; payload?: { deniedCharacterIds?: string[] } }
   | { type: 'SHORT_REST' }
   // NPC Memory Actions
   | { type: 'UPDATE_NPC_DISPOSITION'; payload: { npcId: string; amount: number } }
