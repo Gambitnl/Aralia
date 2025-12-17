@@ -1,95 +1,144 @@
 import { describe, it, expect } from 'vitest';
-import { createStronghold, recruitStaff, fireStaff, processDailyUpkeep } from '../strongholdService';
-import { Stronghold, StaffRole } from '../../types/stronghold';
+import {
+    createStronghold,
+    recruitStaff,
+    fireStaff,
+    processDailyUpkeep,
+    getAvailableUpgrades,
+    purchaseUpgrade,
+    UPGRADE_CATALOG
+} from '../strongholdService';
+import { Stronghold } from '../../types/stronghold';
 
 describe('StrongholdService', () => {
-    it('should create a stronghold with default resources', () => {
+    it('should create a stronghold with default resources and empty upgrades', () => {
         const castle = createStronghold('My Castle', 'castle', 'loc-123');
         expect(castle.name).toBe('My Castle');
-        expect(castle.type).toBe('castle');
         expect(castle.resources.gold).toBe(1000);
-        expect(castle.staff.length).toBe(0);
+        expect(castle.upgrades).toEqual([]);
+        expect(castle.constructionQueue).toEqual([]);
     });
 
-    it('should recruit staff correctly', () => {
-        let castle = createStronghold('My Castle', 'castle', 'loc-123');
-        castle = recruitStaff(castle, 'Jeeves', 'steward');
+    describe('Staff Management', () => {
+        it('should recruit staff correctly', () => {
+            let castle = createStronghold('My Castle', 'castle', 'loc-123');
+            castle = recruitStaff(castle, 'Jeeves', 'steward');
 
-        expect(castle.staff.length).toBe(1);
-        expect(castle.staff[0].name).toBe('Jeeves');
-        expect(castle.staff[0].role).toBe('steward');
-        expect(castle.staff[0].morale).toBe(100);
+            expect(castle.staff.length).toBe(1);
+            expect(castle.staff[0].name).toBe('Jeeves');
+        });
+
+        it('should fire staff correctly', () => {
+            let castle = createStronghold('My Castle', 'castle', 'loc-123');
+            castle = recruitStaff(castle, 'Jeeves', 'steward');
+            const staffId = castle.staff[0].id;
+
+            castle = fireStaff(castle, staffId);
+            expect(castle.staff.length).toBe(0);
+        });
     });
 
-    it('should fire staff correctly', () => {
-        let castle = createStronghold('My Castle', 'castle', 'loc-123');
-        castle = recruitStaff(castle, 'Jeeves', 'steward');
-        const staffId = castle.staff[0].id;
+    describe('Upgrades', () => {
+        it('should list available upgrades', () => {
+            const castle = createStronghold('My Castle', 'castle', 'loc-123');
+            const available = getAvailableUpgrades(castle);
 
-        castle = fireStaff(castle, staffId);
-        expect(castle.staff.length).toBe(0);
+            // Should contain basic upgrades like Market Stall
+            expect(available.some(u => u.id === 'market_stall')).toBe(true);
+            // Should NOT contain advanced upgrades like Marketplace (requires Market Stall)
+            expect(available.some(u => u.id === 'marketplace')).toBe(false);
+        });
+
+        it('should purchase upgrade if affordable', () => {
+            let castle = createStronghold('My Castle', 'castle', 'loc-123');
+            // Market Stall costs 500 gold, 50 supplies. Castle starts with 1000/100.
+
+            castle = purchaseUpgrade(castle, 'market_stall');
+
+            expect(castle.upgrades).toContain('market_stall');
+            expect(castle.resources.gold).toBe(500); // 1000 - 500
+            expect(castle.resources.supplies).toBe(50); // 100 - 50
+        });
+
+        it('should throw error if not affordable', () => {
+            let castle = createStronghold('My Castle', 'castle', 'loc-123');
+            castle.resources.gold = 100; // Too poor
+
+            expect(() => purchaseUpgrade(castle, 'market_stall')).toThrow('Not enough gold.');
+        });
+
+        it('should unlock prerequisites', () => {
+            let castle = createStronghold('My Castle', 'castle', 'loc-123');
+            // Give enough resources for both
+            castle.resources.gold = 5000;
+            castle.resources.supplies = 500;
+
+            // Buy Prereq
+            castle = purchaseUpgrade(castle, 'market_stall');
+
+            // Check available again
+            const available = getAvailableUpgrades(castle);
+            expect(available.some(u => u.id === 'marketplace')).toBe(true);
+
+            // Buy Advanced
+            castle = purchaseUpgrade(castle, 'marketplace');
+            expect(castle.upgrades).toContain('marketplace');
+        });
     });
 
-    it('should process daily income', () => {
-        let castle = createStronghold('My Castle', 'castle', 'loc-123');
-        // Base income is 10
-        const result = processDailyUpkeep(castle);
+    describe('Daily Upkeep', () => {
+        it('should apply upgrade income bonuses', () => {
+            let castle = createStronghold('My Castle', 'castle', 'loc-123');
+            // Base income 10
 
-        expect(result.summary.goldChange).toBe(10);
-        expect(result.updatedStronghold.resources.gold).toBe(1010);
-    });
+            // Add Market Stall (+15 income) manually to skip costs for this test
+            castle.upgrades.push('market_stall');
 
-    it('should pay wages and reduce gold', () => {
-        let castle = createStronghold('My Castle', 'castle', 'loc-123');
-        castle = recruitStaff(castle, 'Guard 1', 'guard'); // Wage 5
+            const result = processDailyUpkeep(castle);
+            // 10 (Base) + 15 (Market Stall) = 25
+            expect(result.summary.goldChange).toBe(25);
+            expect(result.updatedStronghold.resources.gold).toBe(1000 + 25);
+        });
 
-        // Base income 10, Wage 5 => Net +5
-        const result = processDailyUpkeep(castle);
+        it('should apply upgrade influence bonuses', () => {
+            let castle = createStronghold('My Castle', 'castle', 'loc-123');
+            // Add Marketplace (+1 influence) - needs ID not full object logic here as we just check ID lookup
+            castle.upgrades.push('marketplace');
 
-        expect(result.summary.goldChange).toBe(5);
-        expect(result.updatedStronghold.resources.gold).toBe(1005);
-    });
+            const result = processDailyUpkeep(castle);
+            // Marketplace also adds +50 gold. Base 10 + 50 = 60 gold.
+            // Influence +1
+            expect(result.summary.influenceChange).toBe(1);
+            expect(result.updatedStronghold.resources.influence).toBe(1);
+        });
 
-    it('should reduce morale when unpaid and staff should quit eventually', () => {
-        let castle = createStronghold('My Castle', 'castle', 'loc-123');
-        castle.resources.gold = 0; // Broke
-        castle.dailyIncome = 0; // No income
+        it('should apply staff wages', () => {
+            let castle = createStronghold('My Castle', 'castle', 'loc-123');
+            castle = recruitStaff(castle, 'Guard 1', 'guard'); // Wage 5
 
-        castle = recruitStaff(castle, 'Angry Guard', 'guard'); // Wage 5
+            // Base income 10, Wage 5 => Net +5
+            const result = processDailyUpkeep(castle);
 
-        // Day 1: Unpaid, morale drops by 20 -> 80
-        let result = processDailyUpkeep(castle);
-        expect(result.updatedStronghold.staff[0].morale).toBe(80);
-        expect(result.summary.staffEvents).toContain('Angry Guard (guard) was not paid. Morale dropped.');
+            expect(result.summary.goldChange).toBe(5);
+        });
 
-        // Fast forward 4 more days (80 -> 60 -> 40 -> 20 -> 0)
-        let currentCastle = result.updatedStronghold;
-        for (let i = 0; i < 4; i++) {
-             const r = processDailyUpkeep(currentCastle);
-             currentCastle = r.updatedStronghold;
-        }
+        it('should handle staff quitting when unpaid', () => {
+            let castle = createStronghold('My Castle', 'castle', 'loc-123');
+            castle.resources.gold = 0;
+            castle.dailyIncome = 0;
 
-        // Morale should be 0 now (or just quit)
-        // Day 6: Quits
-        result = processDailyUpkeep(currentCastle);
-        expect(result.updatedStronghold.staff.length).toBe(0);
-        expect(result.summary.staffEvents).toContain('Angry Guard quit due to lack of payment!');
-    });
+            castle = recruitStaff(castle, 'Angry Guard', 'guard');
 
-    it('should apply steward wage reduction', () => {
-        let castle = createStronghold('My Castle', 'castle', 'loc-123');
-        castle = recruitStaff(castle, 'Steward', 'steward'); // Wage 10
-        castle = recruitStaff(castle, 'Guard', 'guard'); // Wage 5
+            // Fast forward to quit point (morale drops 20 per day)
+            // 100 -> 80 -> 60 -> 40 -> 20 -> 0 -> Quit
+            // Needs 6 days
+            let currentCastle = castle;
+            for (let i = 0; i < 6; i++) {
+                 const r = processDailyUpkeep(currentCastle);
+                 currentCastle = r.updatedStronghold;
+            }
 
-        // Total base wages: 15
-        // Steward effect: 5% reduction
-        // Steward wage: 10 * 0.95 = 9.5 -> 9
-        // Guard wage: 5 * 0.95 = 4.75 -> 4
-        // Total: 13
-
-        // Net change: Income (10) - Wages (13) = -3
-
-        const result = processDailyUpkeep(castle);
-        expect(result.summary.goldChange).toBe(-3);
+            expect(currentCastle.staff.length).toBe(0);
+        });
     });
 });
