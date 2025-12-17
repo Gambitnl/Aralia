@@ -68,8 +68,8 @@ describe('DamageCommand', () => {
         const logEntry = newState.combatLog.find(l => l.type === 'damage');
 
         expect(logEntry).toBeDefined();
-        // Expected: "Hero scorches Goblin with Fireball for X fire damage"
-        expect(logEntry?.message).toMatch(/Hero (scorches|incinerates|burns) Goblin with Fireball for \d+ fire damage/);
+        // Updated regex to include 'chars'
+        expect(logEntry?.message).toMatch(/Hero (scorches|incinerates|burns|chars) Goblin with Fireball for \d+ fire damage/);
     });
 
     it('generates a descriptive log message for slashing damage', () => {

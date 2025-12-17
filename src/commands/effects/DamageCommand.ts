@@ -1,3 +1,7 @@
+/**
+ * @file src/commands/effects/DamageCommand.ts
+ * Command for calculating and applying damage to characters.
+ */
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CombatState } from '../../types/combat'
 import { isDamageEffect } from '../../types/spells'
@@ -25,10 +29,32 @@ const DAMAGE_VERBS: Record<string, string[]> = {
 const DEFAULT_VERBS = ['damages', 'hits', 'strikes', 'hurts'];
 
 /**
- * Command to apply damage to targets.
- * Handles damage calculation, HP reduction, and triggers concentration saves.
+ * Command to apply damage to one or more targets.
+ *
+ * This command centralizes the damage resolution pipeline:
+ * 1. Rolling damage dice (including special handling for feats like Elemental Adept).
+ * 2. Resolving saving throws (Full/Half/None).
+ * 3. Applying resistances, immunities, and vulnerabilities via `ResistanceCalculator`.
+ * 4. Updating target HP.
+ * 5. Checking for concentration breakage.
+ *
+ * It also handles immersive combat logging by selecting damage-type-appropriate verbs.
+ *
+ * @example
+ * const command = new DamageCommand(fireballEffect, {
+ *   spellId: 'spell-123',
+ *   caster: wizard,
+ *   targets: [goblin1, goblin2]
+ * });
+ * const newState = command.execute(currentState);
  */
 export class DamageCommand extends BaseEffectCommand {
+  /**
+   * Executes the damage logic.
+   *
+   * @param state - The current combat state.
+   * @returns The updated state with modified HP and log entries.
+   */
   execute(state: CombatState): CombatState {
     if (!isDamageEffect(this.effect)) {
       console.warn('DamageCommand received non-damage effect')
@@ -38,7 +64,9 @@ export class DamageCommand extends BaseEffectCommand {
     let currentState = state
     const caster = this.getCaster(currentState);
 
-    // Elemental Adept: Treat 1s as 2s
+    // Elemental Adept Logic:
+    // If the caster has the Elemental Adept feat for this damage type,
+    // any 1s rolled on the damage dice are treated as 2s.
     let minRoll = 1;
     const elementalAdeptChoice = caster.featChoices?.['elemental_adept']?.selectedDamageType;
     if (elementalAdeptChoice && elementalAdeptChoice.toLowerCase() === this.effect.damage.type.toLowerCase()) {
@@ -84,10 +112,10 @@ export class DamageCommand extends BaseEffectCommand {
         currentHP: newHP
       });
 
-      // --- IMPROVED LOGGING ---
+      // --- LOGGING ---
+      // Select a random verb based on damage type for flavor
       const damageType = this.effect.damage.type.toLowerCase();
       const verbs = DAMAGE_VERBS[damageType] || DEFAULT_VERBS;
-      // Simple randomization for variety (seeded by damage value to be deterministic-ish or use standard random)
       const verbIndex = Math.floor(Math.random() * verbs.length);
       const verb = verbs[verbIndex];
 
@@ -157,9 +185,10 @@ export class DamageCommand extends BaseEffectCommand {
   }
 
   /**
-   * Helper to parse dice string (e.g., "2d6+3") and roll damage.
-   * @param diceString The dice notation string.
-   * @param minRoll Minimum value for each die roll (default 1).
+   * Parses a dice string (e.g., "2d6+3") and rolls damage.
+   *
+   * @param diceString - The dice notation string.
+   * @param minRoll - Minimum value for each die roll (default 1). Used for Elemental Adept (treats 1s as 2s).
    * @returns The total calculated damage.
    */
   private rollDamage(diceString: string, minRoll: number = 1): number {

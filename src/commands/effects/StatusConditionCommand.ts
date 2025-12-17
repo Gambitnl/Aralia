@@ -1,3 +1,7 @@
+/**
+ * @file src/commands/effects/StatusConditionCommand.ts
+ * Command for applying D&D 5e status conditions to characters.
+ */
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
 import { CombatState, StatusEffect, ActiveCondition } from '../../types/combat';
 import { isStatusConditionEffect, EffectDuration } from '../../types/spells';
@@ -5,7 +9,36 @@ import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils'
 import { generateId } from '../../utils/combatUtils';
 import { STATUS_ICONS, DEFAULT_STATUS_ICON } from '@/config/statusIcons';
 
+/**
+ * Command to apply a status condition (e.g., Blinded, Prone) to one or more targets.
+ *
+ * This command handles:
+ * 1. Initial saving throws (if the condition allows one to negate it).
+ * 2. Logging the success/failure of those saves.
+ * 3. Applying the condition to the character's state.
+ *
+ * **Architecture Note:**
+ * Currently, conditions are stored in two places on the character:
+ * - `conditions`: The new, strictly typed array of `ActiveCondition` objects (aligned with 5e rules).
+ * - `statusEffects`: The legacy array used by the UI for icons and tooltips.
+ *
+ * This command maintains synchronization between both until the UI is fully migrated to `conditions`.
+ *
+ * @example
+ * const command = new StatusConditionCommand(blindnessEffect, {
+ *   spellId: 'spell-123',
+ *   caster: wizard,
+ *   targets: [goblin]
+ * });
+ * const newState = command.execute(currentState);
+ */
 export class StatusConditionCommand extends BaseEffectCommand {
+  /**
+   * Executes the command, processing saves and applying conditions.
+   *
+   * @param state - The current combat state.
+   * @returns The updated combat state with modified characters and log entries.
+   */
   execute(state: CombatState): CombatState {
     if (!isStatusConditionEffect(this.effect)) {
       return state;
@@ -69,8 +102,11 @@ export class StatusConditionCommand extends BaseEffectCommand {
   }
 
   /**
-   * Apply or refresh a condition entry on the character. Re-applying the same condition name
-   * refreshes duration/turn so downstream systems don't stack duplicates.
+   * Updates the `conditions` array, ensuring no duplicates.
+   * If a condition with the same name exists, it is replaced (refreshing duration).
+   *
+   * @param existing - The current list of active conditions.
+   * @param condition - The new condition to apply.
    */
   private applyCondition(
     existing: ActiveCondition[] | undefined,
@@ -89,8 +125,11 @@ export class StatusConditionCommand extends BaseEffectCommand {
   }
 
   /**
-   * Mirror conditions into the legacy statusEffects array so current renderers and loggers
-   * continue to behave while the new conditions field comes online.
+   * Updates the legacy `statusEffects` array to keep the UI in sync.
+   *
+   * @param existing - The current list of status effects.
+   * @param duration - Duration in rounds.
+   * @param name - The name of the condition.
    */
   private applyStatusEffect(
     existing: StatusEffect[],
@@ -120,6 +159,9 @@ export class StatusConditionCommand extends BaseEffectCommand {
     return { statusEffects, appliedStatus };
   }
 
+  /**
+   * Helper to convert various duration types into a round count.
+   */
   private calculateDuration(duration: EffectDuration): number {
     const val = duration.value || 1;
     switch (duration.type) {
