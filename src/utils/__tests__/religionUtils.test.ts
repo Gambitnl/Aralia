@@ -36,65 +36,65 @@ describe('religionUtils', () => {
 
     describe('modifyFavor', () => {
         it('should initialize favor if not present', () => {
-            const newState = modifyFavor(mockGameState, 'aelios', 10);
-            expect(newState.religion.deityFavor['aelios']).toBeDefined();
-            expect(newState.religion.deityFavor['aelios'].score).toBe(10);
-            expect(newState.religion.deityFavor['aelios'].rank).toBe('Initiate');
+            const newState = modifyFavor(mockGameState, 'pelor', 10);
+            expect(newState.religion.deityFavor['pelor']).toBeDefined();
+            expect(newState.religion.deityFavor['pelor'].score).toBe(10);
+            expect(newState.religion.deityFavor['pelor'].rank).toBe('Initiate');
         });
 
         it('should accumulate favor', () => {
-            let state = modifyFavor(mockGameState, 'aelios', 10);
-            state = modifyFavor(state, 'aelios', 25);
-            expect(state.religion.deityFavor['aelios'].score).toBe(35);
+            let state = modifyFavor(mockGameState, 'pelor', 10);
+            state = modifyFavor(state, 'pelor', 25);
+            expect(state.religion.deityFavor['pelor'].score).toBe(35);
         });
 
         it('should clamp favor between -100 and 100', () => {
-            let state = modifyFavor(mockGameState, 'aelios', 150);
-            expect(state.religion.deityFavor['aelios'].score).toBe(100);
+            let state = modifyFavor(mockGameState, 'pelor', 150);
+            expect(state.religion.deityFavor['pelor'].score).toBe(100);
 
-            state = modifyFavor(state, 'aelios', -300);
-            expect(state.religion.deityFavor['aelios'].score).toBe(-100);
+            state = modifyFavor(state, 'pelor', -300);
+            expect(state.religion.deityFavor['pelor'].score).toBe(-100);
         });
 
         it('should add to discoveredDeities when favor becomes positive', () => {
-            const state = modifyFavor(mockGameState, 'aelios', 5);
-            expect(state.religion.discoveredDeities).toContain('aelios');
+            const state = modifyFavor(mockGameState, 'pelor', 5);
+            expect(state.religion.discoveredDeities).toContain('pelor');
         });
     });
 
     describe('canAffordTempleService', () => {
         it('should succeed if requirements met', () => {
-            // Aelios service with low cost
-            const result = canAffordTempleService(mockGameState, 'aelios', 'healing_word');
+            // Pelor service with low cost
+            const result = canAffordTempleService(mockGameState, 'pelor', 'healing_word');
             expect(result.success).toBe(true);
         });
 
         it('should fail if not enough gold', () => {
             mockGameState.gold = 0;
-            const result = canAffordTempleService(mockGameState, 'aelios', 'healing_word');
+            const result = canAffordTempleService(mockGameState, 'pelor', 'healing_word');
             expect(result.success).toBe(false);
             expect(result.reason).toContain('Not enough gold');
         });
 
         it('should fail if not enough favor', () => {
             // Strength blessing requires 20 favor
-            const result = canAffordTempleService(mockGameState, 'aelios', 'blessing_strength');
+            const result = canAffordTempleService(mockGameState, 'pelor', 'blessing_strength');
             expect(result.success).toBe(false);
             expect(result.reason).toContain('Not enough favor');
         });
 
         it('should succeed if favor requirement met', () => {
-            let state = modifyFavor(mockGameState, 'aelios', 25);
+            let state = modifyFavor(mockGameState, 'pelor', 25);
             // Must update mockGameState manually or use the returned state if the function was pure (it is pure, so we need to pass the new state)
-            const result = canAffordTempleService(state, 'aelios', 'blessing_strength');
+            const result = canAffordTempleService(state, 'pelor', 'blessing_strength');
             expect(result.success).toBe(true);
         });
     });
 
     describe('getServicesForDeity', () => {
         it('should return services based on domains', () => {
-             const aeliosServices = getServicesForDeity('aelios'); // Life, Light, Order
-             const serviceIds = aeliosServices.map(s => s.id);
+             const pelorServices = getServicesForDeity('pelor'); // Life, Light
+             const serviceIds = pelorServices.map(s => s.id);
 
              expect(serviceIds).toContain('healing_word');
              expect(serviceIds).toContain('restoration');
@@ -103,8 +103,8 @@ describe('religionUtils', () => {
         });
 
         it('should return war services for war deity', () => {
-            const morriganServices = getServicesForDeity('morrigan'); // Death, War
-            const serviceIds = morriganServices.map(s => s.id);
+            const bahamutServices = getServicesForDeity('bahamut'); // Life, War
+            const serviceIds = bahamutServices.map(s => s.id);
             expect(serviceIds).toContain('blessing_strength');
         });
     });
