@@ -409,7 +409,27 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
   // Universal Actions
   abilities.push(
     { id: 'dash', name: 'Dash', description: 'Gain extra movement for the turn.', type: 'movement', cost: { type: 'action' }, targeting: 'self', range: 0, effects: [{ type: 'movement', value: stats.speed }], icon: '🏃' },
-    { id: 'disengage', name: 'Disengage', description: 'Prevent opportunity attacks.', type: 'utility', cost: { type: 'action' }, targeting: 'self', range: 0, effects: [], icon: '🛡️' }
+    {
+      id: 'disengage',
+      name: 'Disengage',
+      description: 'Prevent opportunity attacks.',
+      type: 'utility',
+      cost: { type: 'action' },
+      targeting: 'self',
+      range: 0,
+      effects: [{
+        type: 'status',
+        statusEffect: {
+          id: 'disengage_effect',
+          name: 'Disengaged',
+          type: 'buff',
+          duration: 1,
+          effect: { type: 'condition' },
+          icon: '🛡️'
+        }
+      }],
+      icon: '🛡️'
+    }
   );
 
   if (player.class.id === 'rogue') {

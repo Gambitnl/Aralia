@@ -9,14 +9,15 @@
 import { useState, useCallback, useMemo } from 'react';
 import { CombatCharacter, CombatAction, CombatLogEntry, BattleMapData, ReactiveTrigger, ActiveCondition } from '../../types/combat';
 import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
-import { generateId, getActionMessage, rollDice } from '../../utils/combatUtils';
+import { generateId, getActionMessage, rollDice, resolveAttack, rollDamage } from '../../utils/combatUtils'; // Added imports
 import { resetEconomy } from '../../utils/combat/actionEconomyUtils';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
 import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
+import { OpportunityAttackSystem } from '../../systems/combat/OpportunityAttackSystem'; // Added import
 import { useActionEconomy } from './useActionEconomy';
 import { useCombatAI } from './useCombatAI';
 import { useCombatVisuals } from './useCombatVisuals';
-import { useTurnOrder } from './useTurnOrder'; // New dependency
+import { useTurnOrder } from './useTurnOrder';
 import {
   ActiveSpellZone,
   MovementTriggerDebuff,
@@ -53,7 +54,8 @@ export const useTurnManager = ({
     advanceTurn: advanceTurnOrder, // Alias to distinguish from the full endTurn flow
     joinTurnOrder,
     isCharacterTurn: checkIsCharacterTurn,
-    setCurrentCharacter
+    setCurrentCharacter,
+    recordAction
   } = useTurnOrder({ characters });
 
   const { damageNumbers, animations, addDamageNumber, queueAnimation } = useCombatVisuals();
@@ -537,165 +539,292 @@ export const useTurnManager = ({
 
     if (action.type === 'move' && action.targetPosition) {
       const previousPosition = updatedCharacter.position;
-      updatedCharacter = { ...updatedCharacter, position: action.targetPosition };
 
-      combatEvents.emit({
-        type: 'unit_move',
-        unitId: startCharacter.id,
-        from: previousPosition,
-        to: action.targetPosition,
-        cost: (action.cost && 'movement' in action.cost) ? (action.cost as any).movement : 0,
-        isForced: false
-      });
+      // --- Opportunity Attacks Check ---
+      const oaResults = OpportunityAttackSystem.checkForOpportunityAttacks(
+        updatedCharacter,
+        previousPosition,
+        action.targetPosition,
+        characters
+      );
 
-      updatedCharacter = processTileEffects(updatedCharacter, action.targetPosition);
+      for (const oa of oaResults) {
+        const attacker = characters.find(c => c.id === oa.attackerId);
+        if (attacker && !attacker.actionEconomy.reaction.used) {
+            // Log Trigger
+            onLogEntry({
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'action',
+                message: `${updatedCharacter.name} provokes an opportunity attack from ${attacker.name}!`,
+                characterId: attacker.id,
+                targetIds: [updatedCharacter.id],
+                data: { trigger: 'opportunity_attack', position: oa.triggerPosition }
+            });
 
-      const moveTriggerResults = processMovementTriggers(movementDebuffs, updatedCharacter, turnState.currentTurn);
+            // Consume Reaction
+            // We need to update attacker state.
+            // CAUTION: 'characters' might be stale if we don't update via callback.
+            // But we can construct the updated attacker object.
+            let updatedAttacker = {
+                ...attacker,
+                actionEconomy: {
+                    ...attacker.actionEconomy,
+                    reaction: { ...attacker.actionEconomy.reaction, used: true }
+                }
+            };
 
-      for (const result of moveTriggerResults) {
-        if (result.triggered) {
-          setMovementDebuffs(prev => prev.map(d => d.id === result.sourceId ? { ...d, hasTriggered: true } : d));
-          for (const effect of result.effects) {
-            if (effect.type === 'damage' && effect.dice) {
-              const damage = rollDice(effect.dice);
-              updatedCharacter = handleDamage(updatedCharacter, damage, 'moving', effect.damageType);
+            // Resolve Attack
+            // Find weapon
+            const weaponAbility = attacker.abilities.find(a => a.id === oa.weaponId) ||
+                                  attacker.abilities.find(a => a.type === 'attack');
+
+            if (weaponAbility) {
+                // Determine attack bonus (simplified - assuming pre-calc or basic mod)
+                // Using 5 as fallback or finding stat.
+                // ideally ability.attackBonus but our Ability type doesn't have it explicitly always?
+                // Let's assume standard calculation: Prof + Ability Mod
+                // Or simplified: +5 for monsters, calc for PCs.
+                let attackBonus = 0;
+                if (attacker.team === 'enemy') {
+                    attackBonus = 5; // simplified monster math
+                } else {
+                    const strMod = Math.floor((attacker.stats.strength - 10) / 2);
+                    const dexMod = Math.floor((attacker.stats.dexterity - 10) / 2);
+                    attackBonus = (weaponAbility.range && weaponAbility.range > 1) ? strMod : Math.max(strMod, dexMod); // Finesse?
+                    attackBonus += 2; // Proficiency fallback
+                }
+
+                const roll = Math.floor(Math.random() * 20) + 1;
+                const ac = updatedCharacter.armorClass || (10 + Math.floor((updatedCharacter.stats.dexterity - 10)/2)); // fallback AC
+
+                const result = resolveAttack(roll, attackBonus, ac);
+
+                // Log Attack
+                onLogEntry({
+                    id: generateId(),
+                    timestamp: Date.now(),
+                    type: result.isHit ? 'damage' : 'action', // 'damage' creates red flash?
+                    message: `${attacker.name} ${result.isCritical ? 'CRITS' : 'attacks'} ${updatedCharacter.name} with ${weaponAbility.name}: ${roll} + ${attackBonus} = ${result.total} vs AC ${ac} (${result.isHit ? 'HIT' : 'MISS'})`,
+                    characterId: attacker.id,
+                    targetIds: [updatedCharacter.id]
+                });
+
+                if (result.isHit) {
+                    const effect = weaponAbility.effects.find(e => e.type === 'damage');
+                    let damage = 0;
+                    if (effect) {
+                        if (effect.value > 0) damage = effect.value; // fixed
+                        else {
+                            // Needs dice string from somewhere.
+                            // Currently `Ability` doesn't strictly store dice string unless in description or we infer?
+                            // `createPlayerCombatCharacter` sets value: 0 for weapons to signal rolling.
+                            // But where is the dice string?
+                            // It's on the Item (weapon.damage).
+                            if (weaponAbility.weapon && weaponAbility.weapon.damage) {
+                                damage = rollDamage(weaponAbility.weapon.damage.dice, result.isCritical);
+                                // Add mod
+                                const mod = Math.floor((attacker.stats.strength - 10) / 2);
+                                damage += mod;
+                            } else {
+                                // Fallback
+                                damage = rollDamage('1d6', result.isCritical) + 2;
+                            }
+                        }
+                    }
+
+                    // Apply Damage to Mover (updatedCharacter)
+                    updatedCharacter = handleDamage(updatedCharacter, damage, 'Opportunity Attack', 'physical');
+
+                    // Queue Animation
+                    queueAnimation({
+                        id: generateId(),
+                        type: 'attack',
+                        characterId: attacker.id,
+                        startPosition: attacker.position,
+                        endPosition: updatedCharacter.position,
+                        duration: 300,
+                        startTime: Date.now()
+                    });
+                }
             }
-          }
+
+            // Update Attacker in global state
+            onCharacterUpdate(updatedAttacker);
         }
       }
 
-      const tracker = new AreaEffectTracker(spellZones);
-      const areaTriggerResults = tracker.handleMovement(
-        updatedCharacter,
-        action.targetPosition,
-        previousPosition,
-        turnState.currentTurn
-      );
+      // --- Continue Move ---
+      // If dead, maybe stop? 5e: yes.
+      if (updatedCharacter.currentHP > 0) {
+        updatedCharacter = { ...updatedCharacter, position: action.targetPosition };
 
-      for (const result of areaTriggerResults) {
-        for (const effect of result.effects) {
-          switch (effect.type) {
-            case 'damage':
-              if (effect.dice) {
-                let damage = rollDice(effect.dice);
-                let saveMessage = '';
+        combatEvents.emit({
+            type: 'unit_move',
+            unitId: startCharacter.id,
+            from: previousPosition,
+            to: action.targetPosition,
+            cost: (action.cost && 'movement' in action.cost) ? (action.cost as any).movement : 0,
+            isForced: false
+        });
 
-                if (effect.requiresSave && effect.saveType) {
-                  const caster = updatedCharacter.team === 'player' ? updatedCharacter : updatedCharacter;
+        updatedCharacter = processTileEffects(updatedCharacter, action.targetPosition);
 
-                  const dc = calculateSpellDC(caster);
-                  const saveResult = rollSavingThrow(updatedCharacter, effect.saveType, dc);
+        const moveTriggerResults = processMovementTriggers(movementDebuffs, updatedCharacter, turnState.currentTurn);
 
-                  onLogEntry({
-                    id: generateId(),
-                    timestamp: Date.now(),
-                    type: 'status',
-                    message: `${updatedCharacter.name} ${saveResult.success ? 'succeeds' : 'fails'} ${effect.saveType} save (${saveResult.total} vs DC ${dc})`,
-                    characterId: updatedCharacter.id
-                  });
-
-                  if (saveResult.success) {
-                    damage = Math.floor(damage / 2);
-                    saveMessage = ' (save)';
-                  }
+        for (const result of moveTriggerResults) {
+            if (result.triggered) {
+            setMovementDebuffs(prev => prev.map(d => d.id === result.sourceId ? { ...d, hasTriggered: true } : d));
+            for (const effect of result.effects) {
+                if (effect.type === 'damage' && effect.dice) {
+                const damage = rollDice(effect.dice);
+                updatedCharacter = handleDamage(updatedCharacter, damage, 'moving', effect.damageType);
                 }
-
-                updatedCharacter = handleDamage(updatedCharacter, damage, `zone effect${saveMessage}`, effect.damageType);
-              }
-              break;
-
-            case 'heal':
-              if (effect.dice) {
-                const healing = rollDice(effect.dice);
-                const newHP = Math.min(updatedCharacter.maxHP, updatedCharacter.currentHP + healing);
-                const actualHealing = newHP - updatedCharacter.currentHP;
-                updatedCharacter = { ...updatedCharacter, currentHP: newHP };
-                addDamageNumber(actualHealing, action.targetPosition, 'heal');
-                onLogEntry({
-                  id: generateId(),
-                  timestamp: Date.now(),
-                  type: 'heal',
-                  message: `${updatedCharacter.name} heals ${actualHealing} HP from zone effect!`,
-                  characterId: updatedCharacter.id,
-                  data: { healing: actualHealing, trigger: result.triggerType || 'on_enter_area' }
-                });
-              }
-              break;
-
-            case 'status_condition':
-              if (effect.statusName) {
-                let appliedCondition = false;
-                let saveMessage = '';
-
-                if (effect.requiresSave && effect.saveType) {
-                  const caster = updatedCharacter.team === 'player' ? updatedCharacter : updatedCharacter;
-
-                  const dc = calculateSpellDC(caster);
-                  const saveResult = rollSavingThrow(updatedCharacter, effect.saveType, dc);
-
-                  onLogEntry({
-                    id: generateId(),
-                    timestamp: Date.now(),
-                    type: 'status',
-                    message: `${updatedCharacter.name} ${saveResult.success ? 'succeeds' : 'fails'} ${effect.saveType} save (${saveResult.total} vs DC ${dc})`,
-                    characterId: updatedCharacter.id
-                  });
-
-                  if (!saveResult.success) {
-                    appliedCondition = true;
-                  } else {
-                    saveMessage = ' (resisted)';
-                  }
-                } else {
-                  appliedCondition = true;
-                }
-
-                if (appliedCondition) {
-                  const durationRounds = 1;
-                  const statusEffect = {
-                    id: generateId(),
-                    name: effect.statusName,
-                    type: 'debuff' as const,
-                    duration: durationRounds,
-                    effect: { type: 'condition' as const },
-                    icon: '💀'
-                  };
-
-                  const activeCondition = {
-                    name: effect.statusName,
-                    duration: { type: 'rounds' as const, value: durationRounds },
-                    appliedTurn: turnState.currentTurn,
-                    source: 'zone_effect'
-                  };
-
-                  updatedCharacter = {
-                    ...updatedCharacter,
-                    statusEffects: [...(updatedCharacter.statusEffects || []), statusEffect],
-                    conditions: [...(updatedCharacter.conditions || []), activeCondition]
-                  };
-
-                  onLogEntry({
-                    id: generateId(),
-                    timestamp: Date.now(),
-                    type: 'status',
-                    message: `${updatedCharacter.name} is now ${effect.statusName} from zone effect!`,
-                    characterId: updatedCharacter.id,
-                    data: { statusId: statusEffect.id, condition: activeCondition, trigger: result.triggerType || 'on_enter_area' }
-                  });
-                } else {
-                  onLogEntry({
-                    id: generateId(),
-                    timestamp: Date.now(),
-                    type: 'status',
-                    message: `${updatedCharacter.name} resists ${effect.statusName}${saveMessage}`,
-                    characterId: updatedCharacter.id,
-                    data: { trigger: result.triggerType || 'on_enter_area' }
-                  });
-                }
-              }
-              break;
-          }
+            }
+            }
         }
+
+        const tracker = new AreaEffectTracker(spellZones);
+        const areaTriggerResults = tracker.handleMovement(
+            updatedCharacter,
+            action.targetPosition,
+            previousPosition,
+            turnState.currentTurn
+        );
+
+        for (const result of areaTriggerResults) {
+            for (const effect of result.effects) {
+            switch (effect.type) {
+                case 'damage':
+                if (effect.dice) {
+                    let damage = rollDice(effect.dice);
+                    let saveMessage = '';
+
+                    if (effect.requiresSave && effect.saveType) {
+                    const caster = updatedCharacter.team === 'player' ? updatedCharacter : updatedCharacter;
+
+                    const dc = calculateSpellDC(caster);
+                    const saveResult = rollSavingThrow(updatedCharacter, effect.saveType, dc);
+
+                    onLogEntry({
+                        id: generateId(),
+                        timestamp: Date.now(),
+                        type: 'status',
+                        message: `${updatedCharacter.name} ${saveResult.success ? 'succeeds' : 'fails'} ${effect.saveType} save (${saveResult.total} vs DC ${dc})`,
+                        characterId: updatedCharacter.id
+                    });
+
+                    if (saveResult.success) {
+                        damage = Math.floor(damage / 2);
+                        saveMessage = ' (save)';
+                    }
+                    }
+
+                    updatedCharacter = handleDamage(updatedCharacter, damage, `zone effect${saveMessage}`, effect.damageType);
+                }
+                break;
+
+                case 'heal':
+                if (effect.dice) {
+                    const healing = rollDice(effect.dice);
+                    const newHP = Math.min(updatedCharacter.maxHP, updatedCharacter.currentHP + healing);
+                    const actualHealing = newHP - updatedCharacter.currentHP;
+                    updatedCharacter = { ...updatedCharacter, currentHP: newHP };
+                    addDamageNumber(actualHealing, action.targetPosition, 'heal');
+                    onLogEntry({
+                    id: generateId(),
+                    timestamp: Date.now(),
+                    type: 'heal',
+                    message: `${updatedCharacter.name} heals ${actualHealing} HP from zone effect!`,
+                    characterId: updatedCharacter.id,
+                    data: { healing: actualHealing, trigger: result.triggerType || 'on_enter_area' }
+                    });
+                }
+                break;
+
+                case 'status_condition':
+                if (effect.statusName) {
+                    let appliedCondition = false;
+                    let saveMessage = '';
+
+                    if (effect.requiresSave && effect.saveType) {
+                    const caster = updatedCharacter.team === 'player' ? updatedCharacter : updatedCharacter;
+
+                    const dc = calculateSpellDC(caster);
+                    const saveResult = rollSavingThrow(updatedCharacter, effect.saveType, dc);
+
+                    onLogEntry({
+                        id: generateId(),
+                        timestamp: Date.now(),
+                        type: 'status',
+                        message: `${updatedCharacter.name} ${saveResult.success ? 'succeeds' : 'fails'} ${effect.saveType} save (${saveResult.total} vs DC ${dc})`,
+                        characterId: updatedCharacter.id
+                    });
+
+                    if (!saveResult.success) {
+                        appliedCondition = true;
+                    } else {
+                        saveMessage = ' (resisted)';
+                    }
+                    } else {
+                    appliedCondition = true;
+                    }
+
+                    if (appliedCondition) {
+                    const durationRounds = 1;
+                    const statusEffect = {
+                        id: generateId(),
+                        name: effect.statusName,
+                        type: 'debuff' as const,
+                        duration: durationRounds,
+                        effect: { type: 'condition' as const },
+                        icon: '💀'
+                    };
+
+                    const activeCondition = {
+                        name: effect.statusName,
+                        duration: { type: 'rounds' as const, value: durationRounds },
+                        appliedTurn: turnState.currentTurn,
+                        source: 'zone_effect'
+                    };
+
+                    updatedCharacter = {
+                        ...updatedCharacter,
+                        statusEffects: [...(updatedCharacter.statusEffects || []), statusEffect],
+                        conditions: [...(updatedCharacter.conditions || []), activeCondition]
+                    };
+
+                    onLogEntry({
+                        id: generateId(),
+                        timestamp: Date.now(),
+                        type: 'status',
+                        message: `${updatedCharacter.name} is now ${effect.statusName} from zone effect!`,
+                        characterId: updatedCharacter.id,
+                        data: { statusId: statusEffect.id, condition: activeCondition, trigger: result.triggerType || 'on_enter_area' }
+                    });
+                    } else {
+                    onLogEntry({
+                        id: generateId(),
+                        timestamp: Date.now(),
+                        type: 'status',
+                        message: `${updatedCharacter.name} resists ${effect.statusName}${saveMessage}`,
+                        characterId: updatedCharacter.id,
+                        data: { trigger: result.triggerType || 'on_enter_area' }
+                    });
+                    }
+                }
+                break;
+            }
+            }
+        }
+      } else {
+          onLogEntry({
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'status',
+            message: `${updatedCharacter.name} is knocked unconscious by the opportunity attack and cannot move!`,
+            characterId: updatedCharacter.id
+          });
       }
     }
 
