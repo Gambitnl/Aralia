@@ -52,22 +52,43 @@ describe('calculateCover', () => {
   it('should return 2 if a tile in between provides cover', () => {
     const map = createMap([
       { coordinates: { x: 0, y: 0 } },
-      { coordinates: { x: 1, y: 0 }, providesCover: true }, // Cover!
+      { coordinates: { x: 1, y: 0 }, providesCover: true, decoration: 'tree' }, // Cover!
       { coordinates: { x: 2, y: 0 } }
     ]);
     const bonus = calculateCover({ x: 0, y: 0 }, { x: 2, y: 0 }, map);
     expect(bonus).toBe(2);
   });
 
-  it('should return 2 if multiple tiles provide cover', () => {
+  it('should return 2 if multiple tiles provide cover (same type)', () => {
     const map = createMap([
       { coordinates: { x: 0, y: 0 } },
-      { coordinates: { x: 1, y: 0 }, providesCover: true },
-      { coordinates: { x: 2, y: 0 }, providesCover: true },
+      { coordinates: { x: 1, y: 0 }, providesCover: true, decoration: 'tree' },
+      { coordinates: { x: 2, y: 0 }, providesCover: true, decoration: 'boulder' },
       { coordinates: { x: 3, y: 0 } }
     ]);
     const bonus = calculateCover({ x: 0, y: 0 }, { x: 3, y: 0 }, map);
     expect(bonus).toBe(2);
+  });
+
+  it('should return 5 (Three-Quarters Cover) if a pillar is in the way', () => {
+    const map = createMap([
+      { coordinates: { x: 0, y: 0 } },
+      { coordinates: { x: 1, y: 0 }, providesCover: true, decoration: 'pillar' },
+      { coordinates: { x: 2, y: 0 } }
+    ]);
+    const bonus = calculateCover({ x: 0, y: 0 }, { x: 2, y: 0 }, map);
+    expect(bonus).toBe(5);
+  });
+
+  it('should return 5 if there is a mix of half and three-quarters cover', () => {
+    const map = createMap([
+      { coordinates: { x: 0, y: 0 } },
+      { coordinates: { x: 1, y: 0 }, providesCover: true, decoration: 'tree' }, // +2
+      { coordinates: { x: 2, y: 0 }, providesCover: true, decoration: 'pillar' }, // +5
+      { coordinates: { x: 3, y: 0 } }
+    ]);
+    const bonus = calculateCover({ x: 0, y: 0 }, { x: 3, y: 0 }, map);
+    expect(bonus).toBe(5);
   });
 
   it('should return 0 if the cover tile is the start or end tile', () => {
@@ -83,7 +104,7 @@ describe('calculateCover', () => {
   it('should work for diagonal lines', () => {
     const map = createMap([
       { coordinates: { x: 0, y: 0 } },
-      { coordinates: { x: 1, y: 1 }, providesCover: true },
+      { coordinates: { x: 1, y: 1 }, providesCover: true, decoration: 'tree' },
       { coordinates: { x: 2, y: 2 } }
     ]);
     const bonus = calculateCover({ x: 0, y: 0 }, { x: 2, y: 2 }, map);

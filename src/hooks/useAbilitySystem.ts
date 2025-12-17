@@ -17,7 +17,14 @@ import {
   CombatLogEntry,
   ReactiveTrigger
 } from '../types/combat';
-import { Spell } from '../types/spells'; // Import Spell type
+import {
+  Spell,
+  isDamageEffect,
+  isStatusConditionEffect,
+  isMovementEffect,
+  isUtilityEffect,
+  isDefensiveEffect
+} from '../types/spells';
 import { SpellCommandFactory, CommandExecutor } from '../commands'; // Import Command System
 import { BreakConcentrationCommand } from '../commands/effects/ConcentrationCommands'; // Import Break Concentration
 import { getDistance, calculateDamage, generateId, rollDice } from '../utils/combatUtils';
@@ -26,7 +33,6 @@ import { calculateAffectedTiles } from '../utils/aoeCalculations';
 import { useTargeting } from './combat/useTargeting'; // New Hook
 import { resolveAoEParams } from '../utils/targetingUtils';
 import { AttackRiderSystem, AttackContext } from '../systems/combat/AttackRiderSystem';
-import { isDamageEffect, isStatusConditionEffect, isMovementEffect, isUtilityEffect, isDefensiveEffect } from '../types/spells'; // New Utils
 
 interface UseAbilitySystemProps {
   characters: CombatCharacter[];

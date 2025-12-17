@@ -9,6 +9,8 @@ vi.mock('../aiClient', () => ({
       generateContent: vi.fn(),
     },
   },
+  // Default to enabled for most tests
+  isAiEnabled: vi.fn().mockReturnValue(true),
 }));
 
 // Mock logger to avoid noise
@@ -89,6 +91,19 @@ describe('geminiService', () => {
       expect(result.data).not.toBeNull();
       expect(result.data?.items).toBeDefined();
       expect(result.error).toContain('Failed to parse harvest JSON');
+    });
+  });
+
+  describe('AI Disabled State', () => {
+    it('should return error gracefully when AI is disabled', async () => {
+      const { isAiEnabled } = await import('../aiClient');
+      vi.mocked(isAiEnabled).mockReturnValue(false);
+
+      const result = await geminiService.generateText('test');
+
+      expect(result.data).toBeNull();
+      expect(result.error).toContain('Gemini API disabled');
+      expect(ai.models.generateContent).not.toHaveBeenCalled();
     });
   });
 });

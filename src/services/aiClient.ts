@@ -24,6 +24,29 @@ if (!ENV.API_KEY) {
 }
 
 /**
- * The shared GoogleGenAI client instance.
+ * Checks if the AI client is initialized and available for use.
+ * @returns {boolean} True if the AI client is ready, false otherwise.
  */
-export const ai = aiInstance as GoogleGenAI; // Cast to allow usage, but might be null if checked at runtime or if we mock it.
+export const isAiEnabled = (): boolean => {
+  return !!aiInstance;
+};
+
+/**
+ * Returns the initialized AI client, or throws an error if it is not available.
+ * Use this for safe access to the client.
+ * @returns {GoogleGenAI} The initialized GoogleGenAI client.
+ * @throws {Error} If the AI client is not initialized (e.g., missing API key).
+ */
+export const getAiClient = (): GoogleGenAI => {
+  if (!aiInstance) {
+    throw new Error("AI client is not initialized. Check your API_KEY configuration.");
+  }
+  return aiInstance;
+};
+
+/**
+ * The shared GoogleGenAI client instance.
+ * @deprecated Use `getAiClient()` for safe access or `isAiEnabled()` to check availability.
+ * Direct access may result in runtime errors if the API key is missing.
+ */
+export const ai = aiInstance as GoogleGenAI; // Cast to allow legacy usage, but unsafe if null.

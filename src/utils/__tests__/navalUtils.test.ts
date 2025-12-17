@@ -1,7 +1,8 @@
 
 import { describe, it, expect } from 'vitest';
-import { createShip, calculateShipStats, addCrewMember, calculateTravelTime, checkMutinyRisk } from '../navalUtils';
+import { createShip, calculateShipStats, addCrewMember, calculateTravelTime, checkMutinyRisk, installModification } from '../navalUtils';
 import { CrewMember } from '../../types/naval';
+import { SHIP_MODIFICATIONS } from '../../data/shipModifications';
 
 describe('Naval Utils', () => {
   it('should create a ship with correct base stats', () => {
@@ -73,5 +74,85 @@ describe('Naval Utils', () => {
     ship.crew.unrest = 20;
     ship.crew.averageMorale = 20;
     expect(checkMutinyRisk(ship)).toBe(false);
+  });
+
+  // NEW TESTS FOR MODIFICATIONS
+  describe('Ship Modifications', () => {
+    it('should install a modification correctly', () => {
+      let ship = createShip('Test Sloop', 'Sloop');
+      const mod = SHIP_MODIFICATIONS.REINFORCED_HULL;
+
+      const result = installModification(ship, mod);
+      expect(result.success).toBe(true);
+      expect(result.ship).toBeDefined();
+      expect(result.ship!.modifications).toHaveLength(1);
+      expect(result.ship!.modifications[0].id).toBe(mod.id);
+    });
+
+    it('should correctly apply additive modifiers (Reinforced Hull)', () => {
+      let ship = createShip('Tanky Sloop', 'Sloop');
+      // Base: AC 13, HP 150, Speed 60
+      const mod = SHIP_MODIFICATIONS.REINFORCED_HULL;
+      const result = installModification(ship, mod);
+      let moddedShip = result.ship!;
+
+      // Add crew properly to ensure morale is set correctly (default createShip is 100, we want neutral 50)
+      moddedShip.crew.averageMorale = 50;
+      // Also ensure we have enough crew to avoid penalty
+      for (let i = 0; i < 4; i++) {
+         moddedShip.crew.members.push({ id: `${i}`, name: 'x', role: 'Sailor', skills: {}, morale: 50, loyalty: 50, dailyWage: 1, traits: [] });
+      }
+
+      const stats = calculateShipStats(moddedShip);
+
+      // HP + 50 = 200
+      expect(stats.maxHullPoints).toBe(200);
+      // AC + 2 = 15
+      expect(stats.armorClass).toBe(15);
+      // Base Speed 60 - 5 = 55
+      expect(stats.speed).toBe(55);
+    });
+
+    it('should correctly apply multiplicative modifiers (Silk Sails)', () => {
+        let ship = createShip('Fast Sloop', 'Sloop');
+        const mod = SHIP_MODIFICATIONS.SILK_SAILS;
+        const result = installModification(ship, mod);
+        let moddedShip = result.ship!;
+
+        // Add crew and set neutral morale
+        moddedShip.crew.averageMorale = 50;
+        for (let i = 0; i < 4; i++) {
+          moddedShip.crew.members.push({ id: `${i}`, name: 'x', role: 'Sailor', skills: {}, morale: 50, loyalty: 50, dailyWage: 1, traits: [] });
+        }
+
+        const stats = calculateShipStats(moddedShip);
+        // Base Speed 60 * 1.1 = 66
+        expect(stats.speed).toBeCloseTo(66);
+    });
+
+    it('should prevent installing the same modification twice', () => {
+        let ship = createShip('Double Sloop', 'Sloop');
+        const mod = SHIP_MODIFICATIONS.REINFORCED_HULL;
+
+        const result1 = installModification(ship, mod);
+        expect(result1.success).toBe(true);
+
+        const result2 = installModification(result1.ship!, mod);
+        expect(result2.success).toBe(false);
+        expect(result2.reason).toContain('already installed');
+    });
+
+    it('should enforce size requirements (Extended Hold)', () => {
+        let tinyShip = createShip('Tiny Boat', 'Rowboat'); // Size: Small
+        const mod = SHIP_MODIFICATIONS.EXTENDED_HOLD; // Requires Large+
+
+        const result = installModification(tinyShip, mod);
+        expect(result.success).toBe(false);
+        expect(result.reason).toContain('not supported');
+
+        let bigShip = createShip('Big Boat', 'SailingShip'); // Size: Huge
+        const result2 = installModification(bigShip, mod);
+        expect(result2.success).toBe(true);
+    });
   });
 });

@@ -7,7 +7,7 @@
  */
 // TODO: Add client-side rate limiting and request queuing for AI API calls to prevent overwhelming the service during heavy usage
 import { GenerateContentResponse } from "@google/genai";
-import { ai } from './aiClient'; // Import the shared AI client
+import { ai, isAiEnabled } from './aiClient'; // Import the shared AI client
 import { logger } from '../utils/logger';
 import { Action, PlayerCharacter, InspectSubmapTilePayload, SeededFeatureConfig, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState, VillageActionContext } from "../types";
 import { SUBMAP_ICON_MEANINGS } from '../data/glossaryData';
@@ -152,6 +152,20 @@ export async function generateText(
   thinkingBudget?: number
 ): Promise<StandardizedResult<GeminiTextData>> {
   const fullPromptForLogging = `System Instruction: ${systemInstruction || defaultSystemInstruction}\nUser Prompt: ${promptContent}`;
+
+  if (!isAiEnabled()) {
+    logger.warn(`Gemini API disabled: generateText skipped (${functionName}).`);
+    return {
+      data: null,
+      error: `Gemini API disabled (Missing API Key) in ${functionName}.`,
+      metadata: {
+        promptSent: fullPromptForLogging,
+        rawResponse: "API Disabled",
+        rateLimitHit: false
+      }
+    };
+  }
+
   let lastError: any = null;
   let rateLimitHitInChain = false;
   let lastModelUsed = '';
@@ -400,6 +414,19 @@ export async function generateEncounter(
 
   const prompt = `Create a medium-difficulty D&D 5e encounter for a party of ${party.length} adventurers (${partyComposition}) with an XP budget of ${xpBudget}. Themes: ${themeTags.join(', ')}.`;
   const fullPromptForLogging = `System Instruction: ${systemInstruction}\nUser Prompt: ${prompt}`;
+
+  if (!isAiEnabled()) {
+    return {
+      data: null,
+      error: "Gemini API disabled (Missing API Key) in generateEncounter.",
+      metadata: {
+        promptSent: fullPromptForLogging,
+        rawResponse: "API Disabled",
+        rateLimitHit: false
+      }
+    };
+  }
+
   let lastError: any = null;
   let rateLimitHitInChain = false;
   let lastModelUsed = '';

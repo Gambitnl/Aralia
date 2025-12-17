@@ -33,19 +33,47 @@ export function calculateCover(origin: Position, target: Position, mapData: Batt
   const line = bresenhamLine(origin.x, origin.y, target.x, target.y);
 
   // Check each tile along the path, excluding start and end
-  // If any tile provides cover, grant +2 AC (Half Cover)
-  // TODO: Add logic for Three-Quarters Cover (+5) if we have height/obstacle type data
+  // If any tile provides cover, we determine the cover bonus (Half: +2 or Three-Quarters: +5)
+  // and apply the highest bonus found along the path.
+  let maxCover = 0;
+
   for (let i = 1; i < line.length - 1; i++) {
     const point = line[i];
     const tile = mapData.tiles.get(`${point.x}-${point.y}`);
 
     if (tile && tile.providesCover) {
-      // Found an obstacle that provides cover
-      return 2;
+      // Default to Half Cover (+2)
+      let currentCover = 2;
+
+      // Pillars provide Three-Quarters Cover (+5) due to their width and solidity
+      if (tile.decoration === 'pillar') {
+        currentCover = 5;
+      }
+
+      if (currentCover > maxCover) {
+        maxCover = currentCover;
+      }
     }
   }
 
-  return 0;
+  return maxCover;
+}
+
+/**
+ * Helper to roll a single group of dice (e.g., "2d8").
+ * @param count Number of dice
+ * @param sides Sides per die
+ * @param minRoll Minimum value per die
+ * @returns Total rolled value
+ */
+function rollDieGroup(count: number, sides: number, minRoll: number = 1): number {
+  let subTotal = 0;
+  for (let i = 0; i < count; i++) {
+    let roll = Math.floor(Math.random() * sides) + 1;
+    if (roll < minRoll) roll = minRoll;
+    subTotal += roll;
+  }
+  return subTotal;
 }
 
 /**
@@ -55,6 +83,18 @@ export function calculateCover(origin: Position, target: Position, mapData: Batt
  * @returns The total rolled value
  */
 export function rollDice(diceString: string): number {
+  return rollDamage(diceString, false);
+}
+
+/**
+ * Rolls damage, optionally doubling the dice for a critical hit.
+ *
+ * @param diceString The dice notation (e.g., '2d6+3').
+ * @param isCritical Whether this is a critical hit (doubles dice).
+ * @param minRoll Optional minimum value for each die (e.g. for Elemental Adept).
+ * @returns The total damage.
+ */
+export function rollDamage(diceString: string, isCritical: boolean, minRoll: number = 1): number {
   if (!diceString || diceString === '0') return 0;
 
   // Remove spaces for easier parsing
@@ -70,7 +110,7 @@ export function rollDice(diceString: string): number {
   let match;
 
   while ((match = regex.exec(formula)) !== null) {
-    // Avoid infinite loops if regex matches empty string (though ours shouldn't)
+    // Avoid infinite loops
     if (match.index === regex.lastIndex) {
       regex.lastIndex++;
     }
@@ -81,10 +121,11 @@ export function rollDice(diceString: string): number {
       // It's a dice roll: XdY
       const numDice = parseInt(match[2], 10);
       const dieSize = parseInt(match[3], 10);
-      let subTotal = 0;
-      for (let i = 0; i < numDice; i++) {
-        subTotal += Math.floor(Math.random() * dieSize) + 1;
-      }
+
+      // CRITICAL HIT LOGIC: Roll dice twice
+      const actualNumDice = isCritical ? numDice * 2 : numDice;
+
+      const subTotal = rollDieGroup(actualNumDice, dieSize, minRoll);
       total += sign * subTotal;
     } else if (match[4]) {
       // It's a flat number
@@ -500,4 +541,45 @@ export function createEnemyFromMonster(monster: Monster, index: number): CombatC
       freeActions: 1,
     },
   };
+}
+
+export interface AttackResult {
+  isHit: boolean;
+  isCritical: boolean;
+  isAutoMiss: boolean;
+  total: number;
+}
+
+/**
+ * Resolves an attack roll against a target's Armor Class according to 5e rules.
+ * Handles Natural 1 (Auto Miss), Natural 20 (Auto Hit/Crit), and Critical Ranges.
+ *
+ * @param d20Roll - The raw d20 roll (before modifiers).
+ * @param modifiers - Total attack bonus (ability mod + proficiency + others).
+ * @param targetAC - The target's Armor Class.
+ * @param critThreshold - The minimum die roll required for a critical hit (default 20).
+ * @returns An object containing hit/miss status and critical details.
+ */
+export function resolveAttack(
+  d20Roll: number,
+  modifiers: number,
+  targetAC: number,
+  critThreshold: number = 20
+): AttackResult {
+  const total = d20Roll + modifiers;
+  let isHit = false;
+  let isCritical = false;
+  let isAutoMiss = false;
+
+  if (d20Roll === 1) {
+    isAutoMiss = true;
+    isHit = false;
+  } else if (d20Roll >= critThreshold) {
+    isCritical = true;
+    isHit = true;
+  } else {
+    isHit = total >= targetAC;
+  }
+
+  return { isHit, isCritical, isAutoMiss, total };
 }

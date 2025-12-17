@@ -19,6 +19,7 @@ import CombatLog from './BattleMap/CombatLog';
 import ActionEconomyBar from './BattleMap/ActionEconomyBar';
 import PartyDisplay from './BattleMap/PartyDisplay';
 import CharacterSheetModal from './CharacterSheetModal';
+import { canUseDevTools } from '../utils/permissions';
 
 
 interface BattleMapDemoProps {
@@ -99,7 +100,11 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
           inventory={[]} // No inventory management in demo
           gold={0} // Default gold value for demo
           onClose={handleSheetClose}
-          onAction={(action) => console.log('Action from sheet:', action)}
+          onAction={(action) => {
+            if (canUseDevTools()) {
+              console.log('Action from sheet:', action);
+            }
+          }}
         />
       )}
       <div className="flex justify-between items-center mb-4">

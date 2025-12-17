@@ -3,6 +3,7 @@ import { CombatState } from '../../types/combat'
 import { isDamageEffect } from '../../types/spells'
 import { checkConcentration } from '../../utils/concentrationUtils';
 import { calculateSpellDC, rollSavingThrow, calculateSaveDamage } from '../../utils/savingThrowUtils';
+import { rollDamage as rollDamageUtil } from '../../utils/combatUtils';
 import { BreakConcentrationCommand } from './ConcentrationCommands'
 import { ResistanceCalculator } from '../../systems/spells/mechanics/ResistanceCalculator';
 
@@ -47,7 +48,10 @@ export class DamageCommand extends BaseEffectCommand {
 
     for (const target of this.getTargets(currentState)) {
       // 1. Calculate base damage
-      let damageRoll = this.rollDamage(this.effect.damage.dice, minRoll);
+      // Check if this damage instance is a critical hit
+      // We assume context.isCritical might be set by the calling system (e.g. Attack logic)
+      const isCritical = this.context.isCritical || false;
+      let damageRoll = this.rollDamage(this.effect.damage.dice, isCritical, minRoll);
 
       // 2. Handle Saving Throw (if applicable)
       if (this.effect.condition.type === 'save' && this.effect.condition.saveType) {
@@ -158,25 +162,13 @@ export class DamageCommand extends BaseEffectCommand {
 
   /**
    * Helper to parse dice string (e.g., "2d6+3") and roll damage.
+   * Delegates to centralized combatUtils for consistent critical hit logic.
    * @param diceString The dice notation string.
+   * @param isCritical Whether to roll double dice.
    * @param minRoll Minimum value for each die roll (default 1).
    * @returns The total calculated damage.
    */
-  private rollDamage(diceString: string, minRoll: number = 1): number {
-    const match = diceString.match(/(\d+)d(\d+)(?:\+(\d+))?/)
-    if (!match) return 0
-
-    const [, countStr, sizeStr, modStr] = match
-    const count = parseInt(countStr)
-    const size = parseInt(sizeStr)
-    const mod = modStr ? parseInt(modStr) : 0
-
-    let total = 0
-    for (let i = 0; i < count; i++) {
-      let roll = Math.floor(Math.random() * size) + 1;
-      if (roll < minRoll) roll = minRoll;
-      total += roll;
-    }
-    return total + mod
+  private rollDamage(diceString: string, isCritical: boolean, minRoll: number = 1): number {
+    return rollDamageUtil(diceString, isCritical, minRoll);
   }
 }

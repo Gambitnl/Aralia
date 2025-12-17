@@ -40,7 +40,7 @@ export const FACTIONS: Record<string, Faction> = {
         motto: 'Gold never rusts.',
         colors: { primary: '#FFD700', secondary: '#4B5563' }, // Gold and Slate
         ranks: [RANK_INITIATE, RANK_MEMBER, RANK_VETERAN],
-        allies: [],
+        allies: ['house_vane'],
         enemies: ['unseen_hand'],
         rivals: [],
         values: ['wealth', 'honesty_in_contracts', 'stability'],
@@ -68,11 +68,54 @@ export const FACTIONS: Record<string, Faction> = {
         motto: 'Steel and Honor.',
         colors: { primary: '#DC2626', secondary: '#FCD34D' }, // Red and Gold
         ranks: [RANK_INITIATE, RANK_MEMBER, RANK_VETERAN],
-        allies: [],
+        allies: ['iron_ledger'],
         enemies: ['unseen_hand'],
         rivals: [],
         values: ['honor', 'strength', 'tradition'],
         hates: ['cowardice', 'treachery', 'disrespect']
+    },
+    // --- UNDERDARK FACTIONS ---
+    'house_xorlarrin': {
+        id: 'house_xorlarrin',
+        name: 'House Xorlarrin',
+        description: 'A powerful Drow noble house of wizardry and secrets, residing in the depths of Menzoberranzan. They seek to unlock the secrets of Faerzress.',
+        type: 'NOBLE_HOUSE',
+        motto: 'Magic is the only truth.',
+        colors: { primary: '#6D28D9', secondary: '#000000' }, // Violet and Black
+        ranks: [RANK_INITIATE, RANK_MEMBER, RANK_VETERAN],
+        allies: [],
+        enemies: ['ironhead_clan'],
+        rivals: ['house_vane'], // Surface rivals
+        values: ['arcane_power', 'ambition', 'secrecy'],
+        hates: ['weakness', 'light_dwellers', 'surface_elves']
+    },
+    'deepkings_guard': {
+        id: 'deepkings_guard',
+        name: "Deepking's Guard",
+        description: 'The elite Duergar military force protecting Gracklstugh, the City of Blades. They are disciplined, ruthless, and heavily armored.',
+        type: 'MILITARY',
+        motto: 'Iron stands eternal.',
+        colors: { primary: '#4B5563', secondary: '#9CA3AF' }, // Grey and Silver
+        ranks: [RANK_INITIATE, RANK_MEMBER, RANK_VETERAN],
+        allies: [],
+        enemies: ['house_xorlarrin', 'ironhead_clan'],
+        rivals: [],
+        values: ['discipline', 'labor', 'conquest'],
+        hates: ['chaos', 'laziness', 'drow']
+    },
+    'ironhead_clan': {
+        id: 'ironhead_clan',
+        name: 'Ironhead Clan',
+        description: 'A clan of Svirfneblin (Deep Gnomes) known for their peerless mining and gem-cutting skills. They are secretive and distrustful of outsiders.',
+        type: 'GUILD', // Functionally a guild/clan hybrid
+        motto: 'Stone keeps its secrets.',
+        colors: { primary: '#78350F', secondary: '#D97706' }, // Brown and Amber
+        ranks: [RANK_INITIATE, RANK_MEMBER, RANK_VETERAN],
+        allies: [],
+        enemies: ['deepkings_guard', 'house_xorlarrin'],
+        rivals: ['iron_ledger'], // Rivals in gem trade
+        values: ['community', 'stealth', 'craftsmanship'],
+        hates: ['slavers', 'open_spaces', 'wastefulness']
     }
 };
 
@@ -81,7 +124,7 @@ export const INITIAL_FACTION_STANDINGS: Record<string, PlayerFactionStanding> = 
         factionId,
         publicStanding: 0,
         secretStanding: 0,
-        rankId: 'outsider',
+        rankId: 'outsider', // Default to outsider
         favorsOwed: 0,
         renown: 0
     };

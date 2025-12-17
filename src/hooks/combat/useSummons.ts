@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { CombatCharacter } from '../../types/combat';
-import { Spell } from '../../types/spells';
+import { Spell, SummoningEffect, FamiliarContract } from '../../types/spells';
 import { generateId } from '../../utils/combatUtils';
 import { getSummonTemplate, SummonTemplate } from '../../data/summonTemplates';
 
@@ -9,13 +9,27 @@ interface UseSummonsProps {
     onSummonRemoved?: (summonId: string) => void;
 }
 
+// Extends the core spell effect with runtime resolution fields used by this hook
+interface ResolvedSummonEffect extends Partial<SummoningEffect> {
+    // Fields from SummoningEffect that are explicitly accessed
+    duration?: SummoningEffect['duration'];
+    familiarContract?: FamiliarContract;
+
+    // Additional runtime fields used in addSummon
+    statBlock?: SummonTemplate;
+    formOptions?: string[];
+    specialActions?: any[]; // Keep any for now or define a stricter Action type if possible
+    entityType?: string; // Appears to be an alias or legacy field for summonType
+    dismissAction?: boolean;
+}
+
 export const useSummons = ({ onSummonAdded, onSummonRemoved }: UseSummonsProps = {}) => {
     const [summonedEntities, setSummonedEntities] = useState<CombatCharacter[]>([]);
 
     const addSummon = useCallback((
         caster: CombatCharacter,
         spell: Spell,
-        summonEffect: any, // Typed as SummoningEffect["summon"] in usage
+        summonEffect: ResolvedSummonEffect,
         position: { x: number; y: number },
         formIndex: number = 0
     ) => {
@@ -43,7 +57,7 @@ export const useSummons = ({ onSummonAdded, onSummonRemoved }: UseSummonsProps =
 
         const newSummon: CombatCharacter = {
             id: generateId(),
-            name: statBlock.name || `Summoned ${summonEffect.entityType}`,
+            name: statBlock.name || `Summoned ${summonEffect.entityType || 'Creature'}`,
             team: caster.team, // Allied with caster
             position,
             maxHP: statBlock.hp || 10,

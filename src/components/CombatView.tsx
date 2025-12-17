@@ -19,6 +19,7 @@ import CombatLog from './BattleMap/CombatLog';
 import ActionEconomyBar from './BattleMap/ActionEconomyBar';
 import PartyDisplay from './BattleMap/PartyDisplay';
 import CharacterSheetModal from './CharacterSheetModal';
+import { canUseDevTools } from '../utils/permissions';
 import { createPlayerCombatCharacter } from '../utils/combatUtils';
 import SpellContext from '../context/SpellContext';
 import { generateLoot } from '../services/lootService';
@@ -274,7 +275,11 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
           inventory={[]} // No inventory management during combat for now
           gold={0}
           onClose={handleSheetClose}
-          onAction={(action) => console.log('Action from sheet:', action)}
+          onAction={(action) => {
+            if (canUseDevTools()) {
+              console.log('Action from sheet:', action);
+            }
+          }}
         />
       )}
       <div className="flex justify-between items-center mb-4">

@@ -12,6 +12,7 @@ vi.mock('../combatUtils', async (importOriginal) => {
     rollDice: vi.fn((dice: string) => {
       // Simple mock: return average or fixed value
       if (dice === '1d4') return 2;
+      if (dice === '-1d4') return -2; // Handle penalty
       return 5;
     }),
   };
@@ -116,7 +117,7 @@ describe('savingThrowUtils', () => {
         expect(result.total).toBe(14);
     });
 
-    it('applies external modifiers (dice)', () => {
+    it('applies external modifiers (dice) as penalty', () => {
         const char = createMockCombatCharacter({
             stats: {
                 strength: 10, dexterity: 10, // +0 Mod
@@ -128,7 +129,7 @@ describe('savingThrowUtils', () => {
         vi.spyOn(Math, 'random').mockReturnValue(0.45); // Roll 10
 
         const modifiers: SavingThrowModifier[] = [
-            { source: 'Bane', dice: '1d4' } // Mocked to return 2
+            { source: 'Bane', dice: '-1d4' } // Use negative dice string for penalty
         ];
 
         const result = rollSavingThrow(char, 'Dexterity', 10, modifiers);
@@ -136,6 +137,28 @@ describe('savingThrowUtils', () => {
         expect(result.total).toBe(8);
         expect(result.modifiersApplied).toHaveLength(1);
         expect(result.modifiersApplied![0].value).toBe(-2);
+    });
+
+    it('applies external modifiers (dice) as bonus', () => {
+        const char = createMockCombatCharacter({
+            stats: {
+                strength: 10, dexterity: 10, // +0 Mod
+                constitution: 10, intelligence: 10, wisdom: 10, charisma: 10,
+                baseInitiative: 0, speed: 30, cr: '1'
+            }
+        });
+
+        vi.spyOn(Math, 'random').mockReturnValue(0.45); // Roll 10
+
+        const modifiers: SavingThrowModifier[] = [
+            { source: 'Bless', dice: '1d4' } // Positive dice string for bonus
+        ];
+
+        const result = rollSavingThrow(char, 'Dexterity', 10, modifiers);
+        // Total = 10 (Roll) + 0 (Mod) + 2 (Bless) = 12
+        expect(result.total).toBe(12);
+        expect(result.modifiersApplied).toHaveLength(1);
+        expect(result.modifiersApplied![0].value).toBe(2);
     });
 
     it('applies external modifiers (flat)', () => {
@@ -168,15 +191,6 @@ describe('savingThrowUtils', () => {
         const result20 = rollSavingThrow(char, 'Dexterity', 30);
         expect(result20.roll).toBe(20);
         expect(result20.natural20).toBe(true);
-        // Note: 5e rules say nat 20 is not auto success for saves, only attacks.
-        // But some implementations might differ. The code says:
-        // success: total >= dc
-        // Wait, the code in savingThrowUtils.ts implementation:
-        // natural20: roll === 20
-        // But success is solely total >= dc.
-        // I should check if the code implements auto-success for saves.
-        // Reading the code again: return { success: total >= dc, ... }
-        // So no auto success. This matches 5e rules (mostly).
 
         // Roll 1
         vi.spyOn(Math, 'random').mockReturnValue(0.01);
