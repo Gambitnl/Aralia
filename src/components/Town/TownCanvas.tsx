@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { TownGenerator } from '../services/RealmSmithTownGenerator';
-import { AssetPainter } from '../services/RealmSmithAssetPainter';
-import { TownOptions, BiomeType, TownDensity, BuildingType, Building, TownMap } from '../types/realmsmith';
-import { TownPosition, TownDirection, TOWN_DIRECTION_VECTORS } from '../types/town';
-import { PlayerCharacter } from '../types/character';
-import { isPositionWalkable, getAdjacentBuildings } from '../utils/walkabilityUtils';
+import { TownGenerator } from '../../services/RealmSmithTownGenerator';
+import { AssetPainter } from '../../services/RealmSmithAssetPainter';
+import { TownOptions, BiomeType, TownDensity, BuildingType, Building, TownMap } from '../../types/realmsmith';
+import { TownPosition, TownDirection, TOWN_DIRECTION_VECTORS } from '../../types/town';
+import { PlayerCharacter } from '../../types/character';
+import { isPositionWalkable, getAdjacentBuildings } from '../../utils/walkabilityUtils';
 import TownNavigationControls from './TownNavigationControls';
 import { TownDevControls } from './TownDevControls';
 import { RefreshCw, Map as MapIcon, Sparkles, ZoomIn, ZoomOut, Maximize, Move, Moon, Sun, Grid, Settings, X, User } from 'lucide-react';

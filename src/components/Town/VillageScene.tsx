@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { describeBuilding, findBuildingAt, generateVillageLayout, VillageTileType } from '../services/villageGenerator';
-import { villageBuildingVisuals } from '../config/submapVisualsConfig';
-import { Action, VillageActionContext } from '../types';
+import { describeBuilding, findBuildingAt, generateVillageLayout, VillageTileType } from '../../services/villageGenerator';
+import { villageBuildingVisuals } from '../../config/submapVisualsConfig';
+import { Action, VillageActionContext } from '../../types';
 
 interface VillageSceneProps {
   worldSeed: number;

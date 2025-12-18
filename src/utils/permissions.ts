@@ -35,7 +35,7 @@ export function hasPermission(permission: Permission): boolean {
     case 'EDIT_PARTY':
     case 'TEST_NPC_INTERACTIONS':
     case 'VIEW_GEMINI_LOGS':
-      return USE_DUMMY_CHARACTER_FOR_DEV;
+      return true; // Force enable for testing
     default:
       return false;
   }
