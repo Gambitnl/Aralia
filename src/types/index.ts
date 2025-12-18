@@ -151,6 +151,17 @@ export interface KnownFact {
   sourceDiscoveryId?: string;
 }
 
+export interface WorldRumor {
+  id: string;
+  text: string;
+  sourceFactionId?: string;
+  targetFactionId?: string;
+  type: 'skirmish' | 'market' | 'event' | 'misc';
+  timestamp: number; // Game day timestamp
+  expiration: number; // Game day timestamp when rumor fades
+  region?: string; // Optional region restriction
+}
+
 export interface DiscoveryResidue {
   text: string;
   discoveryDc: number;

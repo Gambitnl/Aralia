@@ -44,7 +44,9 @@ export const FACTIONS: Record<string, Faction> = {
         enemies: ['unseen_hand'],
         rivals: [],
         values: ['wealth', 'honesty_in_contracts', 'stability'],
-        hates: ['theft', 'chaos', 'bad_debts']
+        hates: ['theft', 'chaos', 'bad_debts'],
+        power: 80,
+        assets: []
     },
     'unseen_hand': {
         id: 'unseen_hand',
@@ -59,7 +61,9 @@ export const FACTIONS: Record<string, Faction> = {
         rivals: [],
         values: ['secrecy', 'loyalty', 'cunning'],
         hates: ['snitches', 'law_enforcement', 'exposure'],
-        services: ['fence', 'forgery', 'safehouse']
+        services: ['fence', 'forgery', 'safehouse'],
+        power: 60,
+        assets: []
     },
     'house_vane': {
         id: 'house_vane',
@@ -73,7 +77,9 @@ export const FACTIONS: Record<string, Faction> = {
         enemies: ['unseen_hand'],
         rivals: [],
         values: ['honor', 'strength', 'tradition'],
-        hates: ['cowardice', 'treachery', 'disrespect']
+        hates: ['cowardice', 'treachery', 'disrespect'],
+        power: 75,
+        assets: []
     },
     // --- UNDERDARK FACTIONS ---
     'house_xorlarrin': {
@@ -88,7 +94,9 @@ export const FACTIONS: Record<string, Faction> = {
         enemies: ['ironhead_clan'],
         rivals: ['house_vane'], // Surface rivals
         values: ['arcane_power', 'ambition', 'secrecy'],
-        hates: ['weakness', 'light_dwellers', 'surface_elves']
+        hates: ['weakness', 'light_dwellers', 'surface_elves'],
+        power: 85,
+        assets: []
     },
     'deepkings_guard': {
         id: 'deepkings_guard',
@@ -102,7 +110,9 @@ export const FACTIONS: Record<string, Faction> = {
         enemies: ['house_xorlarrin', 'ironhead_clan'],
         rivals: [],
         values: ['discipline', 'labor', 'conquest'],
-        hates: ['chaos', 'laziness', 'drow']
+        hates: ['chaos', 'laziness', 'drow'],
+        power: 70,
+        assets: []
     },
     'ironhead_clan': {
         id: 'ironhead_clan',
@@ -116,7 +126,9 @@ export const FACTIONS: Record<string, Faction> = {
         enemies: ['deepkings_guard', 'house_xorlarrin'],
         rivals: ['iron_ledger'], // Rivals in gem trade
         values: ['community', 'stealth', 'craftsmanship'],
-        hates: ['slavers', 'open_spaces', 'wastefulness']
+        hates: ['slavers', 'open_spaces', 'wastefulness'],
+        power: 50,
+        assets: []
     }
 };
 

@@ -54,6 +54,10 @@ export interface Faction {
   values: string[];
   hates: string[];
   services?: string[]; // Services offered (e.g., 'fence', 'forgery')
+
+  // Dynamic state
+  power: number; // 0-100, represents overall influence/strength
+  assets: FactionAsset[]; // Territories, resources, etc.
 }
 
 export interface PlayerFactionStanding {
