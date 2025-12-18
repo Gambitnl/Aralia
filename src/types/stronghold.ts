@@ -28,7 +28,7 @@ export interface StrongholdStaff {
 export type StrongholdEffectType =
     | 'income_flat'      // Adds flat gold per day
     | 'income_percent'   // Increases total income by %
-    | 'defense_bonus'    // Increases stronghold defense (abstract)
+    | 'defense_bonus'    // Increases stronghold defense
     | 'influence_bonus'  // Generates daily influence
     | 'intel_bonus'      // Generates daily intel
     | 'morale_bonus'     // Increases daily morale recovery
@@ -56,6 +56,27 @@ export interface ConstructionProject {
     daysRemaining: number;
 }
 
+export type ThreatType = 'bandits' | 'monster' | 'disaster' | 'political' | 'rebellion';
+
+export interface ThreatConsequence {
+    goldLoss?: number;
+    suppliesLoss?: number;
+    moraleLoss?: number;
+    staffDeath?: boolean;
+    buildingDamage?: boolean;
+}
+
+export interface ActiveThreat {
+    id: string;
+    name: string;
+    description: string;
+    type: ThreatType;
+    severity: number; // Difficulty class to beat (e.g., 10-100)
+    daysUntilTrigger: number;
+    resolved: boolean;
+    consequences: ThreatConsequence;
+}
+
 export interface Stronghold {
     id: string;
     name: string;
@@ -68,9 +89,12 @@ export interface Stronghold {
     taxRate: number; // 0-100 percentage if applicable
     dailyIncome: number; // Base passive income
 
-    // New fields
+    // Upgrades
     upgrades: string[]; // IDs of completed upgrades
     constructionQueue: ConstructionProject[]; // Upgrades currently being built
+
+    // Active Threats
+    threats: ActiveThreat[];
 }
 
 export interface DailyUpdateSummary {
@@ -78,5 +102,6 @@ export interface DailyUpdateSummary {
     goldChange: number;
     influenceChange: number;
     staffEvents: string[]; // e.g., "Guard John quit due to lack of payment."
+    threatEvents: string[]; // e.g., "Bandits raided! Lost 500 gold."
     alerts: string[]; // e.g., "Low funds warning!"
 }
