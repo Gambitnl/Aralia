@@ -2,9 +2,10 @@
  * @file AbilityButton.tsx
  * A dedicated component for displaying a single ability button in the palette.
  */
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Ability } from '../../types/combat';
 import Tooltip from '../Tooltip';
+import { getSpellVisual } from '../../utils/visuals/spellVisuals';
 
 interface AbilityButtonProps {
     ability: Ability;
@@ -26,7 +27,35 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
     
     const costBadgeColor = costColors[ability.cost.type] || 'bg-gray-500';
 
+    // Resolve visuals: Prefer ability.icon, then spell-based visual, then default fallback.
+    const visual = useMemo(() => {
+        if (ability.icon) {
+            return {
+                fallbackContent: ability.icon,
+                primaryColor: 'transparent', // Let button background handle it
+                label: ability.name
+            };
+        }
+        if (ability.spell) {
+            return getSpellVisual(ability.spell);
+        }
+        return {
+            fallbackContent: '✨',
+            primaryColor: 'transparent',
+            label: ability.name
+        };
+    }, [ability]);
+
+    // Apply primary color from visual spec if it's not transparent/default, to give hint of school.
+    // Do not override border color if disabled, to ensure the gray disabled state is visible.
+    const customStyle = (!isDisabled && visual.primaryColor !== 'transparent')
+        ? { borderColor: visual.primaryColor }
+        : {};
+
     let tooltipContent = `${ability.name}`;
+    if (ability.spell) {
+        tooltipContent += `\n${ability.spell.school} Cantrip/Spell`;
+    }
     tooltipContent += `\n${ability.description}`;
     if (ability.cost.movementCost) {
         tooltipContent += `\nMovement Cost: ${ability.cost.movementCost}`;
@@ -38,7 +67,7 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
         tooltipContent += `\nCooldown: ${ability.currentCooldown} turns`;
     }
 
-    const accessibleLabel = `${ability.name}, ${costText} cost${isOnCooldown ? `, ${ability.currentCooldown} turn cooldown` : ''}`;
+    const accessibleLabel = `${visual.label}, ${costText} cost${isOnCooldown ? `, ${ability.currentCooldown} turn cooldown` : ''}`;
 
     return (
         <Tooltip content={<pre className="text-xs whitespace-pre-wrap">{tooltipContent.trim()}</pre>}>
@@ -47,11 +76,18 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
                 disabled={isDisabled}
                 aria-label={accessibleLabel}
                 aria-disabled={isDisabled}
+                style={customStyle}
                 className={`relative w-16 h-16 rounded-lg flex flex-col items-center justify-center p-1 text-white border-2 transition-all outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800
                     ${isDisabled ? 'bg-gray-600/50 border-gray-500 cursor-not-allowed opacity-60' : 'bg-sky-700 hover:bg-sky-600 border-sky-500 cursor-pointer'}
                 `}
             >
-                <span className="text-2xl flex-grow flex items-center">{ability.icon || '✨'}</span>
+                <span className="text-2xl flex-grow flex items-center drop-shadow-md">
+                    {visual.src ? (
+                        <img src={visual.src} alt="" className="w-8 h-8 object-contain" />
+                    ) : (
+                        visual.fallbackContent
+                    )}
+                </span>
                 
                 {/* Cost Badge */}
                 <div className={`absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full shadow-md ${costBadgeColor}`}>
