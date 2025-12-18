@@ -301,8 +301,18 @@ export class MovementCommand extends BaseEffectCommand {
         }
 
         const origin = target.position
-        // TODO: Enforce teleport range even when effect.distance is missing; a zero-distance teleport currently treats validMoves as unbounded.
-        const validMoves = (state.validMoves || []).filter(pos => getDistance(origin, pos) <= (maxTiles || Infinity))
+        // If distance is missing, maxTiles is 0. If distance is truly 0, range is 0.
+        // We only fallback to Infinity if we specifically wanted unbounded, but undefined/0 usually means "no movement" or "touch"
+        // in this context unless explicitly handled. However, for teleport, 0 distance likely means "don't move" or "self".
+        // The issue was `maxTiles || Infinity` treating 0 as Infinity.
+        const validMoves = (state.validMoves || []).filter(pos => {
+            const dist = getDistance(origin, pos)
+            // If effect.distance is provided, use maxTiles. If not provided (undefined), treat as 0 range.
+            // If effect.distance is 0, maxTiles is 0.
+            // We assume if maxTiles is 0, we can only teleport to current spot (dist <= 0).
+            const range = (effect.distance === undefined || effect.distance === null) ? 0 : maxTiles
+            return dist <= range
+        })
         if (validMoves.length > 0) {
             return validMoves[0]
         }
