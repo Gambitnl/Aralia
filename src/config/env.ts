@@ -15,6 +15,7 @@ interface EnvConfig {
 
 // Access raw environment variables
 // Note: process.env is shimmed in vite.config.ts for API_KEY
+// TODO(Forge): Migrate to `import.meta.env.VITE_GEMINI_API_KEY` to align with Vite standards and remove the `process.env` shim.
 // TODO: Avoid shipping API_KEY to the client bundle; route AI calls through a server/proxy and leave ENV.API_KEY empty in browser builds.
 const RAW_ENV = {
   API_KEY: process.env.API_KEY || process.env.GEMINI_API_KEY || '',
