@@ -6,7 +6,16 @@
  * Defines the initial data for game companions.
  */
 
-import { Companion, CompanionGoal, PersonalityTraits, Relationship, RelationshipEvent, NPCIdentity, ApprovalEvent } from '../types/companions';
+import {
+  Companion,
+  CompanionGoal,
+  PersonalityTraits,
+  Relationship,
+  RelationshipEvent,
+  NPCIdentity,
+  ApprovalEvent,
+  CompanionReactionRule
+} from '../types/companions';
 
 const createInitialRelationship = (targetId: string = 'player'): Relationship => ({
   targetId,
@@ -53,6 +62,46 @@ const KAELEN_GOALS: CompanionGoal[] = [
   }
 ];
 
+const KAELEN_REACTIONS: CompanionReactionRule[] = [
+  {
+    triggerTags: ['crime', 'theft', 'trickery'],
+    approvalChange: 2,
+    dialoguePool: [
+      "Smooth. I like that.",
+      "Five finger discount? My favorite price.",
+      "Just don't get caught, Chief."
+    ]
+  },
+  {
+    triggerTags: ['charity', 'selfless'],
+    approvalChange: -1,
+    dialoguePool: [
+      "You're giving it away? Seriously?",
+      "Heroism doesn't pay the bills.",
+      "Hope they remember that when you're starving."
+    ]
+  },
+  {
+    triggerTags: ['authority', 'law', 'arrest'],
+    approvalChange: -3,
+    dialoguePool: [
+      "I smell bacon. Let's move.",
+      "Never trust a badge.",
+      "We shouldn't be helping them."
+    ]
+  },
+  {
+    triggerTags: ['profit', 'negotiation'],
+    approvalChange: 1,
+    dialoguePool: [
+      "Now we're talking business.",
+      "Gold talks.",
+      "Smart move."
+    ]
+  }
+];
+
+
 const ELARA_ID: NPCIdentity = {
   id: 'elara_vance',
   name: 'Elara Vance',
@@ -90,6 +139,45 @@ const ELARA_GOALS: CompanionGoal[] = [
   }
 ];
 
+const ELARA_REACTIONS: CompanionReactionRule[] = [
+  {
+    triggerTags: ['charity', 'healing', 'kindness'],
+    approvalChange: 3,
+    dialoguePool: [
+      "The Light smiles upon such deeds.",
+      "Thank you for showing mercy.",
+      "This is what we are fighting for."
+    ]
+  },
+  {
+    triggerTags: ['crime', 'theft', 'murder'],
+    approvalChange: -5,
+    dialoguePool: [
+      "This is wrong, and you know it.",
+      "I cannot condone this.",
+      "Have we lost our way?"
+    ]
+  },
+  {
+    triggerTags: ['undead', 'necromancy'],
+    approvalChange: -10,
+    dialoguePool: [
+      "Abomination!",
+      "The dead must rest.",
+      "This magic is a stain on the world."
+    ]
+  },
+  {
+    triggerTags: ['prayer', 'religion'],
+    approvalChange: 2,
+    dialoguePool: [
+      "Faith is our shield.",
+      "May the gods guide us.",
+      "Peace be with you."
+    ]
+  }
+];
+
 export const COMPANIONS: Record<string, Companion> = {
   [KAELEN_ID.id]: {
     id: KAELEN_ID.id,
@@ -100,7 +188,8 @@ export const COMPANIONS: Record<string, Companion> = {
       player: createInitialRelationship()
     },
     loyalty: 50,
-    approvalHistory: []
+    approvalHistory: [],
+    reactionRules: KAELEN_REACTIONS
   },
   [ELARA_ID.id]: {
     id: ELARA_ID.id,
@@ -111,6 +200,7 @@ export const COMPANIONS: Record<string, Companion> = {
       player: createInitialRelationship()
     },
     loyalty: 80, // Starts higher due to duty
-    approvalHistory: []
+    approvalHistory: [],
+    reactionRules: ELARA_REACTIONS
   }
 };

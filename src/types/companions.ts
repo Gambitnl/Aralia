@@ -80,6 +80,40 @@ export interface NPCIdentity {
   avatarUrl?: string;
 }
 
+/**
+ * Context for a decision made by the player that might trigger companion reactions.
+ */
+export interface DecisionContext {
+  id: string;
+  type: string; // e.g. "crime", "charity", "combat_victory"
+  tags: string[]; // e.g. ["theft", "violent", "generous"]
+  magnitude: number; // 1 (minor) to 5 (major)
+  description?: string;
+}
+
+/**
+ * Result of a companion evaluating a decision.
+ */
+export interface ReactionResult {
+  companionId: string;
+  approvalChange: number;
+  dialogue?: string;
+  isSilent: boolean; // If true, approval changes but no dialogue (e.g. if far away or strictly internal)
+}
+
+/**
+ * Rule defining how a companion reacts to specific tags.
+ */
+export interface CompanionReactionRule {
+  triggerTags: string[]; // Matches ANY of these tags
+  approvalChange: number; // Base change for magnitude 1
+  dialoguePool: string[]; // Randomly selected response
+  requirements?: {
+    minRelationship?: RelationshipLevel;
+    maxRelationship?: RelationshipLevel;
+  };
+}
+
 export interface Companion {
   id: string;
   identity: NPCIdentity;
@@ -89,6 +123,9 @@ export interface Companion {
   loyalty: number; // 0-100, determines chance of leaving/betrayal
   approvalHistory: ApprovalEvent[];
   questline?: CompanionQuestline;
+
+  // New: Reaction Logic
+  reactionRules: CompanionReactionRule[];
 
   // Combat stats could link to a CombatCharacter or be defined here
   // For now, we assume they map to a CombatCharacter via ID
