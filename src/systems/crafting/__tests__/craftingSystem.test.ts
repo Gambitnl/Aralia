@@ -1,87 +1,97 @@
-
-import { describe, it, expect } from 'vitest';
-import { attemptCraft, validateMaterials } from '../craftingSystem';
+/**
+ * @file src/systems/crafting/__tests__/craftingSystem.test.ts
+ */
+import { describe, it, expect, vi } from 'vitest';
+import { attemptCraft, canCraft, Crafter } from '../craftingSystem';
 import { Recipe } from '../types';
 
 describe('Crafting System', () => {
-  const basicRecipe: Recipe = {
-    id: 'potion_healing',
-    name: 'Healing Potion',
-    description: 'A basic healing potion',
+  const mockRecipe: Recipe = {
+    id: 'test_potion',
+    name: 'Test Potion',
+    description: 'Test',
+    station: 'alchemy_bench',
+    timeMinutes: 30,
+    skillCheck: { skill: 'Alchemy', dc: 15 },
     inputs: [
-      { itemId: 'herb_healing', quantity: 2, consumed: true },
-      { itemId: 'vial_glass', quantity: 1, consumed: true }
+      { itemId: 'herb', quantity: 2, consumed: true },
+      { itemId: 'bottle', quantity: 1, consumed: true },
+      { itemId: 'spoon', quantity: 1, consumed: false }
     ],
     outputs: [
-      { itemId: 'potion_healing', quantity: 1, qualityFromRoll: false }
-    ],
-    timeMinutes: 60,
-    skillCheck: {
-      skill: 'herbalism_kit',
-      difficultyClass: 12
-    }
+      { itemId: 'potion', quantity: 1 }
+    ]
   };
 
-  describe('validateMaterials', () => {
-    it('should return valid if all materials are present', () => {
-      const inventory = [
-        { itemId: 'herb_healing', quantity: 5 },
-        { itemId: 'vial_glass', quantity: 5 }
-      ];
-      const result = validateMaterials(inventory, basicRecipe);
-      expect(result.valid).toBe(true);
-      expect(result.missing).toHaveLength(0);
-    });
-
-    it('should return invalid if materials are missing', () => {
-        const inventory = [
-            { itemId: 'herb_healing', quantity: 1 }, // Need 2
-            { itemId: 'vial_glass', quantity: 5 }
-        ];
-        const result = validateMaterials(inventory, basicRecipe);
-        expect(result.valid).toBe(false);
-        expect(result.missing).toContain('herb_healing');
-    });
+  const createMockCrafter = (inventory: {itemId: string, quantity: number}[], rollResult: number): Crafter => ({
+    id: 'c1',
+    name: 'Crafter',
+    inventory,
+    rollSkill: vi.fn().mockReturnValue(rollResult)
   });
 
-  describe('attemptCraft', () => {
-    it('should fail and lose materials on critical failure (roll <= DC - 10)', () => {
-        // DC 12. Roll 2. 2 <= 2.
-        const result = attemptCraft(basicRecipe, 2);
-        expect(result.success).toBe(false);
-        expect(result.materialsLost).toBe(true);
-        expect(result.quality).toBe('poor');
-    });
+  it('validates sufficient materials correctly', () => {
+    const crafter = createMockCrafter([
+      { itemId: 'herb', quantity: 5 },
+      { itemId: 'bottle', quantity: 1 },
+      { itemId: 'spoon', quantity: 1 }
+    ], 20);
 
-    it('should fail but save materials on standard failure (roll < DC)', () => {
-        // DC 12. Roll 10.
-        const result = attemptCraft(basicRecipe, 10);
-        expect(result.success).toBe(false);
-        expect(result.materialsLost).toBe(false);
-    });
+    expect(canCraft(crafter, mockRecipe)).toBe(true);
+  });
 
-    it('should succeed with standard quality on success (roll >= DC)', () => {
-        // DC 12. Roll 15.
-        const result = attemptCraft(basicRecipe, 15);
-        expect(result.success).toBe(true);
-        expect(result.quality).toBe('standard');
-        expect(result.outputs).toBeDefined();
-        expect(result.outputs?.[0].quantity).toBe(1);
-    });
+  it('validates insufficient materials correctly', () => {
+    const crafter = createMockCrafter([
+      { itemId: 'herb', quantity: 1 }, // Need 2
+      { itemId: 'bottle', quantity: 1 },
+      { itemId: 'spoon', quantity: 1 }
+    ], 20);
 
-    it('should succeed with superior quality on critical success (roll >= DC + 10)', () => {
-        // DC 12. Roll 22.
-        // Note: The example logic in attemptCraft doubles quantity for qualityFromRoll=true,
-        // but our basicRecipe has it false. Let's update recipe for this test or check logic.
-        // Wait, logic says: quantity * (o.qualityFromRoll ? 2 : 1).
-        // So for basicRecipe it will still be 1 unless we change the recipe.
+    expect(canCraft(crafter, mockRecipe)).toBe(false);
+  });
 
-        const qualityRecipe = { ...basicRecipe, outputs: [{ itemId: 'potion_healing', quantity: 1, qualityFromRoll: true }] };
+  it('consumes materials on success', () => {
+    const crafter = createMockCrafter([
+      { itemId: 'herb', quantity: 5 },
+      { itemId: 'bottle', quantity: 5 },
+      { itemId: 'spoon', quantity: 1 }
+    ], 16); // Roll 16 > DC 15
 
-        const result = attemptCraft(qualityRecipe, 22);
-        expect(result.success).toBe(true);
-        expect(result.quality).toBe('superior');
-        expect(result.outputs?.[0].quantity).toBe(2);
-    });
+    const result = attemptCraft(crafter, mockRecipe);
+
+    expect(result.success).toBe(true);
+    // Consumed: 2 herbs, 1 bottle. Spoon not consumed.
+    expect(result.consumedMaterials).toHaveLength(2);
+    expect(result.consumedMaterials).toContainEqual({ itemId: 'herb', quantity: 2 });
+    expect(result.consumedMaterials).toContainEqual({ itemId: 'bottle', quantity: 1 });
+    expect(result.outputs).toContainEqual({ itemId: 'potion', quantity: 1 });
+  });
+
+  it('fails and consumes materials on failed skill check', () => {
+    const crafter = createMockCrafter([
+      { itemId: 'herb', quantity: 5 },
+      { itemId: 'bottle', quantity: 5 },
+      { itemId: 'spoon', quantity: 1 }
+    ], 5); // Roll 5 < DC 15
+
+    const result = attemptCraft(crafter, mockRecipe);
+
+    expect(result.success).toBe(false);
+    expect(result.materialsLost).toBe(true);
+    // Should still list consumed materials because they were lost
+    expect(result.consumedMaterials).toHaveLength(2);
+    expect(result.outputs).toHaveLength(0);
+  });
+
+  it('produces superior quality on high roll', () => {
+    const crafter = createMockCrafter([
+      { itemId: 'herb', quantity: 5 },
+      { itemId: 'bottle', quantity: 5 },
+      { itemId: 'spoon', quantity: 1 }
+    ], 25); // Roll 25 >= DC 15 + 10
+
+    const result = attemptCraft(crafter, mockRecipe);
+    expect(result.success).toBe(true);
+    expect(result.quality).toBe('superior');
   });
 });

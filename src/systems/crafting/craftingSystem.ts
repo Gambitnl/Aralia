@@ -1,88 +1,111 @@
-
-import { Recipe, CraftResult, Crafter } from './types';
+/**
+ * @file src/systems/crafting/craftingSystem.ts
+ * Core logic for crafting items, including recipe validation and execution.
+ */
+import { Recipe, CraftingResult, MaterialRequirement } from './types';
 
 /**
- * Validates if the crafter has the necessary materials.
- * Note: This is a pure function that checks a list of available items against the recipe.
- * It does not check the inventory of a 'Character' object directly to avoid tight coupling.
+ * Interface representing a character capable of crafting.
+ * Decoupled from full Character object to allow easier testing and usage.
  */
-export function validateMaterials(
-  availableItems: { itemId: string; quantity: number }[],
-  recipe: Recipe
-): { valid: boolean; missing: string[] } {
-  const missing: string[] = [];
+export interface Crafter {
+  id: string;
+  name: string;
+  inventory: { itemId: string; quantity: number }[];
+  /**
+   * Callback to roll a skill check.
+   * Returns a number representing the total roll (d20 + modifiers).
+   */
+  rollSkill: (skillName: string) => number;
+}
 
+/**
+ * Checks if the crafter has the necessary materials for a recipe.
+ */
+export function canCraft(crafter: Crafter, recipe: Recipe): boolean {
   for (const input of recipe.inputs) {
-    const item = availableItems.find(i => i.itemId === input.itemId);
-    if (!item || item.quantity < input.quantity) {
-      missing.push(input.itemId);
+    const itemInInventory = crafter.inventory.find(i => i.itemId === input.itemId);
+    const quantity = itemInInventory ? itemInInventory.quantity : 0;
+
+    if (quantity < input.quantity) {
+      return false;
     }
   }
-
-  return {
-    valid: missing.length === 0,
-    missing
-  };
+  return true;
 }
 
 /**
- * Attempts to craft an item based on the recipe and a skill roll.
- * The roll is passed in to allow for external dice rolling logic (UI, 3D dice, etc).
+ * Attempts to craft an item using the provided recipe.
  */
-export function attemptCraft(
-  recipe: Recipe,
-  skillRollTotal: number
-): CraftResult {
-  // 1. Check DC
+export function attemptCraft(crafter: Crafter, recipe: Recipe): CraftingResult {
+  // 1. Validate Materials
+  if (!canCraft(crafter, recipe)) {
+    return {
+      success: false,
+      quality: 'poor',
+      outputs: [],
+      consumedMaterials: [],
+      materialsLost: false,
+      message: 'Insufficient materials.'
+    };
+  }
+
+  // 2. Perform Skill Check (if required)
+  let roll = 0;
+  let success = true;
+  let quality: 'poor' | 'standard' | 'superior' | 'masterwork' = 'standard';
+  let materialsLost = false;
+
   if (recipe.skillCheck) {
-    const dc = recipe.skillCheck.difficultyClass;
+    roll = crafter.rollSkill(recipe.skillCheck.skill);
+    const dc = recipe.skillCheck.dc;
 
-    // Critical Failure (Generic rule: fail by 10 or more)
-    if (skillRollTotal <= dc - 10) {
-       return {
-         success: false,
-         quality: 'poor',
-         details: 'Critical failure. Materials ruined.',
-         materialsLost: true
-       };
-    }
-
-    // Failure
-    if (skillRollTotal < dc) {
-      return {
-        success: false,
-        quality: 'poor',
-        details: 'Crafting failed. Materials salvageable.',
-        materialsLost: false // Benevolent DM rule: you just fail to make progress
-      };
-    }
-
-    // Critical Success (Generic rule: succeed by 10 or more)
-    if (skillRollTotal >= dc + 10) {
-      return {
-        success: true,
-        quality: 'superior',
-        details: 'Masterpiece created!',
-        materialsLost: true, // Consumed to make the item
-        outputs: recipe.outputs.map(o => ({
-            itemId: o.itemId,
-            quantity: o.quantity * (o.qualityFromRoll ? 2 : 1) // Example bonus
-        }))
-      };
+    if (roll < dc) {
+      // Failure
+      success = false;
+      materialsLost = true; // Strict ALCHEMIST philosophy: Failure costs resources
+      quality = 'poor';
+    } else if (roll >= dc + 10) {
+      // Critical Success
+      quality = 'superior';
+    } else if (roll >= dc + 5) {
+      // Good Success (could define 'standard' as baseline, but let's allow superior)
+      // For now, let's keep it simple: > DC+10 is superior, else standard.
     }
   }
 
-  // Standard Success
+  // 3. Determine Outcomes
+  const outputs: { itemId: string; quantity: number }[] = [];
+  const consumed: { itemId: string; quantity: number }[] = [];
+
+  // Determine consumed materials
+  // Even on failure, if materialsLost is true, we consume "consumed" inputs
+  // If failure but materialsLost is false (e.g. tools broke but materials safe? - simpler to just consume on fail usually)
+  // Logic: If success, consume inputs. If fail and materialsLost, consume inputs.
+  if (success || materialsLost) {
+    for (const input of recipe.inputs) {
+      if (input.consumed) {
+        consumed.push({ itemId: input.itemId, quantity: input.quantity });
+      }
+    }
+  }
+
+  if (success) {
+    for (const output of recipe.outputs) {
+      let qty = output.quantity;
+      // Future: apply quality bonuses to quantity or item ID mapping
+      outputs.push({ itemId: output.itemId, quantity: qty });
+    }
+  }
+
   return {
-    success: true,
-    quality: 'standard',
-    details: 'Crafting successful.',
-    materialsLost: true,
-    outputs: recipe.outputs.map(o => ({
-        itemId: o.itemId,
-        quantity: o.quantity
-    }))
+    success,
+    quality,
+    outputs: success ? outputs : [],
+    consumedMaterials: consumed,
+    materialsLost: !success && materialsLost,
+    message: success
+      ? `Successfully crafted ${recipe.name} (${quality}).`
+      : `Failed to craft ${recipe.name}. Materials ${materialsLost ? 'lost' : 'preserved'}.`
   };
 }
-
-// TODO(Architect): Integrate `attemptCraft` into `ActionPane.tsx` or a new `CraftingStation` component to allow players to trigger this logic.
