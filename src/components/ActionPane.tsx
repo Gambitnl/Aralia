@@ -18,6 +18,7 @@ import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import { BTN_BASE, BTN_SIZE_LG } from '../styles/buttonStyles';
 import { canUseDevTools } from '../utils/permissions';
 import { logger } from '../utils/logger';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 interface ActionPaneProps {
   currentLocation: Location;
@@ -42,7 +43,9 @@ const ActionButton: React.FC<{
   isGeminiAction?: boolean;
   badgeCount?: number;
   hasNotification?: boolean;
-}> = ({ action, onClick, disabled, className = '', isGeminiAction = false, badgeCount, hasNotification }) => {
+  role?: string;
+  tabIndex?: number;
+}> = ({ action, onClick, disabled, className = '', isGeminiAction = false, badgeCount, hasNotification, role, tabIndex }) => {
   const baseClasses = `${BTN_BASE} ${BTN_SIZE_LG}`;
 
   let colorClasses = "btn-primary";
@@ -90,6 +93,8 @@ const ActionButton: React.FC<{
       aria-label={action.label}
       type="button"
       aria-disabled={disabled}
+      role={role}
+      tabIndex={tabIndex}
     >
       {action.label}
       {badgeCount !== undefined && badgeCount > 0 && (
@@ -121,7 +126,21 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   const [isOracleInputVisible, setIsOracleInputVisible] = useState(false);
   const [oracleQuery, setOracleQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  // Ref for click-outside detection
+  const menuContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleCloseMenu = () => {
+      setIsMenuOpen(false);
+      // Restore focus to trigger button
+      if (triggerRef.current) {
+          triggerRef.current.focus();
+      }
+  };
+
+  // Ref for focus trap logic
+  const focusTrapRef = useFocusTrap<HTMLDivElement>(isMenuOpen, handleCloseMenu);
 
   /**
    * System and utility actions quickly overcrowd the primary grid on small screens.
@@ -148,15 +167,46 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      // Check if click is outside the entire menu container (trigger + dropdown)
+      if (menuContainerRef.current && !menuContainerRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
+
+    // Only attach listener when menu is open
+    if (isMenuOpen) {
+        document.addEventListener('mousedown', handleClickOutside);
+    }
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [isMenuOpen]);
+
+  // Handle arrow key navigation within the menu
+  const handleMenuKeyDown = (e: React.KeyboardEvent) => {
+      if (!isMenuOpen) return;
+
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const focusable = focusTrapRef.current?.querySelectorAll('button');
+          if (!focusable || focusable.length === 0) return;
+
+          const focusableArray = Array.from(focusable) as HTMLElement[];
+          const currentIndex = focusableArray.indexOf(document.activeElement as HTMLElement);
+
+          let nextIndex = 0;
+          if (currentIndex !== -1) {
+              if (e.key === 'ArrowDown') {
+                  nextIndex = (currentIndex + 1) % focusableArray.length;
+              } else {
+                  nextIndex = (currentIndex - 1 + focusableArray.length) % focusableArray.length;
+              }
+          }
+
+          focusableArray[nextIndex].focus();
+      }
+  };
 
   const generalActions: Action[] = [];
 
@@ -334,8 +384,9 @@ const ActionPane: React.FC<ActionPaneProps> = ({
       </div>
 
       {/* System/Menu Actions */}
-      <div className="mt-6 pt-4 border-t border-gray-700 flex justify-end relative" ref={menuRef}>
+      <div className="mt-6 pt-4 border-t border-gray-700 flex justify-end relative" ref={menuContainerRef}>
         <button
+          ref={triggerRef}
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           disabled={disabled}
           className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg shadow transition-colors"
@@ -352,12 +403,14 @@ const ActionPane: React.FC<ActionPaneProps> = ({
         <AnimatePresence>
           {isMenuOpen && (
             <motion.div
+              ref={focusTrapRef}
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.15 }}
               className="absolute bottom-full right-0 mb-2 w-56 bg-gray-800 border border-gray-600 rounded-lg shadow-xl overflow-hidden z-20 flex flex-col p-2 gap-2"
               role="menu"
+              onKeyDown={handleMenuKeyDown}
             >
               {systemMenuActions.map(({ action, badgeCount, hasNotification }, idx) => (
                 <React.Fragment key={`${action.type}-${idx}`}>
@@ -365,10 +418,12 @@ const ActionPane: React.FC<ActionPaneProps> = ({
                   <ActionButton
                     className="w-full text-left"
                     action={action}
-                    onClick={(a) => { onAction(a); setIsMenuOpen(false); }}
+                    onClick={(a) => { onAction(a); handleCloseMenu(); }}
                     disabled={disabled}
                     badgeCount={badgeCount}
                     hasNotification={hasNotification}
+                    role="menuitem"
+                    tabIndex={0}
                   />
                 </React.Fragment>
               ))}
