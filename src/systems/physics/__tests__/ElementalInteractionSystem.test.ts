@@ -79,5 +79,18 @@ describe('ElementalInteractionSystem', () => {
             const { newStates: newStates2 } = applyStateToTags(current2, StateTag.Cold);
             expect(newStates2).toContain(StateTag.Frozen);
         });
+
+        it('should handle Burning + Cold -> Neutral (Extinguish)', () => {
+            const current = [StateTag.Burning];
+            const { newStates, result } = applyStateToTags(current, StateTag.Cold);
+
+            // Burning + Cold -> null (cancellation)
+            expect(newStates).not.toContain(StateTag.Burning);
+            expect(newStates).not.toContain(StateTag.Cold);
+            expect(newStates).toHaveLength(0);
+
+            expect(result.finalState).toBeUndefined();
+            expect(result.interaction).toContain('Neutralized');
+        });
     });
 });

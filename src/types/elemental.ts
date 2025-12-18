@@ -35,6 +35,7 @@ export const StateInteractions: Record<string, StateTag | null> = {
   // Wet interactions
   'cold+wet': StateTag.Frozen,      // Water freezes into ice
   'burning+wet': null,              // Water extinguishes fire (steam)
+  'burning+cold': null,             // Extreme cold extinguishes fire
 
   // Oiled interactions
   'burning+oiled': StateTag.Burning, // Oil ignites (intensifies burning)
@@ -44,4 +45,6 @@ export const StateInteractions: Record<string, StateTag | null> = {
 
   // Electrified interactions
   // (Placeholder for future: wet+electrified -> AoE damage)
+  // TODO(Simulator): The current system only supports state transformation.
+  // To implement wet+electrified -> AoE damage, we need to expand interaction results to include side-effects.
 };
