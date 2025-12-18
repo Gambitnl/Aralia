@@ -168,6 +168,11 @@ export interface WorldRumor {
   timestamp: number; // Game day timestamp
   expiration: number; // Game day timestamp when rumor fades
   region?: string; // Optional region restriction
+
+  // New properties for propagation
+  locationId?: string; // The specific location where this rumor instance is active
+  spreadDistance?: number; // How far this rumor has traveled (0 = origin)
+  virality?: number; // 0.0 - 1.0, chance to spread to adjacent locations
 }
 
 export interface DiscoveryResidue {

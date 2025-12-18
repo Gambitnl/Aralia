@@ -83,7 +83,9 @@ describe('WorldEventManager', () => {
             text: 'Old news',
             type: 'misc' as const,
             timestamp: 1,
-            expiration: 5 // Expires on day 5
+            expiration: 5, // Expires on day 5
+            spreadDistance: 0,
+            virality: 0.5
         };
 
         const stateWithRumor = {
@@ -97,5 +99,34 @@ describe('WorldEventManager', () => {
 
         // Rumor should be gone
         expect(result.state.activeRumors).not.toContainEqual(oldRumor);
+    });
+
+    it('should propagate rumors over time', () => {
+        // Setup state with a high virality rumor
+        const viralRumor = {
+            id: 'viral-news',
+            text: 'War declared!',
+            type: 'skirmish' as const,
+            timestamp: 1,
+            expiration: 100,
+            spreadDistance: 0,
+            virality: 1.0 // 100% chance to spread at distance 0
+        };
+
+        const stateWithRumor = {
+            ...baseState,
+            activeRumors: [viralRumor]
+        };
+
+        // Advance 1 day
+        const result = processWorldEvents(stateWithRumor, 1);
+
+        // Should have original rumor + at least one spread rumor
+        expect(result.state.activeRumors?.length).toBeGreaterThan(1);
+
+        const spreadRumor = result.state.activeRumors?.find(r => r.id.includes('spread'));
+        expect(spreadRumor).toBeDefined();
+        expect(spreadRumor?.spreadDistance).toBe(1);
+        expect(spreadRumor?.virality).toBeLessThan(1.0);
     });
 });
