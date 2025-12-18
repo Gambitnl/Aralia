@@ -2,7 +2,7 @@
  * @file src/state/reducers/worldReducer.ts
  * A slice reducer that handles world-related state changes.
  */
-import { GameState, DiscoveryResidue } from '../../types';
+import { GameState, DiscoveryResidue, Location, Faction } from '../../types';
 import { AppAction } from '../actionTypes';
 import { processWorldEvents } from '../../systems/world/WorldEventManager';
 import { getGameDay } from '../../utils/timeUtils';
@@ -93,6 +93,28 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       return {
         locationResidues: newResidues,
       };
+    }
+
+    case 'REGISTER_DYNAMIC_ENTITY': {
+      const { entityType, entity } = action.payload as { entityType: 'location' | 'faction', entity: Location | Faction };
+      if (entityType === 'location') {
+        const loc = entity as Location;
+        return {
+          dynamicLocations: {
+            ...state.dynamicLocations,
+            [loc.id]: loc
+          }
+        };
+      } else if (entityType === 'faction') {
+        const fac = entity as Faction;
+        return {
+          factions: {
+            ...state.factions,
+            [fac.id]: fac
+          }
+        };
+      }
+      return {};
     }
 
     default:

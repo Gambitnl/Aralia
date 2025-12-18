@@ -398,7 +398,8 @@ export type ActionType =
   | 'UPDATE_QUEST_OBJECTIVE'
   | 'COMPLETE_QUEST'
   | 'TOGGLE_QUEST_LOG'
-  | 'PRAY';
+  | 'PRAY'
+  | 'REGISTER_DYNAMIC_ENTITY'; // New Action
 
 export enum DiscoveryType {
   LOCATION_DISCOVERY = 'Location Discovery',
@@ -587,6 +588,9 @@ export interface GameState {
   // Shadowbroker: Crime System
   fences: Record<string, Fence>; // Keyed by Fence ID (or Location ID)
 
+  // Linker: World Coherence System
+  dynamicLocations: Record<string, Location>; // Generated locations that don't exist in static data
+
   // Depthcrawler: Underdark System
   underdark: UnderdarkState;
 
@@ -704,6 +708,10 @@ export interface Action {
     objectiveId?: string;
     isCompleted?: boolean;
     questId?: string;
+
+    // Linker: Dynamic Entity
+    entityType?: 'location' | 'faction';
+    entity?: Location | Faction;
 
     [key: string]: any;
   };

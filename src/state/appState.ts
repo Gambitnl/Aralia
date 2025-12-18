@@ -185,7 +185,13 @@ export const initialGameState: GameState = {
         return acc;
     }, {} as GameState['temples']),
 
-    // Underdark System
+    // Shadowbroker: Crime System
+    fences: {},
+
+    // Linker: World Coherence System
+    dynamicLocations: {},
+
+    // Depthcrawler: Underdark System
     underdark: INITIAL_UNDERDARK_STATE,
 };
 
@@ -271,7 +277,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 questLog: [],
                 notifications: [],
                 factions: allFactions,
-                playerFactionStandings: factionStandings
+                playerFactionStandings: factionStandings,
+                dynamicLocations: {},
             };
         }
 
@@ -319,7 +326,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 isQuestLogVisible: false,
                 notifications: [],
                 factions: allFactions,
-                playerFactionStandings: factionStandings
+                playerFactionStandings: factionStandings,
+                dynamicLocations: {},
             };
         }
 
@@ -358,7 +366,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 notifications: [],
                 // Ensure factions from state are preserved (set in START_NEW_GAME_SETUP)
                 factions: state.factions,
-                playerFactionStandings: state.playerFactionStandings
+                playerFactionStandings: state.playerFactionStandings,
+                dynamicLocations: {},
             };
         }
 
@@ -427,7 +436,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // Use loaded or fallback
                 factions: loadedFactions,
                 playerFactionStandings: loadedStandings,
-                underdark: loadedState.underdark || INITIAL_UNDERDARK_STATE
+                underdark: loadedState.underdark || INITIAL_UNDERDARK_STATE,
+                dynamicLocations: loadedState.dynamicLocations || {},
             };
         }
 
