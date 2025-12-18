@@ -3,6 +3,50 @@
  * @file src/data/religion.ts
  * Contains the static data for the religion system, including deities,
  * domains, and temple services.
+ *
+ * =========================================================================================
+ * 🏛️ MYTHKEEPER PROPOSAL FOR REFACTORING
+ * =========================================================================================
+ *
+ * CURRENT STATE:
+ * - Data Structure: Record<string, Deity>
+ * - Benefits: O(1) lookup by ID.
+ * - Drawbacks: Iteration requires Object.values(), less natural for ordered lists (UI).
+ *
+ * PROPOSED STATE (See src/data/deities/index.ts):
+ * - Data Structure: Deity[] (Array of objects)
+ * - Benefits:
+ *      1. Easier to filter/map/reduce for UI lists (e.g., "Select a Deity").
+ *      2. Consistent with other data files (races, classes).
+ *      3. Type definitions can be stricter (Deity interface).
+ * - Drawbacks: Lookup by ID becomes O(n) (though n is small, ~20).
+ *
+ * EXPANDED LORE DATA (Ready for implementation):
+ *
+ * The following deities are fully statted and ready to be added to the system:
+ *
+ * 1. Bahamut (LG) - Life, War. "Protect the weak."
+ * 2. Moradin (LG) - Forge, Knowledge. "Create and defend."
+ * 3. Pelor (NG) - Life, Light. "Bring light into darkness."
+ * 4. Raven Queen (LN) - Death, Grave. "Destroy the undead."
+ * 5. Lolth (CE) - Trickery, War. "Betrayal is a tool."
+ * 6. Corellon (CG) - Arcana, Light. "Create beauty."
+ * 7. Gruumsh (CE) - Tempest, War. "Conquer and destroy."
+ * 8. Tiamat (LE) - Trickery, War. "Amass wealth and power."
+ * 9. Vecna (NE) - Knowledge, Death. "Keep secrets."
+ * 10. Melora (N) - Nature, Tempest. "Protect the wilds."
+ * 11. Erathis (LN) - Knowledge, Order. "Uphold civilization."
+ * 12. Ioun (N) - Knowledge, Arcana. "Seek truth."
+ * 13. Kord (CN) - Tempest, War. "Prove your might."
+ * 14. Sehanine (CG) - Trickery, Twilight. "Follow your own path."
+ * 15. Asmodeus (LE) - Knowledge, Order. "Assert dominance."
+ *
+ * This data includes:
+ * - `approves` / `forbids` triggers for the favor system.
+ * - `relationships` (Ally/Enemy/Rival) for faction dynamics.
+ * - `commandments` for roleplay guidance.
+ *
+ * =========================================================================================
  */
 import { Deity, TempleService } from '../types/religion';
 
