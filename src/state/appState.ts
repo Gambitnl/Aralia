@@ -4,7 +4,7 @@
  * Defines the state structure, initial state, actions, and the root reducer for the application.
  * The root reducer orchestrates calls to smaller "slice" reducers for better modularity.
  */
-import { GameState, GamePhase, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, SuspicionLevel, KnownFact, QuestStatus, UnderdarkState } from '../types';
+import { GameState, GamePhase, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, SuspicionLevel, KnownFact, QuestStatus, UnderdarkState, WeatherState } from '../types';
 import { AppAction } from './actionTypes';
 import { STARTING_LOCATION_ID, DUMMY_PARTY_FOR_DEV, LOCATIONS, ITEMS, initialInventoryForDummyCharacter, CLASSES_DATA, NPCS } from '../constants';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../data/factions';
@@ -49,6 +49,13 @@ const INITIAL_UNDERDARK_STATE: UnderdarkState = {
         max: 100,
         madnessLevel: 0
     }
+};
+
+const INITIAL_WEATHER_STATE: WeatherState = {
+    precipitation: 'none',
+    temperature: 'moderate',
+    wind: { direction: 'N', speed: 'calm' },
+    visibility: 'clear'
 };
 
 export const initialGameState: GameState = {
@@ -187,6 +194,9 @@ export const initialGameState: GameState = {
 
     // Underdark System
     underdark: INITIAL_UNDERDARK_STATE,
+
+    // Ecologist: Weather System
+    weather: INITIAL_WEATHER_STATE,
 };
 
 
@@ -427,7 +437,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // Use loaded or fallback
                 factions: loadedFactions,
                 playerFactionStandings: loadedStandings,
-                underdark: loadedState.underdark || INITIAL_UNDERDARK_STATE
+                underdark: loadedState.underdark || INITIAL_UNDERDARK_STATE,
+                weather: loadedState.weather || INITIAL_WEATHER_STATE,
             };
         }
 

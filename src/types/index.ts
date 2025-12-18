@@ -70,6 +70,7 @@ import { DivineFavor, Temple } from './deity';
 import { Fence } from './crime';
 import { UnderdarkState, LightSource } from './underdark';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
+import { WeatherState } from './weather';
 
 export * from './core';
 export * from './items';
@@ -84,6 +85,7 @@ export * from './planes';
 export * from './crime';
 export * from './dialogue';
 export * from './underdark';
+export * from './weather';
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
@@ -586,6 +588,9 @@ export interface GameState {
 
   // Shadowbroker: Crime System
   fences: Record<string, Fence>; // Keyed by Fence ID (or Location ID)
+
+  // Ecologist: Weather System
+  weather: WeatherState;
 
   // Depthcrawler: Underdark System
   underdark: UnderdarkState;
