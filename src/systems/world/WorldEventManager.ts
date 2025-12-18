@@ -74,6 +74,8 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
       type: 'skirmish',
       timestamp: gameDay,
       expiration: gameDay + 7, // Lasts a week
+      spreadDistance: 0,
+      virality: 1.0 // High virality for war
   };
 
   // Update State
@@ -174,7 +176,9 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
         text: selection.text,
         type: 'market',
         timestamp: gameDay,
-        expiration: gameDay + selection.event.duration
+        expiration: gameDay + selection.event.duration,
+        spreadDistance: 0,
+        virality: 0.8
     };
 
     // Update Economy State
@@ -240,7 +244,9 @@ const handleRumorSpread = (state: GameState, rng: SeededRandom): WorldEventResul
         text,
         type: 'misc',
         timestamp: gameDay,
-        expiration: gameDay + 10
+        expiration: gameDay + 10,
+        spreadDistance: 0,
+        virality: 0.5
     };
 
     return {
@@ -250,6 +256,55 @@ const handleRumorSpread = (state: GameState, rng: SeededRandom): WorldEventResul
         },
         logs
     };
+};
+
+/**
+ * Propagates rumors to new locations based on virality.
+ * Simplified model: Rumors clone themselves with increased spreadDistance.
+ * In a real graph, we'd check adjacent locations. Here, we simulate "word of mouth" traveling.
+ */
+const propagateRumors = (state: GameState, rng: SeededRandom): GameState => {
+    if (!state.activeRumors || state.activeRumors.length === 0) return state;
+
+    let newRumors = [...state.activeRumors];
+    let changed = false;
+
+    // Use a fixed iteration to avoid infinite spread in one tick if we append immediately
+    const currentRumors = [...state.activeRumors];
+
+    for (const rumor of currentRumors) {
+        // Chance to spread decreases with distance
+        // Distance 0: 100% of virality
+        // Distance 1: 50% of virality
+        const virality = rumor.virality ?? 0.5;
+        const currentDistance = rumor.spreadDistance ?? 0;
+        const spreadChance = virality * (1 / (currentDistance + 1));
+
+        if (rng.next() < spreadChance) {
+            // Create a "child" rumor representing spread
+            // We assign a random mock location ID to simulate geographical spread
+            // In a future graph system, this would be a real neighbor ID
+            const newDistance = currentDistance + 1;
+
+            if (newDistance < 3) {
+                const spreadRumor: WorldRumor = {
+                    ...rumor,
+                    id: rumor.id + '_spread_' + Math.floor(rng.next() * 1000),
+                    spreadDistance: newDistance,
+                    virality: virality * 0.8, // Decay virality as it spreads
+                    locationId: `region_dist_${newDistance}_${Math.floor(rng.next() * 10)}`
+                };
+                newRumors.push(spreadRumor);
+                changed = true;
+            }
+        }
+    }
+
+    if (changed) {
+        return { ...state, activeRumors: newRumors };
+    }
+
+    return state;
 };
 
 /**
@@ -263,6 +318,11 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
   const rng = new SeededRandom(state.worldSeed + getGameDay(state.gameTime));
   let currentState = state; // Start with reference, only clone on change
   let allLogs: GameMessage[] = [];
+
+  // 0. Propagate Rumors (Daily Step)
+  for (let i = 0; i < daysPassed; i++) {
+     currentState = propagateRumors(currentState, rng);
+  }
 
   // Clean up expired rumors
   const currentDay = getGameDay(state.gameTime);
