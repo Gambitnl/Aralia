@@ -45,7 +45,7 @@ import GeminiLogViewer from '../GeminiLogViewer';
 import NpcInteractionTestModal from '../NpcInteractionTestModal';
 import DossierPane from '../DossierPane';
 import DiscoveryLogPane from '../DiscoveryLogPane';
-import Glossary from '../Glossary';
+import { Glossary } from '../Glossary';
 import EncounterModal from '../EncounterModal';
 import MerchantModal from '../MerchantModal';
 import GameGuideModal from '../GameGuideModal';
