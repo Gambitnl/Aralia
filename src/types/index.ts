@@ -64,6 +64,7 @@ import {
 } from './character';
 import { Faction, PlayerFactionStanding } from './factions';
 import { NPCMemory } from './memory';
+import { NPCKnowledgeProfile } from './dialogue';
 import { Companion } from './companions';
 import { DivineFavor, Temple } from './deity';
 import { Fence } from './crime';
@@ -200,6 +201,7 @@ export interface NPC {
   dialoguePromptSeed?: string;
   voice?: TTSVoiceOption;
   goals?: Goal[];
+  knowledgeProfile?: NPCKnowledgeProfile;
 }
 
 export interface GameMessage {
