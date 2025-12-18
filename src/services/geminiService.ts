@@ -9,6 +9,7 @@
  * cooldown periods to prevent overwhelming the API during heavy usage.
  */
 import { GenerateContentResponse } from "@google/genai";
+import { v4 as uuidv4 } from 'uuid';
 import { ai, isAiEnabled } from './aiClient'; // Import the shared AI client
 import { logger } from '../utils/logger';
 import { Action, PlayerCharacter, InspectSubmapTilePayload, SeededFeatureConfig, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState, VillageActionContext } from "../types";
@@ -20,6 +21,7 @@ import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, FAST_MODEL, COMPLEX_MODEL } from '../
 import * as ItemTemplates from '../data/item_templates';
 import { sanitizeAIInput, redactSensitiveData } from '../utils/securityUtils';
 import { getFallbackEncounter } from './geminiServiceFallback';
+import { MonsterSchema, CustomActionSchema, SocialOutcomeSchema, InventoryResponseSchema, ItemSchema } from './geminiSchemas';
 
 const API_TIMEOUT_MS = 20000; // 20 seconds
 
@@ -600,7 +602,8 @@ export async function generateEncounter(
       if (responseText) {
         try {
           const jsonString = responseText.replace(/```json\n|```/g, '').trim();
-          encounter = JSON.parse(jsonString);
+          const parsed = JSON.parse(jsonString);
+          encounter = MonsterSchema.array().parse(parsed);
         } catch (e) {
           logger.error(`Failed to parse JSON from generateEncounter with model ${model}:`, { responseText, error: e });
           throw new Error("The AI returned a malformed encounter suggestion.");
@@ -704,9 +707,10 @@ export async function generateCustomActions(
   let actions: Action[] = [];
   try {
     const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
-    const parsedActions: any[] = JSON.parse(jsonString);
+    const parsedActions = JSON.parse(jsonString);
+    const validatedActions = CustomActionSchema.array().parse(parsedActions);
 
-    actions = parsedActions.map(a => ({
+    actions = validatedActions.map(a => ({
       type: a.type === 'ENTER_VILLAGE' ? 'ENTER_VILLAGE' : 'gemini_custom_action',
       label: a.label,
       payload: {
@@ -776,14 +780,17 @@ export async function generateSocialCheckOutcome(
   }
 
   try {
-    const parsed = JSON.parse(result.data.text.replace(/```json\n|```/g, '').trim());
+    const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
+    const parsed = JSON.parse(jsonString);
+    const validated = SocialOutcomeSchema.parse(parsed);
+
     return {
       data: {
         ...result.data,
-        outcomeText: parsed.outcomeText || "The situation evolves...",
-        dispositionChange: parsed.dispositionChange || (wasSuccess ? 1 : -1),
-        memoryFactText: parsed.memoryFactText || `Player check: ${skillName} (${wasSuccess ? 'Success' : 'Fail'})`,
-        goalUpdate: parsed.goalUpdate || null,
+        outcomeText: validated.outcomeText || "The situation evolves...",
+        dispositionChange: validated.dispositionChange || (wasSuccess ? 1 : -1),
+        memoryFactText: validated.memoryFactText || `Player check: ${skillName} (${wasSuccess ? 'Success' : 'Fail'})`,
+        goalUpdate: validated.goalUpdate || null,
       },
       error: null
     };
@@ -862,11 +869,19 @@ export async function generateMerchantInventory(
   try {
     const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
     const parsed = JSON.parse(jsonString);
+    const validated = InventoryResponseSchema.parse(parsed);
+
+    // Ensure items have IDs
+    const safeInventory = validated.inventory.map(item => ({
+      ...item,
+      id: item.id || uuidv4()
+    })) as Item[];
+
     return {
       data: {
         ...result.data,
-        inventory: parsed.inventory,
-        economy: parsed.economy
+        inventory: safeInventory,
+        economy: validated.economy || { scarcity: [], surplus: [], sentiment: "neutral" }
       },
       error: null
     };
@@ -916,7 +931,14 @@ export async function generateHarvestLoot(
 
   try {
     const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
-    const items = JSON.parse(jsonString);
+    const parsed = JSON.parse(jsonString);
+    const rawItems = ItemSchema.array().parse(parsed);
+
+    const items = rawItems.map(item => ({
+      ...item,
+      id: item.id || uuidv4()
+    })) as Item[];
+
     return {
       data: { ...result.data, items },
       error: null
