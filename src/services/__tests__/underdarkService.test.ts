@@ -8,6 +8,8 @@ describe('UnderdarkService', () => {
         currentDepth: 1000,
         lightLevel: 'dim',
         activeLightSources: [],
+        faerzressLevel: 0,
+        wildMagicChance: 0,
         sanity: { current: 100, max: 100, madnessLevel: 0 }
     };
 
@@ -33,6 +35,17 @@ describe('UnderdarkService', () => {
             const torch = createLightSource('Torch', 'torch', 20, 60);
             const state = { ...defaultState, activeLightSources: [torch, darkness] };
             expect(calculateLightLevel(state)).toBe('magical_darkness');
+        });
+
+        it('should return dim if Faerzress is intense (glows)', () => {
+            const state = { ...defaultState, currentDepth: 200, activeLightSources: [], faerzressLevel: 50 };
+            // Faerzress > 20 emits light
+            expect(calculateLightLevel(state)).toBe('dim');
+        });
+
+        it('should return darkness if Faerzress is weak', () => {
+            const state = { ...defaultState, currentDepth: 200, activeLightSources: [], faerzressLevel: 10 };
+            expect(calculateLightLevel(state)).toBe('darkness');
         });
     });
 
@@ -73,6 +86,60 @@ describe('UnderdarkService', () => {
             const newState = updateSanity(state, 60); // 21 - 2 = 19
             expect(newState.sanity.current).toBe(19);
             expect(newState.sanity.madnessLevel).toBe(3);
+        });
+
+        it('should drain sanity faster in high Faerzress', () => {
+            // Darkness drain = 2/hr
+            // Faerzress 50 => 1.5x multiplier
+            // Expected drain = 3
+            // AND since Faerzress 50 provides 'dim' light, we rely on the logic:
+            // "If Faerzress >= 20, sanityDrain = 0.5" (instead of darkness 2)
+            // Wait, this test needs to align with the new logic.
+
+            // New Logic Check:
+            // Faerzress 50 -> Light Level is DIM.
+            // Logic: if Faerzress >= 20, sanityDrain = 0.5 (Base Drain)
+            // Multiplier: 1.5 (Level 50)
+            // Total Drain: 0.5 * 1.5 = 0.75
+
+            // Previously (Pure Darkness + Faerzress):
+            // Darkness (2) * 1.5 = 3
+
+            // To test "Darkness + High Faerzress", we need to ensure Light Level is DARKNESS.
+            // But Faerzress 50 makes it DIM.
+            // So this test case "drain sanity faster in high Faerzress" implies we want to see the multiplier at work.
+            // But the light level change actually REDUCES the base drain (from 2 to 0.5).
+            // So we go from losing 2 (Darkness) to losing 0.75 (Alien Light).
+            // This is "better" than darkness, but worse than normal light (which would be recovery).
+
+            // Let's adjust expectation:
+            // Base Drain: 0.5
+            // Multiplier: 1.5
+            // Total: 0.75
+            // Current 100 -> 99.25
+
+            const state = { ...defaultState, activeLightSources: [], currentDepth: 500, faerzressLevel: 50 };
+            const newState = updateSanity(state, 60);
+            expect(newState.sanity.current).toBe(99.25);
+        });
+
+        it('should drain sanity massively in magical darkness + high faerzress', () => {
+            // Magical Darkness overrides Faerzress light.
+            // Base Drain: 5
+            // Faerzress 50 Multiplier: 1.5
+            // Total: 7.5
+
+            const darkness = createLightSource('Darkness', 'spell', 15, 10);
+            const state = { ...defaultState, activeLightSources: [darkness], currentDepth: 500, faerzressLevel: 50 };
+
+            const newState = updateSanity(state, 60);
+            expect(newState.sanity.current).toBe(92.5); // 100 - 7.5
+        });
+
+        it('should calculate wild magic chance', () => {
+             const state = { ...defaultState, faerzressLevel: 50 };
+             const newState = updateSanity(state, 60);
+             expect(newState.wildMagicChance).toBe(0.28);
         });
     });
 });
