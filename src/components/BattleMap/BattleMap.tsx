@@ -7,7 +7,7 @@ import { BattleMapData, CombatCharacter } from '../../types/combat';
 import { useBattleMap } from '../../hooks/useBattleMap';
 import BattleMapTile from './BattleMapTile';
 import CharacterToken from './CharacterToken';
-import BattleMapOverlay from '../BattleMapOverlay';
+import BattleMapOverlay from './BattleMapOverlay';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
 import { generateId } from '../../utils/combatUtils';
 

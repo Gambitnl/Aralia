@@ -7,19 +7,19 @@
  */
 // TODO: Add ARIA labels, keyboard navigation, and screen reader support for interactive elements in battle maps and UI components
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import BattleMap from './BattleMap/BattleMap';
-import { PlayerCharacter } from '../types';
-import { CombatCharacter, CombatLogEntry } from '../types/combat';
-import ErrorBoundary from './ErrorBoundary';
-import { useTurnManager } from '../hooks/combat/useTurnManager';
-import { useAbilitySystem } from '../hooks/useAbilitySystem';
-import InitiativeTracker from './BattleMap/InitiativeTracker';
-import AbilityPalette from './BattleMap/AbilityPalette';
-import CombatLog from './BattleMap/CombatLog';
-import ActionEconomyBar from './BattleMap/ActionEconomyBar';
-import PartyDisplay from './BattleMap/PartyDisplay';
-import CharacterSheetModal from './CharacterSheetModal';
-import { canUseDevTools } from '../utils/permissions';
+import BattleMap from './BattleMap';
+import { PlayerCharacter } from '../../types';
+import { CombatCharacter, CombatLogEntry } from '../../types/combat';
+import ErrorBoundary from '../ErrorBoundary';
+import { useTurnManager } from '../../hooks/combat/useTurnManager';
+import { useAbilitySystem } from '../../hooks/useAbilitySystem';
+import InitiativeTracker from './InitiativeTracker';
+import AbilityPalette from './AbilityPalette';
+import CombatLog from './CombatLog';
+import ActionEconomyBar from './ActionEconomyBar';
+import PartyDisplay from './PartyDisplay';
+import CharacterSheetModal from '../CharacterSheetModal';
+import { canUseDevTools } from '../../utils/permissions';
 
 
 interface BattleMapDemoProps {
