@@ -1,1 +1,3 @@
 ## 2024-05-24 - Travel System Foundation **Learning:** The codebase lacked any concept of Travel Pace or Weight-Based Encumbrance, relying solely on simple movement speed. **Action:** Created `TravelCalculations.ts` to implement 5e Variant Encumbrance (Standard/Encumbered/Heavily Encumbered) and Travel Pace (Slow/Normal/Fast), allowing for meaningful travel choices in the future.
+
+## 2024-05-25 - Travel Framework Consolidation **Learning:** The project had split travel logic: one file for class-based calculations and one for functional 5e rules. This caused confusion and code duplication. **Action:** Merged `TravelCalculator` (utility) into `TravelCalculations` (system) to create a single source of truth. Removed the redundant file.

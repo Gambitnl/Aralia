@@ -10,7 +10,6 @@
 
 import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
-import { AbilityScores } from '../../types/core';
 
 // --- Types ---
 
@@ -61,6 +60,19 @@ export interface TravelGroupStats {
   travelSpeedMph: number; // Effective MPH including pace
   pace: TravelPace;
   dailyDistanceMiles: number; // Assuming 8 hours
+}
+
+export interface TravelResult {
+  distanceMiles: number;
+  travelTimeHours: number;
+  travelSpeedMph: number;
+  encounterChecks: number;
+  // Future: terrainModifier, weatherModifier, etc.
+}
+
+export interface Coordinate {
+  x: number;
+  y: number;
 }
 
 // --- Calculations ---
@@ -169,9 +181,48 @@ export function calculateGroupTravelStats(
 }
 
 /**
- * Calculates travel time in hours for a given distance.
+ * Calculates grid distance in miles.
+ * Uses Chebyshev distance (max(dx, dy)) for 8-way movement.
  */
-export function calculateTravelTimeHours(distanceMiles: number, groupStats: TravelGroupStats): number {
-  if (groupStats.travelSpeedMph <= 0) return Infinity;
-  return distanceMiles / groupStats.travelSpeedMph;
+export function calculateDistanceMiles(
+  origin: Coordinate,
+  destination: Coordinate,
+  milesPerTile: number = 6
+): number {
+  const dx = Math.abs(destination.x - origin.x);
+  const dy = Math.abs(destination.y - origin.y);
+  const distanceTiles = Math.max(dx, dy);
+  return distanceTiles * milesPerTile;
+}
+
+/**
+ * Calculates full travel results including time and encounter checks.
+ *
+ * @param distanceMiles Distance to travel
+ * @param groupStats Pre-calculated group stats
+ * @param terrainCostModifier Multiplier for terrain difficulty (default 1.0 = normal)
+ */
+export function calculateTravelResult(
+  distanceMiles: number,
+  groupStats: TravelGroupStats,
+  terrainCostModifier: number = 1.0
+): TravelResult {
+  // Prevent division by zero
+  const effectiveSpeed = Math.max(0.1, groupStats.travelSpeedMph);
+
+  // Calculate raw time
+  let travelTimeHours = distanceMiles / effectiveSpeed;
+
+  // Apply terrain modifier (e.g., 2.0 = difficult terrain takes 2x time)
+  travelTimeHours *= terrainCostModifier;
+
+  // Encounter checks: 1 check every 4 hours
+  const encounterChecks = Math.ceil(travelTimeHours / 4);
+
+  return {
+    distanceMiles,
+    travelTimeHours,
+    travelSpeedMph: effectiveSpeed,
+    encounterChecks,
+  };
 }

@@ -245,7 +245,12 @@ export async function handleMovement({
         timeToAdvanceSeconds = 3600;
       }
 
-      // TODO(Navigator): Integrate `calculateTravelTime` and `TravelPace` here to allow "forced march" or "stealthy" travel options that affect event chance and duration.
+      // TODO(Navigator): Use `calculateTravelResult` from `src/systems/travel/TravelCalculations.ts` here.
+      // 1. Calculate stats: `const stats = calculateGroupTravelStats(gameState.party, gameState.inventory, currentPace);`
+      // 2. Determine terrain mod: `const terrainMod = getTerrainCost(targetBiome.id);` (Need to implement getTerrainCost)
+      // 3. Get result: `const res = calculateTravelResult(distanceMiles, stats, terrainMod);`
+      // 4. Use `res.travelTimeHours` for time advancement and `res.encounterChecks` for event generation loops.
+
       const travelEvent = generateTravelEvent(targetBiome.id, undefined, { worldSeed: gameState.worldSeed, x: targetWorldMapX, y: targetWorldMapY });
       if (travelEvent) {
         addMessage(travelEvent.description, 'system');
