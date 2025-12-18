@@ -353,6 +353,50 @@ export interface CombatState {
   mapData?: BattleMapData;
 }
 
+export interface MoveAnimationData {
+  path?: Position[];
+  teleport?: boolean;
+}
+
+export interface AttackAnimationData {
+  targetId: string;
+  weaponId?: string;
+  isCrit?: boolean;
+  isMiss?: boolean;
+  damage?: number;
+}
+
+export interface SpellEffectAnimationData {
+  spellId?: string;
+  effectType?: string;
+  color?: string;
+  areaOfEffect?: AreaOfEffect;
+  targetPositions?: Position[];
+}
+
+export interface DamageNumberAnimationData {
+  value: number;
+  type: 'physical' | 'magical' | 'heal' | 'miss';
+  isCrit?: boolean;
+}
+
+export interface StatusEffectAnimationData {
+  statusId: string;
+  action: 'apply' | 'remove' | 'tick';
+  icon?: string;
+}
+
+/**
+ * Discriminated union of all possible animation data payloads.
+ * Used to enforce strict typing on the `data` field of Animations.
+ */
+export type AnimationData =
+  | MoveAnimationData
+  | AttackAnimationData
+  | SpellEffectAnimationData
+  | DamageNumberAnimationData
+  | StatusEffectAnimationData;
+
 export interface Animation {
   id: string;
   type: 'move' | 'attack' | 'spell_effect' | 'damage_number' | 'status_effect';
@@ -361,7 +405,8 @@ export interface Animation {
   endPosition?: Position;
   duration: number;
   startTime: number;
-  data?: any; // Animation-specific data
+  // TODO(Visuals): Utilize specific AnimationData subtypes for stricter type safety in rendering components.
+  data?: AnimationData;
 }
 
 export interface DamageNumber {
@@ -373,6 +418,17 @@ export interface DamageNumber {
   duration: number;
 }
 
+export interface CombatLogData {
+  damageAmount?: number;
+  damageType?: string;
+  healAmount?: number;
+  statusEffectName?: string;
+  abilityName?: string;
+  rollResult?: number;
+  // Allow for flexibility while we transition from 'any'
+  [key: string]: string | number | boolean | undefined | object;
+}
+
 export interface CombatLogEntry {
   id: string;
   timestamp: number;
@@ -380,7 +436,7 @@ export interface CombatLogEntry {
   message: string;
   characterId?: string;
   targetIds?: string[];
-  data?: any;
+  data?: CombatLogData;
 }
 
 export interface CharacterPosition {
