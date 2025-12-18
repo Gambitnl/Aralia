@@ -3,7 +3,8 @@
  * Shared constants, utilities, and helper functions for submap painters.
  */
 
-import { createNoise2D, type NoiseFunction2D } from 'simplex-noise';
+// import { createNoise2D, type NoiseFunction2D } from 'simplex-noise';
+import { PerlinNoise } from '../../../utils/perlinNoise';
 
 // ============================================================================
 // Constants
@@ -20,44 +21,29 @@ export const DEFAULT_GRID_SIZE = { rows: 25, cols: 25 };
 // ============================================================================
 
 /** Cached noise function instance for deterministic generation */
-let noiseInstance: NoiseFunction2D | null = null;
+let noiseInstance: PerlinNoise | null = null;
 let currentSeed: number | null = null;
 
 /**
  * Initialize or reinitialize the noise generator with a seed.
- * Uses a simple mulberry32 PRNG seeded from the provided value.
+ * Uses the internal PerlinNoise utility.
  */
 export function initNoise(seed: number): void {
     if (currentSeed !== seed) {
-        // Create a seeded PRNG using mulberry32
-        const prng = mulberry32(seed);
-        noiseInstance = createNoise2D(prng);
+        noiseInstance = new PerlinNoise(seed);
         currentSeed = seed;
     }
 }
 
 /**
- * Mulberry32 PRNG - fast, simple, good distribution.
- * Returns a function that generates values in [0, 1).
- */
-function mulberry32(seed: number): () => number {
-    return function () {
-        let t = seed += 0x6D2B79F5;
-        t = Math.imul(t ^ t >>> 15, t | 1);
-        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-        return ((t ^ t >>> 14) >>> 0) / 4294967296;
-    };
-}
-
-/**
- * Get 2D Simplex noise value at coordinates.
+ * Get 2D Perlin noise value at coordinates.
  * Returns value in range [-1, 1].
  */
 export function noise2D(x: number, y: number): number {
     if (!noiseInstance) {
         initNoise(12345); // Default seed if not initialized
     }
-    return noiseInstance!(x, y);
+    return noiseInstance!.get(x, y);
 }
 
 /**
