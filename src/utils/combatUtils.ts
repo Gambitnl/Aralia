@@ -19,6 +19,8 @@ import { bresenhamLine } from './lineOfSight';
 // Re-export for consumers
 export { createAbilityFromSpell, generateId };
 
+// TODO(Mechanist): Wire up physicsUtils (fall damage, jumping) into movement logic.
+
 /**
  * Calculates cover bonus for a target from a specific origin.
  * @param origin - The attacker's position.
