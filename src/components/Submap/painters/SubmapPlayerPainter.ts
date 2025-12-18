@@ -6,6 +6,7 @@
 import 'pixi.js/unsafe-eval'; // CSP patch
 import * as PIXI from 'pixi.js';
 import { TILE_SIZE } from './shared';
+import { characterAssetService, CharacterVisualConfig } from '../../../services/CharacterAssetService';
 
 // ============================================================================
 // Types
@@ -18,6 +19,7 @@ export interface PlayerRenderConfig {
     y: number;
     facing: FacingDirection;
     isMoving?: boolean;
+    visuals?: CharacterVisualConfig;
 }
 
 // ============================================================================
@@ -26,6 +28,7 @@ export interface PlayerRenderConfig {
 
 export class SubmapPlayerPainter {
     private playerContainer: PIXI.Container | null = null;
+    private spriteContainer: PIXI.Container | null = null;
     private animationTime: number = 0;
 
     constructor() { }
@@ -43,19 +46,55 @@ export class SubmapPlayerPainter {
         const shadow = this.createShadow(px, py);
         this.playerContainer.addChild(shadow);
 
-        // Player body
-        const body = this.createPlayerBody(px, py, config.facing);
-        this.playerContainer.addChild(body);
+        // Selection ring (always visible for player)
+        const ring = this.createSelectionRing(px, py);
+        this.playerContainer.addChild(ring);
+
+        // Player body / sprites
+        if (config.visuals) {
+            this.renderLayeredSprites(px, py, config.visuals);
+        } else {
+            const body = this.createPlayerBody(px, py, config.facing);
+            this.playerContainer.addChild(body);
+        }
 
         // Direction indicator
         const indicator = this.createDirectionIndicator(px, py, config.facing);
         this.playerContainer.addChild(indicator);
 
-        // Selection ring (always visible for player)
-        const ring = this.createSelectionRing(px, py);
-        this.playerContainer.addChild(ring);
-
         return this.playerContainer;
+    }
+
+    /**
+     * Render layered sprites asynchronously.
+     */
+    private async renderLayeredSprites(px: number, py: number, visuals: CharacterVisualConfig) {
+        if (!this.playerContainer) return;
+
+        // Create a dedicated container for sprites if it doesn't exist
+        if (!this.spriteContainer) {
+            this.spriteContainer = new PIXI.Container();
+            // Add it at index 1 (between shadow and indicators)
+            this.playerContainer.addChildAt(this.spriteContainer, 1);
+        }
+
+        this.spriteContainer.removeChildren();
+
+        const paths = characterAssetService.getLayerPaths(visuals);
+
+        for (const path of paths) {
+            try {
+                const texture = await characterAssetService.getTexture(path);
+                const sprite = new PIXI.Sprite(texture);
+                sprite.anchor.set(0.5);
+                sprite.x = px;
+                sprite.y = py - TILE_SIZE / 4; // Adjust to sit on the tile
+                sprite.scale.set(TILE_SIZE / texture.width * 1.5); // Initial scale guess
+                this.spriteContainer.addChild(sprite);
+            } catch (err) {
+                console.warn(`Layer failed to load: ${path}`, err);
+            }
+        }
     }
 
     /**

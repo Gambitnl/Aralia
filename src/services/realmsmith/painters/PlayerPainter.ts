@@ -1,10 +1,17 @@
 import { TownDirection } from '../../../types/town';
 import { TILE_SIZE, roundedRect } from './shared';
+import { characterAssetService, CharacterVisualConfig } from '../../CharacterAssetService';
 
 export class PlayerPainter {
-    constructor(private ctx: CanvasRenderingContext2D) {}
+    constructor(private ctx: CanvasRenderingContext2D) { }
 
-    public drawPlayer(x: number, y: number, facing: TownDirection, isMoving: boolean) {
+    public async drawPlayer(
+        x: number,
+        y: number,
+        facing: TownDirection,
+        isMoving: boolean,
+        visuals?: CharacterVisualConfig
+    ) {
         this.ctx.save();
 
         const centerX = x + TILE_SIZE / 2;
@@ -28,9 +35,30 @@ export class PlayerPainter {
 
         const walkOffset = isMoving ? Math.sin(Date.now() * 0.02) * 2 : 0;
 
-        this.drawCharacterSprite(centerX, centerY + walkOffset, baseDirection, isMoving);
+        if (visuals) {
+            await this.drawLayeredCharacter(centerX, centerY + walkOffset, visuals);
+        } else {
+            this.drawCharacterSprite(centerX, centerY + walkOffset, baseDirection, isMoving);
+        }
 
         this.ctx.restore();
+    }
+
+    private async drawLayeredCharacter(cx: number, cy: number, visuals: CharacterVisualConfig) {
+        const paths = characterAssetService.getLayerPaths(visuals);
+
+        for (const path of paths) {
+            try {
+                const img = await characterAssetService.getImage(path);
+                // Center and scale
+                const scale = 1.5; // Guessing scale for now
+                const w = img.width * scale;
+                const h = img.height * scale;
+                this.ctx.drawImage(img, cx - w / 2, cy - h / 2 - 4, w, h);
+            } catch (err) {
+                // Silently fail if image not loaded yet or failed
+            }
+        }
     }
 
     private drawCharacterSprite(cx: number, cy: number, facing: TownDirection, isMoving: boolean) {

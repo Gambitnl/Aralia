@@ -10,7 +10,7 @@
         max-width: 720px;
         margin: 24px auto;
         padding: 0 12px;
-        font-size: 16px;
+        font-size: 18px;
         line-height: 1.5;
       }
       #messages {
@@ -34,7 +34,7 @@
       }
       input,
       button {
-        font-size: 16px;
+        font-size: 18px;
       }
       .meta {
         color: rgba(0, 0, 0, 0.55);
@@ -96,7 +96,7 @@
   </head>
   <body>
     <h1>Basic Chat</h1>
-    <div class="meta">Set your name, then send messages (text or screenshots).</div>
+    <div class="meta">Set your name, then send messages (text or screenshots). Messages persist to a repo file.</div>
 
     <div id="nameGate" aria-hidden="true">
       <div id="nameGatePanel" role="dialog" aria-modal="true" aria-labelledby="nameGateTitle">
@@ -119,9 +119,7 @@
 
     <script>
       const SESSION_NAME_KEY = "basicChatSessionName.v1";
-      const MESSAGES_KEY = "basicChatMessages.v1";
-      const MAX_MESSAGES = 200;
-      const MAX_IMAGE_BYTES = 900_000; // keep localStorage usage reasonable (~0.9MB raw file)
+      const POLL_INTERVAL_MS = 1000;
 
       const messagesEl = document.getElementById("messages");
       const formEl = document.getElementById("composer");
@@ -134,52 +132,20 @@
 
       /**
        * @typedef {{
-       *  id: string,
+       *  id: number,
        *  ts: number,
        *  user: string,
        *  kind: 'text'|'image',
        *  text?: string,
-       *  imageDataUrl?: string
+       *  imageUrl?: string
        * }} ChatMessage
        */
 
       /** @type {ChatMessage[]} */
-      let messages = loadMessages();
-
-      function safeParse(json) {
-        try {
-          return JSON.parse(json);
-        } catch {
-          return null;
-        }
-      }
-
-      /** @returns {ChatMessage[]} */
-      function loadMessages() {
-        const raw = localStorage.getItem(MESSAGES_KEY);
-        const parsed = raw ? safeParse(raw) : null;
-        if (!Array.isArray(parsed)) return [];
-        return parsed
-          .filter((m) => m && typeof m === "object")
-          .map((m) => ({
-            id: typeof m.id === "string" ? m.id : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-            ts: typeof m.ts === "number" ? m.ts : Date.now(),
-            user: typeof m.user === "string" ? m.user : "Anonymous",
-            kind: m.kind === "image" ? "image" : "text",
-            text: typeof m.text === "string" ? m.text : undefined,
-            imageDataUrl: typeof m.imageDataUrl === "string" ? m.imageDataUrl : undefined,
-          }))
-          .slice(-MAX_MESSAGES);
-      }
-
-      function saveMessages() {
-        try {
-          localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages.slice(-MAX_MESSAGES)));
-        } catch (err) {
-          console.warn("Failed to persist messages", err);
-          alert("Storage is full; couldn't save the chat log. Try sending smaller images or clearing history.");
-        }
-      }
+      let messages = [];
+      let lastSeenId = 0;
+      let pollTimer = null;
+      let pollInFlight = false;
 
       function getUserName() {
         const name = (nameEl.value || "").trim();
@@ -206,6 +172,45 @@
           return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
         } catch {
           return "";
+        }
+      }
+
+      /** @param {any} m */
+      function normalizeMessage(m) {
+        if (!m || typeof m !== "object") return null;
+        const id = typeof m.id === "number" ? m.id : Number(m.id) || 0;
+        if (!Number.isFinite(id) || id <= 0) return null;
+        return {
+          id,
+          ts: typeof m.ts === "number" ? m.ts : Date.now(),
+          user: typeof m.user === "string" ? m.user : "Anonymous",
+          kind: m.kind === "image" ? "image" : "text",
+          text: typeof m.text === "string" ? m.text : "",
+          imageUrl: typeof m.imageUrl === "string" ? m.imageUrl : undefined,
+        };
+      }
+
+      async function fetchMessages(sinceId) {
+        const url = new URL("/api/messages", window.location.href);
+        if (sinceId && Number.isFinite(sinceId) && sinceId > 0) {
+          url.searchParams.set("since", String(sinceId));
+        }
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error(`GET /api/messages failed: ${res.status}`);
+        const data = await res.json();
+        const list = data && typeof data === "object" ? data.messages : null;
+        if (!Array.isArray(list)) return [];
+        return list.map(normalizeMessage).filter(Boolean);
+      }
+
+      /** @param {ChatMessage[]} incoming */
+      function applyIncoming(incoming) {
+        if (!incoming.length) return;
+        for (const msg of incoming) {
+          if (msg.id <= lastSeenId) continue;
+          messages.push(msg);
+          lastSeenId = Math.max(lastSeenId, msg.id);
+          messagesEl.appendChild(renderMessage(msg));
         }
       }
 
@@ -242,7 +247,7 @@
         const img = document.createElement("img");
         img.className = "chat-image";
         img.alt = msg.text ? `Image: ${msg.text}` : "Image";
-        if (msg.imageDataUrl) img.src = msg.imageDataUrl;
+        if (msg.imageUrl) img.src = msg.imageUrl;
         li.appendChild(img);
 
         return li;
@@ -252,19 +257,41 @@
         messagesEl.replaceChildren(...messages.map(renderMessage));
       }
 
-      function addTextMessage(text) {
+      async function refreshAll() {
+        const all = await fetchMessages(0);
+        messages = all;
+        lastSeenId = all.reduce((acc, m) => Math.max(acc, m.id || 0), 0);
+        rerenderAll();
+      }
+
+      function startPolling() {
+        if (pollTimer) return;
+        pollTimer = setInterval(async () => {
+          if (pollInFlight) return;
+          pollInFlight = true;
+          try {
+            const incoming = await fetchMessages(lastSeenId);
+            applyIncoming(incoming);
+          } catch {
+            // ignore transient errors
+          } finally {
+            pollInFlight = false;
+          }
+        }, POLL_INTERVAL_MS);
+      }
+
+      async function postTextMessage(text) {
         const msg = text.trim();
         if (!msg) return;
-        const message = {
-          id: globalThis.crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-          ts: Date.now(),
-          user: getUserName(),
-          kind: "text",
-          text: msg,
-        };
-        messages = [...messages, message].slice(-MAX_MESSAGES);
-        saveMessages();
-        messagesEl.appendChild(renderMessage(message));
+        const res = await fetch(new URL("/api/messages", window.location.href), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user: getUserName(), text: msg }),
+        });
+        if (!res.ok) throw new Error(`POST /api/messages failed: ${res.status}`);
+        const data = await res.json();
+        const normalized = normalizeMessage(data && typeof data === "object" ? data.message : null);
+        if (normalized) applyIncoming([normalized]);
       }
 
       /** @param {File} file */
@@ -277,25 +304,18 @@
         });
       }
 
-      async function addImageMessage(file, captionText) {
-        if (file.size > MAX_IMAGE_BYTES) {
-          alert(`Image too large for basic persistence (${file.size} bytes). Try a smaller screenshot.`);
-          return;
-        }
-
+      async function postImageMessage(file, captionText) {
         const caption = captionText.trim();
-        const dataUrl = await fileToDataUrl(file);
-        const message = {
-          id: globalThis.crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-          ts: Date.now(),
-          user: getUserName(),
-          kind: "image",
-          text: caption || undefined,
-          imageDataUrl: dataUrl,
-        };
-        messages = [...messages, message].slice(-MAX_MESSAGES);
-        saveMessages();
-        messagesEl.appendChild(renderMessage(message));
+        const imageDataUrl = await fileToDataUrl(file);
+        const res = await fetch(new URL("/api/messages", window.location.href), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user: getUserName(), text: caption, imageDataUrl }),
+        });
+        if (!res.ok) throw new Error(`POST /api/messages failed: ${res.status}`);
+        const data = await res.json();
+        const normalized = normalizeMessage(data && typeof data === "object" ? data.message : null);
+        if (normalized) applyIncoming([normalized]);
       }
 
       function tryExtractImageFromPasteEvent(e) {
@@ -324,10 +344,13 @@
         Promise.resolve()
           .then(async () => {
             if (file) {
-              await addImageMessage(file, text);
+              await postImageMessage(file, text);
             } else {
-              addTextMessage(text);
+              await postTextMessage(text);
             }
+          })
+          .catch((err) => {
+            alert(String(err?.message || err || "Failed to send message."));
           })
           .finally(() => {
             inputEl.value = "";
@@ -341,12 +364,16 @@
       nameEl.addEventListener("change", () => {
         setSessionName(nameEl.value);
         if (!nameEl.value.trim()) setNameGateOpen(true);
+        else startPolling();
       });
 
       nameGateFormEl.addEventListener("submit", (e) => {
         e.preventDefault();
         setSessionName(nameGateInputEl.value);
-        if (nameEl.value.trim()) setNameGateOpen(false);
+        if (nameEl.value.trim()) {
+          setNameGateOpen(false);
+          startPolling();
+        }
       });
 
       // Paste screenshots/images directly into the textbox.
@@ -355,26 +382,25 @@
         if (!file) return;
         e.preventDefault();
 
-        // Populate the file input programmatically.
         const dt = new DataTransfer();
         dt.items.add(file);
         imageEl.files = dt.files;
       });
 
-      // Keep name in sync across tabs.
-      window.addEventListener("storage", (e) => {
-        if (e.key === MESSAGES_KEY) {
-          messages = loadMessages();
-          rerenderAll();
+      (async () => {
+        try {
+          await refreshAll();
+        } catch (err) {
+          console.error(err);
         }
-      });
 
-      rerenderAll();
-      if (!nameEl.value.trim()) {
-        setNameGateOpen(true);
-      } else {
-        inputEl.focus();
-      }
+        if (!nameEl.value.trim()) {
+          setNameGateOpen(true);
+        } else {
+          inputEl.focus();
+          startPolling();
+        }
+      })();
     </script>
   </body>
 </html>

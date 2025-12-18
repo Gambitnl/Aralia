@@ -263,6 +263,23 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
     questLog: [],
     notifications: [],
 
+    economy: {
+      marketFactors: { scarcity: [], surplus: [] },
+      buyMultiplier: 1.0,
+      sellMultiplier: 0.5,
+      activeEvents: []
+    },
+
+    underdark: {
+      depth: 0,
+      lightSources: [],
+      sanity: 100,
+      faerzressLevel: 0,
+      discoveredLocations: []
+    },
+
+    isQuestLogVisible: false,
+
     townState: null,
     townEntryDirection: null,
 

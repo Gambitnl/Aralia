@@ -50,24 +50,33 @@ describe('useGridMovement', () => {
     class: { name: 'Fighter' } as any
   };
 
-  it('should initialize with empty state', () => {
+  it('should initialize with empty state when no character selected', () => {
     const { result } = renderHook(() => useGridMovement({
       mapData: mockMapData,
-      characterPositions: mockCharacterPositions
+      characterPositions: mockCharacterPositions,
+      selectedCharacter: null
     }));
 
     expect(result.current.validMoves.size).toBe(0);
     expect(result.current.activePath).toEqual([]);
   });
 
-  it('should calculate valid moves', () => {
-    const { result } = renderHook(() => useGridMovement({
-      mapData: mockMapData,
-      characterPositions: mockCharacterPositions
-    }));
+  it('should automatically calculate valid moves when character is selected', () => {
+    const { result, rerender } = renderHook((props) => useGridMovement(props), {
+      initialProps: {
+          mapData: mockMapData,
+          characterPositions: mockCharacterPositions,
+          selectedCharacter: null as CombatCharacter | null
+      }
+    });
 
-    act(() => {
-      result.current.calculateValidMoves(mockCharacter);
+    expect(result.current.validMoves.size).toBe(0);
+
+    // Select character
+    rerender({
+        mapData: mockMapData,
+        characterPositions: mockCharacterPositions,
+        selectedCharacter: mockCharacter
     });
 
     expect(result.current.validMoves.has('0-0')).toBe(true);
@@ -78,14 +87,10 @@ describe('useGridMovement', () => {
 
   it('should calculate path', () => {
     const { result } = renderHook(() => useGridMovement({
-      mapData: mockMapData,
-      characterPositions: mockCharacterPositions
+        mapData: mockMapData,
+        characterPositions: mockCharacterPositions,
+        selectedCharacter: mockCharacter
     }));
-
-    // Must calculate valid moves first to enable pathfinding to valid targets
-    act(() => {
-      result.current.calculateValidMoves(mockCharacter);
-    });
 
     const targetTile = mockMapData.tiles.get('0-1')!;
 
@@ -96,22 +101,32 @@ describe('useGridMovement', () => {
     expect(result.current.activePath.length).toBeGreaterThan(0);
   });
 
-  it('should clear state', () => {
-    const { result } = renderHook(() => useGridMovement({
-      mapData: mockMapData,
-      characterPositions: mockCharacterPositions
-    }));
-
-    act(() => {
-      result.current.calculateValidMoves(mockCharacter);
+  it('should clear state (only active path, as validMoves is derived)', () => {
+    const { result, rerender } = renderHook((props) => useGridMovement(props), {
+        initialProps: {
+            mapData: mockMapData,
+            characterPositions: mockCharacterPositions,
+            selectedCharacter: mockCharacter
+        }
     });
+
     expect(result.current.validMoves.size).toBeGreaterThan(0);
 
+    // Calculate a path
+    const targetTile = mockMapData.tiles.get('0-1')!;
+    act(() => {
+        result.current.calculatePath(mockCharacter, targetTile);
+    });
+    expect(result.current.activePath.length).toBeGreaterThan(0);
+
+    // Clear state
     act(() => {
       result.current.clearMovementState();
     });
 
-    expect(result.current.validMoves.size).toBe(0);
+    // validMoves should still remain as it is derived from the selection
+    expect(result.current.validMoves.size).toBeGreaterThan(0);
+    // activePath should be cleared
     expect(result.current.activePath).toEqual([]);
   });
 });

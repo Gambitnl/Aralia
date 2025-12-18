@@ -389,6 +389,15 @@ export interface PlayerCharacter {
   visualDescription?: string;
   /** Base64 data URL of AI-generated character portrait */
   portraitUrl?: string;
+  /** Visual customization for layered sprites */
+  visuals?: {
+    gender: 'Male' | 'Female';
+    skinColor: number;
+    hairStyle?: string;
+    clothingStyle?: string;
+    pantsStyle?: string;
+    bootsStyle?: string;
+  };
 }
 
 export interface TempPartyMember {

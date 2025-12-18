@@ -5,30 +5,30 @@
  * Now handles Victory/Defeat states and Loot distribution.
  */
 import React, { useState, useEffect, useCallback, useContext } from 'react';
-import BattleMap from './BattleMap/BattleMap';
-import { PlayerCharacter, Item } from '../types';
-import { BattleMapData, CombatCharacter, CombatLogEntry } from '../types/combat';
-import ErrorBoundary from './ErrorBoundary';
-import { useTurnManager } from '../hooks/combat/useTurnManager';
-import { useAbilitySystem } from '../hooks/useAbilitySystem';
-import { generateBattleSetup } from '../hooks/useBattleMapGeneration';
-import { useSummons } from '../hooks/combat/useSummons';
-import InitiativeTracker from './BattleMap/InitiativeTracker';
-import AbilityPalette from './BattleMap/AbilityPalette';
-import CombatLog from './BattleMap/CombatLog';
-import ActionEconomyBar from './BattleMap/ActionEconomyBar';
-import PartyDisplay from './BattleMap/PartyDisplay';
-import CharacterSheetModal from './CharacterSheetModal';
-import { canUseDevTools } from '../utils/permissions';
-import { logger } from '../utils/logger';
-import { createPlayerCombatCharacter } from '../utils/combatUtils';
-import SpellContext from '../context/SpellContext';
-import { generateLoot } from '../services/lootService';
+import BattleMap from '../BattleMap/BattleMap';
+import { PlayerCharacter, Item } from '../../types';
+import { BattleMapData, CombatCharacter, CombatLogEntry } from '../../types/combat';
+import ErrorBoundary from '../ErrorBoundary';
+import { useTurnManager } from '../../hooks/combat/useTurnManager';
+import { useAbilitySystem } from '../../hooks/useAbilitySystem';
+import { generateBattleSetup } from '../../hooks/useBattleMapGeneration';
+import { useSummons } from '../../hooks/combat/useSummons';
+import InitiativeTracker from '../BattleMap/InitiativeTracker';
+import AbilityPalette from '../BattleMap/AbilityPalette';
+import CombatLog from '../BattleMap/CombatLog';
+import ActionEconomyBar from '../BattleMap/ActionEconomyBar';
+import PartyDisplay from '../BattleMap/PartyDisplay';
+import CharacterSheetModal from '../CharacterSheetModal';
+import { canUseDevTools } from '../../utils/permissions';
+import { logger } from '../../utils/logger';
+import { createPlayerCombatCharacter } from '../../utils/combatUtils';
+import SpellContext from '../../context/SpellContext';
+import { generateLoot } from '../../services/lootService';
 import { motion } from 'framer-motion';
 
-import AISpellInputModal from './BattleMap/AISpellInputModal';
-import { Spell } from '../types/spells';
-import { ReactionPrompt } from './Combat/ReactionPrompt';
+import AISpellInputModal from '../BattleMap/AISpellInputModal';
+import { Spell } from '../../types/spells';
+import { ReactionPrompt } from './ReactionPrompt';
 
 interface CombatViewProps {
   party: PlayerCharacter[];

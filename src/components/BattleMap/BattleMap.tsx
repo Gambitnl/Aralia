@@ -39,7 +39,6 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
     validMoves,
     activePath,
     actionMode,
-    attackableTargets,
     setActionMode,
     handleTileClick,
     handleCharacterClick,
@@ -157,13 +156,18 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
           {Array.from(characterPositions.values()).map(charPos => {
             const character = characters.find(c => c.id === charPos.characterId);
             if (!character) return null;
+            // Removed attackableTargets.has(character.id) as it was unused/dead code.
+            // Replaced with explicit check if the character's tile is a valid target.
+            const charTileId = `${charPos.coordinates.x}-${charPos.coordinates.y}`;
+            const isTargetable = validTargetSet.has(charTileId);
+
             return (
               <CharacterToken
                 key={character.id}
                 character={character}
                 position={charPos.coordinates}
                 isSelected={selectedCharacterId === character.id}
-                isTargetable={attackableTargets.has(character.id)}
+                isTargetable={isTargetable}
                 isTurn={turnState.currentCharacterId === character.id}
                 onClick={() => handleCharacterClick(character)}
               />

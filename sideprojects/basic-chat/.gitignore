@@ -1,0 +1,6 @@
+.server.*.log
+.bot.*.log
+
+# Persisted uploads (kept on disk, not in git)
+data/images/*
+!data/images/.gitkeep

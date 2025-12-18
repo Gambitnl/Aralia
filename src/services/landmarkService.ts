@@ -1,12 +1,14 @@
 
 import { LANDMARK_TEMPLATES } from '../data/landmarks';
 import { createSeededRandom } from '../utils/submapUtils'; // Reusing existing seeded RNG utility
+import { DiscoveryReward } from '../types/exploration';
 
 export interface GeneratedLandmark {
   id: string;
   name: string;
   description: string;
   type: string;
+  rewards: DiscoveryReward[];
 }
 
 /**
@@ -50,10 +52,34 @@ export function generateLandmark(
   const nameIndex = Math.floor(rng() * selectedTemplate.nameTemplate.length);
   const descIndex = Math.floor(rng() * selectedTemplate.descriptionTemplate.length);
 
+  // Generate Rewards
+  const rewards: DiscoveryReward[] = [];
+  if (selectedTemplate.possibleRewards) {
+    for (const rewardTemplate of selectedTemplate.possibleRewards) {
+      if (rng() < rewardTemplate.chance) {
+        // Calculate amount
+        const min = rewardTemplate.amountRange[0];
+        const max = rewardTemplate.amountRange[1];
+        const amount = Math.floor(rng() * (max - min + 1)) + min;
+
+        // Format description
+        const description = rewardTemplate.descriptionTemplate.replace('{amount}', amount.toString());
+
+        rewards.push({
+          type: rewardTemplate.type,
+          resourceId: rewardTemplate.resourceId,
+          amount,
+          description
+        });
+      }
+    }
+  }
+
   return {
     id: `${selectedTemplate.id}_${coordinates.x}_${coordinates.y}`,
     name: selectedTemplate.nameTemplate[nameIndex],
     description: selectedTemplate.descriptionTemplate[descIndex],
     type: selectedTemplate.id,
+    rewards
   };
 }

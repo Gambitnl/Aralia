@@ -6,6 +6,7 @@
  */
 import { GameState, GamePhase, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, SuspicionLevel, KnownFact, QuestStatus, UnderdarkState } from '../types';
 import { AppAction } from './actionTypes';
+import { DEFAULT_WEATHER } from '../systems/environment/EnvironmentSystem';
 import { STARTING_LOCATION_ID, DUMMY_PARTY_FOR_DEV, LOCATIONS, ITEMS, initialInventoryForDummyCharacter, CLASSES_DATA, NPCS } from '../constants';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../data/factions';
 import { getAllFactions } from '../utils/factionUtils';
@@ -31,6 +32,7 @@ import { questReducer } from './reducers/questReducer';
 import { townReducer } from './reducers/townReducer';
 import { crimeReducer } from './reducers/crimeReducer';
 import { companionReducer } from './reducers/companionReducer';
+import { identityReducer } from './reducers/identityReducer';
 import { COMPANIONS } from '../constants';
 
 
@@ -192,7 +194,14 @@ export const initialGameState: GameState = {
     dynamicLocations: {},
 
     // Depthcrawler: Underdark System
+    // Identity System (initialized lazily or on demand)
+    playerIdentity: undefined,
+
+    // Underdark System
     underdark: INITIAL_UNDERDARK_STATE,
+
+    // Environment System
+    environment: DEFAULT_WEATHER,
 };
 
 
@@ -591,6 +600,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ...townReducer(state, action),
                 ...crimeReducer(state, action),
                 ...companionReducer(state, action),
+                ...identityReducer(state, action),
             };
 
             if (Object.keys(changes).length === 0) {

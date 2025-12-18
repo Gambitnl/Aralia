@@ -144,7 +144,6 @@ export class MovementCommand extends BaseEffectCommand {
         })
     }
 
-    // TODO: Honor UI-provided teleport destinations when valid before falling back to clamp/alt search (see MovementCommand.test teleports case).
     private applyTeleport(state: CombatState, target: CombatCharacter, effect: MovementEffect): CombatState {
         const origin = target.position
         const maxTiles = Math.max(0, Math.floor((effect.distance || 0) / 5))
@@ -297,7 +296,18 @@ export class MovementCommand extends BaseEffectCommand {
         // Safe access via new type properties
         const explicit = effect.destination ?? effect.targetPosition
         if (explicit && typeof explicit.x === 'number' && typeof explicit.y === 'number') {
-            return explicit as Position
+            // Verify the explicit destination is within allowed range
+            // (If distance is missing/0, we enforce 0 range; if intended to be infinite, it must be set to very high value or handled differently)
+            const origin = target.position
+            const dist = getDistance(origin, explicit as Position)
+            const allowedRange = (effect.distance === undefined || effect.distance === null) ? 0 : maxTiles
+
+            // If we have an explicit destination that is out of range, we ignore it.
+            // This prevents clients/UI from triggering invalid long-distance teleports.
+            if (dist <= allowedRange) {
+                return explicit as Position
+            }
+            // Fallback to finding another valid move if the explicit one is invalid (e.g. out of range)
         }
 
         const origin = target.position

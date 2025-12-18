@@ -1,3 +1,1 @@
-# Materializer Worklog
-
-## 2024-05-22 - Initial Setup **Learning:** Defining clear asset specs prevents hardcoding and enables AI generation. **Action:** Start by defining specs for core entities like Items or NPCs.
+## 2024-05-23 - NPC Visual Spec Gap **Learning:** Found that `NPC` type lacked structured visual data (unlike `PlayerCharacter`), relying on implied visuals from text. Defined `NPCVisualSpec` to bridge this, enabling both static assets and AI generation prompts. **Action:** Always check core entity types for explicit visual contracts; if missing, define a spec that supports both manual paths and generative prompts.

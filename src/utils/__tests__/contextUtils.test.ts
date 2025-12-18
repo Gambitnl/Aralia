@@ -24,6 +24,18 @@ vi.mock('../timeUtils', () => ({
   formatGameTime: () => '12:00 PM'
 }));
 
+// Mock Backgrounds
+vi.mock('../../data/backgrounds', () => ({
+  BACKGROUNDS: {
+    'soldier': {
+      id: 'soldier',
+      name: 'Soldier',
+      description: 'You served in the army.',
+      feature: { name: 'Rank', description: 'You have a rank.' }
+    }
+  }
+}));
+
 
 describe('contextUtils', () => {
   const mockPlayer: PlayerCharacter = {
@@ -39,7 +51,9 @@ describe('contextUtils', () => {
     speed: 30,
     darkvisionRange: 0,
     equippedItems: {},
-    conditions: []
+    conditions: [],
+    background: 'soldier',
+    visualDescription: 'A scarred veteran.'
   };
 
   const mockLocation: Location = {
@@ -105,11 +119,22 @@ describe('contextUtils', () => {
     metNpcIds: [],
     merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
     questLog: [
-      { id: 'q1', title: 'Find the Sword', description: '', status: 'Active', objectives: [], dateStarted: 0, giverId: 'npc1' }
+      {
+        id: 'q1',
+        title: 'Find the Sword',
+        description: 'A lost relic.',
+        status: 'Active',
+        objectives: [
+            { id: 'o1', description: 'Search the ruins', isCompleted: false },
+            { id: 'o2', description: 'Return to town', isCompleted: false }
+        ],
+        dateStarted: 0,
+        giverId: 'npc1'
+      }
     ]
   } as unknown as GameState;
 
-  it('generates context with player, location, history, and quests', () => {
+  it('generates rich context with character background and quest details', () => {
     const context = generateGeneralActionContext({
       gameState: mockGameState,
       playerCharacter: mockPlayer,
@@ -117,19 +142,35 @@ describe('contextUtils', () => {
       npcsInLocation: []
     });
 
+    // Player Basics
     expect(context).toContain('## PLAYER');
     expect(context).toContain('Name: Hero (Human Fighter)');
     expect(context).toContain('HP: 10/20');
+
+    // Character Details
+    expect(context).toContain('## CHARACTER DETAILS');
+    expect(context).toContain('Background: Soldier');
+    expect(context).toContain('Archetype: You served in the army.');
+    expect(context).toContain('Appearance: A scarred veteran.');
+
+    // Location
     expect(context).toContain('## LOCATION');
     expect(context).toContain('Old Ruins (Enchanted Forest)');
     expect(context).toContain('Visible Items: Rusty Sword');
+
+    // Quests (Rich)
     expect(context).toContain('## ACTIVE QUESTS');
-    expect(context).toContain('- Find the Sword');
+    expect(context).toContain('- **Find the Sword**: A lost relic.');
+    expect(context).toContain('*Current Objectives:*');
+    expect(context).toContain('- [ ] Search the ruins');
+    expect(context).toContain('- [ ] Return to town');
+
+    // History
     expect(context).toContain('## RECENT HISTORY');
     expect(context).toContain('[Narrator]: Welcome to the game');
   });
 
-  it('handles empty history and quests', () => {
+  it('handles empty history and quests gracefully', () => {
     const emptyState = { ...mockGameState, messages: [], questLog: [] };
     const context = generateGeneralActionContext({
       gameState: emptyState,

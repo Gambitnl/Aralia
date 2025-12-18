@@ -168,6 +168,11 @@ export interface WorldRumor {
   timestamp: number; // Game day timestamp
   expiration: number; // Game day timestamp when rumor fades
   region?: string; // Optional region restriction
+
+  // New properties for propagation
+  locationId?: string; // The specific location where this rumor instance is active
+  spreadDistance?: number; // How far this rumor has traveled (0 = origin)
+  virality?: number; // 0.0 - 1.0, chance to spread to adjacent locations
 }
 
 export interface DiscoveryResidue {
@@ -202,6 +207,7 @@ export interface NPC {
   voice?: TTSVoiceOption;
   goals?: Goal[];
   knowledgeProfile?: NPCKnowledgeProfile;
+  // TODO(Materializer): Add 'visual?: NPCVisualSpec' to NPC interface
 }
 
 export interface GameMessage {
@@ -590,9 +596,14 @@ export interface GameState {
 
   // Linker: World Coherence System
   dynamicLocations: Record<string, Location>; // Generated locations that don't exist in static data
+  // Intriguer: Identity System
+  playerIdentity?: import('./identity').PlayerIdentityState;
 
   // Depthcrawler: Underdark System
   underdark: UnderdarkState;
+
+  // Ecologist: Environment System
+  environment: import('./environment').WeatherState;
 
   /** Town exploration state - present when in VILLAGE_VIEW phase */
   townState: import('./town').TownState | null;
