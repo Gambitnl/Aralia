@@ -6,9 +6,10 @@
 import {
   ConversationTopic,
   TopicPrerequisite,
-  DialogueSession
+  DialogueSession,
+  NPCKnowledgeProfile
 } from '../types/dialogue';
-import { GameState, QuestStatus, Item } from '../types/index';
+import { GameState, QuestStatus, Item, NPC } from '../types/index';
 import { rollDice } from '../utils/combatUtils';
 
 // In a real implementation, this would likely load from a data file
@@ -88,20 +89,89 @@ export function checkTopicPrerequisites(
 }
 
 /**
+ * Determines if an NPC knows about a topic and is willing to discuss it.
+ * This logic enforces that even if a player unlocks a topic globally, a specific NPC
+ * must also have the knowledge or it must be a global topic.
+ */
+export function canNPCDiscuss(
+  topic: ConversationTopic,
+  npc: NPC,
+  disposition: number
+): boolean {
+  // 1. Check if the topic is globally available (generic topics like "Weather" or "Who are you")
+  if (topic.isGlobal) {
+    return true;
+  }
+
+  // 2. Check if the NPC has a knowledge profile
+  if (!npc.knowledgeProfile) {
+    // If no profile is defined, we assume they rely on global topics only,
+    // UNLESS the system design implies all NPCs know all non-private topics.
+    // For "Dialogist" strictness: No profile = No knowledge of specific topics.
+    return false;
+  }
+
+  const { topicOverrides, baseOpenness } = npc.knowledgeProfile;
+
+  // 3. Check specific knowledge override
+  const override = topicOverrides[topic.id];
+  if (override) {
+    // If explicitly marked as NOT known, they can't discuss it
+    if (!override.known) return false;
+
+    // Check willingness if they know it
+    // Disposition + Base Openness + Topic Modifier >= Threshold?
+    // We'll treat willingness as a soft gate here.
+    // If they are unwilling, they might still show the topic but require a harder check (handled in skill check logic).
+    // For *availability* (showing the option), we might hide it if they absolutely refuse?
+    // Let's say we hide it only if they don't KNOW it.
+    // Willingness affects the Outcome, not visibility (usually).
+    // However, if it's a "Secret", maybe they don't even reveal they know it unless disposition is high?
+
+    // Implementation: If willingness is very low, maybe hide it?
+    // For now, we return TRUE if they KNOW it.
+    return true;
+  }
+
+  // 4. If no specific override, do they know it by default?
+  // We can assume topics are 'unknown' by default unless isGlobal is true.
+  return false;
+}
+
+/**
  * Filters the list of all potential topics to find valid ones for the current context.
  */
 export function getAvailableTopics(
   gameState: GameState,
   npcId: string,
-  session: DialogueSession
+  session: DialogueSession,
+  npc?: NPC // Added NPC parameter for knowledge checks
 ): ConversationTopic[] {
   const allTopics = Object.values(TOPIC_REGISTRY);
 
+  // Get current disposition
+  const memory = gameState.npcMemory[npcId];
+  const disposition = memory ? memory.disposition : 0;
+
   return allTopics.filter(topic => {
+    // 1. One-time check
     if (topic.isOneTime && session.discussedTopicIds.includes(topic.id)) {
       return false;
     }
-    return checkTopicPrerequisites(topic, gameState, npcId);
+
+    // 2. Player prerequisites (Can the player ask?)
+    if (!checkTopicPrerequisites(topic, gameState, npcId)) {
+      return false;
+    }
+
+    // 3. NPC Knowledge check (Can the NPC answer?)
+    if (npc) {
+        if (!canNPCDiscuss(topic, npc, disposition)) {
+            return false;
+        }
+    }
+
+    return true;
   });
 }
 
@@ -127,7 +197,8 @@ export function processTopicSelection(
   topicId: string,
   gameState: GameState,
   session: DialogueSession,
-  skillModifier: number = 0
+  skillModifier: number = 0,
+  npc?: NPC // Added NPC for dynamic DC adjustments
 ): ProcessTopicResult {
   const topic = TOPIC_REGISTRY[topicId];
   if (!topic) {
@@ -136,12 +207,28 @@ export function processTopicSelection(
 
   session.discussedTopicIds.push(topicId);
 
+  // Calculate Dynamic DC based on Willingness
+  let dcModifier = 0;
+  if (npc && npc.knowledgeProfile && npc.knowledgeProfile.topicOverrides[topicId]) {
+      // If the NPC is unwilling (negative modifier), the DC should be HIGHER.
+      // Willingness Modifier: +10 means they are MORE willing.
+      // So DC should DECREASE by the modifier.
+      // Or, logic: Disposition + Openness + Mod < Threshold -> Harder.
+
+      // Let's simply subtract the willingness modifier from the DC (or add to the roll).
+      // If willingnessMod is -5 (reluctant), we ADD 5 to DC? Or subtract -5 from roll?
+      // Simpler: Effective DC = Base DC - WillingnessModifier.
+      const mod = npc.knowledgeProfile.topicOverrides[topicId].willingnessModifier || 0;
+      dcModifier = -mod;
+  }
+
   // Handle Skill Check
   if (topic.skillCheck) {
     const roll = rollDice('1d20');
     const total = roll + skillModifier;
+    const finalDC = topic.skillCheck.dc + dcModifier;
 
-    if (total >= topic.skillCheck.dc) {
+    if (total >= finalDC) {
       // Success
       return {
         status: 'success',
@@ -164,6 +251,7 @@ export function processTopicSelection(
 
   // Standard (Neutral) Outcome
   const unlocks = topic.unlocksTopics || [];
+  // TODO(Bard): Use `responsePrompt` to generate full flavor text via Gemini, integrating `npc.knowledgeProfile.customResponse` if available.
   return {
     status: 'neutral',
     responsePrompt: topic.playerPrompt,
