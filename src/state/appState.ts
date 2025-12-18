@@ -31,6 +31,7 @@ import { questReducer } from './reducers/questReducer';
 import { townReducer } from './reducers/townReducer';
 import { crimeReducer } from './reducers/crimeReducer';
 import { companionReducer } from './reducers/companionReducer';
+import { identityReducer } from './reducers/identityReducer';
 import { COMPANIONS } from '../constants';
 
 
@@ -184,6 +185,9 @@ export const initialGameState: GameState = {
         acc[temple.id] = temple;
         return acc;
     }, {} as GameState['temples']),
+
+    // Identity System (initialized lazily or on demand)
+    playerIdentity: undefined,
 
     // Underdark System
     underdark: INITIAL_UNDERDARK_STATE,
@@ -581,6 +585,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ...townReducer(state, action),
                 ...crimeReducer(state, action),
                 ...companionReducer(state, action),
+                ...identityReducer(state, action),
             };
 
             if (Object.keys(changes).length === 0) {
