@@ -7,6 +7,8 @@ import { PlayerPainter } from './realmsmith/painters/PlayerPainter';
 import { TilePainter } from './realmsmith/painters/TilePainter';
 import { TILE_SIZE, roundedRect } from './realmsmith/painters/shared';
 
+import { CharacterVisualConfig } from './CharacterAssetService';
+
 export interface DrawOptions {
     isNight: boolean;
     showGrid: boolean;
@@ -16,6 +18,8 @@ export interface DrawOptions {
     playerFacing?: TownDirection;
     /** Whether the player is currently moving (for walk animation) */
     isMoving?: boolean;
+    /** Visual customization for the player character */
+    playerVisuals?: CharacterVisualConfig;
 }
 
 export class AssetPainter {
@@ -73,7 +77,13 @@ export class AssetPainter {
         if (options.playerPosition) {
             const px = options.playerPosition.x * TILE_SIZE;
             const py = options.playerPosition.y * TILE_SIZE;
-            this.playerPainter.drawPlayer(px, py, options.playerFacing || 'south', options.isMoving || false);
+            this.playerPainter.drawPlayer(
+                px,
+                py,
+                options.playerFacing || 'south',
+                options.isMoving || false,
+                options.playerVisuals
+            );
         }
 
         const sortedBuildings = [...buildings].sort((a, b) => (a.y + a.height) - (b.y + b.height));

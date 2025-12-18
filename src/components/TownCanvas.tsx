@@ -3,6 +3,7 @@ import { TownGenerator } from '../services/RealmSmithTownGenerator';
 import { AssetPainter } from '../services/RealmSmithAssetPainter';
 import { TownOptions, BiomeType, TownDensity, BuildingType, Building, TownMap } from '../types/realmsmith';
 import { TownPosition, TownDirection, TOWN_DIRECTION_VECTORS } from '../types/town';
+import { PlayerCharacter } from '../types/character';
 import { isPositionWalkable, getAdjacentBuildings } from '../utils/walkabilityUtils';
 import TownNavigationControls from './TownNavigationControls';
 import { TownDevControls } from './TownDevControls';
@@ -52,6 +53,7 @@ interface TownCanvasProps {
     unreadDiscoveryCount?: number;
     hasNewRateLimitError?: boolean;
     // Player navigation props
+    playerCharacter?: PlayerCharacter;
     playerPosition?: TownPosition;
     /** Direction player entered the town from (north/east/south/west) - affects spawn position */
     entryDirection?: 'north' | 'east' | 'south' | 'west' | null;
@@ -79,6 +81,9 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     gameTime,
     disabled = false,
     isDevDummyActive = false,
+    unreadDiscoveryCount,
+    hasNewRateLimitError,
+    playerCharacter,
     playerPosition,
     entryDirection,
     onPlayerMove,
@@ -383,6 +388,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 playerPosition: animatedPosition ?? effectivePlayerPosition ?? undefined,
                 playerFacing,
                 isMoving: isAnimating,
+                playerVisuals: playerCharacter?.visuals as any,
             });
         } catch (err) {
             console.error("AssetPainter failed:", err);
@@ -717,7 +723,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 <div className="absolute bottom-4 left-4 z-30">
                     <TownNavigationControls
                         onMove={handleMove}
-                        onExit={onExitTown ?? (() => {})}
+                        onExit={onExitTown ?? (() => { })}
                         blockedDirections={blockedDirections}
                         disabled={disabled}
                         adjacentBuildings={adjacentBuildingData}

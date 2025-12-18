@@ -640,6 +640,7 @@ const App: React.FC = () => {
           isDevDummyActive={canUseDevTools()}
           unreadDiscoveryCount={gameState.unreadDiscoveryCount}
           hasNewRateLimitError={gameState.hasNewRateLimitError}
+          playerCharacter={gameState.party[0]}
           // Player navigation props
           // Only pass external handlers when townState exists (otherwise TownCanvas uses local state)
           playerPosition={gameState.townState?.playerPosition}
@@ -704,51 +705,51 @@ const App: React.FC = () => {
   return (
     <AppProviders>
       <GameProvider state={gameState} dispatch={dispatch}>
-      <div className="App min-h-screen bg-gray-900">
-        <NotificationSystem notifications={gameState.notifications} dispatch={dispatch} />
+        <div className="App min-h-screen bg-gray-900">
+          <NotificationSystem notifications={gameState.notifications} dispatch={dispatch} />
 
-        {/* Global Loading Spinner */}
-        <AnimatePresence>
-          {(gameState.isLoading || gameState.isImageLoading) && <LoadingSpinner message={gameState.loadingMessage || (gameState.isImageLoading ? t('app.ui.loading.image') : t('app.ui.loading.default'))} />}
-        </AnimatePresence>
+          {/* Global Loading Spinner */}
+          <AnimatePresence>
+            {(gameState.isLoading || gameState.isImageLoading) && <LoadingSpinner message={gameState.loadingMessage || (gameState.isImageLoading ? t('app.ui.loading.image') : t('app.ui.loading.default'))} />}
+          </AnimatePresence>
 
-        {/* Global Error Message Banner */}
-        {gameState.error && (
-          <div className="bg-red-800 text-white p-4 fixed top-0 left-0 right-0 z-[100] text-center">
-            {t('app.ui.error.message', { message: gameState.error })}
-            <button onClick={() => dispatch({ type: 'SET_ERROR', payload: null })} className="ml-4 bg-red-600 px-2 py-1 rounded">{t('app.ui.error.dismiss')}</button>
-          </div>
-        )}
+          {/* Global Error Message Banner */}
+          {gameState.error && (
+            <div className="bg-red-800 text-white p-4 fixed top-0 left-0 right-0 z-[100] text-center">
+              {t('app.ui.error.message', { message: gameState.error })}
+              <button onClick={() => dispatch({ type: 'SET_ERROR', payload: null })} className="ml-4 bg-red-600 px-2 py-1 rounded">{t('app.ui.error.dismiss')}</button>
+            </div>
+          )}
 
-        {/* Primary View */}
-        <Suspense fallback={<LoadingSpinner />}>
-          {mainContent}
-        </Suspense>
+          {/* Primary View */}
+          <Suspense fallback={<LoadingSpinner />}>
+            {mainContent}
+          </Suspense>
 
-        {/* Modal Manager: Handles all overlays (Inventory, Map, Logs, etc.) */}
-        <GameModals
-          gameState={gameState}
-          dispatch={dispatch}
-          onAction={processAction}
-          onTileClick={handleTileClick}
-          currentLocation={currentLocationData}
-          npcsInLocation={npcs}
-          itemsInLocation={itemsInCurrentLocation}
-          isUIInteractive={isUIInteractive}
-          submapPaneDisabled={!!submapPaneDisabled}
-          missingChoiceModal={missingChoiceModal}
-          onCloseMissingChoice={() => setMissingChoiceModal({ isOpen: false, character: null, missingChoice: null })}
-          onConfirmMissingChoice={handleConfirmMissingChoice}
-          onFixMissingChoice={handleFixMissingChoice}
-          handleCloseCharacterSheet={handleCloseCharacterSheet}
-          handleClosePartyOverlay={handleClosePartyOverlay}
-          handleDevMenuAction={handleDevMenuAction}
-          handleModelChange={handleModelChange}
-          handleNavigateToGlossaryFromTooltip={handleNavigateToGlossaryFromTooltip}
-          handleOpenGlossary={handleOpenGlossary}
-          handleOpenCharacterSheet={handleOpenCharacterSheet}
-        />
-      </div>
+          {/* Modal Manager: Handles all overlays (Inventory, Map, Logs, etc.) */}
+          <GameModals
+            gameState={gameState}
+            dispatch={dispatch}
+            onAction={processAction}
+            onTileClick={handleTileClick}
+            currentLocation={currentLocationData}
+            npcsInLocation={npcs}
+            itemsInLocation={itemsInCurrentLocation}
+            isUIInteractive={isUIInteractive}
+            submapPaneDisabled={!!submapPaneDisabled}
+            missingChoiceModal={missingChoiceModal}
+            onCloseMissingChoice={() => setMissingChoiceModal({ isOpen: false, character: null, missingChoice: null })}
+            onConfirmMissingChoice={handleConfirmMissingChoice}
+            onFixMissingChoice={handleFixMissingChoice}
+            handleCloseCharacterSheet={handleCloseCharacterSheet}
+            handleClosePartyOverlay={handleClosePartyOverlay}
+            handleDevMenuAction={handleDevMenuAction}
+            handleModelChange={handleModelChange}
+            handleNavigateToGlossaryFromTooltip={handleNavigateToGlossaryFromTooltip}
+            handleOpenGlossary={handleOpenGlossary}
+            handleOpenCharacterSheet={handleOpenCharacterSheet}
+          />
+        </div>
       </GameProvider>
     </AppProviders>
   );

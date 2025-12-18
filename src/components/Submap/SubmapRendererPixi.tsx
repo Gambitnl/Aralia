@@ -34,6 +34,7 @@ import { SubmapFeaturePainter } from './painters/SubmapFeaturePainter';
 import { SubmapOverlayPainter, type TimeOfDay } from './painters/SubmapOverlayPainter';
 import { SubmapPathPainter, type PathPoint } from './painters/SubmapPathPainter';
 import { SubmapPlayerPainter, type FacingDirection } from './painters/SubmapPlayerPainter';
+import { CharacterVisualConfig } from '../../services/CharacterAssetService';
 
 // ============================================================================
 // Types
@@ -43,6 +44,7 @@ export interface SubmapRendererPixiProps {
     dimensions: { rows: number; cols: number };
     playerSubmapCoords: { x: number; y: number };
     playerFacing?: FacingDirection;
+    playerVisuals?: CharacterVisualConfig;
     wfcGrid?: WfcGrid;
     caGrid?: CaTileType[][];
     biomeBlendContext: { primaryBiomeId: string; secondaryBiomeId: string | null; blendFactor: number };
@@ -67,6 +69,7 @@ const SubmapRendererPixi: React.FC<SubmapRendererPixiProps> = ({
     dimensions,
     playerSubmapCoords,
     playerFacing = 'south',
+    playerVisuals,
     wfcGrid,
     caGrid,
     biomeBlendContext,
@@ -258,6 +261,7 @@ const SubmapRendererPixi: React.FC<SubmapRendererPixiProps> = ({
             x: playerSubmapCoords.x,
             y: playerSubmapCoords.y,
             facing: playerFacing,
+            visuals: playerVisuals,
         });
         layers.ui.addChild(playerContainer);
 

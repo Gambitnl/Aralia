@@ -58,6 +58,7 @@ import TieflingLegacySelection from './Race/TieflingLegacySelection';
 import CentaurNaturalAffinitySkillSelection from './Race/CentaurNaturalAffinitySkillSelection';
 import ChangelingInstinctsSelection from './Race/ChangelingInstinctsSelection';
 import RacialSpellAbilitySelection from './Race/RacialSpellAbilitySelection';
+import VisualsSelection from './VisualsSelection';
 import NameAndReview from './NameAndReview';
 import CreationSidebar from './CreationSidebar';
 import {
@@ -81,6 +82,7 @@ const getNextStep = (state: any, selectedRace: any, racialSelections: any): Crea
   }
 };
 import { useCharacterAssembly } from './hooks/useCharacterAssembly';
+import { CharacterVisualConfig } from '../../services/CharacterAssetService';
 import SpellContext from '../../context/SpellContext';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 
@@ -152,7 +154,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
   const handleTieflingLegacySelect = useCallback((legacyId: FiendishLegacyType, spellAbility: AbilityScoreName) => {
     dispatch({ type: 'SELECT_TIEFLING_LEGACY', payload: { legacyId, spellAbility } });
   }, [dispatch]);
-  
+
   const handleRacialSpellAbilitySelect = useCallback((ability: AbilityScoreName) => {
     dispatch({ type: 'SELECT_RACIAL_SPELL_ABILITY', payload: ability });
   }, [dispatch]);
@@ -192,15 +194,15 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
   const handleDruidFeaturesSelect = useCallback((order: 'Magician' | 'Warden', cantrips: Spell[], spellsL1: Spell[]) => {
     dispatch({ type: 'SELECT_DRUID_FEATURES', payload: { order, cantrips, spellsL1 } });
   }, [dispatch]);
-  
+
   const handleWizardFeaturesSelect = useCallback((cantripsSpells: Spell[], spellsL1Spells: Spell[]) => {
     dispatch({ type: 'SELECT_WIZARD_FEATURES', payload: { cantrips: cantripsSpells, spellsL1: spellsL1Spells } });
   }, [dispatch]);
-  
+
   const handleSorcererFeaturesSelect = useCallback((cantrips: Spell[], spellsL1: Spell[]) => {
     dispatch({ type: 'SELECT_SORCERER_FEATURES', payload: { cantrips, spellsL1 } });
   }, [dispatch]);
-  
+
   const handleRangerFeaturesSelect = useCallback((spellsL1: Spell[]) => {
     dispatch({ type: 'SELECT_RANGER_FEATURES', payload: { spellsL1 } });
   }, [dispatch]);
@@ -220,7 +222,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
   const handleWarlockFeaturesSelect = useCallback((cantripsSpells: Spell[], spellsL1Spells: Spell[]) => {
     dispatch({ type: 'SELECT_WARLOCK_FEATURES', payload: { cantrips: cantripsSpells, spellsL1: spellsL1Spells } });
   }, [dispatch]);
-  
+
   const handleWeaponMasteriesSelect = useCallback((weaponIds: string[]) => {
     dispatch({ type: 'SELECT_WEAPON_MASTERIES', payload: weaponIds });
   }, [dispatch]);
@@ -240,8 +242,12 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
     dispatch({ type: 'CONFIRM_FEAT_STEP' });
   }, [featOptions, state.selectedFeat, dispatch]);
 
+  const handleVisualsChange = useCallback((visuals: Partial<CharacterVisualConfig>) => {
+    dispatch({ type: 'SELECT_VISUALS', payload: visuals });
+  }, [dispatch]);
+
   const handleNameAndReviewSubmit = useCallback((name: string) => {
-    dispatch({type: 'SET_CHARACTER_NAME', payload: name});
+    dispatch({ type: 'SET_CHARACTER_NAME', payload: name });
     assembleAndSubmitCharacter(state, name);
   }, [state, assembleAndSubmitCharacter, dispatch]);
 
@@ -261,14 +267,14 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
 
   const renderStep = (): React.ReactElement | null => {
     if (!allSpells) {
-        return <LoadingSpinner message="Loading spell data..." />;
+      return <LoadingSpinner message="Loading spell data..." />;
     }
     switch (state.step) {
       case CreationStep.Race:
         return <RaceSelection races={Object.values(RACES_DATA)} onRaceSelect={handleRaceSelect} />;
       case CreationStep.AgeSelection:
         // TODO: Route AgeSelection through the clamped handler so negative/NaN ages never enter reducer state.
-        if (!selectedRace) { dispatch({type: 'SET_STEP', payload: CreationStep.Race }); return null; }
+        if (!selectedRace) { dispatch({ type: 'SET_STEP', payload: CreationStep.Race }); return null; }
         return <AgeSelection
           selectedRace={selectedRace}
           currentAge={state.characterAge}
@@ -277,7 +283,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
           onBack={goBack}
         />;
       case CreationStep.BackgroundSelection:
-        if (!selectedRace) { dispatch({type: 'SET_STEP', payload: CreationStep.Race }); return null; }
+        if (!selectedRace) { dispatch({ type: 'SET_STEP', payload: CreationStep.Race }); return null; }
         return <BackgroundSelection
           selectedRace={selectedRace}
           characterAge={state.characterAge}
@@ -286,19 +292,26 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
           onNext={() => dispatch({ type: 'SET_STEP', payload: getNextStep(state, selectedRace, state.racialSelections) })}
           onBack={goBack}
         />;
+      case CreationStep.Visuals:
+        return <VisualsSelection
+          visuals={state.visuals}
+          onVisualsChange={handleVisualsChange}
+          onNext={() => dispatch({ type: 'SET_STEP', payload: CreationStep.Class })}
+          onBack={goBack}
+        />;
       case CreationStep.DragonbornAncestry:
         return <DragonbornAncestrySelection onAncestrySelect={handleDragonbornAncestrySelect} onBack={goBack} />;
       case CreationStep.ElvenLineage:
-        if (!selectedRace?.elvenLineages) { dispatch({type: 'SET_STEP', payload: CreationStep.Race }); return null; }
+        if (!selectedRace?.elvenLineages) { dispatch({ type: 'SET_STEP', payload: CreationStep.Race }); return null; }
         return <ElfLineageSelection lineages={selectedRace.elvenLineages} onLineageSelect={handleElvenLineageSelect} onBack={goBack} />;
       case CreationStep.GnomeSubrace:
-        if (!selectedRace?.gnomeSubraces) { dispatch({type: 'SET_STEP', payload: CreationStep.Race }); return null; }
+        if (!selectedRace?.gnomeSubraces) { dispatch({ type: 'SET_STEP', payload: CreationStep.Race }); return null; }
         return <GnomeSubraceSelection subraces={selectedRace.gnomeSubraces} onSubraceSelect={handleGnomeSubraceSelect} onBack={goBack} />;
       case CreationStep.GiantAncestry:
-        if (!selectedRace?.giantAncestryChoices) { dispatch({type: 'SET_STEP', payload: CreationStep.Race }); return null; }
+        if (!selectedRace?.giantAncestryChoices) { dispatch({ type: 'SET_STEP', payload: CreationStep.Race }); return null; }
         return <GiantAncestrySelection onAncestrySelect={handleGiantAncestrySelect} onBack={goBack} />;
       case CreationStep.TieflingLegacy:
-        if (!selectedRace?.fiendishLegacies) { dispatch({type: 'SET_STEP', payload: CreationStep.Race }); return null; }
+        if (!selectedRace?.fiendishLegacies) { dispatch({ type: 'SET_STEP', payload: CreationStep.Race }); return null; }
         return <TieflingLegacySelection onLegacySelect={handleTieflingLegacySelect} onBack={goBack} />;
       case CreationStep.CentaurNaturalAffinitySkill:
         return <CentaurNaturalAffinitySkillSelection onSkillSelect={handleCentaurNaturalAffinitySkillSelect} onBack={goBack} />;
@@ -318,16 +331,16 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
       case CreationStep.Class:
         return <ClassSelection classes={Object.values(CLASSES_DATA)} onClassSelect={handleClassSelect} onBack={goBack} />;
       case CreationStep.AbilityScores:
-        if (!selectedRace || !selectedClass) { dispatch({type: 'SET_STEP', payload: CreationStep.Race }); return null; }
+        if (!selectedRace || !selectedClass) { dispatch({ type: 'SET_STEP', payload: CreationStep.Race }); return null; }
         return <AbilityScoreAllocation race={selectedRace} selectedClass={selectedClass} onAbilityScoresSet={handleAbilityScoresSet} onBack={goBack} />;
       case CreationStep.HumanSkillChoice:
-        if (!finalAbilityScores) { dispatch({type: 'SET_STEP', payload: CreationStep.AbilityScores }); return null; } 
+        if (!finalAbilityScores) { dispatch({ type: 'SET_STEP', payload: CreationStep.AbilityScores }); return null; }
         return <HumanSkillSelection abilityScores={finalAbilityScores} onSkillSelect={handleHumanSkillSelect} onBack={goBack} />;
       case CreationStep.Skills:
-        if (!selectedClass || !finalAbilityScores || !selectedRace) { dispatch({type: 'SET_STEP', payload: CreationStep.AbilityScores }); return null; }
+        if (!selectedClass || !finalAbilityScores || !selectedRace) { dispatch({ type: 'SET_STEP', payload: CreationStep.AbilityScores }); return null; }
         return <SkillSelection charClass={selectedClass} abilityScores={finalAbilityScores} race={selectedRace} racialSelections={state.racialSelections} onSkillsSelect={handleSkillsSelect} onBack={goBack} />;
       case CreationStep.ClassFeatures:
-        if (!selectedClass || !finalAbilityScores) { dispatch({type: 'SET_STEP', payload: CreationStep.Skills }); return null; }
+        if (!selectedClass || !finalAbilityScores) { dispatch({ type: 'SET_STEP', payload: CreationStep.Skills }); return null; }
         if (selectedClass.id === 'fighter' && selectedClass.fightingStyles) {
           return <FighterFeatureSelection styles={selectedClass.fightingStyles} onStyleSelect={handleFighterFeaturesSelect} onBack={goBack} />;
         }
@@ -335,7 +348,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
           return <ClericFeatureSelection divineOrders={selectedClass.divineOrders} spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onClericFeaturesSelect={handleClericFeaturesSelect} onBack={goBack} />;
         }
         if (selectedClass.id === 'druid' && selectedClass.primalOrders && selectedClass.spellcasting) {
-            return <DruidFeatureSelection primalOrders={selectedClass.primalOrders} spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onDruidFeaturesSelect={handleDruidFeaturesSelect} onBack={goBack} />;
+          return <DruidFeatureSelection primalOrders={selectedClass.primalOrders} spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onDruidFeaturesSelect={handleDruidFeaturesSelect} onBack={goBack} />;
         }
         if (selectedClass.id === 'wizard' && selectedClass.spellcasting) {
           return <WizardFeatureSelection spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onWizardFeaturesSelect={handleWizardFeaturesSelect} onBack={goBack} />;
@@ -343,16 +356,16 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
         if (selectedClass.id === 'sorcerer' && selectedClass.spellcasting) {
           return <SorcererFeatureSelection spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onSorcererFeaturesSelect={handleSorcererFeaturesSelect} onBack={goBack} />;
         }
-         if (selectedClass.id === 'bard' && selectedClass.spellcasting) {
+        if (selectedClass.id === 'bard' && selectedClass.spellcasting) {
           return <BardFeatureSelection spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onBardFeaturesSelect={handleBardFeaturesSelect} onBack={goBack} />;
         }
-         if (selectedClass.id === 'warlock' && selectedClass.spellcasting) {
+        if (selectedClass.id === 'warlock' && selectedClass.spellcasting) {
           return <WarlockFeatureSelection spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onWarlockFeaturesSelect={handleWarlockFeaturesSelect} onBack={goBack} />;
         }
         if (selectedClass.id === 'ranger' && selectedClass.spellcasting) {
           return <RangerFeatureSelection spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onRangerFeaturesSelect={handleRangerFeaturesSelect} onBack={goBack} />;
         }
-         if (selectedClass.id === 'paladin' && selectedClass.spellcasting) {
+        if (selectedClass.id === 'paladin' && selectedClass.spellcasting) {
           return <PaladinFeatureSelection spellcastingInfo={selectedClass.spellcasting} allSpells={allSpells} onPaladinFeaturesSelect={handlePaladinFeaturesSelect} onBack={goBack} />;
         }
         if (selectedClass.id === 'artificer' && selectedClass.spellcasting) {
@@ -360,16 +373,16 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
         }
         // TODO: Move this auto-advance out of render to avoid strict-mode double dispatch and to keep side effects out of render.
         if ((selectedClass.weaponMasterySlots ?? 0) > 0) {
-            dispatch({ type: 'SET_STEP', payload: CreationStep.WeaponMastery });
+          dispatch({ type: 'SET_STEP', payload: CreationStep.WeaponMastery });
         } else {
-            dispatch({ type: 'SET_STEP', payload: CreationStep.NameAndReview });
+          dispatch({ type: 'SET_STEP', payload: CreationStep.NameAndReview });
         }
         return null;
       case CreationStep.WeaponMastery:
-         if (!selectedClass) { dispatch({type: 'SET_STEP', payload: CreationStep.Class }); return null; }
-         return <WeaponMasterySelection charClass={selectedClass} onMasteriesSelect={handleWeaponMasteriesSelect} onBack={goBack} />
+        if (!selectedClass) { dispatch({ type: 'SET_STEP', payload: CreationStep.Class }); return null; }
+        return <WeaponMasterySelection charClass={selectedClass} onMasteriesSelect={handleWeaponMasteriesSelect} onBack={goBack} />
       case CreationStep.FeatSelection:
-         return (
+        return (
           <FeatSelection
             availableFeats={featOptions}
             selectedFeatId={state.selectedFeat || undefined}
@@ -387,18 +400,18 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
       case CreationStep.NameAndReview:
         const characterToPreview: PlayerCharacter | null = generatePreviewCharacter(state, state.characterName);
         if (!characterToPreview) {
-            console.error("Missing critical data for review step. Reverting to Race Selection.", state);
-            dispatch({ type: 'SET_STEP', payload: CreationStep.Race });
-            return <p className="text-red-400">Error: Missing critical character data. Returning to start.</p>;
+          console.error("Missing critical data for review step. Reverting to Race Selection.", state);
+          dispatch({ type: 'SET_STEP', payload: CreationStep.Race });
+          return <p className="text-red-400">Error: Missing critical character data. Returning to start.</p>;
         }
         return (
-            <NameAndReview
-                characterPreview={characterToPreview}
-                onConfirm={handleNameAndReviewSubmit}
-                initialName={state.characterName}
-                onBack={goBack}
-                featStepSkipped={state.featStepSkipped}
-            />
+          <NameAndReview
+            characterPreview={characterToPreview}
+            onConfirm={handleNameAndReviewSubmit}
+            initialName={state.characterName}
+            onBack={goBack}
+            featStepSkipped={state.featStepSkipped}
+          />
         );
       default:
         return <p>Unknown character creation step.</p>;

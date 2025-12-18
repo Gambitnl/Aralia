@@ -19,6 +19,7 @@ import {
   DraconicAncestorType,
   RacialSelectionData,
 } from '../../../types';
+import { CharacterVisualConfig } from '../../../services/CharacterAssetService';
 import {
   RACES_DATA,
 } from '../../../constants';
@@ -45,6 +46,7 @@ export enum CreationStep {
   ClassFeatures,
   WeaponMastery,
   FeatSelection,
+  Visuals,
   NameAndReview,
 }
 
@@ -85,6 +87,7 @@ export interface CharacterCreationState {
   characterAge: number;
   selectedBackground: string | null;
   featStepSkipped?: boolean;
+  visuals: CharacterVisualConfig;
 }
 
 export type ClassFeatureFinalSelectionAction =
@@ -111,6 +114,7 @@ export type CharacterCreatorAction =
   | { type: 'SELECT_CENTAUR_NATURAL_AFFINITY_SKILL'; payload: string }
   | { type: 'SELECT_CHANGELING_INSTINCTS'; payload: string[] }
   | { type: 'SELECT_RACIAL_SPELL_ABILITY'; payload: AbilityScoreName }
+  | { type: 'SELECT_VISUALS'; payload: Partial<CharacterVisualConfig> }
   | { type: 'SELECT_CLASS'; payload: CharClass }
   | { type: 'SET_ABILITY_SCORES'; payload: { baseScores: AbilityScores } }
   | { type: 'SELECT_HUMAN_SKILL'; payload: string }
@@ -149,6 +153,13 @@ export const initialCharacterCreatorState: CharacterCreationState = {
   characterAge: 25, // Default age
   selectedBackground: null,
   featStepSkipped: false,
+  visuals: {
+    gender: 'Male',
+    skinColor: 1,
+    hairStyle: 'Hair1',
+    hairColor: 'Black',
+    clothing: 'Clothing1',
+  },
 };
 
 // --- Reducer Helper Functions ---
@@ -179,7 +190,7 @@ function determineNextStepAfterAge(age: number, race: Race): CreationStep {
  * (Race-specific steps now happen earlier, right after race selection)
  */
 function determineNextStepAfterBackground(race: Race): CreationStep {
-  return CreationStep.Class;
+  return CreationStep.Visuals;
 }
 
 const getResetStateForNewRace = (): Partial<CharacterCreationState> => {
@@ -291,6 +302,7 @@ const stepDefinitions: Record<CreationStep, StepDefinition> = {
   [CreationStep.Race]: { previousStep: () => CreationStep.Race },
   [CreationStep.AgeSelection]: { previousStep: () => CreationStep.Race },
   [CreationStep.BackgroundSelection]: { previousStep: () => CreationStep.AgeSelection },
+  [CreationStep.Visuals]: { previousStep: () => CreationStep.BackgroundSelection },
   [CreationStep.DragonbornAncestry]: { previousStep: () => CreationStep.Race },
   [CreationStep.ElvenLineage]: { previousStep: () => CreationStep.Race },
   [CreationStep.GnomeSubrace]: { previousStep: () => CreationStep.Race },
@@ -299,10 +311,8 @@ const stepDefinitions: Record<CreationStep, StepDefinition> = {
   [CreationStep.CentaurNaturalAffinitySkill]: { previousStep: () => CreationStep.Race },
   [CreationStep.ChangelingInstincts]: { previousStep: () => CreationStep.Race },
   [CreationStep.RacialSpellAbilityChoice]: { previousStep: () => CreationStep.AbilityScores },
-  [CreationStep.Class]: {
-    previousStep: () => CreationStep.BackgroundSelection,
-  },
   [CreationStep.AbilityScores]: { previousStep: () => CreationStep.Class },
+  [CreationStep.Class]: { previousStep: () => CreationStep.Visuals },
   [CreationStep.HumanSkillChoice]: { previousStep: (state) => state.racialSpellChoiceContext ? CreationStep.RacialSpellAbilityChoice : CreationStep.AbilityScores },
   [CreationStep.Skills]: {
     previousStep: (state) => (state.selectedRace?.id === 'human' ? CreationStep.HumanSkillChoice : (state.racialSpellChoiceContext ? CreationStep.RacialSpellAbilityChoice : CreationStep.AbilityScores))
@@ -428,6 +438,8 @@ export function characterCreatorReducer(state: CharacterCreationState, action: C
         step: nextStep,
       };
     }
+    case 'SELECT_VISUALS':
+      return { ...state, visuals: { ...state.visuals, ...action.payload } };
     case 'SELECT_CLASS':
       return { ...state, selectedClass: action.payload, step: CreationStep.AbilityScores };
     case 'SET_ABILITY_SCORES': {
