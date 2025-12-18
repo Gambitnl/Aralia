@@ -371,6 +371,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
       effects: [{
         type: 'damage',
         value: 0, // Value 0 signals "roll weapon damage" to the system
+        dice: weapon.damageDice || '1d4', // Default fallback if missing
         damageType: damageType
       }],
       icon: '⚔️',
