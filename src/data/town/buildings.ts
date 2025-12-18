@@ -1,0 +1,27 @@
+import { BuildingType } from '../../types/realmsmith';
+
+export const BUILDING_DESCRIPTIONS: Record<BuildingType, { name: string; desc: string }> = {
+    [BuildingType.HOUSE_SMALL]: { name: 'Small House', desc: 'A modest residence for common folk.' },
+    [BuildingType.HOUSE_LARGE]: { name: 'Large House', desc: 'A two-story home for wealthier merchants.' },
+    [BuildingType.TAVERN]: { name: 'Tavern', desc: 'The social hub, warm and inviting.' },
+    [BuildingType.BLACKSMITH]: { name: 'Blacksmith', desc: 'Echoes with the sound of hammer on anvil.' },
+    [BuildingType.MARKET_STALL]: { name: 'Market Stall', desc: 'Traders selling local goods and wares.' },
+    [BuildingType.CHURCH]: { name: 'Church', desc: 'A peaceful sanctuary with stained glass.' },
+    [BuildingType.TEMPLE]: { name: 'Temple', desc: 'A grand structure dedicated to high deities.' },
+    [BuildingType.LIBRARY]: { name: 'Library', desc: 'Filled with ancient scrolls and knowledge.' },
+    [BuildingType.ALCHEMIST]: { name: 'Alchemist', desc: 'Smells of sulfur and strange herbs.' },
+    [BuildingType.TOWER]: { name: 'Tower', desc: 'A fortified lookout overlooking the town.' },
+    [BuildingType.MANOR]: { name: 'Manor', desc: 'The luxurious estate of a noble family.' },
+    [BuildingType.BARRACKS]: { name: 'Barracks', desc: 'Housing for the town guard.' },
+    [BuildingType.FARM_HOUSE]: { name: 'Farm House', desc: 'A rustic home surrounded by fields.' },
+    [BuildingType.WINDMILL]: { name: 'Windmill', desc: 'Grinds grain with the power of the wind.' },
+    [BuildingType.LUMBER_MILL]: { name: 'Lumber Mill', desc: 'Processes timber from the nearby forest.' },
+    [BuildingType.GUILD_HALL]: { name: 'Guild Hall', desc: 'A headquarters for local artisans and merchants.' },
+    [BuildingType.STABLE]: { name: 'Stables', desc: 'Shelter for horses and travelers\' mounts.' },
+    [BuildingType.GRANARY]: { name: 'Granary', desc: 'A large storehouse for the town\'s food supply.' },
+    [BuildingType.SHRINE]: { name: 'Shrine', desc: 'A small holy site for quiet prayer.' },
+    [BuildingType.SCHOOL]: { name: 'School', desc: 'A place of learning for the town\'s youth.' },
+    [BuildingType.BAKERY]: { name: 'Bakery', desc: 'Fills the street with the smell of fresh bread.' },
+    [BuildingType.TAILOR]: { name: 'Tailor', desc: 'Fine clothes and fabrics are sold here.' },
+    [BuildingType.JEWELER]: { name: 'Jeweler', desc: 'A secure shop selling precious gems and metals.' },
+};
