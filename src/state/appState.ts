@@ -161,6 +161,9 @@ export const initialGameState: GameState = {
         knownCrimes: [],
     },
 
+    // Puzzle & Lock System
+    locks: {},
+
     // Town Exploration
     townState: null,
     townEntryDirection: null,
@@ -423,6 +426,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 questLog: loadedState.questLog || [],
                 isQuestLogVisible: false,
                 notoriety: loadedState.notoriety || { globalHeat: 0, localHeat: {}, knownCrimes: [] },
+                locks: loadedState.locks || {},
                 notifications: [],
                 // Use loaded or fallback
                 factions: loadedFactions,

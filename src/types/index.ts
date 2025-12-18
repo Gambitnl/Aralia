@@ -70,6 +70,7 @@ import { DivineFavor, Temple } from './deity';
 import { Fence } from './crime';
 import { UnderdarkState, LightSource } from './underdark';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
+import { LockState, Lockable } from '../systems/puzzles/types';
 
 export * from './core';
 export * from './items';
@@ -95,7 +96,7 @@ export interface LocationDynamicNpcConfig {
   baseSpawnChance: number;
 }
 
-export interface Exit {
+export interface Exit extends Lockable {
   direction: string;
   targetId: string;
   travelTime?: number;
@@ -574,6 +575,9 @@ export interface GameState {
   questLog: Quest[];
   isQuestLogVisible: boolean;
   notifications: Notification[];
+
+  // Lockpick: Puzzle & Lock System
+  locks: Record<string, LockState>;
 
   // Intriguer: Faction System
   factions: Record<string, Faction>; // All active factions in the world

@@ -6,8 +6,6 @@
  * Defines types for Locks, Traps, and Puzzles.
  */
 
-import { CharacterStats } from '../../types/combat';
-import { Item } from '../../types/items';
 import { AbilityScoreName } from '../../types/core';
 
 export type DamageType =
@@ -44,8 +42,7 @@ export interface Trap {
   triggerCondition: TriggerCondition;
   effect: TrapEffect;
   resetable: boolean;
-  isDisarmed: boolean;
-  isTriggered: boolean;
+  // Dynamic state tracked in LockState or TrapState, not here in definition
 }
 
 export interface Lock {
@@ -54,11 +51,22 @@ export interface Lock {
   keyId?: string;  // Key that opens it
   breakDC?: number;  // DC to break (Strength)
   breakHP?: number;  // HP to destroy
-  currentHP?: number; // Current HP if breakable
   isTrapped?: boolean;
   trap?: Trap; // Embed the trap definition if trapped
-  isLocked: boolean;
-  isBroken: boolean;
+}
+
+export interface LockState {
+    id: string;
+    isLocked: boolean;
+    isBroken: boolean;
+    currentHP?: number;
+    isTrapDisarmed?: boolean;
+    isTrapTriggered?: boolean;
+}
+
+export interface Lockable {
+    lockId?: string;
+    trapId?: string;
 }
 
 export interface LockpickResult {
