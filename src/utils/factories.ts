@@ -260,6 +260,17 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       bounties: []
     },
 
+    // Economy System
+    economy: {
+      marketFactors: {
+        scarcity: [],
+        surplus: []
+      },
+      buyMultiplier: 1.0,
+      sellMultiplier: 0.5,
+      activeEvents: []
+    },
+
     questLog: [],
     notifications: [],
 
