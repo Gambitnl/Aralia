@@ -1,8 +1,52 @@
 
 import { describe, it, expect } from 'vitest';
-import { calculateFallDamage, calculateJumpDistance, calculateCarryingCapacity } from '../physicsUtils';
+import {
+  calculateFallDamage,
+  calculateJumpDistance,
+  calculateCarryingCapacity,
+  calculateBreathDuration,
+  calculateSuffocationRounds,
+  getObjectAC,
+  getObjectHP
+} from '../physicsUtils';
 
 describe('physicsUtils', () => {
+  describe('getObjectAC', () => {
+    it('returns correct AC for common materials', () => {
+      expect(getObjectAC('cloth')).toBe(11);
+      expect(getObjectAC('glass')).toBe(13);
+      expect(getObjectAC('wood')).toBe(15);
+      expect(getObjectAC('stone')).toBe(17);
+      expect(getObjectAC('iron')).toBe(19);
+      expect(getObjectAC('adamantine')).toBe(23);
+    });
+
+    it('handles fallback', () => {
+      // @ts-ignore
+      expect(getObjectAC('plastic')).toBe(10);
+    });
+  });
+
+  describe('getObjectHP', () => {
+    it('returns correct HP dice for sizes (Resilient)', () => {
+      // Tiny Resilient -> 2d4
+      expect(getObjectHP('tiny')).toEqual(expect.objectContaining({ dice: 2, sides: 4 }));
+      // Small Resilient -> 3d6
+      expect(getObjectHP('small')).toEqual(expect.objectContaining({ dice: 3, sides: 6 }));
+      // Medium Resilient -> 4d8
+      expect(getObjectHP('medium')).toEqual(expect.objectContaining({ dice: 4, sides: 8 }));
+      // Large Resilient -> 5d10
+      expect(getObjectHP('large')).toEqual(expect.objectContaining({ dice: 5, sides: 10 }));
+    });
+
+    it('returns correct HP dice for sizes (Fragile)', () => {
+      // Tiny Fragile -> 1d4
+      expect(getObjectHP('tiny', true)).toEqual(expect.objectContaining({ dice: 1, sides: 4 }));
+      // Small Fragile -> 1d6
+      expect(getObjectHP('small', true)).toEqual(expect.objectContaining({ dice: 1, sides: 6 }));
+    });
+  });
+
   describe('calculateFallDamage', () => {
     it('calculates 1d6 per 10 feet', () => {
       const result = calculateFallDamage(30);
@@ -60,6 +104,36 @@ describe('physicsUtils', () => {
       const result = calculateCarryingCapacity(10, 2);
       expect(result.carryingCapacity).toBe(300);
       expect(result.pushDragLift).toBe(600);
+    });
+  });
+
+  describe('calculateBreathDuration', () => {
+    it('calculates duration as 1 + Con Mod minutes', () => {
+      // Con +2 -> 3 minutes
+      expect(calculateBreathDuration(2)).toBe(3);
+      // Con 0 -> 1 minute
+      expect(calculateBreathDuration(0)).toBe(1);
+    });
+
+    it('enforces minimum of 30 seconds (0.5 minutes)', () => {
+      // Con -2 -> 1 - 2 = -1 -> min 0.5
+      expect(calculateBreathDuration(-2)).toBe(0.5);
+      // Con -1 -> 1 - 1 = 0 -> min 0.5
+      expect(calculateBreathDuration(-1)).toBe(0.5);
+    });
+  });
+
+  describe('calculateSuffocationRounds', () => {
+    it('calculates rounds equal to Con Mod', () => {
+      // Con +3 -> 3 rounds
+      expect(calculateSuffocationRounds(3)).toBe(3);
+    });
+
+    it('enforces minimum of 1 round', () => {
+      // Con 0 -> min 1
+      expect(calculateSuffocationRounds(0)).toBe(1);
+      // Con -2 -> min 1
+      expect(calculateSuffocationRounds(-2)).toBe(1);
     });
   });
 });

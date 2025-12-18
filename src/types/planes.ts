@@ -66,6 +66,7 @@ export interface Plane {
   timeFlow: TimeFlowRate;
   effects?: PlanarEffect;
   atmosphereDescription: string;
+  alignment?: string; // Added for authentic D&D cosmology
 }
 
 export interface PortalRequirement {

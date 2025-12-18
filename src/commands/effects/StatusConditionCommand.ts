@@ -73,6 +73,7 @@ export class StatusConditionCommand extends BaseEffectCommand {
    * Apply or refresh a condition entry on the character. Re-applying the same condition name
    * refreshes duration/turn so downstream systems don't stack duplicates.
    */
+  // TODO(Simulator): Integrate StateSystem.applyStateToTags when applying elemental conditions (e.g. mapping 'Ignited' condition to 'Burning' state).
   private applyCondition(
     existing: ActiveCondition[] | undefined,
     condition: ActiveCondition

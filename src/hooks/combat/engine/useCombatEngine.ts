@@ -20,7 +20,7 @@ import {
     resetZoneTurnTracking
 } from '../../../systems/spells/effects';
 import { AreaEffectTracker } from '../../../systems/spells/effects/AreaEffectTracker';
-import { generateId, rollDice } from '../../../utils/combatUtils';
+import { generateId, rollDice, calculateDamage } from '../../../utils/combatUtils';
 import { calculateSpellDC, rollSavingThrow } from '../../../utils/savingThrowUtils';
 import { SavePenaltySystem } from '../../../systems/combat/SavePenaltySystem';
 
@@ -145,10 +145,16 @@ export const useCombatEngine = ({
         damageType?: string
     ): CombatCharacter => {
         let updatedCharacter = { ...character };
-        updatedCharacter.currentHP = Math.max(0, updatedCharacter.currentHP - amount);
+
+        // Apply Resistance/Vulnerability if damageType provided
+        // We pass null for caster as environmental damage has no specific caster usually,
+        // or we don't have the caster object handy here.
+        const finalAmount = calculateDamage(amount, null, character, damageType);
+
+        updatedCharacter.currentHP = Math.max(0, updatedCharacter.currentHP - finalAmount);
         updatedCharacter.damagedThisTurn = true;
 
-        addDamageNumber(amount, updatedCharacter.position, 'damage');
+        addDamageNumber(finalAmount, updatedCharacter.position, 'damage');
 
         onLogEntry({
             id: generateId(),

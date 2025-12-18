@@ -41,7 +41,7 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
     type: "DAMAGE",
     trigger: { type: "immediate" },
     condition: { type: "hit" },
-    damage: { dice: "1d8", type: "Fire" }
+    damage: { dice: "1d8", type: DamageType.Fire }
   };
 
   return {
@@ -260,8 +260,36 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       bounties: []
     },
 
+    // Economy System
+    economy: {
+      marketFactors: {
+        scarcity: [],
+        surplus: []
+      },
+      buyMultiplier: 1.0,
+      sellMultiplier: 0.5,
+      activeEvents: []
+    },
+
     questLog: [],
     notifications: [],
+
+    economy: {
+      marketFactors: { scarcity: [], surplus: [] },
+      buyMultiplier: 1.0,
+      sellMultiplier: 0.5,
+      activeEvents: []
+    },
+
+    underdark: {
+      depth: 0,
+      lightSources: [],
+      sanity: 100,
+      faerzressLevel: 0,
+      discoveredLocations: []
+    },
+
+    isQuestLogVisible: false,
 
     townState: null,
     townEntryDirection: null,

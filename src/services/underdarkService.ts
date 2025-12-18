@@ -1,6 +1,7 @@
 
 import { UnderdarkState, LightSource, LightSourceType } from '../types/underdark';
 import { GameState } from '../types';
+import { FaerzressSystem } from '../systems/underdark/FaerzressSystem';
 
 /**
  * Calculates the current light level based on depth and active light sources.
@@ -29,15 +30,18 @@ export const calculateLightLevel = (state: UnderdarkState): 'bright' | 'dim' | '
     // Check if we have any active light sources
     const activeSources = state.activeLightSources.filter(ls => ls.isActive && ls.durationRemaining > 0);
 
-    if (activeSources.length === 0) {
+    // Check for Faerzress glow (Alien physics!)
+    // Faerzress provides dim light if intense enough
+    const faerzressGlow = FaerzressSystem.emitsLight(state.faerzressLevel);
+
+    if (activeSources.length === 0 && !faerzressGlow) {
         // Deep underground with no light is total darkness
         return state.currentDepth > 50 ? 'darkness' : 'dim';
     }
 
-    // If we have active sources, we are at least in dim light.
+    // If we have active sources or Faerzress glow, we are at least in dim light.
     // To be 'bright', we need a source close enough or powerful enough.
-    // For this service, we just check if there is *any* active source for now.
-    // Future iteration: Check distance/radius.
+    // Faerzress never provides bright light, only dim.
 
     // Check for "bright" light sources
     const hasBrightLight = activeSources.some(ls => ls.radius >= 20); // Standard torch is 20ft bright + 20ft dim
@@ -93,9 +97,31 @@ export const updateSanity = (state: UnderdarkState, minutesPassed: number): Unde
     } else if (lightLevel === 'darkness') {
         sanityDrain = 2 * (minutesPassed / 60); // 2 sanity per hour
     } else {
-        // Being in light restores a tiny bit or halts drain
-        sanityDrain = -0.5 * (minutesPassed / 60); // Recover 0.5 per hour
+        // Normally, being in light restores a tiny bit or halts drain (-0.5).
+        // HOWEVER, if the light is purely from Faerzress (or dominates), it's alien.
+
+        // If Faerzress is glowing (>=20) and we are in dim/bright light...
+        // We assume the Faerzress is contributing to the environment.
+        if (state.faerzressLevel >= 20) {
+            // Alien Light: It lets you see, but it feels wrong.
+            // Instead of recovering -0.5, we drain slightly +0.5
+            sanityDrain = 0.5 * (minutesPassed / 60);
+        } else {
+            // Normal light (torch, sun, spell)
+            sanityDrain = -0.5 * (minutesPassed / 60); // Recover 0.5 per hour
+        }
     }
+
+    // Apply Faerzress Multiplier
+    // If we are draining, Faerzress makes it worse.
+    const drainMultiplier = FaerzressSystem.getSanityDrainMultiplier(state.faerzressLevel);
+
+    if (sanityDrain > 0) {
+        // If draining (Darkness OR Alien Light), amplify it
+        sanityDrain *= drainMultiplier;
+    }
+    // If recovering (Normal Light), we don't multiply the recovery.
+    // (Or we could reduce it, but keeping it simple for now)
 
     let newSanity = Math.max(0, Math.min(state.sanity.max, state.sanity.current - sanityDrain));
 
@@ -110,8 +136,12 @@ export const updateSanity = (state: UnderdarkState, minutesPassed: number): Unde
     else if (newSanity < 50) madnessLevel = 2;
     else if (newSanity < 80) madnessLevel = 1;
 
+    // Also update dynamic probabilities based on Faerzress
+    const wildMagicChance = FaerzressSystem.calculateWildMagicChance(state.faerzressLevel);
+
     return {
         ...state,
+        wildMagicChance,
         sanity: {
             ...state.sanity,
             current: newSanity,

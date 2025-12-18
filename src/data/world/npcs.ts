@@ -59,3 +59,5 @@ export const NPCS: Record<string, NPC> = {
     voice: { name: 'Kore', characteristic: 'Firm' }
   }
 };
+
+// TODO(Materializer): Update existing NPCs to include 'visual' specs for AI portrait generation (see src/types/visuals.ts)

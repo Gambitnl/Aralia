@@ -213,6 +213,7 @@ export interface Item {
   stealthDisadvantage?: boolean;
   armorClassBonus?: number;
   damageDice?: string;
+  // TODO(Taxonomist): Update to use DamageType enum and remove magic strings
   damageType?: string;
   properties?: string[];
   isMartial?: boolean;

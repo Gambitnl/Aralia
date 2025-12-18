@@ -46,7 +46,20 @@ export const getAiClient = (): GoogleGenAI => {
 
 /**
  * The shared GoogleGenAI client instance.
- * @deprecated Use `getAiClient()` for safe access or `isAiEnabled()` to check availability.
- * Direct access may result in runtime errors if the API key is missing.
+ * Protected by a Proxy to throw descriptive errors if accessed when uninitialized,
+ * preventing 'Cannot read properties of null' runtime crashes.
  */
-export const ai = aiInstance as GoogleGenAI; // Cast to allow legacy usage, but unsafe if null.
+export const ai = new Proxy({} as GoogleGenAI, {
+  get: (target, prop) => {
+    if (aiInstance) {
+      return Reflect.get(aiInstance, prop);
+    }
+    // Allow checking constructor/prototype without throwing, sometimes used by testing/frameworks
+    if (prop === 'constructor' || prop === 'prototype') {
+      return Reflect.get(target, prop);
+    }
+
+    // Throw descriptive error for any property access if not initialized
+    throw new Error(`Gemini API Client accessed but not initialized. Accessing '${String(prop)}' failed. Check API_KEY.`);
+  }
+});

@@ -82,6 +82,7 @@ export const useAbilitySystem = ({
 
   // --- Command Pattern Execution Logic ---
   // TODO(Ritualist): Integrate RitualManager here to handle ritual casting (10+ min duration) instead of immediate execution.
+  // Also integrate RitualManager.validateRequirements() to check for ritual constraints (Time, Location) before starting.
   const executeSpell = useCallback(async (
     spell: Spell,
     caster: CombatCharacter,
@@ -121,51 +122,74 @@ export const useAbilitySystem = ({
       // Add necessary GameState fields if factory needs them
     };
 
-    // Asynchronously generate the chain of effect commands
-    const commands = await SpellCommandFactory.createCommands(
-      spell,
-      caster,
-      targets,
-      castAtLevel,
-      mockGameState,
-      playerInput
-    );
+    try {
+      // Asynchronously generate the chain of effect commands
+      const commands = await SpellCommandFactory.createCommands(
+        spell,
+        caster,
+        targets,
+        castAtLevel,
+        mockGameState,
+        playerInput
+      );
 
-    // 3. Execute
-    const result = CommandExecutor.execute(commands, currentState);
+      // 3. Execute
+      const result = CommandExecutor.execute(commands, currentState);
 
-    if (result.success) {
-      // 4. Propagate State Changes
-      result.finalState.characters.forEach(finalChar => {
-        const isTarget = targets.some(t => t.id === finalChar.id);
-        const isCaster = caster.id === finalChar.id;
+      if (result.success) {
+        // 4. Propagate State Changes
+        result.finalState.characters.forEach(finalChar => {
+          const isTarget = targets.some(t => t.id === finalChar.id);
+          const isCaster = caster.id === finalChar.id;
 
-        if (isTarget || isCaster) {
-          onCharacterUpdate(finalChar);
+          if (isTarget || isCaster) {
+            onCharacterUpdate(finalChar);
+          }
+        });
+
+        // 5. Propagate Log Entries
+        if (onLogEntry) {
+          result.finalState.combatLog.forEach(entry => onLogEntry(entry));
         }
-      });
 
-      // 5. Propagate Log Entries
+        // 6. Propagate Reactive Triggers
+        if (onReactiveTriggerUpdate && result.finalState.reactiveTriggers !== currentState.reactiveTriggers) {
+          onReactiveTriggerUpdate(result.finalState.reactiveTriggers);
+        }
+
+        // 7. Propagate Map Changes
+        if (onMapUpdate && result.finalState.mapData) {
+          // Simple check if mapData was modified. In TerrainCommand, we clone mapData if we modify it.
+          // If the reference changed, we update.
+          if (result.finalState.mapData !== mapData) {
+            onMapUpdate(result.finalState.mapData);
+          }
+        }
+
+      } else {
+        console.error("Spell execution failed:", result.error);
+        if (onLogEntry) {
+          onLogEntry({
+            id: generateId(),
+            timestamp: Date.now(),
+            type: 'info',
+            message: `The weave falters... (${result.error})`,
+            characterId: caster.id
+          });
+        }
+      }
+    } catch (error) {
+      console.error("SpellCommandFactory error:", error);
       if (onLogEntry) {
-        result.finalState.combatLog.forEach(entry => onLogEntry(entry));
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        onLogEntry({
+          id: generateId(),
+          timestamp: Date.now(),
+          type: 'info',
+          message: `The spell fizzles before it can be cast. (${errorMessage})`,
+          characterId: caster.id
+        });
       }
-
-      // 6. Propagate Reactive Triggers
-      if (onReactiveTriggerUpdate && result.finalState.reactiveTriggers !== currentState.reactiveTriggers) {
-        onReactiveTriggerUpdate(result.finalState.reactiveTriggers);
-      }
-
-      // 7. Propagate Map Changes
-      if (onMapUpdate && result.finalState.mapData) {
-        // Simple check if mapData was modified. In TerrainCommand, we clone mapData if we modify it.
-        // If the reference changed, we update.
-        if (result.finalState.mapData !== mapData) {
-          onMapUpdate(result.finalState.mapData);
-        }
-      }
-
-    } else {
-      console.error("Spell execution failed:", result.error);
     }
   }, [characters, onCharacterUpdate, onLogEntry, onRequestInput, reactiveTriggers, onReactiveTriggerUpdate]);
 
@@ -272,7 +296,7 @@ export const useAbilitySystem = ({
              // Though creating ability should have populated dice now.
           }
 
-          const damage = calculateDamage(rolledValue, caster, target);
+          const damage = calculateDamage(rolledValue, caster, target, effect.damageType);
           modifiedTarget.currentHP = Math.max(0, modifiedTarget.currentHP - damage);
           if (onAbilityEffect) onAbilityEffect(damage, target.position, 'damage');
           break;
@@ -339,7 +363,7 @@ export const useAbilitySystem = ({
           // Apply Rider Effect
           if (isDamageEffect(rider.effect)) {
             const rolledDamage = rollDice(rider.effect.damage.dice || '0');
-            const damage = calculateDamage(rolledDamage, caster, target);
+            const damage = calculateDamage(rolledDamage, caster, target, rider.effect.damage.type);
 
             modifiedTarget.currentHP = Math.max(0, modifiedTarget.currentHP - damage);
 

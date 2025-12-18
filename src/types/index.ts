@@ -63,6 +63,7 @@ import {
   RacialSpell,
 } from './character';
 import { Faction, PlayerFactionStanding } from './factions';
+import { NPCVisualSpec } from './visuals';
 import { NPCMemory } from './memory';
 import { NPCKnowledgeProfile } from './dialogue';
 import { Companion } from './companions';
@@ -70,6 +71,7 @@ import { DivineFavor, Temple } from './deity';
 import { Fence } from './crime';
 import { UnderdarkState, LightSource } from './underdark';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
+import type { DamageType } from './spells';
 
 export * from './core';
 export * from './items';
@@ -84,6 +86,7 @@ export * from './planes';
 export * from './crime';
 export * from './dialogue';
 export * from './underdark';
+export * from './history';
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
@@ -168,6 +171,11 @@ export interface WorldRumor {
   timestamp: number; // Game day timestamp
   expiration: number; // Game day timestamp when rumor fades
   region?: string; // Optional region restriction
+
+  // New properties for propagation
+  locationId?: string; // The specific location where this rumor instance is active
+  spreadDistance?: number; // How far this rumor has traveled (0 = origin)
+  virality?: number; // 0.0 - 1.0, chance to spread to adjacent locations
 }
 
 export interface DiscoveryResidue {
@@ -202,6 +210,7 @@ export interface NPC {
   voice?: TTSVoiceOption;
   goals?: Goal[];
   knowledgeProfile?: NPCKnowledgeProfile;
+  visual?: NPCVisualSpec;
 }
 
 export interface GameMessage {
@@ -325,6 +334,8 @@ export interface GeminiLogEntry {
 // Crime & notoriety (Legacy - migrating to src/types/crime)
 // -----------------------------------------------------------------------------
 import { Crime, HeatLevel, Bounty } from './crime';
+// Import the new History types to make them available globally
+import { WorldHistory, WorldHistoryEvent } from './history';
 
 export interface NotorietyState {
   globalHeat: number;
@@ -398,7 +409,8 @@ export type ActionType =
   | 'UPDATE_QUEST_OBJECTIVE'
   | 'COMPLETE_QUEST'
   | 'TOGGLE_QUEST_LOG'
-  | 'PRAY';
+  | 'PRAY'
+  | 'REGISTER_DYNAMIC_ENTITY'; // New Action
 
 export enum DiscoveryType {
   LOCATION_DISCOVERY = 'Location Discovery',
@@ -458,6 +470,9 @@ export interface MonsterData {
   maxHP: number;
   abilities: CombatCharacter['abilities'];
   tags: string[];
+  resistances?: DamageType[];
+  vulnerabilities?: DamageType[];
+  immunities?: DamageType[];
 }
 
 export interface GroundingChunk {
@@ -571,6 +586,12 @@ export interface GameState {
 
   notoriety: NotorietyState;
 
+  /**
+   * Global history of the world.
+   * Tracks major events, faction changes, and heroics.
+   */
+  worldHistory?: WorldHistory; // Optional for now until initialized
+
   questLog: Quest[];
   isQuestLogVisible: boolean;
   notifications: Notification[];
@@ -587,8 +608,16 @@ export interface GameState {
   // Shadowbroker: Crime System
   fences: Record<string, Fence>; // Keyed by Fence ID (or Location ID)
 
+  // Linker: World Coherence System
+  dynamicLocations: Record<string, Location>; // Generated locations that don't exist in static data
+  // Intriguer: Identity System
+  playerIdentity?: import('./identity').PlayerIdentityState;
+
   // Depthcrawler: Underdark System
   underdark: UnderdarkState;
+
+  // Ecologist: Environment System
+  environment: import('./environment').WeatherState;
 
   /** Town exploration state - present when in VILLAGE_VIEW phase */
   townState: import('./town').TownState | null;
@@ -704,6 +733,10 @@ export interface Action {
     objectiveId?: string;
     isCompleted?: boolean;
     questId?: string;
+
+    // Linker: Dynamic Entity
+    entityType?: 'location' | 'faction';
+    entity?: Location | Faction;
 
     [key: string]: any;
   };

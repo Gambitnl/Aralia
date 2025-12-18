@@ -46,7 +46,8 @@ export const FACTIONS: Record<string, Faction> = {
         values: ['wealth', 'honesty_in_contracts', 'stability'],
         hates: ['theft', 'chaos', 'bad_debts'],
         power: 80,
-        assets: []
+        assets: [],
+        relationships: {}
     },
     'unseen_hand': {
         id: 'unseen_hand',
@@ -63,7 +64,8 @@ export const FACTIONS: Record<string, Faction> = {
         hates: ['snitches', 'law_enforcement', 'exposure'],
         services: ['fence', 'forgery', 'safehouse'],
         power: 60,
-        assets: []
+        assets: [],
+        relationships: {}
     },
     'house_vane': {
         id: 'house_vane',
@@ -79,7 +81,8 @@ export const FACTIONS: Record<string, Faction> = {
         values: ['honor', 'strength', 'tradition'],
         hates: ['cowardice', 'treachery', 'disrespect'],
         power: 75,
-        assets: []
+        assets: [],
+        relationships: {}
     },
     // --- UNDERDARK FACTIONS ---
     'house_xorlarrin': {
@@ -96,7 +99,8 @@ export const FACTIONS: Record<string, Faction> = {
         values: ['arcane_power', 'ambition', 'secrecy'],
         hates: ['weakness', 'light_dwellers', 'surface_elves'],
         power: 85,
-        assets: []
+        assets: [],
+        relationships: {}
     },
     'deepkings_guard': {
         id: 'deepkings_guard',
@@ -112,7 +116,8 @@ export const FACTIONS: Record<string, Faction> = {
         values: ['discipline', 'labor', 'conquest'],
         hates: ['chaos', 'laziness', 'drow'],
         power: 70,
-        assets: []
+        assets: [],
+        relationships: {}
     },
     'ironhead_clan': {
         id: 'ironhead_clan',
@@ -128,7 +133,8 @@ export const FACTIONS: Record<string, Faction> = {
         values: ['community', 'stealth', 'craftsmanship'],
         hates: ['slavers', 'open_spaces', 'wastefulness'],
         power: 50,
-        assets: []
+        assets: [],
+        relationships: {}
     }
 };
 

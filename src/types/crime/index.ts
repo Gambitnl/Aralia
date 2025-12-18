@@ -76,6 +76,7 @@ export interface HeistPlan {
   lootSecured: StolenItem[];
   alertLevel: number; // 0-100 during the heist
   turnsElapsed: number;
+  guildJobId?: string; // Linked guild job if applicable
 }
 
 export interface BlackMarketListing {
@@ -94,4 +95,49 @@ export interface Fence {
   gold: number;
   acceptedCategories: string[]; // e.g., "gem", "art", "weapon"
   cut: number; // 0.1 to 0.5 (percentage taken)
+}
+
+// --- Thieves Guild Types ---
+
+export enum GuildJobType {
+  Burglary = 'Burglary',        // Steal specific item
+  Smuggling = 'Smuggling',      // Move contraband
+  Assassination = 'Assassination', // Eliminate target
+  Espionage = 'Espionage',      // Gather intel
+  Intimidation = 'Intimidation', // Send a message
+  Protection = 'Protection'     // Guard a shipment/person
+}
+
+export interface GuildJob {
+  id: string;
+  guildId: string;
+  title: string;
+  description: string;
+  type: GuildJobType;
+  difficulty: number; // 1-10 scale
+  requiredRank: number; // Minimum rank level to accept
+
+  // Mission parameters
+  targetLocationId: string;
+  targetId?: string; // Item or NPC ID
+  deadline?: number; // Timestamp
+
+  // Rewards
+  rewardGold: number;
+  rewardReputation: number;
+  rewardItem?: Item;
+
+  // State
+  status: 'Available' | 'Active' | 'Completed' | 'Failed';
+  assignedTo?: string; // Player ID
+}
+
+export interface GuildService {
+  id: string;
+  name: string;
+  description: string;
+  type: 'Fence' | 'Forgery' | 'Safehouse' | 'Intel' | 'HeatReduction' | 'Training';
+  requiredRank: number;
+  costGold: number;
+  cooldownHours: number; // How often it can be used
 }

@@ -3,7 +3,7 @@
  * Licensed under the MIT License
  *
  * @file src/systems/puzzles/types.ts
- * Defines types for Locks, Traps, and Puzzles.
+ * Defines types for Locks, Traps, Puzzles, and Pressure Plates.
  */
 
 import { CharacterStats } from '../../types/combat';
@@ -139,4 +139,50 @@ export interface Puzzle {
     damage?: DiceRoll; // Or just deal damage
     message: string;
   };
+}
+
+// --- PRESSURE PLATE SYSTEM ---
+
+export type SizeCategory = 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Gargantuan';
+
+export interface PressurePlate {
+  id: string;
+  name: string;
+  description: string;
+
+  // Detection
+  isHidden: boolean;
+  detectionDC: number; // Wisdom (Perception) to spot
+
+  // Trigger Logic
+  minSize: SizeCategory; // Minimum creature size to trigger
+  triggerWeight?: number; // Optional numeric weight check (future proofing)
+
+  // State
+  isPressed: boolean;
+  isJammed: boolean; // Disarmed/Stuck safely
+
+  // Mechanics
+  resetBehavior: 'manual' | 'auto_instant' | 'auto_delayed';
+  jamDC: number; // Thieves Tools / Investigation to jam
+
+  // Effects
+  linkedTrapId?: string; // Triggers this trap
+  linkedLockId?: string; // Toggles/Unlocks this lock
+  linkedPuzzleId?: string; // Sends input to this puzzle
+  puzzleSignal?: string; // The input string to send (e.g. "plate_A")
+}
+
+export interface PressurePlateResult {
+  triggered: boolean;
+  trapEffect?: TrapEffect; // If linked to a trap and triggered
+  signalSent?: { puzzleId: string; signal: string }; // If linked to a puzzle
+  lockUpdate?: { lockId: string; action: 'unlock' | 'toggle' }; // If linked to a lock
+  message: string;
+}
+
+export interface PressurePlateJamResult {
+  success: boolean;
+  triggered: boolean; // Did we accidentally step on it/trigger it while jamming?
+  message: string;
 }

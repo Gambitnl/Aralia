@@ -34,7 +34,7 @@ vi.mock('../../types', async (importOriginal) => {
 // Mock components to avoid deep rendering
 vi.mock('../MainMenu', () => ({ default: () => <div data-testid="main-menu">Main Menu</div> }));
 vi.mock('../CharacterCreator/CharacterCreator', () => ({ default: () => <div>Character Creator</div> }));
-vi.mock('../CombatView', () => ({ default: () => <div>Combat View</div> }));
+vi.mock('../Combat/CombatView', () => ({ default: () => <div>Combat View</div> }));
 vi.mock('../TownCanvas', () => ({ default: () => <div>Town Canvas</div> }));
 vi.mock('../BattleMapDemo', () => ({ default: () => <div>Battle Map</div> }));
 vi.mock('../LoadGameTransition', () => ({ default: () => <div>Load Game</div> }));
