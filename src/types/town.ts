@@ -165,6 +165,9 @@ export interface TownNPC {
 
     /** Path they're currently following (if moving) */
     currentPath?: TownPosition[];
+
+    // TODO(Schemer): Wire up NPCMemory here.
+    // memory?: import('./memory').NPCMemory;
 }
 
 // ============================================================================
