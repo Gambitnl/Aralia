@@ -596,6 +596,12 @@ export interface ScalingFormula {
   type: "slot_level" | "character_level" | "custom";
   bonusPerLevel?: string; // e.g., "+1d6" or "+1 target"
   customFormula?: string; // For complex scaling, e.g., "floor(character_level / 2)"
+  /**
+   * Explicitly maps character/slot levels to new dice values (or flat values).
+   * Key is the level threshold (e.g., "5"), Value is the new damage string (e.g., "2d10").
+   * Used for tiered scaling like cantrips (5th, 11th, 17th).
+   */
+  scalingTiers?: Record<string, string>;
 }
 
 //==============================================================================

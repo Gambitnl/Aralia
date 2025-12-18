@@ -27,12 +27,43 @@ export class ScalingEngine {
   ): string {
     if (!scaling) return baseValue
 
+    // Check for explicit tier-based scaling first (preferred for cantrips)
+    if (scaling.scalingTiers) {
+      // Find the highest threshold <= relevant level
+      // For cantrips (character_level), use casterLevel
+      // For slotted spells (slot_level), use castAtLevel
+      // (Though tiers are mostly for cantrips/character_level)
+      const level = scaling.type === 'character_level' ? casterLevel : castAtLevel
+      return this.scaleByTiers(baseValue, scaling.scalingTiers, level)
+    }
+
     if (scaling.type === 'slot_level') {
       return this.scaleBySlotLevel(baseValue, scaling, castAtLevel, baseSpellLevel)
     }
 
     if (scaling.type === 'character_level') {
       return this.scaleByCharacterLevel(baseValue, scaling, casterLevel)
+    }
+
+    return baseValue
+  }
+
+  /**
+   * Scale using explicit tiers defined in the spell data
+   */
+  private static scaleByTiers(
+    baseValue: string,
+    tiers: Record<string, string>,
+    level: number
+  ): string {
+    const thresholds = Object.keys(tiers)
+      .map(Number)
+      .sort((a, b) => b - a) // Descending order
+
+    for (const threshold of thresholds) {
+      if (level >= threshold) {
+        return tiers[String(threshold)]
+      }
     }
 
     return baseValue
