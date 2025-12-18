@@ -1,7 +1,9 @@
-# Auditor Worklog
+# Auditor's Journal
 
-## 2024-05-22 - Cantrip Scaling Data vs. Engine Mismatch
+## 2024-05-22 - Initial Setup
+**Learning:** Systematic audits require consistent frameworks.
+**Action:** Established Auditor persona and templates.
 
-**Learning:** The spell data files were using `bonusPerLevel` (a linear scaling concept) or unparseable text strings for cantrips, while the `ScalingEngine` was hardcoded to use a 5/11/17 multiplier logic. This mismatch meant that any cantrip deviating from standard dice multiplication (e.g. Acid Splash or Eldritch Blast) was impossible to implement correctly.
-
-**Action:** When auditing systems driven by data files, always verify that the engine actually *reads* the fields present in the data. Just because a field like `customFormula` exists in the JSON doesn't mean the code uses it.
+## 2025-05-23 - Systematic Spell Validation
+**Learning:** Enchantment spells consistently miss specific immunity filters (e.g., Undead, Constructs) in their JSON definitions, relying on descriptive text instead. This pattern extends across multiple spells (`Command`, `Sleep`, etc.), causing the UI to show invalid targets as valid.
+**Action:** Created `ConditionValidator` framework to standardize these checks. Future audits should look for "Implicit vs Explicit" data gaps where rules exist in description but not in structured schema.
