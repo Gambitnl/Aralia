@@ -148,6 +148,7 @@ export interface StatusEffect {
 export interface AbilityEffect {
   type: 'damage' | 'heal' | 'status' | 'movement' | 'teleport';
   value?: number;
+  dice?: string; // Dice formula (e.g. "1d8+2") to be rolled at execution time
   damageType?: 'physical' | 'magical' | 'fire' | 'ice' | 'lightning' | 'acid' | 'poison' | 'necrotic' | 'radiant' | 'force' | 'psychic' | 'thunder';
   statusEffect?: StatusEffect;
   duration?: number;

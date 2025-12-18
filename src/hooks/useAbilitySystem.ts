@@ -27,7 +27,7 @@ import {
 } from '../types/spells';
 import { SpellCommandFactory, CommandExecutor } from '../commands'; // Import Command System
 import { BreakConcentrationCommand } from '../commands/effects/ConcentrationCommands'; // Import Break Concentration
-import { getDistance, calculateDamage, generateId, rollDice } from '../utils/combatUtils';
+import { getDistance, calculateDamage, generateId, rollDice, rollDamage } from '../utils/combatUtils';
 import { hasLineOfSight } from '../utils/lineOfSight';
 import { calculateAffectedTiles } from '../utils/aoeCalculations';
 import { useTargeting } from './combat/useTargeting'; // New Hook
@@ -254,7 +254,8 @@ export const useAbilitySystem = ({
   const applyAbilityEffects = useCallback((
     ability: Ability,
     caster: CombatCharacter,
-    target: CombatCharacter
+    target: CombatCharacter,
+    isCritical: boolean = false
   ) => {
     // Clone once so we can safely layer mutations.
     let modifiedTarget = { ...target, statusEffects: [...target.statusEffects] };
@@ -262,13 +263,26 @@ export const useAbilitySystem = ({
     ability.effects.forEach(effect => {
       switch (effect.type) {
         case 'damage': {
-          const damage = calculateDamage(effect.value || 0, caster, target);
+          let rolledValue = effect.value || 0;
+
+          if (effect.dice) {
+            rolledValue = rollDamage(effect.dice, isCritical);
+          } else if (rolledValue === 0 && ability.weapon) {
+             // Fallback if dice string missing but weapon present (legacy support)
+             // Though creating ability should have populated dice now.
+          }
+
+          const damage = calculateDamage(rolledValue, caster, target);
           modifiedTarget.currentHP = Math.max(0, modifiedTarget.currentHP - damage);
           if (onAbilityEffect) onAbilityEffect(damage, target.position, 'damage');
           break;
         }
         case 'heal': {
-          const healAmount = effect.value || 0;
+          let healAmount = effect.value || 0;
+          if (effect.dice) {
+             healAmount = rollDamage(effect.dice, false);
+          }
+
           modifiedTarget.currentHP = Math.min(modifiedTarget.maxHP, modifiedTarget.currentHP + healAmount);
           if (onAbilityEffect) onAbilityEffect(healAmount, target.position, 'heal');
           break;
@@ -559,21 +573,29 @@ export const useAbilitySystem = ({
               if (onAbilityEffect) onAbilityEffect(0, target.position, 'miss');
               continue; // Next target
             } else {
+              // Determine Critical Hit based on d20 roll (Natural 20)
+              // TODO: Handle Expanded Crit Range (Champion Fighter, Hexblade)
+              const isCritical = d20 === 20;
+
               if (onLogEntry) {
                 onLogEntry({
                   id: generateId(),
                   timestamp: Date.now(),
                   type: 'damage', // Log as damage event or just hit confirmation
-                  message: `Attack HITS ${target.name}!`,
+                  message: isCritical ? `Critical Hit! (${d20})` : `Attack HITS ${target.name}!`,
                   characterId: caster.id,
                   targetIds: [targetId]
                 });
               }
+
+              // Apply effects with critical status
+              applyAbilityEffects(ability, caster, target, isCritical);
+              continue; // Handled
             }
           }
         }
 
-        applyAbilityEffects(ability, caster, target);
+        applyAbilityEffects(ability, caster, target, false);
       } // end target loop
 
       // Handle Cooldowns
