@@ -345,3 +345,5 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
 
   return { state: currentState, logs: allLogs };
 };
+
+// TODO(Recorder): Integrate HistoryManager here to automatically record simulation outcomes as permanent WorldHistory events.

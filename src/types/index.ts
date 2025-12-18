@@ -588,6 +588,9 @@ export interface GameState {
   // Shadowbroker: Crime System
   fences: Record<string, Fence>; // Keyed by Fence ID (or Location ID)
 
+  // Recorder: World History System
+  worldHistory?: import('./history').WorldEvent[];
+
   // Depthcrawler: Underdark System
   underdark: UnderdarkState;
 
