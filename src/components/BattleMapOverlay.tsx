@@ -24,7 +24,7 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
   animations,
   aoePreview,
 }) => {
-  const spellAnimations = animations.filter(anim => anim.type === 'spell_effect');
+  const spellAnimations = animations.filter((anim): anim is SpellEffectAnimation => anim.type === 'spell_effect');
   const [activeSpells, setActiveSpells] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -90,7 +90,7 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
 
       {/* Spell effect ripples */}
       {spellAnimations.map((anim) => {
-        const positions: { x: number; y: number }[] = anim.data?.targetPositions || (anim.data?.targetPosition ? [anim.data.targetPosition] : []);
+        const positions: { x: number; y: number }[] = anim.data.targetPositions || (anim.data.targetPosition ? [anim.data.targetPosition] : []);
         return positions.map((pos: { x: number; y: number }) => (
           <div
             key={`${anim.id}-${pos.x}-${pos.y}`}

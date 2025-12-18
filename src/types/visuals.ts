@@ -7,6 +7,7 @@
 
 import { SpellSchool, DamageType } from './spells';
 import { Item } from './items';
+import { Position } from './combat';
 
 /**
  * Standard sizes for icons in the UI.
@@ -83,3 +84,94 @@ export interface VisualAsset {
   /** accessible label for screen readers */
   label: string;
 }
+
+// --- Animation Types ---
+
+/**
+ * Base properties shared by all combat animations.
+ */
+interface BaseAnimation {
+  id: string;
+  /** Duration of the animation in milliseconds */
+  duration: number;
+  /** Timestamp when the animation was created/started */
+  startTime: number;
+}
+
+/**
+ * Animation representing a character moving between tiles.
+ * (Note: Often handled by interpolation, but can be explicit)
+ */
+export interface MoveAnimation extends BaseAnimation {
+  type: 'move';
+  characterId: string;
+  startPosition: Position;
+  endPosition: Position;
+  data?: never; // No extra data needed
+}
+
+/**
+ * Animation for a physical attack (weapon swing, arrow flight).
+ */
+export interface AttackAnimation extends BaseAnimation {
+  type: 'attack';
+  attackerId: string;
+  targetId?: string; // Optional if targeting a position/empty space
+  startPosition?: Position;
+  endPosition?: Position;
+  data?: never;
+}
+
+/**
+ * Animation for a spell effect (projectiles, explosions, rays).
+ */
+export interface SpellEffectAnimation extends BaseAnimation {
+  type: 'spell_effect';
+  characterId?: string; // Caster ID
+  startPosition?: Position;
+  endPosition?: Position;
+  /**
+   * Specific data required to render spell effects.
+   * Replaces the untyped `any` field.
+   */
+  data: {
+    /** Multiple target positions for AoE or multi-target spells */
+    targetPositions?: Position[];
+    /** Single target position if simpler */
+    targetPosition?: Position;
+    /** Color override for the effect */
+    color?: string;
+  };
+}
+
+/**
+ * Animation for floating numbers (damage, heal, miss).
+ */
+export interface DamageNumberAnimation extends BaseAnimation {
+  type: 'damage_number';
+  value: number;
+  position: Position;
+  damageType: 'damage' | 'heal' | 'miss';
+  data?: never;
+}
+
+/**
+ * Animation for status effect icons popping up or applying.
+ */
+export interface StatusEffectAnimation extends BaseAnimation {
+  type: 'status_effect';
+  characterId: string;
+  effectId: string;
+  data?: never;
+}
+
+/**
+ * Discriminated union of all possible combat animations.
+ * Used by the renderer to determine how to draw the event.
+ */
+export type CombatAnimation =
+  | MoveAnimation
+  | AttackAnimation
+  | SpellEffectAnimation
+  | DamageNumberAnimation
+  | StatusEffectAnimation;

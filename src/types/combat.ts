@@ -8,9 +8,11 @@ import type { AbilityScoreName } from './core';
 import type { Class, SpellbookData, SpellSlots } from './character';
 import type { Item } from './items';
 import type { Spell, DamageType, SavingThrowAbility, ConditionName, EffectDuration, SpellEffect } from './spells'; // Import Spell
+import type { CombatAnimation } from './visuals';
 import { StateTag } from './elemental';
 
 export type { SpellSlots };
+export type { CombatAnimation as Animation }; // Export for backward compatibility
 
 // --- NEW COMBAT SYSTEM TYPES ---
 
@@ -351,17 +353,6 @@ export interface CombatState {
   reactiveTriggers: ReactiveTrigger[];
   activeLightSources: LightSource[];    // Active light sources on the map
   mapData?: BattleMapData;
-}
-
-export interface Animation {
-  id: string;
-  type: 'move' | 'attack' | 'spell_effect' | 'damage_number' | 'status_effect';
-  characterId?: string;
-  startPosition?: Position;
-  endPosition?: Position;
-  duration: number;
-  startTime: number;
-  data?: any; // Animation-specific data
 }
 
 export interface DamageNumber {
