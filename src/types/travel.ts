@@ -26,6 +26,14 @@ export interface TravelParameters {
   isEncumbered?: boolean;
 }
 
+export interface GroupTravelParameters {
+  origin: { x: number; y: number };
+  destination: { x: number; y: number };
+  travelers: any[]; // Avoid circular dependency on PlayerCharacter, cast in service
+  inventories: Record<string, any[]>; // Avoid circular dependency on Item
+  pace: TravelPace;
+}
+
 export interface TravelResult {
   /** Total distance in miles */
   distanceMiles: number;

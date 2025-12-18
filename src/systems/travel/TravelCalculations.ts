@@ -11,38 +11,9 @@
 import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
 import { AbilityScores } from '../../types/core';
+import { TravelPace, PACE_MODIFIERS } from '../../types/travel';
 
 // --- Types ---
-
-export type TravelPace = 'slow' | 'normal' | 'fast';
-
-export interface PaceEffect {
-  speedMultiplier: number;
-  canStealth: boolean;
-  passivePerceptionModifier: number;
-  description: string;
-}
-
-export const PACE_MODIFIERS: Record<TravelPace, PaceEffect> = {
-  slow: {
-    speedMultiplier: 0.67, // ~2/3 speed
-    canStealth: true,
-    passivePerceptionModifier: 5, // Bonus to passive perception? Or can use stealth. 5e rules: Able to use stealth.
-    description: "Move stealthily. Capable of tracking and foraging.",
-  },
-  normal: {
-    speedMultiplier: 1.0,
-    canStealth: false,
-    passivePerceptionModifier: 0,
-    description: "Standard travel speed.",
-  },
-  fast: {
-    speedMultiplier: 1.33, // ~4/3 speed
-    canStealth: false,
-    passivePerceptionModifier: -5,
-    description: "Hasty travel. -5 to Passive Perception.",
-  },
-};
 
 export type EncumbranceLevel = 'unencumbered' | 'encumbered' | 'heavily_encumbered';
 
@@ -153,7 +124,8 @@ export function calculateGroupTravelStats(
   const baseMph = minSpeed / 10;
 
   // Apply Pace Modifier
-  const paceMod = PACE_MODIFIERS[pace].speedMultiplier;
+  // @ts-ignore - Backward compatibility for types if speedMultiplier was used
+  const paceMod = PACE_MODIFIERS[pace].speedModifier || PACE_MODIFIERS[pace].speedMultiplier;
   const travelSpeedMph = baseMph * paceMod;
 
   // Calculate Daily Distance (8 hours travel)
