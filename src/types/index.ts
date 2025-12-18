@@ -66,6 +66,7 @@ import { Faction, PlayerFactionStanding } from './factions';
 import { Companion } from './companions';
 import { DivineFavor, Temple } from './deity';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
+import { WeatherState } from './weather';
 
 export * from './core';
 export * from './items';
@@ -76,6 +77,7 @@ export * from './factions';
 export * from './companions';
 export * from './planes';
 export * from './crime';
+export * from './weather';
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
@@ -568,6 +570,9 @@ export interface GameState {
 
   /** Direction from which the player entered the town (north/east/south/west) */
   townEntryDirection: 'north' | 'east' | 'south' | 'west' | null;
+
+  // Wanderer: Weather System
+  weather: WeatherState;
 }
 
 export interface InspectSubmapTilePayload {

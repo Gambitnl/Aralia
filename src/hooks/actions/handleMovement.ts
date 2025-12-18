@@ -72,6 +72,7 @@ export async function handleMovement({
   let movedToNewNamedLocation: Location | null = null;
 
   const timeModifiers = getTimeModifiers(gameState.gameTime);
+  const weatherState = gameState.weather;
 
   let descriptionGenerationFn: (() => Promise<GeminiService.StandardizedResult<GeminiService.GeminiTextData>>) | null = null;
   let geminiFunctionName = '';

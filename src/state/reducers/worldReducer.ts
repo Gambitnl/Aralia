@@ -59,6 +59,7 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
               ...partialUpdate,
               factions: newState.factions,
               playerFactionStandings: newState.playerFactionStandings,
+              weather: newState.weather,
               messages: [...state.messages, ...logs]
           };
       }
