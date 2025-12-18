@@ -2,8 +2,8 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import Glossary from '../Glossary';
-import GlossaryContext from '../../context/GlossaryContext';
-import { GlossaryEntry } from '../../types';
+import GlossaryContext from '../../../context/GlossaryContext';
+import { GlossaryEntry } from '../../../types';
 
 // Prevent errors from scrollIntoView in JSDOM
 window.HTMLElement.prototype.scrollIntoView = vi.fn();

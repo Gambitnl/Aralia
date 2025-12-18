@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState, useCallback, useContext, useMemo } from 'react';
-import GlossaryContext from '../context/GlossaryContext';
-import { GlossaryEntry } from '../types';
-import { FullEntryDisplay } from './Glossary/FullEntryDisplay';
-import { findGlossaryEntryAndPath } from '../utils/glossaryUtils';
-import { useSpellGateChecks } from '../hooks/useSpellGateChecks';
-import SpellCardTemplate, { SpellData } from './Glossary/SpellCardTemplate';
-import { SafeStorage } from '../utils/storageUtils';
-import { fetchWithTimeout } from '../utils/networkUtils';
-import { assetUrl } from '../config/env';
+import GlossaryContext from '../../context/GlossaryContext';
+import { GlossaryEntry } from '../../types';
+import { FullEntryDisplay } from './FullEntryDisplay';
+import { findGlossaryEntryAndPath } from '../../utils/glossaryUtils';
+import { useSpellGateChecks } from '../../hooks/useSpellGateChecks';
+import SpellCardTemplate, { SpellData } from './SpellCardTemplate';
+import { SafeStorage } from '../../utils/storageUtils';
+import { fetchWithTimeout } from '../../utils/networkUtils';
+import { assetUrl } from '../../config/env';
 
 interface GlossaryProps {
   isOpen: boolean;
