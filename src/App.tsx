@@ -658,23 +658,25 @@ const App: React.FC = () => {
     // Render the Main Game Layout (Exploration Mode)
     // <GameLayout> extracts the complexity of the Compass, Action, World, and Minimap panes.
     mainContent = (
-      <GameLayout
-        currentLocation={currentLocationData}
-        subMapCoordinates={gameState.subMapCoordinates}
-        mapData={gameState.mapData}
-        gameTime={gameState.gameTime}
-        messages={gameState.messages}
-        npcsInLocation={npcs}
-        itemsInLocation={itemsInCurrentLocation}
-        geminiGeneratedActions={gameState.geminiGeneratedActions}
-        unreadDiscoveryCount={gameState.unreadDiscoveryCount}
-        hasNewRateLimitError={gameState.hasNewRateLimitError}
-        worldSeed={gameState.worldSeed}
-        isDevDummyActive={canUseDevTools()}
-        disabled={!isUIInteractive}
-        onAction={processAction}
-        companions={gameState.companions}
-      />
+      <ErrorBoundary fallbackMessage="An error occurred in the main game view.">
+        <GameLayout
+          currentLocation={currentLocationData}
+          subMapCoordinates={gameState.subMapCoordinates}
+          mapData={gameState.mapData}
+          gameTime={gameState.gameTime}
+          messages={gameState.messages}
+          npcsInLocation={npcs}
+          itemsInLocation={itemsInCurrentLocation}
+          geminiGeneratedActions={gameState.geminiGeneratedActions}
+          unreadDiscoveryCount={gameState.unreadDiscoveryCount}
+          hasNewRateLimitError={gameState.hasNewRateLimitError}
+          worldSeed={gameState.worldSeed}
+          isDevDummyActive={canUseDevTools()}
+          disabled={!isUIInteractive}
+          onAction={processAction}
+          companions={gameState.companions}
+        />
+      </ErrorBoundary>
     );
   } else if (gameState.phase === GamePhase.GAME_OVER) {
     mainContent = (
