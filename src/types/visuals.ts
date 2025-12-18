@@ -7,6 +7,7 @@
 
 import { SpellSchool, DamageType } from './spells';
 import { Item } from './items';
+import { Race } from './character';
 
 /**
  * Standard sizes for icons in the UI.
@@ -61,6 +62,45 @@ export interface ItemVisualSpec {
    * (Mapping to common RPG rarities: Common, Uncommon, Rare, Epic, Legendary)
    */
   rarity?: 'common' | 'uncommon' | 'rare' | 'very_rare' | 'legendary';
+}
+
+/**
+ * Defines the visual requirements for an NPC.
+ * Includes data for both static display and AI generation.
+ */
+export interface NPCVisualSpec {
+  /** Text description for players (physical appearance). */
+  description: string;
+
+  /**
+   * Prompt string used for AI image generation.
+   * Should include details like race, age, features, style, lighting.
+   */
+  portraitPrompt?: string;
+
+  /** Path to pre-generated portrait asset. */
+  portraitPath?: string;
+
+  /** Key visual features for recognition (e.g., "scar on left cheek", "glowing eyes"). */
+  distinguishingFeatures?: string[];
+
+  /**
+   * General artistic style if generating new assets.
+   * e.g., "oil painting", "pencil sketch", "pixel art"
+   */
+  style?: string;
+
+  /**
+   * Fallback emoji or icon if no portrait is available.
+   * e.g., "👮" for a guard, "🧙‍♂️" for a wizard.
+   */
+  fallbackIcon?: string;
+
+  /**
+   * Primary color theme for UI elements (borders, nameplates).
+   * Often derived from Faction or Role.
+   */
+  themeColor?: string;
 }
 
 /**
