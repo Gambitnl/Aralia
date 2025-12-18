@@ -241,11 +241,48 @@ export type SpellEffect =
 /** The six primary ability scores used for saving throws. */
 export type SavingThrowAbility = "Strength" | "Dexterity" | "Constitution" | "Intelligence" | "Wisdom" | "Charisma";
 
-/** The thirteen types of damage in D&D 5e. */
-export type DamageType =
-  | "Acid" | "Bludgeoning" | "Cold" | "Fire" | "Force"
-  | "Lightning" | "Necrotic" | "Piercing" | "Poison" | "Psychic"
-  | "Radiant" | "Slashing" | "Thunder";
+/**
+ * The thirteen types of damage in D&D 5e.
+ * Source: PHB 2024
+ */
+export enum DamageType {
+  Acid = "Acid",
+  Bludgeoning = "Bludgeoning",
+  Cold = "Cold",
+  Fire = "Fire",
+  Force = "Force",
+  Lightning = "Lightning",
+  Necrotic = "Necrotic",
+  Piercing = "Piercing",
+  Poison = "Poison",
+  Psychic = "Psychic",
+  Radiant = "Radiant",
+  Slashing = "Slashing",
+  Thunder = "Thunder",
+}
+
+export interface DamageTypeTraits {
+  description: string;
+}
+
+/**
+ * Standard traits associated with each damage type.
+ */
+export const DamageTypeDefinitions: Record<DamageType, DamageTypeTraits> = {
+  [DamageType.Acid]: { description: "The corrosive spray of a black dragon or the dissolving enzymes of a black pudding." },
+  [DamageType.Bludgeoning]: { description: "Blunt force attacks, such as from a hammer or a fall." },
+  [DamageType.Cold]: { description: "The infernal chill radiating from an ice devil's spear or a white dragon's breath." },
+  [DamageType.Fire]: { description: "The red dragon breathing fire or a spellcaster calling down a meteor swarm." },
+  [DamageType.Force]: { description: "Pure magical energy focused into a damaging form." },
+  [DamageType.Lightning]: { description: "A storm giant throwing a lightning bolt or a blue dragon's breath." },
+  [DamageType.Necrotic]: { description: "The withering touch of a lich or the decaying magic of a vampire." },
+  [DamageType.Piercing]: { description: "Puncturing attacks, such as from a spear or an arrow." },
+  [DamageType.Poison]: { description: "Venomous stings and toxic gases." },
+  [DamageType.Psychic]: { description: "Mental assaults that shatter the mind." },
+  [DamageType.Radiant]: { description: "Searng light like that of a cleric's flame strike or an angel's weapon." },
+  [DamageType.Slashing]: { description: "Cutting attacks, such as from a sword or an axe." },
+  [DamageType.Thunder]: { description: "A concussive burst of sound, such as from a thunderwave spell." },
+};
 
 /** The fourteen status conditions in D&D 5e. */
 export type ConditionName =
