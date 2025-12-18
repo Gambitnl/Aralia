@@ -8,6 +8,7 @@ import type { AbilityScoreName } from './core';
 import type { Class, SpellbookData, SpellSlots } from './character';
 import type { Item } from './items';
 import type { Spell, DamageType, SavingThrowAbility, ConditionName, EffectDuration, SpellEffect } from './spells'; // Import Spell
+import { StateTag } from './elemental';
 
 export type { SpellSlots };
 
@@ -72,6 +73,9 @@ export interface CombatCharacter {
   spellbook?: SpellbookData;
   spellSlots?: SpellSlots;
   concentratingOn?: ConcentrationState;
+
+  /** Elemental states (Wet, Frozen, etc.) affecting the character */
+  stateTags?: StateTag[];
 
   // Summoning fields
   isSummon?: boolean;
