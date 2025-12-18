@@ -240,6 +240,8 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       merchantInventory: [],
     },
 
+    fences: {},
+
     questLog: [],
 
     ...overrides

@@ -91,7 +91,7 @@ export interface Fence {
   id: string;
   npcId: string;
   locationId: string;
-  maxGold: number;
+  gold: number;
   acceptedCategories: string[]; // e.g., "gem", "art", "weapon"
   cut: number; // 0.1 to 0.5 (percentage taken)
 }

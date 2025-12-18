@@ -66,6 +66,7 @@ import { Faction, PlayerFactionStanding } from './factions';
 import { NPCMemory } from './memory';
 import { Companion } from './companions';
 import { DivineFavor, Temple } from './deity';
+import { Fence } from './crime';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
 
 export * from './core';
@@ -576,6 +577,9 @@ export interface GameState {
   // Templar: Religion System
   divineFavor: Record<string, DivineFavor>; // Keyed by Deity ID
   temples: Record<string, Temple>; // Keyed by Temple ID (or Location ID)
+
+  // Shadowbroker: Crime System
+  fences: Record<string, Fence>; // Keyed by Fence ID (or Location ID)
 
   /** Town exploration state - present when in VILLAGE_VIEW phase */
   townState: import('./town').TownState | null;
