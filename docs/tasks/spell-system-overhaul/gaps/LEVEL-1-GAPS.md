@@ -1,5 +1,7 @@
 # Level 1 Gaps Summary
 
+> Note: This file is parsed by `useSpellGateChecks` to build a “known gaps” set. Spell IDs mentioned here (bolded names or backticked IDs) tell the glossary/spell gate to treat missing cards/JSON as “gap” instead of “fail” while the underlying mechanics are still being implemented. Vitest also mocks this import in `useSpellGateChecks.test.ts`, so keeping the file present and structured in markdown is required for tests and gate logic.
+
 All Level 1 batches completed and validated. Schema is clean; these are engine/integration gaps and missing features needed for full behavior fidelity.
 
 ## High-Impact Engine Gaps

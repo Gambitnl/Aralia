@@ -89,6 +89,25 @@ Migrate these spells (Level {N}):
 - **Cantrips**: `"type": "character_level"`  
 - **Leveled**: `"type": "slot_level"`
 
+### Targeting Range Conventions
+| `range.type` | `targeting.range` value |
+|--------------|------------------------|
+| `"touch"` | Always `5` |
+| `"self"` (buff/weapon) | `5` |
+| `"self"` (AoE emanation) | `0` |
+| `"self"` (extended reach) | Actual range (e.g., `15` for Lightning Lure) |
+| `"ranged"` | Match `range.distance` |
+
+### Tags
+- **All cantrips (level 0) MUST include `"cantrip"` tag**
+- Include damage type if applicable (`"fire"`, `"cold"`, etc.)
+- Include functional category (`"damage"`, `"utility"`, `"buff"`, `"control"`)
+
+### Line of Sight
+- **Always define `targeting.lineOfSight`** - never leave undefined
+- `true` for most spells targeting creatures/points
+- `false` only for self-buffs or spells explicitly ignoring cover
+
 ---
 
 ## 2024 PHB ACCURACY

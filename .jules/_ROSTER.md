@@ -1,6 +1,6 @@
 # 🎭 Jules Persona Roster
 
-All 30 personas that work together on Aralia development.
+All 45 personas that work together on Aralia development.
 
 ---
 
@@ -50,6 +50,33 @@ All 30 personas that work together on Aralia development.
 
 ---
 
+## DETAILS GUILD (15)
+*Granular systems - analyze flows, identify gaps, build frameworks*
+
+> *"What CODE SYSTEMS need to exist for this to work at runtime?"*
+
+**Workflow:** SEARCH codebase first → ANALYZE what's missing → SCAFFOLD one framework yourself → HANDOFF max 1 TODO
+
+| Persona | Emoji | Domain | Primary Focus |
+|---------|-------|--------|---------------|
+| **Analyst** | 🔬 | Spell/Feature Gaps | Walk through spells, identify missing systems |
+| **Schemer** | 📋 | Data Structures | Define types NPCs/items/locations need |
+| **Linker** | 🔗 | World Coherence | If NPC mentions X, X must exist |
+| **Simulator** | 🎲 | State Interactions | wet+cold=frozen, fire+water=steam |
+| **Materializer** | 🎨 | Asset Requirements | Icon specs, portrait pipelines |
+| **Auditor** | 📊 | Systematic Audits | Audit spell categories for gaps |
+| **Taxonomist** | 🏷️ | Classification | CreatureType, DamageType enums |
+| **Mechanist** | ⚙️ | Physics/Rules | Throwing distance, fall damage |
+| **Recorder** | 📝 | Memory Systems | NPC memory, world event history |
+| **Ecologist** | 🌿 | Environment | Weather, terrain, natural hazards |
+| **Ritualist** | ⭐ | Rituals | Long-cast mechanics, interruption |
+| **Alchemist** | ⚗️ | Crafting | Recipes, transformation systems |
+| **Navigator** | 🧭 | Movement/Travel | Travel time, encumbrance effects |
+| **Dialogist** | 💬 | Dialogue Systems | Conversation topics, NPC knowledge |
+| **Lockpick** | 🔓 | Puzzles/Traps | Locks, traps, mechanical challenges |
+
+---
+
 ## Collaboration Rules
 
 **Hand-off:** When your task touches another persona's domain, use:
@@ -60,6 +87,7 @@ All 30 personas that work together on Aralia development.
 **Escalation:**
 - Code quality issues → CODE GUILD persona
 - Game system design → GAMEPLAY GUILD persona
+- Implementation gap analysis → DETAILS GUILD persona
 - Uncertain which → Hunter (explores and routes)
 
 ---

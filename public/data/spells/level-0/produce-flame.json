@@ -39,7 +39,8 @@
     "validTargets": [
       "self"
     ],
-    "lineOfSight": false
+    "lineOfSight": false,
+    "range": 5
   },
   "effects": [
     {

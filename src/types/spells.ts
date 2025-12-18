@@ -126,6 +126,61 @@ export interface AreaOfEffect {
   height?: number;
 }
 
+/**
+ * A number that can scale based on character level or slot level.
+ * Used for effects like Eldritch Blast (1 beam at 1st, 2 at 5th, 3 at 11th, 4 at 17th).
+ */
+export type ScalableNumber = number | ScalableNumberObject;
+
+/** Object form of ScalableNumber with explicit scaling thresholds. */
+export interface ScalableNumberObject {
+  base: number;
+  scaling: {
+    type: "character_level" | "slot_level";
+    /** Maps level thresholds to values. E.g., { "1": 1, "5": 2, "11": 3, "17": 4 } */
+    thresholds: Record<string, number>;
+  };
+}
+
+/**
+ * Resolves a ScalableNumber to its actual numeric value based on the given level.
+ * @param value - The ScalableNumber (either a plain number or a scaling object)
+ * @param level - The character level or slot level to evaluate against
+ * @returns The resolved numeric value
+ * @example
+ * // Eldritch Blast: { base: 1, scaling: { type: "character_level", thresholds: { "1": 1, "5": 2, "11": 3, "17": 4 } } }
+ * resolveScalableNumber(eldritchBlast.targeting.maxTargets, 5) // returns 2
+ * resolveScalableNumber(eldritchBlast.targeting.maxTargets, 11) // returns 3
+ */
+export function resolveScalableNumber(value: ScalableNumber, level: number): number {
+  // If it's just a plain number, return it
+  if (typeof value === 'number') {
+    return value;
+  }
+
+  // It's a ScalableNumberObject, find the highest threshold <= level
+  const thresholds = value.scaling.thresholds;
+  const sortedThresholds = Object.keys(thresholds)
+    .map(k => parseInt(k, 10))
+    .sort((a, b) => b - a); // Sort descending to find highest first
+
+  for (const threshold of sortedThresholds) {
+    if (level >= threshold) {
+      return thresholds[threshold.toString()];
+    }
+  }
+
+  // Fallback to base if no threshold matched
+  return value.base;
+}
+
+/**
+ * Type guard to check if a ScalableNumber is a scaling object (not a plain number).
+ */
+export function isScalableNumberObject(value: ScalableNumber): value is ScalableNumberObject {
+  return typeof value === 'object' && value !== null && 'base' in value && 'scaling' in value;
+}
+
 /** Base interface for all targeting types. */
 interface BaseTargeting {
   validTargets: TargetFilter[];
@@ -138,11 +193,12 @@ export interface SingleTargeting extends BaseTargeting {
   range: number;
 }
 
-/** Targets multiple specific entities. Example: Magic Missile. */
+/** Targets multiple specific entities. Example: Magic Missile, Eldritch Blast. */
 export interface MultiTargeting extends BaseTargeting {
   type: "multi";
   range: number;
-  maxTargets: number;
+  /** Can be a fixed number or scale with level (e.g., Eldritch Blast beams) */
+  maxTargets: ScalableNumber;
 }
 
 /** Targets an area, affecting all valid entities within. Example: Fireball. */

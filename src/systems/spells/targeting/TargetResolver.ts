@@ -82,6 +82,7 @@ export class TargetResolver {
    * Calculate distance between two positions (Euclidean)
    */
   private static getDistance(pos1: Position, pos2: Position): number {
+    // TODO(SPELL-OVERHAUL): Account for elevation, sub-grid coordinates, and target size (see docs/tasks/spell-system-overhaul/TODO.md; if this block is moved/refactored/modularized, update the TODO entry path).
     const dx = pos2.x - pos1.x
     const dy = pos2.y - pos1.y
     return Math.sqrt(dx * dx + dy * dy) * 5 // Convert tiles to feet

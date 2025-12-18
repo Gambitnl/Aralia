@@ -18,5 +18,6 @@ export function getCylinder(
 ): Position[] {
   // In 2D grid combat, cylinder = sphere
   // Height is ignored (all combat on same plane)
+  // TODO(SPELL-OVERHAUL): Implement height checks once elevation is modeled (see docs/tasks/spell-system-overhaul/TODO.md; if this block is moved/refactored/modularized, update the TODO entry path).
   return getSphere(center, radius)
 }

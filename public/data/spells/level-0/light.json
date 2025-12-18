@@ -43,7 +43,7 @@
   },
   "targeting": {
     "type": "single",
-    "range": 0,
+    "range": 5,
     "validTargets": [
       "objects"
     ],

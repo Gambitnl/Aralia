@@ -159,6 +159,7 @@ export function isPositionInArea(
     zonePosition: Position,
     areaOfEffect: { shape: string; size: number }
 ): boolean {
+    // TODO(SPELL-OVERHAUL): Replace simplified line/cone checks with direction-aware AoE math (see docs/tasks/spell-system-overhaul/TODO.md; if this block is moved/refactored/modularized, update the TODO entry path).
     const dx = Math.abs(position.x - zonePosition.x);
     const dy = Math.abs(position.y - zonePosition.y);
     const sizeInTiles = Math.ceil(areaOfEffect.size / 5); // Convert feet to tiles

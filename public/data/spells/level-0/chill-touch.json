@@ -41,7 +41,8 @@
     "range": 5,
     "validTargets": [
       "creatures"
-    ]
+    ],
+    "lineOfSight": true
   },
   "effects": [
     {

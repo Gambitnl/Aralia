@@ -3,9 +3,16 @@
   "name": "Thaumaturgy",
   "level": 0,
   "school": "Transmutation",
-  "classes": ["Cleric"],
+  "classes": [
+    "Cleric"
+  ],
   "description": "Manifest a minor wonder within range. Choose one: boom your voice, alter flames, tremble ground, open/close shutters, change eye color, or cause harmless signs—all lasting up to a minute.",
-  "tags": ["utility", "cantrip", "divine", "sensory"],
+  "tags": [
+    "utility",
+    "cantrip",
+    "divine",
+    "sensory"
+  ],
   "ritual": false,
   "castingTime": {
     "value": 1,
@@ -30,15 +37,22 @@
     "concentration": false
   },
   "targeting": {
-    "type": "self",
-    "validTargets": ["self"],
+    "type": "point",
+    "range": 30,
+    "validTargets": [
+      "point"
+    ],
     "lineOfSight": true
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate"
+      },
+      "condition": {
+        "type": "always"
+      },
       "utilityType": "creation",
       "description": "Create one minor sign (voice boom, flame change, tremor, door/shutter movement, eye color change, harmless omen) lasting up to 1 minute."
     }

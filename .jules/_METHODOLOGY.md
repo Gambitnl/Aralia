@@ -113,11 +113,56 @@ const hasAdvantage = advantages > 0 && disadvantages === 0;
 
 ---
 
+## Chronicle Directive (Worklogs)
+
+**All personas MUST log critical learnings to their worklog.**
+
+### Worklog Location & Naming
+```
+.jules/worklogs/worklog_<persona>.md
+```
+Example: `.jules/worklogs/worklog_analyst.md`
+
+### ⚠️ MANDATORY DATE VERIFICATION
+
+**You MUST verify the actual date before writing ANY journal entry.**
+
+AI models commonly hallucinate dates. Before adding an entry:
+
+1. **Check the system-provided current time** in the conversation metadata
+2. **Do NOT assume** what day it is - verify it explicitly
+3. **Use the verified date** in your entry
+
+```typescript
+// ❌ BAD: Assumed/hallucinated date
+## 2025-12-01 - Discovery  // Where did this date come from?
+
+// ✅ GOOD: Date verified from system metadata
+// System says: "The current local time is: 2025-12-18T00:59:28+01:00"
+## 2025-12-18 - Discovery
+```
+
+### Entry Format
+```markdown
+## YYYY-MM-DD - [Title]
+**Learning:** [The critical insight]
+**Action:** [How to apply this next time]
+```
+
+### What to Log
+- ✅ Critical insights that apply to future work
+- ✅ Patterns discovered that should be reused
+- ✅ Edge cases that surprised you
+- ❌ Routine work ("Fixed bug", "Added type")
+- ❌ Task completion logs
+
+---
+
 ## Verification Checklist
 
 Before any PR:
-- [ ] `npm run build` passes
-- [ ] `npm test` passes
+- [ ] `pnpm build` passes
+- [ ] `pnpm test` passes
 - [ ] No `console.log` left behind
 - [ ] **New code has JSDoc and inline comments**
 - [ ] **Implementation is complete, not stubbed**
