@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { AUTO_SAVE_SLOT_KEY, SaveSlotSummary, getSlotStorageKey } from '../services/saveLoadService';
 import { ConfirmationModal } from './ui/ConfirmationModal';
-import { ENV } from '../config/env';
 
 interface SaveSlotSelectorProps {
   slots: SaveSlotSummary[];
@@ -86,8 +85,10 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
   useEffect(() => {
     // TODO(QOL): Add automated accessibility tests (axe) to verify focus trap and keyboard navigation in SaveSlotSelector (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
     // The dependency axe-core is large, so we only want to load it in development.
-    // Only run axe in development; ensure ENV.DEV tree-shakes like import.meta.env.DEV so axe-core stays out of production bundles.
-    if (ENV.DEV && rootRef.current) {
+    // NOTE: We explicitly use import.meta.env.DEV here instead of ENV.DEV.
+    // ENV.DEV is an object property and cannot be statically analyzed by Vite for tree-shaking,
+    // causing the heavy 'axe-core' dependency to remain in production bundles. Do not revert.
+    if (import.meta.env.DEV && rootRef.current) {
       const node = rootRef.current;
       import('../utils/testUtils').then(({ runAxe }) => {
         runAxe(node);
