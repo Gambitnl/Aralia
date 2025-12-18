@@ -385,6 +385,10 @@ export interface PlayerCharacter {
     [featId: string]: FeatChoice;
   };
   equippedItems: Partial<Record<EquipmentSlotType, Item>>;
+  /** Text description of character appearance for AI portrait generation */
+  visualDescription?: string;
+  /** Base64 data URL of AI-generated character portrait */
+  portraitUrl?: string;
 }
 
 export interface TempPartyMember {

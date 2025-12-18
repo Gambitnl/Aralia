@@ -7,6 +7,7 @@
 // Define the shape of our environment configuration
 interface EnvConfig {
   API_KEY: string;
+  IMAGE_API_KEY: string;  // Separate key for Gemini image generation
   BASE_URL: string;
   DEV: boolean;
   VITE_ENABLE_DEV_TOOLS: boolean;
@@ -17,6 +18,7 @@ interface EnvConfig {
 // TODO: Avoid shipping API_KEY to the client bundle; route AI calls through a server/proxy and leave ENV.API_KEY empty in browser builds.
 const RAW_ENV = {
   API_KEY: process.env.API_KEY || process.env.GEMINI_API_KEY || '',
+  IMAGE_API_KEY: process.env.IMAGE_API_KEY || process.env.GEMINI_IMAGE_API_KEY || '',
   // @ts-ignore
   BASE_URL: (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env.BASE_URL : '/',
   // @ts-ignore
