@@ -18,7 +18,7 @@
         "image": "A vision forms in the æther..."
       },
       "error": {
-        "message": "Error: {message}",
+        "message": "{message}",
         "dismiss": "Dismiss"
       }
     }
@@ -67,8 +67,8 @@
     "button_ask": "Ask",
     "character_label_race": "Race:",
     "character_label_class": "Class:",
-    "character_label_hp": "HP:",
-    "character_label_ac": "AC:",
+    "character_label_hp": "Hit Points:",
+    "character_label_ac": "Armor Class:",
     "button_add_party": "Add to Party",
     "error_handler_missing": "You cannot recruit new allies here.",
     "error_connection": "I'm having trouble connecting to the archives. Please try again.",

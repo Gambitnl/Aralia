@@ -204,8 +204,8 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
                 {allKnownSpells.length > 0 && <p className="text-xs">Known Spells: {allKnownSpells.map(s => `${s.name} (L${s.level})`).join(', ')}</p>}
             </div>
         }
-         <p className="text-sm mt-1"><strong>HP:</strong> {characterPreview.maxHp}</p>
-         <p className="text-sm"><strong>AC:</strong> {characterPreview.armorClass}</p>
+         <p className="text-sm mt-1"><strong>Hit Points:</strong> {characterPreview.maxHp}</p>
+         <p className="text-sm"><strong>Armor Class:</strong> {characterPreview.armorClass}</p>
          <p className="text-sm"><strong>Speed:</strong> {speed}ft</p>
       </div>
 

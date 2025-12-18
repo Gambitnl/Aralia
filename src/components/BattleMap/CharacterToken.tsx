@@ -65,7 +65,7 @@ const CharacterToken: React.FC<CharacterTokenProps> = ({ character, position, is
 
   return (
     <div style={style} className="relative flex items-center justify-center pointer-events-auto" onClick={onClick}>
-      <Tooltip content={`${character.name} (AC: ${character.class.id === 'fighter' ? 18 : 12}, HP: ${character.currentHP}/${character.maxHP})`}>
+      <Tooltip content={`${character.name} (Armor Class: ${character.class.id === 'fighter' ? 18 : 12}, Hit Points: ${character.currentHP}/${character.maxHP})`}>
         <div
           style={tokenStyle}
           className="flex items-center justify-center font-bold text-white text-lg"
