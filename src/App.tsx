@@ -26,7 +26,7 @@ import { useAudio } from './hooks/useAudio';
 import { useGameActions } from './hooks/useGameActions';
 import { useGameInitialization } from './hooks/useGameInitialization';
 import { useHistorySync } from './hooks/useHistorySync';
-import { useCompanionReactions } from './hooks/useCompanionReactions';
+import { useCompanionCommentary } from './hooks/useCompanionCommentary';
 import { determineSettlementInfo } from './utils/settlementGeneration';
 import { t } from './utils/i18n';
 
@@ -78,8 +78,8 @@ const App: React.FC = () => {
   // 🏹 Ranger: Sync GamePhase with URL history
   useHistorySync(gameState, dispatch);
 
-  // 💕 Heartkeeper: Companion Reactions
-  useCompanionReactions(gameState, dispatch);
+  // 💕 Heartkeeper: Companion Commentary (Reactions 2.0)
+  useCompanionCommentary(gameState, dispatch);
 
   // State for Missing Choice Modal
   const [missingChoiceModal, setMissingChoiceModal] = useState<{
