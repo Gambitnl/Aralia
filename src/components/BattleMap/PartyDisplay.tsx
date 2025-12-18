@@ -19,7 +19,7 @@ const PartyMemberDisplay: React.FC<PartyMemberDisplayProps> = ({ character, onCl
   const healthPercentage = (character.currentHP / character.maxHP) * 100;
 
   return (
-    <Tooltip content={`${character.name} - ${character.class.name}`}>
+    <Tooltip content={`${character.name} - ${character.class.name} (Hit Points: ${character.currentHP}/${character.maxHP})`}>
       <div className={`relative w-full bg-gray-700 p-3 rounded-lg shadow-md border-2 ${isTurn ? 'border-amber-400 ring-2 ring-amber-300' : 'border-gray-600'} transition-all`}>
         <button
             onClick={onClick}
