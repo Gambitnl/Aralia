@@ -70,7 +70,7 @@ export function rollSavingThrow(
     dc: number,
     modifiers?: SavingThrowModifier[]
 ): SavingThrowResult {
-    const roll = Math.floor(Math.random() * 20) + 1;
+    const roll = rollDice('1d20');
 
     // Get ability modifier
     const score = (target.stats[ability.toLowerCase() as keyof typeof target.stats] || 10) as number;
