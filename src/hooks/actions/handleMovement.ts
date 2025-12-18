@@ -16,6 +16,8 @@ import { getSubmapTileInfo } from '../../utils/submapUtils';
 import { INITIAL_QUESTS } from '../../data/quests';
 import { generateTravelEvent } from '../../services/travelEventService';
 import { getTimeModifiers } from '../../utils/timeUtils';
+import { calculateNavalTravelStats, WindCondition } from '../../systems/travel/NavalTravelCalculations';
+import { WindDirection } from '../../types/navalCombat';
 
 interface HandleMovementProps {
   action: Action;
@@ -188,6 +190,58 @@ export async function handleMovement({
 
       if (playerCharacter.transportMode === 'foot') {
         timeToAdvanceSeconds = effectiveTerrainType === 'path' ? 15 * 60 : 30 * 60;
+      } else if (playerCharacter.transportMode === 'ship') {
+        // Check for active ship
+        if (gameState.activeShipId && gameState.ships && gameState.ships[gameState.activeShipId]) {
+            const ship = gameState.ships[gameState.activeShipId];
+
+            // Determine Heading from Direction
+            // directionKey is e.g. 'N', 'NE', etc.
+            // Map 'N' -> 'North', 'NE' -> 'NorthEast'
+            const headingMap: Record<string, WindDirection> = {
+                'N': 'North', 'NE': 'NorthEast', 'E': 'East', 'SE': 'SouthEast',
+                'S': 'South', 'SW': 'SouthWest', 'W': 'West', 'NW': 'NorthWest'
+            };
+            const heading = headingMap[directionKey] || 'North';
+
+            // Use global wind or generate random
+            const wind: WindCondition = gameState.currentWind || { direction: 'East', speed: 'Light Breeze' };
+
+            const navalStats = calculateNavalTravelStats(ship, heading, wind);
+
+            // Calculate time for 1 tile (assuming 1 mile per tile for now, or based on submap scale)
+            // Submap tiles are small (feet), but world map movement?
+            // Wait, this block handles SUBMAP movement (local).
+            // Submap tiles are ~5 ft? No, "effectiveTerrainType" implies local movement.
+            // Ships usually move on WORLD map, or large water bodies.
+
+            // If on submap, ships might be docked or moving very slowly/carefully.
+            // Let's assume standard submap scale is too small for meaningful ship travel stats unless in open water.
+            // But if we ARE in a ship on submap (e.g. lake), we use the speed.
+
+            // Submap tile size isn't explicitly defined in ft here, but standard D&D grid is 5ft.
+            // If Ship moves 60ft/round, that's 12 tiles/round.
+            // Walking is 30ft/round -> 6 tiles/round.
+            // Time to walk 1 tile is small.
+            // `timeToAdvanceSeconds` for foot is 15*60 (15 mins)??
+            // Wait, `timeToAdvanceSeconds = 15 * 60` (15 mins) for a submap move?
+            // That implies submap tiles are HUGE or "Exploration Turn" is 15 mins.
+            // If it's an exploration turn, then distance is ~15 mins * 3 mph = 0.75 miles.
+
+            // So submap tiles are approx 1 mile?
+            // "World Map" tiles contain submaps.
+
+            // If 1 tile = ~1 mile (based on 15 min walk time for 'path'), then ship speed matters.
+
+            // navalStats.travelTimeHours is hours per mile.
+            // So seconds = navalStats.travelTimeHours * 3600.
+
+            timeToAdvanceSeconds = navalStats.travelTimeHours * 3600;
+            addMessage(navalStats.description, 'system');
+        } else {
+             // Fallback if no ship data
+             timeToAdvanceSeconds = 3600;
+        }
       }
 
       const biome = BIOMES[currentLoc.biomeId];

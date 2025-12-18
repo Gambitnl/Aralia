@@ -342,7 +342,7 @@ export interface RacialSelectionData {
   skillIds?: string[];
 }
 
-export type TransportMode = 'foot' | 'mounted';
+export type TransportMode = 'foot' | 'mounted' | 'ship';
 
 // -----------------------------------------------------------------------------
 // Characters

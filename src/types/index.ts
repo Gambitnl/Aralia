@@ -69,6 +69,8 @@ import { Companion } from './companions';
 import { DivineFavor, Temple } from './deity';
 import { Fence } from './crime';
 import { UnderdarkState, LightSource } from './underdark';
+import { Ship } from './naval';
+import { WindCondition } from '../systems/travel/NavalTravelCalculations';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
 
 export * from './core';
@@ -589,6 +591,11 @@ export interface GameState {
 
   // Depthcrawler: Underdark System
   underdark: UnderdarkState;
+
+  // Captain: Naval System
+  activeShipId: string | null;
+  ships: Record<string, Ship>; // Player owned ships
+  currentWind: WindCondition | null; // Global wind condition for travel
 
   /** Town exploration state - present when in VILLAGE_VIEW phase */
   townState: import('./town').TownState | null;
