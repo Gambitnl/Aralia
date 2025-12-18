@@ -7,6 +7,7 @@ import { GameState, PlayerCharacter, NPC, Location } from '../types';
 import { BIOMES, ITEMS } from '../constants';
 import { getSubmapTileInfo } from './submapUtils';
 import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
+import { getTimeModifiers, formatGameTime } from './timeUtils';
 
 interface ContextGenerationParams {
   gameState: GameState;
@@ -16,8 +17,8 @@ interface ContextGenerationParams {
 }
 
 /**
- * Generates a comprehensive context string for AI narrative generation.
- * Includes player state, location details, items, NPCs, active quests, and recent history.
+ * Generates a comprehensive, structured context string for AI narrative generation.
+ * Uses Markdown-style headers to organize player state, location details, items, NPCs, active quests, and recent history.
  */
 export function generateGeneralActionContext({
   gameState,
@@ -25,49 +26,84 @@ export function generateGeneralActionContext({
   currentLocation,
   npcsInLocation
 }: ContextGenerationParams): string {
-  // Player Context
-  let playerContext = 'An adventurer';
-  let playerHealthStatus = '';
+  const parts: string[] = [];
+
+  // --- PLAYER ---
   if (playerCharacter) {
-    playerContext = `${playerCharacter.name}, a ${playerCharacter.race.name} ${playerCharacter.class.name}`;
-    playerHealthStatus = ` (HP: ${playerCharacter.hp}/${playerCharacter.maxHp})`;
+    const conditions = playerCharacter.conditions.length > 0
+      ? playerCharacter.conditions.join(', ')
+      : 'None';
+
+    parts.push(`## PLAYER\nName: ${playerCharacter.name} (${playerCharacter.race.name} ${playerCharacter.class.name}) | HP: ${playerCharacter.hp}/${playerCharacter.maxHp} | Conditions: ${conditions}`);
+  } else {
+    parts.push(`## PLAYER\nAn unknown adventurer`);
   }
 
-  // Location Context
-  const itemsInLocationNames = currentLocation.itemIds?.map((id) => ITEMS[id]?.name).filter(Boolean).join(', ') || 'nothing special';
+  // --- LOCATION ---
+  const biomeName = BIOMES[currentLocation.biomeId]?.name || 'Unknown Biome';
+  const timeDesc = formatGameTime(gameState.gameTime, { hour: '2-digit', minute: '2-digit', hour12: true });
+  // Use time modifiers for atmospheric flavor
+  const timeModifiers = getTimeModifiers(gameState.gameTime);
+  const flavorTime = timeModifiers.description;
 
-  const submapTileInfo = gameState.subMapCoordinates
-    ? getSubmapTileInfo(gameState.worldSeed, currentLocation.mapCoordinates, currentLocation.biomeId, SUBMAP_DIMENSIONS, gameState.subMapCoordinates)
-    : null;
+  let locationDetails = `${currentLocation.name} (${biomeName}) | Time: ${timeDesc} (${flavorTime})`;
 
-  const subMapCtx = submapTileInfo ? `You are standing on a '${submapTileInfo.effectiveTerrainType}' tile. ` : '';
-  const detailedLocationContext = `${subMapCtx}The location is ${currentLocation.name}. Biome: ${BIOMES[currentLocation.biomeId]?.name || 'Unknown'}. Game Time: ${gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}`;
+  // Submap Context
+  if (gameState.subMapCoordinates) {
+    const submapTileInfo = getSubmapTileInfo(gameState.worldSeed, currentLocation.mapCoordinates, currentLocation.biomeId, SUBMAP_DIMENSIONS, gameState.subMapCoordinates);
+    if (submapTileInfo) {
+      locationDetails += `\nImmediate Terrain: ${submapTileInfo.effectiveTerrainType}`;
+      if (submapTileInfo.activeFeatureConfig) {
+         locationDetails += ` | Feature: ${submapTileInfo.activeFeatureConfig.name}`;
+      }
+    }
+  }
 
-  // Narrative Context (History & Quests)
-  // We grab the last few messages to give the AI continuity
+  // Visible Items
+  const itemsInLocationNames = currentLocation.itemIds?.map((id) => ITEMS[id]?.name).filter(Boolean).join(', ');
+  if (itemsInLocationNames) {
+      locationDetails += `\nVisible Items: ${itemsInLocationNames}`;
+  }
+
+  parts.push(`## LOCATION\n${locationDetails}`);
+
+  // --- NPCS ---
+  if (npcsInLocation.length > 0) {
+    const npcLines = npcsInLocation.map(npc => {
+      const memory = gameState.npcMemory[npc.id];
+      let dispositionStr = 'Neutral';
+      if (memory) {
+         if (memory.disposition > 20) dispositionStr = 'Friendly';
+         else if (memory.disposition < -20) dispositionStr = 'Hostile';
+         else if (memory.disposition < -5) dispositionStr = 'Suspicious';
+      }
+      return `- ${npc.name} (${npc.role}): ${dispositionStr}`;
+    });
+    parts.push(`## NPCS\n${npcLines.join('\n')}`);
+  }
+
+  // --- ACTIVE QUESTS ---
+  const activeQuests = gameState.questLog
+    .filter(q => q.status === 'Active')
+    .map(q => `- ${q.title}`);
+
+  if (activeQuests.length > 0) {
+    parts.push(`## ACTIVE QUESTS\n${activeQuests.join('\n')}`);
+  }
+
+  // --- RECENT HISTORY ---
   const recentHistory = gameState.messages
     .filter(m => m.sender === 'system' || m.sender === 'player' || m.sender === 'npc')
-    .slice(-3)
+    .slice(-5) // Increased from 3 to 5 for better context
     .map(m => {
       const role = m.sender === 'player' ? 'Player' : (m.sender === 'npc' ? 'NPC' : 'Narrator');
       return `[${role}]: ${m.text}`;
     })
-    .join(' | ');
+    .join('\n');
 
-  const activeQuests = gameState.questLog
-    .filter(q => q.status === 'Active')
-    .map(q => q.title)
-    .join(', ');
+  if (recentHistory) {
+    parts.push(`## RECENT HISTORY\n${recentHistory}`);
+  }
 
-  // Assemble the rich context
-  const parts = [
-    `Player: ${playerContext}${playerHealthStatus}`,
-    `Location: ${detailedLocationContext}`,
-    `NPCs Present: ${npcsInLocation.map((n) => n.name).join(', ') || 'none'}`,
-    `Visible Items: ${itemsInLocationNames}`,
-    activeQuests ? `Active Quests: ${activeQuests}` : null,
-    recentHistory ? `Recent Events: ${recentHistory}` : null
-  ].filter(Boolean);
-
-  return parts.join('. ') + '.';
+  return parts.join('\n\n');
 }

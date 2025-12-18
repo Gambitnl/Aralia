@@ -18,6 +18,13 @@ vi.mock('../submapUtils', () => ({
   getSubmapTileInfo: () => null
 }));
 
+// Mock timeUtils to return a fixed description so tests don't flake on time
+vi.mock('../timeUtils', () => ({
+  getTimeModifiers: () => ({ description: 'The air is still.' }),
+  formatGameTime: () => '12:00 PM'
+}));
+
+
 describe('contextUtils', () => {
   const mockPlayer: PlayerCharacter = {
     name: 'Hero',
@@ -31,7 +38,8 @@ describe('contextUtils', () => {
     skills: [],
     speed: 30,
     darkvisionRange: 0,
-    equippedItems: {}
+    equippedItems: {},
+    conditions: []
   };
 
   const mockLocation: Location = {
@@ -99,7 +107,7 @@ describe('contextUtils', () => {
     questLog: [
       { id: 'q1', title: 'Find the Sword', description: '', status: 'Active', objectives: [], dateStarted: 0, giverId: 'npc1' }
     ]
-  } as unknown as GameState; // Cast to partial match
+  } as unknown as GameState;
 
   it('generates context with player, location, history, and quests', () => {
     const context = generateGeneralActionContext({
@@ -109,12 +117,16 @@ describe('contextUtils', () => {
       npcsInLocation: []
     });
 
-    expect(context).toContain('Player: Hero, a Human Fighter (HP: 10/20)');
-    expect(context).toContain('Location: The location is Old Ruins');
-    expect(context).toContain('Biome: Enchanted Forest');
+    expect(context).toContain('## PLAYER');
+    expect(context).toContain('Name: Hero (Human Fighter)');
+    expect(context).toContain('HP: 10/20');
+    expect(context).toContain('## LOCATION');
+    expect(context).toContain('Old Ruins (Enchanted Forest)');
     expect(context).toContain('Visible Items: Rusty Sword');
-    expect(context).toContain('Active Quests: Find the Sword');
-    expect(context).toContain('Recent Events: [Narrator]: Welcome to the game | [Player]: I look around | [Narrator]: You see nothing.');
+    expect(context).toContain('## ACTIVE QUESTS');
+    expect(context).toContain('- Find the Sword');
+    expect(context).toContain('## RECENT HISTORY');
+    expect(context).toContain('[Narrator]: Welcome to the game');
   });
 
   it('handles empty history and quests', () => {
@@ -126,8 +138,8 @@ describe('contextUtils', () => {
       npcsInLocation: []
     });
 
-    expect(context).not.toContain('Active Quests:');
-    expect(context).not.toContain('Recent Events:');
+    expect(context).not.toContain('## ACTIVE QUESTS');
+    expect(context).not.toContain('## RECENT HISTORY');
   });
 
   it('formats NPCs correctly', () => {
@@ -139,6 +151,7 @@ describe('contextUtils', () => {
       npcsInLocation: [mockNPC]
     });
 
-    expect(context).toContain('NPCs Present: Gandalf');
+    expect(context).toContain('## NPCS');
+    expect(context).toContain('- Gandalf (unique): Neutral');
   });
 });

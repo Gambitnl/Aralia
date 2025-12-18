@@ -17,10 +17,14 @@ interface EnvConfig {
 // TODO: Avoid shipping API_KEY to the client bundle; route AI calls through a server/proxy and leave ENV.API_KEY empty in browser builds.
 const RAW_ENV = {
   API_KEY: process.env.API_KEY || process.env.GEMINI_API_KEY || '',
-  BASE_URL: import.meta.env.BASE_URL,
-  DEV: import.meta.env.DEV,
+  // @ts-ignore
+  BASE_URL: (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env.BASE_URL : '/',
+  // @ts-ignore
+  DEV: (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env.DEV : true,
   // Parse 'true', '1', 'on' as true for VITE_ENABLE_DEV_TOOLS
-  VITE_ENABLE_DEV_TOOLS: import.meta.env.VITE_ENABLE_DEV_TOOLS
+  // @ts-ignore
+  VITE_ENABLE_DEV_TOOLS: (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_ENABLE_DEV_TOOLS)
+    // @ts-ignore
     ? ['true', '1', 'on'].includes((import.meta.env.VITE_ENABLE_DEV_TOOLS || '').toLowerCase())
     : undefined,
 };

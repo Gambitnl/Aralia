@@ -335,7 +335,8 @@ export async function generateActionOutcome(
   const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, sanitizedAction); // Default to PRO for quality narration, downgrades if spammy/short
 
   // Structured prompt construction for better context adherence (Chronicler Learning)
-  let prompt = `## PLAYER ACTION\n${sanitizedAction}\n\n## CURRENT CONTEXT\n${context}`;
+  // Note: 'context' now contains its own headers (## PLAYER, ## LOCATION, etc.)
+  let prompt = `## PLAYER ACTION\n${sanitizedAction}\n\n${context}`;
 
   if (sanitizedAction.toLowerCase().includes("look around") && worldMapTileTooltip) {
     prompt += `\n\n## BROADER CONTEXT (Look Around)\n${worldMapTileTooltip}`;
