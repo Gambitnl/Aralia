@@ -64,7 +64,7 @@ import {
 } from './character';
 import { Faction, PlayerFactionStanding } from './factions';
 import { NPCMemory } from './memory';
-import { NPCKnowledgeProfile } from './dialogue';
+import { NPCKnowledgeProfile, DialogueSession } from './dialogue';
 import { Companion } from './companions';
 import { DivineFavor, Temple } from './deity';
 import { Fence } from './crime';
@@ -399,6 +399,9 @@ export type ActionType =
   | 'UPDATE_QUEST_OBJECTIVE'
   | 'COMPLETE_QUEST'
   | 'TOGGLE_QUEST_LOG'
+  | 'START_DIALOGUE'
+  | 'END_DIALOGUE'
+  | 'SELECT_TOPIC'
   | 'PRAY';
 
 export enum DiscoveryType {
@@ -547,6 +550,10 @@ export interface GameState {
 
   lastInteractedNpcId: string | null;
   lastNpcResponse: string | null;
+
+  // Dialogue System
+  activeDialogueSession: DialogueSession | null;
+  isDialoguePaneVisible: boolean;
 
   inspectedTileDescriptions: Record<string, string>;
 
@@ -708,6 +715,9 @@ export interface Action {
     objectiveId?: string;
     isCompleted?: boolean;
     questId?: string;
+
+    // For Dialogue
+    topicId?: string;
 
     [key: string]: any;
   };

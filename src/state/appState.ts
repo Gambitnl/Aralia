@@ -32,6 +32,7 @@ import { questReducer } from './reducers/questReducer';
 import { townReducer } from './reducers/townReducer';
 import { crimeReducer } from './reducers/crimeReducer';
 import { companionReducer } from './reducers/companionReducer';
+import { dialogueReducer } from './reducers/dialogueReducer';
 import { COMPANIONS } from '../constants';
 
 
@@ -106,6 +107,10 @@ export const initialGameState: GameState = {
     // NPC interaction context
     lastInteractedNpcId: null,
     lastNpcResponse: null,
+
+    // Dialogue System
+    activeDialogueSession: null,
+    isDialoguePaneVisible: false,
 
     inspectedTileDescriptions: {},
 
@@ -223,6 +228,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     isNpcTestModalVisible: false,
                     isLogbookVisible: false,
                     isGameGuideVisible: false,
+                    isDialoguePaneVisible: false,
+                    activeDialogueSession: null,
                     merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
                 };
                 if (action.payload === GamePhase.CHARACTER_CREATION) {
@@ -431,7 +438,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 // Use loaded or fallback
                 factions: loadedFactions,
                 playerFactionStandings: loadedStandings,
-                underdark: loadedState.underdark || INITIAL_UNDERDARK_STATE
+                underdark: loadedState.underdark || INITIAL_UNDERDARK_STATE,
+                activeDialogueSession: null,
+                isDialoguePaneVisible: false
             };
         }
 
@@ -446,6 +455,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 lastInteractedNpcId: null,
                 lastNpcResponse: null,
                 merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
+                isDialoguePaneVisible: false,
+                activeDialogueSession: null
             };
         }
 
@@ -499,7 +510,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             return {
                 ...state,
                 phase: GamePhase.BATTLE_MAP_DEMO,
-                isMapVisible: false, isSubmapVisible: false, isDiscoveryLogVisible: false, isGlossaryVisible: false, merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] }
+                isMapVisible: false, isSubmapVisible: false, isDiscoveryLogVisible: false, isGlossaryVisible: false, merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] }, isDialoguePaneVisible: false
             };
         }
 
@@ -512,7 +523,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 phase: GamePhase.COMBAT, // Now transitions to the actual combat phase
                 currentEnemies: combatants,
                 isEncounterModalVisible: false,
-                isMapVisible: false, isSubmapVisible: false, isDiscoveryLogVisible: false, isGlossaryVisible: false, merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] }
+                isMapVisible: false, isSubmapVisible: false, isDiscoveryLogVisible: false, isGlossaryVisible: false, merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] }, isDialoguePaneVisible: false
             };
         }
 
@@ -585,6 +596,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ...townReducer(state, action),
                 ...crimeReducer(state, action),
                 ...companionReducer(state, action),
+                ...dialogueReducer(state, action),
             };
 
             if (Object.keys(changes).length === 0) {

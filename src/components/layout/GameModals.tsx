@@ -24,6 +24,7 @@
  * - MerchantModal: Trading interface.
  * - GameGuideModal: AI helper interface.
  * - MissingChoiceModal: Prompt for resolving pending character choices (e.g., leveling up).
+ * - DialoguePane: Structured Conversation Interface.
  */
 import React from 'react';
 import { AnimatePresence } from 'framer-motion';
@@ -51,6 +52,7 @@ import EncounterModal from '../EncounterModal';
 import MerchantModal from '../MerchantModal';
 import GameGuideModal from '../GameGuideModal';
 import MissingChoiceModal from '../MissingChoiceModal';
+import { DialoguePane } from '../Dialogue/DialoguePane';
 
 // TODO(FEATURES): Add centralized focus management and keyboard navigation patterns across modals for stronger accessibility (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 
@@ -347,6 +349,18 @@ const GameModals: React.FC<GameModalsProps> = ({
                         missingChoice={missingChoiceModal.missingChoice}
                         onClose={onCloseMissingChoice}
                         onConfirm={onConfirmMissingChoice}
+                    />
+                </ErrorBoundary>
+            )}
+
+            {/* Dialogue Pane */}
+            {gameState.isDialoguePaneVisible && gameState.activeDialogueSession && (
+                <ErrorBoundary fallbackMessage="Error in Dialogue Interface.">
+                    <DialoguePane
+                        isOpen={gameState.isDialoguePaneVisible}
+                        session={gameState.activeDialogueSession}
+                        npc={NPCS[gameState.activeDialogueSession.npcId]}
+                        onClose={() => dispatch({ type: 'END_DIALOGUE' })}
                     />
                 </ErrorBoundary>
             )}

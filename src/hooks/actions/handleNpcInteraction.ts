@@ -62,8 +62,7 @@ export async function handleTalk({
 
     // TODO(FEATURES): Add quest-giver hooks so NPCs can offer/advance quests through dialogue outcomes (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
     // TODO(Dialogist): Integrate structured dialogue system (src/services/dialogueService.ts) here.
-    // Replace current open-ended prompt with getAvailableTopics(gameState, npc.id) to offer player choices.
-    // Upon selection, feed topic.playerPrompt into the Gemini prompt or handle specialized outcomes.
+    // dispatch({ type: 'START_DIALOGUE', payload: { npcId: npc.id } }); // Enable this when ready to replace generic chat.
 
     // 2. Construct Memory Context string
     let memoryContextString = `Disposition towards player: ${memory.disposition}.`;
