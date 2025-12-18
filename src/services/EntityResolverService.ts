@@ -8,8 +8,9 @@
  * in the game state, or flags them for potential creation (stubs).
  */
 
-import { GameState } from '../types';
+import { GameState, Location, Faction, FactionRank } from '../types';
 import { FACTIONS } from '../data/factions';
+import { LOCATIONS } from '../data/world/locations';
 import { LANDMARK_TEMPLATES } from '../data/landmarks';
 
 export type EntityType = 'location' | 'faction' | 'npc' | 'item';
@@ -27,6 +28,12 @@ export interface ResolverResult {
   text: string; // The original text (potentially modified if we correct names)
   references: EntityReference[];
   validationErrors: string[]; // List of issues found (e.g., "Mentioned 'Silverdale' but it does not exist")
+}
+
+export interface EntityCreationResult {
+  entity: Location | Faction | null; // | NPC (future)
+  created: boolean;
+  type: EntityType;
 }
 
 export class EntityResolverService {
@@ -85,6 +92,48 @@ export class EntityResolverService {
   }
 
   /**
+   * Ensures an entity referenced by name exists in the game world.
+   * If it exists, returns it.
+   * If not, generates a new entity structure for it.
+   *
+   * @param type The type of entity (location, faction)
+   * @param name The name of the entity
+   * @param state The current game state (to check for dynamic entities)
+   * @returns An object containing the entity and a boolean indicating if it was newly created.
+   */
+  static ensureEntityExists(type: EntityType, name: string, state: GameState): EntityCreationResult {
+    const resolution = this.checkExistence(name, type, state);
+
+    if (resolution.exists && resolution.id) {
+      // Fetch existing entity
+      if (resolution.entityType === 'faction') {
+        const faction = state.factions[resolution.id] || FACTIONS[resolution.id];
+        return { entity: faction, created: false, type: 'faction' };
+      }
+      if (resolution.entityType === 'location') {
+        const location = state.dynamicLocations[resolution.id] || LOCATIONS[resolution.id];
+        // We might also match a landmark, which isn't a full location, but for now treat it as found.
+        // If it was a template landmark, we might need to instantiate it, but let's assume existence for now.
+        return { entity: location || null, created: false, type: 'location' };
+      }
+      // TODO: Handle NPCs
+      return { entity: null, created: false, type };
+    }
+
+    // Entity does not exist - Create it
+    if (type === 'faction') {
+      const newFaction = this.createFaction(name);
+      return { entity: newFaction, created: true, type: 'faction' };
+    } else if (type === 'location') {
+      const newLocation = this.createLocation(name);
+      return { entity: newLocation, created: true, type: 'location' };
+    }
+
+    return { entity: null, created: false, type };
+  }
+
+
+  /**
    * Checks if an entity exists in the static data or dynamic state.
    */
   private static checkExistence(name: string, assumedType: EntityType, state: GameState): { exists: boolean, id?: string, normalizedName: string, entityType?: EntityType } {
@@ -95,21 +144,75 @@ export class EntityResolverService {
     const staticFaction = Object.values(FACTIONS).find(f => f.name.toLowerCase() === normalized);
     if (staticFaction) return { exists: true, id: staticFaction.id, normalizedName: staticFaction.name, entityType: 'faction' };
 
-    // Check dynamic factions (Noble Houses) in state
+    // Check dynamic factions in state
     if (state.factions) {
         const dynamicFaction = Object.values(state.factions).find(f => f.name.toLowerCase() === normalized);
         if (dynamicFaction) return { exists: true, id: dynamicFaction.id, normalizedName: dynamicFaction.name, entityType: 'faction' };
     }
 
     // 2. Check Locations / Landmarks
-    // Static landmarks
+    // Check static locations
+    const staticLocation = Object.values(LOCATIONS).find(l => l.name.toLowerCase() === normalized);
+    if (staticLocation) return { exists: true, id: staticLocation.id, normalizedName: staticLocation.name, entityType: 'location' };
+
+    // Check dynamic locations in state
+    if (state.dynamicLocations) {
+      const dynamicLocation = Object.values(state.dynamicLocations).find(l => l.name.toLowerCase() === normalized);
+      if (dynamicLocation) return { exists: true, id: dynamicLocation.id, normalizedName: dynamicLocation.name, entityType: 'location' };
+    }
+
+    // Static landmarks (Templates)
     const landmark = LANDMARK_TEMPLATES.find(l => l.nameTemplate.some(t => t.toLowerCase() === normalized));
-    if (landmark) return { exists: true, id: landmark.id, normalizedName: name, entityType: 'location' }; // Return matching name
+    if (landmark) return { exists: true, id: landmark.id, normalizedName: name, entityType: 'location' };
 
     // 3. Check NPCs (State)
     // TODO: Connect to global NPC registry when it exists.
 
     return { exists: false, normalizedName: name };
+  }
+
+  /**
+   * Generates a new Faction stub.
+   */
+  private static createFaction(name: string): Faction {
+    const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+    // Basic stub ranks
+    const ranks: FactionRank[] = [
+      { id: 'associate', name: 'Associate', level: 1, description: 'A known associate.', perks: [] },
+      { id: 'member', name: 'Member', level: 2, description: 'A full member.', perks: [] }
+    ];
+
+    return {
+      id,
+      name,
+      description: `A faction known as ${name}.`,
+      type: 'GUILD', // Default type, could be inferred later
+      colors: { primary: '#000000', secondary: '#ffffff' },
+      ranks,
+      allies: [],
+      enemies: [],
+      rivals: [],
+      values: [],
+      hates: [],
+      power: 50,
+      assets: []
+    };
+  }
+
+  /**
+   * Generates a new Location stub.
+   */
+  private static createLocation(name: string): Location {
+    const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    return {
+      id,
+      name,
+      baseDescription: `You have arrived at ${name}.`,
+      exits: {},
+      mapCoordinates: { x: -1, y: -1 }, // Off-map / abstract location
+      biomeId: 'plains' // Default biome
+    };
   }
 
   /**

@@ -3,10 +3,12 @@ import { describe, it, expect } from 'vitest';
 import { EntityResolverService } from '../EntityResolverService';
 import { GameState } from '../../types';
 import { FACTIONS } from '../../data/factions';
+import { LOCATIONS } from '../../data/world/locations';
 
 describe('EntityResolverService', () => {
   const mockState = {
-    factions: { ...FACTIONS }, // Use static factions for test
+    factions: { ...FACTIONS },
+    dynamicLocations: {},
     // minimal state
   } as unknown as GameState;
 
@@ -17,7 +19,20 @@ describe('EntityResolverService', () => {
     const factionRef = result.references.find(r => r.normalizedName === "The Iron Ledger");
     expect(factionRef).toBeDefined();
     expect(factionRef?.exists).toBe(true);
-    expect(factionRef?.type).toBe('faction'); // Guess might vary but it exists
+    expect(factionRef?.type).toBe('faction');
+  });
+
+  it('should find known locations in text', () => {
+    // Assuming 'clearing' is a location with name "Forest Clearing"
+    // The current resolver uses exact name matching or landmark templates.
+    // "Forest Clearing" is the name.
+    const text = "Let's meet at the Forest Clearing.";
+    const result = EntityResolverService.resolveEntities(text, mockState);
+
+    const locRef = result.references.find(r => r.normalizedName === "Forest Clearing");
+    expect(locRef).toBeDefined();
+    expect(locRef?.exists).toBe(true);
+    expect(locRef?.type).toBe('location');
   });
 
   it('should flag unknown proper nouns as potential gaps', () => {
@@ -31,20 +46,45 @@ describe('EntityResolverService', () => {
     expect(result.validationErrors[0]).toContain("The Black Lotus");
   });
 
-  it('should ignore common words at start of sentences (basic check)', () => {
-    // This test is tricky with the simple regex, but let's see if it picks up "The"
-    const text = "The cat sat on the mat.";
-    // "The" is capitalized but shouldn't be an entity "The".
-    // "The cat" isn't a proper noun.
-    // However, "The Iron Ledger" IS.
+  describe('ensureEntityExists', () => {
+    it('should return existing faction if found', () => {
+      const result = EntityResolverService.ensureEntityExists('faction', 'The Iron Ledger', mockState);
+      expect(result.created).toBe(false);
+      expect(result.entity).toBeDefined();
+      expect(result.entity?.id).toBe('iron_ledger');
+    });
 
-    // Our extractProperNouns is simple. It might pick up "The".
-    // Let's refine the test to what we expect the behavior to be.
-    // Ideally it ignores "The" unless it's part of a larger name.
+    it('should create a new faction if missing', () => {
+      const result = EntityResolverService.ensureEntityExists('faction', 'The Silver Swords', mockState);
+      expect(result.created).toBe(true);
+      expect(result.entity).toBeDefined();
+      expect(result.entity?.name).toBe('The Silver Swords');
+      // ID generation check (snake_case)
+      expect(result.entity?.id).toContain('silver_swords');
+    });
 
-    const result = EntityResolverService.resolveEntities(text, mockState);
-    const theRef = result.references.find(r => r.originalText === "The");
-    // We expect "The" to be ignored if our filter works, OR it's there but exists=false.
-    // Ideally we want to avoid noise.
+    it('should create a new location if missing', () => {
+        const result = EntityResolverService.ensureEntityExists('location', 'Castle Ravenloft', mockState);
+        expect(result.created).toBe(true);
+        expect(result.entity).toBeDefined();
+        expect(result.entity?.name).toBe('Castle Ravenloft');
+        expect(result.entity?.id).toContain('castle_ravenloft');
+        // Check default props
+        expect((result.entity as any).mapCoordinates).toEqual({ x: -1, y: -1 });
+    });
+
+    it('should check dynamic locations in state', () => {
+       // Mock state with a dynamic location
+       const dynamicState = {
+           ...mockState,
+           dynamicLocations: {
+               'new_place': { id: 'new_place', name: 'New Place', baseDescription: 'Desc', exits: {}, mapCoordinates: {x:0, y:0}, biomeId: 'plains' }
+           }
+       } as unknown as GameState;
+
+       const result = EntityResolverService.ensureEntityExists('location', 'New Place', dynamicState);
+       expect(result.created).toBe(false);
+       expect(result.entity?.id).toBe('new_place');
+    });
   });
 });
