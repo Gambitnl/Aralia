@@ -16,7 +16,6 @@ interface UseBattleMapReturn {
     validMoves: Set<string>;
     activePath: BattleMapTile[];
     actionMode: 'move' | 'ability' | null;
-    attackableTargets: Set<string>;
     setActionMode: React.Dispatch<React.SetStateAction<'move' | 'ability' | null>>;
     handleTileClick: (tile: BattleMapTile) => void;
     handleCharacterClick: (character: CombatCharacter) => void;
@@ -30,7 +29,6 @@ export function useBattleMap(
 ): UseBattleMapReturn {
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [actionMode, setActionMode] = useState<'move' | 'ability' | null>(null);
-  const [attackableTargets, setAttackableTargets] = useState<Set<string>>(new Set());
 
   // Derived state: Map of character IDs to their positions
   const characterPositions = useMemo(() => {
@@ -41,13 +39,17 @@ export function useBattleMap(
     return newPositions;
   }, [characters]);
 
+  // Derived state: Selected Character Object
+  const selectedCharacter = useMemo(() =>
+    characters.find(c => c.id === selectedCharacterId) || null
+  , [characters, selectedCharacterId]);
+
   const {
       validMoves,
       activePath,
-      calculateValidMoves,
       calculatePath,
       clearMovementState
-  } = useGridMovement({ mapData, characterPositions });
+  } = useGridMovement({ mapData, characterPositions, selectedCharacter });
   
   const selectCharacter = useCallback((character: CombatCharacter) => {
     if (character.team !== 'player') return; // Prevent selecting enemy characters
@@ -56,10 +58,8 @@ export function useBattleMap(
     setSelectedCharacterId(character.id);
     setActionMode('move');
 
-    calculateValidMoves(character);
-    // Note: We don't explicitly clear activePath here because calculateValidMoves is implicitly a reset of movement state,
-    // and the next hover/action will set the path. The hook handles the validMoves state.
-  }, [turnManager.turnState.currentCharacterId, calculateValidMoves]);
+    // calculateValidMoves is now handled automatically by useGridMovement via useEffect
+  }, [turnManager.turnState.currentCharacterId]);
   
   const handleCharacterClick = useCallback((character: CombatCharacter) => {
     if (abilitySystem.targetingMode) {
@@ -119,7 +119,6 @@ export function useBattleMap(
     validMoves,
     activePath,
     actionMode,
-    attackableTargets,
     setActionMode,
     handleTileClick,
     handleCharacterClick,

@@ -3,44 +3,47 @@
  * Custom hook to manage the state and logic of grid-based movement.
  * Extracts pathfinding logic from the UI interaction layer.
  */
-import { useState, useCallback } from 'react';
-import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition, AbilityCost } from '../../types/combat';
+import { useState, useCallback, useMemo } from 'react';
+import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition } from '../../types/combat';
 import { findPath } from '../../utils/pathfinding';
 
 interface UseGridMovementProps {
   mapData: BattleMapData | null;
   characterPositions: Map<string, CharacterPosition>;
+  selectedCharacter: CombatCharacter | null;
 }
 
 interface UseGridMovementReturn {
   validMoves: Set<string>;
   activePath: BattleMapTile[];
-  calculateValidMoves: (character: CombatCharacter) => void;
   calculatePath: (character: CombatCharacter, targetTile: BattleMapTile) => void;
   clearMovementState: () => void;
 }
 
-export function useGridMovement({ mapData, characterPositions }: UseGridMovementProps): UseGridMovementReturn {
-  const [validMoves, setValidMoves] = useState<Set<string>>(new Set());
+export function useGridMovement({ mapData, characterPositions, selectedCharacter }: UseGridMovementProps): UseGridMovementReturn {
   const [activePath, setActivePath] = useState<BattleMapTile[]>([]);
 
-  const calculateValidMoves = useCallback((character: CombatCharacter) => {
-    if (!mapData) return;
-    const startPos = characterPositions.get(character.id)?.coordinates;
-    if (!startPos) return;
-    const startNode = mapData.tiles.get(`${startPos.x}-${startPos.y}`);
-    if (!startNode) return;
+  // Derived state: Valid moves for the selected character.
+  // We use useMemo to avoid recalculating on every render, but ensure it updates when
+  // the map, character position, or selected character changes.
+  const validMoves = useMemo(() => {
+    if (!selectedCharacter || !mapData) {
+      return new Set<string>();
+    }
 
-    // TODO: Optimize this with a more efficient search or memoization if map size increases.
-    // Ideally this logic should reside in src/utils/movementUtils.ts or similar pure function,
-    // but keeping it here for now to respect the "extract state" scope.
+    const startPos = characterPositions.get(selectedCharacter.id)?.coordinates;
+    if (!startPos) return new Set<string>();
+
+    const startNode = mapData.tiles.get(`${startPos.x}-${startPos.y}`);
+    if (!startNode) return new Set<string>();
 
     const reachableTiles = new Set<string>();
     const queue: { tile: BattleMapTile; cost: number }[] = [{ tile: startNode, cost: 0 }];
     const visited = new Set<string>([startNode.id]);
 
     // Calculate remaining movement
-    const movementRemaining = character.actionEconomy.movement.total - character.actionEconomy.movement.used;
+    const movement = selectedCharacter.actionEconomy?.movement;
+    const movementRemaining = movement ? (movement.total - movement.used) : 0;
 
     while (queue.length > 0) {
       const { tile, cost } = queue.shift()!;
@@ -55,16 +58,6 @@ export function useGridMovement({ mapData, characterPositions }: UseGridMovement
           const neighborId = `${newX}-${newY}`;
           const neighbor = mapData.tiles.get(neighborId);
 
-          // Check for valid move:
-          // 1. Neighbor exists
-          // 2. Not blocked (wall/obstacle)
-          // 3. Not occupied by another character (unless we allow moving through allies - current logic assumes strict block)
-          // Note: characterPositions check is needed if we want to block movement through units.
-          // The original code in useBattleMap didn't check characterPositions for blocking, only static map blocks.
-          // We will stick to the original behavior unless we want to enhance it.
-          // Update: We SHOULD block movement through other characters unless they are allies (optional rule).
-          // For now, let's keep it simple and match original behavior: only check static blocks + movement cost.
-
           if (neighbor && !neighbor.blocksMovement && !visited.has(neighborId)) {
             const newCost = cost + neighbor.movementCost;
             if (newCost <= movementRemaining) {
@@ -75,8 +68,8 @@ export function useGridMovement({ mapData, characterPositions }: UseGridMovement
         }
       }
     }
-    setValidMoves(reachableTiles);
-  }, [mapData, characterPositions]);
+    return reachableTiles;
+  }, [selectedCharacter, mapData, characterPositions]);
 
   const calculatePath = useCallback((character: CombatCharacter, targetTile: BattleMapTile) => {
     if (!mapData || !validMoves.has(targetTile.id)) {
@@ -93,14 +86,17 @@ export function useGridMovement({ mapData, characterPositions }: UseGridMovement
   }, [mapData, characterPositions, validMoves]);
 
   const clearMovementState = useCallback(() => {
-    setValidMoves(new Set());
     setActivePath([]);
+    // validMoves is derived, so we cannot manually clear it unless we deselect the character
+    // or the character's movement is used up.
+    // In the context of useBattleMap, clearMovementState is called after a move.
+    // The move action will update the character's position and used movement,
+    // which will trigger useMemo to recalculate validMoves (likely to a smaller set or new area).
   }, []);
 
   return {
     validMoves,
     activePath,
-    calculateValidMoves,
     calculatePath,
     clearMovementState
   };
