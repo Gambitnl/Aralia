@@ -5,9 +5,9 @@
  * It now uses a global context to get pre-loaded excerpts and provides a click handler for navigation.
  */
 import React, { useContext, ReactElement, HTMLAttributes } from 'react';
-import Tooltip from './Tooltip'; 
-import GlossaryContext from '../context/GlossaryContext'; 
-import { GlossaryEntry, GlossaryTooltipProps as LocalGlossaryTooltipProps } from '../types'; // Corrected import for GlossaryEntry
+import Tooltip from '../../components/ui/Tooltip';
+import GlossaryContext from '../../context/GlossaryContext';
+import { GlossaryEntry, GlossaryTooltipProps as LocalGlossaryTooltipProps } from '../../types'; // Corrected import for GlossaryEntry
 
 // Use LocalGlossaryTooltipProps for this component's props
 interface CustomGlossaryTooltipProps extends LocalGlossaryTooltipProps {
