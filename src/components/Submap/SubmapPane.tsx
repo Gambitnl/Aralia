@@ -12,7 +12,7 @@ import { BIOMES } from '../../constants';
 import { SUBMAP_DIMENSIONS } from '../../config/mapConfig';
 import { Action, InspectSubmapTilePayload, Location, MapData, BiomeVisuals, PlayerCharacter, NPC, Item, SeededFeatureConfig, GlossaryDisplayItem } from '../../types';
 import { BattleMapData, BattleMapTile } from '../../types/combat';
-import GlossaryDisplay from '../Glossary/GlossaryDisplay';
+import GlossaryDisplay from '../GlossaryDisplay';
 import { SUBMAP_ICON_MEANINGS } from '../../data/glossaryData';
 import { useSubmapProceduralData, PathDetails } from '../../hooks/useSubmapProceduralData';
 import CompassPane from '../CompassPane';

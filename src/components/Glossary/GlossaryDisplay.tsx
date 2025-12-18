@@ -4,7 +4,7 @@
  * typically used for map legends or submap glossaries.
  */
 import React from 'react';
-import { GlossaryDisplayItem } from '../../types'; // Changed GlossaryItem to GlossaryDisplayItem
+import { GlossaryDisplayItem } from '../types'; // Changed GlossaryItem to GlossaryDisplayItem
 
 interface GlossaryDisplayProps {
   items: GlossaryDisplayItem[]; // Changed GlossaryItem to GlossaryDisplayItem

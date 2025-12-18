@@ -15,7 +15,7 @@ import SkillDetailDisplay from './CharacterSheet/SkillDetailDisplay';
 import SpellbookOverlay from './SpellbookOverlay'; // Import the new SpellbookOverlay component
 import { getAbilityModifierValue, getAbilityModifierString, getCharacterRaceDisplayString } from '../utils/characterUtils';
 import Tooltip from './Tooltip';
-import SingleGlossaryEntryModal from './Glossary/SingleGlossaryEntryModal'; // This component handles its own visibility based on termId
+import SingleGlossaryEntryModal from './SingleGlossaryEntryModal'; // This component handles its own visibility based on termId
 import { FEATS_DATA } from '../data/feats/featsData';
 
 
