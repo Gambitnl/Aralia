@@ -64,7 +64,8 @@ export async function handleOpenDynamicMerchant({
       // 3. Apply Simulated World Events to Economy
       // We generate events deterministically based on game time (epoch) to ensure consistency for now,
       // but in the future this could be pulled from global GameState events.
-      const currentEvents = generateMarketEvents(gameState.gameTime.getTime());
+      // We now pass the location ID to ensure regional differences.
+      const currentEvents = generateMarketEvents(gameState.gameTime.getTime(), gameState.currentLocationId);
 
       const modifiedEconomy = economy
         ? applyEventsToEconomy(economy, currentEvents)

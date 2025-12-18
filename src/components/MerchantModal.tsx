@@ -145,11 +145,22 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
         <div className="flex justify-between items-center p-4 border-b border-gray-700 bg-gray-900/50 rounded-t-xl">
             <div>
                 <h2 className="text-2xl font-cinzel text-amber-400">{merchantName}</h2>
-                <div className="flex gap-3 text-sm text-gray-400 mt-1">
+                <div className="flex flex-col gap-1 text-sm text-gray-400 mt-1">
                    {economy ? (
                        <>
-                         <span className="text-green-400">Surplus: {economy.marketFactors.surplus.join(', ') || 'None'}</span>
-                         <span className="text-red-400">Scarcity: {economy.marketFactors.scarcity.join(', ') || 'None'}</span>
+                        {economy.activeEvents && economy.activeEvents.length > 0 ? (
+                            <div className="flex flex-col gap-1">
+                                {economy.activeEvents.map(event => (
+                                    <div key={event.id} className="text-amber-200 flex items-center gap-2">
+                                        <span>📢 {event.name}: {event.description}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : null}
+                         <div className="flex gap-3 mt-1">
+                            <span className="text-green-400">Surplus: {economy.marketFactors.surplus.join(', ') || 'None'}</span>
+                            <span className="text-red-400">Scarcity: {economy.marketFactors.scarcity.join(', ') || 'None'}</span>
+                         </div>
                        </>
                    ) : <span>Standard Prices</span>}
                 </div>

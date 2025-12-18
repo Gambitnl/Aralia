@@ -1,12 +1,14 @@
-import { EconomyState } from '@/types';
+import { EconomyState, MarketEvent } from '@/types';
 
-export interface MarketEvent {
-  id: string;
-  name: string;
-  description: string;
-  affectedTags: string[]; // Tags like 'weapon', 'food', 'magic'
-  effect: 'scarcity' | 'surplus';
-  duration: number; // In game ticks or arbitrary units
+// Simple string hash function to generate a numeric seed from a location ID
+function stringToNumber(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash);
 }
 
 export const POSSIBLE_MARKET_EVENTS: MarketEvent[] = [
@@ -20,14 +22,21 @@ export const POSSIBLE_MARKET_EVENTS: MarketEvent[] = [
 ];
 
 /**
- * Generates active market events based on a seed (e.g., current game time).
- * This ensures deterministic events for a given time/location seed.
+ * Generates active market events based on a seed (e.g., current game time) and optionally a location.
+ * This ensures deterministic events for a given time/location combination.
  */
-export function generateMarketEvents(seed: number): MarketEvent[] {
+export function generateMarketEvents(timeSeed: number, locationId?: string): MarketEvent[] {
   const events: MarketEvent[] = [];
+
+  // Combine time seed with location seed if provided
+  const locationSeed = locationId ? stringToNumber(locationId) : 0;
+  // We use a combined seed. Multiplying time by a prime and adding location ensures variety.
+  // Using a large multiplier for time to ensure small time changes cause big shifts.
+  const combinedSeed = timeSeed + (locationSeed * 1337);
+
   // Simple pseudo-random generator
   // Use a large multiplier to sensitize the sine wave to small seed changes
-  const rng = Math.abs(Math.sin(seed * 9999) * 10000);
+  const rng = Math.abs(Math.sin(combinedSeed * 9999) * 10000);
   const index = Math.floor((rng - Math.floor(rng)) * POSSIBLE_MARKET_EVENTS.length);
 
   // 40% chance of an event being active at any given time/location combo
@@ -47,7 +56,8 @@ export function applyEventsToEconomy(baseEconomy: EconomyState, events: MarketEv
       marketFactors: {
           scarcity: [...baseEconomy.marketFactors.scarcity],
           surplus: [...baseEconomy.marketFactors.surplus]
-      }
+      },
+      activeEvents: events // Store active events for UI
   };
 
   events.forEach(event => {
