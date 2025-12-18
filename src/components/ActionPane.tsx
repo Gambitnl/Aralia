@@ -34,7 +34,7 @@ interface ActionPaneProps {
   worldSeed?: number;
 }
 
-const ActionButton: React.FC<{
+interface ActionButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onClick'> {
   action: Action;
   onClick: (action: Action) => void;
   disabled: boolean;
@@ -42,7 +42,18 @@ const ActionButton: React.FC<{
   isGeminiAction?: boolean;
   badgeCount?: number;
   hasNotification?: boolean;
-}> = ({ action, onClick, disabled, className = '', isGeminiAction = false, badgeCount, hasNotification }) => {
+}
+
+const ActionButton = React.forwardRef<HTMLButtonElement, ActionButtonProps>(({
+  action,
+  onClick,
+  disabled,
+  className = '',
+  isGeminiAction = false,
+  badgeCount,
+  hasNotification,
+  ...props // Forward other props like role, tabIndex, onKeyDown
+}, ref) => {
   const baseClasses = `${BTN_BASE} ${BTN_SIZE_LG}`;
 
   let colorClasses = "btn-primary";
@@ -64,7 +75,7 @@ const ActionButton: React.FC<{
     colorClasses = "btn-teal";
   }
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
     // Ensure targetId for movement actions is a string to avoid type errors, without mutating prop
     if (action.type === 'move' && action.targetId && typeof action.targetId !== 'string') {
       onClick({ ...action, targetId: String(action.targetId) });
@@ -76,6 +87,7 @@ const ActionButton: React.FC<{
 
   return (
     <motion.button
+      ref={ref}
       {...{
         layout: true,
         initial: { opacity: 0, scale: 0.8 },
@@ -90,6 +102,7 @@ const ActionButton: React.FC<{
       aria-label={action.label}
       type="button"
       aria-disabled={disabled}
+      {...props}
     >
       {action.label}
       {badgeCount !== undefined && badgeCount > 0 && (
@@ -102,7 +115,9 @@ const ActionButton: React.FC<{
       )}
     </motion.button>
   );
-};
+});
+
+ActionButton.displayName = 'ActionButton';
 
 const ActionPane: React.FC<ActionPaneProps> = ({
   currentLocation,
@@ -122,6 +137,8 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   const [oracleQuery, setOracleQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
+  const menuItemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   /**
    * System and utility actions quickly overcrowd the primary grid on small screens.
@@ -145,10 +162,34 @@ const ActionPane: React.FC<ActionPaneProps> = ({
     [hasNewRateLimitError, isDevDummyActive, unreadDiscoveryCount],
   );
 
+  // Focus management for menu
+  useEffect(() => {
+    if (isMenuOpen) {
+      // Focus first item when opened
+      const firstItem = menuItemRefs.current[0];
+      if (firstItem) {
+        // Small timeout to allow framer-motion to mount the element
+        setTimeout(() => firstItem.focus(), 50);
+      }
+    } else {
+      // Focus trigger button when closed, ONLY if it was previously open (to avoid focus steal on mount)
+      // Actually, we should check if focus is currently inside the menu before returning it,
+      // but simpler is: if we just closed it, return focus.
+      if (document.activeElement && menuRef.current?.contains(document.activeElement)) {
+         menuTriggerRef.current?.focus();
+      }
+    }
+  }, [isMenuOpen]);
+
+  // Reset refs array when items change
+  useEffect(() => {
+    menuItemRefs.current = menuItemRefs.current.slice(0, systemMenuActions.length);
+  }, [systemMenuActions]);
+
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node) && !menuTriggerRef.current?.contains(event.target as Node)) {
         setIsMenuOpen(false);
       }
     };
@@ -157,6 +198,26 @@ const ActionPane: React.FC<ActionPaneProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  const handleMenuKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const nextIndex = (index + 1) % systemMenuActions.length;
+      menuItemRefs.current[nextIndex]?.focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prevIndex = (index - 1 + systemMenuActions.length) % systemMenuActions.length;
+      menuItemRefs.current[prevIndex]?.focus();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setIsMenuOpen(false);
+      menuTriggerRef.current?.focus();
+    } else if (e.key === 'Tab') {
+      // Allow default Tab behavior to leave the menu, but close it
+      setIsMenuOpen(false);
+    }
+  };
+
 
   const generalActions: Action[] = [];
 
@@ -336,6 +397,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
       {/* System/Menu Actions */}
       <div className="mt-6 pt-4 border-t border-gray-700 flex justify-end relative" ref={menuRef}>
         <button
+          ref={menuTriggerRef}
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           disabled={disabled}
           className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg shadow transition-colors"
@@ -358,17 +420,25 @@ const ActionPane: React.FC<ActionPaneProps> = ({
               transition={{ duration: 0.15 }}
               className="absolute bottom-full right-0 mb-2 w-56 bg-gray-800 border border-gray-600 rounded-lg shadow-xl overflow-hidden z-20 flex flex-col p-2 gap-2"
               role="menu"
+              // Add keydown listener to the menu container or items.
+              // We'll handle it on items, but this container needs to be labeled.
+              aria-label="System Menu"
             >
               {systemMenuActions.map(({ action, badgeCount, hasNotification }, idx) => (
                 <React.Fragment key={`${action.type}-${idx}`}>
                   {idx === 6 && <div className="h-px bg-gray-600 my-1" aria-hidden="true"></div>}
                   <ActionButton
+                    ref={(el) => {
+                      if (el) menuItemRefs.current[idx] = el;
+                    }}
                     className="w-full text-left"
                     action={action}
                     onClick={(a) => { onAction(a); setIsMenuOpen(false); }}
                     disabled={disabled}
                     badgeCount={badgeCount}
                     hasNotification={hasNotification}
+                    role="menuitem"
+                    onKeyDown={(e) => handleMenuKeyDown(e, idx)}
                   />
                 </React.Fragment>
               ))}
