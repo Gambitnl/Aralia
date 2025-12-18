@@ -348,6 +348,10 @@ export async function generateActionOutcome(
     result.data.text = validateNarrativeResponse(result.data.text);
   }
 
+  // TODO(Linker): Integrate EntityResolverService to validate entities in generated text.
+  // const entities = await EntityResolverService.resolveEntitiesInText(result.data.text, { gameState });
+  // This requires plumbing GameState into this service or accessing a global store.
+
   return result;
 }
 
