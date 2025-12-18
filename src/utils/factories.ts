@@ -41,7 +41,7 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
     type: "DAMAGE",
     trigger: { type: "immediate" },
     condition: { type: "hit" },
-    damage: { dice: "1d8", type: "Fire" }
+    damage: { dice: "1d8", type: DamageType.Fire }
   };
 
   return {
