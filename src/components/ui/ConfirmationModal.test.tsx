@@ -50,9 +50,9 @@ describe('ConfirmationModal', () => {
         expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it('focuses the Confirm button by default', () => {
+    it('focuses the Cancel button by default', () => {
         render(<ConfirmationModal {...defaultProps} />);
-        expect(screen.getByRole('button', { name: 'Confirm' })).toHaveFocus();
+        expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
     });
 
     it('does not call onConfirm when Enter key is pressed globally if focus is elsewhere', () => {
