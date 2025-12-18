@@ -85,6 +85,7 @@ export * from './planes';
 export * from './crime';
 export * from './dialogue';
 export * from './underdark';
+export * from './history';
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
@@ -332,6 +333,8 @@ export interface GeminiLogEntry {
 // Crime & notoriety (Legacy - migrating to src/types/crime)
 // -----------------------------------------------------------------------------
 import { Crime, HeatLevel, Bounty } from './crime';
+// Import the new History types to make them available globally
+import { WorldHistory, WorldHistoryEvent } from './history';
 
 export interface NotorietyState {
   globalHeat: number;
@@ -581,6 +584,12 @@ export interface GameState {
   economy: EconomyState;
 
   notoriety: NotorietyState;
+
+  /**
+   * Global history of the world.
+   * Tracks major events, faction changes, and heroics.
+   */
+  worldHistory?: WorldHistory; // Optional for now until initialized
 
   questLog: Quest[];
   isQuestLogVisible: boolean;
