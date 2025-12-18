@@ -81,6 +81,7 @@ export * from './memory';
 export * from './planes';
 export * from './crime';
 export * from './dialogue';
+export * from './loot';
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
@@ -454,6 +455,7 @@ export interface MonsterData {
   maxHP: number;
   abilities: CombatCharacter['abilities'];
   tags: string[];
+  // TODO(Warlord): Wire up `lootTableId?: string` here to link monsters to the new loot system (src/types/loot.ts).
 }
 
 export interface GroundingChunk {
