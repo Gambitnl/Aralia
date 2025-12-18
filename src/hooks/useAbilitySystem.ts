@@ -81,6 +81,7 @@ export const useAbilitySystem = ({
   const [pendingReaction, setPendingReaction] = useState<PendingReaction | null>(null);
 
   // --- Command Pattern Execution Logic ---
+  // TODO(Ritualist): Integrate RitualManager here to handle ritual casting (10+ min duration) instead of immediate execution.
   const executeSpell = useCallback(async (
     spell: Spell,
     caster: CombatCharacter,
