@@ -12,7 +12,7 @@ interface TooltipProps {
   content: string | React.ReactNode; // The content to display inside the tooltip
 }
 
-const Tooltip: React.FC<TooltipProps> = ({
+export const Tooltip: React.FC<TooltipProps> = ({
   children,
   content,
 }) => {

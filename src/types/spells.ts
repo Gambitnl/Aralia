@@ -40,6 +40,21 @@ export interface Spell {
   // --- AI & Advanced Systems ---
   arbitrationType?: ArbitrationType;
   aiContext?: AIContext;
+  choices?: SpellChoice[];
+}
+
+/**
+ * Represents a choice the player must make when casting the spell.
+ */
+export interface SpellChoice {
+  /** Unique ID for this choice, referenced by effects (e.g., "damage_type"). */
+  id: string;
+  /** Label to display in the UI. */
+  label: string;
+  /** Type of choice. */
+  type: "damage_type" | "creature_type" | "enum";
+  /** The allowed values for this choice. */
+  options: string[];
 }
 
 /** The eight schools of magic in D&D 5e. */
@@ -355,6 +370,11 @@ export interface DamageEffect extends BaseEffect {
 export interface DamageData {
   dice: string; // e.g., "8d6"
   type: DamageType;
+  /**
+   * If present, indicates the damage type is variable and determined by the
+   * spell choice with this ID. The 'type' field serves as a default/fallback.
+   */
+  typeChoice?: string;
 }
 
 /** An effect that restores hit points. */
@@ -504,6 +524,11 @@ export interface DefensiveEffect extends BaseEffect {
   acMinimum?: number;
 
   damageType?: DamageType[]; // For resistance/immunity
+  /**
+   * If present, indicates the damage type is variable and determined by the
+   * spell choice with this ID.
+   */
+  damageTypeChoice?: string;
   savingThrow?: SavingThrowAbility[]; // For advantage on saves
   duration: EffectDuration;
   attackerFilter?: TargetConditionFilter;

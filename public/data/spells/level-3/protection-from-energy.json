@@ -1,0 +1,54 @@
+{
+  "id": "protection-from-energy",
+  "name": "Protection from Energy",
+  "level": 3,
+  "school": "Abjuration",
+  "classes": ["Cleric", "Druid", "Paladin", "Ranger", "Sorcerer", "Wizard"],
+  "description": "For the duration, the willing creature you touch has resistance to one damage type of your choice: acid, cold, fire, lightning, or thunder.",
+  "rarity": "uncommon",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action"
+    }
+  },
+  "range": {
+    "type": "touch"
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "range": 0,
+    "validTargets": ["creatures", "self", "allies"],
+    "lineOfSight": false
+  },
+  "choices": [
+    {
+      "id": "energy_type",
+      "label": "Select Energy Type",
+      "type": "damage_type",
+      "options": ["Acid", "Cold", "Fire", "Lightning", "Thunder"]
+    }
+  ],
+  "effects": [
+    {
+      "type": "DEFENSIVE",
+      "defenseType": "resistance",
+      "damageTypeChoice": "energy_type",
+      "trigger": { "type": "immediate" },
+      "condition": { "type": "always" },
+      "duration": { "type": "minutes", "value": 60 }
+    }
+  ]
+}
