@@ -69,6 +69,48 @@ export function generateGeneralActionContext({
 
   parts.push(`## LOCATION\n${locationDetails}`);
 
+  // --- FACTIONS & POLITICS ---
+  // Identify factions present in the location via NPCs
+  const presentFactions = new Set<string>();
+  npcsInLocation.forEach(npc => {
+    if (npc.faction) {
+      presentFactions.add(npc.faction);
+    }
+  });
+
+  if (presentFactions.size > 0 && gameState.factions && gameState.playerFactionStandings) {
+    const factionDetails: string[] = [];
+
+    presentFactions.forEach(factionId => {
+      const faction = gameState.factions[factionId];
+      const standing = gameState.playerFactionStandings[factionId];
+
+      if (faction) {
+        let details = `- ${faction.name}: ${faction.description}`;
+        if (standing) {
+          details += ` | Standing: ${standing.publicStanding} (Rank: ${standing.rankId})`;
+        } else {
+            details += ` | Standing: Unknown`;
+        }
+        factionDetails.push(details);
+      }
+    });
+
+    if (factionDetails.length > 0) {
+      parts.push(`## FACTIONS & POLITICS\n${factionDetails.join('\n')}`);
+    }
+  }
+
+  // --- NOTORIETY ---
+  // Include if there's any global heat or significant local heat
+  const globalHeat = gameState.notoriety?.globalHeat || 0;
+  const localHeat = gameState.notoriety?.localHeat?.[currentLocation.id] || 0;
+
+  if (globalHeat > 0 || localHeat > 0) {
+      parts.push(`## NOTORIETY\nGlobal Heat: ${globalHeat} | Local Heat: ${localHeat}`);
+  }
+
+
   // --- NPCS ---
   if (npcsInLocation.length > 0) {
     const npcLines = npcsInLocation.map(npc => {
