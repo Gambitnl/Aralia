@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { AUTO_SAVE_SLOT_KEY, SaveSlotSummary, getSlotStorageKey } from '../services/saveLoadService';
 import { ConfirmationModal } from './ui/ConfirmationModal';
-import { ENV } from '../config/env';
 
 interface SaveSlotSelectorProps {
   slots: SaveSlotSummary[];
@@ -87,7 +86,7 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
     // TODO(QOL): Add automated accessibility tests (axe) to verify focus trap and keyboard navigation in SaveSlotSelector (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
     // The dependency axe-core is large, so we only want to load it in development.
     // Only run axe in development; ensure ENV.DEV tree-shakes like import.meta.env.DEV so axe-core stays out of production bundles.
-    if (ENV.DEV && rootRef.current) {
+    if (import.meta.env.DEV && rootRef.current) {
       const node = rootRef.current;
       import('../utils/testUtils').then(({ runAxe }) => {
         runAxe(node);
