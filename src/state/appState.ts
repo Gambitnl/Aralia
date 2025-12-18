@@ -8,6 +8,7 @@ import { GameState, GamePhase, PlayerCharacter, Item, MapData, TempPartyMember, 
 import { AppAction } from './actionTypes';
 import { STARTING_LOCATION_ID, DUMMY_PARTY_FOR_DEV, LOCATIONS, ITEMS, initialInventoryForDummyCharacter, CLASSES_DATA, NPCS } from '../constants';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../data/factions';
+import { getAllFactions } from '../utils/factionUtils';
 import { DEITIES } from '../data/deities';
 import { TEMPLES } from '../data/temples';
 import { canUseDevTools } from '../utils/permissions';
@@ -213,7 +214,24 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             }
             return { ...state, phase: action.payload, ...additionalUpdates };
 
-        case 'START_NEW_GAME_SETUP':
+        case 'START_NEW_GAME_SETUP': {
+            const allFactions = getAllFactions(action.payload.worldSeed);
+            // Initialize standings for generated factions
+            const factionStandings = { ...INITIAL_FACTION_STANDINGS };
+
+            Object.values(allFactions).forEach(faction => {
+                if (!factionStandings[faction.id]) {
+                    factionStandings[faction.id] = {
+                        factionId: faction.id,
+                        publicStanding: 0,
+                        secretStanding: 0,
+                        rankId: 'outsider',
+                        favorsOwed: 0,
+                        renown: 0
+                    };
+                }
+            });
+
             return {
                 ...initialGameState,
                 phase: GamePhase.CHARACTER_CREATION,
@@ -228,12 +246,32 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 gold: 0,
                 questLog: [],
                 notifications: [],
+                factions: allFactions,
+                playerFactionStandings: factionStandings
             };
+        }
 
         case 'START_GAME_FOR_DUMMY': {
             const { mapData, dynamicLocationItemIds, generatedParty, worldSeed } = action.payload;
             if (!generatedParty || generatedParty.length === 0) return { ...state, error: "Dummy character data not available.", phase: GamePhase.MAIN_MENU, isLoading: false, loadingMessage: null };
             const initialDummyLocation = LOCATIONS[STARTING_LOCATION_ID];
+
+            const allFactions = getAllFactions(worldSeed);
+            const factionStandings = { ...INITIAL_FACTION_STANDINGS };
+
+            Object.values(allFactions).forEach(faction => {
+                if (!factionStandings[faction.id]) {
+                     factionStandings[faction.id] = {
+                        factionId: faction.id,
+                        publicStanding: 0,
+                        secretStanding: 0,
+                        rankId: 'outsider',
+                        favorsOwed: 0,
+                        renown: 0
+                    };
+                }
+            });
+
             return {
                 ...initialGameState,
                 phase: GamePhase.PLAYING,
@@ -256,6 +294,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 questLog: [],
                 isQuestLogVisible: false,
                 notifications: [],
+                factions: allFactions,
+                playerFactionStandings: factionStandings
             };
         }
 
@@ -292,6 +332,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 questLog: [],
                 isQuestLogVisible: false,
                 notifications: [],
+                // Ensure factions from state are preserved (set in START_NEW_GAME_SETUP)
+                factions: state.factions,
+                playerFactionStandings: state.playerFactionStandings
             };
         }
 
@@ -327,6 +370,10 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 console.log(`Migrated ${coinCount} shiny_coin items to gold. Total gold: ${migratedGold}`);
             }
 
+            // Load factions from state, falling back to getAllFactions if missing (legacy save support)
+            const loadedFactions = loadedState.factions || getAllFactions(loadedState.worldSeed || Date.now());
+            const loadedStandings = loadedState.playerFactionStandings || INITIAL_FACTION_STANDINGS;
+
             return {
                 ...loadedState,
                 phase: GamePhase.LOAD_TRANSITION,
@@ -353,6 +400,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 isQuestLogVisible: false,
                 notoriety: loadedState.notoriety || { globalHeat: 0, localHeat: {}, knownCrimes: [] },
                 notifications: [],
+                // Use loaded or fallback
+                factions: loadedFactions,
+                playerFactionStandings: loadedStandings
             };
         }
 
