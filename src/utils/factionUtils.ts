@@ -6,10 +6,11 @@
  * Utility functions for managing faction reputation and standing.
  */
 
-import { GameState, GameMessage } from '../types';
+import { GameState, GameMessage, PlayerIdentityState } from '../types';
 import { PlayerFactionStanding, Faction } from '../types/factions';
 import { FACTIONS } from '../data/factions';
 import { generateRegionalPolitics } from './nobleHouseGenerator';
+import { logger } from './logger';
 
 export type ReputationTier = 'NEMESIS' | 'HOSTILE' | 'UNFRIENDLY' | 'NEUTRAL' | 'FRIENDLY' | 'HONORED' | 'REVERED';
 
@@ -66,13 +67,25 @@ export const getAllFactions = (worldSeed: number = 0): Record<string, Faction> =
  * Gets the player's standing with a faction.
  * If 'secretly' is true, returns the true standing.
  * If false, returns the public standing (what they show).
+ *
+ * Automatically resolves the standing for the CURRENT persona.
  */
 export const getFactionStanding = (
     state: GameState,
     factionId: string,
     secretly: boolean = false
 ): number => {
-    const standing = state.playerFactionStandings[factionId];
+    let standings = state.playerFactionStandings;
+
+    // Check if we are using an alias and if that alias has its own standings
+    if (state.identity && state.identity.currentPersonaId !== state.identity.trueIdentity.id) {
+        const alias = state.identity.aliases.find(a => a.id === state.identity.currentPersonaId);
+        if (alias) {
+             standings = alias.standings;
+        }
+    }
+
+    const standing = standings[factionId];
     if (!standing) return 0; // Default to neutral if unknown
     return secretly ? standing.secretStanding : standing.publicStanding;
 };
@@ -91,14 +104,16 @@ export const formatReputationChangeMessage = (
     factionName: string,
     change: number,
     type: 'public' | 'secret',
-    reason?: string
+    reason?: string,
+    personaName?: string
 ): string => {
     const verb = change > 0 ? 'improved' : 'worsened';
     const amountStr = Math.abs(change).toString();
     const typeStr = type === 'secret' ? 'Secretly' : 'Publicly';
     const reasonStr = reason ? ` due to ${reason}` : '';
+    const personaStr = personaName ? ` (as ${personaName})` : '';
 
-    return `${typeStr}, your standing with ${factionName} has ${verb} by ${amountStr}${reasonStr}.`;
+    return `${typeStr}, your standing with ${factionName}${personaStr} has ${verb} by ${amountStr}${reasonStr}.`;
 };
 
 interface RippleEffect {
@@ -188,7 +203,8 @@ export const calculateRippleEffects = (
 };
 
 interface ApplyReputationResult {
-    standings: Record<string, PlayerFactionStanding>;
+    standings: Record<string, PlayerFactionStanding>; // The updated standings map (could be global or alias)
+    identityState?: PlayerIdentityState; // Updated identity state if alias standings changed
     logs: GameMessage[];
 }
 
@@ -196,23 +212,44 @@ interface ApplyReputationResult {
  * Applies a reputation change and all its ripple effects.
  * Returns updated standings map and generated log messages.
  * Does NOT mutate the input state.
+ *
+ * Supports IDENTITY SYSTEM: Can target a specific persona ID.
+ * If no personaId is provided, it uses the currently active persona.
  */
 export const applyReputationChange = (
     state: GameState,
     factionId: string,
     amount: number,
-    reason: string
+    reason: string,
+    targetPersonaId?: string
 ): ApplyReputationResult => {
-    // Clone standings to avoid mutation
-    const newStandings = { ...state.playerFactionStandings };
     const logs: GameMessage[] = [];
     const timestamp = new Date(); // Use current time for log generation
 
+    // Determine which identity we are modifying
+    const personaId = targetPersonaId || state.identity?.currentPersonaId || 'player_true';
+    const isAlias = personaId !== state.identity?.trueIdentity.id && personaId !== 'player_true';
+
+    let workingStandings: Record<string, PlayerFactionStanding>;
+    let aliasIndex = -1;
+
+    if (isAlias && state.identity) {
+        aliasIndex = state.identity.aliases.findIndex(a => a.id === personaId);
+        if (aliasIndex !== -1) {
+            workingStandings = { ...state.identity.aliases[aliasIndex].standings };
+        } else {
+            logger.warn(`Reputation change targeted unknown alias ${personaId}. Fallback to global.`);
+            workingStandings = { ...state.playerFactionStandings };
+        }
+    } else {
+        workingStandings = { ...state.playerFactionStandings };
+    }
+
     // Helper to apply change
     const applyToFaction = (fId: string, amt: number, rsn: string) => {
-        if (!newStandings[fId]) {
-             // Initialize if missing (should exist from game start, but safe fallback)
-             newStandings[fId] = {
+        if (!workingStandings[fId]) {
+             // Initialize if missing
+             workingStandings[fId] = {
                  factionId: fId,
                  publicStanding: 0,
                  secretStanding: 0,
@@ -222,12 +259,12 @@ export const applyReputationChange = (
              };
         }
 
-        const current = newStandings[fId];
+        const current = workingStandings[fId];
         const oldStanding = current.publicStanding;
         const newStanding = calculateNewStanding(oldStanding, amt);
 
         // Update state
-        newStandings[fId] = {
+        workingStandings[fId] = {
             ...current,
             publicStanding: newStanding,
             secretStanding: calculateNewStanding(current.secretStanding, amt) // Assume secret moves with public for now
@@ -236,9 +273,14 @@ export const applyReputationChange = (
         // Log if visible change
         if (amt !== 0) {
             const factionName = state.factions[fId]?.name || fId;
+            let personaName = undefined;
+            if (isAlias && state.identity && aliasIndex !== -1) {
+                personaName = state.identity.aliases[aliasIndex].name;
+            }
+
             logs.push({
                 id: Date.now() + Math.random(), // Simple ID generation
-                text: formatReputationChangeMessage(factionName, amt, 'public', rsn),
+                text: formatReputationChangeMessage(factionName, amt, 'public', rsn, personaName),
                 sender: 'system',
                 timestamp: timestamp
             });
@@ -254,5 +296,28 @@ export const applyReputationChange = (
         applyToFaction(ripple.factionId, ripple.amount, ripple.reason);
     });
 
-    return { standings: newStandings, logs };
+    // 3. Construct result
+    if (isAlias && state.identity && aliasIndex !== -1) {
+        // We modified an alias, so we need to return the updated Identity state
+        const updatedAliases = [...state.identity.aliases];
+        updatedAliases[aliasIndex] = {
+            ...updatedAliases[aliasIndex],
+            standings: workingStandings
+        };
+
+        return {
+            standings: state.playerFactionStandings, // Unchanged
+            identityState: {
+                ...state.identity,
+                aliases: updatedAliases
+            },
+            logs
+        };
+    } else {
+        // We modified the true identity (global standings)
+        return {
+            standings: workingStandings,
+            logs
+        };
+    }
 };

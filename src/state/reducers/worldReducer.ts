@@ -59,6 +59,7 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
               ...partialUpdate,
               factions: newState.factions,
               playerFactionStandings: newState.playerFactionStandings,
+              identity: newState.identity, // Capture identity updates (e.g. alias standings)
               messages: [...state.messages, ...logs]
           };
       }

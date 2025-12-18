@@ -63,6 +63,7 @@ import {
   RacialSpell,
 } from './character';
 import { Faction, PlayerFactionStanding } from './factions';
+import { PlayerIdentityState } from './identity';
 import { NPCMemory } from './memory';
 import { Companion } from './companions';
 import { DivineFavor, Temple } from './deity';
@@ -76,6 +77,7 @@ export * from './spells';
 export * from './creatures';
 export * from './deity';
 export * from './factions';
+export * from './identity';
 export * from './companions';
 export * from './memory';
 export * from './planes';
@@ -572,7 +574,8 @@ export interface GameState {
 
   // Intriguer: Faction System
   factions: Record<string, Faction>; // All active factions in the world
-  playerFactionStandings: Record<string, PlayerFactionStanding>; // Player's standing with factions
+  playerFactionStandings: Record<string, PlayerFactionStanding>; // Player's standing with factions (True Identity)
+  identity: PlayerIdentityState; // Multi-layered identity system
   companions: Record<string, Companion>; // Keyed by Companion ID
 
   // Templar: Religion System

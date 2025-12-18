@@ -99,6 +99,12 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
      const reason = `your association with their rival, ${winner.name}`;
      const result = applyReputationChange(newState, loserId, penalty, reason);
      newState = { ...newState, playerFactionStandings: result.standings };
+
+     // Also update identity state if alias standings changed
+     if (result.identityState) {
+         newState = { ...newState, identity: result.identityState };
+     }
+
      logs.push(...result.logs);
   }
 

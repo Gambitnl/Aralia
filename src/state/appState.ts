@@ -4,7 +4,7 @@
  * Defines the state structure, initial state, actions, and the root reducer for the application.
  * The root reducer orchestrates calls to smaller "slice" reducers for better modularity.
  */
-import { GameState, GamePhase, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, SuspicionLevel, KnownFact, QuestStatus } from '../types';
+import { GameState, GamePhase, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, SuspicionLevel, KnownFact, QuestStatus, PlayerIdentityState } from '../types';
 import { AppAction } from './actionTypes';
 import { STARTING_LOCATION_ID, DUMMY_PARTY_FOR_DEV, LOCATIONS, ITEMS, initialInventoryForDummyCharacter, CLASSES_DATA, NPCS } from '../constants';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../data/factions';
@@ -151,6 +151,21 @@ export const initialGameState: GameState = {
     // Faction System
     factions: FACTIONS,
     playerFactionStandings: INITIAL_FACTION_STANDINGS,
+    identity: {
+        characterId: 'player',
+        trueIdentity: {
+            id: 'player_true',
+            name: 'Wanderer', // Will be updated on character creation
+            type: 'true',
+            history: 'A traveler from distant lands.',
+            fame: 0
+        },
+        activeDisguise: null,
+        currentPersonaId: 'player_true',
+        aliases: [],
+        knownSecrets: [],
+        exposedSecrets: []
+    },
 
     // Companion System
     companions: COMPANIONS,
@@ -248,7 +263,22 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 questLog: [],
                 notifications: [],
                 factions: allFactions,
-                playerFactionStandings: factionStandings
+                playerFactionStandings: factionStandings,
+                identity: {
+                    characterId: 'player',
+                    trueIdentity: {
+                        id: 'player_true',
+                        name: 'Wanderer', // Placeholder
+                        type: 'true',
+                        history: 'A traveler.',
+                        fame: 0
+                    },
+                    activeDisguise: null,
+                    currentPersonaId: 'player_true',
+                    aliases: [],
+                    knownSecrets: [],
+                    exposedSecrets: []
+                },
             };
         }
 
@@ -296,7 +326,22 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 isQuestLogVisible: false,
                 notifications: [],
                 factions: allFactions,
-                playerFactionStandings: factionStandings
+                playerFactionStandings: factionStandings,
+                identity: {
+                    characterId: 'player',
+                    trueIdentity: {
+                        id: 'player_true',
+                        name: generatedParty[0].name,
+                        type: 'true',
+                        history: 'A dummy character.',
+                        fame: 0
+                    },
+                    activeDisguise: null,
+                    currentPersonaId: 'player_true',
+                    aliases: [],
+                    knownSecrets: [],
+                    exposedSecrets: []
+                },
             };
         }
 
@@ -335,7 +380,22 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 notifications: [],
                 // Ensure factions from state are preserved (set in START_NEW_GAME_SETUP)
                 factions: state.factions,
-                playerFactionStandings: state.playerFactionStandings
+                playerFactionStandings: state.playerFactionStandings,
+                identity: {
+                    characterId: 'player',
+                    trueIdentity: {
+                        id: 'player_true',
+                        name: restOfPayload.character.name,
+                        type: 'true',
+                        history: restOfPayload.character.background?.description || 'A traveler.',
+                        fame: 0
+                    },
+                    activeDisguise: null,
+                    currentPersonaId: 'player_true',
+                    aliases: [],
+                    knownSecrets: [],
+                    exposedSecrets: []
+                },
             };
         }
 
@@ -375,6 +435,23 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             const loadedFactions = loadedState.factions || getAllFactions(loadedState.worldSeed || Date.now());
             const loadedStandings = loadedState.playerFactionStandings || INITIAL_FACTION_STANDINGS;
 
+            // Backwards compatibility for saves without identity state
+            const identity = loadedState.identity || {
+                characterId: 'player',
+                trueIdentity: {
+                    id: 'player_true',
+                    name: partyFromLoad?.[0]?.name || 'Wanderer',
+                    type: 'true',
+                    history: 'A traveler.',
+                    fame: 0
+                },
+                activeDisguise: null,
+                currentPersonaId: 'player_true',
+                aliases: [],
+                knownSecrets: [],
+                exposedSecrets: []
+            };
+
             return {
                 ...loadedState,
                 phase: GamePhase.LOAD_TRANSITION,
@@ -403,7 +480,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 notifications: [],
                 // Use loaded or fallback
                 factions: loadedFactions,
-                playerFactionStandings: loadedStandings
+                playerFactionStandings: loadedStandings,
+                identity: identity
             };
         }
 

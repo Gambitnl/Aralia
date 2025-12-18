@@ -7,7 +7,7 @@
  * Supports multi-layered identity, espionage, and information warfare.
  */
 
-import type { FactionReputationChange } from './factions';
+import type { FactionReputationChange, PlayerFactionStanding } from './factions';
 
 export type IdentityType = 'true' | 'alias';
 
@@ -51,6 +51,12 @@ export interface Alias extends Identity {
    * Regions or factions where this alias is established.
    */
   establishedIn: string[];
+
+  /**
+   * Faction standings specific to this alias.
+   * If a faction is not listed here, they treat the alias as a stranger (0 standing).
+   */
+  standings: Record<string, PlayerFactionStanding>;
 }
 
 /**
