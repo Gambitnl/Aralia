@@ -6,7 +6,7 @@
  * Manages daily world simulation events.
  */
 
-import { GameState, GameMessage, WorldRumor } from '../../types';
+import { GameState, GameMessage, WorldRumor, MarketEvent, EconomyState } from '../../types';
 import { applyReputationChange } from '../../utils/factionUtils';
 import { getGameDay, addGameTime } from '../../utils/timeUtils';
 import { SeededRandom } from '../../utils/seededRandom';
@@ -107,39 +107,120 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
 
 /**
  * Handles Market Shift events.
- * Adds flavor text about economic changes.
+ * Adds flavor text and updates economy state.
  */
 const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResult => {
-    const events = [
-        "A surplus of iron from the mines has lowered weapon prices.",
-        "Drought in the farmlands has driven up food costs.",
-        "A sunken merchant ship has made silk a rare luxury.",
-        "A new trade route has opened, flooding the market with exotic spices."
+    // Define possible market events with their economic impact
+    const possibleEvents = [
+        {
+            text: "A surplus of iron from the mines has lowered weapon prices.",
+            name: "Iron Surplus",
+            affectedTags: ['weapon', 'armor', 'metal'],
+            effect: 'surplus' as const,
+            duration: 7
+        },
+        {
+            text: "Drought in the farmlands has driven up food costs.",
+            name: "Farmland Drought",
+            affectedTags: ['food', 'ration', 'supply'],
+            effect: 'scarcity' as const,
+            duration: 14
+        },
+        {
+            text: "A sunken merchant ship has made silk a rare luxury.",
+            name: "Lost Shipment",
+            affectedTags: ['clothing', 'luxury', 'silk'],
+            effect: 'scarcity' as const,
+            duration: 10
+        },
+        {
+            text: "A new trade route has opened, flooding the market with exotic spices.",
+            name: "New Trade Route",
+            affectedTags: ['spice', 'food', 'exotic'],
+            effect: 'surplus' as const,
+            duration: 20
+        },
+        {
+             text: "War in the neighboring kingdom has increased demand for healing supplies.",
+             name: "War Demand",
+             affectedTags: ['potion', 'healing', 'medicine'],
+             effect: 'scarcity' as const,
+             duration: 14
+        },
+        {
+            text: "A grand festival is approaching, driving up the price of luxuries.",
+            name: "Festival Season",
+            affectedTags: ['clothing', 'jewelry', 'alcohol', 'luxury'],
+            effect: 'scarcity' as const,
+            duration: 5
+        }
     ];
 
-    const text = events[Math.floor(rng.next() * events.length)];
+    const eventTemplate = possibleEvents[Math.floor(rng.next() * possibleEvents.length)];
     const timestamp = state.gameTime || new Date();
     const gameDay = getGameDay(timestamp);
 
     const logs: GameMessage[] = [{
         id: Date.now() + rng.next(),
-        text: `Market News: ${text}`,
+        text: `Market News: ${eventTemplate.text}`,
         sender: 'system',
         timestamp: timestamp
     }];
 
     const rumor: WorldRumor = {
         id: `market-${gameDay}-${rng.next().toString(36).substr(2, 5)}`,
-        text,
+        text: eventTemplate.text,
         type: 'market',
         timestamp: gameDay,
         expiration: gameDay + 5
     };
 
+    // Create the structured market event
+    const marketEvent: MarketEvent = {
+        id: `mevt-${gameDay}-${rng.next().toString(36).substr(2, 5)}`,
+        name: eventTemplate.name,
+        description: eventTemplate.text,
+        affectedTags: eventTemplate.affectedTags,
+        effect: eventTemplate.effect,
+        duration: eventTemplate.duration
+    };
+
+    // Update Economy State
+    const currentEconomy = state.economy || {
+        marketFactors: { scarcity: [], surplus: [] },
+        buyMultiplier: 1.0,
+        sellMultiplier: 0.5,
+        activeEvents: []
+    };
+
+    const newActiveEvents = [...(currentEconomy.activeEvents || []), marketEvent];
+
+    // Re-calculate market factors based on all active events
+    const newScarcity = new Set<string>();
+    const newSurplus = new Set<string>();
+
+    newActiveEvents.forEach(e => {
+        if (e.effect === 'scarcity') {
+            e.affectedTags.forEach(tag => newScarcity.add(tag));
+        } else {
+            e.affectedTags.forEach(tag => newSurplus.add(tag));
+        }
+    });
+
+    const newEconomy: EconomyState = {
+        ...currentEconomy,
+        activeEvents: newActiveEvents,
+        marketFactors: {
+            scarcity: Array.from(newScarcity),
+            surplus: Array.from(newSurplus)
+        }
+    };
+
     return {
         state: {
             ...state,
-            activeRumors: [...(state.activeRumors || []), rumor]
+            activeRumors: [...(state.activeRumors || []), rumor],
+            economy: newEconomy
         },
         logs
     };
@@ -196,7 +277,7 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
   let currentState = state; // Start with reference, only clone on change
   let allLogs: GameMessage[] = [];
 
-  // Clean up expired rumors
+  // 1. Clean up expired rumors
   const currentDay = getGameDay(state.gameTime);
   if (currentState.activeRumors) {
       const activeRumors = currentState.activeRumors.filter(r => r.expiration >= currentDay);
@@ -207,7 +288,52 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
       currentState = { ...currentState, activeRumors: [] };
   }
 
-  // Iterate for each day passed
+  // 2. Clean up expired market events and update factors
+  if (currentState.economy && currentState.economy.activeEvents) {
+     const activeMarketEvents = currentState.economy.activeEvents.filter(e => {
+         // Assuming simple duration decrement logic or expiration check
+         // Here we'll treat duration as 'days remaining' effectively if we had a start date,
+         // but since we don't store start date in MarketEvent, we'll just check if it should persist.
+         // Wait, the interface says `duration: number`.
+         // We should probably decrease it or track expiration time.
+         // Let's assume `duration` is days remaining.
+         return e.duration > 0;
+     });
+
+     // Decrement duration for all events based on daysPassed
+     const updatedEvents = activeMarketEvents.map(e => ({
+         ...e,
+         duration: Math.max(0, e.duration - daysPassed)
+     })).filter(e => e.duration > 0);
+
+     if (updatedEvents.length !== currentState.economy.activeEvents.length || daysPassed > 0) {
+        // Re-calculate market factors
+        const newScarcity = new Set<string>();
+        const newSurplus = new Set<string>();
+
+        updatedEvents.forEach(e => {
+            if (e.effect === 'scarcity') {
+                e.affectedTags.forEach(tag => newScarcity.add(tag));
+            } else {
+                e.affectedTags.forEach(tag => newSurplus.add(tag));
+            }
+        });
+
+        currentState = {
+            ...currentState,
+            economy: {
+                ...currentState.economy,
+                activeEvents: updatedEvents,
+                marketFactors: {
+                    scarcity: Array.from(newScarcity),
+                    surplus: Array.from(newSurplus)
+                }
+            }
+        };
+     }
+  }
+
+  // 3. Iterate for each day passed to generate NEW events
   for (let i = 0; i < daysPassed; i++) {
     if (rng.next() < DAILY_EVENT_CHANCE) {
       const roll = rng.next();

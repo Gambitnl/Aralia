@@ -130,6 +130,14 @@ export const initialGameState: GameState = {
         merchantInventory: [],
     },
 
+    // Economy System
+    economy: {
+        marketFactors: { scarcity: [], surplus: [] },
+        buyMultiplier: 1.0,
+        sellMultiplier: 0.5,
+        activeEvents: []
+    },
+
     // Quest System
     questLog: [],
     isQuestLogVisible: false,
