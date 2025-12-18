@@ -34,6 +34,32 @@ export const getReputationTier = (standing: number): ReputationTier => {
 };
 
 /**
+ * Initializes relationships for a faction based on its static allies/enemies lists.
+ */
+const initializeRelationships = (faction: Faction, allFactions: Record<string, Faction>): Record<string, number> => {
+    const relationships: Record<string, number> = {};
+
+    // Default everything to 0 first (implicit)
+
+    // Set Allies
+    faction.allies.forEach(id => {
+        if (allFactions[id]) relationships[id] = 60; // Friendly
+    });
+
+    // Set Enemies
+    faction.enemies.forEach(id => {
+        if (allFactions[id]) relationships[id] = -60; // Hostile
+    });
+
+    // Set Rivals
+    faction.rivals.forEach(id => {
+        if (allFactions[id]) relationships[id] = -20; // Unfriendly
+    });
+
+    return relationships;
+};
+
+/**
  * Retrieves the full list of factions, including static and procedurally generated ones.
  * Cached to ensure stability if called multiple times with same seed.
  */
@@ -45,8 +71,8 @@ export const getAllFactions = (worldSeed: number = 0): Record<string, Faction> =
         return cachedFactions;
     }
 
-    // 1. Start with static factions
-    const allFactions: Record<string, Faction> = { ...FACTIONS };
+    // 1. Start with static factions (DEEP CLONE to avoid mutating global constant)
+    const allFactions: Record<string, Faction> = JSON.parse(JSON.stringify(FACTIONS));
 
     // 2. Generate procedural noble houses
     // We'll generate 5 random noble houses to populate the political landscape
@@ -54,6 +80,16 @@ export const getAllFactions = (worldSeed: number = 0): Record<string, Faction> =
 
     nobleHouses.forEach(house => {
         allFactions[house.id] = house;
+    });
+
+    // 3. Initialize dynamic relationships for all factions
+    // We do this after all factions are present so we can validate IDs if needed
+    // (though logic below mainly uses ID strings)
+    Object.values(allFactions).forEach(faction => {
+        // Only initialize if empty (static data comes with empty object)
+        if (Object.keys(faction.relationships).length === 0) {
+            faction.relationships = initializeRelationships(faction, allFactions);
+        }
     });
 
     cachedFactions = allFactions;
@@ -255,4 +291,45 @@ export const applyReputationChange = (
     });
 
     return { standings: newStandings, logs };
+};
+
+/**
+ * Modifies the standing between two factions.
+ * Returns the new standing value.
+ * Does NOT mutate the faction objects, but assumes you will update state with the return value.
+ * (Actually, to be safe, this should probably return the modified Faction objects or similar)
+ *
+ * For now, simpler to just return the new value and let caller handle object spread.
+ */
+export const modifyFactionRelationship = (
+    factions: Record<string, Faction>,
+    actorId: string,
+    targetId: string,
+    amount: number
+): { actor: Faction, target: Faction } | null => {
+    const actor = factions[actorId];
+    const target = factions[targetId];
+
+    if (!actor || !target) return null;
+
+    // We assume relationships are symmetric for now (if I hate you, you probably hate me)
+    // But technically the structure supports asymmetry.
+    // Let's implement ASYMMETRIC updates (A changes opinion of B).
+    // The caller can call this twice if they want symmetry.
+
+    // WAIT: If I change opinion, I need to update the actor object.
+
+    const currentStanding = actor.relationships[targetId] || 0;
+    const newStanding = calculateNewStanding(currentStanding, amount);
+
+    // Return a new Actor object with updated relationships
+    const newActor = {
+        ...actor,
+        relationships: {
+            ...actor.relationships,
+            [targetId]: newStanding
+        }
+    };
+
+    return { actor: newActor, target }; // Target unchanged in this op
 };

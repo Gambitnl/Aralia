@@ -191,7 +191,8 @@ export function generateNobleHouse(options: NobleHouseGenerationOptions): Factio
     rivals: [],
     values: Array.from(values),
     hates: Array.from(hates),
-    services: ['patronage', 'political_favor']
+    services: ['patronage', 'political_favor'],
+    relationships: {}
   };
 }
 

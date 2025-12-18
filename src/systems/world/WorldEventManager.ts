@@ -7,7 +7,7 @@
  */
 
 import { GameState, GameMessage, WorldRumor, MarketEvent, EconomyState } from '../../types';
-import { applyReputationChange } from '../../utils/factionUtils';
+import { applyReputationChange, modifyFactionRelationship } from '../../utils/factionUtils';
 import { getGameDay, addGameTime } from '../../utils/timeUtils';
 import { SeededRandom } from '../../utils/seededRandom';
 
@@ -24,34 +24,78 @@ const DAILY_EVENT_CHANCE = 0.2; // Increased from 0.1 for more liveliness
 /**
  * Handles Faction Skirmish events.
  * Two factions fight. Winner gains power, Loser loses power.
+ * Relationships ripple outward.
  */
 const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventResult => {
   const factionIds = Object.keys(state.factions);
   if (factionIds.length < 2) return { state, logs: [] };
 
-  // Pick two random factions
+  // 1. SELECT AGGRESSOR
   const factionAId = factionIds[Math.floor(rng.next() * factionIds.length)];
-  let factionBId = factionIds[Math.floor(rng.next() * factionIds.length)];
+  const factionA = state.factions[factionAId];
 
-  // Ensure they are different
-  while (factionBId === factionAId) {
-    factionBId = factionIds[Math.floor(rng.next() * factionIds.length)];
+  // 2. SELECT VICTIM (Prefer enemies)
+  let factionBId: string | null = null;
+
+  // Create candidate list: [id, weight]
+  const candidates: { id: string; weight: number }[] = [];
+
+  factionIds.forEach(id => {
+      if (id === factionAId) return;
+
+      const relation = factionA.relationships[id] || 0;
+      // Lower relation = Higher chance of attack
+      // -100 relation -> weight 200
+      // 0 relation -> weight 100
+      // +100 relation -> weight 0
+      let weight = 100 - relation;
+
+      // Bonus weight if they are officially listed as enemies in static data
+      if (factionA.enemies.includes(id)) weight += 50;
+
+      // Bonus weight for opportunism (if target is weak)
+      const target = state.factions[id];
+      if (target.power < factionA.power) weight += 20;
+
+      if (weight > 0) {
+          candidates.push({ id, weight });
+      }
+  });
+
+  // Weighted selection
+  const totalWeight = candidates.reduce((sum, c) => sum + c.weight, 0);
+  let roll = rng.next() * totalWeight;
+
+  for (const candidate of candidates) {
+      if (roll < candidate.weight) {
+          factionBId = candidate.id;
+          break;
+      }
+      roll -= candidate.weight;
   }
 
-  const factionA = state.factions[factionAId];
+  // Fallback if something went wrong
+  if (!factionBId) {
+      // Pick random
+       do {
+        factionBId = factionIds[Math.floor(rng.next() * factionIds.length)];
+       } while (factionBId === factionAId);
+  }
+
   const factionB = state.factions[factionBId];
 
+  // 3. RESOLVE COMBAT
   // Decide winner based on power (plus randomness)
   const powerA = (factionA.power || 50) + (rng.next() * 40 - 20);
   const powerB = (factionB.power || 50) + (rng.next() * 40 - 20);
 
-  const winnerId = powerA > powerB ? factionAId : factionBId;
-  const loserId = winnerId === factionAId ? factionBId : factionAId;
+  const winnerId = powerA > powerB ? factionAId : factionBId!;
+  const loserId = winnerId === factionAId ? factionBId! : factionAId;
 
   const winner = state.factions[winnerId];
   const loser = state.factions[loserId];
 
-  // Generate logs
+  // 4. GENERATE LOGS
   const logs: GameMessage[] = [];
   const timestamp = state.gameTime || new Date();
   const gameDay = getGameDay(timestamp);
@@ -78,22 +122,62 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
       virality: 1.0 // High virality for war
   };
 
-  // Update State
+  // 5. UPDATE STATE
   let newState = { ...state };
+  let newFactions = { ...newState.factions };
 
   // Update Faction Power
   const powerChange = 2 + Math.floor(rng.next() * 3); // 2-4 power swing
 
-  newState.factions = {
-      ...newState.factions,
-      [winnerId]: { ...winner, power: Math.min(100, (winner.power || 50) + powerChange) },
-      [loserId]: { ...loser, power: Math.max(0, (loser.power || 50) - powerChange) }
+  newFactions[winnerId] = { ...winner, power: Math.min(100, (winner.power || 50) + powerChange) };
+  newFactions[loserId] = { ...loser, power: Math.max(0, (loser.power || 50) - powerChange) };
+
+  // Update Inter-Faction Relationships (Combatants)
+  // Winner and Loser dislike each other more (-15)
+  const updateRelation = (aId: string, bId: string, amount: number) => {
+      const res1 = modifyFactionRelationship(newFactions, aId, bId, amount);
+      if (res1) newFactions[aId] = res1.actor;
+
+      const res2 = modifyFactionRelationship(newFactions, bId, aId, amount);
+      if (res2) newFactions[bId] = res2.actor;
   };
+
+  updateRelation(winnerId, loserId, -15);
+
+  // Update Ripple Effects (Allies/Enemies)
+  factionIds.forEach(otherId => {
+      if (otherId === winnerId || otherId === loserId) return;
+
+      const other = newFactions[otherId];
+      // Check existing relationship with Winner
+      const relWinner = other.relationships[winnerId] || 0;
+      // Check existing relationship with Loser
+      const relLoser = other.relationships[loserId] || 0;
+
+      // If Friend of Winner: Likes Winner (+5), Dislikes Loser (-10)
+      if (relWinner > 20) {
+          updateRelation(otherId, winnerId, 5);
+          updateRelation(otherId, loserId, -10);
+      }
+
+      // If Friend of Loser: Dislikes Winner (-15), Likes Loser (+5 sympathy)
+      if (relLoser > 20) {
+          updateRelation(otherId, winnerId, -15);
+          updateRelation(otherId, loserId, 5);
+      }
+
+      // If Enemy of Winner: Likes Loser (+10 enemy of my enemy)
+      if (relWinner < -20) {
+           updateRelation(otherId, loserId, 10);
+      }
+  });
+
+  newState.factions = newFactions;
 
   // Add rumor
   newState.activeRumors = [...(newState.activeRumors || []), rumor];
 
-  // Apply reputation ripple
+  // Apply Player Reputation ripple
   const winnerStanding = state.playerFactionStandings[winnerId]?.publicStanding || 0;
 
   if (winnerStanding > 20) { // If player is friendly with winner

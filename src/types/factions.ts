@@ -50,6 +50,9 @@ export interface Faction {
   enemies: string[]; // Faction IDs
   rivals: string[]; // Faction IDs (competitors but not open war)
 
+  // Dynamic relationship standing with other factions (-100 to 100)
+  relationships: Record<string, number>;
+
   // What this faction values/hates (for reputation changes)
   values: string[];
   hates: string[];
