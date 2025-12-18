@@ -1,0 +1,1 @@
+## 2024-05-24 - Elemental Interaction System **Learning:** By sorting interaction keys alphabetically (e.g., 'cold+wet' instead of trying both 'cold+wet' and 'wet+cold'), we simplify the lookup table significantly and prevent redundant definitions. **Action:** Apply this 'canonical key' pattern to any future combination systems (like crafting or spell mixing).
