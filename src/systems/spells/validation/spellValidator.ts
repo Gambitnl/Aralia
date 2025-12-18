@@ -90,6 +90,15 @@ const ValidTargetType = z.enum([
   "self", "creatures", "allies", "enemies", "objects", "point", "ground"
 ]);
 
+const TargetConditionFilter = z.object({
+  creatureTypes: z.array(z.string()).optional(),
+  excludeCreatureTypes: z.array(z.string()).optional(),
+  sizes: z.array(z.string()).optional(),
+  alignments: z.array(z.string()).optional(),
+  hasCondition: z.array(z.string()).optional(),
+  isNativeToPlane: z.boolean().optional(),
+});
+
 const Targeting = z.object({
   type: z.enum(["self", "single", "multi", "area", "melee", "ranged", "point"]),
   range: z.number().optional(),
@@ -97,6 +106,7 @@ const Targeting = z.object({
   validTargets: z.array(ValidTargetType),
   lineOfSight: z.boolean().optional(),
   areaOfEffect: TargetingAreaOfEffect.optional(),
+  filter: TargetConditionFilter.optional(),
   // Legacy fields (deprecated, use areaOfEffect instead)
   shape: z.enum(["sphere", "cone", "cube", "line", "cylinder"]).optional(),
   radius: z.number().optional()
@@ -140,15 +150,6 @@ const EffectTrigger = z.object({
     actionType: z.enum(["action", "bonus_action", "reaction"]),
     optional: z.boolean()
   }).optional(),
-});
-
-const TargetConditionFilter = z.object({
-  creatureTypes: z.array(z.string()).optional(),
-  excludeCreatureTypes: z.array(z.string()).optional(),
-  sizes: z.array(z.string()).optional(),
-  alignments: z.array(z.string()).optional(),
-  hasCondition: z.array(z.string()).optional(),
-  isNativeToPlane: z.boolean().optional(),
 });
 
 const SaveModifier = z.object({

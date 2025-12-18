@@ -185,6 +185,11 @@ export function isScalableNumberObject(value: ScalableNumber): value is Scalable
 interface BaseTargeting {
   validTargets: TargetFilter[];
   lineOfSight?: boolean;
+  /**
+   * Constraints on what can be targeted.
+   * Checked at cast time (unlike effect conditions which are checked at resolution).
+   */
+  filter?: TargetConditionFilter;
 }
 
 /** Targets a single entity. Example: Chromatic Orb. */

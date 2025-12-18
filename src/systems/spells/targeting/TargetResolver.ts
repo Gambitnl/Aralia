@@ -1,6 +1,7 @@
 import type { SpellTargeting, TargetFilter } from '@/types'
 import type { CombatCharacter, CombatState, Position } from '@/types'
 import { hasLineOfSight } from '../../../utils/lineOfSight'
+import { TargetValidationUtils } from './TargetValidationUtils'
 
 /**
  * Resolves valid targets based on spell targeting rules
@@ -47,6 +48,14 @@ export class TargetResolver {
       // Check line of sight
       if (targeting.lineOfSight && !this.hasLineOfSight(caster.position, target.position, gameState)) {
         return false
+      }
+
+      // Check detailed target filter (e.g. creature type constraints)
+      if (targeting.filter) {
+        // TODO(UI-INTEGRATION): Connect this validation failure to UI feedback (reason: "Target must be Humanoid")
+        if (!TargetValidationUtils.matchesFilter(target, targeting.filter)) {
+          return false
+        }
       }
 
       // Check target filter
