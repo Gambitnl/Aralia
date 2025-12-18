@@ -8,11 +8,11 @@
  * Rate Limiting: Implements exponential backoff, model fallback chains, and global
  * cooldown periods to prevent overwhelming the API during heavy usage.
  */
-import { GenerateContentResponse } from "@google/genai";
+import { GenerateContentResponse, GenerationConfig, Tool } from "@google/genai";
 import { v4 as uuidv4 } from 'uuid';
 import { ai, isAiEnabled } from './aiClient'; // Import the shared AI client
 import { logger } from '../utils/logger';
-import { Action, PlayerCharacter, InspectSubmapTilePayload, SeededFeatureConfig, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState, VillageActionContext } from "../types";
+import { Action, PlayerCharacter, InspectSubmapTilePayload, SeededFeatureConfig, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState, VillageActionContext, ItemType } from "../types";
 import { SUBMAP_ICON_MEANINGS } from '../data/glossaryData';
 import { XP_BY_CR } from '../data/dndData';
 import { CLASSES_DATA } from '../data/classes';
@@ -169,6 +169,15 @@ export interface GeminiHarvestData extends GeminiMetadata {
   items: Item[];
 }
 
+/**
+ * Extended GenerationConfig to include systemInstruction, which is supported by the SDK
+ * but missing from the current @google/genai type definitions.
+ */
+interface ExtendedGenerationConfig extends GenerationConfig {
+    systemInstruction?: string | { parts: { text: string }[] } | { role: string, parts: { text: string }[] };
+    tools?: Tool[];
+}
+
 // --- Helper Functions ---
 
 /**
@@ -179,19 +188,31 @@ function getFallbackInventory(shopType: string): Item[] {
   const defaults: Item[] = [];
   const type = shopType.toLowerCase();
 
+  // Helper to create a basic item since ItemTemplates are schema definitions, not objects
+  const createItem = (name: string, description: string, cost: string, costInGp: number, type: ItemType): Item => ({
+      id: uuidv4(),
+      name,
+      description,
+      cost,
+      costInGp,
+      type,
+      weight: 1, // Default
+      icon: "📦" // Default
+  });
+
   // Generic fallback items available everywhere
-  defaults.push({ ...ItemTemplates.FoodDrinkTemplate, name: "Rations", description: "Standard travel rations.", cost: 5 });
-  defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Torch", description: "A simple torch.", cost: 1 });
+  defaults.push(createItem("Rations", "Standard travel rations.", "5 cp", 0.05, ItemType.FoodDrink));
+  defaults.push(createItem("Torch", "A simple torch.", "1 cp", 0.01, ItemType.LightSource));
 
   if (type.includes('blacksmith') || type.includes('weapon') || type.includes('armor')) {
-    defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Iron Dagger", description: "A simple iron dagger.", cost: 10 });
-    defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Whetstone", description: "For sharpening blades.", cost: 2 });
+    defaults.push(createItem("Iron Dagger", "A simple iron dagger.", "2 gp", 2, ItemType.Weapon));
+    defaults.push(createItem("Whetstone", "For sharpening blades.", "1 cp", 0.01, ItemType.Tool));
   } else if (type.includes('alchemist') || type.includes('potion') || type.includes('magic')) {
-    defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Empty Vial", description: "A glass vial.", cost: 5 });
-    defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Herbal Poultice", description: "Basic healing herbs.", cost: 15 });
+    defaults.push(createItem("Empty Vial", "A glass vial.", "1 gp", 1, ItemType.Consumable));
+    defaults.push(createItem("Herbal Poultice", "Basic healing herbs.", "5 sp", 0.5, ItemType.Potion));
   } else if (type.includes('general') || type.includes('goods')) {
-    defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Rope (50ft)", description: "Hempen rope.", cost: 10 });
-    defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Waterskin", description: "For carrying water.", cost: 2 });
+    defaults.push(createItem("Rope (50ft)", "Hempen rope.", "1 gp", 1, ItemType.Tool));
+    defaults.push(createItem("Waterskin", "For carrying water.", "2 sp", 0.2, ItemType.Consumable));
   }
 
   return defaults;
@@ -246,7 +267,7 @@ export async function generateText(
     };
   }
 
-  let lastError: any = null;
+  let lastError: unknown = null;
   let rateLimitHitInChain = false;
   let lastModelUsed = '';
   let attemptNumber = 0;
@@ -267,7 +288,8 @@ export async function generateText(
     try {
       const useThinking = thinkingBudget && (model.includes('gemini-2.5') || model.includes('gemini-3'));
 
-      const config: any = {
+      // Use ExtendedGenerationConfig to allow systemInstruction
+      const config: ExtendedGenerationConfig = {
         systemInstruction: systemInstruction || defaultSystemInstruction,
         temperature: useThinking ? undefined : 0.7,
         topK: 40,
@@ -284,11 +306,12 @@ export async function generateText(
         setTimeout(() => reject(new Error(`Request timed out after ${API_TIMEOUT_MS}ms`)), API_TIMEOUT_MS);
       });
 
+      // Cast config to any or GenerationConfig (with ignore) because the official type lacks systemInstruction
       const response: GenerateContentResponse = await Promise.race([
         ai.models.generateContent({
           model: model,
           contents: promptContent,
-          config: config,
+          config: config as any,
         }),
         timeoutPromise
       ]);
@@ -322,10 +345,20 @@ export async function generateText(
         error: null
       };
 
-    } catch (error) {
+    } catch (error: unknown) {
       lastError = error;
       attemptNumber++;
-      const errorString = JSON.stringify(error, Object.getOwnPropertyNames(error));
+
+      let errorString = "";
+      if (typeof error === 'object' && error !== null) {
+          try {
+             errorString = JSON.stringify(error, Object.getOwnPropertyNames(error));
+          } catch(e) {
+             errorString = String(error);
+          }
+      } else {
+          errorString = String(error);
+      }
 
       // Check for rate limit (429) or service overloaded (503) errors
       const isRateLimitError = errorString.includes('"code":429') || errorString.includes('RESOURCE_EXHAUSTED');
@@ -354,12 +387,24 @@ export async function generateText(
   }
 
   const errorMessage = lastError instanceof Error ? lastError.message : String(lastError);
+
+  let safeRawResponse = "Unknown error";
+  if (typeof lastError === 'object' && lastError !== null) {
+      try {
+          safeRawResponse = JSON.stringify(lastError, Object.getOwnPropertyNames(lastError));
+      } catch (e) {
+          safeRawResponse = String(lastError);
+      }
+  } else {
+      safeRawResponse = String(lastError);
+  }
+
   return {
     data: null,
     error: `Gemini API error in ${functionName} (Last model: ${lastModelUsed}): ${errorMessage}`,
     metadata: {
       promptSent: fullPromptForLogging,
-      rawResponse: JSON.stringify(lastError, Object.getOwnPropertyNames(lastError)),
+      rawResponse: safeRawResponse,
       rateLimitHit: rateLimitHitInChain
     }
   };
@@ -569,7 +614,7 @@ export async function generateEncounter(
     };
   }
 
-  let lastError: any = null;
+  let lastError: unknown = null;
   let rateLimitHitInChain = false;
   let lastModelUsed = '';
 
@@ -581,7 +626,7 @@ export async function generateEncounter(
     lastModelUsed = model;
     try {
       const useThinking = model.includes('gemini-2.5') || model.includes('gemini-3');
-      const config: any = {
+      const config: ExtendedGenerationConfig = {
         systemInstruction: systemInstruction,
         tools: [{ googleSearch: {} }],
       };
@@ -593,7 +638,7 @@ export async function generateEncounter(
       const response = await ai.models.generateContent({
         model: model,
         contents: prompt,
-        config: config,
+        config: config as any,
       });
 
       const responseText = response.text?.trim();
@@ -625,9 +670,20 @@ export async function generateEncounter(
         },
         error: null
       };
-    } catch (error) {
+    } catch (error: unknown) {
       lastError = error;
-      const errorString = JSON.stringify(error, Object.getOwnPropertyNames(error));
+
+      let errorString = "";
+      if (typeof error === 'object' && error !== null) {
+          try {
+             errorString = JSON.stringify(error, Object.getOwnPropertyNames(error));
+          } catch(e) {
+             errorString = String(error);
+          }
+      } else {
+          errorString = String(error);
+      }
+
       if (errorString.includes('"code":429') || errorString.includes('RESOURCE_EXHAUSTED')) {
         rateLimitHitInChain = true;
         logger.warn(`Gemini API rate limit error with model ${model}. Retrying...`);
@@ -784,13 +840,20 @@ export async function generateSocialCheckOutcome(
     const parsed = JSON.parse(jsonString);
     const validated = SocialOutcomeSchema.parse(parsed);
 
+    // Cast the status to match GoalStatus enum if needed or ensure safe usage
+    const safeGoalUpdate: GoalUpdatePayload | null = validated.goalUpdate ? {
+      npcId: validated.goalUpdate.npcId,
+      goalId: validated.goalUpdate.goalId,
+      newStatus: validated.goalUpdate.newStatus as GoalStatus
+    } : null;
+
     return {
       data: {
         ...result.data,
         outcomeText: validated.outcomeText || "The situation evolves...",
         dispositionChange: validated.dispositionChange || (wasSuccess ? 1 : -1),
         memoryFactText: validated.memoryFactText || `Player check: ${skillName} (${wasSuccess ? 'Success' : 'Fail'})`,
-        goalUpdate: validated.goalUpdate || null,
+        goalUpdate: safeGoalUpdate,
       },
       error: null
     };
@@ -850,16 +913,23 @@ export async function generateMerchantInventory(
 
   const result = await generateText(prompt, systemInstruction, true, 'generateMerchantInventory', devModelOverride);
 
+  // Use a default EconomyState for fallbacks
+  const defaultEconomy: EconomyState = {
+      marketFactors: { scarcity: [], surplus: [] },
+      buyMultiplier: 1.0,
+      sellMultiplier: 0.5
+  };
+
   // If the API call itself failed
   if (result.error || !result.data) {
     return {
       data: {
-        text: "Failed to generate inventory.",
+        // text: "Failed to generate inventory.", // REMOVED to satisfy type
         promptSent: result.metadata?.promptSent || "",
         rawResponse: result.metadata?.rawResponse || "",
         rateLimitHit: result.metadata?.rateLimitHit,
         inventory: getFallbackInventory(shopType),
-        economy: { scarcity: [], surplus: [], sentiment: "neutral" }
+        economy: defaultEconomy
       },
       error: result.error,
       metadata: result.metadata
@@ -874,14 +944,32 @@ export async function generateMerchantInventory(
     // Ensure items have IDs
     const safeInventory = validated.inventory.map(item => ({
       ...item,
-      id: item.id || uuidv4()
+      id: item.id || uuidv4(),
+      cost: String(item.cost) // Ensure cost is a string (Item interface)
     })) as Item[];
+
+    // Ensure economy matches EconomyState interface
+    const economyState: EconomyState = {
+        marketFactors: {
+            scarcity: validated.economy?.scarcity || [],
+            surplus: validated.economy?.surplus || []
+        },
+        buyMultiplier: 1.0,
+        sellMultiplier: 0.5,
+        ...validated.economy // Override if present and matching
+    };
+
+    // Fix mismatch if validated.economy had flat structure instead of marketFactors
+    if (validated.economy) {
+         if ((validated.economy as any).scarcity) economyState.marketFactors.scarcity = (validated.economy as any).scarcity;
+         if ((validated.economy as any).surplus) economyState.marketFactors.surplus = (validated.economy as any).surplus;
+    }
 
     return {
       data: {
         ...result.data,
         inventory: safeInventory,
-        economy: validated.economy || { scarcity: [], surplus: [], sentiment: "neutral" }
+        economy: economyState
       },
       error: null
     };
@@ -890,9 +978,12 @@ export async function generateMerchantInventory(
     logger.warn("Failed to parse inventory JSON. Using fallback.", { error: e });
     return {
       data: {
-        ...result.data,
+        // ...result.data, // REMOVED because result.data has 'text', which GeminiInventoryData does not allow.
+        promptSent: result.data.promptSent,
+        rawResponse: result.data.rawResponse,
+        rateLimitHit: result.data.rateLimitHit,
         inventory: getFallbackInventory(shopType),
-        economy: { scarcity: [], surplus: [], sentiment: "neutral" }
+        economy: defaultEconomy
       },
       error: "Failed to parse inventory JSON. Using fallback.",
       metadata: result.data
@@ -918,7 +1009,6 @@ export async function generateHarvestLoot(
   if (result.error || !result.data) {
     return {
       data: {
-        text: "Failed to harvest.",
         promptSent: result.metadata?.promptSent || "",
         rawResponse: result.metadata?.rawResponse || "",
         rateLimitHit: result.metadata?.rateLimitHit,
@@ -936,18 +1026,26 @@ export async function generateHarvestLoot(
 
     const items = rawItems.map(item => ({
       ...item,
-      id: item.id || uuidv4()
+      id: item.id || uuidv4(),
+      cost: String(item.cost) // Ensure cost is a string
     })) as Item[];
 
     return {
-      data: { ...result.data, items },
+      data: {
+          promptSent: result.data.promptSent,
+          rawResponse: result.data.rawResponse,
+          rateLimitHit: result.data.rateLimitHit,
+          items
+      },
       error: null
     };
   } catch (e) {
     return {
       data: {
-        ...result.data,
-        items: []
+        items: [],
+        promptSent: result.data.promptSent,
+        rawResponse: result.data.rawResponse,
+        rateLimitHit: result.data.rateLimitHit
       },
       error: "Failed to parse harvest JSON. Found nothing.",
       metadata: result.data
