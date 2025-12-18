@@ -63,6 +63,7 @@ import {
   RacialSpell,
 } from './character';
 import { Faction, PlayerFactionStanding } from './factions';
+import { NPCMemory } from './memory';
 import { Companion } from './companions';
 import { DivineFavor, Temple } from './deity';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
@@ -74,6 +75,7 @@ export * from './spells';
 export * from './deity';
 export * from './factions';
 export * from './companions';
+export * from './memory';
 export * from './planes';
 export * from './crime';
 export type { CombatCharacter, CharacterStats, Position, CombatState };
