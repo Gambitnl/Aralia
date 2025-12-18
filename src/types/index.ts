@@ -588,6 +588,9 @@ export interface GameState {
   // Shadowbroker: Crime System
   fences: Record<string, Fence>; // Keyed by Fence ID (or Location ID)
 
+  // Intriguer: Identity System
+  playerIdentity?: import('./identity').PlayerIdentityState;
+
   // Depthcrawler: Underdark System
   underdark: UnderdarkState;
 
