@@ -561,8 +561,9 @@ export interface GameState {
     isOpen: boolean;
     merchantName: string;
     merchantInventory: Item[];
-    economy?: EconomyState; // Added economy state
   };
+
+  economy: EconomyState;
 
   notoriety: NotorietyState;
 
