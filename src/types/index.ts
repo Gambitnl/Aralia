@@ -84,6 +84,7 @@ export * from './planes';
 export * from './crime';
 export * from './dialogue';
 export * from './underdark';
+export * from './rituals';
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
@@ -590,6 +591,9 @@ export interface GameState {
 
   // Depthcrawler: Underdark System
   underdark: UnderdarkState;
+
+  // Ritualist: Ritual System
+  activeRituals: Record<string, import('./rituals').RitualState>;
 
   // Ecologist: Environment System
   environment: import('./environment').WeatherState;

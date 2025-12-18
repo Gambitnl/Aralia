@@ -334,6 +334,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
       </div>
 
       {/* System/Menu Actions */}
+      {/* TODO(Ritualist): Add visual indicators for active rituals and a 'Stop Ritual' button if one is in progress. */}
       <div className="mt-6 pt-4 border-t border-gray-700 flex justify-end relative" ref={menuRef}>
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}

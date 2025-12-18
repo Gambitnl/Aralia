@@ -1,2 +1,3 @@
-## 2024-05-24 - Ritual Framework Foundation **Learning:** Defining a clear `RitualState` with explicit `interruptConditions` allows for a flexible system that can handle both standard D&D rituals (damage check) and custom ceremonial mechanics (movement, noise). **Action:** When implementing the UI, ensure the progress bar visualizes the specific interruption conditions so players know what to avoid.
-## 2025-12-18 - Group Ritual Participation **Learning:** Adding a Save DC reduction for participants gamifies group casting, encouraging players to protect the ritual caster. **Action:** When implementing the UI, ensure the progress bar visualizes the specific interruption conditions so players know what to avoid.
+## 2024-05-22 - Ritual State Integration
+**Learning:** A static `RitualManager` utility class is insufficient for game loops; rituals must be tracked in the persistent `GameState` (Redux) to survive save/load cycles and handle tick-based updates.
+**Action:** Always pair mechanics managers with a corresponding reducer and state slice immediately.

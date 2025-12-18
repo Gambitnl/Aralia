@@ -32,6 +32,7 @@ import { questReducer } from './reducers/questReducer';
 import { townReducer } from './reducers/townReducer';
 import { crimeReducer } from './reducers/crimeReducer';
 import { companionReducer } from './reducers/companionReducer';
+import { ritualReducer } from './reducers/ritualReducer';
 import { COMPANIONS } from '../constants';
 
 
@@ -161,6 +162,9 @@ export const initialGameState: GameState = {
         localHeat: {},
         knownCrimes: [],
     },
+
+    // Ritualist: Ritual System
+    activeRituals: {},
 
     // Town Exploration
     townState: null,
@@ -585,6 +589,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ...townReducer(state, action),
                 ...crimeReducer(state, action),
                 ...companionReducer(state, action),
+                ...ritualReducer(state, action),
             };
 
             if (Object.keys(changes).length === 0) {
