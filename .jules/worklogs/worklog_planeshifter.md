@@ -4,3 +4,7 @@
 
 **Learning:** Portal activation requirements (items, conditions) add immediate gameplay value to finding portals.
 **Action:** Created `PortalSystem` to standardize checks. Next step is to integrate this into the main interaction loop.
+
+## 2025-12-18 - [Planar Hazard Enforcement]
+**Learning:** Planar hazards (like Psychic Static in the Abyss) need a periodic tick system to be threatening. Implementing `PlanarHazardSystem` allows processing damage and saves over time, turning passive descriptions into active threats.
+**Action:** Used `PlanarHazardSystem.processPeriodicHazards` to iterate through defined hazards. This system can be hooked into the game loop's time progression to automatically apply planar dangers.
