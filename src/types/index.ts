@@ -70,6 +70,7 @@ import { DivineFavor, Temple } from './deity';
 import { Fence } from './crime';
 import { UnderdarkState, LightSource } from './underdark';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
+import type { DamageType } from './spells';
 
 export * from './core';
 export * from './items';
@@ -465,6 +466,9 @@ export interface MonsterData {
   maxHP: number;
   abilities: CombatCharacter['abilities'];
   tags: string[];
+  resistances?: DamageType[];
+  vulnerabilities?: DamageType[];
+  immunities?: DamageType[];
 }
 
 export interface GroundingChunk {
