@@ -20,13 +20,16 @@ export function resolveNPCVisual(
   visualSpec?: NPCVisualSpec,
   race?: Race
 ): VisualAsset {
+  // Resolve spec: use argument if provided, otherwise check the NPC object
+  const spec = visualSpec || npc.visual;
+
   // 1. Try to use specific portrait path
-  if (visualSpec?.portraitPath) {
+  if (spec?.portraitPath) {
     return {
-      src: visualSpec.portraitPath,
-      fallbackContent: visualSpec.fallbackIcon || getRoleEmoji(npc.role),
-      primaryColor: visualSpec.themeColor || getRoleColor(npc.role),
-      label: visualSpec.description || `${npc.name} the ${npc.role}`
+      src: spec.portraitPath,
+      fallbackContent: spec.fallbackIcon || getRoleEmoji(npc.role),
+      primaryColor: spec.themeColor || getRoleColor(npc.role),
+      label: spec.description || `${npc.name} the ${npc.role}`
     };
   }
 
@@ -34,8 +37,8 @@ export function resolveNPCVisual(
   // (Future expansion: check for base64 data)
 
   // 3. Fallback to Role/Race based visual
-  const emoji = visualSpec?.fallbackIcon || getRoleEmoji(npc.role);
-  const color = visualSpec?.themeColor || getRoleColor(npc.role);
+  const emoji = spec?.fallbackIcon || getRoleEmoji(npc.role);
+  const color = spec?.themeColor || getRoleColor(npc.role);
 
   return {
     fallbackContent: emoji,
