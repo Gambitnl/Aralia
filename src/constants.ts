@@ -50,6 +50,7 @@ import { MONSTERS_DATA } from './data/monsters';
 // Import newly separated data modules
 import { LOCATIONS, STARTING_LOCATION_ID } from './data/world/locations';
 import { NPCS } from './data/world/npcs';
+import { COMPANIONS } from './data/companions';
 import { TTS_VOICE_OPTIONS } from './data/settings/ttsOptions';
 import { USE_DUMMY_CHARACTER_FOR_DEV, initializeDummyCharacterData, getDummyInitialInventory, setInitializedDummyCharacter } from './data/dev/dummyCharacter';
 
@@ -102,6 +103,7 @@ export {
   LOCATIONS, // Re-export from new location
   STARTING_LOCATION_ID, // Re-export from new location
   NPCS, // Re-export from new location
+  COMPANIONS, // Re-export from new location
   TTS_VOICE_OPTIONS, // Re-export from new location
   USE_DUMMY_CHARACTER_FOR_DEV, // Re-export from new location
   XP_THRESHOLDS_BY_LEVEL, // Re-export from new dndData

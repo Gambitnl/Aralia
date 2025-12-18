@@ -103,6 +103,9 @@ export type AppAction =
   | { type: 'ACCEPT_QUEST'; payload: Quest }
   | { type: 'UPDATE_QUEST_OBJECTIVE'; payload: { questId: string; objectiveId: string; isCompleted: boolean } }
   | { type: 'COMPLETE_QUEST'; payload: { questId: string } }
+  // Companion Actions
+  | { type: 'UPDATE_COMPANION_APPROVAL'; payload: { companionId: string; change: number; reason: string; source?: string } }
+  | { type: 'ADD_COMPANION_REACTION'; payload: { companionId: string; reaction: string } }
   // Notification Actions
   | { type: 'ADD_NOTIFICATION'; payload: { type: 'success' | 'error' | 'info' | 'warning'; message: string; duration?: number } }
   | { type: 'REMOVE_NOTIFICATION'; payload: { id: string } }
