@@ -8,6 +8,7 @@ import { BIOMES, ITEMS } from '../constants';
 import { getSubmapTileInfo } from './submapUtils';
 import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import { getTimeModifiers, formatGameTime } from './timeUtils';
+import { BACKGROUNDS } from '../data/backgrounds';
 
 interface ContextGenerationParams {
   gameState: GameState;
@@ -37,6 +38,20 @@ export function generateGeneralActionContext({
       : 'None';
 
     parts.push(`## PLAYER\nName: ${playerCharacter.name} (${playerCharacter.race.name} ${playerCharacter.class.name}) | HP: ${playerCharacter.hp}/${playerCharacter.maxHp} | Conditions: ${conditions}`);
+
+    // --- CHARACTER DETAILS ---
+    // Enriched context from Background data to give the AI a sense of the character's "vibe"
+    if (playerCharacter.background) {
+      const bg = BACKGROUNDS[playerCharacter.background];
+      if (bg) {
+        let details = `Background: ${bg.name}\nArchetype: ${bg.description}`;
+        // If the character has a visual description (from creation), include it
+        if (playerCharacter.visualDescription) {
+             details += `\nAppearance: ${playerCharacter.visualDescription}`;
+        }
+        parts.push(`## CHARACTER DETAILS\n${details}`);
+      }
+    }
   } else {
     parts.push(`## PLAYER\nAn unknown adventurer`);
   }
@@ -127,12 +142,22 @@ export function generateGeneralActionContext({
   }
 
   // --- ACTIVE QUESTS ---
+  // Enriched Quest Context: Includes descriptions and current objectives
   const activeQuests = (gameState.questLog ?? [])
-    .filter(q => q.status === 'Active')
-    .map(q => `- ${q.title}`);
+    .filter(q => q.status === 'Active');
 
   if (activeQuests.length > 0) {
-    parts.push(`## ACTIVE QUESTS\n${activeQuests.join('\n')}`);
+    const questLines = activeQuests.map(q => {
+        let line = `- **${q.title}**: ${q.description}`;
+        const activeObjectives = (q.objectives || []).filter(o => !o.isCompleted);
+
+        if (activeObjectives.length > 0) {
+            const objectiveList = activeObjectives.map(o => `  - [ ] ${o.description}`).join('\n');
+            line += `\n  *Current Objectives:*\n${objectiveList}`;
+        }
+        return line;
+    });
+    parts.push(`## ACTIVE QUESTS\n${questLines.join('\n')}`);
   }
 
   // --- RECENT HISTORY ---
