@@ -71,3 +71,28 @@ export interface RitualEvent {
   value?: number; // Amount of damage, distance moved, etc.
   tags?: string[]; // e.g., ["loud", "shove"]
 }
+
+// -----------------------------------------------------------------------------
+// Ritual Constraints (Ceremony Requirements)
+// -----------------------------------------------------------------------------
+
+/**
+ * Valid environmental or temporal conditions for starting a ritual.
+ */
+export interface RitualRequirement {
+  type: 'time_of_day' | 'location' | 'biome' | 'weather' | 'participants_count' | 'custom';
+  value: string | number | string[];
+  description?: string; // Failure message e.g. "Must be cast at night"
+}
+
+/**
+ * Context provided to validate ritual requirements.
+ */
+export interface RitualContext {
+  currentTime?: number; // Gametime
+  isDaytime?: boolean;
+  locationId?: string;
+  locationType?: 'indoors' | 'outdoors' | 'underground';
+  biomeId?: string;
+  weather?: string; // 'clear', 'rain', 'storm'
+}

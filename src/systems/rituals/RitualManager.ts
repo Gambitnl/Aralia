@@ -3,7 +3,7 @@
  * Logic for managing ritual casting, progress tracking, and interruptions.
  */
 
-import { RitualState, RitualEvent, InterruptResult, InterruptCondition } from '../../types/rituals';
+import { RitualState, RitualEvent, InterruptResult, InterruptCondition, RitualRequirement, RitualContext } from '../../types/rituals';
 import { Spell, CastingTime } from '../../types/spells';
 import { CombatCharacter } from '../../types/combat';
 
@@ -12,6 +12,8 @@ import { CombatCharacter } from '../../types/combat';
  */
 export interface RitualConfig {
   materialConsumptionProgress?: number; // 0.0 to 1.0 (default 1.0)
+  requirements?: RitualRequirement[]; // Optional constraints to validate
+  context?: RitualContext; // Context for validation
 }
 
 export class RitualManager {
@@ -28,6 +30,15 @@ export class RitualManager {
   ): RitualState {
     if (!spell.ritual) {
       throw new Error(`Spell ${spell.name} is not a ritual.`);
+    }
+
+    // Validate Constraints if provided
+    if (config.requirements && config.requirements.length > 0) {
+      const context = config.context || { currentTime }; // Minimal context
+      const valid = this.validateRequirements(config.requirements, context, participants);
+      if (!valid.success) {
+        throw new Error(`Ritual requirements not met: ${valid.reason}`);
+      }
     }
 
     const baseCastTime = this.calculateCastingTimeInMinutes(spell.castingTime);
@@ -147,6 +158,59 @@ export class RitualManager {
   }
 
   /**
+   * Validates if the ritual can start given the current context.
+   */
+  static validateRequirements(
+    requirements: RitualRequirement[],
+    context: RitualContext,
+    participants: CombatCharacter[] = []
+  ): { success: boolean; reason?: string } {
+    for (const req of requirements) {
+      switch (req.type) {
+        case 'time_of_day':
+          // value can be 'night', 'day', 'dawn', 'dusk'
+          if (req.value === 'night' && context.isDaytime === true) {
+            return { success: false, reason: req.description || 'Ritual must be performed at night.' };
+          }
+          if (req.value === 'day' && context.isDaytime === false) {
+            return { success: false, reason: req.description || 'Ritual must be performed during the day.' };
+          }
+          break;
+
+        case 'location':
+          // value can be 'indoors', 'outdoors', 'underground'
+          if (req.value === 'indoors' && context.locationType !== 'indoors') {
+            return { success: false, reason: req.description || 'Ritual must be performed indoors.' };
+          }
+          if (req.value === 'outdoors' && context.locationType !== 'outdoors') {
+            return { success: false, reason: req.description || 'Ritual must be performed outdoors.' };
+          }
+          break;
+
+        case 'biome':
+          // value is array of allowed biome IDs
+          if (Array.isArray(req.value) && context.biomeId && !req.value.includes(context.biomeId)) {
+             return { success: false, reason: req.description || 'Ritual must be performed in a specific biome.' };
+          }
+          break;
+
+        case 'participants_count':
+          // value is min number
+          if (typeof req.value === 'number' && participants.length < req.value) {
+            return { success: false, reason: req.description || `Ritual requires at least ${req.value} participants.` };
+          }
+          break;
+
+        case 'custom':
+          // Placeholder for complex logic (handled by caller or subclass)
+          // For now, custom always passes here, assuming external check
+          break;
+      }
+    }
+    return { success: true };
+  }
+
+  /**
    * Helper to evaluate condition matching.
    */
   private static eventTriggersCondition(event: RitualEvent, condition: InterruptCondition): boolean {
@@ -162,6 +226,10 @@ export class RitualManager {
       }
 
       if (condition.type === 'incapacitated') {
+        return true;
+      }
+
+      if (condition.type === 'noise' || condition.type === 'distraction') {
         return true;
       }
 
