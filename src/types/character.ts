@@ -287,23 +287,25 @@ export interface FeatPrerequisiteContext {
   hasFightingStyle?: boolean; // Whether character's class has Fighting Style feature
 }
 
+export interface FeatChoice {
+  selectedAbilityScore?: AbilityScoreName;
+  selectedSpells?: string[];
+  selectedCantrips?: string[];        // Cantrips chosen for spell-granting feats
+  selectedLeveledSpells?: string[];   // Leveled spells chosen for spell-granting feats
+  selectedSpellSource?: MagicInitiateSource; // Class source for Magic Initiate
+  selectedSkills?: string[];
+  selectedWeapons?: string[];
+  selectedTools?: string[];
+  selectedDamageType?: string;
+  [key: string]: any; // Allow for future choice types
+}
+
 export interface LevelUpChoices {
   abilityScoreIncreases?: Partial<AbilityScores>;
   featId?: string;
   featChoices?: {
     // Store choices made for feats during level-up (e.g., selected ability score, spells, etc.)
-    [featId: string]: {
-      selectedAbilityScore?: AbilityScoreName;
-      selectedSpells?: string[];
-      selectedCantrips?: string[];        // Cantrips chosen for spell-granting feats
-      selectedLeveledSpells?: string[];   // Leveled spells chosen for spell-granting feats
-      selectedSpellSource?: MagicInitiateSource; // Class source for Magic Initiate
-      selectedSkills?: string[];
-      selectedWeapons?: string[];
-      selectedTools?: string[];
-      selectedDamageType?: string;
-      [key: string]: any; // Allow for future choice types
-    };
+    [featId: string]: FeatChoice;
   };
 }
 
@@ -380,15 +382,7 @@ export interface PlayerCharacter {
   racialSelections?: Record<string, RacialSelectionData>;
   featChoices?: {
     // Store choices made for feats (e.g., selected ability score, spells, etc.)
-    [featId: string]: {
-      selectedAbilityScore?: AbilityScoreName;
-      selectedSpells?: string[];
-      selectedSkills?: string[];
-      selectedWeapons?: string[];
-      selectedTools?: string[];
-      selectedDamageType?: string;
-      [key: string]: any; // Allow for future choice types
-    };
+    [featId: string]: FeatChoice;
   };
   equippedItems: Partial<Record<EquipmentSlotType, Item>>;
 }
@@ -402,13 +396,21 @@ export interface TempPartyMember {
 export interface SelectableClass {
   id: string;
   name: string;
+  description: string;
 }
 
 // --- NEW INTERFACE FOR MISSING CHOICES ---
+export interface MissingChoiceOption {
+  id: string;
+  label: string;
+  description?: string;
+  [key: string]: any;
+}
+
 export interface MissingChoice {
   id: string; // Unique ID of the choice type (e.g., 'dragonborn_ancestry')
   label: string; // Display label (e.g., "Draconic Ancestry")
   description: string;
   type: 'race' | 'class'; // Source of the missing choice
-  options: { id: string; label: string; description?: string; [key: string]: any }[];
+  options: MissingChoiceOption[];
 }
