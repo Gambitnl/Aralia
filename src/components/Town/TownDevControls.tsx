@@ -1,6 +1,6 @@
 import React from 'react';
 import { RefreshCw, Download, TreeDeciduous, Home, Compass, BookOpen } from 'lucide-react';
-import { BiomeType, TownDensity } from '../types/realmsmith';
+import { BiomeType, TownDensity } from '../../types/realmsmith';
 
 interface TownDevControlsProps {
     seed: number;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import TownNavigationControls from '../TownNavigationControls';
-import { TownDirection } from '../../types/town';
+import { TownDirection } from '../../../types/town';
 import { vi } from 'vitest';
 
 describe('TownNavigationControls', () => {
