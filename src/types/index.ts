@@ -76,6 +76,7 @@ export * from './factions';
 export * from './companions';
 export * from './planes';
 export * from './crime';
+export * from './dialogue';
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
