@@ -9,7 +9,7 @@ import { PlayerCharacter, Skill as SkillType } from '../../types';
 import { SKILLS_DATA } from '../../constants';
 import { getAbilityModifierValue } from '../../utils/characterUtils';
 import Tooltip from '../Tooltip'; 
-import GlossaryTooltip from '../GlossaryTooltip'; 
+import GlossaryTooltip from '../Glossary/GlossaryTooltip';
 
 interface SkillDetailDisplayProps {
   isOpen: boolean;
