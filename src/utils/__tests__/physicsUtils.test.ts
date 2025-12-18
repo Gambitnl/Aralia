@@ -4,6 +4,8 @@ import {
   calculateFallDamage,
   calculateJumpDistance,
   calculateCarryingCapacity,
+  calculateBreathDuration,
+  calculateSuffocationRounds,
   getObjectAC,
   getObjectHP
 } from '../physicsUtils';
@@ -102,6 +104,36 @@ describe('physicsUtils', () => {
       const result = calculateCarryingCapacity(10, 2);
       expect(result.carryingCapacity).toBe(300);
       expect(result.pushDragLift).toBe(600);
+    });
+  });
+
+  describe('calculateBreathDuration', () => {
+    it('calculates duration as 1 + Con Mod minutes', () => {
+      // Con +2 -> 3 minutes
+      expect(calculateBreathDuration(2)).toBe(3);
+      // Con 0 -> 1 minute
+      expect(calculateBreathDuration(0)).toBe(1);
+    });
+
+    it('enforces minimum of 30 seconds (0.5 minutes)', () => {
+      // Con -2 -> 1 - 2 = -1 -> min 0.5
+      expect(calculateBreathDuration(-2)).toBe(0.5);
+      // Con -1 -> 1 - 1 = 0 -> min 0.5
+      expect(calculateBreathDuration(-1)).toBe(0.5);
+    });
+  });
+
+  describe('calculateSuffocationRounds', () => {
+    it('calculates rounds equal to Con Mod', () => {
+      // Con +3 -> 3 rounds
+      expect(calculateSuffocationRounds(3)).toBe(3);
+    });
+
+    it('enforces minimum of 1 round', () => {
+      // Con 0 -> min 1
+      expect(calculateSuffocationRounds(0)).toBe(1);
+      // Con -2 -> min 1
+      expect(calculateSuffocationRounds(-2)).toBe(1);
     });
   });
 });
