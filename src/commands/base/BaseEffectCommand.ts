@@ -3,6 +3,17 @@ import { SpellEffect } from '@/types/spells'
 import { CombatState, CombatCharacter, CombatLogEntry } from '@/types/combat'
 import { generateId } from '../../utils/idGenerator'
 
+/**
+ * Abstract base class for all spell effect commands.
+ *
+ * Implements the Command Pattern to encapsulate spell effects as objects that modify CombatState.
+ * This class provides standardized helper methods for common operations like retrieving
+ * fresh character data, updating state immutably, and writing to the combat log.
+ *
+ * Subclasses must implement `execute(state)` to define specific effect logic (damage, healing, etc.).
+ *
+ * @see SpellCommand for the interface definition.
+ */
 export abstract class BaseEffectCommand implements SpellCommand {
   public readonly id: string
   public readonly metadata: CommandMetadata
@@ -24,17 +35,31 @@ export abstract class BaseEffectCommand implements SpellCommand {
   }
 
   /**
-   * Abstract method - each command type implements its own execution logic
+   * Executes the command logic against the current combat state.
+   * Must be implemented by concrete subclasses to apply specific effects.
+   *
+   * @param state - The current immutable CombatState.
+   * @returns A new CombatState with the effects applied.
    */
   abstract execute(state: CombatState): CombatState
 
   /**
-   * Abstract method - each command provides its own description
+   * Returns a human-readable description of what this command does.
+   * Used for debugging and potential UI previews.
    */
   abstract get description(): string
 
   /**
-   * Helper: Get caster from state
+   * Retrieves the up-to-date Caster object from the current state.
+   *
+   * @remarks
+   * Always use this instead of `this.context.caster` inside `execute()`.
+   * The context object contains the caster state *at the time of command creation*,
+   * which may be stale if previous commands in the chain have modified the caster
+   * (e.g. costs paid, damage taken).
+   *
+   * @param state - The current combat state.
+   * @returns The fresh CombatCharacter object for the caster.
    */
   protected getCaster(state: CombatState): CombatCharacter {
     // We must find the caster in the current state because state is immutable
@@ -43,9 +68,15 @@ export abstract class BaseEffectCommand implements SpellCommand {
   }
 
   /**
-   * Helper: Get targets from state
-   * Looks up targets from context in the current combat state to ensure we have up-to-date character data.
-   * Returns an empty array if no targets are found or if context.targets is undefined.
+   * Retrieves the list of up-to-date Target objects from the current state.
+   *
+   * @remarks
+   * Always use this instead of `this.context.targets` inside `execute()`.
+   * Ensures that effects are calculated against the target's current values (HP, position, etc.),
+   * which may have changed due to previous effects in the same chain.
+   *
+   * @param state - The current combat state.
+   * @returns Array of fresh CombatCharacter objects for all valid targets.
    */
   protected getTargets(state: CombatState): CombatCharacter[] {
     if (!this.context?.targets || this.context.targets.length === 0) {
@@ -58,7 +89,12 @@ export abstract class BaseEffectCommand implements SpellCommand {
   }
 
   /**
-   * Helper: Update character in state
+   * Helper to immutably update a character in the combat state.
+   *
+   * @param state - The current combat state.
+   * @param characterId - The ID of the character to update.
+   * @param updates - Partial object containing the properties to change.
+   * @returns A new CombatState with the character updated.
    */
   protected updateCharacter(
     state: CombatState,
@@ -74,7 +110,12 @@ export abstract class BaseEffectCommand implements SpellCommand {
   }
 
   /**
-   * Helper: Add combat log entry
+   * Helper to append an entry to the combat log.
+   * Automatically generates an ID and timestamp for the entry.
+   *
+   * @param state - The current combat state.
+   * @param entry - The log entry data (excluding id and timestamp).
+   * @returns A new CombatState with the log entry added.
    */
   protected addLogEntry(
     state: CombatState,
