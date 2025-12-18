@@ -63,7 +63,9 @@ const KAELEN_GOALS: CompanionGoal[] = [
 ];
 
 const KAELEN_REACTIONS: CompanionReactionRule[] = [
+  // DECISION TRIGGERS
   {
+    triggerType: 'decision',
     triggerTags: ['crime', 'theft', 'trickery'],
     approvalChange: 2,
     dialoguePool: [
@@ -73,6 +75,7 @@ const KAELEN_REACTIONS: CompanionReactionRule[] = [
     ]
   },
   {
+    triggerType: 'decision',
     triggerTags: ['charity', 'selfless'],
     approvalChange: -1,
     dialoguePool: [
@@ -82,6 +85,7 @@ const KAELEN_REACTIONS: CompanionReactionRule[] = [
     ]
   },
   {
+    triggerType: 'decision',
     triggerTags: ['authority', 'law', 'arrest'],
     approvalChange: -3,
     dialoguePool: [
@@ -91,6 +95,7 @@ const KAELEN_REACTIONS: CompanionReactionRule[] = [
     ]
   },
   {
+    triggerType: 'decision',
     triggerTags: ['profit', 'negotiation'],
     approvalChange: 1,
     dialoguePool: [
@@ -98,6 +103,42 @@ const KAELEN_REACTIONS: CompanionReactionRule[] = [
       "Gold talks.",
       "Smart move."
     ]
+  },
+  // COMBAT TRIGGERS
+  {
+    triggerType: 'combat_hit',
+    triggerTags: ['crit', 'kill'],
+    approvalChange: 0,
+    dialoguePool: [
+      "Bullseye!",
+      "Down you go.",
+      "Messy. I like it."
+    ],
+    chance: 0.3,
+    cooldown: 5 // minutes
+  },
+  {
+    triggerType: 'combat_hurt',
+    triggerTags: ['low_hp'],
+    approvalChange: 0,
+    dialoguePool: [
+      "Hey! Watch the merchandise!",
+      "I'm bleeding here!",
+      "This wasn't in the contract!"
+    ],
+    priority: 10
+  },
+  // LOOT TRIGGERS
+  {
+    triggerType: 'loot',
+    triggerTags: ['gold', 'gem', 'jewelry'],
+    approvalChange: 0,
+    dialoguePool: [
+      "Shiny.",
+      "We splitting that 50/50?",
+      "That'll fetch a nice price."
+    ],
+    chance: 0.5
   }
 ];
 
@@ -140,7 +181,9 @@ const ELARA_GOALS: CompanionGoal[] = [
 ];
 
 const ELARA_REACTIONS: CompanionReactionRule[] = [
+  // DECISION TRIGGERS
   {
+    triggerType: 'decision',
     triggerTags: ['charity', 'healing', 'kindness'],
     approvalChange: 3,
     dialoguePool: [
@@ -150,6 +193,7 @@ const ELARA_REACTIONS: CompanionReactionRule[] = [
     ]
   },
   {
+    triggerType: 'decision',
     triggerTags: ['crime', 'theft', 'murder'],
     approvalChange: -5,
     dialoguePool: [
@@ -159,6 +203,7 @@ const ELARA_REACTIONS: CompanionReactionRule[] = [
     ]
   },
   {
+    triggerType: 'decision',
     triggerTags: ['undead', 'necromancy'],
     approvalChange: -10,
     dialoguePool: [
@@ -168,6 +213,7 @@ const ELARA_REACTIONS: CompanionReactionRule[] = [
     ]
   },
   {
+    triggerType: 'decision',
     triggerTags: ['prayer', 'religion'],
     approvalChange: 2,
     dialoguePool: [
@@ -175,6 +221,29 @@ const ELARA_REACTIONS: CompanionReactionRule[] = [
       "May the gods guide us.",
       "Peace be with you."
     ]
+  },
+  // COMBAT TRIGGERS
+  {
+    triggerType: 'combat_hurt',
+    triggerTags: ['low_hp'],
+    approvalChange: 0,
+    dialoguePool: [
+      "Light preserve me...",
+      "I need aid!",
+      "I will not fall today!"
+    ],
+    priority: 10
+  },
+  {
+    triggerType: 'combat_end',
+    triggerTags: ['victory'],
+    approvalChange: 0,
+    dialoguePool: [
+      "The dawn comes again.",
+      "It is over. Are you hurt?",
+      "We prevailed, thank the gods."
+    ],
+    chance: 0.4
   }
 ];
 

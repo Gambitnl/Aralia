@@ -102,16 +102,35 @@ export interface ReactionResult {
 }
 
 /**
+ * Triggers that can initiate a companion reaction.
+ */
+export type ReactionTriggerType =
+  | 'decision'     // Player made a choice (dialogue/quest)
+  | 'location'     // Entered a new area/biome
+  | 'combat_start' // Battle begins
+  | 'combat_end'   // Battle ends
+  | 'combat_hit'   // Companion did big damage
+  | 'combat_hurt'  // Companion took big damage
+  | 'loot'         // Player picked up something interesting
+  | 'idle'         // Time passed without action
+  | 'banter';      // Interaction with another companion
+
+/**
  * Rule defining how a companion reacts to specific tags.
  */
 export interface CompanionReactionRule {
+  triggerType?: ReactionTriggerType; // Defaults to 'decision' for backward compatibility
   triggerTags: string[]; // Matches ANY of these tags
   approvalChange: number; // Base change for magnitude 1
   dialoguePool: string[]; // Randomly selected response
   requirements?: {
     minRelationship?: RelationshipLevel;
     maxRelationship?: RelationshipLevel;
+    locationId?: string; // Only triggers in specific location
+    chance?: number; // 0-1 probability (default 1)
   };
+  cooldown?: number; // Minutes before this specific rule can trigger again
+  priority?: number; // Higher overrides lower (default 0)
 }
 
 export interface Companion {
@@ -124,7 +143,7 @@ export interface Companion {
   approvalHistory: ApprovalEvent[];
   questline?: CompanionQuestline;
 
-  // New: Reaction Logic
+  // Reaction Logic
   reactionRules: CompanionReactionRule[];
 
   // Combat stats could link to a CombatCharacter or be defined here
