@@ -13,6 +13,7 @@ import { DiceRoll } from '../types/dice';
 type DamageType = 'bludgeoning' | 'acid' | 'cold' | 'fire' | 'force' | 'lightning' | 'necrotic' | 'piercing' | 'poison' | 'psychic' | 'radiant' | 'slashing' | 'thunder';
 
 // TODO(Mechanist): Integrate object AC/HP rules into combat targeting system (attacking doors/walls).
+// TODO(Mechanist): Wire up suffocation/breath rules into `useTurnManager.ts` to apply StatusEffect.Choking when breath runs out.
 export type ObjectSize = 'tiny' | 'small' | 'medium' | 'large' | 'huge' | 'gargantuan';
 export type ObjectMaterial = 'cloth' | 'paper' | 'rope' | 'crystal' | 'glass' | 'ice' | 'wood' | 'bone' | 'stone' | 'iron' | 'steel' | 'mithral' | 'adamantine';
 
@@ -156,4 +157,33 @@ export function calculateCarryingCapacity(
   const pushDragLift = carryingCapacity * 2;
 
   return { carryingCapacity, pushDragLift };
+}
+
+/**
+ * Calculates how long a creature can hold its breath.
+ * PHB 2014/2024: 1 + Constitution Modifier minutes (minimum 30 seconds).
+ *
+ * @param conMod - The creature's Constitution modifier.
+ * @returns The duration in minutes.
+ */
+export function calculateBreathDuration(conMod: number): number {
+  // Rule: 1 + Con Mod minutes
+  const minutes = 1 + conMod;
+
+  // Rule: Minimum of 30 seconds (0.5 minutes)
+  return Math.max(0.5, minutes);
+}
+
+/**
+ * Calculates how long a creature can survive after running out of breath (choking).
+ * PHB 2014/2024: Equal to Constitution modifier rounds (minimum 1 round).
+ * At the start of its next turn after these rounds, it drops to 0 HP.
+ *
+ * @param conMod - The creature's Constitution modifier.
+ * @returns The duration in rounds (6 seconds each).
+ */
+export function calculateSuffocationRounds(conMod: number): number {
+  // Rule: Rounds equal to Con Mod
+  // Rule: Minimum of 1 round
+  return Math.max(1, conMod);
 }
