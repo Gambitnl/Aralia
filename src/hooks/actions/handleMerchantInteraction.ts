@@ -4,10 +4,11 @@
  * Handles interactions with dynamic merchants and shops.
  */
 import React from 'react';
-import { GameState, Action, Item, EconomyState, VillageActionContext } from '../../types';
+import { GameState, Action, EconomyState, VillageActionContext } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
+import { calculatePrice } from '../../utils/economyUtils';
 
 interface HandleMerchantInteractionProps {
   action: Action;
@@ -61,6 +62,20 @@ export async function handleOpenDynamicMerchant({
       // However, if Gemini returned specific economy tweaks for this specific merchant, maybe we should merge them?
       // For now, let's trust the global state managed by WorldEventManager.
       
+      // Employ economyUtils: Check if the global economy has active modifiers
+      const activeEvents = gameState.economy?.activeEvents || [];
+      if (activeEvents.length > 0) {
+        addMessage(`Market Alert: ${activeEvents.length} active events are influencing prices.`, "system");
+
+        // Example check: Price of a generic item to see multiplier
+        if (inventory.length > 0) {
+           const samplePrice = calculatePrice(inventory[0], gameState.economy, 'buy');
+           if (samplePrice.isModified) {
+               addMessage(`(Prices are currently ${samplePrice.multiplier > 1 ? 'high' : 'low'})`, "system");
+           }
+        }
+      }
+
       dispatch({ 
           type: 'OPEN_MERCHANT', 
           payload: { 
