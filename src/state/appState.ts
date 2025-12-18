@@ -28,6 +28,8 @@ import { npcReducer } from './reducers/npcReducer';
 import { questReducer } from './reducers/questReducer';
 import { townReducer } from './reducers/townReducer';
 import { crimeReducer } from './reducers/crimeReducer';
+import { companionReducer } from './reducers/companionReducer';
+import { COMPANIONS } from '../constants';
 
 
 // Helper function to create a date at 07:00 AM on an arbitrary fixed date
@@ -147,6 +149,9 @@ export const initialGameState: GameState = {
     // Faction System
     factions: FACTIONS,
     playerFactionStandings: INITIAL_FACTION_STANDINGS,
+
+    // Companion System
+    companions: COMPANIONS,
 
     // Religion System
     divineFavor: DEITIES.reduce((acc, deity) => {
@@ -500,6 +505,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ...questReducer(state, action),
                 ...townReducer(state, action),
                 ...crimeReducer(state, action),
+                ...companionReducer(state, action),
             };
 
             if (Object.keys(changes).length === 0) {

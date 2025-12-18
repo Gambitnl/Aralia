@@ -18,6 +18,16 @@ import CompassPane from '../CompassPane';
 import ActionPane from '../ActionPane';
 import WorldPane from '../WorldPane';
 import Minimap from '../Minimap';
+import { CompanionReaction } from '../ui/CompanionReaction';
+import { COMPANIONS } from '../../constants';
+
+// We need to access the full companion state if possible, but GameLayout receives specific props.
+// However, the reaction component needs the current state of companions (for names/avatars).
+// Ideally, GameLayout should receive `companions` prop.
+// For now, let's use the constant as a fallback but we really want dynamic data.
+// Since we are inside App.tsx which has gameState, let's assume we can pass it down or use it.
+// Actually, looking at App.tsx, GameLayout doesn't receive `companions` prop yet.
+// I will just use the constant for now as the Reviewer suggested passing it from gameState but I need to update the interface.
 
 interface GameLayoutProps {
     /** The current location data object, including name, description, and biome. */
@@ -48,6 +58,8 @@ interface GameLayoutProps {
     disabled: boolean;
     /** Central handler for dispatching user actions (movement, interaction, etc.). */
     onAction: (action: Action) => void;
+    /** Current state of companions. */
+    companions?: Record<string, any>; // Using any to avoid importing the type if not strictly needed, or import Companion
 }
 
 /**
@@ -69,10 +81,16 @@ const GameLayout: React.FC<GameLayoutProps> = ({
     isDevDummyActive,
     disabled,
     onAction,
+    companions,
 }) => {
     return (
         <div className="flex flex-col md:flex-row h-screen p-2 sm:p-4 gap-2 sm:gap-4 bg-gray-900 text-gray-200">
             <VersionDisplay position="game-screen" />
+
+            <CompanionReaction
+                companions={companions || COMPANIONS}
+                latestMessage={messages[messages.length - 1]}
+            />
 
             {/* Left Column: Navigation and Actions */}
             <div className="md:w-2/5 lg:w-1/3 flex flex-col gap-2 sm:gap-4 min-h-0">

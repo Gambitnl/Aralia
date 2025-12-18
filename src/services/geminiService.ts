@@ -18,7 +18,7 @@ import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, FAST_MODEL, COMPLEX_MODEL } from '../
 import * as ItemTemplates from '../data/item_templates';
 import { sanitizeAIInput, redactSensitiveData } from '../utils/securityUtils';
 
-
+const API_TIMEOUT_MS = 20000; // 20 seconds
 
 // --- Adaptive Rate Limiting State ---
 let lastRequestTimestamp = 0;
@@ -191,12 +191,19 @@ export async function generateText(
         config.thinkingConfig = { thinkingBudget };
       }
 
-      // TODO: Wrap generateContent with an AbortController/timeout so callers can cancel hung requests when unmounting or when a prompt exceeds latency budgets.
-      const response: GenerateContentResponse = await ai.models.generateContent({
-        model: model,
-        contents: promptContent,
-        config: config,
+      // Wrap generateContent with a timeout to prevent hung requests when a prompt exceeds latency budgets.
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error(`Request timed out after ${API_TIMEOUT_MS}ms`)), API_TIMEOUT_MS);
       });
+
+      const response: GenerateContentResponse = await Promise.race([
+        ai.models.generateContent({
+          model: model,
+          contents: promptContent,
+          config: config,
+        }),
+        timeoutPromise
+      ]);
 
       // Update timestamp on successful request
       lastRequestTimestamp = Date.now();
@@ -295,6 +302,22 @@ export async function generateNPCResponse(
   return await generateText(fullPrompt, personalityPrompt, false, 'generateNPCResponse', devModelOverride, adaptiveModel);
 }
 
+function validateNarrativeResponse(text: string): string {
+  if (!text) return text;
+
+  // Truncate if excessively long (over 500 chars is likely a hallucination or failure to be concise)
+  if (text.length > 500) {
+    return text.substring(0, 497) + "...";
+  }
+
+  // Basic check for AI-isms
+  if (text.startsWith("As an AI") || text.includes("I cannot generate")) {
+    return "The action has no discernible effect.";
+  }
+
+  return text;
+}
+
 export async function generateActionOutcome(
   playerAction: string,
   context: string,
@@ -310,12 +333,22 @@ export async function generateActionOutcome(
 
   const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, sanitizedAction); // Default to PRO for quality narration, downgrades if spammy/short
 
-  let prompt = `Player action: "${sanitizedAction}"\n\nContext:\n${context}`;
+  // Structured prompt construction for better context adherence (Chronicler Learning)
+  let prompt = `## PLAYER ACTION\n${sanitizedAction}\n\n## CURRENT CONTEXT\n${context}`;
+
   if (sanitizedAction.toLowerCase().includes("look around") && worldMapTileTooltip) {
-    prompt += `\nBroader context for 'look around': ${worldMapTileTooltip}`;
+    prompt += `\n\n## BROADER CONTEXT (Look Around)\n${worldMapTileTooltip}`;
   }
 
-  return await generateText(prompt, systemInstruction, false, 'generateActionOutcome', devModelOverride, adaptiveModel);
+  prompt += `\n\n## NARRATIVE GUIDELINES\n- Focus on sensory details (sight, sound, smell).\n- Do not moralize or lecture.\n- Stay in character as the Dungeon Master.\n- Keep response under 3 sentences.`;
+
+  const result = await generateText(prompt, systemInstruction, false, 'generateActionOutcome', devModelOverride, adaptiveModel);
+
+  if (result.data) {
+    result.data.text = validateNarrativeResponse(result.data.text);
+  }
+
+  return result;
 }
 
 export async function generateDynamicEvent(

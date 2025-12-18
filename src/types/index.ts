@@ -189,6 +189,11 @@ export interface GameMessage {
   text: string;
   sender: 'system' | 'player' | 'npc';
   timestamp: Date;
+  metadata?: {
+    companionId?: string;
+    reactionType?: string;
+    [key: string]: any;
+  };
 }
 
 export interface Biome {
@@ -452,6 +457,15 @@ export interface StartGameSuccessPayload {
   startingInventory: Item[];
 }
 
+export interface MarketEvent {
+  id: string;
+  name: string;
+  description: string;
+  affectedTags: string[]; // Tags like 'weapon', 'food', 'magic'
+  effect: 'scarcity' | 'surplus';
+  duration: number; // In game ticks or arbitrary units
+}
+
 export interface EconomyState {
   marketFactors: {
     scarcity: string[]; // Item types or tags that are scarce (high demand)
@@ -459,6 +473,7 @@ export interface EconomyState {
   };
   buyMultiplier: number; // Base multiplier for buying
   sellMultiplier: number; // Base multiplier for selling
+  activeEvents?: MarketEvent[];
 }
 
 export interface GameState {

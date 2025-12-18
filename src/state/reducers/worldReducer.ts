@@ -4,6 +4,8 @@
  */
 import { GameState, DiscoveryResidue } from '../../types';
 import { AppAction } from '../actionTypes';
+import { processWorldEvents } from '../../systems/world/WorldEventManager';
+import { getGameDay } from '../../utils/timeUtils';
 
 export function worldReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
@@ -37,10 +39,32 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
     case 'SET_GEMINI_ACTIONS':
         return { geminiGeneratedActions: action.payload };
 
-    case 'ADVANCE_TIME':
-      const newTime = new Date(state.gameTime.getTime());
+    case 'ADVANCE_TIME': {
+      const oldTime = state.gameTime;
+      const newTime = new Date(oldTime.getTime());
       newTime.setSeconds(newTime.getSeconds() + action.payload.seconds);
-      return { gameTime: newTime };
+
+      // Check if a day has passed
+      const oldDay = getGameDay(oldTime);
+      const newDay = getGameDay(newTime);
+      const daysPassed = newDay - oldDay;
+
+      let partialUpdate: Partial<GameState> = { gameTime: newTime };
+
+      if (daysPassed > 0) {
+          const { state: newState, logs } = processWorldEvents({ ...state, gameTime: newTime }, daysPassed);
+
+          // Merge world event changes
+          partialUpdate = {
+              ...partialUpdate,
+              factions: newState.factions,
+              playerFactionStandings: newState.playerFactionStandings,
+              messages: [...state.messages, ...logs]
+          };
+      }
+
+      return partialUpdate;
+    }
     
     case 'ADD_MET_NPC': {
       const { npcId } = action.payload;

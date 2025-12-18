@@ -70,7 +70,7 @@ export type AppAction =
   | { type: 'CAST_SPELL'; payload: { characterId: string; spellLevel: number } }
   | { type: 'USE_LIMITED_ABILITY'; payload: { characterId: string; abilityId: string } }
   | { type: 'TOGGLE_PREPARED_SPELL'; payload: { characterId: string; spellId: string } }
-  | { type: 'LONG_REST' }
+  | { type: 'LONG_REST'; payload?: { deniedCharacterIds?: string[] } }
   | { type: 'SHORT_REST' }
   // NPC Memory Actions
   | { type: 'UPDATE_NPC_DISPOSITION'; payload: { npcId: string; amount: number } }
@@ -103,6 +103,9 @@ export type AppAction =
   | { type: 'ACCEPT_QUEST'; payload: Quest }
   | { type: 'UPDATE_QUEST_OBJECTIVE'; payload: { questId: string; objectiveId: string; isCompleted: boolean } }
   | { type: 'COMPLETE_QUEST'; payload: { questId: string } }
+  // Companion Actions
+  | { type: 'UPDATE_COMPANION_APPROVAL'; payload: { companionId: string; change: number; reason: string; source?: string } }
+  | { type: 'ADD_COMPANION_REACTION'; payload: { companionId: string; reaction: string } }
   // Notification Actions
   | { type: 'ADD_NOTIFICATION'; payload: { type: 'success' | 'error' | 'info' | 'warning'; message: string; duration?: number } }
   | { type: 'REMOVE_NOTIFICATION'; payload: { id: string } }

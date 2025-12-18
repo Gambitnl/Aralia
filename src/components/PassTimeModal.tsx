@@ -6,6 +6,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { formatGameTime, getGameDay, addGameTime } from '@/utils/timeUtils';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface TimeInputState {
   minutes: number;
@@ -59,6 +60,15 @@ const PassTimeModal: React.FC<PassTimeModalProps> = ({ isOpen, onClose, onConfir
     onConfirm(totalSecondsToAdvance);
     onClose();
   };
+
+  const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && totalSecondsToAdvance > 0) {
+      e.preventDefault();
+      handleConfirm();
+    }
+  };
   
   useEffect(() => {
     if (!isOpen) {
@@ -82,13 +92,16 @@ const PassTimeModal: React.FC<PassTimeModalProps> = ({ isOpen, onClose, onConfir
       aria-labelledby="pass-time-title"
     >
       <motion.div
+        ref={modalRef}
         {...{
           initial: { y: -30, opacity: 0 },
           animate: { y: 0, opacity: 1 },
           exit: { y: -30, opacity: 0 },
         } as any}
-        className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-md"
+        className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-md focus:outline-none"
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={handleKeyDown}
       >
         <h2 id="pass-time-title" className="text-2xl font-bold text-amber-400 font-cinzel text-center mb-4">Pass Time</h2>
         <div className="text-center mb-4 p-2 bg-gray-900/50 rounded">
