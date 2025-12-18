@@ -61,13 +61,17 @@ export function calculateCover(origin: Position, target: Position, mapData: Batt
 
 /**
  * Helper to roll a single group of dice (e.g., "2d8").
- * @param count Number of dice
- * @param sides Sides per die
- * @param minRoll Minimum value per die
- * @returns Total rolled value
+ *
+ * @param count Number of dice to roll.
+ * @param sides Number of sides per die.
+ * @param minRoll Minimum value per die (default 1).
+ * @returns Total rolled value.
+ *
+ * @internal This is a helper for `rollDamage` and should not be used directly.
  */
 function rollDieGroup(count: number, sides: number, minRoll: number = 1): number {
-    // TODO(FEATURES): Route dice rolls through a secure or server-validated RNG to prevent client-side manipulation (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+    // TODO(FEATURES): Route dice rolls through a secure or server-validated RNG to prevent client-side manipulation.
+    // (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
     let subTotal = 0;
   for (let i = 0; i < count; i++) {
     let roll = Math.floor(Math.random() * sides) + 1;
@@ -273,10 +277,15 @@ export function computeAoETiles(
 
 /**
  * A simple damage calculation placeholder.
+ *
+ * NOTE: This function currently bypasses resistance and vulnerability logic.
+ * In the full implementation, it should query the target's `stats` or `tags`
+ * to apply modifiers (e.g. half damage for resistance).
+ *
  * @param baseDamage The base damage of the ability.
  * @param caster The character using the ability.
  * @param target The character being targeted.
- * @returns The calculated damage number.
+ * @returns The calculated damage number (currently identical to baseDamage).
  */
 export function calculateDamage(baseDamage: number, caster: CombatCharacter, target: CombatCharacter): number {
   // In a real system, we would check for resistance/vulnerability here
@@ -325,9 +334,21 @@ export function getStatusEffectIcon(effect: StatusEffect): string {
 
 /**
  * Converts a PlayerCharacter from the main game state into a CombatCharacter for the battle map.
- * @param player - The PlayerCharacter object.
- * @param allSpells - Dictionary of all spell data, needed to hydrate the spellbook.
- * @returns A CombatCharacter object.
+ *
+ * WHY:
+ * The game maintains two separate character representations:
+ * 1. PlayerCharacter (Persistent): Stores long-term state (inventory, XP, all known spells).
+ * 2. CombatCharacter (Transient): Optimized for the turn-based combat engine (flat ability list, position).
+ *
+ * HOW:
+ * This factory function bridges that gap by:
+ * - Transforming equipped weapons into 'Attack' abilities (checking proficiency & mastery).
+ * - Injecting universal combat actions (Dash, Disengage).
+ * - Hydrating the spellbook into executable abilities using the `createAbilityFromSpell` factory.
+ *
+ * @param player - The persistent PlayerCharacter object.
+ * @param allSpells - Dictionary of all spell data, used to resolve spell IDs into full ability objects.
+ * @returns A fully hydrated CombatCharacter ready for the BattleMap.
  */
 export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: Record<string, Spell> = {}): CombatCharacter {
   const stats: CharacterStats = {
@@ -476,8 +497,19 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
 
 /**
  * Converts a Monster from the encounter generator into a CombatCharacter for the battle map.
- * @param monster - The Monster object from the generated encounter.
- * @param index - A unique index for this monster instance.
+ *
+ * WHY:
+ * Encounters are generated as lightweight `Monster` templates. The combat engine requires
+ * unique instances with tracking for HP, status effects, and position.
+ *
+ * HOW:
+ * - Looks up the full monster statistics in `MONSTERS_DATA` using the name.
+ * - If data is missing (e.g., content mismatch), falls back to a generic "Fighter" template
+ *   to prevent the game from crashing.
+ * - Assigns a unique ID incorporating the index to distinguish identical enemies (e.g., "Goblin 1", "Goblin 2").
+ *
+ * @param monster - The lightweight Monster template.
+ * @param index - Unique index for this instance (0-based).
  * @returns A CombatCharacter object representing an enemy.
  */
 export function createEnemyFromMonster(monster: Monster, index: number): CombatCharacter {
