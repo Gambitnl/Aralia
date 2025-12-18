@@ -68,6 +68,19 @@ describe('ElementalInteractionSystem', () => {
             expect(result.finalState).toBe(StateTag.Burning);
         });
 
+        it('should handle Burning + Cold -> Neutral (Thermal Shock)', () => {
+            const current = [StateTag.Burning];
+            const { newStates, result } = applyStateToTags(current, StateTag.Cold);
+
+            // Burning + Cold -> null (cancellation)
+            expect(newStates).not.toContain(StateTag.Burning);
+            expect(newStates).not.toContain(StateTag.Cold);
+            expect(newStates).toHaveLength(0);
+
+            expect(result.finalState).toBeUndefined();
+            expect(result.interaction).toContain('Neutralized');
+        });
+
         it('should respect alphabetic key ordering regardless of input order', () => {
             // Test Cold + Wet (defined as 'cold+wet')
             const current = [StateTag.Cold];
