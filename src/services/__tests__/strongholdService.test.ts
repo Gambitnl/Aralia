@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
     createStronghold,
     recruitStaff,
@@ -6,9 +6,12 @@ import {
     processDailyUpkeep,
     getAvailableUpgrades,
     purchaseUpgrade,
+    calculateDefense,
+    generateThreat,
+    resolveThreat,
     UPGRADE_CATALOG
 } from '../strongholdService';
-import { Stronghold } from '../../types/stronghold';
+import { Stronghold, ActiveThreat } from '../../types/stronghold';
 
 describe('StrongholdService', () => {
     it('should create a stronghold with default resources and empty upgrades', () => {
@@ -17,6 +20,7 @@ describe('StrongholdService', () => {
         expect(castle.resources.gold).toBe(1000);
         expect(castle.upgrades).toEqual([]);
         expect(castle.constructionQueue).toEqual([]);
+        expect(castle.threats).toEqual([]);
     });
 
     describe('Staff Management', () => {
@@ -139,6 +143,107 @@ describe('StrongholdService', () => {
             }
 
             expect(currentCastle.staff.length).toBe(0);
+        });
+    });
+
+    describe('Threats', () => {
+        it('should calculate defense correctly', () => {
+            let castle = createStronghold('My Castle', 'castle', 'loc-123');
+            expect(calculateDefense(castle)).toBe(10); // Base
+
+            // Add Guard Tower (+5)
+            castle.upgrades.push('guard_tower');
+            expect(calculateDefense(castle)).toBe(15);
+
+            // Add Guard staff (+5)
+            castle = recruitStaff(castle, 'Guard Bob', 'guard');
+            expect(calculateDefense(castle)).toBe(20);
+        });
+
+        it('should resolve threats successfully when defense is high', () => {
+            const castle = createStronghold('Strong Castle', 'castle', 'loc-1');
+            // High defense
+            castle.upgrades.push('guard_tower', 'barracks'); // +20
+            // recruitStaff helper adds to staff array
+            castle.staff.push({ id: '1', name: 'G1', role: 'guard', dailyWage: 5, morale: 100, skills: {} });
+            castle.staff.push({ id: '2', name: 'G2', role: 'guard', dailyWage: 5, morale: 100, skills: {} });
+            // Total defense: 10 + 20 + 10 = 40
+
+            const threat: ActiveThreat = {
+                id: 't1',
+                name: 'Weak Bandits',
+                description: '...',
+                type: 'bandits',
+                severity: 20, // Low severity
+                daysUntilTrigger: 0,
+                resolved: false,
+                consequences: { goldLoss: 100 }
+            };
+
+            const result = resolveThreat(castle, threat);
+            expect(result.success).toBe(true);
+            expect(result.logs[0]).toContain('Defeated');
+        });
+
+        it('should fail to resolve threats when defense is low', () => {
+            const castle = createStronghold('Weak Hut', 'castle', 'loc-1');
+            // Base defense 10
+
+            const threat: ActiveThreat = {
+                id: 't1',
+                name: 'Dragon',
+                description: '...',
+                type: 'monster',
+                severity: 100, // Impossible to beat with base defense
+                daysUntilTrigger: 0,
+                resolved: false,
+                consequences: { goldLoss: 1000 }
+            };
+
+            const result = resolveThreat(castle, threat);
+            expect(result.success).toBe(false);
+            expect(result.logs[0]).toContain('Failed');
+        });
+
+        it('should apply threat consequences in daily upkeep', () => {
+            let castle = createStronghold('My Castle', 'castle', 'loc-123');
+            castle.resources.gold = 2000;
+
+            // Add a threat about to trigger
+            const threat: ActiveThreat = {
+                id: 't1',
+                name: 'Tax Collector',
+                description: '...',
+                type: 'political',
+                severity: 100, // Ensure failure
+                daysUntilTrigger: 1, // Will trigger this turn
+                resolved: false,
+                consequences: { goldLoss: 500, suppliesLoss: 0, moraleLoss: 0 }
+            };
+            castle.threats.push(threat);
+
+            const result = processDailyUpkeep(castle);
+
+            // Should fail and lose gold
+            expect(result.updatedStronghold.resources.gold).toBeLessThan(2000);
+            expect(result.summary.threatEvents.some(e => e.includes('Lost 500 gold'))).toBe(true);
+            // Threat should be removed
+            expect(result.updatedStronghold.threats.length).toBe(0);
+        });
+
+        it('should generate new threats occasionally', () => {
+             // Mock Math.random to force threat generation
+             const originalRandom = Math.random;
+             Math.random = () => 0.05; // Force threat (threshold 0.1)
+
+             let castle = createStronghold('My Castle', 'castle', 'loc-123');
+             const result = processDailyUpkeep(castle);
+
+             expect(result.updatedStronghold.threats.length).toBe(1);
+             expect(result.summary.threatEvents[0]).toContain('New Threat');
+
+             // Restore random
+             Math.random = originalRandom;
         });
     });
 });
