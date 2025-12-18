@@ -70,7 +70,6 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
   gameState: {} as any
 })
 
-// TODO: Add a zero-distance teleport case that includes validMoves to ensure range enforcement is bounded when effect.distance is omitted.
 describe('MovementCommand', () => {
   it('teleports to a valid UI-provided tile when available', () => {
     const caster = makeCharacter('caster', { x: 0, y: 0 })
@@ -115,6 +114,43 @@ describe('MovementCommand', () => {
     const updated = result.characters.find(c => c.id === 'target')
 
     expect(updated?.position).toEqual({ x: 3, y: 1 }) // Two tiles away from the caster along the x-axis
+  })
+
+  it('fails to teleport when distance is missing (0) even if validMoves exist outside range', () => {
+    const caster = makeCharacter('caster', { x: 0, y: 0 })
+    const target = makeCharacter('target', { x: 0, y: 0 }) // At origin
+
+    // validMoves includes a distant tile (10, 10), which is > 0 distance
+    const state = makeState([caster, target], [{ x: 10, y: 10 }])
+
+    const effect: MovementEffect = {
+      type: 'MOVEMENT',
+      movementType: 'teleport',
+      // distance omitted, implies 0
+      duration: { type: 'rounds', value: 1 },
+      trigger: { type: 'immediate' },
+      condition: { type: 'always' }
+    }
+
+    const cmd = new MovementCommand(effect, makeContext(caster, [target]))
+    const result = cmd.execute(state)
+
+    const updated = result.characters.find(c => c.id === 'target')
+
+    // Expectation: Should stay at 0,0 because distance is 0
+    expect(updated?.position).toEqual({ x: 0, y: 0 })
+
+    // Check logs to confirm it failed to teleport or teleported 0 distance
+    // The current implementation might allow it to teleport to (10, 10) if it ignores the missing distance
+    const log = result.combatLog.at(-1)
+
+    // If it moved, this test demonstrates the bug
+    if (updated?.position.x === 10) {
+      console.log('BUG CONFIRMED: Teleported to (10,10) despite 0 distance')
+    }
+
+    // We expect it NOT to have moved to 10,10
+    expect(updated?.position).not.toEqual({ x: 10, y: 10 })
   })
 })
 
