@@ -21,7 +21,8 @@ import {
   Class,
   TransportMode,
   CombatState,
-  QuestStatus
+  QuestStatus,
+  ItemType
 } from '@/types/index';
 
 import {
@@ -242,7 +243,28 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
 
     fences: {},
 
+    // Intriguer: Faction System
+    factions: {},
+    playerFactionStandings: {},
+    companions: {},
+
+    // Templar: Religion System
+    divineFavor: {},
+    temples: {},
+
+    // Shadowbroker: Crime System
+    notoriety: {
+      globalHeat: 0,
+      localHeat: {},
+      knownCrimes: [],
+      bounties: []
+    },
+
     questLog: [],
+    notifications: [],
+
+    townState: null,
+    townEntryDirection: null,
 
     ...overrides
   };
@@ -301,7 +323,13 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
     conditions: [],
     activeEffects: [],
     riders: [],
-    savePenaltyRiders: []
+    savePenaltyRiders: [],
+    additionalSavingThrowProficiencies: [],
+    resistances: [],
+    immunities: [],
+    vulnerabilities: [],
+    damageDealt: [],
+    healingDone: []
   };
 
   return { ...defaults, ...overrides };
@@ -350,7 +378,7 @@ export function createMockItem(overrides: Partial<Item> = {}): Item {
   return {
     id: `item-${crypto.randomUUID()}`,
     name: "Mock Item",
-    type: "misc",
+    type: ItemType.Treasure, // Default to a valid enum
     description: "A generic mock item.",
     ...overrides
   };
@@ -362,10 +390,12 @@ export function createMockItem(overrides: Partial<Item> = {}): Item {
 export function createMockQuest(overrides: Partial<Quest> = {}): Quest {
   return {
     id: `quest-${crypto.randomUUID()}`,
-    name: "Mock Quest",
+    title: "Mock Quest",
     description: "A quest to test the quest system.",
     status: QuestStatus.Active,
     objectives: [],
+    giverId: "npc-1",
+    dateStarted: 0,
     ...overrides
   };
 }
@@ -374,11 +404,12 @@ export function createMockQuest(overrides: Partial<Quest> = {}): Quest {
  * Creates a mock Monster object.
  */
 export function createMockMonster(overrides: Partial<Monster> = {}): Monster {
+  // @ts-ignore - Partial implementation for tests
   return {
     id: `monster-${crypto.randomUUID()}`,
     name: "Mock Monster",
     type: "beast",
-    cr: 1,
+    cr: "1",
     hp: 20,
     ac: 12,
     stats: {
@@ -390,6 +421,8 @@ export function createMockMonster(overrides: Partial<Monster> = {}): Monster {
       charisma: 6
     },
     actions: [],
+    quantity: 1,
+    description: "A scary monster",
     ...overrides
   };
 }
@@ -399,10 +432,10 @@ export function createMockMonster(overrides: Partial<Monster> = {}): Monster {
  */
 export function createMockGameMessage(overrides: Partial<GameMessage> = {}): GameMessage {
   return {
-    id: `msg-${crypto.randomUUID()}`,
+    id: 123,
     text: "This is a mock message.",
-    timestamp: Date.now(),
-    type: "info",
+    timestamp: new Date(),
+    sender: "system",
     ...overrides
   };
 }

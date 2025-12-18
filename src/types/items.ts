@@ -27,6 +27,128 @@ export interface Mastery {
   description: string;
 }
 
+/**
+ * Classification of items in the game world.
+ * Each type carries inherent properties like equippability or stackability.
+ */
+export enum ItemType {
+  Weapon = 'weapon',
+  Armor = 'armor',
+  Accessory = 'accessory',
+  Clothing = 'clothing',
+  Consumable = 'consumable',
+  Potion = 'potion',
+  FoodDrink = 'food_drink',
+  PoisonToxin = 'poison_toxin',
+  Tool = 'tool',
+  LightSource = 'light_source',
+  Ammunition = 'ammunition',
+  Trap = 'trap',
+  Note = 'note',
+  Book = 'book',
+  Map = 'map',
+  Scroll = 'scroll',
+  Key = 'key',
+  SpellComponent = 'spell_component',
+  CraftingMaterial = 'crafting_material',
+  Treasure = 'treasure',
+}
+
+export interface ItemTypeTraits {
+  isEquippable?: boolean;
+  isStackable?: boolean;
+  isConsumable?: boolean;
+  description: string;
+}
+
+/**
+ * Trait definitions for ItemTypes.
+ */
+export const ItemTypeDefinitions: Record<ItemType, ItemTypeTraits> = {
+  [ItemType.Weapon]: {
+    isEquippable: true,
+    description: "Instruments of combat, ranging from simple clubs to magical blades.",
+  },
+  [ItemType.Armor]: {
+    isEquippable: true,
+    description: "Protective gear worn to defend against attacks.",
+  },
+  [ItemType.Accessory]: {
+    isEquippable: true,
+    description: "Jewelry or trinkets that may provide magical benefits.",
+  },
+  [ItemType.Clothing]: {
+    isEquippable: true,
+    description: "Standard apparel with no significant defensive properties.",
+  },
+  [ItemType.Consumable]: {
+    isStackable: true,
+    isConsumable: true,
+    description: "General items intended to be used up.",
+  },
+  [ItemType.Potion]: {
+    isStackable: true,
+    isConsumable: true,
+    description: "Magical liquids that grant effects when imbibed.",
+  },
+  [ItemType.FoodDrink]: {
+    isStackable: true,
+    isConsumable: true,
+    description: "Sustenance for survival and comfort.",
+  },
+  [ItemType.PoisonToxin]: {
+    isStackable: true,
+    isConsumable: true,
+    description: "Harmful substances used to coat weapons or ingest.",
+  },
+  [ItemType.Tool]: {
+    isStackable: false,
+    description: "Instruments used for crafting, picking locks, or specialized tasks.",
+  },
+  [ItemType.LightSource]: {
+    isStackable: false,
+    description: "Items that illuminate dark areas, like torches or lanterns.",
+  },
+  [ItemType.Ammunition]: {
+    isStackable: true,
+    description: "Projectiles for ranged weapons.",
+  },
+  [ItemType.Trap]: {
+    isStackable: true,
+    description: "Devices set to ensnare or harm intruders.",
+  },
+  [ItemType.Note]: {
+    isStackable: true,
+    description: "Scraps of paper containing short messages.",
+  },
+  [ItemType.Book]: {
+    description: "Bound collections of pages containing lore or spells.",
+  },
+  [ItemType.Map]: {
+    description: "Cartographic representations of the world.",
+  },
+  [ItemType.Scroll]: {
+    isStackable: true,
+    isConsumable: true,
+    description: "Parchments inscribed with magical spells or information.",
+  },
+  [ItemType.Key]: {
+    description: "Objects used to open locks.",
+  },
+  [ItemType.SpellComponent]: {
+    isStackable: true,
+    description: "Materials required for casting specific spells.",
+  },
+  [ItemType.CraftingMaterial]: {
+    isStackable: true,
+    description: "Raw resources used to create other items.",
+  },
+  [ItemType.Treasure]: {
+    isStackable: true,
+    description: "Valuables primarily intended for sale or collection.",
+  },
+};
+
 export type ItemEffect =
   | { type: 'heal'; value: number; dice?: string }
   | { type: 'buff'; stat: AbilityScoreName; value: number; duration?: number }
@@ -39,8 +161,14 @@ export interface Item {
   id: string;
   name: string;
   description: string;
-  type:
-    | 'weapon'
+  /**
+   * The classification of the item.
+   * Prefer using ItemType enum values.
+   *
+   * // TODO(Taxonomist): Refactor codebase to strictly use ItemType enum and remove magic strings
+   */
+  type: ItemType |
+    'weapon'
     | 'armor'
     | 'accessory'
     | 'clothing'
