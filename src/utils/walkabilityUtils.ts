@@ -3,7 +3,7 @@
  * Utilities for determining tile walkability and pathfinding in towns.
  */
 
-import { TownMap, Tile, TileType } from '../types/realmsmith';
+import { TownMap, TileType } from '../types/realmsmith';
 import { TownPosition, WALKABLE_TILE_TYPES, BLOCKING_TILE_TYPES } from '../types/town';
 
 /**
@@ -11,6 +11,13 @@ import { TownPosition, WALKABLE_TILE_TYPES, BLOCKING_TILE_TYPES } from '../types
  */
 export function isTileTypeWalkable(tileType: TileType): boolean {
     return WALKABLE_TILE_TYPES.includes(tileType);
+}
+
+/**
+ * Check if a specific tile type is blocking
+ */
+export function isTileTypeBlocking(tileType: TileType): boolean {
+    return BLOCKING_TILE_TYPES.includes(tileType);
 }
 
 /**
@@ -80,7 +87,7 @@ export function getWalkableNeighbors(
 /**
  * Calculate the Manhattan distance between two positions
  */
-function manhattanDistance(a: TownPosition, b: TownPosition): number {
+export function manhattanDistance(a: TownPosition, b: TownPosition): number {
     return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 }
 

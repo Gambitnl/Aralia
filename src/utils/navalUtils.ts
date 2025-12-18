@@ -6,8 +6,23 @@
  * Logic for ship mechanics, crew management, and naval calculations.
  */
 
-import { Ship, ShipStats, CrewMember, ShipModification } from '../types/naval';
+import { Ship, ShipStats, CrewMember, ShipModification, ShipSize } from '../types/naval';
 import { SHIP_TEMPLATES } from '../data/ships';
+
+/**
+ * Gets the numeric rank of a ship size for comparison (Tiny=1 to Gargantuan=6).
+ */
+export function getShipSizeRank(size: ShipSize): number {
+  const sizeRank: Record<ShipSize, number> = {
+    'Tiny': 1,
+    'Small': 2,
+    'Medium': 3,
+    'Large': 4,
+    'Huge': 5,
+    'Gargantuan': 6
+  };
+  return sizeRank[size] ?? 0;
+}
 
 /**
  * Creates a new ship instance from a template.
@@ -101,27 +116,13 @@ export function installModification(ship: Ship, modification: ShipModification):
 
   // Check size requirements
   if (modification.requirements?.minSize) {
-     // Logic to check size rank if we had an ordered list, but for now exact match or list check
-     // Assuming requirements.minSize is a list of allowed sizes for simplicity or we implement a size rank comparison
-     if (!modification.requirements.minSize.includes(ship.size)) {
-         // This is a strict include check. If we wanted "Medium or larger", we'd need size ranking.
-         // Let's assume for now the data provides the allowed list.
-         // Re-reading type: minSize?: ShipSize[];
-         // Wait, type definition I wrote was minSize?: ShipSize[]; which implies a list of allowed sizes?
-         // Or is it "Minimum Size"?
-         // "minSize" usually implies "This size or larger".
-         // But logic is easier if it's just "allowedSizes".
-         // Let's treat it as "Allowed Sizes" for now unless I implement a size rank map.
-
-         const sizeRank: Record<string, number> = { 'Tiny': 1, 'Small': 2, 'Medium': 3, 'Large': 4, 'Huge': 5, 'Gargantuan': 6 };
-         const shipRank = sizeRank[ship.size];
-         // Actually, let's implement true "minSize" check if it's an array of length 1, or just check if it's in the list?
-         // The type says `minSize?: ShipSize[]`.
-         // Let's assume if the array is present, the ship size must be in it.
-          if (!modification.requirements.minSize.includes(ship.size)) {
-               return { success: false, reason: `Ship size ${ship.size} not supported (requires ${modification.requirements.minSize.join(', ')})` };
-          }
-     }
+    // Current implementation enforces strict allowlist check as defined by the type
+    if (!modification.requirements.minSize.includes(ship.size)) {
+      return {
+        success: false,
+        reason: `Ship size ${ship.size} not supported (requires ${modification.requirements.minSize.join(', ')})`
+      };
+    }
   }
 
   return {
