@@ -2,19 +2,15 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { calculateProficiencyBonus, calculateSpellDC, rollSavingThrow, SavingThrowModifier } from '../savingThrowUtils';
 import { createMockCombatCharacter } from '../factories';
-import { CombatCharacter } from '@/types/combat';
+import * as combatUtils from '../combatUtils';
 
-// Mock rollDice to be deterministic for testing modifiers
+// Mock rollDice
+// We need to spy on it to change return values per test
 vi.mock('../combatUtils', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../combatUtils')>();
   return {
     ...actual,
-    rollDice: vi.fn((dice: string) => {
-      // Simple mock: return average or fixed value
-      if (dice === '1d4') return 2;
-      if (dice === '-1d4') return -2; // Handle penalty
-      return 5;
-    }),
+    rollDice: vi.fn(),
   };
 });
 
@@ -39,8 +35,7 @@ describe('savingThrowUtils', () => {
     });
 
     it('handles edge cases', () => {
-        expect(calculateProficiencyBonus(0)).toBe(2); // Should treat as level 1 approx or min 2
-        // Based on implementation: 2 + floor(max(0, -1) / 4) = 2 + 0 = 2. Correct.
+        expect(calculateProficiencyBonus(0)).toBe(2);
     });
   });
 
@@ -88,9 +83,12 @@ describe('savingThrowUtils', () => {
         }
       });
 
-      // Spy on Math.random to force a roll of 10
-      // Math.floor(0.45 * 20) + 1 = 9 + 1 = 10
-      vi.spyOn(Math, 'random').mockReturnValue(0.45);
+      // Mock rollDice to return 10 when called with '1d20'
+      const rollDiceMock = vi.mocked(combatUtils.rollDice);
+      rollDiceMock.mockImplementation((dice: string) => {
+          if (dice === '1d20') return 10;
+          return 0;
+      });
 
       const result = rollSavingThrow(char, 'Dexterity', 15);
 
@@ -110,7 +108,8 @@ describe('savingThrowUtils', () => {
             savingThrowProficiencies: ['Dexterity']
         });
 
-        vi.spyOn(Math, 'random').mockReturnValue(0.45); // Roll 10
+        const rollDiceMock = vi.mocked(combatUtils.rollDice);
+        rollDiceMock.mockReturnValue(10); // 1d20 returns 10
 
         const result = rollSavingThrow(char, 'Dexterity', 15);
         // Total = 10 (Roll) + 2 (Dex) + 2 (PB) = 14
@@ -126,7 +125,12 @@ describe('savingThrowUtils', () => {
             }
         });
 
-        vi.spyOn(Math, 'random').mockReturnValue(0.45); // Roll 10
+        const rollDiceMock = vi.mocked(combatUtils.rollDice);
+        rollDiceMock.mockImplementation((dice: string) => {
+            if (dice === '1d20') return 10;
+            if (dice === '-1d4') return -2; // Penalty
+            return 0;
+        });
 
         const modifiers: SavingThrowModifier[] = [
             { source: 'Bane', dice: '-1d4' } // Use negative dice string for penalty
@@ -148,7 +152,12 @@ describe('savingThrowUtils', () => {
             }
         });
 
-        vi.spyOn(Math, 'random').mockReturnValue(0.45); // Roll 10
+        const rollDiceMock = vi.mocked(combatUtils.rollDice);
+        rollDiceMock.mockImplementation((dice: string) => {
+            if (dice === '1d20') return 10;
+            if (dice === '1d4') return 2;
+            return 0;
+        });
 
         const modifiers: SavingThrowModifier[] = [
             { source: 'Bless', dice: '1d4' } // Positive dice string for bonus
@@ -170,7 +179,8 @@ describe('savingThrowUtils', () => {
             }
         });
 
-        vi.spyOn(Math, 'random').mockReturnValue(0.45); // Roll 10
+        const rollDiceMock = vi.mocked(combatUtils.rollDice);
+        rollDiceMock.mockReturnValue(10);
 
         const modifiers: SavingThrowModifier[] = [
             { source: 'Cover', flat: 2 }
@@ -185,15 +195,16 @@ describe('savingThrowUtils', () => {
 
     it('handles Natural 20 and Natural 1 flags', () => {
         const char = createMockCombatCharacter();
+        const rollDiceMock = vi.mocked(combatUtils.rollDice);
 
         // Roll 20
-        vi.spyOn(Math, 'random').mockReturnValue(0.99);
+        rollDiceMock.mockReturnValue(20);
         const result20 = rollSavingThrow(char, 'Dexterity', 30);
         expect(result20.roll).toBe(20);
         expect(result20.natural20).toBe(true);
 
         // Roll 1
-        vi.spyOn(Math, 'random').mockReturnValue(0.01);
+        rollDiceMock.mockReturnValue(1);
         const result1 = rollSavingThrow(char, 'Dexterity', 5);
         expect(result1.roll).toBe(1);
         expect(result1.natural1).toBe(true);
