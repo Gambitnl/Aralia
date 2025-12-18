@@ -82,6 +82,7 @@ export const useAbilitySystem = ({
 
   // --- Command Pattern Execution Logic ---
   // TODO(Ritualist): Integrate RitualManager here to handle ritual casting (10+ min duration) instead of immediate execution.
+  // Also integrate RitualManager.validateRequirements() to check for ritual constraints (Time, Location) before starting.
   const executeSpell = useCallback(async (
     spell: Spell,
     caster: CombatCharacter,
