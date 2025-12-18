@@ -250,23 +250,49 @@ export async function handleMovement({
       if (travelEvent) {
         addMessage(travelEvent.description, 'system');
 
-        if (travelEvent.effect?.type === 'delay') {
-          timeToAdvanceSeconds += (travelEvent.effect.amount * 60);
-          addMessage(`(Travel delayed by ${travelEvent.effect.amount} minutes)`, 'system');
-        } else if (travelEvent.effect?.type === 'discovery' && travelEvent.effect.data) {
-          // Log the discovery in the game state (UI log/journal)
-          // We construct a Location object to satisfy logDiscovery type signature,
-          // even though it's a procedural landmark
-          const discoveryLocation: Location = {
-            id: travelEvent.effect.data.id,
-            name: travelEvent.effect.data.name,
-            baseDescription: travelEvent.effect.data.description,
-            biomeId: targetBiome.id,
-            mapCoordinates: { x: targetWorldMapX, y: targetWorldMapY },
-            exits: {},
-          };
-          logDiscovery(discoveryLocation);
-          addMessage(`Map updated: ${travelEvent.effect.data.name} recorded.`, 'system');
+        if (travelEvent.effect) {
+          switch (travelEvent.effect.type) {
+            case 'delay':
+              timeToAdvanceSeconds += (travelEvent.effect.amount * 60);
+              addMessage(`(Travel delayed by ${travelEvent.effect.amount} minutes)`, 'system');
+              break;
+
+            case 'health_change':
+              dispatch({
+                type: 'MODIFY_PARTY_HEALTH',
+                payload: { amount: travelEvent.effect.amount }
+              });
+              const hpChangeText = travelEvent.effect.amount > 0 ? 'healed' : 'damaged';
+              addMessage(`Party ${hpChangeText} by ${Math.abs(travelEvent.effect.amount)} HP.`, 'system');
+              break;
+
+            case 'item_gain':
+              if (travelEvent.effect.itemId) {
+                dispatch({
+                  type: 'ADD_ITEM',
+                  payload: { itemId: travelEvent.effect.itemId, count: travelEvent.effect.amount }
+                });
+                const itemGainMsg = travelEvent.effect.description || `You found ${travelEvent.effect.amount} item(s).`;
+                addMessage(itemGainMsg, 'system');
+              }
+              break;
+
+            case 'discovery':
+              if (travelEvent.effect.data) {
+                // Log the discovery in the game state (UI log/journal)
+                const discoveryLocation: Location = {
+                  id: travelEvent.effect.data.id,
+                  name: travelEvent.effect.data.name,
+                  baseDescription: travelEvent.effect.data.description,
+                  biomeId: targetBiome.id,
+                  mapCoordinates: { x: targetWorldMapX, y: targetWorldMapY },
+                  exits: {},
+                };
+                logDiscovery(discoveryLocation);
+                addMessage(`Map updated: ${travelEvent.effect.data.name} recorded.`, 'system');
+              }
+              break;
+          }
         }
       }
 

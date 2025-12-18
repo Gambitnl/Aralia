@@ -23,14 +23,21 @@ export interface Discovery {
 
 /**
  * Effect that can be applied when a travel event occurs.
- * Currently supports travel delays, with room for future expansion
- * (damage from hazards, temporary buffs, discovery of locations, etc.)
+ * Supports delays, health changes, item gains, and discoveries.
  */
 export interface TravelEventEffect {
-  type: 'delay' | 'damage' | 'buff' | 'discovery';
+  type: 'delay' | 'health_change' | 'item_gain' | 'discovery' | 'buff';
+  /**
+   * The numerical value of the effect:
+   * - delay: hours
+   * - health_change: HP amount (negative for damage, positive for healing)
+   * - item_gain: quantity
+   * - buff: duration or magnitude
+   */
   amount: number;
   description?: string;
   data?: Discovery; // For 'discovery' type
+  itemId?: string; // For 'item_gain' type
 }
 
 /**

@@ -30,6 +30,47 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 party: [...state.party, action.payload],
             };
 
+        case 'ADD_ITEM': {
+            const { itemId, count = 1 } = action.payload;
+            const item = ITEMS[itemId] || Object.values(ITEMS).find(i => i.id === itemId);
+
+            if (!item) {
+                console.warn(`ADD_ITEM: Item ${itemId} not found.`);
+                return {};
+            }
+
+            // Create independent copies of the item to avoid shared reference issues
+            const newItems = Array.from({ length: count }, () => ({ ...item, id: item.id === 'gold_piece' ? item.id : crypto.randomUUID() }));
+
+            // For stackable items (like gold), we might want to just add them as is, but current inventory is a flat list.
+            // If the item is generic (like gold_piece), we keep the ID. If it's a unique gear item, we give it a unique ID.
+            // However, the game seems to use shared IDs for generic items often.
+            // Safer to just clone the object.
+
+            return {
+                inventory: [...state.inventory, ...newItems],
+            };
+        }
+
+        case 'MODIFY_PARTY_HEALTH': {
+            const { amount, characterIds } = action.payload;
+
+            const newParty = state.party.map(char => {
+                // If specific IDs provided, only update those; otherwise update all
+                if (characterIds && !characterIds.includes(char.id)) {
+                    return char;
+                }
+
+                // Apply damage/healing, clamping between 0 and maxHp
+                let newHp = char.hp + amount;
+                newHp = Math.max(0, Math.min(newHp, char.maxHp));
+
+                return { ...char, hp: newHp };
+            });
+
+            return { party: newParty };
+        }
+
         case 'EQUIP_ITEM': {
             const { itemId, characterId } = action.payload;
             const charIndex = state.party.findIndex(c => c.id === characterId);
