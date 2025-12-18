@@ -31,6 +31,12 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
       description: 'You meet a wandering trader on the road.',
       weight: 1,
     },
+    {
+      id: 'found_coins',
+      description: 'You spot a small pouch dropped by a previous traveler.',
+      effect: { type: 'item_gain', amount: 5, itemId: 'gold_piece', description: 'Found 5 Gold' },
+      weight: 1,
+    }
   ],
   plains: [
     {
@@ -41,6 +47,12 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
     {
         id: 'merchant_caravan',
         description: 'You encounter a merchant caravan and exchange news.',
+        weight: 1
+    },
+    {
+        id: 'berry_bushes',
+        description: 'You find a thicket of ripe berry bushes.',
+        effect: { type: 'item_gain', amount: 2, itemId: 'healing_potion', description: 'Found herbal ingredients (Potions)' }, // Simulating finding components/potions
         weight: 1
     }
   ],
@@ -57,6 +69,18 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
       effect: { type: 'delay', amount: 3, description: '3 hour delay' },
       weight: 1,
     },
+    {
+      id: 'thorny_thicket',
+      description: 'You are forced to push through a dense wall of thorns, scratching everyone.',
+      effect: { type: 'health_change', amount: -2, description: 'Took 2 damage' },
+      weight: 1,
+    },
+    {
+      id: 'healing_spring',
+      description: 'You discover a crystal-clear spring that invigorates your spirit.',
+      effect: { type: 'health_change', amount: 5, description: 'Healed 5 HP' },
+      weight: 1,
+    }
   ],
   mountain: [
     {
@@ -71,6 +95,12 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
       effect: { type: 'delay', amount: 2, description: '2 hour delay' },
       weight: 2,
     },
+    {
+      id: 'falling_rocks',
+      description: 'Loose rocks tumble down the cliff face!',
+      effect: { type: 'health_change', amount: -5, description: 'Took 5 damage' },
+      weight: 1,
+    }
   ],
   swamp: [
     {
@@ -85,6 +115,12 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
       effect: { type: 'delay', amount: 3, description: '3 hour delay' },
       weight: 1,
     },
+    {
+      id: 'leech_infested_waters',
+      description: 'You have to wade through leech-infested waters.',
+      effect: { type: 'health_change', amount: -3, description: 'Took 3 damage' },
+      weight: 1,
+    }
   ],
   desert: [
     {
@@ -99,6 +135,18 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
       effect: { type: 'delay', amount: 2, description: '2 hour delay' },
       weight: 2,
     },
+    {
+      id: 'sun_scorch',
+      description: 'The relentless sun blisters your skin.',
+      effect: { type: 'health_change', amount: -4, description: 'Took 4 damage' },
+      weight: 1,
+    },
+    {
+      id: 'oasis',
+      description: 'You stumble upon a hidden oasis.',
+      effect: { type: 'health_change', amount: 10, description: 'Healed 10 HP' },
+      weight: 0.5,
+    }
   ],
   underdark: [
     {
@@ -124,6 +172,12 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
         description: 'A cloud of glowing spores illuminates a shortcut.',
         effect: { type: 'buff', amount: 0, description: 'Travel speed increased' },
         weight: 2
+    },
+    {
+        id: 'hook_horror_ambush',
+        description: 'A Hook Horror drops from the ceiling!',
+        effect: { type: 'health_change', amount: -8, description: 'Took 8 damage' },
+        weight: 0.5,
     }
   ]
 };
