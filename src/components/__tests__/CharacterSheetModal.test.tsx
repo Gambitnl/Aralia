@@ -132,8 +132,8 @@ describe('CharacterSheetModal', () => {
   it('displays key character stats and ability scores', () => {
     render(<CharacterSheetModal {...defaultProps} />);
 
-    expect(screen.getByText(/HP:/)).toHaveTextContent('HP: 10 / 12');
-    expect(screen.getByText(/AC:/)).toHaveTextContent('AC: 15');
+    expect(screen.getByText(/Hit Points:/)).toHaveTextContent('Hit Points: 10 / 12');
+    expect(screen.getByText(/Armor Class:/)).toHaveTextContent('Armor Class: 15');
     expect(screen.getByText(/Speed:/)).toHaveTextContent('Speed: 30ft');
     expect(screen.getByText(/Str:/)).toHaveTextContent('Str: 14');
     expect(screen.getByText('Second Wind')).toBeInTheDocument();

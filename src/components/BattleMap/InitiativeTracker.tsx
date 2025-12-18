@@ -41,7 +41,7 @@ export const InitiativeTracker: React.FC<InitiativeTrackerProps> = ({
           const isPlayer = char.team === 'player';
 
           return (
-            <Tooltip key={char.id} content={`${char.name} (HP: ${char.currentHP}/${char.maxHP})`}>
+            <Tooltip key={char.id} content={`${char.name} (Hit Points: ${char.currentHP}/${char.maxHP})`}>
               <button
                 onClick={() => isPlayer && onCharacterSelect?.(char.id)}
                 className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-all duration-200 ease-in-out border-2

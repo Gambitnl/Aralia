@@ -160,8 +160,8 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
             {/* Vitals */}
             <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/60">
                 <h4 className="text-lg font-semibold text-sky-300 mb-1.5">Vitals</h4>
-                <p className="text-sm">HP: <span className="font-semibold text-green-400">{character.hp}</span> / {character.maxHp}</p>
-                <p className="text-sm">AC: <span className="font-semibold text-blue-400">{character.armorClass}</span></p>
+                <p className="text-sm">Hit Points: <span className="font-semibold text-green-400">{character.hp}</span> / {character.maxHp}</p>
+                <p className="text-sm">Armor Class: <span className="font-semibold text-blue-400">{character.armorClass}</span></p>
                 <p className="text-sm">Speed: <span className="font-semibold">{character.speed}ft</span></p>
                 {character.darkvisionRange > 0 && <p className="text-sm">Darkvision: {character.darkvisionRange}ft</p>}
             </div>
