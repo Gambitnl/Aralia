@@ -25,6 +25,37 @@ export interface StrongholdStaff {
     skills: Record<string, number>; // e.g., { combat: 5, negotiation: 10 }
 }
 
+export type StrongholdEffectType =
+    | 'income_flat'      // Adds flat gold per day
+    | 'income_percent'   // Increases total income by %
+    | 'defense_bonus'    // Increases stronghold defense (abstract)
+    | 'influence_bonus'  // Generates daily influence
+    | 'intel_bonus'      // Generates daily intel
+    | 'morale_bonus'     // Increases daily morale recovery
+    | 'capacity_increase'; // Increases resource caps (if we had them) or staff limit
+
+export interface StrongholdEffect {
+    type: StrongholdEffectType;
+    value: number;
+}
+
+export interface StrongholdUpgrade {
+    id: string;
+    name: string;
+    description: string;
+    cost: {
+        gold: number;
+        supplies: number;
+    };
+    prerequisites?: string[]; // IDs of other upgrades required
+    effects: StrongholdEffect[];
+}
+
+export interface ConstructionProject {
+    upgradeId: string;
+    daysRemaining: number;
+}
+
 export interface Stronghold {
     id: string;
     name: string;
@@ -36,6 +67,10 @@ export interface Stronghold {
     staff: StrongholdStaff[];
     taxRate: number; // 0-100 percentage if applicable
     dailyIncome: number; // Base passive income
+
+    // New fields
+    upgrades: string[]; // IDs of completed upgrades
+    constructionQueue: ConstructionProject[]; // Upgrades currently being built
 }
 
 export interface DailyUpdateSummary {
