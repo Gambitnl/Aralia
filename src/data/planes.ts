@@ -25,6 +25,14 @@ const ShadowfellDespairTrait: PlanarTrait = {
   mechanics: 'Wisdom saving throws at disadvantage. Long rests require a Wisdom save to gain benefits.'
 };
 
+const PsychicStaticTrait: PlanarTrait = {
+  id: 'psychic_static',
+  name: 'Psychic Static',
+  type: 'environmental',
+  description: 'The chaos of this plane assaults the mind.',
+  mechanics: 'Take 1d4 psychic damage every minute.'
+};
+
 export const PLANES: Record<string, Plane> = {
   material: {
     id: 'material',
@@ -103,6 +111,27 @@ export const PLANES: Record<string, Plane> = {
         longRestAllowed: true,
         effects: ['Must succeed on DC 15 Wisdom save to gain Long Rest benefits']
       }
+    }
+  },
+  abyss: {
+    id: 'abyss',
+    name: 'The Abyss',
+    description: 'Infinite layers of chaos and evil, home to demons.',
+    traits: [PsychicStaticTrait],
+    natives: ['Demon'],
+    hazards: [
+      {
+        name: 'Corrupting Chaos',
+        description: 'The plane warps the mind and body.',
+        saveDC: 15,
+        damage: '1d4 psychic'
+      }
+    ],
+    emotionalValence: 'chaotic',
+    timeFlow: 'normal',
+    atmosphereDescription: "The air tastes of copper and sulfur. Distant screams echo constantly, and the geometry of the world feels wrong.",
+    effects: {
+      psychicDamagePerMinute: 3 // Average of 1d4 approx, simplified
     }
   }
 };
