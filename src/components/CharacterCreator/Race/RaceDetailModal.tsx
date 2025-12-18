@@ -7,7 +7,7 @@ import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Race } from '../../../types';
 import ImageModal from '../../ImageModal';
-import SingleGlossaryEntryModal from '../../SingleGlossaryEntryModal';
+import { SingleGlossaryEntryModal } from '../../Glossary';
 
 // This is the new data shape the modal expects.
 export interface RaceForModal {
