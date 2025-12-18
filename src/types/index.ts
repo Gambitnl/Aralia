@@ -590,6 +590,9 @@ export interface GameState {
   // Depthcrawler: Underdark System
   underdark: UnderdarkState;
 
+  // Ecologist: Environment System
+  environment: import('./environment').WeatherState;
+
   /** Town exploration state - present when in VILLAGE_VIEW phase */
   townState: import('./town').TownState | null;
 
