@@ -1,6 +1,7 @@
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import { Button } from './Button';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -21,54 +22,13 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   cancelLabel = 'Cancel',
   children,
 }) => {
-  const dialogRef = useRef<HTMLDivElement | null>(null);
-  const cancelRef = useRef<HTMLButtonElement | null>(null);
-  const confirmRef = useRef<HTMLButtonElement | null>(null);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    // We can't immediately focus because the element might be animating in.
-    // Framer motion mounts immediately, but let's ensure we focus.
-    const focusTarget = confirmRef.current || dialogRef.current;
-
-    // Slight delay or requestAnimationFrame can sometimes help if the DOM node isn't ready
-    // but typically useEffect runs after mount.
-    focusTarget?.focus({ preventScroll: true });
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        onClose();
-        return;
-      }
-
-      if (event.key === 'Tab') {
-        event.preventDefault();
-        const dialog = dialogRef.current;
-        if (!dialog) return;
-
-        const focusable = Array.from(
-          dialog.querySelectorAll<HTMLElement>(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-          ),
-        ).filter(el => el.offsetParent !== null);
-
-        if (focusable.length === 0) return;
-
-        const currentIndex = focusable.indexOf(document.activeElement as HTMLElement);
-        const nextIndex = event.shiftKey
-          ? (currentIndex <= 0 ? focusable.length - 1 : currentIndex - 1)
-          : (currentIndex === focusable.length - 1 ? 0 : currentIndex + 1);
-        focusable[nextIndex]?.focus({ preventScroll: true });
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, onConfirm, onClose]);
+  // Use the standard hook for focus trapping
+  // This automatically handles:
+  // 1. Initial focus (first button)
+  // 2. Trapping Tab/Shift+Tab
+  // 3. Handling Escape key
+  // 4. Restoring focus on close
+  const dialogRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
 
   return (
     <AnimatePresence>
@@ -82,7 +42,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         >
           <motion.div
             ref={dialogRef}
-            className="bg-gray-900 border border-amber-500/60 rounded-xl shadow-xl max-w-md w-full p-6 text-gray-100"
+            className="bg-gray-900 border border-amber-500/60 rounded-xl shadow-xl max-w-md w-full p-6 text-gray-100 focus:outline-none"
             role="dialog"
             aria-modal="true"
             tabIndex={-1}
@@ -98,7 +58,6 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             </div>
             <div className="mt-4 flex justify-end space-x-3">
               <Button
-                ref={cancelRef}
                 onClick={onClose}
                 variant="secondary"
                 size="md"
@@ -106,7 +65,6 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                 {cancelLabel}
               </Button>
               <Button
-                ref={confirmRef}
                 onClick={onConfirm}
                 variant="action"
                 size="md"
