@@ -202,6 +202,7 @@ export interface NPC {
   voice?: TTSVoiceOption;
   goals?: Goal[];
   knowledgeProfile?: NPCKnowledgeProfile;
+  // TODO(Materializer): Add 'visual?: NPCVisualSpec' to NPC interface
 }
 
 export interface GameMessage {
