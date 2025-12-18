@@ -78,6 +78,7 @@ export * from './companions';
 export * from './memory';
 export * from './planes';
 export * from './crime';
+export * from './dialogue';
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
