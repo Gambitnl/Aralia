@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useContext, useRef } from 'react';
 import { GlossaryEntry } from '../types';
-import GlossaryContext from '../../context/GlossaryContext';
-import { FullEntryDisplay } from './FullEntryDisplay';
+import GlossaryContext from '../context/GlossaryContext';
+import { FullEntryDisplay } from './Glossary/FullEntryDisplay';
 import { AnimatePresence, motion } from 'framer-motion';
-import { LoadingSpinner } from '../ui/LoadingSpinner';
-import { findGlossaryEntryAndPath } from '../../utils/glossaryUtils';
+import { LoadingSpinner } from './ui/LoadingSpinner';
+import { findGlossaryEntryAndPath } from '../utils/glossaryUtils';
 
 interface SingleGlossaryEntryModalProps {
   isOpen: boolean;
