@@ -25,7 +25,7 @@
  * - GameGuideModal: AI helper interface.
  * - MissingChoiceModal: Prompt for resolving pending character choices (e.g., leveling up).
  */
-import React from 'react';
+import React, { Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, MapTile } from '../../types';
 import { AppAction } from '../../state/actionTypes';
@@ -34,22 +34,24 @@ import { NPCS } from '../../constants';
 import { canUseDevTools } from '../../utils/permissions';
 
 import ErrorBoundary from '../ErrorBoundary';
-import MapPane from '../MapPane';
-import QuestLog from '../QuestLog';
-import SubmapPane from '../Submap/SubmapPane';
-import CharacterSheetModal from '../CharacterSheetModal';
-import DevMenu from '../DevMenu';
-import PartyOverlay from '../PartyOverlay';
-import PartyEditorModal from '../PartyEditorModal';
-import GeminiLogViewer from '../GeminiLogViewer';
-import NpcInteractionTestModal from '../NpcInteractionTestModal';
-import DossierPane from '../DossierPane';
-import DiscoveryLogPane from '../DiscoveryLogPane';
-import Glossary from '../Glossary';
-import EncounterModal from '../EncounterModal';
-import MerchantModal from '../MerchantModal';
-import GameGuideModal from '../GameGuideModal';
-import MissingChoiceModal from '../MissingChoiceModal';
+import { LoadingSpinner } from '../ui/LoadingSpinner';
+
+const MapPane = React.lazy(() => import('../MapPane'));
+const QuestLog = React.lazy(() => import('../QuestLog'));
+const SubmapPane = React.lazy(() => import('../Submap/SubmapPane'));
+const CharacterSheetModal = React.lazy(() => import('../CharacterSheetModal'));
+const DevMenu = React.lazy(() => import('../DevMenu'));
+const PartyOverlay = React.lazy(() => import('../PartyOverlay'));
+const PartyEditorModal = React.lazy(() => import('../PartyEditorModal'));
+const GeminiLogViewer = React.lazy(() => import('../GeminiLogViewer'));
+const NpcInteractionTestModal = React.lazy(() => import('../NpcInteractionTestModal'));
+const DossierPane = React.lazy(() => import('../DossierPane'));
+const DiscoveryLogPane = React.lazy(() => import('../DiscoveryLogPane'));
+const Glossary = React.lazy(() => import('../Glossary/Glossary'));
+const EncounterModal = React.lazy(() => import('../EncounterModal'));
+const MerchantModal = React.lazy(() => import('../MerchantModal'));
+const GameGuideModal = React.lazy(() => import('../GameGuideModal'));
+const MissingChoiceModal = React.lazy(() => import('../MissingChoiceModal'));
 
 // TODO(FEATURES): Add centralized focus management and keyboard navigation patterns across modals for stronger accessibility (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 
@@ -127,6 +129,7 @@ const GameModals: React.FC<GameModalsProps> = ({
     const currentBiome = currentLocation ? (gameState.mapData?.tiles[currentLocation.mapCoordinates?.y || 0]?.[currentLocation.mapCoordinates?.x || 0]?.biomeId || currentLocation.biomeId) : null;
 
     return (
+        <Suspense fallback={<LoadingSpinner />}>
         <AnimatePresence>
             {/* World Map Overlay */}
             {gameState.isMapVisible && gameState.mapData && (
@@ -350,6 +353,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                 </ErrorBoundary>
             )}
         </AnimatePresence>
+        </Suspense>
     );
 };
 
