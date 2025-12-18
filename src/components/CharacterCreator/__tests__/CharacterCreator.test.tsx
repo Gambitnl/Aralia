@@ -49,6 +49,13 @@ describe('CharacterCreator Flow', () => {
     // 3. Advance past Changeling Instincts
     // The component re-renders. We need to find the "Next" button in the new step.
     // The instincts selection gives two skills. We'll just select two.
+
+    // TODO(Bard): Test Failure Investigation
+    // This test currently fails with "Unable to find an accessible element with the role 'checkbox'".
+    // Analysis suggests the test misses a step: clicking "Changeling" opens the details modal,
+    // but the test does not click the "Select Race" confirmation button within that modal.
+    // As a result, the ChangelingInstinctsSelection component (which contains the checkboxes) is never rendered.
+    // This needs to be fixed by adding the confirmation click interaction.
     const skillCheckboxes = screen.getAllByRole('checkbox');
     fireEvent.click(skillCheckboxes[0]);
     fireEvent.click(skillCheckboxes[1]);
