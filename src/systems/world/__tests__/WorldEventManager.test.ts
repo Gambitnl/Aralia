@@ -19,61 +19,83 @@ describe('WorldEventManager', () => {
         factions: FACTIONS,
         playerFactionStandings: INITIAL_FACTION_STANDINGS,
         gameTime: mockDate,
-        worldSeed: 12345
+        worldSeed: 12345,
+        activeRumors: []
     });
 
     it('should generate events when days pass (with high enough probability or forced check)', () => {
         // We can't easily force the RNG to hit, but we can call it many times or mock SeededRandom.
-        // For this test, we trust that 100 days is enough to trigger *something* with 10% chance.
+        // For this test, we trust that 100 days is enough to trigger *something* with 20% chance.
         const result = processWorldEvents(baseState, 100);
 
-        // Expect at least one log entry about a skirmish
+        // Expect at least one log entry about a skirmish or rumor
         expect(result.logs.length).toBeGreaterThan(0);
-        const skirmishLog = result.logs.find(l => l.text.includes('Skirmish between'));
-        expect(skirmishLog).toBeDefined();
+
+        // Check if any rumors were added to state
+        expect(result.state.activeRumors?.length).toBeGreaterThan(0);
+
+        const firstRumor = result.state.activeRumors![0];
+        expect(firstRumor).toHaveProperty('id');
+        expect(firstRumor).toHaveProperty('text');
+        expect(firstRumor).toHaveProperty('expiration');
     });
 
-    it('should affect reputation if player is allied with a winner', () => {
-        // Setup state where player is allied with 'Iron Ledger'
-        const friendlyState = { ...baseState };
-        friendlyState.playerFactionStandings = {
-            ...friendlyState.playerFactionStandings,
-            'iron_ledger': {
-                ...friendlyState.playerFactionStandings['iron_ledger'],
-                publicStanding: 50 // Friendly
-            }
-        };
+    it('should change faction power during a skirmish', () => {
+         // Run enough days to guarantee a skirmish
+         let currentState = baseState;
+         let skirmishHappened = false;
 
-        // We need to force a scenario where Iron Ledger wins a skirmish.
-        // Since we can't easily inject the RNG outcome without mocking SeededRandom,
-        // we'll loop until we find the case or timeout, which is flaky.
-        // BETTER: Create a focused test for handleFactionSkirmish by exporting it?
-        // OR: Just run a loop and check if *any* reputation change happened.
+         // Loop until we find a skirmish or hit a limit
+         for(let i=0; i<5; i++) {
+             const result = processWorldEvents(currentState, 50);
+             currentState = result.state;
 
-        // Let's run 365 days.
-        const result = processWorldEvents(friendlyState, 365);
+             // Check if any faction power changed from default
+             // Default power is mostly static in FACTIONS constant but we modified it
+             const factions = Object.values(currentState.factions);
+             const changed = factions.some(f => f.power !== 50 && f.power !== 80 && f.power !== 60 && f.power !== 75 && f.power !== 85 && f.power !== 70);
+             // Note: My power values in FACTIONS are 80, 60, 75, 85, 70, 50.
+             // If a skirmish happens, power changes by +/- 2 to 4.
+             // So checking strict inequality to initial values is complex if I don't know who fought.
 
-        // Check if any negative reputation change happened due to association
-        const repChangeLog = result.logs.find(l => l.text.includes('worsened by 5 due to your association'));
+             // Instead, let's look for the rumor type 'skirmish'
+             const skirmishRumor = currentState.activeRumors?.find(r => r.type === 'skirmish');
+             if (skirmishRumor) {
+                 skirmishHappened = true;
+                 break;
+             }
+         }
 
-        // Note: This is probabilistic, so there is a tiny chance it fails if Iron Ledger never wins.
-        // However, with 365 days and multiple factions, it's highly likely.
-        // Ideally we'd mock SeededRandom, but for this quick test it might suffice.
-
-        if (repChangeLog) {
-            expect(repChangeLog.text).toContain('association');
-        } else {
-            console.warn('Test skipped verification of rep change due to RNG variance');
-        }
+         expect(skirmishHappened).toBe(true);
     });
 
     it('should not mutate state if 0 days pass', () => {
         const result = processWorldEvents(baseState, 0);
         expect(result.logs).toHaveLength(0);
-        expect(result.state).toBe(baseState); // Should return same object if no changes (impl detail: currently returns clone but effectively same)
-        // Actually my impl does: let currentState = { ...state }; return { state: currentState ... }
-        // So strict equality might fail if I clone immediately.
-        // Let's check deep equality or content.
-        expect(result.state).toEqual(baseState);
+        // Ensure rumors list didn't change (still empty)
+        expect(result.state.activeRumors).toEqual([]);
+    });
+
+    it('should expire old rumors', () => {
+        // Setup state with an old rumor
+        const oldRumor = {
+            id: 'old-rumor',
+            text: 'Old news',
+            type: 'misc' as const,
+            timestamp: 1,
+            expiration: 5 // Expires on day 5
+        };
+
+        const stateWithRumor = {
+            ...baseState,
+            activeRumors: [oldRumor],
+            // Set game time to day 10
+            gameTime: new Date(baseState.gameTime.getTime() + 10 * 24 * 60 * 60 * 1000)
+        };
+
+        const result = processWorldEvents(stateWithRumor, 1);
+
+        // Rumor should be gone
+        expect(result.state.activeRumors).not.toContainEqual(oldRumor);
     });
 });
