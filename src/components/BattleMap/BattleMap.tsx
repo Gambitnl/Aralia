@@ -138,6 +138,9 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
     return <div>Generating map...</div>;
   }
 
+  // TODO(Ritualist): Implement ritual progress visualization in the map overlay or UI panel.
+  // Ensure the progress bar clearly shows interruption conditions (e.g., "Damage breaks concentration").
+
   return (
     <div className="relative">
        {/* UI for current turn actions */}

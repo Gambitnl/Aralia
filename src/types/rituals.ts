@@ -21,7 +21,8 @@ export interface RitualState {
   progressMinutes: number; // Current progress in minutes
 
   // Participation
-  participantIds: string[]; // IDs of characters helping (could reduce time or DC)
+  participantIds: string[]; // IDs of characters helping
+  participationBonus: number; // Bonus to interruption saves from participants
 
   // State
   isComplete: boolean;
@@ -33,6 +34,7 @@ export interface RitualState {
 
   // Material Tracking
   materialsConsumed: boolean;
+  consumptionThreshold: number; // 0.0 to 1.0, progress point where materials are consumed
 }
 
 /**
