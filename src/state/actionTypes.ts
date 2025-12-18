@@ -68,6 +68,8 @@ export type AppAction =
   | { type: 'SET_PARTY_COMPOSITION'; payload: TempPartyMember[] }
   | { type: 'ADD_GENERATED_CHARACTER'; payload: PlayerCharacter }
   // Resource Management Actions
+  | { type: 'ADD_ITEM'; payload: { itemId: string; count?: number } }
+  | { type: 'MODIFY_PARTY_HEALTH'; payload: { amount: number; characterIds?: string[] } }
   | { type: 'CAST_SPELL'; payload: { characterId: string; spellLevel: number } }
   | { type: 'USE_LIMITED_ABILITY'; payload: { characterId: string; abilityId: string } }
   | { type: 'TOGGLE_PREPARED_SPELL'; payload: { characterId: string; spellId: string } }

@@ -8,6 +8,8 @@ import React, { useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Item, Action, EconomyState } from '../types';
 import Tooltip from './Tooltip';
+import { useGameState } from '../state/GameContext';
+import { calculatePrice } from '../utils/economyUtils';
 
 interface MerchantModalProps {
   isOpen: boolean;
@@ -17,32 +19,8 @@ interface MerchantModalProps {
   playerGold: number;
   onClose: () => void;
   onAction: (action: Action) => void;
-  economy?: EconomyState;
+  economy?: EconomyState; // Keep prop for backward compatibility or testing overrides
 }
-
-const parseCost = (costStr: string | undefined): number => {
-    if (!costStr) return 0;
-    
-    // Remove commas
-    const cleanCost = costStr.replace(/,/g, '');
-
-    const pp = cleanCost.match(/(\d+(?:\.\d+)?)\s*PP/i);
-    if (pp) return parseFloat(pp[1]) * 10;
-
-    const gp = cleanCost.match(/(\d+(?:\.\d+)?)\s*GP/i);
-    if (gp) return parseFloat(gp[1]);
-
-    const ep = cleanCost.match(/(\d+(?:\.\d+)?)\s*EP/i);
-    if (ep) return parseFloat(ep[1]) * 0.5;
-
-    const sp = cleanCost.match(/(\d+(?:\.\d+)?)\s*SP/i);
-    if (sp) return parseFloat(sp[1]) * 0.1;
-
-    const cp = cleanCost.match(/(\d+(?:\.\d+)?)\s*CP/i);
-    if (cp) return parseFloat(cp[1]) * 0.01;
-
-    return 0;
-};
 
 const MerchantModal: React.FC<MerchantModalProps> = ({
   isOpen,
@@ -52,8 +30,12 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
   playerGold,
   onClose,
   onAction,
-  economy,
+  economy: propEconomy,
 }) => {
+  const { state } = useGameState();
+  // Use prop economy if provided (for tests), otherwise fall back to global state economy
+  const economy = propEconomy || state.economy;
+
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -68,53 +50,19 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
   }, [isOpen, onClose]);
 
   const sellableItems = useMemo(() => {
-      return playerInventory.filter(i => i.cost);
+      // Allow selling anything with value or cost string
+      return playerInventory.filter(i => (i.value !== undefined && i.value > 0) || (i.cost));
   }, [playerInventory]);
 
-  // Helper to calculate price with multipliers
-  const calculatePrice = (item: Item, type: 'buy' | 'sell'): { finalPrice: number, isModified: boolean } => {
-      const baseCost = parseCost(item.cost);
-      if (baseCost === 0) return { finalPrice: 0, isModified: false };
-      
-      if (!economy) {
-           // Default behavior: Buy at full, sell at half
-           if (type === 'buy') return { finalPrice: Math.ceil(baseCost), isModified: false };
-           return { finalPrice: Math.floor(baseCost / 2), isModified: false };
-      }
-
-      // Apply multipliers based on economy tags
-      let multiplier = type === 'buy' ? economy.buyMultiplier : economy.sellMultiplier;
-      
-      // Check scarcity/surplus logic if item has tags/type matching
-      const itemTags = [item.type, ...(item.name.toLowerCase().split(' '))];
-      const isScarce = economy.marketFactors.scarcity.some(tag => itemTags.some(it => it.includes(tag.toLowerCase())));
-      const isSurplus = economy.marketFactors.surplus.some(tag => itemTags.some(it => it.includes(tag.toLowerCase())));
-
-      if (type === 'buy') {
-          if (isScarce) multiplier += 0.5; // Expensive
-          if (isSurplus) multiplier -= 0.3; // Cheap
-      } else {
-          if (isScarce) multiplier += 0.3; // They pay more
-          if (isSurplus) multiplier -= 0.2; // They pay less
-      }
-
-      // Clamp logic
-      if (type === 'buy') multiplier = Math.max(0.1, multiplier);
-      else multiplier = Math.max(0.1, multiplier);
-
-      const finalPrice = Math.floor(baseCost * multiplier);
-      return { finalPrice: Math.max(0, finalPrice), isModified: multiplier !== (type === 'buy' ? 1 : 0.5) };
-  };
-
   const handleBuy = (item: Item) => {
-      const { finalPrice } = calculatePrice(item, 'buy');
+      const { finalPrice } = calculatePrice(item, economy, 'buy');
       if (finalPrice > 0 && playerGold >= finalPrice) {
           onAction({ type: 'BUY_ITEM', label: `Buy ${item.name}`, payload: { item, cost: finalPrice } });
       }
   };
 
   const handleSell = (item: Item) => {
-      const { finalPrice } = calculatePrice(item, 'sell');
+      const { finalPrice } = calculatePrice(item, economy, 'sell');
       if (finalPrice > 0) { 
            onAction({ type: 'SELL_ITEM', label: `Sell ${item.name}`, payload: { itemId: item.id, value: finalPrice } });
       }
@@ -149,7 +97,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                    {economy ? (
                        <>
                         {economy.activeEvents && economy.activeEvents.length > 0 ? (
-                            <div className="flex flex-col gap-1">
+                            <div className="flex flex-col gap-1 mb-1">
                                 {economy.activeEvents.map(event => (
                                     <div key={event.id} className="text-amber-200 flex items-center gap-2">
                                         <span>📢 {event.name}: {event.description}</span>
@@ -157,9 +105,13 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                 ))}
                             </div>
                         ) : null}
-                         <div className="flex gap-3 mt-1">
-                            <span className="text-green-400">Surplus: {economy.marketFactors.surplus.join(', ') || 'None'}</span>
-                            <span className="text-red-400">Scarcity: {economy.marketFactors.scarcity.join(', ') || 'None'}</span>
+                         <div className="flex gap-4 mt-1 text-xs uppercase tracking-wider font-bold">
+                            <span className={economy.marketFactors.surplus.length > 0 ? "text-green-400" : "text-gray-600"}>
+                                Surplus: {economy.marketFactors.surplus.join(', ') || 'None'}
+                            </span>
+                            <span className={economy.marketFactors.scarcity.length > 0 ? "text-red-400" : "text-gray-600"}>
+                                Scarcity: {economy.marketFactors.scarcity.join(', ') || 'None'}
+                            </span>
                          </div>
                        </>
                    ) : <span>Standard Prices</span>}
@@ -179,7 +131,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                 <h3 className="text-lg font-bold text-sky-300 mb-3 sticky top-0">For Sale</h3>
                 <div className="flex-grow overflow-y-auto scrollable-content space-y-2 pr-2">
                     {merchantInventory.map((item, idx) => {
-                        const { finalPrice, isModified } = calculatePrice(item, 'buy');
+                        const { finalPrice, isModified, multiplier } = calculatePrice(item, economy, 'buy');
                         const canAfford = playerGold >= finalPrice;
                         return (
                             <div key={`${item.id}-${idx}`} className="bg-gray-700 p-3 rounded-lg flex justify-between items-center shadow-sm">
@@ -192,16 +144,22 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                         </div>
                                     </Tooltip>
                                 </div>
-                                <button 
-                                    onClick={() => handleBuy(item)}
-                                    disabled={!canAfford}
-                                    className={`px-3 py-1.5 rounded text-sm font-bold transition-colors flex items-center gap-1
-                                        ${canAfford ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-gray-600 text-gray-400 cursor-not-allowed'}
-                                    `}
-                                >
-                                    <span>{finalPrice} GP</span>
-                                    {isModified && <span className="text-[10px] ml-1">⚠️</span>}
-                                </button>
+                                <div className="flex flex-col items-end gap-1">
+                                    <button
+                                        onClick={() => handleBuy(item)}
+                                        disabled={!canAfford}
+                                        className={`px-3 py-1.5 rounded text-sm font-bold transition-colors flex items-center gap-1
+                                            ${canAfford ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-gray-600 text-gray-400 cursor-not-allowed'}
+                                        `}
+                                    >
+                                        <span>{finalPrice} GP</span>
+                                    </button>
+                                    {isModified && (
+                                        <span className={`text-[10px] font-bold ${multiplier > 1 ? 'text-red-400' : 'text-green-400'}`}>
+                                            {multiplier > 1 ? '▲ High Demand' : '▼ Low Price'}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         );
                     })}
@@ -213,11 +171,11 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
             <div className="w-1/2 p-4 flex flex-col bg-gray-900/30">
                 <h3 className="text-lg font-bold text-amber-300 mb-3 sticky top-0">Your Inventory</h3>
                 <div className="flex-grow overflow-y-auto scrollable-content space-y-2 pr-2">
-                     {sellableItems.map((item) => {
-                        const { finalPrice, isModified } = calculatePrice(item, 'sell');
+                     {sellableItems.map((item, idx) => {
+                        const { finalPrice, isModified, multiplier } = calculatePrice(item, economy, 'sell');
                         const canSell = finalPrice > 0;
                         return (
-                            <div key={item.id} className="bg-gray-700/50 p-3 rounded-lg flex justify-between items-center border border-gray-600/50">
+                            <div key={`${item.id}-${idx}`} className="bg-gray-700/50 p-3 rounded-lg flex justify-between items-center border border-gray-600/50">
                                 <div className="flex items-center gap-3">
                                     <span className="text-2xl">{item.icon || '📦'}</span>
                                     <div>
@@ -225,16 +183,22 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                         <p className="text-xs text-gray-500">Value: {finalPrice} GP</p>
                                     </div>
                                 </div>
-                                <button 
-                                    onClick={() => handleSell(item)}
-                                    disabled={!canSell}
-                                    className={`px-3 py-1.5 rounded text-sm font-bold transition-colors flex items-center gap-1
-                                        ${canSell ? 'bg-yellow-600 hover:bg-yellow-500 text-white' : 'bg-gray-600 text-gray-500 cursor-not-allowed'}
-                                    `}
-                                >
-                                    <span>{finalPrice} GP</span>
-                                    {isModified && <span className="text-[10px] ml-1">⚠️</span>}
-                                </button>
+                                <div className="flex flex-col items-end gap-1">
+                                    <button
+                                        onClick={() => handleSell(item)}
+                                        disabled={!canSell}
+                                        className={`px-3 py-1.5 rounded text-sm font-bold transition-colors flex items-center gap-1
+                                            ${canSell ? 'bg-yellow-600 hover:bg-yellow-500 text-white' : 'bg-gray-600 text-gray-500 cursor-not-allowed'}
+                                        `}
+                                    >
+                                        <span>{finalPrice} GP</span>
+                                    </button>
+                                    {isModified && (
+                                        <span className={`text-[10px] font-bold ${multiplier > 0.5 ? 'text-green-400' : 'text-red-400'}`}>
+                                            {multiplier > 0.5 ? '▲ High Demand' : '▼ Low Demand'}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         );
                     })}

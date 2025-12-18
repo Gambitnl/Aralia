@@ -23,6 +23,7 @@ export interface StrongholdStaff {
     dailyWage: number;
     morale: number; // 0-100
     skills: Record<string, number>; // e.g., { combat: 5, negotiation: 10 }
+    currentMissionId?: string; // ID of active mission
 }
 
 export type StrongholdEffectType =
@@ -77,6 +78,28 @@ export interface ActiveThreat {
     consequences: ThreatConsequence;
 }
 
+// --- Mission System ---
+
+export type MissionType = 'scout' | 'trade' | 'diplomacy' | 'raid';
+
+export interface MissionReward {
+    gold?: number;
+    supplies?: number;
+    influence?: number;
+    intel?: number;
+    items?: string[];
+}
+
+export interface StrongholdMission {
+    id: string;
+    type: MissionType;
+    staffId: string;
+    description: string;
+    daysRemaining: number;
+    difficulty: number; // 1-100
+    potentialRewards: MissionReward;
+}
+
 export interface Stronghold {
     id: string;
     name: string;
@@ -95,6 +118,9 @@ export interface Stronghold {
 
     // Active Threats
     threats: ActiveThreat[];
+
+    // Active Missions
+    missions: StrongholdMission[];
 }
 
 export interface DailyUpdateSummary {
@@ -103,5 +129,6 @@ export interface DailyUpdateSummary {
     influenceChange: number;
     staffEvents: string[]; // e.g., "Guard John quit due to lack of payment."
     threatEvents: string[]; // e.g., "Bandits raided! Lost 500 gold."
+    missionEvents: string[]; // e.g., "Scout returned with 10 intel."
     alerts: string[]; // e.g., "Low funds warning!"
 }

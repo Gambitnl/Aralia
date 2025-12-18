@@ -6,7 +6,7 @@
  * Manages daily world simulation events.
  */
 
-import { GameState, GameMessage, WorldRumor } from '../../types';
+import { GameState, GameMessage, WorldRumor, MarketEvent, EconomyState } from '../../types';
 import { applyReputationChange } from '../../utils/factionUtils';
 import { getGameDay, addGameTime } from '../../utils/timeUtils';
 import { SeededRandom } from '../../utils/seededRandom';
@@ -107,39 +107,107 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
 
 /**
  * Handles Market Shift events.
- * Adds flavor text about economic changes.
+ * Adds flavor text and updates economy state.
  */
 const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResult => {
-    const events = [
-        "A surplus of iron from the mines has lowered weapon prices.",
-        "Drought in the farmlands has driven up food costs.",
-        "A sunken merchant ship has made silk a rare luxury.",
-        "A new trade route has opened, flooding the market with exotic spices."
+    // Define potential market events with actual gameplay effects
+    const events: Array<{ text: string; event: MarketEvent }> = [
+        {
+            text: "A surplus of iron from the mines has lowered weapon prices.",
+            event: {
+                id: 'surplus_iron',
+                name: 'Iron Surplus',
+                description: 'Weapons and heavy armor are cheaper.',
+                affectedTags: ['weapon', 'armor'],
+                effect: 'surplus',
+                duration: 5
+            }
+        },
+        {
+            text: "Drought in the farmlands has driven up food costs.",
+            event: {
+                id: 'scarcity_food',
+                name: 'Food Shortage',
+                description: 'Food items are expensive.',
+                affectedTags: ['consumable', 'food'],
+                effect: 'scarcity',
+                duration: 7
+            }
+        },
+        {
+            text: "A sunken merchant ship has made silk a rare luxury.",
+            event: {
+                id: 'scarcity_luxury',
+                name: 'Silk Shortage',
+                description: 'Luxury goods prices have spiked.',
+                affectedTags: ['valuable', 'cloth'],
+                effect: 'scarcity',
+                duration: 10
+            }
+        },
+        {
+            text: "A new trade route has opened, flooding the market with exotic spices.",
+            event: {
+                id: 'surplus_spices',
+                name: 'Spice Influx',
+                description: 'Exotic goods are cheaper.',
+                affectedTags: ['valuable', 'spice'],
+                effect: 'surplus',
+                duration: 5
+            }
+        }
     ];
 
-    const text = events[Math.floor(rng.next() * events.length)];
+    const selection = events[Math.floor(rng.next() * events.length)];
     const timestamp = state.gameTime || new Date();
     const gameDay = getGameDay(timestamp);
 
     const logs: GameMessage[] = [{
         id: Date.now() + rng.next(),
-        text: `Market News: ${text}`,
+        text: `Market News: ${selection.text}`,
         sender: 'system',
         timestamp: timestamp
     }];
 
     const rumor: WorldRumor = {
         id: `market-${gameDay}-${rng.next().toString(36).substr(2, 5)}`,
-        text,
+        text: selection.text,
         type: 'market',
         timestamp: gameDay,
-        expiration: gameDay + 5
+        expiration: gameDay + selection.event.duration
+    };
+
+    // Update Economy State
+    // 1. Add new event to activeEvents
+    // 2. Re-calculate scarcity/surplus lists based on ALL active events
+    const currentActiveEvents = state.economy.activeEvents || [];
+    const newActiveEvents = [...currentActiveEvents, selection.event];
+
+    const newScarcity = new Set<string>();
+    const newSurplus = new Set<string>();
+
+    newActiveEvents.forEach(e => {
+        if (e.effect === 'scarcity') {
+            e.affectedTags.forEach(tag => newScarcity.add(tag));
+        } else {
+            e.affectedTags.forEach(tag => newSurplus.add(tag));
+        }
+    });
+
+    const newEconomy: EconomyState = {
+        ...state.economy,
+        activeEvents: newActiveEvents,
+        marketFactors: {
+            scarcity: Array.from(newScarcity),
+            surplus: Array.from(newSurplus)
+        }
     };
 
     return {
         state: {
             ...state,
-            activeRumors: [...(state.activeRumors || []), rumor]
+            activeRumors: [...(state.activeRumors || []), rumor],
+            economy: newEconomy
         },
         logs
     };
@@ -205,6 +273,52 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
       }
   } else {
       currentState = { ...currentState, activeRumors: [] };
+  }
+
+  // Clean up expired market events
+  if (currentState.economy && currentState.economy.activeEvents) {
+     // Decrease duration of active events? No, we check if they expire by a separate timestamp logic?
+     // Actually, MarketEvent definition has 'duration'. We should probably decrement it or store start time.
+     // For simplicity in this iteration, we'll assume 'duration' is days remaining and decrement it.
+
+     let eventsChanged = false;
+     const newActiveEvents = currentState.economy.activeEvents
+        .map(e => ({...e, duration: e.duration - 1}))
+        .filter(e => e.duration > 0);
+
+     if (newActiveEvents.length !== currentState.economy.activeEvents.length) {
+         eventsChanged = true;
+     }
+
+     // Also check if any decremented durations changed (always true if > 0 events)
+     if (currentState.economy.activeEvents.length > 0) {
+         eventsChanged = true;
+     }
+
+     if (eventsChanged) {
+        const newScarcity = new Set<string>();
+        const newSurplus = new Set<string>();
+
+        newActiveEvents.forEach(e => {
+            if (e.effect === 'scarcity') {
+                e.affectedTags.forEach(tag => newScarcity.add(tag));
+            } else {
+                e.affectedTags.forEach(tag => newSurplus.add(tag));
+            }
+        });
+
+        currentState = {
+            ...currentState,
+            economy: {
+                ...currentState.economy,
+                activeEvents: newActiveEvents,
+                marketFactors: {
+                    scarcity: Array.from(newScarcity),
+                    surplus: Array.from(newSurplus)
+                }
+            }
+        };
+     }
   }
 
   // Iterate for each day passed

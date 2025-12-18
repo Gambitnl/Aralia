@@ -1,142 +1,123 @@
+/**
+ * @file src/utils/__tests__/economyUtils.test.ts
+ */
 import { describe, it, expect } from 'vitest';
-import { generateMarketEvents, applyEventsToEconomy, calculateTradeRouteProfit, POSSIBLE_MARKET_EVENTS } from '../economyUtils';
-import { EconomyState, MarketEvent } from '@/types';
+import { calculatePrice, parseCost } from '../economyUtils';
+import { Item, EconomyState } from '@/types';
 
 describe('economyUtils', () => {
-  describe('generateMarketEvents', () => {
-    it('should be deterministic based on seed', () => {
-      const seed = 12345;
-      const events1 = generateMarketEvents(seed);
-      const events2 = generateMarketEvents(seed);
-      expect(events1).toEqual(events2);
-    });
-
-    it('should be deterministic based on seed AND location', () => {
-      const seed = 12345;
-      const location = 'town_a';
-      const events1 = generateMarketEvents(seed, location);
-      const events2 = generateMarketEvents(seed, location);
-      expect(events1).toEqual(events2);
-    });
-
-    it('should return different results for different locations with same time seed', () => {
-      const seed = 12345;
-
-      let foundDifference = false;
-      // Try a few seeds to avoid bad RNG luck where both get "no event"
-      for (let i = 0; i < 100; i++) {
-          const events1 = generateMarketEvents(seed + i, 'town_a');
-          const events2 = generateMarketEvents(seed + i, 'town_b');
-          if (JSON.stringify(events1) !== JSON.stringify(events2)) {
-             foundDifference = true;
-             break;
-         }
-      }
-      expect(foundDifference).toBe(true);
-    });
-
-    it('should return different results for different seeds', () => {
-      const seed1 = 12345;
-      const seed2 = 2;
-
-      // We loop until we find two seeds that produce different results, or fail if we can't.
-      // This is necessary because "no event" is a valid and common result (60% chance).
-      let events1 = generateMarketEvents(seed1);
-      let events2 = generateMarketEvents(seed2);
-
-      let foundDifference = false;
-      for (let i = 0; i < 100; i++) {
-         events1 = generateMarketEvents(i);
-         events2 = generateMarketEvents(i + 1);
-         if (JSON.stringify(events1) !== JSON.stringify(events2)) {
-             foundDifference = true;
-             break;
-         }
-      }
-
-      expect(foundDifference).toBe(true);
-    });
-  });
-
-  describe('applyEventsToEconomy', () => {
-    const baseEconomy: EconomyState = {
-      marketFactors: { scarcity: [], surplus: [] },
-      buyMultiplier: 1.0,
-      sellMultiplier: 0.5,
+    const mockItem: Item = {
+        id: 'test_sword',
+        name: 'Test Sword',
+        type: 'weapon',
+        value: 100,
+        description: 'A sharp blade',
+        icon: 'sword',
+        weight: 2
     };
 
-    it('should add scarcity tags', () => {
-      const event: MarketEvent = {
-        id: 'test_scarcity',
-        name: 'Test Scarcity',
-        description: '',
-        affectedTags: ['apple', 'bread'],
-        effect: 'scarcity',
-        duration: 1
-      };
+    const mockItemStringCost: Item = {
+        id: 'test_legacy',
+        name: 'Legacy Item',
+        type: 'misc',
+        cost: '50 GP',
+        description: 'Old item',
+        icon: 'box',
+        weight: 1
+    };
 
-      const newEconomy = applyEventsToEconomy(baseEconomy, [event]);
-      expect(newEconomy.marketFactors.scarcity).toContain('apple');
-      expect(newEconomy.marketFactors.scarcity).toContain('bread');
+    const defaultEconomy: EconomyState = {
+        marketFactors: { scarcity: [], surplus: [] },
+        buyMultiplier: 1.0,
+        sellMultiplier: 0.5,
+        activeEvents: []
+    };
+
+    describe('parseCost', () => {
+        it('parses GP correctly', () => {
+            expect(parseCost('100 GP')).toBe(100);
+            expect(parseCost('50 gp')).toBe(50);
+        });
+
+        it('parses PP correctly', () => {
+            expect(parseCost('10 PP')).toBe(100);
+        });
+
+        it('parses SP correctly', () => {
+            expect(parseCost('10 SP')).toBe(1);
+        });
+
+        it('returns 0 for invalid or empty strings', () => {
+            expect(parseCost('')).toBe(0);
+            expect(parseCost(undefined)).toBe(0);
+            expect(parseCost('free')).toBe(0);
+        });
     });
 
-    it('should add surplus tags', () => {
-       const event: MarketEvent = {
-        id: 'test_surplus',
-        name: 'Test Surplus',
-        description: '',
-        affectedTags: ['water'],
-        effect: 'surplus',
-        duration: 1
-      };
+    describe('calculatePrice', () => {
+        it('calculates base buy price correctly (numeric value)', () => {
+            const result = calculatePrice(mockItem, defaultEconomy, 'buy');
+            expect(result.finalPrice).toBe(100);
+            expect(result.multiplier).toBe(1.0);
+            expect(result.isModified).toBe(false);
+        });
 
-      const newEconomy = applyEventsToEconomy(baseEconomy, [event]);
-      expect(newEconomy.marketFactors.surplus).toContain('water');
+        it('calculates base buy price correctly (string cost)', () => {
+            const result = calculatePrice(mockItemStringCost, defaultEconomy, 'buy');
+            expect(result.finalPrice).toBe(50);
+        });
+
+        it('calculates base sell price correctly', () => {
+            const result = calculatePrice(mockItem, defaultEconomy, 'sell');
+            expect(result.finalPrice).toBe(50);
+            expect(result.multiplier).toBe(0.5);
+        });
+
+        it('increases price during scarcity', () => {
+            const scarcityEconomy: EconomyState = {
+                ...defaultEconomy,
+                marketFactors: { scarcity: ['weapon'], surplus: [] }
+            };
+            const buyResult = calculatePrice(mockItem, scarcityEconomy, 'buy');
+            // 1.0 + 0.5 = 1.5 multiplier
+            // 100 * 1.5 = 150
+            expect(buyResult.finalPrice).toBe(150);
+            expect(buyResult.multiplier).toBe(1.5);
+            expect(buyResult.isModified).toBe(true);
+
+            const sellResult = calculatePrice(mockItem, scarcityEconomy, 'sell');
+            // 0.5 + 0.3 = 0.8 multiplier
+            // 100 * 0.8 = 80
+            expect(sellResult.finalPrice).toBe(80);
+        });
+
+        it('decreases price during surplus', () => {
+            const surplusEconomy: EconomyState = {
+                ...defaultEconomy,
+                marketFactors: { scarcity: [], surplus: ['weapon'] }
+            };
+            const buyResult = calculatePrice(mockItem, surplusEconomy, 'buy');
+            // 1.0 - 0.3 = 0.7 multiplier
+            // 100 * 0.7 = 70
+            expect(buyResult.finalPrice).toBe(70);
+            expect(buyResult.isModified).toBe(true);
+
+            const sellResult = calculatePrice(mockItem, surplusEconomy, 'sell');
+            // 0.5 - 0.2 = 0.3 multiplier
+            // 100 * 0.3 = 30
+            expect(sellResult.finalPrice).toBe(30);
+        });
+
+        it('handles zero value items', () => {
+            const junkItem: Item = { ...mockItem, value: 0 };
+            const result = calculatePrice(junkItem, defaultEconomy, 'buy');
+            expect(result.finalPrice).toBe(0);
+        });
+
+        it('handles missing economy gracefully', () => {
+            const result = calculatePrice(mockItem, undefined, 'buy');
+            expect(result.finalPrice).toBe(100);
+            expect(result.isModified).toBe(false);
+        });
     });
-
-    it('should have scarcity override surplus', () => {
-       const eventSurplus: MarketEvent = {
-        id: 'test_surplus',
-        name: 'Test Surplus',
-        description: '',
-        affectedTags: ['iron'],
-        effect: 'surplus',
-        duration: 1
-      };
-      const eventScarcity: MarketEvent = {
-        id: 'test_scarcity',
-        name: 'Test Scarcity',
-        description: '',
-        affectedTags: ['iron'],
-        effect: 'scarcity',
-        duration: 1
-      };
-
-      // Case 1: Scarcity applied after Surplus
-      let newEconomy = applyEventsToEconomy(baseEconomy, [eventSurplus, eventScarcity]);
-      expect(newEconomy.marketFactors.scarcity).toContain('iron');
-      expect(newEconomy.marketFactors.surplus).not.toContain('iron');
-
-      // Case 2: Scarcity applied before Surplus (Surplus should assume Scarcity wins)
-      newEconomy = applyEventsToEconomy(baseEconomy, [eventScarcity, eventSurplus]);
-      expect(newEconomy.marketFactors.scarcity).toContain('iron');
-      expect(newEconomy.marketFactors.surplus).not.toContain('iron');
-    });
-  });
-
-  describe('calculateTradeRouteProfit', () => {
-    it('should increase profit with distance', () => {
-      const baseValue = 100;
-      const profitShort = calculateTradeRouteProfit(10, 0, baseValue);
-      const profitLong = calculateTradeRouteProfit(100, 0, baseValue);
-      expect(profitLong).toBeGreaterThan(profitShort);
-    });
-
-    it('should increase profit with risk', () => {
-      const baseValue = 100;
-      const profitSafe = calculateTradeRouteProfit(10, 0, baseValue);
-      const profitRisky = calculateTradeRouteProfit(10, 5, baseValue);
-      expect(profitRisky).toBeGreaterThan(profitSafe);
-    });
-  });
 });

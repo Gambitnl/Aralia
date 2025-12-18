@@ -26,7 +26,9 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a pearl worth 100+ gp and an owl feather"
+    "materialDescription": "a pearl worth 100+ gp and an owl feather",
+    "materialCost": 100,
+    "isConsumed": false
   },
   "duration": {
     "type": "instantaneous",

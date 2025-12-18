@@ -3,10 +3,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   registerTopic,
   checkTopicPrerequisites,
-  processTopicSelection
+  processTopicSelection,
+  getAvailableTopics
 } from '../dialogueService';
-import { ConversationTopic, DialogueSession } from '../../types/dialogue';
-import { GameState, SuspicionLevel, Item } from '../../types/index';
+import { ConversationTopic, DialogueSession, NPCKnowledgeProfile } from '../../types/dialogue';
+import { GameState, SuspicionLevel, Item, NPC } from '../../types/index';
 import * as combatUtils from '../../utils/combatUtils';
 
 // Mock rollDice
@@ -54,6 +55,14 @@ const mockSkillTopic: ConversationTopic = {
   }
 };
 
+const mockGlobalTopic: ConversationTopic = {
+  id: 'test_topic_weather',
+  label: 'Weather',
+  category: 'rumor',
+  playerPrompt: 'Nice weather.',
+  isGlobal: true
+};
+
 // Helper to create mock items
 const createMockItem = (id: string, extraProps: any = {}): Item => ({
   id,
@@ -90,11 +99,22 @@ const mockSession: DialogueSession = {
   sessionDispositionMod: 0
 };
 
+// Helper to create an NPC with a specific knowledge profile
+const createMockNPC = (id: string, knowledgeProfile?: NPCKnowledgeProfile): NPC => ({
+  id,
+  name: 'Test NPC',
+  baseDescription: 'A test NPC',
+  initialPersonalityPrompt: 'Friendly',
+  role: 'civilian',
+  knowledgeProfile
+});
+
 describe('Dialogue Service', () => {
   beforeEach(() => {
     registerTopic(mockTopic);
     registerTopic(mockPrereqTopic);
     registerTopic(mockSkillTopic);
+    registerTopic(mockGlobalTopic);
     vi.clearAllMocks();
   });
 
@@ -157,6 +177,45 @@ describe('Dialogue Service', () => {
     });
   });
 
+  describe('NPC Knowledge & Willingness', () => {
+    it('should filter out topics the NPC does not know', () => {
+      // NPC with NO knowledge profile
+      const dumbNPC = createMockNPC('npc_dumb');
+      const topics = getAvailableTopics(mockGameState, 'npc_dumb', mockSession, dumbNPC);
+
+      // Should ONLY contain Global topics
+      expect(topics.map(t => t.id)).toContain('test_topic_weather');
+      expect(topics.map(t => t.id)).not.toContain('test_topic_ruins');
+    });
+
+    it('should include topics explicitly known in knowledge profile', () => {
+      const wiseNPC = createMockNPC('npc_wise', {
+          baseOpenness: 50,
+          topicOverrides: {
+              'test_topic_ruins': { known: true }
+          }
+      });
+
+      const topics = getAvailableTopics(mockGameState, 'npc_wise', mockSession, wiseNPC);
+      expect(topics.map(t => t.id)).toContain('test_topic_ruins');
+      expect(topics.map(t => t.id)).toContain('test_topic_weather');
+      // Should NOT contain skill topic as it wasn't added to profile
+      expect(topics.map(t => t.id)).not.toContain('test_topic_persuade');
+    });
+
+    it('should filter out topics marked as NOT known even if profile exists', () => {
+       const forgetfulNPC = createMockNPC('npc_forget', {
+          baseOpenness: 50,
+          topicOverrides: {
+              'test_topic_ruins': { known: false }
+          }
+      });
+
+      const topics = getAvailableTopics(mockGameState, 'npc_forget', mockSession, forgetfulNPC);
+      expect(topics.map(t => t.id)).not.toContain('test_topic_ruins');
+    });
+  });
+
   describe('processTopicSelection', () => {
     it('should return prompt and unlocks for normal topic', () => {
       const result = processTopicSelection('test_topic_ruins', mockGameState, mockSession);
@@ -194,6 +253,46 @@ describe('Dialogue Service', () => {
       const result = processTopicSelection('test_topic_persuade', mockGameState, mockSession, 6);
 
       expect(result.status).toBe('success');
+    });
+
+    it('should adjust DC based on NPC willingness modifier', () => {
+      // Base DC is 15.
+      // NPC is very willing (+5 modifier).
+      // Effective DC should be 15 - 5 = 10.
+      // Roll is 10.
+      // 10 >= 10 -> Success. (If no modifier, 10 < 15 -> Failure)
+
+      const willingNPC = createMockNPC('npc_willing', {
+          baseOpenness: 50,
+          topicOverrides: {
+              'test_topic_persuade': { known: true, willingnessModifier: 5 }
+          }
+      });
+
+      vi.mocked(combatUtils.rollDice).mockReturnValue(10);
+
+      const result = processTopicSelection('test_topic_persuade', mockGameState, mockSession, 0, willingNPC);
+      expect(result.status).toBe('success');
+    });
+
+    it('should increase DC if NPC is unwilling (negative modifier)', () => {
+      // Base DC 15.
+      // NPC is unwilling (-5 modifier).
+      // Effective DC should be 15 - (-5) = 20.
+      // Roll is 18.
+      // 18 < 20 -> Failure. (If no modifier, 18 >= 15 -> Success)
+
+       const unwillingNPC = createMockNPC('npc_unwilling', {
+          baseOpenness: 50,
+          topicOverrides: {
+              'test_topic_persuade': { known: true, willingnessModifier: -5 }
+          }
+      });
+
+      vi.mocked(combatUtils.rollDice).mockReturnValue(18);
+
+      const result = processTopicSelection('test_topic_persuade', mockGameState, mockSession, 0, unwillingNPC);
+      expect(result.status).toBe('failure');
     });
   });
 });

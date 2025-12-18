@@ -87,3 +87,56 @@ export interface TrapDisarmResult {
   triggeredTrap: boolean;
   trapEffect?: TrapEffect;
 }
+
+// --- PUZZLE SYSTEM ---
+
+export type PuzzleType = 'sequence' | 'combination' | 'riddle' | 'item_placement';
+
+export interface PuzzleResult {
+  success: boolean;
+  isSolved: boolean;
+  isFailed: boolean;
+  message: string;
+  consequence?: {
+    damage?: DiceRoll;
+    trapId?: string;
+  };
+}
+
+export interface Puzzle {
+  id: string;
+  name: string;
+  type: PuzzleType;
+  description: string;
+  hint?: string;
+  hintDC: number; // Intelligence (Investigation) check to get the hint
+
+  // Logic
+  maxAttempts?: number; // If defined, puzzle fails permanently after X tries
+
+  // Solutions
+  // Sequence: Ordered list of IDs (e.g. ['lever1', 'lever2'])
+  solutionSequence?: string[];
+  // Riddle: List of accepted text answers (case-insensitive)
+  acceptedAnswers?: string[];
+  // Item Placement: List of required Item IDs
+  requiredItems?: string[];
+
+  // State
+  isSolved: boolean;
+  isFailed: boolean;
+  currentAttempts: number;
+  currentInputSequence: string[]; // Tracks user inputs for sequence puzzles
+
+  // Connections
+  onSuccess: {
+    unlockId?: string; // Unlocks this lock
+    triggerEvent?: string;
+    message: string;
+  };
+  onFailure?: {
+    trapId?: string; // Trigger this trap
+    damage?: DiceRoll; // Or just deal damage
+    message: string;
+  };
+}

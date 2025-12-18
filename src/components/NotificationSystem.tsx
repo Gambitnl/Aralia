@@ -68,9 +68,11 @@ export const NotificationSystem: React.FC<NotificationSystemProps> = ({ notifica
     dispatch({ type: 'REMOVE_NOTIFICATION', payload: { id } });
   }, [dispatch]);
 
-  // TODO: Cap the number of active toasts (e.g., keep the last 5) to avoid layout thrash when many notifications fire in bursts.
   // TODO: Respect prefers-reduced-motion and manage focus for screen readers (Reason: current animations and auto-dismiss toasts can disorient users relying on accessibility tech; Expectation: accessible announcements without motion sickness or lost focus).
   // Mounted at the App root so every pane can dispatch notifications instead of using blocking alerts.
+  // Cap at 5 notifications to prevent layout thrash
+  const visibleNotifications = notifications.slice(-5);
+
   return (
     <div
       aria-live="assertive"
@@ -78,7 +80,7 @@ export const NotificationSystem: React.FC<NotificationSystemProps> = ({ notifica
     >
       <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
         <AnimatePresence mode="popLayout" initial={false}>
-          {notifications.map((notification) => (
+          {visibleNotifications.map((notification) => (
             <NotificationToast
               key={notification.id}
               notification={notification}

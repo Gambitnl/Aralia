@@ -479,4 +479,44 @@ export const SpellValidator = z.object({
   description: z.string(),
   higherLevels: z.string().optional(),
   tags: z.array(z.string()).optional(),
+}).superRefine((spell, ctx) => {
+  if (spell.components.material) {
+    const desc = spell.components.materialDescription || '';
+
+    // Check for Cost Mismatch
+    const costMatch = desc.match(/worth (?:at least )?([\d,]+)(?:\+)? gp/i);
+    if (costMatch) {
+      const expectedCost = parseInt(costMatch[1].replace(/,/g, ''), 10);
+      const actualCost = spell.components.materialCost;
+
+      // Allow for pair pricing logic (e.g. Warding Bond: 50gp each -> 100gp total)
+      // If the actual cost is a multiple of the found cost (2x), we assume it's intentional for pairs.
+      const isPair = desc.includes('pair') || desc.includes('each');
+
+      if (actualCost !== expectedCost) {
+        if (isPair && actualCost === expectedCost * 2) {
+          // Acceptable deviation for pairs
+        } else {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Material cost mismatch: Description says ${expectedCost} gp, but data has ${actualCost ?? 0} gp.`,
+            path: ['components', 'materialCost'],
+          });
+        }
+      }
+    }
+
+    // Check for Consumption Mismatch
+    const consumedMatch = desc.match(/consumes?|consumed/i);
+    const expectedConsumed = !!consumedMatch;
+    const actualConsumed = spell.components.isConsumed ?? false;
+
+    if (expectedConsumed && !actualConsumed) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Material consumption mismatch: Description implies consumption, but isConsumed is false/missing.`,
+        path: ['components', 'isConsumed'],
+      });
+    }
+  }
 });

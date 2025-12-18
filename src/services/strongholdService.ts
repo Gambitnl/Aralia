@@ -12,7 +12,10 @@ import {
     DailyUpdateSummary,
     StrongholdUpgrade,
     ActiveThreat,
-    ThreatType
+    ThreatType,
+    MissionType,
+    StrongholdMission,
+    MissionReward
 } from '../types/stronghold';
 
 const BASE_WAGES: Record<StaffRole, number> = {
@@ -120,7 +123,8 @@ export const createStronghold = (name: string, type: StrongholdType, locationId:
         dailyIncome: 10, // Base passive income
         upgrades: [],
         constructionQueue: [],
-        threats: []
+        threats: [],
+        missions: []
     };
 };
 
@@ -147,6 +151,11 @@ export const recruitStaff = (stronghold: Stronghold, name: string, role: StaffRo
  * Fires a staff member by ID.
  */
 export const fireStaff = (stronghold: Stronghold, staffId: string): Stronghold => {
+    const staff = stronghold.staff.find(s => s.id === staffId);
+    if (staff?.currentMissionId) {
+        throw new Error("Cannot fire staff currently on a mission.");
+    }
+
     return {
         ...stronghold,
         staff: stronghold.staff.filter(s => s.id !== staffId)
@@ -292,12 +301,80 @@ export const resolveThreat = (stronghold: Stronghold, threat: ActiveThreat): { s
     }
 };
 
+// --- Mission System ---
+
+/**
+ * Starts a new mission for a staff member.
+ */
+export const startMission = (stronghold: Stronghold, staffId: string, type: MissionType, difficulty: number, description: string): Stronghold => {
+    const staff = stronghold.staff.find(s => s.id === staffId);
+    if (!staff) throw new Error("Staff not found");
+    if (staff.currentMissionId) throw new Error("Staff already on mission");
+    if (stronghold.resources.supplies < 10) throw new Error("Not enough supplies to start mission.");
+
+    const mission: StrongholdMission = {
+        id: uuidv4(),
+        type,
+        staffId,
+        description,
+        daysRemaining: Math.floor(Math.random() * 3) + 2, // 2-5 days duration
+        difficulty,
+        potentialRewards: {
+            gold: type === 'trade' ? difficulty * 10 : 0,
+            intel: type === 'scout' ? Math.floor(difficulty / 5) : 0,
+            influence: type === 'diplomacy' ? Math.floor(difficulty / 10) : 0,
+            supplies: type === 'raid' ? difficulty * 2 : 0
+        }
+    };
+
+    return {
+        ...stronghold,
+        resources: {
+            ...stronghold.resources,
+            supplies: stronghold.resources.supplies - 10
+        },
+        missions: [...stronghold.missions, mission],
+        staff: stronghold.staff.map(s => s.id === staffId ? { ...s, currentMissionId: mission.id } : s)
+    };
+};
+
+/**
+ * Resolves a completed mission.
+ */
+export const resolveMission = (mission: StrongholdMission, staff: StrongholdStaff): { success: boolean; log: string; rewards?: MissionReward } => {
+    // Determine bonus based on role
+    let bonus = 0;
+    if (mission.type === 'scout' && staff.role === 'spy') bonus += 20;
+    if (mission.type === 'trade' && staff.role === 'merchant') bonus += 20;
+    if (mission.type === 'diplomacy' && (staff.role === 'steward' || staff.role === 'priest')) bonus += 20;
+    if (mission.type === 'raid' && staff.role === 'guard') bonus += 20;
+
+    // Morale bonus
+    const moraleBonus = Math.floor(staff.morale / 10);
+    const roll = Math.floor(Math.random() * 100) + 1;
+    const totalScore = roll + bonus + moraleBonus;
+
+    if (totalScore >= mission.difficulty) {
+        return {
+            success: true,
+            log: `Mission Success: ${staff.name} completed '${mission.description}'.`,
+            rewards: mission.potentialRewards
+        };
+    } else {
+        return {
+            success: false,
+            log: `Mission Failed: ${staff.name} failed '${mission.description}'.`
+        };
+    }
+};
+
 /**
  * Processes daily updates for a stronghold:
  * - Calculates income and expenses (including Upgrade effects)
  * - Pays staff (or reduces morale if unable)
  * - Processes staff departures due to low morale
  * - Handles Threats (generation and resolution)
+ * - Processes Missions (progress and completion)
  */
 export const processDailyUpkeep = (stronghold: Stronghold): { updatedStronghold: Stronghold; summary: DailyUpdateSummary } => {
     const summary: DailyUpdateSummary = {
@@ -306,6 +383,7 @@ export const processDailyUpkeep = (stronghold: Stronghold): { updatedStronghold:
         influenceChange: 0,
         staffEvents: [],
         threatEvents: [],
+        missionEvents: [],
         alerts: []
     };
 
@@ -333,6 +411,8 @@ export const processDailyUpkeep = (stronghold: Stronghold): { updatedStronghold:
 
     let currentGold = stronghold.resources.gold;
     let currentSupplies = stronghold.resources.supplies;
+    let currentInfluence = (stronghold.resources.influence || 0);
+    let currentIntel = (stronghold.resources.intel || 0);
 
     // --- Calculate Income ---
     let dailyIncome = stronghold.dailyIncome;
@@ -353,7 +433,7 @@ export const processDailyUpkeep = (stronghold: Stronghold): { updatedStronghold:
 
     // --- Process Expenses (Wages) ---
     let totalWages = 0;
-    const paidStaff: StrongholdStaff[] = [];
+    let paidStaff: StrongholdStaff[] = [];
 
     // Steward bonus (reduce wages)
     const stewards = stronghold.staff.filter(s => s.role === 'steward');
@@ -417,18 +497,65 @@ export const processDailyUpkeep = (stronghold: Stronghold): { updatedStronghold:
                     currentSupplies = Math.max(0, currentSupplies - updatedThreat.consequences.suppliesLoss);
                     summary.threatEvents.push(`Lost ${updatedThreat.consequences.suppliesLoss} supplies.`);
                 }
-                // Morale loss handled by reducing staff morale globally? Or just reporting it?
-                // For simplicity, we'll just report it for now, or maybe reduce all staff morale
                  if (updatedThreat.consequences.moraleLoss) {
-                     paidStaff.forEach(s => s.morale = Math.max(0, s.morale - (updatedThreat.consequences.moraleLoss || 0)));
+                     // Reduce morale of remaining staff
+                     paidStaff = paidStaff.map(s => ({
+                         ...s,
+                         morale: Math.max(0, s.morale - (updatedThreat.consequences.moraleLoss || 0))
+                     }));
                      summary.threatEvents.push(`Staff morale dropped by ${updatedThreat.consequences.moraleLoss}.`);
                  }
             }
-            // Threat is removed after triggering (resolved or failed)
         } else {
             remainingThreats.push(updatedThreat);
         }
     }
+
+    // --- Mission Management ---
+    const remainingMissions: StrongholdMission[] = [];
+    let missionGold = 0;
+    let missionSupplies = 0;
+    let missionIntel = 0;
+    let missionInfluence = 0;
+
+    for (const mission of stronghold.missions) {
+        // Check if staff still exists (didn't quit)
+        const staffIndex = paidStaff.findIndex(s => s.id === mission.staffId);
+        if (staffIndex === -1) {
+            // Staff quit or was fired (shouldn't be fired if check works, but could quit unpaid)
+            summary.missionEvents.push(`Mission Cancelled: '${mission.description}' - Staff unavailable.`);
+            continue;
+        }
+
+        const updatedMission = { ...mission, daysRemaining: mission.daysRemaining - 1 };
+
+        if (updatedMission.daysRemaining <= 0) {
+            const staff = paidStaff[staffIndex];
+            const result = resolveMission(updatedMission, staff);
+            summary.missionEvents.push(result.log);
+
+            if (result.success && result.rewards) {
+                if (result.rewards.gold) missionGold += result.rewards.gold;
+                if (result.rewards.supplies) missionSupplies += result.rewards.supplies;
+                if (result.rewards.intel) missionIntel += result.rewards.intel;
+                if (result.rewards.influence) missionInfluence += result.rewards.influence;
+            }
+
+            // Free the staff from mission
+            paidStaff[staffIndex] = { ...staff, currentMissionId: undefined };
+
+        } else {
+            remainingMissions.push(updatedMission);
+        }
+    }
+
+    currentGold += missionGold;
+    currentSupplies += missionSupplies;
+    currentIntel += missionIntel;
+    currentInfluence += missionInfluence;
+
+    if (missionGold > 0) summary.goldChange += missionGold;
+    if (missionInfluence > 0) summary.influenceChange += missionInfluence; // Add mission influence to summary
 
     // Update Stronghold State
     const updatedStronghold: Stronghold = {
@@ -437,14 +564,15 @@ export const processDailyUpkeep = (stronghold: Stronghold): { updatedStronghold:
             ...stronghold.resources,
             gold: currentGold,
             supplies: currentSupplies,
-            influence: (stronghold.resources.influence || 0) + upgradeInfluence,
-            intel: (stronghold.resources.intel || 0) + upgradeIntel
+            influence: currentInfluence + upgradeInfluence,
+            intel: currentIntel + upgradeIntel
         },
         staff: paidStaff,
-        threats: remainingThreats
+        threats: remainingThreats,
+        missions: remainingMissions
     };
 
-    summary.influenceChange = upgradeInfluence;
+    summary.influenceChange += upgradeInfluence;
 
     if (currentGold < 50) {
         summary.alerts.push("Warning: Treasury is running low!");

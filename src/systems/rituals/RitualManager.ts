@@ -7,6 +7,13 @@ import { RitualState, RitualEvent, InterruptResult, InterruptCondition } from '.
 import { Spell, CastingTime } from '../../types/spells';
 import { CombatCharacter } from '../../types/combat';
 
+/**
+ * Configuration options for starting a ritual.
+ */
+export interface RitualConfig {
+  materialConsumptionProgress?: number; // 0.0 to 1.0 (default 1.0)
+}
+
 export class RitualManager {
   /**
    * Initializes a new ritual casting.
@@ -16,7 +23,8 @@ export class RitualManager {
     spell: Spell,
     caster: CombatCharacter,
     participants: CombatCharacter[] = [],
-    currentTime: number
+    currentTime: number,
+    config: RitualConfig = {}
   ): RitualState {
     if (!spell.ritual) {
       throw new Error(`Spell ${spell.name} is not a ritual.`);
@@ -24,6 +32,9 @@ export class RitualManager {
 
     const baseCastTime = this.calculateCastingTimeInMinutes(spell.castingTime);
     const totalDuration = baseCastTime + 10; // Rituals add 10 minutes
+
+    // Calculate participant bonus: +1 DC to interruption saves per participant, max +5
+    const participationBonus = Math.min(participants.length, 5);
 
     // Default interrupt conditions for standard D&D 5e rituals
     const defaultInterrupts: InterruptCondition[] = [
@@ -46,6 +57,9 @@ export class RitualManager {
       }
     ];
 
+    // Determine when materials are consumed. Default to end (1.0).
+    const consumptionThreshold = config.materialConsumptionProgress ?? 1.0;
+
     return {
       id: crypto.randomUUID(),
       spell,
@@ -54,27 +68,38 @@ export class RitualManager {
       durationMinutes: totalDuration,
       progressMinutes: 0,
       participantIds: participants.map(p => p.id),
+      participationBonus,
       isComplete: false,
       interrupted: false,
       interruptConditions: defaultInterrupts,
-      materialsConsumed: false // Usually consumed at finish, unless specified
+      materialsConsumed: false,
+      consumptionThreshold
     };
   }
 
   /**
    * Advances the ritual progress by a time delta.
-   * Handles material consumption if applicable (could be implemented to consume at specific %).
+   * Handles material consumption if applicable.
    */
   static advanceRitual(ritual: RitualState, minutesPassed: number): RitualState {
     if (ritual.interrupted || ritual.isComplete) return ritual;
 
     const newProgress = ritual.progressMinutes + minutesPassed;
     const isComplete = newProgress >= ritual.durationMinutes;
+    const progressPercent = newProgress / ritual.durationMinutes;
+
+    // Check if we crossed the consumption threshold
+    // We only consume if not already consumed
+    let materialsConsumed = ritual.materialsConsumed;
+    if (!materialsConsumed && progressPercent >= ritual.consumptionThreshold) {
+      materialsConsumed = true;
+    }
 
     return {
       ...ritual,
       progressMinutes: newProgress,
-      isComplete
+      isComplete,
+      materialsConsumed
     };
   }
 
@@ -97,11 +122,15 @@ export class RitualManager {
             dc = Math.max(10, Math.floor(event.value / 2));
           }
 
+          // Apply participation bonus by lowering the effective DC.
+          // Participants help the caster maintain focus, making the save easier.
+          const effectiveDC = Math.max(0, dc - ritual.participationBonus);
+
           return {
             interrupted: true, // It *will* interrupt unless saved
             reason: `Triggered ${condition.type}`,
             canSave: true,
-            saveDC: dc,
+            saveDC: effectiveDC,
             saveAbility: condition.saveToResist.ability
           };
         }
@@ -147,13 +176,7 @@ export class RitualManager {
 
     // Mapping: 'status_change' event -> 'incapacitated' condition
     // In a real system we'd check if the status IS 'Unconscious', 'Paralyzed', etc.
-    // For this framework, we assume the event producer tagged it correctly or we treat generic status changes as potential triggers
-    // But to be safe and match the test which sends type: 'incapacitated', we rely on direct match above.
-    // If we receive type: 'status_change', we might need to check tags or value.
     if (event.type === 'status_change' && condition.type === 'incapacitated') {
-       // Assuming 'value' might be the status ID or name, checking if it is an incapacitating one
-       // For now, let's assume if a status_change event is fired with intent to check ritual, it might be relevant.
-       // However, to pass the specific test case which sends type='incapacitated', the direct match handles it.
        return false;
     }
 

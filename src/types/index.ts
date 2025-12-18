@@ -64,9 +64,11 @@ import {
 } from './character';
 import { Faction, PlayerFactionStanding } from './factions';
 import { NPCMemory } from './memory';
+import { NPCKnowledgeProfile } from './dialogue';
 import { Companion } from './companions';
 import { DivineFavor, Temple } from './deity';
 import { Fence } from './crime';
+import { UnderdarkState, LightSource } from './underdark';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
 
 export * from './core';
@@ -81,6 +83,7 @@ export * from './memory';
 export * from './planes';
 export * from './crime';
 export * from './dialogue';
+export * from './underdark';
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
@@ -198,6 +201,7 @@ export interface NPC {
   dialoguePromptSeed?: string;
   voice?: TTSVoiceOption;
   goals?: Goal[];
+  knowledgeProfile?: NPCKnowledgeProfile;
 }
 
 export interface GameMessage {
@@ -561,8 +565,9 @@ export interface GameState {
     isOpen: boolean;
     merchantName: string;
     merchantInventory: Item[];
-    economy?: EconomyState; // Added economy state
   };
+
+  economy: EconomyState;
 
   notoriety: NotorietyState;
 
@@ -581,6 +586,9 @@ export interface GameState {
 
   // Shadowbroker: Crime System
   fences: Record<string, Fence>; // Keyed by Fence ID (or Location ID)
+
+  // Depthcrawler: Underdark System
+  underdark: UnderdarkState;
 
   /** Town exploration state - present when in VILLAGE_VIEW phase */
   townState: import('./town').TownState | null;
