@@ -162,6 +162,17 @@ export const initialGameState: GameState = {
         acc[temple.id] = temple;
         return acc;
     }, {} as GameState['temples']),
+
+    // Wanderer: Weather System
+    weather: {
+        condition: 'clear',
+        wind: 'calm',
+        temperature: 'mild',
+        description: 'The sky is clear.',
+        travelModifier: 1.0,
+        visibilityModifier: 1.0,
+        lastUpdatedDay: 1
+    }
 };
 
 
