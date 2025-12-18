@@ -272,7 +272,7 @@ export const useAbilitySystem = ({
              // Though creating ability should have populated dice now.
           }
 
-          const damage = calculateDamage(rolledValue, caster, target);
+          const damage = calculateDamage(rolledValue, caster, target, effect.damageType);
           modifiedTarget.currentHP = Math.max(0, modifiedTarget.currentHP - damage);
           if (onAbilityEffect) onAbilityEffect(damage, target.position, 'damage');
           break;
@@ -339,7 +339,7 @@ export const useAbilitySystem = ({
           // Apply Rider Effect
           if (isDamageEffect(rider.effect)) {
             const rolledDamage = rollDice(rider.effect.damage.dice || '0');
-            const damage = calculateDamage(rolledDamage, caster, target);
+            const damage = calculateDamage(rolledDamage, caster, target, rider.effect.damage.type);
 
             modifiedTarget.currentHP = Math.max(0, modifiedTarget.currentHP - damage);
 

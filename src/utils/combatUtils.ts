@@ -7,7 +7,7 @@
  */
 import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect } from '../types/combat';
 import { PlayerCharacter, Monster, Item } from '../types';
-import { Spell } from '../types/spells'; // Explicit import to avoid conflicts
+import { Spell, DamageType } from '../types/spells'; // Explicit import to avoid conflicts
 import { CLASSES_DATA, MONSTERS_DATA } from '../constants';
 import { createAbilityFromSpell } from './spellAbilityFactory';
 import { isWeaponProficient } from './weaponUtils';
@@ -278,21 +278,46 @@ export function computeAoETiles(
 }
 
 /**
- * A simple damage calculation placeholder.
+ * Calculates final damage by applying 5e rules for Resistance, Vulnerability, and Immunity.
  *
- * NOTE: This function currently bypasses resistance and vulnerability logic.
- * In the full implementation, it should query the target's `stats` or `tags`
- * to apply modifiers (e.g. half damage for resistance).
+ * Logic:
+ * 1. Immunity: Reduces damage to 0.
+ * 2. Vulnerability: Doubles damage.
+ * 3. Resistance: Halves damage (rounded down).
  *
- * @param baseDamage The base damage of the ability.
- * @param caster The character using the ability.
- * @param target The character being targeted.
- * @returns The calculated damage number (currently identical to baseDamage).
+ * @param baseDamage The base rolled damage.
+ * @param caster The source of the damage (for future feat checks like Elemental Adept).
+ * @param target The character receiving the damage.
+ * @param damageType The type of damage (fire, cold, etc.).
+ * @returns The final damage integer.
  */
-export function calculateDamage(baseDamage: number, caster: CombatCharacter, target: CombatCharacter): number {
-  // In a real system, we would check for resistance/vulnerability here
-  // based on damageType vs target.stats or target.tags
-  return baseDamage;
+export function calculateDamage(
+  baseDamage: number,
+  caster: CombatCharacter | null,
+  target: CombatCharacter,
+  damageType?: string
+): number {
+  if (!damageType || baseDamage <= 0) return Math.max(0, baseDamage);
+
+  // 1. Immunity
+  if (target.immunities?.includes(damageType as DamageType)) {
+    return 0;
+  }
+
+  let finalDamage = baseDamage;
+
+  // 2. Resistance (PHB p.197: Resistance applied before Vulnerability)
+  if (target.resistances?.includes(damageType as DamageType)) {
+    // TODO(Feats): Check if caster has Elemental Adept (ignores resistance)
+    finalDamage = Math.floor(finalDamage / 2);
+  }
+
+  // 3. Vulnerability
+  if (target.vulnerabilities?.includes(damageType as DamageType)) {
+    finalDamage *= 2;
+  }
+
+  return Math.max(0, finalDamage);
 }
 
 /**
@@ -495,6 +520,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     spellbook: player.spellbook,
     spellSlots: player.spellSlots,
     savingThrowProficiencies: player.savingThrowProficiencies,
+    resistances: player.race.resistance as any, // Cast because Race uses string[], CombatCharacter uses DamageType[]
   };
 }
 
@@ -576,6 +602,9 @@ export function createEnemyFromMonster(monster: Monster, index: number): CombatC
       movement: { used: 0, total: monsterData.baseStats.speed },
       freeActions: 1,
     },
+    resistances: monsterData.resistances,
+    vulnerabilities: monsterData.vulnerabilities,
+    immunities: monsterData.immunities,
   };
 }
 
