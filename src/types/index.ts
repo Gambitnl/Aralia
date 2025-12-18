@@ -63,6 +63,7 @@ import {
   RacialSpell,
 } from './character';
 import { Faction, PlayerFactionStanding } from './factions';
+import { NPCVisualSpec } from './visuals';
 import { NPCMemory } from './memory';
 import { NPCKnowledgeProfile } from './dialogue';
 import { Companion } from './companions';
@@ -209,7 +210,7 @@ export interface NPC {
   voice?: TTSVoiceOption;
   goals?: Goal[];
   knowledgeProfile?: NPCKnowledgeProfile;
-  // TODO(Materializer): Add 'visual?: NPCVisualSpec' to NPC interface
+  visual?: NPCVisualSpec;
 }
 
 export interface GameMessage {
