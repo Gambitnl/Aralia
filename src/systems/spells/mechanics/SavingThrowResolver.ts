@@ -34,7 +34,7 @@ export class SavingThrowResolver {
    *   'Dexterity',
    *   15
    * )
-   * console.log(result.success) // true if rolled >= 15
+   * logger.debug('Save result', { success: result.success }) // true if rolled >= 15
    */
   static resolveSave(
     character: CombatCharacter,

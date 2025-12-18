@@ -17,6 +17,7 @@ import * as SaveLoadService from '../services/saveLoadService';
 import { determineActiveDynamicNpcsForLocation } from '../utils/locationUtils';
 import { applyXpAndHandleLevelUps, createPlayerCharacterFromTemp } from '../utils/characterUtils';
 import { createEnemyFromMonster } from '../utils/combatUtils';
+import { logger } from '../utils/logger';
 
 // Import slice reducers
 import { uiReducer } from './reducers/uiReducer';
@@ -346,7 +347,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             for (const npcId in loadedState.npcMemory) {
                 const memory = loadedState.npcMemory[npcId];
                 if (memory.knownFacts.length > 0 && typeof memory.knownFacts[0] === 'string') {
-                    console.log(`Migrating knownFacts for NPC: ${npcId}`);
+                    logger.info('Migrating knownFacts for NPC', { npcId });
                     const oldStringFacts = memory.knownFacts as unknown as string[];
                     memory.knownFacts = oldStringFacts.map((factText): KnownFact => ({
                         id: crypto.randomUUID(),
@@ -367,7 +368,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 const coinCount = migratedInventory.filter(item => item.id.startsWith('shiny_coin')).length;
                 migratedGold += coinCount;
                 migratedInventory = migratedInventory.filter(item => !item.id.startsWith('shiny_coin'));
-                console.log(`Migrated ${coinCount} shiny_coin items to gold. Total gold: ${migratedGold}`);
+                logger.info('Migrated shiny_coin items to gold', { coinCount, totalGold: migratedGold });
             }
 
             // Load factions from state, falling back to getAllFactions if missing (legacy save support)

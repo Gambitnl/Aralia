@@ -20,6 +20,7 @@ import ActionEconomyBar from './BattleMap/ActionEconomyBar';
 import PartyDisplay from './BattleMap/PartyDisplay';
 import CharacterSheetModal from './CharacterSheetModal';
 import { canUseDevTools } from '../utils/permissions';
+import { logger } from '../utils/logger';
 import { createPlayerCombatCharacter } from '../utils/combatUtils';
 import SpellContext from '../context/SpellContext';
 import { generateLoot } from '../services/lootService';
@@ -277,7 +278,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
           onClose={handleSheetClose}
           onAction={(action) => {
             if (canUseDevTools()) {
-              console.log('Action from sheet:', action);
+              logger.debug('Action from sheet:', { action });
             }
           }}
         />
