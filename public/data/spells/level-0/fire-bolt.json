@@ -60,7 +60,11 @@
             },
             "scaling": {
                 "type": "character_level",
-                "bonusPerLevel": "+1d10"
+                "scalingTiers": {
+                    "5": "2d10",
+                    "11": "3d10",
+                    "17": "4d10"
+                }
             }
         }
     ]
