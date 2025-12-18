@@ -17,6 +17,7 @@ import { MONSTERS_DATA } from '../constants';
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, FAST_MODEL, COMPLEX_MODEL } from '../config/geminiConfig';
 import * as ItemTemplates from '../data/item_templates';
 import { sanitizeAIInput, redactSensitiveData } from '../utils/securityUtils';
+import { getFallbackEncounter } from './geminiServiceFallback';
 
 const API_TIMEOUT_MS = 20000; // 20 seconds
 
@@ -534,12 +535,23 @@ export async function generateEncounter(
   }
 
   const errorMessage = lastError instanceof Error ? lastError.message : String(lastError);
+
+  // Use fallback if AI fails
+  logger.warn(`AI Encounter Generation failed. Using fallback. Error: ${errorMessage}`);
+  const fallbackEncounter = getFallbackEncounter(xpBudget, themeTags);
+
   return {
-    data: null,
-    error: `Failed to generate encounter (Last model: ${lastModelUsed}): ${errorMessage}`,
+    data: {
+      encounter: fallbackEncounter,
+      sources: [], // No sources for fallback
+      promptSent: fullPromptForLogging,
+      rawResponse: `Fallback used due to error: ${errorMessage}`,
+      rateLimitHit: rateLimitHitInChain
+    },
+    error: null, // Clear error since we handled it gracefully
     metadata: {
       promptSent: fullPromptForLogging,
-      rawResponse: JSON.stringify(lastError, Object.getOwnPropertyNames(lastError)),
+      rawResponse: `Fallback used due to error: ${errorMessage}`,
       rateLimitHit: rateLimitHitInChain
     }
   };
