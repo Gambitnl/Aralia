@@ -48,6 +48,7 @@ import { canUseDevTools } from './utils/permissions';
 import { validateEnv } from './config/env';
 
 import { NotificationSystem } from './components/NotificationSystem';
+import { GameProvider } from './state/GameContext';
 import GameModals from './components/layout/GameModals';
 import MainMenu from './components/MainMenu';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -702,6 +703,7 @@ const App: React.FC = () => {
   // Renders global notifications, the computed 'mainContent', and the manager for <GameModals>.
   return (
     <AppProviders>
+      <GameProvider state={gameState} dispatch={dispatch}>
       <div className="App min-h-screen bg-gray-900">
         <NotificationSystem notifications={gameState.notifications} dispatch={dispatch} />
 
@@ -747,6 +749,7 @@ const App: React.FC = () => {
           handleOpenCharacterSheet={handleOpenCharacterSheet}
         />
       </div>
+      </GameProvider>
     </AppProviders>
   );
 };

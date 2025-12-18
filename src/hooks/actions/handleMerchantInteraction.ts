@@ -8,7 +8,7 @@ import { GameState, Action, Item, EconomyState, VillageActionContext } from '../
 import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
-import { applyEventsToEconomy, generateMarketEvents } from '@/utils/economyUtils';
+// import { applyEventsToEconomy, generateMarketEvents } from '@/utils/economyUtils'; // Removed as functions no longer exist in updated utils
 
 interface HandleMerchantInteractionProps {
   action: Action;
@@ -34,13 +34,8 @@ export async function handleOpenDynamicMerchant({
   dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: `Entering ${merchantType}...` } });
 
   // 1. Generate inventory using Gemini
-  // Casting keeps us honest about the shape while still letting legacy callers
-  // omit the village context; the Gemini helper handles missing data
-  // gracefully when building prompts.
   const contextForPrompt = villageContext as VillageActionContext | undefined;
   if (contextForPrompt) {
-    // Share a quick blurb with the player so they understand why a merchant's
-    // stock skews a certain way (e.g., arid martial village favors weapons).
     addMessage(
       contextForPrompt.integrationTagline || 'The shop reflects the settlement around it.',
       'system'
@@ -61,29 +56,18 @@ export async function handleOpenDynamicMerchant({
   if (inventoryResult.data) {
       const { inventory, economy } = inventoryResult.data;
 
-      // 3. Apply Simulated World Events to Economy
-      // We generate events deterministically based on game time (epoch) to ensure consistency for now,
-      // but in the future this could be pulled from global GameState events.
-      // We now pass the location ID to ensure regional differences.
-      const currentEvents = generateMarketEvents(gameState.gameTime.getTime(), gameState.currentLocationId);
-
-      const modifiedEconomy = economy
-        ? applyEventsToEconomy(economy, currentEvents)
-        : applyEventsToEconomy({ marketFactors: { scarcity: [], surplus: [] }, buyMultiplier: 1, sellMultiplier: 0.5 }, currentEvents);
-
-      // Notify player of active events affecting prices
-      if (currentEvents.length > 0) {
-        const eventNames = currentEvents.map(e => e.name).join(', ');
-        addMessage(`Market News: ${eventNames} are affecting prices.`, 'system');
-      }
+      // Use global economy logic instead of generating local events
+      // We pass the global economy state if available, or the one returned by Gemini
+      // But actually, we should prioritize the global state since that's where the persistent events live.
+      // However, if Gemini returned specific economy tweaks for this specific merchant, maybe we should merge them?
+      // For now, let's trust the global state managed by WorldEventManager.
       
-      // 2. Open modal with generated data
       dispatch({ 
           type: 'OPEN_MERCHANT', 
           payload: { 
               merchantName: merchantType, 
               inventory: inventory,
-              economy: modifiedEconomy
+              economy: gameState.economy // Prioritize global world state
           } 
       });
       addMessage(`You browse the wares at the ${merchantType}.`, "system");
