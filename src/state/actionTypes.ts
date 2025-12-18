@@ -33,6 +33,7 @@ export type AppAction =
   | { type: 'TOGGLE_PARTY_OVERLAY' }
   | { type: 'TOGGLE_GEMINI_LOG_VIEWER' }
   | { type: 'TOGGLE_NPC_TEST_MODAL' }
+  | { type: 'TOGGLE_NOBLE_HOUSE_LIST' }
   | { type: 'UPDATE_INSPECTED_TILE_DESCRIPTION'; payload: any }
   // Discovery Journal Actions
   | { type: 'ADD_DISCOVERY_ENTRY'; payload: any }

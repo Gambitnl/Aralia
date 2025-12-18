@@ -411,7 +411,7 @@ const App: React.FC = () => {
     dispatch({ type: 'TOGGLE_PARTY_OVERLAY' });
   }, [dispatch]);
 
-  const handleDevMenuAction = useCallback((actionType: 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan') => {
+  const handleDevMenuAction = useCallback((actionType: 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses') => {
     const actionsThatNeedMenuToggle = ['save', 'battle_map_demo', 'generate_encounter'];
 
     if (actionsThatNeedMenuToggle.includes(actionType)) {
@@ -445,6 +445,9 @@ const App: React.FC = () => {
         break;
       case 'toggle_npc_test_plan':
         processAction({ type: 'TOGGLE_NPC_TEST_MODAL', label: 'Toggle NPC Test Plan' });
+        break;
+      case 'inspect_noble_houses':
+        dispatch({ type: 'TOGGLE_NOBLE_HOUSE_LIST' });
         break;
     }
   }, [dispatch, handleNewGame, processAction, handleLoadGameFlow, handleBattleMapDemo]);

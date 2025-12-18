@@ -5,7 +5,7 @@
 import React, { useEffect, useRef } from 'react';
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN } from '../config/geminiConfig';
 
-type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan';
+type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses';
 
 interface DevMenuProps {
   isOpen: boolean;
@@ -53,6 +53,7 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
     { label: 'Generate Encounter', action: 'generate_encounter', style: 'bg-rose-600 hover:bg-rose-500' },
     { label: 'View Gemini Prompt Log', action: 'toggle_log_viewer', style: 'bg-purple-600 hover:bg-purple-500' },
     { label: 'NPC Interaction Test Plan', action: 'toggle_npc_test_plan', style: 'bg-cyan-600 hover:bg-cyan-500' },
+    { label: 'Inspect Noble Houses', action: 'inspect_noble_houses', style: 'bg-orange-600 hover:bg-orange-500' },
   ];
 
   return (
@@ -62,7 +63,7 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
       role="dialog"
       aria-labelledby="dev-menu-title"
     >
-      <div className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-md flex flex-col">
+      <div className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-md flex flex-col max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 id="dev-menu-title" className="text-2xl font-bold text-amber-400 font-cinzel">
             Developer Menu

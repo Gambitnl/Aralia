@@ -8,6 +8,8 @@
 
 import { GameState, GameMessage } from '../types';
 import { PlayerFactionStanding, Faction } from '../types/factions';
+import { FACTIONS } from '../data/factions';
+import { generateRegionalPolitics } from './nobleHouseGenerator';
 
 export type ReputationTier = 'NEMESIS' | 'HOSTILE' | 'UNFRIENDLY' | 'NEUTRAL' | 'FRIENDLY' | 'HONORED' | 'REVERED';
 
@@ -29,6 +31,35 @@ export const getReputationTier = (standing: number): ReputationTier => {
     if (standing <= REPUTATION_THRESHOLDS.FRIENDLY.max) return 'FRIENDLY';
     if (standing <= REPUTATION_THRESHOLDS.HONORED.max) return 'HONORED';
     return 'REVERED';
+};
+
+/**
+ * Retrieves the full list of factions, including static and procedurally generated ones.
+ * Cached to ensure stability if called multiple times with same seed.
+ */
+let cachedFactions: Record<string, Faction> | null = null;
+let cachedSeed: number | null = null;
+
+export const getAllFactions = (worldSeed: number = 0): Record<string, Faction> => {
+    if (cachedFactions && cachedSeed === worldSeed) {
+        return cachedFactions;
+    }
+
+    // 1. Start with static factions
+    const allFactions: Record<string, Faction> = { ...FACTIONS };
+
+    // 2. Generate procedural noble houses
+    // We'll generate 5 random noble houses to populate the political landscape
+    const nobleHouses = generateRegionalPolitics(worldSeed, 5);
+
+    nobleHouses.forEach(house => {
+        allFactions[house.id] = house;
+    });
+
+    cachedFactions = allFactions;
+    cachedSeed = worldSeed;
+
+    return allFactions;
 };
 
 /**
