@@ -20,6 +20,7 @@ import ActionEconomyBar from './BattleMap/ActionEconomyBar';
 import PartyDisplay from './BattleMap/PartyDisplay';
 import CharacterSheetModal from './CharacterSheetModal';
 import { canUseDevTools } from '../utils/permissions';
+import { logger } from '../utils/logger';
 
 
 interface BattleMapDemoProps {
@@ -102,7 +103,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
           onClose={handleSheetClose}
           onAction={(action) => {
             if (canUseDevTools()) {
-              console.log('Action from sheet:', action);
+              logger.debug('Action from sheet:', { action });
             }
           }}
         />

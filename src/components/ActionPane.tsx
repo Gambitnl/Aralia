@@ -13,6 +13,7 @@ import { getSubmapTileInfo } from '../utils/submapUtils';
 import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import { BTN_BASE, BTN_SIZE_LG } from '../styles/buttonStyles';
 import { canUseDevTools } from '../utils/permissions';
+import { logger } from '../utils/logger';
 
 interface ActionPaneProps {
   currentLocation: Location;
@@ -222,7 +223,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
     }
 
     if (adjacentToVillage && entryDirection) {
-      if (canUseDevTools()) console.log('Player is cardinally adjacent to village - entry from', entryDirection);
+      if (canUseDevTools()) logger.debug('Player is cardinally adjacent to village', { entryDirection });
       generalActions.push({
         type: 'ENTER_VILLAGE',
         label: 'Enter Village',
