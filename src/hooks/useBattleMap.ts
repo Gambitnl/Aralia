@@ -1,13 +1,14 @@
 /**
  * @file useBattleMap.ts
  * Custom hook to manage the state and logic of a procedural battle map.
- * Refactored to accept mapData from props instead of generating it internally.
+ * Refactored to use useGridMovement for pathfinding state.
  */
 import React, { useState, useCallback, useMemo } from 'react';
 import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition, AbilityCost } from '../types/combat';
-import { findPath } from '../utils/pathfinding';
 import { useTurnManager } from './combat/useTurnManager';
 import { useAbilitySystem } from './useAbilitySystem';
+import { useGridMovement } from './combat/useGridMovement';
+import { findPath } from '../utils/pathfinding';
 
 interface UseBattleMapReturn {
     characterPositions: Map<string, CharacterPosition>;
@@ -28,8 +29,6 @@ export function useBattleMap(
     abilitySystem: ReturnType<typeof useAbilitySystem>,
 ): UseBattleMapReturn {
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
-  const [validMoves, setValidMoves] = useState<Set<string>>(new Set());
-  const [activePath, setActivePath] = useState<BattleMapTile[]>([]);
   const [actionMode, setActionMode] = useState<'move' | 'ability' | null>(null);
   const [attackableTargets, setAttackableTargets] = useState<Set<string>>(new Set());
 
@@ -42,45 +41,13 @@ export function useBattleMap(
     return newPositions;
   }, [characters]);
 
-
-  const calculateValidMoves = useCallback((character: CombatCharacter) => {
-    if (!mapData) return new Set<string>();
-    const startPos = characterPositions.get(character.id)?.coordinates;
-    if (!startPos) return new Set<string>();
-    const startNode = mapData.tiles.get(`${startPos.x}-${startPos.y}`);
-    if (!startNode) return new Set<string>();
-
-    const reachableTiles = new Set<string>();
-    const queue: { tile: BattleMapTile; cost: number }[] = [{ tile: startNode, cost: 0 }];
-    const visited = new Set<string>([startNode.id]);
-    
-    const movementRemaining = character.actionEconomy.movement.total - character.actionEconomy.movement.used;
-
-    while (queue.length > 0) {
-      const { tile, cost } = queue.shift()!;
-      reachableTiles.add(tile.id);
-      
-      for (let dx = -1; dx <= 1; dx++) {
-        for (let dy = -1; dy <= 1; dy++) {
-          if (dx === 0 && dy === 0) continue;
-          
-          const newX = tile.coordinates.x + dx;
-          const newY = tile.coordinates.y + dy;
-          const neighborId = `${newX}-${newY}`;
-          const neighbor = mapData.tiles.get(neighborId);
-          
-          if (neighbor && !neighbor.blocksMovement && !visited.has(neighborId)) {
-            const newCost = cost + neighbor.movementCost;
-            if (newCost <= movementRemaining) {
-              visited.add(neighborId);
-              queue.push({ tile: neighbor, cost: newCost });
-            }
-          }
-        }
-      }
-    }
-    return reachableTiles;
-  }, [mapData, characterPositions]);
+  const {
+      validMoves,
+      activePath,
+      calculateValidMoves,
+      calculatePath,
+      clearMovementState
+  } = useGridMovement({ mapData, characterPositions });
   
   const selectCharacter = useCallback((character: CombatCharacter) => {
     if (character.team !== 'player') return; // Prevent selecting enemy characters
@@ -89,9 +56,9 @@ export function useBattleMap(
     setSelectedCharacterId(character.id);
     setActionMode('move');
 
-    const moves = calculateValidMoves(character);
-    setValidMoves(moves);
-    setActivePath([]);
+    calculateValidMoves(character);
+    // Note: We don't explicitly clear activePath here because calculateValidMoves is implicitly a reset of movement state,
+    // and the next hover/action will set the path. The hook handles the validMoves state.
   }, [turnManager.turnState.currentCharacterId, calculateValidMoves]);
   
   const handleCharacterClick = useCallback((character: CombatCharacter) => {
@@ -125,7 +92,9 @@ export function useBattleMap(
       
       if (startTile) {
         const path = findPath(startTile, tile, mapData);
-        setActivePath(path);
+        // We call calculatePath to update the visual state in the hook,
+        // but we use the local 'path' var for immediate execution logic.
+        calculatePath(character, tile);
 
         const moveCost = path.reduce((acc, t) => acc + t.movementCost, 0) - startTile.movementCost;
         const moveActionCost: AbilityCost = { type: 'movement-only', movementCost: moveCost };
@@ -138,12 +107,11 @@ export function useBattleMap(
             targetPosition: tile.coordinates,
             timestamp: Date.now()
         })) {
-             setValidMoves(new Set());
-             setActivePath([]);
+             clearMovementState();
         }
       }
     }
-  }, [selectedCharacterId, mapData, characters, actionMode, validMoves, abilitySystem, turnManager, characterPositions]);
+  }, [selectedCharacterId, mapData, characters, actionMode, validMoves, abilitySystem, turnManager, characterPositions, calculatePath, clearMovementState]);
 
   return {
     characterPositions,
