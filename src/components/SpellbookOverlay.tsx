@@ -8,7 +8,7 @@ import SpellContext from '../context/SpellContext';
 import { CLASSES_DATA } from '../constants';
 import Tooltip from './Tooltip';
 import { getAbilityModifierValue } from '../utils/characterUtils';
-import { SingleGlossaryEntryModal } from './Glossary';
+import SingleGlossaryEntryModal from './SingleGlossaryEntryModal';
 
 interface SpellbookOverlayProps {
   isOpen: boolean;

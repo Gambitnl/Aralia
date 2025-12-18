@@ -58,6 +58,7 @@ import { LoadingSpinner } from './components/ui/LoadingSpinner';
 const TownCanvas = lazy(() => import('./components/TownCanvas'));
 const BattleMapDemo = lazy(() => import('./components/BattleMap/BattleMapDemo'));
 const CombatView = lazy(() => import('./components/Combat/CombatView'));
+const CharacterCreator = lazy(() => import('./components/CharacterCreator/CharacterCreator'));
 const GameLayout = lazy(() => import('./components/layout/GameLayout'));
 const LoadGameTransition = lazy(() => import('./components/LoadGameTransition'));
 const NotFound = lazy(() => import('./components/NotFound'));
