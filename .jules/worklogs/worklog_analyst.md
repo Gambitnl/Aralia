@@ -1,5 +1,1 @@
-# Analyst Worklog
-
-## 2024-05-24 - Contingency & Logic Systems
-**Learning:** The spell system relies heavily on `EffectTrigger` for event-based triggers, but lacks a generic "State Condition" system for checking static properties (like "HP < 50%"). This gap prevents implementing spells like *Contingency* or *Glyph of Warding* without hardcoding checks.
-**Action:** Created `src/types/logic.ts` and `src/systems/logic/ConditionEvaluator.ts` to solve this. Future spells with complex conditions should leverage this system instead of adding more hardcoded checks to `RitualManager` or `ReactiveEffectCommand`.
+## 2024-05-24 - Corpse System Framework **Learning:** Built the `Corpse` framework in `src/systems/necromancy/`. It includes data models (`Corpse`, `CorpseState`) and lifecycle functions (`createCorpse`, `isValidCorpseTarget`, `canRevivify`). Tests confirm logic. **Action:** Next step is full integration: adding `corpses: Corpse[]` to `CombatState`, updating `TargetResolver`, and modifying `Animate Dead` to use the new system.
