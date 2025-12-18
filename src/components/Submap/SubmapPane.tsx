@@ -12,7 +12,8 @@ import { BIOMES } from '../../constants';
 import { SUBMAP_DIMENSIONS } from '../../config/mapConfig';
 import { Action, InspectSubmapTilePayload, Location, MapData, BiomeVisuals, PlayerCharacter, NPC, Item, SeededFeatureConfig, GlossaryDisplayItem } from '../../types';
 import { BattleMapData, BattleMapTile } from '../../types/combat';
-import GlossaryDisplay from '../GlossaryDisplay';
+// Submap legend reuses the shared Glossary display component
+import GlossaryDisplay from '../Glossary/GlossaryDisplay';
 import { SUBMAP_ICON_MEANINGS } from '../../data/glossaryData';
 import { useSubmapProceduralData, PathDetails } from '../../hooks/useSubmapProceduralData';
 import CompassPane from '../CompassPane';
@@ -224,6 +225,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                 effectiveTerrainType: tileType,
                 zIndex: 0,
                 activeSeededFeatureConfigForTile: null,
+                isSeedTile: false,
             };
 
             // Apply scatter features on top of 'floor' tiles
@@ -279,7 +281,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                 }
                 // Future: Add 'mounted' mode logic here
 
-                if (effectiveTerrainType === 'water') {
+                if (effectiveTerrainType === 'water' || effectiveTerrainType === 'village_area') {
                     blocksMovement = true;
                     movementCost = Infinity;
                 }
@@ -343,7 +345,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
     }, [isQuickTravelMode, hoveredTile, playerSubmapCoords, pathfindingGrid, submapDimensions, currentWorldBiomeId, simpleHash]);
 
 
-    const getHintForTile = useCallback((submapX: number, submapY: number, effectiveTerrain: string, featureConfig: SeededFeatureConfig | null): string => {
+    const getHintForTile = useCallback((submapX: number, submapY: number, effectiveTerrain: string, featureConfig: SeededFeatureConfig | null, isSeedTile: boolean): string => {
         const tileKey = `${parentWorldMapCoords.x}_${parentWorldMapCoords.y}_${submapX}_${submapY}`;
         if (inspectedTileDescriptions[tileKey]) {
             return inspectedTileDescriptions[tileKey];
@@ -383,6 +385,11 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
             }
         } else {
             // For distant tiles, use feature/terrain names
+            // Special handling for seed tiles - show the feature name directly
+            if (isSeedTile && featureConfig?.name) {
+                return `${featureConfig.name}.`;
+            }
+            // Non-seed tiles within a feature area get the surrounding area description
             if (featureConfig?.name) return `An area featuring a ${featureConfig.name.toLowerCase()}.`;
             if (effectiveTerrain !== 'default' && effectiveTerrain !== 'path_adj' && effectiveTerrain !== 'path') return `A patch of ${effectiveTerrain.replace(/_/g, ' ')}.`;
             return `A patch of ${currentBiome?.name || 'terrain'}.`;
@@ -413,7 +420,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
     const submapGridWithTooltips = useMemo(() => {
         return submapGrid.map(tile => ({
             ...tile,
-            tooltipContent: getHintForTile(tile.c, tile.r, tile.visuals.effectiveTerrainType, tile.visuals.activeSeededFeatureConfigForTile)
+            tooltipContent: getHintForTile(tile.c, tile.r, tile.visuals.effectiveTerrainType, tile.visuals.activeSeededFeatureConfigForTile, tile.visuals.isSeedTile)
         }));
     }, [submapGrid, getHintForTile]);
 

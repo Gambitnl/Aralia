@@ -41,7 +41,7 @@ vi.mock('../Tooltip', () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-vi.mock('../SingleGlossaryEntryModal', () => ({
+vi.mock('../Glossary/SingleGlossaryEntryModal', () => ({
   default: () => null,
 }));
 

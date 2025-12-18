@@ -45,7 +45,8 @@ import GeminiLogViewer from '../GeminiLogViewer';
 import NpcInteractionTestModal from '../NpcInteractionTestModal';
 import DossierPane from '../DossierPane';
 import DiscoveryLogPane from '../DiscoveryLogPane';
-import Glossary from '../Glossary';
+// Glossary exports a named component from its index barrel
+import { Glossary } from '../Glossary';
 import EncounterModal from '../EncounterModal';
 import MerchantModal from '../MerchantModal';
 import GameGuideModal from '../GameGuideModal';

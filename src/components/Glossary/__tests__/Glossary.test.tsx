@@ -1,7 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import Glossary from '../Glossary';
+// Import Glossary as a named export to match the barrel file
+import { Glossary } from '../Glossary';
 import GlossaryContext from '../../../context/GlossaryContext';
 import { GlossaryEntry } from '../../../types';
 

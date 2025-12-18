@@ -6,7 +6,7 @@ import { TownPosition, TownDirection, TOWN_DIRECTION_VECTORS } from '../types/to
 import { isPositionWalkable, getAdjacentBuildings } from '../utils/walkabilityUtils';
 import TownNavigationControls from './TownNavigationControls';
 import { TownDevControls } from './TownDevControls';
-import { RefreshCw, Map as MapIcon, Sparkles, ZoomIn, ZoomOut, Maximize, Move, Moon, Sun, Grid, Settings, X } from 'lucide-react';
+import { RefreshCw, Map as MapIcon, Sparkles, ZoomIn, ZoomOut, Maximize, Move, Moon, Sun, Grid, Settings, X, User } from 'lucide-react';
 
 const BUILDING_DESCRIPTIONS: Record<BuildingType, { name: string; desc: string }> = {
     [BuildingType.HOUSE_SMALL]: { name: 'Small House', desc: 'A modest residence for common folk.' },
@@ -512,6 +512,24 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
         setPan({ x: 0, y: 0 });
     };
 
+    // Center camera on player position
+    const jumpToPlayer = useCallback(() => {
+        if (!effectivePlayerPosition || !canvasRef.current || !mapData) return;
+
+        const TILE_SIZE = 32;
+        const canvas = canvasRef.current;
+        const containerWidth = canvas.parentElement?.clientWidth || canvas.width;
+        const containerHeight = canvas.parentElement?.clientHeight || canvas.height;
+
+        const playerPixelX = effectivePlayerPosition.x * TILE_SIZE + TILE_SIZE / 2;
+        const playerPixelY = effectivePlayerPosition.y * TILE_SIZE + TILE_SIZE / 2;
+
+        setPan({
+            x: (containerWidth / 2) / zoom - playerPixelX,
+            y: (containerHeight / 2) / zoom - playerPixelY,
+        });
+    }, [effectivePlayerPosition, mapData, zoom]);
+
     // Compute blocked directions for navigation
     const blockedDirections = useMemo((): TownDirection[] => {
         if (!mapData || !effectivePlayerPosition) return [];
@@ -548,7 +566,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     }, [mapData, effectivePlayerPosition]);
 
     return (
-        <div className="relative w-full h-full bg-gray-900 text-gray-100 overflow-hidden">
+        <div className="relative w-full h-full bg-gray-900 text-gray-100 overflow-hidden" onWheel={handleWheel}>
             {/* Dev Controls Panel (Slide-in) */}
             {isDevDummyActive && showDevControls && (
                 <div className="absolute top-0 left-0 z-50 h-full w-80 bg-gray-900/95 border-r border-gray-700 shadow-2xl p-4 overflow-y-auto">
@@ -589,7 +607,6 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
                 onClick={handleBuildingClick}
-                onWheel={handleWheel}
             >
                 {loading && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 z-30 bg-opacity-90">
@@ -666,6 +683,9 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 <div className="absolute bottom-4 right-4 flex flex-col gap-1 z-20 bg-gray-800/80 backdrop-blur p-1.5 rounded-lg border border-gray-700">
                     <button type="button" onClick={() => setZoom(z => Math.min(z + 0.2, 3))} className="p-1.5 hover:bg-gray-700 rounded text-white transition-colors" title="Zoom In">
                         <ZoomIn size={18} />
+                    </button>
+                    <button type="button" onClick={jumpToPlayer} className="p-1.5 hover:bg-gray-700 rounded text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Jump to Player" disabled={!effectivePlayerPosition}>
+                        <User size={18} />
                     </button>
                     <button type="button" onClick={resetView} className="p-1.5 hover:bg-gray-700 rounded text-white transition-colors" title="Reset View">
                         <Maximize size={18} />

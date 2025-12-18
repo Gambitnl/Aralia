@@ -8,7 +8,8 @@ import SpellContext from '../context/SpellContext';
 import { CLASSES_DATA } from '../constants';
 import Tooltip from './Tooltip';
 import { getAbilityModifierValue } from '../utils/characterUtils';
-import SingleGlossaryEntryModal from './SingleGlossaryEntryModal';
+// Spell info modal is housed under the Glossary folder
+import SingleGlossaryEntryModal from './Glossary/SingleGlossaryEntryModal';
 
 interface SpellbookOverlayProps {
   isOpen: boolean;

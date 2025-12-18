@@ -41,6 +41,7 @@ export interface VisualLayerOutput {
     effectiveTerrainType: string;
     zIndex: number;
     activeSeededFeatureConfigForTile: SeededFeatureConfig | null;
+    isSeedTile: boolean;
 }
 
 export const getAnimationClass = (icon: string | null | undefined): string => {
@@ -72,6 +73,7 @@ export function getBaseVisuals(
         effectiveTerrainType: 'default',
         zIndex: 0,
         activeSeededFeatureConfigForTile: null,
+        isSeedTile: false,
     };
 }
 
@@ -217,6 +219,7 @@ export function applySeededFeatureVisuals(
         let isWithinFeature = false;
         const dx = Math.abs(colIndex - seeded.x);
         const dy = Math.abs(rowIndex - seeded.y);
+        const isSeedTile = colIndex === seeded.x && rowIndex === seeded.y;
 
         if (seeded.config.shapeType === 'rectangular') {
             isWithinFeature = dx <= seeded.actualSize && dy <= seeded.actualSize;
@@ -230,10 +233,18 @@ export function applySeededFeatureVisuals(
             if (featureZ > newVisuals.zIndex) {
                 newVisuals.zIndex = featureZ;
                 newVisuals.style.backgroundColor = seeded.config.color;
-                // newVisuals.content = <span role="img" aria-label={seeded.config.name || seeded.config.id}>{seeded.config.icon}</span>;
-                newVisuals.content = React.createElement("span", { role: "img", "aria-label": seeded.config.name || seeded.config.id }, seeded.config.icon);
+                // Clear any existing content for non-seed tiles in the feature area
+                newVisuals.content = null;
                 newVisuals.effectiveTerrainType = seeded.config.generatesEffectiveTerrainType || seeded.config.id;
                 dominantFeatureForTile = seeded.config;
+            }
+            // Always show the icon on the seed tile, regardless of zIndex conflicts
+            if (isSeedTile) {
+                newVisuals.content = React.createElement("span", { role: "img", "aria-label": seeded.config.name || seeded.config.id }, seeded.config.icon);
+                newVisuals.zIndex = Math.max(newVisuals.zIndex, featureZ);
+                newVisuals.effectiveTerrainType = seeded.config.generatesEffectiveTerrainType || seeded.config.id;
+                dominantFeatureForTile = seeded.config;
+                newVisuals.isSeedTile = true;
             }
         } else if (seeded.config.adjacency) {
             let isAdjacent = false;
