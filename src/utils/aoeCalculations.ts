@@ -42,8 +42,35 @@ const TILE_SIZE = 5; // feet
 
 /**
  * Calculates the list of grid positions affected by an Area of Effect.
- * @param params Configuration for the AoE (shape, origin, size, etc.)
- * @returns Array of affected Positions
+ *
+ * This is the main entry point for AoE calculations. It delegates to specific
+ * shape handlers based on the `params.shape`.
+ *
+ * @param params - Configuration object for the AoE
+ * @param params.shape - The shape of the area (Sphere, Cone, Cube, Line, Cylinder)
+ * @param params.origin - The center or starting point of the AoE on the grid
+ * @param params.size - The primary size dimension in feet (Radius for Sphere/Cylinder, Length for Cone/Line, Side for Cube)
+ * @param params.direction - (Optional) Direction in degrees for Cones and Lines (0=North, 90=East)
+ * @param params.targetPoint - (Optional) Specific target point for Lines (overrides direction)
+ * @param params.width - (Optional) Width of the line in feet (default: 5)
+ * @returns Array of grid positions (x, y) that are within the area of effect
+ *
+ * @example
+ * // Calculate a 20ft Fireball (Sphere) centered at (10, 10)
+ * const affected = calculateAffectedTiles({
+ *   shape: 'Sphere',
+ *   origin: { x: 10, y: 10 },
+ *   size: 20
+ * });
+ *
+ * @example
+ * // Calculate a 15ft Cone of Cold directed East
+ * const affected = calculateAffectedTiles({
+ *   shape: 'Cone',
+ *   origin: { x: 10, y: 10 },
+ *   size: 15,
+ *   direction: 90
+ * });
  */
 export function calculateAffectedTiles(params: AoEParams): Position[] {
     switch (params.shape) {
@@ -101,9 +128,11 @@ function getSphereAoE(origin: Position, radius: number): Position[] {
 
 /**
  * Calculates tiles within a Cone using grid coordinates.
+ *
  * @param origin - The starting point of the cone
  * @param direction - Compass direction in degrees (0=N, 90=E)
  * @param length - Length of the cone in feet
+ * @returns Array of affected grid positions
  */
 function getConeAoE(origin: Position, direction: number, length: number): Position[] {
     const coneAngle = 53; // Standard 5e Cone angle (~53 degrees)
@@ -131,7 +160,7 @@ function getConeAoE(origin: Position, direction: number, length: number): Positi
             // atan2 returns angle in radians relative to +x axis (East)
             // Range: -PI to +PI
             const angleRad = Math.atan2(dy, dx);
-            let angleDeg = angleRad * (180 / Math.PI);
+            const angleDeg = angleRad * (180 / Math.PI);
 
             // Convert Math Angle to Compass Angle
             // Math: 0=E, 90=S, 180=W, -90=N
@@ -157,7 +186,10 @@ function getConeAoE(origin: Position, direction: number, length: number): Positi
 
 /**
  * Calculates tiles within a Cube.
- * Assumes origin is top-left corner of the cube area.
+ *
+ * @param origin - The top-left corner (north-west) of the cube area
+ * @param size - The length of one side of the cube in feet
+ * @returns Array of affected grid positions
  */
 function getCubeAoE(origin: Position, size: number): Position[] {
     const tiles = size / TILE_SIZE;
@@ -173,6 +205,11 @@ function getCubeAoE(origin: Position, size: number): Position[] {
 
 /**
  * Calculates tiles along a Line using Linear Interpolation.
+ *
+ * @param origin - The starting position of the line
+ * @param target - The ending position of the line
+ * @param width - The width of the line in feet (currently unused in calculation but kept for interface compatibility)
+ * @returns Array of affected grid positions
  */
 function getLineAoE(origin: Position, target: Position, width: number): Position[] {
     const dx = target.x - origin.x;
