@@ -1,0 +1,1 @@
+## 2024-10-24 - Lock System Framework **Learning:** Created a standardized `Lock` and `Trap` interface that supports multiple solutions (Pick, Break, Key). **Action:** Ensure future dungeons use this `Lock` interface for all doors and chests to allow for player agency.
