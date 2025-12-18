@@ -8,7 +8,6 @@ import { GameState, Action, Item, EconomyState, VillageActionContext } from '../
 import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
-// import { applyEventsToEconomy, generateMarketEvents } from '@/utils/economyUtils'; // Removed as functions no longer exist in updated utils
 
 interface HandleMerchantInteractionProps {
   action: Action;
