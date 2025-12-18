@@ -47,7 +47,7 @@ const GeminiLogViewer = React.lazy(() => import('../GeminiLogViewer'));
 const NpcInteractionTestModal = React.lazy(() => import('../NpcInteractionTestModal'));
 const DossierPane = React.lazy(() => import('../DossierPane'));
 const DiscoveryLogPane = React.lazy(() => import('../DiscoveryLogPane'));
-const Glossary = React.lazy(() => import('../Glossary/Glossary'));
+const Glossary = React.lazy(() => import('../Glossary'));
 const EncounterModal = React.lazy(() => import('../EncounterModal'));
 const MerchantModal = React.lazy(() => import('../MerchantModal'));
 const GameGuideModal = React.lazy(() => import('../GameGuideModal'));

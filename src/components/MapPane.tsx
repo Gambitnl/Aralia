@@ -8,7 +8,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MapData, MapTile as MapTileType, GlossaryDisplayItem, MapMarker } from '../types'; // Changed GlossaryItem to GlossaryDisplayItem
 import { BIOMES } from '../constants'; // To get biome details like color and icon
-import GlossaryDisplay from './Glossary/GlossaryDisplay'; // Import the new component
+import GlossaryDisplay from './GlossaryDisplay'; // Import the new component
 import { POIS } from '../data/world/pois';
 import { buildPoiMarkers } from '../utils/locationUtils';
 import MapTile from './MapTile';
