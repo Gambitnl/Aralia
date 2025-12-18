@@ -6,9 +6,8 @@
  * Utility functions for managing faction reputation and standing.
  */
 
-import { GameState } from '../types';
-import { PlayerFactionStanding, FactionReputationChange, Faction } from '../types/factions';
-import { GameMessage } from '../types';
+import { GameState, GameMessage } from '../types';
+import { PlayerFactionStanding, Faction } from '../types/factions';
 
 export type ReputationTier = 'NEMESIS' | 'HOSTILE' | 'UNFRIENDLY' | 'NEUTRAL' | 'FRIENDLY' | 'HONORED' | 'REVERED';
 
@@ -179,7 +178,7 @@ export const applyReputationChange = (
     const timestamp = new Date(); // Use current time for log generation
 
     // Helper to apply change
-    const applyToFaction = (fId: string, amt: number, rsn: string, isRipple: boolean) => {
+    const applyToFaction = (fId: string, amt: number, rsn: string) => {
         if (!newStandings[fId]) {
              // Initialize if missing (should exist from game start, but safe fallback)
              newStandings[fId] = {
@@ -216,12 +215,12 @@ export const applyReputationChange = (
     };
 
     // 1. Apply primary change
-    applyToFaction(factionId, amount, reason, false);
+    applyToFaction(factionId, amount, reason);
 
     // 2. Calculate and apply ripples
     const ripples = calculateRippleEffects(state.factions, factionId, amount);
     ripples.forEach(ripple => {
-        applyToFaction(ripple.factionId, ripple.amount, ripple.reason, true);
+        applyToFaction(ripple.factionId, ripple.amount, ripple.reason);
     });
 
     return { standings: newStandings, logs };
