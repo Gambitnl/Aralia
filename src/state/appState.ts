@@ -4,7 +4,7 @@
  * Defines the state structure, initial state, actions, and the root reducer for the application.
  * The root reducer orchestrates calls to smaller "slice" reducers for better modularity.
  */
-import { GameState, GamePhase, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, SuspicionLevel, KnownFact, QuestStatus } from '../types';
+import { GameState, GamePhase, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, SuspicionLevel, KnownFact, QuestStatus, UnderdarkState } from '../types';
 import { AppAction } from './actionTypes';
 import { STARTING_LOCATION_ID, DUMMY_PARTY_FOR_DEV, LOCATIONS, ITEMS, initialInventoryForDummyCharacter, CLASSES_DATA, NPCS } from '../constants';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../data/factions';
@@ -40,6 +40,16 @@ const createInitialGameTime = (): Date => {
     return initialTime;
 };
 
+const INITIAL_UNDERDARK_STATE: UnderdarkState = {
+    currentDepth: 0,
+    lightLevel: 'bright', // Surface default
+    activeLightSources: [],
+    sanity: {
+        current: 100,
+        max: 100,
+        madnessLevel: 0
+    }
+};
 
 export const initialGameState: GameState = {
     phase: canUseDevTools() && DUMMY_PARTY_FOR_DEV && DUMMY_PARTY_FOR_DEV.length > 0 && !SaveLoadService.hasSaveGame() ? GamePhase.PLAYING : GamePhase.MAIN_MENU,
@@ -164,6 +174,9 @@ export const initialGameState: GameState = {
         acc[temple.id] = temple;
         return acc;
     }, {} as GameState['temples']),
+
+    // Underdark System
+    underdark: INITIAL_UNDERDARK_STATE,
 };
 
 
@@ -403,7 +416,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 notifications: [],
                 // Use loaded or fallback
                 factions: loadedFactions,
-                playerFactionStandings: loadedStandings
+                playerFactionStandings: loadedStandings,
+                underdark: loadedState.underdark || INITIAL_UNDERDARK_STATE
             };
         }
 

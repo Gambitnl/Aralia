@@ -67,6 +67,7 @@ import { NPCMemory } from './memory';
 import { Companion } from './companions';
 import { DivineFavor, Temple } from './deity';
 import { Fence } from './crime';
+import { UnderdarkState, LightSource } from './underdark';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
 
 export * from './core';
@@ -81,6 +82,7 @@ export * from './memory';
 export * from './planes';
 export * from './crime';
 export * from './dialogue';
+export * from './underdark';
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
@@ -581,6 +583,9 @@ export interface GameState {
 
   // Shadowbroker: Crime System
   fences: Record<string, Fence>; // Keyed by Fence ID (or Location ID)
+
+  // Depthcrawler: Underdark System
+  underdark: UnderdarkState;
 
   /** Town exploration state - present when in VILLAGE_VIEW phase */
   townState: import('./town').TownState | null;

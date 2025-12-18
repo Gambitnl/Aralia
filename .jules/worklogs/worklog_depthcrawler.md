@@ -1,5 +1,1 @@
-# 🕷️ DEPTHCRAWLER'S JOURNAL
-
-## 2025-05-22 - Initial Descent
-**Learning:** The Underdark is currently just a concept in the vision document. No concrete mechanics exist.
-**Action:** Implementing "Light as a Resource" and alien factions to establish the foundation.
+## 2025-05-23 - Light as a Resource **Learning:** Light levels need to be part of the core `GameState` to truly be a mechanic, not just a visual effect. By integrating `UnderdarkState` into `appState.ts`, we can now drive gameplay mechanics (sanity loss, monster spawns) based on `lightLevel`. **Action:** Always look for ways to tie environmental states (Light, Depth) to character states (Sanity, Health) in the shared `GameState`.
