@@ -489,5 +489,63 @@ export const DEITIES: Deity[] = [
             { targetDeityId: 'melora', type: 'ally' },
             { targetDeityId: 'erathis', type: 'rival' }
         ]
+    },
+    {
+        id: 'zehir',
+        name: 'Zehir',
+        titles: ['The Cloaked Serpent', 'Midnight Assassin'],
+        alignment: 'Neutral Evil',
+        domains: ['Trickery', 'Death'],
+        symbol: 'A snake in the shape of a dagger',
+        description: 'Zehir is the god of darkness, poison, and assassination, worshipped by snake cults and killers.',
+        commandments: [
+            'Strike from the shadows; never fight fair.',
+            'Poison is a gift to your enemies.',
+            'Kill those who stand in your way.'
+        ],
+        favoredWeapon: 'Dagger',
+        approves: [
+            { trigger: 'ASSASSINATE', description: 'Kill a target without being seen', favorChange: 3 },
+            { trigger: 'USE_POISON', description: 'Poison a weapon or drink', favorChange: 2 },
+            { trigger: 'BETRAY_TRUST', description: 'Betray an ally', favorChange: 1 }
+        ],
+        forbids: [
+            { trigger: 'FIGHT_FAIR', description: 'Challenge an enemy openly', favorChange: -2 },
+            { trigger: 'SHOW_MERCY', description: 'Spare a target', favorChange: -5 },
+            { trigger: 'CURE_POISON', description: 'Neutralize poison', favorChange: -3 }
+        ],
+        relationships: [
+            { targetDeityId: 'sehanine', type: 'enemy' },
+            { targetDeityId: 'melora', type: 'enemy' }
+        ]
+    },
+    {
+        id: 'torog',
+        name: 'Torog',
+        titles: ['The King that Crawls', 'Lord of the Underdark'],
+        alignment: 'Neutral Evil',
+        domains: ['Death'],
+        symbol: 'A T-bar attached to shackles',
+        description: 'Torog is the god of the Underdark, imprisonment, and torture.',
+        commandments: [
+            'Seek out the deep places of the world.',
+            'Bind your enemies and make them suffer.',
+            'Do not allow hope to thrive.'
+        ],
+        favoredWeapon: 'Warhammer',
+        approves: [
+            { trigger: 'IMPRISON_FOE', description: 'Capture an enemy alive', favorChange: 2 },
+            { trigger: 'TORTURE', description: 'Extract information through pain', favorChange: 2 },
+            { trigger: 'EXPLORE_UNDERDARK', description: 'Enter the Underdark', favorChange: 1 }
+        ],
+        forbids: [
+            { trigger: 'FREE_PRISONER', description: 'Release a captive', favorChange: -10 },
+            { trigger: 'SHOW_COMPASSION', description: 'Heal an enemy', favorChange: -5 },
+            { trigger: 'BRING_LIGHT', description: 'Cast a bright light spell', favorChange: -1 }
+        ],
+        relationships: [
+            { targetDeityId: 'pelor', type: 'enemy' },
+            { targetDeityId: 'avandra', type: 'enemy' }
+        ]
     }
 ];
