@@ -41,6 +41,7 @@ export class AssetPainter {
         const width = tiles.length;
         const height = tiles[0].length;
 
+        // TODO: Add a canvas render smoke test (e.g., node-canvas) to lock in pass ordering (ground→entrance→shadow→structure→walls→doodads→player→roof→lighting→grid) after the modular split.
         for (let x = 0; x < width; x++) {
             for (let y = 0; y < height; y++) {
                 this.tilePainter.drawTileBase(tiles[x][y], x, y, tiles, biome);

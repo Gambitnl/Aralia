@@ -19,8 +19,9 @@ const validateSpells = (): void => {
   let manifest;
   try {
     manifest = JSON.parse(manifestContent);
-  } catch (e) {
-    throw new Error(`[Data Validation] Failed to parse spells_manifest.json: ${e.message}`);
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e);
+    throw new Error(`[Data Validation] Failed to parse spells_manifest.json: ${message}`);
   }
 
   const spellIds = Object.keys(manifest);
@@ -31,6 +32,8 @@ const validateSpells = (): void => {
   spellIds.forEach(id => {
     const entry = manifest[id];
     // entry.path is like "/data/spells/acid-splash.json"
+    // TODO(spell-migration): Remove this filter once all legacy spells in public/data/spells/ root
+    // are migrated to level-{N} directories. See docs/spells/STATUS_LEVEL_*.md for progress.
     // Only validate spells in level-* directories (new format)
     if (!entry.path.includes('/level-')) {
       return;
@@ -49,14 +52,15 @@ const validateSpells = (): void => {
       const spellContent = fs.readFileSync(spellFilePath, 'utf-8');
       const spellData = JSON.parse(spellContent);
       SpellValidator.parse(spellData);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`[Data Validation] Validation failed for spell ${id}:`);
       if (error instanceof z.ZodError) {
-        const issues = error.errors || (error as any).issues || [];
-        issues.forEach((e: any) => console.error(`  - ${e.path.join('.')}: ${e.message}`));
+        error.issues.forEach((e) => console.error(`  - ${e.path.join('.')}: ${e.message}`));
+      } else if (error instanceof Error) {
+        console.error(error.message);
+        if (error.stack) console.error(error.stack);
       } else {
-        console.error(error);
-        if (error instanceof Error && error.stack) console.error(error.stack);
+        console.error(String(error));
       }
       errorCount++;
     }
@@ -126,8 +130,9 @@ const main = () => {
 
     validateSpells();
     console.log('[Data Validation] All spell data validated successfully.');
-  } catch (error) {
-    console.error(error.message);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(message);
     process.exit(1);
   }
 };

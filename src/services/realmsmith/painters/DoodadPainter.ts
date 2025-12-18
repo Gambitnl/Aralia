@@ -81,6 +81,7 @@ export class DoodadPainter {
         this.ctx.ellipse(x + 16, y + 10, 14, 10, 0, 0, Math.PI * 2);
         this.ctx.fill();
 
+        // TODO: Seed doodad randomness (willow strands, crop clusters) off tile variation so repeated renders don't redraw different shapes.
         this.ctx.strokeStyle = '#4d7c0f';
         this.ctx.lineWidth = 2;
         this.ctx.beginPath();

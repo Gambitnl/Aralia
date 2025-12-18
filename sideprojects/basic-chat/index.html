@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Basic Chat (Sideproject)</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        max-width: 720px;
+        margin: 24px auto;
+        padding: 0 12px;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      #messages {
+        padding-left: 18px;
+      }
+      #composer {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      #nameInput {
+        width: 160px;
+      }
+      #messageInput {
+        flex: 1;
+        min-width: 240px;
+      }
+      #imageInput {
+        max-width: 320px;
+      }
+      input,
+      button {
+        font-size: 16px;
+      }
+      .meta {
+        color: rgba(0, 0, 0, 0.55);
+        font-size: 14px;
+        margin-top: -8px;
+        margin-bottom: 12px;
+      }
+      #nameGate {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.35);
+        padding: 16px;
+      }
+      #nameGate[aria-hidden="false"] {
+        display: flex;
+      }
+      #nameGatePanel {
+        background: white;
+        border-radius: 10px;
+        padding: 16px;
+        width: min(520px, 100%);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+      }
+      #nameGatePanel h2 {
+        margin: 0 0 10px 0;
+        font-size: 18px;
+      }
+      #nameGatePanel form {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      #nameGatePanel input {
+        flex: 1;
+        min-width: 220px;
+      }
+      .msg-user {
+        font-weight: 600;
+        margin-right: 6px;
+      }
+      .msg-time {
+        color: rgba(0, 0, 0, 0.55);
+        font-size: 12px;
+        margin-left: 6px;
+        white-space: nowrap;
+      }
+      .chat-image {
+        display: block;
+        max-width: 100%;
+        max-height: 420px;
+        height: auto;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Basic Chat</h1>
+    <div class="meta">Set your name, then send messages (text or screenshots).</div>
+
+    <div id="nameGate" aria-hidden="true">
+      <div id="nameGatePanel" role="dialog" aria-modal="true" aria-labelledby="nameGateTitle">
+        <h2 id="nameGateTitle">Pick a name for this session</h2>
+        <form id="nameGateForm">
+          <input id="nameGateInput" type="text" placeholder="Your name" autocomplete="off" required />
+          <button type="submit">Continue</button>
+        </form>
+      </div>
+    </div>
+
+    <ul id="messages" aria-live="polite"></ul>
+
+    <form id="composer" autocomplete="off">
+      <input id="nameInput" type="text" placeholder="Your name" aria-label="Your name" />
+      <input id="messageInput" type="text" placeholder="Type a message…" required />
+      <input id="imageInput" type="file" accept="image/*" />
+      <button type="submit">Send</button>
+    </form>
+
+    <script>
+      const SESSION_NAME_KEY = "basicChatSessionName.v1";
+      const MESSAGES_KEY = "basicChatMessages.v1";
+      const MAX_MESSAGES = 200;
+      const MAX_IMAGE_BYTES = 900_000; // keep localStorage usage reasonable (~0.9MB raw file)
+
+      const messagesEl = document.getElementById("messages");
+      const formEl = document.getElementById("composer");
+      const nameEl = document.getElementById("nameInput");
+      const inputEl = document.getElementById("messageInput");
+      const imageEl = document.getElementById("imageInput");
+      const nameGateEl = document.getElementById("nameGate");
+      const nameGateFormEl = document.getElementById("nameGateForm");
+      const nameGateInputEl = document.getElementById("nameGateInput");
+
+      /**
+       * @typedef {{
+       *  id: string,
+       *  ts: number,
+       *  user: string,
+       *  kind: 'text'|'image',
+       *  text?: string,
+       *  imageDataUrl?: string
+       * }} ChatMessage
+       */
+
+      /** @type {ChatMessage[]} */
+      let messages = loadMessages();
+
+      function safeParse(json) {
+        try {
+          return JSON.parse(json);
+        } catch {
+          return null;
+        }
+      }
+
+      /** @returns {ChatMessage[]} */
+      function loadMessages() {
+        const raw = localStorage.getItem(MESSAGES_KEY);
+        const parsed = raw ? safeParse(raw) : null;
+        if (!Array.isArray(parsed)) return [];
+        return parsed
+          .filter((m) => m && typeof m === "object")
+          .map((m) => ({
+            id: typeof m.id === "string" ? m.id : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+            ts: typeof m.ts === "number" ? m.ts : Date.now(),
+            user: typeof m.user === "string" ? m.user : "Anonymous",
+            kind: m.kind === "image" ? "image" : "text",
+            text: typeof m.text === "string" ? m.text : undefined,
+            imageDataUrl: typeof m.imageDataUrl === "string" ? m.imageDataUrl : undefined,
+          }))
+          .slice(-MAX_MESSAGES);
+      }
+
+      function saveMessages() {
+        try {
+          localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages.slice(-MAX_MESSAGES)));
+        } catch (err) {
+          console.warn("Failed to persist messages", err);
+          alert("Storage is full; couldn't save the chat log. Try sending smaller images or clearing history.");
+        }
+      }
+
+      function getUserName() {
+        const name = (nameEl.value || "").trim();
+        return name || "Anonymous";
+      }
+
+      function setNameGateOpen(isOpen) {
+        nameGateEl.setAttribute("aria-hidden", isOpen ? "false" : "true");
+        inputEl.disabled = isOpen;
+        imageEl.disabled = isOpen;
+        formEl.querySelector("button[type='submit']").disabled = isOpen;
+        if (isOpen) nameGateInputEl.focus();
+        else inputEl.focus();
+      }
+
+      function setSessionName(name) {
+        const trimmed = (name || "").trim();
+        sessionStorage.setItem(SESSION_NAME_KEY, trimmed);
+        nameEl.value = trimmed;
+      }
+
+      function formatTime(ts) {
+        try {
+          return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        } catch {
+          return "";
+        }
+      }
+
+      /** @param {ChatMessage} msg */
+      function renderMessage(msg) {
+        const li = document.createElement("li");
+
+        const header = document.createElement("span");
+        const user = document.createElement("span");
+        user.className = "msg-user";
+        user.textContent = `${msg.user}:`;
+        header.appendChild(user);
+
+        const time = document.createElement("span");
+        time.className = "msg-time";
+        time.textContent = formatTime(msg.ts);
+        header.appendChild(time);
+
+        li.appendChild(header);
+
+        if (msg.kind === "text") {
+          const body = document.createElement("span");
+          body.textContent = ` ${msg.text || ""}`;
+          li.appendChild(body);
+          return li;
+        }
+
+        if (msg.text) {
+          const cap = document.createElement("div");
+          cap.textContent = msg.text;
+          li.appendChild(cap);
+        }
+
+        const img = document.createElement("img");
+        img.className = "chat-image";
+        img.alt = msg.text ? `Image: ${msg.text}` : "Image";
+        if (msg.imageDataUrl) img.src = msg.imageDataUrl;
+        li.appendChild(img);
+
+        return li;
+      }
+
+      function rerenderAll() {
+        messagesEl.replaceChildren(...messages.map(renderMessage));
+      }
+
+      function addTextMessage(text) {
+        const msg = text.trim();
+        if (!msg) return;
+        const message = {
+          id: globalThis.crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          ts: Date.now(),
+          user: getUserName(),
+          kind: "text",
+          text: msg,
+        };
+        messages = [...messages, message].slice(-MAX_MESSAGES);
+        saveMessages();
+        messagesEl.appendChild(renderMessage(message));
+      }
+
+      /** @param {File} file */
+      function fileToDataUrl(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ""));
+          reader.onerror = () => reject(reader.error || new Error("Failed to read image"));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function addImageMessage(file, captionText) {
+        if (file.size > MAX_IMAGE_BYTES) {
+          alert(`Image too large for basic persistence (${file.size} bytes). Try a smaller screenshot.`);
+          return;
+        }
+
+        const caption = captionText.trim();
+        const dataUrl = await fileToDataUrl(file);
+        const message = {
+          id: globalThis.crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          ts: Date.now(),
+          user: getUserName(),
+          kind: "image",
+          text: caption || undefined,
+          imageDataUrl: dataUrl,
+        };
+        messages = [...messages, message].slice(-MAX_MESSAGES);
+        saveMessages();
+        messagesEl.appendChild(renderMessage(message));
+      }
+
+      function tryExtractImageFromPasteEvent(e) {
+        const items = e.clipboardData?.items;
+        if (!items) return null;
+        for (const item of items) {
+          if (item.kind !== "file") continue;
+          if (!item.type.startsWith("image/")) continue;
+          return item.getAsFile();
+        }
+        return null;
+      }
+
+      formEl.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (!nameEl.value.trim()) {
+          setNameGateOpen(true);
+          return;
+        }
+        const file = imageEl.files?.[0] ?? null;
+        const text = inputEl.value;
+
+        const button = formEl.querySelector("button[type='submit']");
+        if (button) button.disabled = true;
+
+        Promise.resolve()
+          .then(async () => {
+            if (file) {
+              await addImageMessage(file, text);
+            } else {
+              addTextMessage(text);
+            }
+          })
+          .finally(() => {
+            inputEl.value = "";
+            imageEl.value = "";
+            if (button) button.disabled = false;
+            inputEl.focus();
+          });
+      });
+
+      nameEl.value = sessionStorage.getItem(SESSION_NAME_KEY) || "";
+      nameEl.addEventListener("change", () => {
+        setSessionName(nameEl.value);
+        if (!nameEl.value.trim()) setNameGateOpen(true);
+      });
+
+      nameGateFormEl.addEventListener("submit", (e) => {
+        e.preventDefault();
+        setSessionName(nameGateInputEl.value);
+        if (nameEl.value.trim()) setNameGateOpen(false);
+      });
+
+      // Paste screenshots/images directly into the textbox.
+      inputEl.addEventListener("paste", (e) => {
+        const file = tryExtractImageFromPasteEvent(e);
+        if (!file) return;
+        e.preventDefault();
+
+        // Populate the file input programmatically.
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        imageEl.files = dt.files;
+      });
+
+      // Keep name in sync across tabs.
+      window.addEventListener("storage", (e) => {
+        if (e.key === MESSAGES_KEY) {
+          messages = loadMessages();
+          rerenderAll();
+        }
+      });
+
+      rerenderAll();
+      if (!nameEl.value.trim()) {
+        setNameGateOpen(true);
+      } else {
+        inputEl.focus();
+      }
+    </script>
+  </body>
+</html>

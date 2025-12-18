@@ -45,5 +45,7 @@ const sortedManifest = Object.keys(manifest).sort().reduce((obj, key) => {
     return obj;
 }, {} as Record<string, any>);
 
+// TODO(safety): Consider diffing old vs new manifest and warning if spells were removed.
+// A spell disappearing could indicate an accidental deletion or file rename issue.
 fs.writeFileSync(manifestPath, JSON.stringify(sortedManifest, null, 2));
 console.log(`Generated manifest with ${Object.keys(sortedManifest).length} spells.`);

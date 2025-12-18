@@ -16,6 +16,10 @@ import { Ability, AbilityCost, AbilityEffect, AreaOfEffect, TargetingType } from
 import { getAbilityModifierValue } from './characterUtils';
 
 // TODO(FEATURES): Expand spell-to-ability translation coverage (conditions, multi-step effects, unique spell riders) so more spells execute without bespoke handlers (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+// NOTE: UTILITY effects with custom fields (savePenalty, light sources, terrain manipulation) are not yet handled in the effects loop below.
+//   - light.json defines `light: { brightRadius, dimRadius }` for dynamic lighting (awaiting lighting system)
+//   - mind-sliver.json defines `savePenalty: { dice, applies, duration }` for save debuffs (needs schema + handler)
+//   - Ref: docs/tasks/spell-system-overhaul/1K-MIGRATE-CANTRIPS-BATCH-3.md#system-gaps
 
 /**
  * Determines the appropriate targeting type based on the spell definition.
@@ -29,7 +33,7 @@ import { getAbilityModifierValue } from './characterUtils';
 const inferTargeting = (spell: Spell): TargetingType => {
     const desc = spell.description.toLowerCase();
     let range = '';
-    
+
     const spellRange = spell.range;
     if (spellRange && typeof spellRange === 'object' && 'type' in spellRange) {
         range = spellRange.type.toLowerCase();
@@ -43,12 +47,12 @@ const inferTargeting = (spell: Spell): TargetingType => {
         }
         return 'self';
     }
-    
+
     // Heals usually target allies
     if (spell.tags && (spell.tags.includes('HEALING') || spell.tags.includes('BUFF'))) {
         return 'single_ally';
     }
-    
+
     // Default to enemy for damage/debuffs
     return 'single_enemy';
 };
@@ -63,7 +67,7 @@ const inferTargeting = (spell: Spell): TargetingType => {
  */
 const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
     const desc = spell.description.toLowerCase();
-    
+
     // Check JSON effects first if they exist
     if (spell.effects) {
         const aoeEffect = spell.effects.find(e => e.areaOfEffect);
@@ -82,15 +86,15 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
             };
         }
     }
-    
+
     // Also check top-level areaOfEffect property
     if (spell.areaOfEffect) {
-         const shapeMap: Record<string, 'circle' | 'cone' | 'line' | 'square'> = {
+        const shapeMap: Record<string, 'circle' | 'cone' | 'line' | 'square'> = {
             'Sphere': 'circle',
             'Cone': 'cone',
             'Line': 'line',
             'Cube': 'square',
-            'Cylinder': 'circle' 
+            'Cylinder': 'circle'
         };
         return {
             shape: shapeMap[spell.areaOfEffect.shape] || 'circle',
@@ -106,7 +110,7 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
     if (desc.includes('15-foot cube')) return { shape: 'square', size: 3 };
     if (desc.includes('100-foot line')) return { shape: 'line', size: 20 };
     if (desc.includes('60-foot line')) return { shape: 'line', size: 12 };
-    
+
     return undefined;
 };
 
@@ -134,7 +138,7 @@ const inferEffectsFromDescription = (description: string, modifier: number): Abi
     // Regex looks for patterns like "3d6 fire damage" or "1d10 piercing damage"
     const damageRegex = /(\d+)d(\d+)\s+(acid|bludgeoning|cold|fire|force|lightning|necrotic|piercing|poison|psychic|radiant|slashing|thunder)\s+damage/i;
     const damageMatch = description.match(damageRegex);
-    
+
     if (damageMatch) {
         const diceString = `${damageMatch[1]}d${damageMatch[2]}`;
         const type = damageMatch[3].toLowerCase();
@@ -144,8 +148,8 @@ const inferEffectsFromDescription = (description: string, modifier: number): Abi
             damageType: type as any
         });
     } else if (lowerDesc.includes("magic missile")) {
-         // Hardcode for magic missile specific
-         effects.push({ type: 'damage', value: 3 * (2.5 + 1), damageType: 'force' });
+        // Hardcode for magic missile specific
+        effects.push({ type: 'damage', value: 3 * (2.5 + 1), damageType: 'force' });
     }
 
     // 2. Healing Detection
@@ -160,12 +164,12 @@ const inferEffectsFromDescription = (description: string, modifier: number): Abi
             value: calculateAverageDamage(diceString, modifier)
         });
     }
-    
+
     // 3. Simple Buffs
     if (lowerDesc.includes('bonus to ac')) {
         effects.push({
-             type: 'status',
-             statusEffect: { id: 'ac_buff', name: 'AC Bonus', type: 'buff', duration: 10, effect: { type: 'stat_modifier', value: 2, stat: 'dexterity' } } // Placeholder stat - In real app, map to AC
+            type: 'status',
+            statusEffect: { id: 'ac_buff', name: 'AC Bonus', type: 'buff', duration: 10, effect: { type: 'stat_modifier', value: 2, stat: 'dexterity' } } // Placeholder stat - In real app, map to AC
         });
     }
 
@@ -179,23 +183,23 @@ const inferEffectsFromDescription = (description: string, modifier: number): Abi
  * Converts cost, range, and effects into a format the BattleMap can execute.
  */
 export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): Ability {
-    const spellcastingStat = caster.spellcastingAbility 
-        ? (caster.spellcastingAbility.charAt(0).toUpperCase() + caster.spellcastingAbility.slice(1)) as AbilityScoreName 
+    const spellcastingStat = caster.spellcastingAbility
+        ? (caster.spellcastingAbility.charAt(0).toUpperCase() + caster.spellcastingAbility.slice(1)) as AbilityScoreName
         : 'Intelligence'; // Default fallback
-    
+
     const modifier = getAbilityModifierValue(caster.finalAbilityScores[spellcastingStat]);
-    
+
     // 1. Determine Cost
     let costType = 'action';
     const castingTime = spell.castingTime;
     if (castingTime && typeof castingTime === 'object' && 'unit' in castingTime) {
-        costType = castingTime.unit.toLowerCase().includes('bonus') ? 'bonus' : 
-                   castingTime.unit.toLowerCase().includes('reaction') ? 'reaction' : 'action';
+        costType = castingTime.unit.toLowerCase().includes('bonus') ? 'bonus' :
+            castingTime.unit.toLowerCase().includes('reaction') ? 'reaction' : 'action';
     } else if (typeof castingTime === 'string') {
-        costType = castingTime.toLowerCase().includes('bonus') ? 'bonus' : 
-                   castingTime.toLowerCase().includes('reaction') ? 'reaction' : 'action';
+        costType = castingTime.toLowerCase().includes('bonus') ? 'bonus' :
+            castingTime.toLowerCase().includes('reaction') ? 'reaction' : 'action';
     }
-    
+
     const cost: AbilityCost = {
         type: costType as any,
         spellSlotLevel: spell.level
@@ -219,14 +223,14 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
         } else if (r.includes('self')) {
             rangeTiles = 0;
         } else {
-             const match = r.match(/(\d+)/);
-             if (match) rangeTiles = Math.floor(parseInt(match[1]) / 5);
+            const match = r.match(/(\d+)/);
+            if (match) rangeTiles = Math.floor(parseInt(match[1]) / 5);
         }
     }
 
     // 3. Determine Effects
     let effects: AbilityEffect[] = [];
-    
+
     if (spell.effects && spell.effects.length > 0) {
         // Use structured data if available (Gold Standard)
         spell.effects.forEach(jsonEffect => {
@@ -237,7 +241,7 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
                 // but damage type is passed.
                 effects.push({
                     type: 'damage',
-                    value: avgDmg, 
+                    value: avgDmg,
                     damageType: jsonEffect.damage.type.toLowerCase() as any
                 });
             } else if (jsonEffect.type === 'Healing') {
@@ -252,7 +256,7 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
                     value: healAmount
                 });
             } else if (jsonEffect.type === 'Buff') {
-                 effects.push({
+                effects.push({
                     type: 'status',
                     statusEffect: {
                         id: `spell_${spell.id}_buff`,
@@ -261,21 +265,21 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
                         duration: (typeof spell.duration === 'object' && spell.duration?.concentration) ? 10 : 100, // Approximation
                         // Simple visual effect. In real app, this would hook into actual stat modifiers.
                         // For now, we use a placeholder stat modifier to allow the UI to show it.
-                        effect: { type: 'stat_modifier', value: 1 } 
+                        effect: { type: 'stat_modifier', value: 1 }
                     }
                 });
             } else if (jsonEffect.type === 'Debuff' || jsonEffect.type === 'Control') {
                 effects.push({
-                   type: 'status',
-                   statusEffect: {
-                       id: `spell_${spell.id}_debuff`,
-                       name: spell.name,
-                       type: 'debuff',
-                       duration: 10, 
-                       effect: { type: 'stat_modifier', value: -1 } 
-                   }
-               });
-           }
+                    type: 'status',
+                    statusEffect: {
+                        id: `spell_${spell.id}_debuff`,
+                        name: spell.name,
+                        type: 'debuff',
+                        duration: 10,
+                        effect: { type: 'stat_modifier', value: -1 }
+                    }
+                });
+            }
         });
     } else {
         // Fallback: Parse description (Silver Standard)

@@ -99,14 +99,13 @@ export function useSubmapProceduralData({
   }, [caGrid, currentWorldBiomeId, parentWorldMapCoords, simpleHash, submapDimensions]);
 
 
-  // 1. Calculate Path Details (Skipped for CA or WFC-driven biomes)
+  // 1. Calculate Path Details (Skipped for CA-driven biomes; WFC can still overlay paths)
   const pathDetails = useMemo(() => {
     const mainPathCoords = new Set<string>();
     const pathAdjacencyCoords = new Set<string>();
 
-    // If we are using CA or WFC, we likely don't want standard paths cutting through, or we'd need to carve them.
-    // For now, disable standard paths in these procedural modes so renderers stay in sync.
-    if (caGrid || wfcGrid) return { mainPathCoords, pathAdjacencyCoords };
+    // If we are using CA (cave/dungeon), skip standard paths; WFC maps can still benefit from a road overlay.
+    if (caGrid) return { mainPathCoords, pathAdjacencyCoords };
 
     const { rows, cols } = submapDimensions;
 
@@ -190,6 +189,22 @@ export function useSubmapProceduralData({
         }
     }
     
+    // If paths were skipped but a WFC map is active, add a simple central path so roads don't vanish entirely.
+    if (mainPathCoords.size === 0 && wfcGrid) {
+        const isVerticalFallback = simpleHash(7, 7, 'wfc_path_fallback_v1') % 2 === 0;
+        if (isVerticalFallback) {
+            const midX = Math.floor(cols / 2);
+            for (let y = 0; y < rows; y++) {
+                mainPathCoords.add(`${midX},${y}`);
+            }
+        } else {
+            const midY = Math.floor(rows / 2);
+            for (let x = 0; x < cols; x++) {
+                mainPathCoords.add(`${x},${midY}`);
+            }
+        }
+    }
+
     mainPathCoords.forEach(coordStr => {
         const [xStr, yStr] = coordStr.split(',');
         const x = parseInt(xStr);

@@ -23,6 +23,9 @@ Focus on components that are fundamental to the user experience.
 - [ ] `CharacterSheetModal.tsx`
 - [x] `ConfirmationModal.tsx` (Completed)
 
+<!-- TODO: Clean up duplicate phase files (02-CHARACTER-CREATOR vs 02-COMPLEX-INTERACTIVE,
+03-CANVAS-MAP vs 03-GAMEPLAY-SYSTEMS). Merge or renumber to avoid confusion. -->
+
 ### [Phase 2: Character Creator](./02-CHARACTER-CREATOR.md)
 Focus on the multi-step character creation wizard.
 - [ ] Race Selection

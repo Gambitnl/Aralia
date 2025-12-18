@@ -490,6 +490,15 @@ export interface UtilityEffect extends BaseEffect {
     attachedTo?: "caster" | "target" | "point";
     color?: string;         // e.g., "warm", "cold", "#RRGGBB"
   };
+  /** Structured save penalty for debuff effects like Mind Sliver */
+  savePenalty?: SavePenalty;
+}
+
+/** Defines a penalty applied to future saving throws (e.g., Mind Sliver's -1d4). */
+export interface SavePenalty {
+  dice: string;           // e.g., "1d4"
+  applies: "next_save";   // When the penalty applies
+  duration: EffectDuration;
 }
 
 /** An effect that provides defensive bonuses (e.g., AC boost, resistance). */

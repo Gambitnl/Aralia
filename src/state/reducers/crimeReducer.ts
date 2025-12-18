@@ -28,6 +28,7 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             // But if we switch to 1-100, we need to adjust the heat scaling.
             // Let's adopt 1-100 as the standard.
             // Old: 10 * 2 = 20 heat. New: 100 * 0.2 = 20 heat.
+            // TODO: This currently applies 0.5/0.1 multipliers on 1–100, so a witnessed severity 5 yields +25 heat instead of the expected ~10; align the units or drop normalization.
             const heatIncrease = witnessed ? normalizedSeverity * 0.5 : normalizedSeverity * 0.1;
 
             const currentLocalHeat = state.notoriety.localHeat[locationId] || 0;

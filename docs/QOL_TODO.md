@@ -17,3 +17,7 @@ from code reviews and feature planning. Each item is rated by urgency/impact and
 - [ ] Cache findBuildingAt results by tile coordinate while layout is stable. (`src/components/VillageScene.tsx:132`)
 - [ ] Add on-canvas affordances (icons/hover hints) to surface integrationTagline before click. (`src/components/VillageScene.tsx:189`)
 - [ ] Expand biome-specific village profiles so each biome has distinct hooks and flavor. (`src/data/villagePersonalityProfiles.ts:22`)
+- [ ] Derive UI toggle list in useGameActions from shared action registry to avoid drift. (`src/hooks/useGameActions.ts:74`)
+- [ ] Type action handler registry against Action['type'] with exhaustive check to catch missing/renamed actions. (`src/hooks/actions/actionHandlers.ts:107`)
+- [ ] Validate merchant action payloads (item/cost/value) before dispatch. (`src/hooks/actions/actionHandlers.ts:263`)
+- [ ] Replace label-based custom action branching with explicit action types/config. (`src/hooks/actions/actionHandlers.ts:281`)

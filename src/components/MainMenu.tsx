@@ -143,6 +143,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
           >
             {t('main_menu.save_to_slot')}
           </button>
+          {/* TODO: Also gate this dev skip button on isDevDummyActive/onSkipCharacterCreator so it only appears when the dummy flow is enabled, matching the test expectation. */}
           {canUseDevTools() && (
             <button
               onClick={onSkipCharacterCreator}

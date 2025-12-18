@@ -6,13 +6,14 @@
  * It now accepts the characters for the battle as a prop.
  */
 // TODO: Add ARIA labels, keyboard navigation, and screen reader support for interactive elements in battle maps and UI components
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef, useContext } from 'react';
 import BattleMap from './BattleMap/BattleMap';
 import { PlayerCharacter } from '../types';
-import { CombatCharacter, CombatLogEntry } from '../types/combat';
+import { BattleMapData, CombatCharacter, CombatLogEntry } from '../types/combat';
 import ErrorBoundary from './ErrorBoundary';
 import { useTurnManager } from '../hooks/combat/useTurnManager';
 import { useAbilitySystem } from '../hooks/useAbilitySystem';
+import { generateBattleSetup } from '../hooks/useBattleMapGeneration';
 import InitiativeTracker from './BattleMap/InitiativeTracker';
 import AbilityPalette from './BattleMap/AbilityPalette';
 import CombatLog from './BattleMap/CombatLog';
@@ -21,6 +22,9 @@ import PartyDisplay from './BattleMap/PartyDisplay';
 import CharacterSheetModal from './CharacterSheetModal';
 import { canUseDevTools } from '../utils/permissions';
 import { logger } from '../utils/logger';
+import { createPlayerCombatCharacter } from '../utils/combatUtils';
+import SpellContext from '../context/SpellContext';
+import { Spell } from '../types/spells';
 
 
 interface BattleMapDemoProps {
@@ -32,45 +36,128 @@ interface BattleMapDemoProps {
 type BiomeType = 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp';
 
 const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters, party }) => {
-  const [biome, setBiome] = useState<BiomeType>('forest');
-  const [seed, setSeed] = useState(Date.now());
+  const initialBiome: BiomeType = 'forest';
+  const [biome, setBiome] = useState<BiomeType>(initialBiome);
+  const [seed, setSeed] = useState(() => Date.now());
   const [combatLog, setCombatLog] = useState<CombatLogEntry[]>([]);
-  const [characters, setCharacters] = useState<CombatCharacter[]>(initialCharacters);
+
+  const allSpells = useContext(SpellContext);
+  const spellsRecord = useMemo(
+    () => (allSpells ?? {}) as unknown as Record<string, Spell>,
+    [allSpells]
+  );
+
+  const getBaseCombatants = useCallback((): CombatCharacter[] => {
+    const partyCombatants = party.map(p => createPlayerCombatCharacter(p, spellsRecord));
+    return [...partyCombatants, ...initialCharacters];
+  }, [initialCharacters, party, spellsRecord]);
+
+  const [initialSetup] = useState(() => {
+    const baseCombatants = getBaseCombatants();
+    return generateBattleSetup(initialBiome, seed, baseCombatants);
+  });
+
+  const [mapData, setMapData] = useState<BattleMapData | null>(initialSetup.mapData);
+  const [characters, setCharacters] = useState<CombatCharacter[]>(initialSetup.positionedCharacters);
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
 
   const [sheetCharacter, setSheetCharacter] = useState<PlayerCharacter | null>(null);
+  const [autoCharacters, setAutoCharacters] = useState<Set<string>>(new Set());
 
-  // When initialCharacters prop changes (i.e., a new encounter starts), reset the component's state.
+  const biomeRef = useRef(biome);
   useEffect(() => {
-    setCharacters(initialCharacters); 
-    setCombatLog([]);
-    setSelectedCharacterId(null);
-    setSheetCharacter(null);
-    setSeed(Date.now()); // Generate a new map layout for the new encounter
-  }, [initialCharacters]);
+    biomeRef.current = biome;
+  }, [biome]);
 
   const handleCharacterUpdate = useCallback((updatedChar: CombatCharacter) => {
-      setCharacters(prev => prev.map(c => c.id === updatedChar.id ? updatedChar : c));
+      setCharacters(prev => {
+        const exists = prev.some(c => c.id === updatedChar.id);
+        if (!exists) return [...prev, updatedChar];
+        return prev.map(c => c.id === updatedChar.id ? updatedChar : c);
+      });
   }, []);
 
   const handleLogEntry = useCallback((entry: CombatLogEntry) => {
       setCombatLog(prev => [...prev, entry]);
   }, []);
 
-  const turnManager = useTurnManager({ characters, onCharacterUpdate: handleCharacterUpdate, onLogEntry: handleLogEntry, difficulty: 'normal' });
+  const turnManager = useTurnManager({
+    characters,
+    mapData,
+    onCharacterUpdate: handleCharacterUpdate,
+    onLogEntry: handleLogEntry,
+    onMapUpdate: setMapData,
+    autoCharacters,
+    difficulty: 'normal'
+  });
+
+  const initializeCombat = turnManager.initializeCombat;
+  const turnOrderLength = turnManager.turnState.turnOrder.length;
+
+  // Initialize combat once when the turn order is empty.
+  useEffect(() => {
+    if (characters.length > 0 && turnOrderLength === 0) {
+      initializeCombat(characters);
+    }
+  }, [characters, initializeCombat, turnOrderLength]);
+
+  // When initialCharacters prop changes (i.e., a new encounter starts), reset the component's state.
+  const didInitFromPropsRef = useRef(false);
+  useEffect(() => {
+    if (!didInitFromPropsRef.current) {
+      didInitFromPropsRef.current = true;
+      return;
+    }
+
+    const nextSeed = Date.now();
+    const baseCombatants = getBaseCombatants();
+    const setup = generateBattleSetup(biomeRef.current, nextSeed, baseCombatants);
+
+    setSeed(nextSeed);
+    setCombatLog([]);
+    setSelectedCharacterId(null);
+    setSheetCharacter(null);
+    setMapData(setup.mapData);
+    setCharacters(setup.positionedCharacters);
+    initializeCombat(setup.positionedCharacters);
+  }, [getBaseCombatants, initialCharacters, initializeCombat]);
   
   const abilitySystem = useAbilitySystem({
     characters,
-    mapData: null, // This will be passed to a different component that needs it
+    mapData,
     onExecuteAction: turnManager.executeAction,
     onCharacterUpdate: handleCharacterUpdate,
+    onAbilityEffect: turnManager.addDamageNumber,
+    reactiveTriggers: turnManager.reactiveTriggers,
+    onReactiveTriggerUpdate: turnManager.setReactiveTriggers,
+    onMapUpdate: setMapData
   });
 
+  const handleToggleAuto = useCallback((characterId: string) => {
+    setAutoCharacters(prev => {
+      const next = new Set(prev);
+      if (next.has(characterId)) {
+        next.delete(characterId);
+      } else {
+        next.add(characterId);
+      }
+      return next;
+    });
+  }, []);
+
   const handleGenerate = () => {
-    setSeed(Date.now());
+    const nextSeed = Date.now();
+    const baseCombatants = getBaseCombatants();
+    const setup = generateBattleSetup(biome, nextSeed, baseCombatants);
+
+    setSeed(nextSeed);
     setCombatLog([]); // Clear log on new map
-    // Re-initialize characters to their starting state for the new map
-    setCharacters(initialCharacters);
+    setSelectedCharacterId(null);
+    setSheetCharacter(null);
+    setAutoCharacters(new Set());
+    setMapData(setup.mapData);
+    setCharacters(setup.positionedCharacters);
+    turnManager.initializeCombat(setup.positionedCharacters);
   };
 
   const handleCharacterSelect = (charId: string) => {
@@ -126,7 +213,20 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
           <select
             id="biomeSelect"
             value={biome}
-            onChange={(e) => setBiome(e.target.value as BiomeType)}
+            onChange={(e) => {
+              const nextBiome = e.target.value as BiomeType;
+              const baseCombatants = getBaseCombatants();
+              const setup = generateBattleSetup(nextBiome, seed, baseCombatants);
+
+              setBiome(nextBiome);
+              setCombatLog([]);
+              setSelectedCharacterId(null);
+              setSheetCharacter(null);
+              setAutoCharacters(new Set());
+              setMapData(setup.mapData);
+              setCharacters(setup.positionedCharacters);
+              turnManager.initializeCombat(setup.positionedCharacters);
+            }}
             className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-600 bg-gray-700 focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm rounded-md"
           >
             <option value="forest">Forest</option>
@@ -158,6 +258,8 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
                 characters={characters}
                 onCharacterSelect={handleCharacterSelect}
                 currentTurnCharacterId={turnManager.turnState.currentCharacterId}
+                autoCharacters={autoCharacters}
+                onToggleAuto={handleToggleAuto}
             />
         </div>
         
@@ -165,8 +267,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
         <div className="xl:col-span-3 flex items-center justify-center overflow-auto p-2">
             <ErrorBoundary fallbackMessage="An error occurred in the Battle Map.">
             <BattleMap
-                biome={biome}
-                seed={seed}
+                mapData={mapData}
                 characters={characters}
                 combatState={{
                     turnManager: turnManager,
@@ -187,7 +288,12 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
                 turnState={turnManager.turnState}
                 onCharacterSelect={handleSheetOpen} 
              />
-             {currentCharacter && <ActionEconomyBar actionEconomy={currentCharacter.actionEconomy} />}
+             {currentCharacter && (
+               <ActionEconomyBar
+                 character={currentCharacter}
+                 onExecuteAction={turnManager.executeAction}
+               />
+             )}
              <AbilityPalette 
                 character={currentCharacter} 
                 onSelectAbility={(ability) => abilitySystem.startTargeting(ability, currentCharacter!)}

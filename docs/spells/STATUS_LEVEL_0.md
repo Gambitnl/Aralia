@@ -4,6 +4,10 @@ This file tracks the migration of Cantrips (Level 0 spells) to the new component
 
 > **See Also**: [Comprehensive Spell Integration Checklist](./SPELL_INTEGRATION_CHECKLIST.md) - Complete checklist for testing all integration points
 
+> [!WARNING]
+> **Next Phase**: All cantrips have data migration complete (`[D]`), but integration testing has not started.
+> Test each spell in Character Creator, Character Sheet, Combat System, and Glossary per the checklist above.
+
 **Legend:**
 *   `[ ] Pending`: Not yet started
 *   `[D] Data Only`: Spell JSON created and validated, but component integration not tested

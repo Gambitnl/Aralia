@@ -369,6 +369,8 @@ export async function handleQuickTravel({
   const { destination, durationSeconds } = action.payload.quickTravel;
 
   // Calculate tile info for the destination to check for special terrain types (like villages)
+  // TODO[LOCATION-PARSING]: Consolidate coord_X_Y parsing into a shared utility
+  // (e.g., parseCoordinateLocationId() in locationUtils.ts). This pattern is duplicated in ActionPane.tsx.
   const currentLoc = LOCATIONS[gameState.currentLocationId] || {
     id: gameState.currentLocationId,
     mapCoordinates: {
@@ -459,7 +461,7 @@ export async function handleApproachSettlement({
     const checkY = gameState.subMapCoordinates.y + offset.y;
 
     if (checkX >= 0 && checkX < SUBMAP_DIMENSIONS.cols &&
-        checkY >= 0 && checkY < SUBMAP_DIMENSIONS.rows) {
+      checkY >= 0 && checkY < SUBMAP_DIMENSIONS.rows) {
       const { effectiveTerrainType } = getSubmapTileInfo(
         gameState.worldSeed,
         currentLoc.mapCoordinates,

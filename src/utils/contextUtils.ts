@@ -30,8 +30,10 @@ export function generateGeneralActionContext({
 
   // --- PLAYER ---
   if (playerCharacter) {
-    const conditions = playerCharacter.conditions.length > 0
-      ? playerCharacter.conditions.join(', ')
+    // Defensive: playerCharacter.conditions can be undefined in some entry points; default to empty array.
+    const conditionsList = Array.isArray(playerCharacter.conditions) ? playerCharacter.conditions : [];
+    const conditions = conditionsList.length > 0
+      ? conditionsList.join(', ')
       : 'None';
 
     parts.push(`## PLAYER\nName: ${playerCharacter.name} (${playerCharacter.race.name} ${playerCharacter.class.name}) | HP: ${playerCharacter.hp}/${playerCharacter.maxHp} | Conditions: ${conditions}`);
@@ -83,7 +85,7 @@ export function generateGeneralActionContext({
   }
 
   // --- ACTIVE QUESTS ---
-  const activeQuests = gameState.questLog
+  const activeQuests = (gameState.questLog ?? [])
     .filter(q => q.status === 'Active')
     .map(q => `- ${q.title}`);
 
@@ -92,7 +94,7 @@ export function generateGeneralActionContext({
   }
 
   // --- RECENT HISTORY ---
-  const recentHistory = gameState.messages
+  const recentHistory = (gameState.messages ?? [])
     .filter(m => m.sender === 'system' || m.sender === 'player' || m.sender === 'npc')
     .slice(-5) // Increased from 3 to 5 for better context
     .map(m => {

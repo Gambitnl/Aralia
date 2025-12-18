@@ -18,6 +18,8 @@ export const biomeVisualsConfig: Record<string, BiomeVisuals> = {
       { id: 'dense_thicket', name: 'Dense Thicket', icon: '🌳', color: 'rgba(16, 71, 38, 0.9)', sizeRange: [2, 4], numSeedsRange: [1, 2], adjacency: { color: 'rgba(20, 83, 45, 0.8)' }, zOffset: 2, generatesEffectiveTerrainType: 'dense_forest', shapeType: 'circular' },
       { id: 'ancient_stone_circle', name: 'Ancient Stone Circle', icon: '🗿', color: 'rgba(100, 110, 120, 0.7)', sizeRange: [1, 2], numSeedsRange: [0, 1], zOffset: 0.5, generatesEffectiveTerrainType: 'stone_area', shapeType: 'circular' },
       { id: 'glowing_mushroom_grove', name: 'Glowing Mushroom Grove', icon: '🍄', color: 'rgba(150, 50, 200, 0.4)', sizeRange: [1, 2], numSeedsRange: [0, 1], adjacency: { color: 'rgba(120,40,160,0.3)' }, zOffset: 0, scatterOverride: [{ icon: '✨', density: 0.6, color: 'rgba(150,50,200,0.2)' }], shapeType: 'circular' },
+      // TODO: Village numSeedsRange changed to [1,1] during testing (was [0,1]). Consider reverting
+      // to [0,1] for natural spawn variance, or document as intentional if villages should always spawn.
       { id: 'village', name: 'Forest Village', icon: '🏘️', color: 'rgba(146, 153, 165, 0.75)', sizeRange: [1, 2], numSeedsRange: [1, 1], zOffset: 0.5, generatesEffectiveTerrainType: 'village_area', scatterOverride: [{ icon: '▫️', density: 0.3, color: 'rgba(176, 183, 195, 0.8)', allowedOn: ['village_area'] }, { icon: '🧍', density: 0.03, allowedOn: ['village_area'] }], shapeType: 'rectangular' },
     ],
     scatterFeatures: [{ icon: '🌲', density: 0.1 }, { icon: '🌳', density: 0.15 }, { icon: '🌿', density: 0.15 }, { icon: '🍄', density: 0.05, color: 'rgba(180,180,180,0.1)' }, { icon: '🦋', density: 0.03 }, { icon: '🐿️', density: 0.02 }],
@@ -28,6 +30,7 @@ export const biomeVisualsConfig: Record<string, BiomeVisuals> = {
     pathIcon: '▫️',
     pathAdjacency: { scatter: [{ icon: '🌿', density: 0.2, color: 'rgba(120,160,80,0.5)' }, { icon: '·', density: 0.15, color: 'rgba(101, 67, 33, 0.35)' }, { icon: '🐾', density: 0.05, color: 'rgba(101,67,33,0.5)' }] },
     seededFeatures: [
+      // TODO: Village numSeedsRange [1,1] - see forest biome comment about testing artifact.
       { id: 'village', name: 'Village', icon: '🏘️', color: 'rgba(156, 163, 175, 0.75)', sizeRange: [1, 2], numSeedsRange: [1, 1], zOffset: 0.5, generatesEffectiveTerrainType: 'village_area', scatterOverride: [{ icon: '▫️', density: 0.3, color: 'rgba(186,193,205,0.8)', allowedOn: ['village_area'] }, { icon: '🧍', density: 0.03, allowedOn: ['village_area'] }], shapeType: 'rectangular' },
       { id: 'small_copse', name: 'Small Copse of Trees', icon: '🌳', color: 'rgba(100, 150, 70, 0.7)', sizeRange: [1, 3], numSeedsRange: [1, 3], zOffset: 2, generatesEffectiveTerrainType: 'sparse_forest', shapeType: 'circular' },
       { id: 'wildflower_patch', name: 'Wildflower Patch', icon: '🌸', color: 'rgba(210, 160, 80, 0.5)', sizeRange: [1, 2], numSeedsRange: [0, 1], scatterOverride: [{ icon: '🌷', density: 0.15 }, { icon: '🌼', density: 0.15 }], zOffset: 0, shapeType: 'circular' },
@@ -47,6 +50,7 @@ export const biomeVisualsConfig: Record<string, BiomeVisuals> = {
       { id: 'snow_patch', name: 'Snow Patch', icon: '❄️', color: 'rgba(220, 230, 240, 0.7)', sizeRange: [1, 3], numSeedsRange: [0, 1], scatterOverride: [{ icon: '🥶', density: 0.2 }], zOffset: 0, generatesEffectiveTerrainType: 'snowy_patch', shapeType: 'circular' },
       { id: 'mineral_vein', name: 'Mineral Vein', icon: '💎', color: 'rgba(150,150,180,0.5)', sizeRange: [0, 1], numSeedsRange: [0, 1], zOffset: 0.1, generatesEffectiveTerrainType: 'mineral_area', shapeType: 'circular' },
       { id: 'geothermal_vent', name: 'Geothermal Vent', icon: '♨️', color: 'rgba(200,100,100,0.4)', sizeRange: [0, 1], numSeedsRange: [0, 1], zOffset: 0.1, shapeType: 'circular' },
+      // TODO: Village numSeedsRange [1,1] - see forest biome comment about testing artifact.
       { id: 'village', name: 'Mountain Village', icon: '🏘️', color: 'rgba(136, 143, 155, 0.75)', sizeRange: [1, 2], numSeedsRange: [1, 1], zOffset: 0.5, generatesEffectiveTerrainType: 'village_area', scatterOverride: [{ icon: '▫️', density: 0.3, color: 'rgba(166, 173, 185, 0.8)', allowedOn: ['village_area'] }, { icon: '🧍', density: 0.02, allowedOn: ['village_area'] }], shapeType: 'rectangular' },
     ],
     scatterFeatures: [{ icon: '🪨', density: 0.15 }, { icon: '🌲', density: 0.03, allowedOn: ['rocky_terrain', 'default'] }, { icon: '🦅', density: 0.02 }, { icon: '🐐', density: 0.03 }],
@@ -60,6 +64,7 @@ export const biomeVisualsConfig: Record<string, BiomeVisuals> = {
       { id: 'small_forest_patch', name: 'Small Forest Patch', icon: '🌳', color: 'rgba(60, 110, 5, 0.75)', sizeRange: [2, 4], numSeedsRange: [0, 2], zOffset: 2, generatesEffectiveTerrainType: 'sparse_forest', shapeType: 'circular' },
       { id: 'boulder_field', name: 'Boulder Field', icon: '🪨', color: 'rgba(140, 130, 120, 0.7)', sizeRange: [1, 3], numSeedsRange: [0, 1], zOffset: 0, generatesEffectiveTerrainType: 'rocky_terrain', shapeType: 'circular' },
       { id: 'ancient_burial_mound', name: 'Ancient Burial Mound', icon: ' M ', color: 'rgba(100, 140, 80, 0.6)', sizeRange: [1, 2], numSeedsRange: [0, 1], adjacency: { icon: '👻', color: 'rgba(100,140,80,0.4)' }, zOffset: 0.2, shapeType: 'circular' },
+      // TODO: Village numSeedsRange [1,1] - see forest biome comment about testing artifact.
       { id: 'village', name: 'Hilltop Village', icon: '🏘️', color: 'rgba(156, 163, 175, 0.75)', sizeRange: [1, 2], numSeedsRange: [1, 1], zOffset: 0.5, generatesEffectiveTerrainType: 'village_area', scatterOverride: [{ icon: '▫️', density: 0.3, color: 'rgba(186, 193, 205, 0.8)', allowedOn: ['village_area'] }, { icon: '🧍', density: 0.03, allowedOn: ['village_area'] }], shapeType: 'rectangular' },
     ],
     scatterFeatures: [{ icon: '🌄', density: 0.05 }, { icon: '🌿', density: 0.2 }, { icon: '🐑', density: 0.05 }, { icon: '🌼', density: 0.08 }, { icon: '🪨', density: 0.05, allowedOn: ['rocky_terrain', 'default'] }],

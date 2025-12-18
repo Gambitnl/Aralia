@@ -67,6 +67,7 @@ import {
 } from './state/characterCreatorState';
 
 // Helper function to determine the next step based on current step and state
+// TODO: This skips race-specific follow-ups (e.g., ChangelingInstincts), so those screens never render—reintroduce branching here before jumping to Class.
 const getNextStep = (state: any, selectedRace: any, racialSelections: any): CreationStep => {
   switch (state.step) {
     case CreationStep.AgeSelection:

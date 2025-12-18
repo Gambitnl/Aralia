@@ -7,6 +7,9 @@ const spellsDir = path.join(process.cwd(), 'public', 'data', 'spells')
 const requiredTopLevel = ['id', 'name', 'level', 'school', 'classes', 'castingTime', 'range', 'components', 'duration', 'targeting', 'effects']
 const requiredEffectFields = ['type', 'trigger', 'condition']
 const allowedCastingUnits = new Set(['action', 'bonus_action', 'reaction', 'minute', 'hour'])
+// TODO: Many cantrips fail due to casing mismatch (e.g., "Action" vs "action", "Damage" vs "DAMAGE").
+// Either update spell JSON files to use lowercase/UPPERCASE consistently, or make validation case-insensitive.
+// See: docs/tasks/testing-overhaul/00-MASTER-PLAN.md
 const allowedEffectTypes = new Set(['DAMAGE', 'HEALING', 'DEFENSIVE', 'STATUS_CONDITION', 'MOVEMENT', 'SUMMONING', 'TERRAIN', 'UTILITY'])
 
 function main() {

@@ -179,6 +179,7 @@ export const useTurnManager = ({
     if (!currentCharacter) return;
 
     // 1. Apply end-of-turn effects to the current character (Delegated to Engine)
+    // TODO: Ensure the post-processing character state (repeat-save removals, damagedThisTurn reset) is persisted before the next turn starts; currentCharacter here is stale and startTurnFor may overwrite updates from processEndOfTurnEffects.
     processEndOfTurnEffects(currentCharacter, turnState.currentTurn);
 
     // 2. Advance the turn order

@@ -45,3 +45,9 @@
 - [ ] **Mold Earth**: Complex terrain/utility options
     - *Context*: Excavating earth and cosmetic changes are handled via `UTILITY` descriptions.
     - *Recommendation*: Expand `TERRAIN` or `UTILITY` types to handle structured world interaction.
+
+## Provenance
+<!-- Record how this batch was completed for audit trail -->
+- **Completion Method**: Manual / Jules PR (specify which)
+- **Date**: _(fill in)_
+- **PR Link**: _(if applicable)_

@@ -104,6 +104,7 @@ export function buildActionHandlers({
   playerContext,
   generalActionContext,
 }: ActionHandlerContext): Record<string, ActionHandler> {
+  // TODO: Type this map against Action['type'] with an exhaustive check to catch missing/renamed actions; see docs/QOL_TODO.md (if this registry moves, update that entry).
   const handlers: Record<string, ActionHandler> = {
     // Movement and settlement flow (handleMovement.ts).
     move: async (action) => {
@@ -259,6 +260,7 @@ export function buildActionHandlers({
     },
 
     // Merchant actions are inline because they only dispatch local UI state updates.
+    // TODO: Validate merchant payload shapes (item/cost/value) before dispatch to guard against malformed actions; see docs/QOL_TODO.md (update that entry if this block moves).
     OPEN_MERCHANT: (action) => {
       dispatch({ type: 'OPEN_MERCHANT', payload: action.payload as { merchantName: string; inventory: Item[] } });
     },
@@ -276,6 +278,7 @@ export function buildActionHandlers({
     },
 
     // Legacy custom actions remain inline because they depend on local constants.
+    // TODO: Replace label-string branching with explicit action types/config data to decouple behavior from UI copy; see docs/QOL_TODO.md (update that entry if this block moves).
     custom: (action) => {
       if (action.payload?.villageContext) {
         // Keeps village narrative integration co-located with the data structure in src/types.

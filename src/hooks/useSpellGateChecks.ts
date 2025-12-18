@@ -1,6 +1,7 @@
 // TODO: Create automated validation scripts to check spell data consistency between JSON and Markdown files before deployment
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { GlossaryEntry } from "../types";
+// TODO: Raw markdown imports will hard-fail if the gaps doc is missing or the bundler doesn't support ?raw; allow a fallback injection to keep gate checks/test harness running.
 import level1GapsMd from "../../docs/tasks/spell-system-overhaul/gaps/LEVEL-1-GAPS.md?raw";
 import cantripGapsMd from "../../docs/tasks/spell-system-overhaul/1I-MIGRATE-CANTRIPS-BATCH-1.md?raw";
 import { fetchWithTimeout } from "../utils/networkUtils";

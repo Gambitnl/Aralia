@@ -141,6 +141,7 @@ export class BuildingPainter {
         if (b.type === BuildingType.TOWER || b.type === BuildingType.WINDMILL) {
             this.drawTowerRoof(x - overhang, y - overhang, w + overhang * 2, h + overhang * 2, roofColor, b.roofStyle);
             if (b.type === BuildingType.WINDMILL) {
+                // TODO: Drive windmill blade rotation via a passed-in time delta instead of Date.now() so renders stay deterministic and testable.
                 this.ctx.save();
                 this.ctx.translate(x + w / 2, y + h / 2 - 10);
                 this.ctx.rotate(Date.now() * 0.001);
@@ -174,6 +175,7 @@ export class BuildingPainter {
                 this.ctx.fillRect(x + i, y, 1, h);
             }
         } else {
+            // TODO: Swap Math.random for a seeded roof variation (tile-based) to avoid texture flicker on rerender.
             for (let i = 0; i < 20; i++) {
                 const rx = Math.random() * w;
                 const ry = Math.random() * h;

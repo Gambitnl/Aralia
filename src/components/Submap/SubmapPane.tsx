@@ -9,24 +9,17 @@
  */
 import React, { useEffect, useMemo, useRef, useCallback, useState } from 'react';
 import { BIOMES } from '../../constants';
-import { SUBMAP_DIMENSIONS } from '../../config/mapConfig';
-import { Action, InspectSubmapTilePayload, Location, MapData, BiomeVisuals, PlayerCharacter, NPC, Item, SeededFeatureConfig, GlossaryDisplayItem } from '../../types';
-import { BattleMapData, BattleMapTile } from '../../types/combat';
-// Submap legend reuses the shared Glossary display component
-import GlossaryDisplay from '../Glossary/GlossaryDisplay';
-import { SUBMAP_ICON_MEANINGS } from '../../data/glossaryData';
-import { useSubmapProceduralData, PathDetails } from '../../hooks/useSubmapProceduralData';
+import { Action, InspectSubmapTilePayload, Location, MapData, PlayerCharacter, NPC, Item, SeededFeatureConfig } from '../../types';
 import CompassPane from '../CompassPane';
-import { biomeVisualsConfig, defaultBiomeVisuals } from '../../config/submapVisualsConfig';
-import { findPath } from '../../utils/pathfinding';
-import { getTimeOfDay, getTimeModifiers, TimeOfDay } from '../../utils/timeUtils';
 import ActionPane from '../ActionPane';
+import GlossaryDisplay from '../Glossary/GlossaryDisplay';
+import { useSubmapProceduralData } from '../../hooks/useSubmapProceduralData';
+import { biomeVisualsConfig, defaultBiomeVisuals } from '../../config/submapVisualsConfig';
 import SubmapTile from './SubmapTile';
 import { CaTileType } from '../../services/cellularAutomataService';
 import SubmapRendererPixi from './SubmapRendererPixi';
 
 // Modularized imports
-import { submapTileHints } from './submapData';
 import {
     cssColorToHex,
     getAnimationClass,
@@ -38,18 +31,12 @@ import {
     applySeededFeatureVisuals,
     applyScatterVisuals
 } from './submapVisuals';
-
-interface SubmapPathNode {
-    id: string;
-    coordinates: { x: number; y: number };
-    movementCost: number;
-    blocksMovement: boolean;
-    terrain?: any;
-    elevation?: any;
-    blocksLoS?: any;
-    decoration?: any;
-    effects?: any;
-}
+import { useSubmapGlossaryItems } from './useSubmapGlossaryItems';
+import { useTileHintGenerator } from './useTileHintGenerator';
+import { useSubmapGrid } from './useSubmapGrid';
+import { usePathfindingGrid, useQuickTravelData } from './useQuickTravel';
+import { useInspectableTiles } from './useInspectableTiles';
+import { getDayNightOverlayClass } from './useDayNightOverlay';
 
 interface SubmapPaneProps {
     currentLocation: Location;
@@ -72,20 +59,6 @@ interface SubmapPaneProps {
     unreadDiscoveryCount: number;
     hasNewRateLimitError: boolean;
 }
-
-const getDayNightOverlayClass = (gameTime: Date): string => {
-    const timeOfDay = getTimeOfDay(gameTime);
-    switch (timeOfDay) {
-        case TimeOfDay.Dusk:
-            return 'bg-amber-700/20 mix-blend-overlay';
-        case TimeOfDay.Night:
-            return 'bg-indigo-900/40 mix-blend-multiply';
-        case TimeOfDay.Dawn:
-            return 'bg-amber-300/10 mix-blend-soft-light';
-        default:
-            return '';
-    }
-};
 
 
 const SubmapPane: React.FC<SubmapPaneProps> = ({
@@ -112,6 +85,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
     const firstFocusableElementRef = useRef<HTMLButtonElement>(null);
     const gridContainerRef = useRef<HTMLDivElement>(null);
     const hoverFrameRef = useRef<number | null>(null);
+    const lastRenderMetricsUpdateAtRef = useRef<number>(0);
     const [isGlossaryOpen, setIsGlossaryOpen] = useState(false);
     const [isInspecting, setIsInspecting] = useState(false);
     const [inspectionMessage, setInspectionMessage] = useState<string | null>(null);
@@ -120,6 +94,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
     const [isQuickTravelMode, setIsQuickTravelMode] = useState(false);
     const [hoveredTile, setHoveredTile] = useState<{ x: number; y: number } | null>(null);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+    // TODO[PIXI-PREFERENCE]: Persist usePixiRenderer to localStorage so users don't re-enable each session.
     const [usePixiRenderer, setUsePixiRenderer] = useState(false);
     const [renderMetrics, setRenderMetrics] = useState<{ lastMs: number; fpsEstimate: number } | null>(null);
 
@@ -187,6 +162,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
         return cssColorToHex(neighborBiome?.rgbaColor);
     }, [biomeBlendContext.secondaryBiomeId]);
 
+    // Modal lifecycle: handle Escape semantics and restore focus when no sub-mode is active.
     useEffect(() => {
         const handleEsc = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
@@ -209,6 +185,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
         return () => window.removeEventListener('keydown', handleEsc);
     }, [isOpen, onClose, isGlossaryOpen, isInspecting, isQuickTravelMode]);
 
+    // Central visual resolver: driven by biome visuals config + procedural data (paths, CA, WFC).
     const getTileVisuals = useCallback((rowIndex: number, colIndex: number): VisualLayerOutput => {
         const tileHash = simpleHash(colIndex, rowIndex, 'tile_visual_seed_v4');
 
@@ -260,190 +237,53 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
         return visuals;
     }, [simpleHash, visualsConfig, pathDetails, activeSeededFeatures, caGrid, wfcGrid]);
 
-    const pathfindingGrid = useMemo(() => {
-        const grid = new Map<string, SubmapPathNode>();
-        for (let r = 0; r < submapDimensions.rows; r++) {
-            for (let c = 0; c < submapDimensions.cols; c++) {
-                const visuals = getTileVisuals(r, c);
-                const { effectiveTerrainType } = visuals;
-                let movementCost = 30; // Default: 30 minutes for regular ground
-                let blocksMovement = false;
+    // Pathfinding grid feeds quick travel previews and path overlays; split out for clarity.
+    const pathfindingGrid = usePathfindingGrid({
+        submapDimensions,
+        getTileVisuals,
+        playerCharacter,
+        gameTime,
+    });
 
-                if (playerCharacter.transportMode === 'foot') {
-                    if (effectiveTerrainType === 'path') {
-                        movementCost = 15;
-                    } else if (effectiveTerrainType === 'wall') {
-                        movementCost = Infinity;
-                        blocksMovement = true;
-                    } else {
-                        movementCost = 30;
-                    }
-                }
-                // Future: Add 'mounted' mode logic here
+    const quickTravelData = useQuickTravelData({
+        isQuickTravelMode,
+        hoveredTile,
+        playerSubmapCoords,
+        pathfindingGrid,
+        submapDimensions,
+        currentWorldBiomeId,
+        simpleHash,
+    });
 
-                if (effectiveTerrainType === 'water' || effectiveTerrainType === 'village_area') {
-                    blocksMovement = true;
-                    movementCost = Infinity;
-                }
+    const getHintForTile = useTileHintGenerator({
+        inspectedTileDescriptions,
+        playerSubmapCoords,
+        parentWorldMapCoords,
+        currentWorldBiomeId,
+        currentBiomeName: currentBiome?.name,
+        simpleHash,
+    });
 
-                // Apply Time Modifiers (e.g., Night/Winter slows travel)
-                const modifiers = getTimeModifiers(gameTime);
-                if (movementCost !== Infinity) {
-                    movementCost *= modifiers.travelCostMultiplier;
-                }
+    // Memoized grid + tooltip data keeps SubmapTile renders stable when hovering during quick travel.
+    const submapGridWithTooltips = useSubmapGrid({
+        submapDimensions,
+        getTileVisuals,
+        getHintForTile,
+    });
 
-                grid.set(`${c}-${r}`, {
-                    id: `${c}-${r}`,
-                    coordinates: { x: c, y: r },
-                    movementCost,
-                    blocksMovement
-                });
-            }
-        }
-        return grid;
-    }, [submapDimensions, getTileVisuals, playerCharacter, gameTime]);
+    const inspectableTiles = useInspectableTiles({
+        isInspecting,
+        playerSubmapCoords,
+        submapDimensions,
+    });
 
-    const quickTravelData = useMemo(() => {
-        if (!isQuickTravelMode || !hoveredTile || !playerSubmapCoords) {
-            return { path: new Set<string>(), orderedPath: [], time: 0, isBlocked: false };
-        }
-        const startNode = pathfindingGrid.get(`${playerSubmapCoords.x}-${playerSubmapCoords.y}`);
-        const endNode = pathfindingGrid.get(`${hoveredTile.x}-${hoveredTile.y}`);
-
-        if (!startNode || !endNode || endNode.blocksMovement) {
-            return { path: new Set<string>(), orderedPath: [], time: 0, isBlocked: !!endNode?.blocksMovement };
-        }
-
-        const themeForPathfinder = ((): BattleMapData['theme'] => {
-            const validThemes: BattleMapData['theme'][] = ['forest', 'cave', 'dungeon', 'desert', 'swamp'];
-            if ((validThemes as string[]).includes(currentWorldBiomeId)) {
-                return currentWorldBiomeId as BattleMapData['theme'];
-            }
-            if (currentWorldBiomeId === 'plains' || currentWorldBiomeId === 'hills') return 'forest';
-            if (currentWorldBiomeId === 'mountain') return 'cave';
-            return 'forest';
-        })();
-
-        const mapForPathfinder: BattleMapData = {
-            dimensions: { width: submapDimensions.cols, height: submapDimensions.rows },
-            tiles: pathfindingGrid as unknown as Map<string, BattleMapTile>,
-            theme: themeForPathfinder,
-            seed: simpleHash(0, 0, 'pathfinder_seed'),
-        };
-
-        const pathNodes = findPath(startNode as unknown as BattleMapTile, endNode as unknown as BattleMapTile, mapForPathfinder);
-
-        if (pathNodes.length === 0 && startNode !== endNode) {
-            return { path: new Set<string>(), orderedPath: [], time: 0, isBlocked: true };
-        }
-
-        const pathCoords = new Set(pathNodes.map(p => p.id));
-        const orderedPath = pathNodes.map(p => p.coordinates);
-        const travelTime = pathNodes.reduce((acc, node) => acc + node.movementCost, 0) - (startNode.movementCost || 0);
-
-        return { path: pathCoords, orderedPath, time: travelTime, isBlocked: false };
-    }, [isQuickTravelMode, hoveredTile, playerSubmapCoords, pathfindingGrid, submapDimensions, currentWorldBiomeId, simpleHash]);
-
-
-    const getHintForTile = useCallback((submapX: number, submapY: number, effectiveTerrain: string, featureConfig: SeededFeatureConfig | null, isSeedTile: boolean): string => {
-        const tileKey = `${parentWorldMapCoords.x}_${parentWorldMapCoords.y}_${submapX}_${submapY}`;
-        if (inspectedTileDescriptions[tileKey]) {
-            return inspectedTileDescriptions[tileKey];
-        }
-
-        const dx = Math.abs(submapX - playerSubmapCoords.x);
-        const dy = Math.abs(submapY - playerSubmapCoords.y);
-        const isAdjacent = (dx <= 1 && dy <= 1) && !(dx === 0 && dy === 0);
-
-        // Build hint keys to try in order of specificity
-        const hintKeys = [];
-
-        if (featureConfig) {
-            // Try biome-specific feature hints first (e.g., 'plains_village')
-            hintKeys.push(`${currentWorldBiomeId}_${featureConfig.id}`);
-            // Then generic feature hints (e.g., 'village')
-            hintKeys.push(featureConfig.id);
-        }
-
-        if (effectiveTerrain !== 'default') {
-            // Try biome-specific terrain hints (e.g., 'plains_village_area')
-            hintKeys.push(`${currentWorldBiomeId}_${effectiveTerrain}`);
-            // Then generic terrain hints (e.g., 'village_area')
-            hintKeys.push(effectiveTerrain);
-        }
-
-        // Fallback to biome default
-        hintKeys.push(`${currentWorldBiomeId}_default`);
-        hintKeys.push('default');
-
-        if (isAdjacent) {
-            // Try each hint key in order until we find one with hints
-            for (const key of hintKeys) {
-                if (submapTileHints[key] && submapTileHints[key].length > 0) {
-                    return submapTileHints[key][simpleHash(submapX, submapY, 'hint_adj') % submapTileHints[key].length];
-                }
-            }
-        } else {
-            // For distant tiles, use feature/terrain names
-            // Special handling for seed tiles - show the feature name directly
-            if (isSeedTile && featureConfig?.name) {
-                return `${featureConfig.name}.`;
-            }
-            // Non-seed tiles within a feature area get the surrounding area description
-            if (featureConfig?.name) return `An area featuring a ${featureConfig.name.toLowerCase()}.`;
-            if (effectiveTerrain !== 'default' && effectiveTerrain !== 'path_adj' && effectiveTerrain !== 'path') return `A patch of ${effectiveTerrain.replace(/_/g, ' ')}.`;
-            return `A patch of ${currentBiome?.name || 'terrain'}.`;
-        }
-        return submapTileHints['default'][simpleHash(submapX, submapY, 'hint_adj_fallback') % submapTileHints['default'].length];
-
-    }, [playerSubmapCoords, simpleHash, currentWorldBiomeId, currentBiome, inspectedTileDescriptions, parentWorldMapCoords]);
-
-    const submapGrid = useMemo(() => {
-        const grid = [];
-        for (let r = 0; r < submapDimensions.rows; r++) {
-            for (let c = 0; c < submapDimensions.cols; c++) {
-                // Only compute the visuals structure here, NOT the tooltip content
-                const visuals = getTileVisuals(r, c);
-                grid.push({ r, c, visuals });
-            }
-        }
-        return grid;
-    }, [submapDimensions.rows, submapDimensions.cols, getTileVisuals]);
-
-    /**
-     * OPTIMIZATION: Memoize tooltip generation.
-     * We attach the computed tooltip text to the grid data so that `SubmapTile` receives a stable string.
-     * This prevents 600 string generations on every render (e.g. mouse hover in Quick Travel mode).
-     * `getHintForTile` updates when player moves (changing adjacency context), which is correct.
-     * But it remains stable during hover events.
-     */
-    const submapGridWithTooltips = useMemo(() => {
-        return submapGrid.map(tile => ({
-            ...tile,
-            tooltipContent: getHintForTile(tile.c, tile.r, tile.visuals.effectiveTerrainType, tile.visuals.activeSeededFeatureConfigForTile, tile.visuals.isSeedTile)
-        }));
-    }, [submapGrid, getHintForTile]);
-
-    const inspectableTiles = useMemo(() => {
-        const tiles = new Set<string>();
-        if (!isInspecting || !playerSubmapCoords) return tiles;
-        for (let dy = -1; dy <= 1; dy++) {
-            for (let dx = -1; dx <= 1; dx++) {
-                if (dx === 0 && dy === 0) continue;
-                const adjX = playerSubmapCoords.x + dx;
-                const adjY = playerSubmapCoords.y + dy;
-                if (adjX >= 0 && adjX < submapDimensions.cols && adjY >= 0 && adjY < submapDimensions.rows) {
-                    tiles.add(`${adjX},${adjY}`);
-                }
-            }
-        }
-        return tiles;
-    }, [isInspecting, playerSubmapCoords, submapDimensions]);
-
+    // Tile click handler coordinates the two sub-modes (inspect vs quick travel) before dispatching actions.
     const handleTileClickForInspection = useCallback((tileX: number, tileY: number, effectiveTerrain: string, featureConfig: SeededFeatureConfig | null) => {
         if (disabled) return;
 
         if (isQuickTravelMode) {
+            // TODO[QUICK-TRAVEL-RESOURCES]: Add food/water consumption and fatigue accumulation
+            // for quick travel. Consider: fatigue = travelTime * fatigueMultiplier.
             const travelData = quickTravelData;
             if (travelData.path.size > 0) {
                 onAction({ type: 'QUICK_TRAVEL', label: `Quick travel to (${tileX},${tileY})`, payload: { quickTravel: { destination: { x: tileX, y: tileY }, durationSeconds: travelData.time * 60 } } });
@@ -490,10 +330,15 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
 
     const handleRenderMetrics = useCallback((metrics: { lastMs: number; fpsEstimate: number }) => {
         // Persist the latest frame time so UI can surface performance regressions quickly.
+        // Throttle to avoid render loops (Pixi can render multiple times during prop reconciliation).
+        const now = performance.now();
+        if (now - lastRenderMetricsUpdateAtRef.current < 250) return;
+        lastRenderMetricsUpdateAtRef.current = now;
         setRenderMetrics(metrics);
     }, []);
 
     useEffect(() => () => {
+        // Ensure any pending hover rAF callbacks are cancelled when the pane unmounts.
         if (hoverFrameRef.current) cancelAnimationFrame(hoverFrameRef.current);
     }, []);
 
@@ -517,29 +362,8 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
         setIsQuickTravelMode(!isQuickTravelMode);
     };
 
-    const glossaryItems: GlossaryDisplayItem[] = useMemo(() => {
-        const items: GlossaryDisplayItem[] = [];
-        const addedIcons = new Set<string>();
-
-        const addIcon = (icon: string, meaningKey: string, category?: string) => {
-            if (icon && !addedIcons.has(icon)) {
-                items.push({ icon, meaning: SUBMAP_ICON_MEANINGS[icon] || meaningKey, category });
-                addedIcons.add(icon);
-            }
-        };
-
-        addIcon('🧍', 'Your Position', 'Player');
-        if (visualsConfig.pathIcon) addIcon(visualsConfig.pathIcon, 'Path Marker', 'Path');
-        visualsConfig.seededFeatures?.forEach(sf => addIcon(sf.icon, sf.name || sf.id, 'Seeded Feature'));
-        visualsConfig.scatterFeatures?.forEach(sc => addIcon(sc.icon, `Scatter: ${sc.icon}`, 'Scatter Feature'));
-        visualsConfig.pathAdjacency?.scatter?.forEach(paSc => addIcon(paSc.icon, `Path Adjacency: ${paSc.icon}`, 'Path Adjacency Scatter'));
-        if (visualsConfig.caTileVisuals) {
-            if (visualsConfig.caTileVisuals.wall.icon) addIcon(visualsConfig.caTileVisuals.wall.icon, 'Wall', 'Structure');
-            // Implicitly handle floors if they have icons, though usually they don't
-        }
-
-        return items.sort((a, b) => (a.category || '').localeCompare(b.category || '') || a.meaning.localeCompare(b.meaning));
-    }, [visualsConfig]);
+    // Legend items are generated from the visuals config so React + Pixi share the same glossary.
+    const glossaryItems = useSubmapGlossaryItems(visualsConfig);
 
     const gridContainerStyle: React.CSSProperties & { '--tile-size': string } = {
         '--tile-size': '1.75rem',
@@ -597,7 +421,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                                 />
                                 <span>Use PixiJS renderer (beta)</span>
                             </label>
-                            {renderMetrics && (
+                            {usePixiRenderer && renderMetrics && (
                                 <span className="text-emerald-300">
                                     {renderMetrics.lastMs.toFixed(1)} ms · ~{Math.max(renderMetrics.fpsEstimate, 0).toFixed(0)} fps
                                 </span>

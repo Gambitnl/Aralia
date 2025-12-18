@@ -41,6 +41,8 @@ export interface VisualLayerOutput {
     effectiveTerrainType: string;
     zIndex: number;
     activeSeededFeatureConfigForTile: SeededFeatureConfig | null;
+    // TODO: isSeedTile is currently only used for seeded features. If paths or CA tiles need
+    // center identification, consider generalizing to `centerTileOf?: string`.
     isSeedTile: boolean;
 }
 

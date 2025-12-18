@@ -4,8 +4,10 @@
  * This service module handles all interactions with the Google Gemini API.
  * It provides functions to generate various types of text content for the RPG.
  * All functions now return a StandardizedResult object for consistent error handling.
+ * 
+ * Rate Limiting: Implements exponential backoff, model fallback chains, and global
+ * cooldown periods to prevent overwhelming the API during heavy usage.
  */
-// TODO: Add client-side rate limiting and request queuing for AI API calls to prevent overwhelming the service during heavy usage
 import { GenerateContentResponse } from "@google/genai";
 import { ai, isAiEnabled } from './aiClient'; // Import the shared AI client
 import { logger } from '../utils/logger';
@@ -23,6 +25,60 @@ const API_TIMEOUT_MS = 20000; // 20 seconds
 
 // --- Adaptive Rate Limiting State ---
 let lastRequestTimestamp = 0;
+let globalCooldownUntil = 0; // Timestamp when cooldown ends (0 = no cooldown)
+let consecutiveRateLimitHits = 0; // Tracks consecutive rate limit failures across all models
+
+// Rate limiting configuration
+const RATE_LIMIT_CONFIG = {
+  BASE_RETRY_DELAY_MS: 1000,      // Initial delay between model fallbacks
+  MAX_RETRY_DELAY_MS: 8000,       // Maximum delay between retries
+  GLOBAL_COOLDOWN_MS: 30000,      // 30 second cooldown after exhausting all models
+  COOLDOWN_MULTIPLIER: 1.5,       // Multiplier for exponential backoff
+};
+
+/**
+ * Checks if we're currently in a global rate limit cooldown period.
+ * Returns remaining cooldown time in ms, or 0 if no cooldown.
+ */
+function getRemainingCooldown(): number {
+  const now = Date.now();
+  if (globalCooldownUntil > now) {
+    return globalCooldownUntil - now;
+  }
+  return 0;
+}
+
+/**
+ * Activates a global cooldown period after exhausting all model fallbacks.
+ */
+function activateGlobalCooldown(): void {
+  globalCooldownUntil = Date.now() + RATE_LIMIT_CONFIG.GLOBAL_COOLDOWN_MS;
+  logger.warn(`Rate limits hit on all models. Activating ${RATE_LIMIT_CONFIG.GLOBAL_COOLDOWN_MS / 1000}s cooldown.`);
+}
+
+/**
+ * Resets rate limit tracking after a successful request.
+ */
+function resetRateLimitTracking(): void {
+  consecutiveRateLimitHits = 0;
+}
+
+/**
+ * Calculates exponential backoff delay for retries.
+ * @param attemptNumber The current retry attempt (0-indexed)
+ * @returns Delay in milliseconds
+ */
+function calculateBackoffDelay(attemptNumber: number): number {
+  const delay = RATE_LIMIT_CONFIG.BASE_RETRY_DELAY_MS * Math.pow(RATE_LIMIT_CONFIG.COOLDOWN_MULTIPLIER, attemptNumber);
+  return Math.min(delay, RATE_LIMIT_CONFIG.MAX_RETRY_DELAY_MS);
+}
+
+/**
+ * Utility to wait for a specified duration.
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 /**
  * Selects an appropriate model based on interaction complexity and frequency (spam protection).
@@ -126,14 +182,14 @@ function getFallbackInventory(shopType: string): Item[] {
   defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Torch", description: "A simple torch.", cost: 1 });
 
   if (type.includes('blacksmith') || type.includes('weapon') || type.includes('armor')) {
-     defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Iron Dagger", description: "A simple iron dagger.", cost: 10 });
-     defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Whetstone", description: "For sharpening blades.", cost: 2 });
+    defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Iron Dagger", description: "A simple iron dagger.", cost: 10 });
+    defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Whetstone", description: "For sharpening blades.", cost: 2 });
   } else if (type.includes('alchemist') || type.includes('potion') || type.includes('magic')) {
-     defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Empty Vial", description: "A glass vial.", cost: 5 });
-     defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Herbal Poultice", description: "Basic healing herbs.", cost: 15 });
+    defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Empty Vial", description: "A glass vial.", cost: 5 });
+    defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Herbal Poultice", description: "Basic healing herbs.", cost: 15 });
   } else if (type.includes('general') || type.includes('goods')) {
-     defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Rope (50ft)", description: "Hempen rope.", cost: 10 });
-     defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Waterskin", description: "For carrying water.", cost: 2 });
+    defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Rope (50ft)", description: "Hempen rope.", cost: 10 });
+    defaults.push({ ...ItemTemplates.BaseItemTemplate, name: "Waterskin", description: "For carrying water.", cost: 2 });
   }
 
   return defaults;
@@ -143,6 +199,11 @@ function getFallbackInventory(shopType: string): Item[] {
 /**
  * Generic function to generate text content using the Gemini API.
  * Returns a StandardizedResult containing data on success or an error string on failure.
+ * 
+ * Includes robust rate limiting:
+ * - Global cooldown check before making requests
+ * - Exponential backoff delays between model fallback attempts
+ * - 30s global cooldown after exhausting all models
  */
 export async function generateText(
   promptContent: string,
@@ -154,6 +215,21 @@ export async function generateText(
   thinkingBudget?: number
 ): Promise<StandardizedResult<GeminiTextData>> {
   const fullPromptForLogging = `System Instruction: ${systemInstruction || defaultSystemInstruction}\nUser Prompt: ${promptContent}`;
+
+  // Check for global cooldown before proceeding
+  const remainingCooldown = getRemainingCooldown();
+  if (remainingCooldown > 0) {
+    logger.info(`Global rate limit cooldown active. ${Math.ceil(remainingCooldown / 1000)}s remaining.`, { functionName });
+    return {
+      data: null,
+      error: `API rate limited. Please wait ${Math.ceil(remainingCooldown / 1000)} seconds before trying again.`,
+      metadata: {
+        promptSent: fullPromptForLogging,
+        rawResponse: "Global Cooldown Active",
+        rateLimitHit: true
+      }
+    };
+  }
 
   if (!isAiEnabled()) {
     logger.warn(`Gemini API disabled: generateText skipped (${functionName}).`);
@@ -171,12 +247,21 @@ export async function generateText(
   let lastError: any = null;
   let rateLimitHitInChain = false;
   let lastModelUsed = '';
+  let attemptNumber = 0;
 
   const initialModel = devModelOverride || preferredModel || GEMINI_TEXT_MODEL_FALLBACK_CHAIN[0];
   const modelsToTry = [initialModel, ...GEMINI_TEXT_MODEL_FALLBACK_CHAIN.filter(m => m !== initialModel)];
 
   for (const model of modelsToTry) {
     lastModelUsed = model;
+
+    // Apply exponential backoff delay before retry (skip first attempt)
+    if (attemptNumber > 0 && rateLimitHitInChain) {
+      const backoffDelay = calculateBackoffDelay(attemptNumber - 1);
+      logger.debug(`Waiting ${backoffDelay}ms before trying next model...`, { model, attemptNumber });
+      await sleep(backoffDelay);
+    }
+
     try {
       const useThinking = thinkingBudget && (model.includes('gemini-2.5') || model.includes('gemini-3'));
 
@@ -206,8 +291,9 @@ export async function generateText(
         timeoutPromise
       ]);
 
-      // Update timestamp on successful request
+      // Success! Update timestamp and reset rate limit tracking
       lastRequestTimestamp = Date.now();
+      resetRateLimitTracking();
 
       const responseText = response.text?.trim();
 
@@ -236,10 +322,18 @@ export async function generateText(
 
     } catch (error) {
       lastError = error;
+      attemptNumber++;
       const errorString = JSON.stringify(error, Object.getOwnPropertyNames(error));
-      if (errorString.includes('"code":429') || errorString.includes('RESOURCE_EXHAUSTED')) {
+
+      // Check for rate limit (429) or service overloaded (503) errors
+      const isRateLimitError = errorString.includes('"code":429') || errorString.includes('RESOURCE_EXHAUSTED');
+      const isServiceOverloaded = errorString.includes('"code":503') || errorString.includes('overloaded');
+
+      if (isRateLimitError || isServiceOverloaded) {
         rateLimitHitInChain = true;
-        logger.warn(`Gemini API rate limit error with model ${model}. Retrying...`, { model });
+        consecutiveRateLimitHits++;
+        const errorType = isRateLimitError ? 'rate limit' : 'service overloaded';
+        logger.warn(`Gemini API ${errorType} error with model ${model}. Attempt ${attemptNumber}/${modelsToTry.length}`, { model });
         continue;
       } else {
         // Redact potential API keys from the error object before logging
@@ -250,6 +344,11 @@ export async function generateText(
     } finally {
       lastRequestTimestamp = Date.now();
     }
+  }
+
+  // All models exhausted - activate global cooldown if rate limits were hit
+  if (rateLimitHitInChain) {
+    activateGlobalCooldown();
   }
 
   const errorMessage = lastError instanceof Error ? lastError.message : String(lastError);
