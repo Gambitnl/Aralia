@@ -16,6 +16,7 @@ import {
   LevelUpChoices,
   AbilityScoreName,
   MagicInitiateSource,
+  FeatChoice,
 } from '../types';
 import { RACES_DATA, GIANT_ANCESTRIES, TIEFLING_LEGACIES, CLASSES_DATA, DRAGONBORN_ANCESTRIES, SKILLS_DATA } from '../constants';
 import { FEATS_DATA } from '../data/feats/featsData';
@@ -43,10 +44,19 @@ export function getCharacterRaceDisplayString(character: PlayerCharacter): strin
 
   if (!race) return 'Unknown Race';
 
-  const getSelectionName = (data: any[] | undefined, id: string | undefined, nameKey: string, suffixToRemove: string): string | null => {
+  const getSelectionName = <T extends { id: string }>(
+    data: T[] | undefined,
+    id: string | undefined,
+    nameKey: keyof T,
+    suffixToRemove: string
+  ): string | null => {
     if (!id || !data) return null;
     const found = data.find(item => item.id === id);
-    return found ? found[nameKey].replace(suffixToRemove, '').trim() : null;
+    const value = found ? found[nameKey] : null;
+    if (typeof value === 'string') {
+        return value.replace(suffixToRemove, '').trim();
+    }
+    return null;
   }
 
   switch (race.id) {
@@ -64,6 +74,8 @@ export function getCharacterRaceDisplayString(character: PlayerCharacter): strin
       return subraceName ? subraceName : race.name;
     }
     case 'goliath': {
+      // GIANT_ANCESTRIES has 'id' like 'Fire', 'Stone', and 'name' like 'Fire Giant Ancestry'
+      // The original code used 'id' for the display name prefix (e.g. "Fire Goliath").
       const ancestryName = getSelectionName(GIANT_ANCESTRIES, racialSelections?.['goliath']?.choiceId, 'id', '');
       return ancestryName ? `${ancestryName} ${race.name}` : race.name;
     }
@@ -536,7 +548,7 @@ export const applyFeatToCharacter = (
 export const applyAllFeats = (
   character: PlayerCharacter,
   featIds: string[],
-  featChoices?: { [featId: string]: { selectedAbilityScore?: AbilityScoreName;[key: string]: any } }
+  featChoices?: Record<string, FeatChoice>
 ): PlayerCharacter => {
   return featIds.reduce((char, featId) => {
     const feat = FEATS_DATA.find(f => f.id === featId);
