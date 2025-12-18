@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TownDevControls } from '../TownDevControls';
-import { BiomeType, TownDensity } from '../../types/realmsmith';
+import { BiomeType, TownDensity } from '../../../types/realmsmith';
 
 describe('TownDevControls', () => {
     const defaultProps = {

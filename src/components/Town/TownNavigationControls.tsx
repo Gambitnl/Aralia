@@ -7,7 +7,7 @@
  */
 
 import React, { useCallback, useEffect } from 'react';
-import { TownDirection } from '../types/town';
+import { TownDirection } from '../../types/town';
 import {
     ArrowUp, ArrowDown, ArrowLeft, ArrowRight,
     ArrowUpLeft, ArrowUpRight, ArrowDownLeft, ArrowDownRight,

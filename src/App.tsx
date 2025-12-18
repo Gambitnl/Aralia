@@ -57,7 +57,7 @@ import { LoadingSpinner } from './components/ui/LoadingSpinner';
 
 // Lazy load large components to reduce initial bundle size
 const CombatView = lazy(() => import('./components/CombatView'));
-const TownCanvas = lazy(() => import('./components/TownCanvas'));
+const TownCanvas = lazy(() => import('./components/Town/TownCanvas'));
 const BattleMapDemo = lazy(() => import('./components/BattleMapDemo'));
 const CharacterCreator = lazy(() => import('./components/CharacterCreator/CharacterCreator'));
 const GameLayout = lazy(() => import('./components/layout/GameLayout'));
