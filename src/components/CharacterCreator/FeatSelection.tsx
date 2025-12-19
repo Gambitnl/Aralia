@@ -212,7 +212,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
                           )}
                           {feat.benefits.speedIncrease && <li>Speed +{feat.benefits.speedIncrease} ft</li>}
                           {feat.benefits.initiativeBonus && <li>Initiative +{feat.benefits.initiativeBonus}</li>}
-                          {feat.benefits.hpMaxIncreasePerLevel && <li>HP Max +{feat.benefits.hpMaxIncreasePerLevel} per level</li>}
+                          {feat.benefits.hpMaxIncreasePerLevel && <li>Hit Point Maximum +{feat.benefits.hpMaxIncreasePerLevel} per level</li>}
                           {feat.benefits.resistance && <li>Resistance: {feat.benefits.resistance.join(', ')}</li>}
                           {feat.benefits.skillProficiencies && <li>Skills: {feat.benefits.skillProficiencies.join(', ')}</li>}
                           {feat.benefits.savingThrowProficiencies && <li>Saving Throws: {feat.benefits.savingThrowProficiencies.join(', ')}</li>}
