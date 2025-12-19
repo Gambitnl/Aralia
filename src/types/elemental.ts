@@ -44,7 +44,7 @@ export const StateInteractions: Record<string, StateTag | null> = {
   'burning+frozen': StateTag.Wet,   // Fire melts ice
 
   // Cold interactions
-  'burning+cold': null,             // Extreme heat and cold neutralize each other
+  // 'burning+cold': null,             // Extreme heat and cold neutralize each other (Removed duplicate)
 
   // Electrified interactions
   // (Placeholder for future: wet+electrified -> AoE damage)
