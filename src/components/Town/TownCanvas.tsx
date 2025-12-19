@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { TownGenerator } from '../../services/RealmSmithTownGenerator';
 import { AssetPainter } from '../../services/RealmSmithAssetPainter';
-import { TownOptions, BiomeType, TownDensity, BuildingType, Building, TownMap } from '../../types/realmsmith';
+import { BiomeType, BuildingType, Building } from '../../types/realmsmith';
 import { TownPosition, TownDirection, TOWN_DIRECTION_VECTORS } from '../../types/town';
 import { PlayerCharacter } from '../../types/character';
 import { isPositionWalkable, getAdjacentBuildings } from '../../utils/walkabilityUtils';
 import TownNavigationControls from './TownNavigationControls';
 import { TownDevControls } from './TownDevControls';
-import { RefreshCw, Map as MapIcon, Sparkles, ZoomIn, ZoomOut, Maximize, Move, Moon, Sun, Grid, Settings, X, User } from 'lucide-react';
+import { RefreshCw, ZoomIn, ZoomOut, Maximize, Moon, Sun, Grid, Settings, X, User } from 'lucide-react';
+import { useTownController } from '../../hooks/useTownController';
 
 const BUILDING_DESCRIPTIONS: Record<BuildingType, { name: string; desc: string }> = {
     [BuildingType.HOUSE_SMALL]: { name: 'Small House', desc: 'A modest residence for common folk.' },
@@ -91,20 +91,6 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    // Local player position state (used when no external playerPosition is provided)
-    const [localPlayerPosition, setLocalPlayerPosition] = useState<TownPosition | null>(null);
-
-    // Use external playerPosition if provided, otherwise use local state
-    const effectivePlayerPosition = playerPosition ?? localPlayerPosition;
-
-    // Animation state
-    const [animatedPosition, setAnimatedPosition] = useState<TownPosition | null>(null);
-    const [isAnimating, setIsAnimating] = useState(false);
-    const previousPositionRef = useRef<TownPosition | null>(null);
-    const animationStartTimeRef = useRef<number>(0);
-    const animationFrameRef = useRef<number | null>(null);
-    const [playerFacing, setPlayerFacing] = useState<TownDirection>('south');
-
     // Map Aralia biome to Realmsmith biome
     const mapBiome = (b: string): BiomeType => {
         switch (b) {
@@ -126,40 +112,46 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
         return worldSeed + (worldX * 1000) + worldY;
     }, [worldSeed, worldX, worldY]);
 
-    // State for Generation Options
-    const [seed, setSeed] = useState<number>(townSeed);
-    const [biome, setBiome] = useState<BiomeType>(mapBiome(araliaBiome));
-    const [density, setDensity] = useState<TownDensity>(TownDensity.MEDIUM);
-    const [connections, setConnections] = useState({
-        north: true,
-        east: true,
-        south: true,
-        west: true
+    // Initialize Town Controller
+    const { state: townState, actions: townActions } = useTownController({
+        townSeed,
+        initialBiome: mapBiome(araliaBiome),
+        entryDirection,
+        playerPosition
     });
 
-    // Update state when props change
-    useEffect(() => {
-        setSeed(townSeed);
-        setBiome(mapBiome(araliaBiome));
-    }, [townSeed, araliaBiome]);
+    // Destructure state for easier access
+    const {
+        seed, biome, density, connections,
+        mapData, loading,
+        localPlayerPosition,
+        zoom, pan, isNight, showGrid,
+        hoveredBuilding, hoverPos
+    } = townState;
 
-    // View Options
-    const [isNight, setIsNight] = useState(false);
-    const [showGrid, setShowGrid] = useState(false);
+    const {
+        setSeed, setBiome, setDensity, setConnections,
+        generateMap,
+        setZoom, setPan, setIsNight, setShowGrid,
+        setHoveredBuilding, setHoverPos,
+        resetView,
+        setLocalPlayerPosition
+    } = townActions;
+
+    // Use external playerPosition if provided, otherwise use local state
+    const effectivePlayerPosition = playerPosition ?? localPlayerPosition;
+
+    // Animation state
+    const [animatedPosition, setAnimatedPosition] = useState<TownPosition | null>(null);
+    const [isAnimating, setIsAnimating] = useState(false);
+    const previousPositionRef = useRef<TownPosition | null>(null);
+    const animationStartTimeRef = useRef<number>(0);
+    const animationFrameRef = useRef<number | null>(null);
+    const [playerFacing, setPlayerFacing] = useState<TownDirection>('south');
+
     const [showDevControls, setShowDevControls] = useState(false);
-
-    const [loading, setLoading] = useState<boolean>(false);
-    const [mapData, setMapData] = useState<TownMap | null>(null);
-
-    // Viewport State (Zoom/Pan)
-    const [zoom, setZoom] = useState<number>(1);
-    const [pan, setPan] = useState<{ x: number, y: number }>({ x: 0, y: 0 });
     const [isDragging, setIsDragging] = useState(false);
     const [dragStart, setDragStart] = useState<{ x: number, y: number }>({ x: 0, y: 0 });
-
-    // Hover State
-    const [hoveredBuilding, setHoveredBuilding] = useState<Building | null>(null);
-    const [hoverPos, setHoverPos] = useState<{ x: number, y: number } | null>(null);
 
     // Initialize animated position when effectivePlayerPosition first becomes available
     useEffect(() => {
@@ -258,101 +250,6 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
         }));
     }, [animatedPosition, mapData, zoom]);
 
-    // Generate function
-    const generateMap = () => {
-        setLoading(true);
-        setHoveredBuilding(null);
-        // TODO: Cancel pending generation/painter work on unmount or prop changes (Reason: the setTimeout + canvas draws can fire after navigation and set state on an unmounted component; Expectation: smoother transitions without leaking contexts or triggering React warnings).
-        // TODO: Offload town generation/painting to a worker or chunked loop; the current synchronous run can still freeze the main thread even with the 50ms defer.
-        // Yield to UI thread so loading spinner shows
-        setTimeout(() => {
-            try {
-                const options: TownOptions = {
-                    seed,
-                    biome,
-                    density,
-                    connections
-                };
-                const generator = new TownGenerator(options);
-                const map = generator.generate();
-                setMapData(map);
-
-                // Initialize local player position if no external position provided
-                if (!playerPosition) {
-                    // Calculate spawn position based on entry direction
-                    // Player enters from the opposite side of the town from where they were standing
-                    // e.g., if they were north of the town (entryDirection='south'), spawn on north edge
-                    let targetX: number;
-                    let targetY: number;
-                    const centerX = Math.floor(map.width / 2);
-                    const centerY = Math.floor(map.height / 2);
-
-                    switch (entryDirection) {
-                        case 'north':
-                            // Player was south of town, spawn on south edge
-                            targetX = centerX;
-                            targetY = map.height - 2; // Near bottom edge
-                            break;
-                        case 'south':
-                            // Player was north of town, spawn on north edge
-                            targetX = centerX;
-                            targetY = 1; // Near top edge
-                            break;
-                        case 'east':
-                            // Player was west of town, spawn on west edge
-                            targetX = 1; // Near left edge
-                            targetY = centerY;
-                            break;
-                        case 'west':
-                            // Player was east of town, spawn on east edge
-                            targetX = map.width - 2; // Near right edge
-                            targetY = centerY;
-                            break;
-                        default:
-                            // Fallback to center if no entry direction
-                            targetX = centerX;
-                            targetY = centerY;
-                    }
-
-                    let spawnPos = { x: targetX, y: targetY };
-
-                    // Search for a walkable tile near the target position
-                    if (!isPositionWalkable(spawnPos, map)) {
-                        // Spiral outward from target to find walkable position
-                        outer: for (let radius = 1; radius < Math.max(map.width, map.height); radius++) {
-                            for (let dx = -radius; dx <= radius; dx++) {
-                                for (let dy = -radius; dy <= radius; dy++) {
-                                    const testPos = { x: targetX + dx, y: targetY + dy };
-                                    // Ensure within bounds
-                                    if (testPos.x < 0 || testPos.x >= map.width || testPos.y < 0 || testPos.y >= map.height) {
-                                        continue;
-                                    }
-                                    if (isPositionWalkable(testPos, map)) {
-                                        spawnPos = testPos;
-                                        break outer;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    setLocalPlayerPosition(spawnPos);
-                }
-            } catch (error) {
-                console.error("Failed to generate map:", error);
-            } finally {
-                setLoading(false);
-                // Reset view on regenerate
-                setZoom(1);
-                setPan({ x: 0, y: 0 });
-            }
-        }, 50);
-    };
-
-    // Effect to generate on any param change
-    useEffect(() => {
-        generateMap();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [seed, biome, density, connections]);
 
     // Painting Effect
     useEffect(() => {
@@ -412,7 +309,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     };
 
     const toggleConnection = (dir: keyof typeof connections) => {
-        setConnections(prev => ({ ...prev, [dir]: !prev[dir] }));
+        setConnections({ ...connections, [dir]: !connections[dir] });
     };
 
     // Local movement handler (used when no external onPlayerMove is provided)
@@ -428,7 +325,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
         if (isPositionWalkable(targetPos, mapData)) {
             setLocalPlayerPosition(targetPos);
         }
-    }, [mapData, effectivePlayerPosition]);
+    }, [mapData, effectivePlayerPosition, setLocalPlayerPosition]);
 
     // Use external move handler if provided, otherwise use local
     const handleMove = onPlayerMove ?? handleLocalMove;
@@ -511,11 +408,6 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 }
             });
         }
-    };
-
-    const resetView = () => {
-        setZoom(1);
-        setPan({ x: 0, y: 0 });
     };
 
     // Center camera on player position
