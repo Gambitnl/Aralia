@@ -10,7 +10,6 @@
 
 import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
-import { AbilityScores } from '../../types/core';
 import { TravelPace, PACE_MODIFIERS } from '../../types/travel';
 
 // --- Types ---
@@ -47,7 +46,7 @@ export function calculateEncumbrance(
   // Calculate total weight
   // Note: Coin weight is often ignored or calculated separately, standard 5e is 50 coins = 1 lb.
   // We'll focus on item weight for now.
-  const totalWeight = inventory.reduce((sum, item) => sum + (item.weight || 0), 0);
+  const totalWeight = inventory.reduce((sum, item) => sum + (item.weight || 0) * (item.quantity || 1), 0);
 
   const strScore = character.finalAbilityScores.strength || 10;
 
