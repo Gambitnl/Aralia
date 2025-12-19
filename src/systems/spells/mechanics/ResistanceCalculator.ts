@@ -26,7 +26,7 @@ export class ResistanceCalculator {
     baseDamage: number,
     damageType: DamageType,
     target: CombatCharacter,
-    source?: CombatCharacter
+    source?: CombatCharacter | null
   ): number {
     let finalDamage = baseDamage
 
@@ -36,10 +36,15 @@ export class ResistanceCalculator {
     }
 
     // 2. Resistance (Damage -> floor(Damage / 2))
+    // PHB p.197: "Resistance and then vulnerability are applied after all other modifiers to damage."
+    // Note: They do NOT "cancel out" for odd numbers.
+    // e.g. 25 damage: floor(25/2) = 12 -> 12 * 2 = 24. (Not 25)
+
     // Check for Elemental Adept ignore resistance
     const elementalAdeptChoice = source?.featChoices?.['elemental_adept']?.selectedDamageType;
+    // Cast to string for safer comparison
     const ignoresResistance = elementalAdeptChoice &&
-                              elementalAdeptChoice.toLowerCase() === damageType.toLowerCase();
+                              String(elementalAdeptChoice).toLowerCase() === String(damageType).toLowerCase();
 
     if (this.isResistant(target, damageType) && !ignoresResistance) {
       finalDamage = Math.floor(finalDamage / 2)

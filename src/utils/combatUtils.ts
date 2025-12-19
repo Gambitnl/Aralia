@@ -13,6 +13,7 @@ import { createAbilityFromSpell } from './spellAbilityFactory';
 import { isWeaponProficient } from './weaponUtils';
 import { generateId } from './idGenerator';
 import { getAbilityModifierValue } from './statUtils';
+import { ResistanceCalculator } from '../systems/spells/mechanics/ResistanceCalculator';
 
 import { bresenhamLine } from './lineOfSight';
 
@@ -521,6 +522,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     spellSlots: player.spellSlots,
     savingThrowProficiencies: player.savingThrowProficiencies,
     resistances: player.race.resistance as any, // Cast because Race uses string[], CombatCharacter uses DamageType[]
+    featChoices: player.featChoices,
   };
 }
 

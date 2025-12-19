@@ -5,7 +5,7 @@
  * used throughout the Aralia RPG application's battle map feature.
  */
 import type { AbilityScoreName } from './core';
-import type { Class, SpellbookData, SpellSlots } from './character';
+import type { Class, SpellbookData, SpellSlots, FeatChoice } from './character';
 import type { Item } from './items';
 import type { Spell, DamageType, SavingThrowAbility, ConditionName, EffectDuration, SpellEffect } from './spells'; // Import Spell
 import { StateTag } from './elemental';
@@ -73,6 +73,11 @@ export interface CombatCharacter {
   spellbook?: SpellbookData;
   spellSlots?: SpellSlots;
   concentratingOn?: ConcentrationState;
+
+  /** Feat choices that impact combat (e.g. Elemental Adept) */
+  featChoices?: {
+    [featId: string]: FeatChoice;
+  };
 
   /** Elemental states (Wet, Frozen, etc.) affecting the character */
   stateTags?: StateTag[];
