@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { BattleMapData, CombatCharacter } from '../../types/combat';
+import { AbilitySystem } from '../useAbilitySystem';
 
 interface UseTargetSelectionProps {
-    abilitySystem: any; // Ideally this should be ReturnType<typeof useAbilitySystem>
+    abilitySystem: AbilitySystem;
     currentCharacter?: CombatCharacter;
     mapData: BattleMapData | null;
     characters: CombatCharacter[];
