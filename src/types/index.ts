@@ -73,6 +73,9 @@ import { UnderdarkState, LightSource } from './underdark';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
 import type { DamageType } from './spells';
 
+// Import Economy types
+import { EconomyState } from './economy';
+
 export * from './core';
 export * from './items';
 export * from './character';
@@ -87,6 +90,7 @@ export * from './crime';
 export * from './dialogue';
 export * from './underdark';
 export * from './history';
+export * from './economy'; // Export new economy types
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
@@ -334,6 +338,9 @@ export interface GeminiLogEntry {
 // Crime & notoriety (Legacy - migrating to src/types/crime)
 // -----------------------------------------------------------------------------
 import { Crime, HeatLevel, Bounty } from './crime';
+import { PlayerLegacy } from './legacy';
+import { Stronghold } from './stronghold';
+
 // Import the new History types to make them available globally
 import { WorldHistory, WorldHistoryEvent } from './history';
 
@@ -492,25 +499,6 @@ export interface StartGameSuccessPayload {
   startingInventory: Item[];
 }
 
-export interface MarketEvent {
-  id: string;
-  name: string;
-  description: string;
-  affectedTags: string[]; // Tags like 'weapon', 'food', 'magic'
-  effect: 'scarcity' | 'surplus';
-  duration: number; // In game ticks or arbitrary units
-}
-
-export interface EconomyState {
-  marketFactors: {
-    scarcity: string[]; // Item types or tags that are scarce (high demand)
-    surplus: string[]; // Item types or tags that are abundant (low value)
-  };
-  buyMultiplier: number; // Base multiplier for buying
-  sellMultiplier: number; // Base multiplier for selling
-  activeEvents?: MarketEvent[];
-}
-
 export interface GameState {
   phase: GamePhase;
   previousPhase?: GamePhase; // Track previous phase for back navigation
@@ -586,6 +574,8 @@ export interface GameState {
 
   notoriety: NotorietyState;
 
+  activeRumors?: WorldRumor[];
+
   /**
    * Global history of the world.
    * Tracks major events, faction changes, and heroics.
@@ -612,6 +602,10 @@ export interface GameState {
   dynamicLocations: Record<string, Location>; // Generated locations that don't exist in static data
   // Intriguer: Identity System
   playerIdentity?: import('./identity').PlayerIdentityState;
+
+  // Castellan: Legacy & Strongholds
+  legacy?: PlayerLegacy;
+  strongholds?: Record<string, Stronghold>;
 
   // Depthcrawler: Underdark System
   underdark: UnderdarkState;
@@ -839,3 +833,4 @@ export interface Notification {
   duration?: number;
 }
 export * from './elemental';
+export * from './stronghold';

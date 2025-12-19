@@ -7,24 +7,24 @@
  */
 // TODO: Add ARIA labels, keyboard navigation, and screen reader support for interactive elements in battle maps and UI components
 import React, { useState, useMemo, useEffect, useCallback, useRef, useContext } from 'react';
-import BattleMap from './BattleMap/BattleMap';
-import { PlayerCharacter } from '../types';
-import { BattleMapData, CombatCharacter, CombatLogEntry } from '../types/combat';
-import ErrorBoundary from './ErrorBoundary';
-import { useTurnManager } from '../hooks/combat/useTurnManager';
-import { useAbilitySystem } from '../hooks/useAbilitySystem';
-import { generateBattleSetup } from '../hooks/useBattleMapGeneration';
-import InitiativeTracker from './BattleMap/InitiativeTracker';
-import AbilityPalette from './BattleMap/AbilityPalette';
-import CombatLog from './BattleMap/CombatLog';
-import ActionEconomyBar from './BattleMap/ActionEconomyBar';
-import PartyDisplay from './BattleMap/PartyDisplay';
-import CharacterSheetModal from './CharacterSheetModal';
-import { canUseDevTools } from '../utils/permissions';
-import { logger } from '../utils/logger';
-import { createPlayerCombatCharacter } from '../utils/combatUtils';
-import SpellContext from '../context/SpellContext';
-import { Spell } from '../types/spells';
+import BattleMap from './BattleMap';
+import { PlayerCharacter } from '../../types';
+import { BattleMapData, CombatCharacter, CombatLogEntry } from '../../types/combat';
+import ErrorBoundary from '../ErrorBoundary';
+import { useTurnManager } from '../../hooks/combat/useTurnManager';
+import { useAbilitySystem } from '../../hooks/useAbilitySystem';
+import { generateBattleSetup } from '../../hooks/useBattleMapGeneration';
+import InitiativeTracker from './InitiativeTracker';
+import AbilityPalette from './AbilityPalette';
+import CombatLog from './CombatLog';
+import ActionEconomyBar from './ActionEconomyBar';
+import PartyDisplay from './PartyDisplay';
+import CharacterSheetModal from '../CharacterSheetModal';
+import { canUseDevTools } from '../../utils/permissions';
+import { logger } from '../../utils/logger';
+import { createPlayerCombatCharacter } from '../../utils/combatUtils';
+import SpellContext from '../../context/SpellContext';
+import { Spell } from '../../types/spells';
 
 
 interface BattleMapDemoProps {

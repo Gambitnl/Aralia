@@ -29,15 +29,17 @@ import { motion } from 'framer-motion';
 import AISpellInputModal from '../BattleMap/AISpellInputModal';
 import { Spell } from '../../types/spells';
 import { ReactionPrompt } from './ReactionPrompt';
+import { Plane } from '../../types/planes';
 
 interface CombatViewProps {
   party: PlayerCharacter[];
   enemies: CombatCharacter[];
   biome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp';
   onBattleEnd: (result: 'victory' | 'defeat', rewards?: { gold: number; items: Item[]; xp: number }) => void;
+  currentPlane?: Plane;
 }
 
-const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattleEnd }) => {
+const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattleEnd, currentPlane }) => {
   // NEW: Get spell data to hydrate combat abilities
   const allSpells = useContext(SpellContext);
 
@@ -147,7 +149,8 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
     onRequestInput: handleRequestInput,
     reactiveTriggers: turnManager.reactiveTriggers,
     onReactiveTriggerUpdate: turnManager.setReactiveTriggers,
-    onMapUpdate: setMapData
+    onMapUpdate: setMapData,
+    currentPlane
   });
 
   const handleToggleAuto = useCallback((characterId: string) => {

@@ -1,5 +1,4 @@
-## 2024-05-23 - Dynamic Companion Reactions
-
-**Learning:** Assigning "tags" to player decisions (e.g., "crime", "charity") and mapping them to companion personalities creates a scalable, emergent reaction system without scripting every interaction.
-
-**Action:** Future systems (like Faction Reputation) should also use this tag-based `DecisionContext` to unify how the world reacts to player choices.
+## 2024-05-23 - Dynamic Relationship Unlocks
+**Learning:** Hard-coded relationship levels (Stranger -> Friend) feel empty without mechanical consequences.
+**Insight:** Tying "Unlocks" (passive buffs, items) directly to the `RelationshipManager.processApprovalEvent` loop creates an immediate dopamine hit for the player and reinforces the narrative bond.
+**Action:** When designing future companion systems, always pair narrative milestones (Label Change) with mechanical rewards (Unlocks) in the same state update cycle.

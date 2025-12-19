@@ -46,6 +46,102 @@ export interface TerrainRule {
   hazards?: EnvironmentalHazard[];
 }
 
+// --- Decoration System ---
+
+/**
+ * Standard classification for objects placed on the battle map.
+ * Replaces ad-hoc string literals.
+ */
+export enum DecorationType {
+  Tree = 'tree',
+  Boulder = 'boulder',
+  Stalagmite = 'stalagmite',
+  Pillar = 'pillar',
+  Cactus = 'cactus',
+  Mangrove = 'mangrove',
+  // Future expansions
+  // Crate = 'crate',
+  // Barrel = 'barrel',
+}
+
+export interface DecorationTraits {
+  name: string;
+  description: string;
+  cover: CoverType;
+  blocksMovement: boolean;
+  blocksLineOfSight: boolean;
+  isDestructible: boolean;
+  hp?: number;
+  ac?: number;
+}
+
+/**
+ * Defines the mechanical properties of map decorations.
+ * Source: D&D 5e Cover and Object rules (PHB/DMG).
+ */
+export const DecorationDefinitions: Record<DecorationType, DecorationTraits> = {
+  [DecorationType.Tree]: {
+    name: "Tree",
+    description: "A large trunk providing substantial protection.",
+    cover: 'half', // A single tree is usually half cover
+    blocksMovement: true,
+    blocksLineOfSight: true, // The trunk blocks LoS
+    isDestructible: true,
+    hp: 50, // Generic large tree
+    ac: 15
+  },
+  [DecorationType.Boulder]: {
+    name: "Boulder",
+    description: "A large rock sitting on the ground.",
+    cover: 'three_quarters', // Offers significant protection
+    blocksMovement: true,
+    blocksLineOfSight: false, // Usually can see over if tall enough, but generally 'true' for a 5ft space blocker
+    isDestructible: true,
+    hp: 60,
+    ac: 17
+  },
+  [DecorationType.Stalagmite]: {
+    name: "Stalagmite",
+    description: "A rock formation rising from the cave floor.",
+    cover: 'half',
+    blocksMovement: true,
+    blocksLineOfSight: false,
+    isDestructible: true,
+    hp: 40,
+    ac: 17
+  },
+  [DecorationType.Pillar]: {
+    name: "Stone Pillar",
+    description: "A worked stone column supporting a structure.",
+    cover: 'three_quarters', // Depends on width, but usually substantial
+    blocksMovement: true,
+    blocksLineOfSight: true,
+    isDestructible: true,
+    hp: 80,
+    ac: 17
+  },
+  [DecorationType.Cactus]: {
+    name: "Giant Cactus",
+    description: "A prickly desert plant.",
+    cover: 'half',
+    blocksMovement: true,
+    blocksLineOfSight: false,
+    isDestructible: true,
+    hp: 20,
+    ac: 11
+  },
+  [DecorationType.Mangrove]: {
+    name: "Mangrove Roots",
+    description: "A tangle of roots rising from the water.",
+    cover: 'half',
+    blocksMovement: true, // Difficult or impassable
+    blocksLineOfSight: false,
+    isDestructible: true,
+    hp: 40,
+    ac: 13
+  }
+};
+
 // --- Hazard System ---
 
 export interface EnvironmentalHazard {

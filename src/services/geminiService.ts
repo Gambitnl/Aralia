@@ -19,7 +19,7 @@ import { CLASSES_DATA } from '../data/classes';
 import { MONSTERS_DATA } from '../constants';
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, FAST_MODEL, COMPLEX_MODEL } from '../config/geminiConfig';
 import * as ItemTemplates from '../data/item_templates';
-import { sanitizeAIInput, redactSensitiveData } from '../utils/securityUtils';
+import { sanitizeAIInput, redactSensitiveData, safeJSONParse, cleanAIJSON } from '../utils/securityUtils';
 import { getFallbackEncounter } from './geminiServiceFallback';
 import { MonsterSchema, CustomActionSchema, SocialOutcomeSchema, InventoryResponseSchema, ItemSchema } from './geminiSchemas';
 
@@ -472,11 +472,24 @@ export async function generateActionOutcome(
   worldMapTileTooltip?: string | null,
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
-  const systemInstruction = isCustomGeminiAction
+  // Validate Context Richness
+  if (!context || context.length < 50) {
+    logger.warn("generateActionOutcome: Context provided is extremely sparse. AI hallucination risk increased.", { action: playerAction, contextLength: context?.length });
+  }
+
+  let systemInstruction = isCustomGeminiAction
     ? "You are a Dungeon Master narrating the outcome of a player's specific, creative action. Maintain continuity with Recent Events if provided. If the action contradicts the setting, describe the failure. The response should be a brief, 2-3 sentence description of what happens next."
     : "You are a Dungeon Master narrating the outcome of a player's action. Maintain continuity with Recent Events if provided. The response should be a brief, 2-3 sentence description.";
 
   const sanitizedAction = sanitizeAIInput(playerAction);
+
+  // If the action implies listening or gathering information, guide the AI to use rumors
+  const actionLower = sanitizedAction.toLowerCase();
+  const isInformationGathering = actionLower.includes('listen') || actionLower.includes('rumor') || actionLower.includes('news') || actionLower.includes('gossip') || actionLower.includes('hear');
+
+  if (isInformationGathering) {
+      systemInstruction += " If the player is listening for rumors or news, prioritize information from the 'WORLD RUMORS & NEWS' section of the context.";
+  }
 
   const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, sanitizedAction); // Default to PRO for quality narration, downgrades if spammy/short
 
@@ -646,8 +659,9 @@ export async function generateEncounter(
 
       if (responseText) {
         try {
-          const jsonString = responseText.replace(/```json\n|```/g, '').trim();
-          const parsed = JSON.parse(jsonString);
+          const jsonString = cleanAIJSON(responseText);
+          const parsed = safeJSONParse(jsonString);
+          if (!parsed) throw new Error("Parsed JSON is null");
           encounter = MonsterSchema.array().parse(parsed);
         } catch (e) {
           logger.error(`Failed to parse JSON from generateEncounter with model ${model}:`, { responseText, error: e });
@@ -762,8 +776,9 @@ export async function generateCustomActions(
 
   let actions: Action[] = [];
   try {
-    const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
-    const parsedActions = JSON.parse(jsonString);
+    const jsonString = cleanAIJSON(result.data.text);
+    const parsedActions = safeJSONParse(jsonString);
+    if (!parsedActions) throw new Error("Parsed JSON is null");
     const validatedActions = CustomActionSchema.array().parse(parsedActions);
 
     actions = validatedActions.map(a => ({
@@ -836,8 +851,9 @@ export async function generateSocialCheckOutcome(
   }
 
   try {
-    const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
-    const parsed = JSON.parse(jsonString);
+    const jsonString = cleanAIJSON(result.data.text);
+    const parsed = safeJSONParse(jsonString);
+    if (!parsed) throw new Error("Parsed JSON is null");
     const validated = SocialOutcomeSchema.parse(parsed);
 
     // Cast the status to match GoalStatus enum if needed or ensure safe usage
@@ -937,8 +953,9 @@ export async function generateMerchantInventory(
   }
 
   try {
-    const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
-    const parsed = JSON.parse(jsonString);
+    const jsonString = cleanAIJSON(result.data.text);
+    const parsed = safeJSONParse(jsonString);
+    if (!parsed) throw new Error("Parsed JSON is null");
     const validated = InventoryResponseSchema.parse(parsed);
 
     // Ensure items have IDs
@@ -1020,8 +1037,9 @@ export async function generateHarvestLoot(
   }
 
   try {
-    const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
-    const parsed = JSON.parse(jsonString);
+    const jsonString = cleanAIJSON(result.data.text);
+    const parsed = safeJSONParse(jsonString);
+    if (!parsed) throw new Error("Parsed JSON is null");
     const rawItems = ItemSchema.array().parse(parsed);
 
     const items = rawItems.map(item => ({

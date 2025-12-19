@@ -8,7 +8,7 @@ import { useBattleMap } from '../../hooks/useBattleMap';
 import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
 import BattleMapTile from './BattleMapTile';
 import CharacterToken from './CharacterToken';
-import BattleMapOverlay from '../BattleMapOverlay';
+import BattleMapOverlay from './BattleMapOverlay';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
 import { generateId } from '../../utils/combatUtils';
 
@@ -153,23 +153,21 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
             )
           })}
           
-          {Array.from(characterPositions.values()).map(charPos => {
-            const character = characters.find(c => c.id === charPos.characterId);
-            if (!character) return null;
-            // Removed attackableTargets.has(character.id) as it was unused/dead code.
-            // Replaced with explicit check if the character's tile is a valid target.
-            const charTileId = `${charPos.coordinates.x}-${charPos.coordinates.y}`;
+          {characters.map(character => {
+            // Optimized: Iterate characters directly instead of looking them up via characterPositions map
+            // This removes an O(N) search inside the loop, making this rendering phase O(N) instead of O(N^2)
+            const charTileId = `${character.position.x}-${character.position.y}`;
             const isTargetable = validTargetSet.has(charTileId);
 
             return (
               <CharacterToken
                 key={character.id}
                 character={character}
-                position={charPos.coordinates}
+                position={character.position}
                 isSelected={selectedCharacterId === character.id}
                 isTargetable={isTargetable}
                 isTurn={turnState.currentCharacterId === character.id}
-                onClick={() => handleCharacterClick(character)}
+                onCharacterClick={handleCharacterClick}
               />
             );
           })}

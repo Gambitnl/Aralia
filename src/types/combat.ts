@@ -9,6 +9,7 @@ import type { Class, SpellbookData, SpellSlots } from './character';
 import type { Item } from './items';
 import type { Spell, DamageType, SavingThrowAbility, ConditionName, EffectDuration, SpellEffect } from './spells'; // Import Spell
 import { StateTag } from './elemental';
+import { Plane } from './planes';
 
 export type { SpellSlots };
 
@@ -54,8 +55,12 @@ export interface CombatCharacter {
   id: string;
   name: string;
   level: number; // For scaling calculations (CR for monsters, Level for PCs)
-  // TODO(Taxonomist): Migrate string[] to CreatureType[] from src/types/creatures.ts
-  creatureTypes?: string[]; // e.g., ['Undead', 'Humanoid']
+  /**
+   * Creature types for targeting (e.g., ['Humanoid', 'Elf']).
+   * Used by spells like Charm Person or Hold Person.
+   * TODO(Taxonomist): Migrate string[] to CreatureType[] from src/types/creatures.ts
+   */
+  creatureTypes?: string[];
   alignment?: string; // e.g., 'Chaotic Evil', 'Lawful Good'
   class: Class;
   savingThrowProficiencies?: AbilityScoreName[]; // For characters that have additional saving throw proficiencies (e.g. from feats)
@@ -351,6 +356,7 @@ export interface CombatState {
   reactiveTriggers: ReactiveTrigger[];
   activeLightSources: LightSource[];    // Active light sources on the map
   mapData?: BattleMapData;
+  currentPlane?: Plane; // NEW: The plane where combat is taking place
 }
 
 export interface MoveAnimationData {

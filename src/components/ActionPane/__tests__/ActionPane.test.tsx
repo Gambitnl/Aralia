@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import ActionPane from '../ActionPane';
-import { Action, Item, Location, NPC } from '../../types';
+import ActionPane from '../index';
+import { Action, Item, Location, NPC } from '../../../types';
 
 vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,

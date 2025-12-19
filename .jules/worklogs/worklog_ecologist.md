@@ -1,0 +1,1 @@
+## 2024-05-23 - Created Hazard System Framework **Learning:** Natural hazards require distinct trigger mechanisms compared to spell effects, as they are intrinsic to the environment and persistent. **Action:** Future implementations should consider hazards as active entities that can be manipulated (e.g. freezing water to create ice).

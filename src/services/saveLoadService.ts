@@ -491,9 +491,15 @@ function removeSlotMetadata(slotId: string) {
   }
 }
 
-// TODO: Guard slot index writes with quota-safe try/catch and fall back to in-memory cache so a full localStorage doesn't crash saveGame().
 function persistSlotIndex(next: SaveSlotSummary[]) {
-  SafeStorage.setItem(SLOT_INDEX_KEY, JSON.stringify(next));
+  // Graceful degradation: If LocalStorage is full, we still update the in-memory cache
+  // so the user sees their new save during the current session.
+  try {
+    SafeStorage.setItem(SLOT_INDEX_KEY, JSON.stringify(next));
+  } catch (error) {
+    logger.warn("Failed to persist save slot index to LocalStorage (quota exceeded?)", { error });
+  }
+
   slotIndexCache = [...next];
   try {
     SafeSession.setItem(SESSION_CACHE_KEY, JSON.stringify(next));

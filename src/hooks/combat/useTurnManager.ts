@@ -189,6 +189,7 @@ export const useTurnManager = ({
     if (isNewRound) {
       // TODO: (Ecologist) Integrate updateEnvironment(turnState.currentTurn) here to process weather changes.
       // e.g., environmentSystem.updateWeather(turnState.currentTurn);
+      // Also process Hazard System triggers (e.g., evaluateTerrainHazards(characters))
     }
     if (isNewRound) {
       updateRoundBasedEffects(turnState.currentTurn);

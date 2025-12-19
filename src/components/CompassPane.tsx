@@ -10,7 +10,8 @@ import React, { useState } from 'react';
 import { Action, Location, MapData } from '../types';
 import { BIOMES } from '../constants'; // To get biome details like color
 import { DIRECTION_VECTORS, SUBMAP_DIMENSIONS } from '../config/mapConfig';
-import { formatGameTime, getGameDay } from '@/utils/timeUtils';
+import { formatGameTime, getGameDay, getSeason } from '@/utils/timeUtils';
+import { getCalendarDescription } from '@/systems/time/CalendarSystem';
 import Tooltip from './Tooltip'; // Import Tooltip
 import PassTimeModal from './PassTimeModal'; // Import the new modal
 
@@ -96,12 +97,15 @@ const CompassPane: React.FC<CompassPaneProps> = ({
   const formatGameTimeDisplay = (date: Date): string => {
     const dayNumber = getGameDay(date);
     const timeString = formatGameTime(date, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-    return `Day ${dayNumber}, ${timeString}`;
+    const season = getSeason(date);
+    return `Day ${dayNumber} (${season}), ${timeString}`;
   };
   
   const handlePassTimeConfirm = (totalSeconds: number) => {
     onAction({ type: 'wait', label: 'Pass time', payload: { seconds: totalSeconds } });
   };
+
+  const calendarDescription = getCalendarDescription(gameTime);
 
   return (
     <>
@@ -177,7 +181,7 @@ const CompassPane: React.FC<CompassPaneProps> = ({
               </button>
             </Tooltip>
           )}
-          <Tooltip content="Pass Time">
+          <Tooltip content={calendarDescription}>
             <button
               onClick={() => setIsPassTimeModalOpen(true)}
               disabled={disabled}

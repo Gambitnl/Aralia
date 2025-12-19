@@ -14,7 +14,8 @@ import {
   RelationshipEvent,
   NPCIdentity,
   ApprovalEvent,
-  CompanionReactionRule
+  CompanionReactionRule,
+  RelationshipUnlock
 } from '../types/companions';
 
 const createInitialRelationship = (targetId: string = 'player'): Relationship => ({
@@ -59,6 +60,30 @@ const KAELEN_GOALS: CompanionGoal[] = [
     isSecret: true,
     status: 'active',
     progress: 0
+  }
+];
+
+const KAELEN_PROGRESSION: RelationshipUnlock[] = [
+  {
+    id: 'kaelen_streetwise',
+    type: 'passive',
+    description: 'Streetwise: +5% Gold found in loot.',
+    isUnlocked: false,
+    requiredLevel: 'acquaintance'
+  },
+  {
+    id: 'kaelen_cheap_shot',
+    type: 'ability',
+    description: 'Cheap Shot: Once per combat, Kaelen deals bonus damage to distracted foes.',
+    isUnlocked: false,
+    requiredLevel: 'friend'
+  },
+  {
+    id: 'kaelen_underdark_path',
+    type: 'quest',
+    description: 'Quest: The Smuggler\'s Route (Unlocks hidden travel paths)',
+    isUnlocked: false,
+    requiredLevel: 'close'
   }
 ];
 
@@ -180,6 +205,30 @@ const ELARA_GOALS: CompanionGoal[] = [
   }
 ];
 
+const ELARA_PROGRESSION: RelationshipUnlock[] = [
+  {
+    id: 'elara_blessed_water',
+    type: 'item',
+    description: 'Blessed Water: Elara gifts you a potion of healing.',
+    isUnlocked: false,
+    requiredLevel: 'acquaintance'
+  },
+  {
+    id: 'elara_guardians_prayer',
+    type: 'passive',
+    description: 'Guardian\'s Prayer: +1 AC to nearby allies.',
+    isUnlocked: false,
+    requiredLevel: 'friend'
+  },
+  {
+    id: 'elara_divine_intervention',
+    type: 'ability',
+    description: 'Ability: Divine Intervention (Once per week)',
+    isUnlocked: false,
+    requiredLevel: 'devoted'
+  }
+];
+
 const ELARA_REACTIONS: CompanionReactionRule[] = [
   // DECISION TRIGGERS
   {
@@ -253,6 +302,7 @@ export const COMPANIONS: Record<string, Companion> = {
     identity: KAELEN_ID,
     personality: KAELEN_PERSONALITY,
     goals: KAELEN_GOALS,
+    progression: KAELEN_PROGRESSION,
     relationships: {
       player: createInitialRelationship()
     },
@@ -265,6 +315,7 @@ export const COMPANIONS: Record<string, Companion> = {
     identity: ELARA_ID,
     personality: ELARA_PERSONALITY,
     goals: ELARA_GOALS,
+    progression: ELARA_PROGRESSION,
     relationships: {
       player: createInitialRelationship()
     },

@@ -1,16 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import {
   createMockSpell,
-  createMockPlayerCharacter,
-  createMockGameState,
-  createMockCombatCharacter,
-  createMockCombatState,
   createMockItem,
   createMockQuest,
   createMockMonster,
   createMockGameMessage
 } from '../factories';
 import { isSpell } from '@/types/spells';
+import { SpellValidator } from '../../systems/spells/validation/spellValidator';
+import { ItemType } from '@/types/index';
+import { QuestStatus } from '@/types/index';
 
 describe('Mimic Factories', () => {
   describe('createMockSpell', () => {
@@ -42,9 +41,25 @@ describe('Mimic Factories', () => {
         targeting: {
           type: "area",
           range: 150,
-          areaOfEffect: { shape: "Sphere", size: 20 },
-          validTargets: ["creatures"]
-        }
+          areaOfEffect: { shape: "Sphere", size: 20, height: 20 },
+          validTargets: ["creatures"],
+          // Need to provide full object for valid SpellValidator, or update createMockSpell to merge deeply (it shallow merges)
+          // createMockSpell uses ...overrides, so top level keys replace completely.
+          // So I need to provide all required fields of 'targeting' if I override it, OR the factory should support deep merge.
+          // The current factory implementation is shallow spread: ...overrides.
+          // So I must provide a complete targeting object here or the test will fail validation if I check validation.
+          // But here we are just checking properties.
+          maxTargets: 1,
+          lineOfSight: true,
+          filter: {
+            creatureTypes: [],
+            excludeCreatureTypes: [],
+            sizes: [],
+            alignments: [],
+            hasCondition: [],
+            isNativeToPlane: false
+          }
+        } as any // Cast to any to avoid strict typing needed for the test if the factory typing is strict
       });
 
       expect(spell.targeting.type).toBe("area");
@@ -56,6 +71,15 @@ describe('Mimic Factories', () => {
          throw new Error("Targeting type mismatch");
       }
     });
+
+    it('should return a valid spell according to SpellValidator', () => {
+      const spell = createMockSpell();
+      const result = SpellValidator.safeParse(spell);
+      if (!result.success) {
+        // console.error(JSON.stringify(result.error, null, 2));
+      }
+      expect(result.success).toBe(true);
+    });
   });
 
   describe('createMockItem', () => {
@@ -63,13 +87,13 @@ describe('Mimic Factories', () => {
       const item = createMockItem();
       expect(item).toBeDefined();
       expect(item.name).toBe('Mock Item');
-      expect(item.type).toBe('misc');
+      expect(item.type).toBe(ItemType.Treasure);
     });
 
     it('accepts overrides', () => {
-      const item = createMockItem({ name: 'Sword', type: 'weapon' });
+      const item = createMockItem({ name: 'Sword', type: ItemType.Weapon });
       expect(item.name).toBe('Sword');
-      expect(item.type).toBe('weapon');
+      expect(item.type).toBe(ItemType.Weapon);
     });
   });
 
@@ -77,14 +101,14 @@ describe('Mimic Factories', () => {
     it('creates a default quest', () => {
       const quest = createMockQuest();
       expect(quest).toBeDefined();
-      expect(quest.name).toBe('Mock Quest');
-      expect(quest.status).toBe('Active');
+      expect(quest.title).toBe('Mock Quest');
+      expect(quest.status).toBe(QuestStatus.Active);
     });
 
     it('accepts overrides', () => {
-      const quest = createMockQuest({ name: 'Save the King', status: 'Completed' });
-      expect(quest.name).toBe('Save the King');
-      expect(quest.status).toBe('Completed');
+      const quest = createMockQuest({ title: 'Save the King', status: QuestStatus.Completed });
+      expect(quest.title).toBe('Save the King');
+      expect(quest.status).toBe(QuestStatus.Completed);
     });
   });
 
@@ -108,13 +132,13 @@ describe('Mimic Factories', () => {
       const msg = createMockGameMessage();
       expect(msg).toBeDefined();
       expect(msg.text).toBe('This is a mock message.');
-      expect(msg.type).toBe('info');
+      expect(msg.sender).toBe('system');
     });
 
     it('accepts overrides', () => {
-      const msg = createMockGameMessage({ text: 'Error!', type: 'error' });
+      const msg = createMockGameMessage({ text: 'Error!', sender: 'error' });
       expect(msg.text).toBe('Error!');
-      expect(msg.type).toBe('error');
+      expect(msg.sender).toBe('error');
     });
   });
 });

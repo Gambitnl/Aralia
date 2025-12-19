@@ -25,32 +25,35 @@
  * - GameGuideModal: AI helper interface.
  * - MissingChoiceModal: Prompt for resolving pending character choices (e.g., leveling up).
  */
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, MapTile } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { SUBMAP_DIMENSIONS } from '../../config/mapConfig';
 import { NPCS } from '../../constants';
 import { canUseDevTools } from '../../utils/permissions';
+import { LoadingSpinner } from '../ui/LoadingSpinner';
 
 import ErrorBoundary from '../ErrorBoundary';
-import MapPane from '../MapPane';
-import QuestLog from '../QuestLog';
-import SubmapPane from '../Submap/SubmapPane';
-import CharacterSheetModal from '../CharacterSheetModal';
-import DevMenu from '../DevMenu';
-import PartyOverlay from '../PartyOverlay';
-import PartyEditorModal from '../PartyEditorModal';
-import GeminiLogViewer from '../GeminiLogViewer';
-import NpcInteractionTestModal from '../NpcInteractionTestModal';
-import DossierPane from '../DossierPane';
-import DiscoveryLogPane from '../DiscoveryLogPane';
+
+// Lazy load heavy/conditional components to improve initial bundle size
+const MapPane = lazy(() => import('../MapPane'));
+const QuestLog = lazy(() => import('../QuestLog'));
+const SubmapPane = lazy(() => import('../Submap/SubmapPane'));
+const CharacterSheetModal = lazy(() => import('../CharacterSheetModal'));
+const DevMenu = lazy(() => import('../DevMenu'));
+const PartyOverlay = lazy(() => import('../PartyOverlay'));
+const PartyEditorModal = lazy(() => import('../PartyEditorModal'));
+const GeminiLogViewer = lazy(() => import('../GeminiLogViewer'));
+const NpcInteractionTestModal = lazy(() => import('../NpcInteractionTestModal'));
+const DossierPane = lazy(() => import('../DossierPane'));
+const DiscoveryLogPane = lazy(() => import('../DiscoveryLogPane'));
 // Glossary exports a named component from its index barrel
-import { Glossary } from '../Glossary';
-import EncounterModal from '../EncounterModal';
-import MerchantModal from '../MerchantModal';
-import GameGuideModal from '../GameGuideModal';
-import MissingChoiceModal from '../MissingChoiceModal';
+const Glossary = lazy(() => import('../Glossary').then(module => ({ default: module.Glossary })));
+const EncounterModal = lazy(() => import('../EncounterModal'));
+const MerchantModal = lazy(() => import('../MerchantModal'));
+const GameGuideModal = lazy(() => import('../GameGuideModal'));
+const MissingChoiceModal = lazy(() => import('../MissingChoiceModal'));
 
 // TODO(FEATURES): Add centralized focus management and keyboard navigation patterns across modals for stronger accessibility (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 
@@ -123,232 +126,260 @@ const GameModals: React.FC<GameModalsProps> = ({
     handleOpenCharacterSheet,
 }) => {
 
-    // Derived biome check for Submap rendering
-    // Ensures we don't try to render a submap tile without biome context.
-    const currentBiome = currentLocation ? (gameState.mapData?.tiles[currentLocation.mapCoordinates?.y || 0]?.[currentLocation.mapCoordinates?.x || 0]?.biomeId || currentLocation.biomeId) : null;
-
     return (
         <AnimatePresence>
             {/* World Map Overlay */}
             {gameState.isMapVisible && gameState.mapData && (
-                <ErrorBoundary fallbackMessage="Error displaying the World Map.">
-                    <MapPane
-                        mapData={gameState.mapData}
-                        onTileClick={onTileClick}
-                        onClose={() => onAction({ type: 'toggle_map', label: 'Close Map' })}
-                    />
-                </ErrorBoundary>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error displaying the World Map.">
+                        <MapPane
+                            mapData={gameState.mapData}
+                            onTileClick={onTileClick}
+                            onClose={() => onAction({ type: 'toggle_map', label: 'Close Map' })}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
             )}
 
             {/* Quest Log Overlay */}
             {gameState.isQuestLogVisible && (
-                <ErrorBoundary fallbackMessage="Error in Quest Log.">
-                    <QuestLog
-                        isOpen={gameState.isQuestLogVisible}
-                        onClose={() => dispatch({ type: 'TOGGLE_QUEST_LOG' })}
-                        quests={gameState.questLog}
-                    />
-                </ErrorBoundary>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Quest Log.">
+                        <QuestLog
+                            isOpen={gameState.isQuestLogVisible}
+                            onClose={() => dispatch({ type: 'TOGGLE_QUEST_LOG' })}
+                            quests={gameState.questLog}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
             )}
 
             {/* Submap / Tactical View Overlay */}
             {gameState.isSubmapVisible && gameState.party[0] && gameState.mapData && gameState.subMapCoordinates && (
-                <ErrorBoundary fallbackMessage="Error displaying the Submap.">
-                    <SubmapPane
-                        currentLocation={currentLocation}
-                        currentWorldBiomeId={currentLocation.biomeId}
-                        playerSubmapCoords={gameState.subMapCoordinates}
-                        onClose={() => onAction({ type: 'toggle_submap_visibility', label: 'Close Submap' })}
-                        submapDimensions={SUBMAP_DIMENSIONS}
-                        parentWorldMapCoords={currentLocation.mapCoordinates || { x: 0, y: 0 }}
-                        onAction={onAction}
-                        disabled={submapPaneDisabled}
-                        inspectedTileDescriptions={gameState.inspectedTileDescriptions}
-                        mapData={gameState.mapData}
-                        gameTime={gameState.gameTime}
-                        playerCharacter={gameState.party[0]}
-                        worldSeed={gameState.worldSeed}
-                        npcsInLocation={npcsInLocation}
-                        itemsInLocation={itemsInLocation}
-                        geminiGeneratedActions={gameState.geminiGeneratedActions}
-                        isDevDummyActive={canUseDevTools()}
-                        unreadDiscoveryCount={gameState.unreadDiscoveryCount}
-                        hasNewRateLimitError={gameState.hasNewRateLimitError}
-                    />
-                </ErrorBoundary>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error displaying the Submap.">
+                        <SubmapPane
+                            currentLocation={currentLocation}
+                            currentWorldBiomeId={currentLocation.biomeId}
+                            playerSubmapCoords={gameState.subMapCoordinates}
+                            onClose={() => onAction({ type: 'toggle_submap_visibility', label: 'Close Submap' })}
+                            submapDimensions={SUBMAP_DIMENSIONS}
+                            parentWorldMapCoords={currentLocation.mapCoordinates || { x: 0, y: 0 }}
+                            onAction={onAction}
+                            disabled={submapPaneDisabled}
+                            inspectedTileDescriptions={gameState.inspectedTileDescriptions}
+                            mapData={gameState.mapData}
+                            gameTime={gameState.gameTime}
+                            playerCharacter={gameState.party[0]}
+                            worldSeed={gameState.worldSeed}
+                            npcsInLocation={npcsInLocation}
+                            itemsInLocation={itemsInLocation}
+                            geminiGeneratedActions={gameState.geminiGeneratedActions}
+                            isDevDummyActive={canUseDevTools()}
+                            unreadDiscoveryCount={gameState.unreadDiscoveryCount}
+                            hasNewRateLimitError={gameState.hasNewRateLimitError}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
             )}
 
             {/* Character Sheet Modal */}
             {gameState.characterSheetModal.isOpen && gameState.characterSheetModal.character && (
-                <ErrorBoundary fallbackMessage="Error displaying Character Sheet.">
-                    <CharacterSheetModal
-                        isOpen={gameState.characterSheetModal.isOpen}
-                        character={gameState.characterSheetModal.character}
-                        inventory={gameState.inventory}
-                        gold={gameState.gold}
-                        onClose={handleCloseCharacterSheet}
-                        onAction={onAction}
-                        onNavigateToGlossary={handleNavigateToGlossaryFromTooltip}
-                    />
-                </ErrorBoundary>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error displaying Character Sheet.">
+                        <CharacterSheetModal
+                            isOpen={gameState.characterSheetModal.isOpen}
+                            character={gameState.characterSheetModal.character}
+                            inventory={gameState.inventory}
+                            gold={gameState.gold}
+                            onClose={handleCloseCharacterSheet}
+                            onAction={onAction}
+                            onNavigateToGlossary={handleNavigateToGlossaryFromTooltip}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
             )}
 
             {/* Developer Tools Menu */}
             {gameState.isDevMenuVisible && canUseDevTools() && (
-                <ErrorBoundary fallbackMessage="Error in Developer Menu.">
-                    <DevMenu
-                        isOpen={gameState.isDevMenuVisible}
-                        onClose={() => dispatch({ type: 'TOGGLE_DEV_MENU' })}
-                        onDevAction={handleDevMenuAction}
-                        hasNewRateLimitError={gameState.hasNewRateLimitError}
-                        currentModelOverride={gameState.devModelOverride}
-                        onModelChange={handleModelChange}
-                    />
-                </ErrorBoundary>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Developer Menu.">
+                        <DevMenu
+                            isOpen={gameState.isDevMenuVisible}
+                            onClose={() => dispatch({ type: 'TOGGLE_DEV_MENU' })}
+                            onDevAction={handleDevMenuAction}
+                            hasNewRateLimitError={gameState.hasNewRateLimitError}
+                            currentModelOverride={gameState.devModelOverride}
+                            onModelChange={handleModelChange}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
             )}
 
             {/* Party Overview Overlay */}
             {gameState.isPartyOverlayVisible && (
-                <ErrorBoundary fallbackMessage="Error displaying Party Overlay.">
-                    <PartyOverlay
-                        isOpen={gameState.isPartyOverlayVisible}
-                        onClose={handleClosePartyOverlay}
-                        party={gameState.party}
-                        onViewCharacterSheet={handleOpenCharacterSheet}
-                        onFixMissingChoice={onFixMissingChoice}
-                    />
-                </ErrorBoundary>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error displaying Party Overlay.">
+                        <PartyOverlay
+                            isOpen={gameState.isPartyOverlayVisible}
+                            onClose={handleClosePartyOverlay}
+                            party={gameState.party}
+                            onViewCharacterSheet={handleOpenCharacterSheet}
+                            onFixMissingChoice={onFixMissingChoice}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
             )}
 
             {/* Party Editor (Dev Tool) */}
             {gameState.isPartyEditorVisible && canUseDevTools() && (
-                <ErrorBoundary fallbackMessage="Error in Party Editor.">
-                    <PartyEditorModal
-                        isOpen={gameState.isPartyEditorVisible}
-                        onClose={() => dispatch({ type: 'TOGGLE_PARTY_EDITOR_MODAL' })}
-                        initialParty={gameState.party}
-                        onSave={(newParty) => dispatch({ type: 'SET_PARTY_COMPOSITION', payload: newParty })}
-                    />
-                </ErrorBoundary>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Party Editor.">
+                        <PartyEditorModal
+                            isOpen={gameState.isPartyEditorVisible}
+                            onClose={() => dispatch({ type: 'TOGGLE_PARTY_EDITOR_MODAL' })}
+                            initialParty={gameState.party}
+                            onSave={(newParty) => dispatch({ type: 'SET_PARTY_COMPOSITION', payload: newParty })}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
             )}
 
             {/* AI Log Viewer (Dev Tool) */}
             {gameState.isGeminiLogViewerVisible && canUseDevTools() && (
-                <ErrorBoundary fallbackMessage="Error in Gemini Log Viewer.">
-                    <GeminiLogViewer
-                        isOpen={gameState.isGeminiLogViewerVisible}
-                        onClose={() => dispatch({ type: 'TOGGLE_GEMINI_LOG_VIEWER' })}
-                        logEntries={gameState.geminiInteractionLog}
-                    />
-                </ErrorBoundary>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Gemini Log Viewer.">
+                        <GeminiLogViewer
+                            isOpen={gameState.isGeminiLogViewerVisible}
+                            onClose={() => dispatch({ type: 'TOGGLE_GEMINI_LOG_VIEWER' })}
+                            logEntries={gameState.geminiInteractionLog}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
             )}
 
             {/* NPC AI Test Modal (Dev Tool) */}
             {gameState.isNpcTestModalVisible && canUseDevTools() && (
-                <ErrorBoundary fallbackMessage="Error in NPC Test Plan Modal.">
-                    <NpcInteractionTestModal
-                        isOpen={gameState.isNpcTestModalVisible}
-                        onClose={() => dispatch({ type: 'TOGGLE_NPC_TEST_MODAL' })}
-                        onAction={onAction}
-                    />
-                </ErrorBoundary>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in NPC Test Plan Modal.">
+                        <NpcInteractionTestModal
+                            isOpen={gameState.isNpcTestModalVisible}
+                            onClose={() => dispatch({ type: 'TOGGLE_NPC_TEST_MODAL' })}
+                            onAction={onAction}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
             )}
 
             {/* Character Logbook (Journal) */}
             {gameState.isLogbookVisible && (
-                <ErrorBoundary fallbackMessage="Error in Character Logbook.">
-                    <DossierPane
-                        isOpen={gameState.isLogbookVisible}
-                        onClose={() => onAction({ type: 'TOGGLE_LOGBOOK', label: 'Close Logbook' })}
-                        metNpcIds={gameState.metNpcIds}
-                        npcMemory={gameState.npcMemory}
-                        allNpcs={NPCS}
-                    />
-                </ErrorBoundary>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Character Logbook.">
+                        <DossierPane
+                            isOpen={gameState.isLogbookVisible}
+                            onClose={() => onAction({ type: 'TOGGLE_LOGBOOK', label: 'Close Logbook' })}
+                            metNpcIds={gameState.metNpcIds}
+                            npcMemory={gameState.npcMemory}
+                            allNpcs={NPCS}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
             )}
 
             {/* Discovery Log (Exploration Journal) */}
             {gameState.isDiscoveryLogVisible && (
-                <ErrorBoundary fallbackMessage="Error in Discovery Journal.">
-                    <DiscoveryLogPane
-                        isOpen={gameState.isDiscoveryLogVisible}
-                        entries={gameState.discoveryLog}
-                        unreadCount={gameState.unreadDiscoveryCount}
-                        onClose={() => dispatch({ type: 'TOGGLE_DISCOVERY_LOG_VISIBILITY' })}
-                        onMarkRead={(entryId) => dispatch({ type: 'MARK_DISCOVERY_READ', payload: { entryId } })}
-                        onMarkAllRead={() => dispatch({ type: 'MARK_ALL_DISCOVERIES_READ' })}
-                        npcMemory={gameState.npcMemory}
-                        allNpcs={NPCS}
-                    />
-                </ErrorBoundary>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Discovery Journal.">
+                        <DiscoveryLogPane
+                            isOpen={gameState.isDiscoveryLogVisible}
+                            entries={gameState.discoveryLog}
+                            unreadCount={gameState.unreadDiscoveryCount}
+                            onClose={() => dispatch({ type: 'TOGGLE_DISCOVERY_LOG_VISIBILITY' })}
+                            onMarkRead={(entryId) => dispatch({ type: 'MARK_DISCOVERY_READ', payload: { entryId } })}
+                            onMarkAllRead={() => dispatch({ type: 'MARK_ALL_DISCOVERIES_READ' })}
+                            npcMemory={gameState.npcMemory}
+                            allNpcs={NPCS}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
             )}
 
             {/* Glossary (Compendium) */}
             {gameState.isGlossaryVisible && (
-                <ErrorBoundary fallbackMessage="Error in Glossary.">
-                    <Glossary
-                        isOpen={gameState.isGlossaryVisible}
-                        onClose={handleOpenGlossary}
-                        initialTermId={gameState.selectedGlossaryTermForModal}
-                    />
-                </ErrorBoundary>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Glossary.">
+                        <Glossary
+                            isOpen={gameState.isGlossaryVisible}
+                            onClose={handleOpenGlossary}
+                            initialTermId={gameState.selectedGlossaryTermForModal}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
             )}
 
             {/* Combat Encounter Generation Modal */}
             {gameState.isEncounterModalVisible && (
-                <ErrorBoundary fallbackMessage="Error in Encounter Modal.">
-                    <EncounterModal
-                        isOpen={gameState.isEncounterModalVisible}
-                        onClose={() => dispatch({ type: 'HIDE_ENCOUNTER_MODAL' })}
-                        encounter={gameState.generatedEncounter}
-                        sources={gameState.encounterSources}
-                        error={gameState.encounterError}
-                        isLoading={gameState.isLoading}
-                        onAction={onAction}
-                        partyUsed={gameState.tempParty || undefined}
-                    />
-                </ErrorBoundary>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Encounter Modal.">
+                        <EncounterModal
+                            isOpen={gameState.isEncounterModalVisible}
+                            onClose={() => dispatch({ type: 'HIDE_ENCOUNTER_MODAL' })}
+                            encounter={gameState.generatedEncounter}
+                            sources={gameState.encounterSources}
+                            error={gameState.encounterError}
+                            isLoading={gameState.isLoading}
+                            onAction={onAction}
+                            partyUsed={gameState.tempParty || undefined}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
             )}
 
             {/* Merchant / Trading Interface */}
             {gameState.merchantModal.isOpen && (
-                <ErrorBoundary fallbackMessage="Error in Merchant Interface.">
-                    <MerchantModal
-                        isOpen={gameState.merchantModal.isOpen}
-                        merchantName={gameState.merchantModal.merchantName}
-                        merchantInventory={gameState.merchantModal.merchantInventory}
-                        playerInventory={gameState.inventory}
-                        playerGold={gameState.gold}
-                        onClose={() => dispatch({ type: 'CLOSE_MERCHANT' })}
-                        onAction={onAction}
-                    />
-                </ErrorBoundary>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Merchant Interface.">
+                        <MerchantModal
+                            isOpen={gameState.merchantModal.isOpen}
+                            merchantName={gameState.merchantModal.merchantName}
+                            merchantInventory={gameState.merchantModal.merchantInventory}
+                            playerInventory={gameState.inventory}
+                            playerGold={gameState.gold}
+                            onClose={() => dispatch({ type: 'CLOSE_MERCHANT' })}
+                            onAction={onAction}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
             )}
 
             {/* Game Guide (AI Assistant) Modal */}
             {gameState.isGameGuideVisible && (
-                <ErrorBoundary fallbackMessage="Error in Game Guide.">
-                    <GameGuideModal
-                        isOpen={gameState.isGameGuideVisible}
-                        onClose={() => onAction({ type: 'TOGGLE_GAME_GUIDE', label: 'Close Game Guide' })}
-                        gameContext={`Current Location: ${currentLocation.name}. Game Time: ${gameState.gameTime.toLocaleString()}.`}
-                        devModelOverride={gameState.devModelOverride}
-                        onAction={dispatch}
-                    />
-                </ErrorBoundary>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Game Guide.">
+                        <GameGuideModal
+                            isOpen={gameState.isGameGuideVisible}
+                            onClose={() => onAction({ type: 'TOGGLE_GAME_GUIDE', label: 'Close Game Guide' })}
+                            gameContext={`Current Location: ${currentLocation.name}. Game Time: ${gameState.gameTime.toLocaleString()}.`}
+                            devModelOverride={gameState.devModelOverride}
+                            onAction={dispatch}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
             )}
 
             {/* Missing Choice Modal (Level Up / Character Options) */}
             {missingChoiceModal.isOpen && missingChoiceModal.character && missingChoiceModal.missingChoice && (
-                <ErrorBoundary fallbackMessage="Error in Selection Modal.">
-                    <MissingChoiceModal
-                        isOpen={missingChoiceModal.isOpen}
-                        characterName={missingChoiceModal.character.name}
-                        missingChoice={missingChoiceModal.missingChoice}
-                        onClose={onCloseMissingChoice}
-                        onConfirm={onConfirmMissingChoice}
-                    />
-                </ErrorBoundary>
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Selection Modal.">
+                        <MissingChoiceModal
+                            isOpen={missingChoiceModal.isOpen}
+                            characterName={missingChoiceModal.character.name}
+                            missingChoice={missingChoiceModal.missingChoice}
+                            onClose={onCloseMissingChoice}
+                            onConfirm={onConfirmMissingChoice}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
             )}
         </AnimatePresence>
     );

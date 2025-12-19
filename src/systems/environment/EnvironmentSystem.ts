@@ -10,10 +10,15 @@ import {
   TerrainRule,
   SpellModifier,
   Precipitation,
-  WindSpeed
+  WindSpeed,
+  EnvironmentalHazard
 } from '../../types/environment';
 import { Spell, DamageType } from '../../types/spells';
 import { BattleMapTerrain } from '../../types/combat';
+import { NATURAL_HAZARDS } from './hazards';
+
+export { NATURAL_HAZARDS };
+export * from './hazards';
 
 /**
  * Standard movement costs for base terrain types.
@@ -38,7 +43,10 @@ export const TERRAIN_RULES: Record<BattleMapTerrain, TerrainRule> = {
     name: 'Deep Water',
     movementCost: 2, // Swimming is difficult terrain usually
     cover: 'three_quarters', // Submerged
-    stealthAdvantage: true
+    stealthAdvantage: true,
+    // Example: Water could have 'Strong Current' in specific maps,
+    // but base water is just difficult.
+    // We can leave this optional or add a low-level hazard if needed.
   },
   difficult: {
     id: 'difficult',
@@ -154,6 +162,13 @@ export function getTerrainMovementCost(terrain: BattleMapTerrain): number {
  */
 export function getTerrainCover(terrain: BattleMapTerrain): string {
   return TERRAIN_RULES[terrain]?.cover ?? 'none';
+}
+
+/**
+ * Gets the intrinsic hazards for a terrain type.
+ */
+export function getTerrainHazards(terrain: BattleMapTerrain): EnvironmentalHazard[] {
+  return TERRAIN_RULES[terrain]?.hazards || [];
 }
 
 /**

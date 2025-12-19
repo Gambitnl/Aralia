@@ -3,7 +3,8 @@ import {
   SpellSchool,
   SpellRarity,
   SpellAttackType,
-  DamageEffect
+  DamageEffect,
+  DamageType
 } from '@/types/spells';
 
 import { getGameEpoch } from '@/utils/timeUtils';
@@ -41,22 +42,35 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
     type: "DAMAGE",
     trigger: { type: "immediate" },
     condition: { type: "hit" },
-    damage: { dice: "1d8", type: DamageType.Fire }
+    damage: { dice: "1d8", type: DamageType.Fire },
+    description: "Deals 1d8 fire damage."
   };
 
   return {
     id: `spell-${crypto.randomUUID()}`,
     name: "Mock Spell",
+    aliases: [],
     level: 1,
     school: "Evocation" as SpellSchool,
     classes: ["Wizard"],
     description: "A mock spell for testing.",
+    source: "PHB",
+    legacy: false,
+    ritual: false,
     rarity: "common" as SpellRarity,
     attackType: "ranged" as SpellAttackType,
 
     castingTime: {
       value: 1,
-      unit: "action"
+      unit: "action",
+      combatCost: {
+        type: "action",
+        condition: ""
+      },
+      explorationCost: {
+        value: 0,
+        unit: "minute"
+      }
     },
 
     range: {
@@ -67,21 +81,49 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
     components: {
       verbal: true,
       somatic: true,
-      material: false
+      material: false,
+      materialDescription: "",
+      materialCost: 0,
+      isConsumed: false
     },
 
     duration: {
       type: "instantaneous",
+      value: 0,
+      unit: "round",
       concentration: false
     },
 
     targeting: {
       type: "single",
       range: 60,
-      validTargets: ["creatures", "enemies"]
+      maxTargets: 1,
+      validTargets: ["creatures"],
+      lineOfSight: true,
+      areaOfEffect: {
+        shape: "Sphere",
+        size: 0,
+        height: 0
+      },
+      filter: {
+        creatureTypes: [],
+        excludeCreatureTypes: [],
+        sizes: [],
+        alignments: [],
+        hasCondition: [],
+        isNativeToPlane: false
+      }
     },
 
     effects: [defaultDamageEffect],
+
+    arbitrationType: "mechanical",
+    aiContext: {
+      prompt: "",
+      playerInputRequired: false
+    },
+    higherLevels: "",
+    tags: [],
 
     ...overrides
   };
@@ -273,13 +315,6 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
 
     questLog: [],
     notifications: [],
-
-    economy: {
-      marketFactors: { scarcity: [], surplus: [] },
-      buyMultiplier: 1.0,
-      sellMultiplier: 0.5,
-      activeEvents: []
-    },
 
     underdark: {
       depth: 0,

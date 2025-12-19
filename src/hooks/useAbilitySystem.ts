@@ -33,6 +33,8 @@ import { calculateAffectedTiles } from '../utils/aoeCalculations';
 import { useTargeting } from './combat/useTargeting'; // New Hook
 import { resolveAoEParams } from '../utils/targetingUtils';
 import { AttackRiderSystem, AttackContext } from '../systems/combat/AttackRiderSystem';
+import { getPlanarSpellModifier } from '../utils/planarUtils';
+import { Plane } from '../types/planes';
 
 interface UseAbilitySystemProps {
   characters: CombatCharacter[];
@@ -45,6 +47,7 @@ interface UseAbilitySystemProps {
   reactiveTriggers?: ReactiveTrigger[];
   onReactiveTriggerUpdate?: (triggers: ReactiveTrigger[]) => void;
   onMapUpdate?: (mapData: BattleMapData) => void;
+  currentPlane?: Plane; // NEW: Added plane context
 }
 
 export interface PendingReaction {
@@ -65,7 +68,8 @@ export const useAbilitySystem = ({
   onRequestInput,
   reactiveTriggers,
   onReactiveTriggerUpdate,
-  onMapUpdate
+  onMapUpdate,
+  currentPlane
 }: UseAbilitySystemProps) => {
 
   // Delegate Selection/Targeting State to specialized hook
@@ -115,7 +119,8 @@ export const useAbilitySystem = ({
       validMoves: [],
       combatLog: [], // Start empty to capture new entries
       reactiveTriggers: reactiveTriggers || [], // Pass current triggers
-      activeLightSources: []
+      activeLightSources: [],
+      currentPlane: currentPlane
     };
 
     const mockGameState: any = {
@@ -130,7 +135,8 @@ export const useAbilitySystem = ({
         targets,
         castAtLevel,
         mockGameState,
-        playerInput
+        playerInput,
+        currentPlane
       );
 
       // 3. Execute
@@ -191,7 +197,7 @@ export const useAbilitySystem = ({
         });
       }
     }
-  }, [characters, onCharacterUpdate, onLogEntry, onRequestInput, reactiveTriggers, onReactiveTriggerUpdate]);
+  }, [characters, onCharacterUpdate, onLogEntry, onRequestInput, reactiveTriggers, onReactiveTriggerUpdate, currentPlane]);
 
 
   // Helper: Find character at exact grid position
@@ -505,6 +511,18 @@ export const useAbilitySystem = ({
           const isRanged = ability.range > 1 || ability.weapon?.properties?.includes('range');
           const abilityMod = isRanged ? dexMod : strMod;
 
+          // Apply Planar Modifier
+          let planarModifier = 0;
+          if (currentPlane && ability.weapon) {
+             // For simplicity, assume all melee weapons are affected by "Empowered" if applicable,
+             // or check damage type.
+             // But `getPlanarSpellModifier` is for spells.
+             // We could add `getPlanarAttackModifier` later.
+             // For now, if ability has a spell school (e.g. Green-Flame Blade), it might use that.
+             // But standard attacks don't have schools.
+             // Skipping attack modification for now, focusing on SPELLS.
+          }
+
           let proficiencyBonus = 0;
           if (ability.weapon) {
             const pb = Math.ceil((caster.level || 1) / 4) + 1;
@@ -635,7 +653,7 @@ export const useAbilitySystem = ({
     }
 
     cancelTargeting();
-  }, [onExecuteAction, characters, applyAbilityEffects, onCharacterUpdate, cancelTargeting, executeSpell, onLogEntry, onAbilityEffect]);
+  }, [onExecuteAction, characters, applyAbilityEffects, onCharacterUpdate, cancelTargeting, executeSpell, onLogEntry, onAbilityEffect, currentPlane]);
 
   const executeAbility = useCallback((...args: Parameters<typeof executeAbilityInternal>) => {
     return executeAbilityInternal(...args);
@@ -755,3 +773,5 @@ export const useAbilitySystem = ({
     pendingReaction,
   };
 };
+
+export type AbilitySystem = ReturnType<typeof useAbilitySystem>;

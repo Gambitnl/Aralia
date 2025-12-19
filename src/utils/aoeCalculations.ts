@@ -206,10 +206,14 @@ function getCubeAoE(origin: Position, size: number): Position[] {
 /**
  * Calculates tiles along a Line using Linear Interpolation.
  *
+ * NOTE: This function currently produces a single-tile-wide line (standard Bresenham-style ray),
+ * effectively ignoring the `width` parameter.
+ *
  * @param origin - The starting position of the line
  * @param target - The ending position of the line
- * @param width - The width of the line in feet (currently unused in calculation but kept for interface compatibility)
- * @returns Array of affected grid positions
+ * @param width - The width of the line in feet. Kept for interface compatibility with standard 5e line shapes
+ *                (usually 5ft wide), but currently unused in calculation as we default to a ray.
+ * @returns Array of affected grid positions representing the line's path
  */
 function getLineAoE(origin: Position, target: Position, width: number): Position[] {
     const dx = target.x - origin.x;

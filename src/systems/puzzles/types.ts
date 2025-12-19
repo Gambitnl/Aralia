@@ -186,3 +186,34 @@ export interface PressurePlateJamResult {
   triggered: boolean; // Did we accidentally step on it/trigger it while jamming?
   message: string;
 }
+
+// --- SECRET DOOR SYSTEM ---
+
+export type SecretDoorState = 'hidden' | 'detected' | 'open' | 'closed';
+
+export interface SecretDoor {
+  id: string;
+  name: string;
+  tileId: string; // The wall tile that hides the door
+
+  // Detection
+  detectionDC: number; // Perception check to spot seams/drafts
+
+  // Mechanism
+  mechanismDC: number; // Investigation check to understand how to open
+  mechanismDescription: string; // "A loose brick", "A sconce that pulls down"
+
+  // Security
+  isLocked: boolean;
+  linkedLockId?: string; // If locked, links to a Lock definition
+
+  // State
+  state: SecretDoorState;
+}
+
+export interface SecretDoorResult {
+  success: boolean;
+  state: SecretDoorState;
+  message: string;
+  xpAward?: number; // Discovery XP
+}

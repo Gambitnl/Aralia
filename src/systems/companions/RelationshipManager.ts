@@ -7,7 +7,7 @@
  */
 
 // Logic for companion approval and relationship progression
-import { Companion, RelationshipLevel, ApprovalEvent, RelationshipEvent } from '../../types/companions';
+import { Companion, RelationshipLevel, ApprovalEvent, RelationshipEvent, RelationshipUnlock } from '../../types/companions';
 import { GameState } from '../../types';
 
 export class RelationshipManager {
@@ -55,6 +55,48 @@ export class RelationshipManager {
        }
     }
 
+    // Process Unlocks
+    // Check available progression items against new level/approval
+    const currentUnlocks = currentRelationship.unlocks || [];
+    const newUnlocks: RelationshipUnlock[] = [];
+
+    // NOTE: In a real system, we'd want to handle "levels" more robustly than just string comparison,
+    // but for now we trust the threshold logic.
+    // We check if requiredLevel matches the CURRENT level (or if we want to support cumulative, we'd need an ordering).
+    // For simplicity: unlock triggers if we are AT or ABOVE the required level.
+    // To do "at or above", we need a numeric weight for levels.
+
+    const levelWeight: Record<RelationshipLevel, number> = {
+        enemy: -2, rival: -1, stranger: 0, acquaintance: 1, friend: 2, close: 3, devoted: 4, romance: 4
+    };
+
+    if (companion.progression) {
+        companion.progression.forEach(item => {
+            // Check if already unlocked
+            if (currentUnlocks.some(u => u.id === item.id)) return;
+
+            let requirementsMet = true;
+
+            // Check level requirement
+            if (item.requiredLevel) {
+                const currentWeight = levelWeight[newLevel];
+                const requiredWeight = levelWeight[item.requiredLevel];
+                if (currentWeight < requiredWeight) {
+                    requirementsMet = false;
+                }
+            }
+
+            // Check approval requirement
+            if (item.requiredApproval !== undefined && newApproval < item.requiredApproval) {
+                requirementsMet = false;
+            }
+
+            if (requirementsMet) {
+                newUnlocks.push({ ...item, isUnlocked: true });
+            }
+        });
+    }
+
     // Create event record
     const approvalEvent: ApprovalEvent = {
       id: crypto.randomUUID(),
@@ -75,6 +117,16 @@ export class RelationshipManager {
       });
     }
 
+    // Add unlock events to history
+    newUnlocks.forEach(unlock => {
+        history.push({
+            id: crypto.randomUUID(),
+            timestamp: Date.now(),
+            description: `Unlocked: ${unlock.description}`,
+            type: 'gift' // or milestone
+        });
+    });
+
     return {
       ...companion,
       approvalHistory: [...companion.approvalHistory, approvalEvent],
@@ -84,7 +136,8 @@ export class RelationshipManager {
           ...currentRelationship,
           approval: newApproval,
           level: newLevel,
-          history
+          history,
+          unlocks: [...currentUnlocks, ...newUnlocks]
         }
       }
     };

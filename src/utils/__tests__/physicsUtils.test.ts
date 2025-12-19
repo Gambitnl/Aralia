@@ -6,6 +6,7 @@ import {
   calculateCarryingCapacity,
   calculateBreathDuration,
   calculateSuffocationRounds,
+  calculateThrowDistance,
   getObjectAC,
   getObjectHP
 } from '../physicsUtils';
@@ -134,6 +135,31 @@ describe('physicsUtils', () => {
       expect(calculateSuffocationRounds(0)).toBe(1);
       // Con -2 -> min 1
       expect(calculateSuffocationRounds(-2)).toBe(1);
+    });
+  });
+
+  describe('calculateThrowDistance', () => {
+    it('calculates base distance (Str * 10)', () => {
+      // Str 10, 5 lbs -> 100 ft
+      expect(calculateThrowDistance(10, 5)).toBe(100);
+      // Str 15, 1 lb -> 150 ft
+      expect(calculateThrowDistance(15, 1)).toBe(150);
+    });
+
+    it('applies weight penalty for heavy objects', () => {
+      // Str 10, 15 lbs -> 100 - ((15-5)/10)*5 = 100 - 5 = 95
+      expect(calculateThrowDistance(10, 15)).toBe(95);
+      // Str 10, 25 lbs -> 100 - ((25-5)/10)*5 = 100 - 10 = 90
+      expect(calculateThrowDistance(10, 25)).toBe(90);
+    });
+
+    it('enforces minimum distance of 5 feet', () => {
+      // Str 1, 100 lbs -> 10 - penalty -> min 5
+      expect(calculateThrowDistance(1, 100)).toBe(5);
+    });
+
+    it('handles zero weight correctly', () => {
+       expect(calculateThrowDistance(10, 0)).toBe(100);
     });
   });
 });

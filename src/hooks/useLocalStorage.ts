@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { SafeStorage } from '../utils/storageUtils';
+import { safeJSONParse } from '../utils/securityUtils';
 import { z } from 'zod';
 
 export interface UseLocalStorageOptions<T> {
@@ -29,7 +30,12 @@ export function useLocalStorage<T>(
     const item = SafeStorage.getItem(key);
     if (item) {
       try {
-        const parsed = JSON.parse(item);
+        const parsed = safeJSONParse(item);
+        if (parsed === null) {
+          console.warn(`Error parsing localStorage key "${key}": JSON invalid`);
+          if (onError) onError(new Error("JSON invalid"));
+          return initialValue;
+        }
 
         if (schema) {
           const validationResult = schema.safeParse(parsed);
@@ -47,7 +53,8 @@ export function useLocalStorage<T>(
 
         return parsed;
       } catch (error) {
-        console.warn(`Error parsing localStorage key "${key}":`, error);
+        // Should not be reached due to safeJSONParse but kept for safety
+        console.warn(`Error in useLocalStorage for key "${key}":`, error);
         if (onError) onError(error);
         return initialValue;
       }
