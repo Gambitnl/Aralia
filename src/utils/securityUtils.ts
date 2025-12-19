@@ -136,5 +136,5 @@ export function safeJSONParse<T>(jsonString: string, fallback: T | null = null):
  */
 export function cleanAIJSON(text: string): string {
   if (!text) return "";
-  return text.replace(/\`\`\`json\n|\`\`\`/g, '').trim();
+  return text.replace(/```json\n|```/g, '').trim();
 }
