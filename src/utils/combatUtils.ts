@@ -9,6 +9,7 @@ import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats,
 import { PlayerCharacter, Monster, Item } from '../types';
 import { Spell, DamageType } from '../types/spells'; // Explicit import to avoid conflicts
 import { CLASSES_DATA, MONSTERS_DATA } from '../constants';
+import { ResistanceCalculator } from '../systems/spells/mechanics/ResistanceCalculator';
 import { createAbilityFromSpell } from './spellAbilityFactory';
 import { isWeaponProficient } from './weaponUtils';
 import { generateId } from './idGenerator';
@@ -299,25 +300,12 @@ export function calculateDamage(
 ): number {
   if (!damageType || baseDamage <= 0) return Math.max(0, baseDamage);
 
-  // 1. Immunity
-  if (target.immunities?.includes(damageType as DamageType)) {
-    return 0;
-  }
-
-  let finalDamage = baseDamage;
-
-  // 2. Resistance (PHB p.197: Resistance applied before Vulnerability)
-  if (target.resistances?.includes(damageType as DamageType)) {
-    // TODO(Feats): Check if caster has Elemental Adept (ignores resistance)
-    finalDamage = Math.floor(finalDamage / 2);
-  }
-
-  // 3. Vulnerability
-  if (target.vulnerabilities?.includes(damageType as DamageType)) {
-    finalDamage *= 2;
-  }
-
-  return Math.max(0, finalDamage);
+  return ResistanceCalculator.applyResistances(
+    baseDamage,
+    damageType as DamageType,
+    target,
+    caster || undefined
+  );
 }
 
 /**

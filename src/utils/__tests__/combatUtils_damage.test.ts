@@ -65,4 +65,24 @@ describe('calculateDamage', () => {
     it('should allow forcing magical bypass', () => {
         // Not implemented yet, but function signature might change to support options
     });
+
+    it('should bypass resistance if caster has Elemental Adept', () => {
+        const resistantTarget = createTestChar('FireResistant', ['fire']);
+        const adeptCaster: CombatCharacter = {
+            ...caster,
+            featChoices: {
+                'elemental_adept': { selectedDamageType: 'Fire' }
+            }
+        };
+
+        // Normal check: 10 / 2 = 5
+        expect(calculateDamage(10, caster, resistantTarget, 'fire')).toBe(5);
+
+        // Adept check: 10 (resistance ignored)
+        expect(calculateDamage(10, adeptCaster, resistantTarget, 'fire')).toBe(10);
+
+        // Mismatch check (Adept Fire vs Cold Damage): 10 / 2 = 5
+        const coldResistantTarget = createTestChar('ColdResistant', ['cold']);
+        expect(calculateDamage(10, adeptCaster, coldResistantTarget, 'cold')).toBe(5);
+    });
 });
