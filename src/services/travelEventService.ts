@@ -49,11 +49,19 @@ export function generateTravelEvent(
         type: 'landmark',
         description: landmark.description,
         coordinates: { x: worldContext.x, y: worldContext.y },
+        rewards: landmark.rewards,
+        consequences: landmark.consequences,
       };
+
+      // Construct a description that hints at consequences
+      let desc = `You discovered ${landmark.name}! ${landmark.description}`;
+      if (landmark.consequences.length > 0) {
+         desc += ` ${landmark.consequences.map(c => c.description).join(' ')}`;
+      }
 
       return {
         id: `discovery_${landmark.id}`,
-        description: `You discovered ${landmark.name}! ${landmark.description}`,
+        description: desc,
         effect: {
           type: 'discovery',
           amount: 0,

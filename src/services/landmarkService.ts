@@ -1,7 +1,7 @@
 
 import { LANDMARK_TEMPLATES } from '../data/landmarks';
 import { createSeededRandom } from '../utils/submapUtils'; // Reusing existing seeded RNG utility
-import { DiscoveryReward } from '../types/exploration';
+import { DiscoveryReward, DiscoveryConsequence } from '../types/exploration';
 
 export interface GeneratedLandmark {
   id: string;
@@ -9,6 +9,7 @@ export interface GeneratedLandmark {
   description: string;
   type: string;
   rewards: DiscoveryReward[];
+  consequences: DiscoveryConsequence[];
 }
 
 /**
@@ -75,11 +76,38 @@ export function generateLandmark(
     }
   }
 
+  // Generate Consequences
+  const consequences: DiscoveryConsequence[] = [];
+  if (selectedTemplate.possibleConsequences) {
+    for (const consequenceTemplate of selectedTemplate.possibleConsequences) {
+      if (rng() < consequenceTemplate.chance) {
+         let description = consequenceTemplate.descriptionTemplate;
+
+         // Replace placeholders if applicable
+         if (consequenceTemplate.value !== undefined) {
+             description = description.replace('{value}', consequenceTemplate.value.toString());
+         }
+         if (consequenceTemplate.duration !== undefined) {
+             description = description.replace('{duration}', consequenceTemplate.duration.toString());
+         }
+
+         consequences.push({
+          type: consequenceTemplate.type,
+          targetId: consequenceTemplate.targetId,
+          duration: consequenceTemplate.duration,
+          value: consequenceTemplate.value,
+          description
+         });
+      }
+    }
+  }
+
   return {
     id: `${selectedTemplate.id}_${coordinates.x}_${coordinates.y}`,
     name: selectedTemplate.nameTemplate[nameIndex],
     description: selectedTemplate.descriptionTemplate[descIndex],
     type: selectedTemplate.id,
-    rewards
+    rewards,
+    consequences
   };
 }
