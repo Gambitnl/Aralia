@@ -3,7 +3,7 @@
  * non-blocking feedback to the player.
  */
 import React, { useEffect, useCallback } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Notification } from '../types';
 
 interface NotificationSystemProps {
@@ -28,13 +28,25 @@ const NotificationToast: React.FC<{ notification: Notification; onDismiss: (id: 
     warning: 'bg-yellow-600',
   }[notification.type];
 
+  // Respect reduced motion preference
+  const shouldReduceMotion = useReducedMotion();
+
+  const animations = shouldReduceMotion ? {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+    transition: { duration: 0.1 }
+  } : {
+    initial: { opacity: 0, y: 20, scale: 0.95 },
+    animate: { opacity: 1, y: 0, scale: 1 },
+    exit: { opacity: 0, scale: 0.9, transition: { duration: 0.2 } },
+    transition: { duration: 0.2 }
+  };
+
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-      transition={{ duration: 0.2 }}
+      layout={!shouldReduceMotion}
+      {...animations}
       className={`
         pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 ${bgColor} text-white
       `}
@@ -68,7 +80,6 @@ export const NotificationSystem: React.FC<NotificationSystemProps> = ({ notifica
     dispatch({ type: 'REMOVE_NOTIFICATION', payload: { id } });
   }, [dispatch]);
 
-  // TODO: Respect prefers-reduced-motion and manage focus for screen readers (Reason: current animations and auto-dismiss toasts can disorient users relying on accessibility tech; Expectation: accessible announcements without motion sickness or lost focus).
   // Mounted at the App root so every pane can dispatch notifications instead of using blocking alerts.
   // Cap at 5 notifications to prevent layout thrash
   const visibleNotifications = notifications.slice(-5);
