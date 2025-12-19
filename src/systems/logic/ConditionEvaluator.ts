@@ -86,11 +86,16 @@ export class ConditionEvaluator {
   }
 
   private static evaluateCreatureType(condition: import('../../types/logic').CreatureTypeCondition, character: CombatCharacter): boolean {
-      // Assuming race/type is stored in character.race or tags
-      // This is a placeholder as CombatCharacter structure varies
-      // We check tags if available, or race name
-      // TODO: Standardize creature type access
-      return false; // Implement actual check
+    // TODO(Analyst): Populate creatureTypes on characters during initialization from Race/Class data.
+    // Currently, this check relies on the property being present, but it may be undefined for legacy data.
+    if (!character.creatureTypes || character.creatureTypes.length === 0) {
+      return false;
+    }
+
+    // Case-insensitive check
+    // If the character has ANY of the types matching the condition
+    const conditionTypeLower = condition.creatureType.toLowerCase();
+    return character.creatureTypes.some(type => type.toLowerCase() === conditionTypeLower);
   }
 
   private static getAttributeValue(character: CombatCharacter, attribute: string): number {

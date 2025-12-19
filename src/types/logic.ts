@@ -66,9 +66,13 @@ export interface StatCondition {
     target: 'self' | 'target' | 'source';
 }
 
-/** Checks creature type (e.g., Undead). */
+/**
+ * Checks creature type (e.g., Undead).
+ * Used by spells like Charm Person (Humanoid) or Hold Person.
+ */
 export interface CreatureTypeCondition {
     type: 'creature_type';
+    /** The creature type to check for (e.g., "Humanoid"). Case-insensitive. */
     creatureType: string;
     target: 'self' | 'target' | 'source';
 }
