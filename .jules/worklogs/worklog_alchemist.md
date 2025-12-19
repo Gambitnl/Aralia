@@ -1,7 +1,3 @@
-## 2024-05-23 - Crafting System Foundation
-**Learning:** The system lacked a structured way to handle item creation. By introducing `Recipe` and `CraftResult` interfaces, we can now standardize how players convert materials into items. The distinction between 'consumed' and 'non-consumed' (tools) materials is critical for realistic crafting.
-**Action:** In future, when adding new items, always consider if they should be part of a recipe. Ensure the `MaterialRequirement` matches existing item IDs.
+## 2024-05-22 - Salvage System Implementation **Learning:** Adding a `recipeType` discriminator ('craft' | 'salvage') to the shared `Recipe` interface allowed for seamless integration of the new Salvage System without breaking existing crafting logic. This proves that extending existing data structures is often better than creating parallel ones for related systems. **Action:** When designing future systems (e.g., Refining), first check if they can be modeled as a subtype of an existing system (Recipe) before creating new root entities.
 
-## 2024-05-23 - Quality Mechanics
-**Learning:** Linking skill check results to item quality (Common -> Rare) rewards character investment. A flat success/fail is boring; quality tiers add depth.
-**Action:** Expand `ItemQuality` to affect item stats (damage/durability) in the Item system.
+## 2024-05-22 - Failure Philosophy **Learning:** Implementing the "Failure teaches" philosophy (destroying the item on failed salvage) creates meaningful stakes. A simple boolean `materialsLost` flag in the result object is sufficient to drive UI feedback, avoiding complex error handling flows. **Action:** Ensure all future "transformation" systems (Enchanting, Refining) include a "critical failure" state that consumes resources to maintain economic balance.
