@@ -16,6 +16,19 @@ export const PACE_MODIFIERS: Record<TravelPace, TravelPaceEffect> = {
   fast: { speedModifier: 1.33, stealthAdvantage: false, perceptionModifier: -5 },
 };
 
+export type TerrainType = 'road' | 'plains' | 'forest' | 'hills' | 'mountains' | 'swamp' | 'desert' | 'water';
+
+export const TERRAIN_COSTS: Record<TerrainType, number> = {
+  road: 0.8, // Good roads allow faster travel
+  plains: 1.0, // Baseline
+  forest: 1.5,
+  hills: 1.5,
+  mountains: 2.0, // Difficult terrain
+  swamp: 2.0, // Difficult terrain
+  desert: 1.5,
+  water: 1.0, // Assumes boat/swim speed handling elsewhere, or standard speed
+};
+
 export interface TravelParameters {
   origin: { x: number; y: number };
   destination: { x: number; y: number };
@@ -32,6 +45,8 @@ export interface GroupTravelParameters {
   travelers: any[]; // Avoid circular dependency on PlayerCharacter, cast in service
   inventories: Record<string, any[]>; // Avoid circular dependency on Item
   pace: TravelPace;
+  /** Predominant terrain type for the journey (default: 'plains') */
+  terrain?: TerrainType;
 }
 
 export interface TravelResult {
@@ -43,4 +58,6 @@ export interface TravelResult {
   travelSpeedMph: number;
   /** Number of random encounter checks required */
   encounterChecks: number;
+  /** The effective cost modifier used for the terrain */
+  terrainCostModifier: number;
 }

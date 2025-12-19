@@ -6,12 +6,13 @@
  * - Pace: Slow (Stealth), Normal, Fast (Penalty).
  * - Encumbrance: Variant encumbrance rules affecting speed.
  * - Group Speed: Limited by the slowest member.
+ * - Terrain: Modifiers for difficult terrain.
  */
 
 import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
 import { AbilityScores } from '../../types/core';
-import { TravelPace, PACE_MODIFIERS } from '../../types/travel';
+import { TravelPace, PACE_MODIFIERS, TerrainType, TERRAIN_COSTS } from '../../types/travel';
 
 // --- Types ---
 
@@ -29,9 +30,10 @@ export interface EncumbranceResult {
 export interface TravelGroupStats {
   slowestMemberId: string;
   baseSpeed: number; // Speed of slowest member (ft/round)
-  travelSpeedMph: number; // Effective MPH including pace
+  travelSpeedMph: number; // Effective MPH including pace and terrain
   pace: TravelPace;
   dailyDistanceMiles: number; // Assuming 8 hours
+  terrainModifier: number;
 }
 
 // --- Calculations ---
@@ -78,18 +80,31 @@ export function calculateEncumbrance(
 }
 
 /**
+ * Calculates the terrain cost modifier.
+ * @param terrain The type of terrain
+ * @returns Multiplier for travel cost (1.0 = normal, 2.0 = difficult/slow)
+ */
+export function getTerrainCost(terrain: TerrainType = 'plains'): number {
+  return TERRAIN_COSTS[terrain] || 1.0;
+}
+
+/**
  * Calculates the effective travel speed for a group.
  * The group moves at the speed of its slowest member.
  *
  * @param characters List of characters in the travel group
  * @param inventories Map of character ID to their specific inventory items
  * @param pace Selected travel pace
+ * @param terrain Predominant terrain type
  */
 export function calculateGroupTravelStats(
   characters: PlayerCharacter[],
   inventories: Record<string, Item[]>,
-  pace: TravelPace = 'normal'
+  pace: TravelPace = 'normal',
+  terrain: TerrainType = 'plains'
 ): TravelGroupStats {
+  const terrainMod = getTerrainCost(terrain);
+
   if (characters.length === 0) {
     return {
       slowestMemberId: '',
@@ -97,6 +112,7 @@ export function calculateGroupTravelStats(
       travelSpeedMph: 0,
       pace,
       dailyDistanceMiles: 0,
+      terrainModifier: terrainMod,
     };
   }
 
@@ -126,7 +142,10 @@ export function calculateGroupTravelStats(
   // Apply Pace Modifier
   // @ts-ignore - Backward compatibility for types if speedMultiplier was used
   const paceMod = PACE_MODIFIERS[pace].speedModifier || PACE_MODIFIERS[pace].speedMultiplier;
-  const travelSpeedMph = baseMph * paceMod;
+
+  // Calculate raw speed, then apply terrain penalty (speed / cost)
+  // If terrain cost is 2.0 (difficult), speed is halved.
+  const travelSpeedMph = (baseMph * paceMod) / terrainMod;
 
   // Calculate Daily Distance (8 hours travel)
   const dailyDistanceMiles = travelSpeedMph * 8;
@@ -137,6 +156,7 @@ export function calculateGroupTravelStats(
     travelSpeedMph: Number(travelSpeedMph.toFixed(2)),
     pace,
     dailyDistanceMiles: Number(dailyDistanceMiles.toFixed(2)),
+    terrainModifier: terrainMod,
   };
 }
 

@@ -1,115 +1,144 @@
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   calculateEncumbrance,
   calculateGroupTravelStats,
-  PACE_MODIFIERS
+  calculateTravelTimeHours,
+  getTerrainCost
 } from '../TravelCalculations';
-import { Item } from '../../../types/items';
 import { PlayerCharacter } from '../../../types/character';
+import { Item } from '../../../types/items';
+import { TerrainType } from '../../../types/travel';
 
-// Mock character creation directly to avoid path issues and dependency on other files during this task
-const mockChar = (id: string, strength: number, speed: number = 30): PlayerCharacter => ({
+// Mock factories
+const createMockCharacter = (id: string, strength: number, speed: number = 30): PlayerCharacter => ({
   id,
-  name: `Char_${id}`,
-  finalAbilityScores: { strength, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 } as any,
-  abilityScores: { strength, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 },
+  name: `Char ${id}`,
   speed,
-  race: { id: 'human', name: 'Human', description: '', traits: [] },
-  class: { id: 'fighter', name: 'Fighter', description: '', hitDie: 10, primaryAbility: ['strength'], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 2, armorProficiencies: [], weaponProficiencies: [], features: [] },
-  skills: [],
-  transportMode: 'foot',
-  hp: 10,
-  maxHp: 10,
-  armorClass: 10,
-  darkvisionRange: 0,
-});
+  finalAbilityScores: { strength, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 },
+  // ... other required fields mocked minimally
+} as unknown as PlayerCharacter);
 
-const mockItem = (weight: number): Item => ({
-  id: 'item',
-  name: 'Heavy Rock',
-  description: 'It is heavy.',
-  type: 'treasure',
+const createMockItem = (weight: number): Item => ({
+  id: 'item1',
+  name: 'Heavy Thing',
   weight,
-});
+} as unknown as Item);
 
 describe('TravelCalculations', () => {
   describe('calculateEncumbrance', () => {
-    it('identifies unencumbered state', () => {
-      const char = mockChar('hero', 10); // Str 10. Carry: 150. Encumbered > 50.
-      const inventory = [mockItem(40)]; // 40 < 50
+    it('should be unencumbered when weight is low', () => {
+      const char = createMockCharacter('1', 10); // STR 10 -> Max Carry 150, Encumbered 50
+      const items = [createMockItem(20)];
+      const result = calculateEncumbrance(char, items);
 
-      const result = calculateEncumbrance(char, inventory);
       expect(result.level).toBe('unencumbered');
       expect(result.speedDrop).toBe(0);
     });
 
-    it('identifies encumbered state', () => {
-      const char = mockChar('hero', 10); // Encumbered > 50
-      const inventory = [mockItem(51)];
+    it('should be encumbered when weight exceeds 5xSTR', () => {
+      const char = createMockCharacter('1', 10); // Threshold 50
+      const items = [createMockItem(51)];
+      const result = calculateEncumbrance(char, items);
 
-      const result = calculateEncumbrance(char, inventory);
       expect(result.level).toBe('encumbered');
       expect(result.speedDrop).toBe(10);
     });
 
-    it('identifies heavily encumbered state', () => {
-      const char = mockChar('hero', 10); // Heavily > 100
-      const inventory = [mockItem(101)];
+    it('should be heavily encumbered when weight exceeds 10xSTR', () => {
+      const char = createMockCharacter('1', 10); // Threshold 100
+      const items = [createMockItem(101)];
+      const result = calculateEncumbrance(char, items);
 
-      const result = calculateEncumbrance(char, inventory);
       expect(result.level).toBe('heavily_encumbered');
       expect(result.speedDrop).toBe(20);
     });
   });
 
+  describe('getTerrainCost', () => {
+      it('should return correct modifiers', () => {
+          expect(getTerrainCost('road')).toBe(0.8);
+          expect(getTerrainCost('plains')).toBe(1.0);
+          expect(getTerrainCost('mountains')).toBe(2.0);
+          expect(getTerrainCost('swamp')).toBe(2.0);
+      });
+
+      it('should default to 1.0 for unknown types (casted)', () => {
+           expect(getTerrainCost('space' as TerrainType)).toBe(1.0);
+      });
+  });
+
   describe('calculateGroupTravelStats', () => {
-    it('calculates normal pace speed for single unencumbered character', () => {
-      const char = mockChar('hero', 10, 30);
-      const inventory = [mockItem(10)];
+    it('should base speed on the slowest member', () => {
+      const c1 = createMockCharacter('1', 10, 30);
+      const c2 = createMockCharacter('2', 10, 25); // Slow dwarf
 
-      const stats = calculateGroupTravelStats([char], { hero: inventory }, 'normal');
+      const stats = calculateGroupTravelStats([c1, c2], {});
 
-      expect(stats.baseSpeed).toBe(30);
-      expect(stats.travelSpeedMph).toBe(3.0); // 30 / 10 * 1.0
-      expect(stats.dailyDistanceMiles).toBe(24); // 3 * 8
+      expect(stats.slowestMemberId).toBe('2');
+      expect(stats.baseSpeed).toBe(25);
+      expect(stats.travelSpeedMph).toBe(2.5); // 25 / 10
     });
 
-    it('slows down group for encumbered member', () => {
-      const fastChar = mockChar('elf', 10, 35);
-      const slowChar = mockChar('dwarf', 10, 25);
-      const encumberedChar = mockChar('tank', 10, 30); // Encumbered speed -> 20
+    it('should account for encumbrance of specific members', () => {
+      const c1 = createMockCharacter('1', 10, 30); // Encumbered -> speed -10 = 20
+      const c2 = createMockCharacter('2', 10, 30); // Unencumbered -> speed 30
 
-      // Make tank encumbered (Str 10, Weight 60 > 50)
       const inventories = {
-        elf: [],
-        dwarf: [],
-        tank: [mockItem(60)]
+        '1': [createMockItem(60)] // > 50 (5x10)
       };
 
-      const stats = calculateGroupTravelStats([fastChar, slowChar, encumberedChar], inventories, 'normal');
+      const stats = calculateGroupTravelStats([c1, c2], inventories);
 
-      expect(stats.slowestMemberId).toBe('tank'); // 20 vs 35 vs 25
+      expect(stats.slowestMemberId).toBe('1');
       expect(stats.baseSpeed).toBe(20);
-      expect(stats.travelSpeedMph).toBe(2.0); // 20 / 10
+      expect(stats.travelSpeedMph).toBe(2.0);
     });
 
-    it('applies fast pace modifier', () => {
-      const char = mockChar('hero', 10, 30);
+    it('should apply pace modifiers', () => {
+      const c1 = createMockCharacter('1', 10, 30);
 
-      const stats = calculateGroupTravelStats([char], { hero: [] }, 'fast');
-
+      const statsFast = calculateGroupTravelStats([c1], {}, 'fast');
       // 3 mph * 1.33 = 3.99
-      expect(stats.travelSpeedMph).toBeCloseTo(3.99, 2);
+      expect(statsFast.travelSpeedMph).toBeCloseTo(3.99);
+
+      const statsSlow = calculateGroupTravelStats([c1], {}, 'slow');
+      // 3 mph * 0.67 = 2.01
+      expect(statsSlow.travelSpeedMph).toBeCloseTo(2.01);
     });
 
-    it('applies slow pace modifier', () => {
-      const char = mockChar('hero', 10, 30);
+    it('should apply terrain modifiers', () => {
+        const c1 = createMockCharacter('1', 10, 30); // 3 MPH base
 
-      const stats = calculateGroupTravelStats([char], { hero: [] }, 'slow');
+        // Mountains: Cost 2.0 -> Speed should be halved
+        const stats = calculateGroupTravelStats([c1], {}, 'normal', 'mountains');
 
-      // 3 mph * 0.67 = 2.01
-      expect(stats.travelSpeedMph).toBeCloseTo(2.01, 2);
+        expect(stats.terrainModifier).toBe(2.0);
+        expect(stats.travelSpeedMph).toBe(1.5); // 3.0 / 2.0
+    });
+
+    it('should apply both pace and terrain modifiers', () => {
+        const c1 = createMockCharacter('1', 10, 30); // 3 MPH base
+
+        // Fast (1.33) on Mountains (2.0)
+        // 3 * 1.33 / 2.0 = 1.995
+        const stats = calculateGroupTravelStats([c1], {}, 'fast', 'mountains');
+
+        expect(stats.travelSpeedMph).toBeCloseTo(2.0);
+    });
+  });
+
+  describe('calculateTravelTimeHours', () => {
+    it('should calculate time correctly', () => {
+      const stats = { travelSpeedMph: 3 } as any;
+      const time = calculateTravelTimeHours(12, stats);
+      expect(time).toBe(4);
+    });
+
+    it('should handle zero speed gracefully', () => {
+      const stats = { travelSpeedMph: 0 } as any;
+      const time = calculateTravelTimeHours(12, stats);
+      expect(time).toBe(Infinity);
     });
   });
 });

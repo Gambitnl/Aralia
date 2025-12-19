@@ -1,5 +1,5 @@
 
-import { GroupTravelParameters, TravelResult, PACE_MODIFIERS } from '../types/travel';
+import { GroupTravelParameters, TravelResult, PACE_MODIFIERS, TerrainType } from '../types/travel';
 import { calculateGroupTravelStats, calculateTravelTimeHours } from '../systems/travel/TravelCalculations';
 import { PlayerCharacter } from '../types/character';
 import { Item } from '../types/items';
@@ -18,7 +18,7 @@ export class TravelService {
    * @returns TravelResult with time, distance, and encounter checks.
    */
   static calculateTravel(params: GroupTravelParameters, milesPerTile: number = 6): TravelResult {
-    const { origin, destination, travelers, inventories, pace } = params;
+    const { origin, destination, travelers, inventories, pace, terrain = 'plains' } = params;
 
     // 1. Calculate Distance (Chebyshev for grid movement consistency)
     const dx = Math.abs(destination.x - origin.x);
@@ -31,27 +31,28 @@ export class TravelService {
     const safeTravelers = travelers as PlayerCharacter[];
     const safeInventories = inventories as Record<string, Item[]>;
 
-    const groupStats = calculateGroupTravelStats(safeTravelers, safeInventories, pace);
+    const groupStats = calculateGroupTravelStats(safeTravelers, safeInventories, pace, terrain);
 
     // 3. Calculate Time
     const travelTimeHours = calculateTravelTimeHours(distanceMiles, groupStats);
 
     // 4. Encounter Checks (Standard: 1 per 4 hours)
-    // TODO(Navigator): Adjust frequency based on terrain danger level if available
+    // TODO(Navigator): Integrate with WorldEventManager to adjust danger based on faction control/war status
     const encounterChecks = Math.ceil(travelTimeHours / 4);
 
     return {
       distanceMiles,
       travelTimeHours,
       travelSpeedMph: groupStats.travelSpeedMph,
-      encounterChecks
+      encounterChecks,
+      terrainCostModifier: groupStats.terrainModifier
     };
   }
 
   /**
    * Generates a travel log message describing the journey.
    */
-  static generateTravelSummary(result: TravelResult, pace: string): string {
+  static generateTravelSummary(result: TravelResult, pace: string, terrain: TerrainType = 'plains'): string {
     const hours = Math.floor(result.travelTimeHours);
     const minutes = Math.round((result.travelTimeHours - hours) * 60);
 
@@ -60,6 +61,11 @@ export class TravelService {
     if (minutes > 0) timeString += `${minutes} min`;
     if (timeString === '') timeString = 'less than a minute';
 
-    return `Traveled ${result.distanceMiles.toFixed(1)} miles in ${timeString} at ${pace} pace.`;
+    let terrainText = '';
+    if (terrain !== 'plains') {
+        terrainText = ` through ${terrain}`;
+    }
+
+    return `Traveled ${result.distanceMiles.toFixed(1)} miles${terrainText} in ${timeString} at ${pace} pace.`;
   }
 }
