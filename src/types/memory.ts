@@ -26,12 +26,26 @@ export type MemoryInteractionType =
   | 'quest_given'
   | 'quest_complete'
   | 'insult'
-  | 'aid';
+  | 'aid'
+  | 'observation';
+
+/**
+ * Importance level for memory retention.
+ */
+export enum MemoryImportance {
+  Trivial = 0,    // Forgotten after a day
+  Minor = 1,      // Forgotten after a week
+  Standard = 3,   // Forgotten after a month
+  Major = 5,      // Retained for a year
+  Critical = 10   // Never forgotten
+}
 
 /**
  * A record of a single past interaction between an NPC and a player.
  */
 export interface Interaction {
+  /** Unique ID for referencing this memory */
+  id: string;
   /** When the interaction occurred */
   date: GameDate;
   /** The nature of the interaction */
@@ -40,6 +54,12 @@ export interface Interaction {
   summary: string;
   /** How much the NPC's attitude changed as a result of this interaction */
   attitudeChange: number;
+  /** Importance score determining retention (0-10) */
+  significance: number;
+  /** IDs of other entities who witnessed this event */
+  witnesses?: string[];
+  /** Emotional context associated with this memory */
+  emotion?: 'joy' | 'anger' | 'fear' | 'sadness' | 'surprise' | 'trust' | 'disgust' | 'anticipation';
 }
 
 /**
@@ -52,6 +72,10 @@ export interface Fact {
   dateLearned: GameDate;
   /** How confident the NPC is in this fact (0.0 to 1.0) */
   confidence: number;
+  /** Importance score determining retention (0-10) */
+  significance: number;
+  /** When this fact becomes irrelevant (optional) */
+  expirationDate?: GameDate;
   /** The source of the information (e.g., "witnessed", "gossip", "told_by_player") */
   source: 'witnessed' | 'gossip' | 'told_by_player' | 'inference';
 }
