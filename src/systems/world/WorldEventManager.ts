@@ -7,9 +7,12 @@
  */
 
 import { GameState, GameMessage, WorldRumor, MarketEvent, EconomyState } from '../../types';
+import { WeatherState } from '../../types/environment';
 import { applyReputationChange, modifyFactionRelationship } from '../../utils/factionUtils';
-import { getGameDay, addGameTime } from '../../utils/timeUtils';
+import { getGameDay, addGameTime, getSeason } from '../../utils/timeUtils';
 import { SeededRandom } from '../../utils/seededRandom';
+import { generateDailyWeather, describeWeatherChange } from '../weather/WeatherSystem';
+import { DEFAULT_WEATHER } from '../environment/EnvironmentSystem';
 
 export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD';
 
@@ -403,6 +406,11 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
   let currentState = state; // Start with reference, only clone on change
   let allLogs: GameMessage[] = [];
 
+  // Ensure weather exists
+  if (!currentState.environment) {
+      currentState = { ...currentState, environment: DEFAULT_WEATHER };
+  }
+
   // 0. Propagate Rumors (Daily Step)
   for (let i = 0; i < daysPassed; i++) {
      currentState = propagateRumors(currentState, rng);
@@ -421,10 +429,6 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
 
   // Clean up expired market events
   if (currentState.economy && currentState.economy.activeEvents) {
-     // Decrease duration of active events? No, we check if they expire by a separate timestamp logic?
-     // Actually, MarketEvent definition has 'duration'. We should probably decrement it or store start time.
-     // For simplicity in this iteration, we'll assume 'duration' is days remaining and decrement it.
-
      let eventsChanged = false;
      const newActiveEvents = currentState.economy.activeEvents
         .map(e => ({...e, duration: e.duration - 1}))
@@ -434,7 +438,6 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
          eventsChanged = true;
      }
 
-     // Also check if any decremented durations changed (always true if > 0 events)
      if (currentState.economy.activeEvents.length > 0) {
          eventsChanged = true;
      }
@@ -467,6 +470,27 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
 
   // Iterate for each day passed
   for (let i = 0; i < daysPassed; i++) {
+    const currentLoopDate = addGameTime(state.gameTime, { days: i });
+
+    // Weather Update
+    const currentSeason = getSeason(currentLoopDate);
+    const newWeather = generateDailyWeather(currentSeason, currentState.environment, rng);
+
+    // Check for significant weather changes and log them
+    const weatherChangeDesc = describeWeatherChange(currentState.environment, newWeather);
+    if (weatherChangeDesc) {
+        allLogs.push({
+            id: Date.now() + rng.next(),
+            text: weatherChangeDesc,
+            sender: 'system',
+            timestamp: currentLoopDate
+        });
+    }
+
+    currentState = { ...currentState, environment: newWeather };
+
+
+    // Daily Events
     if (rng.next() < DAILY_EVENT_CHANCE) {
       const roll = rng.next();
       let result: WorldEventResult;

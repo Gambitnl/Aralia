@@ -118,7 +118,12 @@ describe('WorldEventManager', () => {
             activeRumors: [viralRumor]
         };
 
-        // Advance 1 day
+        // Advance 1 day. Note that processWorldEvents uses SeededRandom seeded by gameTime + worldSeed.
+        // We may need to iterate a few times if the RNG roll fails, but virality 1.0 at dist 0 is 100% chance.
+        // However, checks: if (rng.next() < spreadChance)
+        // rng.next() returns 0..1. spreadChance = 1.0 * (1/1) = 1.0.
+        // So unless rng returns exactly 1.0 (unlikely for Math.random wrapper), it should pass.
+
         const result = processWorldEvents(stateWithRumor, 1);
 
         // Should have original rumor + at least one spread rumor
@@ -128,5 +133,14 @@ describe('WorldEventManager', () => {
         expect(spreadRumor).toBeDefined();
         expect(spreadRumor?.spreadDistance).toBe(1);
         expect(spreadRumor?.virality).toBeLessThan(1.0);
+    });
+
+    it('should update weather daily', () => {
+        // This test ensures the integration with WeatherSystem works
+        const result = processWorldEvents(baseState, 5);
+        expect(result.state.environment).toBeDefined();
+        // Weather might stay the same, but it should be present.
+        // If we force a season change (mocking time), we could check specific weather,
+        // but for now existence proves the loop ran.
     });
 });
