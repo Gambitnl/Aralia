@@ -8,10 +8,11 @@
  * in the game state, or flags them for potential creation (stubs).
  */
 
-import { GameState, Location, Faction, FactionRank } from '../types';
+import { GameState, Location, Faction, FactionRank, NPC } from '../types';
 import { FACTIONS } from '../data/factions';
 import { LOCATIONS } from '../data/world/locations';
 import { LANDMARK_TEMPLATES } from '../data/landmarks';
+import { NPCS } from '../data/world/npcs';
 
 export type EntityType = 'location' | 'faction' | 'npc' | 'item';
 
@@ -31,7 +32,7 @@ export interface ResolverResult {
 }
 
 export interface EntityCreationResult {
-  entity: Location | Faction | null; // | NPC (future)
+  entity: Location | Faction | NPC | null;
   created: boolean;
   type: EntityType;
 }
@@ -92,11 +93,22 @@ export class EntityResolverService {
   }
 
   /**
+   * Wraps resolveEntities for simple use cases, returning just the entities that need creation.
+   * @param text Narrative text.
+   * @param state GameState.
+   * @returns Array of entity references that were NOT found.
+   */
+  static resolveEntitiesInText(text: string, state: GameState): EntityReference[] {
+      const result = this.resolveEntities(text, state);
+      return result.references.filter(ref => !ref.exists);
+  }
+
+  /**
    * Ensures an entity referenced by name exists in the game world.
    * If it exists, returns it.
    * If not, generates a new entity structure for it.
    *
-   * @param type The type of entity (location, faction)
+   * @param type The type of entity (location, faction, npc)
    * @param name The name of the entity
    * @param state The current game state (to check for dynamic entities)
    * @returns An object containing the entity and a boolean indicating if it was newly created.
@@ -116,8 +128,20 @@ export class EntityResolverService {
         // If it was a template landmark, we might need to instantiate it, but let's assume existence for now.
         return { entity: location || null, created: false, type: 'location' };
       }
-      // TODO: Handle NPCs
-      return { entity: null, created: false, type };
+      if (resolution.entityType === 'npc') {
+          // Attempt to fetch from static list first
+          const npc = NPCS[resolution.id];
+          // If not static, it might be in npcMemory (though npcMemory doesn't store full NPC objects, just state)
+          // For now, if we found an ID, we assume it's valid.
+          // If we had a dynamic NPC registry, we'd fetch it there.
+          if (npc) {
+              return { entity: npc, created: false, type: 'npc' };
+          }
+          // If it was found via metNpcIds but not in NPCS, we might need to construct a partial or fetch from a different source.
+          // Fallback to creating a fresh one if we can't fully resolve the object?
+          // For safety, let's treat "found ID but no object" as needing re-generation or a deep search.
+          // But checkExistence only returns true if we found a match.
+      }
     }
 
     // Entity does not exist - Create it
@@ -127,6 +151,9 @@ export class EntityResolverService {
     } else if (type === 'location') {
       const newLocation = this.createLocation(name);
       return { entity: newLocation, created: true, type: 'location' };
+    } else if (type === 'npc') {
+      const newNPC = this.createNPC(name);
+      return { entity: newNPC, created: true, type: 'npc' };
     }
 
     return { entity: null, created: false, type };
@@ -165,8 +192,18 @@ export class EntityResolverService {
     const landmark = LANDMARK_TEMPLATES.find(l => l.nameTemplate.some(t => t.toLowerCase() === normalized));
     if (landmark) return { exists: true, id: landmark.id, normalizedName: name, entityType: 'location' };
 
-    // 3. Check NPCs (State)
-    // TODO: Connect to global NPC registry when it exists.
+    // 3. Check NPCs
+    // Check static NPCs
+    const staticNPC = Object.values(NPCS).find(n => n.name.toLowerCase() === normalized);
+    if (staticNPC) return { exists: true, id: staticNPC.id, normalizedName: staticNPC.name, entityType: 'npc' };
+
+    // Check met NPCs (State) - we only have IDs, so we can't easily search by name unless we have a lookup
+    // But we can check if the normalized name matches any ID if IDs are name-based (often true: 'old_hermit')
+    // This is a weak check but better than nothing.
+    // Ideally, GameState would cache names of met NPCs.
+    // For now, let's assume if it's not in NPCS, we don't know its name unless we scan `npcMemory` or similar?
+    // npcMemory is keyed by ID.
+    // If we can't find it by name in a registry, we assume it doesn't exist.
 
     return { exists: false, normalizedName: name };
   }
@@ -216,14 +253,30 @@ export class EntityResolverService {
   }
 
   /**
+   * Generates a new NPC stub.
+   */
+  private static createNPC(name: string): NPC {
+    const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    return {
+      id,
+      name,
+      baseDescription: `You see ${name}.`,
+      initialPersonalityPrompt: `You are ${name}. You are a stranger to the player.`,
+      role: 'civilian',
+      dialoguePromptSeed: `${name} looks at you curiously.`
+    };
+  }
+
+  /**
    * Extracts capitalized phrases from text.
    * e.g., "I went to Silverdale and saw King Arthur." -> ["Silverdale", "King Arthur"]
    */
   private static extractProperNouns(text: string): string[] {
-    const ignoredWords = new Set(['The', 'A', 'An', 'In', 'On', 'At', 'To', 'From', 'By', 'With', 'And', 'But', 'Or', 'Nor', 'For', 'Yet', 'So', 'I', 'My']);
+    const ignoredWords = new Set(['The', 'A', 'An', 'In', 'On', 'At', 'To', 'From', 'By', 'With', 'And', 'But', 'Or', 'Nor', 'For', 'Yet', 'So', 'I', 'My', 'We', 'They', 'It', 'He', 'She']);
     const found = new Set<string>();
 
     // Regex to match Capitalized Words (one or more)
+    // Avoid matching start of sentences if they are common words (handled by ignoredWords check mostly)
     const regex = /\b[A-Z][a-z]+(?:\s[A-Z][a-z]+)*\b/g;
 
     let match;
@@ -248,9 +301,10 @@ export class EntityResolverService {
    */
   private static guessEntityType(name: string, context: string): EntityType {
     const lowerContext = context.toLowerCase();
+    const lowerName = name.toLowerCase();
 
-    if (lowerContext.includes(`visit ${name.toLowerCase()}`) || lowerContext.includes(`travel to ${name.toLowerCase()}`)) return 'location';
-    if (lowerContext.includes(`join ${name.toLowerCase()}`) || lowerContext.includes(`fight ${name.toLowerCase()}`)) return 'faction';
+    if (lowerContext.includes(`visit ${lowerName}`) || lowerContext.includes(`travel to ${lowerName}`) || lowerContext.includes(`in ${lowerName}`)) return 'location';
+    if (lowerContext.includes(`join ${lowerName}`) || lowerContext.includes(`fight ${lowerName}`) || lowerContext.includes(`guild`)) return 'faction';
 
     // Default to NPC for names
     return 'npc';
@@ -261,6 +315,8 @@ export class EntityResolverService {
     // e.g. "Silverdale" vs "Barn" (if capitalized by mistake)
     // "The Iron Ledger" vs "The"
     if (name.split(' ').length > 1) return true;
+    // Single names like "Gandalf" are also major, but hard to distinguish from "Chair" if capitalized at start.
+    // We rely on extractProperNouns to filter common words.
     return false;
   }
 }
