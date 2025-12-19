@@ -1,0 +1,13 @@
+{
+  "id": "cantrip",
+  "title": "Cantrips",
+  "category": "Rules Glossary",
+  "tags": ["spellcasting", "magic"],
+  "excerpt": "A spell that can be cast at will, without using a spell slot and without being prepared in advance. Cantrips are simple but reliable magical effects.",
+  "aliases": ["Cantrip"],
+  "seeAlso": [
+    "spell_slot"
+  ],
+  "filePath": "/data/glossary/entries/rules/cantrip.json",
+  "markdown": "# Cantrips\n\nA cantrip is a spell that can be cast at will, without using a [[spell_slot]] and without being prepared in advance. Repeated practice has fixed the spell in the caster's mind and infused the caster with the magic needed to produce the effect over and over.\n\n## Cantrip Rules\n\n### No Spell Slots Required\n- Cantrips don't consume spell slots\n- You can cast cantrips as many times as you want\n- They are always prepared and ready to use\n\n### Level 0 Spells\n- Cantrips are considered 0-level spells\n- They don't count against your number of spells known or prepared\n\n### Scale with Character Level\nMany cantrips become more powerful as you gain levels:\n- At **5th level**, most damage cantrips deal additional damage\n- At **11th level**, they deal even more damage\n- At **17th level**, they reach their maximum power\n\n## Common Cantrips\n\n### Attack Cantrips\n- **Fire Bolt**: Ranged spell attack dealing fire damage\n- **Ray of Frost**: Ranged spell attack dealing cold damage and slowing target\n- **Eldritch Blast**: Ranged spell attack dealing force damage (Warlock)\n- **Sacred Flame**: Target makes Dexterity save or takes radiant damage\n- **Toll the Dead**: Target makes Wisdom save or takes necrotic damage\n\n### Utility Cantrips\n- **Mage Hand**: Create a spectral hand to manipulate objects\n- **Prestidigitation**: Create minor magical tricks and effects\n- **Light**: Make an object shed bright light\n- **Mending**: Repair breaks or tears in objects\n- **Message**: Send a short message to a creature you can see\n\n### Support Cantrips\n- **Guidance**: Grant a bonus to an ability check\n- **Resistance**: Grant a bonus to a saving throw\n- **Spare the Dying**: Stabilize a dying creature\n"
+}

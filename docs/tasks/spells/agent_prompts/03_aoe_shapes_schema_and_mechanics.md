@@ -90,3 +90,9 @@ Update at least 2 spells to use the new representation and verify mechanics:
   - which files implement overlapping logic
   - which one should be the SSOT
   - a consolidation plan (separate from the AoE schema change if needed)
+
+## After completion (required)
+Append to this file:
+- "Completion Notes"
+- "Detected TODOs (Out of Scope)"
+See `docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md`.

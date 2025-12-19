@@ -1,0 +1,15 @@
+{
+  "id": "wisdom",
+  "title": "Wisdom",
+  "category": "Rules Glossary",
+  "tags": ["ability scores", "attributes", "stats"],
+  "excerpt": "Measures awareness, intuition, and insight. Wisdom is important for clerics, druids, and rangers, and affects perception and many saving throws.",
+  "aliases": ["WIS"],
+  "seeAlso": [
+    "intelligence",
+    "charisma",
+    "ability_check"
+  ],
+  "filePath": "/data/glossary/entries/rules/wisdom.json",
+  "markdown": "# Wisdom\n\nWisdom reflects how attuned you are to the world around you and represents perceptiveness and intuition.\n\n## Wisdom Checks\n\nA Wisdom check might reflect an effort to read body language, understand someone's feelings, notice things about the environment, or care for an injured person.\n\n### Animal Handling Skill\nYour Wisdom (Animal Handling) check determines your ability to:\n- Calm down a domesticated animal\n- Keep a mount from getting spooked\n- Intuit an animal's intentions\n- Control your mount when you attempt a risky maneuver\n\n### Insight Skill\nYour Wisdom (Insight) check determines your ability to:\n- Determine the true intentions of a creature\n- Read body language\n- Understand someone's feelings\n- Detect lies or deception\n\n### Medicine Skill\nYour Wisdom (Medicine) check determines your ability to:\n- Stabilize a dying companion\n- Diagnose an illness\n- Tend to wounds\n\n### Perception Skill\nYour Wisdom (Perception) check determines your ability to:\n- Spot, hear, or otherwise detect the presence of something\n- Notice hidden objects or creatures\n- Eavesdrop on a conversation\n- Hear combat in the distance\n\n### Survival Skill\nYour Wisdom (Survival) check determines your ability to:\n- Follow tracks\n- Hunt wild game\n- Guide your group through frozen wastelands\n- Identify signs that owlbears live nearby\n- Predict the weather\n- Avoid quicksand and other natural hazards\n\n## Spellcasting Ability\n\nWisdom is the spellcasting ability for:\n- **Clerics**: Divine magic through faith and devotion\n- **Druids**: Primal magic drawn from nature\n- **Rangers**: Nature magic from their connection to the wild\n\n## Wisdom Saving Throws\n\nWisdom saving throws represent your ability to resist effects that would:\n- **Charm** or dominate your mind\n- **Frighten** you\n- **Cause hallucinations** or illusions\n- **Control your thoughts** or actions\n\n### Common Spells Requiring Wisdom Saves\n- *Charm Person*\n- *Hold Person*\n- *Dominate Person*\n- *Fear*\n- *Hideous Laughter*\n"
+}

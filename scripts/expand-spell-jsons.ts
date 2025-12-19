@@ -17,8 +17,6 @@ import { globSync } from 'glob';
  * 
  * USAGE:
  * npx tsx scripts/expand-spell-jsons.ts [--write]
- * - Without --write: Dry run (lists missing keys).
- * - With --write: Updates the JSON files.
  */
 
 const SHOULD_WRITE = process.argv.includes('--write');
@@ -27,7 +25,6 @@ const SPELL_DATA_DIR = 'public/data/spells/**/*.json';
 
 /**
  * NESTED TEMPLATES
- * These define the "Deepest" level of standardization for complex objects.
  */
 
 const TARGET_CONDITION_FILTER_TEMPLATE = {
@@ -82,7 +79,6 @@ const SCALING_FORMULA_TEMPLATE = {
 /**
  * MASTER TEMPLATE
  * Represents the "Perfect" Spell JSON structure.
- * Every spell file will be merged with this.
  */
 const MASTER_TEMPLATE = {
     id: "",
@@ -150,10 +146,6 @@ const MASTER_TEMPLATE = {
     tags: []
 };
 
-/**
- * Deep merge utility to ensure all keys from template exist in target.
- * Note: If target has a value (even ""), it preserves it unless specifically handled elsewhere.
- */
 function deepMerge(target: any, template: any): any {
     if (target === null || target === undefined) return template;
     if (typeof template !== 'object' || Array.isArray(template)) return target;
@@ -176,10 +168,6 @@ function deepMerge(target: any, template: any): any {
     return result;
 }
 
-/**
- * Handles the expansion of individual effects within the 'effects' array.
- * Each effect type (DAMAGE, HEALING, etc.) has its own mandatory sub-structure.
- */
 function expandEffect(effect: any): any {
     let expanded = deepMerge(effect, {
         trigger: EFFECT_TRIGGER_TEMPLATE,
@@ -188,7 +176,6 @@ function expandEffect(effect: any): any {
         description: ""
     });
 
-    // Exhaustively backfill nested filters in condition
     if (expanded.condition.targetFilter) {
         expanded.condition.targetFilter = deepMerge(expanded.condition.targetFilter, TARGET_CONDITION_FILTER_TEMPLATE);
     }
@@ -196,7 +183,6 @@ function expandEffect(effect: any): any {
         expanded.condition.saveModifiers = expanded.condition.saveModifiers.map((m: any) => deepMerge(m, SAVE_MODIFIER_TEMPLATE));
     }
 
-    // Effect-Type Specific Expansion
     if (expanded.type === "DAMAGE") {
         expanded = deepMerge(expanded, { damage: { dice: "", type: "" } });
     } else if (expanded.type === "HEALING") {
@@ -258,21 +244,16 @@ function expandEffect(effect: any): any {
     return expanded;
 }
 
-/**
- * Standardizes a single spell file.
- */
 function processSpell(filePath: string) {
     const content = fs.readFileSync(filePath, 'utf-8');
     const spellData = JSON.parse(content);
 
     let expandedData = deepMerge(spellData, MASTER_TEMPLATE);
 
-    // SPECIAL FIX: If arbitrationType is empty string, force it to the default "mechanical"
     if (expandedData.arbitrationType === "") {
         expandedData.arbitrationType = "mechanical";
     }
 
-    // Backfill existing effects
     if (Array.isArray(expandedData.effects)) {
         expandedData.effects = expandedData.effects.map(expandEffect);
     }

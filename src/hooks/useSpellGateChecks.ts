@@ -21,7 +21,7 @@ export interface GateChecklist {
   manifestPathOk: boolean;
   spellJsonExists: boolean;
   spellJsonValid: boolean;
-  knownGap: boolean;
+  noKnownGaps: boolean; // Reversed logic: true means "Clean"
 }
 
 export interface GateResult {
@@ -29,6 +29,11 @@ export interface GateResult {
   reasons: string[];
   level?: number;
   checklist: GateChecklist;
+  gapAnalysis?: {
+    state: string;
+    gaps: string[];
+    notes: string;
+  };
 }
 
 type SpellManifestEntry = {
@@ -95,10 +100,11 @@ export const useSpellGateChecks = () => {
               manifestPathOk: false,
               spellJsonExists: false,
               spellJsonValid: false,
-              knownGap: knownGaps.has(id),
+              noKnownGaps: !knownGaps.has(id), // Default to true if not in old markdown list
             };
             const reasons: string[] = [];
             let status: GateStatus = "pass";
+            let gapAnalysisData = undefined;
 
             if (entry.path && entry.path.includes(`/level-${level}/`)) {
               checklist.manifestPathOk = true;
@@ -114,7 +120,26 @@ export const useSpellGateChecks = () => {
               const parsed = SpellValidator.safeParse(spell);
               if (parsed.success) {
                 checklist.spellJsonValid = true;
-                if (spell?.legacy === true) checklist.knownGap = true;
+
+                // Prioritize GapAnalysis from JSON if it exists and is audited
+                if (spell.gapAnalysis) {
+                  gapAnalysisData = spell.gapAnalysis;
+                  if (spell.gapAnalysis.state === "analyzed_with_gaps") {
+                    checklist.noKnownGaps = false;
+                    reasons.push(`Gaps: ${spell.gapAnalysis.gaps.join(', ')}`);
+                  } else if (spell.gapAnalysis.state === "analyzed_clean") {
+                    checklist.noKnownGaps = true;
+                  } else if (spell.gapAnalysis.state === "not_started" && knownGaps.has(id)) {
+                    // Fallback to markdown if JSON analysis not yet started
+                    checklist.noKnownGaps = false;
+                    reasons.push("Marked as gap in legacy docs");
+                  }
+                }
+
+                if (spell?.legacy === true) {
+                  checklist.noKnownGaps = false;
+                  reasons.push("Marked as legacy spell");
+                }
               } else {
                 checklist.spellJsonValid = false;
                 status = "fail";
@@ -127,12 +152,12 @@ export const useSpellGateChecks = () => {
               reasons.push("Spell JSON not found");
             }
 
-            if (checklist.knownGap && status === "pass") {
+            // Final status calculation
+            if (!checklist.noKnownGaps && status === "pass") {
               status = "gap";
-              reasons.push("Marked as gap (legacy or logged)");
             }
 
-            next[id] = { status, reasons, level, checklist };
+            next[id] = { status, reasons, level, checklist, gapAnalysis: gapAnalysisData };
           }),
         );
 

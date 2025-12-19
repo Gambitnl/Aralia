@@ -91,3 +91,8 @@ Verify at least:
 - Spell glossary cards display "Feat Access" with scalable UI for large lists.
 - A rollout plan for expanding/maintaining the feat mapping as feat/spell data grows.
 
+## After completion (required)
+Append to this file:
+- "Completion Notes"
+- "Detected TODOs (Out of Scope)"
+See `docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md`.

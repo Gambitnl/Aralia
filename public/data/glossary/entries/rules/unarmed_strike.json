@@ -1,0 +1,13 @@
+{
+  "id": "unarmed_strike",
+  "title": "Unarmed Strike",
+  "category": "Rules Glossary",
+  "tags": ["combat", "attack", "melee"],
+  "excerpt": "A melee attack made with a punch, kick, head-butt, or similar forceful blow. Instead of using a weapon, you use your fist, foot, or another body part.",
+  "aliases": ["Unarmed Attack"],
+  "seeAlso": [
+    "attack_action"
+  ],
+  "filePath": "/data/glossary/entries/rules/unarmed_strike.json",
+  "markdown": "# Unarmed Strike\n\nInstead of using a weapon to make a melee weapon attack, you can use an unarmed strike: a punch, kick, head-butt, or similar forceful blow.\n\n## Unarmed Strike Rules\n\n### Counts as a Melee Weapon Attack\n- An unarmed strike counts as a melee weapon attack for the purposes of game rules\n- However, unarmed strikes are **not** weapons, so they don't work with features that require weapons\n\n### Damage\n- On a hit, an unarmed strike deals **1 + your Strength modifier** bludgeoning damage\n- Most characters deal 1d4 + Strength modifier damage with unarmed strikes\n\n### Proficiency\n- You are **always proficient** with unarmed strikes\n- You add your proficiency bonus to the attack roll\n\n## Monk Unarmed Strikes\n\nMonks have special rules for unarmed strikes:\n- Use Dexterity instead of Strength for attack and damage rolls\n- Deal more damage based on Martial Arts die (1d4 at 1st level, scaling up to 1d10 at 17th level)\n- Can use unarmed strikes as part of Flurry of Blows\n- Can use unarmed strikes as a [[bonus_action]] after taking the [[attack_action|Attack action]]\n\n## Two-Weapon Fighting\n\nYou **cannot** use two-weapon fighting with unarmed strikes because:\n- Two-weapon fighting requires \"light melee weapons in each hand\"\n- Unarmed strikes are not weapons\n\n## Other Features\n\n### Tavern Brawler Feat\n- Increases unarmed strike damage to 1d4 + Strength modifier\n- Grants proficiency with improvised weapons\n- Allows grappling as a bonus action after hitting with an unarmed strike\n\n### Fighting Style: Unarmed Fighting\n- Increases unarmed strike damage to 1d6 (or 1d8 if both hands are free)\n- Deals 1d4 bludgeoning damage to grappled creatures at the start of your turn\n"
+}

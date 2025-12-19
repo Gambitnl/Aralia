@@ -1,0 +1,15 @@
+{
+  "id": "charisma",
+  "title": "Charisma",
+  "category": "Rules Glossary",
+  "tags": ["ability scores", "attributes", "stats"],
+  "excerpt": "Measures force of personality, persuasiveness, and leadership ability. Charisma is important for bards, paladins, sorcerers, and warlocks.",
+  "aliases": ["CHA"],
+  "seeAlso": [
+    "wisdom",
+    "intelligence",
+    "ability_check"
+  ],
+  "filePath": "/data/glossary/entries/rules/charisma.json",
+  "markdown": "# Charisma\n\nCharisma measures your ability to interact effectively with others. It includes such factors as confidence and eloquence, and it can represent a charming or commanding personality.\n\n## Charisma Checks\n\nA Charisma check might arise when you try to influence or entertain others, when you try to make an impression or tell a convincing lie, or when you are navigating a tricky social situation.\n\n### Deception Skill\nYour Charisma (Deception) check determines your ability to:\n- Hide the truth convincingly\n- Tell lies\n- Create false identities\n- Use disguises\n- Make ambiguous statements\n\n### Intimidation Skill\nYour Charisma (Intimidation) check determines your ability to:\n- Influence someone through overt threats\n- Show hostile actions\n- Display physical violence\n- Extract information through threats\n\n### Performance Skill\nYour Charisma (Performance) check determines your ability to:\n- Delight an audience with music, dance, acting, storytelling, or other entertainment\n- Play an instrument\n- Tell jokes\n- Recite poetry\n\n### Persuasion Skill\nYour Charisma (Persuasion) check determines your ability to:\n- Influence someone with tact, social graces, or good nature\n- Foster friendships\n- Make cordial requests\n- Exhibit proper etiquette\n- Act in good faith\n\n## Spellcasting Ability\n\nCharisma is the spellcasting ability for:\n- **Bards**: Magic from words of power and music\n- **Paladins**: Divine magic from sacred oaths\n- **Sorcerers**: Innate magic from magical bloodlines\n- **Warlocks**: Magic granted by otherworldly patrons\n\n## Charisma Saving Throws\n\nCharisma saving throws are less common but represent your ability to resist effects that would:\n- **Banish** you to another plane\n- **Possess** or control your body\n- **Exile** you from reality\n- **Destroy your sense of self**\n\n### Common Spells Requiring Charisma Saves\n- *Banishment*\n- *Dispel Evil and Good*\n- *Divine Word*\n- *Planar Binding*\n"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "magic_action",
+  "title": "Magic Action (Cast a Spell)",
+  "category": "Rules Glossary",
+  "tags": ["spellcasting", "magic", "actions"],
+  "excerpt": "Using your action to cast a spell. Most spells have a casting time of 1 action, making this one of the most common actions for spellcasters.",
+  "aliases": ["Cast a Spell", "Spellcasting Action"],
+  "seeAlso": [
+    "action",
+    "spell_slot",
+    "bonus_action",
+    "concentration"
+  ],
+  "filePath": "/data/glossary/entries/rules/magic_action.json",
+  "markdown": "# Magic Action (Cast a Spell)\n\nWhen you cast a spell with a casting time of 1 action, you use your [[action]] on your turn to cast it.\n\n## Casting Time\n\n### 1 Action\nMost spells require 1 action to cast. You cast the spell and produce its effects on your turn.\n\n### 1 Bonus Action\nSome spells have a casting time of 1 [[bonus_action]]. These spells are cast more quickly than normal spells, allowing you to act and cast on the same turn.\n\n**Limitation**: If you cast a spell as a bonus action, you can't cast another spell during the same turn, except for a [[cantrip]] with a casting time of 1 action.\n\n### 1 Reaction\nSome spells can be cast as a [[reaction]]. These spells are cast in response to a trigger specified in the spell description.\n\n### Longer Casting Times\nSome spells require more time:\n- **1 minute**: Usually cast outside of combat\n- **10 minutes** or more: Often [[ritual]] spells or major magical workings\n\n## Components\n\nMost spells require components to cast:\n\n### Verbal (V)\n- Speaking mystical words of power\n- You must be able to speak\n- Requires an audible voice\n\n### Somatic (S)\n- Gestures and hand movements\n- Requires a free hand\n- Can't cast if hands are bound or full\n\n### Material (M)\n- Physical materials or objects\n- May require a spellcasting focus or component pouch\n- Costly materials are consumed or required to be held\n\n## Spell Attack Rolls\n\nSome spells require you to make a **spell attack roll**:\n- Roll d20 + proficiency bonus + spellcasting ability modifier\n- Compare to target's AC\n- Critical hits apply to spell attacks\n\n## Spell Saving Throws\n\nSome spells require targets to make a **saving throw**:\n- **Spell Save DC** = 8 + proficiency bonus + spellcasting ability modifier\n- Target rolls d20 + appropriate ability modifier\n- Must meet or exceed your spell save DC to succeed\n\n## Using Spell Slots\n\nCasting a spell typically requires expending a [[spell_slot]]:\n- Cantrips don't require spell slots\n- You must use a slot of the spell's level or higher\n- Casting at higher levels may enhance the spell's effects\n\n## Concentration\n\nSome spells require [[concentration]] to maintain:\n- You can only concentrate on one spell at a time\n- Casting another concentration spell ends the first one\n- Taking damage requires a Constitution save to maintain concentration\n"
+}

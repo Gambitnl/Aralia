@@ -72,3 +72,9 @@ Run:
   - how to update all reference files (if needed) to populate the new structure
   - how to handle ambiguous multi-item component phrasing
   - checkpoints to confirm behavior with the user before mass edits
+
+## After completion (required)
+Append to this file:
+- "Completion Notes"
+- "Detected TODOs (Out of Scope)"
+See `docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md`.

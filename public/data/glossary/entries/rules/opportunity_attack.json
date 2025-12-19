@@ -1,0 +1,14 @@
+{
+  "id": "opportunity_attack",
+  "title": "Opportunity Attack",
+  "category": "Rules Glossary",
+  "tags": ["combat", "attack", "reaction"],
+  "excerpt": "A special reaction you can take when a hostile creature you can see moves out of your reach. The most common type of reaction.",
+  "aliases": ["Attack of Opportunity", "AoO"],
+  "seeAlso": [
+    "reaction",
+    "attack_action"
+  ],
+  "filePath": "/data/glossary/entries/rules/opportunity_attack.json",
+  "markdown": "# Opportunity Attack\n\nYou can make an opportunity attack when a hostile creature that you can see moves out of your reach. This is the most common use of a [[reaction]].\n\n## Making an Opportunity Attack\n\nTo make an opportunity attack, you use your reaction to make **one melee attack** against the provoking creature. The attack occurs right before the creature leaves your reach.\n\n## When You Can't Make Opportunity Attacks\n\nYou **don't** provoke an opportunity attack when:\n\n### Teleportation\n- The creature teleports or is otherwise moved without using movement, speed, or action\n\n### Forced Movement\n- The creature is pushed, pulled, or moved by an external force (like *Thunderwave* or being shoved)\n\n### Disengage Action\n- The creature takes the Disengage action before moving\n- Disengage prevents opportunity attacks for the rest of that creature's turn\n\n### Special Movement\n- Certain features allow movement that doesn't provoke opportunity attacks\n- Example: Mobile feat, Swashbuckler's Fancy Footwork\n\n## Breaking Free\n\nSome creatures can move through your reach without provoking:\n- **Flyby**: Some flying creatures can fly out of reach without provoking\n- **Mobile Feat**: You don't provoke opportunity attacks from creatures you've attacked this turn\n- **Cunning Action (Disengage)**: Rogues can Disengage as a bonus action\n\n## Special Opportunity Attacks\n\n### Polearm Master\n- Can make opportunity attacks when creatures **enter** your reach (if wielding a polearm)\n\n### Sentinel Feat\n- Opportunity attacks reduce target's speed to 0\n- Can make opportunity attacks even when target takes Disengage\n- Can use reaction to attack creatures that attack your allies\n\n## Multiple Creatures\n\nIf multiple creatures move out of your reach:\n- You can only make **one** opportunity attack per round\n- You choose which creature to attack\n- You must use your reaction, so you can't use it for anything else that round\n"
+}

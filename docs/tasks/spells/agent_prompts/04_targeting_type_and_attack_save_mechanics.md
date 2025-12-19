@@ -100,3 +100,9 @@ Update at least 5 spells from the list above to match standards and ensure:
 - References normalized (or robustly auto-mapped).
 - Mechanics compatibility for attack/save confirmed.
 - A follow-up plan for rolling the normalization across all spells (not just 5), including how to batch changes safely and when to request user decisions.
+
+## After completion (required)
+Append to this file:
+- "Completion Notes"
+- "Detected TODOs (Out of Scope)"
+See `docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md`.

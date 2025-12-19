@@ -1,0 +1,14 @@
+{
+  "id": "spell_slot",
+  "title": "Spell Slots",
+  "category": "Rules Glossary",
+  "tags": ["spellcasting", "magic", "resources"],
+  "excerpt": "A limited resource that represents the magical energy you can expend to cast spells. Spell slots are expended when you cast a spell and are regained when you finish a long rest.",
+  "aliases": ["Spell Slot"],
+  "seeAlso": [
+    "long_rest",
+    "cantrip"
+  ],
+  "filePath": "/data/glossary/entries/rules/spell_slot.json",
+  "markdown": "# Spell Slots\n\nRegardless of how many spells a caster knows or prepares, they can cast only a limited number of spells before resting. Manipulating the fabric of magic and channeling its energy into even a simple spell is physically and mentally taxing, and higher-level spells are even more so.\n\n## Spell Slot Levels\n\nSpell slots are divided into levels from 1st to 9th:\n- **1st-level slots**: Cast 1st-level spells\n- **2nd-level slots**: Cast 2nd-level spells\n- And so on up to 9th level\n\n## Using Spell Slots\n\nWhen you cast a spell, you expend a spell slot of the spell's level or higher. For example:\n- To cast the 1st-level spell *Magic Missile*, you must expend a 1st-level slot\n- If you want to cast it using a 2nd-level slot, you can—the spell is cast at a higher level\n\n## Casting at Higher Levels\n\nSome spells have enhanced effects when cast using a higher-level spell slot. For example:\n- *Magic Missile* creates one additional dart for each slot level above 1st\n- *Cure Wounds* heals more hit points when cast at higher levels\n\nThe spell's description tells you what happens when you cast it at a higher level.\n\n## Regaining Spell Slots\n\nYou regain all expended spell slots when you finish a [[long_rest]].\n\n### Exceptions\n- **Warlocks**: Regain spell slots on a [[short_rest]]\n- **Arcane Recovery** (Wizard): Recover some spell slots during a short rest\n- **Sorcery Points** (Sorcerer): Can convert sorcery points to spell slots\n\n## Cantrips Don't Use Slots\n\n[[cantrip|Cantrips]] are 0-level spells that don't require spell slots and can be cast at will.\n"
+}

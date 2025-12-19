@@ -99,3 +99,27 @@ Recommended checks whenever a batch of spells is updated:
 - `npx --no-install tsx scripts/regenerate-manifest.ts`
 - `node scripts/generateGlossaryIndex.js`
 - `npm run validate`
+
+## Task completion protocol (required)
+When you finish any prompt in this folder:
+1) Update the corresponding prompt file by appending a "Completion Notes" section at the bottom that includes:
+   - Date/time
+   - What you did (step-by-step, concise)
+   - What changed (high-level)
+   - Files added/modified/deleted (bulleted)
+   - Commands run and outcomes (especially validation)
+   - Any decisions made that might affect other tasks (schema decisions, mappings, behavior changes)
+2) Append a "Detected TODOs (Out of Scope)" section:
+   - List any relevant issues, refactor ideas, data quality gaps, or future-feature hooks you noticed but did not implement
+   - For each TODO, include: where (file/path), why it matters, and suggested next step
+3) If you discover duplicated/overlapping mechanics or multiple sources of truth, include a short "SSOT Risks" note:
+   - Which files overlap
+   - What should become the single source of truth
+   - A safe consolidation plan (do not execute consolidation unless requested)
+
+## Code change commenting (required)
+When you add or modify code as part of these tasks:
+- Add brief code comments explaining intent and assumptions for any non-trivial logic you introduce.
+- For scripts, include a short header comment describing purpose, inputs, outputs, and how to run it.
+- For schema/type changes, add a comment explaining why the new field exists and how it is expected to be used.
+- Avoid redundant comments that restate the code; prefer "why" and "how this ties to mechanics/data".

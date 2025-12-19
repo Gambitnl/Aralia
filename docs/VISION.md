@@ -781,6 +781,58 @@ The only limits are what actions the systems support.
 
 ---
 
+## Engineering Principles (How We Build)
+
+This section is intentionally implementation-agnostic. It describes the working method and architectural guardrails that keep the project maintainable as systems scale.
+
+### Single Source of Truth (SSOT)
+- Prefer one authoritative representation for each concept (rules, data, mechanics, UI text), and derive everything else from it.
+- Generated artifacts are fine, but they must be reproducible from the SSOT and never edited by hand.
+- If two systems need the same information, centralize it; do not copy/paste definitions across files.
+
+### Schema-First, Validate Always
+- Introduce explicit schemas/types for structured data and enforce them with validation at build-time and in development.
+- Add lightweight integrity checks for cross-file relationships (IDs, references, indexes) so errors fail fast.
+- Treat validation failures as signals to fix root causes, not as noise to suppress.
+
+### Build in Layers (Foundations -> Features -> Content)
+- Start by locking down foundations and invariants (schemas, encodings, identifiers, normalization rules).
+- Then implement mechanics and UI against those invariants.
+- Only then do large-scale content ingestion/migration, so the work does not have to be repeated.
+
+### Incremental Delivery with Audit Loops
+- Work in small, verifiable slices that can be validated end-to-end.
+- Prefer "audit report -> fix -> re-audit" loops over one-shot bulk edits.
+- If there are competing design options, implement a minimal fixture first, validate it, then scale out.
+
+### Task-Driven Execution and Traceable Decisions
+- Write task files for non-trivial work with: goals, constraints, inputs, steps, and a definition of done.
+- After completing a task, append completion notes:
+  - What was done (step-by-step)
+  - What changed (high-level)
+  - Files touched and commands run
+  - Decisions made and why
+- Also append "Detected TODOs (Out of Scope)" to capture insights that should not be lost.
+
+### Comment for Intent (Not for Noise)
+- Add comments for non-obvious logic explaining intent, assumptions, and why the approach was chosen.
+- Avoid redundant comments that restate code; prefer context that helps future refactors and debugging.
+
+### Text Hygiene and Encoding Discipline
+- Establish and enforce a character/encoding policy for user-facing text and data.
+- Add automated checks to detect broken decodes, control characters, and other "invisible" hazards early.
+- Provide a deterministic normalization strategy so content stays consistent over time.
+
+### Prevent Logic Duplication
+- When you find the same rule/mechanic implemented in more than one place, treat it as a design risk.
+- Record the overlap, pick a single owner, and plan consolidation behind stable interfaces.
+
+### Observability and Debuggability
+- Prefer structured logs and traceable events when systems interact (combat resolution, world simulation, generators).
+- Make it easy to inspect state transitions and reproduce outcomes from inputs.
+
+---
+
 *This document is a living vision. It will evolve as the game develops.*
 
 *Last updated: 2025-12-15*

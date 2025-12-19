@@ -87,3 +87,8 @@ Pick at least 5 known subclass-only spells (from your local rules sources) acros
 - Spell glossary cards show "Subclass Access" for spells with exceptional subclass access.
 - A rollout plan for adding the rest of subclasses/spells after fixtures are validated, with checkpoints for user review.
 
+## After completion (required)
+Append to this file:
+- "Completion Notes"
+- "Detected TODOs (Out of Scope)"
+See `docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md`.

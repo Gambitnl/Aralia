@@ -1,0 +1,17 @@
+{
+  "id": "constitution",
+  "title": "Constitution",
+  "category": "Rules Glossary",
+  "tags": ["ability scores", "attributes", "stats"],
+  "excerpt": "Measures health, stamina, and vital force. Constitution determines your hit points and affects concentration on spells.",
+  "aliases": ["CON"],
+  "seeAlso": [
+    "strength",
+    "dexterity",
+    "hit_points",
+    "concentration",
+    "ability_check"
+  ],
+  "filePath": "/data/glossary/entries/rules/constitution.json",
+  "markdown": "# Constitution\n\nConstitution measures health, stamina, and vital force.\n\n## Constitution Checks\n\nConstitution checks are uncommon, and no skills apply to Constitution checks, because the endurance this ability represents is largely passive rather than involving a specific effort on the part of a character or monster.\n\n### Common Uses\n- **Holding your breath**\n- **Marching or laboring** for hours without rest\n- **Going without sleep**\n- **Surviving without food or water**\n- **Quaffing an entire stein of ale** in one go\n\n## Hit Points\n\nYour Constitution modifier contributes to your [[hit_points]]. Typically, you add your Constitution modifier to each Hit Die you roll for your hit points.\n\nIf your Constitution modifier changes, your hit point maximum changes as well, as though you had the new modifier from 1st level.\n\n## Concentration\n\nWhen you take damage while [[concentration|concentrating]] on a spell, you must make a Constitution saving throw to maintain your concentration. The DC equals 10 or half the damage you take, whichever number is higher.\n\n## Constitution Saving Throws\n\nConstitution saving throws are common and represent your ability to resist:\n- **Poison** and disease\n- **Exhaustion** from forced marches\n- **Concentration** when taking damage while casting or maintaining a spell\n- **Environmental hazards** like extreme heat or cold\n- **Death** (in the form of death saving throws when at 0 HP)\n\n### Common Spells Requiring Constitution Saves\n- *Poison Spray*\n- *Cloudkill*\n- *Contagion*\n- *Blight*\n"
+}

@@ -23,6 +23,7 @@ Recommendation: ASCII-only for `docs/spells/reference/**/*.md` and `public/data/
 ### 2) Implement a scanner script
 Create a script that scans:
 - `docs/spells/reference/**/*.md`
+- (recommended) `docs/**/*.md` (to catch mojibake in general documentation)
 - `public/data/spells/**/*.json`
 - (optional) `public/data/glossary/entries/**/*.json`
 
@@ -33,6 +34,10 @@ The script should:
   - U+00C3 sequences (common UTF-8/Latin-1 mixups)
   - U+00E2/U+20AC/U+2122 triplet (common mis-decoded right-quote)
   - U+0192 (Latin Small Letter F With Hook; common mojibake artifact)
+- also detect "unexpected scripts" in otherwise English/ASCII content:
+  - Cyrillic block U+0400..U+04FF (e.g., U+0413, U+041B often show up in broken decodes)
+- detect non-breaking spaces that look like normal spaces:
+  - U+00A0 (NBSP)
 - detect zero-width and control characters:
   - BOM: U+FEFF
   - zero-width: U+200B, U+200C, U+200D
@@ -51,6 +56,7 @@ Add an optional `--write` mode that performs safe normalization:
 - curly quotes -> straight quotes
 - em/en dashes -> `-`
 - ellipsis -> `...`
+- NBSP -> normal space (U+00A0 -> U+0020)
 - strip BOM and zero-width spaces
 
 If you implement targeted mojibake repairs, keep them conservative and fully deterministic.
@@ -69,3 +75,8 @@ Run:
 - A scanner script with report output and `--write` mode.
 - Validation integration so future regressions are blocked.
 
+## After completion (required)
+Append to this file:
+- "Completion Notes"
+- "Detected TODOs (Out of Scope)"
+See `docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md`.

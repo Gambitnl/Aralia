@@ -1,0 +1,14 @@
+{
+  "id": "initiative",
+  "title": "Initiative",
+  "category": "Rules Glossary",
+  "tags": ["combat", "turn order"],
+  "excerpt": "Determines the order of turns in combat. At the start of combat, everyone rolls initiative by making a Dexterity check.",
+  "aliases": ["Turn Order"],
+  "seeAlso": [
+    "dexterity",
+    "action"
+  ],
+  "filePath": "/data/glossary/entries/rules/initiative.json",
+  "markdown": "# Initiative\n\nInitiative determines the order of turns during combat. When combat starts, every participant makes a [[dexterity]] check to determine their place in the initiative order.\n\n## Rolling Initiative\n\n### Dexterity Check\n- Roll a d20 and add your Dexterity modifier\n- You may add bonuses from features that affect initiative (like the Alert feat)\n\n### Turn Order\n- The DM ranks the combatants from highest to lowest initiative\n- This is the order in which they act during each round\n- The initiative order remains the same from round to round\n\n### Ties\nIf a tie occurs:\n- The DM decides the order among tied creatures controlled by the DM\n- Players decide the order among their tied characters\n- If there's a tie between a player and a creature, the DM can decide or have them roll again\n\n## Your Turn\n\nOn your turn, you can:\n- Move a distance up to your speed\n- Take one [[action]]\n- Take one [[bonus_action]] (if you have one available)\n- Interact with one object or feature of the environment for free\n- Communicate briefly\n\nYou can also take a [[reaction]] on someone else's turn.\n\n## Surprise\n\nIf you're surprised at the start of combat:\n- You can't move or take an action on your first turn\n- You can't take a reaction until your first turn ends\n- Being surprised doesn't change your initiative\n\n## Features Affecting Initiative\n\n### Alert Feat\n- +5 bonus to initiative rolls\n- Can't be surprised while conscious\n\n### Jack of All Trades (Bard)\n- Add half proficiency bonus to initiative rolls\n\n### Remarkable Athlete (Champion Fighter)\n- Add half proficiency bonus to initiative rolls\n\n### Feral Instinct (Barbarian)\n- Advantage on initiative rolls\n- Can act normally on the first turn even if surprised (by entering rage)\n\n### Gloom Stalker (Ranger)\n- +Wisdom modifier to initiative rolls\n"
+}

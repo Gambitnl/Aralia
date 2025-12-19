@@ -1,0 +1,15 @@
+{
+  "id": "dexterity",
+  "title": "Dexterity",
+  "category": "Rules Glossary",
+  "tags": ["ability scores", "attributes", "stats"],
+  "excerpt": "Measures agility, reflexes, and balance. Dexterity is important for ranged combat, initiative, armor class, and avoiding area effects.",
+  "aliases": ["DEX"],
+  "seeAlso": [
+    "strength",
+    "constitution",
+    "ability_check"
+  ],
+  "filePath": "/data/glossary/entries/rules/dexterity.json",
+  "markdown": "# Dexterity\n\nDexterity measures agility, reflexes, and balance.\n\n## Dexterity Checks\n\nA Dexterity check can model any attempt to move nimbly, quickly, or quietly, or to keep from falling on tricky footing.\n\n### Acrobatics Skill\nYour Dexterity (Acrobatics) check covers your attempt to stay on your feet in a tricky situation, such as:\n- Running across a sheet of ice\n- Balancing on a tightrope\n- Staying upright on a rocking ship's deck\n- Performing acrobatic stunts (dives, rolls, somersaults, flips)\n\n### Sleight of Hand Skill\nYour Dexterity (Sleight of Hand) check determines your ability to:\n- Pick pockets\n- Plant something on someone else\n- Conceal an object on your person\n- Perform legerdemain or magic tricks\n\n### Stealth Skill\nYour Dexterity (Stealth) check determines your ability to:\n- Hide from enemies\n- Sneak past guards\n- Slip away without being noticed\n- Move silently\n\n### Other Dexterity Checks\n- **Controlling a heavily laden cart** on a steep descent\n- **Steering a chariot** around a tight turn\n- **Picking a lock**\n- **Disabling a trap**\n- **Securely tying up a prisoner**\n- **Wriggling free** of bonds\n- **Playing a stringed instrument**\n- **Crafting a small or detailed object**\n\n## Attack Rolls and Damage\n\nYou add your Dexterity modifier to:\n- **Attack rolls** when using ranged weapons\n- **Damage rolls** when attacking with a ranged weapon\n- **Attack and damage rolls** when using finesse weapons (you choose between Strength or Dexterity)\n\n## Armor Class\n\nDepending on the armor you wear, you might add some or all of your Dexterity modifier to your Armor Class.\n\n## Initiative\n\nAt the beginning of every combat, you roll initiative by making a Dexterity check. Initiative determines the order of creatures' turns in combat.\n"
+}

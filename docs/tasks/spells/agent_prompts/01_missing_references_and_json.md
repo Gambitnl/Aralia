@@ -99,3 +99,9 @@ After updating the JSONs, confirm each spell has accurate `classes`:
 - All 7 reference files exist (with verbatim prose).
 - All 7 JSONs are V2, non-legacy, mechanics-usable, and `npm run validate` is green.
 - Provide a short follow-up plan (bulleted) for scaling this workflow to any other spells that lack references, including: tooling, validation checkpoints, and when to check in with the user for schema decisions.
+
+## After completion (required)
+Append to this file:
+- "Completion Notes"
+- "Detected TODOs (Out of Scope)"
+See `docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md`.

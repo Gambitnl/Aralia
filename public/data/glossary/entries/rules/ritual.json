@@ -1,0 +1,13 @@
+{
+  "id": "ritual",
+  "title": "Ritual Casting",
+  "category": "Rules Glossary",
+  "tags": ["spellcasting", "magic"],
+  "excerpt": "Certain spells can be cast as rituals, taking 10 additional minutes but not consuming a spell slot. Only some classes can cast rituals.",
+  "aliases": ["Ritual"],
+  "seeAlso": [
+    "spell_slot"
+  ],
+  "filePath": "/data/glossary/entries/rules/ritual.json",
+  "markdown": "# Ritual Casting\n\nCertain spells have a special tag: ritual. Such a spell can be cast following the normal rules for spellcasting, or the spell can be cast as a ritual.\n\n## Ritual Casting Rules\n\n### Time Investment\n- Casting a spell as a ritual takes an **additional 10 minutes** beyond the spell's normal casting time\n- For example, *Detect Magic* (1 action) takes 10 minutes and 1 action when cast as a ritual\n\n### No Spell Slot Required\n- The ritual version of a spell **doesn't expend a [[spell_slot]]**\n- This lets you cast powerful utility spells without using your limited magical resources\n\n### Must Have the Ritual Tag\n- Only spells that have the ritual tag in their description can be cast as rituals\n- Even if you can cast rituals, you can't ritual cast a spell that doesn't have the tag\n\n## Who Can Cast Rituals\n\n### Classes with Ritual Casting\n\n**Wizards**: Can cast any wizard spell they have in their spellbook as a ritual if it has the ritual tag (doesn't need to be prepared)\n\n**Clerics, Druids**: Can cast any prepared spell as a ritual if it has the ritual tag\n\n**Bards**: Can cast any known spell as a ritual if it has the ritual tag\n\n**Warlocks** (Pact of the Tome): Can cast ritual spells from their Book of Shadows\n\n**Ritual Caster Feat**: Allows any character to cast rituals from a ritual book\n\n## Common Ritual Spells\n\n### Detection and Information\n- *Detect Magic*: Sense the presence of magic\n- *Identify*: Learn the properties of a magical item\n- *Detect Poison and Disease*: Sense harmful substances\n- *Comprehend Languages*: Understand any spoken language\n\n### Utility\n- *Alarm*: Set a magical alarm\n- *Unseen Servant*: Create an invisible servant\n- *Find Familiar*: Summon a familiar spirit\n- *Leomund's Tiny Hut*: Create a dome of force\n- *Water Breathing*: Grant ability to breathe underwater\n"
+}

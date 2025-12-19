@@ -1,0 +1,37 @@
+{
+    "lastGlobalAudit": "2025-12-19",
+    "auditVersion": "1.0",
+    "spells": {
+        "acid-splash": {
+            "state": "analyzed_clean",
+            "gaps": [],
+            "notes": "Standard damage dealer with basic AoE; fully supported by DamageCommand."
+        },
+        "booming-blade": {
+            "state": "analyzed_with_gaps",
+            "gaps": [
+                "ENG_REACTION_TRIGGER"
+            ],
+            "notes": "Secondary damage relies on a 'move' trigger which the engine lacks."
+        },
+        "blade-ward": {
+            "state": "analyzed_clean",
+            "gaps": [],
+            "notes": "Simple defensive buff; fully supported."
+        },
+        "chill-touch": {
+            "state": "analyzed_with_gaps",
+            "gaps": [
+                "ENG_BEHAVIOR_RESTRICTION"
+            ],
+            "notes": "Disadvantage on Undead is not yet enforced by the engine."
+        },
+        "create-bonfire": {
+            "state": "analyzed_with_gaps",
+            "gaps": [
+                "ENG_AREA_TICK_ENTER"
+            ],
+            "notes": "Damage on entering the bonfire's space is not yet implemented."
+        }
+    }
+}
