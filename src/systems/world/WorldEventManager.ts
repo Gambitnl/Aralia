@@ -10,6 +10,7 @@ import { GameState, GameMessage, WorldRumor, MarketEvent, EconomyState } from '.
 import { applyReputationChange, modifyFactionRelationship } from '../../utils/factionUtils';
 import { getGameDay, addGameTime } from '../../utils/timeUtils';
 import { SeededRandom } from '../../utils/seededRandom';
+import { processDailyRoutes } from '../economy/TradeRouteManager';
 
 export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD';
 
@@ -408,6 +409,7 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
      currentState = propagateRumors(currentState, rng);
   }
 
+  // 1. Event Cleanup (Rumors & Economy)
   // Clean up expired rumors
   const currentDay = getGameDay(state.gameTime);
   if (currentState.activeRumors) {
@@ -421,21 +423,12 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
 
   // Clean up expired market events
   if (currentState.economy && currentState.economy.activeEvents) {
-     // Decrease duration of active events? No, we check if they expire by a separate timestamp logic?
-     // Actually, MarketEvent definition has 'duration'. We should probably decrement it or store start time.
-     // For simplicity in this iteration, we'll assume 'duration' is days remaining and decrement it.
-
      let eventsChanged = false;
      const newActiveEvents = currentState.economy.activeEvents
         .map(e => ({...e, duration: e.duration - 1}))
         .filter(e => e.duration > 0);
 
      if (newActiveEvents.length !== currentState.economy.activeEvents.length) {
-         eventsChanged = true;
-     }
-
-     // Also check if any decremented durations changed (always true if > 0 events)
-     if (currentState.economy.activeEvents.length > 0) {
          eventsChanged = true;
      }
 
@@ -465,6 +458,15 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
      }
   }
 
+  // 2. Process Trade Routes (Regenerate Route Events)
+  // This comes AFTER cleanup so previous day's events are gone, and new ones are added.
+  const routeResult = processDailyRoutes(currentState, daysPassed, rng);
+  if (routeResult.logs.length > 0 || routeResult.state !== currentState) {
+      currentState = routeResult.state;
+      allLogs = [...allLogs, ...routeResult.logs];
+  }
+
+  // 3. Random Daily Events
   // Iterate for each day passed
   for (let i = 0; i < daysPassed; i++) {
     if (rng.next() < DAILY_EVENT_CHANCE) {
