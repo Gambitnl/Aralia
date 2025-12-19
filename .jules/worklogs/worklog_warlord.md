@@ -7,9 +7,9 @@ This journal tracks deep insights into the combat system, 5e rules compliance, a
 **Action:** When implementing new features, ensure they consume the correct resource (e.g. `cost: { type: 'bonus' }`).
 
 ## 2025-05-20 - Attack Roll Resolution
-**Learning:** The `resolveAttack` function in `src/utils/combatUtils.ts` correctly handles Natural 1 (Auto Miss) and Natural 20 (Critical Hit). However, Critical Hits currently only trigger the "Auto Hit" logic; they do not yet double the damage dice as per 5e rules.
-**Action:** The damage calculation logic needs to be updated to inspect the `isCritical` flag and roll damage dice twice.
+**Learning:** The `resolveAttack` function in `src/utils/combatUtils.ts` correctly handles Natural 1 (Auto Miss) and Natural 20 (Critical Hit).
+**Action:** Verified that `rollDamage` correctly implements critical hit logic (doubling dice count), contrary to earlier suspicion. No changes needed for crits.
 
 ## 2025-05-20 - Movement Economy
-**Learning:** Movement is tracked in `ActionEconomyState.movement` (used/total). Grid movement uses Chebyshev distance (5-5-5), effectively allowing diagonals at 1:1 cost. This is a common variant rule (DMG p. 252) but the optional "5-10-5" rule is more standard for tactical play.
-**Action:** Consider if we want to stick to 1:1 or implement 5-10-5 for diagonals. Currently sticking to 1:1 for simplicity is fine, but note it as a design choice.
+**Learning:** Grid movement has been updated from Chebyshev (1:1 diagonals) to the D&D 5e Variant Rule (5-10-5), where diagonals alternate cost between 5ft and 10ft. This significantly changes tactical positioning and flanking ranges.
+**Action:** Pathfinding algorithms (`A*` and BFS) now must track "diagonal parity" in their state to find optimal paths. Standard G-score pruning is insufficient; pruning must consider parity (even/odd diagonal count).

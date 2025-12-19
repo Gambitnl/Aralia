@@ -6,6 +6,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition } from '../../types/combat';
 import { findPath } from '../../utils/pathfinding';
+import { calculateMovementCost } from '../../utils/movementUtils';
 
 interface UseGridMovementProps {
   mapData: BattleMapData | null;
@@ -38,15 +39,20 @@ export function useGridMovement({ mapData, characterPositions, selectedCharacter
     if (!startNode) return new Set<string>();
 
     const reachableTiles = new Set<string>();
-    const queue: { tile: BattleMapTile; cost: number }[] = [{ tile: startNode, cost: 0 }];
-    const visited = new Set<string>([startNode.id]);
+
+    // BFS state needs to track diagonal count to properly enforce 5-10-5
+    const queue: { tile: BattleMapTile; cost: number; diagonalCount: number }[] = [{ tile: startNode, cost: 0, diagonalCount: 0 }];
+
+    // Visited map keys: "x-y-parity"
+    const visited = new Map<string, number>();
+    visited.set(`${startNode.id}-0`, 0);
 
     // Calculate remaining movement
     const movement = selectedCharacter.actionEconomy?.movement;
     const movementRemaining = movement ? (movement.total - movement.used) : 0;
 
     while (queue.length > 0) {
-      const { tile, cost } = queue.shift()!;
+      const { tile, cost, diagonalCount } = queue.shift()!;
       reachableTiles.add(tile.id);
 
       for (let dx = -1; dx <= 1; dx++) {
@@ -58,11 +64,24 @@ export function useGridMovement({ mapData, characterPositions, selectedCharacter
           const neighborId = `${newX}-${newY}`;
           const neighbor = mapData.tiles.get(neighborId);
 
-          if (neighbor && !neighbor.blocksMovement && !visited.has(neighborId)) {
-            const newCost = cost + neighbor.movementCost;
+          if (neighbor && !neighbor.blocksMovement) {
+            // Calculate step cost using 5-10-5 rule
+            const { cost: baseStepCost, isDiagonal } = calculateMovementCost(dx, dy, diagonalCount);
+            const terrainMultiplier = neighbor.movementCost || 1;
+            const stepCost = baseStepCost * terrainMultiplier;
+
+            const newCost = cost + stepCost;
+            const newDiagonalCount = isDiagonal ? diagonalCount + 1 : diagonalCount;
+            const newParity = newDiagonalCount % 2;
+            const visitedKey = `${neighborId}-${newParity}`;
+
             if (newCost <= movementRemaining) {
-              visited.add(neighborId);
-              queue.push({ tile: neighbor, cost: newCost });
+              // Only process if we found a cheaper way to this state (tile + parity)
+              const previousCost = visited.get(visitedKey);
+              if (previousCost === undefined || newCost < previousCost) {
+                visited.set(visitedKey, newCost);
+                queue.push({ tile: neighbor, cost: newCost, diagonalCount: newDiagonalCount });
+              }
             }
           }
         }

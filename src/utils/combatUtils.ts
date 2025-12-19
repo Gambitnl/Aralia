@@ -13,6 +13,7 @@ import { createAbilityFromSpell } from './spellAbilityFactory';
 import { isWeaponProficient } from './weaponUtils';
 import { generateId } from './idGenerator';
 import { getAbilityModifierValue } from './statUtils';
+import { getTargetDistance } from './movementUtils';
 
 import { bresenhamLine } from './lineOfSight';
 
@@ -161,6 +162,11 @@ export function getActionMessage(action: CombatAction, character: CombatCharacte
 /**
  * Calculates the distance between two positions in tiles.
  * Uses Chebyshev distance (5-5-5 rule) to support 8-way movement on the grid.
+ * This is primarily used for AoE calculations and simple range checks.
+ *
+ * NOTE: For strict movement cost calculation (5-10-5 rule), use `getTargetDistance`
+ * from `movementUtils.ts` or `findPath` from `pathfinding.ts`.
+ *
  * @param pos1 - The first position.
  * @param pos2 - The second position.
  * @returns The distance in tiles (maximum coordinate difference).
