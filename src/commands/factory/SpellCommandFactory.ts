@@ -114,14 +114,6 @@ export class SpellCommandFactory {
   }
 
   /**
-   * Check if a target matches the filter
-   * @deprecated Use TargetValidationUtils.matchesFilter instead
-   */
-  public static matchesFilter(target: CombatCharacter, filter: TargetConditionFilter): boolean {
-    return TargetValidationUtils.matchesFilter(target, filter)
-  }
-
-  /**
    * Create a single command from an effect, filtering targets if necessary
    */
   private static createCommand(
@@ -138,7 +130,7 @@ export class SpellCommandFactory {
       let filteredTargets = context.targets;
 
       if (effect.condition?.targetFilter) {
-        filteredTargets = context.targets.filter(t => this.matchesFilter(t, effect.condition.targetFilter));
+        filteredTargets = context.targets.filter(t => TargetValidationUtils.matchesFilter(t, effect.condition!.targetFilter!));
 
         if (filteredTargets.length === 0 && context.targets.length > 0) {
           // All targets filtered out

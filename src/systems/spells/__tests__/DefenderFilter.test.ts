@@ -1,6 +1,6 @@
 
 import { CombatCharacter, CombatState, ActiveEffect } from '@/types/combat';
-import { SpellCommandFactory } from '@/commands/factory/SpellCommandFactory';
+import { TargetValidationUtils } from '@/systems/spells/targeting/TargetValidationUtils';
 
 describe('Defender Filters Verification', () => {
 
@@ -30,14 +30,14 @@ describe('Defender Filters Verification', () => {
         // Test Match
         const shouldDisadvantage = target.activeEffects?.some(e =>
             e.type === 'disadvantage_on_attacks' &&
-            SpellCommandFactory.matchesFilter(caster, e.attackerFilter)
+            TargetValidationUtils.matchesFilter(caster, e.attackerFilter)
         );
         expect(shouldDisadvantage).toBe(true);
 
         // Test Non-Match
         const shouldNotDisadvantage = target.activeEffects?.some(e =>
             e.type === 'disadvantage_on_attacks' &&
-            SpellCommandFactory.matchesFilter(nonMatchingCaster, e.attackerFilter)
+            TargetValidationUtils.matchesFilter(nonMatchingCaster, e.attackerFilter)
         );
         expect(shouldNotDisadvantage).toBe(false);
     });

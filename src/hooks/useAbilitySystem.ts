@@ -33,6 +33,7 @@ import { calculateAffectedTiles } from '../utils/aoeCalculations';
 import { useTargeting } from './combat/useTargeting'; // New Hook
 import { resolveAoEParams } from '../utils/targetingUtils';
 import { AttackRiderSystem, AttackContext } from '../systems/combat/AttackRiderSystem';
+import { TargetValidationUtils } from '../systems/spells/targeting/TargetValidationUtils';
 
 interface UseAbilitySystemProps {
   characters: CombatCharacter[];
@@ -480,7 +481,7 @@ export const useAbilitySystem = ({
           // Check for Disadvantage from target's active effects (e.g., Protection from Evil and Good)
           const hasDisadvantage = target.activeEffects?.some(e =>
             e.type === 'disadvantage_on_attacks' &&
-            SpellCommandFactory.matchesFilter(caster, e.attackerFilter)
+            TargetValidationUtils.matchesFilter(caster, e.attackerFilter)
           );
 
           let d20 = rollDice('1d20');

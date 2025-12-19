@@ -77,7 +77,6 @@ let detachStorageSyncListener: (() => void) | null = null;
 // the in-game clock (which advances independently of player presence).
 let sessionStartedAtMs = Date.now();
 
-export const DEFAULT_SAVE_SLOT_KEY = DEFAULT_SAVE_SLOT;
 export const AUTO_SAVE_SLOT_KEY = AUTO_SAVE_SLOT;
 
 export interface SaveLoadResult {
