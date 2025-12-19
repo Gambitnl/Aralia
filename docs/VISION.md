@@ -833,6 +833,73 @@ This section is intentionally implementation-agnostic. It describes the working 
 
 ---
 
+## The "Everything App" Philosophy
+
+> *"If it exists in a D&D world, it should be simulatable in Aralia."*
+
+Aralia is not just a game - it's a **living world simulator** where every system interconnects. Like an "everything app" for fantasy life, but with a heavy D&D vibe (no modern technology, except gnomish steampunk and construct-based automation).
+
+### What This Means for Development
+
+**Always ask: "What's missing?"**
+- If players can buy things, they should be able to sell, trade, barter, fence stolen goods
+- If there's combat, there should be consequences: wounds, trauma, reputation, vengeance
+- If NPCs exist, they should have memories, relationships, secrets, agendas
+- If time passes, things should change: seasons, aging, news spreading, prices shifting
+
+**Every feature should wire to other features:**
+- Commerce connects to Crime (black markets, smuggling)
+- Crime connects to Politics (corruption, bounties)
+- Politics connects to Religion (holy wars, inquisitions)
+- Religion connects to Planes (divine intervention, planar travel)
+- Planes connect to Combat (extraplanar creatures, environmental effects)
+- Combat connects to Companions (loyalty tested, relationships strained)
+- ...and the web continues infinitely
+
+### Feature Discovery Mindset
+
+When working on any system, always consider:
+
+1. **What does this enable?** (new player actions, emergent stories)
+2. **What does this connect to?** (other systems that should react)
+3. **What's still missing?** (gaps that limit player expression)
+4. **What would a tabletop DM allow?** (if it's possible at a table, it should be possible here)
+
+### Domain Vision Tree
+
+Each architecture domain should expand outward like branches of a tree:
+
+| Domain | Current State | Future Vision |
+|--------|---------------|---------------|
+| **Combat** | D&D 5e mechanics | Environmental combat, siege warfare, mass battles, duels, tournaments |
+| **Spells** | Spell casting and effects | Ritual magic, spell creation, magical research, wild magic consequences |
+| **Submap** | Tile-based exploration | Weather effects, seasonal changes, dynamic encounters, resource gathering |
+| **Town Map** | Village navigation | Building ownership, shop management, property investment, NPC schedules |
+| **World Map** | Region selection | Trade routes, war fronts, migration patterns, plague spread |
+| **NPCs** | Companions and dialogue | Memory systems, relationship dynamics, NPC-to-NPC relationships, betrayal arcs |
+| **Inventory** | Items and trading | Crafting chains, item degradation, magical item creation, smuggling |
+| **Planes** | Planar travel | Planar politics, outsider pacts, dimensional rifts, reality distortion |
+| **Glossary** | Reference lookup | Dynamic entries that update with world state, personal notes, discovered lore |
+| **Data Pipelines** | Content generation | AI-assisted content, procedural quest generation, dynamic world events |
+
+### The Living World Expansion
+
+Every session, the world should feel different because:
+
+- **Events propagate**: A dragon attack in one region affects refugee flows, trade, and politics elsewhere
+- **Time matters**: Days, weeks, seasons pass with consequences
+- **Actions echo**: What you did three sessions ago comes back (for good or ill)
+- **NPCs act independently**: The world doesn't pause when you're not looking
+- **Opportunities expire**: Wait too long and someone else solves the problem (or makes it worse)
+
+---
+
+## Related Documentation
+
+- **[Architecture Compendium](./ARCHITECTURE.md)**: Technical breakdown of the codebase into domains, subcomponents, file ownership, and dependency graphs.
+
+---
+
 *This document is a living vision. It will evolve as the game develops.*
 
-*Last updated: 2025-12-15*
+*Last updated: 2025-12-19*

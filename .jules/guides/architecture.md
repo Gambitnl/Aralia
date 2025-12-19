@@ -2,6 +2,11 @@
 
 Key files, constraints, and architectural decisions for Aralia.
 
+**Before making any changes, read the architecture documentation:**
+- **[docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md)** - Domain boundaries, high-level structure
+- **[docs/architecture/domains/](../../docs/architecture/domains/)** - Per-domain file ownership
+- **[docs/architecture/_generated/deps.json](../../docs/architecture/_generated/deps.json)** - Dependency graph
+
 ---
 
 ## Key Files
@@ -14,6 +19,8 @@ Key files, constraints, and architectural decisions for Aralia.
 | `src/constants.ts` | Global constants, data re-exports | - |
 | `src/services/geminiService.ts` | AI integration | Warden |
 | `src/utils/spellValidator.ts` | Spell JSON validation | Vector |
+| `docs/ARCHITECTURE.md` | Domain boundaries | Core |
+| `docs/architecture/_generated/` | Auto-generated dependency data | Core |
 
 ---
 

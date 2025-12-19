@@ -17,6 +17,44 @@ Finding the *right* work is as important as doing the work well.
 
 ---
 
+## Think Outside the Box (The "Everything App" Mindset)
+
+Aralia isn't just a game - it's a **living world simulator**. When working on any feature, think expansively:
+
+### Feature Discovery Questions
+
+Ask yourself:
+1. **What's missing?** If players can do X, shouldn't they also be able to do Y?
+2. **What does this connect to?** Every feature should wire to other systems
+3. **What would a tabletop DM allow?** If it's possible at a real D&D table, it should be possible here
+4. **What emergent stories could this enable?** Systems create stories, not scripts
+
+### Examples of Expansive Thinking
+
+| If you see... | Think about adding... |
+|--------------|----------------------|
+| Combat exists | Wounds, trauma, reputation from victories, vengeance from enemies |
+| NPCs talk | Memory of past conversations, gossip between NPCs, secrets |
+| Time passes | Seasons, aging, news spreading, prices changing, opportunities expiring |
+| Shops exist | Haggling, fencing stolen goods, trade routes, merchant relationships |
+| Magic works | Wild magic consequences, spell research, magical item creation |
+
+### The Web of Features
+
+Every feature should connect to multiple others:
+- Commerce → Crime (black markets, smuggling)
+- Crime → Politics (corruption, bounties)
+- Politics → Religion (holy wars, inquisitions)
+- Religion → Planes (divine intervention, planar beings)
+- Planes → Combat (extraplanar creatures, environmental effects)
+- Combat → Companions (loyalty tested, relationships)
+
+> *"If it exists in a D&D world, it should be simulatable in Aralia."*
+
+See `docs/VISION.md` → "The Everything App Philosophy" for the full vision.
+
+---
+
 ## Where to Find Work
 
 ### 1. TODOs in Code

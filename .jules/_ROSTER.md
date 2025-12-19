@@ -1,6 +1,17 @@
 # 🎭 Jules Persona Roster
 
-All 45 personas that work together on Aralia development.
+46 personas that work together on Aralia development (45 automated + 1 human-run).
+
+---
+
+## CORE (Human-Run)
+*Coordination and architecture maintenance - run by the maintainer between batch runs*
+
+| Persona | Emoji | Domain | Primary Focus |
+|---------|-------|--------|---------------|
+| **Core** | 🏛️ | Architecture | Consolidate worklogs, update architecture docs, resolve conflicts |
+
+> See [00_core.md](personas/00_core.md) for the full protocol.
 
 ---
 
@@ -77,6 +88,69 @@ All 45 personas that work together on Aralia development.
 
 ---
 
+## Persona ↔ Architecture Domain Mapping
+
+Each persona should consult their relevant architecture docs in `docs/architecture/domains/`:
+
+### CODE GUILD
+| Persona | Architecture Domains |
+|---------|---------------------|
+| Oracle | core-systems.md, spells.md |
+| Vanguard | core-systems.md |
+| Scribe | core-systems.md |
+| Gardener | core-systems.md |
+| Bolt | core-systems.md, submap.md |
+| Palette | core-systems.md, submap.md, town-map.md |
+| Sentinel | core-systems.md |
+| Vector | spells.md, commands.md, combat.md |
+| Bard | glossary.md, npcs-companions.md |
+| Hunter | core-systems.md |
+| Architect | core-systems.md |
+| Steward | core-systems.md |
+| Warden | core-systems.md, data-pipelines.md |
+| Forge | core-systems.md, data-pipelines.md |
+| Lens | core-systems.md |
+
+### GAMEPLAY GUILD
+| Persona | Architecture Domains |
+|---------|---------------------|
+| Worldsmith | world-map.md, npcs-companions.md |
+| Chronicler | data-pipelines.md, glossary.md |
+| Intriguer | npcs-companions.md, core-systems.md |
+| Warlord | combat.md, battle-map.md |
+| Mythkeeper | glossary-data.md, character-creator.md |
+| Wanderer | submap.md, world-map.md |
+| Economist | items-trade-inventory.md, town-map.md |
+| Shadowbroker | items-trade-inventory.md, npcs-companions.md |
+| Templar | glossary-data.md, planes-travel.md |
+| Depthcrawler | planes-travel.md, submap.md |
+| Planeshifter | planes-travel.md |
+| Captain | world-map.md, combat.md |
+| Heartkeeper | npcs-companions.md, character-sheet.md |
+| Castellan | town-map.md, items-trade-inventory.md |
+| Timekeeper | core-systems.md, submap.md |
+
+### DETAILS GUILD
+| Persona | Architecture Domains |
+|---------|---------------------|
+| Analyst | spells.md, commands.md |
+| Schemer | core-systems.md, npcs-companions.md |
+| Linker | core-systems.md, glossary.md |
+| Simulator | core-systems.md, combat.md |
+| Materializer | core-systems.md, submap.md |
+| Auditor | spells.md, glossary-data.md |
+| Taxonomist | core-systems.md, glossary-data.md |
+| Mechanist | combat.md, core-systems.md |
+| Recorder | npcs-companions.md, core-systems.md |
+| Ecologist | submap.md, world-map.md |
+| Ritualist | spells.md, commands.md |
+| Alchemist | items-trade-inventory.md, spells.md |
+| Navigator | world-map.md, submap.md, town-map.md |
+| Dialogist | npcs-companions.md, glossary.md |
+| Lockpick | submap.md, items-trade-inventory.md |
+
+---
+
 ## Collaboration Rules
 
 **Hand-off:** When your task touches another persona's domain, use:
@@ -109,6 +183,9 @@ Then dive into specific **[guides/](guides/)** as needed for your task.
 | File | Purpose |
 |------|---------|
 | `docs/VISION.md` | Sandbox RPG design philosophy |
+| `docs/ARCHITECTURE.md` | Domain boundaries, file ownership |
+| `docs/architecture/domains/` | Per-domain documentation |
+| `docs/architecture/_generated/` | Auto-generated dependency data |
 | `docs/FEATURES_TODO.md` | Active development roadmap |
 | `public/data/spells/` | Spell JSON data |
 | `src/utils/spellValidator.ts` | Spell validation |

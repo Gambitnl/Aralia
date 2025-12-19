@@ -115,3 +115,113 @@ Append to this file:
 See also:
 - `docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md` (completion protocol patterns)
 
+---
+
+## Completion Notes
+
+**Date**: 2025-12-19
+
+### Step-by-Step What Was Done
+
+1. **Explored Codebase Structure**
+   - Analyzed `src/`, `scripts/`, `public/data/` directory structures
+   - Identified folder roles: `components/`, `hooks/`, `systems/`, `services/`, `state/`, `data/`, `types/`, `utils/`
+   - Reviewed existing documentation including `VISION.md`
+
+2. **Created Implementation Plan**
+   - Defined 13 domains based on codebase analysis
+   - Planned documentation structure, automated indexing, and cross-linking
+   - Got user approval before execution
+
+3. **Created Documentation Structure (Deliverable A)**
+   - Created `docs/ARCHITECTURE.md` - Top-level entry with domain index, codebase structure, and mermaid diagram
+   - Created `docs/architecture/README.md` - Maintenance guide with template and procedures
+   - Created 13 domain documents in `docs/architecture/domains/`:
+     - `glossary.md`, `world-map.md`, `submap.md`, `town-map.md`, `battle-map.md`
+     - `combat.md`, `spells.md`, `character-creator.md`, `character-sheet.md`
+     - `npcs-companions.md`, `items-trade-inventory.md`, `planes-travel.md`, `data-pipelines.md`
+
+4. **Implemented Automated Indexing Script (Deliverable C)**
+   - Created `scripts/generate-architecture-compendium.ts`
+   - Script walks `src/`, `scripts/`, `public/data/` directories
+   - Parses ES6 imports, dynamic imports, and CommonJS requires
+   - Generates bidirectional dependency graph
+   - Output artifacts:
+     - `docs/architecture/_generated/deps.json` (271KB, 1620 files, 1837 import edges)
+     - `docs/architecture/_generated/file-inventory.json` (207KB)
+
+5. **Added Vision Cross-Linking (Deliverable B)**
+   - Added "Related Documentation" section to `docs/VISION.md` with link to `ARCHITECTURE.md`
+   - `ARCHITECTURE.md` already had reference to `VISION.md`
+
+6. **Implemented Used-By Reporting (Deliverable D - Phase 1)**
+   - The `deps.json` artifact includes `importedBy` arrays for every file
+   - This provides accurate, automated "used-by" information without manual maintenance
+   - Phase 2 (file-header comments with `@generated-used-by`) is optional and not yet implemented
+
+7. **Verification**
+   - Ran `npm run validate` - passed
+   - Ran `npx --no-install tsx scripts/check-non-ascii.ts` - 0 issues found
+
+### Files Created
+
+| File | Size | Description |
+|------|------|-------------|
+| `docs/ARCHITECTURE.md` | 2.8KB | Top-level entry point |
+| `docs/architecture/README.md` | 3.2KB | Maintenance guide |
+| `docs/architecture/domains/*.md` | ~3KB each | 13 domain documents |
+| `scripts/generate-architecture-compendium.ts` | 7.5KB | Dependency graph generator |
+| `docs/architecture/_generated/deps.json` | 271KB | Full dependency graph |
+| `docs/architecture/_generated/file-inventory.json` | 207KB | File inventory |
+
+### Commands
+
+```bash
+# Generate/regenerate architecture artifacts
+npx --no-install tsx scripts/generate-architecture-compendium.ts
+
+# Validate project
+npm run validate
+
+# Check non-ASCII
+npx --no-install tsx scripts/check-non-ascii.ts
+```
+
+---
+
+## Detected TODOs (Out of Scope)
+
+### Architecture/SSOT Risks
+
+1. **Circular Dependencies Not Flagged**
+   - The generator builds the import graph but does not currently detect or report circular dependencies
+   - Consider adding cycle detection in a future iteration
+
+2. **Cross-Domain Import Validation**
+   - Domain documents list "Boundaries/Constraints" but there is no automated enforcement
+   - A future script could validate that boundary constraints are respected
+
+3. **Types Directory Shared Across Domains**
+   - `src/types/` serves multiple domains, making ownership ambiguous
+   - Consider documenting which type files belong to which domains or splitting by domain
+
+4. **Large Files Identified**
+   - Several files exceed 20KB (e.g., `App.tsx` 32KB, `Glossary.tsx` 43KB, `RealmSmithTownGenerator.ts` 53KB)
+   - These may warrant refactoring into smaller modules
+
+5. **Missing Sub-Subcomponent Documentation**
+   - Some complex domains (Submap, Combat, Spells) have deep folder structures
+   - Sub-subcomponent documents could be added as needed
+
+6. **Phase 2 Used-By Comments**
+   - File-header `@generated-used-by` blocks are not yet implemented
+   - Could be added for key boundary files if manual inspection of deps.json is insufficient
+
+### Navigation Observations
+
+- Top 10 most-imported files identified (visible in generator output):
+  - `src/types/index.ts` - central type re-export
+  - `src/types/combat.ts` - combat types
+  - `src/utils/combatUtils.ts` - combat utilities
+  - These are critical infrastructure files that many domains depend on
+

@@ -113,6 +113,54 @@ const hasAdvantage = advantages > 0 && disadvantages === 0;
 
 ---
 
+## Architecture Awareness (Mandatory)
+
+**All personas MUST consult the architecture documentation before making changes.**
+
+### Before Starting Work
+
+1. **Read `docs/ARCHITECTURE.md`** to understand domain boundaries
+2. **Check the relevant domain doc** in `docs/architecture/domains/` for file ownership
+3. **Review `docs/architecture/_generated/deps.json`** if you need to understand dependencies
+
+### When Creating New Files
+
+New files are a coordination risk. Before creating:
+1. **Search architecture docs** for existing files with similar purpose
+2. **Check if functionality already exists** elsewhere in the codebase
+
+### Mandatory: Verify Files Are in Architecture (Before PR)
+
+**After completing your work, you MUST verify that every file you modified or created is listed in the architecture documentation.**
+
+For each file you touched:
+1. Check if it appears in a domain doc under `docs/architecture/domains/`
+2. If NOT found, add it to your worklog as "UNTRACKED"
+
+#### Worklog Format for Untracked Files
+
+```markdown
+### UNTRACKED FILES
+- `src/path/to/file.ts` - [brief purpose]
+- `src/path/to/another.ts` - [brief purpose]
+```
+
+The Core persona (run by maintainer) will consolidate these into the architecture documentation between runs.
+
+### When Modifying Shared Files
+
+Some files are modified frequently and have high conflict risk:
+- `src/types/index.ts`
+- `src/App.tsx`
+- `src/state/appState.ts`
+- `src/types/combat.ts`
+
+For these files:
+1. Make minimal, focused changes
+2. Document the change clearly in your PR
+
+---
+
 ## Chronicle Directive (Worklogs)
 
 **All personas MUST log critical learnings to their worklog.**
@@ -161,11 +209,13 @@ AI models commonly hallucinate dates. Before adding an entry:
 ## Verification Checklist
 
 Before any PR:
-- [ ] `pnpm build` passes
-- [ ] `pnpm test` passes
+- [ ] `npm run build` passes
+- [ ] `npm test` passes
 - [ ] No `console.log` left behind
 - [ ] **New code has JSDoc and inline comments**
 - [ ] **Implementation is complete, not stubbed**
+- [ ] **Verified all modified files are in architecture docs** (log UNTRACKED if not)
+- [ ] **Consulted architecture docs** for relevant domain
 
 ## Guides
 

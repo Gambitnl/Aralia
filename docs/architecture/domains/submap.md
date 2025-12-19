@@ -1,0 +1,73 @@
+# Submap
+
+## Purpose
+
+The Submap is the primary exploration interface where players navigate tile-based terrain within a region. It handles procedural terrain generation, travel mechanics, feature discovery, and day/night cycles. This is where most overworld gameplay occurs.
+
+## Key Entry Points
+
+| File | Role |
+|------|------|
+| `src/components/Submap/SubmapPane.tsx` | Main submap container (31KB) |
+| `src/components/Submap/SubmapRendererPixi.tsx` | PixiJS-based rendering |
+| `src/hooks/useSubmapProceduralData.ts` | Procedural generation hook |
+| `src/components/Submap/submapData.ts` | Tile and feature data definitions |
+
+## Subcomponents
+
+- **Rendering**: `SubmapRendererPixi.tsx`, `SubmapTile.tsx` - Visual tile rendering
+- **Painters**: `painters/` directory - Specialized PixiJS painters for terrain, features, overlays
+- **Quick Travel**: `useQuickTravel.ts` - Fast travel mechanics
+- **Tile Inspection**: `useInspectableTiles.ts` - Tile info on hover/click
+- **Day/Night**: `useDayNightOverlay.ts` - Time-of-day visual effects
+- **Procedural Data**: `useSubmapProceduralData.ts` - Terrain generation
+- **Visuals**: `submapVisuals.ts` - Visual configuration and styling
+
+## File Ownership
+
+| Path | Type | Description |
+|------|------|-------------|
+| `src/components/Submap/` | Directory | All submap components |
+| `src/components/Submap/SubmapPane.tsx` | Component | Main container |
+| `src/components/Submap/SubmapRendererPixi.tsx` | Component | PixiJS renderer |
+| `src/components/Submap/SubmapTile.tsx` | Component | Individual tile component |
+| `src/components/Submap/submapData.ts` | Data | Tile/feature definitions |
+| `src/components/Submap/submapVisuals.ts` | Config | Visual configuration |
+| `src/components/Submap/painters/` | Directory | PixiJS painter classes |
+| `src/components/Submap/hooks/` | Directory | Submap-specific hooks |
+| `src/components/Submap/useQuickTravel.ts` | Hook | Quick travel system |
+| `src/components/Submap/useInspectableTiles.ts` | Hook | Tile inspection |
+| `src/components/Submap/useDayNightOverlay.ts` | Hook | Day/night cycle |
+| `src/components/Submap/useSubmapGlossaryItems.ts` | Hook | Glossary integration |
+| `src/components/Submap/useSubmapGrid.ts` | Hook | Grid management |
+| `src/components/Submap/useTileHintGenerator.ts` | Hook | AI tile descriptions |
+| `src/hooks/useSubmapProceduralData.ts` | Hook | Procedural generation |
+| `src/utils/submapUtils.ts` | Utils | Submap utility functions |
+| `src/data/biomes.ts` | Data | Biome definitions |
+
+## Dependencies
+
+### Depends On
+
+- **[World Map](./world-map.md)**: Receives region context from world map navigation
+- **[Combat](./combat.md)**: Triggers combat encounters
+- **[Planes / Travel](./planes-travel.md)**: Travel event system
+- **[Glossary](./glossary.md)**: Displays tile/feature information
+
+### Used By
+
+- **[Town Map](./town-map.md)**: Submap navigates to towns via village tiles
+- **[Battle Map](./battle-map.md)**: Combat transitions from submap encounters
+- **App.tsx**: Main game view renders submap
+
+## Boundaries / Constraints
+
+- Submap should NOT directly modify combat state (use Combat domain)
+- Village tiles should trigger Town Map transition, not render town internally
+- Procedural generation should be deterministic given the same seed
+
+## Open Questions / TODOs
+
+- [ ] Optimize PixiJS rendering for large submaps
+- [ ] Document painter architecture (SubmapTilePainter, SubmapFeaturePainter, etc.)
+- [ ] Clarify boundary between submapData.ts and biomes.ts

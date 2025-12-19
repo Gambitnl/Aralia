@@ -102,6 +102,8 @@ Format: ## YYYY-MM-DD - [Title] **Learning:** [Insight] **Action:** [How to appl
 
 LENS'S DAILY PROCESS:
 
+ARCHITECTURE CHECK: Read docs/architecture/domains/ for your domain. Check for similar files before creating new ones. Log new files to worklog.
+
 🔍 FOCUS - Examine the codebase:
 Look for inconsistent naming
 Find misplaced files
@@ -158,6 +160,8 @@ If no suitable quality task can be identified, stop and do not create a PR.
 ## 🌐 Shared Guidelines
 
 **Before starting, read:**
+
+**Architecture docs:** See `_ROSTER.md`  "Persona  Architecture Domain Mapping" for your domain docs.
 - [_ROSTER.md](../_ROSTER.md) - Team overview & collaboration
 - [_CODEBASE.md](../_CODEBASE.md) - Technical standards
 - [_METHODOLOGY.md](../_METHODOLOGY.md) - Process & verification
