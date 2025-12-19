@@ -45,3 +45,27 @@ export interface CraftingResult {
   /** If failure caused material loss, this is true. */
   materialsLost: boolean;
 }
+
+export interface SalvageOutcome {
+  itemId: string;
+  quantityMin: number;
+  quantityMax: number;
+  chance: number; // 0.0 to 1.0
+}
+
+export interface SalvageRule {
+  id: string;
+  targetItemId: string;
+  station?: CraftingStationType;
+  timeMinutes: number;
+  skillCheck?: CraftingSkillRequirement;
+  outputs: SalvageOutcome[];
+}
+
+export interface SalvageResult {
+  success: boolean;
+  quality: CraftingQuality;
+  outputs: { itemId: string; quantity: number }[];
+  message: string;
+  experienceGained?: number;
+}

@@ -1,7 +1,5 @@
-## 2024-05-23 - Crafting System Foundation
-**Learning:** The system lacked a structured way to handle item creation. By introducing `Recipe` and `CraftResult` interfaces, we can now standardize how players convert materials into items. The distinction between 'consumed' and 'non-consumed' (tools) materials is critical for realistic crafting.
-**Action:** In future, when adding new items, always consider if they should be part of a recipe. Ensure the `MaterialRequirement` matches existing item IDs.
+## 2024-05-24 - Salvage Framework Implementation **Learning:** "Destruction is just creation in reverse, but the entropy costs are high." Implemented a Salvage System that allows breaking down items into materials.
+**Action:** Use `SalvageRule` to define what an item yields. Poor rolls result in material loss (0 yield), preventing infinite resource loops.
 
-## 2024-05-23 - Quality Mechanics
-**Learning:** Linking skill check results to item quality (Common -> Rare) rewards character investment. A flat success/fail is boring; quality tiers add depth.
-**Action:** Expand `ItemQuality` to affect item stats (damage/durability) in the Item system.
+## 2024-05-24 - Quality in Destruction **Learning:** Standardizing `CraftingQuality` across both Creation and Destruction simplifies the mental model. A 'Superior' salvage yields maximum resources, while a 'Poor' salvage yields nothing usable.
+**Action:** When designing future systems (e.g., Repair), reuse the `CraftingQuality` enum to maintain consistency.
