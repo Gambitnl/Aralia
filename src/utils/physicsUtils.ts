@@ -187,3 +187,32 @@ export function calculateSuffocationRounds(conMod: number): number {
   // Rule: Minimum of 1 round
   return Math.max(1, conMod);
 }
+
+// TODO(Mechanist): Wire up calculateThrowDistance to the 'Throw' context menu action for objects in the world.
+/**
+ * Calculates the maximum throwing distance for an object based on Strength.
+ * Note: This is for general object physics (e.g. tossing a pack). For Improvised Weapon attacks,
+ * use the standard 20/60 ft range unless the object is exceptionally heavy.
+ *
+ * Formula (Simplified Physics):
+ * Base Distance = Strength * 10 feet.
+ * Penalty = 5 feet for every 10 lbs over 5 lbs.
+ * Minimum Distance = 5 feet.
+ *
+ * @param strength - Character's Strength score (1-30).
+ * @param objectWeight - Weight of the object in pounds.
+ * @returns The maximum distance in feet.
+ */
+export function calculateThrowDistance(
+  strength: number,
+  objectWeight: number
+): number {
+  // Base throwing power
+  const baseDist = strength * 10;
+
+  // Penalty for weight: -5ft per 10lbs over the first 5lbs
+  const excessWeight = Math.max(0, objectWeight - 5);
+  const weightPenalty = Math.floor(excessWeight / 10) * 5;
+
+  return Math.max(5, baseDist - weightPenalty);
+}
