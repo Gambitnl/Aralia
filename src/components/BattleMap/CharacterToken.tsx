@@ -14,7 +14,7 @@ interface CharacterTokenProps {
   isSelected: boolean;
   isTargetable: boolean;
   isTurn: boolean;
-  onClick: () => void;
+  onCharacterClick: (char: CombatCharacter) => void;
 }
 
 const getClassIcon = (classId: string) => {
@@ -26,7 +26,7 @@ const getClassIcon = (classId: string) => {
   }
 };
 
-const CharacterToken: React.FC<CharacterTokenProps> = ({ character, position, isSelected, isTargetable, isTurn, onClick }) => {
+const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, position, isSelected, isTargetable, isTurn, onCharacterClick }) => {
   const style: React.CSSProperties = {
     position: 'absolute',
     left: `${position.x * TILE_SIZE_PX}px`,
@@ -64,7 +64,7 @@ const CharacterToken: React.FC<CharacterTokenProps> = ({ character, position, is
   const icon = getClassIcon(character.class.id);
 
   return (
-    <div style={style} className="relative flex items-center justify-center pointer-events-auto" onClick={onClick}>
+    <div style={style} className="relative flex items-center justify-center pointer-events-auto" onClick={() => onCharacterClick(character)}>
       <Tooltip content={`${character.name} (Armor Class: ${character.class.id === 'fighter' ? 18 : 12}, Hit Points: ${character.currentHP}/${character.maxHP})`}>
         <div
           style={tokenStyle}
@@ -104,6 +104,6 @@ const CharacterToken: React.FC<CharacterTokenProps> = ({ character, position, is
       )}
     </div>
   );
-};
+});
 
 export default CharacterToken;
