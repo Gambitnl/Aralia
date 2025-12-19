@@ -40,11 +40,18 @@ export function bresenhamLine(x0: number, y0: number, x1: number, y1: number): {
 }
 
 /**
- * Checks if there is a clear line of sight between two tiles, considering obstacles and elevation.
+ * Checks if there is a clear line of sight between two tiles, considering obstacles.
+ *
+ * NOTE: Current implementation uses a simplified elevation check. Any tile flagged with `blocksLoS`
+ * between the start and end points will completely block vision, regardless of relative elevations.
+ *
+ * Future improvements should compare tile elevations (e.g. looking down from a cliff should
+ * ignore low walls).
+ *
  * @param startTile - The tile where the line of sight originates.
  * @param endTile - The tile being targeted.
  * @param mapData - The complete battle map data.
- * @returns True if there is a clear line of sight, false otherwise.
+ * @returns `true` if there is a clear line of sight, `false` if blocked.
  */
 export function hasLineOfSight(startTile: BattleMapTile, endTile: BattleMapTile, mapData: BattleMapData): boolean {
   const line = bresenhamLine(startTile.coordinates.x, startTile.coordinates.y, endTile.coordinates.x, endTile.coordinates.y);
@@ -54,12 +61,10 @@ export function hasLineOfSight(startTile: BattleMapTile, endTile: BattleMapTile,
     const point = line[i];
     const tile = mapData.tiles.get(`${point.x}-${point.y}`);
     
-    // A tile blocks line of sight if it has the blocksLoS flag and its elevation
-    // is greater than or equal to the elevation of both the start and end tiles.
-    // This simplifies to checking if the obstacle is "tall enough" to block the view.
+    // A tile blocks line of sight if it has the blocksLoS flag.
+    // Ideally, we would check: tile.elevation >= Math.min(startTile.elevation, endTile.elevation)
+    // But currently we treat all blocksLoS tiles as infinite height walls.
     if (tile && tile.blocksLoS) {
-       // For simplicity, any LoS blocking tile between start and end will block vision.
-       // A more complex rule could involve elevation checks.
        return false;
     }
   }
