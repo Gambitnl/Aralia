@@ -1,0 +1,121 @@
+{
+  "id": "sunbeam",
+  "name": "Sunbeam",
+  "aliases": [],
+  "level": 6,
+  "school": "Evocation",
+  "source": "PHB",
+  "legacy": false,
+  "classes": [
+    "Druid",
+    "Sorcerer",
+    "Wizard"
+  ],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "self",
+    "distance": 0
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a magnifying glass",
+    "isConsumed": false,
+    "materialCost": 0
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "areaOfEffect": {
+      "shape": "Line",
+      "size": 60,
+      "height": 0
+    },
+    "range": 0,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "half",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "6d8",
+        "type": "Radiant"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "A beam of brilliant light flashes out from your hand in a 5-foot-wide, 60-foot-line. Each creature in the line must make a Constitution saving throw. On a failed save, a creature takes 6d8 radiant damage and is blinded until your next turn. On a successful save, it takes half as much damage and isn't blinded by this spell. Undead and oozes have disadvantage on this saving throw. You can create a new line of radiance as your action on any turn until the spell ends. For the duration, a mote of brilliant radiance shines in your hand. It sheds bright light in a 30-foot radius and dim light for an additional 30 feet. The light is sunlight.",
+  "higherLevels": "",
+  "tags": []
+}

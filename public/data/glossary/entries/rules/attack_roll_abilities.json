@@ -1,0 +1,11 @@
+{
+  "id": "attack_roll_abilities",
+  "title": "Attack Roll Abilities",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "Table showing which ability modifier to use.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/attack_roll_abilities.json",
+  "markdown": "# Attack Roll Abilities\r\n| Ability   | Attack Type                                                              |\r\n|-----------|--------------------------------------------------------------------------|\r\n| Strength  | Melee attack with a weapon or an Unarmed Strike (see the Rules Glossary) |\r\n| Dexterity | Ranged attack with a weapon                                              |\r\n| Varies    | Spell attack (the ability used is determined by the spellcaster's spellcasting feature) |\r\n"
+}

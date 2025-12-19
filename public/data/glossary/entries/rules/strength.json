@@ -1,0 +1,15 @@
+{
+  "id": "strength",
+  "title": "Strength",
+  "category": "Rules Glossary",
+  "tags": ["ability scores", "attributes", "stats"],
+  "excerpt": "Measures physical power, athletic training, and the extent to which you can exert raw physical force. Strength is important for melee combat and lifting, pushing, or breaking things.",
+  "aliases": ["STR"],
+  "seeAlso": [
+    "dexterity",
+    "constitution",
+    "ability_check"
+  ],
+  "filePath": "/data/glossary/entries/rules/strength.json",
+  "markdown": "# Strength\n\nStrength measures bodily power, athletic training, and the extent to which you can exert raw physical force.\n\n## Strength Checks\n\nA Strength check can model any attempt to lift, push, pull, or break something, to force your body through a space, or to otherwise apply brute force to a situation.\n\n### Athletics Skill\nYour Strength (Athletics) check covers difficult situations you encounter while climbing, jumping, or swimming. Examples include:\n- Climbing a sheer or slippery cliff\n- Avoiding hazards while scaling a wall\n- Clinging to a surface while something tries to knock you off\n- Jumping an unusually long distance\n- Swimming or staying afloat in treacherous water\n\n### Other Strength Checks\n- **Forcing open** a stuck, locked, or barred door\n- **Breaking free** of bonds\n- **Pushing through** a tunnel that is too small\n- **Hanging on** to a wagon while being dragged behind it\n- **Tipping over** a statue\n- **Keeping a boulder** from rolling\n\n## Attack Rolls and Damage\n\nYou add your Strength modifier to:\n- **Attack rolls** when using melee weapons (unless it's a finesse weapon and you choose to use Dexterity)\n- **Damage rolls** when attacking with a melee weapon\n- **Attack and damage rolls** when throwing weapons (unless it's a weapon with the thrown property that you choose to use with Dexterity)\n\n## Carrying Capacity\n\nYour carrying capacity is your Strength score multiplied by 15. This is the weight (in pounds) that you can carry.\n\n## Lifting and Pushing\n\nYou can push, drag, or lift a weight in pounds up to twice your carrying capacity (or 30 times your Strength score).\n"
+}

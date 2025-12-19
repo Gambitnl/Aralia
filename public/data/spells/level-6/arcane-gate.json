@@ -1,0 +1,141 @@
+{
+  "id": "arcane-gate",
+  "name": "Arcane Gate",
+  "aliases": [],
+  "level": 6,
+  "school": "Conjuration",
+  "source": "PHB",
+  "legacy": false,
+  "classes": [
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 500
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "timed",
+    "concentration": true,
+    "value": 10,
+    "unit": "minute"
+  },
+  "targeting": {
+    "type": "point",
+    "range": 500,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "utilityType": "other",
+      "description": "You create linked teleportation portals that remain open for the duration. Choose two points on the ground that you can see, one point within 10 feet of you and one point within 500 feet of you. A circular portal, 10 feet in diameter, opens over each point. If the portal would open in the space occupied by a creature, the spell fails, and the casting is lost. The portals are two-dimensional glowing rings filled with mist, hovering inches from the ground and perpendicular to it at the points you choose. A ring is visible only from one side (your choice), which is the side that functions as a portal. Any creature or object entering the portal exits from the other portal as if the two were adjacent to each other; passing through a portal from the nonportal side has no effect. The mist that fills each portal is opaque and blocks vision through it. On your turn, you can rotate the rings as a bonus action so that the active side faces in a different direction.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You create linked teleportation portals that remain open for the duration. Choose two points on the ground that you can see, one point within 10 feet of you and one point within 500 feet of you. A circular portal, 10 feet in diameter, opens over each point. If the portal would open in the space occupied by a creature, the spell fails, and the casting is lost. The portals are two-dimensional glowing rings filled with mist, hovering inches from the ground and perpendicular to it at the points you choose. A ring is visible only from one side (your choice), which is the side that functions as a portal. Any creature or object entering the portal exits from the other portal as if the two were adjacent to each other; passing through a portal from the nonportal side has no effect. The mist that fills each portal is opaque and blocks vision through it. On your turn, you can rotate the rings as a bonus action so that the active side faces in a different direction.",
+  "higherLevels": "",
+  "tags": []
+}

@@ -1,25 +1,43 @@
 {
   "id": "protection-from-poison",
   "name": "Protection from Poison",
+  "aliases": [],
   "level": 2,
   "school": "Abjuration",
-  "classes": ["Cleric", "Druid", "Paladin", "Ranger"],
-  "description": "You touch a creature. If it is poisoned, you neutralize one poison affecting it. For the duration, the target has advantage on saving throws against being poisoned and resistance to poison damage.",
-  "higherLevels": "None",
-  "tags": ["abjuration", "protection"],
+  "source": "PHB 2024 p.310",
+  "legacy": false,
+  "classes": [
+    "Cleric",
+    "Druid",
+    "Paladin",
+    "Ranger"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
-    "type": "touch"
+    "type": "touch",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -29,17 +47,99 @@
   },
   "targeting": {
     "type": "single",
-    "range": 5,
-    "validTargets": ["creatures", "allies"],
-    "lineOfSight": true
+    "range": 0,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "other",
-      "description": "Neutralize one poison. Target gains advantage on saves vs poison and resistance to poison damage for 1 hour."
+      "description": "You touch a creature. If it is Poisoned, you neutralize the poison. If more than one poison afflicts the target, you neutralize one poison that you know is present, or you neutralize one at random. For the duration, the target has Advantage on saving throws against being poisoned, and it has Resistance to Poison damage.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You touch a creature. If it is Poisoned, you neutralize the poison. If more than one poison afflicts the target, you neutralize one poison that you know is present, or you neutralize one at random. For the duration, the target has Advantage on saving throws against being poisoned, and it has Resistance to Poison damage.",
+  "higherLevels": "",
+  "tags": [
+    "abjuration",
+    "protection"
   ]
 }

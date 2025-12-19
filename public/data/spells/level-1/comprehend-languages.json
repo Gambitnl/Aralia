@@ -1,32 +1,43 @@
 {
   "id": "comprehend-languages",
   "name": "Comprehend Languages",
+  "aliases": [],
   "level": 1,
   "school": "Divination",
-  "classes": ["Bard", "Sorcerer", "Warlock", "Wizard"],
-  "description": "For the duration, you understand the literal meaning of any language that you hear or see signed. You also understand any written language that you see while touching the surface, taking about 1 minute to read one page of text. This spell doesn't decode symbols or secret messages.",
-  "higherLevels": "None",
-  "tags": ["ritual", "information", "communication"],
+  "source": "PHB 2024 p.252",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
   "ritual": true,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
     },
     "explorationCost": {
-      "value": 11,
+      "value": 0,
       "unit": "minute"
     }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a pinch of soot and salt"
+    "materialDescription": "a pinch of soot and salt",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -36,20 +47,100 @@
   },
   "targeting": {
     "type": "self",
-    "validTargets": ["self"],
-    "lineOfSight": false
+    "validTargets": [
+      "self"
+    ],
+    "lineOfSight": false,
+    "range": 0,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "utilityType": "information",
-      "description": "Understand spoken, signed, and written language you touch for the duration; reading roughly one page per minute; does not decode symbols or secret messages."
+      "description": "Understand spoken, signed, and written language you touch for the duration; reading roughly one page per minute; does not decode symbols or secret messages.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "For the duration, you understand the literal meaning of any spoken language that you hear. You also understand any written language that you see, but you must be touching the surface on which the words are written. It takes about 1 minute to read one page of text. This spell doesn't decode secret messages in a text or a glyph, such as an arcane sigil, that isn't part of a written language.",
+  "higherLevels": "",
+  "tags": [
+    "ritual",
+    "information",
+    "communication"
   ]
 }

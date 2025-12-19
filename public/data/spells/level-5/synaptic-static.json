@@ -1,0 +1,180 @@
+{
+  "id": "synaptic-static",
+  "name": "Synaptic Static",
+  "aliases": [],
+  "level": 5,
+  "school": "Enchantment",
+  "source": "XGE (Legacy)",
+  "legacy": true,
+  "classes": [
+    "Bard",
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 120
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
+  },
+  "targeting": {
+    "type": "area",
+    "range": 120,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 20,
+      "height": 0
+    },
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Intelligence",
+        "saveEffect": "half",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "8d6",
+        "type": "Psychic"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
+    },
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Intelligence",
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "statusCondition": {
+        "name": "Muddled Thoughts",
+        "duration": {
+          "type": "special",
+          "value": 0
+        },
+        "level": 0,
+        "escapeCheck": {
+          "dc": 0,
+          "actionCost": "action"
+        },
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true
+        }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You choose a point within range and cause psychic energy to explode there. Each creature in a 20-foot-radius sphere centered on that point must make an Intelligence saving throw. A creature with an Intelligence score of 2 or lower can't be affected by this spell. A target takes 8d6 psychic damage on a failed save, or half as much damage on a successful one. After a failed save, a target has muddled thoughts for 1 minute. During that time, it rolls a d6 and subtracts the number rolled from all its attack rolls and ability checks, as well as its Constitution saving throws to maintain concentration. The target can make an Intelligence saving throw at the end of each of its turns, ending the effect on itself on a success.",
+  "higherLevels": "",
+  "tags": [
+    "legacy"
+  ]
+}

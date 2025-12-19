@@ -1,0 +1,119 @@
+{
+  "id": "dark-star",
+  "name": "Dark Star",
+  "aliases": [],
+  "level": 8,
+  "school": "Evocation",
+  "source": "EGW",
+  "legacy": false,
+  "classes": [
+    "Wizard"
+  ],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 150
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a shard of onyx and a drop of the caster's blood",
+    "isConsumed": true,
+    "materialCost": 0
+  },
+  "duration": {
+    "type": "timed",
+    "concentration": true,
+    "value": 1,
+    "unit": "minute"
+  },
+  "targeting": {
+    "type": "area",
+    "range": 150,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 40,
+      "height": 0
+    },
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "half",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "8d10",
+        "type": "Force"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "This spell creates a sphere centered on a point you choose within range. The sphere can have a radius of up to 40 feet. The area within this sphere is filled with magical darkness and crushing gravitational force. For the duration, the spell's area is difficult terrain. A creature with darkvision can't see through the magical darkness, and nonmagical light can't illuminate it. No sound can be created within or pass through the area. Any creature or object entirely inside the sphere is immune to thunder damage, and creatures are deafened while entirely inside it. Casting a spell that includes a verbal component is impossible there. Any creature that enters the spell's area for the first time on a turn or starts its turn there must make a Constitution saving throw. The creature takes 8d10 force damage on a failed save or half as much damage on a successful save. A creature reduced to 0 hit points by this damage is disintegrated. A disintegrated creature and everything it is wearing and carrying, except magic items, are reduced to a pile of fine gray dust.",
+  "higherLevels": "",
+  "tags": []
+}

@@ -1,0 +1,140 @@
+{
+  "id": "shapechange",
+  "name": "Shapechange",
+  "aliases": [],
+  "level": 9,
+  "school": "Transmutation",
+  "source": "PHB 2024",
+  "legacy": false,
+  "classes": [
+    "Druid",
+    "Wizard"
+  ],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "self",
+    "distance": 0
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a jade circlet worth 1,500+ GP",
+    "materialCost": 1500,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "self",
+    "validTargets": [
+      "self"
+    ],
+    "lineOfSight": true,
+    "range": 0,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "utilityType": "other",
+      "description": "You shape-shift into another creature for the duration or until you take a Magic action to shape-shift into a different eligible form. The new form must be of a creature that has a Challenge Rating no higher than your level or Challenge Rating. You must have seen the sort of creature before, and it can't be a Construct or an Undead. When you shape-shift, you gain a number of Temporary Hit Points equal to the Hit Points of the form. The spell ends early if you have no Temporary Hit Points left. Your game statistics are replaced by the stat block of the chosen form, but you retain your creature type; alignment; personality; Intelligence, Wisdom, and Charisma scores; Hit Points; Hit Point Dice; proficiencies; and ability to communicate. If you have the Spellcasting feature, you retain it too. Upon shape-shifting, you determine whether your equipment drops to the ground or changes in size and shape to fit the new form while you're in it.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You shape-shift into another creature for the duration or until you take a Magic action to shape-shift into a different eligible form. The new form must be of a creature that has a Challenge Rating no higher than your level or Challenge Rating. You must have seen the sort of creature before, and it can't be a Construct or an Undead. When you shape-shift, you gain a number of Temporary Hit Points equal to the Hit Points of the form. The spell ends early if you have no Temporary Hit Points left. Your game statistics are replaced by the stat block of the chosen form, but you retain your creature type; alignment; personality; Intelligence, Wisdom, and Charisma scores; Hit Points; Hit Point Dice; proficiencies; and ability to communicate. If you have the Spellcasting feature, you retain it too. Upon shape-shifting, you determine whether your equipment drops to the ground or changes in size and shape to fit the new form while you're in it.",
+  "higherLevels": "",
+  "tags": []
+}

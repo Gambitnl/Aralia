@@ -1,50 +1,101 @@
 {
   "id": "burning-hands",
   "name": "Burning Hands",
+  "aliases": [],
   "level": 1,
   "school": "Evocation",
-  "classes": ["Sorcerer", "Wizard"],
-  "description": "As you hold your hands with thumbs touching and fingers spread, a thin sheet of flames shoots forth. Each creature in a 15-foot cone must make a Dexterity saving throw. A creature takes 3d6 fire damage on a failed save, or half as much on a successful one. The fire ignites flammable objects that aren’t worn or carried.",
-  "higherLevels": "Damage increases by 1d6 for each slot level above 1st.",
-  "tags": ["damage", "fire", "aoe"],
+  "source": "PHB 2024 p.248",
+  "legacy": false,
+  "classes": [
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "instantaneous",
-    "concentration": false
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "area",
-    "range": 0,
-    "validTargets": ["creatures"],
+    "validTargets": [
+      "creatures"
+    ],
     "areaOfEffect": {
       "shape": "Cone",
-      "size": 15
+      "size": 15,
+      "height": 0
     },
-    "lineOfSight": true
+    "lineOfSight": false,
+    "range": 0,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "immediate" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
       "condition": {
         "type": "save",
         "saveType": "Dexterity",
-        "saveEffect": "half"
+        "saveEffect": "half",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "3d6",
@@ -52,8 +103,22 @@
       },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+1d6"
-      }
+        "bonusPerLevel": "+1d6",
+        "customFormula": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "As you hold your hands with thumbs touching and fingers spread, a thin sheet of flames shoots forth from your outstretched fingertips. Each creature in a 15-foot Cone must make a Dexterity saving throw. A creature takes 3d6 Fire damage on a failed save, or half as much damage on a successful one. The fire ignites any flammable objects in the area that aren't being worn or carried.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d6 for each slot level above 1st.",
+  "tags": [
+    "damage",
+    "fire",
+    "aoe"
   ]
 }

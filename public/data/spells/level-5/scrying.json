@@ -1,0 +1,145 @@
+{
+  "id": "scrying",
+  "name": "Scrying",
+  "aliases": [],
+  "level": 5,
+  "school": "Divination",
+  "source": "PHB 2024",
+  "legacy": true,
+  "classes": [
+    "Bard",
+    "Cleric",
+    "Druid",
+    "Warlock",
+    "Wizard"
+  ],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 10,
+    "unit": "minute",
+    "explorationCost": {
+      "value": 10,
+      "unit": "minute"
+    },
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    }
+  },
+  "range": {
+    "type": "self",
+    "distance": 0
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a focus worth at least 1,000 GP",
+    "materialCost": 1000,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 10,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "single",
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": false,
+    "range": 0,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "utilityType": "other",
+      "description": "You can see and hear a particular creature you choose that is on the same plane of existence as you. The target must make a Wisdom saving throw, which is modified by how well you know the target and the sort of physical connection you have to it. If a target knows you're casting this spell, it can fail the saving throw voluntarily if it wants to be observed. On a successful save, the target isn't affected, and you can't use this spell against it again for 24 hours. On a failed save, the spell creates an invisible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. A creature that can see the sensor (such as a creature benefiting from *See Invisibility* or *True Seeing*) sees a luminous orb about the size of your fist. Instead of targeting a creature, you can choose a location you have seen before as the target of this spell. When you do, the sensor appears at that location and doesn't move.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You can see and hear a particular creature you choose that is on the same plane of existence as you. The target must make a Wisdom saving throw, which is modified by how well you know the target and the sort of physical connection you have to it. If a target knows you're casting this spell, it can fail the saving throw voluntarily if it wants to be observed. On a successful save, the target isn't affected, and you can't use this spell against it again for 24 hours. On a failed save, the spell creates an invisible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. A creature that can see the sensor (such as a creature benefiting from *See Invisibility* or *True Seeing*) sees a luminous orb about the size of your fist. Instead of targeting a creature, you can choose a location you have seen before as the target of this spell. When you do, the sensor appears at that location and doesn't move.",
+  "higherLevels": "",
+  "tags": [
+    "legacy"
+  ]
+}

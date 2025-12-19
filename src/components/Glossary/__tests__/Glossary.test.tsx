@@ -1,15 +1,14 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-// Import Glossary as a named export to match the barrel file
-import { Glossary } from '../Glossary';
+import Glossary from '../Glossary';
 import GlossaryContext from '../../../context/GlossaryContext';
 import { GlossaryEntry } from '../../../types';
 
 // Prevent errors from scrollIntoView in JSDOM
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
-vi.mock('../Glossary/FullEntryDisplay', () => ({
+vi.mock('../FullEntryDisplay', () => ({
   FullEntryDisplay: ({ entry, onNavigate }: { entry: GlossaryEntry | null; onNavigate?: (id: string) => void }) => (
     <div data-testid="full-entry">
       {entry?.title}
@@ -22,9 +21,13 @@ vi.mock('../Glossary/FullEntryDisplay', () => ({
   ),
 }));
 
-let mockGateResults: Record<string, any> = {};
-vi.mock('../../hooks/useSpellGateChecks', () => ({
-  useSpellGateChecks: () => mockGateResults,
+let mockGateHookReturn: { results: Record<string, any>; recheck: any; isLoading: boolean } = {
+  results: {},
+  recheck: vi.fn(),
+  isLoading: false,
+};
+vi.mock('../../../hooks/useSpellGateChecks', () => ({
+  useSpellGateChecks: () => mockGateHookReturn,
 }));
 
 const entries: GlossaryEntry[] = [
@@ -51,7 +54,7 @@ const renderGlossary = (props?: Partial<React.ComponentProps<typeof Glossary>>, 
 
 describe('Glossary', () => {
   beforeEach(() => {
-    mockGateResults = {};
+    mockGateHookReturn = { results: {}, recheck: vi.fn(), isLoading: false };
   });
 
   it('renders categories, selects the first entry, and allows selecting another', () => {
@@ -94,12 +97,15 @@ describe('Glossary', () => {
   });
 
   it('shows spell gate indicators and checklist for spell entries', () => {
-    mockGateResults = {
-      'spell-entry': {
+    mockGateHookReturn = {
+      ...mockGateHookReturn,
+      results: {
+        'spell-entry': {
         status: 'fail',
-        reasons: ['Missing level tag'],
+        reasons: ['Spell JSON not found'],
         level: 3,
-        checklist: { manifestPathOk: false, glossaryExists: true, levelTagOk: false, knownGap: false },
+        checklist: { manifestPathOk: true, spellJsonExists: false, spellJsonValid: false, knownGap: false },
+        },
       },
     };
     renderGlossary();
@@ -107,9 +113,9 @@ describe('Glossary', () => {
     fireEvent.click(screen.getByText('Spells (1)'));
     fireEvent.click(screen.getByText('Spell Entry'));
 
-    expect(screen.getAllByTitle('Missing level tag').length).toBeGreaterThan(0);
-    expect(screen.getByText('Spell Gate Checks')).toBeInTheDocument();
-    expect(screen.getByText(/Missing level tag/)).toBeInTheDocument();
+    expect(screen.getAllByTitle('Spell JSON not found').length).toBeGreaterThan(0);
+    expect(screen.getByText(/Spell Gate Checks/)).toBeInTheDocument();
+    expect(screen.getByText(/Spell JSON not found/)).toBeInTheDocument();
   });
 
   it('navigates to see-also targets and expands nested parents', () => {
@@ -123,12 +129,15 @@ describe('Glossary', () => {
   });
 
   it('shows gap status messaging for spell entries', () => {
-    mockGateResults = {
-      'spell-entry': {
+    mockGateHookReturn = {
+      ...mockGateHookReturn,
+      results: {
+        'spell-entry': {
         status: 'gap',
         reasons: ['Known schema gap'],
         level: 1,
-        checklist: { manifestPathOk: true, glossaryExists: true, levelTagOk: true, knownGap: true },
+        checklist: { manifestPathOk: true, spellJsonExists: true, spellJsonValid: true, knownGap: true },
+        },
       },
     };
     renderGlossary();
@@ -136,6 +145,6 @@ describe('Glossary', () => {
     fireEvent.click(screen.getByText('Spells (1)'));
     fireEvent.click(screen.getByText('Spell Entry'));
 
-    expect(screen.getByText(/Known schema gap logged/)).toBeInTheDocument();
+    expect(screen.getByText(/Marked as a gap/)).toBeInTheDocument();
   });
 });

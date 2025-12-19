@@ -1,17 +1,28 @@
 {
   "id": "moonbeam",
   "name": "Moonbeam",
+  "aliases": [],
   "level": 2,
   "school": "Evocation",
-  "classes": ["Druid"],
-  "description": "A silvery beam of pale light shines down in a 5-foot-radius, 40-foot-high cylinder centered on a point within range. When a creature enters the area for the first time on a turn or starts its turn there, it makes a Constitution saving throw, taking 2d10 radiant damage on a failed save, or half as much on a successful one. Shapechangers make the save with disadvantage; on a failure, they revert to their original form and can't assume a different form until leaving the light.",
-  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d10 for each slot level above 2nd.",
-  "tags": ["damage", "radiant", "area", "concentration"],
+  "source": "PHB 2024 p.300",
+  "legacy": false,
+  "classes": [
+    "Druid"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
     "type": "ranged",
@@ -21,7 +32,9 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "several seeds of any moonseed plant and a piece of opalescent feldspar"
+    "materialDescription": "several seeds of any moonseed plant and a piece of opalescent feldspar",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -32,14 +45,42 @@
   "targeting": {
     "type": "area",
     "range": 120,
-    "validTargets": ["creatures"],
-    "areaOfEffect": { "shape": "Cylinder", "size": 5, "height": 40 },
-    "lineOfSight": true
+    "validTargets": [
+      "creatures"
+    ],
+    "areaOfEffect": {
+      "shape": "Cylinder",
+      "size": 5,
+      "height": 0
+    },
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "on_enter_area", "frequency": "first_per_turn" },
+      "trigger": {
+        "type": "on_enter_area",
+        "frequency": "first_per_turn",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
       "condition": {
         "type": "save",
         "saveType": "Constitution",
@@ -47,17 +88,60 @@
         "saveModifiers": [
           {
             "type": "disadvantage",
-            "appliesTo": { "creatureTypes": ["Shapechanger"] },
-            "reason": "Shapechangers have disadvantage on the saving throw."
+            "appliesTo": {
+              "creatureTypes": [
+                "Shapechanger"
+              ],
+              "excludeCreatureTypes": [],
+              "sizes": [],
+              "alignments": [],
+              "hasCondition": [],
+              "isNativeToPlane": false
+            },
+            "reason": "Shapechangers have disadvantage on the saving throw.",
+            "value": 0,
+            "advantageOnDamage": false,
+            "sizeAdvantage": [],
+            "sizeDisadvantage": []
           }
-        ]
+        ],
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": []
       },
-      "damage": { "dice": "2d10", "type": "Radiant" },
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d10" }
+      "damage": {
+        "dice": "2d10",
+        "type": "Radiant"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d10",
+        "customFormula": ""
+      },
+      "description": ""
     },
     {
       "type": "DAMAGE",
-      "trigger": { "type": "turn_start", "frequency": "every_time" },
+      "trigger": {
+        "type": "turn_start",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
       "condition": {
         "type": "save",
         "saveType": "Constitution",
@@ -65,14 +149,56 @@
         "saveModifiers": [
           {
             "type": "disadvantage",
-            "appliesTo": { "creatureTypes": ["Shapechanger"] },
-            "reason": "Shapechangers have disadvantage on the saving throw."
+            "appliesTo": {
+              "creatureTypes": [
+                "Shapechanger"
+              ],
+              "excludeCreatureTypes": [],
+              "sizes": [],
+              "alignments": [],
+              "hasCondition": [],
+              "isNativeToPlane": false
+            },
+            "reason": "Shapechangers have disadvantage on the saving throw.",
+            "value": 0,
+            "advantageOnDamage": false,
+            "sizeAdvantage": [],
+            "sizeDisadvantage": []
           }
-        ]
+        ],
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": []
       },
-      "damage": { "dice": "2d10", "type": "Radiant" },
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d10" },
+      "damage": {
+        "dice": "2d10",
+        "type": "Radiant"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d10",
+        "customFormula": ""
+      },
       "description": "Creatures starting their turn in the beam take damage; shapechangers save with disadvantage and revert on failed save."
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "A 5-foot-radius, 40-foot-high cylinder of pale light shines down on a point in range. Until the spell ends, dim light fills the cylinder. When a creature enters the spell's area for the first time on a turn or starts its turn there, it is engulfed in ghostly flames that cause searing pain, and it must make a Constitution saving throw. It takes 2d10 Radiant damage on a failed save, or half as much damage on a successful one. A Shapechanger makes its saving throw with Disadvantage. If it fails, it also instantly reverts to its original form and can't assume a different form until it leaves the spell's light. On each of your turns after you cast this spell, you can use an action to move the beam up to 60 feet in any direction.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d10 for each slot level above 2nd.",
+  "tags": [
+    "damage",
+    "radiant",
+    "area",
+    "concentration"
   ]
 }

@@ -1,0 +1,143 @@
+{
+  "id": "mass-cure-wounds",
+  "name": "Mass Cure Wounds",
+  "aliases": [],
+  "level": 5,
+  "school": "Evocation",
+  "source": "PHB 2024",
+  "legacy": true,
+  "classes": [
+    "Bard",
+    "Cleric",
+    "Druid"
+  ],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
+  },
+  "targeting": {
+    "type": "area",
+    "range": 60,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 30,
+      "height": 0
+    },
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "utilityType": "other",
+      "description": "A wave of healing energy washes out from a point of your choice within range. Choose up to six creatures in a 30-foot-radius sphere centered on that point. Each target regains Hit Points equal to 5d8 plus your Spellcasting Ability modifier. This spell has no effect on Undead or Constructs.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "A wave of healing energy washes out from a point of your choice within range. Choose up to six creatures in a 30-foot-radius sphere centered on that point. Each target regains Hit Points equal to 5d8 plus your Spellcasting Ability modifier. This spell has no effect on Undead or Constructs.",
+  "higherLevels": "When you cast this spell using a spell slot of 6th level or higher, the healing increases by 1d8 for each slot level above 5th.",
+  "tags": [
+    "legacy"
+  ]
+}

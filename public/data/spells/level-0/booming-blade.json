@@ -1,6 +1,7 @@
 {
   "id": "booming-blade",
   "name": "Booming Blade",
+  "aliases": [],
   "level": 0,
   "school": "Evocation",
   "source": "Tasha's Cauldron of Everything",
@@ -11,28 +12,32 @@
     "Warlock",
     "Wizard"
   ],
-  "tags": [
-    "damage",
-    "thunder",
-    "melee",
-    "cantrip"
-  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a melee weapon worth at least 1 sp"
+    "materialDescription": "a melee weapon worth at least 1 sp",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -46,16 +51,53 @@
     "validTargets": [
       "creatures"
     ],
-    "lineOfSight": true
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "hit"
+        "type": "hit",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "0",
@@ -63,7 +105,8 @@
       },
       "scaling": {
         "type": "character_level",
-        "customFormula": "{\"5\": \"1d8\", \"11\": \"2d8\", \"17\": \"3d8\"}"
+        "customFormula": "{\"5\": \"1d8\", \"11\": \"2d8\", \"17\": \"3d8\"}",
+        "bonusPerLevel": ""
       },
       "description": "As part of the action used to cast this spell, you must make a melee attack with a weapon against one creature within the spell's range, otherwise the spell fails. On a hit, the target suffers the attack's normal effects, and then becomes sheathed in booming energy."
     },
@@ -71,10 +114,32 @@
       "type": "DAMAGE",
       "trigger": {
         "type": "on_target_move",
-        "movementType": "willing"
+        "movementType": "willing",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "1d8",
@@ -82,11 +147,23 @@
       },
       "scaling": {
         "type": "character_level",
-        "customFormula": "{\"5\": \"2d8\", \"11\": \"3d8\", \"17\": \"4d8\"}"
+        "customFormula": "{\"5\": \"2d8\", \"11\": \"3d8\", \"17\": \"4d8\"}",
+        "bonusPerLevel": ""
       },
       "description": "If the target willingly moves before the start of your next turn, it immediately takes 1d8 thunder damage (scaling with level), and the spell ends."
     }
   ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
   "description": "As part of the action used to cast this spell, you must make a melee attack with a weapon against one creature within the spell's range, otherwise the spell fails. On a hit, the target suffers the attack's normal effects, and it becomes sheathed in booming energy until the start of your next turn. If the target willingly moves before then, it immediately takes 1d8 thunder damage, and the spell ends.",
-  "higherLevels": "At 5th level, the melee attack deals an extra 1d8 thunder damage to the target, and the damage the target takes for moving increases to 2d8. Both damage rolls increase by 1d8 at 11th level and 17th level."
+  "higherLevels": "At 5th level, the melee attack deals an extra 1d8 thunder damage to the target, and the damage the target takes for moving increases to 2d8. Both damage rolls increase by 1d8 at 11th level and 17th level.",
+  "tags": [
+    "damage",
+    "thunder",
+    "melee",
+    "cantrip"
+  ]
 }

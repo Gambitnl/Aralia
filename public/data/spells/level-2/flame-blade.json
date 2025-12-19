@@ -1,26 +1,40 @@
 {
   "id": "flame-blade",
   "name": "Flame Blade",
+  "aliases": [],
   "level": 2,
   "school": "Evocation",
-  "classes": ["Druid"],
-  "description": "You evoke a fiery blade in your free hand. It lasts for the duration. You can use your action to make a melee spell attack with the blade; on a hit, the target takes 3d6 fire damage. The blade sheds bright light in a 10-foot radius and dim light for an additional 10 feet.",
-  "higherLevels": "When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d6 for every two slot levels above 2nd.",
-  "tags": ["damage", "fire", "melee", "concentration"],
+  "source": "PHB 2024 p.275",
+  "legacy": false,
+  "classes": [
+    "Druid"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "bonus_action",
-    "combatCost": { "type": "bonus_action" }
+    "combatCost": {
+      "type": "bonus_action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "leaf of sumac"
+    "materialDescription": "a leaf of sumac",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -29,22 +43,82 @@
     "concentration": true
   },
   "targeting": {
-    "type": "melee",
-    "range": 5,
-    "validTargets": ["creatures", "enemies"],
-    "lineOfSight": true
+    "type": "self",
+    "validTargets": [
+      "self"
+    ],
+    "lineOfSight": false,
+    "range": 0,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "on_caster_action" },
-      "condition": { "type": "hit" },
-      "damage": { "dice": "3d6", "type": "Fire" },
+      "trigger": {
+        "type": "on_caster_action",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "hit",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "3d6",
+        "type": "Fire"
+      },
       "scaling": {
         "type": "custom",
-        "customFormula": "+1d6 at slot 4th and 6th"
+        "customFormula": "+1d6 at slot 4th and 6th",
+        "bonusPerLevel": ""
       },
       "description": "Melee spell attack with the summoned blade deals fire damage."
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You evoke a fiery blade in your free hand. The blade is similar in size and shape to a scimitar, and it lasts for the duration. If you let go of the blade, it disappears, but you can evoke the blade again as a Bonus Action. You can use your action to make a melee spell attack with the fiery blade. On a hit, the target takes 3d6 Fire damage. The flaming blade sheds bright light in a 10-foot radius and dim light for an additional 10 feet.",
+  "higherLevels": "When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d6 for every two slot levels above 2nd.",
+  "tags": [
+    "damage",
+    "fire",
+    "melee",
+    "concentration"
   ]
 }

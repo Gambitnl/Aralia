@@ -1,0 +1,14 @@
+{
+  "id": "disadvantage",
+  "title": "Disadvantage",
+  "category": "Rules Glossary",
+  "tags": ["combat", "rolls", "mechanics"],
+  "excerpt": "When you have disadvantage on a d20 roll, you roll two d20s and use the lower result. Advantage and disadvantage cancel each other out.",
+  "aliases": [],
+  "seeAlso": [
+    "advantage",
+    "d20_test"
+  ],
+  "filePath": "/data/glossary/entries/rules/disadvantage.json",
+  "markdown": "# Disadvantage\n\nSometimes a special ability or spell tells you that you have disadvantage on a d20 roll. When that happens, you roll a second d20 when you make the roll. Use the lower of the two rolls.\n\n## Rules\n\n- If multiple situations affect a roll and each one imposes disadvantage, you still roll only **one** additional d20\n- If you have both [[advantage]] and disadvantage, you roll only one d20-they cancel each other out, even if you have multiple sources of advantage or disadvantage\n\n## Common Sources\n\n### Attack Rolls\n- Attacking a target you can't see imposes disadvantage on the attack roll\n- Attacking from hiding while heavily obscured gives attackers disadvantage to see you\n- Attacking a prone target from more than 5 feet away gives you disadvantage\n- Attacking while prone gives you disadvantage on the attack roll\n- Making a ranged attack when a hostile creature is within 5 feet of you gives you disadvantage\n\n### Ability Checks\n- Using a skill you're not proficient in while under certain conditions\n- Some spells impose disadvantage (like *Bane*)\n- Environmental factors (dim light gives disadvantage on Perception checks relying on sight)\n\n### Saving Throws\n- Being poisoned gives you disadvantage on attack rolls and ability checks\n- Being frightened gives you disadvantage on ability checks and attack rolls while the source of fear is in sight\n- Being restrained gives you disadvantage on Dexterity saving throws\n"
+}

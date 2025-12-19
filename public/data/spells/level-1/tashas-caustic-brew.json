@@ -1,31 +1,42 @@
 {
   "id": "tashas-caustic-brew",
   "name": "Tasha's Caustic Brew",
+  "aliases": [],
   "level": 1,
   "school": "Evocation",
+  "source": "PHB 2024",
+  "legacy": false,
   "classes": [
     "Artificer",
     "Sorcerer",
     "Wizard"
   ],
-  "description": "A stream of acid emanates from you in a 30-foot line, coating creatures in corrosive brew.",
-  "tags": ["damage", "acid", "concentration"],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a bit of rotten food"
+    "materialDescription": "a bit of rotten food",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -41,17 +52,51 @@
       "size": 30,
       "height": 5
     },
-    "validTargets": ["creatures"],
-    "lineOfSight": true
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "immediate" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
       "condition": {
         "type": "save",
         "saveType": "Dexterity",
-        "saveEffect": "half"
+        "saveEffect": "half",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "2d4",
@@ -59,8 +104,22 @@
       },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+2d4"
-      }
+        "bonusPerLevel": "+2d4",
+        "customFormula": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "A stream of acid emanates from you in a 30-foot line, coating creatures in corrosive brew.",
+  "higherLevels": "",
+  "tags": [
+    "damage",
+    "acid",
+    "concentration"
   ]
 }

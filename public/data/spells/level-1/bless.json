@@ -1,18 +1,28 @@
 {
   "id": "bless",
   "name": "Bless",
+  "aliases": [],
   "level": 1,
   "school": "Enchantment",
-  "classes": ["Cleric", "Paladin"],
-  "description": "You bless up to three creatures of your choice within range. Whenever a target makes an attack roll or a saving throw before the spell ends, it rolls a d4 and adds the number rolled. The spell ends early on a target if you cast this spell again.",
-  "higherLevels": "Target one additional creature for each slot level above 1st.",
-  "tags": ["buff", "enchantment", "concentration"],
+  "source": "PHB 2024 p.247",
+  "legacy": false,
+  "classes": [
+    "Cleric",
+    "Paladin"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
@@ -23,7 +33,9 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a sprinkling of holy water"
+    "materialDescription": "a Holy Symbol worth 5+ GP",
+    "materialCost": 5,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -35,20 +47,92 @@
     "type": "multi",
     "range": 30,
     "maxTargets": 3,
-    "validTargets": ["creatures", "allies"],
-    "lineOfSight": true
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
-      "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
-      "utilityType": "other",
-      "description": "Targets add 1d4 to attack rolls and saving throws while the spell lasts.",
+      "type": "STATUS_CONDITION",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "statusCondition": {
+        "name": "Blessed",
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "level": 0,
+        "escapeCheck": {
+          "dc": 0,
+          "actionCost": "action"
+        },
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true
+        }
+      },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+1 target"
-      }
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You bless up to three creatures of your choice within range. Whenever a target makes an attack roll or a saving throw before the spell ends, the target can roll a d4 and add the number rolled to the attack roll or saving throw.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st.",
+  "tags": [
+    "buff",
+    "enchantment",
+    "concentration"
   ]
 }

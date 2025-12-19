@@ -1,26 +1,42 @@
 {
   "id": "detect-thoughts",
   "name": "Detect Thoughts",
+  "aliases": [],
   "level": 2,
   "school": "Divination",
-  "classes": ["Bard", "Sorcerer", "Wizard"],
-  "description": "For the duration, you sense surface thoughts of creatures within 30 feet. As an action, you can focus on one creature and probe deeper: it makes a Wisdom save; on a failure you learn its reasoning, emotional state, and what looms large in its mind; on a success the spell ends. The spell is blocked by 2 feet of rock, 2 inches of metal, a thin sheet of lead, or 3 feet of wood/dirt.",
-  "higherLevels": "None",
-  "tags": ["divination", "information", "concentration"],
+  "source": "PHB 2024 p.262",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a copper piece"
+    "materialDescription": "a copper piece",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -29,30 +45,163 @@
     "concentration": true
   },
   "targeting": {
-    "type": "area",
+    "type": "self",
+    "validTargets": [
+      "self"
+    ],
+    "lineOfSight": false,
     "range": 0,
-    "validTargets": ["creatures"],
-    "areaOfEffect": { "shape": "Sphere", "size": 30 },
-    "lineOfSight": false
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "information",
-      "description": "Read surface thoughts of creatures within 30 feet while concentrating; blocked by thick materials as noted."
+      "description": "Read surface thoughts of creatures within 30 feet while concentrating; blocked by thick materials as noted.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     },
     {
       "type": "UTILITY",
-      "trigger": { "type": "on_caster_action" },
+      "trigger": {
+        "type": "on_caster_action",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
       "condition": {
         "type": "save",
         "saveType": "Wisdom",
-        "saveEffect": "none"
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "utilityType": "information",
-      "description": "Action to probe deeper into one creature; on failed Wisdom save learn reasoning, emotions, and foremost thoughts. On success, the spell ends."
+      "description": "Action to probe deeper into one creature; on failed Wisdom save learn reasoning, emotions, and foremost thoughts. On success, the spell ends.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "For the duration, you can read the thoughts of certain creatures. When you cast the spell and as your action on each turn until the spell ends, you can focus your mind on any one creature that you can see within 30 feet of you. If the creature you choose has an Intelligence of 3 or lower or doesn't speak any language, the creature is unaffected. You initially learn the surface thoughts of the creature-what is most on its mind in that moment. As an action, you can either shift your attention to another creature's thoughts or attempt to probe deeper into the same creature's mind. If you probe deeper, the target must make a Wisdom saving throw. If it fails, you gain insight into its reasoning (if any), its emotional state, and something that looms large in its mind (such as something it worries over, loves, or hates). If it succeeds, the spell ends. Either way, the target knows that you are probing into its mind, and unless you shift your attention to another creature's thoughts, the creature can use its action on its turn to make an Intelligence check contested by your Intelligence check; if it succeeds, the spell ends. Questions verbally directed at the target creature naturally shape the course of its thoughts, so this spell is particularly effective as part of an interrogation. You can also use this spell to detect the presence of thinking creatures you can't see. When you cast the spell or as your action during the duration, you can search for thoughts within 30 feet of you. The spell can penetrate barriers, but 2 feet of rock, 2 inches of any metal other than lead, or a thin sheet of lead blocks you. You can't detect a creature with an Intelligence of 3 or lower or one that doesn't speak any language. Once you detect the presence of a creature in this way, you can read its thoughts for the rest of the duration as described above, even if you can't see it, but it must still be within range.",
+  "higherLevels": "",
+  "tags": [
+    "divination",
+    "information",
+    "concentration"
   ]
 }

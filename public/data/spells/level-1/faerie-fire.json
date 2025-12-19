@@ -1,18 +1,29 @@
 {
   "id": "faerie-fire",
   "name": "Faerie Fire",
+  "aliases": [],
   "level": 1,
   "school": "Evocation",
-  "classes": ["Artificer", "Bard", "Druid"],
-  "description": "Objects in a 20-foot Cube within range are outlined in light. Each creature in the Cube that fails a Dexterity saving throw is also outlined. For the duration, affected creatures and objects shed Dim Light in a 10-foot radius, cannot benefit from the Invisible condition, and attack rolls against them have Advantage if the attacker can see them.",
-  "higherLevels": "None",
-  "tags": ["utility", "concentration", "visibility"],
+  "source": "PHB 2024 p.271",
+  "legacy": false,
+  "classes": [
+    "Artificer",
+    "Bard",
+    "Druid"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
@@ -22,7 +33,10 @@
   "components": {
     "verbal": true,
     "somatic": false,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -33,26 +47,100 @@
   "targeting": {
     "type": "area",
     "range": 60,
-    "validTargets": ["creatures", "objects"],
+    "validTargets": [
+      "creatures",
+      "objects"
+    ],
     "lineOfSight": true,
     "areaOfEffect": {
       "shape": "Cube",
-      "size": 20
+      "size": 20,
+      "height": 0
+    },
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
     }
   },
   "effects": [
     {
       "type": "UTILITY",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
         "type": "save",
         "saveType": "Dexterity",
-        "saveEffect": "negates_condition"
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "utilityType": "control",
-      "description": "Outlined creatures shed dim light, cannot benefit from Invisible, and attackers who can see them have Advantage."
+      "description": "Outlined creatures shed dim light, cannot benefit from Invisible, and attackers who can see them have Advantage.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "Each object in a 20-foot Cube within range remains outlined in blue, green, or violet light (your choice). Any creature in the area when the spell is cast is also outlined in light if it fails a Dexterity saving throw. For the duration, objects and affected creatures shed Dim Light in a 10-foot radius. Any attack roll against an affected creature or object has Advantage if the attacker can see it, and the affected creature or object can't benefit from being Invisible.",
+  "higherLevels": "",
+  "tags": [
+    "utility",
+    "concentration",
+    "visibility"
   ]
 }

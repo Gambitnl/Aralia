@@ -1,25 +1,29 @@
 {
   "id": "mold-earth",
   "name": "Mold Earth",
+  "aliases": [],
   "level": 0,
   "school": "Transmutation",
+  "source": "PHB 2024",
+  "legacy": false,
   "classes": [
     "Druid",
     "Sorcerer",
     "Wizard"
   ],
-  "tags": [
-    "utility",
-    "transmutation",
-    "cantrip"
-  ],
-  "description": "You choose a portion of dirt or stone that you can see within range and that fits within a 5-foot cube. You manipulate it in one of the following ways: excavate it, cause shapes/colors/text to appear, or turn it into difficult terrain (or vice versa).",
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
@@ -29,11 +33,16 @@
   "components": {
     "verbal": false,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "instantaneous",
-    "concentration": false
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "area",
@@ -45,25 +54,60 @@
     "lineOfSight": true,
     "areaOfEffect": {
       "shape": "Cube",
-      "size": 5
+      "size": 5,
+      "height": 0
+    },
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
     }
   },
   "effects": [
     {
       "type": "TERRAIN",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "terrainType": "difficult",
       "areaOfEffect": {
         "shape": "Cube",
-        "size": 5
+        "size": 5,
+        "height": 0
       },
       "duration": {
-        "type": "special"
+        "type": "special",
+        "value": 0
       },
       "manipulation": {
         "type": "excavate",
@@ -72,21 +116,64 @@
           "size": 5,
           "depth": 5
         },
-        "depositDistance": 5
-      }
+        "depositDistance": 5,
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "damage": {
+        "dice": "",
+        "type": ""
+      },
+      "wallProperties": {
+        "hp": 0,
+        "ac": 0
+      },
+      "dispersedByStrongWind": false,
+      "description": ""
     },
     {
       "type": "TERRAIN",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "terrainType": "difficult",
       "areaOfEffect": {
         "shape": "Cube",
-        "size": 5
+        "size": 5,
+        "height": 0
       },
       "duration": {
         "type": "minutes",
@@ -96,26 +183,67 @@
         "type": "difficult",
         "volume": {
           "shape": "Cube",
-          "size": 5
+          "size": 5,
+          "depth": 0
         },
         "duration": {
           "type": "minutes",
           "value": 60
-        }
-      }
+        },
+        "depositDistance": 0
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "damage": {
+        "dice": "",
+        "type": ""
+      },
+      "wallProperties": {
+        "hp": 0,
+        "ac": 0
+      },
+      "dispersedByStrongWind": false,
+      "description": ""
     },
     {
       "type": "TERRAIN",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "terrainType": "difficult",
       "areaOfEffect": {
         "shape": "Cube",
-        "size": 5
+        "size": 5,
+        "height": 0
       },
       "duration": {
         "type": "minutes",
@@ -125,22 +253,67 @@
         "type": "normal",
         "volume": {
           "shape": "Cube",
-          "size": 5
-        }
-      }
+          "size": 5,
+          "depth": 0
+        },
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        },
+        "depositDistance": 0
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "damage": {
+        "dice": "",
+        "type": ""
+      },
+      "wallProperties": {
+        "hp": 0,
+        "ac": 0
+      },
+      "dispersedByStrongWind": false,
+      "description": ""
     },
     {
       "type": "TERRAIN",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "terrainType": "difficult",
       "areaOfEffect": {
         "shape": "Cube",
-        "size": 5
+        "size": 5,
+        "height": 0
       },
       "duration": {
         "type": "minutes",
@@ -150,13 +323,42 @@
         "type": "cosmetic",
         "volume": {
           "shape": "Cube",
-          "size": 5
+          "size": 5,
+          "depth": 0
         },
         "duration": {
           "type": "minutes",
           "value": 60
-        }
-      }
+        },
+        "depositDistance": 0
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "damage": {
+        "dice": "",
+        "type": ""
+      },
+      "wallProperties": {
+        "hp": 0,
+        "ac": 0
+      },
+      "dispersedByStrongWind": false,
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You choose a portion of dirt or stone that you can see within range and that fits within a 5-foot cube. You manipulate it in one of the following ways: excavate it, cause shapes/colors/text to appear, or turn it into difficult terrain (or vice versa).",
+  "higherLevels": "",
+  "tags": [
+    "utility",
+    "transmutation",
+    "cantrip"
   ]
 }

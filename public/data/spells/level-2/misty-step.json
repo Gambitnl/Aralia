@@ -1,46 +1,136 @@
 {
   "id": "misty-step",
   "name": "Misty Step",
+  "aliases": [],
   "level": 2,
   "school": "Conjuration",
-  "classes": ["Sorcerer", "Warlock", "Wizard"],
-  "description": "Briefly surrounded by silvery mist, you teleport up to 30 feet to an unoccupied space that you can see.",
-  "higherLevels": "None",
-  "tags": ["movement", "conjuration"],
+  "source": "PHB 2024 p.299",
+  "legacy": false,
+  "classes": [
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "bonus_action",
-    "combatCost": { "type": "bonus_action" }
+    "combatCost": {
+      "type": "bonus_action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": false,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "instantaneous",
-    "concentration": false
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "self",
-    "validTargets": ["self"],
-    "lineOfSight": true
+    "validTargets": [
+      "self"
+    ],
+    "lineOfSight": true,
+    "range": 0,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "MOVEMENT",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "movementType": "teleport",
       "forcedMovement": {
         "direction": "caster_choice",
-        "maxDistance": "30 ft"
+        "maxDistance": "30 ft",
+        "usesReaction": false
       },
-      "duration": { "type": "rounds", "value": 0 }
+      "duration": {
+        "type": "rounds",
+        "value": 0
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "distance": 0,
+      "speedChange": {
+        "stat": "speed",
+        "value": 0,
+        "unit": "feet"
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "Briefly surrounded by silvery mist, you teleport up to 30 feet to an unoccupied space that you can see.",
+  "higherLevels": "",
+  "tags": [
+    "movement",
+    "conjuration"
   ]
 }

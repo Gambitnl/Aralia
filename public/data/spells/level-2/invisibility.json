@@ -1,26 +1,43 @@
 {
   "id": "invisibility",
   "name": "Invisibility",
+  "aliases": [],
   "level": 2,
   "school": "Illusion",
-  "classes": ["Bard", "Sorcerer", "Warlock", "Wizard"],
-  "description": "A creature you touch becomes invisible until the spell ends. The spell ends for a target that attacks or casts a spell. At higher levels, you can target additional creatures.",
-  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, you can target one additional creature for each slot level above 2nd.",
-  "tags": ["illusion", "control", "concentration"],
+  "source": "PHB 2024 p.289",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
-    "type": "touch"
+    "type": "touch",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "an eyelash encased in gum arabic"
+    "materialDescription": "an eyelash encased in gum arabic",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -29,19 +46,101 @@
     "concentration": true
   },
   "targeting": {
-    "type": "multi",
-    "range": 5,
+    "type": "single",
+    "range": 0,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
     "maxTargets": 1,
-    "validTargets": ["creatures", "allies"],
-    "lineOfSight": true
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "control",
-      "description": "Target becomes invisible until it attacks or casts a spell; scales to additional targets with higher slots."
+      "description": "Target becomes invisible until it attacks or casts a spell; scales to additional targets with higher slots.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "A creature you touch becomes Invisible until the spell ends. Anything the target is wearing or carrying is Invisible as long as it is on the target's person. The spell ends for a target that attacks, deals damage, or casts a spell.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, you can target one additional creature for each slot level above 2nd.",
+  "tags": [
+    "illusion",
+    "control",
+    "concentration"
   ]
 }

@@ -1,27 +1,43 @@
 {
   "id": "expeditious-retreat",
   "name": "Expeditious Retreat",
+  "aliases": [],
   "level": 1,
   "school": "Transmutation",
-  "classes": ["Artificer", "Sorcerer", "Warlock", "Wizard"],
-  "description": "You take the Dash action. Until the spell ends, you can take the Dash action again as a Bonus Action on each of your turns.",
-  "higherLevels": "None",
-  "tags": ["movement", "concentration"],
+  "source": "PHB 2024 p.270",
+  "legacy": false,
+  "classes": [
+    "Artificer",
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "bonus_action",
     "combatCost": {
-      "type": "bonus_action"
+      "type": "bonus_action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -31,28 +47,99 @@
   },
   "targeting": {
     "type": "self",
-    "validTargets": ["self"],
-    "lineOfSight": false
+    "validTargets": [
+      "self"
+    ],
+    "lineOfSight": false,
+    "range": 0,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "utilityType": "other",
-      "description": "Immediately Dash; while the spell lasts you can Dash as a bonus action each turn.",
-      "grantedActions": [
-        {
-          "type": "bonus_action",
-          "action": "Dash",
-          "frequency": "each_turn",
-          "notes": "Available immediately when cast and on each of your turns for the duration."
+      "description": "This spell allows you to move at an incredible pace. When you cast this spell, and then as a Bonus Action on each of your turns until the spell ends, you can take the Dash action.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
         }
-      ]
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "This spell allows you to move at an incredible pace. When you cast this spell, and then as a Bonus Action on each of your turns until the spell ends, you can take the Dash action.",
+  "higherLevels": "",
+  "tags": [
+    "movement",
+    "concentration"
   ]
 }

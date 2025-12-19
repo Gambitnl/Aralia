@@ -1,6 +1,7 @@
 {
   "id": "green-flame-blade",
   "name": "Green-Flame Blade",
+  "aliases": [],
   "level": 0,
   "school": "Evocation",
   "source": "Tasha's Cauldron of Everything",
@@ -10,34 +11,38 @@
     "Warlock",
     "Wizard"
   ],
-  "description": "As part of casting the spell, make a melee attack with a weapon against one creature within 5 feet. On a hit, the target takes the attack's normal damage, and green fire leaps to a second creature of your choice within 5 feet of the target, dealing fire damage equal to your spellcasting ability modifier. The primary target and secondary fire damage scale as you gain levels.",
-  "higherLevels": "At 5th level, the melee attack also deals an extra 1d8 fire damage to the primary target, and the secondary target takes an extra 1d8 fire damage. Both extra dice increase by 1d8 at 11th level and 17th level.",
-  "tags": [
-    "melee",
-    "damage",
-    "fire",
-    "cantrip"
-  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a melee weapon worth at least 1 sp"
+    "materialDescription": "a melee weapon worth at least 1 sp",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "instantaneous",
-    "concentration": false
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "melee",
@@ -46,16 +51,53 @@
       "creatures",
       "enemies"
     ],
-    "lineOfSight": true
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "hit"
+        "type": "hit",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "1d8",
@@ -64,16 +106,40 @@
       "description": "Extra fire damage to the primary target scales with level.",
       "scaling": {
         "type": "character_level",
-        "customFormula": "At 5th level +1d8 fire; 11th level +2d8; 17th level +3d8."
+        "customFormula": "At 5th level +1d8 fire; 11th level +2d8; 17th level +3d8.",
+        "bonusPerLevel": ""
       }
     },
     {
       "type": "DAMAGE",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "spellcasting_mod",
@@ -82,8 +148,22 @@
       "description": "On a hit, a second creature within 5 feet of the target takes fire damage equal to your spellcasting ability modifier. This secondary fire also gains +1d8 at 5th level, +2d8 at 11th level, +3d8 at 17th level.",
       "scaling": {
         "type": "character_level",
-        "customFormula": "Secondary target gains +1d8 fire at 5th, +2d8 at 11th, +3d8 at 17th."
+        "customFormula": "Secondary target gains +1d8 fire at 5th, +2d8 at 11th, +3d8 at 17th.",
+        "bonusPerLevel": ""
       }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "As part of casting the spell, make a melee attack with a weapon against one creature within 5 feet. On a hit, the target takes the attack's normal damage, and green fire leaps to a second creature of your choice within 5 feet of the target, dealing fire damage equal to your spellcasting ability modifier. The primary target and secondary fire damage scale as you gain levels.",
+  "higherLevels": "At 5th level, the melee attack also deals an extra 1d8 fire damage to the primary target, and the secondary target takes an extra 1d8 fire damage. Both extra dice increase by 1d8 at 11th level and 17th level.",
+  "tags": [
+    "melee",
+    "damage",
+    "fire",
+    "cantrip"
   ]
 }

@@ -49,7 +49,7 @@ describe('FullEntryDisplay', () => {
     expect(content).toContain('Content body');
     expect(content).not.toContain('id: test-entry');
     expect(content).not.toContain('tags: [level 3]');
-    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('entries/test-entry.md'));
+    expect(fetchMock.mock.calls[0]?.[0]).toContain('entries/test-entry.md');
 
     fireEvent.click(screen.getByText('related-term'));
     expect(onNavigate).toHaveBeenCalledWith('related-term');

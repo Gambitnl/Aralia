@@ -1,23 +1,40 @@
 {
   "id": "wrathful-smite",
   "name": "Wrathful Smite",
+  "aliases": [],
   "level": 1,
-  "school": "Evocation",
+  "school": "Necromancy",
+  "source": "PHB 2024 p.343",
+  "legacy": false,
   "classes": [
     "Paladin"
   ],
-  "description": "The next time you hit with a melee weapon attack during this spell's duration, your attack deals an extra 1d6 psychic damage. Additionally, if the target is a creature, it must make a Wisdom saving throw or be frightened of you until the spell ends. As an action, the creature can make a Wisdom check against your spell save DC to steel its resolve and end this spell.",
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
-    "unit": "bonus_action"
+    "unit": "bonus_action",
+    "combatCost": {
+      "type": "bonus_action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": false,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -26,10 +43,26 @@
     "concentration": true
   },
   "targeting": {
-    "type": "self",
+    "type": "single",
     "validTargets": [
-      "self"
-    ]
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "range": 0,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
@@ -40,15 +73,39 @@
         "attackFilter": {
           "weaponType": "melee",
           "attackType": "weapon"
+        },
+        "frequency": "every_time",
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
         }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "1d6",
         "type": "Psychic"
-      }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
     },
     {
       "type": "STATUS_CONDITION",
@@ -58,6 +115,12 @@
         "attackFilter": {
           "weaponType": "melee",
           "attackType": "weapon"
+        },
+        "frequency": "every_time",
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
         }
       },
       "condition": {
@@ -65,8 +128,16 @@
         "saveType": "Wisdom",
         "saveEffect": "negates_condition",
         "targetFilter": {
-          "creatureType": []
-        }
+          "creatureType": [],
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "statusCondition": {
         "name": "Frightened",
@@ -86,7 +157,21 @@
           "successEnds": true,
           "useOriginalDC": true
         }
-      }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
     }
-  ]
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "The next time you hit with a melee weapon attack during this spell's duration, your attack deals an extra 1d6 Psychic damage. Additionally, if the target is a creature, it must make a Wisdom saving throw or be Frightened of you until the spell ends. As an action, the creature can make a Wisdom check against your spell save DC to steel its resolve and end this spell.",
+  "higherLevels": "",
+  "tags": []
 }

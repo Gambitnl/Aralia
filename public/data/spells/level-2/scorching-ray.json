@@ -1,17 +1,29 @@
 {
   "id": "scorching-ray",
   "name": "Scorching Ray",
+  "aliases": [],
   "level": 2,
   "school": "Evocation",
-  "classes": ["Artificer", "Sorcerer", "Wizard"],
-  "description": "You create three rays of fire and hurl them at targets within range. Make a ranged spell attack for each ray. On a hit, the target takes 2d6 fire damage. You can direct the rays at one target or several.",
-  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, you create one additional ray for each slot level above 2nd.",
-  "tags": ["damage", "fire"],
+  "source": "PHB 2024 p.315",
+  "legacy": false,
+  "classes": [
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
     "type": "ranged",
@@ -20,27 +32,92 @@
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "instantaneous",
-    "concentration": false
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "multi",
     "range": 120,
     "maxTargets": 3,
-    "validTargets": ["creatures", "enemies"],
-    "lineOfSight": true
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "hit" },
-      "damage": { "dice": "2d6", "type": "Fire" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "hit",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "2d6",
+        "type": "Fire"
+      },
       "description": "Per ray hit",
-      "scaling": { "type": "slot_level", "customFormula": "+1 ray per slot level above 2nd" }
+      "scaling": {
+        "type": "slot_level",
+        "customFormula": "+1 ray per slot level above 2nd",
+        "bonusPerLevel": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You create three rays of fire and hurl them at targets within range. You can hurl them at one target or several. Make a ranged spell attack for each ray. On a hit, the target takes 2d6 Fire damage.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, you create one additional ray for each slot level above 2nd.",
+  "tags": [
+    "damage",
+    "fire"
   ]
 }

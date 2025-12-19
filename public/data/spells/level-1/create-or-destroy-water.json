@@ -1,18 +1,28 @@
 {
   "id": "create-or-destroy-water",
   "name": "Create or Destroy Water",
+  "aliases": [],
   "level": 1,
   "school": "Transmutation",
-  "classes": ["Cleric", "Druid"],
-  "description": "You create or destroy water. Create Water: create up to 10 gallons of clean water within range in containers or as rain in a 30-foot Cube that extinguishes exposed flames. Destroy Water: destroy up to 10 gallons of water in containers or disperse fog in a 30-foot Cube within range.",
-  "higherLevels": "You create or destroy 10 additional gallons of water, or the size of the Cube increases by 5 feet, for each spell slot level above 1.",
-  "tags": ["utility", "creation", "water"],
+  "source": "PHB 2024 p.258",
+  "legacy": false,
+  "classes": [
+    "Cleric",
+    "Druid"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
@@ -23,37 +33,112 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a mix of water and sand"
+    "materialDescription": "a drop of water (create) or a few grains of sand (destroy)",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "instantaneous",
-    "concentration": false
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "area",
     "range": 30,
-    "validTargets": ["point", "ground"],
-    "lineOfSight": true,
+    "validTargets": [
+      "point"
+    ],
+    "lineOfSight": false,
     "areaOfEffect": {
       "shape": "Cube",
-      "size": 30
+      "size": 30,
+      "height": 0
+    },
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
     }
   },
   "effects": [
     {
       "type": "UTILITY",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "scaling": {
         "type": "slot_level",
-        "customFormula": "+10 gallons created or destroyed, or +5-foot Cube size per slot level above 1 (choose when casting)."
+        "customFormula": "+10 gallons created or destroyed, or +5-foot Cube size per slot level above 1 (choose when casting).",
+        "bonusPerLevel": ""
       },
       "utilityType": "creation",
-      "description": "Choose to create clean water (in containers or as rain that can extinguish exposed flames) or destroy contained water/fog within a 30-foot Cube."
+      "description": "Choose to create clean water (in containers or as rain that can extinguish exposed flames) or destroy contained water/fog within a 30-foot Cube.",
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You either create or destroy water. Create Water: You create up to 10 gallons of clean water within range in an open container. Alternatively, the water falls as rain in a 30-foot Cube within range. Destroy Water: You destroy up to 10 gallons of water in an open container within range. Alternatively, you destroy fog in a 30-foot Cube within range.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, you create or destroy 10 additional gallons of water, or the size of the Cube increases by 5 feet, for each slot level above 1st.",
+  "tags": [
+    "utility",
+    "creation",
+    "water"
   ]
 }

@@ -1,18 +1,29 @@
 {
   "id": "unseen-servant",
   "name": "Unseen Servant",
+  "aliases": [],
   "level": 1,
   "school": "Conjuration",
+  "source": "PHB 2024 p.336",
+  "legacy": false,
   "classes": [
     "Bard",
     "Warlock",
     "Wizard"
   ],
+  "ritual": true,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
@@ -23,32 +34,91 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a piece of string and a bit of wood"
+    "materialDescription": "a piece of string and a bit of wood",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
-    "value": 60,
-    "unit": "minute",
+    "value": 1,
+    "unit": "hour",
     "concentration": false
   },
   "targeting": {
-    "type": "self",
-    "validTargets": ["self"],
-    "lineOfSight": false
+    "type": "point",
+    "validTargets": [
+      "point"
+    ],
+    "lineOfSight": true,
+    "range": 60,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "SUMMONING",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "summon": {
         "entityType": "servant",
         "persistent": false,
         "count": 1,
         "objectDescription": "Invisible servant (AC 10, 1 hp, Str 2, speed 15 ft) that performs simple tasks; cannot attack.",
         "commandCost": "bonus_action"
-      }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
     }
   ],
-  "description": "This spell creates an invisible, mindless, shapeless force that performs simple tasks at your command until the spell ends. The servant springs into existence in an unoccupied space on the ground within range. It has AC 10, 1 hit point, and a Strength of 2, and it can't attack. If it drops to 0 hit points, the spell ends.\n\nOnce on each of your turns as a bonus action, you can mentally command the servant to move up to 15 feet and interact with an object. The servant can perform simple tasks that a human servant could do, such as fetching things, cleaning, mending, folding clothes, lighting fires, serving food, and pouring wine. Once you give the command, the servant performs the task to the best of its ability until it completes the task, then waits for your next command.\n\nIf you command the servant to perform a task that would move it more than 60 feet away from you, the spell ends."
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "This spell creates an invisible, mindless, shapeless force that performs simple tasks at your command until the spell ends. The servant springs into existence in an unoccupied space on the ground within range. It has AC 10, 1 Hit Point, and a Strength of 2, and it can't attack. If it drops to 0 Hit Points, the spell ends. Once on each of your turns as a Bonus Action, you can mentally command the servant to move up to 15 feet and interact with an object. The servant can perform simple tasks that a human servant could do, such as fetching things, cleaning, mending, folding clothes, lighting fires, serving food, and pouring wine. Once you give the command, the servant performs the task to the best of its ability until it completes the task, then waits for your next command. If you command the servant to perform a task that would move it more than 60 feet away from you, the spell ends.",
+  "higherLevels": "",
+  "tags": []
 }

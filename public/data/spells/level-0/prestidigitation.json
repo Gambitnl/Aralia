@@ -1,8 +1,11 @@
 {
   "id": "prestidigitation",
   "name": "Prestidigitation",
+  "aliases": [],
   "level": 0,
   "school": "Transmutation",
+  "source": "PHB 2024",
+  "legacy": false,
   "classes": [
     "Artificer",
     "Bard",
@@ -10,17 +13,19 @@
     "Warlock",
     "Wizard"
   ],
-  "tags": [
-    "utility",
-    "cantrip"
-  ],
   "ritual": false,
-  "arbitrationType": "player_choice",
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
@@ -30,7 +35,10 @@
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -45,20 +53,95 @@
       "creatures",
       "objects"
     ],
-    "lineOfSight": true
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
-  "description": "This spell is a minor magical trick that novice spellcasters use for practice. You create one of the following magical effects within range: 1) A harmless sensory effect (sparks, wind, music, odor). 2) Light or snuff out a candle, torch, or small campfire. 3) Clean or soil an object no larger than 1 cubic foot. 4) Chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour. 5) Make a color, mark, or symbol appear on an object/surface for 1 hour. 6) Create a nonmagical trinket or illusory image that fits in your hand (lasts until end of next turn).",
   "effects": [
     {
       "type": "UTILITY",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "utilityType": "sensory",
-      "description": "You create one of the following magical effects within range: 1) A harmless sensory effect (sparks, wind, music, odor). 2) Light or snuff out a candle, torch, or small campfire. 3) Clean or soil an object no larger than 1 cubic foot. 4) Chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour. 5) Make a color, mark, or symbol appear on an object/surface for 1 hour. 6) Create a nonmagical trinket or illusory image that fits in your hand (lasts until end of next turn)."
+      "description": "You create one of the following magical effects within range: 1) A harmless sensory effect (sparks, wind, music, odor). 2) Light or snuff out a candle, torch, or small campfire. 3) Clean or soil an object no larger than 1 cubic foot. 4) Chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour. 5) Make a color, mark, or symbol appear on an object/surface for 1 hour. 6) Create a nonmagical trinket or illusory image that fits in your hand (lasts until end of next turn).",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "ai_dm",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "This spell is a minor magical trick that novice spellcasters use for practice. You create one of the following magical effects within range: 1) A harmless sensory effect (sparks, wind, music, odor). 2) Light or snuff out a candle, torch, or small campfire. 3) Clean or soil an object no larger than 1 cubic foot. 4) Chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour. 5) Make a color, mark, or symbol appear on an object/surface for 1 hour. 6) Create a nonmagical trinket or illusory image that fits in your hand (lasts until end of next turn).",
+  "higherLevels": "",
+  "tags": [
+    "utility",
+    "cantrip"
   ]
 }

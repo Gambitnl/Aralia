@@ -1,38 +1,145 @@
 {
   "id": "silent-image",
   "name": "Silent Image",
+  "aliases": [],
   "level": 1,
   "school": "Illusion",
-  "classes": ["Bard", "Sorcerer", "Wizard"],
-  "description": "You create the image of an object, creature, or other visible phenomenon no larger than a 15-foot cube within range. The image appears real but includes no sound, smell, or temperature. You can use an action to move the image up to 60 feet to a spot within range. Physical interaction reveals the illusion as insubstantial. A creature that uses its action to examine the image can determine it is an illusion with a successful Intelligence (Investigation) check against your spell save DC.",
-  "higherLevels": "None",
-  "tags": ["illusion", "control", "concentration"],
+  "source": "PHB 2024 p.317",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
-  "castingTime": { "value": 1, "unit": "action", "combatCost": { "type": "action" } },
-  "range": { "type": "ranged", "distance": 60 },
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
     "materialDescription": "a bit of fleece",
-    "materialCost": 0,
-    "isConsumed": false
+    "isConsumed": false,
+    "materialCost": 0
   },
-  "duration": { "type": "timed", "value": 10, "unit": "minute", "concentration": true },
+  "duration": {
+    "type": "timed",
+    "value": 10,
+    "unit": "minute",
+    "concentration": true
+  },
   "targeting": {
     "type": "area",
     "range": 60,
-    "validTargets": ["point"],
+    "validTargets": [
+      "point"
+    ],
     "lineOfSight": true,
-    "areaOfEffect": { "shape": "Cube", "size": 15 }
+    "areaOfEffect": {
+      "shape": "Cube",
+      "size": 15,
+      "height": 0
+    },
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "sensory",
-      "description": "Creates and moves a silent, intangible image up to a 15-foot cube; Investigation check (action) reveals the illusion."
+      "description": "Creates and moves a silent, intangible image up to a 15-foot cube; Investigation check (action) reveals the illusion.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You create the image of an object, a creature, or some other visible phenomenon that is no larger than a 15-foot Cube. The image appears at a spot within range and lasts for the duration. The image is purely visual; it isn't accompanied by sound, smell, or other sensory effects. You can use your action to cause the image to move to any spot within range. As the image changes location, you can alter its appearance so that its movements appear natural. Physical interaction with the image reveals it to be an illusion, because things can pass through it. A creature that uses its action to examine the image can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through the image.",
+  "higherLevels": "",
+  "tags": [
+    "illusion",
+    "control",
+    "concentration"
   ]
 }

@@ -1,17 +1,33 @@
 {
   "id": "hold-person",
   "name": "Hold Person",
+  "aliases": [],
   "level": 2,
   "school": "Enchantment",
-  "classes": ["Bard", "Cleric", "Druid", "Sorcerer", "Warlock", "Wizard"],
-  "description": "Choose a humanoid you can see within range. The target must succeed on a Wisdom saving throw or be paralyzed for the duration. At the end of each of its turns, the target can make another Wisdom saving throw. On a success, the spell ends. At higher levels, you can target additional humanoids within range.",
-  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, you can target one additional humanoid for each slot level above 2nd. The humanoids must be within 30 feet of each other when you target them.",
-  "tags": ["control", "paralysis", "concentration"],
+  "source": "PHB 2024 p.286",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Cleric",
+    "Druid",
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
     "type": "ranged",
@@ -21,7 +37,9 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a small, straight piece of iron"
+    "materialDescription": "a small, straight piece of iron",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -30,32 +48,97 @@
     "concentration": true
   },
   "targeting": {
-    "type": "multi",
+    "type": "single",
     "range": 60,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "filter": {
+      "creatureTypes": [
+        "Humanoid"
+      ],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    },
     "maxTargets": 1,
-    "validTargets": ["humanoids"],
-    "lineOfSight": true
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    }
   },
   "effects": [
     {
       "type": "STATUS_CONDITION",
-      "trigger": { "type": "immediate" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
       "condition": {
         "type": "save",
         "saveType": "Wisdom",
-        "saveEffect": "negates_condition"
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "statusCondition": {
         "name": "Paralyzed",
-        "duration": { "type": "minutes", "value": 1 },
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
         "repeatSave": {
           "timing": "turn_end",
           "saveType": "Wisdom",
           "successEnds": true,
           "useOriginalDC": true
+        },
+        "level": 0,
+        "escapeCheck": {
+          "dc": 0,
+          "actionCost": "action"
         }
       },
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+1 target" }
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1 target",
+        "customFormula": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "Choose a Humanoid that you can see within range. The target must succeed on a Wisdom saving throw or be Paralyzed for the duration. At the end of each of its turns, the target can make another Wisdom saving throw. On a success, the spell ends on the target.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, you can target one additional Humanoid for each slot level above 2nd. The Humanoids must be within 30 feet of each other when you target them.",
+  "tags": [
+    "control",
+    "paralysis",
+    "concentration"
   ]
 }

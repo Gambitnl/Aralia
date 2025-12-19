@@ -1,26 +1,34 @@
 {
   "id": "identify",
   "name": "Identify",
+  "aliases": [],
   "level": 1,
   "school": "Divination",
-  "classes": ["Artificer", "Bard", "Wizard"],
-  "description": "You touch one object throughout the casting. If it is a magic item or imbued object, you learn its properties, charges, and how to use them, whether it requires Attunement, and how many charges it has. You learn whether any spells are affecting the item or creature and what they are. If the item was created by a spell, you learn which spell created it.",
-  "higherLevels": "None",
-  "tags": ["ritual", "information"],
+  "source": "PHB 2024 p.287",
+  "legacy": false,
+  "classes": [
+    "Artificer",
+    "Bard",
+    "Wizard"
+  ],
   "ritual": true,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "minute",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
     },
     "explorationCost": {
-      "value": 11,
+      "value": 1,
       "unit": "minute"
     }
   },
   "range": {
-    "type": "touch"
+    "type": "touch",
+    "distance": 0
   },
   "components": {
     "verbal": true,
@@ -32,21 +40,105 @@
   },
   "duration": {
     "type": "instantaneous",
-    "concentration": false
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "single",
-    "range": 5,
-    "validTargets": ["objects"],
-    "lineOfSight": true
+    "range": 0,
+    "validTargets": [
+      "objects"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "information",
-      "description": "Learn magical properties, charges, attunement requirements, active spells, and the spell that created the item if applicable."
+      "description": "Learn magical properties, charges, attunement requirements, active spells, and the spell that created the item if applicable.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You choose one object that you must touch throughout the casting of the spell. If it is a magic item or some other magic-imbued object, you learn its properties and how to use them, whether it requires Attunement to use, and how many charges it has, if any. You learn whether any spells are affecting the item and what they are. If the item was created by a spell, you learn which spell created it. If you instead touch a creature throughout the casting, you learn what spells, if any, are currently affecting it.",
+  "higherLevels": "",
+  "tags": [
+    "ritual",
+    "information"
   ]
 }

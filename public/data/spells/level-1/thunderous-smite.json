@@ -1,23 +1,40 @@
 {
   "id": "thunderous-smite",
   "name": "Thunderous Smite",
+  "aliases": [],
   "level": 1,
   "school": "Evocation",
+  "source": "PHB 2024 p.334",
+  "legacy": false,
   "classes": [
     "Paladin"
   ],
-  "description": "The first time you hit with a melee weapon attack during this spell's duration, your weapon rings with thunder that is audible within 300 feet. The attack deals an extra 2d6 thunder damage to the target. Additionally, if the target is a creature, it must succeed on a Strength saving throw or be pushed 10 feet away from you and knocked prone.",
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
-    "unit": "bonus_action"
+    "unit": "bonus_action",
+    "combatCost": {
+      "type": "bonus_action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": false,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -26,10 +43,26 @@
     "concentration": true
   },
   "targeting": {
-    "type": "self",
+    "type": "single",
     "validTargets": [
-      "self"
-    ]
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "range": 0,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
@@ -40,15 +73,39 @@
         "attackFilter": {
           "weaponType": "melee",
           "attackType": "weapon"
+        },
+        "frequency": "every_time",
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
         }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "2d6",
         "type": "Thunder"
-      }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
     },
     {
       "type": "STATUS_CONDITION",
@@ -58,6 +115,12 @@
         "attackFilter": {
           "weaponType": "melee",
           "attackType": "weapon"
+        },
+        "frequency": "every_time",
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
         }
       },
       "condition": {
@@ -65,8 +128,16 @@
         "saveType": "Strength",
         "saveEffect": "negates_condition",
         "targetFilter": {
-          "creatureType": []
-        }
+          "creatureType": [],
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "statusCondition": {
         "name": "Prone",
@@ -74,8 +145,24 @@
           "type": "rounds",
           "value": 10
         },
-        "level": 1
-      }
+        "level": 1,
+        "escapeCheck": {
+          "dc": 0,
+          "actionCost": "action"
+        },
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true
+        }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
     },
     {
       "type": "MOVEMENT",
@@ -85,21 +172,59 @@
         "attackFilter": {
           "weaponType": "melee",
           "attackType": "weapon"
+        },
+        "frequency": "every_time",
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
         }
       },
       "condition": {
         "type": "save",
         "saveType": "Strength",
-        "saveEffect": "negates_condition"
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "movementType": "push",
       "distance": 10,
       "forcedMovement": {
-        "direction": "away_from_caster"
+        "direction": "away_from_caster",
+        "usesReaction": false,
+        "maxDistance": ""
       },
       "duration": {
-        "type": "special"
-      }
+        "type": "special",
+        "value": 0
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "speedChange": {
+        "stat": "speed",
+        "value": 0,
+        "unit": "feet"
+      },
+      "description": ""
     }
-  ]
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "The first time you hit with a melee weapon attack during this spell's duration, your weapon rings with thunder that is audible within 300 feet of you, and the attack deals an extra 2d6 Thunder damage to the target. Additionally, if the target is a creature, it must succeed on a Strength saving throw or be pushed 10 feet away from you and knocked Prone.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the extra damage increases by 1d6 for each slot level above 1st.",
+  "tags": []
 }

@@ -1,0 +1,11 @@
+{
+  "id": "coin_values",
+  "title": "Coin Values",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "Table of coin denominations and their value relative to the Gold Piece.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/equipment/coins/coin_values.json",
+  "markdown": "# Coin Values\r\n| Coin                | Value in GP |\r\n|---------------------|-------------|\r\n| Copper Piece (CP)   | 1/100       |\r\n| Silver Piece (SP)   | 1/10        |\r\n| Electrum Piece (EP) | 1/2         |\r\n| Gold Piece (GP)     | 1           |\r\n| Platinum Piece (PP) | 10          |"
+}

@@ -1,0 +1,137 @@
+{
+  "id": "fast-friends",
+  "name": "Fast Friends",
+  "aliases": [],
+  "level": 3,
+  "school": "Enchantment",
+  "source": "PHB 2024 p.270",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Cleric",
+    "Wizard"
+  ],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "timed",
+    "concentration": true,
+    "value": 1,
+    "unit": "hour"
+  },
+  "targeting": {
+    "type": "single",
+    "range": 30,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "filter": {
+      "creatureTypes": [
+        "Humanoid"
+      ],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    },
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    }
+  },
+  "effects": [
+    {
+      "type": "STATUS_CONDITION",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Wisdom",
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "statusCondition": {
+        "name": "Charmed",
+        "duration": {
+          "type": "minutes",
+          "value": 60
+        },
+        "level": 0,
+        "escapeCheck": {
+          "dc": 0,
+          "actionCost": "action"
+        },
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true
+        }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "Choose one Humanoid within range that can hear and understand you. The target must succeed on a Wisdom saving throw or become Charmed by you for the duration. While the target is Charmed in this way, it undertakes to perform any services you ask of it over the course of the spell's duration in a friendly manner. The target won't perform any activity that would obviously result in its death or the death of its allies or that would violate its alignment. If you ask the target to do something that would result in minor harm to itself or that is contrary to its nature, it can make a Wisdom saving throw. On a success, the spell ends. When the spell ends, the creature knows it was Charmed by you.",
+  "higherLevels": "When you cast this spell using a spell slot of 4th level or higher, you can target one additional humanoid for each slot level above 3rd. The humanoids must be within 30 feet of each other when you target them.",
+  "tags": []
+}

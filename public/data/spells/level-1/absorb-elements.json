@@ -1,28 +1,44 @@
 {
   "id": "absorb-elements",
   "name": "Absorb Elements",
+  "aliases": [],
   "level": 1,
   "school": "Abjuration",
-  "classes": ["Artificer", "Druid", "Ranger", "Sorcerer", "Wizard"],
-  "description": "The spell captures some of the incoming energy, lessening its effect on you and storing it for your next melee attack. You gain resistance to the triggering damage type until the start of your next turn. The first time you hit with a melee attack on your next turn, the target takes an extra 1d6 damage of the triggering type, and the spell ends.",
-  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the extra damage increases by 1d6 for each slot level above 1st.",
-  "tags": ["reaction", "defense", "damage", "elemental"],
+  "source": "PHB 2024",
+  "legacy": false,
+  "classes": [
+    "Artificer",
+    "Druid",
+    "Ranger",
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "reaction",
     "combatCost": {
       "type": "reaction",
       "condition": "when you take acid, cold, fire, lightning, or thunder damage"
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": false,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -32,16 +48,97 @@
   },
   "targeting": {
     "type": "self",
-    "validTargets": ["self"]
+    "validTargets": [
+      "self"
+    ],
+    "range": 0,
+    "maxTargets": 1,
+    "lineOfSight": true,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DEFENSIVE",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "defenseType": "resistance",
-      "damageType": ["Acid", "Cold", "Fire", "Lightning", "Thunder"],
-      "duration": { "type": "rounds", "value": 1 }
+      "damageType": [
+        "Acid",
+        "Cold",
+        "Fire",
+        "Lightning",
+        "Thunder"
+      ],
+      "duration": {
+        "type": "rounds",
+        "value": 1
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "value": 0,
+      "baseACFormula": "",
+      "acMinimum": 0,
+      "savingThrow": [],
+      "attackerFilter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false
+      },
+      "reactionTrigger": {
+        "event": "when_hit",
+        "includesSpells": []
+      },
+      "restrictions": {
+        "noArmor": false,
+        "noShield": false,
+        "targetSelf": false
+      },
+      "description": ""
     },
     {
       "type": "DAMAGE",
@@ -51,17 +148,52 @@
         "attackFilter": {
           "weaponType": "melee",
           "attackType": "weapon"
+        },
+        "frequency": "every_time",
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
         }
       },
-      "condition": { "type": "always" },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "damage": {
         "dice": "1d6",
         "type": "Acid/Cold/Fire/Lightning/Thunder"
       },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+1d6"
-      }
+        "bonusPerLevel": "+1d6",
+        "customFormula": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "The spell captures some of the incoming energy, lessening its effect on you and storing it for your next melee attack. You gain resistance to the triggering damage type until the start of your next turn. The first time you hit with a melee attack on your next turn, the target takes an extra 1d6 damage of the triggering type, and the spell ends.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the extra damage increases by 1d6 for each slot level above 1st.",
+  "tags": [
+    "reaction",
+    "defense",
+    "damage",
+    "elemental"
   ]
 }

@@ -1,25 +1,123 @@
 {
   "id": "inflict-wounds",
   "name": "Inflict Wounds",
+  "aliases": [],
   "level": 1,
   "school": "Necromancy",
-  "classes": ["Cleric"],
-  "description": "You channel negative energy into a creature you touch. Make a melee spell attack against the target. On a hit, the target takes 2d10 Necrotic damage.",
-  "higherLevels": "The damage increases by 1d10 for each spell slot level above 1.",
-  "tags": ["damage", "necrotic", "melee"],
+  "source": "PHB 2024 p.288",
+  "legacy": false,
+  "classes": [
+    "Cleric"
+  ],
   "ritual": false,
-  "castingTime": { "value": 1, "unit": "action", "combatCost": { "type": "action" } },
-  "range": { "type": "touch" },
-  "components": { "verbal": true, "somatic": true, "material": false },
-  "duration": { "type": "instantaneous", "concentration": false },
-  "targeting": { "type": "single", "range": 5, "validTargets": ["creatures", "enemies"], "lineOfSight": true },
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "touch",
+    "distance": 0
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
+  },
+  "targeting": {
+    "type": "single",
+    "range": 0,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
+  },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "hit" },
-      "damage": { "dice": "2d10", "type": "Necrotic" },
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d10" }
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "hit",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "2d10",
+        "type": "Necrotic"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d10",
+        "customFormula": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "Make a melee spell attack against a creature you can reach. On a hit, the target takes 2d10 Necrotic damage.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d10 for each slot level above 1st.",
+  "tags": [
+    "damage",
+    "necrotic",
+    "melee"
   ]
 }

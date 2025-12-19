@@ -1,28 +1,40 @@
 {
   "id": "armor-of-agathys",
   "name": "Armor of Agathys",
+  "aliases": [],
   "level": 1,
   "school": "Abjuration",
-  "classes": ["Warlock"],
-  "description": "A protective magical force surrounds you as spectral frost. You gain 5 temporary hit points for the duration. If a creature hits you with a melee attack while you have these hit points, it takes 5 cold damage.",
-  "higherLevels": "When cast with a higher slot, the temporary hit points and cold damage each increase by 5 per slot level.",
-  "tags": ["defense", "damage", "cold"],
+  "source": "PHB 2024 p.243",
+  "legacy": false,
+  "classes": [
+    "Warlock"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
-    "unit": "action",
+    "unit": "bonus_action",
     "combatCost": {
-      "type": "action"
+      "type": "bonus_action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a cup of water"
+    "materialDescription": "a shard of blue glass",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -32,34 +44,145 @@
   },
   "targeting": {
     "type": "self",
-    "validTargets": ["self"],
-    "lineOfSight": false
+    "validTargets": [
+      "self"
+    ],
+    "lineOfSight": false,
+    "range": 0,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DEFENSIVE",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "defenseType": "temporary_hp",
       "value": 5,
-      "duration": { "type": "minutes", "value": 60 },
+      "duration": {
+        "type": "minutes",
+        "value": 60
+      },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+5 temp HP"
-      }
+        "bonusPerLevel": "+5 temp HP",
+        "customFormula": ""
+      },
+      "baseACFormula": "",
+      "acMinimum": 0,
+      "damageType": [],
+      "savingThrow": [],
+      "attackerFilter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false
+      },
+      "reactionTrigger": {
+        "event": "when_hit",
+        "includesSpells": []
+      },
+      "restrictions": {
+        "noArmor": false,
+        "noShield": false,
+        "targetSelf": false
+      },
+      "description": ""
     },
     {
       "type": "DAMAGE",
-      "trigger": { "type": "on_target_attack" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "on_target_attack",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "damage": {
         "dice": "5",
         "type": "Cold"
       },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+5"
-      }
+        "bonusPerLevel": "+5",
+        "customFormula": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "A protective magical force surrounds you, manifesting as a spectral frost that covers you and your gear. You gain 5 Temporary Hit Points for the duration. If a creature hits you with a melee attack while you have these hit points, the creature takes 5 Cold damage. The spell ends early if you have no Temporary Hit Points.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the Temporary Hit Points and the Cold damage both increase by 5 for each slot level above 1st.",
+  "tags": [
+    "defense",
+    "damage",
+    "cold"
   ]
 }

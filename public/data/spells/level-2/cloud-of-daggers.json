@@ -1,17 +1,31 @@
 {
   "id": "cloud-of-daggers",
   "name": "Cloud of Daggers",
+  "aliases": [],
   "level": 2,
   "school": "Conjuration",
-  "classes": ["Bard", "Sorcerer", "Warlock", "Wizard"],
-  "description": "You fill the air with spinning daggers in a 5-foot cube centered on a point you choose within range. A creature takes slashing damage when it enters the area for the first time on a turn or starts its turn there.",
-  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 2d4 for each slot level above 2nd.",
-  "tags": ["damage", "area", "concentration"],
+  "source": "PHB 2024 p.251",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
     "type": "ranged",
@@ -21,7 +35,9 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a sliver of glass"
+    "materialDescription": "a sliver of glass",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -32,29 +48,121 @@
   "targeting": {
     "type": "area",
     "range": 60,
-    "validTargets": ["creatures"],
-    "areaOfEffect": { "shape": "Cube", "size": 5 },
-    "lineOfSight": true
+    "validTargets": [
+      "creatures"
+    ],
+    "areaOfEffect": {
+      "shape": "Cube",
+      "size": 5,
+      "height": 0
+    },
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
       "trigger": {
         "type": "on_enter_area",
-        "frequency": "first_per_turn"
+        "frequency": "first_per_turn",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
-      "condition": { "type": "always" },
-      "damage": { "dice": "4d4", "type": "Slashing" },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "4d4",
+        "type": "Slashing"
+      },
       "description": "A creature takes damage when it enters the area for the first time on a turn.",
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+2d4" }
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+2d4",
+        "customFormula": ""
+      }
     },
     {
       "type": "DAMAGE",
-      "trigger": { "type": "on_end_turn_in_area", "frequency": "every_time" },
-      "condition": { "type": "always" },
-      "damage": { "dice": "4d4", "type": "Slashing" },
+      "trigger": {
+        "type": "on_end_turn_in_area",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "4d4",
+        "type": "Slashing"
+      },
       "description": "A creature takes damage when it starts/ends its turn in the area.",
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+2d4" }
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+2d4",
+        "customFormula": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You fill the air with spinning daggers in a cube 5 feet on each side, centered on a point you choose within range. A creature takes 4d4 Slashing damage when it enters the spell's area for the first time on a turn or starts its turn there.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 2d4 for each slot level above 2nd.",
+  "tags": [
+    "damage",
+    "area",
+    "concentration"
   ]
 }

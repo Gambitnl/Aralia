@@ -1,26 +1,41 @@
 {
   "id": "dragons-breath",
   "name": "Dragon's Breath",
+  "aliases": [],
   "level": 2,
   "school": "Transmutation",
-  "classes": ["Artificer", "Sorcerer", "Wizard"],
-  "description": "You touch one willing creature and imbue it with a chosen breath weapon: acid, cold, fire, lightning, or poison. Until the spell ends, the creature can use its action to exhale a 15-foot cone of that type. Each creature in the cone makes a Dexterity saving throw, taking 3d6 damage on a failed save, or half as much on a successful one.",
-  "higherLevels": "Damage increases by 1d6 for each slot level above 2nd.",
-  "tags": ["damage", "elemental", "control", "concentration"],
+  "source": "PHB 2024 p.266",
+  "legacy": false,
+  "classes": [
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "bonus_action",
-    "combatCost": { "type": "bonus_action" }
+    "combatCost": {
+      "type": "bonus_action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
-    "type": "touch"
+    "type": "touch",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a hot pepper"
+    "materialDescription": "a hot pepper",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -30,32 +45,143 @@
   },
   "targeting": {
     "type": "single",
-    "range": 5,
-    "validTargets": ["creatures", "allies"],
-    "lineOfSight": true
+    "range": 0,
+    "validTargets": [
+      "allies"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "other",
-      "description": "Target gains a breath action (15-foot cone, Dex save half) dealing 3d6 chosen damage (acid, cold, fire, lightning, or poison) for the duration."
+      "description": "Target gains a breath action (15-foot cone, Dex save half) dealing 3d6 chosen damage (acid, cold, fire, lightning, or poison) for the duration.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     },
     {
       "type": "DAMAGE",
-      "trigger": { "type": "on_caster_action" },
+      "trigger": {
+        "type": "on_caster_action",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
       "condition": {
         "type": "save",
         "saveType": "Dexterity",
-        "saveEffect": "half"
+        "saveEffect": "half",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "3d6",
         "type": "Acid/Cold/Fire/Lightning/Poison"
       },
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d6" },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d6",
+        "customFormula": ""
+      },
       "description": "Represents the breath weapon damage when the target uses the granted action."
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You touch one willing creature and imbue it with the power to spew magical energy from its mouth, provided it has one. Choose Acid, Cold, Fire, Lightning, or Poison. Until the spell ends, the creature can use an action to exhale energy of the chosen type in a 15-foot Cone. Each creature in that area must make a Dexterity saving throw, taking 3d6 damage of the chosen type on a failed save, or half as much damage on a successful one.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d6 for each slot level above 2nd.",
+  "tags": [
+    "damage",
+    "elemental",
+    "control",
+    "concentration"
   ]
 }

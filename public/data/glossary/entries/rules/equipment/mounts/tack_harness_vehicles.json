@@ -1,0 +1,11 @@
+{
+  "id": "tack_harness_vehicles",
+  "title": "Tack, Harness, and Drawn Vehicles",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "No excerpt available.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/equipment/mounts/tack_harness_vehicles.json",
+  "markdown": "# Tack, Harness, and Drawn Vehicles\r\n| Item | Weight | Cost |\r\n|:---|:---|:---|\r\n| Carriage | 600 lb. | 100 GP |\r\n| Cart | 200 lb. | 15 GP |\r\n| Chariot | 100 lb. | 250 GP |\r\n| Feed per day | 10 lb. | 5 CP |\r\n| Saddle | | |\r\n| Exotic | 40 lb. | 60 GP |\r\n| Military | 30 lb. | 20 GP |\r\n| Riding | 25 lb. | 10 GP |\r\n| Sled | 300 lb. | 20 GP |\r\n| Stabling per day | - | 5 SP |\r\n| Wagon | 400 lb. | 35 GP |\r\n"
+}

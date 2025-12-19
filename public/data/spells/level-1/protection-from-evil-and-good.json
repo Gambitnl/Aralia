@@ -1,8 +1,11 @@
 {
   "id": "protection-from-evil-and-good",
   "name": "Protection from Evil and Good",
+  "aliases": [],
   "level": 1,
   "school": "Abjuration",
+  "source": "PHB 2024 p.309",
+  "legacy": false,
   "classes": [
     "Cleric",
     "Druid",
@@ -10,28 +13,30 @@
     "Warlock",
     "Wizard"
   ],
-  "description": "Until the spell ends, one willing creature you touch is protected against Aberrations, Celestials, Elementals, Fey, Fiends, and Undead. Those creatures have Disadvantage on attack rolls against the target. The target cannot be charmed, frightened, or possessed by them; if already affected, the target has Advantage on new saves against those effects.",
-  "higherLevels": "None",
-  "tags": [
-    "defense",
-    "concentration"
-  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
-    "type": "touch"
+    "type": "touch",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a flask of holy water worth 25+ gp, consumed",
+    "materialDescription": "holy water or powdered silver and iron worth 25+ gp",
     "materialCost": 25,
     "isConsumed": true
   },
@@ -43,21 +48,57 @@
   },
   "targeting": {
     "type": "single",
-    "range": 5,
+    "range": 0,
     "validTargets": [
-      "creatures",
       "allies"
     ],
-    "lineOfSight": true
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DEFENSIVE",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "defenseType": "advantage_on_saves",
       "savingThrow": [
@@ -76,9 +117,43 @@
           "Fey",
           "Fiend",
           "Undead"
-        ]
+        ],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false
       },
-      "description": "Creatures of specified types have disadvantage on attack rolls against the target."
+      "description": "Creatures of specified types have disadvantage on attack rolls against the target.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "value": 0,
+      "baseACFormula": "",
+      "acMinimum": 0,
+      "damageType": [],
+      "reactionTrigger": {
+        "event": "when_hit",
+        "includesSpells": []
+      },
+      "restrictions": {
+        "noArmor": false,
+        "noShield": false,
+        "targetSelf": false
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "Until the spell ends, one willing creature you touch is protected against certain types of creatures: Aberrations, Celestials, Elementals, Fey, Fiends, and Undead. The protection grants several benefits. Creatures of those types have Disadvantage on attack rolls against the target. The target also can't be Charmed, Frightened, or possessed by them. If the target is already Charmed, Frightened, or possessed by such a creature, the target has Advantage on any new saving throw against the relevant effect.",
+  "higherLevels": "",
+  "tags": [
+    "defense",
+    "concentration"
   ]
 }

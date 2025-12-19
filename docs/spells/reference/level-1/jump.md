@@ -16,7 +16,7 @@
 - **Verbal**: true
 - **Somatic**: true
 - **Material**: true
-- **Material Description**: a grasshopper’s hind leg
+- **Material Description**: a grasshopper's hind leg
 - **Material Cost GP**: 0
 - **Consumed**: false
 

@@ -1,40 +1,49 @@
 {
   "id": "blade-ward",
   "name": "Blade Ward",
+  "aliases": [],
   "level": 0,
   "school": "Abjuration",
+  "source": "PHB 2024",
+  "legacy": false,
   "classes": [
     "Bard",
     "Sorcerer",
     "Warlock",
     "Wizard"
   ],
-  "tags": [
-    "defensive",
-    "resistance",
-    "cantrip"
-  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
     "value": 1,
-    "unit": "minute",
-    "concentration": true
+    "unit": "round",
+    "concentration": false
   },
   "targeting": {
     "type": "self",
@@ -42,27 +51,103 @@
       "self"
     ],
     "lineOfSight": false,
-    "range": 5
+    "range": 5,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DEFENSIVE",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
-      "defenseType": "attack_penalty",
-      "penaltyDice": "1d4",
+      "defenseType": "resistance",
+      "damageType": [
+        "Bludgeoning",
+        "Piercing",
+        "Slashing"
+      ],
       "duration": {
-        "type": "timed",
-        "value": 1,
-        "unit": "minute"
+        "type": "rounds",
+        "value": 1
       },
-      "description": "Attackers subtract 1d4 from their attack rolls against you."
+      "description": "You gain resistance to bludgeoning, piercing, and slashing damage from weapon attacks until the end of your next turn.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "value": 0,
+      "baseACFormula": "",
+      "acMinimum": 0,
+      "savingThrow": [],
+      "attackerFilter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false
+      },
+      "reactionTrigger": {
+        "event": "when_hit",
+        "includesSpells": []
+      },
+      "restrictions": {
+        "noArmor": false,
+        "noShield": false,
+        "targetSelf": false
+      }
     }
   ],
-  "description": "Whenever a creature makes an attack roll against you before the spell ends, that creature subtracts 1d4 from the attack roll.",
-  "higherLevels": ""
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You gain resistance to bludgeoning, piercing, and slashing damage from weapon attacks until the end of your next turn.",
+  "higherLevels": "",
+  "tags": [
+    "defensive",
+    "resistance",
+    "cantrip"
+  ]
 }

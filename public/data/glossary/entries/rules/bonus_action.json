@@ -1,0 +1,14 @@
+{
+  "id": "bonus_action",
+  "title": "Bonus Action",
+  "category": "Rules Glossary",
+  "tags": ["combat", "turn", "actions"],
+  "excerpt": "A special additional action you can take on your turn. You can take a bonus action only when a special ability, spell, or feature states that you can do something as a bonus action.",
+  "aliases": [],
+  "seeAlso": [
+    "action",
+    "reaction"
+  ],
+  "filePath": "/data/glossary/entries/rules/bonus_action.json",
+  "markdown": "# Bonus Action\n\nVarious class features, spells, and other abilities let you take an additional action on your turn called a bonus action. You can take a bonus action only when a special ability, spell, or other feature of the game states that you can do something as a bonus action.\n\n## Rules\n\n- You can take only **one** bonus action on your turn\n- You choose when to take a bonus action during your turn, unless the bonus action's timing is specified\n- Anything that deprives you of your ability to take actions also prevents you from taking a bonus action\n- You can't use a bonus action when it isn't your turn\n\n## Common Examples\n\n- **Two-Weapon Fighting**: When you take the [[attack_action|Attack action]] and attack with a light melee weapon in one hand, you can use a bonus action to attack with a different light melee weapon in your other hand\n- **Cunning Action** (Rogue): Take the Dash, Disengage, or Hide action as a bonus action\n- **Spell Casting**: Some spells have a casting time of 1 bonus action (like *Healing Word* or *Misty Step*)\n- **Rage** (Barbarian): Enter a rage as a bonus action\n\n## Bonus Action Spellcasting Limitation\n\nIf you cast a spell using a bonus action, you can't cast another spell during the same turn, except for a cantrip with a casting time of 1 [[action]].\n"
+}

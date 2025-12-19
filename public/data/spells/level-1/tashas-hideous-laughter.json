@@ -1,25 +1,29 @@
 {
   "id": "tashas-hideous-laughter",
   "name": "Tasha's Hideous Laughter",
+  "aliases": [],
   "level": 1,
   "school": "Enchantment",
+  "source": "PHB 2024 p.331",
+  "legacy": false,
   "classes": [
     "Bard",
     "Warlock",
     "Wizard"
   ],
-  "description": "A creature of your choice that you can see within range perceives everything as hilariously funny and falls into fits of laughter if it fails a Wisdom saving throw. The target falls Prone, is Incapacitated, and cannot stand up for the duration. At the end of each of its turns, and each time it takes damage, the target can make another Wisdom saving throw (with Advantage if triggered by damage), ending the spell on a success.",
-  "higherLevels": "None",
-  "tags": [
-    "control",
-    "concentration"
-  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
@@ -30,9 +34,9 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "tiny tarts and a feather",
-    "materialCost": 0,
-    "isConsumed": false
+    "materialDescription": "tiny tarts and a feather that is waved in the air",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -44,21 +48,55 @@
     "type": "single",
     "range": 30,
     "validTargets": [
-      "creatures",
-      "enemies"
+      "creatures"
     ],
-    "lineOfSight": true
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "STATUS_CONDITION",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
         "type": "save",
         "saveType": "Wisdom",
-        "saveEffect": "negates_condition"
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "description": "Target is prone and incapacitated on a failed save; repeats Wisdom saves at end of turns and after taking damage (with Advantage if damage triggered) to end the effect.",
       "statusCondition": {
@@ -75,8 +113,29 @@
           "modifiers": {
             "advantageOnDamage": true
           }
+        },
+        "level": 0,
+        "escapeCheck": {
+          "dc": 0,
+          "actionCost": "action"
         }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
       }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "A creature of your choice that you can see within range perceives everything as hilariously funny and falls into fits of laughter if this spell affects it. The target must succeed on a Wisdom saving throw or fall Prone, becoming Incapacitated and unable to stand up for the duration. A creature with an Intelligence score of 4 or less isn't affected. At the end of each of its turns, and each time it takes damage, the target can make another Wisdom saving throw. The target has Advantage on the save if it's triggered by damage. On a success, the spell ends.",
+  "higherLevels": "",
+  "tags": [
+    "control",
+    "concentration"
   ]
 }

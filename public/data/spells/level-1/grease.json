@@ -1,25 +1,29 @@
 {
   "id": "grease",
   "name": "Grease",
+  "aliases": [],
   "level": 1,
   "school": "Conjuration",
+  "source": "PHB 2024 p.280",
+  "legacy": false,
   "classes": [
     "Artificer",
     "Sorcerer",
     "Wizard"
   ],
-  "description": "Nonflammable grease covers the ground in a 10-foot square centered on a point within range and turns it into Difficult Terrain for the duration. When the grease appears, each creature standing in its area must succeed on a Dexterity saving throw or fall Prone. A creature that enters the area or ends its turn there must also succeed on that save or fall Prone.",
-  "higherLevels": "None",
-  "tags": [
-    "terrain",
-    "control"
-  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
@@ -30,7 +34,9 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a bit of pork rind or butter"
+    "materialDescription": "a bit of pork rind or butter",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -42,91 +48,273 @@
     "type": "area",
     "range": 60,
     "validTargets": [
-      "creatures",
-      "ground"
+      "point"
     ],
     "lineOfSight": true,
     "areaOfEffect": {
-      "shape": "Cube",
-      "size": 10
+      "shape": "Square",
+      "size": 10,
+      "height": 0
+    },
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
     }
   },
   "effects": [
     {
       "type": "TERRAIN",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "terrainType": "difficult",
       "areaOfEffect": {
         "shape": "Cube",
-        "size": 10
+        "size": 10,
+        "height": 0
       },
       "duration": {
         "type": "minutes",
         "value": 1
-      }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "damage": {
+        "dice": "",
+        "type": ""
+      },
+      "wallProperties": {
+        "hp": 0,
+        "ac": 0
+      },
+      "dispersedByStrongWind": false,
+      "manipulation": {
+        "type": "cosmetic",
+        "volume": {
+          "shape": "Cube",
+          "size": 0,
+          "depth": 0
+        },
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        },
+        "depositDistance": 0
+      },
+      "description": ""
     },
     {
       "type": "STATUS_CONDITION",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
         "type": "save",
         "saveType": "Dexterity",
-        "saveEffect": "negates_condition"
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "statusCondition": {
         "name": "Prone",
         "duration": {
           "type": "rounds",
           "value": 0
+        },
+        "level": 0,
+        "escapeCheck": {
+          "dc": 0,
+          "actionCost": "action"
+        },
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true
         }
-      }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
     },
     {
       "type": "STATUS_CONDITION",
       "trigger": {
         "type": "on_enter_area",
-        "frequency": "first_per_turn"
+        "frequency": "first_per_turn",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
         "type": "save",
         "saveType": "Dexterity",
-        "saveEffect": "negates_condition"
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "statusCondition": {
         "name": "Prone",
         "duration": {
           "type": "rounds",
           "value": 0
+        },
+        "level": 0,
+        "escapeCheck": {
+          "dc": 0,
+          "actionCost": "action"
+        },
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true
         }
       },
-      "description": "A creature that moves into the grease for the first time on a turn must make this saving throw."
+      "description": "A creature that moves into the grease for the first time on a turn must make this saving throw.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      }
     },
     {
       "type": "STATUS_CONDITION",
       "trigger": {
         "type": "on_end_turn_in_area",
-        "frequency": "every_time"
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
         "type": "save",
         "saveType": "Dexterity",
-        "saveEffect": "negates_condition"
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "statusCondition": {
         "name": "Prone",
         "duration": {
           "type": "rounds",
           "value": 0
+        },
+        "level": 0,
+        "escapeCheck": {
+          "dc": 0,
+          "actionCost": "action"
+        },
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true
         }
       },
-      "description": "A creature that ends its turn in the grease must make this saving throw."
+      "description": "A creature that ends its turn in the grease must make this saving throw.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "Slick grease covers the ground in a 10-foot square freely centered on a point within range and turns it into Difficult Terrain for the duration. When the grease appears, each creature standing in its area must succeed on a Dexterity saving throw or fall Prone. A creature that enters the area or ends its turn there must also succeed on a Dexterity saving throw or fall Prone.",
+  "higherLevels": "",
+  "tags": [
+    "terrain",
+    "control"
   ]
 }

@@ -1,68 +1,202 @@
 {
   "id": "color-spray",
   "name": "Color Spray",
+  "aliases": [],
   "level": 1,
   "school": "Illusion",
-  "classes": ["Sorcerer", "Wizard"],
-  "description": "A dazzling array of flashing, colored light springs from your hand. Roll 6d10; the total is the pool of hit points that this spell can affect. Creatures in a 15-foot cone originating from you are affected in ascending order of their current hit points, ignoring unconscious creatures. Each affected creature is blinded until the spell ends.",
-  "higherLevels": "The hit point pool increases by 2d10 for each spell slot level above 1st.",
-  "tags": ["control", "blindness", "illusion", "aoe"],
+  "source": "PHB 2024 p.251",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a pinch of colored sand, crystal, or glass powder"
+    "materialDescription": "a pinch of colorful sand",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "round",
-    "concentration": false
+    "type": "instantaneous",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "area",
-    "range": 0,
-    "validTargets": ["creatures"],
+    "validTargets": [
+      "creatures"
+    ],
     "areaOfEffect": {
       "shape": "Cone",
-      "size": 15
+      "size": 15,
+      "height": 0
     },
-    "lineOfSight": true
+    "lineOfSight": false,
+    "range": 0,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "control",
       "description": "Roll 6d10 (plus scaling by slot). Starting with the lowest current HP creatures in the cone, subtract from the pool until it is depleted; affected creatures are blinded until the spell ends. Unconscious creatures are ignored.",
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+2d10 to HP pool"
+        "bonusPerLevel": "+2d10 to HP pool",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
       }
     },
     {
       "type": "STATUS_CONDITION",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "statusCondition": {
         "name": "Blinded",
         "duration": {
           "type": "rounds",
           "value": 1
+        },
+        "level": 0,
+        "escapeCheck": {
+          "dc": 0,
+          "actionCost": "action"
+        },
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true
         }
-      }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "A dazzling array of flashing, colorful light springs from your hand. Each creature in a 15-foot Cone must succeed on a Constitution saving throw or be Blinded until the end of your next turn.",
+  "higherLevels": "",
+  "tags": [
+    "control",
+    "blindness",
+    "illusion",
+    "aoe"
   ]
 }

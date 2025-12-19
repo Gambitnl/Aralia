@@ -1,0 +1,11 @@
+{
+  "id": "food_drink_lodging",
+  "title": "Food, Drink, and Lodging",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "No excerpt available.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/equipment/services/food_drink_lodging.json",
+  "markdown": "# Food, Drink, and Lodging\r\nThe Food, Drink, and Lodging table gives prices for food and a single night's lodging. Prices for daily lodging and meals are included in your lifestyle's expenses.\r\n| Item | Cost |\r\n|:---|:---|\r\n| Ale (mug) | 4 CP |\r\n| Bread (loaf) | 2 CP |\r\n| Cheese (wedge) | 1 SP |\r\n| Inn Stay per Day | |\r\n| Squalid | 7 CP |\r\n| Poor | 1 SP |\r\n| Modest | 5 SP |\r\n| Comfortable | 8 SP |\r\n| Wealthy | 2 GP |\r\n| Aristocratic | 4 GP |\r\n| Meal | |\r\n| Squalid | 1 CP |\r\n| Poor | 2 CP |\r\n| Modest | 1 SP |\r\n| Comfortable | 2 SP |\r\n| Wealthy | 3 SP |\r\n| Aristocratic | 6 SP |\r\n| Wine (bottle) | |\r\n| Common | 2 SP |\r\n| Fine | 10 GP |\r\n"
+}

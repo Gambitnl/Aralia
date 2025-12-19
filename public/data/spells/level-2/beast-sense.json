@@ -1,26 +1,41 @@
 {
   "id": "beast-sense",
   "name": "Beast Sense",
+  "aliases": [],
   "level": 2,
   "school": "Divination",
-  "classes": ["Druid", "Ranger"],
-  "description": "You touch a willing beast and can use your action to see through its eyes and hear what it hears. While doing so, you gain its special senses and are deaf and blind to your own senses until you return to them.",
-  "higherLevels": "None",
-  "tags": ["divination", "ritual", "sensory"],
+  "source": "PHB 2024 p.245",
+  "legacy": false,
+  "classes": [
+    "Druid",
+    "Ranger"
+  ],
   "ritual": true,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" },
-    "explorationCost": { "value": 1, "unit": "minute" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
-    "type": "touch"
+    "type": "touch",
+    "distance": 0
   },
   "components": {
     "verbal": false,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -30,17 +45,102 @@
   },
   "targeting": {
     "type": "single",
-    "range": 5,
-    "validTargets": ["beasts", "allies"],
-    "lineOfSight": true
+    "range": 0,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "filter": {
+      "creatureTypes": [
+        "Beast"
+      ],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    },
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "sensory",
-      "description": "Use your action to see/hear through the beast's senses; you are deaf/blind to your own senses while doing so."
+      "description": "Use your action to see/hear through the beast's senses; you are deaf/blind to your own senses while doing so.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You touch a willing Beast. For the duration of the spell, you can use your action to see through the Beast's eyes and hear what it hears, and continue to do so until you use your action to return to your normal senses. While perceiving through the Beast's senses, you gain the benefits of any special senses possessed by that creature, though you are Blinded and Deafened to your own surroundings.",
+  "higherLevels": "",
+  "tags": [
+    "divination",
+    "ritual",
+    "sensory"
   ]
 }

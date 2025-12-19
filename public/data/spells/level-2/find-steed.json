@@ -1,18 +1,28 @@
 {
   "id": "find-steed",
   "name": "Find Steed",
+  "aliases": [],
   "level": 2,
   "school": "Conjuration",
-  "classes": ["Paladin"],
-  "description": "You summon a spirit that takes the form of a loyal steed in an unoccupied space within range. The steed uses the statistics of a warhorse, pony, camel, elk, or mastiff (your choice) with a celestial, fey, or fiendish type. The steed is a mount under your control; it acts on its own initiative, and while mounted you can make any spell you cast that targets only you also target your steed. The steed disappears if it drops to 0 HP or if you dismiss it as an action; resummon with this spell.",
-  "higherLevels": "None",
-  "tags": ["summoning", "mount", "utility"],
+  "source": "PHB 2024 p.272",
+  "legacy": false,
+  "classes": [
+    "Paladin"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 10,
     "unit": "minute",
-    "combatCost": { "type": "action" },
-    "explorationCost": { "value": 10, "unit": "minute" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 10,
+      "unit": "minute"
+    }
   },
   "range": {
     "type": "ranged",
@@ -21,28 +31,82 @@
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
-    "type": "until_dispelled",
-    "concentration": false
+    "type": "instantaneous",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "point",
     "range": 30,
-    "validTargets": ["point"],
-    "lineOfSight": true
+    "validTargets": [
+      "point"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "SUMMONING",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "summon": {
         "entityType": "mount",
         "persistent": true,
         "dismissAction": "action",
-        "formOptions": ["Warhorse", "Pony", "Camel", "Elk", "Mastiff"],
+        "formOptions": [
+          "Warhorse",
+          "Pony",
+          "Camel",
+          "Elk",
+          "Mastiff"
+        ],
         "statBlock": {
           "type": "Celestial/Fey/Fiend",
           "size": "Large",
@@ -52,7 +116,25 @@
         },
         "telepathyRange": 60,
         "commandCost": "none"
-      }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You summon a spirit that assumes the form of an unusually intelligent, strong, and loyal steed, creating a long-lasting bond with it. Appearing in an unoccupied space within range, the steed takes on a form that you choose, such as a warhorse, a pony, a camel, an elk, or a mastiff. (Your GM might allow other animals to be summoned as steeds.) The steed has the statistics of the chosen form, though it is a Celestial, Fey, or Fiend (your choice) instead of its normal type. Additionally, if your steed has an Intelligence of 5 or less, its Intelligence becomes 6, and it gains the ability to understand one language of your choice that you speak. Your steed serves you as a mount, both in combat and out, and you have an instinctive bond with it that allows you to fight as a seamless unit. While mounted on your steed, you can make any spell you cast that targets only you also target your steed. When the steed drops to 0 Hit Points, it disappears, leaving behind no physical form. You can also dismiss your steed at any time as an action, causing it to disappear. In either case, casting this spell again summons the same steed, restored to its Hit Point maximum. While your steed is within 1 mile of you, you can communicate with it telepathically. You can't have more than one steed bonded by this spell at a time. As an action, you can release the steed from its bond at any time, causing it to disappear.",
+  "higherLevels": "",
+  "tags": [
+    "summoning",
+    "mount",
+    "utility"
   ]
 }

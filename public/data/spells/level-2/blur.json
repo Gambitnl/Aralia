@@ -1,25 +1,41 @@
 {
   "id": "blur",
   "name": "Blur",
+  "aliases": [],
   "level": 2,
   "school": "Illusion",
-  "classes": ["Sorcerer", "Wizard"],
-  "description": "Your body becomes blurred, shifting and wavering to all who can see you. For the duration, any creature has disadvantage on attack rolls against you. An attacker is immune if it doesn’t rely on sight or can see through illusions.",
-  "higherLevels": "None",
-  "tags": ["defense", "illusion", "concentration"],
+  "source": "PHB 2024 p.248",
+  "legacy": false,
+  "classes": [
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": false,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -29,17 +45,103 @@
   },
   "targeting": {
     "type": "self",
-    "validTargets": ["self"],
-    "lineOfSight": false
+    "validTargets": [
+      "self"
+    ],
+    "lineOfSight": false,
+    "range": 0,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DEFENSIVE",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "defenseType": "ac_bonus",
-      "duration": { "type": "minutes", "value": 1 },
-      "description": "Creatures have disadvantage on attack rolls against you; immune if they don’t rely on sight or can see through illusions."
+      "duration": {
+        "type": "minutes",
+        "value": 1
+      },
+      "description": "Creatures have disadvantage on attack rolls against you; immune if they don't rely on sight or can see through illusions.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "value": 0,
+      "baseACFormula": "",
+      "acMinimum": 0,
+      "damageType": [],
+      "savingThrow": [],
+      "attackerFilter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false
+      },
+      "reactionTrigger": {
+        "event": "when_hit",
+        "includesSpells": []
+      },
+      "restrictions": {
+        "noArmor": false,
+        "noShield": false,
+        "targetSelf": false
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "Your body becomes blurred, shifting and wavering to all who can see you. For the duration, any creature has Disadvantage on attack rolls against you. An attacker is immune to this effect if it doesn't rely on sight, as with Blindsight, or can see through illusions, as with Truesight.",
+  "higherLevels": "",
+  "tags": [
+    "defense",
+    "illusion",
+    "concentration"
   ]
 }

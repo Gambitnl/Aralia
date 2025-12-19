@@ -1,0 +1,11 @@
+{
+  "id": "spellcasting_services",
+  "title": "Spellcasting Services",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "No excerpt available.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/equipment/services/spellcasting_services.json",
+  "markdown": "# Spellcasting Services\r\n| Spell Level | Availability | Cost |\r\n|:---|:---|:---|\r\n| Cantrip | Village, town, or city | 30 GP |\r\n| 1 | Village, town, or city | 50 GP |\r\n| 2 | Village, town, or city | 200 GP |\r\n| 3 | Town or city only | 300 GP |\r\n| 4-5 | Town or city only | 2,000 GP |\r\n| 6-8 | City only | 20,000 GP |\r\n| 9 | City only | 100,000 GP |"
+}

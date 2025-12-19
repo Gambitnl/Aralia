@@ -1,0 +1,11 @@
+{
+  "id": "weapon_proficiency",
+  "title": "Weapon Proficiency",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "Rule for adding your Proficiency Bonus to attack rolls with proficient weapons.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/equipment/weapons/weapon_proficiency.json",
+  "markdown": "# Weapon Proficiency\r\nAnyone can wield a weapon, but you must have proficiency with it to add your Proficiency Bonus to an attack roll you make with it. A player character's features can provide weapon proficiencies. A monster is proficient with any weapon in its stat block."
+}

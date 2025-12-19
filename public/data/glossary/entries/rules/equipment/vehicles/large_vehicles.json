@@ -1,0 +1,11 @@
+{
+  "id": "large_vehicles",
+  "title": "Large Vehicles",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "Statistics and rules for various types of large vehicles.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/equipment/vehicles/large_vehicles.json",
+  "markdown": "# Large Vehicles\r\nThe Airborne and Waterborne Vehicles table provides statistics for various types of large vehicles. The following notes apply."
+}

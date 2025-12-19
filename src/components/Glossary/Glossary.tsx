@@ -8,6 +8,7 @@ import SpellCardTemplate, { SpellData } from './SpellCardTemplate';
 import { SafeStorage } from '../../utils/storageUtils';
 import { fetchWithTimeout } from '../../utils/networkUtils';
 import { assetUrl } from '../../config/env';
+import { getCategoryIcon, highlightSearchTerm, Breadcrumb, getCategoryColor } from './glossaryUIUtils';
 
 interface GlossaryProps {
   isOpen: boolean;
@@ -27,7 +28,7 @@ const entryMatchesSearch = (entry: GlossaryEntry, term: string): boolean => {
 const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) => {
   const firstFocusableElementRef = useRef<HTMLButtonElement>(null);
   const glossaryIndex = useContext(GlossaryContext);
-  const { results: gateResults, recheck: recheckSpells, isLoading: isCheckingSpells } = useSpellGateChecks(glossaryIndex);
+  const { results: gateResults, recheck: recheckSpells, isLoading: isCheckingSpells } = useSpellGateChecks();
   const modalRef = useRef<HTMLDivElement>(null);
 
   const [selectedEntry, setSelectedEntry] = useState<GlossaryEntry | null>(null);
@@ -37,8 +38,6 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
   const [searchTerm, setSearchTerm] = useState('');
   const [lastGenerated, setLastGenerated] = useState<string | null>(null);
 
-  // V3 Template-based rendering toggle
-  const [renderMode, setRenderMode] = useState<'markdown' | 'json'>('markdown');
   const [spellJsonData, setSpellJsonData] = useState<SpellData | null>(null);
   const [spellJsonLoading, setSpellJsonLoading] = useState(false);
 
@@ -93,6 +92,32 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
   });
 
   const entryRefs = useRef<Record<string, HTMLLIElement | HTMLButtonElement | null>>({});
+
+  // Get breadcrumb path for current entry
+  const breadcrumbPath = useMemo(() => {
+    if (!selectedEntry || !glossaryIndex) return { parents: [] as string[], parentIds: [] as string[] };
+    const { path } = findGlossaryEntryAndPath(selectedEntry.id, glossaryIndex);
+    const parentIds = path.filter(id => id !== selectedEntry.id);
+    const parents: string[] = [];
+
+    const findTitle = (entries: GlossaryEntry[], id: string): string | null => {
+      for (const e of entries) {
+        if (e.id === id) return e.title;
+        if (e.subEntries) {
+          const found = findTitle(e.subEntries, id);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    parentIds.forEach(id => {
+      const title = findTitle(glossaryIndex, id);
+      if (title) parents.push(title);
+    });
+
+    return { parents, parentIds };
+  }, [selectedEntry, glossaryIndex]);
 
   const handleNavigateToGlossary = useCallback((termId: string) => {
     if (glossaryIndex) {
@@ -189,6 +214,25 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
 
   const sortedCategories = useMemo(() => Object.keys(groupedEntries).sort(), [groupedEntries]);
 
+  // Keyboard navigation - flattened list of visible entries for arrow key nav
+  const flattenedEntries = useMemo(() => {
+    const result: GlossaryEntry[] = [];
+    const flatten = (entries: GlossaryEntry[]) => {
+      entries.forEach(entry => {
+        result.push(entry);
+        if (entry.subEntries && expandedParentEntries.has(entry.id)) {
+          flatten(entry.subEntries);
+        }
+      });
+    };
+    sortedCategories.forEach(category => {
+      if (expandedCategories.has(category)) {
+        flatten(groupedEntries[category] || []);
+      }
+    });
+    return result;
+  }, [sortedCategories, groupedEntries, expandedCategories, expandedParentEntries]);
+
   useEffect(() => {
     if (isOpen && glossaryIndex) {
       if (initialTermId) {
@@ -235,6 +279,75 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
     if (isOpen) window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isOpen, onClose]);
+
+  const toggleParentEntry = (entryId: string) => {
+    setExpandedParentEntries(prev => {
+      const newSet = new Set(prev);
+      newSet.has(entryId) ? newSet.delete(entryId) : newSet.add(entryId);
+      return newSet;
+    });
+  };
+
+  const handleEntrySelect = useCallback((entry: GlossaryEntry) => {
+    setSelectedEntry(entry);
+    if (entry.subEntries && entry.subEntries.length > 0) {
+      toggleParentEntry(entry.id);
+    }
+  }, []);
+
+  const toggleCategory = (category: string) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      newSet.has(category) ? newSet.delete(category) : newSet.add(category);
+      return newSet;
+    });
+  };
+
+  // Keyboard navigation for arrow keys
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyNav = (event: KeyboardEvent) => {
+      // Only handle arrow keys when not in search input
+      const target = event.target as HTMLElement;
+      if (target.tagName === 'INPUT') return;
+
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        const currentIndex = selectedEntry
+          ? flattenedEntries.findIndex(e => e.id === selectedEntry.id)
+          : -1;
+
+        let newIndex: number;
+        if (event.key === 'ArrowDown') {
+          newIndex = currentIndex < flattenedEntries.length - 1 ? currentIndex + 1 : 0;
+        } else {
+          newIndex = currentIndex > 0 ? currentIndex - 1 : flattenedEntries.length - 1;
+        }
+
+        if (flattenedEntries[newIndex]) {
+          handleEntrySelect(flattenedEntries[newIndex]);
+        }
+      } else if (event.key === 'ArrowRight' && selectedEntry?.subEntries?.length) {
+        // Expand current entry
+        if (!expandedParentEntries.has(selectedEntry.id)) {
+          setExpandedParentEntries(prev => new Set(prev).add(selectedEntry.id));
+        }
+      } else if (event.key === 'ArrowLeft' && selectedEntry) {
+        // Collapse current entry or go to parent
+        if (expandedParentEntries.has(selectedEntry.id)) {
+          setExpandedParentEntries(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(selectedEntry.id);
+            return newSet;
+          });
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyNav);
+    return () => window.removeEventListener('keydown', handleKeyNav);
+  }, [isOpen, selectedEntry, flattenedEntries, expandedParentEntries, handleEntrySelect]);
 
   // Initialize column widths when modal opens
   useEffect(() => {
@@ -290,9 +403,9 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
     return () => controller.abort();
   }, [isOpen]);
 
-  // Fetch spell JSON when in JSON mode and a spell is selected
+  // Fetch spell JSON when a spell is selected
   useEffect(() => {
-    if (!selectedEntry || selectedEntry.category !== 'Spells' || renderMode !== 'json') {
+    if (!selectedEntry || selectedEntry.category !== 'Spells') {
       setSpellJsonData(null);
       return;
     }
@@ -322,30 +435,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
       });
 
     return () => controller.abort();
-  }, [selectedEntry, renderMode, gateResults]);
-
-  const handleEntrySelect = useCallback((entry: GlossaryEntry) => {
-    setSelectedEntry(entry);
-    if (entry.subEntries && entry.subEntries.length > 0) {
-      toggleParentEntry(entry.id);
-    }
-  }, []);
-
-  const toggleCategory = (category: string) => {
-    setExpandedCategories(prev => {
-      const newSet = new Set(prev);
-      newSet.has(category) ? newSet.delete(category) : newSet.add(category);
-      return newSet;
-    });
-  };
-
-  const toggleParentEntry = (entryId: string) => {
-    setExpandedParentEntries(prev => {
-      const newSet = new Set(prev);
-      newSet.has(entryId) ? newSet.delete(entryId) : newSet.add(entryId);
-      return newSet;
-    });
-  };
+  }, [selectedEntry, gateResults]);
 
   // Resize handlers
   const handleResizeStart = useCallback((e: React.MouseEvent, handle: string) => {
@@ -553,9 +643,9 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
     const isParent = entry.subEntries && entry.subEntries.length > 0;
     const isExpanded = isParent && expandedParentEntries.has(entry.id);
     const indentClass = `pl-${level * 2}`;
-    const hasContentToDisplay = !!entry.filePath;
+    const hasContentToDisplay = (entry.category === 'Spells' && !isParent) || !!entry.filePath;
     const gate = entry.category === 'Spells' ? gateResults[entry.id] : undefined;
-    const disabled = (!hasContentToDisplay && !isParent); // allow selection even if gate fails to view details
+    const disabled = (entry.category === 'Spells' && isParent) || (!hasContentToDisplay && !isParent);
     const gateLabel = gate?.reasons?.join('; ');
     const gateDot = gate ? (
       <span
@@ -579,6 +669,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
         >
           {isParent && (
             <button
+              type="button"
               onClick={(e) => { e.stopPropagation(); toggleParentEntry(entry.id); }}
               className={`p-1 text-xs text-gray-400 group-hover:text-sky-300 transition-transform transform ${isExpanded ? 'rotate-90' : ''}`}
               aria-label={isExpanded ? `Collapse ${entry.title}` : `Expand ${entry.title}`}
@@ -587,12 +678,13 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
             </button>
           )}
           <button
+            type="button"
             onClick={() => handleEntrySelect(entry)}
             className={`w-full text-left px-2 py-1.5 ${indentClass} ${isParent && !isExpanded && selectedEntry?.id === entry.id ? 'font-semibold' : ''} ${!isParent && selectedEntry?.id === entry.id ? 'font-semibold' : ''}`}
             disabled={disabled}
             title={gateLabel || entry.title}
           >
-            {entry.title}
+            {searchTerm.trim() ? highlightSearchTerm(entry.title, searchTerm) : entry.title}
             {gateDot}
           </button>
         </div>
@@ -680,30 +772,6 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
         <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-600">
           <h2 id="glossary-title" className="text-3xl font-bold text-amber-400 font-cinzel">Game Glossary</h2>
           <div className="flex items-center gap-3">
-            {/* Render Mode Toggle */}
-            <div className="flex items-center gap-1 text-xs">
-              <span className="text-gray-400">Render:</span>
-              <button
-                type="button"
-                onClick={() => setRenderMode('markdown')}
-                className={`px-2 py-0.5 rounded-l border ${renderMode === 'markdown'
-                  ? 'bg-sky-600 border-sky-500 text-white'
-                  : 'bg-gray-700 border-gray-600 text-gray-400 hover:bg-gray-600'}`}
-                title="Render spells from markdown files"
-              >
-                MD
-              </button>
-              <button
-                type="button"
-                onClick={() => setRenderMode('json')}
-                className={`px-2 py-0.5 rounded-r border-t border-b border-r ${renderMode === 'json'
-                  ? 'bg-emerald-600 border-emerald-500 text-white'
-                  : 'bg-gray-700 border-gray-600 text-gray-400 hover:bg-gray-600'}`}
-                title="Render spells from JSON (V3 template system)"
-              >
-                JSON
-              </button>
-            </div>
             {/* Re-check Spells Button */}
             <button
               type="button"
@@ -752,9 +820,12 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
             {filteredGlossaryIndex.length === 0 && !error && <p className="text-gray-500 italic text-center py-4">No terms match your search.</p>}
             {sortedCategories.map(category => (
               <details key={category} open={expandedCategories.has(category)} className="mb-1">
-                <summary className="p-2 font-semibold text-sky-300 cursor-pointer hover:bg-gray-700/50 transition-colors rounded-md text-lg list-none flex justify-between items-center"
+                <summary className={`p-2 font-semibold cursor-pointer hover:bg-gray-700/50 transition-colors rounded-md text-lg list-none flex justify-between items-center ${getCategoryColor(category)}`}
                   onClick={(e) => { e.preventDefault(); toggleCategory(category); }}>
-                  {category} ({groupedEntries[category]?.length || 0})
+                  <span className="flex items-center">
+                    {getCategoryIcon(category)}
+                    {category} ({groupedEntries[category]?.length || 0})
+                  </span>
                   <span className={`ml-2 transform transition-transform duration-150 ${expandedCategories.has(category) ? 'rotate-90' : ''}`}>▶</span>
                 </summary>
                 {(expandedCategories.has(category)) && (
@@ -780,8 +851,24 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
           <div className="flex-grow md:w-2/3 border border-gray-700 rounded-lg bg-gray-800/50 p-4 overflow-y-auto scrollable-content glossary-entry-container" style={{ transition: columnResizeState.isResizing ? 'none' : 'width 0.2s ease' }}>
             {selectedEntry ? (
               <>
-                {/* Conditional rendering based on render mode */}
-                {renderMode === 'json' && selectedEntry.category === 'Spells' ? (
+                {/* Breadcrumb navigation */}
+                <Breadcrumb
+                  category={selectedEntry.category}
+                  parentPath={breadcrumbPath.parents}
+                  currentTitle={selectedEntry.title}
+                  onNavigateToCategory={() => {
+                    if (!expandedCategories.has(selectedEntry.category)) {
+                      setExpandedCategories(prev => new Set(prev).add(selectedEntry.category));
+                    }
+                  }}
+                  onNavigateToParent={(index) => {
+                    const parentId = breadcrumbPath.parentIds[index];
+                    if (parentId) {
+                      handleNavigateToGlossary(parentId);
+                    }
+                  }}
+                />
+                {selectedEntry.category === 'Spells' ? (
                   spellJsonLoading ? (
                     <p className="text-gray-400 italic">Loading spell data...</p>
                   ) : spellJsonData ? (
@@ -803,13 +890,12 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
                         const gate = gateResults[selectedEntry.id];
                         const checks = [
                           { label: "Manifest path under correct level", ok: gate.checklist.manifestPathOk },
-                          { label: "Glossary card exists", ok: gate.checklist.glossaryExists },
-                          { label: "Glossary card has level tag", ok: gate.checklist.levelTagOk },
-                          { label: "Has correct spell-card HTML layout", ok: gate.checklist.layoutOk },
-                          { label: "Known gap (allowed)", ok: gate.checklist.knownGap, invert: true },
+                          { label: "Spell JSON exists", ok: gate.checklist.spellJsonExists },
+                          { label: "Spell JSON passes schema", ok: gate.checklist.spellJsonValid },
+                          { label: "Marked as gap", ok: gate.checklist.knownGap },
                         ];
                         return checks.map((c, idx) => {
-                          const pass = c.invert ? !c.ok : c.ok;
+                          const pass = c.ok;
                           return (
                             <li key={idx} className="flex items-center gap-2">
                               <span className={`inline-block w-4 text-center ${pass ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -821,7 +907,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
                         });
                       })()}
                       {gateResults[selectedEntry.id].status === 'gap' && (
-                        <li className="text-amber-300 mt-1">Known schema gap logged; content allowed but not fully structured.</li>
+                        <li className="text-amber-300 mt-1">Marked as a gap; spell exists but may need manual structuring.</li>
                       )}
                       {gateResults[selectedEntry.id].status === 'fail' && gateResults[selectedEntry.id].reasons.length > 0 && (
                         <li className="text-red-300 mt-1">Issues: {gateResults[selectedEntry.id].reasons.join('; ')}</li>
@@ -836,14 +922,22 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
           </div>
         </div>
         <div className="mt-6 pt-4 border-t border-gray-600 flex justify-between items-center">
-          {lastGenerated ? (
-            <span className="text-xs text-gray-500">
-              Index last generated: {new Date(lastGenerated).toLocaleString()}
+          <div className="flex items-center gap-4">
+            {lastGenerated && (
+              <span className="text-xs text-gray-500">
+                Index last generated: {new Date(lastGenerated).toLocaleString()}
+              </span>
+            )}
+            <span className="text-xs text-gray-600 hidden md:inline">
+              <kbd className="px-1.5 py-0.5 bg-gray-800 rounded border border-gray-700 text-gray-400">↑</kbd>
+              <kbd className="px-1.5 py-0.5 bg-gray-800 rounded border border-gray-700 text-gray-400 ml-0.5">↓</kbd>
+              <span className="ml-1">navigate</span>
+              <kbd className="px-1.5 py-0.5 bg-gray-800 rounded border border-gray-700 text-gray-400 ml-2">←</kbd>
+              <kbd className="px-1.5 py-0.5 bg-gray-800 rounded border border-gray-700 text-gray-400 ml-0.5">→</kbd>
+              <span className="ml-1">expand/collapse</span>
             </span>
-          ) : (
-            <span />
-          )}
-          <button onClick={onClose} className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow" aria-label="Close glossary">Close</button>
+          </div>
+          <button type="button" onClick={onClose} className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow" aria-label="Close glossary">Close</button>
         </div>
       </div>
     </div>

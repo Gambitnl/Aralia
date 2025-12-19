@@ -1,0 +1,23 @@
+{
+  "id": "alchemist_subclass",
+  "title": "Alchemist (Artificer Subclass)",
+  "category": "Character Classes",
+  "tags": [
+    "artificer",
+    "subclass",
+    "alchemist",
+    "potions",
+    "elixirs",
+    "healing",
+    "chemistry"
+  ],
+  "excerpt": "An expert at combining reagents to produce mystical effects, from healing elixirs to volatile concoctions.",
+  "aliases": [],
+  "seeAlso": [
+    "artificer",
+    "experimental_elixir",
+    "alchemical_savant"
+  ],
+  "filePath": "/data/glossary/entries/classes/artificer_subclasses/alchemist.json",
+  "markdown": "# Alchemist\r\nAn Alchemist is an expert at combining reagents to produce mystical effects. Alchemists use their creations to give life and to leech it away. Alchemy is the oldest of artificer traditions, and its versatility has long been valued during times of war and peace.\r\n\r\n---\r\n## Alchemist Features\r\n\r\n### Level 3: Tool Proficiency\r\nYou gain proficiency with alchemist's supplies. If you already have this proficiency, you gain proficiency with one other type of artisan's tools of your choice.\r\n\r\n### Level 3: Alchemist Spells\r\nYou always have certain spells prepared after you reach particular levels in this class, as shown in the Alchemist Spells table. These spells count as artificer spells for you, but they don't count against the number of artificer spells you prepare.\r\n| Artificer Level | Spell                 |\r\n|-----------------|-----------------------|\r\n| 3rd             | healing word, ray of sickness |\r\n| 5th             | flaming sphere, Melf's acid arrow |\r\n| 9th             | gaseous form, mass healing word |\r\n| 13th            | blight, death ward    |\r\n| 17th            | cloudkill, raise dead |\r\n\r\n### Level 3: Experimental Elixir\r\nWhenever you finish a long rest, you can magically produce an experimental elixir in an empty flask you touch. Roll on the Experimental Elixir table for the elixir's effect, which is triggered when someone drinks the elixir. You can create additional elixirs by expending a spell slot of 1st level or higher for each one.\r\n| d6 | Effect         |\r\n|----|----------------|\r\n| 1  | Healing (2d4 + INT mod) |\r\n| 2  | Swiftness (+10 ft speed for 1 hour) |\r\n| 3  | Resilience (+1 AC for 10 minutes) |\r\n| 4  | Boldness (d4 to attacks/saves for 1 min) |\r\n| 5  | Flight (10 ft fly speed for 10 minutes) |\r\n| 6  | Transformation (as alter self spell) |\r\n\r\n### Level 5: Alchemical Savant\r\nWhenever you cast a spell using your alchemist's supplies as the spellcasting focus, you gain a bonus equal to your Intelligence modifier to one roll of the spell that restores hit points or deals acid, fire, necrotic, or poison damage.\r\n\r\n### Level 9: Restorative Reagents\r\nWhenever a creature drinks an experimental elixir you created, the creature gains temporary hit points equal to 2d6 + your Intelligence modifier. You can also cast *lesser restoration* without a spell slot a number of times equal to your Intelligence modifier per long rest.\r\n\r\n### Level 15: Chemical Mastery\r\nYou gain resistance to acid and poison damage, and you are immune to the poisoned condition. You can cast *greater restoration* and *heal* once each without a spell slot per long rest.\r\n"
+}

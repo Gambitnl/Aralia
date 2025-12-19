@@ -37,4 +37,4 @@
 
 ---
 
-## Batch 7 — Spells 61-64
+## Batch 7 - Spells 61-64

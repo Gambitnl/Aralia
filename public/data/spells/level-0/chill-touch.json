@@ -1,34 +1,42 @@
 {
   "id": "chill-touch",
   "name": "Chill Touch",
+  "aliases": [],
   "level": 0,
   "school": "Necromancy",
+  "source": "PHB 2024",
+  "legacy": false,
   "classes": [
     "Sorcerer",
     "Warlock",
     "Wizard"
   ],
-  "tags": [
-    "damage",
-    "necrotic",
-    "melee",
-    "cantrip"
-  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
-    "type": "touch"
+    "type": "touch",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -42,16 +50,53 @@
     "validTargets": [
       "creatures"
     ],
-    "lineOfSight": true
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "hit"
+        "type": "hit",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "1d10",
@@ -59,49 +104,137 @@
       },
       "scaling": {
         "type": "character_level",
-        "customFormula": "{\"5\": \"2d8\", \"11\": \"3d8\", \"17\": \"4d8\"}"
-      }
+        "customFormula": "{\"5\": \"2d8\", \"11\": \"3d8\", \"17\": \"4d8\"}",
+        "bonusPerLevel": ""
+      },
+      "description": ""
     },
     {
       "type": "STATUS_CONDITION",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "hit"
+        "type": "hit",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "statusCondition": {
         "name": "No Healing",
         "duration": {
           "type": "rounds",
           "value": 1
+        },
+        "level": 0,
+        "escapeCheck": {
+          "dc": 0,
+          "actionCost": "action"
+        },
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true
         }
       },
-      "description": "On a hit, the target can't regain hit points until the start of your next turn."
+      "description": "On a hit, the target can't regain hit points until the start of your next turn.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      }
     },
     {
       "type": "STATUS_CONDITION",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
         "type": "hit",
         "targetFilter": {
           "creatureTypes": [
             "Undead"
-          ]
-        }
+          ],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "statusCondition": {
         "name": "Disadvantage on attacks vs. caster",
         "duration": {
           "type": "rounds",
           "value": 1
+        },
+        "level": 0,
+        "escapeCheck": {
+          "dc": 0,
+          "actionCost": "action"
+        },
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true
         }
       },
-      "description": "If you hit an undead target, it also has disadvantage on attack rolls against you until the end of your next turn."
+      "description": "If you hit an undead target, it also has disadvantage on attack rolls against you until the end of your next turn.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      }
     }
   ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
   "description": "You touch one creature. Make a melee spell attack against the target. On a hit, the target takes 1d10 Necrotic damage, and it can't regain Hit Points until the end of your next turn. If you hit an Undead target, it also has Disadvantage on attack rolls against you until the end of your next turn.",
-  "higherLevels": "This spell's damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8)."
+  "higherLevels": "This spell's damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).",
+  "tags": [
+    "damage",
+    "necrotic",
+    "melee",
+    "cantrip"
+  ]
 }

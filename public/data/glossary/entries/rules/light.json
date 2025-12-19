@@ -1,0 +1,17 @@
+{
+  "id": "light_rules",
+  "title": "Light Rules",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "Rules for Bright Light, Dim Light, and Darkness.",
+  "aliases": [],
+  "seeAlso": [
+    "bright_light",
+    "dim_light",
+    "darkness",
+    "obscured_areas",
+    "vision_and_light"
+  ],
+  "filePath": "/data/glossary/entries/rules/light.json",
+  "markdown": "# Light Rules\r\n<p class=\"glossary-intro-quote\">The presence or absence of light determines the category of illumination in an area, as defined below.</p>\r\n\r\n<div class=\"glossary-example-list\">\r\n  <div class=\"glossary-example-item\">\r\n    <strong markdown=\"1\"><span data-term-id=\"bright_light\" class=\"glossary-term-link-from-markdown\">Bright Light</span></strong>\r\n    <span>Lets most creatures see normally.</span>\r\n  </div>\r\n  <div class=\"glossary-example-item\">\r\n    <strong markdown=\"1\"><span data-term-id=\"dim_light\" class=\"glossary-term-link-from-markdown\">Dim Light</span></strong>\r\n    <span>Also called shadows; creates a Lightly Obscured area.</span>\r\n  </div>\r\n  <div class=\"glossary-example-item\">\r\n    <strong markdown=\"1\"><span data-term-id=\"darkness\" class=\"glossary-term-link-from-markdown\">Darkness</span></strong>\r\n    <span>Creates a Heavily Obscured area.</span>\r\n  </div>\r\n</div>"
+}

@@ -30,7 +30,7 @@
 
 - **Effect Type**: BUFF
 
-- **Description**: You endow yourself with endurance and martial prowess fueled by magic. Until the spell ends, you can’t cast spells, and you gain the following benefits:
+- **Description**: You endow yourself with endurance and martial prowess fueled by magic. Until the spell ends, you can't cast spells, and you gain the following benefits:
     * You gain 50 temporary hit points. If any of these remain when the spell ends, they are lost.
     * You have advantage on attack rolls that you make with simple and martial weapons.
     * When you hit a target with a weapon attack, that target takes an extra 2d12 force damage.

@@ -1,33 +1,41 @@
 {
   "id": "mage-armor",
   "name": "Mage Armor",
+  "aliases": [],
   "level": 1,
   "school": "Abjuration",
+  "source": "PHB 2024 p.293",
+  "legacy": false,
   "classes": [
     "Sorcerer",
     "Wizard"
   ],
-  "description": "You touch a willing creature who isn't wearing armor. Until the spell ends, the target's base AC becomes 13 + its Dexterity modifier. The spell ends if the target dons armor or you dismiss the spell as an action.",
-  "higherLevels": "None",
-  "tags": [
-    "defense"
-  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
-    "type": "touch"
+    "type": "touch",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a piece of cured leather"
+    "materialDescription": "a piece of cured leather",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -37,21 +45,57 @@
   },
   "targeting": {
     "type": "single",
-    "range": 5,
+    "range": 0,
     "validTargets": [
-      "creatures",
       "allies"
     ],
-    "lineOfSight": true
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DEFENSIVE",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "defenseType": "set_base_ac",
       "value": 13,
@@ -61,9 +105,41 @@
         "value": 480
       },
       "restrictions": {
-        "noArmor": true
+        "noArmor": true,
+        "noShield": false,
+        "targetSelf": false
       },
-      "description": "Sets base AC to 13 + Dex modifier while unarmored."
+      "description": "Sets base AC to 13 + Dex modifier while unarmored.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "acMinimum": 0,
+      "damageType": [],
+      "savingThrow": [],
+      "attackerFilter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false
+      },
+      "reactionTrigger": {
+        "event": "when_hit",
+        "includesSpells": []
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You touch a willing creature who isn't wearing armor, and a protective magical force surrounds it until the spell ends. The target's base AC becomes 13 + its Dexterity modifier. The spell ends if the target dons armor or if you dismiss the spell as an action.",
+  "higherLevels": "",
+  "tags": [
+    "defense"
   ]
 }

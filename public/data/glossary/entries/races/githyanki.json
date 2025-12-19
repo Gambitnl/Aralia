@@ -1,0 +1,21 @@
+{
+  "id": "githyanki",
+  "title": "Githyanki (Race)",
+  "category": "Character Races",
+  "tags": [
+    "race",
+    "githyanki",
+    "astral plane",
+    "psionic",
+    "humanoid"
+  ],
+  "excerpt": "Hailing from the Astral Plane, Githyanki are psionic warriors who escaped servitude to mind flayers, using their mental powers and knowledge of the silver void.",
+  "aliases": [],
+  "seeAlso": [
+    "astral_knowledge",
+    "githyanki_psionics",
+    "psychic_resilience"
+  ],
+  "filePath": "/data/glossary/entries/races/githyanki.json",
+  "markdown": "# Githyanki\r\n\r\nOnce members of a people who escaped servitude to mind flayers, githyanki split from their cousins, githzerai, and fled to the Astral Plane. In that timeless, silvery realm, githyanki honed their psionic powers and built a great city called Tu'narath. They have since spread throughout the multiverse, starting in outposts outside the Astral Plane, called creches, where time passes and their children can reach adulthood.\r\n\r\nA lanky people with skin tones of yellows, greens, and browns, githyanki complement their physical prowess with psionic might, instilled in them by mind flayers and cultivated over eons in the Astral Plane.\r\n\r\n---\r\n## Githyanki Traits\r\n**Creature Type:** <span data-term-id=\"humanoid\" class=\"glossary-term-link-from-markdown\">Humanoid</span>\r\n**Size:** <span data-term-id=\"size\" class=\"glossary-term-link-from-markdown\">Medium</span>\r\n**Speed:** 30 feet\r\n\r\n<details>\r\n  <summary>Astral Knowledge</summary>\r\n  <div>\r\n    <p>You can mystically access a reservoir of experiences of entities connected to the Astral Plane. Whenever you finish a long rest, you gain proficiency in one skill of your choice and with one weapon or tool of your choice. These proficiencies last until the end of your next long rest.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Githyanki Psionics</summary>\r\n  <div>\r\n    <p>You know the <span data-term-id=\"mage_hand\" class=\"glossary-term-link-from-markdown\">Mage Hand</span> cantrip, and the hand is invisible when you cast the cantrip with this trait.</p>\r\n    <p>Starting at 3rd level, you can cast the <span data-term-id=\"jump\" class=\"glossary-term-link-from-markdown\">Jump</span> spell with this trait. Starting at 5th level, you can also cast the <span data-term-id=\"misty_step\" class=\"glossary-term-link-from-markdown\">Misty Step</span> spell with it. Once you cast jump or misty step with this trait, you can't cast that spell with it again until you finish a long rest. Intelligence, Wisdom, or Charisma is your spellcasting ability for these spells.</p>\r\n  </div>\r\n</details>\r\n\r\n<details>\r\n  <summary>Psychic Resilience</summary>\r\n  <div>\r\n    <p>You have resistance to psychic damage.</p>\r\n  </div>\r\n</details>\r\n"
+}

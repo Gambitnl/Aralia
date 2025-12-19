@@ -1,18 +1,29 @@
 {
   "id": "animal-friendship",
   "name": "Animal Friendship",
+  "aliases": [],
   "level": 1,
   "school": "Enchantment",
-  "classes": ["Bard", "Druid", "Ranger"],
-  "description": "Convince a beast you mean no harm. The beast must see and hear you. If its Intelligence is 4 or higher, the spell fails. Otherwise it must succeed on a Wisdom save or be charmed for the duration. If you or your companions harm the target, the spell ends.",
-  "higherLevels": "When cast with a slot of 2nd level or higher, affect one additional beast per slot level above 1st.",
-  "tags": ["utility", "enchantment", "charm"],
+  "source": "PHB 2024 p.239",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Druid",
+    "Ranger"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
@@ -23,7 +34,9 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a morsel of food"
+    "materialDescription": "a morsel of food",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -34,17 +47,58 @@
   "targeting": {
     "type": "single",
     "range": 30,
-    "validTargets": ["creatures"],
-    "lineOfSight": true
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "filter": {
+      "creatureTypes": [
+        "Beast"
+      ],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    },
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    }
   },
   "effects": [
     {
       "type": "STATUS_CONDITION",
-      "trigger": { "type": "immediate" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
       "condition": {
         "type": "save",
         "saveType": "Wisdom",
-        "saveEffect": "negates_condition"
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "statusCondition": {
         "name": "Charmed",
@@ -53,13 +107,40 @@
           "value": 1440
         },
         "targetFilter": {
-          "creatureTypes": ["Beast"]
+          "creatureTypes": [
+            "Beast"
+          ]
+        },
+        "level": 0,
+        "escapeCheck": {
+          "dc": 0,
+          "actionCost": "action"
+        },
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true
         }
       },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+1 target"
-      }
+        "bonusPerLevel": "+1 target",
+        "customFormula": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "This spell lets you convince a Beast that you mean it no harm. Choose a Beast that you can see within range. It must succeed on a Wisdom saving throw or be Charmed by you for the duration. If you or one of your companions causes damage to the target, the spell ends.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, you can affect one additional Beast for each slot level above 1st.",
+  "tags": [
+    "utility",
+    "enchantment",
+    "charm"
   ]
 }

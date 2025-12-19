@@ -1,0 +1,11 @@
+{
+  "id": "antitoxin_item",
+  "title": "Antitoxin",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "No excerpt available.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/equipment/gear/antitoxin_item.json",
+  "markdown": "# Antitoxin (50 GP)\r\nAs a Bonus Action, you can drink a vial of Antitoxin to gain Advantage on saving throws to avoid or end the Poisoned condition for 1 hour.\r\n"
+}

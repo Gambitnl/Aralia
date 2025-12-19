@@ -1,58 +1,144 @@
 {
-    "id": "druidcraft",
-    "name": "Druidcraft",
-    "level": 0,
-    "school": "Transmutation",
-    "classes": [
-        "Druid"
+  "id": "druidcraft",
+  "name": "Druidcraft",
+  "aliases": [],
+  "level": 0,
+  "school": "Transmutation",
+  "source": "PHB 2024",
+  "legacy": false,
+  "classes": [
+    "Druid"
+  ],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 30
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
+  },
+  "targeting": {
+    "type": "point",
+    "range": 30,
+    "validTargets": [
+      "point",
+      "objects"
     ],
-    "tags": [
-        "utility",
-        "nature",
-        "cantrip"
-    ],
-    "description": "Whispering to the spirits of nature, you create one of the following effects within range:\n- You create a tiny, harmless sensory effect that predicts what the weather will be at your location for the next 24 hours. The effect persists for 1 round.\n- You instantly make a flower blossom, a seed pod open, or a leaf bud bloom.\n- You create a harmless sensory effect, such as falling leaves, spectral dancing fairies, a gentle breeze, the sound of an animal, or the faint odor of skunk. The effect must fit in a 5-foot cube.\n- You instantly light or snuff out a candle, a torch, or a small campfire.",
-    "ritual": false,
-    "castingTime": {
-        "value": 1,
-        "unit": "action",
-        "combatCost": {
-            "type": "action"
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
         }
-    },
-    "range": {
-        "type": "ranged",
-        "distance": 30
-    },
-    "components": {
-        "verbal": true,
-        "somatic": true,
-        "material": false
-    },
-    "duration": {
-        "type": "instantaneous",
-        "concentration": false
-    },
-    "targeting": {
-        "type": "point",
-        "range": 30,
-        "validTargets": [
-            "point",
-            "objects"
-        ],
-        "lineOfSight": true
-    },
-    "effects": [
-        {
-            "type": "UTILITY",
-            "trigger": {
-                "type": "immediate"
-            },
-            "condition": {
-                "type": "always"
-            },
-            "utilityType": "other",
-            "description": "Creates minor nature-themed effects, predicts weather, or lights/snuffs small fires."
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "utilityType": "other",
+      "description": "Creates minor nature-themed effects, predicts weather, or lights/snuffs small fires.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
         }
-    ]
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "Whispering to the spirits of nature, you create one of the following effects within range:\n- You create a tiny, harmless sensory effect that predicts what the weather will be at your location for the next 24 hours. The effect persists for 1 round.\n- You instantly make a flower blossom, a seed pod open, or a leaf bud bloom.\n- You create a harmless sensory effect, such as falling leaves, spectral dancing fairies, a gentle breeze, the sound of an animal, or the faint odor of skunk. The effect must fit in a 5-foot cube.\n- You instantly light or snuff out a candle, a torch, or a small campfire.",
+  "higherLevels": "",
+  "tags": [
+    "utility",
+    "nature",
+    "cantrip"
+  ]
 }

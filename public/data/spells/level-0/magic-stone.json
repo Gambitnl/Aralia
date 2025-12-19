@@ -1,44 +1,42 @@
 {
   "id": "magic-stone",
   "name": "Magic Stone",
+  "aliases": [],
   "level": 0,
   "school": "Transmutation",
+  "source": "PHB 2024",
+  "legacy": false,
   "classes": [
     "Artificer",
     "Druid",
     "Warlock"
   ],
-  "_todo": [
-    "ITEM_CREATION: Spell creates 1-3 pebble items that exist in inventory/world",
-    "ITEM_TRANSFER: Pebbles can be dropped or given to other characters",
-    "AMMO_TYPE: Pebbles can be thrown (60ft) OR used as sling ammo (sling range)",
-    "DAMAGE_MOD: Damage adds CASTER's spellcasting mod, not attacker's",
-    "CONSUMPTION: Pebble consumed on attack (hit or miss)",
-    "RECAST_ENDS: Casting again ends effect on remaining pebbles",
-    "See: src/types/items.ts, src/hooks/actions/handleItemInteraction.ts"
-  ],
-  "description": "You touch one to three pebbles and imbue them with magic. You or someone else can make a ranged spell attack with one of the pebbles by throwing it or hurling it with a sling. If thrown, a pebble has a range of 60 feet. If hurled with a sling, it has the sling's normal range. On a hit, the target takes bludgeoning damage equal to 1d6 + your spellcasting ability modifier. Whether the attack hits or misses, the spell then ends on the stone. If you cast this spell again, the spell ends early on any pebbles still affected by it.",
-  "tags": [
-    "damage",
-    "utility",
-    "transmutation",
-    "cantrip"
-  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "bonus_action",
     "combatCost": {
-      "type": "bonus_action"
+      "type": "bonus_action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
-    "type": "touch"
+    "type": "touch",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -52,19 +50,84 @@
       "self"
     ],
     "lineOfSight": false,
-    "range": 5
+    "range": 5,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "utilityType": "creation",
-      "description": "Imbues up to 3 pebbles. They can be thrown (60ft) or slung (normal range) for 1d6 + Mod Bludgeoning damage using Spell Attack Roll."
+      "description": "Imbues up to 3 pebbles. They can be thrown (60ft) or slung (normal range) for 1d6 + Mod Bludgeoning damage using Spell Attack Roll.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     },
     {
       "type": "DAMAGE",
@@ -74,10 +137,28 @@
         "attackFilter": {
           "attackType": "spell",
           "weaponType": "ranged"
+        },
+        "frequency": "every_time",
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
         }
       },
       "condition": {
-        "type": "hit"
+        "type": "hit",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "1d6",
@@ -85,8 +166,23 @@
       },
       "scaling": {
         "type": "custom",
-        "customFormula": "1d6 + Spellcasting Ability Modifier"
-      }
+        "customFormula": "1d6 + Spellcasting Ability Modifier",
+        "bonusPerLevel": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You touch one to three pebbles and imbue them with magic. You or someone else can make a ranged spell attack with one of the pebbles by throwing it or hurling it with a sling. If thrown, a pebble has a range of 60 feet. If hurled with a sling, it has the sling's normal range. On a hit, the target takes bludgeoning damage equal to 1d6 + your spellcasting ability modifier. Whether the attack hits or misses, the spell then ends on the stone. If you cast this spell again, the spell ends early on any pebbles still affected by it.",
+  "higherLevels": "",
+  "tags": [
+    "damage",
+    "utility",
+    "transmutation",
+    "cantrip"
   ]
 }

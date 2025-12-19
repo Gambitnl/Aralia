@@ -1,17 +1,32 @@
 {
   "id": "aid",
   "name": "Aid",
+  "aliases": [],
   "level": 2,
   "school": "Abjuration",
-  "classes": ["Artificer", "Cleric", "Paladin"],
-  "description": "Your spell bolsters allies with toughness and resolve. Choose up to three creatures within range. Each target's hit point maximum and current hit points increase by 5 for the duration.",
-  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, a target's hit points increase by 5 for each slot level above 2nd.",
-  "tags": ["buff", "abjuration"],
+  "source": "PHB 2024 p.239",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Cleric",
+    "Druid",
+    "Paladin",
+    "Ranger"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
     "type": "ranged",
@@ -21,7 +36,9 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a tiny strip of white cloth"
+    "materialDescription": "a strip of white cloth",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -33,22 +50,100 @@
     "type": "multi",
     "range": 30,
     "maxTargets": 3,
-    "validTargets": ["creatures", "allies"],
-    "lineOfSight": true
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DEFENSIVE",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "defenseType": "temporary_hp",
       "value": 5,
-      "duration": { "type": "minutes", "value": 480 },
+      "duration": {
+        "type": "minutes",
+        "value": 480
+      },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+5 hp per target"
+        "bonusPerLevel": "+5 hp per target",
+        "customFormula": ""
       },
-      "description": "Each target's maximum and current hit points increase by 5 for the duration."
+      "description": "Each target's maximum and current hit points increase by 5 for the duration.",
+      "baseACFormula": "",
+      "acMinimum": 0,
+      "damageType": [],
+      "savingThrow": [],
+      "attackerFilter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false
+      },
+      "reactionTrigger": {
+        "event": "when_hit",
+        "includesSpells": []
+      },
+      "restrictions": {
+        "noArmor": false,
+        "noShield": false,
+        "targetSelf": false
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "Your spell bolsters your allies with toughness and resolve. Choose up to three creatures within range. Each target's Hit Point maximum and current Hit Points increase by 5 for the duration.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, a target's Hit Points increase by an additional 5 for each slot level above 2nd.",
+  "tags": [
+    "buff",
+    "abjuration"
   ]
 }

@@ -1,19 +1,28 @@
 {
   "id": "thorn-whip",
   "name": "Thorn Whip",
+  "aliases": [],
   "level": 0,
   "school": "Transmutation",
-  "classes": ["Artificer", "Druid"],
-  "description": "You create a vine-like whip covered in thorns. Make a melee spell attack. On a hit, the target takes piercing damage. If the target is Large or smaller, you can pull it up to 10 feet closer to you.",
-  "higherLevels": "The damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6).",
-  "tags": ["damage", "control", "piercing", "cantrip"],
+  "source": "PHB 2024",
+  "legacy": false,
+  "classes": [
+    "Artificer",
+    "Druid"
+  ],
   "ritual": false,
+  "rarity": "common",
   "attackType": "melee",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
@@ -24,23 +33,70 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "the stem of a plant with thorns"
+    "materialDescription": "the stem of a plant with thorns",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "instantaneous",
-    "concentration": false
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "single",
     "range": 30,
-    "validTargets": ["creatures"],
-    "lineOfSight": true
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "hit" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "hit",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "damage": {
         "dice": "1d6",
         "type": "Piercing"
@@ -49,20 +105,80 @@
         "type": "character_level",
         "bonusPerLevel": "+1d6",
         "customFormula": "1d6 at 1, 2d6 at 5, 3d6 at 11, 4d6 at 17"
-      }
+      },
+      "description": ""
     },
     {
       "type": "MOVEMENT",
-      "trigger": { "type": "immediate" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
       "condition": {
         "type": "hit",
         "targetFilter": {
-          "sizes": ["Large", "Medium", "Small", "Tiny"]
-        }
+          "sizes": [
+            "Large",
+            "Medium",
+            "Small",
+            "Tiny"
+          ],
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "movementType": "pull",
       "distance": 10,
-      "duration": { "type": "special" }
+      "duration": {
+        "type": "special",
+        "value": 0
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "speedChange": {
+        "stat": "speed",
+        "value": 0,
+        "unit": "feet"
+      },
+      "forcedMovement": {
+        "usesReaction": false,
+        "direction": "away_from_caster",
+        "maxDistance": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You create a vine-like whip covered in thorns. Make a melee spell attack. On a hit, the target takes piercing damage. If the target is Large or smaller, you can pull it up to 10 feet closer to you.",
+  "higherLevels": "The damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6).",
+  "tags": [
+    "damage",
+    "control",
+    "piercing",
+    "cantrip"
   ]
 }

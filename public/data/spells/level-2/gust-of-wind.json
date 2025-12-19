@@ -1,25 +1,43 @@
 {
   "id": "gust-of-wind",
   "name": "Gust of Wind",
+  "aliases": [],
   "level": 2,
   "school": "Evocation",
-  "classes": ["Druid", "Sorcerer", "Wizard"],
-  "description": "A line of strong wind 60 feet long and 10 feet wide blasts from you in a direction you choose for the duration. Each creature that starts its turn in the line must succeed on a Strength saving throw or be pushed 15 feet away from you in the direction the line moves. The gust disperses gas or vapor and extinguishes candles, torches, and similar unprotected flames in the area.",
-  "higherLevels": "None",
-  "tags": ["control", "movement", "area", "concentration"],
+  "source": "PHB 2024 p.282",
+  "legacy": false,
+  "classes": [
+    "Druid",
+    "Ranger",
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": true,
+    "materialDescription": "a legume seed",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -29,34 +47,155 @@
   },
   "targeting": {
     "type": "area",
+    "validTargets": [
+      "creatures"
+    ],
+    "areaOfEffect": {
+      "shape": "Line",
+      "size": 60,
+      "height": 0
+    },
+    "lineOfSight": false,
     "range": 0,
-    "validTargets": ["creatures", "objects"],
-    "areaOfEffect": { "shape": "Line", "size": 60, "height": 10 },
-    "lineOfSight": true
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "MOVEMENT",
-      "trigger": { "type": "turn_start", "frequency": "every_time" },
+      "trigger": {
+        "type": "turn_start",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
       "condition": {
         "type": "save",
         "saveType": "Strength",
-        "saveEffect": "none"
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "movementType": "push",
-      "duration": { "type": "minutes", "value": 1 },
+      "duration": {
+        "type": "minutes",
+        "value": 1
+      },
       "forcedMovement": {
         "direction": "away_from_caster",
-        "maxDistance": "15 ft"
+        "maxDistance": "15 ft",
+        "usesReaction": false
       },
-      "description": "Creatures starting their turn in the line must make a Strength save or be pushed 15 feet away along the line."
+      "description": "Creatures starting their turn in the line must make a Strength save or be pushed 15 feet away along the line.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "distance": 0,
+      "speedChange": {
+        "stat": "speed",
+        "value": 0,
+        "unit": "feet"
+      }
     },
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "control",
-      "description": "Disperses gas/vapor and extinguishes unprotected flames in the line."
+      "description": "Disperses gas/vapor and extinguishes unprotected flames in the line.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "A line of strong wind 60 feet long and 10 feet wide blasts from you in a direction you choose for the duration. Each creature that starts its turn in the line or enters it must succeed on a Strength saving throw or be pushed 15 feet away from you in a direction following the line. Any creature in the line must spend 2 feet of movement for every 1 foot it moves when moving closer to you. The gust disperses gas or vapor, and it extinguishes candles, torches, and similar unprotected flames in the area. It causes protected flames, such as those of lanterns, to dance wildly and has a 50 percent chance to extinguish them. As a Bonus Action on each of your turns before the spell ends, you can change the direction in which the line blasts from you.",
+  "higherLevels": "",
+  "tags": [
+    "control",
+    "movement",
+    "area",
+    "concentration"
   ]
 }

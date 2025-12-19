@@ -1,26 +1,41 @@
 {
   "id": "gentle-repose",
   "name": "Gentle Repose",
+  "aliases": [],
   "level": 2,
   "school": "Necromancy",
-  "classes": ["Cleric", "Wizard"],
-  "description": "You touch a corpse or remains. For the duration, the target is protected from decay and can’t become undead. The spell effectively extends the time limit on raising the target from the dead, since days spent under its influence don’t count against time limits of spells such as raise dead.",
-  "higherLevels": "None",
-  "tags": ["necromancy", "ritual", "protection"],
+  "source": "PHB 2024 p.278",
+  "legacy": false,
+  "classes": [
+    "Cleric",
+    "Wizard"
+  ],
   "ritual": true,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
-    "type": "touch"
+    "type": "touch",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a pinch of salt and one copper piece placed on each of the corpse’s eyes"
+    "materialDescription": "a pinch of salt and one copper piece placed on each of the corpse's eyes",
+    "isConsumed": true,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -30,17 +45,100 @@
   },
   "targeting": {
     "type": "single",
-    "range": 5,
-    "validTargets": ["objects", "corpses"],
-    "lineOfSight": true
+    "range": 0,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "other",
-      "description": "Prevents decay and becoming undead for 10 days; time under this spell doesn’t count against limits for raise dead effects."
+      "description": "You touch a corpse or other remains. For the duration, the target is protected from decay and can't become Undead. The spell also effectively extends the time limit on raising the target from the dead, since days spent under the influence of this spell don't count against the time limit of spells such as Raise Dead.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You touch a corpse or other remains. For the duration, the target is protected from decay and can't become Undead. The spell also effectively extends the time limit on raising the target from the dead, since days spent under the influence of this spell don't count against the time limit of spells such as Raise Dead.",
+  "higherLevels": "",
+  "tags": [
+    "necromancy",
+    "ritual",
+    "protection"
   ]
 }

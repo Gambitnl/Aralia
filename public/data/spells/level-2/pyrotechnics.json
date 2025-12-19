@@ -1,17 +1,31 @@
 {
   "id": "pyrotechnics",
   "name": "Pyrotechnics",
+  "aliases": [],
   "level": 2,
   "school": "Transmutation",
-  "classes": ["Artificer", "Bard", "Sorcerer", "Wizard"],
-  "description": "Choose an area of flame that fits in a 5-foot cube within range. You can extinguish the fire in that area, creating either fireworks (bright light flash and potential blindness) or smoke (heavily obscures a 20-foot cube for 1 minute). Creatures in the fireworks make a Constitution saving throw or are blinded until the end of your next turn; smoke disperses with strong wind.",
-  "higherLevels": "None",
-  "tags": ["control", "utility", "transmutation"],
+  "source": "PHB 2024",
+  "legacy": false,
+  "classes": [
+    "Artificer",
+    "Bard",
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
     "type": "ranged",
@@ -20,7 +34,10 @@
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -31,24 +48,162 @@
   "targeting": {
     "type": "area",
     "range": 60,
-    "validTargets": ["creatures", "objects"],
-    "areaOfEffect": { "shape": "Cube", "size": 20 },
-    "lineOfSight": true
+    "validTargets": [
+      "creatures",
+      "objects"
+    ],
+    "areaOfEffect": {
+      "shape": "Cube",
+      "size": 20,
+      "height": 0
+    },
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "control",
-      "description": "Fireworks: extinguish the flame; each creature in a 10-foot radius makes a Con save or is blinded until end of your next turn."
+      "description": "Fireworks: extinguish the flame; each creature in a 10-foot radius makes a Con save or is blinded until end of your next turn.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     },
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "control",
-      "description": "Smoke: extinguish the flame; create a 20-foot cube of smoke (heavily obscured) for 1 minute, dispersible by strong wind."
+      "description": "Smoke: extinguish the flame; create a 20-foot cube of smoke (heavily obscured) for 1 minute, dispersible by strong wind.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "Choose an area of flame that fits in a 5-foot cube within range. You can extinguish the fire in that area, creating either fireworks (bright light flash and potential blindness) or smoke (heavily obscures a 20-foot cube for 1 minute). Creatures in the fireworks make a Constitution saving throw or are blinded until the end of your next turn; smoke disperses with strong wind.",
+  "higherLevels": "None",
+  "tags": [
+    "control",
+    "utility",
+    "transmutation"
   ]
 }

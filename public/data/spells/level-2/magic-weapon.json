@@ -1,45 +1,146 @@
 {
   "id": "magic-weapon",
   "name": "Magic Weapon",
+  "aliases": [],
   "level": 2,
   "school": "Transmutation",
-  "classes": ["Artificer", "Paladin", "Wizard"],
-  "description": "You touch a nonmagical weapon. Until the spell ends, that weapon becomes magical and has a +1 bonus to attack and damage rolls.",
-  "higherLevels": "When cast with a slot of 4th level or higher, the bonus increases to +2. At 6th level or higher, the bonus increases to +3.",
-  "tags": ["buff", "transmutation", "concentration"],
+  "source": "PHB 2024 p.295",
+  "legacy": false,
+  "classes": [
+    "Paladin",
+    "Ranger",
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "bonus_action",
-    "combatCost": { "type": "bonus_action" }
+    "combatCost": {
+      "type": "bonus_action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
-    "type": "touch"
+    "type": "touch",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
     "value": 1,
     "unit": "hour",
-    "concentration": true
+    "concentration": false
   },
   "targeting": {
     "type": "single",
-    "range": 5,
-    "validTargets": ["objects", "weapons"],
-    "lineOfSight": true
+    "range": 0,
+    "validTargets": [
+      "objects"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "other",
-      "description": "Weapon becomes magical and gains +1 to attack and damage rolls; bonus becomes +2 at slot 4th+ and +3 at slot 6th+."
+      "description": "You touch a nonmagical weapon. Until the spell ends, that weapon becomes a magic weapon with a +1 bonus to attack rolls and damage rolls. If the weapon isn't magical, it counts as a magic weapon for the duration.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You touch a nonmagical weapon. Until the spell ends, that weapon becomes a magic weapon with a +1 bonus to attack rolls and damage rolls. If the weapon isn't magical, it counts as a magic weapon for the duration.",
+  "higherLevels": "When you cast this spell using a spell slot of 4th level or higher, the bonus increases to +2. When you use a spell slot of 6th level or higher, the bonus increases to +3.",
+  "tags": [
+    "buff",
+    "transmutation",
+    "concentration"
   ]
 }

@@ -1,25 +1,28 @@
 {
   "id": "shield-of-faith",
   "name": "Shield of Faith",
+  "aliases": [],
   "level": 1,
   "school": "Abjuration",
+  "source": "PHB 2024 p.316",
+  "legacy": false,
   "classes": [
     "Cleric",
     "Paladin"
   ],
-  "description": "A shimmering field surrounds a creature of your choice within range, granting it a +2 bonus to AC for the duration.",
-  "higherLevels": "None",
-  "tags": [
-    "buff",
-    "protection",
-    "concentration"
-  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "bonus_action",
     "combatCost": {
-      "type": "bonus_action"
+      "type": "bonus_action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
@@ -30,9 +33,9 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a tiny parchment with holy text",
-    "materialCost": 0,
-    "isConsumed": false
+    "materialDescription": "a tiny parchment with a bit of holy text written on it",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -44,19 +47,55 @@
     "type": "single",
     "range": 60,
     "validTargets": [
-      "creatures",
-      "allies"
+      "creatures"
     ],
-    "lineOfSight": true
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DEFENSIVE",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "defenseType": "ac_bonus",
       "acBonus": 2,
@@ -64,7 +103,46 @@
         "type": "minutes",
         "value": 10
       },
-      "description": "Target gains a +2 bonus to AC."
+      "description": "Target gains a +2 bonus to AC.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "value": 0,
+      "baseACFormula": "",
+      "acMinimum": 0,
+      "damageType": [],
+      "savingThrow": [],
+      "attackerFilter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false
+      },
+      "reactionTrigger": {
+        "event": "when_hit",
+        "includesSpells": []
+      },
+      "restrictions": {
+        "noArmor": false,
+        "noShield": false,
+        "targetSelf": false
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "A shimmering field appears and surrounds a creature of your choice within range, granting it a +2 bonus to AC for the duration.",
+  "higherLevels": "",
+  "tags": [
+    "buff",
+    "protection",
+    "concentration"
   ]
 }

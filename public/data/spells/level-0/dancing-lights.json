@@ -1,63 +1,146 @@
 {
-    "id": "dancing-lights",
-    "name": "Dancing Lights",
-    "level": 0,
-    "school": "Evocation",
-    "classes": [
-        "Artificer",
-        "Bard",
-        "Sorcerer",
-        "Wizard"
+  "id": "dancing-lights",
+  "name": "Dancing Lights",
+  "aliases": [],
+  "level": 0,
+  "school": "Evocation",
+  "source": "PHB 2024",
+  "legacy": false,
+  "classes": [
+    "Artificer",
+    "Bard",
+    "Sorcerer",
+    "Wizard"
+  ],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 120
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "A bit of phosphorus or wychwood, or a glowworm",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": true
+  },
+  "targeting": {
+    "type": "point",
+    "range": 120,
+    "validTargets": [
+      "point"
     ],
-    "tags": [
-        "utility",
-        "light",
-        "cantrip"
-    ],
-    "description": "You create up to four torch-sized lights within range, making them appear as torches, lanterns, or glowing orbs that hover in the air for the duration. You can also combine the four lights into one glowing vaguely humanoid form of Medium size. Whichever form you choose, each light sheds dim light in a 10-foot radius.",
-    "ritual": false,
-    "castingTime": {
-        "value": 1,
-        "unit": "action",
-        "combatCost": {
-            "type": "action"
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
+  },
+  "effects": [
+    {
+      "type": "UTILITY",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
         }
-    },
-    "range": {
-        "type": "ranged",
-        "distance": 120
-    },
-    "components": {
-        "verbal": true,
-        "somatic": true,
-        "material": true,
-        "materialDescription": "A bit of phosphorus or wychwood, or a glowworm"
-    },
-    "duration": {
-        "type": "timed",
-        "value": 1,
-        "unit": "minute",
-        "concentration": true
-    },
-    "targeting": {
-        "type": "point",
-        "range": 120,
-        "validTargets": [
-            "point"
-        ],
-        "lineOfSight": true
-    },
-    "effects": [
-        {
-            "type": "UTILITY",
-            "trigger": {
-                "type": "immediate"
-            },
-            "condition": {
-                "type": "always"
-            },
-            "utilityType": "light",
-            "description": "Creates up to four lights that shed dim light in a 10-foot radius."
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "utilityType": "light",
+      "description": "Creates up to four lights that shed dim light in a 10-foot radius.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
         }
-    ]
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You create up to four torch-sized lights within range, making them appear as torches, lanterns, or glowing orbs that hover in the air for the duration. You can also combine the four lights into one glowing vaguely humanoid form of Medium size. Whichever form you choose, each light sheds dim light in a 10-foot radius.",
+  "higherLevels": "",
+  "tags": [
+    "utility",
+    "light",
+    "cantrip"
+  ]
 }

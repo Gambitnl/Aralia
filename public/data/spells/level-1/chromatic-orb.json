@@ -1,18 +1,28 @@
 {
   "id": "chromatic-orb",
   "name": "Chromatic Orb",
+  "aliases": [],
   "level": 1,
   "school": "Evocation",
-  "classes": ["Sorcerer", "Wizard"],
-  "description": "You hurl a 4-inch-diameter sphere of energy at a creature within range. Choose acid, cold, fire, lightning, poison, or thunder for the orb's damage type, then make a ranged spell attack. On a hit, the target takes 3d8 damage of the chosen type.",
-  "higherLevels": "The damage increases by 1d8 for each spell slot level above 1st.",
-  "tags": ["damage", "evocation", "elemental"],
+  "source": "PHB 2024 p.249",
+  "legacy": false,
+  "classes": [
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
@@ -23,33 +33,92 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a diamond worth at least 50 gp",
+    "materialDescription": "a diamond worth 50+ GP",
     "materialCost": 50,
     "isConsumed": false
   },
   "duration": {
     "type": "instantaneous",
-    "concentration": false
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "single",
     "range": 90,
-    "validTargets": ["creatures"],
-    "lineOfSight": true
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "hit" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "hit",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "damage": {
         "dice": "3d8",
         "type": "Acid/Cold/Fire/Lightning/Poison/Thunder"
       },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+1d8"
-      }
+        "bonusPerLevel": "+1d8",
+        "customFormula": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You hurl a 4-inch-diameter sphere of energy at a creature that you can see within range. You choose Acid, Cold, Fire, Lightning, Poison, or Thunder for the type of orb you create, and then make a ranged spell attack against the target. On a hit, the creature takes 3d8 damage of the type you chose. If you roll the same number on two or more of the d8s, the orb leaps to a different target of your choice within 30 feet of the original target. Make a new attack roll against the new target, and make a new damage roll. The orb can leap only once per casting, unless you cast this spell with a level 2+ slot.",
+  "higherLevels": "Damage increases by 1d8 per slot level above 1. The orb can leap a maximum number of times equal to the slot level used (e.g., up to 2 leaps with a level 2 slot). A creature can be targeted only once per casting.",
+  "tags": [
+    "damage",
+    "evocation",
+    "elemental"
   ]
 }

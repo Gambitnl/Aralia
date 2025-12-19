@@ -16,6 +16,7 @@ export interface Spell {
   // --- Identity & Metadata ---
   id: string;
   name: string;
+  aliases?: string[];
   level: number; // 0 for Cantrip
   school: SpellSchool;
   classes: string[];

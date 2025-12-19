@@ -1,35 +1,68 @@
 {
   "id": "hail-of-thorns",
   "name": "Hail of Thorns",
+  "aliases": [],
   "level": 1,
   "school": "Conjuration",
+  "source": "PHB 2024 p.283",
+  "legacy": false,
   "classes": [
     "Ranger"
   ],
-  "description": "The next time you hit a creature with a ranged weapon attack before the spell ends, this spell creates a rain of thorns that sprouts from your ranged weapon or ammunition. In addition to the normal attack's effects, the attack targets the creature and each creature within 5 feet of it. Make a ranged spell attack against each target. On a hit, the targets take 1d10 piercing damage.",
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
-    "unit": "bonus_action"
+    "unit": "bonus_action",
+    "combatCost": {
+      "type": "bonus_action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": false,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "minute",
-    "concentration": true
+    "type": "instantaneous",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
-    "type": "self",
+    "type": "area",
     "validTargets": [
-      "self"
-    ]
+      "creatures"
+    ],
+    "lineOfSight": false,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 5,
+      "height": 0
+    },
+    "range": 0,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
@@ -40,10 +73,28 @@
         "attackFilter": {
           "weaponType": "ranged",
           "attackType": "weapon"
+        },
+        "frequency": "every_time",
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
         }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "1d10",
@@ -51,8 +102,10 @@
       },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+1d10"
-      }
+        "bonusPerLevel": "+1d10",
+        "customFormula": ""
+      },
+      "description": ""
     },
     {
       "type": "DAMAGE",
@@ -62,6 +115,12 @@
         "attackFilter": {
           "weaponType": "ranged",
           "attackType": "weapon"
+        },
+        "frequency": "every_time",
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
         }
       },
       "condition": {
@@ -69,8 +128,16 @@
         "saveType": "Dexterity",
         "saveEffect": "half",
         "targetFilter": {
-          "creatureType": []
-        }
+          "creatureType": [],
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "description": "AoE damage to creatures within 5ft of target.",
       "damage": {
@@ -79,8 +146,17 @@
       },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+1d10"
+        "bonusPerLevel": "+1d10",
+        "customFormula": ""
       }
     }
-  ]
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "The next time you hit a creature with a ranged weapon attack before the spell ends, this spell creates a rain of thorns that sprouts from your ranged weapon or ammunition. In addition to the normal effect of the attack, the target of the attack and each creature within 5 feet of it must make a Dexterity saving throw. A creature takes 1d10 Piercing damage on a failed save, or half as much damage on a successful one.",
+  "higherLevels": "If you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d10 for each slot level above 1st.",
+  "tags": []
 }

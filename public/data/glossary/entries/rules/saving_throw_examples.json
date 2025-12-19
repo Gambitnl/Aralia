@@ -1,0 +1,11 @@
+{
+  "id": "saving_throw_examples",
+  "title": "Saving Throw Examples",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "Examples of what each saving throw is used for.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/saving_throw_examples.json",
+  "markdown": "# Saving Throw Examples\r\n| Ability      | Make a Save To...              |\r\n|--------------|--------------------------------|\r\n| Strength     | Physically resist direct force |\r\n| Dexterity    | Dodge out of harm's way        |\r\n| Constitution | Endure a toxic hazard          |\r\n| Intelligence | Recognize an illusion as fake  |\r\n| Wisdom       | Resist a mental assault        |\r\n| Charisma     | Assert your identity           |\r\n"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "advantage",
+  "title": "Advantage",
+  "category": "Rules Glossary",
+  "tags": ["combat", "rolls", "mechanics"],
+  "excerpt": "When you have advantage on a d20 roll, you roll two d20s and use the higher result. Advantage and disadvantage cancel each other out.",
+  "aliases": [],
+  "seeAlso": [
+    "disadvantage",
+    "d20_test"
+  ],
+  "filePath": "/data/glossary/entries/rules/advantage.json",
+  "markdown": "# Advantage\n\nSometimes a special ability or spell tells you that you have advantage on a d20 roll. When that happens, you roll a second d20 when you make the roll. Use the higher of the two rolls.\n\n## Rules\n\n- If multiple situations affect a roll and each one grants advantage, you still roll only **one** additional d20\n- If you have both advantage and [[disadvantage]], you roll only one d20-they cancel each other out, even if you have multiple sources of advantage or disadvantage\n\n## Common Sources\n\n### Attack Rolls\n- Attacking a target you can't see gives the target advantage on the attack roll\n- Attacking from hiding gives you advantage\n- Attacking a prone target from within 5 feet gives you advantage\n- Using the Help action gives an ally advantage on their next attack\n\n### Ability Checks\n- Taking the Dodge action gives attackers disadvantage, and you get advantage on Dexterity saving throws\n- Some spells grant advantage (like *Enhance Ability*, *Guidance*, *Bless*)\n- Working together (Help action) grants advantage\n\n### Saving Throws\n- Being prone gives you advantage on Dexterity saving throws against effects you can see\n- Some class features grant advantage on specific saving throws\n"
+}

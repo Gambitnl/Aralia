@@ -1,42 +1,188 @@
 {
   "id": "thunderwave",
   "name": "Thunderwave",
+  "aliases": [],
   "level": 1,
   "school": "Evocation",
-  "classes": ["Bard", "Druid", "Sorcerer", "Wizard"],
-  "description": "A wave of thunderous force sweeps out from you. Each creature in a 15-foot Cube originating from you must make a Constitution saving throw. On a failed save, a creature takes 2d8 Thunder damage and is pushed 10 feet away from you. On a successful save, the creature takes half as much damage and isn't pushed. Unsecured objects wholly in the area are pushed 10 feet. The spell's boom is audible out to 300 feet.",
-  "higherLevels": "The damage increases by 1d8 for each spell slot level above 1.",
-  "tags": ["damage", "thunder", "aoe"],
+  "source": "PHB 2024 p.334",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Druid",
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
-  "range": { "type": "self" },
-  "components": { "verbal": true, "somatic": true, "material": false },
-  "duration": { "type": "instantaneous", "concentration": false },
+  "range": {
+    "type": "self",
+    "distance": 0
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
+  },
   "targeting": {
     "type": "area",
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": false,
+    "areaOfEffect": {
+      "shape": "Cube",
+      "size": 15,
+      "height": 0
+    },
     "range": 0,
-    "validTargets": ["creatures", "objects"],
-    "lineOfSight": true,
-    "areaOfEffect": { "shape": "Cube", "size": 15 }
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "save", "saveType": "Constitution", "saveEffect": "half" },
-      "damage": { "dice": "2d8", "type": "Thunder" },
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d8" }
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "half",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "2d8",
+        "type": "Thunder"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d8",
+        "customFormula": ""
+      },
+      "description": ""
     },
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "save", "saveType": "Constitution", "saveEffect": "none" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Constitution",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "control",
-      "description": "On a failed save, creature is pushed 10 feet away; unsecured objects wholly in the area are pushed 10 feet. Audible out to 300 feet."
+      "description": "On a failed save, creature is pushed 10 feet away; unsecured objects wholly in the area are pushed 10 feet. Audible out to 300 feet.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "A wave of thunderous force sweeps out from you. Each creature in a 15-foot Cube originating from you must make a Constitution saving throw. On a failed save, a creature takes 2d8 Thunder damage and is pushed 10 feet away from you. On a successful save, the creature takes half as much damage and isn't pushed. In addition, unsecured objects that are completely within the area of effect are automatically pushed 10 feet away from you by the spell's effect, and the spell emits a thunderous boom audible out to 300 feet.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d8 for each slot level above 1st.",
+  "tags": [
+    "damage",
+    "thunder",
+    "aoe"
   ]
 }

@@ -1,37 +1,167 @@
 {
   "id": "ice-knife",
   "name": "Ice Knife",
+  "aliases": [],
   "level": 1,
   "school": "Conjuration",
-  "classes": ["Druid", "Sorcerer", "Wizard"],
-  "description": "You create a shard of ice and fling it at one creature within range. Make a ranged spell attack; on a hit, the target takes 1d10 Piercing damage. Hit or miss, the shard explodes. The target and each creature within 5 feet of it must succeed on a Dexterity saving throw or take 2d6 Cold damage.",
-  "higherLevels": "The cold damage increases by 1d6 for each spell slot level above 1.",
-  "tags": ["damage", "cold", "aoe"],
+  "source": "PHB 2024 p.287",
+  "legacy": false,
+  "classes": [
+    "Druid",
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
-  "castingTime": { "value": 1, "unit": "action", "combatCost": { "type": "action" } },
-  "range": { "type": "ranged", "distance": 60 },
-  "components": { "verbal": false, "somatic": true, "material": true, "materialDescription": "a drop of water or piece of ice" },
-  "duration": { "type": "instantaneous", "concentration": false },
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": false,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a drop of water or piece of ice",
+    "isConsumed": false,
+    "materialCost": 0
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
+  },
   "targeting": {
-    "type": "hybrid",
-    "validTargets": ["creatures"],
+    "type": "multi",
+    "range": 60,
+    "validTargets": [
+      "creatures"
+    ],
     "lineOfSight": true,
-    "primary": { "type": "single", "range": 60, "validTargets": ["creatures"], "lineOfSight": true },
-    "secondary": { "type": "area", "range": 0, "validTargets": ["creatures"], "lineOfSight": false, "areaOfEffect": { "shape": "Sphere", "size": 5 } }
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 5,
+      "height": 0
+    },
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "hit" },
-      "damage": { "dice": "1d10", "type": "Piercing" }
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "hit",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "1d10",
+        "type": "Piercing"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
     },
     {
       "type": "DAMAGE",
-      "trigger": { "type": "after_primary" },
-      "condition": { "type": "save", "saveType": "Dexterity", "saveEffect": "half" },
-      "damage": { "dice": "2d6", "type": "Cold" },
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d6" }
+      "trigger": {
+        "type": "after_primary",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Dexterity",
+        "saveEffect": "half",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "2d6",
+        "type": "Cold"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d6",
+        "customFormula": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You create a shard of ice and fling it at one creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Piercing damage. Hit or miss, the shard then explodes. The target and each creature within 5 feet of it must succeed on a Dexterity saving throw or take 2d6 Cold damage.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the Cold damage increases by 1d6 for each slot level above 1st.",
+  "tags": [
+    "damage",
+    "cold",
+    "aoe"
   ]
 }

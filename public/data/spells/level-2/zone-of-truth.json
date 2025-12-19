@@ -1,17 +1,30 @@
 {
   "id": "zone-of-truth",
   "name": "Zone of Truth",
+  "aliases": [],
   "level": 2,
   "school": "Enchantment",
-  "classes": ["Bard", "Cleric", "Paladin"],
-  "description": "You create a magical zone that guards against deception in a 15-foot-radius sphere centered on a point within range. Until the spell ends, a creature that enters the area for the first time on a turn or starts its turn there must make a Charisma saving throw. On a failed save, a creature cannot speak deliberate lies while in the radius. You know whether each creature succeeds or fails on its saving throw.",
-  "higherLevels": "None",
-  "tags": ["enchantment", "control", "zone"],
+  "source": "PHB 2024 p.343",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Cleric",
+    "Paladin"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
     "type": "ranged",
@@ -20,7 +33,10 @@
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -31,21 +47,99 @@
   "targeting": {
     "type": "area",
     "range": 60,
-    "validTargets": ["creatures"],
-    "areaOfEffect": { "shape": "Sphere", "size": 15 },
-    "lineOfSight": true
+    "validTargets": [
+      "point"
+    ],
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 15,
+      "height": 0
+    },
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "on_enter_area", "frequency": "once_per_creature" },
+      "trigger": {
+        "type": "on_enter_area",
+        "frequency": "once_per_creature",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
       "condition": {
         "type": "save",
         "saveType": "Charisma",
-        "saveEffect": "none"
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "utilityType": "control",
-      "description": "Creature entering or starting in the zone must make a Charisma save; on failed save it cannot speak deliberate lies while in the area. You know whether each creature succeeds or fails."
+      "description": "Creature entering or starting in the zone must make a Charisma save; on failed save it cannot speak deliberate lies while in the area. You know whether each creature succeeds or fails.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You create a magical zone that guards against deception in a 15-foot-radius Sphere centered on a point of your choice within range. Until the spell ends, a creature that enters the spell's area for the first time on a turn or starts its turn there must make a Charisma saving throw. On a failed save, a creature can't speak a deliberate lie while in the radius. You know whether each creature succeeds or fails on its saving throw. An affected creature is aware of the spell and can thus avoid answering questions to which it would normally respond with a lie. Such a creature can be evasive in its answers as long as it remains within the boundaries of the truth.",
+  "higherLevels": "",
+  "tags": [
+    "enchantment",
+    "control",
+    "zone"
   ]
 }

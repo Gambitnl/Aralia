@@ -13,9 +13,10 @@
         "tags": [
           "level 0"
         ],
-        "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-0/acid-splash.md",
-        "hasCard": true
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "blade-ward",
@@ -25,8 +26,9 @@
           "level 0"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-0/blade-ward.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "booming-blade",
@@ -36,8 +38,9 @@
           "level 0"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/booming-blade.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "chill-touch",
@@ -47,8 +50,9 @@
           "level 0"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-0/chill-touch.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "create-bonfire",
@@ -58,8 +62,9 @@
           "level 0"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-0/create-bonfire.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "dancing-lights",
@@ -69,8 +74,9 @@
           "level 0"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/dancing-lights.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "druidcraft",
@@ -80,8 +86,9 @@
           "level 0"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/druidcraft.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "eldritch-blast",
@@ -91,8 +98,9 @@
           "level 0"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/eldritch-blast.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "elementalism",
@@ -102,8 +110,9 @@
           "level 0"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/elementalism.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "fire-bolt",
@@ -113,8 +122,9 @@
           "level 0"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/fire-bolt.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "friends",
@@ -124,8 +134,9 @@
           "level 0"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-0/friends.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "frostbite",
@@ -135,8 +146,9 @@
           "level 0"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/frostbite.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "green-flame-blade",
@@ -146,8 +158,9 @@
           "level 0"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/green-flame-blade.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "guidance",
@@ -157,8 +170,9 @@
           "level 0"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-0/guidance.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "light",
@@ -168,8 +182,9 @@
           "level 0"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/light.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "lightning-lure",
@@ -179,8 +194,9 @@
           "level 0"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/lightning-lure.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "mage-hand",
@@ -190,8 +206,9 @@
           "level 0"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-0/mage-hand.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "magic-stone",
@@ -201,8 +218,9 @@
           "level 0"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/magic-stone.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "mending",
@@ -212,8 +230,9 @@
           "level 0"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/mending.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "message",
@@ -223,8 +242,9 @@
           "level 0"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/message.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "mind-sliver",
@@ -234,8 +254,9 @@
           "level 0"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-0/mind-sliver.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "minor-illusion",
@@ -245,8 +266,9 @@
           "level 0"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-0/minor-illusion.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "mold-earth",
@@ -256,8 +278,9 @@
           "level 0"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/mold-earth.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "poison-spray",
@@ -267,8 +290,9 @@
           "level 0"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-0/poison-spray.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "prestidigitation",
@@ -278,8 +302,9 @@
           "level 0"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/prestidigitation.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "primal-savagery",
@@ -289,8 +314,9 @@
           "level 0"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/primal-savagery.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "produce-flame",
@@ -300,8 +326,9 @@
           "level 0"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-0/produce-flame.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "ray-of-frost",
@@ -311,8 +338,9 @@
           "level 0"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/ray-of-frost.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "resistance",
@@ -322,8 +350,9 @@
           "level 0"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-0/resistance.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "sacred-flame",
@@ -333,8 +362,9 @@
           "level 0"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/sacred-flame.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "sapping-sting",
@@ -344,8 +374,9 @@
           "level 0"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-0/sapping-sting.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "shape-water",
@@ -355,8 +386,9 @@
           "level 0"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/shape-water.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "shillelagh",
@@ -366,8 +398,9 @@
           "level 0"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/shillelagh.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "shocking-grasp",
@@ -377,8 +410,9 @@
           "level 0"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/shocking-grasp.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "spare-the-dying",
@@ -388,8 +422,9 @@
           "level 0"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-0/spare-the-dying.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "starry-wisp",
@@ -399,8 +434,9 @@
           "level 0"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/starry-wisp.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "sword-burst",
@@ -410,8 +446,9 @@
           "level 0"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-0/sword-burst.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "thaumaturgy",
@@ -421,8 +458,9 @@
           "level 0"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/thaumaturgy.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "thorn-whip",
@@ -432,8 +470,9 @@
           "level 0"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/thorn-whip.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "thunderclap",
@@ -443,8 +482,9 @@
           "level 0"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/thunderclap.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "toll-the-dead",
@@ -454,8 +494,9 @@
           "level 0"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-0/toll-the-dead.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "true-strike",
@@ -465,8 +506,9 @@
           "level 0"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-0/true-strike.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "vicious-mockery",
@@ -476,8 +518,9 @@
           "level 0"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-0/vicious-mockery.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "word-of-radiance",
@@ -487,8 +530,9 @@
           "level 0"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-0/word-of-radiance.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       }
     ]
   },
@@ -496,7 +540,7 @@
     "id": "spell_level_1",
     "title": "Level 1 Spells",
     "category": "Spells",
-    "excerpt": "Spells cast using a 1 level spell slot.",
+    "excerpt": "Spells of level 1.",
     "filePath": null,
     "subEntries": [
       {
@@ -507,8 +551,9 @@
           "level 1"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/absorb-elements.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "alarm",
@@ -518,8 +563,9 @@
           "level 1"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/alarm.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "animal-friendship",
@@ -529,8 +575,9 @@
           "level 1"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-1/animal-friendship.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "armor-of-agathys",
@@ -540,8 +587,9 @@
           "level 1"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/armor-of-agathys.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "arms-of-hadar",
@@ -551,8 +599,9 @@
           "level 1"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/arms-of-hadar.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "bane",
@@ -562,8 +611,9 @@
           "level 1"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-1/bane.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "bless",
@@ -573,8 +623,9 @@
           "level 1"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-1/bless.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "burning-hands",
@@ -584,8 +635,9 @@
           "level 1"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/burning-hands.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "catapult",
@@ -595,8 +647,9 @@
           "level 1"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/catapult.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "charm-person",
@@ -606,8 +659,9 @@
           "level 1"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-1/charm-person.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "chromatic-orb",
@@ -617,8 +671,9 @@
           "level 1"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/chromatic-orb.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "color-spray",
@@ -628,8 +683,9 @@
           "level 1"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-1/color-spray.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "command",
@@ -639,8 +695,9 @@
           "level 1"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-1/command.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "compelled-duel",
@@ -650,8 +707,9 @@
           "level 1"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-1/compelled-duel.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "comprehend-languages",
@@ -661,8 +719,9 @@
           "level 1"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-1/comprehend-languages.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "create-or-destroy-water",
@@ -672,8 +731,9 @@
           "level 1"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/create-or-destroy-water.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "cure-wounds",
@@ -683,8 +743,9 @@
           "level 1"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/cure-wounds.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "detect-evil-and-good",
@@ -694,8 +755,9 @@
           "level 1"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-1/detect-evil-and-good.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "detect-magic",
@@ -705,8 +767,9 @@
           "level 1"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-1/detect-magic.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "detect-poison-and-disease",
@@ -716,8 +779,9 @@
           "level 1"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-1/detect-poison-and-disease.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "disguise-self",
@@ -727,8 +791,9 @@
           "level 1"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-1/disguise-self.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "dissonant-whispers",
@@ -738,8 +803,9 @@
           "level 1"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-1/dissonant-whispers.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "divine-favor",
@@ -748,9 +814,10 @@
         "tags": [
           "level 1"
         ],
-        "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/divine-favor.md",
-        "hasCard": true
+        "excerpt": "Transmutation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "divine-smite",
@@ -760,8 +827,9 @@
           "level 1"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/divine-smite.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "ensnaring-strike",
@@ -771,8 +839,9 @@
           "level 1"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/ensnaring-strike.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "entangle",
@@ -782,8 +851,9 @@
           "level 1"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/entangle.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "expeditious-retreat",
@@ -793,8 +863,9 @@
           "level 1"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/expeditious-retreat.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "faerie-fire",
@@ -804,8 +875,9 @@
           "level 1"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/faerie-fire.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "false-life",
@@ -815,8 +887,9 @@
           "level 1"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-1/false-life.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "feather-fall",
@@ -826,8 +899,9 @@
           "level 1"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/feather-fall.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "find-familiar",
@@ -837,8 +911,9 @@
           "level 1"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/find-familiar.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "fog-cloud",
@@ -848,8 +923,9 @@
           "level 1"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/fog-cloud.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "goodberry",
@@ -859,8 +935,9 @@
           "level 1"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/goodberry.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "grease",
@@ -870,8 +947,9 @@
           "level 1"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/grease.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "guiding-bolt",
@@ -881,8 +959,9 @@
           "level 1"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/guiding-bolt.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "hail-of-thorns",
@@ -892,8 +971,9 @@
           "level 1"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/hail-of-thorns.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "healing-word",
@@ -903,8 +983,9 @@
           "level 1"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/healing-word.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "hellish-rebuke",
@@ -914,8 +995,9 @@
           "level 1"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/hellish-rebuke.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "heroism",
@@ -925,8 +1007,9 @@
           "level 1"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-1/heroism.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "hex",
@@ -936,8 +1019,9 @@
           "level 1"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-1/hex.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "hunters-mark",
@@ -947,8 +1031,9 @@
           "level 1"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-1/hunters-mark.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "ice-knife",
@@ -958,8 +1043,9 @@
           "level 1"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/ice-knife.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "identify",
@@ -969,8 +1055,9 @@
           "level 1"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-1/identify.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "illusory-script",
@@ -980,8 +1067,9 @@
           "level 1"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-1/illusory-script.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "inflict-wounds",
@@ -991,8 +1079,9 @@
           "level 1"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-1/inflict-wounds.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "jump",
@@ -1002,8 +1091,9 @@
           "level 1"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/jump.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "longstrider",
@@ -1013,8 +1103,9 @@
           "level 1"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/longstrider.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "mage-armor",
@@ -1024,8 +1115,9 @@
           "level 1"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/mage-armor.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "magic-missile",
@@ -1035,8 +1127,9 @@
           "level 1"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/magic-missile.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "protection-from-evil-and-good",
@@ -1046,8 +1139,9 @@
           "level 1"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/protection-from-evil-and-good.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "purify-food-and-drink",
@@ -1057,8 +1151,9 @@
           "level 1"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/purify-food-and-drink.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "ray-of-sickness",
@@ -1068,8 +1163,9 @@
           "level 1"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-1/ray-of-sickness.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "sanctuary",
@@ -1079,8 +1175,9 @@
           "level 1"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/sanctuary.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "searing-smite",
@@ -1090,8 +1187,9 @@
           "level 1"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/searing-smite.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "shield",
@@ -1101,8 +1199,9 @@
           "level 1"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/shield.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "shield-of-faith",
@@ -1112,8 +1211,9 @@
           "level 1"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/shield-of-faith.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "silent-image",
@@ -1123,8 +1223,9 @@
           "level 1"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-1/silent-image.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "sleep",
@@ -1134,8 +1235,9 @@
           "level 1"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-1/sleep.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "snare",
@@ -1145,8 +1247,9 @@
           "level 1"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/snare.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "speak-with-animals",
@@ -1156,8 +1259,9 @@
           "level 1"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-1/speak-with-animals.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "tashas-caustic-brew",
@@ -1167,8 +1271,9 @@
           "level 1"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/tashas-caustic-brew.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "tashas-hideous-laughter",
@@ -1178,8 +1283,9 @@
           "level 1"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-1/tashas-hideous-laughter.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "tensers-floating-disk",
@@ -1189,8 +1295,9 @@
           "level 1"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/tensers-floating-disk.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "thunderous-smite",
@@ -1200,8 +1307,9 @@
           "level 1"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/thunderous-smite.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "thunderwave",
@@ -1211,8 +1319,9 @@
           "level 1"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/thunderwave.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "unseen-servant",
@@ -1222,8 +1331,9 @@
           "level 1"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-1/unseen-servant.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "witch-bolt",
@@ -1233,8 +1343,9 @@
           "level 1"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/witch-bolt.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "wrathful-smite",
@@ -1243,9 +1354,10 @@
         "tags": [
           "level 1"
         ],
-        "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-1/wrathful-smite.md",
-        "hasCard": true
+        "excerpt": "Necromancy spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       }
     ]
   },
@@ -1253,7 +1365,7 @@
     "id": "spell_level_2",
     "title": "Level 2 Spells",
     "category": "Spells",
-    "excerpt": "Spells cast using a 2 level spell slot.",
+    "excerpt": "Spells of level 2.",
     "filePath": null,
     "subEntries": [
       {
@@ -1264,8 +1376,9 @@
           "level 2"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-2/aid.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "alter-self",
@@ -1275,8 +1388,9 @@
           "level 2"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/alter-self.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "animal-messenger",
@@ -1286,8 +1400,9 @@
           "level 2"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-2/animal-messenger.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "arcane-lock",
@@ -1297,8 +1412,21 @@
           "level 2"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-2/arcane-lock.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "arcane-vigor",
+        "title": "Arcane Vigor",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Abjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "augury",
@@ -1308,8 +1436,9 @@
           "level 2"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-2/augury.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "barkskin",
@@ -1319,8 +1448,9 @@
           "level 2"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/barkskin.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "beast-sense",
@@ -1330,8 +1460,9 @@
           "level 2"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-2/beast-sense.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "blindness-deafness",
@@ -1340,9 +1471,10 @@
         "tags": [
           "level 2"
         ],
-        "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-2/blindness-deafness.md",
-        "hasCard": true
+        "excerpt": "Transmutation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "blur",
@@ -1352,8 +1484,9 @@
           "level 2"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-2/blur.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "calm-emotions",
@@ -1363,8 +1496,9 @@
           "level 2"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-2/calm-emotions.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "cloud-of-daggers",
@@ -1374,8 +1508,9 @@
           "level 2"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-2/cloud-of-daggers.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "continual-flame",
@@ -1385,8 +1520,9 @@
           "level 2"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/continual-flame.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "cordon-of-arrows",
@@ -1396,8 +1532,9 @@
           "level 2"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/cordon-of-arrows.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "crown-of-madness",
@@ -1407,8 +1544,9 @@
           "level 2"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-2/crown-of-madness.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "darkness",
@@ -1418,8 +1556,9 @@
           "level 2"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/darkness.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "darkvision",
@@ -1429,8 +1568,9 @@
           "level 2"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/darkvision.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "detect-thoughts",
@@ -1440,8 +1580,9 @@
           "level 2"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-2/detect-thoughts.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "dragons-breath",
@@ -1451,8 +1592,9 @@
           "level 2"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/dragons-breath.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "enhance-ability",
@@ -1462,8 +1604,9 @@
           "level 2"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/enhance-ability.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "enlarge-reduce",
@@ -1473,8 +1616,9 @@
           "level 2"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/enlarge-reduce.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "enthrall",
@@ -1484,8 +1628,9 @@
           "level 2"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-2/enthrall.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "find-steed",
@@ -1495,8 +1640,9 @@
           "level 2"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-2/find-steed.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "find-traps",
@@ -1506,8 +1652,9 @@
           "level 2"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-2/find-traps.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "flame-blade",
@@ -1517,8 +1664,9 @@
           "level 2"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/flame-blade.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "flaming-sphere",
@@ -1528,8 +1676,9 @@
           "level 2"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-2/flaming-sphere.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "gentle-repose",
@@ -1539,8 +1688,9 @@
           "level 2"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-2/gentle-repose.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "gust-of-wind",
@@ -1550,8 +1700,9 @@
           "level 2"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/gust-of-wind.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "heat-metal",
@@ -1561,8 +1712,9 @@
           "level 2"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/heat-metal.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "hold-person",
@@ -1572,8 +1724,9 @@
           "level 2"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-2/hold-person.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "invisibility",
@@ -1583,8 +1736,9 @@
           "level 2"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-2/invisibility.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "knock",
@@ -1594,8 +1748,9 @@
           "level 2"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/knock.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "lesser-restoration",
@@ -1605,8 +1760,9 @@
           "level 2"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-2/lesser-restoration.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "levitate",
@@ -1616,8 +1772,9 @@
           "level 2"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/levitate.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "locate-animals-or-plants",
@@ -1627,8 +1784,9 @@
           "level 2"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-2/locate-animals-or-plants.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "locate-object",
@@ -1638,8 +1796,9 @@
           "level 2"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-2/locate-object.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "magic-mouth",
@@ -1649,8 +1808,9 @@
           "level 2"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-2/magic-mouth.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "magic-weapon",
@@ -1660,8 +1820,9 @@
           "level 2"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/magic-weapon.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "melfs-acid-arrow",
@@ -1671,8 +1832,9 @@
           "level 2"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/melfs-acid-arrow.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "mind-spike",
@@ -1682,8 +1844,21 @@
           "level 2"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-2/mind-spike.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "mirror-image",
+        "title": "Mirror Image",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Illusion spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "misty-step",
@@ -1693,8 +1868,9 @@
           "level 2"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-2/misty-step.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "moonbeam",
@@ -1704,8 +1880,21 @@
           "level 2"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/moonbeam.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "nystuls-magic-aura",
+        "title": "Nystul's Magic Aura",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Illusion spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "pass-without-trace",
@@ -1715,8 +1904,9 @@
           "level 2"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-2/pass-without-trace.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "phantasmal-force",
@@ -1726,8 +1916,9 @@
           "level 2"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-2/phantasmal-force.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "prayer-of-healing",
@@ -1736,9 +1927,10 @@
         "tags": [
           "level 2"
         ],
-        "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/prayer-of-healing.md",
-        "hasCard": true
+        "excerpt": "Abjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "protection-from-poison",
@@ -1748,8 +1940,9 @@
           "level 2"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-2/protection-from-poison.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "pyrotechnics",
@@ -1759,8 +1952,9 @@
           "level 2"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/pyrotechnics.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "ray-of-enfeeblement",
@@ -1770,8 +1964,9 @@
           "level 2"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-2/ray-of-enfeeblement.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "rope-trick",
@@ -1781,8 +1976,9 @@
           "level 2"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/rope-trick.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "scorching-ray",
@@ -1792,8 +1988,9 @@
           "level 2"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/scorching-ray.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "see-invisibility",
@@ -1803,8 +2000,9 @@
           "level 2"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-2/see-invisibility.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "shatter",
@@ -1814,8 +2012,21 @@
           "level 2"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/shatter.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "shining-smite",
+        "title": "Shining Smite",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Transmutation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "silence",
@@ -1825,8 +2036,9 @@
           "level 2"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-2/silence.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "skywrite",
@@ -1836,8 +2048,9 @@
           "level 2"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/skywrite.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "spider-climb",
@@ -1847,8 +2060,9 @@
           "level 2"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/spider-climb.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "spike-growth",
@@ -1858,8 +2072,9 @@
           "level 2"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/spike-growth.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "spiritual-weapon",
@@ -1869,8 +2084,9 @@
           "level 2"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-2/spiritual-weapon.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "suggestion",
@@ -1880,8 +2096,21 @@
           "level 2"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-2/suggestion.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "summon-beast",
+        "title": "Summon Beast",
+        "category": "Spells",
+        "tags": [
+          "level 2"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "warding-bond",
@@ -1891,8 +2120,9 @@
           "level 2"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-2/warding-bond.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "web",
@@ -1902,8 +2132,9 @@
           "level 2"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-2/web.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "zone-of-truth",
@@ -1913,8 +2144,9 @@
           "level 2"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-2/zone-of-truth.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       }
     ]
   },
@@ -1922,7 +2154,7 @@
     "id": "spell_level_3",
     "title": "Level 3 Spells",
     "category": "Spells",
-    "excerpt": "Spells cast using a 3 level spell slot.",
+    "excerpt": "Spells of level 3.",
     "filePath": null,
     "subEntries": [
       {
@@ -1933,8 +2165,9 @@
           "level 3"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-3/animate-dead.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "aura-of-vitality",
@@ -1944,8 +2177,9 @@
           "level 3"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/aura-of-vitality.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "beacon-of-hope",
@@ -1955,8 +2189,9 @@
           "level 3"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-3/beacon-of-hope.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "bestow-curse",
@@ -1966,8 +2201,9 @@
           "level 3"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-3/bestow-curse.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "blinding-smite",
@@ -1977,8 +2213,9 @@
           "level 3"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/blinding-smite.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "blink",
@@ -1988,8 +2225,9 @@
           "level 3"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/blink.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "call-lightning",
@@ -1999,8 +2237,9 @@
           "level 3"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-3/call-lightning.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "catnap",
@@ -2010,8 +2249,9 @@
           "level 3"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-3/catnap.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "clairvoyance",
@@ -2021,8 +2261,9 @@
           "level 3"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-3/clairvoyance.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "conjure-animals",
@@ -2032,8 +2273,9 @@
           "level 3"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-3/conjure-animals.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "conjure-barrage",
@@ -2043,8 +2285,21 @@
           "level 3"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-3/conjure-barrage.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "counterspell",
+        "title": "Counterspell",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Abjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "create-food-and-water",
@@ -2054,8 +2309,9 @@
           "level 3"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-3/create-food-and-water.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "crusaders-mantle",
@@ -2065,8 +2321,9 @@
           "level 3"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/crusaders-mantle.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "daylight",
@@ -2076,8 +2333,9 @@
           "level 3"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/daylight.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "dispel-magic",
@@ -2087,8 +2345,9 @@
           "level 3"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-3/dispel-magic.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "elemental-weapon",
@@ -2098,8 +2357,45 @@
           "level 3"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/elemental-weapon.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "enemies-abound",
+        "title": "Enemies Abound",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Enchantment spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "erupting-earth",
+        "title": "Erupting Earth",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Transmutation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "fast-friends",
+        "title": "Fast Friends",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Enchantment spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "fear",
@@ -2109,8 +2405,9 @@
           "level 3"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-3/fear.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "feign-death",
@@ -2120,8 +2417,9 @@
           "level 3"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-3/feign-death.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "fireball",
@@ -2131,8 +2429,9 @@
           "level 3"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/fireball.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "flame-arrows",
@@ -2142,8 +2441,9 @@
           "level 3"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/flame-arrows.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "fly",
@@ -2153,8 +2453,21 @@
           "level 3"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/fly.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "galders-tower",
+        "title": "Galder's Tower",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "gaseous-form",
@@ -2164,8 +2477,9 @@
           "level 3"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/gaseous-form.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "glyph-of-warding",
@@ -2175,8 +2489,9 @@
           "level 3"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-3/glyph-of-warding.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "haste",
@@ -2186,8 +2501,9 @@
           "level 3"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/haste.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "hunger-of-hadar",
@@ -2197,8 +2513,9 @@
           "level 3"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-3/hunger-of-hadar.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "hypnotic-pattern",
@@ -2208,8 +2525,21 @@
           "level 3"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-3/hypnotic-pattern.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "incite-greed",
+        "title": "Incite Greed",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Enchantment spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "intellect-fortress",
@@ -2219,8 +2549,33 @@
           "level 3"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-3/intellect-fortress.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "leomunds-tiny-hut",
+        "title": "Leomund's Tiny Hut",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "life-transference",
+        "title": "Life Transference",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Necromancy spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "lightning-arrow",
@@ -2230,8 +2585,9 @@
           "level 3"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/lightning-arrow.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "lightning-bolt",
@@ -2241,8 +2597,9 @@
           "level 3"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/lightning-bolt.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "magic-circle",
@@ -2252,8 +2609,9 @@
           "level 3"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-3/magic-circle.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "major-image",
@@ -2263,8 +2621,9 @@
           "level 3"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-3/major-image.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "mass-healing-word",
@@ -2274,8 +2633,9 @@
           "level 3"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/mass-healing-word.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "meld-into-stone",
@@ -2285,8 +2645,33 @@
           "level 3"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/meld-into-stone.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "melfs-minute-meteors",
+        "title": "Melf's Minute Meteors",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "motivational-speech",
+        "title": "Motivational Speech",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Enchantment spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "nondetection",
@@ -2296,8 +2681,21 @@
           "level 3"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-3/nondetection.md",
-        "hasCard": true
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "phantom-steed",
+        "title": "Phantom Steed",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Illusion spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "plant-growth",
@@ -2307,8 +2705,9 @@
           "level 3"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/plant-growth.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "protection-from-energy",
@@ -2318,8 +2717,21 @@
           "level 3"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-3/protection-from-energy.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "pulse-wave",
+        "title": "Pulse Wave",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "remove-curse",
@@ -2329,8 +2741,9 @@
           "level 3"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-3/remove-curse.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "revivify",
@@ -2340,8 +2753,9 @@
           "level 3"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-3/revivify.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "sending",
@@ -2351,8 +2765,9 @@
           "level 3"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/sending.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "sleet-storm",
@@ -2362,8 +2777,9 @@
           "level 3"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-3/sleet-storm.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "slow",
@@ -2373,8 +2789,9 @@
           "level 3"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/slow.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "speak-with-dead",
@@ -2384,8 +2801,9 @@
           "level 3"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-3/speak-with-dead.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "speak-with-plants",
@@ -2395,8 +2813,9 @@
           "level 3"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/speak-with-plants.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "spirit-guardians",
@@ -2406,8 +2825,9 @@
           "level 3"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-3/spirit-guardians.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "stinking-cloud",
@@ -2417,8 +2837,45 @@
           "level 3"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-3/stinking-cloud.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "summon-lesser-demons",
+        "title": "Summon Lesser Demons",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "thunder-step",
+        "title": "Thunder Step",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "tidal-wave",
+        "title": "Tidal Wave",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "tiny-servant",
@@ -2428,8 +2885,9 @@
           "level 3"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/tiny-servant.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "tongues",
@@ -2439,8 +2897,9 @@
           "level 3"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-3/tongues.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "vampiric-touch",
@@ -2450,8 +2909,33 @@
           "level 3"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-3/vampiric-touch.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "wall-of-sand",
+        "title": "Wall of Sand",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "wall-of-water",
+        "title": "Wall of Water",
+        "category": "Spells",
+        "tags": [
+          "level 3"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "water-breathing",
@@ -2461,8 +2945,9 @@
           "level 3"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/water-breathing.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "water-walk",
@@ -2472,8 +2957,9 @@
           "level 3"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/water-walk.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "wind-wall",
@@ -2483,8 +2969,9 @@
           "level 3"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-3/wind-wall.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       }
     ]
   },
@@ -2492,7 +2979,7 @@
     "id": "spell_level_4",
     "title": "Level 4 Spells",
     "category": "Spells",
-    "excerpt": "Spells cast using a 4 level spell slot.",
+    "excerpt": "Spells of level 4.",
     "filePath": null,
     "subEntries": [
       {
@@ -2503,8 +2990,9 @@
           "level 4"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-4/arcane-eye.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "aura-of-life",
@@ -2514,8 +3002,9 @@
           "level 4"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-4/aura-of-life.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "aura-of-purity",
@@ -2525,8 +3014,9 @@
           "level 4"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-4/aura-of-purity.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "banishment",
@@ -2536,8 +3026,9 @@
           "level 4"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-4/banishment.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "blight",
@@ -2547,8 +3038,9 @@
           "level 4"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-4/blight.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "charm-monster",
@@ -2558,8 +3050,9 @@
           "level 4"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-4/charm-monster.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "compulsion",
@@ -2569,8 +3062,9 @@
           "level 4"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-4/compulsion.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "confusion",
@@ -2580,8 +3074,9 @@
           "level 4"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-4/confusion.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "conjure-minor-elementals",
@@ -2591,8 +3086,9 @@
           "level 4"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-4/conjure-minor-elementals.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "conjure-woodland-beings",
@@ -2602,8 +3098,9 @@
           "level 4"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-4/conjure-woodland-beings.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "control-water",
@@ -2613,8 +3110,9 @@
           "level 4"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-4/control-water.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "death-ward",
@@ -2624,8 +3122,9 @@
           "level 4"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-4/death-ward.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "dimension-door",
@@ -2635,8 +3134,9 @@
           "level 4"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-4/dimension-door.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "divination",
@@ -2646,8 +3146,9 @@
           "level 4"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-4/divination.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "dominate-beast",
@@ -2657,8 +3158,9 @@
           "level 4"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-4/dominate-beast.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "elemental-bane",
@@ -2668,8 +3170,21 @@
           "level 4"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-4/elemental-bane.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "evards-black-tentacles",
+        "title": "Evard's Black Tentacles",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "fabricate",
@@ -2679,8 +3194,21 @@
           "level 4"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-4/fabricate.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "find-greater-steed",
+        "title": "Find Greater Steed",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "fire-shield",
@@ -2690,8 +3218,9 @@
           "level 4"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-4/fire-shield.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "freedom-of-movement",
@@ -2701,8 +3230,21 @@
           "level 4"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-4/freedom-of-movement.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "galders-speedy-courier",
+        "title": "Galders Speedy Courier",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "giant-insect",
@@ -2711,9 +3253,10 @@
         "tags": [
           "level 4"
         ],
-        "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-4/giant-insect.md",
-        "hasCard": false
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "grasping-vine",
@@ -2723,8 +3266,21 @@
           "level 4"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-4/grasping-vine.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "gravity-sinkhole",
+        "title": "Gravity Sinkhole",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "greater-invisibility",
@@ -2734,8 +3290,9 @@
           "level 4"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-4/greater-invisibility.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "guardian-of-faith",
@@ -2745,8 +3302,21 @@
           "level 4"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-4/guardian-of-faith.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "guardian-of-nature",
+        "title": "Guardian Of Nature",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "hallucinatory-terrain",
@@ -2756,8 +3326,9 @@
           "level 4"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-4/hallucinatory-terrain.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "ice-storm",
@@ -2767,8 +3338,21 @@
           "level 4"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-4/ice-storm.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "leomunds-secret-chest",
+        "title": "Leomund's Secret Chest",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "locate-creature",
@@ -2778,8 +3362,9 @@
           "level 4"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-4/locate-creature.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "mordenkainens-faithful-hound",
@@ -2789,8 +3374,9 @@
           "level 4"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-4/mordenkainens-faithful-hound.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "mordenkainens-private-sanctum",
@@ -2800,8 +3386,9 @@
           "level 4"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-4/mordenkainens-private-sanctum.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "otilukes-resilient-sphere",
@@ -2810,9 +3397,10 @@
         "tags": [
           "level 4"
         ],
-        "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-4/otilukes-resilient-sphere.md",
-        "hasCard": false
+        "excerpt": "Abjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "phantasmal-killer",
@@ -2822,8 +3410,9 @@
           "level 4"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-4/phantasmal-killer.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "polymorph",
@@ -2833,8 +3422,33 @@
           "level 4"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-4/polymorph.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "shadow-of-moil",
+        "title": "Shadow Of Moil",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "sickening-radiance",
+        "title": "Sickening Radiance",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "staggering-smite",
@@ -2844,8 +3458,9 @@
           "level 4"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-4/staggering-smite.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "stone-shape",
@@ -2855,8 +3470,9 @@
           "level 4"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-4/stone-shape.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "stoneskin",
@@ -2865,9 +3481,46 @@
         "tags": [
           "level 4"
         ],
-        "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-4/stoneskin.md",
-        "hasCard": false
+        "excerpt": "Transmutation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "storm-sphere",
+        "title": "Storm Sphere",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "summon-greater-demon",
+        "title": "Summon Greater Demon",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "vitriolic-sphere",
+        "title": "Vitriolic Sphere",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "wall-of-fire",
@@ -2877,8 +3530,21 @@
           "level 4"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-4/wall-of-fire.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "watery-sphere",
+        "title": "Watery Sphere",
+        "category": "Spells",
+        "tags": [
+          "level 4"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       }
     ]
   },
@@ -2886,7 +3552,7 @@
     "id": "spell_level_5",
     "title": "Level 5 Spells",
     "category": "Spells",
-    "excerpt": "Spells cast using a 5 level spell slot.",
+    "excerpt": "Spells of level 5.",
     "filePath": null,
     "subEntries": [
       {
@@ -2897,8 +3563,9 @@
           "level 5"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-5/animate-objects.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "antilife-shell",
@@ -2908,8 +3575,9 @@
           "level 5"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-5/antilife-shell.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "awaken",
@@ -2919,8 +3587,21 @@
           "level 5"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-5/awaken.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "banishing-smite",
+        "title": "Banishing Smite",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "bigbys-hand",
@@ -2930,8 +3611,9 @@
           "level 5"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-5/bigbys-hand.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "circle-of-power",
@@ -2941,8 +3623,9 @@
           "level 5"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-5/circle-of-power.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "cloudkill",
@@ -2952,8 +3635,9 @@
           "level 5"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-5/cloudkill.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "commune",
@@ -2963,8 +3647,9 @@
           "level 5"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-5/commune.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "commune-with-nature",
@@ -2974,8 +3659,9 @@
           "level 5"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-5/commune-with-nature.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "cone-of-cold",
@@ -2985,8 +3671,9 @@
           "level 5"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-5/cone-of-cold.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "conjure-elemental",
@@ -2996,8 +3683,9 @@
           "level 5"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-5/conjure-elemental.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "conjure-volley",
@@ -3007,8 +3695,9 @@
           "level 5"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-5/conjure-volley.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "contact-other-plane",
@@ -3018,8 +3707,9 @@
           "level 5"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-5/contact-other-plane.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "contagion",
@@ -3029,8 +3719,21 @@
           "level 5"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-5/contagion.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "control-winds",
+        "title": "Control Winds",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "creation",
@@ -3040,8 +3743,33 @@
           "level 5"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-5/creation.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "danse-macabre",
+        "title": "Danse Macabre",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Necromancy spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "dawn",
+        "title": "Dawn",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "destructive-wave",
@@ -3051,8 +3779,9 @@
           "level 5"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-5/destructive-wave.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "dispel-evil-and-good",
@@ -3062,8 +3791,9 @@
           "level 5"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-5/dispel-evil-and-good.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "dominate-person",
@@ -3073,8 +3803,9 @@
           "level 5"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-5/dominate-person.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "dream",
@@ -3084,8 +3815,33 @@
           "level 5"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-5/dream.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "enervation",
+        "title": "Enervation",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Necromancy spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "far-step",
+        "title": "Far Step",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "flame-strike",
@@ -3095,8 +3851,9 @@
           "level 5"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-5/flame-strike.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "geas",
@@ -3106,8 +3863,9 @@
           "level 5"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-5/geas.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "greater-restoration",
@@ -3117,8 +3875,9 @@
           "level 5"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-5/greater-restoration.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "hallow",
@@ -3127,9 +3886,10 @@
         "tags": [
           "level 5"
         ],
-        "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-5/hallow.md",
-        "hasCard": false
+        "excerpt": "Abjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "hold-monster",
@@ -3139,8 +3899,45 @@
           "level 5"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-5/hold-monster.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "holy-weapon",
+        "title": "Holy Weapon",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "immolation",
+        "title": "Immolation",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "infernal-calling",
+        "title": "Infernal Calling",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "insect-plague",
@@ -3150,8 +3947,9 @@
           "level 5"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-5/insect-plague.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "legend-lore",
@@ -3161,8 +3959,21 @@
           "level 5"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-5/legend-lore.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "maelstrom",
+        "title": "Maelstrom",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "mass-cure-wounds",
@@ -3172,8 +3983,9 @@
           "level 5"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-5/mass-cure-wounds.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "mislead",
@@ -3183,8 +3995,9 @@
           "level 5"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-5/mislead.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "modify-memory",
@@ -3194,8 +4007,21 @@
           "level 5"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-5/modify-memory.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "negative-energy-flood",
+        "title": "Negative Energy Flood",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Necromancy spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "passwall",
@@ -3205,8 +4031,9 @@
           "level 5"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-5/passwall.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "planar-binding",
@@ -3216,8 +4043,9 @@
           "level 5"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-5/planar-binding.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "raise-dead",
@@ -3227,8 +4055,9 @@
           "level 5"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-5/raise-dead.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "rarys-telepathic-bond",
@@ -3238,8 +4067,9 @@
           "level 5"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-5/rarys-telepathic-bond.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "reincarnate",
@@ -3248,9 +4078,10 @@
         "tags": [
           "level 5"
         ],
-        "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-5/reincarnate.md",
-        "hasCard": false
+        "excerpt": "Necromancy spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "scrying",
@@ -3260,8 +4091,9 @@
           "level 5"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-5/scrying.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "seeming",
@@ -3271,19 +4103,9 @@
           "level 5"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-5/seeming.md",
-        "hasCard": false
-      },
-      {
-        "id": "shining-smite",
-        "title": "Shining Smite",
-        "category": "Spells",
-        "tags": [
-          "level 5"
-        ],
-        "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-5/shining-smite.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "skill-empowerment",
@@ -3293,8 +4115,9 @@
           "level 5"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-5/skill-empowerment.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "steel-wind-strike",
@@ -3304,8 +4127,9 @@
           "level 5"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-5/steel-wind-strike.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "swift-quiver",
@@ -3315,8 +4139,9 @@
           "level 5"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-5/swift-quiver.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "synaptic-static",
@@ -3326,8 +4151,9 @@
           "level 5"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-5/synaptic-static.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "telekinesis",
@@ -3337,8 +4163,9 @@
           "level 5"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-5/telekinesis.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "teleportation-circle",
@@ -3348,8 +4175,33 @@
           "level 5"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-5/teleportation-circle.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "temporal-shunt",
+        "title": "Temporal Shunt",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "transmute-rock",
+        "title": "Transmute Rock",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Transmutation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "tree-stride",
@@ -3359,8 +4211,9 @@
           "level 5"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-5/tree-stride.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "wall-of-force",
@@ -3370,8 +4223,21 @@
           "level 5"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-5/wall-of-force.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "wall-of-light",
+        "title": "Wall of Light",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "wall-of-stone",
@@ -3381,8 +4247,21 @@
           "level 5"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-5/wall-of-stone.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "wrath-of-nature",
+        "title": "Wrath of Nature",
+        "category": "Spells",
+        "tags": [
+          "level 5"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       }
     ]
   },
@@ -3390,9 +4269,21 @@
     "id": "spell_level_6",
     "title": "Level 6 Spells",
     "category": "Spells",
-    "excerpt": "Spells cast using a 6 level spell slot.",
+    "excerpt": "Spells of level 6.",
     "filePath": null,
     "subEntries": [
+      {
+        "id": "arcane-gate",
+        "title": "Arcane Gate",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
       {
         "id": "blade-barrier",
         "title": "Blade Barrier",
@@ -3401,8 +4292,21 @@
           "level 6"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-6/blade-barrier.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "bones-of-the-earth",
+        "title": "Bones of the Earth",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Transmutation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "chain-lightning",
@@ -3412,8 +4316,9 @@
           "level 6"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-6/chain-lightning.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "circle-of-death",
@@ -3423,8 +4328,9 @@
           "level 6"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-6/circle-of-death.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "conjure-fey",
@@ -3434,8 +4340,9 @@
           "level 6"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-6/conjure-fey.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "contingency",
@@ -3445,8 +4352,21 @@
           "level 6"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-6/contingency.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "create-homunculus",
+        "title": "Create Homunculus",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Transmutation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "create-undead",
@@ -3456,8 +4376,9 @@
           "level 6"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-6/create-undead.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "disintegrate",
@@ -3467,8 +4388,33 @@
           "level 6"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-6/disintegrate.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "drawmijs-instant-summons",
+        "title": "Drawmij's Instant Summons",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "druid-grove",
+        "title": "Druid Grove",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Abjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "eyebite",
@@ -3478,8 +4424,9 @@
           "level 6"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-6/eyebite.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "find-the-path",
@@ -3489,8 +4436,9 @@
           "level 6"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-6/find-the-path.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "flesh-to-stone",
@@ -3500,8 +4448,9 @@
           "level 6"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-6/flesh-to-stone.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "forbiddance",
@@ -3511,8 +4460,9 @@
           "level 6"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-6/forbiddance.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "globe-of-invulnerability",
@@ -3522,8 +4472,21 @@
           "level 6"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-6/globe-of-invulnerability.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "gravity-fissure",
+        "title": "Gravity Fissure",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "guards-and-wards",
@@ -3533,8 +4496,9 @@
           "level 6"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-6/guards-and-wards.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "harm",
@@ -3544,8 +4508,9 @@
           "level 6"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-6/harm.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "heal",
@@ -3555,8 +4520,9 @@
           "level 6"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-6/heal.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "heroes-feast",
@@ -3566,8 +4532,57 @@
           "level 6"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-6/heroes-feast.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "investiture-of-flame",
+        "title": "Investiture of Flame",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Transmutation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "investiture-of-ice",
+        "title": "Investiture of Ice",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Transmutation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "investiture-of-stone",
+        "title": "Investiture of Stone",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Transmutation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "investiture-of-wind",
+        "title": "Investiture of Wind",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Transmutation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "magic-jar",
@@ -3577,8 +4592,9 @@
           "level 6"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-6/magic-jar.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "mass-suggestion",
@@ -3588,8 +4604,21 @@
           "level 6"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-6/mass-suggestion.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "mental-prison",
+        "title": "Mental Prison",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Illusion spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "move-earth",
@@ -3599,8 +4628,9 @@
           "level 6"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-6/move-earth.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "otilukes-freezing-sphere",
@@ -3610,8 +4640,9 @@
           "level 6"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-6/otilukes-freezing-sphere.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "ottos-irresistible-dance",
@@ -3621,8 +4652,9 @@
           "level 6"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-6/ottos-irresistible-dance.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "planar-ally",
@@ -3632,8 +4664,21 @@
           "level 6"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-6/planar-ally.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "primordial-ward",
+        "title": "Primordial Ward",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Abjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "programmed-illusion",
@@ -3643,8 +4688,33 @@
           "level 6"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-6/programmed-illusion.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "scatter",
+        "title": "Scatter",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "soul-cage",
+        "title": "Soul Cage",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Necromancy spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "sunbeam",
@@ -3654,8 +4724,21 @@
           "level 6"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-6/sunbeam.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "tensers-transformation",
+        "title": "Tenser's Transformation",
+        "category": "Spells",
+        "tags": [
+          "level 6"
+        ],
+        "excerpt": "Transmutation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "transport-via-plants",
@@ -3665,8 +4748,9 @@
           "level 6"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-6/transport-via-plants.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "true-seeing",
@@ -3676,8 +4760,9 @@
           "level 6"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-6/true-seeing.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "wall-of-ice",
@@ -3687,8 +4772,9 @@
           "level 6"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-6/wall-of-ice.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "wall-of-thorns",
@@ -3698,8 +4784,9 @@
           "level 6"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-6/wall-of-thorns.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "wind-walk",
@@ -3709,8 +4796,9 @@
           "level 6"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-6/wind-walk.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "word-of-recall",
@@ -3720,8 +4808,9 @@
           "level 6"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-6/word-of-recall.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       }
     ]
   },
@@ -3729,9 +4818,23 @@
     "id": "spell_level_7",
     "title": "Level 7 Spells",
     "category": "Spells",
-    "excerpt": "Spells cast using a 7 level spell slot.",
+    "excerpt": "Spells of level 7.",
     "filePath": null,
     "subEntries": [
+      {
+        "id": "arcane-sword",
+        "title": "Arcane Sword",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [
+          "Mordenkainen's Sword"
+        ],
+        "filePath": null,
+        "hasSpellJson": true
+      },
       {
         "id": "conjure-celestial",
         "title": "Conjure Celestial",
@@ -3740,8 +4843,21 @@
           "level 7"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-7/conjure-celestial.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "crown-of-stars",
+        "title": "Crown of Stars",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "delayed-blast-fireball",
@@ -3751,8 +4867,9 @@
           "level 7"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-7/delayed-blast-fireball.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "divine-word",
@@ -3762,8 +4879,33 @@
           "level 7"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-7/divine-word.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "draconic-transformation",
+        "title": "Draconic Transformation",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Transmutation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "dream-of-the-blue-veil",
+        "title": "Dream of the Blue Veil",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "etherealness",
@@ -3772,9 +4914,10 @@
         "tags": [
           "level 7"
         ],
-        "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-7/etherealness.md",
-        "hasCard": false
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "finger-of-death",
@@ -3784,8 +4927,9 @@
           "level 7"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-7/finger-of-death.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "fire-storm",
@@ -3795,8 +4939,9 @@
           "level 7"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-7/fire-storm.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "forcecage",
@@ -3806,8 +4951,9 @@
           "level 7"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-7/forcecage.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "mirage-arcane",
@@ -3817,8 +4963,9 @@
           "level 7"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-7/mirage-arcane.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "mordenkainens-magnificent-mansion",
@@ -3828,19 +4975,9 @@
           "level 7"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-7/mordenkainens-magnificent-mansion.md",
-        "hasCard": false
-      },
-      {
-        "id": "mordenkainens-sword",
-        "title": "Mordenkainen's Sword",
-        "category": "Spells",
-        "tags": [
-          "level 7"
-        ],
-        "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-7/mordenkainens-sword.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "plane-shift",
@@ -3850,8 +4987,21 @@
           "level 7"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-7/plane-shift.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "power-word-pain",
+        "title": "Power Word Pain",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Enchantment spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "prismatic-spray",
@@ -3861,8 +5011,9 @@
           "level 7"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-7/prismatic-spray.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "project-image",
@@ -3872,8 +5023,9 @@
           "level 7"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-7/project-image.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "regenerate",
@@ -3883,8 +5035,9 @@
           "level 7"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-7/regenerate.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "resurrection",
@@ -3894,8 +5047,9 @@
           "level 7"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-7/resurrection.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "reverse-gravity",
@@ -3905,8 +5059,9 @@
           "level 7"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-7/reverse-gravity.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "sequester",
@@ -3916,8 +5071,9 @@
           "level 7"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-7/sequester.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "simulacrum",
@@ -3927,8 +5083,9 @@
           "level 7"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-7/simulacrum.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "symbol",
@@ -3938,8 +5095,9 @@
           "level 7"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-7/symbol.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "teleport",
@@ -3949,8 +5107,45 @@
           "level 7"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-7/teleport.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "temple-of-the-gods",
+        "title": "Temple of the Gods",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "tether-essence",
+        "title": "Tether Essence",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "whirlwind",
+        "title": "Whirlwind",
+        "category": "Spells",
+        "tags": [
+          "level 7"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       }
     ]
   },
@@ -3958,9 +5153,21 @@
     "id": "spell_level_8",
     "title": "Level 8 Spells",
     "category": "Spells",
-    "excerpt": "Spells cast using a 8 level spell slot.",
+    "excerpt": "Spells of level 8.",
     "filePath": null,
     "subEntries": [
+      {
+        "id": "abi-dalzims-horrid-wilting",
+        "title": "Abi-Dalzim's Horrid Wilting",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Necromancy spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
       {
         "id": "animal-shapes",
         "title": "Animal Shapes",
@@ -3969,8 +5176,9 @@
           "level 8"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-8/animal-shapes.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "antimagic-field",
@@ -3980,8 +5188,9 @@
           "level 8"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-8/antimagic-field.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "antipathy-sympathy",
@@ -3991,8 +5200,9 @@
           "level 8"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-8/antipathy-sympathy.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "clone",
@@ -4002,8 +5212,9 @@
           "level 8"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-8/clone.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "control-weather",
@@ -4013,8 +5224,21 @@
           "level 8"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-8/control-weather.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "dark-star",
+        "title": "Dark Star",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "demiplane",
@@ -4024,8 +5248,9 @@
           "level 8"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-8/demiplane.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "dominate-monster",
@@ -4035,8 +5260,9 @@
           "level 8"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-8/dominate-monster.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "earthquake",
@@ -4046,8 +5272,21 @@
           "level 8"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-8/earthquake.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "feeblemind",
+        "title": "Feeblemind",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Enchantment spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "glibness",
@@ -4057,8 +5296,9 @@
           "level 8"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-8/glibness.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "holy-aura",
@@ -4068,8 +5308,21 @@
           "level 8"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-8/holy-aura.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "illusory-dragon",
+        "title": "Illusory Dragon",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Illusion spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "incendiary-cloud",
@@ -4079,8 +5332,21 @@
           "level 8"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-8/incendiary-cloud.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "maddening-darkness",
+        "title": "Maddening Darkness",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "maze",
@@ -4090,8 +5356,21 @@
           "level 8"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-8/maze.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "mighty-fortress",
+        "title": "Mighty Fortress",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "mind-blank",
@@ -4101,8 +5380,9 @@
           "level 8"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-8/mind-blank.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "power-word-stun",
@@ -4112,8 +5392,21 @@
           "level 8"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-8/power-word-stun.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "reality-break",
+        "title": "Reality Break",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "sunburst",
@@ -4123,8 +5416,21 @@
           "level 8"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-8/sunburst.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "telepathy",
+        "title": "Telepathy",
+        "category": "Spells",
+        "tags": [
+          "level 8"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "tsunami",
@@ -4134,8 +5440,9 @@
           "level 8"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-8/tsunami.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       }
     ]
   },
@@ -4143,7 +5450,7 @@
     "id": "spell_level_9",
     "title": "Level 9 Spells",
     "category": "Spells",
-    "excerpt": "Spells cast using a 9 level spell slot.",
+    "excerpt": "Spells of level 9.",
     "filePath": null,
     "subEntries": [
       {
@@ -4154,8 +5461,21 @@
           "level 9"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-9/astral-projection.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "blade-of-disaster",
+        "title": "Blade of Disaster",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Conjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "foresight",
@@ -4165,8 +5485,9 @@
           "level 9"
         ],
         "excerpt": "Divination spell",
-        "filePath": "/data/glossary/entries/spells/level-9/foresight.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "gate",
@@ -4176,8 +5497,9 @@
           "level 9"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-9/gate.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "imprisonment",
@@ -4187,8 +5509,21 @@
           "level 9"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-9/imprisonment.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "invulnerability",
+        "title": "Invulnerability",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Abjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "mass-heal",
@@ -4197,9 +5532,22 @@
         "tags": [
           "level 9"
         ],
-        "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-9/mass-heal.md",
-        "hasCard": false
+        "excerpt": "Abjuration spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "mass-polymorph",
+        "title": "Mass Polymorph",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Transmutation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "meteor-swarm",
@@ -4209,8 +5557,21 @@
           "level 9"
         ],
         "excerpt": "Evocation spell",
-        "filePath": "/data/glossary/entries/spells/level-9/meteor-swarm.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "power-word-heal",
+        "title": "Power Word Heal",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Enchantment spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "power-word-kill",
@@ -4220,8 +5581,9 @@
           "level 9"
         ],
         "excerpt": "Enchantment spell",
-        "filePath": "/data/glossary/entries/spells/level-9/power-word-kill.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "prismatic-wall",
@@ -4231,8 +5593,33 @@
           "level 9"
         ],
         "excerpt": "Abjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-9/prismatic-wall.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "psychic-scream",
+        "title": "Psychic Scream",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Enchantment spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "ravenous-void",
+        "title": "Ravenous Void",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Evocation spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "shapechange",
@@ -4242,8 +5629,9 @@
           "level 9"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-9/shapechange.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "storm-of-vengeance",
@@ -4253,8 +5641,21 @@
           "level 9"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-9/storm-of-vengeance.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
+      },
+      {
+        "id": "time-ravage",
+        "title": "Time Ravage",
+        "category": "Spells",
+        "tags": [
+          "level 9"
+        ],
+        "excerpt": "Necromancy spell",
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "time-stop",
@@ -4264,8 +5665,9 @@
           "level 9"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-9/time-stop.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "true-polymorph",
@@ -4275,8 +5677,9 @@
           "level 9"
         ],
         "excerpt": "Transmutation spell",
-        "filePath": "/data/glossary/entries/spells/level-9/true-polymorph.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "true-resurrection",
@@ -4286,8 +5689,9 @@
           "level 9"
         ],
         "excerpt": "Necromancy spell",
-        "filePath": "/data/glossary/entries/spells/level-9/true-resurrection.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "weird",
@@ -4297,8 +5701,9 @@
           "level 9"
         ],
         "excerpt": "Illusion spell",
-        "filePath": "/data/glossary/entries/spells/level-9/weird.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       },
       {
         "id": "wish",
@@ -4308,8 +5713,9 @@
           "level 9"
         ],
         "excerpt": "Conjuration spell",
-        "filePath": "/data/glossary/entries/spells/level-9/wish.md",
-        "hasCard": false
+        "aliases": [],
+        "filePath": null,
+        "hasSpellJson": true
       }
     ]
   }

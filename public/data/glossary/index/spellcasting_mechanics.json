@@ -24,7 +24,7 @@
       "ritual",
       "concentration"
     ],
-    "filePath": "/data/glossary/entries/rules/spells/casting_time_rules.md"
+    "filePath": "/data/glossary/entries/rules/spells/casting_time_rules.json"
   },
   {
     "id": "gaining_spells",
@@ -46,7 +46,7 @@
       "spell_level_slots",
       "class_spell_lists"
     ],
-    "filePath": "/data/glossary/entries/rules/spells/gaining_spells.md"
+    "filePath": "/data/glossary/entries/rules/spells/gaining_spells.json"
   },
   {
     "id": "school_of_magic",
@@ -74,7 +74,7 @@
       "spells_chapter",
       "class_spell_lists"
     ],
-    "filePath": "/data/glossary/entries/rules/spells/school_of_magic.md"
+    "filePath": "/data/glossary/entries/rules/spells/school_of_magic.json"
   },
   {
     "id": "spell_components_rules",
@@ -100,7 +100,7 @@
       "spellcasting_focus",
       "component_pouch"
     ],
-    "filePath": "/data/glossary/entries/rules/spells/spell_components_rules.md"
+    "filePath": "/data/glossary/entries/rules/spells/spell_components_rules.json"
   },
   {
     "id": "spell_duration_rules",
@@ -121,7 +121,7 @@
       "spells_chapter",
       "concentration"
     ],
-    "filePath": "/data/glossary/entries/rules/spells/spell_duration_rules.md"
+    "filePath": "/data/glossary/entries/rules/spells/spell_duration_rules.json"
   },
   {
     "id": "spell_effects_rules",
@@ -149,7 +149,7 @@
       "area_of_effect",
       "total_cover"
     ],
-    "filePath": "/data/glossary/entries/rules/spells/spell_effects_rules.md"
+    "filePath": "/data/glossary/entries/rules/spells/spell_effects_rules.json"
   },
   {
     "id": "spell_level_slots",
@@ -173,7 +173,7 @@
       "gaining_spells",
       "casting_time_rules"
     ],
-    "filePath": "/data/glossary/entries/rules/spells/spell_level_slots.md"
+    "filePath": "/data/glossary/entries/rules/spells/spell_level_slots.json"
   },
   {
     "id": "spell_range_rules",
@@ -194,6 +194,6 @@
       "spells_chapter",
       "spell_effects_rules"
     ],
-    "filePath": "/data/glossary/entries/rules/spells/spell_range_rules.md"
+    "filePath": "/data/glossary/entries/rules/spells/spell_range_rules.json"
   }
 ]

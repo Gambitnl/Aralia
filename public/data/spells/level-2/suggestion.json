@@ -1,23 +1,31 @@
 {
   "id": "suggestion",
   "name": "Suggestion",
+  "aliases": [],
   "level": 2,
   "school": "Enchantment",
-  "classes": ["Bard", "Cleric", "Druid", "Sorcerer", "Warlock", "Wizard"],
-  "description": "You suggest a course of activity (limited to a sentence or two) and magically influence a creature you can see within range that can hear and understand you. Creatures that can't be charmed are immune. The suggestion must sound reasonable. On a failed save, the target follows the described course of action as best it can. The suggestion ends if you or your companions damage the target.",
-  "higherLevels": "None",
-  "tags": ["enchantment", "control", "charm", "concentration"],
-  "arbitrationType": "ai_dm",
-  "aiContext": {
-    "prompt": "Evaluate the reasonableness of the suggestion '{playerInput}' given the situation. If reasonable, describe the target's compliance.",
-    "playerInputRequired": true,
-    "inputPrompt": "What is your suggestion?"
-  },
+  "source": "PHB 2024 p.325",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
     "type": "ranged",
@@ -27,7 +35,9 @@
     "verbal": true,
     "somatic": false,
     "material": true,
-    "materialDescription": "a snake's tongue and either a bit of honeycomb or a drop of sweet oil"
+    "materialDescription": "a snake's tongue and either a bit of honeycomb or a drop of sweet oil",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -38,21 +48,103 @@
   "targeting": {
     "type": "single",
     "range": 30,
-    "validTargets": ["creatures"],
-    "lineOfSight": true
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
       "condition": {
         "type": "save",
         "saveType": "Wisdom",
         "saveEffect": "negates_condition",
-        "targetFilter": { "excludeCreatureTypes": ["Construct", "Undead"] }
+        "targetFilter": {
+          "excludeCreatureTypes": [
+            "Construct",
+            "Undead"
+          ],
+          "creatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "utilityType": "control",
-      "description": "On failed save, target follows the reasonable suggestion for up to 8 hours; ends if target is damaged or companions harm it."
+      "description": "On failed save, target follows the reasonable suggestion for up to 8 hours; ends if target is damaged or companions harm it.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "ai_dm",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You suggest a course of activity (limited to a sentence or two) and magically influence a creature you can see within range that can hear and understand you. Creatures that can't be Charmed are immune to this effect. The suggestion must be worded in such a manner as to make the course of action sound reasonable. Asking the creature to stab itself, throw itself onto a spear, immolate itself, or do some other obviously harmful act ends the spell. The target must make a Wisdom saving throw. On a failed save, it follows the suggested course of action (described below) to the best of its ability. The suggested course of action can continue for the entire duration. If the suggested activity can be completed in a shorter time, the spell ends when the subject finishes what it was asked to do. You can also specify conditions that will trigger a special activity during the duration. For example, you might suggest that a knight give her warhorse to the first beggar she meets. If the condition isn't met before the spell expires, the activity isn't performed. If you or any of your companions damage the target, the spell ends.",
+  "higherLevels": "",
+  "tags": [
+    "enchantment",
+    "control",
+    "charm",
+    "concentration"
   ]
 }

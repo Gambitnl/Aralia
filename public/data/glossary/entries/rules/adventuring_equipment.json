@@ -1,0 +1,11 @@
+{
+  "id": "adventuring_equipment",
+  "title": "Adventuring Equipment",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "How equipment can help adventurers explore.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/adventuring_equipment.json",
+  "markdown": "# Adventuring Equipment\r\n<p class=\"glossary-intro-quote\">\r\nAs adventurers explore, their equipment can help them in many ways. See "Equipment" for rules on many items that are useful on adventures.\r\n</p>\r\n\r\n<div class=\"glossary-example-list\">\r\n  <div class=\"glossary-example-item\">\r\n    <strong>Reaching New Places</strong>\r\n    <span>Use a <span class=\"glossary-term-link-from-markdown\">Ladder</span> to access out-of-the-way locations or a <span class=\"glossary-term-link-from-markdown\">Torch</span> to perceive things in the dark.</span>\r\n  </div>\r\n  <div class=\"glossary-example-item\">\r\n    <strong>Overcoming Obstacles</strong>\r\n    <span>Bypass locked doors and containers with <span class=\"glossary-term-link-from-markdown\">Thieves' Tools</span> or create hazards for pursuers with <span class=\"glossary-term-link-from-markdown\">Caltrops</span>.</span>\r\n  </div>\r\n</div>\r\n\r\n<div class=\"glossary-callout\">\r\n  <strong>Beyond the Battlefield:</strong> The items in the "Tools" and "Adventuring Gear" sections are especially useful, but even weapons can be used for more than battle. For example, you could use a <span class=\"glossary-term-link-from-markdown\">Quarterstaff</span> to push a sinister-looking button you're reluctant to touch.\r\n</div>\r\n"
+}

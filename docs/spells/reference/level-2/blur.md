@@ -33,4 +33,4 @@
 
 ---
 
-## Batch 2 — Spells 11-20
+## Batch 2 - Spells 11-20

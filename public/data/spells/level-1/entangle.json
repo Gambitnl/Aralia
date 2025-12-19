@@ -1,25 +1,28 @@
 {
   "id": "entangle",
   "name": "Entangle",
+  "aliases": [],
   "level": 1,
   "school": "Conjuration",
+  "source": "PHB 2024 p.268",
+  "legacy": false,
   "classes": [
     "Druid",
     "Ranger"
   ],
-  "description": "Grasping plants sprout from the ground in a 20-foot square within range, turning the area into Difficult Terrain for the duration. Each creature in the area when cast makes a Strength saving throw or becomes Restrained until the spell ends. A Restrained creature can use an action to make a Strength (Athletics) check against your spell save DC, ending the effect on a success.",
-  "higherLevels": "None",
-  "tags": [
-    "control",
-    "terrain",
-    "concentration"
-  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
@@ -29,7 +32,10 @@
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -48,16 +54,48 @@
       "shape": "Square",
       "size": 20,
       "height": 0
+    },
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
     }
   },
   "effects": [
     {
       "type": "TERRAIN",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "terrainType": "difficult",
       "areaOfEffect": {
@@ -68,17 +106,66 @@
       "duration": {
         "type": "minutes",
         "value": 1
-      }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "damage": {
+        "dice": "",
+        "type": ""
+      },
+      "wallProperties": {
+        "hp": 0,
+        "ac": 0
+      },
+      "dispersedByStrongWind": false,
+      "manipulation": {
+        "type": "cosmetic",
+        "volume": {
+          "shape": "Cube",
+          "size": 0,
+          "depth": 0
+        },
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        },
+        "depositDistance": 0
+      },
+      "description": ""
     },
     {
       "type": "STATUS_CONDITION",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
         "type": "save",
         "saveType": "Strength",
-        "saveEffect": "negates_condition"
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "statusCondition": {
         "name": "Restrained",
@@ -91,19 +178,52 @@
           "skill": "Athletics",
           "dc": "spell_save_dc",
           "actionCost": "action"
+        },
+        "level": 0,
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true
         }
-      }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
     },
     {
       "type": "STATUS_CONDITION",
       "trigger": {
         "type": "on_enter_area",
-        "frequency": "first_per_turn"
+        "frequency": "first_per_turn",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
         "type": "save",
         "saveType": "Strength",
-        "saveEffect": "negates_condition"
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "statusCondition": {
         "name": "Restrained",
@@ -116,20 +236,52 @@
           "skill": "Athletics",
           "dc": "spell_save_dc",
           "actionCost": "action"
+        },
+        "level": 0,
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true
         }
       },
-      "description": "A creature that moves into the area for the first time on a turn must succeed on a Strength saving throw or be restrained."
+      "description": "A creature that moves into the area for the first time on a turn must succeed on a Strength saving throw or be restrained.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      }
     },
     {
       "type": "STATUS_CONDITION",
       "trigger": {
         "type": "on_end_turn_in_area",
-        "frequency": "every_time"
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
         "type": "save",
         "saveType": "Strength",
-        "saveEffect": "negates_condition"
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "statusCondition": {
         "name": "Restrained",
@@ -142,9 +294,33 @@
           "skill": "Athletics",
           "dc": "spell_save_dc",
           "actionCost": "action"
+        },
+        "level": 0,
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true
         }
       },
-      "description": "A creature that ends its turn in the area must succeed on a Strength saving throw or be restrained."
+      "description": "A creature that ends its turn in the area must succeed on a Strength saving throw or be restrained.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "Grasping weeds and vines sprout from the ground in a 20-foot square starting from a point within range. For the duration, these plants turn the ground in the area into Difficult Terrain. A creature in the area when you cast the spell must succeed on a Strength saving throw or be Restrained by the entangling plants until the spell ends. A creature Restrained by the plants can use its action to make a Strength (Athletics) check against your spell save DC. On a success, it frees itself.",
+  "higherLevels": "",
+  "tags": [
+    "control",
+    "terrain",
+    "concentration"
   ]
 }

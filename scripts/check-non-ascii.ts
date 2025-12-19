@@ -1,0 +1,168 @@
+import fs from 'fs';
+import path from 'path';
+import { globSync } from 'glob';
+
+const SHOULD_WRITE = process.argv.includes('--write');
+
+const TARGET_DIRECTORIES = [
+    'docs/spells/reference/**/*.md',
+    'public/data/spells/**/*.json',
+    'public/data/glossary/entries/**/*.json',
+];
+
+const MOJIBAKE_MARKERS = [
+    { pattern: /\uFFFD/g, name: 'Replacement Character (U+FFFD)' },
+    { pattern: /\u00C3[\u0080-\u00BF]/g, name: 'Possible UTF-8/Latin-1 mixup (Ã + suffix)' },
+    { pattern: /\u00E2\u20AC\u2122/g, name: 'Decoded Right Quote (â‚¬™)' },
+    { pattern: /\u0192/g, name: 'Latin Small Letter F With Hook (ƒ - common mojibake artifact)' },
+];
+
+const FORBIDDEN_CHARS = [
+    { pattern: /\uFEFF/g, name: 'Byte Order Mark (BOM)', replacement: '' },
+    { pattern: /[\u200B-\u200D]/g, name: 'Zero-Width Character', replacement: '' },
+];
+
+const NORMALIZATIONS: { pattern: RegExp; replacement: string; name: string }[] = [
+    { pattern: /[\u2018\u2019]/g, replacement: "'", name: 'Smart Single Quote' },
+    { pattern: /[\u201C\u201D]/g, replacement: '"', name: 'Smart Double Quote' },
+    { pattern: /\u2013/g, replacement: '-', name: 'En-dash' },
+    { pattern: /\u2014/g, replacement: '-', name: 'Em-dash' },
+    { pattern: /\u2026/g, replacement: '...', name: 'Ellipsis' },
+    { pattern: /\u00A0/g, replacement: ' ', name: 'Non-breaking Space' },
+    { pattern: /\u00D7/g, replacement: 'x', name: 'Multiplication Sign' },
+    { pattern: /\u00BD/g, replacement: '1/2', name: 'Fraction One Half' },
+    { pattern: /\u00BC/g, replacement: '1/4', name: 'Fraction One Quarter' },
+    { pattern: /\u00BE/g, replacement: '3/4', name: 'Fraction Three Quarters' },
+    { pattern: /\u2212/g, replacement: '-', name: 'Minus Sign' },
+    { pattern: /\u00F7/g, replacement: '/', name: 'Division Sign' },
+];
+
+interface Issue {
+    line: number;
+    column: number;
+    char: string;
+    codePoint: string;
+    type: string;
+    suggested?: string;
+}
+
+function checkFile(filePath: string): Issue[] {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const lines = content.split('\n');
+    const issues: Issue[] = [];
+
+    lines.forEach((lineText, lineIdx) => {
+        // Check for non-ASCII characters
+        for (let charIdx = 0; charIdx < lineText.length; charIdx++) {
+            const char = lineText[charIdx];
+            const code = char.charCodeAt(0);
+
+            // Allow tabs (9), LF (10), CR (13) - though split handles newlines
+            if (code > 127 || (code < 32 && code !== 9 && code !== 10 && code !== 13)) {
+                let type = 'Non-ASCII Character';
+                let suggested: string | undefined;
+
+                // Check against known mojibake/ forbidden
+                for (const m of MOJIBAKE_MARKERS) {
+                    if (m.pattern.test(char)) {
+                        type = `Mojibake: ${m.name}`;
+                    }
+                }
+                for (const f of FORBIDDEN_CHARS) {
+                    if (f.pattern.test(char)) {
+                        type = `Forbidden: ${f.name}`;
+                        suggested = f.replacement;
+                    }
+                }
+                for (const n of NORMALIZATIONS) {
+                    if (n.pattern.test(char)) {
+                        type = `Inconsistent: ${n.name}`;
+                        suggested = n.replacement;
+                    }
+                }
+
+                issues.push({
+                    line: lineIdx + 1,
+                    column: charIdx + 1,
+                    char,
+                    codePoint: `U+${code.toString(16).toUpperCase().padStart(4, '0')}`,
+                    type,
+                    suggested,
+                });
+            }
+        }
+    });
+
+    return issues;
+}
+
+function fixFile(filePath: string): boolean {
+    let content = fs.readFileSync(filePath, 'utf-8');
+    let modified = false;
+
+    // Apply FORBIDDEN_CHARS
+    for (const f of FORBIDDEN_CHARS) {
+        if (f.pattern.test(content)) {
+            content = content.replace(f.pattern, f.replacement);
+            modified = true;
+        }
+    }
+
+    // Apply NORMALIZATIONS
+    for (const n of NORMALIZATIONS) {
+        if (n.pattern.test(content)) {
+            content = content.replace(n.pattern, n.replacement);
+            modified = true;
+        }
+    }
+
+    if (modified) {
+        fs.writeFileSync(filePath, content, 'utf-8');
+    }
+    return modified;
+}
+
+function main() {
+    const files = TARGET_DIRECTORIES.flatMap((pattern) => globSync(pattern));
+    console.log(`Scanning ${files.length} files...`);
+
+    let totalIssues = 0;
+    let filesWithIssues = 0;
+    let filesFixed = 0;
+
+    files.forEach((file) => {
+        const issues = checkFile(file);
+        if (issues.length > 0) {
+            filesWithIssues++;
+            totalIssues += issues.length;
+            console.log(`\nFile: ${file}`);
+            issues.forEach((issue) => {
+                console.log(
+                    `  [Line ${issue.line}, Col ${issue.column}] ${issue.type} (${issue.char} / ${issue.codePoint})${issue.suggested !== undefined ? ` -> Suggested: ${issue.suggested}` : ''
+                    }`
+                );
+            });
+
+            if (SHOULD_WRITE) {
+                if (fixFile(file)) {
+                    filesFixed++;
+                    console.log(`  [FIXED] Normalized character content.`);
+                }
+            }
+        }
+    });
+
+    console.log('\n--- Summary ---');
+    console.log(`Total files scanned: ${files.length}`);
+    console.log(`Files with issues: ${filesWithIssues}`);
+    console.log(`Total issues found: ${totalIssues}`);
+    if (SHOULD_WRITE) {
+        console.log(`Files automatically fixed: ${filesFixed}`);
+    }
+
+    if (totalIssues > 0 && !SHOULD_WRITE) {
+        process.exit(1);
+    }
+}
+
+main();

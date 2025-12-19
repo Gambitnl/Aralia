@@ -1,0 +1,11 @@
+{
+  "id": "tool_proficiency",
+  "title": "Tool Proficiency",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "Rule for adding your Proficiency Bonus to checks using tools.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/equipment/tools/tool_proficiency.json",
+  "markdown": "# Tool Proficiency\r\nIf you have proficiency with a tool, add your Proficiency Bonus to any ability check you make that uses the tool. If you have proficiency in a skill that's used with that check, you have Advantage on the check too.\r\n\r\nYour features might give you proficiency with a tool. A monster has proficiency with any tool in its stat block."
+}

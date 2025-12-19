@@ -1,46 +1,105 @@
 {
   "id": "cure-wounds",
   "name": "Cure Wounds",
+  "aliases": [],
   "level": 1,
   "school": "Abjuration",
-  "classes": ["Artificer", "Bard", "Cleric", "Druid", "Paladin", "Ranger"],
-  "description": "A creature you touch regains a number of hit points equal to 2d8 plus your spellcasting ability modifier.",
-  "higherLevels": "The healing increases by 2d8 for each spell slot level above 1.",
-  "tags": ["healing"],
+  "source": "PHB 2024 p.259",
+  "legacy": false,
+  "classes": [
+    "Artificer",
+    "Bard",
+    "Cleric",
+    "Druid",
+    "Paladin",
+    "Ranger"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
-    "type": "touch"
+    "type": "touch",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "instantaneous",
-    "concentration": false
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "single",
-    "range": 5,
-    "validTargets": ["creatures", "allies"],
-    "lineOfSight": true
+    "range": 0,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "HEALING",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "healing": {
         "dice": "2d8",
@@ -48,8 +107,20 @@
       },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+2d8"
-      }
+        "bonusPerLevel": "+2d8",
+        "customFormula": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "A creature you touch regains a number of Hit Points equal to 2d8 + your spellcasting ability modifier. This spell has no effect on Undead or Constructs.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the healing increases by 2d8 for each slot level above 1st.",
+  "tags": [
+    "healing"
   ]
 }

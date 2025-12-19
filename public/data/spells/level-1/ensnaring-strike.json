@@ -1,34 +1,40 @@
 {
   "id": "ensnaring-strike",
   "name": "Ensnaring Strike",
+  "aliases": [],
   "level": 1,
   "school": "Conjuration",
+  "source": "PHB 2024 p.268",
+  "legacy": false,
   "classes": [
     "Ranger"
   ],
-  "description": "After you hit a creature with a weapon, it makes a Strength saving throw (Large or larger has Advantage). On a failed save, the target is Restrained by magical vines. While Restrained, it takes 1d6 Piercing damage at the start of each of its turns. A creature can use an action to make a Strength (Athletics) check against your spell save DC, ending the effect on a success.",
-  "higherLevels": "The start-of-turn damage increases by 1d6 for each spell slot level above 1.",
-  "tags": [
-    "control",
-    "conjuration",
-    "concentration"
-  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "bonus_action",
     "combatCost": {
       "type": "bonus_action",
-      "condition": "immediately after you hit a creature with a weapon"
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": false,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -38,18 +44,42 @@
   },
   "targeting": {
     "type": "single",
-    "range": 5,
     "validTargets": [
-      "creatures",
-      "enemies"
+      "creatures"
     ],
-    "lineOfSight": true
+    "lineOfSight": true,
+    "range": 0,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "STATUS_CONDITION",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
         "type": "save",
@@ -63,11 +93,30 @@
                 "Large",
                 "Huge",
                 "Gargantuan"
-              ]
+              ],
+              "creatureTypes": [],
+              "excludeCreatureTypes": [],
+              "sizes": [],
+              "alignments": [],
+              "hasCondition": [],
+              "isNativeToPlane": false
             },
-            "reason": "Large or larger creatures have advantage on the saving throw."
+            "reason": "Large or larger creatures have advantage on the saving throw.",
+            "value": 0,
+            "advantageOnDamage": false,
+            "sizeAdvantage": [],
+            "sizeDisadvantage": []
           }
-        ]
+        ],
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": []
       },
       "statusCondition": {
         "name": "Restrained",
@@ -93,20 +142,48 @@
               "Gargantuan"
             ]
           }
-        }
-      }
+        },
+        "level": 0
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
     },
     {
       "type": "DAMAGE",
       "trigger": {
         "type": "turn_start",
-        "frequency": "every_time"
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
         "type": "always",
         "requiresStatus": [
           "Restrained"
-        ]
+        ],
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "saveModifiers": []
       },
       "damage": {
         "dice": "1d6",
@@ -114,8 +191,22 @@
       },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+1d6"
-      }
+        "bonusPerLevel": "+1d6",
+        "customFormula": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "The next time you hit a creature with a weapon attack before this spell ends, a writhing mass of thorny vines appears at the point of impact, and the target must succeed on a Strength saving throw or be Restrained by the magical vines until the spell ends. A Large or larger creature has Advantage on this saving throw. If the target succeeds on the save, the vines shrivel away. While Restrained by this spell, the target takes 1d6 Piercing damage at the start of each of its turns. A creature restrained by the vines or one that can touch the creature can use its action to make a Strength (Athletics) check against your spell save DC. On a success, the target is freed.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d6 for each slot level above 1st.",
+  "tags": [
+    "control",
+    "conjuration",
+    "concentration"
   ]
 }

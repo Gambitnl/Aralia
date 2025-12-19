@@ -1,0 +1,11 @@
+{
+  "id": "versatile_property",
+  "title": "Versatile",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "No excerpt available.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/versatile.json",
+  "markdown": "# Versatile Property\r\nA Versatile weapon can be used with one or two hands. A damage value in parentheses appears with the property. The weapon deals that damage when used with two hands to make a melee attack."
+}

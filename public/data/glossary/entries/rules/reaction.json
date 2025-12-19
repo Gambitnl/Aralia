@@ -1,0 +1,15 @@
+{
+  "id": "reaction",
+  "title": "Reaction",
+  "category": "Rules Glossary",
+  "tags": ["combat", "turn", "actions"],
+  "excerpt": "An instant response to a trigger of some kind, which can occur on your turn or on someone else's. The most common reaction is an opportunity attack.",
+  "aliases": [],
+  "seeAlso": [
+    "action",
+    "bonus_action",
+    "opportunity_attack"
+  ],
+  "filePath": "/data/glossary/entries/rules/reaction.json",
+  "markdown": "# Reaction\n\nCertain special abilities, spells, and situations allow you to take a special action called a reaction. A reaction is an instant response to a trigger of some kind, which can occur on your turn or on someone else's.\n\n## Rules\n\n- You can take only **one** reaction per round of combat\n- When you take a reaction, you can't take another one until the start of your next turn\n- If the reaction interrupts another creature's turn, that creature can continue its turn right after the reaction\n\n## Common Reactions\n\n### Opportunity Attack\nThe most common reaction is an [[opportunity_attack]]. When a hostile creature you can see moves out of your reach, you can use your reaction to make one melee attack against that creature.\n\n### Spells\nSome spells can be cast as a reaction. The spell description tells you the trigger for the reaction:\n- *Shield*: Cast when you're hit by an attack\n- *Counterspell*: Cast when you see a creature casting a spell\n- *Feather Fall*: Cast when you or a creature within range falls\n- *Hellish Rebuke*: Cast when you take damage from a creature you can see\n\n### Class Features\nMany class features use reactions:\n- **Uncanny Dodge** (Rogue): Halve the damage from an attack\n- **Deflect Missiles** (Monk): Reduce ranged weapon attack damage\n- **Riposte** (Battle Master Fighter): Attack a creature that misses you\n"
+}

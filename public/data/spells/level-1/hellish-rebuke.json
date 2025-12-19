@@ -1,30 +1,124 @@
 {
   "id": "hellish-rebuke",
   "name": "Hellish Rebuke",
+  "aliases": [],
   "level": 1,
   "school": "Evocation",
-  "classes": ["Warlock"],
-  "description": "The creature that damaged you is momentarily surrounded by green flames. It makes a Dexterity saving throw, taking 2d10 Fire damage on a failed save or half as much on a successful one.",
-  "higherLevels": "The damage increases by 1d10 for each spell slot level above 1.",
-  "tags": ["damage", "reaction", "fire"],
+  "source": "PHB 2024 p.284",
+  "legacy": false,
+  "classes": [
+    "Warlock"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "reaction",
     "reactionCondition": "when a creature you can see within 60 feet damages you",
-    "combatCost": { "type": "reaction", "condition": "when a creature you can see within 60 feet damages you" }
+    "combatCost": {
+      "type": "reaction",
+      "condition": "when a creature you can see within 60 feet damages you"
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
-  "range": { "type": "ranged", "distance": 60 },
-  "components": { "verbal": true, "somatic": true, "material": false },
-  "duration": { "type": "instantaneous", "concentration": false },
-  "targeting": { "type": "single", "range": 60, "validTargets": ["creatures", "enemies"], "lineOfSight": true },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
+  },
+  "targeting": {
+    "type": "single",
+    "range": 60,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
+  },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "save", "saveType": "Dexterity", "saveEffect": "half" },
-      "damage": { "dice": "2d10", "type": "Fire" },
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d10" }
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "save",
+        "saveType": "Dexterity",
+        "saveEffect": "half",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "2d10",
+        "type": "Fire"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d10",
+        "customFormula": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You point your finger, and the creature that damaged you is momentarily surrounded by hellish flames. The creature must make a Dexterity saving throw. It takes 2d10 Fire damage on a failed save, or half as much damage on a successful one.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d10 for each slot level above 1st.",
+  "tags": [
+    "damage",
+    "reaction",
+    "fire"
   ]
 }

@@ -1,20 +1,109 @@
-import React, { useMemo, useEffect, useRef } from 'react';
+import React, { useMemo, useEffect, useRef, useContext } from 'react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
+import GlossaryContext from '../../context/GlossaryContext';
+import { GlossaryEntry } from '../../types';
 
 interface GlossaryContentRendererProps {
   markdownContent: string;
   onNavigate?: (termId: string) => void;
 }
 
+/**
+ * Build a Set of all valid term IDs from the glossary index (including sub-entries).
+ */
+const buildValidTermIds = (entries: GlossaryEntry[] | null): Set<string> => {
+  const ids = new Set<string>();
+  if (!entries) return ids;
+
+  const addIds = (entryList: GlossaryEntry[]) => {
+    for (const entry of entryList) {
+      ids.add(entry.id);
+      // Also add aliases as valid term IDs
+      if (entry.aliases) {
+        entry.aliases.forEach(alias => ids.add(alias.toLowerCase().replace(/\s+/g, '_')));
+      }
+      if (entry.subEntries) {
+        addIds(entry.subEntries);
+      }
+    }
+  };
+
+  addIds(entries);
+  return ids;
+};
+
+/**
+ * Expands glossary link shorthand syntaxes to full HTML spans.
+ * Only creates links for terms that exist in the validTermIds set.
+ *
+ * Supports multiple formats for writing glossary links more concisely:
+ *
+ * SHORTHAND FORMATS (use these in source content):
+ * - [[term_id]]           -> displays "Term Id" (auto title-cased)
+ * - [[term_id|Display]]   -> displays "Display" linking to term_id
+ * - {{term_id}}           -> same as [[term_id]]
+ * - {{term_id|Display}}   -> same as [[term_id|Display]]
+ * - <g t="id">Text</g>    -> ultra-compact, 18 chars vs 70+
+ *
+ * COMPARISON (linking "Rage" to "rage"):
+ * - Old: <span data-term-id="rage" class="glossary-term-link-from-markdown">Rage</span> (70 chars)
+ * - New: [[rage|Rage]] (12 chars) or <g t="rage">Rage</g> (18 chars)
+ * - Auto: [[rage]] (8 chars) -> auto-displays "Rage"
+ *
+ * If a term doesn't exist in the glossary, the shorthand is replaced with just the display text (no link).
+ */
+export const expandGlossaryShorthand = (content: string, validTermIds?: Set<string>): string => {
+  // Pattern 1: [[term_id]] or [[term_id|Display Text]]
+  const wikiLinkPattern = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
+
+  // Pattern 2: {{term_id}} or {{term_id|Display Text}}
+  const mustachePattern = /\{\{([^}|]+)(?:\|([^}]+))?\}\}/g;
+
+  // Pattern 3: <g t="term_id">Display</g> - compact custom element
+  const compactElementPattern = /<g\s+t="([^"]+)"(?:\s+c="([^"]+)")?>(.*?)<\/g>/g;
+
+  // Helper to create the span HTML or just return display text if term doesn't exist
+  const createSpanOrText = (termId: string, displayText?: string): string => {
+    const display = displayText || termId.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+    // If we have a validTermIds set and the term isn't in it, just return the display text
+    if (validTermIds && !validTermIds.has(termId.trim())) {
+      return display;
+    }
+
+    return `<span data-term-id="${termId}" class="glossary-term-link-from-markdown">${display}</span>`;
+  };
+
+  let result = content;
+
+  // Expand [[...]] syntax
+  result = result.replace(wikiLinkPattern, (_, termId, display) => createSpanOrText(termId.trim(), display?.trim()));
+
+  // Expand {{...}} syntax
+  result = result.replace(mustachePattern, (_, termId, display) => createSpanOrText(termId.trim(), display?.trim()));
+
+  // Expand <g t="...">...</g> syntax
+  result = result.replace(compactElementPattern, (_, termId, _cls, display) => createSpanOrText(termId.trim(), display?.trim()));
+
+  return result;
+};
+
 export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = ({ markdownContent, onNavigate }) => {
   const contentRef = useRef<HTMLDivElement>(null);
+  const glossaryIndex = useContext(GlossaryContext);
+
+  // Build the set of valid term IDs once when the index changes
+  const validTermIds = useMemo(() => buildValidTermIds(glossaryIndex), [glossaryIndex]);
 
   const structuredHtml = useMemo(() => {
     if (!markdownContent) return '';
 
+    // First expand any shorthand glossary link syntaxes, validating against known terms
+    const expandedContent = expandGlossaryShorthand(markdownContent, validTermIds);
+
     // Replace Markdown horizontal rules with styled HTML ones before parsing
-    const preppedMarkdown = markdownContent.replace(/^---$/gm, '<hr />');
+    const preppedMarkdown = expandedContent.replace(/^---$/gm, '<hr />');
     
     const rawHtml = marked.parse(preppedMarkdown, { gfm: true, breaks: true, async: false }) as string;
     const safeHtml = DOMPurify.sanitize(rawHtml);

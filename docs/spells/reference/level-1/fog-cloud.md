@@ -36,4 +36,4 @@
 
 ---
 
-## Batch 4 — Spells 31-40
+## Batch 4 - Spells 31-40

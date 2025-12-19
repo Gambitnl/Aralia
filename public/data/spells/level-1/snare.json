@@ -1,18 +1,25 @@
 {
   "id": "snare",
   "name": "Snare",
+  "aliases": [],
   "level": 1,
   "school": "Abjuration",
-  "classes": ["Artificer", "Ranger", "Wizard"],
-  "description": "You weave a 5-foot circle of rope on the ground to create a magical trap. The rope is consumed when you cast the spell. The trap is nearly invisible and lasts for the duration. When a Small, Medium, or Large creature enters the circle, it must succeed on a Dexterity saving throw or be hoisted upside down 3 feet above the ground and restrained until the spell ends. A restrained creature can use an action to make a Dexterity saving throw, ending the effect on a success. A creature adjacent to the tether can use an action to make a Dexterity check against your spell save DC to disarm the snare, ending the spell on a success.",
-  "higherLevels": "None",
-  "tags": ["control", "trap", "abjuration"],
+  "source": "PHB 2024",
+  "legacy": false,
+  "classes": [
+    "Artificer",
+    "Ranger",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "minute",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
     },
     "explorationCost": {
       "value": 1,
@@ -20,14 +27,16 @@
     }
   },
   "range": {
-    "type": "touch"
+    "type": "touch",
+    "distance": 0
   },
   "components": {
     "verbal": false,
     "somatic": true,
     "material": true,
     "materialDescription": "25 feet of rope, which the spell consumes",
-    "isConsumed": true
+    "isConsumed": true,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -38,24 +47,56 @@
   "targeting": {
     "type": "area",
     "range": 0,
-    "validTargets": ["creatures"],
+    "validTargets": [
+      "creatures"
+    ],
     "areaOfEffect": {
       "shape": "Square",
-      "size": 5
+      "size": 5,
+      "height": 0
     },
-    "lineOfSight": true
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "STATUS_CONDITION",
       "trigger": {
         "type": "on_enter_area",
-        "frequency": "once_per_creature"
+        "frequency": "once_per_creature",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
         "type": "save",
         "saveType": "Dexterity",
-        "saveEffect": "negates_condition"
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "statusCondition": {
         "name": "Restrained",
@@ -67,15 +108,95 @@
           "ability": "Dexterity",
           "dc": "spell_save_dc",
           "actionCost": "action"
+        },
+        "level": 0,
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true
         }
-      }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
     },
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "control",
-      "description": "Trap is nearly invisible (Perception or Investigation vs. spell save DC). A creature adjacent to the tether can use an action to make a Dexterity check against your spell save DC to disarm the snare, ending the spell on a success."
+      "description": "Trap is nearly invisible (Perception or Investigation vs. spell save DC). A creature adjacent to the tether can use an action to make a Dexterity check against your spell save DC to disarm the snare, ending the spell on a success.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You weave a 5-foot circle of rope on the ground to create a magical trap. The rope is consumed when you cast the spell. The trap is nearly invisible and lasts for the duration. When a Small, Medium, or Large creature enters the circle, it must succeed on a Dexterity saving throw or be hoisted upside down 3 feet above the ground and restrained until the spell ends. A restrained creature can use an action to make a Dexterity saving throw, ending the effect on a success. A creature adjacent to the tether can use an action to make a Dexterity check against your spell save DC to disarm the snare, ending the spell on a success.",
+  "higherLevels": "None",
+  "tags": [
+    "control",
+    "trap",
+    "abjuration"
   ]
 }

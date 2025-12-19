@@ -1,25 +1,145 @@
 {
   "id": "longstrider",
   "name": "Longstrider",
+  "aliases": [],
   "level": 1,
   "school": "Transmutation",
-  "classes": ["Artificer", "Bard", "Druid", "Ranger", "Wizard"],
-  "description": "You touch a creature. The target's speed increases by 10 feet until the spell ends.",
-  "higherLevels": "You can target one additional creature for each spell slot level above 1.",
-  "tags": ["movement"],
+  "source": "PHB 2024 p.293",
+  "legacy": false,
+  "classes": [
+    "Artificer",
+    "Bard",
+    "Druid",
+    "Ranger",
+    "Wizard"
+  ],
   "ritual": false,
-  "castingTime": { "value": 1, "unit": "action", "combatCost": { "type": "action" } },
-  "range": { "type": "touch" },
-  "components": { "verbal": true, "somatic": true, "material": true, "materialDescription": "a pinch of dirt" },
-  "duration": { "type": "timed", "value": 1, "unit": "hour", "concentration": false },
-  "targeting": { "type": "single", "range": 5, "validTargets": ["creatures", "allies"], "lineOfSight": true },
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "touch",
+    "distance": 0
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a pinch of dirt",
+    "isConsumed": false,
+    "materialCost": 0
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 0,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
+  },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "other",
-      "description": "Target's speed increases by 10 feet for the duration."
+      "description": "You touch a creature. The target's speed increases by 10 feet until the spell ends.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You touch a creature. The target's speed increases by 10 feet until the spell ends.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st.",
+  "tags": [
+    "movement"
   ]
 }

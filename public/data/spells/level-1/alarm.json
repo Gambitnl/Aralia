@@ -1,18 +1,25 @@
 {
   "id": "alarm",
   "name": "Alarm",
+  "aliases": [],
   "level": 1,
   "school": "Abjuration",
-  "classes": ["Artificer", "Ranger", "Wizard"],
-  "description": "You set an alarm against unwanted intrusion on a door, window, or an area up to a 20-foot cube. Choose creatures that won’t trigger it. The alarm can be mental (ping in your mind within 1 mile) or audible (hand bell for 10 seconds within 60 feet).",
-  "higherLevels": "None",
-  "tags": ["utility", "detection", "ritual"],
+  "source": "PHB 2024 p.239",
+  "legacy": false,
+  "classes": [
+    "Artificer",
+    "Ranger",
+    "Wizard"
+  ],
   "ritual": true,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "minute",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
     },
     "explorationCost": {
       "value": 1,
@@ -27,7 +34,9 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a tiny bell and a piece of fine silver wire"
+    "materialDescription": "a bell and silver wire",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -38,20 +47,99 @@
   "targeting": {
     "type": "area",
     "range": 30,
-    "validTargets": ["point"],
+    "validTargets": [
+      "objects"
+    ],
     "areaOfEffect": {
       "shape": "Cube",
-      "size": 20
+      "size": 20,
+      "height": 0
     },
-    "lineOfSight": true
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "sensory",
-      "description": "Create a mental or audible alarm that triggers when a creature enters the warded area."
+      "description": "Create a mental or audible alarm that triggers when a creature enters the warded area.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You set an alert against intrusion. Choose a door, a window, or an area within range that is no larger than a 20-foot Cube. Until the spell ends, an alarm alerts you whenever a Tiny or larger creature touches or enters the warded area. When you cast the spell, you can designate creatures that won't set off the alarm. You also choose whether the alarm is mental or audible. A mental alarm alerts you with a ping in your mind if you are within 1 mile of the warded area. This ping awakens you if you are sleeping. An audible alarm produces the sound of a handbell for 10 seconds within 60 feet.",
+  "higherLevels": "",
+  "tags": [
+    "utility",
+    "detection",
+    "ritual"
   ]
 }

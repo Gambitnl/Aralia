@@ -1,17 +1,29 @@
 {
   "id": "spike-growth",
   "name": "Spike Growth",
+  "aliases": [],
   "level": 2,
   "school": "Transmutation",
-  "classes": ["Druid", "Ranger"],
-  "description": "The ground in a 20-foot radius centered on a point within range twists into hard spikes and thorns. The area becomes difficult terrain. When a creature moves into or within the area, it takes 2d4 piercing damage for every 5 feet it travels. The transformation is camouflaged to look natural; a Perception check against your spell save DC reveals the area as hazardous.",
-  "higherLevels": "None",
-  "tags": ["control", "terrain", "damage", "concentration"],
+  "source": "PHB 2024 p.321",
+  "legacy": false,
+  "classes": [
+    "Druid",
+    "Ranger"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
     "type": "ranged",
@@ -21,7 +33,9 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "seven sharp thorns or seven small twigs, each sharpened to a point"
+    "materialDescription": "seven sharp thorns or seven small twigs, each sharpened to a point",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -32,20 +46,108 @@
   "targeting": {
     "type": "area",
     "range": 150,
-    "validTargets": ["creatures"],
-    "areaOfEffect": { "shape": "Sphere", "size": 20 },
-    "lineOfSight": true
+    "validTargets": [
+      "point"
+    ],
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 20,
+      "height": 0
+    },
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "TERRAIN",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "terrainType": "damaging",
-      "areaOfEffect": { "shape": "Sphere", "size": 20 },
-      "duration": { "type": "minutes", "value": 10 },
-      "damage": { "dice": "2d4", "type": "Piercing" },
-      "description": "Difficult terrain; creatures take damage per 5 ft traveled within the area; camouflaged (Perception vs save DC to notice)."
+      "areaOfEffect": {
+        "shape": "Sphere",
+        "size": 20,
+        "height": 0
+      },
+      "duration": {
+        "type": "minutes",
+        "value": 10
+      },
+      "damage": {
+        "dice": "2d4",
+        "type": "Piercing"
+      },
+      "description": "Difficult terrain; creatures take damage per 5 ft traveled within the area; camouflaged (Perception vs save DC to notice).",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "wallProperties": {
+        "hp": 0,
+        "ac": 0
+      },
+      "dispersedByStrongWind": false,
+      "manipulation": {
+        "type": "cosmetic",
+        "volume": {
+          "shape": "Cube",
+          "size": 0,
+          "depth": 0
+        },
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        },
+        "depositDistance": 0
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "The ground in a 20-foot radius centered on a point within range twists and sprouts hard spikes and thorns. The area becomes Difficult Terrain for the duration. When a creature moves into or within the area, it takes 2d4 Piercing damage for every 5 feet it travels. The transformation of the ground is camouflaged to look natural. Any creature that can't see the area at the time the spell is cast must make a Wisdom (Perception) check against your spell save DC to recognize the terrain as hazardous before entering it.",
+  "higherLevels": "",
+  "tags": [
+    "control",
+    "terrain",
+    "damage",
+    "concentration"
   ]
 }

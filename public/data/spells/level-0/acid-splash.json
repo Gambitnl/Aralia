@@ -1,25 +1,29 @@
 {
   "id": "acid-splash",
   "name": "Acid Splash",
+  "aliases": [],
   "level": 0,
   "school": "Evocation",
+  "source": "PHB 2024",
+  "legacy": false,
   "classes": [
     "Artificer",
     "Sorcerer",
     "Wizard"
   ],
-  "tags": [
-    "damage",
-    "acid",
-    "area",
-    "cantrip"
-  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
@@ -29,34 +33,70 @@
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "instantaneous",
-    "concentration": false
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "area",
     "range": 60,
     "areaOfEffect": {
       "shape": "Sphere",
-      "size": 5
+      "size": 5,
+      "height": 0
     },
     "validTargets": [
       "creatures"
     ],
-    "lineOfSight": true
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
         "type": "save",
         "saveType": "Dexterity",
-        "saveEffect": "none"
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "1d6",
@@ -64,10 +104,23 @@
       },
       "scaling": {
         "type": "character_level",
-        "customFormula": "{\"5\": \"2d6\", \"11\": \"3d6\", \"17\": \"4d6\"}"
-      }
+        "customFormula": "{\"5\": \"2d6\", \"11\": \"3d6\", \"17\": \"4d6\"}",
+        "bonusPerLevel": ""
+      },
+      "description": ""
     }
   ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
   "description": "You create an acidic bubble at a point within range, where it explodes in a 5-foot-radius sphere. Each creature in that sphere must succeed on a Dexterity saving throw or take 1d6 Acid damage.",
-  "higherLevels": "This spell's damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6)."
+  "higherLevels": "This spell's damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6).",
+  "tags": [
+    "damage",
+    "acid",
+    "area",
+    "cantrip"
+  ]
 }

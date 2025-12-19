@@ -1,0 +1,29 @@
+{
+  "id": "school_of_magic",
+  "title": "Schools of Magic",
+  "category": "Spellcasting Mechanics",
+  "tags": [
+    "rules",
+    "spellcasting",
+    "magic school",
+    "abjuration",
+    "conjuration",
+    "divination",
+    "enchantment",
+    "evocation",
+    "illusion",
+    "necromancy",
+    "transmutation"
+  ],
+  "excerpt": "Describes the eight schools of magic (Abjuration, Conjuration, etc.) that categorize spells based on their typical effects.",
+  "aliases": [
+    "magic schools",
+    "spell schools"
+  ],
+  "seeAlso": [
+    "spells_chapter",
+    "class_spell_lists"
+  ],
+  "filePath": "/data/glossary/entries/rules/spells/school_of_magic.json",
+  "markdown": "# Schools of Magic\r\n\r\nEach spell belongs to a school of magic. The schools are listed in the Schools of Magic table. These categories help describe spells but have no rules of their own, although some other rules refer to them.\r\n\r\n#### Schools of Magic\r\n| School       | Typical Effects                                      |\r\n|--------------|------------------------------------------------------|\r\n| Abjuration   | Prevents or reverses harmful effects                 |\r\n| Conjuration  | Transports creatures or objects                      |\r\n| Divination   | Reveals information                                  |\r\n| Enchantment  | Influences minds                                     |\r\n| Evocation    | Channels energy to create effects that are often destructive |\r\n| Illusion     | Deceives the mind or senses                          |\r\n| Necromancy   | Manipulates life and death                           |\r\n| Transmutation| Transforms creatures or objects                      |\r\n\r\n## Class Spell Lists\r\n\r\nIf a spell is on a class's spell list, the class's name appears in parentheses after the spell's school of magic. Some features add a spell to a character's spell list even if the character isn't a member of a class in the parentheses."
+}

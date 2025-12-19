@@ -1,17 +1,31 @@
 {
   "id": "crown-of-madness",
   "name": "Crown of Madness",
+  "aliases": [],
   "level": 2,
   "school": "Enchantment",
-  "classes": ["Bard", "Sorcerer", "Warlock", "Wizard"],
-  "description": "One humanoid must succeed on a Wisdom saving throw or be charmed by you. While charmed, the target must use its action before moving on each of its turns to make a melee attack against a creature other than itself that you mentally choose. After making the attack, it can move. The target can repeat the saving throw at the end of each of its turns, ending the effect on a success.",
-  "higherLevels": "None",
-  "tags": ["control", "enchantment", "concentration"],
+  "source": "PHB 2024 p.259",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Sorcerer",
+    "Warlock",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
     "type": "ranged",
@@ -20,7 +34,10 @@
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -31,20 +48,101 @@
   "targeting": {
     "type": "single",
     "range": 120,
-    "validTargets": ["humanoids"],
-    "lineOfSight": true
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "filter": {
+      "creatureTypes": [
+        "Humanoid"
+      ],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    },
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
       "condition": {
         "type": "save",
         "saveType": "Wisdom",
-        "saveEffect": "negates_condition"
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "utilityType": "control",
-      "description": "On failed save, target is charmed. Each turn before moving, it must use its action to make a melee attack against a creature you choose. At end of each of its turns, it can repeat the Wisdom save to end the effect."
+      "description": "On failed save, target is charmed. Each turn before moving, it must use its action to make a melee attack against a creature you choose. At end of each of its turns, it can repeat the Wisdom save to end the effect.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "One Humanoid of your choice that you can see within range must succeed on a Wisdom saving throw or become Charmed by you for the duration. While the target is Charmed in this way, a twisted crown of jagged iron appears on its head, and a madness glows in its eyes. The Charmed target must use its action before moving on each of its turns to make a melee attack against a creature other than itself that you mentally choose. The target can act normally on its turn if you choose no creature or if none are within its reach. On your subsequent turns, you must use your action to maintain control over the target, or the spell ends. Also, the target can make a Wisdom saving throw at the end of each of its turns. On a success, the spell ends.",
+  "higherLevels": "",
+  "tags": [
+    "control",
+    "enchantment",
+    "concentration"
   ]
 }

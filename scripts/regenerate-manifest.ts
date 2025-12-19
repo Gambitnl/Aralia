@@ -30,6 +30,7 @@ spellFiles.forEach(file => {
 
         manifest[spell.id] = {
             name: spell.name,
+            aliases: Array.isArray(spell.aliases) ? spell.aliases : undefined,
             level: spell.level,
             school: spell.school,
             path: webPath

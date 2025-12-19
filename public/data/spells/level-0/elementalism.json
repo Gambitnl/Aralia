@@ -1,38 +1,29 @@
 {
   "id": "elementalism",
   "name": "Elementalism",
+  "aliases": [],
   "level": 0,
   "school": "Transmutation",
+  "source": "PHB 2024",
+  "legacy": false,
   "classes": [
     "Druid",
     "Sorcerer",
     "Wizard"
   ],
-  "tags": [
-    "utility",
-    "elemental",
-    "cantrip"
-  ],
-  "_todo": [
-    "PLAYER_CHOICE: Need UI for selecting which of 5 effects to use at cast time",
-    "BECKON_AIR: Requires door/shutter state system (open/closed/held)",
-    "BECKON_EARTH: Dust shroud could create light obscurement (vision system)",
-    "BECKON_EARTH: Writing text needs graffiti/marking system if visible on map",
-    "BECKON_FIRE: Toggle light sources on/off (uses existing activeLightSources)",
-    "BECKON_FIRE: Needs torch/candle/campfire as objects with 'lit' state",
-    "BECKON_WATER: Create water in container (inventory/object system)",
-    "BECKON_WATER: Water on surface evaporates in 1min (temporary terrain mod)",
-    "SCULPT_ELEMENT: Temporary visual object for 1 round (auto-cleanup)",
-    "COMMON: Object state system (doors, torches, containers)",
-    "COMMON: Terrain/surface type detection (dirt, sand, stone)"
-  ],
-  "description": "You exert control over the elements, creating one of the following effects within range:\n- Beckon Air: Create a breeze strong enough to ripple cloth, stir dust, rustle leaves, and close open doors/shutters (unless held open).\n- Beckon Earth: Create a thin shroud of dust or sand that covers a 5-foot square area, or cause a single word to appear in handwriting in a patch of dirt or sand.\n- Beckon Fire: Create a thin cloud of harmless embers and smoke, light a candle/torch/campfire, or snuff out a small flame.\n- Beckon Water: Create a spray of cool mist or cause up to 1 cup of water to spill from a container.\n- Sculpt Element: Cause dirt, sand, fire, smoke, mist, or water to assume a crude shape (fitting in a 1-foot cube) for 1 round.",
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
@@ -42,11 +33,16 @@
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "instantaneous",
-    "concentration": false
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "point",
@@ -55,19 +51,96 @@
       "point",
       "objects"
     ],
-    "lineOfSight": true
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "utilityType": "control",
-      "description": "Creates minor elemental effects (Air, Earth, Fire, Water) or sculpts elements."
+      "description": "Creates minor elemental effects (Air, Earth, Fire, Water) or sculpts elements.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You exert control over the elements, creating one of the following effects within range:\n- Beckon Air: Create a breeze strong enough to ripple cloth, stir dust, rustle leaves, and close open doors/shutters (unless held open).\n- Beckon Earth: Create a thin shroud of dust or sand that covers a 5-foot square area, or cause a single word to appear in handwriting in a patch of dirt or sand.\n- Beckon Fire: Create a thin cloud of harmless embers and smoke, light a candle/torch/campfire, or snuff out a small flame.\n- Beckon Water: Create a spray of cool mist or cause up to 1 cup of water to spill from a container.\n- Sculpt Element: Cause dirt, sand, fire, smoke, mist, or water to assume a crude shape (fitting in a 1-foot cube) for 1 round.",
+  "higherLevels": "",
+  "tags": [
+    "utility",
+    "elemental",
+    "cantrip"
   ]
 }

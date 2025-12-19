@@ -1,3 +1,15 @@
+/**
+ * @file spellValidator.ts
+ * 
+ * PURPOSE:
+ * This file defines the Zod schema used for validating every Spell JSON file in the codebase.
+ * It ensures that our "Gold Standard" data remains structuraly sound and consistent.
+ * 
+ * WHO USES THIS:
+ * 1. Data Validation Script (`scripts/validate-data.ts`): Runs during `npm run validate`.
+ * 2. Spell Migration Service: Used by the AI agents when converting new spells to JSON.
+ * 3. Combat Engine: Relies on these keys existing to avoid runtime undefined errors.
+ */
 import { z } from 'zod';
 import { CLASSES_DATA } from '../../../data/classes';
 
@@ -32,6 +44,13 @@ const SpellSchool = z.enum([
   "Evocation", "Illusion", "Necromancy", "Transmutation"
 ]);
 
+const ArbitrationType = z.enum(["mechanical", "ai_assisted", "ai_dm"]);
+
+const AIContext = z.object({
+  prompt: z.string(),
+  playerInputRequired: z.boolean(),
+});
+
 const SavingThrowAbility = z.enum(["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]);
 
 const CastingTime = z.object({
@@ -39,32 +58,32 @@ const CastingTime = z.object({
   unit: z.enum(["action", "bonus_action", "reaction", "minute", "hour", "special"]),
   combatCost: z.object({
     type: z.enum(["action", "bonus_action", "reaction"]),
-    condition: z.string().optional(),
-  }).optional(),
+    condition: z.string(),
+  }),
   explorationCost: z.object({
     value: z.number(),
     unit: z.enum(["minute", "hour"]),
-  }).optional(),
+  }),
 });
 
 const Range = z.object({
   type: z.enum(["self", "touch", "ranged", "special"]),
-  distance: z.number().optional(),
+  distance: z.number(),
 });
 
 const Components = z.object({
   verbal: z.boolean(),
   somatic: z.boolean(),
   material: z.boolean(),
-  materialDescription: z.string().optional(),
-  materialCost: z.number().optional(),
-  isConsumed: z.boolean().optional(),
+  materialDescription: z.string(),
+  materialCost: z.number(),
+  isConsumed: z.boolean(),
 });
 
 const Duration = z.object({
   type: z.enum(["instantaneous", "timed", "special", "until_dispelled", "until_dispelled_or_triggered"]),
-  value: z.number().optional(),
-  unit: z.enum(["round", "minute", "hour", "day"]).optional(),
+  value: z.number(),
+  unit: z.enum(["round", "minute", "hour", "day"]),
   concentration: z.boolean(),
 });
 
@@ -83,7 +102,7 @@ const ScalableNumber = z.union([
 const TargetingAreaOfEffect = z.object({
   shape: z.enum(["Cone", "Cube", "Cylinder", "Line", "Sphere", "Square"]),
   size: z.number(),
-  height: z.number().optional()
+  height: z.number()
 });
 
 const ValidTargetType = z.enum([
@@ -91,23 +110,28 @@ const ValidTargetType = z.enum([
 ]);
 
 const TargetConditionFilter = z.object({
-  creatureTypes: z.array(z.string()).optional(),
-  excludeCreatureTypes: z.array(z.string()).optional(),
-  sizes: z.array(z.string()).optional(),
-  alignments: z.array(z.string()).optional(),
-  hasCondition: z.array(z.string()).optional(),
-  isNativeToPlane: z.boolean().optional(),
+  creatureTypes: z.array(z.string()),
+  excludeCreatureTypes: z.array(z.string()),
+  sizes: z.array(z.string()),
+  alignments: z.array(z.string()),
+  hasCondition: z.array(z.string()),
+  isNativeToPlane: z.boolean(),
 });
 
+/**
+ * TARGETING SYSTEM
+ * Defines where a spell can be aimed and what it can hit.
+ * Used by BattleMap to calculate valid tiles and target highlights.
+ */
 const Targeting = z.object({
   type: z.enum(["self", "single", "multi", "area", "melee", "ranged", "point"]),
-  range: z.number().optional(),
-  maxTargets: ScalableNumber.optional(),
+  range: z.number(),
+  maxTargets: ScalableNumber,
   validTargets: z.array(ValidTargetType),
-  lineOfSight: z.boolean().optional(),
-  areaOfEffect: TargetingAreaOfEffect.optional(),
-  filter: TargetConditionFilter.optional(),
-  // Legacy fields (deprecated, use areaOfEffect instead)
+  lineOfSight: z.boolean(),
+  areaOfEffect: TargetingAreaOfEffect,
+  filter: TargetConditionFilter,
+  // Legacy fields (deprecated, use areaOfEffect instead - keeping optional for backwards compat during migration if needed, but script backfilled them)
   shape: z.enum(["sphere", "cone", "cube", "line", "cylinder"]).optional(),
   radius: z.number().optional()
 });
@@ -187,6 +211,7 @@ const BaseEffect = z.object({
   trigger: EffectTrigger,
   condition: EffectCondition,
   scaling: ScalingFormula.optional(),
+  description: z.string(),
 });
 
 const DamageData = z.object({
@@ -301,7 +326,7 @@ export const SummonedEntityStatBlock = z.object({
     cha: z.number(),
   }).optional(),
   senses: z.array(z.string()).optional(),
-  skills: z.record(z.number()).optional(),
+  skills: z.record(z.string(), z.number()).optional(),
   cr: z.union([z.number(), z.string()]).optional(),
 });
 
@@ -324,7 +349,7 @@ const SummoningEffect = BaseEffect.extend({
 
     // For variable summons
     count: z.number().optional(),
-    countByCR: z.record(z.number()).optional(), // e.g. {"2": 1, "1": 2, "0.5": 4}
+    countByCR: z.record(z.string(), z.number()).optional(), // e.g. {"2": 1, "1": 2, "0.5": 4}
 
     // For choice summons
     formOptions: z.array(z.string()).optional(),
@@ -448,6 +473,17 @@ const DefensiveEffect = BaseEffect.extend({
   }).optional()
 });
 
+/**
+ * EFFECT SYSTEM
+ * A discriminated union of all possible mechanical results.
+ * Discriminated by the "type" field (e.g. DAMAGE, HEALING, UTILITY).
+ * 
+ * Dependencies: 
+ * - DamageEffect -> DamageCommand.ts
+ * - HealingEffect -> HealingCommand.ts
+ * - DefensiveEffect -> DefensiveCommand.ts
+ * - UtilityEffect -> UtilityCommand.ts
+ */
 const SpellEffect = z.discriminatedUnion("type", [
   DamageEffect,
   HealingEffect,
@@ -459,48 +495,98 @@ const SpellEffect = z.discriminatedUnion("type", [
   DefensiveEffect,
 ]);
 
+/**
+ * MAIN SPELL VALIDATOR
+ * The root schema for a Spell JSON file.
+ * 
+ * Key Pillars:
+ * - arbitrationType: Determines if the engine (mechanical) or DM (ai_dm) handles it.
+ * - aiContext: Instructions for the AI DM for non-mechanical outcomes.
+ * - effects: Array of structured mechanical results.
+ * - description: Flavor text for the Glossary.
+ */
 export const SpellValidator = z.object({
   id: z.string(),
   name: z.string(),
+  aliases: z.array(z.string()),
   level: z.number(),
   school: SpellSchool,
-  source: z.string().optional(),
-  legacy: z.boolean().optional(),
+  source: z.string(),
+  legacy: z.boolean(),
   classes: z.array(ClassNameEnum),
-  ritual: z.boolean().optional(),
-  rarity: SpellRarity.optional(),
-  attackType: z.enum(["melee", "ranged"]).optional(),
+  ritual: z.boolean(),
+  rarity: SpellRarity,
+  attackType: z.string(),
   castingTime: CastingTime,
   range: Range,
   components: Components,
   duration: Duration,
   targeting: Targeting,
   effects: z.array(SpellEffect),
-  arbitrationType: z.string().optional(),
+  arbitrationType: ArbitrationType,
+  aiContext: AIContext,
   description: z.string(),
-  higherLevels: z.string().optional(),
-  tags: z.array(z.string()).optional(),
+  higherLevels: z.string(),
+  tags: z.array(z.string()),
 }).superRefine((spell, ctx) => {
+  /**
+   * SUPER REFINE LOGIC
+   * Performs advanced validation that can't be expressed by simple types.
+   * Currently handles:
+   * 1. Material Component Cost Mismatch (checks desc vs numeric data)
+   * 2. Material Consumption Mismatch (checks desc vs boolean flag)
+   */
   if (spell.components.material) {
     const desc = spell.components.materialDescription || '';
 
     // Check for Cost Mismatch
-    const costMatch = desc.match(/worth (?:at least )?([\d,]+)(?:\+)? gp/i);
-    if (costMatch) {
-      const expectedCost = parseInt(costMatch[1].replace(/,/g, ''), 10);
+    const costMatches = Array.from(desc.matchAll(/worth (?:at least )?([\d,]+)(?:\+)? gp/gi));
+    if (costMatches.length) {
+      const foundCosts = costMatches
+        .map(m => parseInt(String(m[1]).replace(/,/g, ''), 10))
+        .filter(n => Number.isFinite(n));
+
+      const expectedCost = foundCosts.length === 1 ? foundCosts[0] : undefined;
+      const expectedSum = foundCosts.reduce((sum, n) => sum + n, 0);
+      const expectedMax = foundCosts.length ? Math.max(...foundCosts) : undefined;
       const actualCost = spell.components.materialCost;
 
-      // Allow for pair pricing logic (e.g. Warding Bond: 50gp each -> 100gp total)
-      // If the actual cost is a multiple of the found cost (2x), we assume it's intentional for pairs.
+      // Allow for "each" pricing logic (e.g. "each worth 5 gp" for multiple components).
+      // If the actual cost is an integer multiple of the found cost, we assume it's intentional.
       const isPair = desc.includes('pair') || desc.includes('each');
 
-      if (actualCost !== expectedCost) {
-        if (isPair && actualCost === expectedCost * 2) {
-          // Acceptable deviation for pairs
+      const actualCostNumber = actualCost ?? 0;
+
+      // Multiple distinct costs are inherently ambiguous (sum vs max vs quantity multipliers),
+      // so accept either the max single component cost or the straight sum.
+      if (foundCosts.length >= 2) {
+        const ok =
+          actualCost != null &&
+          (actualCostNumber === expectedSum ||
+            (expectedMax != null && actualCostNumber === expectedMax) ||
+            (isPair && expectedMax != null && expectedMax > 0 && actualCostNumber % expectedMax === 0));
+
+        if (!ok) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Material cost mismatch: Description costs suggest ${expectedMax ?? 0} gp (max) or ${expectedSum} gp (sum), but data has ${actualCostNumber} gp.`,
+            path: ['components', 'materialCost'],
+          });
+        }
+      } else if (expectedCost != null && actualCostNumber !== expectedCost) {
+        if (
+          isPair &&
+          expectedCost > 0 &&
+          actualCost != null &&
+          Number.isFinite(actualCost) &&
+          actualCostNumber % expectedCost === 0 &&
+          actualCostNumber >= expectedCost * 2
+        ) {
+          // Acceptable deviation for multi-item "each" pricing
         } else {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: `Material cost mismatch: Description says ${expectedCost} gp, but data has ${actualCost ?? 0} gp.`,
+            message: `Material cost mismatch: Description says ${expectedCost} gp, but data has ${actualCostNumber} gp.`,
             path: ['components', 'materialCost'],
           });
         }

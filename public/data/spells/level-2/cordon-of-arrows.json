@@ -1,26 +1,40 @@
 {
   "id": "cordon-of-arrows",
   "name": "Cordon of Arrows",
+  "aliases": [],
   "level": 2,
   "school": "Transmutation",
-  "classes": ["Ranger"],
-  "description": "You plant four pieces of nonmagical ammunition in the ground to create a magic trap. Until the spell ends, whenever a creature other than you comes within 30 feet of the ammunition, one piece flies up and makes a ranged spell attack against that creature. On a hit, the target takes 1d6 piercing damage. The ammunition is consumed. At higher levels, you plant two additional pieces per slot level above 2nd.",
-  "higherLevels": "Plant two additional pieces of ammunition per slot level above 2nd.",
-  "tags": ["control", "trap"],
+  "source": "PHB 2024 p.258",
+  "legacy": false,
+  "classes": [
+    "Ranger"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "four or more arrows or bolts"
+    "materialDescription": "four or more arrows or bolts",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -30,19 +44,79 @@
   },
   "targeting": {
     "type": "area",
+    "validTargets": [
+      "creatures"
+    ],
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 30,
+      "height": 0
+    },
+    "lineOfSight": false,
     "range": 0,
-    "validTargets": ["creatures", "enemies"],
-    "areaOfEffect": { "shape": "Sphere", "size": 30 },
-    "lineOfSight": false
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "on_enter_area", "frequency": "once_per_creature" },
-      "condition": { "type": "always" },
-      "damage": { "dice": "1d6", "type": "Piercing" },
+      "trigger": {
+        "type": "on_enter_area",
+        "frequency": "once_per_creature",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "1d6",
+        "type": "Piercing"
+      },
       "description": "One planted ammo piece makes a ranged spell attack; on hit, deals 1d6 piercing and is consumed.",
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+2 ammo pieces" }
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+2 ammo pieces",
+        "customFormula": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You plant four pieces of nonmagical ammunition-arrows or crossbow bolts-in the ground within range and lay magic upon them to protect an area. Until the spell ends, whenever a creature other than you comes within 30 feet of the ammunition for the first time on a turn or ends its turn there, one piece of ammunition flies up to strike it. The creature must succeed on a Dexterity saving throw or take 1d6 Piercing damage. The piece of ammunition is then destroyed. The spell ends when no ammunition remains. When you cast this spell, you can designate any creatures you choose, and the spell ignores them.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the amount of ammunition that can be affected increases by two for each slot level above 2nd.",
+  "tags": [
+    "control",
+    "trap"
   ]
 }

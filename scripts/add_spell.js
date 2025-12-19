@@ -1,144 +1,94 @@
 // scripts/add_spell.js
+// Interactive helper to add a new spell V2 JSON file and update the manifest + glossary index.
+
 import fs from 'fs';
 import path from 'path';
 import readline from 'readline';
+import { fileURLToPath } from 'url';
 import buildGlossaryIndex from './generateGlossaryIndex.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 });
 
-// Helper to convert a string to kebab-case
 const toKebabCase = (str) =>
-  str
-    .replace(/([a-z])([A-Z])/g, '$1-$2') // get all lowercase letters that are near to uppercase letters
-    .replace(/[\s_]+/g, '-') // replace all spaces and low dash
+  String(str)
+    .trim()
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .replace(/[\s_]+/g, '-')
     .toLowerCase();
 
-const createJsonTemplate = (id, name, level, ritual, rarity) => `{
-  "id": "${id}",
-  "name": "${name}",
-  "level": ${level},
-  "school": "Abjuration",
-  "classes": [],
-  "tags": [],
-  "castingTime": {
-    "value": 1,
-    "unit": "action",
-    "combatCost": {
-        "type": "action"
-    }
-  },
-  "range": {
-    "type": "Touch"
-  },
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false,
-    "materialDescription": null
-  },
-  "duration": {
-    "value": null,
-    "unit": "Instantaneous",
-    "concentration": false
-  },
-  "ritual": ${ritual},
-  "rarity": "${rarity}",
-  "description": "ADD PRIMARY SPELL DESCRIPTION HERE.",
-  "higherLevelsDescription": "ADD HIGHER-LEVELS CASTING DESCRIPTION HERE, OR NULL.",
-  "effects": [
-    {
-      "type": "Buff",
-      "attack": {
-        "type": "None"
+const createJsonTemplate = (id, name, level, ritual, rarity) => {
+  const template = {
+    id,
+    name,
+    level,
+    school: 'Abjuration',
+    legacy: false,
+    classes: [],
+    ritual,
+    rarity,
+    tags: [],
+    castingTime: {
+      value: 1,
+      unit: 'action',
+      combatCost: { type: 'action' },
+    },
+    range: { type: 'touch' },
+    components: { verbal: true, somatic: true, material: false },
+    duration: { type: 'instantaneous', concentration: false },
+    targeting: {
+      type: 'single',
+      range: 5,
+      validTargets: ['creatures', 'objects'],
+      lineOfSight: true,
+    },
+    effects: [
+      {
+        type: 'UTILITY',
+        trigger: { type: 'immediate' },
+        condition: { type: 'always' },
+        utilityType: 'other',
+        description: 'TODO: add structured effect details.',
       },
-      "special": "ADD A STRUCTURED DESCRIPTION OF THE EFFECT HERE."
-    }
-  ],
-  "engineHook": {
-    "isImplemented": false,
-    "notes": "ADD NOTES ABOUT MECHANICAL IMPLEMENTATION HERE."
-  }
-}`;
+    ],
+    description: 'TODO: add spell description.',
+    higherLevels: 'TODO: add higher-levels text, or remove this field.',
+  };
 
-const createMarkdownTemplate = (id, name, level) => `---
-id: "${id}"
-title: "${name}"
-category: "Spells"
-tags: ["level ${level}", "abjuration"]
-excerpt: "ADD A SHORT, ONE-SENTENCE EXCERPT HERE."
-seeAlso: []
-filePath: "/data/glossary/entries/spells/level-${level}/${id}.md"
----
-<div class="spell-card">
-  <div class="spell-card-header">
-    <h1 class="spell-card-title">${name}</h1>
-    <!-- Optional: Add Concentration diamond here if needed -->
-    <!-- <div class="spell-card-symbol" title="Concentration"><span class="spell-card-symbol-inner">C</span></div> -->
-  </div>
-  <div class="spell-card-divider"></div>
-  <div class="spell-card-stats-grid">
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Level</span>
-      <span class="spell-card-stat-value">1st</span>
-    </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Casting Time</span>
-      <span class="spell-card-stat-value">1 Action</span>
-    </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Range/Area</span>
-      <span class="spell-card-stat-value">Touch</span>
-    </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Components</span>
-      <span class="spell-card-stat-value">V, S, M *</span>
-    </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Duration</span>
-      <span class="spell-card-stat-value">Instantaneous</span>
-    </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">School</span>
-      <span class="spell-card-stat-value">Abjuration</span>
-    </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Attack/Save</span>
-      <span class="spell-card-stat-value">None</span>
-    </div>
-    <div class="spell-card-stat">
-      <span class="spell-card-stat-label">Damage/Effect</span>
-      <span class="spell-card-stat-value">Buff</span>
-    </div>
-  </div>
-  <div class="spell-card-divider"></div>
-  <p class="spell-card-description">
-    ADD FULL SPELL DESCRIPTION HERE.
-  </p>
-   <p class="spell-card-description">
-    <strong>At Higher Levels.</strong> ADD HIGHER-LEVELS CASTING DESCRIPTION HERE.
-  </p>
-  <!-- Optional: Add material component note here -->
-  <!-- <p class="spell-card-material-note">* - (a component)</p> -->
-  <div class="spell-card-tags-section">
-    <span class="spell-card-tags-label">Spell Tags:</span>
-    <!-- <span class="spell-card-tag">HEALING</span> -->
-  </div>
-  <div class="spell-card-tags-section">
-    <span class="spell-card-tags-label">Available For:</span>
-    <!-- <span class="spell-card-tag">CLASS</span> -->
-  </div>
-</div>
-`;
+  return JSON.stringify(template, null, 2);
+};
 
-// --- Main Script Logic ---
+const manifestPath = path.join(__dirname, '../public/data/spells_manifest.json');
+
+const updateManifest = (spellId, spellName, level) => {
+  const existing = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) : {};
+
+  existing[spellId] = {
+    name: spellName,
+    level,
+    school: 'Abjuration',
+    path: `/data/spells/level-${level}/${spellId}.json`,
+  };
+
+  const sorted = Object.keys(existing)
+    .sort()
+    .reduce((obj, key) => {
+      obj[key] = existing[key];
+      return obj;
+    }, {});
+
+  fs.writeFileSync(manifestPath, JSON.stringify(sorted, null, 2));
+};
 
 rl.question('Enter the spell name: ', (spellName) => {
   rl.question('Enter the spell level (0-9): ', (levelStr) => {
     const level = parseInt(levelStr, 10);
-    if (isNaN(level) || level < 0 || level > 9) {
+    if (Number.isNaN(level) || level < 0 || level > 9) {
       console.error('Error: Spell level must be a number between 0 and 9.');
       rl.close();
       process.exit(1);
@@ -147,83 +97,45 @@ rl.question('Enter the spell name: ', (spellName) => {
     rl.question('Is this a ritual spell? (y/n): ', (isRitual) => {
       rl.question('Enter the spell rarity (common, uncommon, rare, very_rare, legendary): ', (rarity) => {
         const spellId = toKebabCase(spellName);
-        const __dirname = path.dirname(new URL(import.meta.url).pathname);
-
         const spellJsonPath = path.join(__dirname, `../public/data/spells/level-${level}/${spellId}.json`);
-        const spellMdPath = path.join(__dirname, `../public/data/glossary/entries/spells/level-${level}/${spellId}.md`);
-        const manifestPath = path.join(__dirname, `../public/data/spells_manifest.json`);
 
-        // Check if files already exist
-        if (fs.existsSync(spellJsonPath) || fs.existsSync(spellMdPath)) {
-          console.error(`Error: Files for spell ID "${spellId}" already exist. Please choose a different name or delete the existing files.`);
+        if (fs.existsSync(spellJsonPath)) {
+          console.error(`Error: Spell file for ID "${spellId}" already exists: ${spellJsonPath}`);
           rl.close();
           process.exit(1);
         }
 
-        // 1. Create JSON file (ensure level directory exists)
-        const jsonDir = path.dirname(spellJsonPath);
-        if (!fs.existsSync(jsonDir)) {
-          fs.mkdirSync(jsonDir, { recursive: true });
-        }
-        fs.writeFileSync(spellJsonPath, createJsonTemplate(spellId, spellName, level, isRitual === 'y', rarity));
-        console.log(`Created spell data file: ${spellJsonPath}`);
+        fs.mkdirSync(path.dirname(spellJsonPath), { recursive: true });
+        fs.writeFileSync(spellJsonPath, createJsonTemplate(spellId, spellName, level, isRitual.trim().toLowerCase() === 'y', rarity));
+        console.log(`Created spell JSON: ${spellJsonPath}`);
 
-        // 2. Create Markdown file
-        const mdDir = path.dirname(spellMdPath);
-        if (!fs.existsSync(mdDir)) {
-            fs.mkdirSync(mdDir, { recursive: true });
-        }
-        fs.writeFileSync(spellMdPath, createMarkdownTemplate(spellId, spellName, level));
-        console.log(`Created glossary entry file: ${spellMdPath}`);
-
-        // 3. Update manifest
         try {
-          const manifestData = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
-          manifestData[spellId] = {
-            name: spellName,
-            level: level,
-            school: "Abjuration", // Default, user should update
-            path: `/data/spells/level-${level}/${spellId}.json`
-          };
-
-          const sortedManifest = Object.keys(manifestData).sort().reduce(
-            (obj, key) => {
-              obj[key] = manifestData[key];
-              return obj;
-            },
-            {}
-          );
-
-          fs.writeFileSync(manifestPath, JSON.stringify(sortedManifest, null, 2));
-          console.log(`Updated spell manifest: ${manifestPath}`);
+          updateManifest(spellId, spellName, level);
+          console.log(`Updated manifest: ${manifestPath}`);
         } catch (e) {
-          console.error(`Failed to update manifest: ${e.message}`);
+          console.error(`Failed to update manifest: ${e?.message || e}`);
           rl.close();
           process.exit(1);
         }
 
-        // 4. Regenerate glossary index
         try {
-            console.log('Running glossary indexer...');
-            buildGlossaryIndex();
-            console.log('Glossary index updated successfully.');
+          console.log('Running glossary indexer...');
+          buildGlossaryIndex();
+          console.log('Glossary index updated successfully.');
         } catch (e) {
-            console.error(`\n--- SCRIPT HALTED ---`);
-            console.error(`Failed to run glossary indexer. This is likely due to a data integrity issue (e.g., duplicate ID, filename mismatch, or YAML syntax error) in one of the glossary's .md files.`);
-            console.error(`Please check the specific error message above to identify the problematic file.`);
-            rl.close();
-            process.exit(1);
+          console.error('Failed to run glossary indexer:', e?.message || e);
+          rl.close();
+          process.exit(1);
         }
-
 
         console.log(`\n✅ Spell "${spellName}" added successfully!`);
         console.log('\nNext steps:');
-        console.log(`   1. Edit the placeholder content in the JSON file: public/data/spells/level-${level}/${spellId}.json`);
-        console.log(`   2. Edit the placeholder content in the Markdown file: public/data/glossary/entries/spells/level-${level}/${spellId}.md`);
-        console.log(`   3. Update class spell lists in src/data/classes/index.ts if necessary.`);
+        console.log(`  1. Fill in the new spell JSON: public/data/spells/level-${level}/${spellId}.json`);
+        console.log(`  2. Update class spell lists in src/data/classes/index.ts if necessary.`);
 
         rl.close();
       });
     });
   });
 });
+

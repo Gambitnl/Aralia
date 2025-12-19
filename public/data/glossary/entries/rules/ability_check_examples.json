@@ -1,0 +1,11 @@
+{
+  "id": "ability_check_examples",
+  "title": "Ability Check Examples",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "Examples of what each ability check is used for.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/ability_check_examples.json",
+  "markdown": "# Ability Check Examples\r\n| Ability      | Make a Check To...                      |\r\n|--------------|-----------------------------------------|\r\n| Strength     | Lift, push, pull, or break something     |\r\n| Dexterity    | Move nimbly, quickly, or quietly         |\r\n| Constitution | Push your body beyond normal limits      |\r\n| Intelligence | Reason or remember                       |\r\n| Wisdom       | Notice things in the environment or in creatures' behavior |\r\n| Charisma     | Influence, entertain, or deceive         |\r\n"
+}

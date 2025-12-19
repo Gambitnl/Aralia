@@ -1,41 +1,138 @@
 {
   "id": "sleep",
   "name": "Sleep",
+  "aliases": [],
   "level": 1,
   "school": "Enchantment",
-  "classes": ["Bard", "Sorcerer", "Wizard"],
-  "description": "This spell sends creatures into a magical slumber. Roll 5d8; the total is how many hit points of creatures the spell can affect. Creatures within 20 feet of a point you choose within range are affected in ascending order of current hit points (ignoring unconscious). Each creature falls Unconscious until the spell ends, it takes damage, or someone uses an action to shake or slap it awake.",
-  "higherLevels": "Roll 2d8 additional hit points for each spell slot level above 1.",
-  "tags": ["control", "sleep"],
+  "source": "PHB 2024 p.317",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
-  "castingTime": { "value": 1, "unit": "action", "combatCost": { "type": "action" } },
-  "range": { "type": "ranged", "distance": 90 },
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 90
+  },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
     "materialDescription": "a pinch of fine sand, rose petals, or a cricket",
-    "materialCost": 0,
-    "isConsumed": false
+    "isConsumed": false,
+    "materialCost": 0
   },
-  "duration": { "type": "timed", "value": 1, "unit": "minute", "concentration": false },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "minute",
+    "concentration": false
+  },
   "targeting": {
     "type": "area",
     "range": 90,
-    "validTargets": ["creatures"],
+    "validTargets": [
+      "creatures"
+    ],
     "lineOfSight": true,
-    "areaOfEffect": { "shape": "Sphere", "size": 20 }
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 20,
+      "height": 0
+    },
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "STATUS_CONDITION",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "statusCondition": {
         "name": "Unconscious",
-        "duration": { "type": "minutes", "value": 1 }
+        "duration": {
+          "type": "minutes",
+          "value": 1
+        },
+        "level": 0,
+        "escapeCheck": {
+          "dc": 0,
+          "actionCost": "action"
+        },
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true
+        }
       },
-      "description": "Applies in ascending HP order up to 5d8 HP of creatures; ends early on damage or if a creature is shaken awake."
+      "description": "Applies in ascending HP order up to 5d8 HP of creatures; ends early on damage or if a creature is shaken awake.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "This spell sends creatures into a magical slumber. Roll 5d8; the total is how many Hit Points of creatures this spell can affect. Creatures within 20 feet of a point you choose within range are affected in ascending order of their current Hit Points (ignoring Unconscious creatures). Starting with the creature that has the lowest current Hit Points, each creature affected by this spell falls Unconscious until the spell ends, the sleeper takes damage, or someone uses an action to shake or slap the sleeper awake. Subtract each creature's Hit Points from the total before moving on to the creature with the next lowest Hit Points. A creature's Hit Points must be equal to or less than the remaining total for that creature to be affected. Undead and creatures immune to being Charmed aren't affected by this spell.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, roll an additional 2d8 for each slot level above 1st.",
+  "tags": [
+    "control",
+    "sleep"
   ]
 }

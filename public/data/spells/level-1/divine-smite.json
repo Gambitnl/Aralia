@@ -1,47 +1,100 @@
 {
   "id": "divine-smite",
   "name": "Divine Smite",
+  "aliases": [],
   "level": 1,
   "school": "Evocation",
-  "classes": ["Paladin"],
-  "description": "The target takes an extra 2d8 Radiant damage from the attack when you smite after hitting with a melee weapon or an unarmed strike. The damage increases by 1d8 if the target is a Fiend or an Undead.",
-  "higherLevels": "The damage increases by 1d8 for each spell slot level above 1.",
-  "tags": ["damage", "radiant", "melee"],
+  "source": "PHB 2024 p.265",
+  "legacy": false,
+  "classes": [
+    "Paladin"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "bonus_action",
     "combatCost": {
       "type": "bonus_action",
-      "condition": "after you hit with a melee weapon or unarmed strike"
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
-    "type": "touch"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": false,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "instantaneous",
-    "concentration": false
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "single",
-    "range": 5,
-    "validTargets": ["creatures", "enemies"],
-    "lineOfSight": true
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "range": 0,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "hit"
+        "type": "hit",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "2d8",
@@ -49,24 +102,68 @@
       },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+1d8"
-      }
+        "bonusPerLevel": "+1d8",
+        "customFormula": ""
+      },
+      "description": ""
     },
     {
       "type": "DAMAGE",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
         "type": "hit",
         "targetFilter": {
-          "creatureType": ["Fiend", "Undead"]
-        }
+          "creatureType": [
+            "Fiend",
+            "Undead"
+          ],
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "1d8",
         "type": "Radiant"
-      }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "Immediately after you hit a creature with a melee weapon or an Unarmed Strike, you can expend a spell slot to deal Radiant damage to the target. The damage is 2d8 for a 1st-level spell slot, plus 1d8 for each slot level higher than 1st, to a maximum of 5d8. The damage increases by 1d8 if the target is an Undead or a Fiend.",
+  "higherLevels": "Damage increases by 1d8 per slot level above 1.",
+  "tags": [
+    "damage",
+    "radiant",
+    "melee"
   ]
 }

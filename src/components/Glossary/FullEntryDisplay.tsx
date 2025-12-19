@@ -10,6 +10,11 @@ const stripYamlFrontmatter = (markdownContent: string): string => {
   return match ? markdownContent.substring(match[0].length).trimStart() : markdownContent.trimStart();
 };
 
+type GlossaryEntryFileJson = {
+  markdown?: string;
+  content?: string;
+};
+
 interface FullEntryDisplayProps {
   entry: GlossaryEntry | null;
   onNavigate?: (termId: string) => void;
@@ -34,9 +39,27 @@ export const FullEntryDisplay: React.FC<FullEntryDisplayProps> = ({ entry, onNav
     setMarkdownContent(null);
 
     const fullPath = assetUrl(filePath);
+    const isJsonEntry = filePath.toLowerCase().endsWith('.json');
 
-    fetchWithTimeout<string>(fullPath, { responseType: 'text' })
-      .then(text => {
+    const fetchPromise = isJsonEntry
+      ? fetchWithTimeout<GlossaryEntryFileJson>(fullPath)
+      : fetchWithTimeout<string>(fullPath, { responseType: 'text' });
+
+    fetchPromise
+      .then((data) => {
+        if (isJsonEntry) {
+          const json = data as GlossaryEntryFileJson;
+          const nextMarkdown =
+            typeof json.markdown === 'string'
+              ? json.markdown
+              : typeof json.content === 'string'
+                ? json.content
+                : '';
+          setMarkdownContent(nextMarkdown);
+          return;
+        }
+
+        const text = data as string;
         setMarkdownContent(stripYamlFrontmatter(text));
       })
       .catch(err => {

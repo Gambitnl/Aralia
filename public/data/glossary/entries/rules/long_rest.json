@@ -1,0 +1,15 @@
+{
+  "id": "long_rest",
+  "title": "Long Rest",
+  "category": "Rules Glossary",
+  "tags": ["rest", "recovery", "healing"],
+  "excerpt": "A period of extended downtime lasting at least 8 hours, during which a character sleeps or performs light activity. A long rest restores all lost hit points and spent resources.",
+  "aliases": [],
+  "seeAlso": [
+    "short_rest",
+    "hit_points",
+    "spell_slot"
+  ],
+  "filePath": "/data/glossary/entries/rules/long_rest.json",
+  "markdown": "# Long Rest\n\nA long rest is a period of extended downtime, at least 8 hours long, during which a character sleeps for at least 6 hours and performs no more than 2 hours of light activity, such as reading, talking, eating, or standing watch.\n\n## Benefits\n\nAt the end of a long rest, a character regains:\n- All lost [[hit_points]]\n- All spent Hit Dice (up to half the character's total)\n- All spent [[spell_slot|spell slots]]\n- Class features and abilities that recharge on a long rest\n\n## Interruption\n\nIf the rest is interrupted by a period of strenuous activity-at least 1 hour of walking, fighting, casting spells, or similar adventuring activity-the characters must begin the rest again to gain any benefit from it.\n\n## Frequency\n\nA character can't benefit from more than one long rest in a 24-hour period, and a character must have at least 1 [[hit_points|hit point]] at the start of the rest to gain its benefits.\n"
+}

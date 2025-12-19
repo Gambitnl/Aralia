@@ -1,17 +1,29 @@
 {
   "id": "web",
   "name": "Web",
+  "aliases": [],
   "level": 2,
   "school": "Conjuration",
-  "classes": ["Sorcerer", "Wizard"],
-  "description": "You conjure a mass of thick, sticky webbing in a 20-foot cube anchored between solid masses or layered across a floor/wall. The webs are difficult terrain and lightly obscure the area. Each creature that starts its turn in the webs or enters them must make a Dexterity saving throw. On a failed save, the creature is restrained as long as it remains in the webs or until it breaks free. A restrained creature can use its action to make a Strength check against your spell save DC to break free. The webs are flammable; a 5-foot cube of webs that is ignited deals 2d4 fire damage to any creature starting its turn in the fire.",
-  "higherLevels": "None",
-  "tags": ["control", "terrain", "concentration"],
+  "source": "PHB 2024 p.340",
+  "legacy": false,
+  "classes": [
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
     "type": "ranged",
@@ -21,7 +33,9 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a bit of spiderweb"
+    "materialDescription": "a bit of spiderweb",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -32,44 +46,206 @@
   "targeting": {
     "type": "area",
     "range": 60,
-    "validTargets": ["creatures"],
-    "areaOfEffect": { "shape": "Cube", "size": 20 },
-    "lineOfSight": true
+    "validTargets": [
+      "point"
+    ],
+    "areaOfEffect": {
+      "shape": "Cube",
+      "size": 20,
+      "height": 0
+    },
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "TERRAIN",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "terrainType": "difficult",
-      "areaOfEffect": { "shape": "Cube", "size": 20 },
-      "duration": { "type": "minutes", "value": 60 }
+      "areaOfEffect": {
+        "shape": "Cube",
+        "size": 20,
+        "height": 0
+      },
+      "duration": {
+        "type": "minutes",
+        "value": 60
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "damage": {
+        "dice": "",
+        "type": ""
+      },
+      "wallProperties": {
+        "hp": 0,
+        "ac": 0
+      },
+      "dispersedByStrongWind": false,
+      "manipulation": {
+        "type": "cosmetic",
+        "volume": {
+          "shape": "Cube",
+          "size": 0,
+          "depth": 0
+        },
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        },
+        "depositDistance": 0
+      },
+      "description": ""
     },
     {
       "type": "STATUS_CONDITION",
-      "trigger": { "type": "turn_start", "frequency": "every_time" },
+      "trigger": {
+        "type": "turn_start",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
       "condition": {
         "type": "save",
         "saveType": "Dexterity",
-        "saveEffect": "negates_condition"
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "statusCondition": {
         "name": "Restrained",
-        "duration": { "type": "minutes", "value": 60 },
+        "duration": {
+          "type": "minutes",
+          "value": 60
+        },
         "escapeCheck": {
           "ability": "Strength",
           "dc": "spell_save_dc",
           "actionCost": "action"
+        },
+        "level": 0,
+        "repeatSave": {
+          "timing": "turn_end",
+          "saveType": "Wisdom",
+          "successEnds": true,
+          "useOriginalDC": true
         }
       },
-      "description": "On a failed Dex save, a creature entering or starting its turn in the webs is restrained."
+      "description": "On a failed Dex save, a creature entering or starting its turn in the webs is restrained.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      }
     },
     {
       "type": "DAMAGE",
-      "trigger": { "type": "turn_start", "frequency": "every_time" },
-      "condition": { "type": "always" },
-      "damage": { "dice": "2d4", "type": "Fire" },
-      "description": "If a 5-foot cube of web is ignited, a creature starting its turn in that burning area takes fire damage."
+      "trigger": {
+        "type": "turn_start",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "2d4",
+        "type": "Fire"
+      },
+      "description": "If a 5-foot cube of web is ignited, a creature starting its turn in that burning area takes fire damage.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You conjure a mass of thick, sticky webbing at a point of your choice within range. The webs fill a 20-foot Cube from that point for the duration. The webs are difficult terrain and lightly obscure their area. If the webs aren't anchored between two solid masses (such as walls or trees) or layered across a floor, wall, or ceiling, the conjured web collapses on itself, and the spell ends at the start of your next turn. Webs layered over a flat surface have a depth of 5 feet. Each creature that starts its turn in the webs or that enters them during its turn must make a Dexterity saving throw. On a failed save, the creature is Restrained as long as it remains in the webs or until it breaks free. A creature Restrained by the webs can use its action to make a Strength check against your spell save DC. If it succeeds, it is no longer Restrained. The webs are flammable. Any 5-foot cube of webs exposed to fire burns away in 1 round, dealing 2d4 Fire damage to any creature that starts its turn in the fire.",
+  "higherLevels": "",
+  "tags": [
+    "control",
+    "terrain",
+    "concentration"
   ]
 }

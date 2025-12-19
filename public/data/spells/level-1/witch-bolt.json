@@ -1,25 +1,28 @@
 {
   "id": "witch-bolt",
   "name": "Witch Bolt",
+  "aliases": [],
   "level": 1,
   "school": "Evocation",
+  "source": "PHB 2024 p.343",
+  "legacy": false,
   "classes": [
     "Sorcerer",
     "Warlock"
   ],
-  "description": "A beam of crackling lightning arcs toward a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d12 Lightning damage, and the spell creates a sustained arc. While you maintain concentration, you can use your action on subsequent turns to automatically deal 1d12 Lightning damage to the target. The effect ends if the target is ever outside the spell's range or has total cover, or if you take an action that isn't to sustain the bolt.",
-  "higherLevels": "Both the initial hit and sustained damage increase by 1d12 for each spell slot level above 1.",
-  "tags": [
-    "damage",
-    "lightning",
-    "concentration"
-  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
@@ -30,9 +33,9 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a twig from a tree struck by lightning",
-    "materialCost": 0,
-    "isConsumed": false
+    "materialDescription": "a twig from a tree that has been struck by lightning",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -44,19 +47,55 @@
     "type": "single",
     "range": 30,
     "validTargets": [
-      "creatures",
-      "enemies"
+      "creatures"
     ],
-    "lineOfSight": true
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "hit"
+        "type": "hit",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "1d12",
@@ -64,8 +103,10 @@
       },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+1d12"
-      }
+        "bonusPerLevel": "+1d12",
+        "customFormula": ""
+      },
+      "description": ""
     },
     {
       "type": "DAMAGE",
@@ -74,10 +115,29 @@
         "sustainCost": {
           "actionType": "action",
           "optional": true
-        }
+        },
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any"
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "1d12",
@@ -85,9 +145,22 @@
       },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+1d12"
+        "bonusPerLevel": "+1d12",
+        "customFormula": ""
       },
       "description": "While you maintain concentration, you can use your action on later turns to automatically deal the same Lightning damage to the target."
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "A beam of crackling, blue energy lances out toward a creature within range, forming a sustained arc of lightning between you and the target. Make a ranged spell attack against that creature. On a hit, the target takes 1d12 Lightning damage, and on each of your turns for the duration, you can use your action to deal 1d12 Lightning damage to the target automatically. The spell ends if you use your action to do anything else. The spell also ends if the target is ever outside the spell's range or if it has Total Cover from you.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the initial damage increases by 1d12 for each slot level above 1st.",
+  "tags": [
+    "damage",
+    "lightning",
+    "concentration"
   ]
 }

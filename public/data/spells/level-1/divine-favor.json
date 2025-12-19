@@ -1,41 +1,69 @@
 {
   "id": "divine-favor",
   "name": "Divine Favor",
+  "aliases": [],
   "level": 1,
-  "school": "Evocation",
+  "school": "Transmutation",
+  "source": "PHB 2024 p.265",
+  "legacy": false,
   "classes": [
     "Paladin"
   ],
-  "components": {
-    "verbal": true,
-    "somatic": true,
-    "material": false
-  },
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "bonus_action",
     "combatCost": {
-      "type": "bonus_action"
+      "type": "bonus_action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
+  },
+  "range": {
+    "type": "self",
+    "distance": 0
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
     "value": 1,
     "unit": "minute",
-    "concentration": true
-  },
-  "range": {
-    "type": "self",
-    "distance": 0
+    "concentration": false
   },
   "targeting": {
     "type": "self",
     "validTargets": [
       "self"
     ],
-    "lineOfSight": false
+    "lineOfSight": false,
+    "range": 0,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
-  "description": "Your prayer empowers you with divine radiance. Your weapon attacks deal an extra 1d4 radiant damage on a hit.",
   "effects": [
     {
       "type": "DAMAGE",
@@ -45,18 +73,48 @@
         "attackFilter": {
           "weaponType": "any",
           "attackType": "weapon"
+        },
+        "frequency": "every_time",
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
         }
       },
       "condition": {
-        "type": "hit"
+        "type": "hit",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "1d4",
         "type": "Radiant"
-      }
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "description": ""
     }
   ],
-  "ritual": false,
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "Your prayer empowers you with divine radiance. Until the spell ends, your weapon attacks deal an extra 1d4 Radiant damage on a hit.",
+  "higherLevels": "",
   "tags": [
     "damage",
     "buff"

@@ -1,4 +1,10 @@
 {
+  "abi-dalzims-horrid-wilting": {
+    "name": "Abi-Dalzim's Horrid Wilting",
+    "level": 8,
+    "school": "Necromancy",
+    "path": "/data/spells/level-8/abi-dalzims-horrid-wilting.json"
+  },
   "absorb-elements": {
     "name": "Absorb Elements",
     "level": 1,
@@ -8,7 +14,7 @@
   "acid-splash": {
     "name": "Acid Splash",
     "level": 0,
-    "school": "Conjuration",
+    "school": "Evocation",
     "path": "/data/spells/level-0/acid-splash.json"
   },
   "aid": {
@@ -45,49 +51,70 @@
     "name": "Animal Shapes",
     "level": 8,
     "school": "Transmutation",
-    "path": "/data/spells/animal-shapes.json"
+    "path": "/data/spells/level-8/animal-shapes.json"
   },
   "animate-dead": {
     "name": "Animate Dead",
     "level": 3,
     "school": "Necromancy",
-    "path": "/data/spells/animate-dead.json"
+    "path": "/data/spells/level-3/animate-dead.json"
   },
   "animate-objects": {
     "name": "Animate Objects",
     "level": 5,
     "school": "Transmutation",
-    "path": "/data/spells/animate-objects.json"
+    "path": "/data/spells/level-5/animate-objects.json"
   },
   "antilife-shell": {
     "name": "Antilife Shell",
     "level": 5,
     "school": "Abjuration",
-    "path": "/data/spells/antilife-shell.json"
+    "path": "/data/spells/level-5/antilife-shell.json"
   },
   "antimagic-field": {
     "name": "Antimagic Field",
     "level": 8,
     "school": "Abjuration",
-    "path": "/data/spells/antimagic-field.json"
+    "path": "/data/spells/level-8/antimagic-field.json"
   },
   "antipathy-sympathy": {
     "name": "Antipathy/Sympathy",
     "level": 8,
     "school": "Enchantment",
-    "path": "/data/spells/antipathy-sympathy.json"
+    "path": "/data/spells/level-8/antipathy-sympathy.json"
   },
   "arcane-eye": {
     "name": "Arcane Eye",
     "level": 4,
     "school": "Divination",
-    "path": "/data/spells/arcane-eye.json"
+    "path": "/data/spells/level-4/arcane-eye.json"
+  },
+  "arcane-gate": {
+    "name": "Arcane Gate",
+    "level": 6,
+    "school": "Conjuration",
+    "path": "/data/spells/level-6/arcane-gate.json"
   },
   "arcane-lock": {
     "name": "Arcane Lock",
     "level": 2,
     "school": "Abjuration",
     "path": "/data/spells/level-2/arcane-lock.json"
+  },
+  "arcane-sword": {
+    "name": "Arcane Sword",
+    "aliases": [
+      "Mordenkainen's Sword"
+    ],
+    "level": 7,
+    "school": "Evocation",
+    "path": "/data/spells/level-7/arcane-sword.json"
+  },
+  "arcane-vigor": {
+    "name": "Arcane Vigor",
+    "level": 2,
+    "school": "Abjuration",
+    "path": "/data/spells/level-2/arcane-vigor.json"
   },
   "armor-of-agathys": {
     "name": "Armor of Agathys",
@@ -105,7 +132,7 @@
     "name": "Astral Projection",
     "level": 9,
     "school": "Necromancy",
-    "path": "/data/spells/astral-projection.json"
+    "path": "/data/spells/level-9/astral-projection.json"
   },
   "augury": {
     "name": "Augury",
@@ -117,25 +144,25 @@
     "name": "Aura of Life",
     "level": 4,
     "school": "Abjuration",
-    "path": "/data/spells/aura-of-life.json"
+    "path": "/data/spells/level-4/aura-of-life.json"
   },
   "aura-of-purity": {
     "name": "Aura of Purity",
     "level": 4,
     "school": "Abjuration",
-    "path": "/data/spells/aura-of-purity.json"
+    "path": "/data/spells/level-4/aura-of-purity.json"
   },
   "aura-of-vitality": {
     "name": "Aura of Vitality",
     "level": 3,
     "school": "Evocation",
-    "path": "/data/spells/aura-of-vitality.json"
+    "path": "/data/spells/level-3/aura-of-vitality.json"
   },
   "awaken": {
     "name": "Awaken",
     "level": 5,
     "school": "Transmutation",
-    "path": "/data/spells/awaken.json"
+    "path": "/data/spells/level-5/awaken.json"
   },
   "bane": {
     "name": "Bane",
@@ -143,11 +170,17 @@
     "school": "Enchantment",
     "path": "/data/spells/level-1/bane.json"
   },
+  "banishing-smite": {
+    "name": "Banishing Smite",
+    "level": 5,
+    "school": "Evocation",
+    "path": "/data/spells/level-5/banishing-smite.json"
+  },
   "banishment": {
     "name": "Banishment",
     "level": 4,
     "school": "Abjuration",
-    "path": "/data/spells/banishment.json"
+    "path": "/data/spells/level-4/banishment.json"
   },
   "barkskin": {
     "name": "Barkskin",
@@ -159,7 +192,7 @@
     "name": "Beacon of Hope",
     "level": 3,
     "school": "Abjuration",
-    "path": "/data/spells/beacon-of-hope.json"
+    "path": "/data/spells/level-3/beacon-of-hope.json"
   },
   "beast-sense": {
     "name": "Beast Sense",
@@ -171,19 +204,25 @@
     "name": "Bestow Curse",
     "level": 3,
     "school": "Necromancy",
-    "path": "/data/spells/bestow-curse.json"
+    "path": "/data/spells/level-3/bestow-curse.json"
   },
   "bigbys-hand": {
     "name": "Bigby's Hand",
     "level": 5,
     "school": "Evocation",
-    "path": "/data/spells/bigbys-hand.json"
+    "path": "/data/spells/level-5/bigbys-hand.json"
   },
   "blade-barrier": {
     "name": "Blade Barrier",
     "level": 6,
     "school": "Evocation",
-    "path": "/data/spells/blade-barrier.json"
+    "path": "/data/spells/level-6/blade-barrier.json"
+  },
+  "blade-of-disaster": {
+    "name": "Blade of Disaster",
+    "level": 9,
+    "school": "Conjuration",
+    "path": "/data/spells/level-9/blade-of-disaster.json"
   },
   "blade-ward": {
     "name": "Blade Ward",
@@ -201,31 +240,37 @@
     "name": "Blight",
     "level": 4,
     "school": "Necromancy",
-    "path": "/data/spells/blight.json"
+    "path": "/data/spells/level-4/blight.json"
   },
   "blinding-smite": {
     "name": "Blinding Smite",
     "level": 3,
     "school": "Evocation",
-    "path": "/data/spells/blinding-smite.json"
+    "path": "/data/spells/level-3/blinding-smite.json"
   },
   "blindness-deafness": {
     "name": "Blindness/Deafness",
     "level": 2,
-    "school": "Necromancy",
+    "school": "Transmutation",
     "path": "/data/spells/level-2/blindness-deafness.json"
   },
   "blink": {
     "name": "Blink",
     "level": 3,
     "school": "Transmutation",
-    "path": "/data/spells/blink.json"
+    "path": "/data/spells/level-3/blink.json"
   },
   "blur": {
     "name": "Blur",
     "level": 2,
     "school": "Illusion",
     "path": "/data/spells/level-2/blur.json"
+  },
+  "bones-of-the-earth": {
+    "name": "Bones of the Earth",
+    "level": 6,
+    "school": "Transmutation",
+    "path": "/data/spells/level-6/bones-of-the-earth.json"
   },
   "booming-blade": {
     "name": "Booming Blade",
@@ -243,7 +288,7 @@
     "name": "Call Lightning",
     "level": 3,
     "school": "Conjuration",
-    "path": "/data/spells/call-lightning.json"
+    "path": "/data/spells/level-3/call-lightning.json"
   },
   "calm-emotions": {
     "name": "Calm Emotions",
@@ -261,19 +306,19 @@
     "name": "Catnap",
     "level": 3,
     "school": "Enchantment",
-    "path": "/data/spells/catnap.json"
+    "path": "/data/spells/level-3/catnap.json"
   },
   "chain-lightning": {
     "name": "Chain Lightning",
     "level": 6,
     "school": "Evocation",
-    "path": "/data/spells/chain-lightning.json"
+    "path": "/data/spells/level-6/chain-lightning.json"
   },
   "charm-monster": {
     "name": "Charm Monster",
     "level": 4,
     "school": "Enchantment",
-    "path": "/data/spells/charm-monster.json"
+    "path": "/data/spells/level-4/charm-monster.json"
   },
   "charm-person": {
     "name": "Charm Person",
@@ -297,25 +342,25 @@
     "name": "Circle of Death",
     "level": 6,
     "school": "Necromancy",
-    "path": "/data/spells/circle-of-death.json"
+    "path": "/data/spells/level-6/circle-of-death.json"
   },
   "circle-of-power": {
     "name": "Circle of Power",
     "level": 5,
     "school": "Abjuration",
-    "path": "/data/spells/circle-of-power.json"
+    "path": "/data/spells/level-5/circle-of-power.json"
   },
   "clairvoyance": {
     "name": "Clairvoyance",
     "level": 3,
     "school": "Divination",
-    "path": "/data/spells/clairvoyance.json"
+    "path": "/data/spells/level-3/clairvoyance.json"
   },
   "clone": {
     "name": "Clone",
     "level": 8,
     "school": "Necromancy",
-    "path": "/data/spells/clone.json"
+    "path": "/data/spells/level-8/clone.json"
   },
   "cloud-of-daggers": {
     "name": "Cloud of Daggers",
@@ -327,7 +372,7 @@
     "name": "Cloudkill",
     "level": 5,
     "school": "Conjuration",
-    "path": "/data/spells/cloudkill.json"
+    "path": "/data/spells/level-5/cloudkill.json"
   },
   "color-spray": {
     "name": "Color Spray",
@@ -345,13 +390,13 @@
     "name": "Commune",
     "level": 5,
     "school": "Divination",
-    "path": "/data/spells/commune.json"
+    "path": "/data/spells/level-5/commune.json"
   },
   "commune-with-nature": {
     "name": "Commune with Nature",
     "level": 5,
     "school": "Divination",
-    "path": "/data/spells/commune-with-nature.json"
+    "path": "/data/spells/level-5/commune-with-nature.json"
   },
   "compelled-duel": {
     "name": "Compelled Duel",
@@ -369,19 +414,19 @@
     "name": "Compulsion",
     "level": 4,
     "school": "Enchantment",
-    "path": "/data/spells/compulsion.json"
+    "path": "/data/spells/level-4/compulsion.json"
   },
   "cone-of-cold": {
     "name": "Cone of Cold",
     "level": 5,
     "school": "Evocation",
-    "path": "/data/spells/cone-of-cold.json"
+    "path": "/data/spells/level-5/cone-of-cold.json"
   },
   "confusion": {
     "name": "Confusion",
     "level": 4,
     "school": "Enchantment",
-    "path": "/data/spells/confusion.json"
+    "path": "/data/spells/level-4/confusion.json"
   },
   "conjure-animals": {
     "name": "Conjure Animals",
@@ -393,61 +438,61 @@
     "name": "Conjure Barrage",
     "level": 3,
     "school": "Conjuration",
-    "path": "/data/spells/conjure-barrage.json"
+    "path": "/data/spells/level-3/conjure-barrage.json"
   },
   "conjure-celestial": {
     "name": "Conjure Celestial",
     "level": 7,
     "school": "Conjuration",
-    "path": "/data/spells/conjure-celestial.json"
+    "path": "/data/spells/level-7/conjure-celestial.json"
   },
   "conjure-elemental": {
     "name": "Conjure Elemental",
     "level": 5,
     "school": "Conjuration",
-    "path": "/data/spells/conjure-elemental.json"
+    "path": "/data/spells/level-5/conjure-elemental.json"
   },
   "conjure-fey": {
     "name": "Conjure Fey",
     "level": 6,
     "school": "Conjuration",
-    "path": "/data/spells/conjure-fey.json"
+    "path": "/data/spells/level-6/conjure-fey.json"
   },
   "conjure-minor-elementals": {
     "name": "Conjure Minor Elementals",
     "level": 4,
     "school": "Conjuration",
-    "path": "/data/spells/conjure-minor-elementals.json"
+    "path": "/data/spells/level-4/conjure-minor-elementals.json"
   },
   "conjure-volley": {
     "name": "Conjure Volley",
     "level": 5,
     "school": "Conjuration",
-    "path": "/data/spells/conjure-volley.json"
+    "path": "/data/spells/level-5/conjure-volley.json"
   },
   "conjure-woodland-beings": {
     "name": "Conjure Woodland Beings",
     "level": 4,
     "school": "Conjuration",
-    "path": "/data/spells/conjure-woodland-beings.json"
+    "path": "/data/spells/level-4/conjure-woodland-beings.json"
   },
   "contact-other-plane": {
     "name": "Contact Other Plane",
     "level": 5,
     "school": "Divination",
-    "path": "/data/spells/contact-other-plane.json"
+    "path": "/data/spells/level-5/contact-other-plane.json"
   },
   "contagion": {
     "name": "Contagion",
     "level": 5,
     "school": "Necromancy",
-    "path": "/data/spells/contagion.json"
+    "path": "/data/spells/level-5/contagion.json"
   },
   "contingency": {
     "name": "Contingency",
     "level": 6,
     "school": "Evocation",
-    "path": "/data/spells/contingency.json"
+    "path": "/data/spells/level-6/contingency.json"
   },
   "continual-flame": {
     "name": "Continual Flame",
@@ -459,19 +504,31 @@
     "name": "Control Water",
     "level": 4,
     "school": "Transmutation",
-    "path": "/data/spells/control-water.json"
+    "path": "/data/spells/level-4/control-water.json"
   },
   "control-weather": {
     "name": "Control Weather",
     "level": 8,
     "school": "Transmutation",
-    "path": "/data/spells/control-weather.json"
+    "path": "/data/spells/level-8/control-weather.json"
+  },
+  "control-winds": {
+    "name": "Control Winds",
+    "level": 5,
+    "school": "Evocation",
+    "path": "/data/spells/level-5/control-winds.json"
   },
   "cordon-of-arrows": {
     "name": "Cordon of Arrows",
     "level": 2,
     "school": "Transmutation",
     "path": "/data/spells/level-2/cordon-of-arrows.json"
+  },
+  "counterspell": {
+    "name": "Counterspell",
+    "level": 3,
+    "school": "Abjuration",
+    "path": "/data/spells/level-3/counterspell.json"
   },
   "create-bonfire": {
     "name": "Create Bonfire",
@@ -483,7 +540,13 @@
     "name": "Create Food and Water",
     "level": 3,
     "school": "Conjuration",
-    "path": "/data/spells/create-food-and-water.json"
+    "path": "/data/spells/level-3/create-food-and-water.json"
+  },
+  "create-homunculus": {
+    "name": "Create Homunculus",
+    "level": 6,
+    "school": "Transmutation",
+    "path": "/data/spells/level-6/create-homunculus.json"
   },
   "create-or-destroy-water": {
     "name": "Create or Destroy Water",
@@ -495,13 +558,13 @@
     "name": "Create Undead",
     "level": 6,
     "school": "Necromancy",
-    "path": "/data/spells/create-undead.json"
+    "path": "/data/spells/level-6/create-undead.json"
   },
   "creation": {
     "name": "Creation",
     "level": 5,
     "school": "Illusion",
-    "path": "/data/spells/creation.json"
+    "path": "/data/spells/level-5/creation.json"
   },
   "crown-of-madness": {
     "name": "Crown of Madness",
@@ -509,11 +572,17 @@
     "school": "Enchantment",
     "path": "/data/spells/level-2/crown-of-madness.json"
   },
+  "crown-of-stars": {
+    "name": "Crown of Stars",
+    "level": 7,
+    "school": "Evocation",
+    "path": "/data/spells/level-7/crown-of-stars.json"
+  },
   "crusaders-mantle": {
     "name": "Crusader's Mantle",
     "level": 3,
     "school": "Evocation",
-    "path": "/data/spells/crusaders-mantle.json"
+    "path": "/data/spells/level-3/crusaders-mantle.json"
   },
   "cure-wounds": {
     "name": "Cure Wounds",
@@ -527,6 +596,18 @@
     "school": "Evocation",
     "path": "/data/spells/level-0/dancing-lights.json"
   },
+  "danse-macabre": {
+    "name": "Danse Macabre",
+    "level": 5,
+    "school": "Necromancy",
+    "path": "/data/spells/level-5/danse-macabre.json"
+  },
+  "dark-star": {
+    "name": "Dark Star",
+    "level": 8,
+    "school": "Evocation",
+    "path": "/data/spells/level-8/dark-star.json"
+  },
   "darkness": {
     "name": "Darkness",
     "level": 2,
@@ -539,35 +620,41 @@
     "school": "Transmutation",
     "path": "/data/spells/level-2/darkvision.json"
   },
+  "dawn": {
+    "name": "Dawn",
+    "level": 5,
+    "school": "Evocation",
+    "path": "/data/spells/level-5/dawn.json"
+  },
   "daylight": {
     "name": "Daylight",
     "level": 3,
     "school": "Evocation",
-    "path": "/data/spells/daylight.json"
+    "path": "/data/spells/level-3/daylight.json"
   },
   "death-ward": {
     "name": "Death Ward",
     "level": 4,
     "school": "Abjuration",
-    "path": "/data/spells/death-ward.json"
+    "path": "/data/spells/level-4/death-ward.json"
   },
   "delayed-blast-fireball": {
     "name": "Delayed Blast Fireball",
     "level": 7,
     "school": "Evocation",
-    "path": "/data/spells/delayed-blast-fireball.json"
+    "path": "/data/spells/level-7/delayed-blast-fireball.json"
   },
   "demiplane": {
     "name": "Demiplane",
     "level": 8,
     "school": "Conjuration",
-    "path": "/data/spells/demiplane.json"
+    "path": "/data/spells/level-8/demiplane.json"
   },
   "destructive-wave": {
     "name": "Destructive Wave",
     "level": 5,
     "school": "Evocation",
-    "path": "/data/spells/destructive-wave.json"
+    "path": "/data/spells/level-5/destructive-wave.json"
   },
   "detect-evil-and-good": {
     "name": "Detect Evil and Good",
@@ -597,7 +684,7 @@
     "name": "Dimension Door",
     "level": 4,
     "school": "Conjuration",
-    "path": "/data/spells/dimension-door.json"
+    "path": "/data/spells/level-4/dimension-door.json"
   },
   "disguise-self": {
     "name": "Disguise Self",
@@ -609,19 +696,19 @@
     "name": "Disintegrate",
     "level": 6,
     "school": "Transmutation",
-    "path": "/data/spells/disintegrate.json"
+    "path": "/data/spells/level-6/disintegrate.json"
   },
   "dispel-evil-and-good": {
     "name": "Dispel Evil and Good",
     "level": 5,
     "school": "Abjuration",
-    "path": "/data/spells/dispel-evil-and-good.json"
+    "path": "/data/spells/level-5/dispel-evil-and-good.json"
   },
   "dispel-magic": {
     "name": "Dispel Magic",
     "level": 3,
     "school": "Abjuration",
-    "path": "/data/spells/dispel-magic.json"
+    "path": "/data/spells/level-3/dispel-magic.json"
   },
   "dissonant-whispers": {
     "name": "Dissonant Whispers",
@@ -633,12 +720,12 @@
     "name": "Divination",
     "level": 4,
     "school": "Divination",
-    "path": "/data/spells/divination.json"
+    "path": "/data/spells/level-4/divination.json"
   },
   "divine-favor": {
     "name": "Divine Favor",
     "level": 1,
-    "school": "Evocation",
+    "school": "Transmutation",
     "path": "/data/spells/level-1/divine-favor.json"
   },
   "divine-smite": {
@@ -651,25 +738,31 @@
     "name": "Divine Word",
     "level": 7,
     "school": "Evocation",
-    "path": "/data/spells/divine-word.json"
+    "path": "/data/spells/level-7/divine-word.json"
   },
   "dominate-beast": {
     "name": "Dominate Beast",
     "level": 4,
     "school": "Enchantment",
-    "path": "/data/spells/dominate-beast.json"
+    "path": "/data/spells/level-4/dominate-beast.json"
   },
   "dominate-monster": {
     "name": "Dominate Monster",
     "level": 8,
     "school": "Enchantment",
-    "path": "/data/spells/dominate-monster.json"
+    "path": "/data/spells/level-8/dominate-monster.json"
   },
   "dominate-person": {
     "name": "Dominate Person",
     "level": 5,
     "school": "Enchantment",
-    "path": "/data/spells/dominate-person.json"
+    "path": "/data/spells/level-5/dominate-person.json"
+  },
+  "draconic-transformation": {
+    "name": "Draconic Transformation",
+    "level": 7,
+    "school": "Transmutation",
+    "path": "/data/spells/level-7/draconic-transformation.json"
   },
   "dragons-breath": {
     "name": "Dragon's Breath",
@@ -677,11 +770,29 @@
     "school": "Transmutation",
     "path": "/data/spells/level-2/dragons-breath.json"
   },
+  "drawmijs-instant-summons": {
+    "name": "Drawmij's Instant Summons",
+    "level": 6,
+    "school": "Conjuration",
+    "path": "/data/spells/level-6/drawmijs-instant-summons.json"
+  },
   "dream": {
     "name": "Dream",
     "level": 5,
     "school": "Illusion",
-    "path": "/data/spells/dream.json"
+    "path": "/data/spells/level-5/dream.json"
+  },
+  "dream-of-the-blue-veil": {
+    "name": "Dream of the Blue Veil",
+    "level": 7,
+    "school": "Conjuration",
+    "path": "/data/spells/level-7/dream-of-the-blue-veil.json"
+  },
+  "druid-grove": {
+    "name": "Druid Grove",
+    "level": 6,
+    "school": "Abjuration",
+    "path": "/data/spells/level-6/druid-grove.json"
   },
   "druidcraft": {
     "name": "Druidcraft",
@@ -693,7 +804,7 @@
     "name": "Earthquake",
     "level": 8,
     "school": "Evocation",
-    "path": "/data/spells/earthquake.json"
+    "path": "/data/spells/level-8/earthquake.json"
   },
   "eldritch-blast": {
     "name": "Eldritch Blast",
@@ -705,19 +816,31 @@
     "name": "Elemental Bane",
     "level": 4,
     "school": "Transmutation",
-    "path": "/data/spells/elemental-bane.json"
+    "path": "/data/spells/level-4/elemental-bane.json"
   },
   "elemental-weapon": {
     "name": "Elemental Weapon",
     "level": 3,
     "school": "Transmutation",
-    "path": "/data/spells/elemental-weapon.json"
+    "path": "/data/spells/level-3/elemental-weapon.json"
   },
   "elementalism": {
     "name": "Elementalism",
     "level": 0,
     "school": "Transmutation",
     "path": "/data/spells/level-0/elementalism.json"
+  },
+  "enemies-abound": {
+    "name": "Enemies Abound",
+    "level": 3,
+    "school": "Enchantment",
+    "path": "/data/spells/level-3/enemies-abound.json"
+  },
+  "enervation": {
+    "name": "Enervation",
+    "level": 5,
+    "school": "Necromancy",
+    "path": "/data/spells/level-5/enervation.json"
   },
   "enhance-ability": {
     "name": "Enhance Ability",
@@ -749,11 +872,23 @@
     "school": "Enchantment",
     "path": "/data/spells/level-2/enthrall.json"
   },
+  "erupting-earth": {
+    "name": "Erupting Earth",
+    "level": 3,
+    "school": "Transmutation",
+    "path": "/data/spells/level-3/erupting-earth.json"
+  },
   "etherealness": {
     "name": "Etherealness",
     "level": 7,
-    "school": "Transmutation",
-    "path": "/data/spells/etherealness.json"
+    "school": "Conjuration",
+    "path": "/data/spells/level-7/etherealness.json"
+  },
+  "evards-black-tentacles": {
+    "name": "Evard's Black Tentacles",
+    "level": 4,
+    "school": "Conjuration",
+    "path": "/data/spells/level-4/evards-black-tentacles.json"
   },
   "expeditious-retreat": {
     "name": "Expeditious Retreat",
@@ -765,13 +900,13 @@
     "name": "Eyebite",
     "level": 6,
     "school": "Necromancy",
-    "path": "/data/spells/eyebite.json"
+    "path": "/data/spells/level-6/eyebite.json"
   },
   "fabricate": {
     "name": "Fabricate",
     "level": 4,
     "school": "Transmutation",
-    "path": "/data/spells/fabricate.json"
+    "path": "/data/spells/level-4/fabricate.json"
   },
   "faerie-fire": {
     "name": "Faerie Fire",
@@ -785,11 +920,23 @@
     "school": "Necromancy",
     "path": "/data/spells/level-1/false-life.json"
   },
+  "far-step": {
+    "name": "Far Step",
+    "level": 5,
+    "school": "Conjuration",
+    "path": "/data/spells/level-5/far-step.json"
+  },
+  "fast-friends": {
+    "name": "Fast Friends",
+    "level": 3,
+    "school": "Enchantment",
+    "path": "/data/spells/level-3/fast-friends.json"
+  },
   "fear": {
     "name": "Fear",
     "level": 3,
     "school": "Illusion",
-    "path": "/data/spells/fear.json"
+    "path": "/data/spells/level-3/fear.json"
   },
   "feather-fall": {
     "name": "Feather Fall",
@@ -797,17 +944,29 @@
     "school": "Transmutation",
     "path": "/data/spells/level-1/feather-fall.json"
   },
+  "feeblemind": {
+    "name": "Feeblemind",
+    "level": 8,
+    "school": "Enchantment",
+    "path": "/data/spells/level-8/feeblemind.json"
+  },
   "feign-death": {
     "name": "Feign Death",
     "level": 3,
     "school": "Necromancy",
-    "path": "/data/spells/feign-death.json"
+    "path": "/data/spells/level-3/feign-death.json"
   },
   "find-familiar": {
     "name": "Find Familiar",
     "level": 1,
     "school": "Conjuration",
     "path": "/data/spells/level-1/find-familiar.json"
+  },
+  "find-greater-steed": {
+    "name": "Find Greater Steed",
+    "level": 4,
+    "school": "Evocation",
+    "path": "/data/spells/level-4/find-greater-steed.json"
   },
   "find-steed": {
     "name": "Find Steed",
@@ -819,7 +978,7 @@
     "name": "Find the Path",
     "level": 6,
     "school": "Divination",
-    "path": "/data/spells/find-the-path.json"
+    "path": "/data/spells/level-6/find-the-path.json"
   },
   "find-traps": {
     "name": "Find Traps",
@@ -831,7 +990,7 @@
     "name": "Finger of Death",
     "level": 7,
     "school": "Necromancy",
-    "path": "/data/spells/finger-of-death.json"
+    "path": "/data/spells/level-7/finger-of-death.json"
   },
   "fire-bolt": {
     "name": "Fire Bolt",
@@ -843,25 +1002,25 @@
     "name": "Fire Shield",
     "level": 4,
     "school": "Evocation",
-    "path": "/data/spells/fire-shield.json"
+    "path": "/data/spells/level-4/fire-shield.json"
   },
   "fire-storm": {
     "name": "Fire Storm",
     "level": 7,
     "school": "Evocation",
-    "path": "/data/spells/fire-storm.json"
+    "path": "/data/spells/level-7/fire-storm.json"
   },
   "fireball": {
     "name": "Fireball",
     "level": 3,
     "school": "Evocation",
-    "path": "/data/spells/fireball.json"
+    "path": "/data/spells/level-3/fireball.json"
   },
   "flame-arrows": {
     "name": "Flame Arrows",
     "level": 3,
     "school": "Transmutation",
-    "path": "/data/spells/flame-arrows.json"
+    "path": "/data/spells/level-3/flame-arrows.json"
   },
   "flame-blade": {
     "name": "Flame Blade",
@@ -873,7 +1032,7 @@
     "name": "Flame Strike",
     "level": 5,
     "school": "Evocation",
-    "path": "/data/spells/flame-strike.json"
+    "path": "/data/spells/level-5/flame-strike.json"
   },
   "flaming-sphere": {
     "name": "Flaming Sphere",
@@ -885,13 +1044,13 @@
     "name": "Flesh to Stone",
     "level": 6,
     "school": "Transmutation",
-    "path": "/data/spells/flesh-to-stone.json"
+    "path": "/data/spells/level-6/flesh-to-stone.json"
   },
   "fly": {
     "name": "Fly",
     "level": 3,
     "school": "Transmutation",
-    "path": "/data/spells/fly.json"
+    "path": "/data/spells/level-3/fly.json"
   },
   "fog-cloud": {
     "name": "Fog Cloud",
@@ -903,25 +1062,25 @@
     "name": "Forbiddance",
     "level": 6,
     "school": "Abjuration",
-    "path": "/data/spells/forbiddance.json"
+    "path": "/data/spells/level-6/forbiddance.json"
   },
   "forcecage": {
     "name": "Forcecage",
     "level": 7,
     "school": "Evocation",
-    "path": "/data/spells/forcecage.json"
+    "path": "/data/spells/level-7/forcecage.json"
   },
   "foresight": {
     "name": "Foresight",
     "level": 9,
     "school": "Divination",
-    "path": "/data/spells/foresight.json"
+    "path": "/data/spells/level-9/foresight.json"
   },
   "freedom-of-movement": {
     "name": "Freedom of Movement",
     "level": 4,
     "school": "Abjuration",
-    "path": "/data/spells/freedom-of-movement.json"
+    "path": "/data/spells/level-4/freedom-of-movement.json"
   },
   "friends": {
     "name": "Friends",
@@ -935,23 +1094,35 @@
     "school": "Evocation",
     "path": "/data/spells/level-0/frostbite.json"
   },
+  "galders-speedy-courier": {
+    "name": "Galders Speedy Courier",
+    "level": 4,
+    "school": "Evocation",
+    "path": "/data/spells/level-4/galders-speedy-courier.json"
+  },
+  "galders-tower": {
+    "name": "Galder's Tower",
+    "level": 3,
+    "school": "Conjuration",
+    "path": "/data/spells/level-3/galders-tower.json"
+  },
   "gaseous-form": {
     "name": "Gaseous Form",
     "level": 3,
     "school": "Transmutation",
-    "path": "/data/spells/gaseous-form.json"
+    "path": "/data/spells/level-3/gaseous-form.json"
   },
   "gate": {
     "name": "Gate",
     "level": 9,
     "school": "Conjuration",
-    "path": "/data/spells/gate.json"
+    "path": "/data/spells/level-9/gate.json"
   },
   "geas": {
     "name": "Geas",
     "level": 5,
     "school": "Enchantment",
-    "path": "/data/spells/geas.json"
+    "path": "/data/spells/level-5/geas.json"
   },
   "gentle-repose": {
     "name": "Gentle Repose",
@@ -962,26 +1133,26 @@
   "giant-insect": {
     "name": "Giant Insect",
     "level": 4,
-    "school": "Transmutation",
-    "path": "/data/spells/giant-insect.json"
+    "school": "Conjuration",
+    "path": "/data/spells/level-4/giant-insect.json"
   },
   "glibness": {
     "name": "Glibness",
     "level": 8,
     "school": "Transmutation",
-    "path": "/data/spells/glibness.json"
+    "path": "/data/spells/level-8/glibness.json"
   },
   "globe-of-invulnerability": {
     "name": "Globe of Invulnerability",
     "level": 6,
     "school": "Abjuration",
-    "path": "/data/spells/globe-of-invulnerability.json"
+    "path": "/data/spells/level-6/globe-of-invulnerability.json"
   },
   "glyph-of-warding": {
     "name": "Glyph of Warding",
     "level": 3,
     "school": "Abjuration",
-    "path": "/data/spells/glyph-of-warding.json"
+    "path": "/data/spells/level-3/glyph-of-warding.json"
   },
   "goodberry": {
     "name": "Goodberry",
@@ -993,7 +1164,19 @@
     "name": "Grasping Vine",
     "level": 4,
     "school": "Conjuration",
-    "path": "/data/spells/grasping-vine.json"
+    "path": "/data/spells/level-4/grasping-vine.json"
+  },
+  "gravity-fissure": {
+    "name": "Gravity Fissure",
+    "level": 6,
+    "school": "Evocation",
+    "path": "/data/spells/level-6/gravity-fissure.json"
+  },
+  "gravity-sinkhole": {
+    "name": "Gravity Sinkhole",
+    "level": 4,
+    "school": "Evocation",
+    "path": "/data/spells/level-4/gravity-sinkhole.json"
   },
   "grease": {
     "name": "Grease",
@@ -1005,13 +1188,13 @@
     "name": "Greater Invisibility",
     "level": 4,
     "school": "Illusion",
-    "path": "/data/spells/greater-invisibility.json"
+    "path": "/data/spells/level-4/greater-invisibility.json"
   },
   "greater-restoration": {
     "name": "Greater Restoration",
     "level": 5,
     "school": "Abjuration",
-    "path": "/data/spells/greater-restoration.json"
+    "path": "/data/spells/level-5/greater-restoration.json"
   },
   "green-flame-blade": {
     "name": "Green-Flame Blade",
@@ -1023,13 +1206,19 @@
     "name": "Guardian of Faith",
     "level": 4,
     "school": "Conjuration",
-    "path": "/data/spells/guardian-of-faith.json"
+    "path": "/data/spells/level-4/guardian-of-faith.json"
+  },
+  "guardian-of-nature": {
+    "name": "Guardian Of Nature",
+    "level": 4,
+    "school": "Evocation",
+    "path": "/data/spells/level-4/guardian-of-nature.json"
   },
   "guards-and-wards": {
     "name": "Guards and Wards",
     "level": 6,
     "school": "Abjuration",
-    "path": "/data/spells/guards-and-wards.json"
+    "path": "/data/spells/level-6/guards-and-wards.json"
   },
   "guidance": {
     "name": "Guidance",
@@ -1058,32 +1247,32 @@
   "hallow": {
     "name": "Hallow",
     "level": 5,
-    "school": "Evocation",
-    "path": "/data/spells/hallow.json"
+    "school": "Abjuration",
+    "path": "/data/spells/level-5/hallow.json"
   },
   "hallucinatory-terrain": {
     "name": "Hallucinatory Terrain",
     "level": 4,
     "school": "Illusion",
-    "path": "/data/spells/hallucinatory-terrain.json"
+    "path": "/data/spells/level-4/hallucinatory-terrain.json"
   },
   "harm": {
     "name": "Harm",
     "level": 6,
     "school": "Necromancy",
-    "path": "/data/spells/harm.json"
+    "path": "/data/spells/level-6/harm.json"
   },
   "haste": {
     "name": "Haste",
     "level": 3,
     "school": "Transmutation",
-    "path": "/data/spells/haste.json"
+    "path": "/data/spells/level-3/haste.json"
   },
   "heal": {
     "name": "Heal",
     "level": 6,
     "school": "Evocation",
-    "path": "/data/spells/heal.json"
+    "path": "/data/spells/level-6/heal.json"
   },
   "healing-word": {
     "name": "Healing Word",
@@ -1107,7 +1296,7 @@
     "name": "Heroes' Feast",
     "level": 6,
     "school": "Conjuration",
-    "path": "/data/spells/heroes-feast.json"
+    "path": "/data/spells/level-6/heroes-feast.json"
   },
   "heroism": {
     "name": "Heroism",
@@ -1125,7 +1314,7 @@
     "name": "Hold Monster",
     "level": 5,
     "school": "Enchantment",
-    "path": "/data/spells/hold-monster.json"
+    "path": "/data/spells/level-5/hold-monster.json"
   },
   "hold-person": {
     "name": "Hold Person",
@@ -1137,13 +1326,19 @@
     "name": "Holy Aura",
     "level": 8,
     "school": "Abjuration",
-    "path": "/data/spells/holy-aura.json"
+    "path": "/data/spells/level-8/holy-aura.json"
+  },
+  "holy-weapon": {
+    "name": "Holy Weapon",
+    "level": 5,
+    "school": "Evocation",
+    "path": "/data/spells/level-5/holy-weapon.json"
   },
   "hunger-of-hadar": {
     "name": "Hunger of Hadar",
     "level": 3,
     "school": "Conjuration",
-    "path": "/data/spells/hunger-of-hadar.json"
+    "path": "/data/spells/level-3/hunger-of-hadar.json"
   },
   "hunters-mark": {
     "name": "Hunter's Mark",
@@ -1155,7 +1350,7 @@
     "name": "Hypnotic Pattern",
     "level": 3,
     "school": "Illusion",
-    "path": "/data/spells/hypnotic-pattern.json"
+    "path": "/data/spells/level-3/hypnotic-pattern.json"
   },
   "ice-knife": {
     "name": "Ice Knife",
@@ -1167,7 +1362,7 @@
     "name": "Ice Storm",
     "level": 4,
     "school": "Evocation",
-    "path": "/data/spells/ice-storm.json"
+    "path": "/data/spells/level-4/ice-storm.json"
   },
   "identify": {
     "name": "Identify",
@@ -1175,23 +1370,47 @@
     "school": "Divination",
     "path": "/data/spells/level-1/identify.json"
   },
+  "illusory-dragon": {
+    "name": "Illusory Dragon",
+    "level": 8,
+    "school": "Illusion",
+    "path": "/data/spells/level-8/illusory-dragon.json"
+  },
   "illusory-script": {
     "name": "Illusory Script",
     "level": 1,
     "school": "Illusion",
     "path": "/data/spells/level-1/illusory-script.json"
   },
+  "immolation": {
+    "name": "Immolation",
+    "level": 5,
+    "school": "Evocation",
+    "path": "/data/spells/level-5/immolation.json"
+  },
   "imprisonment": {
     "name": "Imprisonment",
     "level": 9,
     "school": "Abjuration",
-    "path": "/data/spells/imprisonment.json"
+    "path": "/data/spells/level-9/imprisonment.json"
   },
   "incendiary-cloud": {
     "name": "Incendiary Cloud",
     "level": 8,
     "school": "Conjuration",
-    "path": "/data/spells/incendiary-cloud.json"
+    "path": "/data/spells/level-8/incendiary-cloud.json"
+  },
+  "incite-greed": {
+    "name": "Incite Greed",
+    "level": 3,
+    "school": "Enchantment",
+    "path": "/data/spells/level-3/incite-greed.json"
+  },
+  "infernal-calling": {
+    "name": "Infernal Calling",
+    "level": 5,
+    "school": "Conjuration",
+    "path": "/data/spells/level-5/infernal-calling.json"
   },
   "inflict-wounds": {
     "name": "Inflict Wounds",
@@ -1203,19 +1422,49 @@
     "name": "Insect Plague",
     "level": 5,
     "school": "Conjuration",
-    "path": "/data/spells/insect-plague.json"
+    "path": "/data/spells/level-5/insect-plague.json"
   },
   "intellect-fortress": {
     "name": "Intellect Fortress",
     "level": 3,
     "school": "Abjuration",
-    "path": "/data/spells/intellect-fortress.json"
+    "path": "/data/spells/level-3/intellect-fortress.json"
+  },
+  "investiture-of-flame": {
+    "name": "Investiture of Flame",
+    "level": 6,
+    "school": "Transmutation",
+    "path": "/data/spells/level-6/investiture-of-flame.json"
+  },
+  "investiture-of-ice": {
+    "name": "Investiture of Ice",
+    "level": 6,
+    "school": "Transmutation",
+    "path": "/data/spells/level-6/investiture-of-ice.json"
+  },
+  "investiture-of-stone": {
+    "name": "Investiture of Stone",
+    "level": 6,
+    "school": "Transmutation",
+    "path": "/data/spells/level-6/investiture-of-stone.json"
+  },
+  "investiture-of-wind": {
+    "name": "Investiture of Wind",
+    "level": 6,
+    "school": "Transmutation",
+    "path": "/data/spells/level-6/investiture-of-wind.json"
   },
   "invisibility": {
     "name": "Invisibility",
     "level": 2,
     "school": "Illusion",
     "path": "/data/spells/level-2/invisibility.json"
+  },
+  "invulnerability": {
+    "name": "Invulnerability",
+    "level": 9,
+    "school": "Abjuration",
+    "path": "/data/spells/level-9/invulnerability.json"
   },
   "jump": {
     "name": "Jump",
@@ -1233,7 +1482,19 @@
     "name": "Legend Lore",
     "level": 5,
     "school": "Divination",
-    "path": "/data/spells/legend-lore.json"
+    "path": "/data/spells/level-5/legend-lore.json"
+  },
+  "leomunds-secret-chest": {
+    "name": "Leomund's Secret Chest",
+    "level": 4,
+    "school": "Conjuration",
+    "path": "/data/spells/level-4/leomunds-secret-chest.json"
+  },
+  "leomunds-tiny-hut": {
+    "name": "Leomund's Tiny Hut",
+    "level": 3,
+    "school": "Evocation",
+    "path": "/data/spells/level-3/leomunds-tiny-hut.json"
   },
   "lesser-restoration": {
     "name": "Lesser Restoration",
@@ -1247,6 +1508,12 @@
     "school": "Transmutation",
     "path": "/data/spells/level-2/levitate.json"
   },
+  "life-transference": {
+    "name": "Life Transference",
+    "level": 3,
+    "school": "Necromancy",
+    "path": "/data/spells/level-3/life-transference.json"
+  },
   "light": {
     "name": "Light",
     "level": 0,
@@ -1257,13 +1524,13 @@
     "name": "Lightning Arrow",
     "level": 3,
     "school": "Transmutation",
-    "path": "/data/spells/lightning-arrow.json"
+    "path": "/data/spells/level-3/lightning-arrow.json"
   },
   "lightning-bolt": {
     "name": "Lightning Bolt",
     "level": 3,
     "school": "Evocation",
-    "path": "/data/spells/lightning-bolt.json"
+    "path": "/data/spells/level-3/lightning-bolt.json"
   },
   "lightning-lure": {
     "name": "Lightning Lure",
@@ -1281,7 +1548,7 @@
     "name": "Locate Creature",
     "level": 4,
     "school": "Divination",
-    "path": "/data/spells/locate-creature.json"
+    "path": "/data/spells/level-4/locate-creature.json"
   },
   "locate-object": {
     "name": "Locate Object",
@@ -1294,6 +1561,18 @@
     "level": 1,
     "school": "Transmutation",
     "path": "/data/spells/level-1/longstrider.json"
+  },
+  "maddening-darkness": {
+    "name": "Maddening Darkness",
+    "level": 8,
+    "school": "Evocation",
+    "path": "/data/spells/level-8/maddening-darkness.json"
+  },
+  "maelstrom": {
+    "name": "Maelstrom",
+    "level": 5,
+    "school": "Evocation",
+    "path": "/data/spells/level-5/maelstrom.json"
   },
   "mage-armor": {
     "name": "Mage Armor",
@@ -1311,13 +1590,13 @@
     "name": "Magic Circle",
     "level": 3,
     "school": "Abjuration",
-    "path": "/data/spells/magic-circle.json"
+    "path": "/data/spells/level-3/magic-circle.json"
   },
   "magic-jar": {
     "name": "Magic Jar",
     "level": 6,
     "school": "Necromancy",
-    "path": "/data/spells/magic-jar.json"
+    "path": "/data/spells/level-6/magic-jar.json"
   },
   "magic-missile": {
     "name": "Magic Missile",
@@ -1347,43 +1626,49 @@
     "name": "Major Image",
     "level": 3,
     "school": "Illusion",
-    "path": "/data/spells/major-image.json"
+    "path": "/data/spells/level-3/major-image.json"
   },
   "mass-cure-wounds": {
     "name": "Mass Cure Wounds",
     "level": 5,
     "school": "Evocation",
-    "path": "/data/spells/mass-cure-wounds.json"
+    "path": "/data/spells/level-5/mass-cure-wounds.json"
   },
   "mass-heal": {
     "name": "Mass Heal",
     "level": 9,
-    "school": "Evocation",
-    "path": "/data/spells/mass-heal.json"
+    "school": "Abjuration",
+    "path": "/data/spells/level-9/mass-heal.json"
   },
   "mass-healing-word": {
     "name": "Mass Healing Word",
     "level": 3,
     "school": "Evocation",
-    "path": "/data/spells/mass-healing-word.json"
+    "path": "/data/spells/level-3/mass-healing-word.json"
+  },
+  "mass-polymorph": {
+    "name": "Mass Polymorph",
+    "level": 9,
+    "school": "Transmutation",
+    "path": "/data/spells/level-9/mass-polymorph.json"
   },
   "mass-suggestion": {
     "name": "Mass Suggestion",
     "level": 6,
     "school": "Enchantment",
-    "path": "/data/spells/mass-suggestion.json"
+    "path": "/data/spells/level-6/mass-suggestion.json"
   },
   "maze": {
     "name": "Maze",
     "level": 8,
     "school": "Conjuration",
-    "path": "/data/spells/maze.json"
+    "path": "/data/spells/level-8/maze.json"
   },
   "meld-into-stone": {
     "name": "Meld into Stone",
     "level": 3,
     "school": "Transmutation",
-    "path": "/data/spells/meld-into-stone.json"
+    "path": "/data/spells/level-3/meld-into-stone.json"
   },
   "melfs-acid-arrow": {
     "name": "Melf's Acid Arrow",
@@ -1391,11 +1676,23 @@
     "school": "Evocation",
     "path": "/data/spells/level-2/melfs-acid-arrow.json"
   },
+  "melfs-minute-meteors": {
+    "name": "Melf's Minute Meteors",
+    "level": 3,
+    "school": "Evocation",
+    "path": "/data/spells/level-3/melfs-minute-meteors.json"
+  },
   "mending": {
     "name": "Mending",
     "level": 0,
     "school": "Transmutation",
     "path": "/data/spells/level-0/mending.json"
+  },
+  "mental-prison": {
+    "name": "Mental Prison",
+    "level": 6,
+    "school": "Illusion",
+    "path": "/data/spells/level-6/mental-prison.json"
   },
   "message": {
     "name": "Message",
@@ -1407,13 +1704,19 @@
     "name": "Meteor Swarm",
     "level": 9,
     "school": "Evocation",
-    "path": "/data/spells/meteor-swarm.json"
+    "path": "/data/spells/level-9/meteor-swarm.json"
+  },
+  "mighty-fortress": {
+    "name": "Mighty Fortress",
+    "level": 8,
+    "school": "Conjuration",
+    "path": "/data/spells/level-8/mighty-fortress.json"
   },
   "mind-blank": {
     "name": "Mind Blank",
     "level": 8,
     "school": "Abjuration",
-    "path": "/data/spells/mind-blank.json"
+    "path": "/data/spells/level-8/mind-blank.json"
   },
   "mind-sliver": {
     "name": "Mind Sliver",
@@ -1437,13 +1740,19 @@
     "name": "Mirage Arcane",
     "level": 7,
     "school": "Illusion",
-    "path": "/data/spells/mirage-arcane.json"
+    "path": "/data/spells/level-7/mirage-arcane.json"
+  },
+  "mirror-image": {
+    "name": "Mirror Image",
+    "level": 2,
+    "school": "Illusion",
+    "path": "/data/spells/level-2/mirror-image.json"
   },
   "mislead": {
     "name": "Mislead",
     "level": 5,
     "school": "Illusion",
-    "path": "/data/spells/mislead.json"
+    "path": "/data/spells/level-5/mislead.json"
   },
   "misty-step": {
     "name": "Misty Step",
@@ -1455,7 +1764,7 @@
     "name": "Modify Memory",
     "level": 5,
     "school": "Enchantment",
-    "path": "/data/spells/modify-memory.json"
+    "path": "/data/spells/level-5/modify-memory.json"
   },
   "mold-earth": {
     "name": "Mold Earth",
@@ -1473,55 +1782,67 @@
     "name": "Mordenkainen's Faithful Hound",
     "level": 4,
     "school": "Conjuration",
-    "path": "/data/spells/mordenkainens-faithful-hound.json"
+    "path": "/data/spells/level-4/mordenkainens-faithful-hound.json"
   },
   "mordenkainens-magnificent-mansion": {
     "name": "Mordenkainen's Magnificent Mansion",
     "level": 7,
     "school": "Conjuration",
-    "path": "/data/spells/mordenkainens-magnificent-mansion.json"
+    "path": "/data/spells/level-7/mordenkainens-magnificent-mansion.json"
   },
   "mordenkainens-private-sanctum": {
     "name": "Mordenkainen's Private Sanctum",
     "level": 4,
     "school": "Abjuration",
-    "path": "/data/spells/mordenkainens-private-sanctum.json"
+    "path": "/data/spells/level-4/mordenkainens-private-sanctum.json"
   },
-  "mordenkainens-sword": {
-    "name": "Mordenkainen's Sword",
-    "level": 7,
-    "school": "Evocation",
-    "path": "/data/spells/mordenkainens-sword.json"
+  "motivational-speech": {
+    "name": "Motivational Speech",
+    "level": 3,
+    "school": "Enchantment",
+    "path": "/data/spells/level-3/motivational-speech.json"
   },
   "move-earth": {
     "name": "Move Earth",
     "level": 6,
     "school": "Transmutation",
-    "path": "/data/spells/move-earth.json"
+    "path": "/data/spells/level-6/move-earth.json"
+  },
+  "negative-energy-flood": {
+    "name": "Negative Energy Flood",
+    "level": 5,
+    "school": "Necromancy",
+    "path": "/data/spells/level-5/negative-energy-flood.json"
   },
   "nondetection": {
     "name": "Nondetection",
     "level": 3,
     "school": "Abjuration",
-    "path": "/data/spells/nondetection.json"
+    "path": "/data/spells/level-3/nondetection.json"
+  },
+  "nystuls-magic-aura": {
+    "name": "Nystul's Magic Aura",
+    "level": 2,
+    "school": "Illusion",
+    "path": "/data/spells/level-2/nystuls-magic-aura.json"
   },
   "otilukes-freezing-sphere": {
     "name": "Otiluke's Freezing Sphere",
     "level": 6,
     "school": "Evocation",
-    "path": "/data/spells/otilukes-freezing-sphere.json"
+    "path": "/data/spells/level-6/otilukes-freezing-sphere.json"
   },
   "otilukes-resilient-sphere": {
     "name": "Otiluke's Resilient Sphere",
     "level": 4,
-    "school": "Evocation",
-    "path": "/data/spells/otilukes-resilient-sphere.json"
+    "school": "Abjuration",
+    "path": "/data/spells/level-4/otilukes-resilient-sphere.json"
   },
   "ottos-irresistible-dance": {
     "name": "Otto's Irresistible Dance",
     "level": 6,
     "school": "Enchantment",
-    "path": "/data/spells/ottos-irresistible-dance.json"
+    "path": "/data/spells/level-6/ottos-irresistible-dance.json"
   },
   "pass-without-trace": {
     "name": "Pass without Trace",
@@ -1533,7 +1854,7 @@
     "name": "Passwall",
     "level": 5,
     "school": "Transmutation",
-    "path": "/data/spells/passwall.json"
+    "path": "/data/spells/level-5/passwall.json"
   },
   "phantasmal-force": {
     "name": "Phantasmal Force",
@@ -1545,31 +1866,37 @@
     "name": "Phantasmal Killer",
     "level": 4,
     "school": "Illusion",
-    "path": "/data/spells/phantasmal-killer.json"
+    "path": "/data/spells/level-4/phantasmal-killer.json"
+  },
+  "phantom-steed": {
+    "name": "Phantom Steed",
+    "level": 3,
+    "school": "Illusion",
+    "path": "/data/spells/level-3/phantom-steed.json"
   },
   "planar-ally": {
     "name": "Planar Ally",
     "level": 6,
     "school": "Conjuration",
-    "path": "/data/spells/planar-ally.json"
+    "path": "/data/spells/level-6/planar-ally.json"
   },
   "planar-binding": {
     "name": "Planar Binding",
     "level": 5,
     "school": "Abjuration",
-    "path": "/data/spells/planar-binding.json"
+    "path": "/data/spells/level-5/planar-binding.json"
   },
   "plane-shift": {
     "name": "Plane Shift",
     "level": 7,
     "school": "Conjuration",
-    "path": "/data/spells/plane-shift.json"
+    "path": "/data/spells/level-7/plane-shift.json"
   },
   "plant-growth": {
     "name": "Plant Growth",
     "level": 3,
     "school": "Transmutation",
-    "path": "/data/spells/plant-growth.json"
+    "path": "/data/spells/level-3/plant-growth.json"
   },
   "poison-spray": {
     "name": "Poison Spray",
@@ -1581,24 +1908,36 @@
     "name": "Polymorph",
     "level": 4,
     "school": "Transmutation",
-    "path": "/data/spells/polymorph.json"
+    "path": "/data/spells/level-4/polymorph.json"
+  },
+  "power-word-heal": {
+    "name": "Power Word Heal",
+    "level": 9,
+    "school": "Enchantment",
+    "path": "/data/spells/level-9/power-word-heal.json"
   },
   "power-word-kill": {
     "name": "Power Word Kill",
     "level": 9,
     "school": "Enchantment",
-    "path": "/data/spells/power-word-kill.json"
+    "path": "/data/spells/level-9/power-word-kill.json"
+  },
+  "power-word-pain": {
+    "name": "Power Word Pain",
+    "level": 7,
+    "school": "Enchantment",
+    "path": "/data/spells/level-7/power-word-pain.json"
   },
   "power-word-stun": {
     "name": "Power Word Stun",
     "level": 8,
     "school": "Enchantment",
-    "path": "/data/spells/power-word-stun.json"
+    "path": "/data/spells/level-8/power-word-stun.json"
   },
   "prayer-of-healing": {
     "name": "Prayer of Healing",
     "level": 2,
-    "school": "Evocation",
+    "school": "Abjuration",
     "path": "/data/spells/level-2/prayer-of-healing.json"
   },
   "prestidigitation": {
@@ -1613,17 +1952,23 @@
     "school": "Transmutation",
     "path": "/data/spells/level-0/primal-savagery.json"
   },
+  "primordial-ward": {
+    "name": "Primordial Ward",
+    "level": 6,
+    "school": "Abjuration",
+    "path": "/data/spells/level-6/primordial-ward.json"
+  },
   "prismatic-spray": {
     "name": "Prismatic Spray",
     "level": 7,
     "school": "Evocation",
-    "path": "/data/spells/prismatic-spray.json"
+    "path": "/data/spells/level-7/prismatic-spray.json"
   },
   "prismatic-wall": {
     "name": "Prismatic Wall",
     "level": 9,
     "school": "Abjuration",
-    "path": "/data/spells/prismatic-wall.json"
+    "path": "/data/spells/level-9/prismatic-wall.json"
   },
   "produce-flame": {
     "name": "Produce Flame",
@@ -1635,19 +1980,19 @@
     "name": "Programmed Illusion",
     "level": 6,
     "school": "Illusion",
-    "path": "/data/spells/programmed-illusion.json"
+    "path": "/data/spells/level-6/programmed-illusion.json"
   },
   "project-image": {
     "name": "Project Image",
     "level": 7,
     "school": "Illusion",
-    "path": "/data/spells/project-image.json"
+    "path": "/data/spells/level-7/project-image.json"
   },
   "protection-from-energy": {
     "name": "Protection from Energy",
     "level": 3,
     "school": "Abjuration",
-    "path": "/data/spells/protection-from-energy.json"
+    "path": "/data/spells/level-3/protection-from-energy.json"
   },
   "protection-from-evil-and-good": {
     "name": "Protection from Evil and Good",
@@ -1660,6 +2005,18 @@
     "level": 2,
     "school": "Abjuration",
     "path": "/data/spells/level-2/protection-from-poison.json"
+  },
+  "psychic-scream": {
+    "name": "Psychic Scream",
+    "level": 9,
+    "school": "Enchantment",
+    "path": "/data/spells/level-9/psychic-scream.json"
+  },
+  "pulse-wave": {
+    "name": "Pulse Wave",
+    "level": 3,
+    "school": "Evocation",
+    "path": "/data/spells/level-3/pulse-wave.json"
   },
   "purify-food-and-drink": {
     "name": "Purify Food and Drink",
@@ -1677,13 +2034,19 @@
     "name": "Raise Dead",
     "level": 5,
     "school": "Necromancy",
-    "path": "/data/spells/raise-dead.json"
+    "path": "/data/spells/level-5/raise-dead.json"
   },
   "rarys-telepathic-bond": {
     "name": "Rary's Telepathic Bond",
     "level": 5,
     "school": "Divination",
-    "path": "/data/spells/rarys-telepathic-bond.json"
+    "path": "/data/spells/level-5/rarys-telepathic-bond.json"
+  },
+  "ravenous-void": {
+    "name": "Ravenous Void",
+    "level": 9,
+    "school": "Evocation",
+    "path": "/data/spells/level-9/ravenous-void.json"
   },
   "ray-of-enfeeblement": {
     "name": "Ray of Enfeeblement",
@@ -1703,23 +2066,29 @@
     "school": "Necromancy",
     "path": "/data/spells/level-1/ray-of-sickness.json"
   },
+  "reality-break": {
+    "name": "Reality Break",
+    "level": 8,
+    "school": "Conjuration",
+    "path": "/data/spells/level-8/reality-break.json"
+  },
   "regenerate": {
     "name": "Regenerate",
     "level": 7,
     "school": "Transmutation",
-    "path": "/data/spells/regenerate.json"
+    "path": "/data/spells/level-7/regenerate.json"
   },
   "reincarnate": {
     "name": "Reincarnate",
     "level": 5,
-    "school": "Transmutation",
-    "path": "/data/spells/reincarnate.json"
+    "school": "Necromancy",
+    "path": "/data/spells/level-5/reincarnate.json"
   },
   "remove-curse": {
     "name": "Remove Curse",
     "level": 3,
     "school": "Abjuration",
-    "path": "/data/spells/remove-curse.json"
+    "path": "/data/spells/level-3/remove-curse.json"
   },
   "resistance": {
     "name": "Resistance",
@@ -1731,19 +2100,19 @@
     "name": "Resurrection",
     "level": 7,
     "school": "Necromancy",
-    "path": "/data/spells/resurrection.json"
+    "path": "/data/spells/level-7/resurrection.json"
   },
   "reverse-gravity": {
     "name": "Reverse Gravity",
     "level": 7,
     "school": "Transmutation",
-    "path": "/data/spells/reverse-gravity.json"
+    "path": "/data/spells/level-7/reverse-gravity.json"
   },
   "revivify": {
     "name": "Revivify",
     "level": 3,
     "school": "Necromancy",
-    "path": "/data/spells/revivify.json"
+    "path": "/data/spells/level-3/revivify.json"
   },
   "rope-trick": {
     "name": "Rope Trick",
@@ -1769,6 +2138,12 @@
     "school": "Necromancy",
     "path": "/data/spells/level-0/sapping-sting.json"
   },
+  "scatter": {
+    "name": "Scatter",
+    "level": 6,
+    "school": "Conjuration",
+    "path": "/data/spells/level-6/scatter.json"
+  },
   "scorching-ray": {
     "name": "Scorching Ray",
     "level": 2,
@@ -1779,7 +2154,7 @@
     "name": "Scrying",
     "level": 5,
     "school": "Divination",
-    "path": "/data/spells/scrying.json"
+    "path": "/data/spells/level-5/scrying.json"
   },
   "searing-smite": {
     "name": "Searing Smite",
@@ -1797,19 +2172,25 @@
     "name": "Seeming",
     "level": 5,
     "school": "Illusion",
-    "path": "/data/spells/seeming.json"
+    "path": "/data/spells/level-5/seeming.json"
   },
   "sending": {
     "name": "Sending",
     "level": 3,
     "school": "Evocation",
-    "path": "/data/spells/sending.json"
+    "path": "/data/spells/level-3/sending.json"
   },
   "sequester": {
     "name": "Sequester",
     "level": 7,
     "school": "Transmutation",
-    "path": "/data/spells/sequester.json"
+    "path": "/data/spells/level-7/sequester.json"
+  },
+  "shadow-of-moil": {
+    "name": "Shadow Of Moil",
+    "level": 4,
+    "school": "Evocation",
+    "path": "/data/spells/level-4/shadow-of-moil.json"
   },
   "shape-water": {
     "name": "Shape Water",
@@ -1821,7 +2202,7 @@
     "name": "Shapechange",
     "level": 9,
     "school": "Transmutation",
-    "path": "/data/spells/shapechange.json"
+    "path": "/data/spells/level-9/shapechange.json"
   },
   "shatter": {
     "name": "Shatter",
@@ -1849,15 +2230,21 @@
   },
   "shining-smite": {
     "name": "Shining Smite",
-    "level": 5,
-    "school": "Evocation",
-    "path": "/data/spells/shining-smite.json"
+    "level": 2,
+    "school": "Transmutation",
+    "path": "/data/spells/level-2/shining-smite.json"
   },
   "shocking-grasp": {
     "name": "Shocking Grasp",
     "level": 0,
     "school": "Evocation",
     "path": "/data/spells/level-0/shocking-grasp.json"
+  },
+  "sickening-radiance": {
+    "name": "Sickening Radiance",
+    "level": 4,
+    "school": "Evocation",
+    "path": "/data/spells/level-4/sickening-radiance.json"
   },
   "silence": {
     "name": "Silence",
@@ -1875,13 +2262,13 @@
     "name": "Simulacrum",
     "level": 7,
     "school": "Illusion",
-    "path": "/data/spells/simulacrum.json"
+    "path": "/data/spells/level-7/simulacrum.json"
   },
   "skill-empowerment": {
     "name": "Skill Empowerment",
     "level": 5,
     "school": "Transmutation",
-    "path": "/data/spells/skill-empowerment.json"
+    "path": "/data/spells/level-5/skill-empowerment.json"
   },
   "skywrite": {
     "name": "Skywrite",
@@ -1899,19 +2286,25 @@
     "name": "Sleet Storm",
     "level": 3,
     "school": "Conjuration",
-    "path": "/data/spells/sleet-storm.json"
+    "path": "/data/spells/level-3/sleet-storm.json"
   },
   "slow": {
     "name": "Slow",
     "level": 3,
     "school": "Transmutation",
-    "path": "/data/spells/slow.json"
+    "path": "/data/spells/level-3/slow.json"
   },
   "snare": {
     "name": "Snare",
     "level": 1,
     "school": "Abjuration",
     "path": "/data/spells/level-1/snare.json"
+  },
+  "soul-cage": {
+    "name": "Soul Cage",
+    "level": 6,
+    "school": "Necromancy",
+    "path": "/data/spells/level-6/soul-cage.json"
   },
   "spare-the-dying": {
     "name": "Spare the Dying",
@@ -1929,13 +2322,13 @@
     "name": "Speak with Dead",
     "level": 3,
     "school": "Necromancy",
-    "path": "/data/spells/speak-with-dead.json"
+    "path": "/data/spells/level-3/speak-with-dead.json"
   },
   "speak-with-plants": {
     "name": "Speak with Plants",
     "level": 3,
     "school": "Transmutation",
-    "path": "/data/spells/speak-with-plants.json"
+    "path": "/data/spells/level-3/speak-with-plants.json"
   },
   "spider-climb": {
     "name": "Spider Climb",
@@ -1953,7 +2346,7 @@
     "name": "Spirit Guardians",
     "level": 3,
     "school": "Conjuration",
-    "path": "/data/spells/spirit-guardians.json"
+    "path": "/data/spells/level-3/spirit-guardians.json"
   },
   "spiritual-weapon": {
     "name": "Spiritual Weapon",
@@ -1965,7 +2358,7 @@
     "name": "Staggering Smite",
     "level": 4,
     "school": "Evocation",
-    "path": "/data/spells/staggering-smite.json"
+    "path": "/data/spells/level-4/staggering-smite.json"
   },
   "starry-wisp": {
     "name": "Starry Wisp",
@@ -1977,31 +2370,37 @@
     "name": "Steel Wind Strike",
     "level": 5,
     "school": "Conjuration",
-    "path": "/data/spells/steel-wind-strike.json"
+    "path": "/data/spells/level-5/steel-wind-strike.json"
   },
   "stinking-cloud": {
     "name": "Stinking Cloud",
     "level": 3,
     "school": "Conjuration",
-    "path": "/data/spells/stinking-cloud.json"
+    "path": "/data/spells/level-3/stinking-cloud.json"
   },
   "stone-shape": {
     "name": "Stone Shape",
     "level": 4,
     "school": "Transmutation",
-    "path": "/data/spells/stone-shape.json"
+    "path": "/data/spells/level-4/stone-shape.json"
   },
   "stoneskin": {
     "name": "Stoneskin",
     "level": 4,
-    "school": "Abjuration",
-    "path": "/data/spells/stoneskin.json"
+    "school": "Transmutation",
+    "path": "/data/spells/level-4/stoneskin.json"
   },
   "storm-of-vengeance": {
     "name": "Storm of Vengeance",
     "level": 9,
     "school": "Conjuration",
-    "path": "/data/spells/storm-of-vengeance.json"
+    "path": "/data/spells/level-9/storm-of-vengeance.json"
+  },
+  "storm-sphere": {
+    "name": "Storm Sphere",
+    "level": 4,
+    "school": "Evocation",
+    "path": "/data/spells/level-4/storm-sphere.json"
   },
   "suggestion": {
     "name": "Suggestion",
@@ -2009,23 +2408,41 @@
     "school": "Enchantment",
     "path": "/data/spells/level-2/suggestion.json"
   },
+  "summon-beast": {
+    "name": "Summon Beast",
+    "level": 2,
+    "school": "Conjuration",
+    "path": "/data/spells/level-2/summon-beast.json"
+  },
+  "summon-greater-demon": {
+    "name": "Summon Greater Demon",
+    "level": 4,
+    "school": "Evocation",
+    "path": "/data/spells/level-4/summon-greater-demon.json"
+  },
+  "summon-lesser-demons": {
+    "name": "Summon Lesser Demons",
+    "level": 3,
+    "school": "Conjuration",
+    "path": "/data/spells/level-3/summon-lesser-demons.json"
+  },
   "sunbeam": {
     "name": "Sunbeam",
     "level": 6,
     "school": "Evocation",
-    "path": "/data/spells/sunbeam.json"
+    "path": "/data/spells/level-6/sunbeam.json"
   },
   "sunburst": {
     "name": "Sunburst",
     "level": 8,
     "school": "Evocation",
-    "path": "/data/spells/sunburst.json"
+    "path": "/data/spells/level-8/sunburst.json"
   },
   "swift-quiver": {
     "name": "Swift Quiver",
     "level": 5,
     "school": "Transmutation",
-    "path": "/data/spells/swift-quiver.json"
+    "path": "/data/spells/level-5/swift-quiver.json"
   },
   "sword-burst": {
     "name": "Sword Burst",
@@ -2037,13 +2454,13 @@
     "name": "Symbol",
     "level": 7,
     "school": "Abjuration",
-    "path": "/data/spells/symbol.json"
+    "path": "/data/spells/level-7/symbol.json"
   },
   "synaptic-static": {
     "name": "Synaptic Static",
     "level": 5,
     "school": "Enchantment",
-    "path": "/data/spells/synaptic-static.json"
+    "path": "/data/spells/level-5/synaptic-static.json"
   },
   "tashas-caustic-brew": {
     "name": "Tasha's Caustic Brew",
@@ -2061,25 +2478,55 @@
     "name": "Telekinesis",
     "level": 5,
     "school": "Transmutation",
-    "path": "/data/spells/telekinesis.json"
+    "path": "/data/spells/level-5/telekinesis.json"
+  },
+  "telepathy": {
+    "name": "Telepathy",
+    "level": 8,
+    "school": "Evocation",
+    "path": "/data/spells/level-8/telepathy.json"
   },
   "teleport": {
     "name": "Teleport",
     "level": 7,
     "school": "Conjuration",
-    "path": "/data/spells/teleport.json"
+    "path": "/data/spells/level-7/teleport.json"
   },
   "teleportation-circle": {
     "name": "Teleportation Circle",
     "level": 5,
     "school": "Conjuration",
-    "path": "/data/spells/teleportation-circle.json"
+    "path": "/data/spells/level-5/teleportation-circle.json"
+  },
+  "temple-of-the-gods": {
+    "name": "Temple of the Gods",
+    "level": 7,
+    "school": "Conjuration",
+    "path": "/data/spells/level-7/temple-of-the-gods.json"
+  },
+  "temporal-shunt": {
+    "name": "Temporal Shunt",
+    "level": 5,
+    "school": "Evocation",
+    "path": "/data/spells/level-5/temporal-shunt.json"
   },
   "tensers-floating-disk": {
     "name": "Tenser's Floating Disk",
     "level": 1,
     "school": "Conjuration",
     "path": "/data/spells/level-1/tensers-floating-disk.json"
+  },
+  "tensers-transformation": {
+    "name": "Tenser's Transformation",
+    "level": 6,
+    "school": "Transmutation",
+    "path": "/data/spells/level-6/tensers-transformation.json"
+  },
+  "tether-essence": {
+    "name": "Tether Essence",
+    "level": 7,
+    "school": "Evocation",
+    "path": "/data/spells/level-7/tether-essence.json"
   },
   "thaumaturgy": {
     "name": "Thaumaturgy",
@@ -2092,6 +2539,12 @@
     "level": 0,
     "school": "Transmutation",
     "path": "/data/spells/level-0/thorn-whip.json"
+  },
+  "thunder-step": {
+    "name": "Thunder Step",
+    "level": 3,
+    "school": "Conjuration",
+    "path": "/data/spells/level-3/thunder-step.json"
   },
   "thunderclap": {
     "name": "Thunderclap",
@@ -2111,17 +2564,29 @@
     "school": "Evocation",
     "path": "/data/spells/level-1/thunderwave.json"
   },
+  "tidal-wave": {
+    "name": "Tidal Wave",
+    "level": 3,
+    "school": "Conjuration",
+    "path": "/data/spells/level-3/tidal-wave.json"
+  },
+  "time-ravage": {
+    "name": "Time Ravage",
+    "level": 9,
+    "school": "Necromancy",
+    "path": "/data/spells/level-9/time-ravage.json"
+  },
   "time-stop": {
     "name": "Time Stop",
     "level": 9,
     "school": "Transmutation",
-    "path": "/data/spells/time-stop.json"
+    "path": "/data/spells/level-9/time-stop.json"
   },
   "tiny-servant": {
     "name": "Tiny Servant",
     "level": 3,
     "school": "Transmutation",
-    "path": "/data/spells/tiny-servant.json"
+    "path": "/data/spells/level-3/tiny-servant.json"
   },
   "toll-the-dead": {
     "name": "Toll the Dead",
@@ -2133,37 +2598,43 @@
     "name": "Tongues",
     "level": 3,
     "school": "Divination",
-    "path": "/data/spells/tongues.json"
+    "path": "/data/spells/level-3/tongues.json"
+  },
+  "transmute-rock": {
+    "name": "Transmute Rock",
+    "level": 5,
+    "school": "Transmutation",
+    "path": "/data/spells/level-5/transmute-rock.json"
   },
   "transport-via-plants": {
     "name": "Transport via Plants",
     "level": 6,
     "school": "Conjuration",
-    "path": "/data/spells/transport-via-plants.json"
+    "path": "/data/spells/level-6/transport-via-plants.json"
   },
   "tree-stride": {
     "name": "Tree Stride",
     "level": 5,
     "school": "Conjuration",
-    "path": "/data/spells/tree-stride.json"
+    "path": "/data/spells/level-5/tree-stride.json"
   },
   "true-polymorph": {
     "name": "True Polymorph",
     "level": 9,
     "school": "Transmutation",
-    "path": "/data/spells/true-polymorph.json"
+    "path": "/data/spells/level-9/true-polymorph.json"
   },
   "true-resurrection": {
     "name": "True Resurrection",
     "level": 9,
     "school": "Necromancy",
-    "path": "/data/spells/true-resurrection.json"
+    "path": "/data/spells/level-9/true-resurrection.json"
   },
   "true-seeing": {
     "name": "True Seeing",
     "level": 6,
     "school": "Divination",
-    "path": "/data/spells/true-seeing.json"
+    "path": "/data/spells/level-6/true-seeing.json"
   },
   "true-strike": {
     "name": "True Strike",
@@ -2175,7 +2646,7 @@
     "name": "Tsunami",
     "level": 8,
     "school": "Conjuration",
-    "path": "/data/spells/tsunami.json"
+    "path": "/data/spells/level-8/tsunami.json"
   },
   "unseen-servant": {
     "name": "Unseen Servant",
@@ -2187,7 +2658,7 @@
     "name": "Vampiric Touch",
     "level": 3,
     "school": "Necromancy",
-    "path": "/data/spells/vampiric-touch.json"
+    "path": "/data/spells/level-3/vampiric-touch.json"
   },
   "vicious-mockery": {
     "name": "Vicious Mockery",
@@ -2195,35 +2666,59 @@
     "school": "Enchantment",
     "path": "/data/spells/level-0/vicious-mockery.json"
   },
+  "vitriolic-sphere": {
+    "name": "Vitriolic Sphere",
+    "level": 4,
+    "school": "Evocation",
+    "path": "/data/spells/level-4/vitriolic-sphere.json"
+  },
   "wall-of-fire": {
     "name": "Wall of Fire",
     "level": 4,
     "school": "Evocation",
-    "path": "/data/spells/wall-of-fire.json"
+    "path": "/data/spells/level-4/wall-of-fire.json"
   },
   "wall-of-force": {
     "name": "Wall of Force",
     "level": 5,
     "school": "Evocation",
-    "path": "/data/spells/wall-of-force.json"
+    "path": "/data/spells/level-5/wall-of-force.json"
   },
   "wall-of-ice": {
     "name": "Wall of Ice",
     "level": 6,
     "school": "Evocation",
-    "path": "/data/spells/wall-of-ice.json"
+    "path": "/data/spells/level-6/wall-of-ice.json"
+  },
+  "wall-of-light": {
+    "name": "Wall of Light",
+    "level": 5,
+    "school": "Evocation",
+    "path": "/data/spells/level-5/wall-of-light.json"
+  },
+  "wall-of-sand": {
+    "name": "Wall of Sand",
+    "level": 3,
+    "school": "Evocation",
+    "path": "/data/spells/level-3/wall-of-sand.json"
   },
   "wall-of-stone": {
     "name": "Wall of Stone",
     "level": 5,
     "school": "Evocation",
-    "path": "/data/spells/wall-of-stone.json"
+    "path": "/data/spells/level-5/wall-of-stone.json"
   },
   "wall-of-thorns": {
     "name": "Wall of Thorns",
     "level": 6,
     "school": "Conjuration",
-    "path": "/data/spells/wall-of-thorns.json"
+    "path": "/data/spells/level-6/wall-of-thorns.json"
+  },
+  "wall-of-water": {
+    "name": "Wall of Water",
+    "level": 3,
+    "school": "Evocation",
+    "path": "/data/spells/level-3/wall-of-water.json"
   },
   "warding-bond": {
     "name": "Warding Bond",
@@ -2235,13 +2730,19 @@
     "name": "Water Breathing",
     "level": 3,
     "school": "Transmutation",
-    "path": "/data/spells/water-breathing.json"
+    "path": "/data/spells/level-3/water-breathing.json"
   },
   "water-walk": {
     "name": "Water Walk",
     "level": 3,
     "school": "Transmutation",
-    "path": "/data/spells/water-walk.json"
+    "path": "/data/spells/level-3/water-walk.json"
+  },
+  "watery-sphere": {
+    "name": "Watery Sphere",
+    "level": 4,
+    "school": "Conjuration",
+    "path": "/data/spells/level-4/watery-sphere.json"
   },
   "web": {
     "name": "Web",
@@ -2253,25 +2754,31 @@
     "name": "Weird",
     "level": 9,
     "school": "Illusion",
-    "path": "/data/spells/weird.json"
+    "path": "/data/spells/level-9/weird.json"
+  },
+  "whirlwind": {
+    "name": "Whirlwind",
+    "level": 7,
+    "school": "Evocation",
+    "path": "/data/spells/level-7/whirlwind.json"
   },
   "wind-walk": {
     "name": "Wind Walk",
     "level": 6,
     "school": "Transmutation",
-    "path": "/data/spells/wind-walk.json"
+    "path": "/data/spells/level-6/wind-walk.json"
   },
   "wind-wall": {
     "name": "Wind Wall",
     "level": 3,
     "school": "Evocation",
-    "path": "/data/spells/wind-wall.json"
+    "path": "/data/spells/level-3/wind-wall.json"
   },
   "wish": {
     "name": "Wish",
     "level": 9,
     "school": "Conjuration",
-    "path": "/data/spells/wish.json"
+    "path": "/data/spells/level-9/wish.json"
   },
   "witch-bolt": {
     "name": "Witch Bolt",
@@ -2289,12 +2796,18 @@
     "name": "Word of Recall",
     "level": 6,
     "school": "Conjuration",
-    "path": "/data/spells/word-of-recall.json"
+    "path": "/data/spells/level-6/word-of-recall.json"
+  },
+  "wrath-of-nature": {
+    "name": "Wrath of Nature",
+    "level": 5,
+    "school": "Evocation",
+    "path": "/data/spells/level-5/wrath-of-nature.json"
   },
   "wrathful-smite": {
     "name": "Wrathful Smite",
     "level": 1,
-    "school": "Evocation",
+    "school": "Necromancy",
     "path": "/data/spells/level-1/wrathful-smite.json"
   },
   "zone-of-truth": {

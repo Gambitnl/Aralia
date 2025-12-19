@@ -1,0 +1,11 @@
+{
+  "id": "hazards",
+  "title": "Hazards",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "Rules for environmental dangers like fire and falling.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/hazards.json",
+  "markdown": "# Hazards\r\n<p class=\"glossary-intro-quote\">\r\nMonsters are the main perils characters face, but other dangers await. The rules glossary defines the following hazards:\r\n</p>\r\n\r\n<div class=\"glossary-example-list\">\r\n  <div class=\"glossary-example-item\"><strong>Burning</strong></div>\r\n  <div class=\"glossary-example-item\"><strong>Dehydration</strong></div>\r\n  <div class=\"glossary-example-item\"><strong>Falling</strong></div>\r\n  <div class=\"glossary-example-item\"><strong>Malnutrition</strong></div>\r\n  <div class=\"glossary-example-item\"><strong>Suffocation</strong></div>\r\n</div>\r\n"
+}

@@ -1,18 +1,27 @@
 {
   "id": "dissonant-whispers",
   "name": "Dissonant Whispers",
+  "aliases": [],
   "level": 1,
   "school": "Enchantment",
-  "classes": ["Bard"],
-  "description": "One creature of your choice that you can see within range hears a discordant melody in its mind. The target makes a Wisdom saving throw. On a failed save, it takes 3d6 Psychic damage and must immediately use its Reaction, if available, to move as far away from you as it can by the safest route. On a successful save, the target takes half as much damage only.",
-  "higherLevels": "The damage increases by 1d6 for each spell slot level above 1.",
-  "tags": ["damage", "psychic", "control"],
+  "source": "PHB 2024 p.264",
+  "legacy": false,
+  "classes": [
+    "Bard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
@@ -22,28 +31,70 @@
   "components": {
     "verbal": true,
     "somatic": false,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "instantaneous",
-    "concentration": false
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "single",
     "range": 60,
-    "validTargets": ["creatures", "enemies"],
-    "lineOfSight": true
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
         "type": "save",
         "saveType": "Wisdom",
-        "saveEffect": "half"
+        "saveEffect": "half",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "3d6",
@@ -51,22 +102,46 @@
       },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+1d6"
-      }
+        "bonusPerLevel": "+1d6",
+        "customFormula": ""
+      },
+      "description": ""
     },
     {
       "type": "MOVEMENT",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
         "type": "save",
         "saveType": "Wisdom",
-        "saveEffect": "negates_condition"
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "movementType": "push",
       "duration": {
-        "type": "rounds"
+        "type": "rounds",
+        "value": 0
       },
       "forcedMovement": {
         "usesReaction": true,
@@ -75,8 +150,28 @@
       },
       "scaling": {
         "type": "custom",
-        "customFormula": "On a failed save, the target uses its reaction to move away from you up to its speed by the safest route."
-      }
+        "customFormula": "On a failed save, the target uses its reaction to move away from you up to its speed by the safest route.",
+        "bonusPerLevel": ""
+      },
+      "distance": 0,
+      "speedChange": {
+        "stat": "speed",
+        "value": 0,
+        "unit": "feet"
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You whisper a discordant melody that only one creature of your choice within range can hear, wracking it with terrible pain. The target must make a Wisdom saving throw. On a failed save, it takes 3d6 Psychic damage and must immediately use its Reaction, if available, to move as far as its speed allows away from you. The creature doesn't move into obvious danger, such as a fire or a pit. On a successful save, the target takes half as much damage and doesn't have to move away. A Deafened creature automatically succeeds on the save.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d6 for each slot level above 1st.",
+  "tags": [
+    "damage",
+    "psychic",
+    "control"
   ]
 }

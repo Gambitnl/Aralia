@@ -1,46 +1,102 @@
 {
   "id": "false-life",
   "name": "False Life",
+  "aliases": [],
   "level": 1,
   "school": "Necromancy",
-  "classes": ["Artificer", "Sorcerer", "Wizard"],
-  "description": "You gain 2d4 + 4 Temporary Hit Points.",
-  "higherLevels": "You gain 5 additional Temporary Hit Points for each spell slot level above 1.",
-  "tags": ["temporary_hp", "necromancy"],
+  "source": "PHB 2024 p.271",
+  "legacy": false,
+  "classes": [
+    "Artificer",
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a drop of alcohol"
+    "materialDescription": "a drop of alcohol or distilled spirits",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "instantaneous",
-    "concentration": false
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "self",
-    "validTargets": ["self"],
-    "lineOfSight": false
+    "validTargets": [
+      "self"
+    ],
+    "lineOfSight": false,
+    "range": 0,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "HEALING",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "healing": {
         "dice": "2d4+4",
@@ -48,8 +104,21 @@
       },
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "+5 temp HP"
-      }
+        "bonusPerLevel": "+5 temp HP",
+        "customFormula": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "Bolstering yourself with a necromantic facsimile of life, you gain 2d4 + 4 Temporary Hit Points for the duration.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, you gain 5 additional Temporary Hit Points for each slot level above 1st.",
+  "tags": [
+    "temporary_hp",
+    "necromancy"
   ]
 }

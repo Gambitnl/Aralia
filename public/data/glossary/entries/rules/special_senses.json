@@ -1,0 +1,11 @@
+{
+  "id": "special_senses",
+  "title": "Special Senses",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "Definitions for Blindsight, Darkvision, etc.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/special_senses.json",
+  "markdown": "# Special Senses\r\n<p class=\"glossary-intro-quote\">Some creatures have special senses that help them perceive things in certain situations. The rules glossary defines the following special senses:</p>\r\n\r\n<div class=\"glossary-example-list\">\r\n  <div class=\"glossary-example-item\"><strong>Blindsight</strong></div>\r\n  <div class=\"glossary-example-item\"><strong>Darkvision</strong></div>\r\n  <div class=\"glossary-example-item\"><strong>Tremorsense</strong></div>\r\n  <div class=\"glossary-example-item\"><strong>Truesight</strong></div>\r\n</div>\r\n"
+}

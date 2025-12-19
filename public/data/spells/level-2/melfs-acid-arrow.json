@@ -1,17 +1,28 @@
 {
   "id": "melfs-acid-arrow",
   "name": "Melf's Acid Arrow",
+  "aliases": [],
   "level": 2,
   "school": "Evocation",
-  "classes": ["Wizard"],
-  "description": "A shimmering green arrow streaks toward a target within range. Make a ranged spell attack. On a hit, the target takes 4d4 acid damage immediately and 2d4 acid damage at the end of its next turn. On a miss, the arrow splashes and the target takes half of the initial damage but no delayed damage.",
-  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the initial and delayed damage each increase by 1d4 for each slot level above 2nd.",
-  "tags": ["damage", "acid"],
+  "source": "PHB 2024 p.297",
+  "legacy": false,
+  "classes": [
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
     "type": "ranged",
@@ -21,36 +32,133 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "powdered rhubarb leaf and an adder's stomach"
+    "materialDescription": "powdered rhubarb leaf and an adder's stomach",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
-    "type": "timed",
-    "value": 1,
-    "unit": "round",
-    "concentration": false
+    "type": "instantaneous",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "single",
     "range": 90,
-    "validTargets": ["creatures", "enemies"],
-    "lineOfSight": true
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "hit" },
-      "damage": { "dice": "4d4", "type": "Acid" },
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d4" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "hit",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "4d4",
+        "type": "Acid"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d4",
+        "customFormula": ""
+      },
       "description": "Initial acid damage on a hit; on a miss, target takes half initial damage and no delayed damage."
     },
     {
       "type": "DAMAGE",
-      "trigger": { "type": "turn_end", "frequency": "once" },
-      "condition": { "type": "always" },
-      "damage": { "dice": "2d4", "type": "Acid" },
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d4" },
+      "trigger": {
+        "type": "turn_end",
+        "frequency": "once",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "2d4",
+        "type": "Acid"
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d4",
+        "customFormula": ""
+      },
       "description": "Delayed acid damage at the end of the target's next turn (only on a hit)."
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "A shimmering green arrow streaks toward a target within range and bursts in a spray of acid. Make a ranged spell attack against the target. On a hit, the target takes 4d4 Acid damage immediately and 2d4 Acid damage at the end of its next turn. On a miss, the arrow splashes the target with acid for half as much of the initial damage and no damage at the end of its next turn.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the initial damage and the damage at the end of the next turn both increase by 1d4 for each slot level above 2nd.",
+  "tags": [
+    "damage",
+    "acid"
   ]
 }

@@ -1,0 +1,11 @@
+{
+  "id": "armor_class",
+  "title": "Armor Class",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "Represents how well a creature avoids being wounded.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/armor_class.json",
+  "markdown": "# Armor Class\r\nA creature's Armor Class represents how well the creature avoids being wounded in combat. The AC of a character is determined at character creation, whereas the AC of a monster appears in its stat block.\r\n\r\n### Calculating AC\r\nAll creatures start with the same base AC calculation: `Base AC = 10 + the creature's Dexterity modifier`. A creature's AC can then be modified by armor, magic items, spells, and more.\r\n\r\n### Only One Base AC\r\nSome spells and class features give characters a different way to calculate their AC. A character with multiple features that give different ways to calculate AC must choose which one to use; only one base calculation can be in effect for a creature.\r\n"
+}

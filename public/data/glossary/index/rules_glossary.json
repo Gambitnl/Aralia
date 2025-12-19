@@ -1,5 +1,89 @@
 [
   {
+    "id": "ability_check_examples",
+    "title": "Ability Check Examples",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "Examples of what each ability check is used for.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/ability_check_examples.json"
+  },
+  {
+    "id": "ability_check",
+    "title": "Ability Checks",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "A D20 Test representing a creature's effort to overcome a challenge. See the main D20 Tests entry for full details.",
+    "aliases": [],
+    "seeAlso": [
+      "d20_test",
+      "ability_check_modifier",
+      "ability_check_proficiency",
+      "ability_check_dc"
+    ],
+    "filePath": "/data/glossary/entries/rules/ability_check.json"
+  },
+  {
+    "id": "saving_throw_modifier",
+    "title": "Ability Modifier",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "Saving throws are named for the ability modifiers they use.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/saving_throw_modifier.json"
+  },
+  {
+    "id": "attack_roll_modifier",
+    "title": "Ability Modifier",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "Which ability modifier to use for different types of attack rolls.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/attack_roll_modifier.json"
+  },
+  {
+    "id": "ability_check_modifier",
+    "title": "Ability Modifier",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "An ability check is named for the ability modifier it uses.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/ability_check_modifier.json"
+  },
+  {
+    "id": "acid_item",
+    "title": "Acid",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/gear/acid_item.json"
+  },
+  {
+    "id": "action",
+    "title": "Action",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "turn",
+      "actions"
+    ],
+    "excerpt": "The main thing you can do on your turn in combat. You can take one action per turn, choosing from options like Attack, Cast a Spell, Dash, Disengage, Dodge, Help, Hide, Ready, Search, or Use an Object.",
+    "aliases": [],
+    "seeAlso": [
+      "bonus_action",
+      "reaction",
+      "attack_action",
+      "magic_action"
+    ],
+    "filePath": "/data/glossary/entries/rules/action.json"
+  },
+  {
     "id": "actions",
     "title": "Actions",
     "category": "Rules Glossary",
@@ -17,7 +101,39 @@
       "reactions",
       "combat"
     ],
-    "filePath": "/data/glossary/entries/rules/actions.md"
+    "filePath": "/data/glossary/entries/rules/actions.json"
+  },
+  {
+    "id": "advantage",
+    "title": "Advantage",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "rolls",
+      "mechanics"
+    ],
+    "excerpt": "When you have advantage on a d20 roll, you roll two d20s and use the higher result. Advantage and disadvantage cancel each other out.",
+    "aliases": [],
+    "seeAlso": [
+      "disadvantage",
+      "d20_test"
+    ],
+    "filePath": "/data/glossary/entries/rules/advantage.json"
+  },
+  {
+    "id": "advantage_disadvantage",
+    "title": "Advantage and Disadvantage",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "A rule that modifies a D20 Test by rolling two dice instead of one. See the main D20 Tests entry for full details.",
+    "aliases": [],
+    "seeAlso": [
+      "d20_test",
+      "advantage_disadvantage_roll_two",
+      "advantage_disadvantage_stacking",
+      "advantage_disadvantage_rerolls"
+    ],
+    "filePath": "/data/glossary/entries/rules/advantage_disadvantage.json"
   },
   {
     "id": "adventuring_equipment",
@@ -27,7 +143,7 @@
     "excerpt": "How equipment can help adventurers explore.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/adventuring_equipment.md"
+    "filePath": "/data/glossary/entries/rules/adventuring_equipment.json"
   },
   {
     "id": "adventuring_gear",
@@ -37,7 +153,7 @@
     "excerpt": "A list of useful items for adventurers.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/adventuring_gear.md"
+    "filePath": "/data/glossary/entries/rules/equipment/adventuring_gear.json"
   },
   {
     "id": "airborne_waterborne_vehicles",
@@ -47,7 +163,17 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/vehicles/airborne_waterborne_vehicles.md"
+    "filePath": "/data/glossary/entries/rules/equipment/vehicles/airborne_waterborne_vehicles.json"
+  },
+  {
+    "id": "alchemists_fire_item",
+    "title": "Alchemist’s Fire",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/gear/alchemists_fire_item.json"
   },
   {
     "id": "alchemists_supplies",
@@ -57,7 +183,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/alchemists_supplies.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/alchemists_supplies.json"
   },
   {
     "id": "ammunition_property",
@@ -67,7 +193,47 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/ammunition.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/ammunition.json"
+  },
+  {
+    "id": "ammunition_item",
+    "title": "Ammunition (Varies)",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/gear/ammunition_item.json"
+  },
+  {
+    "id": "antitoxin_item",
+    "title": "Antitoxin",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/gear/antitoxin_item.json"
+  },
+  {
+    "id": "arcane_focus_item",
+    "title": "Arcane Focus",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/gear/arcane_focus_item.json"
+  },
+  {
+    "id": "aristocratic_lifestyle",
+    "title": "Aristocratic (10 GP per Day)",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/services/lifestyles/aristocratic_lifestyle.json"
   },
   {
     "id": "armor",
@@ -77,7 +243,17 @@
     "excerpt": "Details on armor categories, AC, and other properties.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/armor.md"
+    "filePath": "/data/glossary/entries/rules/equipment/armor.json"
+  },
+  {
+    "id": "armor_class",
+    "title": "Armor Class",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "Represents how well a creature avoids being wounded.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/armor_class.json"
   },
   {
     "id": "armor_training",
@@ -87,7 +263,7 @@
     "excerpt": "Rules on wearing armor with and without training.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/armor/armor_training.md"
+    "filePath": "/data/glossary/entries/rules/equipment/armor/armor_training.json"
   },
   {
     "id": "artisans_tools",
@@ -97,7 +273,53 @@
     "excerpt": "Details on tools focused on crafting and trades.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/artisans_tools.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/artisans_tools.json"
+  },
+  {
+    "id": "attack_action",
+    "title": "Attack Action",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "actions",
+      "attack"
+    ],
+    "excerpt": "The most common action taken in combat. When you take the Attack action, you make one or more melee or ranged attacks.",
+    "aliases": [
+      "Attack"
+    ],
+    "seeAlso": [
+      "action",
+      "unarmed_strike",
+      "opportunity_attack"
+    ],
+    "filePath": "/data/glossary/entries/rules/attack_action.json"
+  },
+  {
+    "id": "attack_roll_abilities",
+    "title": "Attack Roll Abilities",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "Table showing which ability modifier to use.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/attack_roll_abilities.json"
+  },
+  {
+    "id": "attack_roll",
+    "title": "Attack Rolls",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "A D20 Test that determines whether an attack hits a target. See the main D20 Tests entry for full details.",
+    "aliases": [],
+    "seeAlso": [
+      "d20_test",
+      "attack_roll_modifier",
+      "attack_roll_proficiency",
+      "armor_class",
+      "rolling_20_or_1"
+    ],
+    "filePath": "/data/glossary/entries/rules/attack_roll.json"
   },
   {
     "id": "attune_during_short_rest",
@@ -107,7 +329,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/attune_during_short_rest.md"
+    "filePath": "/data/glossary/entries/rules/equipment/magic_items/attune_during_short_rest.json"
   },
   {
     "id": "attunement",
@@ -117,7 +339,7 @@
     "excerpt": "Rules for forming a bond with a magic item.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/attunement.md"
+    "filePath": "/data/glossary/entries/rules/equipment/magic_items/attunement.json"
   },
   {
     "id": "barding",
@@ -127,7 +349,40 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/mounts/barding.md"
+    "filePath": "/data/glossary/entries/rules/equipment/mounts/barding.json"
+  },
+  {
+    "id": "blinded_condition",
+    "title": "Blinded",
+    "category": "Rules Glossary",
+    "tags": [
+      "condition",
+      "blinded",
+      "sight"
+    ],
+    "excerpt": "A blinded creature can't see and automatically fails ability checks requiring sight. Attack rolls against the creature have Advantage, and its attack rolls have Disadvantage.",
+    "aliases": [],
+    "seeAlso": [
+      "advantage_disadvantage"
+    ],
+    "filePath": "/data/glossary/entries/rules/conditions/blinded_condition.json"
+  },
+  {
+    "id": "bonus_action",
+    "title": "Bonus Action",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "turn",
+      "actions"
+    ],
+    "excerpt": "A special additional action you can take on your turn. You can take a bonus action only when a special ability, spell, or feature states that you can do something as a bonus action.",
+    "aliases": [],
+    "seeAlso": [
+      "action",
+      "reaction"
+    ],
+    "filePath": "/data/glossary/entries/rules/bonus_action.json"
   },
   {
     "id": "bonus_actions",
@@ -146,7 +401,7 @@
       "actions",
       "reactions"
     ],
-    "filePath": "/data/glossary/entries/rules/bonus_actions.md"
+    "filePath": "/data/glossary/entries/rules/bonus_actions.json"
   },
   {
     "id": "breaking_objects",
@@ -156,7 +411,7 @@
     "excerpt": "Rules for damaging and destroying objects.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/breaking_objects.md"
+    "filePath": "/data/glossary/entries/rules/breaking_objects.json"
   },
   {
     "id": "brewers_supplies",
@@ -166,7 +421,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/brewers_supplies.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/brewers_supplies.json"
   },
   {
     "id": "brewing_potions_of_healing",
@@ -176,7 +431,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/brewing_potions_of_healing.md"
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/brewing_potions_of_healing.json"
   },
   {
     "id": "bright_light",
@@ -195,7 +450,7 @@
       "dim_light",
       "darkness"
     ],
-    "filePath": "/data/glossary/entries/rules/bright_light.md"
+    "filePath": "/data/glossary/entries/rules/bright_light.json"
   },
   {
     "id": "calligraphers_supplies",
@@ -205,7 +460,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/calligraphers_supplies.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/calligraphers_supplies.json"
   },
   {
     "id": "scribing_cantrips",
@@ -215,7 +470,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/scribing_cantrips.md"
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/scribing_cantrips.json"
   },
   {
     "id": "carpenters_tools",
@@ -225,7 +480,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/carpenters_tools.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/carpenters_tools.json"
   },
   {
     "id": "carrying_objects",
@@ -235,7 +490,7 @@
     "excerpt": "Rules for carrying capacity.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/carrying_objects.md"
+    "filePath": "/data/glossary/entries/rules/carrying_objects.json"
   },
   {
     "id": "cartographers_tools",
@@ -245,7 +500,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/cartographers_tools.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/cartographers_tools.json"
   },
   {
     "id": "changes_to_your_speeds",
@@ -264,7 +519,23 @@
       "speed",
       "special_speeds"
     ],
-    "filePath": "/data/glossary/entries/rules/changes_to_your_speeds.md"
+    "filePath": "/data/glossary/entries/rules/changes_to_your_speeds.json"
+  },
+  {
+    "id": "charmed_condition",
+    "title": "Charmed",
+    "category": "Rules Glossary",
+    "tags": [
+      "condition",
+      "charmed",
+      "social"
+    ],
+    "excerpt": "A charmed creature can't attack the charmer, and the charmer has Advantage on social ability checks against the creature.",
+    "aliases": [],
+    "seeAlso": [
+      "advantage_disadvantage"
+    ],
+    "filePath": "/data/glossary/entries/rules/conditions/charmed_condition.json"
   },
   {
     "id": "cleave_mastery_property",
@@ -274,7 +545,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/cleave.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/cleave.json"
   },
   {
     "id": "climbing",
@@ -293,7 +564,7 @@
       "special_speeds",
       "difficult_terrain"
     ],
-    "filePath": "/data/glossary/entries/rules/movement/climbing.md"
+    "filePath": "/data/glossary/entries/rules/movement/climbing.json"
   },
   {
     "id": "cobblers_tools",
@@ -303,7 +574,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/cobblers_tools.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/cobblers_tools.json"
   },
   {
     "id": "coin_values",
@@ -313,7 +584,7 @@
     "excerpt": "Table of coin denominations and their value relative to the Gold Piece.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/coins/coin_values.md"
+    "filePath": "/data/glossary/entries/rules/equipment/coins/coin_values.json"
   },
   {
     "id": "coins",
@@ -323,7 +594,55 @@
     "excerpt": "Rules on currency denominations and selling equipment.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/coins.md"
+    "filePath": "/data/glossary/entries/rules/equipment/coins.json"
+  },
+  {
+    "id": "comfortable_lifestyle",
+    "title": "Comfortable (2 GP per Day)",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/services/lifestyles/comfortable_lifestyle.json"
+  },
+  {
+    "id": "conditions",
+    "title": "Conditions (Overview)",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "condition",
+      "status effect"
+    ],
+    "excerpt": "Many effects impose a condition, a temporary state that alters the recipient’s capabilities. The specific conditions, their durations, and stacking rules are detailed in sub-entries.",
+    "aliases": [
+      "status effects"
+    ],
+    "seeAlso": [
+      "blinded_condition",
+      "charmed_condition",
+      "incapacitated_condition",
+      "prone_condition"
+    ],
+    "filePath": "/data/glossary/entries/rules/conditions.json"
+  },
+  {
+    "id": "conditions_dont_stack",
+    "title": "Conditions Don’t Stack",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "condition",
+      "stacking"
+    ],
+    "excerpt": "If multiple effects impose the same condition, the effects don’t get worse. The Exhaustion condition is an exception.",
+    "aliases": [],
+    "seeAlso": [
+      "conditions",
+      "exhaustion_condition"
+    ],
+    "filePath": "/data/glossary/entries/rules/conditions_dont_stack.json"
   },
   {
     "id": "cooks_utensils",
@@ -333,7 +652,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/cooks_utensils.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/cooks_utensils.json"
   },
   {
     "id": "crafting_equipment",
@@ -343,7 +662,7 @@
     "excerpt": "Rules for making nonmagical items, potions, and scrolls.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting_equipment.md"
+    "filePath": "/data/glossary/entries/rules/equipment/crafting_equipment.json"
   },
   {
     "id": "crafting_nonmagical_items",
@@ -353,7 +672,7 @@
     "excerpt": "Rules for crafting nonmagical items, requiring tools, raw materials, and time.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/crafting_nonmagical_items.md"
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/crafting_nonmagical_items.json"
   },
   {
     "id": "crawling",
@@ -373,7 +692,7 @@
       "prone_condition",
       "difficult_terrain"
     ],
-    "filePath": "/data/glossary/entries/rules/movement/crawling.md"
+    "filePath": "/data/glossary/entries/rules/movement/crawling.json"
   },
   {
     "id": "large_vehicles_crew",
@@ -383,7 +702,31 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/vehicles/crew.md"
+    "filePath": "/data/glossary/entries/rules/equipment/vehicles/crew.json"
+  },
+  {
+    "id": "d20_test",
+    "title": "D20 Tests",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "d20",
+      "ability check",
+      "saving throw",
+      "attack roll",
+      "advantage",
+      "disadvantage",
+      "core mechanic"
+    ],
+    "excerpt": "The core mechanic for determining the outcome of an uncertain action, encompassing ability checks, saving throws, and attack rolls.",
+    "aliases": [],
+    "seeAlso": [
+      "ability_check",
+      "saving_throw",
+      "attack_roll",
+      "advantage_disadvantage"
+    ],
+    "filePath": "/data/glossary/entries/rules/d20_test.json"
   },
   {
     "id": "damage_threshold",
@@ -393,7 +736,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/vehicles/damage_threshold.md"
+    "filePath": "/data/glossary/entries/rules/equipment/vehicles/damage_threshold.json"
   },
   {
     "id": "darkness",
@@ -414,7 +757,41 @@
       "dim_light",
       "obscured_areas"
     ],
-    "filePath": "/data/glossary/entries/rules/darkness.md"
+    "filePath": "/data/glossary/entries/rules/darkness.json"
+  },
+  {
+    "id": "deafened_condition",
+    "title": "Deafened",
+    "category": "Rules Glossary",
+    "tags": [
+      "condition",
+      "deafened",
+      "hearing"
+    ],
+    "excerpt": "A deafened creature can't hear and automatically fails any ability check that requires hearing.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/conditions/deafened_condition.json"
+  },
+  {
+    "id": "saving_throw_dc",
+    "title": "Difficulty Class",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "How the DC for a saving throw is determined.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/saving_throw_dc.json"
+  },
+  {
+    "id": "ability_check_dc",
+    "title": "Difficulty Class",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "Represents the task’s difficulty for an ability check.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/ability_check_dc.json"
   },
   {
     "id": "dim_light",
@@ -436,7 +813,24 @@
       "darkness",
       "obscured_areas"
     ],
-    "filePath": "/data/glossary/entries/rules/dim_light.md"
+    "filePath": "/data/glossary/entries/rules/dim_light.json"
+  },
+  {
+    "id": "disadvantage",
+    "title": "Disadvantage",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "rolls",
+      "mechanics"
+    ],
+    "excerpt": "When you have disadvantage on a d20 roll, you roll two d20s and use the lower result. Advantage and disadvantage cancel each other out.",
+    "aliases": [],
+    "seeAlso": [
+      "advantage",
+      "d20_test"
+    ],
+    "filePath": "/data/glossary/entries/rules/disadvantage.json"
   },
   {
     "id": "disguise_kit",
@@ -446,7 +840,23 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/disguise_kit.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/disguise_kit.json"
+  },
+  {
+    "id": "duration_condition",
+    "title": "Duration",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "condition",
+      "duration"
+    ],
+    "excerpt": "A condition lasts either for a duration specified by the effect that imposed it or until it is countered.",
+    "aliases": [],
+    "seeAlso": [
+      "conditions"
+    ],
+    "filePath": "/data/glossary/entries/rules/duration_condition.json"
   },
   {
     "id": "ending_attunement",
@@ -456,7 +866,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/ending_attunement.md"
+    "filePath": "/data/glossary/entries/rules/equipment/magic_items/ending_attunement.json"
   },
   {
     "id": "equipment",
@@ -466,7 +876,7 @@
     "excerpt": "Rules and prices for weapons, armor, and other kinds of equipment.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/equipment.md"
+    "filePath": "/data/glossary/entries/rules/equipment/equipment.json"
   },
   {
     "id": "equipment_proficiencies",
@@ -488,7 +898,23 @@
       "tools",
       "armor"
     ],
-    "filePath": "/data/glossary/entries/rules/equipment_proficiencies.md"
+    "filePath": "/data/glossary/entries/rules/equipment_proficiencies.json"
+  },
+  {
+    "id": "exhaustion_condition",
+    "title": "Exhaustion",
+    "category": "Rules Glossary",
+    "tags": [
+      "condition",
+      "exhaustion",
+      "fatigue"
+    ],
+    "excerpt": "Exhaustion is a cumulative condition with multiple levels. Each level imposes penalties to D20 tests and speed.",
+    "aliases": [],
+    "seeAlso": [
+      "long_rest"
+    ],
+    "filePath": "/data/glossary/entries/rules/conditions/exhaustion_condition.json"
   },
   {
     "id": "expertise",
@@ -509,7 +935,7 @@
       "proficiency_bonus",
       "proficiency"
     ],
-    "filePath": "/data/glossary/entries/rules/expertise.md"
+    "filePath": "/data/glossary/entries/rules/expertise.json"
   },
   {
     "id": "exploration",
@@ -519,7 +945,7 @@
     "excerpt": "Rules for delving into dangerous and mysterious places.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/exploration.md"
+    "filePath": "/data/glossary/entries/rules/exploration.json"
   },
   {
     "id": "finding_hidden_objects",
@@ -529,7 +955,7 @@
     "excerpt": "Rules for searching for hidden objects.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/finding_hidden_objects.md"
+    "filePath": "/data/glossary/entries/rules/finding_hidden_objects.json"
   },
   {
     "id": "finesse_property",
@@ -539,7 +965,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/finesse.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/finesse.json"
   },
   {
     "id": "flying",
@@ -560,7 +986,7 @@
       "prone_condition",
       "falling"
     ],
-    "filePath": "/data/glossary/entries/rules/movement/flying.md"
+    "filePath": "/data/glossary/entries/rules/movement/flying.json"
   },
   {
     "id": "food_drink_lodging",
@@ -570,7 +996,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/services/food_drink_lodging.md"
+    "filePath": "/data/glossary/entries/rules/equipment/services/food_drink_lodging.json"
   },
   {
     "id": "forgery_kit",
@@ -580,7 +1006,23 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/forgery_kit.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/forgery_kit.json"
+  },
+  {
+    "id": "frightened_condition",
+    "title": "Frightened",
+    "category": "Rules Glossary",
+    "tags": [
+      "condition",
+      "frightened",
+      "fear"
+    ],
+    "excerpt": "A frightened creature has Disadvantage on ability checks and attack rolls while the source of its fear is within line of sight, and it can't willingly move closer to the source.",
+    "aliases": [],
+    "seeAlso": [
+      "advantage_disadvantage"
+    ],
+    "filePath": "/data/glossary/entries/rules/conditions/frightened_condition.json"
   },
   {
     "id": "gaming_set",
@@ -590,7 +1032,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/gaming_set.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/gaming_set.json"
   },
   {
     "id": "glassblowers_tools",
@@ -600,7 +1042,23 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/glassblowers_tools.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/glassblowers_tools.json"
+  },
+  {
+    "id": "grappled_condition",
+    "title": "Grappled",
+    "category": "Rules Glossary",
+    "tags": [
+      "condition",
+      "grappled",
+      "movement"
+    ],
+    "excerpt": "A grappled creature's speed becomes 0, and it has Disadvantage on attack rolls against any target other than the grappler.",
+    "aliases": [],
+    "seeAlso": [
+      "advantage_disadvantage"
+    ],
+    "filePath": "/data/glossary/entries/rules/conditions/grappled_condition.json"
   },
   {
     "id": "graze_mastery_property",
@@ -610,7 +1068,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/graze.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/graze.json"
   },
   {
     "id": "hazards",
@@ -620,7 +1078,7 @@
     "excerpt": "Rules for environmental dangers like fire and falling.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/hazards.md"
+    "filePath": "/data/glossary/entries/rules/hazards.json"
   },
   {
     "id": "heavy_property",
@@ -630,7 +1088,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/heavy.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/heavy.json"
   },
   {
     "id": "herbalism_kit",
@@ -640,7 +1098,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/herbalism_kit.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/herbalism_kit.json"
   },
   {
     "id": "hiding",
@@ -650,7 +1108,7 @@
     "excerpt": "Rules for hiding from enemies.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/hiding.md"
+    "filePath": "/data/glossary/entries/rules/hiding.json"
   },
   {
     "id": "hirelings",
@@ -660,7 +1118,28 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/services/hirelings.md"
+    "filePath": "/data/glossary/entries/rules/equipment/services/hirelings.json"
+  },
+  {
+    "id": "hit_points",
+    "title": "Hit Points",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "health",
+      "damage"
+    ],
+    "excerpt": "A measure of your character's health and stamina. When your hit points drop to 0, you fall unconscious and begin making death saving throws.",
+    "aliases": [
+      "HP",
+      "Health"
+    ],
+    "seeAlso": [
+      "temporary_hp",
+      "long_rest",
+      "short_rest"
+    ],
+    "filePath": "/data/glossary/entries/rules/hit_points.json"
   },
   {
     "id": "identifying_magic_item",
@@ -670,7 +1149,26 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/identifying_magic_item.md"
+    "filePath": "/data/glossary/entries/rules/equipment/magic_items/identifying_magic_item.json"
+  },
+  {
+    "id": "incapacitated_condition",
+    "title": "Incapacitated",
+    "category": "Rules Glossary",
+    "tags": [
+      "condition",
+      "incapacitated",
+      "action economy"
+    ],
+    "excerpt": "An incapacitated creature can't take any action, Bonus Action, or Reaction, can't speak, and their Concentration is broken.",
+    "aliases": [],
+    "seeAlso": [
+      "actions",
+      "bonus_actions",
+      "reactions",
+      "concentration"
+    ],
+    "filePath": "/data/glossary/entries/rules/conditions/incapacitated_condition.json"
   },
   {
     "id": "interacting_with_objects",
@@ -680,7 +1178,33 @@
     "excerpt": "Rules for how characters interact with objects in the environment.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/interacting_with_objects.md"
+    "filePath": "/data/glossary/entries/rules/interacting_with_objects.json"
+  },
+  {
+    "id": "advantage_disadvantage_rerolls",
+    "title": "Interactions with Rerolls",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "How reroll abilities interact with advantage and disadvantage.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/advantage_disadvantage_rerolls.json"
+  },
+  {
+    "id": "invisible_condition",
+    "title": "Invisible",
+    "category": "Rules Glossary",
+    "tags": [
+      "condition",
+      "invisible",
+      "stealth"
+    ],
+    "excerpt": "An invisible creature can't be seen without magic or special senses. Attack rolls against it have Disadvantage, and its attack rolls have Advantage.",
+    "aliases": [],
+    "seeAlso": [
+      "advantage_disadvantage"
+    ],
+    "filePath": "/data/glossary/entries/rules/conditions/invisible_condition.json"
   },
   {
     "id": "jewelers_tools",
@@ -690,7 +1214,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/jewelers_tools.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/jewelers_tools.json"
   },
   {
     "id": "jumping",
@@ -713,7 +1237,7 @@
       "prone_condition",
       "difficult_terrain"
     ],
-    "filePath": "/data/glossary/entries/rules/movement/jumping.md"
+    "filePath": "/data/glossary/entries/rules/movement/jumping.json"
   },
   {
     "id": "large_vehicles",
@@ -723,7 +1247,7 @@
     "excerpt": "Statistics and rules for various types of large vehicles.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/vehicles/large_vehicles.md"
+    "filePath": "/data/glossary/entries/rules/equipment/vehicles/large_vehicles.json"
   },
   {
     "id": "leatherworkers_tools",
@@ -733,7 +1257,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/leatherworkers_tools.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/leatherworkers_tools.json"
   },
   {
     "id": "lifestyle_expenses",
@@ -743,7 +1267,7 @@
     "excerpt": "Summarizes the cost of living, from Wretched to Aristocratic.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/services/lifestyle_expenses.md"
+    "filePath": "/data/glossary/entries/rules/equipment/services/lifestyle_expenses.json"
   },
   {
     "id": "light_property",
@@ -753,7 +1277,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/light.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/light.json"
   },
   {
     "id": "light_rules",
@@ -769,7 +1293,7 @@
       "obscured_areas",
       "vision_and_light"
     ],
-    "filePath": "/data/glossary/entries/rules/light.md"
+    "filePath": "/data/glossary/entries/rules/light.json"
   },
   {
     "id": "light_medium_heavy_armor_rules",
@@ -779,7 +1303,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/armor/light_medium_heavy.md"
+    "filePath": "/data/glossary/entries/rules/equipment/armor/light_medium_heavy.json"
   },
   {
     "id": "loading_property",
@@ -789,7 +1313,25 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/loading.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/loading.json"
+  },
+  {
+    "id": "long_rest",
+    "title": "Long Rest",
+    "category": "Rules Glossary",
+    "tags": [
+      "rest",
+      "recovery",
+      "healing"
+    ],
+    "excerpt": "A period of extended downtime lasting at least 8 hours, during which a character sleeps or performs light activity. A long rest restores all lost hit points and spent resources.",
+    "aliases": [],
+    "seeAlso": [
+      "short_rest",
+      "hit_points",
+      "spell_slot"
+    ],
+    "filePath": "/data/glossary/entries/rules/long_rest.json"
   },
   {
     "id": "magic_items_overview",
@@ -799,7 +1341,7 @@
     "excerpt": "General rules for using magic items.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items.md"
+    "filePath": "/data/glossary/entries/rules/equipment/magic_items.json"
   },
   {
     "id": "masons_tools",
@@ -809,7 +1351,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/masons_tools.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/masons_tools.json"
   },
   {
     "id": "weapon_mastery_properties",
@@ -819,7 +1361,17 @@
     "excerpt": "Definitions for weapon mastery properties.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties.json"
+  },
+  {
+    "id": "modest_lifestyle",
+    "title": "Modest (1 GP per Day)",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/services/lifestyles/modest_lifestyle.json"
   },
   {
     "id": "mounts_and_cargo",
@@ -829,7 +1381,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/mounts/mounts_and_cargo.md"
+    "filePath": "/data/glossary/entries/rules/equipment/mounts/mounts_and_cargo.json"
   },
   {
     "id": "mounts_and_other_animals",
@@ -839,7 +1391,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/mounts/mounts_and_other_animals.md"
+    "filePath": "/data/glossary/entries/rules/equipment/mounts/mounts_and_other_animals.json"
   },
   {
     "id": "mounts_and_vehicles",
@@ -849,7 +1401,7 @@
     "excerpt": "Rules for mounts, vehicles, and related gear.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/mounts_and_vehicles.md"
+    "filePath": "/data/glossary/entries/rules/equipment/mounts_and_vehicles.json"
   },
   {
     "id": "multiple_items_of_same_kind",
@@ -859,7 +1411,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/multiple_items_of_same_kind.md"
+    "filePath": "/data/glossary/entries/rules/equipment/magic_items/multiple_items_of_same_kind.json"
   },
   {
     "id": "musical_instrument",
@@ -869,7 +1421,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/musical_instrument.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/musical_instrument.json"
   },
   {
     "id": "navigators_tools",
@@ -879,7 +1431,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/navigators_tools.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/navigators_tools.json"
   },
   {
     "id": "nick_mastery_property",
@@ -889,7 +1441,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/nick.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/nick.json"
   },
   {
     "id": "no_more_than_three_items",
@@ -899,7 +1451,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/no_more_than_three_items.md"
+    "filePath": "/data/glossary/entries/rules/equipment/magic_items/no_more_than_three_items.json"
   },
   {
     "id": "obscured_areas",
@@ -909,7 +1461,7 @@
     "excerpt": "Rules for Lightly and Heavily Obscured areas.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/obscured_areas.md"
+    "filePath": "/data/glossary/entries/rules/obscured_areas.json"
   },
   {
     "id": "one_armor_at_a_time",
@@ -919,7 +1471,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/armor/one_at_a_time.md"
+    "filePath": "/data/glossary/entries/rules/equipment/armor/one_at_a_time.json"
   },
   {
     "id": "one_thing_at_a_time",
@@ -938,7 +1490,7 @@
       "bonus_actions",
       "reactions"
     ],
-    "filePath": "/data/glossary/entries/rules/one_thing_at_a_time.md"
+    "filePath": "/data/glossary/entries/rules/one_thing_at_a_time.json"
   },
   {
     "id": "other_tools",
@@ -948,7 +1500,7 @@
     "excerpt": "Tools that support adventure and other pursuits.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/other_tools.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/other_tools.json"
   },
   {
     "id": "painters_supplies",
@@ -958,7 +1510,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/painters_supplies.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/painters_supplies.json"
   },
   {
     "id": "paired_items",
@@ -968,7 +1520,24 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/paired_items.md"
+    "filePath": "/data/glossary/entries/rules/equipment/magic_items/paired_items.json"
+  },
+  {
+    "id": "paralyzed_condition",
+    "title": "Paralyzed",
+    "category": "Rules Glossary",
+    "tags": [
+      "condition",
+      "paralyzed",
+      "incapacitated"
+    ],
+    "excerpt": "A paralyzed creature is Incapacitated, can't move or speak, and automatically fails Strength and Dexterity saving throws. Attacks against it have Advantage and are critical hits if the attacker is within 5 feet.",
+    "aliases": [],
+    "seeAlso": [
+      "incapacitated_condition",
+      "critical_hit"
+    ],
+    "filePath": "/data/glossary/entries/rules/conditions/paralyzed_condition.json"
   },
   {
     "id": "large_vehicles_passengers",
@@ -978,7 +1547,40 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/vehicles/passengers.md"
+    "filePath": "/data/glossary/entries/rules/equipment/vehicles/passengers.json"
+  },
+  {
+    "id": "petrified_condition",
+    "title": "Petrified",
+    "category": "Rules Glossary",
+    "tags": [
+      "condition",
+      "petrified",
+      "stone"
+    ],
+    "excerpt": "A petrified creature is transformed into a solid inanimate substance. It is Incapacitated, can't move or speak, has resistance to all damage, and automatically fails Strength and Dexterity saving throws.",
+    "aliases": [],
+    "seeAlso": [
+      "incapacitated_condition",
+      "resistance"
+    ],
+    "filePath": "/data/glossary/entries/rules/conditions/petrified_condition.json"
+  },
+  {
+    "id": "poisoned_condition",
+    "title": "Poisoned",
+    "category": "Rules Glossary",
+    "tags": [
+      "condition",
+      "poisoned",
+      "poison"
+    ],
+    "excerpt": "A poisoned creature has Disadvantage on attack rolls and ability checks.",
+    "aliases": [],
+    "seeAlso": [
+      "advantage_disadvantage"
+    ],
+    "filePath": "/data/glossary/entries/rules/conditions/poisoned_condition.json"
   },
   {
     "id": "poisoners_kit",
@@ -988,7 +1590,17 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/poisoners_kit.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/poisoners_kit.json"
+  },
+  {
+    "id": "poor_lifestyle",
+    "title": "Poor (2 SP per Day)",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/services/lifestyles/poor_lifestyle.json"
   },
   {
     "id": "potters_tools",
@@ -998,7 +1610,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/potters_tools.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/potters_tools.json"
   },
   {
     "id": "scribing_prerequisites",
@@ -1008,7 +1620,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/scribing_prerequisites.md"
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/scribing_prerequisites.json"
   },
   {
     "id": "proficiency",
@@ -1034,7 +1646,17 @@
       "equipment_proficiencies",
       "expertise"
     ],
-    "filePath": "/data/glossary/entries/rules/proficiency.md"
+    "filePath": "/data/glossary/entries/rules/proficiency.json"
+  },
+  {
+    "id": "saving_throw_proficiency",
+    "title": "Proficiency Bonus",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "How to add your Proficiency Bonus to a saving throw.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/saving_throw_proficiency.json"
   },
   {
     "id": "proficiency_bonus",
@@ -1059,7 +1681,43 @@
       "d20_test",
       "expertise"
     ],
-    "filePath": "/data/glossary/entries/rules/proficiency_bonus.md"
+    "filePath": "/data/glossary/entries/rules/proficiency_bonus.json"
+  },
+  {
+    "id": "attack_roll_proficiency",
+    "title": "Proficiency Bonus",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "How to add your Proficiency Bonus to an attack roll.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/attack_roll_proficiency.json"
+  },
+  {
+    "id": "ability_check_proficiency",
+    "title": "Proficiency Bonus",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "How to add your Proficiency Bonus to an ability check.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/ability_check_proficiency.json"
+  },
+  {
+    "id": "prone_condition",
+    "title": "Prone",
+    "category": "Rules Glossary",
+    "tags": [
+      "condition",
+      "prone",
+      "movement"
+    ],
+    "excerpt": "A prone creature's only movement option is to crawl or stand up. It has Disadvantage on attack rolls, and attacks against it have Advantage if the attacker is within 5 feet, otherwise they have Disadvantage.",
+    "aliases": [],
+    "seeAlso": [
+      "advantage_disadvantage"
+    ],
+    "filePath": "/data/glossary/entries/rules/conditions/prone_condition.json"
   },
   {
     "id": "weapon_properties",
@@ -1069,7 +1727,7 @@
     "excerpt": "Definitions for standard weapon properties.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/weapon_properties.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/weapon_properties.json"
   },
   {
     "id": "push_mastery_property",
@@ -1079,7 +1737,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/push.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/push.json"
   },
   {
     "id": "range_property",
@@ -1089,7 +1747,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/range.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/range.json"
   },
   {
     "id": "crafting_raw_materials",
@@ -1099,7 +1757,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/raw_materials.md"
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/raw_materials.json"
   },
   {
     "id": "reach_property",
@@ -1109,7 +1767,25 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/reach.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/reach.json"
+  },
+  {
+    "id": "reaction",
+    "title": "Reaction",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "turn",
+      "actions"
+    ],
+    "excerpt": "An instant response to a trigger of some kind, which can occur on your turn or on someone else's. The most common reaction is an opportunity attack.",
+    "aliases": [],
+    "seeAlso": [
+      "action",
+      "bonus_action",
+      "opportunity_attack"
+    ],
+    "filePath": "/data/glossary/entries/rules/reaction.json"
   },
   {
     "id": "reactions",
@@ -1130,7 +1806,43 @@
       "bonus_actions",
       "opportunity_attack"
     ],
-    "filePath": "/data/glossary/entries/rules/reactions.md"
+    "filePath": "/data/glossary/entries/rules/reactions.json"
+  },
+  {
+    "id": "restrained_condition",
+    "title": "Restrained",
+    "category": "Rules Glossary",
+    "tags": [
+      "condition",
+      "restrained",
+      "movement"
+    ],
+    "excerpt": "A restrained creature's speed becomes 0. Attack rolls against it have Advantage, its attack rolls have Disadvantage, and it has Disadvantage on Dexterity saving throws.",
+    "aliases": [],
+    "seeAlso": [
+      "advantage_disadvantage"
+    ],
+    "filePath": "/data/glossary/entries/rules/conditions/restrained_condition.json"
+  },
+  {
+    "id": "advantage_disadvantage_roll_two",
+    "title": "Roll Two D20s",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "How to roll with Advantage or Disadvantage.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/advantage_disadvantage_roll_two.json"
+  },
+  {
+    "id": "rolling_20_or_1",
+    "title": "Rolling 20 or 1",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "The special rules for rolling a natural 20 or natural 1 on an attack roll.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/rolling_20_or_1.json"
   },
   {
     "id": "saddles",
@@ -1140,7 +1852,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/mounts/saddles.md"
+    "filePath": "/data/glossary/entries/rules/equipment/mounts/saddles.json"
   },
   {
     "id": "sap_mastery_property",
@@ -1150,7 +1862,17 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/sap.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/sap.json"
+  },
+  {
+    "id": "saving_throw_examples",
+    "title": "Saving Throw Examples",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "Examples of what each saving throw is used for.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/saving_throw_examples.json"
   },
   {
     "id": "saving_throw_proficiencies",
@@ -1167,7 +1889,22 @@
       "proficiency",
       "saving_throw"
     ],
-    "filePath": "/data/glossary/entries/rules/saving_throw_proficiencies.md"
+    "filePath": "/data/glossary/entries/rules/saving_throw_proficiencies.json"
+  },
+  {
+    "id": "saving_throw",
+    "title": "Saving Throws",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "A D20 Test representing an attempt to evade or resist a threat. See the main D20 Tests entry for full details.",
+    "aliases": [],
+    "seeAlso": [
+      "d20_test",
+      "saving_throw_modifier",
+      "saving_throw_proficiency",
+      "saving_throw_dc"
+    ],
+    "filePath": "/data/glossary/entries/rules/saving_throw.json"
   },
   {
     "id": "scribing_spell_scrolls",
@@ -1177,7 +1914,7 @@
     "excerpt": "Rules for a spellcaster to transfer a spell to a scroll.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/scribing_spell_scrolls.md"
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/scribing_spell_scrolls.json"
   },
   {
     "id": "services",
@@ -1187,7 +1924,7 @@
     "excerpt": "Outlines services and other expenses that adventurers might spend money on.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/services.md"
+    "filePath": "/data/glossary/entries/rules/equipment/services.json"
   },
   {
     "id": "shield_rules",
@@ -1197,7 +1934,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/armor/shield.md"
+    "filePath": "/data/glossary/entries/rules/equipment/armor/shield.json"
   },
   {
     "id": "ship_repair",
@@ -1207,7 +1944,52 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/vehicles/ship_repair.md"
+    "filePath": "/data/glossary/entries/rules/equipment/vehicles/ship_repair.json"
+  },
+  {
+    "id": "short_rest",
+    "title": "Short Rest",
+    "category": "Rules Glossary",
+    "tags": [
+      "rest",
+      "recovery",
+      "healing"
+    ],
+    "excerpt": "A period of downtime lasting at least 1 hour, during which a character does nothing more strenuous than eating, drinking, reading, and tending to wounds.",
+    "aliases": [],
+    "seeAlso": [
+      "long_rest",
+      "hit_points"
+    ],
+    "filePath": "/data/glossary/entries/rules/short_rest.json"
+  },
+  {
+    "id": "size",
+    "title": "Size Categories",
+    "category": "Rules Glossary",
+    "tags": [
+      "rules",
+      "size",
+      "tiny",
+      "small",
+      "medium",
+      "large",
+      "huge",
+      "gargantuan",
+      "combat",
+      "space"
+    ],
+    "excerpt": "A creature or an object belongs to a size category: Tiny, Small, Medium, Large, Huge, or Gargantuan. Size determines space occupied in combat.",
+    "aliases": [
+      "size category",
+      "creature size",
+      "object size"
+    ],
+    "seeAlso": [
+      "combat",
+      "hit_points"
+    ],
+    "filePath": "/data/glossary/entries/rules/size.json"
   },
   {
     "id": "skill_proficiencies",
@@ -1225,7 +2007,7 @@
       "proficiency",
       "skills_list"
     ],
-    "filePath": "/data/glossary/entries/rules/skill_proficiencies.md"
+    "filePath": "/data/glossary/entries/rules/skill_proficiencies.json"
   },
   {
     "id": "slow_mastery_property",
@@ -1235,7 +2017,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/slow.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/slow.json"
   },
   {
     "id": "smiths_tools",
@@ -1245,7 +2027,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/smiths_tools.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/smiths_tools.json"
   },
   {
     "id": "special_senses",
@@ -1255,7 +2037,7 @@
     "excerpt": "Definitions for Blindsight, Darkvision, etc.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/special_senses.md"
+    "filePath": "/data/glossary/entries/rules/special_senses.json"
   },
   {
     "id": "special_speeds",
@@ -1278,7 +2060,7 @@
       "flying",
       "swimming"
     ],
-    "filePath": "/data/glossary/entries/rules/special_speeds.md"
+    "filePath": "/data/glossary/entries/rules/special_speeds.json"
   },
   {
     "id": "speed",
@@ -1300,7 +2082,7 @@
       "special_speeds",
       "changes_to_your_speeds"
     ],
-    "filePath": "/data/glossary/entries/rules/speed.md"
+    "filePath": "/data/glossary/entries/rules/speed.json"
   },
   {
     "id": "large_vehicles_speed",
@@ -1310,7 +2092,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/vehicles/speed.md"
+    "filePath": "/data/glossary/entries/rules/equipment/vehicles/speed.json"
   },
   {
     "id": "spell_scroll_costs",
@@ -1320,7 +2102,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/spell_scroll_costs.md"
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/spell_scroll_costs.json"
   },
   {
     "id": "spellcasting_services_overview",
@@ -1330,7 +2112,7 @@
     "excerpt": "Rules for hiring spellcasters.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/services/spellcasting_overview.md"
+    "filePath": "/data/glossary/entries/rules/equipment/services/spellcasting_overview.json"
   },
   {
     "id": "spellcasting_services",
@@ -1340,7 +2122,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/services/spellcasting_services.md"
+    "filePath": "/data/glossary/entries/rules/equipment/services/spellcasting_services.json"
   },
   {
     "id": "spells_chapter",
@@ -1370,7 +2152,53 @@
       "spell_scroll",
       "magic_action"
     ],
-    "filePath": "/data/glossary/entries/rules/spells_chapter.md"
+    "filePath": "/data/glossary/entries/rules/spells_chapter.json"
+  },
+  {
+    "id": "squalid_lifestyle",
+    "title": "Squalid (1 SP per Day)",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/services/lifestyles/squalid_lifestyle.json"
+  },
+  {
+    "id": "strength",
+    "title": "Strength",
+    "category": "Rules Glossary",
+    "tags": [
+      "ability scores",
+      "attributes",
+      "stats"
+    ],
+    "excerpt": "Measures physical power, athletic training, and the extent to which you can exert raw physical force. Strength is important for melee combat and lifting, pushing, or breaking things.",
+    "aliases": [
+      "STR"
+    ],
+    "seeAlso": [
+      "dexterity",
+      "constitution",
+      "ability_check"
+    ],
+    "filePath": "/data/glossary/entries/rules/strength.json"
+  },
+  {
+    "id": "stunned_condition",
+    "title": "Stunned",
+    "category": "Rules Glossary",
+    "tags": [
+      "condition",
+      "stunned",
+      "incapacitated"
+    ],
+    "excerpt": "A stunned creature is Incapacitated, automatically fails Strength and Dexterity saving throws, and attack rolls against it have Advantage.",
+    "aliases": [],
+    "seeAlso": [
+      "incapacitated_condition"
+    ],
+    "filePath": "/data/glossary/entries/rules/conditions/stunned_condition.json"
   },
   {
     "id": "swimming",
@@ -1390,7 +2218,7 @@
       "athletics",
       "difficult_terrain"
     ],
-    "filePath": "/data/glossary/entries/rules/movement/swimming.md"
+    "filePath": "/data/glossary/entries/rules/movement/swimming.json"
   },
   {
     "id": "tack_harness_vehicles",
@@ -1400,7 +2228,36 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/mounts/tack_harness_vehicles.md"
+    "filePath": "/data/glossary/entries/rules/equipment/mounts/tack_harness_vehicles.json"
+  },
+  {
+    "id": "temporary_hp",
+    "title": "Temporary Hit Points",
+    "category": "Rules Glossary",
+    "tags": [
+      "combat",
+      "health",
+      "damage"
+    ],
+    "excerpt": "A buffer of extra hit points that absorb damage before your actual hit points. Temporary hit points don't stack and aren't restored by healing.",
+    "aliases": [
+      "Temp HP",
+      "Temporary Health"
+    ],
+    "seeAlso": [
+      "hit_points"
+    ],
+    "filePath": "/data/glossary/entries/rules/temporary_hp.json"
+  },
+  {
+    "id": "advantage_disadvantage_stacking",
+    "title": "They Don't Stack",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "Rules for when multiple circumstances grant advantage or disadvantage.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/advantage_disadvantage_stacking.json"
   },
   {
     "id": "thieves_tools",
@@ -1410,7 +2267,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/thieves_tools.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/thieves_tools.json"
   },
   {
     "id": "thrown_property",
@@ -1420,7 +2277,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/thrown.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/thrown.json"
   },
   {
     "id": "crafting_time",
@@ -1430,7 +2287,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/time.md"
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/time.json"
   },
   {
     "id": "scribing_time_and_cost",
@@ -1440,7 +2297,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/scribing_time_and_cost.md"
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/scribing_time_and_cost.json"
   },
   {
     "id": "time_limited_object_interactions",
@@ -1450,7 +2307,7 @@
     "excerpt": "Rules for interacting with objects in combat.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/time_limited_object_interactions.md"
+    "filePath": "/data/glossary/entries/rules/time_limited_object_interactions.json"
   },
   {
     "id": "tinkers_tools",
@@ -1460,7 +2317,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/tinkers_tools.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/tinkers_tools.json"
   },
   {
     "id": "tool_proficiency",
@@ -1470,7 +2327,7 @@
     "excerpt": "Rule for adding your Proficiency Bonus to checks using tools.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/tool_proficiency.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/tool_proficiency.json"
   },
   {
     "id": "tools",
@@ -1480,7 +2337,7 @@
     "excerpt": "Rules for using tools for ability checks and crafting.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools.json"
   },
   {
     "id": "crafting_tools",
@@ -1490,7 +2347,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/tools.md"
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/tools.json"
   },
   {
     "id": "topple_mastery_property",
@@ -1500,7 +2357,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/topple.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/topple.json"
   },
   {
     "id": "travel",
@@ -1510,7 +2367,7 @@
     "excerpt": "Rules for traveling long distances.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/travel.md"
+    "filePath": "/data/glossary/entries/rules/travel.json"
   },
   {
     "id": "travel_services",
@@ -1520,7 +2377,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/services/travel.md"
+    "filePath": "/data/glossary/entries/rules/equipment/services/travel.json"
   },
   {
     "id": "travel_pace",
@@ -1530,7 +2387,7 @@
     "excerpt": "Rules for Fast, Normal, and Slow travel paces.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/travel_pace.md"
+    "filePath": "/data/glossary/entries/rules/travel_pace.json"
   },
   {
     "id": "two_handed_property",
@@ -1540,7 +2397,25 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/two_handed.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/two_handed.json"
+  },
+  {
+    "id": "unconscious_condition",
+    "title": "Unconscious",
+    "category": "Rules Glossary",
+    "tags": [
+      "condition",
+      "unconscious",
+      "incapacitated"
+    ],
+    "excerpt": "An unconscious creature is Incapacitated, Prone, and unaware of its surroundings. It drops what it's holding and automatically fails Strength and Dexterity saving throws. Attacks against it have Advantage and are critical hits if the attacker is within 5 feet.",
+    "aliases": [],
+    "seeAlso": [
+      "incapacitated_condition",
+      "prone_condition",
+      "critical_hit"
+    ],
+    "filePath": "/data/glossary/entries/rules/conditions/unconscious_condition.json"
   },
   {
     "id": "vehicles",
@@ -1550,7 +2425,7 @@
     "excerpt": "Rules for traveling in vehicles.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/vehicles.md"
+    "filePath": "/data/glossary/entries/rules/vehicles.json"
   },
   {
     "id": "versatile_property",
@@ -1560,7 +2435,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/versatile.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/versatile.json"
   },
   {
     "id": "vex_mastery_property",
@@ -1570,7 +2445,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/vex.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/vex.json"
   },
   {
     "id": "vision_and_light",
@@ -1580,7 +2455,17 @@
     "excerpt": "Rules governing sight and obscured areas.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/vision_and_light.md"
+    "filePath": "/data/glossary/entries/rules/vision_and_light.json"
+  },
+  {
+    "id": "wealthy_lifestyle",
+    "title": "Wealthy (4 GP per Day)",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/services/lifestyles/wealthy_lifestyle.json"
   },
   {
     "id": "weapon_proficiency",
@@ -1590,7 +2475,7 @@
     "excerpt": "Rule for adding your Proficiency Bonus to attack rolls with proficient weapons.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons/weapon_proficiency.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons/weapon_proficiency.json"
   },
   {
     "id": "weapons",
@@ -1600,7 +2485,7 @@
     "excerpt": "Details on weapon categories, damage, properties, and mastery.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/weapons.md"
+    "filePath": "/data/glossary/entries/rules/equipment/weapons.json"
   },
   {
     "id": "wearing_wielding_items",
@@ -1610,7 +2495,7 @@
     "excerpt": "Rules for how magic items are worn and used.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/wearing_wielding_items.md"
+    "filePath": "/data/glossary/entries/rules/equipment/magic_items/wearing_wielding_items.json"
   },
   {
     "id": "weavers_tools",
@@ -1620,7 +2505,7 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/weavers_tools.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/weavers_tools.json"
   },
   {
     "id": "what_is_an_object",
@@ -1634,7 +2519,7 @@
     "excerpt": "Defining an object in game terms.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/what_is_an_object.md"
+    "filePath": "/data/glossary/entries/rules/what_is_an_object.json"
   },
   {
     "id": "woodcarvers_tools",
@@ -1644,6 +2529,16 @@
     "excerpt": "No excerpt available.",
     "aliases": [],
     "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/tools/woodcarvers_tools.md"
+    "filePath": "/data/glossary/entries/rules/equipment/tools/woodcarvers_tools.json"
+  },
+  {
+    "id": "wretched_lifestyle",
+    "title": "Wretched (Free)",
+    "category": "Rules Glossary",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/services/lifestyles/wretched_lifestyle.json"
   }
 ]

@@ -1,0 +1,11 @@
+{
+  "id": "herbalism_kit",
+  "title": "Herbalism Kit",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "No excerpt available.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/equipment/tools/herbalism_kit.json",
+  "markdown": "# Herbalism Kit (5 GP)\r\n**Ability:** Intelligence \r\n**Weight:** 3 lb.\r\n**Utilize:** Identify a plant (DC 10)\r\n**Craft:** Antitoxin, Candle, Healer's Kit, Potion of Healing"
+}

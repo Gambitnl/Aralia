@@ -12,39 +12,36 @@ vi.mock("../../utils/logger", () => ({ logger: { error: vi.fn(), info: vi.fn(), 
 vi.stubGlobal('import.meta', { env: { BASE_URL: '/' } });
 
 // Data
-const manifest = { 'magic-missile': { level: 1, path: '/level-1/magic-missile.md' } };
-const card = `---
-id: magic-missile
-tags: [level 1, evocation]
----
-# Magic Missile
-<div class="spell-card"><div class="spell-card-stats-grid">
-<div><span class="spell-card-stat-label">Level</span><span class="spell-card-stat-value">1st</span></div>
-<div><span class="spell-card-stat-label">Casting Time</span><span class="spell-card-stat-value">1 Action</span></div>
-<div><span class="spell-card-stat-label">Range/Area</span><span class="spell-card-stat-value">120 ft.</span></div>
-<div><span class="spell-card-stat-label">Components</span><span class="spell-card-stat-value">V, S</span></div>
-<div><span class="spell-card-stat-label">Duration</span><span class="spell-card-stat-value">Instantaneous</span></div>
-<div><span class="spell-card-stat-label">School</span><span class="spell-card-stat-value">Evocation</span></div>
-<div><span class="spell-card-stat-label">Attack/Save</span><span class="spell-card-stat-value">Ranged</span></div>
-<div><span class="spell-card-stat-label">Damage/Effect</span><span class="spell-card-stat-value">Force</span></div>
-</div></div>`;
-const json = { level: 1, castingTime: { value: 1, unit: 'action' }, range: { distance: 120 }, components: { verbal: true, somatic: true }, duration: { type: 'instantaneous' }, school: 'Evocation', effects: [{ type: 'DAMAGE', damage: { type: 'Force' }, condition: { type: 'hit' } }] };
-const entries = [{ id: 'magic-missile', title: 'MM', type: 'spell' as const, tags: [] }];
+const manifest = { 'magic-missile': { name: 'Magic Missile', level: 1, school: 'Evocation', path: '/data/spells/level-1/magic-missile.json' } };
+const spellJson = {
+  id: 'magic-missile',
+  name: 'Magic Missile',
+  level: 1,
+  school: 'Evocation',
+  legacy: true,
+  classes: [],
+  castingTime: { value: 1, unit: 'action', combatCost: { type: 'action' } },
+  range: { type: 'ranged', distance: 120 },
+  components: { verbal: true, somatic: true, material: false },
+  duration: { type: 'instantaneous', concentration: false },
+  targeting: { type: 'ranged', range: 120, validTargets: ['creatures'], lineOfSight: true },
+  effects: [{ type: 'UTILITY', trigger: { type: 'immediate' }, condition: { type: 'always' }, utilityType: 'other', description: 'desc' }],
+  description: 'desc',
+};
 
 describe('useSpellGateChecks', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockFetch.mockImplementation(async (url: string) => {
-      if (url.includes('manifest')) return manifest;
-      if (url.includes('.md')) return card;
-      if (url.includes('.json')) return json;
+      if (url.includes('spells_manifest.json')) return manifest;
+      if (url.includes('magic-missile.json')) return spellJson;
       return null;
     });
   });
   afterEach(() => vi.unstubAllGlobals());
 
   it('identifies valid spells in known gaps list', async () => {
-    const { result } = renderHook(() => useSpellGateChecks(entries));
+    const { result } = renderHook(() => useSpellGateChecks());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     const res = result.current.results['magic-missile'];
     expect(res.status).toBe('gap');

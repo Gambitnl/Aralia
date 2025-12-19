@@ -1,18 +1,29 @@
 {
   "id": "prayer-of-healing",
   "name": "Prayer of Healing",
+  "aliases": [],
   "level": 2,
-  "school": "Evocation",
-  "classes": ["Cleric"],
-  "description": "Up to six creatures of your choice that you can see within range each regain hit points equal to 2d8 + your spellcasting ability modifier. This spell has no effect on undead or constructs.",
-  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the healing increases by 1d8 for each slot level above 2nd.",
-  "tags": ["healing", "evocation"],
+  "school": "Abjuration",
+  "source": "PHB 2024 p.307",
+  "legacy": false,
+  "classes": [
+    "Cleric",
+    "Paladin"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 10,
     "unit": "minute",
-    "combatCost": { "type": "action" },
-    "explorationCost": { "value": 10, "unit": "minute" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 10,
+      "unit": "minute"
+    }
   },
   "range": {
     "type": "ranged",
@@ -21,27 +32,92 @@
   "components": {
     "verbal": true,
     "somatic": false,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "instantaneous",
-    "concentration": false
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "multi",
     "range": 30,
     "maxTargets": 6,
-    "validTargets": ["creatures", "allies"],
-    "lineOfSight": true
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "HEALING",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
-      "healing": { "dice": "2d8", "isTemporaryHp": false },
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+1d8" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "healing": {
+        "dice": "2d8",
+        "isTemporaryHp": false
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+1d8",
+        "customFormula": ""
+      },
       "description": "Heal up to six creatures; no effect on undead or constructs."
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "Up to six creatures of your choice that you can see within range each regain hit points equal to 2d8 + your spellcasting ability modifier. This spell has no effect on Undead or Constructs.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the healing increases by 1d8 for each slot level above 2nd.",
+  "tags": [
+    "healing",
+    "evocation"
   ]
 }

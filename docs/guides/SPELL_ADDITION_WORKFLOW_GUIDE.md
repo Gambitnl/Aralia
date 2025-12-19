@@ -29,10 +29,8 @@ Upon receiving this prompt, the AI assistant will now automatically handle the f
 
 1.  **Infer Spell Name & ID**: Analyze the image to determine the spell's name and create the corresponding kebab-case file ID.
 2.  **Check for Existence**: Determine if files for the spell already exist to perform an update, or if new files need to be created.
-3.  **Populate Data File**: Create or update `public/data/spells/[spell-id].json` to match the new structured JSON format, using the provided image for all values. This includes correctly normalizing the `classes` array by including both the base class and any subclass-specific callouts, as long as the subclass is on the official list captured in the **Spell JSON examples** (`docs/spells/SPELL_JSON_EXAMPLES.md`).
-4.  **Populate Glossary Entry**: Create or update `public/data/glossary/entries/spells/[spell-id].md`.
-5.  **Auto-Link `seeAlso`**: Intelligently scan the spell's description and tags, cross-reference them with the existing glossary, and automatically populate the `seeAlso` array in the frontmatter with relevant term IDs.
-6.  **Integrate with Classes**: Update `src/data/classes/index.ts` to add the spell ID to the spell lists for all appropriate classes mentioned on the spell card.
-7.  **Run System Integrity Scripts**: If new files are created, the AI will handle the equivalent of running scripts to update the `spells_manifest.json` and regenerate the glossary indexes.
+3.  **Populate Data File**: Create or update `public/data/spells/level-{N}/[spell-id].json` (V2 spell schema), using the provided image for all values. This includes correctly normalizing the `classes` array by including both the base class and any subclass-specific callouts, as long as the subclass is on the official list captured in the **Spell JSON examples** (`docs/spells/SPELL_JSON_EXAMPLES.md`).
+4.  **Integrate with Classes**: Update `src/data/classes/index.ts` to add the spell ID to the spell lists for all appropriate classes mentioned on the spell card.
+5.  **Run System Integrity Scripts**: Regenerate `public/data/spells_manifest.json` and regenerate the glossary indexes (Spells are generated from the manifest; no spell glossary content files are maintained).
 
 This new workflow makes adding and maintaining the game's spell list more efficient and less prone to manual error.

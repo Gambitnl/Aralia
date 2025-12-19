@@ -36,4 +36,4 @@
 
 ---
 
-## Batch 6 — Spells 51-60
+## Batch 6 - Spells 51-60

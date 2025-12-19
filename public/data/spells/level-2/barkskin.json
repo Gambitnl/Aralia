@@ -1,59 +1,101 @@
 {
-    "id": "barkskin",
-    "name": "Barkskin",
-    "level": 2,
-    "school": "Transmutation",
-    "classes": [
-        "Druid",
-        "Ranger"
+  "id": "barkskin",
+  "name": "Barkskin",
+  "aliases": [],
+  "level": 2,
+  "school": "Transmutation",
+  "source": "PHB 2024 p.245",
+  "legacy": false,
+  "classes": [
+    "Druid",
+    "Ranger"
+  ],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action",
+    "combatCost": {
+      "type": "bonus_action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "touch",
+    "distance": 0
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": true,
+    "materialDescription": "a handful of oak bark",
+    "isConsumed": false,
+    "materialCost": 0
+  },
+  "duration": {
+    "type": "timed",
+    "value": 1,
+    "unit": "hour",
+    "concentration": false
+  },
+  "targeting": {
+    "type": "single",
+    "range": 0,
+    "validTargets": [
+      "allies"
     ],
-    "description": "You touch a willing creature. Until the spell ends, the target's skin has a rough, bark-like appearance, and the target's AC can't be less than 16, regardless of what kind of armor it is wearing.",
-    "higherLevels": "None",
-    "tags": [
-        "buff",
-        "defense",
-        "concentration"
-    ],
-    "ritual": false,
-    "castingTime": {
-        "value": 1,
-        "unit": "action",
-        "combatCost": {
-            "type": "action"
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
+  },
+  "effects": [
+    {
+      "type": "DEFENSIVE",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
         }
-    },
-    "range": {
-        "type": "touch"
-    },
-    "components": {
-        "verbal": true,
-        "somatic": true,
-        "material": true,
-        "materialDescription": "a handful of oak bark"
-    },
-    "duration": {
-        "type": "timed",
-        "value": 1,
-        "unit": "hour",
-        "concentration": true
-    },
-    "targeting": {
-        "type": "single",
-        "range": 5,
-        "validTargets": [
-            "creatures",
-            "allies"
-        ],
-        "lineOfSight": true
-    },
-    "effects": [
-        {
-            "type": "DEFENSIVE",
-            "trigger": {
-                "type": "immediate"
-            },
+      },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "defenseType": "ac_minimum",
       "acMinimum": 16,
@@ -61,7 +103,45 @@
         "type": "minutes",
         "value": 60
       },
-      "description": "Target's AC cannot be less than 16."
+      "description": "Target's AC cannot be less than 16.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "value": 0,
+      "baseACFormula": "",
+      "damageType": [],
+      "savingThrow": [],
+      "attackerFilter": {
+        "creatureTypes": [],
+        "excludeCreatureTypes": [],
+        "sizes": [],
+        "alignments": [],
+        "hasCondition": [],
+        "isNativeToPlane": false
+      },
+      "reactionTrigger": {
+        "event": "when_hit",
+        "includesSpells": []
+      },
+      "restrictions": {
+        "noArmor": false,
+        "noShield": false,
+        "targetSelf": false
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You touch a willing creature. Until the spell ends, the target's skin has a rough, bark-like appearance, and the target's AC can't be less than 17, regardless of what kind of armor it is wearing.",
+  "higherLevels": "",
+  "tags": [
+    "buff",
+    "defense",
+    "concentration"
   ]
 }

@@ -1,0 +1,16 @@
+{
+  "id": "action",
+  "title": "Action",
+  "category": "Rules Glossary",
+  "tags": ["combat", "turn", "actions"],
+  "excerpt": "The main thing you can do on your turn in combat. You can take one action per turn, choosing from options like Attack, Cast a Spell, Dash, Disengage, Dodge, Help, Hide, Ready, Search, or Use an Object.",
+  "aliases": [],
+  "seeAlso": [
+    "bonus_action",
+    "reaction",
+    "attack_action",
+    "magic_action"
+  ],
+  "filePath": "/data/glossary/entries/rules/action.json",
+  "markdown": "# Action\n\nWhen you take your turn in combat, you can take one action. Your action can be one of the options presented below, an action you gained from your class or a special feature, or an action that you improvise.\n\n## Common Actions\n\n### Attack\nMake one melee or ranged attack. Some features allow you to make more than one attack with this action.\n\n### Cast a Spell\nCast a spell with a casting time of 1 action. See [[magic_action]] for details.\n\n### Dash\nGain extra movement equal to your speed for the current turn.\n\n### Disengage\nYour movement doesn't provoke [[opportunity_attack|opportunity attacks]] for the rest of the turn.\n\n### Dodge\nUntil the start of your next turn, attack rolls against you have [[disadvantage]], and you make Dexterity saving throws with [[advantage]].\n\n### Help\nYou aid a friendly creature in completing a task, or you distract a foe, giving your ally [[advantage]] on their next attack roll against that foe.\n\n### Hide\nMake a Dexterity (Stealth) check in an attempt to hide.\n\n### Ready\nPrepare to take an action in response to a trigger you specify.\n\n### Search\nMake a Wisdom (Perception) or Intelligence (Investigation) check to find something.\n\n### Use an Object\nInteract with a second object (you can interact with one object for free).\n\n## Related Actions\n\nSee also [[bonus_action]] for additional things you can do on your turn, and [[reaction]] for actions you can take outside your turn.\n"
+}

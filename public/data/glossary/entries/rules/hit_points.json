@@ -1,0 +1,15 @@
+{
+  "id": "hit_points",
+  "title": "Hit Points",
+  "category": "Rules Glossary",
+  "tags": ["combat", "health", "damage"],
+  "excerpt": "A measure of your character's health and stamina. When your hit points drop to 0, you fall unconscious and begin making death saving throws.",
+  "aliases": ["HP", "Health"],
+  "seeAlso": [
+    "temporary_hp",
+    "long_rest",
+    "short_rest"
+  ],
+  "filePath": "/data/glossary/entries/rules/hit_points.json",
+  "markdown": "# Hit Points\n\nHit points (HP) represent a combination of physical and mental durability, the will to live, and luck. Creatures with more hit points are more difficult to kill.\n\n## Maximum Hit Points\n\nYour maximum hit points equals your Hit Die roll total (or the fixed value if you don't roll) plus your Constitution modifier, multiplied by your character level.\n\n**At 1st level:**\n- Maximum Hit Die result + Constitution modifier\n\n**Each level after 1st:**\n- Roll your Hit Die and add your Constitution modifier, or\n- Take the fixed value (your Hit Die size / 2, rounded up + 1) + Constitution modifier\n\n## Current Hit Points\n\nYour current hit points can be any number from your maximum down to 0. Whenever you take damage, subtract it from your current hit points.\n\n## Healing\n\nWhen you receive healing, add the hit points regained to your current total. Your current hit points can't exceed your maximum.\n\n## Dropping to 0 Hit Points\n\nWhen you drop to 0 hit points, you either:\n- **Die outright** if the damage equals or exceeds your maximum hit points\n- **Fall unconscious** and begin making death saving throws\n\n## Temporary Hit Points\n\nSome spells and abilities grant [[temporary_hp|temporary hit points]]. These are lost first when you take damage and don't stack with other sources of temporary hit points.\n\n## Regaining Hit Points\n\n- **Short Rest**: Spend Hit Dice to recover HP\n- **Long Rest**: Regain all lost hit points\n- **Healing Spells**: *Cure Wounds*, *Healing Word*, *Prayer of Healing*, etc.\n- **Potions**: Potions of healing restore hit points\n"
+}

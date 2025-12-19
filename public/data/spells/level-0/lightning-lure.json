@@ -1,41 +1,49 @@
 {
   "id": "lightning-lure",
   "name": "Lightning Lure",
+  "aliases": [],
   "level": 0,
   "school": "Evocation",
+  "source": "PHB 2024",
+  "legacy": false,
   "classes": [
     "Artificer",
     "Sorcerer",
     "Warlock",
     "Wizard"
   ],
-  "description": "You create a lash of lightning that strikes one creature you can see within 15 feet. The target makes a Strength saving throw. On a failed save, the target takes lightning damage and is pulled up to 10 feet straight toward you, then takes damage only if it ends within 5 feet of you.",
-  "higherLevels": "The lightning damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).",
-  "tags": [
-    "damage",
-    "lightning",
-    "control",
-    "cantrip"
-  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
-    "type": "self"
+    "type": "self",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "instantaneous",
-    "concentration": false
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "ranged",
@@ -44,18 +52,53 @@
       "creatures",
       "enemies"
     ],
-    "lineOfSight": true
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "MOVEMENT",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
         "type": "save",
         "saveType": "Strength",
-        "saveEffect": "negates_condition"
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "movementType": "pull",
       "duration": {
@@ -64,18 +107,52 @@
       },
       "forcedMovement": {
         "direction": "toward_caster",
-        "maxDistance": "10 ft"
-      }
+        "maxDistance": "10 ft",
+        "usesReaction": false
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "distance": 0,
+      "speedChange": {
+        "stat": "speed",
+        "value": 0,
+        "unit": "feet"
+      },
+      "description": ""
     },
     {
       "type": "DAMAGE",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
         "type": "save",
         "saveType": "Strength",
-        "saveEffect": "negates_condition"
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "damage": {
         "dice": "1d8",
@@ -84,8 +161,22 @@
       "description": "Damage applies only if the target ends within 5 feet of you after the pull.",
       "scaling": {
         "type": "character_level",
-        "customFormula": "Damage increases to 2d8 at 5th level, 3d8 at 11th, 4d8 at 17th."
+        "customFormula": "Damage increases to 2d8 at 5th level, 3d8 at 11th, 4d8 at 17th.",
+        "bonusPerLevel": ""
       }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You create a lash of lightning that strikes one creature you can see within 15 feet. The target makes a Strength saving throw. On a failed save, the target takes lightning damage and is pulled up to 10 feet straight toward you, then takes damage only if it ends within 5 feet of you.",
+  "higherLevels": "The lightning damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).",
+  "tags": [
+    "damage",
+    "lightning",
+    "control",
+    "cantrip"
   ]
 }

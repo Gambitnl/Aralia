@@ -1,78 +1,134 @@
 {
-    "id": "eldritch-blast",
-    "name": "Eldritch Blast",
-    "level": 0,
-    "school": "Evocation",
-    "classes": [
-        "Warlock"
-    ],
-    "tags": [
-        "damage",
-        "force",
-        "cantrip"
-    ],
-    "description": "A beam of crackling energy streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 force damage.",
-    "higherLevels": "The spell creates more than one beam when you reach higher levels: two beams at 5th level, three beams at 11th level, and four beams at 17th level. You can direct the beams at the same target or at different ones. Make a separate attack roll for each beam.",
-    "ritual": false,
-    "attackType": "ranged",
-    "castingTime": {
-        "value": 1,
-        "unit": "action",
-        "combatCost": {
-            "type": "action"
+  "id": "eldritch-blast",
+  "name": "Eldritch Blast",
+  "aliases": [],
+  "level": 0,
+  "school": "Evocation",
+  "source": "PHB 2024",
+  "legacy": false,
+  "classes": [
+    "Warlock"
+  ],
+  "ritual": false,
+  "rarity": "common",
+  "attackType": "ranged",
+  "castingTime": {
+    "value": 1,
+    "unit": "action",
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 120
+  },
+  "components": {
+    "verbal": true,
+    "somatic": true,
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
+  },
+  "targeting": {
+    "type": "multi",
+    "range": 120,
+    "maxTargets": {
+      "base": 1,
+      "scaling": {
+        "type": "character_level",
+        "thresholds": {
+          "1": 1,
+          "5": 2,
+          "11": 3,
+          "17": 4
         }
+      }
     },
-    "range": {
-        "type": "ranged",
-        "distance": 120
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
     },
-    "components": {
-        "verbal": true,
-        "somatic": true,
-        "material": false
-    },
-    "duration": {
-        "type": "instantaneous",
-        "concentration": false
-    },
-    "targeting": {
-        "type": "multi",
-        "range": 120,
-        "maxTargets": {
-            "base": 1,
-            "scaling": {
-                "type": "character_level",
-                "thresholds": {
-                    "1": 1,
-                    "5": 2,
-                    "11": 3,
-                    "17": 4
-                }
-            }
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
+  },
+  "effects": [
+    {
+      "type": "DAMAGE",
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
         },
-        "validTargets": [
-            "creatures"
-        ],
-        "lineOfSight": true
-    },
-    "effects": [
-        {
-            "type": "DAMAGE",
-            "trigger": {
-                "type": "immediate"
-            },
-            "condition": {
-                "type": "hit"
-            },
-            "damage": {
-                "dice": "1d10",
-                "type": "Force"
-            },
-            "scaling": {
-                "type": "character_level",
-                "bonusPerLevel": "+1 beam",
-                "customFormula": "1 beam at level 1, 2 beams at level 5, 3 beams at level 11, 4 beams at level 17"
-            }
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
         }
-    ]
+      },
+      "condition": {
+        "type": "hit",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "1d10",
+        "type": "Force"
+      },
+      "scaling": {
+        "type": "character_level",
+        "bonusPerLevel": "+1 beam",
+        "customFormula": "1 beam at level 1, 2 beams at level 5, 3 beams at level 11, 4 beams at level 17"
+      },
+      "description": ""
+    }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "A beam of crackling energy streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 force damage.",
+  "higherLevels": "The spell creates more than one beam when you reach higher levels: two beams at 5th level, three beams at 11th level, and four beams at 17th level. You can direct the beams at the same target or at different ones. Make a separate attack roll for each beam.",
+  "tags": [
+    "damage",
+    "force",
+    "cantrip"
+  ]
 }

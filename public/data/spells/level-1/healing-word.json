@@ -1,25 +1,124 @@
 {
   "id": "healing-word",
   "name": "Healing Word",
+  "aliases": [],
   "level": 1,
   "school": "Abjuration",
-  "classes": ["Bard", "Cleric", "Druid"],
-  "description": "A creature you can see within range regains Hit Points equal to 2d4 + your spellcasting ability modifier.",
-  "higherLevels": "The healing increases by 2d4 for each spell slot level above 1.",
-  "tags": ["healing", "ranged"],
+  "source": "PHB 2024 p.284",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Cleric",
+    "Druid"
+  ],
   "ritual": false,
-  "castingTime": { "value": 1, "unit": "bonus_action", "combatCost": { "type": "bonus_action" } },
-  "range": { "type": "ranged", "distance": 60 },
-  "components": { "verbal": true, "somatic": false, "material": false },
-  "duration": { "type": "instantaneous", "concentration": false },
-  "targeting": { "type": "single", "range": 60, "validTargets": ["creatures", "allies"], "lineOfSight": true },
+  "rarity": "common",
+  "attackType": "",
+  "castingTime": {
+    "value": 1,
+    "unit": "bonus_action",
+    "combatCost": {
+      "type": "bonus_action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
+  },
+  "range": {
+    "type": "ranged",
+    "distance": 60
+  },
+  "components": {
+    "verbal": true,
+    "somatic": false,
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
+  },
+  "duration": {
+    "type": "instantaneous",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
+  },
+  "targeting": {
+    "type": "single",
+    "range": 60,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
+  },
   "effects": [
     {
       "type": "HEALING",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
-      "healing": { "dice": "2d4", "isTemporaryHp": false },
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+2d4" }
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "healing": {
+        "dice": "2d4",
+        "isTemporaryHp": false
+      },
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "+2d4",
+        "customFormula": ""
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "A creature of your choice that you can see within range regains hit points equal to 2d4 + your spellcasting ability modifier. This spell has no effect on Undead or Constructs.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the healing increases by 2d4 for each slot level above 1st.",
+  "tags": [
+    "healing",
+    "ranged"
   ]
 }

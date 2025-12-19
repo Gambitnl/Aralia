@@ -1,0 +1,11 @@
+{
+  "id": "travel_services",
+  "title": "Travel",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "No excerpt available.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/equipment/services/travel.json",
+  "markdown": "# Travel\r\nDrivers or crew hired to conduct passengers to their destinations charge the rates on the Travel table, plus any tolls or additional expenses.\r\n| Service | Cost |\r\n|:---|:---|\r\n| Coach ride between towns | 3 CP per mile |\r\n| Coach ride within a city | 1 CP per mile |\r\n| Road or gate toll | 1 CP |\r\n| Ship's passage | 1 SP per mile |\r\n"
+}

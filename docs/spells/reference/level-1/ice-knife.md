@@ -40,4 +40,4 @@
 
 ---
 
-## Batch 5 — Spells 41-50
+## Batch 5 - Spells 41-50

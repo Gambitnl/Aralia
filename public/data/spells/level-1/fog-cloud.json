@@ -1,18 +1,30 @@
 {
   "id": "fog-cloud",
   "name": "Fog Cloud",
+  "aliases": [],
   "level": 1,
   "school": "Conjuration",
-  "classes": ["Druid", "Ranger", "Sorcerer", "Wizard"],
-  "description": "You create a 20-foot-radius Sphere of fog centered on a point within range. The Sphere is Heavily Obscured and lasts for the duration or until a strong wind disperses it.",
-  "higherLevels": "The fog's radius increases by 20 feet for each spell slot level above 1.",
-  "tags": ["terrain", "obscurement", "concentration"],
+  "source": "PHB 2024 p.276",
+  "legacy": false,
+  "classes": [
+    "Druid",
+    "Ranger",
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
     "combatCost": {
-      "type": "action"
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
     }
   },
   "range": {
@@ -22,7 +34,10 @@
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -33,26 +48,62 @@
   "targeting": {
     "type": "area",
     "range": 120,
-    "validTargets": ["point"],
+    "validTargets": [
+      "point"
+    ],
     "lineOfSight": true,
     "areaOfEffect": {
       "shape": "Sphere",
-      "size": 20
+      "size": 20,
+      "height": 0
+    },
+    "maxTargets": 1,
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
     }
   },
   "effects": [
     {
       "type": "TERRAIN",
       "trigger": {
-        "type": "immediate"
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
       },
       "condition": {
-        "type": "always"
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "terrainType": "obscuring",
       "areaOfEffect": {
         "shape": "Sphere",
-        "size": 20
+        "size": 20,
+        "height": 0
       },
       "duration": {
         "type": "minutes",
@@ -61,8 +112,43 @@
       "dispersedByStrongWind": true,
       "scaling": {
         "type": "slot_level",
-        "customFormula": "Increase radius by 20 feet for each slot level above 1."
-      }
+        "customFormula": "Increase radius by 20 feet for each slot level above 1.",
+        "bonusPerLevel": ""
+      },
+      "damage": {
+        "dice": "",
+        "type": ""
+      },
+      "wallProperties": {
+        "hp": 0,
+        "ac": 0
+      },
+      "manipulation": {
+        "type": "cosmetic",
+        "volume": {
+          "shape": "Cube",
+          "size": 0,
+          "depth": 0
+        },
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        },
+        "depositDistance": 0
+      },
+      "description": ""
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You create a 20-foot-radius Sphere of fog centered on a point within range. The Sphere spreads around corners, and its area is Heavily Obscured. It lasts for the duration or until a wind of moderate or greater speed (at least 10 miles per hour) disperses it.",
+  "higherLevels": "When you cast this spell using a spell slot of 2nd level or higher, the radius of the fog increases by 20 feet for each slot level above 1st.",
+  "tags": [
+    "terrain",
+    "obscurement",
+    "concentration"
   ]
 }

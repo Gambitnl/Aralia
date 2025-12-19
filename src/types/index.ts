@@ -756,7 +756,7 @@ export interface GlossaryEntry {
   excerpt?: string;
   aliases?: string[];
   seeAlso?: string[];
-  filePath: string;
+  filePath?: string | null;
   subEntries?: GlossaryEntry[];
 }
 

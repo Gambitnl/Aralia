@@ -1,46 +1,143 @@
 {
   "id": "arcane-lock",
   "name": "Arcane Lock",
+  "aliases": [],
   "level": 2,
   "school": "Abjuration",
-  "classes": ["Artificer", "Wizard"],
-  "description": "You touch a closed door, window, gate, chest, or other entryway and inscribe it with a magical lock. Until dispelled or suppressed, the DC to open the object increases by 10. You can set a password that suppresses the effect for 1 minute when spoken within 5 feet, or you can specify creatures that can open the object as normal.",
-  "higherLevels": "None",
-  "tags": ["abjuration", "utility", "ward"],
+  "source": "PHB 2024 p.242",
+  "legacy": false,
+  "classes": [
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
-    "type": "touch"
+    "type": "touch",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "gold dust worth at least 25 gp, sprinkled over the target",
+    "materialDescription": "gold dust worth 25+ GP",
     "materialCost": 25,
     "isConsumed": true
   },
   "duration": {
     "type": "until_dispelled",
-    "concentration": false
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "single",
-    "range": 5,
-    "validTargets": ["objects", "structures", "doors"],
-    "lineOfSight": true
+    "range": 0,
+    "validTargets": [
+      "objects"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "control",
-      "description": "Magically locks the target object; increases the DC to open by 10. You may set a password that suppresses the lock for 1 minute when spoken within 5 feet, or designate creatures who can open it normally."
+      "description": "Magically locks the target object; increases the DC to open by 10. You may set a password that suppresses the lock for 1 minute when spoken within 5 feet, or designate creatures who can open it normally.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You touch a closed door, window, gate, chest, or other entryway, and it becomes locked for the duration. You and the creatures you designate when you cast this spell can open the object normally. You can also set a password that, when spoken within 5 feet of the object, suppresses this spell for 1 minute. Otherwise, it is impassable until it is broken or the spell is dispelled or suppressed. Casting Knock on the object suppresses Arcane Lock for 10 minutes. While affected by this spell, the object is more difficult to break or force open; the DC to break it or pick any locks on it increases by 10.",
+  "higherLevels": "",
+  "tags": [
+    "abjuration",
+    "utility",
+    "ward"
   ]
 }

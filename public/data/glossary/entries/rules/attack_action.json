@@ -1,0 +1,15 @@
+{
+  "id": "attack_action",
+  "title": "Attack Action",
+  "category": "Rules Glossary",
+  "tags": ["combat", "actions", "attack"],
+  "excerpt": "The most common action taken in combat. When you take the Attack action, you make one or more melee or ranged attacks.",
+  "aliases": ["Attack"],
+  "seeAlso": [
+    "action",
+    "unarmed_strike",
+    "opportunity_attack"
+  ],
+  "filePath": "/data/glossary/entries/rules/attack_action.json",
+  "markdown": "# Attack Action\n\nThe most common [[action]] taken in combat is the Attack action. When you take the Attack action, you make one melee or ranged attack.\n\n## Making an Attack\n\n1. **Choose a target** within your attack's range\n2. **Determine modifiers** (advantage/disadvantage, cover, special abilities)\n3. **Resolve the attack** by rolling a d20 and adding modifiers\n4. **Roll damage** if the attack hits\n\n## Multiple Attacks\n\nCertain features, such as the Extra Attack feature of fighters and paladins, allow you to make more than one attack with this action. Each attack is a separate attack roll.\n\n### Extra Attack Feature\n- **Level 5** characters of certain classes can attack twice\n- **Level 11** fighters can attack three times\n- **Level 20** fighters can attack four times\n\n## Attack Types\n\n### Melee Attacks\nUsed when attacking a target within your reach (usually 5 feet). Uses Strength modifier for the attack and damage rolls (unless you're using a finesse weapon).\n\n### Ranged Attacks\nUsed when attacking a target at a distance with a ranged weapon or thrown weapon. Uses Dexterity modifier for the attack and damage rolls (unless it's a thrown weapon, which can use Strength).\n\n### Unarmed Strikes\nYou can make an [[unarmed_strike]] instead of using a weapon. An unarmed strike counts as a melee weapon attack.\n\n## Two-Weapon Fighting\n\nWhen you take the Attack action and attack with a light melee weapon in one hand, you can use a [[bonus_action]] to attack with a different light melee weapon in your other hand.\n"
+}

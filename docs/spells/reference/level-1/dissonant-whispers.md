@@ -34,4 +34,4 @@
 
 ---
 
-## Batch 3 — Spells 21-30
+## Batch 3 - Spells 21-30

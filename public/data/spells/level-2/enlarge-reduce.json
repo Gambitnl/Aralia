@@ -1,17 +1,31 @@
 {
   "id": "enlarge-reduce",
   "name": "Enlarge/Reduce",
+  "aliases": [],
   "level": 2,
   "school": "Transmutation",
-  "classes": ["Sorcerer", "Wizard"],
-  "description": "You cause a creature or object you can see within range to grow larger or smaller for the duration. Enlarge: size +1 category, advantage on Strength checks/saves, weapon attacks deal +1d4 damage. Reduce: size -1 category, disadvantage on Strength checks/saves, weapon attacks deal -1d4 damage. Target can make a Constitution saving throw at the end of each of its turns to end the effect.",
-  "higherLevels": "None",
-  "tags": ["transmutation", "buff", "debuff", "concentration"],
+  "source": "PHB 2024 p.268",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Druid",
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
     "type": "ranged",
@@ -21,7 +35,9 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a pinch of iron powder"
+    "materialDescription": "a pinch of powdered iron",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -32,20 +48,100 @@
   "targeting": {
     "type": "single",
     "range": 30,
-    "validTargets": ["creatures", "objects"],
-    "lineOfSight": true
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
       "condition": {
         "type": "save",
         "saveType": "Constitution",
-        "saveEffect": "negates_condition"
+        "saveEffect": "negates_condition",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
       },
       "utilityType": "control",
-      "description": "Choose Enlarge or Reduce. Enlarge: target size +1, adv on Str checks/saves, +1d4 weapon damage. Reduce: size -1, disadv on Str checks/saves, -1d4 weapon damage. Target repeats Con save at end of each turn to end."
+      "description": "Choose Enlarge or Reduce. Enlarge: target size +1, adv on Str checks/saves, +1d4 weapon damage. Reduce: size -1, disadv on Str checks/saves, -1d4 weapon damage. Target repeats Con save at end of each turn to end.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You cause a creature or an object you can see within range to grow larger or smaller for the duration. Choose either a creature or an object that is neither worn nor carried. If the target is an unwilling creature, it can make a Constitution saving throw. On a success, the spell has no effect. Enlarge: The target's size doubles in all dimensions, and its weight is multiplied by eight. This growth increases its size by one category--from Medium to Large, for example. If there isn't enough room for the target to double its size, the creature or object attains the maximum possible size in the space available. Until the spell ends, the target also has Advantage on Strength checks and Strength saving throws. The target's weapons also grow to match its new size. While these weapons are enlarged, the target's attacks with them deal 1d4 extra damage. Reduce: The target's size is halved in all dimensions, and its weight is reduced to one-eighth of normal. This reduction decreases its size by one category--from Medium to Small, for example. Until the spell ends, the target also has Disadvantage on Strength checks and Strength saving throws. The target's weapons also shrink to match its new size. While these weapons are reduced, the target's attacks with them deal 1d4 less damage (this can't reduce the damage below 1).",
+  "higherLevels": "",
+  "tags": [
+    "transmutation",
+    "buff",
+    "debuff",
+    "concentration"
   ]
 }

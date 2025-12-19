@@ -1,0 +1,11 @@
+{
+  "id": "saving_throw_proficiency",
+  "title": "Proficiency Bonus",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "How to add your Proficiency Bonus to a saving throw.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/saving_throw_proficiency.json",
+  "markdown": "# Proficiency Bonus\r\nYou add your Proficiency Bonus to your saving throw if you have proficiency in that kind of save. See "Proficiency" later in this chapter.\r\n"
+}

@@ -1,17 +1,28 @@
 {
   "id": "spiritual-weapon",
   "name": "Spiritual Weapon",
+  "aliases": [],
   "level": 2,
   "school": "Evocation",
-  "classes": ["Cleric"],
-  "description": "You create a floating, spectral weapon within range that lasts for the duration or until you cast this spell again. When you cast the spell, you can make a melee spell attack against a creature within 5 feet of the weapon. On a hit, the target takes 1d8 + your spellcasting ability modifier force damage. As a bonus action on your turn, you can move the weapon up to 20 feet and repeat the attack. The weapon can take any form you choose. It deals force damage and is not a creature.",
-  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for every two slot levels above 2nd.",
-  "tags": ["damage", "force", "bonus-action"],
+  "source": "PHB 2024 p.322",
+  "legacy": false,
+  "classes": [
+    "Cleric"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "bonus_action",
-    "combatCost": { "type": "bonus_action" }
+    "combatCost": {
+      "type": "bonus_action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
     "type": "ranged",
@@ -20,7 +31,10 @@
   "components": {
     "verbal": true,
     "somatic": true,
-    "material": false
+    "material": false,
+    "materialDescription": "",
+    "materialCost": 0,
+    "isConsumed": false
   },
   "duration": {
     "type": "timed",
@@ -29,30 +43,123 @@
     "concentration": false
   },
   "targeting": {
-    "type": "area",
+    "type": "single",
     "range": 60,
-    "validTargets": ["creatures", "enemies"],
+    "validTargets": [
+      "creatures"
+    ],
     "lineOfSight": true,
-    "areaOfEffect": { "shape": "Sphere", "size": 5 }
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "DAMAGE",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "hit" },
-      "damage": { "dice": "1d8+spellcasting_mod", "type": "Force" },
-      "description": "Initial melee spell attack when the weapon appears."
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "hit",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "1d8+spellcasting_mod",
+        "type": "Force"
+      },
+      "description": "Initial melee spell attack when the weapon appears.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      }
     },
     {
       "type": "DAMAGE",
-      "trigger": { "type": "on_caster_action" },
-      "condition": { "type": "hit" },
-      "damage": { "dice": "1d8+spellcasting_mod", "type": "Force" },
+      "trigger": {
+        "type": "on_caster_action",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "hit",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
+      "damage": {
+        "dice": "1d8+spellcasting_mod",
+        "type": "Force"
+      },
       "description": "Bonus action each turn to move the weapon up to 20 ft and attack.",
       "scaling": {
         "type": "custom",
-        "customFormula": "Damage increases by 1d8 at slots 3/4, and another 1d8 at 5/6, etc."
+        "customFormula": "Damage increases by 1d8 at slots 3/4, and another 1d8 at 5/6, etc.",
+        "bonusPerLevel": ""
       }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You create a floating, spectral weapon within range that lasts for the duration or until you cast this spell again. When you cast the spell, you can make a melee spell attack against a creature within 5 feet of the weapon. On a hit, the target takes Force damage equal to 1d8 + your spellcasting ability modifier. As a Bonus Action on your turn, you can move the weapon up to 20 feet and repeat the attack against a creature within 5 feet of it. The weapon can take whatever form you choose. Clerics of deities who are associated with a particular weapon (as St. Cuthbert is known for his mace and Thor for his hammer) make this spell's effect resemble that weapon.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for every slot level above 2nd.",
+  "tags": [
+    "damage",
+    "force",
+    "bonus-action"
   ]
 }

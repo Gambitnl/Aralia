@@ -1,17 +1,29 @@
 {
   "id": "magic-mouth",
   "name": "Magic Mouth",
+  "aliases": [],
   "level": 2,
   "school": "Illusion",
-  "classes": ["Bard", "Wizard"],
-  "description": "You implant a message within an object you can see within range. The message is spoken aloud when a trigger condition occurs. You choose the triggering circumstance, which can be visual, audible, or based on proximity. When triggered, the mouth speaks the message in your voice at the same volume you spoke when casting. The spell ends after delivering the message.",
-  "higherLevels": "None",
-  "tags": ["illusion", "utility"],
-  "ritual": false,
+  "source": "PHB 2024 p.295",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Wizard"
+  ],
+  "ritual": true,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "minute",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 1,
+      "unit": "minute"
+    }
   },
   "range": {
     "type": "ranged",
@@ -21,27 +33,111 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a small bit of honeycomb and jade dust worth at least 10 gp, which the spell consumes",
+    "materialDescription": "a honeycomb and jade dust worth 10+ GP",
     "materialCost": 10,
     "isConsumed": true
   },
   "duration": {
-    "type": "until_dispelled_or_triggered",
-    "concentration": false
+    "type": "until_dispelled",
+    "concentration": false,
+    "value": 0,
+    "unit": "round"
   },
   "targeting": {
     "type": "single",
     "range": 30,
-    "validTargets": ["objects"],
-    "lineOfSight": true
+    "validTargets": [
+      "objects"
+    ],
+    "lineOfSight": true,
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "on_enter_area" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "on_enter_area",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "communication",
-      "description": "Stores a spoken message and a trigger condition; when triggered, the mouth appears and speaks the message, then the spell ends."
+      "description": "Stores a spoken message and a trigger condition; when triggered, the mouth appears and speaks the message, then the spell ends.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You implant a message within an object in range, a message that is uttered when a trigger condition is met. Choose an object that you can see and that isn't being worn or carried. The message can be up to twenty-five words long. It takes up to 10 minutes for the spell to be delivered. When the condition is met, a magical mouth appears on the object and recites the message in your voice and at the same volume you spoke. If the object has a mouth or something that looks like a mouth (such as the mouth of a statue), the magical mouth animates relative to the object. Otherwise, a mouth appears on the object during the message. The trigger condition can be as general or as detailed as you like, though it must be based on visual or audible conditions that occur within 30 feet of the object. For example, you could instruct the mouth to speak when any creature moves within 30 feet of the object or when a silver bell rings within 30 feet of it.",
+  "higherLevels": "",
+  "tags": [
+    "illusion",
+    "utility"
   ]
 }

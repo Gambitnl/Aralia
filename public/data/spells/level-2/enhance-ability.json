@@ -1,26 +1,44 @@
 {
   "id": "enhance-ability",
   "name": "Enhance Ability",
+  "aliases": [],
   "level": 2,
   "school": "Transmutation",
-  "classes": ["Bard", "Cleric", "Druid", "Sorcerer"],
-  "description": "You touch a creature and bestow a magical enhancement. Choose one: Bear's Endurance (advantage on Con checks, 2d6 temp HP), Bull's Strength (advantage on Str checks, carry capacity doubled), Cat's Grace (advantage on Dex checks, no fall damage if not incapacitated), Eagle's Splendor (advantage on Cha checks), Fox's Cunning (advantage on Int checks), Owl's Wisdom (advantage on Wis checks).",
-  "higherLevels": "You can target one additional creature for each slot level above 2nd.",
-  "tags": ["buff", "transmutation", "concentration"],
+  "source": "PHB 2024 p.268",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Cleric",
+    "Druid",
+    "Sorcerer",
+    "Wizard"
+  ],
   "ritual": false,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
-    "type": "touch"
+    "type": "touch",
+    "distance": 0
   },
   "components": {
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "fur or feather from a beast"
+    "materialDescription": "fur or a feather from a beast",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -29,20 +47,101 @@
     "concentration": true
   },
   "targeting": {
-    "type": "multi",
-    "range": 5,
+    "type": "single",
+    "range": 0,
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
     "maxTargets": 1,
-    "validTargets": ["creatures", "allies"],
-    "lineOfSight": true
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    },
+    "filter": {
+      "creatureTypes": [],
+      "excludeCreatureTypes": [],
+      "sizes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "other",
-      "description": "Choose one ability enhancement: Bear's Endurance (adv Con checks, +2d6 temp HP), Bull's Strength (adv Str checks, double carry), Cat's Grace (adv Dex checks, no fall damage if not incapacitated), Eagle's Splendor (adv Cha checks), Fox's Cunning (adv Int checks), Owl's Wisdom (adv Wis checks).",
-      "scaling": { "type": "slot_level", "bonusPerLevel": "+1 target" }
+      "description": "You touch a creature and bestow upon it a magical enhancement. Choose one of the following effects; the target gains that effect until the spell ends. Bear's Endurance: The target has Advantage on Constitution checks. It also gains 2d6 Temporary Hit Points, which are lost when the spell ends. Bull's Strength: The target has Advantage on Strength checks, and his or her carrying capacity doubles. Cat's Grace: The target has Advantage on Dexterity checks. It also doesn't take damage from falling 20 feet or less if it isn't Incapacitated. Eagle's Splendor: The target has Advantage on Charisma checks. Fox's Cunning: The target has Advantage on Intelligence checks. Owl's Wisdom: The target has Advantage on Wisdom checks.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "You touch a creature and bestow upon it a magical enhancement. Choose one of the following effects; the target gains that effect until the spell ends. Bear's Endurance: The target has Advantage on Constitution checks. It also gains 2d6 Temporary Hit Points, which are lost when the spell ends. Bull's Strength: The target has Advantage on Strength checks, and his or her carrying capacity doubles. Cat's Grace: The target has Advantage on Dexterity checks. It also doesn't take damage from falling 20 feet or less if it isn't Incapacitated. Eagle's Splendor: The target has Advantage on Charisma checks. Fox's Cunning: The target has Advantage on Intelligence checks. Owl's Wisdom: The target has Advantage on Wisdom checks.",
+  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, you can target one additional creature for each slot level above 2nd.",
+  "tags": [
+    "buff",
+    "transmutation",
+    "concentration"
   ]
 }

@@ -1,0 +1,11 @@
+{
+  "id": "brewers_supplies",
+  "title": "Brewer's Supplies",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "No excerpt available.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/equipment/tools/brewers_supplies.json",
+  "markdown": "# Brewer's Supplies (20 GP)\r\n**Ability:** Intelligence \r\n**Weight:** 9 lb.\r\n**Utilize:** Detect poisoned drink (DC 15), or identify alcohol (DC 10)\r\n**Craft:** Antitoxin"
+}

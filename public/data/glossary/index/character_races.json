@@ -19,7 +19,7 @@
       "flight",
       "gust_of_wind"
     ],
-    "filePath": "/data/glossary/entries/races/aarakocra.md"
+    "filePath": "/data/glossary/entries/races/aarakocra.json"
   },
   {
     "id": "aasimar",
@@ -53,7 +53,17 @@
       "proficiency_bonus",
       "light_cantrip"
     ],
-    "filePath": "/data/glossary/entries/races/aasimar.md"
+    "filePath": "/data/glossary/entries/races/aasimar.json"
+  },
+  {
+    "id": "air_genasi",
+    "title": "Air Genasi",
+    "category": "Character Races",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/races/air_genasi.json"
   },
   {
     "id": "bugbear",
@@ -76,7 +86,7 @@
       "powerful_build",
       "stealth"
     ],
-    "filePath": "/data/glossary/entries/races/bugbear.md"
+    "filePath": "/data/glossary/entries/races/bugbear.json"
   },
   {
     "id": "centaur",
@@ -98,7 +108,7 @@
       "hooves",
       "natural_affinity"
     ],
-    "filePath": "/data/glossary/entries/races/centaur.md"
+    "filePath": "/data/glossary/entries/races/centaur.json"
   },
   {
     "id": "changeling",
@@ -118,7 +128,7 @@
       "changeling_instincts",
       "shapechanger"
     ],
-    "filePath": "/data/glossary/entries/races/changeling.md"
+    "filePath": "/data/glossary/entries/races/changeling.json"
   },
   {
     "id": "goliath_ancestry_cloud",
@@ -138,7 +148,7 @@
       "bonus_action",
       "teleport"
     ],
-    "filePath": "/data/glossary/entries/races/goliath_ancestries/cloud_giant.md"
+    "filePath": "/data/glossary/entries/races/goliath_ancestries/cloud_giant.json"
   },
   {
     "id": "deep_gnome_subrace",
@@ -161,7 +171,7 @@
     "seeAlso": [
       "deep_gnome"
     ],
-    "filePath": "/data/glossary/entries/races/gnome_subraces/deep_gnome.md"
+    "filePath": "/data/glossary/entries/races/gnome_subraces/deep_gnome.json"
   },
   {
     "id": "deep_gnome",
@@ -189,7 +199,32 @@
       "nondetection",
       "humanoid"
     ],
-    "filePath": "/data/glossary/entries/races/deep_gnome.md"
+    "filePath": "/data/glossary/entries/races/deep_gnome.json"
+  },
+  {
+    "id": "dragonborn",
+    "title": "Dragonborn (Race)",
+    "category": "Character Races",
+    "tags": [
+      "race",
+      "dragonborn",
+      "draconic",
+      "scales",
+      "breath weapon",
+      "humanoid"
+    ],
+    "excerpt": "Dragonborn are proud, honorable humanoids descended from dragons, known for their draconic ancestry which grants them a breath weapon and damage resistance.",
+    "aliases": [
+      "dragon-kin",
+      "scaled ones"
+    ],
+    "seeAlso": [
+      "draconic_ancestry",
+      "breath_weapon",
+      "damage_resistance",
+      "darkvision"
+    ],
+    "filePath": "/data/glossary/entries/races/dragonborn.json"
   },
   {
     "id": "drow_lineage",
@@ -215,7 +250,7 @@
       "darkness",
       "spellcasting_ability"
     ],
-    "filePath": "/data/glossary/entries/races/elf_lineages/drow.md"
+    "filePath": "/data/glossary/entries/races/elf_lineages/drow.json"
   },
   {
     "id": "duergar",
@@ -238,7 +273,40 @@
       "dwarven_resilience",
       "psionic_fortitude"
     ],
-    "filePath": "/data/glossary/entries/races/duergar.md"
+    "filePath": "/data/glossary/entries/races/duergar.json"
+  },
+  {
+    "id": "dwarf",
+    "title": "Dwarf (Race)",
+    "category": "Character Races",
+    "tags": [
+      "race",
+      "dwarf",
+      "humanoid",
+      "sturdy",
+      "mountain",
+      "stonecunning",
+      "darkvision",
+      "dwarven resilience",
+      "dwarven toughness",
+      "moradin",
+      "reorx"
+    ],
+    "excerpt": "Stout and resilient folk from mountainous realms, known for their skill in smithing, mining, and their deep connection to stone and metal.",
+    "aliases": [
+      "mountain folk",
+      "deep delver",
+      "stout folk"
+    ],
+    "seeAlso": [
+      "darkvision",
+      "dwarven_resilience",
+      "dwarven_toughness",
+      "stonecunning",
+      "humanoid",
+      "medium_size"
+    ],
+    "filePath": "/data/glossary/entries/races/dwarf.json"
   },
   {
     "id": "earth_genasi",
@@ -258,7 +326,7 @@
       "merge_with_stone",
       "darkvision"
     ],
-    "filePath": "/data/glossary/entries/races/earth_genasi.md"
+    "filePath": "/data/glossary/entries/races/earth_genasi.json"
   },
   {
     "id": "eladrin",
@@ -281,7 +349,7 @@
       "keen_senses",
       "trance"
     ],
-    "filePath": "/data/glossary/entries/races/eladrin.md"
+    "filePath": "/data/glossary/entries/races/eladrin.json"
   },
   {
     "id": "elf",
@@ -323,7 +391,7 @@
       "longstrider",
       "pass_without_trace"
     ],
-    "filePath": "/data/glossary/entries/races/elf.md"
+    "filePath": "/data/glossary/entries/races/elf.json"
   },
   {
     "id": "fairy",
@@ -343,7 +411,7 @@
       "fairy_magic",
       "flight"
     ],
-    "filePath": "/data/glossary/entries/races/fairy.md"
+    "filePath": "/data/glossary/entries/races/fairy.json"
   },
   {
     "id": "firbolg",
@@ -365,7 +433,7 @@
       "powerful_build",
       "speech_of_beast_and_leaf"
     ],
-    "filePath": "/data/glossary/entries/races/firbolg.md"
+    "filePath": "/data/glossary/entries/races/firbolg.json"
   },
   {
     "id": "fire_genasi",
@@ -385,7 +453,7 @@
       "reach_to_the_blaze",
       "darkvision"
     ],
-    "filePath": "/data/glossary/entries/races/fire_genasi.md"
+    "filePath": "/data/glossary/entries/races/fire_genasi.json"
   },
   {
     "id": "goliath_ancestry_fire",
@@ -403,7 +471,7 @@
       "goliath",
       "fire_damage"
     ],
-    "filePath": "/data/glossary/entries/races/goliath_ancestries/fire_giant.md"
+    "filePath": "/data/glossary/entries/races/goliath_ancestries/fire_giant.json"
   },
   {
     "id": "forest_gnome_lineage",
@@ -427,7 +495,7 @@
       "speak_with_animals",
       "spellcasting_ability"
     ],
-    "filePath": "/data/glossary/entries/races/gnome_subraces/forest_gnome.md"
+    "filePath": "/data/glossary/entries/races/gnome_subraces/forest_gnome.json"
   },
   {
     "id": "goliath_ancestry_frost",
@@ -447,7 +515,7 @@
       "cold_damage",
       "speed"
     ],
-    "filePath": "/data/glossary/entries/races/goliath_ancestries/frost_giant.md"
+    "filePath": "/data/glossary/entries/races/goliath_ancestries/frost_giant.json"
   },
   {
     "id": "genasi",
@@ -472,7 +540,7 @@
       "fire_genasi",
       "water_genasi"
     ],
-    "filePath": "/data/glossary/entries/races/genasi.md"
+    "filePath": "/data/glossary/entries/races/genasi.json"
   },
   {
     "id": "githyanki",
@@ -492,7 +560,7 @@
       "githyanki_psionics",
       "psychic_resilience"
     ],
-    "filePath": "/data/glossary/entries/races/githyanki.md"
+    "filePath": "/data/glossary/entries/races/githyanki.json"
   },
   {
     "id": "githzerai",
@@ -513,7 +581,7 @@
       "mental_discipline",
       "psychic_resilience"
     ],
-    "filePath": "/data/glossary/entries/races/githzerai.md"
+    "filePath": "/data/glossary/entries/races/githzerai.json"
   },
   {
     "id": "gnome",
@@ -553,7 +621,7 @@
       "small_size",
       "nondetection"
     ],
-    "filePath": "/data/glossary/entries/races/gnome.md"
+    "filePath": "/data/glossary/entries/races/gnome.json"
   },
   {
     "id": "goblin",
@@ -576,7 +644,7 @@
       "fury_of_the_small",
       "nimble_escape"
     ],
-    "filePath": "/data/glossary/entries/races/goblin.md"
+    "filePath": "/data/glossary/entries/races/goblin.json"
   },
   {
     "id": "goliath",
@@ -603,7 +671,7 @@
       "bonus_action",
       "reaction"
     ],
-    "filePath": "/data/glossary/entries/races/goliath.md"
+    "filePath": "/data/glossary/entries/races/goliath.json"
   },
   {
     "id": "high_elf_lineage",
@@ -630,7 +698,7 @@
       "misty_step",
       "spellcasting_ability"
     ],
-    "filePath": "/data/glossary/entries/races/elf_lineages/high_elf.md"
+    "filePath": "/data/glossary/entries/races/elf_lineages/high_elf.json"
   },
   {
     "id": "goliath_ancestry_hill",
@@ -648,7 +716,7 @@
       "goliath",
       "prone_condition"
     ],
-    "filePath": "/data/glossary/entries/races/goliath_ancestries/hill_giant.md"
+    "filePath": "/data/glossary/entries/races/goliath_ancestries/hill_giant.json"
   },
   {
     "id": "rock_gnome_lineage",
@@ -672,7 +740,7 @@
       "prestidigitation",
       "artificers_lore"
     ],
-    "filePath": "/data/glossary/entries/races/gnome_subraces/rock_gnome.md"
+    "filePath": "/data/glossary/entries/races/gnome_subraces/rock_gnome.json"
   },
   {
     "id": "goliath_ancestry_stone",
@@ -692,7 +760,7 @@
       "reaction",
       "constitution"
     ],
-    "filePath": "/data/glossary/entries/races/goliath_ancestries/stone_giant.md"
+    "filePath": "/data/glossary/entries/races/goliath_ancestries/stone_giant.json"
   },
   {
     "id": "goliath_ancestry_storm",
@@ -712,7 +780,7 @@
       "reaction",
       "thunder_damage"
     ],
-    "filePath": "/data/glossary/entries/races/goliath_ancestries/storm_giant.md"
+    "filePath": "/data/glossary/entries/races/goliath_ancestries/storm_giant.json"
   },
   {
     "id": "water_genasi",
@@ -734,7 +802,7 @@
       "call_to_the_wave",
       "darkvision"
     ],
-    "filePath": "/data/glossary/entries/races/water_genasi.md"
+    "filePath": "/data/glossary/entries/races/water_genasi.json"
   },
   {
     "id": "wood_elf_lineage",
@@ -761,6 +829,6 @@
       "speed",
       "spellcasting_ability"
     ],
-    "filePath": "/data/glossary/entries/races/elf_lineages/wood_elf.md"
+    "filePath": "/data/glossary/entries/races/elf_lineages/wood_elf.json"
   }
 ]

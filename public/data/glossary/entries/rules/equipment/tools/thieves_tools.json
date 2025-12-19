@@ -1,0 +1,11 @@
+{
+  "id": "thieves_tools",
+  "title": "Thieves' Tools",
+  "category": "Rules Glossary",
+  "tags": [],
+  "excerpt": "No excerpt available.",
+  "aliases": [],
+  "seeAlso": [],
+  "filePath": "/data/glossary/entries/rules/equipment/tools/thieves_tools.json",
+  "markdown": "# Thieves' Tools (25 GP)\r\n**Ability:** Dexterity \r\n**Weight:** 1 lb.\r\n**Utilize:** Pick a lock (DC 15), or disarm a trap (DC 15)"
+}

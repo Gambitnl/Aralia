@@ -32,13 +32,6 @@ const validateSpells = (): void => {
   spellIds.forEach(id => {
     const entry = manifest[id];
     // entry.path is like "/data/spells/acid-splash.json"
-    // TODO(spell-migration): Remove this filter once all legacy spells in public/data/spells/ root
-    // are migrated to level-{N} directories. See docs/spells/STATUS_LEVEL_*.md for progress.
-    // Only validate spells in level-* directories (new format)
-    if (!entry.path.includes('/level-')) {
-      return;
-    }
-
     const relativePath = entry.path.startsWith('/') ? entry.path.substring(1) : entry.path;
     const spellFilePath = path.join(process.cwd(), 'public', relativePath);
 

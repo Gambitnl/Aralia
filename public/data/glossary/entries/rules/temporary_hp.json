@@ -1,0 +1,13 @@
+{
+  "id": "temporary_hp",
+  "title": "Temporary Hit Points",
+  "category": "Rules Glossary",
+  "tags": ["combat", "health", "damage"],
+  "excerpt": "A buffer of extra hit points that absorb damage before your actual hit points. Temporary hit points don't stack and aren't restored by healing.",
+  "aliases": ["Temp HP", "Temporary Health"],
+  "seeAlso": [
+    "hit_points"
+  ],
+  "filePath": "/data/glossary/entries/rules/temporary_hp.json",
+  "markdown": "# Temporary Hit Points\n\nSome spells and special abilities confer temporary hit points to a creature. Temporary hit points aren't actual [[hit_points]]; they are a buffer against damage, a pool of hit points that protect you from injury.\n\n## Rules\n\n### Not Real Hit Points\n- Temporary hit points are **separate** from your actual hit points\n- When you take damage, temporary hit points are lost **first**\n- Any leftover damage carries over to your normal hit points\n\n### Don't Stack\n- If you have temporary hit points and receive more, you **don't add them together**\n- Instead, you decide whether to keep the temporary hit points you have or gain the new ones\n- For example, if a spell grants you 12 temporary hit points when you already have 10, you can have 12 or 10, not 22\n\n### Can't Be Healed\n- You can't regain temporary hit points through healing\n- Temporary hit points can't be added to your normal hit points\n- If you have 0 hit points, receiving temporary hit points doesn't restore you to consciousness\n\n### Duration\n- Unless a feature that grants you temporary hit points has a duration, they last until they're depleted or you finish a [[long_rest]]\n\n## Common Sources\n\n- **Inspiring Leader** feat: Grant temporary HP to allies\n- **False Life** spell: Grant yourself temporary HP\n- **Heroism** spell: Grant temporary HP at the start of each turn\n- **Armor of Agathys** spell: Gain temporary HP and deal cold damage to attackers\n- **Fiendish Resilience** (Warlock): Gain resistance and temporary HP\n- **Rage Beyond Death** (Barbarian): While raging at 0 HP, damage reduces temporary HP instead\n"
+}

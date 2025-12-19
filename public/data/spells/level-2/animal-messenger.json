@@ -1,18 +1,30 @@
 {
   "id": "animal-messenger",
   "name": "Animal Messenger",
+  "aliases": [],
   "level": 2,
   "school": "Enchantment",
-  "classes": ["Bard", "Druid", "Ranger"],
-  "description": "By whispering to a Tiny beast, you send it to deliver a message. The creature travels to a location you describe and delivers the message to the creature you designate. If mounted flying speed is used, the messenger can travel up to 50 miles in 24 hours; otherwise 25 miles.",
-  "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, the duration increases by 48 hours for each slot level above 2nd.",
-  "tags": ["utility", "communication", "ritual"],
+  "source": "PHB 2024 p.240",
+  "legacy": false,
+  "classes": [
+    "Bard",
+    "Druid",
+    "Ranger"
+  ],
   "ritual": true,
+  "rarity": "common",
+  "attackType": "",
   "castingTime": {
     "value": 1,
     "unit": "action",
-    "combatCost": { "type": "action" },
-    "explorationCost": { "value": 10, "unit": "minute" }
+    "combatCost": {
+      "type": "action",
+      "condition": ""
+    },
+    "explorationCost": {
+      "value": 0,
+      "unit": "minute"
+    }
   },
   "range": {
     "type": "ranged",
@@ -22,7 +34,9 @@
     "verbal": true,
     "somatic": true,
     "material": true,
-    "materialDescription": "a morsel of food"
+    "materialDescription": "a morsel of food",
+    "isConsumed": false,
+    "materialCost": 0
   },
   "duration": {
     "type": "timed",
@@ -33,16 +47,103 @@
   "targeting": {
     "type": "single",
     "range": 30,
-    "validTargets": ["beasts"],
-    "lineOfSight": true
+    "validTargets": [
+      "creatures"
+    ],
+    "lineOfSight": true,
+    "filter": {
+      "creatureTypes": [
+        "Beast"
+      ],
+      "sizes": [
+        "Tiny"
+      ],
+      "excludeCreatureTypes": [],
+      "alignments": [],
+      "hasCondition": [],
+      "isNativeToPlane": false
+    },
+    "maxTargets": 1,
+    "areaOfEffect": {
+      "shape": "Sphere",
+      "size": 0,
+      "height": 0
+    }
   },
   "effects": [
     {
       "type": "UTILITY",
-      "trigger": { "type": "immediate" },
-      "condition": { "type": "always" },
+      "trigger": {
+        "type": "immediate",
+        "frequency": "every_time",
+        "consumption": "unlimited",
+        "attackFilter": {
+          "weaponType": "any",
+          "attackType": "any"
+        },
+        "movementType": "any",
+        "sustainCost": {
+          "actionType": "action",
+          "optional": false
+        }
+      },
+      "condition": {
+        "type": "always",
+        "saveType": "Strength",
+        "saveEffect": "none",
+        "targetFilter": {
+          "creatureTypes": [],
+          "excludeCreatureTypes": [],
+          "sizes": [],
+          "alignments": [],
+          "hasCondition": [],
+          "isNativeToPlane": false
+        },
+        "requiresStatus": [],
+        "saveModifiers": []
+      },
       "utilityType": "communication",
-      "description": "Instruct a Tiny beast to carry and deliver your spoken message to a designated creature at a described location; travels ~25 miles in 24 hours (50 miles if it can fly for that duration). Duration extends with higher slots."
+      "description": "Instruct a Tiny beast to carry and deliver your spoken message to a designated creature at a described location; travels ~25 miles in 24 hours (50 miles if it can fly for that duration). Duration extends with higher slots.",
+      "scaling": {
+        "type": "slot_level",
+        "bonusPerLevel": "",
+        "customFormula": ""
+      },
+      "grantedActions": [],
+      "attackAugments": [],
+      "controlOptions": [],
+      "taunt": {
+        "disadvantageAgainstOthers": false,
+        "leashRangeFeet": 0,
+        "breakConditions": []
+      },
+      "savePenalty": {
+        "dice": "",
+        "flat": 0,
+        "applies": "next_save",
+        "duration": {
+          "type": "rounds",
+          "value": 0
+        }
+      },
+      "light": {
+        "brightRadius": 0,
+        "dimRadius": 0,
+        "attachedTo": "caster",
+        "color": ""
+      }
     }
+  ],
+  "arbitrationType": "mechanical",
+  "aiContext": {
+    "prompt": "",
+    "playerInputRequired": false
+  },
+  "description": "By means of this spell, you use an animal to deliver a message. Choose a Tiny Beast you can see within range, such as a squirrel, a blue jay, or a bat. You specify a location, which you must have visited, and a recipient who matches a general description, such as \"a man or woman dressed in the uniform of the town guard\" or \"a red-haired dwarf wearing a pointed hat.\" You also speak a message of up to twenty-five words. The target beast moves toward the specified location for the duration. It travels about 50 miles per 24 hours for a flying messenger, or 25 miles for other animals. When the messenger arrives, it delivers your message to the creature that you described, replicating the sound of your voice. The messenger speaks only to a creature matching the description you gave. If the messenger doesn't reach its destination before the spell ends, the message is lost, and the beast makes its way back to where you cast this spell.",
+  "higherLevels": "If you cast this spell using a spell slot of 3rd level or higher, the duration of the spell increases by 48 hours for each slot level above 2nd.",
+  "tags": [
+    "utility",
+    "communication",
+    "ritual"
   ]
 }
