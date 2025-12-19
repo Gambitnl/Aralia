@@ -187,3 +187,27 @@ export function calculateSuffocationRounds(conMod: number): number {
   // Rule: Minimum of 1 round
   return Math.max(1, conMod);
 }
+
+// TODO(Mechanist): Wire up throw distance calculation to the 'Throw' item action in useInventoryAction.ts.
+/**
+ * Calculates throwing distance based on Strength.
+ * D&D 5e simplified: STR * 10 feet, weight penalty after 5 lbs.
+ *
+ * @param strength - Character's Strength score (1-30).
+ * @param objectWeight - Weight in pounds.
+ * @returns Distance in feet.
+ */
+export function calculateThrowDistance(
+  strength: number,
+  objectWeight: number
+): number {
+  // Base range: Strength * 10 feet
+  const baseDist = strength * 10;
+
+  // Weight penalty: -5 feet for every 10 lbs over 5 lbs
+  // (e.g. 15 lbs = (15-5)/10 = 1 * 5 = 5 ft penalty)
+  const weightPenalty = Math.max(0, Math.floor((objectWeight - 5) / 10)) * 5;
+
+  // Minimum distance of 5 feet
+  return Math.max(5, baseDist - weightPenalty);
+}
