@@ -472,11 +472,24 @@ export async function generateActionOutcome(
   worldMapTileTooltip?: string | null,
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
-  const systemInstruction = isCustomGeminiAction
+  // Validate Context Richness
+  if (!context || context.length < 50) {
+    logger.warn("generateActionOutcome: Context provided is extremely sparse. AI hallucination risk increased.", { action: playerAction, contextLength: context?.length });
+  }
+
+  let systemInstruction = isCustomGeminiAction
     ? "You are a Dungeon Master narrating the outcome of a player's specific, creative action. Maintain continuity with Recent Events if provided. If the action contradicts the setting, describe the failure. The response should be a brief, 2-3 sentence description of what happens next."
     : "You are a Dungeon Master narrating the outcome of a player's action. Maintain continuity with Recent Events if provided. The response should be a brief, 2-3 sentence description.";
 
   const sanitizedAction = sanitizeAIInput(playerAction);
+
+  // If the action implies listening or gathering information, guide the AI to use rumors
+  const actionLower = sanitizedAction.toLowerCase();
+  const isInformationGathering = actionLower.includes('listen') || actionLower.includes('rumor') || actionLower.includes('news') || actionLower.includes('gossip') || actionLower.includes('hear');
+
+  if (isInformationGathering) {
+      systemInstruction += " If the player is listening for rumors or news, prioritize information from the 'WORLD RUMORS & NEWS' section of the context.";
+  }
 
   const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, sanitizedAction); // Default to PRO for quality narration, downgrades if spammy/short
 

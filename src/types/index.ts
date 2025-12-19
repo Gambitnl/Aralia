@@ -586,6 +586,8 @@ export interface GameState {
 
   notoriety: NotorietyState;
 
+  activeRumors?: WorldRumor[];
+
   /**
    * Global history of the world.
    * Tracks major events, faction changes, and heroics.
