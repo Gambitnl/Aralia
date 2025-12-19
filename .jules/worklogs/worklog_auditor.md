@@ -5,3 +5,9 @@
 **Learning:** The spell data files were using `bonusPerLevel` (a linear scaling concept) or unparseable text strings for cantrips, while the `ScalingEngine` was hardcoded to use a 5/11/17 multiplier logic. This mismatch meant that any cantrip deviating from standard dice multiplication (e.g. Acid Splash or Eldritch Blast) was impossible to implement correctly.
 
 **Action:** When auditing systems driven by data files, always verify that the engine actually *reads* the fields present in the data. Just because a field like `customFormula` exists in the JSON doesn't mean the code uses it.
+
+## 2024-05-25 - Implicit Rules in Structured Data (Enchantment Immunities)
+
+**Learning:** "Enchantment" spells in D&D 5e have strong implicit targeting rules (Immunity to Charmed, Undead/Construct immunity) that are often omitted from structured JSON data because they are "assumed" or buried in description text. A purely schema-based validation misses these gaps because the fields are optional.
+
+**Action:** Build "Semantic Validators" (`LegacySpellValidator`) that enforce domain-specific rules (e.g., "If School=Enchantment, require ExclusionFilter") rather than just checking type correctness.
