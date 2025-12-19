@@ -1,7 +1,7 @@
 /**
  * @file src/types/visuals.ts
  * Defines contracts for visual assets and representations in the game.
- * Used to standardize how entities (Spells, Items, NPCs) are displayed
+ * Used to standardize how entities (Spells, Items, NPCs, Classes) are displayed
  * and to provide specifications for AI asset generation.
  */
 
@@ -104,6 +104,24 @@ export interface NPCVisualSpec {
 }
 
 /**
+ * Defines the visual requirements for a Character Class.
+ * Provides standard icons and colors for UI consistency.
+ */
+export interface ClassVisualSpec {
+  /** The ID of the class (e.g., 'fighter', 'wizard'). */
+  id: string;
+
+  /** Primary icon for the class (emoji or character). */
+  icon: string;
+
+  /** Primary theme color for the class (hex code). */
+  color: string;
+
+  /** Description for tooltips or AI generation context. */
+  description?: string;
+}
+
+/**
  * Result of resolving a visual request.
  * Contains everything a UI component needs to render the entity.
  */
@@ -123,3 +141,116 @@ export interface VisualAsset {
   /** accessible label for screen readers */
   label: string;
 }
+
+// -----------------------------------------------------------------------------
+// Registries & Helpers
+// -----------------------------------------------------------------------------
+
+/**
+ * Registry of standard visuals for character classes.
+ * Centralizes the hardcoded switch statements previously found in UI components.
+ */
+export const CLASS_VISUALS: Record<string, ClassVisualSpec> = {
+  fighter: {
+    id: 'fighter',
+    icon: '⚔️',
+    color: '#D97706', // amber-600
+    description: 'A master of martial combat.'
+  },
+  wizard: {
+    id: 'wizard',
+    icon: '🧙',
+    color: '#3B82F6', // blue-500
+    description: 'A scholarly magic-user.'
+  },
+  cleric: {
+    id: 'cleric',
+    icon: '✝️',
+    color: '#E5E7EB', // gray-200
+    description: 'A priestly champion who wields divine magic.'
+  },
+  rogue: {
+    id: 'rogue',
+    icon: '🗡️',
+    color: '#1F2937', // gray-800
+    description: 'A scoundrel who uses stealth and trickery.'
+  },
+  ranger: {
+    id: 'ranger',
+    icon: '🏹',
+    color: '#10B981', // emerald-500
+    description: 'A warrior who uses martial prowess and nature magic.'
+  },
+  paladin: {
+    id: 'paladin',
+    icon: '🛡️',
+    color: '#F59E0B', // amber-500
+    description: 'A holy warrior bound to a sacred oath.'
+  },
+  barbarian: {
+    id: 'barbarian',
+    icon: '🪓',
+    color: '#DC2626', // red-600
+    description: 'A fierce warrior of primitive background.'
+  },
+  bard: {
+    id: 'bard',
+    icon: '🎻',
+    color: '#EC4899', // pink-500
+    description: 'An inspiring magician whose power echoes the music of creation.'
+  },
+  druid: {
+    id: 'druid',
+    icon: '🌿',
+    color: '#059669', // emerald-600
+    description: 'A priest of the Old Faith, wielding the powers of nature.'
+  },
+  monk: {
+    id: 'monk',
+    icon: '🧘',
+    color: '#60A5FA', // blue-400
+    description: 'A master of martial arts, harnessing the power of the body.'
+  },
+  sorcerer: {
+    id: 'sorcerer',
+    icon: '🔮',
+    color: '#8B5CF6', // violet-500
+    description: 'A spellcaster who draws on inherent magic from a gift or bloodline.'
+  },
+  warlock: {
+    id: 'warlock',
+    icon: '👁️',
+    color: '#7C3AED', // violet-600
+    description: 'A wielder of magic that is derived from a bargain with an extraplanar entity.'
+  },
+  artificer: {
+    id: 'artificer',
+    icon: '🔧',
+    color: '#F472B6', // pink-400
+    description: 'A master of unlocking magic in everyday objects.'
+  }
+};
+
+/**
+ * Default fallback visual for unknown classes.
+ */
+export const DEFAULT_CLASS_VISUAL: ClassVisualSpec = {
+  id: 'unknown',
+  icon: '●',
+  color: '#6B7280', // gray-500
+  description: 'Unknown class.'
+};
+
+/**
+ * Retrieves the visual specification for a given class ID.
+ * Returns a default spec if the class ID is not found.
+ *
+ * @param classId - The ID of the class (case-insensitive).
+ * @returns The ClassVisualSpec for the class.
+ */
+export function getClassVisual(classId: string): ClassVisualSpec {
+  if (!classId) return DEFAULT_CLASS_VISUAL;
+  return CLASS_VISUALS[classId.toLowerCase()] || DEFAULT_CLASS_VISUAL;
+}
+
+// TODO(Materializer): Refactor `CharacterToken.tsx` and `InitiativeTracker.tsx` to use `getClassVisual` instead of hardcoded `getClassIcon` switch statements.
