@@ -16,6 +16,7 @@ import { getSubmapTileInfo } from '../../utils/submapUtils';
 import { INITIAL_QUESTS } from '../../data/quests';
 import { generateTravelEvent } from '../../services/travelEventService';
 import { getTimeModifiers } from '../../utils/timeUtils';
+import { DiscoveryConsequence } from '../../types/exploration';
 
 interface HandleMovementProps {
   action: Action;
@@ -27,6 +28,66 @@ interface HandleMovementProps {
   getTileTooltipText: GetTileTooltipTextFn;
   playerContext: string;
   playerCharacter: PlayerCharacter;
+}
+
+/**
+ * Helper to apply consequences from meaningful discoveries.
+ */
+function applyDiscoveryConsequences(
+    consequences: DiscoveryConsequence[],
+    dispatch: React.Dispatch<AppAction>,
+    addMessage: AddMessageFn,
+    mapData: MapData,
+    currentX: number,
+    currentY: number
+) {
+    consequences.forEach(consequence => {
+        switch (consequence.type) {
+            case 'map_reveal':
+                if (consequence.value) {
+                    // Update discovery state for surrounding tiles
+                    const radius = consequence.value;
+                    const newTiles = mapData.tiles.map(row => row.map(tile => ({ ...tile })));
+
+                    let revealedCount = 0;
+                    for (let y = currentY - radius; y <= currentY + radius; y++) {
+                        for (let x = currentX - radius; x <= currentX + radius; x++) {
+                            if (y >= 0 && y < mapData.gridSize.rows && x >= 0 && x < mapData.gridSize.cols) {
+                                if (!newTiles[y][x].discovered) {
+                                    newTiles[y][x].discovered = true;
+                                    revealedCount++;
+                                }
+                            }
+                        }
+                    }
+
+                    if (revealedCount > 0) {
+                         // Modifying mapData in place works here because newMapDataForDispatch is a copy,
+                         // but to be clean we should assign it back or assume mapData passed is the mutable copy.
+                         // In handleMovement, newMapDataForDispatch is already a deep-ish copy of tiles.
+                         // We need to ensure the caller uses the updated tiles.
+                         mapData.tiles = newTiles;
+                         addMessage(`[Effect] Map Revealed (Radius: ${radius}) - ${revealedCount} new tiles charted.`, 'system');
+                    } else {
+                         addMessage(`[Effect] Map Revealed - No new areas found.`, 'system');
+                    }
+                }
+                break;
+            case 'reputation':
+                if (consequence.targetId && consequence.value) {
+                    dispatch({
+                        type: 'UPDATE_FACTION_STANDING',
+                        payload: {
+                            factionId: consequence.targetId,
+                            change: consequence.value,
+                            source: 'discovery'
+                        }
+                    });
+                    addMessage(`[Effect] Reputation Updated: ${consequence.targetId} ${consequence.value > 0 ? '+' : ''}${consequence.value}`, 'system');
+                }
+                break;
+        }
+    });
 }
 
 export async function handleMovement({
@@ -290,12 +351,27 @@ export async function handleMovement({
                 };
                 logDiscovery(discoveryLocation);
                 addMessage(`Map updated: ${travelEvent.effect.data.name} recorded.`, 'system');
+
+                // Process Consequences
+                if (travelEvent.effect.data.consequences && newMapDataForDispatch) {
+                   applyDiscoveryConsequences(
+                       travelEvent.effect.data.consequences,
+                       dispatch,
+                       addMessage,
+                       newMapDataForDispatch,
+                       targetWorldMapX,
+                       targetWorldMapY
+                   );
+                }
               }
               break;
           }
         }
       }
 
+      // Mark the entered tile as discovered (and adjacent if it's a new named location, but we are in procedural wilderness)
+      // The map reveal logic in applyDiscoveryConsequences might have already revealed more tiles.
+      // But we always reveal the current tile at minimum.
       const newTiles = newMapDataForDispatch.tiles.map(row => row.map(tile => ({ ...tile, isPlayerCurrent: false })));
       if (newTiles[targetWorldMapY]?.[targetWorldMapX]) {
         newTiles[targetWorldMapY][targetWorldMapX].isPlayerCurrent = true;

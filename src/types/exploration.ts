@@ -13,12 +13,30 @@
  * - src/hooks/actions/handleMovement.ts - Triggers events during movement
  */
 
+export interface DiscoveryReward {
+  type: 'item' | 'xp' | 'health' | 'gold';
+  resourceId?: string; // itemId for items
+  amount: number;
+  description: string;
+}
+
+export interface DiscoveryConsequence {
+  type: 'buff' | 'map_reveal' | 'reputation';
+  targetId?: string; // factionId or buffId (e.g., 'blessing_of_vitality')
+  duration?: number; // hours (for buffs)
+  value?: number; // reputation amount or radius (for map_reveal)
+  description: string;
+}
+
 export interface Discovery {
   id: string;
   name: string;
   type: string; // 'landmark', 'resource', 'secret'
   description: string;
   coordinates: { x: number; y: number };
+  rewards?: DiscoveryReward[];
+  consequences?: DiscoveryConsequence[];
+  firstDiscoveredBy?: string; // Character ID
 }
 
 /**
