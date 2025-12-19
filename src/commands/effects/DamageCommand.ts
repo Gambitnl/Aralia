@@ -6,6 +6,7 @@ import { calculateSpellDC, rollSavingThrow, calculateSaveDamage } from '../../ut
 import { rollDamage as rollDamageUtil } from '../../utils/combatUtils';
 import { BreakConcentrationCommand } from './ConcentrationCommands'
 import { ResistanceCalculator } from '../../systems/spells/mechanics/ResistanceCalculator';
+import { getPlanarSpellModifier } from '../../utils/planarUtils';
 
 const DAMAGE_VERBS: Record<string, string[]> = {
   acid: ['melts', 'corrodes', 'dissolves', 'burns'],
@@ -46,16 +47,36 @@ export class DamageCommand extends BaseEffectCommand {
       minRoll = 2;
     }
 
+    // NEW: Get Planar Modifier
+    let planarModifier = 0;
+    if (this.context.currentPlane && this.context.spellSchool) {
+      planarModifier = getPlanarSpellModifier(this.context.spellSchool, this.context.currentPlane);
+    }
+
     for (const target of this.getTargets(currentState)) {
       // 1. Calculate base damage
-      // Check if this damage instance is a critical hit
-      // We assume context.isCritical might be set by the calling system (e.g. Attack logic)
       const isCritical = this.context.isCritical || false;
       let damageRoll = this.rollDamage(this.effect.damage.dice, isCritical, minRoll);
 
+      // Apply Planar Modifier to Damage if appropriate (usually it's DC/Attack, but maybe "Empowered" means damage?)
+      // The current definition of `getPlanarSpellModifier` returns +1 for Empowered.
+      // If it's damage, we might add it to damage too?
+      // "Illusion spells are cast as if one level higher" implies stronger effects.
+      // "Fire spells burn hotter" -> +1 damage?
+      // Let's assume +1 damage per die or just flat +1?
+      // The PlanarUtils says: "Returns modified DC or effectiveness".
+      // Let's add it to the total damage.
+      if (planarModifier !== 0) {
+        damageRoll += planarModifier; // Simple +1 damage
+      }
+
       // 2. Handle Saving Throw (if applicable)
       if (this.effect.condition.type === 'save' && this.effect.condition.saveType) {
-        const dc = calculateSpellDC(caster);
+        let dc = calculateSpellDC(caster);
+
+        // Apply Planar Modifier to DC
+        dc += planarModifier;
+
         const saveResult = rollSavingThrow(target, this.effect.condition.saveType, dc);
 
         // Adjust damage based on save result
@@ -75,7 +96,6 @@ export class DamageCommand extends BaseEffectCommand {
       }
 
       // 3. Apply Damage
-      // Apply Resistances/Vulnerabilities (including Elemental Adept check)
       const finalDamage = ResistanceCalculator.applyResistances(
         damageRoll,
         this.effect.damage.type,
@@ -91,7 +111,6 @@ export class DamageCommand extends BaseEffectCommand {
       // --- IMPROVED LOGGING ---
       const damageType = this.effect.damage.type.toLowerCase();
       const verbs = DAMAGE_VERBS[damageType] || DEFAULT_VERBS;
-      // Simple randomization for variety (seeded by damage value to be deterministic-ish or use standard random)
       const verbIndex = Math.floor(Math.random() * verbs.length);
       const verb = verbs[verbIndex];
 
@@ -100,8 +119,10 @@ export class DamageCommand extends BaseEffectCommand {
 
       if (sourceName && sourceName !== 'Attack') {
         logMessage = `${caster.name} ${verb} ${target.name} with ${sourceName} for ${finalDamage} ${damageType} damage`;
+        if (planarModifier !== 0) {
+           logMessage += ` (Planar Boost: ${planarModifier > 0 ? '+' : ''}${planarModifier})`;
+        }
       } else {
-         // Generic or "Attack" source
         logMessage = `${caster.name} ${verb} ${target.name} for ${finalDamage} ${damageType} damage`;
       }
 
@@ -114,23 +135,16 @@ export class DamageCommand extends BaseEffectCommand {
       });
 
       // 4. Check Concentration
-      // If the target is concentrating and took damage, they must make a Constitution check.
       if (target.concentratingOn && damageRoll > 0) {
         const check = checkConcentration(target, damageRoll);
 
         if (!check.success) {
-          // Break concentration
           const breakCommand = new BreakConcentrationCommand({
-            // We need a context for the break command. 
-            // Ideally we'd have the original caster of the concentrated spell, 
-            // but here 'caster' in context refers to the one dealing damage.
-            // However, BreakConcentrationCommand uses getCaster(state) which looks up context.caster.id.
-            // So we must pass the target (who is concentrating) as the 'caster' in this new context.
             ...this.context,
             caster: target,
             spellId: target.concentratingOn.spellId,
             spellName: target.concentratingOn.spellName,
-            targets: [] // Self logic is handled by getCaster
+            targets: []
           });
 
           currentState = breakCommand.execute(currentState);
@@ -163,10 +177,6 @@ export class DamageCommand extends BaseEffectCommand {
   /**
    * Helper to parse dice string (e.g., "2d6+3") and roll damage.
    * Delegates to centralized combatUtils for consistent critical hit logic.
-   * @param diceString The dice notation string.
-   * @param isCritical Whether to roll double dice.
-   * @param minRoll Minimum value for each die roll (default 1).
-   * @returns The total calculated damage.
    */
   private rollDamage(diceString: string, isCritical: boolean, minRoll: number = 1): number {
     return rollDamageUtil(diceString, isCritical, minRoll);

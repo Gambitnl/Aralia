@@ -33,6 +33,14 @@ const PsychicStaticTrait: PlanarTrait = {
   mechanics: 'Take 1d4 psychic damage every minute.'
 };
 
+const PervasiveEvilTrait: PlanarTrait = {
+  id: 'pervasive_evil',
+  name: 'Pervasive Evil',
+  type: 'alignment',
+  description: 'The very land is infused with tyranny and malice.',
+  mechanics: 'Good-aligned creatures feel a constant spiritual weight.'
+};
+
 export const PLANES: Record<string, Plane> = {
   material: {
     id: 'material',
@@ -111,6 +119,39 @@ export const PLANES: Record<string, Plane> = {
         longRestAllowed: true,
         effects: ['Must succeed on DC 15 Wisdom save to gain Long Rest benefits']
       }
+    }
+  },
+  nine_hells: {
+    id: 'nine_hells',
+    name: 'The Nine Hells',
+    description: 'A plane of rigid order, tyranny, and fire, ruled by devils.',
+    traits: [PervasiveEvilTrait],
+    natives: ['Devil', 'Imp', 'Tiefling'],
+    hazards: [
+      {
+        name: 'Infernal Heat',
+        description: 'The heat is oppressive and drains vitality.',
+        saveDC: 10,
+        damage: '1d4 fire', // Example implementation
+        effect: 'exhaustion'
+      }
+    ],
+    emotionalValence: 'negative',
+    timeFlow: 'normal',
+    atmosphereDescription: "The air smells of brimstone and burning iron. The heat is oppressive, and a sense of rigid, malicious order permeates everything.",
+    effects: {
+      affectsMagic: [
+        {
+          school: 'Evocation', // Fire spells
+          effect: 'empowered',
+          description: 'Fire spells burn hotter here.'
+        },
+        {
+          school: 'Divination',
+          effect: 'impeded',
+          description: 'The gods have difficulty seeing into this realm.'
+        }
+      ]
     }
   },
   abyss: {

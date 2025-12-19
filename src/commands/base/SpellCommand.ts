@@ -10,7 +10,8 @@
 
 import { CombatState, CombatCharacter } from '@/types/combat'
 import { GameState } from '@/types'
-import { EffectDuration, SpellAttackType } from '@/types/spells'
+import { EffectDuration, SpellAttackType, MagicSchool } from '@/types/spells'
+import { Plane } from '@/types/planes'
 
 /**
  * Interface for all executable spell commands.
@@ -81,6 +82,8 @@ export interface CommandContext {
   spellId: string
   /** Name of the spell being cast */
   spellName: string
+  /** School of the spell (for planar modifiers etc.) */
+  spellSchool?: MagicSchool
   /** The level at which the spell is cast (affects scaling) */
   castAtLevel: number
   /** Snapshot of the caster at the moment of casting */
@@ -95,4 +98,6 @@ export interface CommandContext {
   attackType?: SpellAttackType
   /** Tracks if this execution is a critical hit (5e: doubles damage dice) */
   isCritical?: boolean
+  /** The plane where the spell is being cast. */
+  currentPlane?: Plane
 }
