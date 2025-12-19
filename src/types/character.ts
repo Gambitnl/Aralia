@@ -125,6 +125,7 @@ export interface Race {
     traitDescription: string;
   };
   knownSpells?: RacialSpell[];
+  // TODO(Taxonomist): Add languages: Language[] to Race interface once usage is confirmed
 }
 
 // -----------------------------------------------------------------------------
