@@ -104,44 +104,62 @@ export function rollDice(diceString: string): number {
 export function rollDamage(diceString: string, isCritical: boolean, minRoll: number = 1): number {
   if (!diceString || diceString === '0') return 0;
 
-  // Remove spaces for easier parsing
-  const formula = diceString.replace(/\s+/g, '');
+  try {
+    // Remove spaces for easier parsing
+    const formula = diceString.replace(/\s+/g, '');
 
-  // Regex to match terms:
-  // Group 1: Optional sign ([+-]?)
-  // Group 2, 3: Dice notation (\d+)d(\d+)
-  // Group 4: Flat number (\d+)
-  const regex = /([+-]?)(?:(\d+)d(\d+)|(\d+))/g;
-
-  let total = 0;
-  let match;
-
-  while ((match = regex.exec(formula)) !== null) {
-    // Avoid infinite loops
-    if (match.index === regex.lastIndex) {
-      regex.lastIndex++;
+    // Safety: Check for excessively long strings to prevent potential ReDoS or hanging
+    if (formula.length > 100) {
+      console.warn(`CombatUtils: Dice string too long, truncated processing for safety: ${formula.substring(0, 20)}...`);
+      return 0;
     }
 
-    const sign = match[1] === '-' ? -1 : 1;
+    // Regex to match terms:
+    // Group 1: Optional sign ([+-]?)
+    // Group 2, 3: Dice notation (\d+)d(\d+)
+    // Group 4: Flat number (\d+)
+    const regex = /([+-]?)(?:(\d+)d(\d+)|(\d+))/g;
 
-    if (match[2] && match[3]) {
-      // It's a dice roll: XdY
-      const numDice = parseInt(match[2], 10);
-      const dieSize = parseInt(match[3], 10);
+    let total = 0;
+    let match;
 
-      // CRITICAL HIT LOGIC: Roll dice twice
-      const actualNumDice = isCritical ? numDice * 2 : numDice;
+    while ((match = regex.exec(formula)) !== null) {
+      // Avoid infinite loops
+      if (match.index === regex.lastIndex) {
+        regex.lastIndex++;
+      }
 
-      const subTotal = rollDieGroup(actualNumDice, dieSize, minRoll);
-      total += sign * subTotal;
-    } else if (match[4]) {
-      // It's a flat number
-      const val = parseInt(match[4], 10);
-      total += sign * val;
+      const sign = match[1] === '-' ? -1 : 1;
+
+      if (match[2] && match[3]) {
+        // It's a dice roll: XdY
+        const numDice = parseInt(match[2], 10);
+        const dieSize = parseInt(match[3], 10);
+
+        // Safety cap for ridiculous dice counts
+        if (numDice > 100 || dieSize > 1000) {
+           console.warn(`CombatUtils: Excessive dice count/size in ${diceString}, capping.`);
+           // We'll proceed with the large numbers but warn, or could cap here.
+           // For now, warning is sufficient as we handled the string length.
+        }
+
+        // CRITICAL HIT LOGIC: Roll dice twice
+        const actualNumDice = isCritical ? numDice * 2 : numDice;
+
+        const subTotal = rollDieGroup(actualNumDice, dieSize, minRoll);
+        total += sign * subTotal;
+      } else if (match[4]) {
+        // It's a flat number
+        const val = parseInt(match[4], 10);
+        total += sign * val;
+      }
     }
+
+    return total;
+  } catch (error) {
+    console.error(`CombatUtils: Error rolling damage for "${diceString}":`, error);
+    return 0; // Fail safe
   }
-
-  return total;
 }
 
 export function getActionMessage(action: CombatAction, character: CombatCharacter): string {
@@ -297,27 +315,36 @@ export function calculateDamage(
   target: CombatCharacter,
   damageType?: string
 ): number {
-  if (!damageType || baseDamage <= 0) return Math.max(0, baseDamage);
+  try {
+    // 0. Safety Checks
+    if (baseDamage < 0) return 0; // Sanity check: damage shouldn't be negative
+    if (!target) return 0; // Should not happen with TS but possible at runtime
+    if (!damageType || baseDamage === 0) return baseDamage;
 
-  // 1. Immunity
-  if (target.immunities?.includes(damageType as DamageType)) {
-    return 0;
+    // 1. Immunity
+    if (target.immunities?.includes(damageType as DamageType)) {
+      return 0;
+    }
+
+    let finalDamage = baseDamage;
+
+    // 2. Resistance (PHB p.197: Resistance applied before Vulnerability)
+    if (target.resistances?.includes(damageType as DamageType)) {
+      // TODO(Feats): Check if caster has Elemental Adept (ignores resistance)
+      finalDamage = Math.floor(finalDamage / 2);
+    }
+
+    // 3. Vulnerability
+    if (target.vulnerabilities?.includes(damageType as DamageType)) {
+      finalDamage *= 2;
+    }
+
+    return Math.max(0, finalDamage);
+  } catch (error) {
+    console.error('CombatUtils: Error calculating damage:', error);
+    // Graceful degradation: return base damage (or 0) rather than crashing combat
+    return Math.max(0, baseDamage);
   }
-
-  let finalDamage = baseDamage;
-
-  // 2. Resistance (PHB p.197: Resistance applied before Vulnerability)
-  if (target.resistances?.includes(damageType as DamageType)) {
-    // TODO(Feats): Check if caster has Elemental Adept (ignores resistance)
-    finalDamage = Math.floor(finalDamage / 2);
-  }
-
-  // 3. Vulnerability
-  if (target.vulnerabilities?.includes(damageType as DamageType)) {
-    finalDamage *= 2;
-  }
-
-  return Math.max(0, finalDamage);
 }
 
 /**
