@@ -1,3 +1,5 @@
 # Architect's Journal
 
 ## 2024-05-23 - Separating Dev Controls **Learning:** Complex components often accumulate development tools that persist in production code, bloating the file. Extracting these into a dedicated component with a clear interface simplifies the main component and makes the dev tools easier to maintain or toggle. **Action:** When identifying God components, look for conditional rendering blocks like `isDevMode` or `isDummy` as primary candidates for extraction.
+
+## 2024-05-24 - Decomposing Tabbed Interfaces **Learning:** Large components like `CharacterSheetModal` often contain massive render functions for each tab (e.g., `renderOverviewTab`). This pattern leads to "God Components" that are hard to read and maintain. Extracting these tabs into dedicated sub-components (e.g., `CharacterOverview`) and moving their specific logic (like proficiency calculations) into custom hooks greatly improves separation of concerns. **Action:** Identify components with `renderTabName` functions and extract them into standalone components in a subdirectory.
