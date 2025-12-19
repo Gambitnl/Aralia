@@ -5,6 +5,7 @@
 import { GameState, DiscoveryResidue, Location, Faction } from '../../types';
 import { AppAction } from '../actionTypes';
 import { processWorldEvents } from '../../systems/world/WorldEventManager';
+import { TradeRouteManager } from '../../systems/economy/TradeRouteManager';
 import { getGameDay } from '../../utils/timeUtils';
 
 export function worldReducer(state: GameState, action: AppAction): Partial<GameState> {
@@ -50,6 +51,12 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       const daysPassed = newDay - oldDay;
 
       let partialUpdate: Partial<GameState> = { gameTime: newTime };
+
+      // Process Economy (runs every update, handles its own throttling)
+      const economyUpdate = TradeRouteManager.processEconomyTick({ ...state, gameTime: newTime });
+      if (economyUpdate.economy) {
+          partialUpdate.economy = economyUpdate.economy;
+      }
 
       if (daysPassed > 0) {
           const { state: newState, logs } = processWorldEvents({ ...state, gameTime: newTime }, daysPassed);

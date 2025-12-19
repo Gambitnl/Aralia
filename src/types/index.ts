@@ -72,9 +72,11 @@ import { Fence } from './crime';
 import { UnderdarkState, LightSource } from './underdark';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
 import type { DamageType } from './spells';
+import type { EconomySystemState } from './economy';
 
 export * from './core';
 export * from './items';
+export * from './economy';
 export * from './character';
 export * from './spells';
 export * from './creatures';
@@ -509,6 +511,7 @@ export interface EconomyState {
   buyMultiplier: number; // Base multiplier for buying
   sellMultiplier: number; // Base multiplier for selling
   activeEvents?: MarketEvent[];
+  system?: EconomySystemState; // The new simulation state
 }
 
 export interface GameState {

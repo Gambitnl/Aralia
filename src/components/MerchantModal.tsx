@@ -113,6 +113,15 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                 Scarcity: {economy.marketFactors.scarcity.join(', ') || 'None'}
                             </span>
                          </div>
+                         {/* Trade Route Info */}
+                         {economy.system && economy.system.routes.some(r => r.status === 'active' && r.destinationLocationId === 'market_village_start') && (
+                             <div className="mt-1 text-xs text-sky-400">
+                                 🚚 Incoming: {economy.system.routes
+                                    .filter(r => r.status === 'active' && r.destinationLocationId === 'market_village_start')
+                                    .map(r => r.goods.map(g => g.itemType).join(', '))
+                                    .join(' | ')}
+                             </div>
+                         )}
                        </>
                    ) : <span>Standard Prices</span>}
                 </div>
