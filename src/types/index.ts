@@ -73,6 +73,9 @@ import { UnderdarkState, LightSource } from './underdark';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
 import type { DamageType } from './spells';
 
+// Import Economy types
+import { EconomyState } from './economy';
+
 export * from './core';
 export * from './items';
 export * from './character';
@@ -87,6 +90,7 @@ export * from './crime';
 export * from './dialogue';
 export * from './underdark';
 export * from './history';
+export * from './economy'; // Export new economy types
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
@@ -490,25 +494,6 @@ export interface StartGameSuccessPayload {
   initialSubMapCoordinates: { x: number; y: number };
   initialActiveDynamicNpcIds: string[] | null;
   startingInventory: Item[];
-}
-
-export interface MarketEvent {
-  id: string;
-  name: string;
-  description: string;
-  affectedTags: string[]; // Tags like 'weapon', 'food', 'magic'
-  effect: 'scarcity' | 'surplus';
-  duration: number; // In game ticks or arbitrary units
-}
-
-export interface EconomyState {
-  marketFactors: {
-    scarcity: string[]; // Item types or tags that are scarce (high demand)
-    surplus: string[]; // Item types or tags that are abundant (low value)
-  };
-  buyMultiplier: number; // Base multiplier for buying
-  sellMultiplier: number; // Base multiplier for selling
-  activeEvents?: MarketEvent[];
 }
 
 export interface GameState {
