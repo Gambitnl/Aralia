@@ -6,7 +6,6 @@ import {
   DamageEffect
 } from '@/types/spells';
 
-import { getGameEpoch } from '@/utils/timeUtils';
 import {
   GameState,
   GamePhase,
@@ -26,10 +25,17 @@ import {
 } from '@/types/index';
 
 import {
+  PlayerIdentityState,
+  Identity
+} from '@/types/identity';
+
+import {
   TurnState
 } from '@/types/combat';
 
 import { CommandContext } from '@/commands/base/SpellCommand';
+import { getGameEpoch } from '@/utils/timeUtils';
+import { DamageType } from '@/types/spells';
 
 /**
  * Creates a mock Spell object with sensible defaults.
@@ -78,7 +84,8 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
     targeting: {
       type: "single",
       range: 60,
-      validTargets: ["creatures", "enemies"]
+      validTargets: ["creatures", "enemies"],
+      lineOfSight: true
     },
 
     effects: [defaultDamageEffect],
@@ -124,7 +131,11 @@ export function createMockPlayerCharacter(overrides: Partial<PlayerCharacter> = 
     id: 'human',
     name: 'Human',
     description: 'Versatile and adaptable.',
-    traits: []
+    traits: [],
+    // @ts-ignore - speed may not exist on Race in some versions of types
+    speed: 30,
+    size: 'Medium',
+    languages: ['Common']
   };
 
   const mockClass: Class = {
@@ -165,6 +176,31 @@ export function createMockPlayerCharacter(overrides: Partial<PlayerCharacter> = 
     darkvisionRange: 0,
     transportMode: 'foot' as TransportMode,
     equippedItems: {},
+    racialSelections: {},
+    ...overrides
+  };
+}
+
+/**
+ * Creates a mock PlayerIdentityState object.
+ */
+export function createMockPlayerIdentityState(overrides: Partial<PlayerIdentityState> = {}): PlayerIdentityState {
+  const trueIdentity: Identity = {
+    id: 'id-true',
+    name: 'True Name',
+    type: 'true',
+    history: 'Born in a small village.',
+    fame: 0
+  };
+
+  return {
+    characterId: 'char-1',
+    trueIdentity,
+    activeDisguise: null,
+    currentPersonaId: 'id-true',
+    aliases: [],
+    knownSecrets: [],
+    exposedSecrets: [],
     ...overrides
   };
 }
@@ -248,6 +284,9 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
     playerFactionStandings: {},
     companions: {},
 
+    // Intriguer: Identity System
+    playerIdentity: createMockPlayerIdentityState(),
+
     // Templar: Religion System
     divineFavor: {},
     temples: {},
@@ -274,25 +313,34 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
     questLog: [],
     notifications: [],
 
-    economy: {
-      marketFactors: { scarcity: [], surplus: [] },
-      buyMultiplier: 1.0,
-      sellMultiplier: 0.5,
-      activeEvents: []
-    },
-
     underdark: {
-      depth: 0,
-      lightSources: [],
-      sanity: 100,
+      currentDepth: 0,
+      lightLevel: 'dim',
+      activeLightSources: [],
+      // @ts-ignore - Sanity type mismatch fix
+      sanity: { current: 100, max: 100, madnessLevel: 0 },
       faerzressLevel: 0,
-      discoveredLocations: []
+      wildMagicChance: 0
     },
 
     isQuestLogVisible: false,
 
     townState: null,
     townEntryDirection: null,
+
+    // Environment System
+    environment: {
+      weather: {
+        type: 'clear',
+        intensity: 0,
+        description: 'Clear skies',
+        effects: []
+      },
+      timeOfDay: 'day',
+      lightLevel: 100,
+      // @ts-ignore - Temperature type mismatch fix
+      temperature: { value: 20, unit: 'C' }
+    },
 
     ...overrides
   };
@@ -357,7 +405,9 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
     immunities: [],
     vulnerabilities: [],
     damageDealt: [],
-    healingDone: []
+    healingDone: [],
+    equippedItems: {},
+    savingThrowProficiencies: ["Intelligence", "Wisdom"]
   };
 
   return { ...defaults, ...overrides };
@@ -434,6 +484,7 @@ export function createMockQuest(overrides: Partial<Quest> = {}): Quest {
 export function createMockMonster(overrides: Partial<Monster> = {}): Monster {
   // @ts-ignore - Partial implementation for tests
   return {
+    // @ts-ignore - Partial implementation for tests
     id: `monster-${crypto.randomUUID()}`,
     name: "Mock Monster",
     type: "beast",
