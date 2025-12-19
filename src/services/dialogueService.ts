@@ -207,6 +207,14 @@ export function processTopicSelection(
 
   session.discussedTopicIds.push(topicId);
 
+  // TODO(Recorder): Record this interaction in gameState.npcMemory[npcId].interactions
+  // We need to:
+  // 1. Get the current memory for this NPC
+  // 2. Create a new Interaction object { date: now, type: 'dialogue', summary: topic.playerPrompt, ... }
+  // 3. Append to interactions array
+  // 4. Update discussedTopics map with timestamp
+  // This logic should probably be in a helper in npcService or dialogueService called 'recordInteraction'.
+
   // Calculate Dynamic DC based on Willingness
   let dcModifier = 0;
   if (npc && npc.knowledgeProfile && npc.knowledgeProfile.topicOverrides[topicId]) {

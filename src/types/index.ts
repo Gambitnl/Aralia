@@ -64,7 +64,7 @@ import {
 } from './character';
 import { Faction, PlayerFactionStanding } from './factions';
 import { NPCVisualSpec } from './visuals';
-import { NPCMemory } from './memory';
+import { NPCMemory, Goal, GoalStatus, SuspicionLevel, KnownFact, GoalUpdatePayload } from './memory';
 import { NPCKnowledgeProfile } from './dialogue';
 import { Companion } from './companions';
 import { DivineFavor, Temple } from './deity';
@@ -125,43 +125,6 @@ export interface TTSVoiceOption {
   characteristic: string;
 }
 
-export enum SuspicionLevel {
-  Unaware,
-  Suspicious,
-  Alert,
-}
-
-export enum GoalStatus {
-  Unknown = 'Unknown',
-  Active = 'Active',
-  Completed = 'Completed',
-  Failed = 'Failed',
-}
-
-export interface Goal {
-  id: string;
-  description: string;
-  status: GoalStatus;
-}
-
-export interface GoalUpdatePayload {
-  npcId: string;
-  goalId: string;
-  newStatus: GoalStatus;
-}
-
-export interface KnownFact {
-  id: string;
-  text: string;
-  source: 'direct' | 'gossip';
-  sourceNpcId?: string;
-  isPublic: boolean;
-  timestamp: number;
-  strength: number;
-  lifespan: number;
-  sourceDiscoveryId?: string;
-}
-
 export interface WorldRumor {
   id: string;
   text: string;
@@ -182,14 +145,6 @@ export interface DiscoveryResidue {
   text: string;
   discoveryDc: number;
   discovererNpcId: string;
-}
-
-export interface NpcMemory {
-  disposition: number;
-  knownFacts: KnownFact[];
-  suspicion: SuspicionLevel;
-  goals: Goal[];
-  lastInteractionTimestamp?: number;
 }
 
 export interface GossipUpdatePayload {
@@ -570,7 +525,7 @@ export interface GameState {
   isGlossaryVisible: boolean;
   selectedGlossaryTermForModal?: string;
 
-  npcMemory: Record<string, NpcMemory>;
+  npcMemory: Record<string, NPCMemory>;
 
   locationResidues: Record<string, DiscoveryResidue | null>;
 

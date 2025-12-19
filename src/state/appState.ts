@@ -125,6 +125,8 @@ export const initialGameState: GameState = {
             knownFacts: [],
             suspicion: SuspicionLevel.Unaware,
             goals: npcData?.goals ? [...npcData.goals] : [],
+            interactions: [],
+            discussedTopics: {},
         };
         return acc;
     }, {} as GameState['npcMemory']),
@@ -400,6 +402,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                         lifespan: 999,
                     }));
                 }
+                // Ensure new fields exist if loading older save
+                if (!memory.interactions) memory.interactions = [];
+                if (!memory.discussedTopics) memory.discussedTopics = {};
             }
 
             // Migrate old shiny_coin items to gold property

@@ -42,25 +42,78 @@ export interface Interaction {
   attitudeChange: number;
 }
 
-/**
- * A specific piece of information an NPC knows about the player.
- */
-export interface Fact {
-  /** Unique identifier for the fact (e.g., "player_is_dragonborn", "player_killed_king") */
+// --- Core State Enums & Types (Migrated from index.ts) ---
+
+export enum SuspicionLevel {
+  Unaware,
+  Suspicious,
+  Alert,
+}
+
+export enum GoalStatus {
+  Unknown = 'Unknown',
+  Active = 'Active',
+  Completed = 'Completed',
+  Failed = 'Failed',
+}
+
+export interface Goal {
   id: string;
-  /** When the NPC learned this fact */
-  dateLearned: GameDate;
-  /** How confident the NPC is in this fact (0.0 to 1.0) */
-  confidence: number;
-  /** The source of the information (e.g., "witnessed", "gossip", "told_by_player") */
-  source: 'witnessed' | 'gossip' | 'told_by_player' | 'inference';
+  description: string;
+  status: GoalStatus;
+}
+
+export interface GoalUpdatePayload {
+  npcId: string;
+  goalId: string;
+  newStatus: GoalStatus;
+}
+
+/**
+ * A specific piece of information an NPC knows about the player or world.
+ * Includes mechanics for fading memory (lifespan) and confidence (strength).
+ */
+export interface KnownFact {
+  id: string;
+  text: string;
+  source: 'direct' | 'gossip';
+  sourceNpcId?: string;
+  isPublic: boolean;
+  timestamp: number;
+  strength: number;
+  lifespan: number;
+  sourceDiscoveryId?: string;
 }
 
 /**
  * Tracks what an NPC remembers about interactions.
  * Used by the dialogue and AI systems to maintain coherent conversations and relationships.
+ *
+ * Unified interface combining legacy state with narrative history.
  */
 export interface NPCMemory {
+  /**
+   * Overall attitude toward the player.
+   * Range: -100 (Hostile/Nemesis) to 100 (Devoted/Ally).
+   * 0 is Neutral.
+   */
+  disposition: number;
+
+  /**
+   * Current level of suspicion towards the player.
+   */
+  suspicion: SuspicionLevel;
+
+  /**
+   * Facts the NPC has learned about the player or world.
+   */
+  knownFacts: KnownFact[];
+
+  /**
+   * NPC's personal goals and their status.
+   */
+  goals: Goal[];
+
   /**
    * Chronological list of past interactions with this NPC.
    * Newest interactions should be appended to the end.
@@ -68,26 +121,14 @@ export interface NPCMemory {
   interactions: Interaction[];
 
   /**
-   * Facts the NPC has learned about the player or world.
+   * Topics the NPC has already discussed to avoid repetitive dialogue.
+   * Keys are topic IDs, values are the timestamp when discussed.
    */
-  knownFacts: Fact[];
-
-  /**
-   * Overall attitude toward the player.
-   * Range: -100 (Hostile/Nemesis) to 100 (Devoted/Ally).
-   * 0 is Neutral.
-   */
-  attitude: number;
+  discussedTopics: Record<string, number>;
 
   /**
    * When the NPC last interacted with the player.
    * Used to determine greeting familiarity or "long time no see" dialogue.
    */
-  lastInteractionDate: GameDate;
-
-  /**
-   * Topics the NPC has already discussed to avoid repetitive dialogue.
-   * Keys are topic IDs, values are the timestamp when discussed.
-   */
-  discussedTopics: Record<string, GameDate>;
+  lastInteractionTimestamp?: number;
 }
