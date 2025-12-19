@@ -9,6 +9,7 @@ import type { Class, SpellbookData, SpellSlots } from './character';
 import type { Item } from './items';
 import type { Spell, DamageType, SavingThrowAbility, ConditionName, EffectDuration, SpellEffect } from './spells'; // Import Spell
 import { StateTag } from './elemental';
+import { Plane } from './planes';
 
 export type { SpellSlots };
 
@@ -351,6 +352,7 @@ export interface CombatState {
   reactiveTriggers: ReactiveTrigger[];
   activeLightSources: LightSource[];    // Active light sources on the map
   mapData?: BattleMapData;
+  currentPlane?: Plane; // NEW: The plane where combat is taking place
 }
 
 export interface MoveAnimationData {

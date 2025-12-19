@@ -16,6 +16,7 @@ import { RegisterRiderCommand } from '../effects/RegisterRiderCommand'
 import { NarrativeCommand } from '../effects/NarrativeCommand'
 import { GameState } from '@/types'
 import { TargetValidationUtils } from '@/systems/spells/targeting/TargetValidationUtils'
+import { Plane } from '@/types/planes'
 
 export class SpellCommandFactory {
   /**
@@ -27,13 +28,15 @@ export class SpellCommandFactory {
     targets: CombatCharacter[],
     castAtLevel: number,
     gameState: GameState,
-    playerInput?: string
+    playerInput?: string,
+    currentPlane?: Plane // NEW: Added plane context
   ): Promise<SpellCommand[]> {
     const commands: SpellCommand[] = []
 
     const context: CommandContext = {
       spellId: spell.id,
       spellName: spell.name,
+      spellSchool: spell.school, // Use the spell school directly
       castAtLevel,
       caster,
       targets,
@@ -44,7 +47,8 @@ export class SpellCommandFactory {
           value: spell.duration.value
         }
         : undefined,
-      attackType: spell.attackType
+      attackType: spell.attackType,
+      currentPlane // Pass to context
     }
 
     if (spell.arbitrationType && spell.arbitrationType !== 'mechanical') {
@@ -65,7 +69,8 @@ export class SpellCommandFactory {
           validMoves: [],
           combatLog: [],
           reactiveTriggers: [],
-          activeLightSources: []
+          activeLightSources: [],
+          currentPlane
         },
         gameState,
         playerInput
@@ -113,6 +118,8 @@ export class SpellCommandFactory {
     return commands
   }
 
+  // ... (rest of the file remains same)
+
   /**
    * Check if a target matches the filter
    * @deprecated Use TargetValidationUtils.matchesFilter instead
@@ -150,15 +157,6 @@ export class SpellCommandFactory {
       if (filteredTargets.length !== context.targets.length) {
         context = { ...context, targets: filteredTargets };
       }
-
-      // [REVIEW QUESTION]: Does creating a new local `context` variable correctly propagate deep mutations if `SpellCommand` modifies the context?
-      // `CommandContext` is an object. `createCommand` receives it.
-      // Here we replace the `targets` array in a shallow copy.
-      // Any downstream command that holds a reference to this `context` will see the filtered targets.
-      // But if a command modifies `context.gameState`, will that propagate back to `createCommands`?
-      // Yes, because `gameState` is a reference sharing the same object.
-      // But if `createCommand` does complex async logic that relies on `context` identity, this might be risky.
-      // Verified: `createCommands` iterates sequentially, so each `createCommand` call gets an isolated (partially) context scope for targets.
     }
 
     if (['on_target_move', 'on_target_attack', 'on_target_cast', 'on_caster_action'].includes(effect.trigger.type)) {
