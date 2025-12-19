@@ -755,3 +755,5 @@ export const useAbilitySystem = ({
     pendingReaction,
   };
 };
+
+export type AbilitySystem = ReturnType<typeof useAbilitySystem>;
