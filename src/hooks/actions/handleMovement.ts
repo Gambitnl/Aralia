@@ -16,6 +16,7 @@ import { getSubmapTileInfo } from '../../utils/submapUtils';
 import { INITIAL_QUESTS } from '../../data/quests';
 import { generateTravelEvent } from '../../services/travelEventService';
 import { getTimeModifiers } from '../../utils/timeUtils';
+import { getWeatherTravelModifier, getWeatherDescription } from '../../systems/weather/WeatherSystem';
 
 interface HandleMovementProps {
   action: Action;
@@ -351,6 +352,16 @@ export async function handleMovement({
   // Apply Time/Season modifiers to travel time
   if (timeToAdvanceSeconds > 0) {
     timeToAdvanceSeconds = Math.round(timeToAdvanceSeconds * timeModifiers.travelCostMultiplier);
+
+    // Apply Weather modifiers
+    if (gameState.environment) {
+      const weatherMod = getWeatherTravelModifier(gameState.environment);
+      timeToAdvanceSeconds = Math.round(timeToAdvanceSeconds * weatherMod);
+
+      if (weatherMod > 1.0 && Math.random() < 0.3) {
+         addMessage(`Travel is slowed by weather: ${getWeatherDescription(gameState.environment)}`, 'system');
+      }
+    }
   }
 
   if (timeModifiers.description && timeModifiers.travelCostMultiplier > 1.0 && timeToAdvanceSeconds > 0) {

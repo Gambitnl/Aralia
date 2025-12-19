@@ -8,8 +8,10 @@
 
 import { GameState, GameMessage, WorldRumor, MarketEvent, EconomyState } from '../../types';
 import { applyReputationChange, modifyFactionRelationship } from '../../utils/factionUtils';
-import { getGameDay, addGameTime } from '../../utils/timeUtils';
+import { getGameDay, addGameTime, getSeason } from '../../utils/timeUtils';
 import { SeededRandom } from '../../utils/seededRandom';
+import { generateDailyWeather, getWeatherDescription } from '../weather/WeatherSystem';
+import { LOCATIONS } from '../../constants';
 
 export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD';
 
@@ -467,6 +469,34 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
 
   // Iterate for each day passed
   for (let i = 0; i < daysPassed; i++) {
+    // 1. Update Weather
+    if (currentState.environment) {
+      const location = LOCATIONS[currentState.currentLocationId];
+      const biomeId = location?.biomeId || 'plains';
+      const season = getSeason(currentState.gameTime);
+
+      const newWeather = generateDailyWeather(currentState.environment, biomeId, season, rng);
+
+      // Log significant weather changes
+      if (newWeather.precipitation !== currentState.environment.precipitation ||
+          newWeather.wind.speed !== currentState.environment.wind.speed) {
+
+         const weatherDesc = getWeatherDescription(newWeather);
+         // Only log "bad" weather or significant shifts to avoid spam
+         if (newWeather.precipitation !== 'none' || newWeather.wind.speed === 'strong' || newWeather.wind.speed === 'gale') {
+             allLogs.push({
+               id: Date.now() + i,
+               text: `Weather Update: ${weatherDesc}`,
+               sender: 'system',
+               timestamp: currentState.gameTime
+             });
+         }
+      }
+
+      currentState = { ...currentState, environment: newWeather };
+    }
+
+    // 2. Random World Events
     if (rng.next() < DAILY_EVENT_CHANCE) {
       const roll = rng.next();
       let result: WorldEventResult;

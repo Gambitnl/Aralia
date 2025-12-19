@@ -12,6 +12,8 @@ import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
 import { AbilityScores } from '../../types/core';
 import { TravelPace, PACE_MODIFIERS } from '../../types/travel';
+import { WeatherState } from '../../types/environment';
+import { getWeatherTravelModifier } from '../weather/WeatherSystem';
 
 // --- Types ---
 
@@ -88,7 +90,8 @@ export function calculateEncumbrance(
 export function calculateGroupTravelStats(
   characters: PlayerCharacter[],
   inventories: Record<string, Item[]>,
-  pace: TravelPace = 'normal'
+  pace: TravelPace = 'normal',
+  weather?: WeatherState
 ): TravelGroupStats {
   if (characters.length === 0) {
     return {
@@ -126,7 +129,16 @@ export function calculateGroupTravelStats(
   // Apply Pace Modifier
   // @ts-ignore - Backward compatibility for types if speedMultiplier was used
   const paceMod = PACE_MODIFIERS[pace].speedModifier || PACE_MODIFIERS[pace].speedMultiplier;
-  const travelSpeedMph = baseMph * paceMod;
+  let travelSpeedMph = baseMph * paceMod;
+
+  // Apply Weather Modifier
+  if (weather) {
+    const weatherMod = getWeatherTravelModifier(weather);
+    if (weatherMod > 0) {
+        // Multiplier > 1.0 means slower, so we divide speed by modifier
+        travelSpeedMph = travelSpeedMph / weatherMod;
+    }
+  }
 
   // Calculate Daily Distance (8 hours travel)
   const dailyDistanceMiles = travelSpeedMph * 8;
