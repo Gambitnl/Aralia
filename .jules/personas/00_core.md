@@ -83,17 +83,48 @@ Review recent PRs for:
 git log --oneline --name-only -20
 ```
 
-### Phase 6: Update VISION.md (Optional)
+### Phase 6: Collect Persona Improvement Suggestions
+
+Personas may have appended improvement suggestions to their persona files:
+
+```bash
+# Find all persona improvement suggestions
+grep -r "PERSONA IMPROVEMENT SUGGESTION" .jules/personas/ --include="*.md" -A 4
+```
+
+For suggestions found:
+1. Review each suggestion
+2. Aggregate into `.jules/PERSONA_IMPROVEMENTS.md` for review
+3. After applying changes, remove the suggestion comments from persona files
+
+**Suggested format for aggregation file:**
+
+```markdown
+# Persona Improvement Suggestions
+
+## Batch: [Date]
+
+### From Warlord
+**Issue:** [...]
+**Suggestion:** [...]
+**Status:** Pending / Approved / Rejected
+
+### From Vector
+...
+```
+
+### Phase 7: Update VISION.md (Optional)
 
 If significant new domains or features were added:
 1. Update `docs/VISION.md` with new sections
 2. Ensure cross-references to architecture docs are current
 
-### Phase 7: Commit and Push
+### Phase 8: Commit and Push
 
 ```bash
 git add docs/architecture/
 git add .jules/worklogs/
+git add .jules/personas/
 git commit -m "🏛️ Core: Update architecture docs from persona batch [DATE]"
 git push origin main
 ```

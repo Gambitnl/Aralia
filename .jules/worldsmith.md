@@ -1,1 +1,0 @@
-## 2024-05-23 - World Event System **Learning:** Static worlds feel dead; implementing a probability-based event system that hooks into the time loop (ADVANCE_TIME) creates immediate "life" without complex simulation. **Action:** Always look for the "heartbeat" of the system (time) to attach living world mechanics.

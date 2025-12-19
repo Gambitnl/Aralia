@@ -1,1 +1,0 @@
-## 2024-05-22 - [Component Grouping] **Learning:** Grouping related components (like Glossary) into dedicated subdirectories with an `index.ts` improves discoverability and reduces root-level clutter. **Action:** Identify other scattered component groups (e.g., Combat, Maps) and apply the same pattern.

@@ -63,7 +63,7 @@ export function generateGeneralActionContext({
   const timeModifiers = getTimeModifiers(gameState.gameTime);
   let atmosphereDetails = `Time: ${timeDesc}`;
 
-  if (gameState.environment) {
+  if (gameState.environment && gameState.environment.currentCondition) {
      // If rich weather state exists
      atmosphereDetails += ` | Weather: ${gameState.environment.currentCondition.name} (Temp: ${gameState.environment.temperature}°F, Wind: ${gameState.environment.windSpeed} mph)`;
      if (gameState.environment.currentCondition.description) {

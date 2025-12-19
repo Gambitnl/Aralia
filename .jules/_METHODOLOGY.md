@@ -231,6 +231,37 @@ This helps the Core persona (maintainer) understand what's possible in your envi
 
 ---
 
+## Persona Self-Improvement
+
+**At the end of your work, review your own persona file and suggest improvements.**
+
+Your persona file is at: `.jules/personas/[NN]_[yourname].md`
+
+After completing your task, if you noticed:
+- Missing guidance that would have helped
+- Incorrect or outdated instructions
+- New boundaries that should be documented
+- Better examples that could be added
+
+**Append a suggestion comment at the end of your persona file:**
+
+```markdown
+<!-- PERSONA IMPROVEMENT SUGGESTION
+**Suggested by:** [Persona name, e.g., Warlord]
+**Issue:** [What's missing or wrong]
+**Suggestion:** [How to improve it]
+-->
+```
+
+These are HTML comments so they won't render, but the Core persona can find and aggregate them.
+
+**Rules:**
+- ONLY append suggestions - never modify your persona content directly
+- Keep suggestions focused and actionable
+- Don't suggest changes that conflict with methodology
+
+---
+
 ## Verification Checklist
 
 Before any PR:
