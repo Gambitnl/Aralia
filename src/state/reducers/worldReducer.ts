@@ -5,6 +5,7 @@
 import { GameState, DiscoveryResidue, Location, Faction } from '../../types';
 import { AppAction } from '../actionTypes';
 import { processWorldEvents } from '../../systems/world/WorldEventManager';
+import { checkDeadlines } from '../../systems/time/DeadlineManager';
 import { getGameDay } from '../../utils/timeUtils';
 
 export function worldReducer(state: GameState, action: AppAction): Partial<GameState> {
@@ -50,8 +51,48 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       const daysPassed = newDay - oldDay;
 
       let partialUpdate: Partial<GameState> = { gameTime: newTime };
+      let newMessages = [...state.messages];
 
+      // 1. Process Deadlines (Always, even if < 1 day passed)
+      if (state.deadlines && state.deadlines.length > 0) {
+        const { deadlines, logs, actions } = checkDeadlines({ ...state, gameTime: newTime }, newTime);
+        partialUpdate = {
+            ...partialUpdate,
+            deadlines
+        };
+        newMessages = [...newMessages, ...logs];
+
+        // Handle consequence actions
+        if (actions.length > 0) {
+            // Apply Quest Failures
+            const questFailActions = actions.filter(a => a.payload?.type === 'FAIL_QUEST');
+            if (questFailActions.length > 0) {
+                const questIdsToFail = questFailActions.map(a => a.payload?.questId as string);
+
+                // We need to update the questLog in partialUpdate (or merge with existing)
+                // Note: state.questLog might be modified by processWorldEvents later if we don't handle order correctly.
+                // But simplified:
+                const currentQuestLog = partialUpdate.questLog || state.questLog;
+
+                partialUpdate.questLog = currentQuestLog.map(q => {
+                    if (questIdsToFail.includes(q.id)) {
+                        return { ...q, status: 'Failed' as any, dateCompleted: newTime.getTime() };
+                    }
+                    return q;
+                });
+            }
+        }
+      }
+
+      // 2. Process World Events (Daily)
       if (daysPassed > 0) {
+          // Note: we pass the potentially modified 'partialUpdate' merged with state?
+          // No, processWorldEvents takes the WHOLE state.
+          // We should ideally chain these, but for now let's pass the base state with the new time
+          // and then merge the results.
+          // If deadline logic changed factions (via consequences), we might miss it here if we don't chain.
+          // For now, assuming deadline consequences are mostly messages or quest updates (handled elsewhere/TODO).
+
           const { state: newState, logs } = processWorldEvents({ ...state, gameTime: newTime }, daysPassed);
 
           // Merge world event changes
@@ -59,9 +100,11 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
               ...partialUpdate,
               factions: newState.factions,
               playerFactionStandings: newState.playerFactionStandings,
-              messages: [...state.messages, ...logs]
           };
+          newMessages = [...newMessages, ...logs];
       }
+
+      partialUpdate.messages = newMessages;
 
       return partialUpdate;
     }

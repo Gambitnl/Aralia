@@ -87,6 +87,7 @@ export * from './crime';
 export * from './dialogue';
 export * from './underdark';
 export * from './history';
+export * from './urgency';
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
@@ -334,6 +335,7 @@ export interface GeminiLogEntry {
 // Crime & notoriety (Legacy - migrating to src/types/crime)
 // -----------------------------------------------------------------------------
 import { Crime, HeatLevel, Bounty } from './crime';
+import { Deadline } from './urgency';
 // Import the new History types to make them available globally
 import { WorldHistory, WorldHistoryEvent } from './history';
 
@@ -591,6 +593,8 @@ export interface GameState {
    * Tracks major events, faction changes, and heroics.
    */
   worldHistory?: WorldHistory; // Optional for now until initialized
+
+  deadlines: Deadline[];
 
   questLog: Quest[];
   isQuestLogVisible: boolean;

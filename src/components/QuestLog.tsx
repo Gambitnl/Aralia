@@ -1,6 +1,6 @@
 import React from 'react';
-import { Quest, QuestStatus } from '../types';
-import { formatGameDateTime } from '@/utils/timeUtils';
+import { Quest, QuestStatus, Deadline } from '../types';
+import { formatGameDateTime, formatDuration } from '@/utils/timeUtils';
 
 // Helper to show human friendly timestamps inside the modal
 const formatQuestDate = (timestamp?: number): string => {
@@ -42,14 +42,17 @@ interface QuestLogProps {
   isOpen: boolean;
   onClose: () => void;
   quests: Quest[];
+  deadlines?: Deadline[];
+  currentTime?: Date;
 }
 
-const QuestLog: React.FC<QuestLogProps> = ({ isOpen, onClose, quests }) => {
+const QuestLog: React.FC<QuestLogProps> = ({ isOpen, onClose, quests, deadlines = [], currentTime }) => {
   if (!isOpen) return null;
 
   const activeQuests = quests.filter(q => q.status === QuestStatus.Active);
   const completedQuests = quests.filter(q => q.status === QuestStatus.Completed);
   const failedQuests = quests.filter(q => q.status === QuestStatus.Failed);
+  const activeDeadlines = deadlines.filter(d => !d.isCompleted && !d.isExpired);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
@@ -65,6 +68,40 @@ const QuestLog: React.FC<QuestLogProps> = ({ isOpen, onClose, quests }) => {
         <h2 className="text-3xl font-bold mb-6 text-center text-amber-500 border-b border-amber-800 pb-2">Quest Log</h2>
 
         <div className="space-y-8">
+          {activeDeadlines.length > 0 && currentTime && (
+            <section className="bg-red-950/20 border border-red-900/40 p-4 rounded-lg">
+              <h3 className="text-xl font-semibold mb-3 text-red-400 flex items-center gap-2">
+                ⏳ Urgent Deadlines
+                <span className="text-xs text-red-300/60 font-normal">({activeDeadlines.length})</span>
+              </h3>
+              <div className="space-y-3">
+                {activeDeadlines.map(deadline => {
+                  const timeLeft = Math.max(0, (deadline.dueDate - currentTime.getTime()) / 1000);
+                  const isCritical = timeLeft < 3600 * 24; // Less than 24 hours
+
+                  return (
+                    <div key={deadline.id} className={`p-3 rounded border ${isCritical ? 'bg-red-900/30 border-red-500' : 'bg-gray-800 border-gray-700'}`}>
+                      <div className="flex justify-between items-start">
+                        <div>
+                           <h4 className="text-md font-bold text-amber-100">{deadline.title}</h4>
+                           <p className="text-sm text-gray-400">{deadline.description}</p>
+                        </div>
+                        <div className="text-right">
+                           <div className={`text-sm font-bold ${isCritical ? 'text-red-400 animate-pulse' : 'text-amber-300'}`}>
+                             {formatDuration(timeLeft)} left
+                           </div>
+                           <div className="text-[10px] text-gray-500">
+                             Due: {formatGameDateTime(new Date(deadline.dueDate))}
+                           </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
           <section>
             <h3 className="text-xl font-semibold mb-4 text-amber-400 flex items-center gap-2">
               Active Quests

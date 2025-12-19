@@ -147,6 +147,8 @@ const GameModals: React.FC<GameModalsProps> = ({
                         isOpen={gameState.isQuestLogVisible}
                         onClose={() => dispatch({ type: 'TOGGLE_QUEST_LOG' })}
                         quests={gameState.questLog}
+                        deadlines={gameState.deadlines}
+                        currentTime={gameState.gameTime}
                     />
                 </ErrorBoundary>
             )}
