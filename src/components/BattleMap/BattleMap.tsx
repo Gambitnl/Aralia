@@ -8,7 +8,7 @@ import { useBattleMap } from '../../hooks/useBattleMap';
 import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
 import BattleMapTile from './BattleMapTile';
 import CharacterToken from './CharacterToken';
-import BattleMapOverlay from '../BattleMapOverlay';
+import BattleMapOverlay from './BattleMapOverlay';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
 import { generateId } from '../../utils/combatUtils';
 
