@@ -8,14 +8,14 @@
  */
 
 import { DiceRoll } from '../types/dice';
-
-// Using string for DamageType to avoid circular dependency or import issues if enum is not available
-type DamageType = 'bludgeoning' | 'acid' | 'cold' | 'fire' | 'force' | 'lightning' | 'necrotic' | 'piercing' | 'poison' | 'psychic' | 'radiant' | 'slashing' | 'thunder';
+import { Position } from '../types/combat';
 
 // TODO(Mechanist): Integrate object AC/HP rules into combat targeting system (attacking doors/walls).
 // TODO(Mechanist): Wire up suffocation/breath rules into `useTurnManager.ts` to apply StatusEffect.Choking when breath runs out.
 export type ObjectSize = 'tiny' | 'small' | 'medium' | 'large' | 'huge' | 'gargantuan';
 export type ObjectMaterial = 'cloth' | 'paper' | 'rope' | 'crystal' | 'glass' | 'ice' | 'wood' | 'bone' | 'stone' | 'iron' | 'steel' | 'mithral' | 'adamantine';
+
+export type LightLevel = 'bright' | 'dim' | 'darkness';
 
 /**
  * Gets the Armor Class (AC) of an object based on its material.
@@ -210,4 +210,78 @@ export function calculateThrowDistance(
 
   // Minimum distance of 5 feet
   return Math.max(5, baseDist - weightPenalty);
+}
+
+/**
+ * Calculates the Chebyshev distance between two grid positions (5-5-5 rule).
+ * In D&D 5e grid rules, diagonal movement costs the same as cardinal movement (unless using variant rules).
+ * This means distance is effectively `max(dx, dy) * 5`.
+ *
+ * @param a - First position.
+ * @param b - Second position.
+ * @returns Distance in feet (assuming 5ft grid).
+ */
+export function calculateChebyshevDistance(a: Position, b: Position): number {
+  const dx = Math.abs(a.x - b.x);
+  const dy = Math.abs(a.y - b.y);
+  return Math.max(dx, dy) * 5;
+}
+
+// TODO(Mechanist): Integrate `calculateLightLevel` into `BattleMap` rendering to dynamically visualize Fog of War.
+/**
+ * Calculates the light level at a specific target position relative to a light source.
+ * D&D 5e Rules (PHB p. 183):
+ * - Bright light: Within the defined bright radius.
+ * - Dim light: Between the bright radius and the end of the dim radius.
+ * - Darkness: Beyond the dim radius.
+ *
+ * @param target - The position to check for illumination.
+ * @param sourceOrigin - The origin of the light source.
+ * @param brightRadius - The radius of bright light in feet.
+ * @param dimRadius - The *additional* radius of dim light beyond bright light (e.g., Torch: 20 bright, 20 dim).
+ * @returns 'bright', 'dim', or 'darkness'.
+ */
+export function calculateLightLevel(
+  target: Position,
+  sourceOrigin: Position,
+  brightRadius: number,
+  dimRadius: number
+): LightLevel {
+  const distance = calculateChebyshevDistance(target, sourceOrigin);
+
+  if (distance <= brightRadius) {
+    return 'bright';
+  } else if (distance <= brightRadius + dimRadius) {
+    return 'dim';
+  } else {
+    return 'darkness';
+  }
+}
+
+/**
+ * Determines the effective light level at a position given multiple light sources.
+ * - Bright light overrides Dim light and Darkness.
+ * - Dim light overrides Darkness.
+ *
+ * @param target - The position to check.
+ * @param sources - A list of light sources with their resolved positions.
+ * @returns The highest level of illumination present.
+ */
+export function getCombinedLightLevel(
+  target: Position,
+  sources: { position: Position; brightRadius: number; dimRadius: number }[]
+): LightLevel {
+  let hasDim = false;
+
+  for (const source of sources) {
+    const level = calculateLightLevel(target, source.position, source.brightRadius, source.dimRadius);
+    if (level === 'bright') {
+      return 'bright'; // Maximum illumination reached
+    }
+    if (level === 'dim') {
+      hasDim = true;
+    }
+  }
+
+  return hasDim ? 'dim' : 'darkness';
 }
