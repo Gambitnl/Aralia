@@ -6,6 +6,8 @@
  * Defines types for the Faction and Reputation system, enabling nuanced political gameplay.
  */
 
+import { FactionGoal } from './worldEvents';
+
 export type FactionType =
   | 'NOBLE_HOUSE'
   | 'GUILD'
@@ -61,6 +63,10 @@ export interface Faction {
   // Dynamic state
   power: number; // 0-100, represents overall influence/strength
   assets: FactionAsset[]; // Territories, resources, etc.
+
+  // Living World
+  goals: FactionGoal[];
+  activeGoalId?: string;
 }
 
 export interface PlayerFactionStanding {

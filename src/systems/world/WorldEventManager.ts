@@ -10,8 +10,9 @@ import { GameState, GameMessage, WorldRumor, MarketEvent, EconomyState } from '.
 import { applyReputationChange, modifyFactionRelationship } from '../../utils/factionUtils';
 import { getGameDay, addGameTime } from '../../utils/timeUtils';
 import { SeededRandom } from '../../utils/seededRandom';
+import { processFactionGoals } from './FactionGoalSystem';
 
-export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD';
+export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD' | 'FACTION_GOAL_EVENT';
 
 export interface WorldEventResult {
   state: GameState;
@@ -465,7 +466,14 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
      }
   }
 
-  // Iterate for each day passed
+  // 1. Process Faction Goals (New System)
+  const goalResult = processFactionGoals(currentState, daysPassed);
+  if (goalResult.state !== currentState) {
+      currentState = goalResult.state;
+      allLogs = [...allLogs, ...goalResult.logs];
+  }
+
+  // Iterate for each day passed (Legacy Random Events)
   for (let i = 0; i < daysPassed; i++) {
     if (rng.next() < DAILY_EVENT_CHANCE) {
       const roll = rng.next();

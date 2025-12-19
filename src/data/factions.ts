@@ -6,6 +6,7 @@
  * Initial data for factions in the world.
  */
 import { Faction, FactionRank, PlayerFactionStanding } from '../types/factions';
+import { FactionGoal } from '../types/worldEvents';
 
 const RANK_INITIATE: FactionRank = {
     id: 'initiate',
@@ -47,6 +48,17 @@ export const FACTIONS: Record<string, Faction> = {
         hates: ['theft', 'chaos', 'bad_debts'],
         power: 80,
         assets: [],
+        goals: [
+            {
+                id: 'ledger_monopoly_spice',
+                type: 'WEALTH',
+                description: 'Establish a monopoly on the spice trade.',
+                progress: 30,
+                difficulty: 60,
+                status: 'ACTIVE'
+            }
+        ],
+        activeGoalId: 'ledger_monopoly_spice',
         relationships: {}
     },
     'unseen_hand': {
@@ -65,6 +77,17 @@ export const FACTIONS: Record<string, Faction> = {
         services: ['fence', 'forgery', 'safehouse'],
         power: 60,
         assets: [],
+        goals: [
+            {
+                id: 'unseen_infiltration',
+                type: 'INFLUENCE',
+                description: 'Infiltrate the City Watch command structure.',
+                progress: 10,
+                difficulty: 80,
+                status: 'ACTIVE'
+            }
+        ],
+        activeGoalId: 'unseen_infiltration',
         relationships: {}
     },
     'house_vane': {
@@ -82,6 +105,17 @@ export const FACTIONS: Record<string, Faction> = {
         hates: ['cowardice', 'treachery', 'disrespect'],
         power: 75,
         assets: [],
+        goals: [
+            {
+                id: 'vane_border_fortification',
+                type: 'DEFENSE',
+                description: 'Fortify the northern borders against raids.',
+                progress: 50,
+                difficulty: 40,
+                status: 'ACTIVE'
+            }
+        ],
+        activeGoalId: 'vane_border_fortification',
         relationships: {}
     },
     // --- UNDERDARK FACTIONS ---
@@ -100,6 +134,17 @@ export const FACTIONS: Record<string, Faction> = {
         hates: ['weakness', 'light_dwellers', 'surface_elves'],
         power: 85,
         assets: [],
+        goals: [
+            {
+                id: 'xorlarrin_faerzress',
+                type: 'KNOWLEDGE',
+                description: 'Locate a dormant Faerzress node.',
+                progress: 20,
+                difficulty: 90,
+                status: 'ACTIVE'
+            }
+        ],
+        activeGoalId: 'xorlarrin_faerzress',
         relationships: {}
     },
     'deepkings_guard': {
@@ -117,6 +162,17 @@ export const FACTIONS: Record<string, Faction> = {
         hates: ['chaos', 'laziness', 'drow'],
         power: 70,
         assets: [],
+        goals: [
+            {
+                id: 'deepking_patrols',
+                type: 'EXPANSION',
+                description: 'Secure the trade tunnels to Skullport.',
+                progress: 40,
+                difficulty: 70,
+                status: 'ACTIVE'
+            }
+        ],
+        activeGoalId: 'deepking_patrols',
         relationships: {}
     },
     'ironhead_clan': {
@@ -134,6 +190,17 @@ export const FACTIONS: Record<string, Faction> = {
         hates: ['slavers', 'open_spaces', 'wastefulness'],
         power: 50,
         assets: [],
+        goals: [
+            {
+                id: 'ironhead_vein',
+                type: 'WEALTH',
+                description: 'Exploit the newly found mithral vein.',
+                progress: 10,
+                difficulty: 50,
+                status: 'ACTIVE'
+            }
+        ],
+        activeGoalId: 'ironhead_vein',
         relationships: {}
     }
 };
