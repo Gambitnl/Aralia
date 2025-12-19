@@ -7,9 +7,11 @@
  */
 
 import { GameState, GameMessage } from '../types';
-import { PlayerFactionStanding, Faction } from '../types/factions';
+import { PlayerFactionStanding, Faction, ReputationEvent } from '../types/factions';
 import { FACTIONS } from '../data/factions';
 import { generateRegionalPolitics } from './nobleHouseGenerator';
+import { v4 as uuidv4 } from 'uuid';
+import { getGameDay } from './timeUtils';
 
 export type ReputationTier = 'NEMESIS' | 'HOSTILE' | 'UNFRIENDLY' | 'NEUTRAL' | 'FRIENDLY' | 'HONORED' | 'REVERED';
 
@@ -254,7 +256,8 @@ export const applyReputationChange = (
                  secretStanding: 0,
                  rankId: 'outsider',
                  favorsOwed: 0,
-                 renown: 0
+                 renown: 0,
+                 history: []
              };
         }
 
@@ -262,11 +265,26 @@ export const applyReputationChange = (
         const oldStanding = current.publicStanding;
         const newStanding = calculateNewStanding(oldStanding, amt);
 
+        // Record history event
+        const historyEvent: ReputationEvent = {
+            id: uuidv4(),
+            timestamp: getGameDay(state.gameTime), // Use game day or raw timestamp? Using GameDay for consistency with other systems
+            change: amt,
+            newStanding: newStanding,
+            reason: rsn,
+            source: 'system' // Could be passed in if needed
+        };
+
         // Update state
+        // Cap history at 50 events to prevent infinite growth (Recorder principle: "Forgetting is as important as remembering")
+        const currentHistory = current.history || [];
+        const newHistory = [...currentHistory, historyEvent].slice(-50);
+
         newStandings[fId] = {
             ...current,
             publicStanding: newStanding,
-            secretStanding: calculateNewStanding(current.secretStanding, amt) // Assume secret moves with public for now
+            secretStanding: calculateNewStanding(current.secretStanding, amt), // Assume secret moves with public for now
+            history: newHistory
         };
 
         // Log if visible change

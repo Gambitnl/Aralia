@@ -63,6 +63,15 @@ export interface Faction {
   assets: FactionAsset[]; // Territories, resources, etc.
 }
 
+export interface ReputationEvent {
+  id: string;
+  timestamp: number; // Game time
+  change: number; // The amount changed
+  newStanding: number; // Snapshot of standing after change
+  reason: string;
+  source?: string; // e.g. "Quest: The Big Heist"
+}
+
 export interface PlayerFactionStanding {
   factionId: string;
   publicStanding: number; // -100 to 100. visible to everyone.
@@ -71,7 +80,10 @@ export interface PlayerFactionStanding {
   favorsOwed: number; // Positive: They owe player. Negative: Player owes them.
   joinedDate?: number; // Timestamp
   renown: number; // General fame within the faction
+  history: ReputationEvent[]; // Chronological log of reputation changes
 }
+
+// TODO(Intriguer): Display this reputation history in the Faction Detail UI.
 
 export interface FactionReputationChange {
   factionId: string;
