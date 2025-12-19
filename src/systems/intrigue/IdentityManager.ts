@@ -9,6 +9,18 @@
 import { PlayerIdentityState, Secret, Identity, Disguise, Alias, IntrigueCheckResult } from '../../types/identity';
 import { Faction, PlayerFactionStanding } from '../../types/factions';
 import { SeededRandom } from '../../utils/seededRandom';
+import { logger } from '../../utils/logger';
+
+// Default DCs for spotting disguises based on observer role
+// If specific stats are missing, we fallback to these.
+const OBSERVER_PASSIVE_PERCEPTION_BY_ROLE: Record<string, number> = {
+    'guard': 14,
+    'merchant': 12,
+    'noble': 13,
+    'criminal': 14,
+    'civilian': 10,
+    'unique': 12
+};
 
 export class IdentityManager {
 
@@ -61,7 +73,9 @@ export class IdentityManager {
     static equipDisguise(currentState: PlayerIdentityState, disguise: Disguise): PlayerIdentityState {
         return {
             ...currentState,
-            activeDisguise: disguise
+            activeDisguise: disguise,
+            // When equipping a disguise, we initially assume it works
+            currentPersonaId: `disguise_${disguise.id}`
         };
     }
 
@@ -71,7 +85,8 @@ export class IdentityManager {
     static removeDisguise(currentState: PlayerIdentityState): PlayerIdentityState {
         return {
             ...currentState,
-            activeDisguise: null
+            activeDisguise: null,
+            currentPersonaId: currentState.trueIdentity.id
         };
     }
 
@@ -103,5 +118,57 @@ export class IdentityManager {
         // (Logic would require checking faction relationships, assumed passed in or handled higher up)
 
         return secret.value;
+    }
+
+    /**
+     * Checks if a disguise holds up against an observer.
+     *
+     * @param disguise The active disguise.
+     * @param observerRole Role of the observer (guard, merchant, etc.) to determine base DC.
+     * @param situationalModifiers Bonuses or penalties to the check (e.g. +2 for distance, -5 for close inspection).
+     * @param rng SeededRandom instance for deterministic checks (optional).
+     */
+    static checkDisguise(
+        disguise: Disguise,
+        observerRole: string = 'civilian',
+        situationalModifiers: number = 0,
+        rng?: SeededRandom
+    ): IntrigueCheckResult {
+        // 1. Determine Observer's Passive Perception DC
+        const baseDC = OBSERVER_PASSIVE_PERCEPTION_BY_ROLE[observerRole] || 10;
+
+        // 2. Determine Disguise Performance Roll
+        // Roll = d20 + Disguise Quality
+        const d20 = rng ? Math.floor(rng.next() * 20) + 1 : Math.floor(Math.random() * 20) + 1;
+        const totalRoll = d20 + disguise.quality + situationalModifiers;
+
+        const success = totalRoll >= baseDC;
+        const margin = totalRoll - baseDC;
+
+        logger.info('Disguise Check', {
+            disguise: disguise.targetAppearance,
+            quality: disguise.quality,
+            roll: d20,
+            total: totalRoll,
+            dc: baseDC,
+            success
+        });
+
+        const result: IntrigueCheckResult = {
+            success,
+            detected: !success,
+            margin,
+            consequences: []
+        };
+
+        if (!success) {
+            result.consequences!.push('Disguise detected!');
+            // Critical failure logic could go here (margin < -5)
+            if (margin <= -5) {
+                result.consequences!.push('Observer is immediately hostile or alerts guards.');
+            }
+        }
+
+        return result;
     }
 }

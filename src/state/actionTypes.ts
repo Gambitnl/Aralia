@@ -4,7 +4,7 @@
  * Defines the main AppAction type for the application's state management.
  */
 import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType } from '../types';
-import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload } from './payloads/identityPayloads';
+import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload, VerifyDisguisePayload } from './payloads/identityPayloads';
 
 export type AppAction =
   | { type: 'SET_GAME_PHASE'; payload: GamePhase }
@@ -129,4 +129,5 @@ export type AppAction =
   | { type: 'CREATE_ALIAS'; payload: CreateAliasPayload }
   | { type: 'EQUIP_DISGUISE'; payload: EquipDisguisePayload }
   | { type: 'REMOVE_DISGUISE' }
-  | { type: 'LEARN_SECRET'; payload: LearnSecretPayload };
+  | { type: 'LEARN_SECRET'; payload: LearnSecretPayload }
+  | { type: 'VERIFY_DISGUISE'; payload: VerifyDisguisePayload };

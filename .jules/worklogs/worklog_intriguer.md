@@ -1,1 +1,3 @@
-File written successfully.
+## 2024-05-22 - Disguise Logic Fundamentals **Learning:** A robust disguise system requires variable Difficulty Classes (DC) based on observer roles (e.g., Guard vs. Peasant) rather than a flat check. **Action:** Future implementations should expose NPC stats (Perception/Insight) directly to the `IdentityManager` to remove reliance on role-based fallbacks.
+
+## 2024-05-22 - Identity Layers **Learning:** Separating `activeDisguise` from `currentPersonaId` allows the game to distinguish between "who I look like" and "who the game treats me as" until exposed. **Action:** Ensure UI components query `currentPersonaId` for dialogue checks but `trueIdentity` for game-over conditions.

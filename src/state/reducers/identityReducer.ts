@@ -101,6 +101,44 @@ export function identityReducer(state: GameState, action: AppAction): Partial<Ga
             };
         }
 
+        case 'VERIFY_DISGUISE': {
+            const { result, npcId } = action.payload;
+            const messages = [...state.messages];
+            let newIdentityState = state.playerIdentity;
+
+            if (result.detected) {
+                // Consequence: Disguise is blown
+                messages.push({
+                    id: Date.now(),
+                    text: `Your disguise failed! The observer is suspicious and sees through your ruse.`,
+                    sender: 'system',
+                    timestamp: new Date()
+                });
+
+                if (newIdentityState) {
+                    newIdentityState = IdentityManager.removeDisguise(newIdentityState);
+                    messages.push({
+                        id: Date.now() + 1,
+                        text: `You have been exposed. Your disguise is no longer effective.`,
+                        sender: 'system',
+                        timestamp: new Date()
+                    });
+                }
+            } else {
+                 messages.push({
+                    id: Date.now(),
+                    text: `Your disguise holds up... for now.`,
+                    sender: 'system',
+                    timestamp: new Date()
+                });
+            }
+
+            return {
+                messages,
+                playerIdentity: newIdentityState
+            };
+        }
+
         default:
             return {};
     }
