@@ -52,3 +52,36 @@ describe('redactSensitiveData', () => {
       expect(redactSensitiveData(undefined, FAKE_KEY)).toBeUndefined();
   });
 });
+
+import { safeJSONParse, cleanAIJSON } from '../securityUtils';
+
+describe('safeJSONParse', () => {
+  it('should parse valid JSON', () => {
+    expect(safeJSONParse('{"a": 1}')).toEqual({ a: 1 });
+    expect(safeJSONParse('[1, 2]')).toEqual([1, 2]);
+  });
+
+  it('should return fallback for invalid JSON', () => {
+    expect(safeJSONParse('invalid', { fallback: true })).toEqual({ fallback: true });
+    expect(safeJSONParse('{"a": 1', null)).toBeNull();
+  });
+
+  it('should return default fallback (null) if not provided', () => {
+    expect(safeJSONParse('invalid')).toBeNull();
+  });
+});
+
+describe('cleanAIJSON', () => {
+  it('should remove markdown code blocks', () => {
+    const input = '```json\n{"a": 1}\n```';
+    expect(cleanAIJSON(input)).toBe('{"a": 1}');
+  });
+
+  it('should handle text without markdown', () => {
+    expect(cleanAIJSON('{"a": 1}')).toBe('{"a": 1}');
+  });
+
+  it('should trim whitespace', () => {
+    expect(cleanAIJSON('  {"a": 1}  ')).toBe('{"a": 1}');
+  });
+});

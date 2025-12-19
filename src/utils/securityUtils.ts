@@ -110,3 +110,31 @@ export function redactSensitiveData(data: any, secret?: string): any {
 
   return data;
 }
+
+/**
+ * Safely parses a JSON string, handling errors gracefully.
+ *
+ * @param jsonString The string to parse.
+ * @param fallback The value to return if parsing fails.
+ * @returns The parsed object or the fallback value.
+ */
+export function safeJSONParse<T>(jsonString: string, fallback: T | null = null): T | null {
+  if (!jsonString) return fallback;
+  try {
+    return JSON.parse(jsonString);
+  } catch (error) {
+    return fallback;
+  }
+}
+
+/**
+ * Cleans a string from an AI response by removing Markdown code blocks.
+ * Often used before parsing JSON from an LLM.
+ *
+ * @param text The raw text from the AI.
+ * @returns The cleaned text ready for parsing.
+ */
+export function cleanAIJSON(text: string): string {
+  if (!text) return "";
+  return text.replace(/\`\`\`json\n|\`\`\`/g, '').trim();
+}

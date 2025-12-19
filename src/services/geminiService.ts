@@ -19,7 +19,7 @@ import { CLASSES_DATA } from '../data/classes';
 import { MONSTERS_DATA } from '../constants';
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, FAST_MODEL, COMPLEX_MODEL } from '../config/geminiConfig';
 import * as ItemTemplates from '../data/item_templates';
-import { sanitizeAIInput, redactSensitiveData } from '../utils/securityUtils';
+import { sanitizeAIInput, redactSensitiveData, safeJSONParse, cleanAIJSON } from '../utils/securityUtils';
 import { getFallbackEncounter } from './geminiServiceFallback';
 import { MonsterSchema, CustomActionSchema, SocialOutcomeSchema, InventoryResponseSchema, ItemSchema } from './geminiSchemas';
 
@@ -646,8 +646,9 @@ export async function generateEncounter(
 
       if (responseText) {
         try {
-          const jsonString = responseText.replace(/```json\n|```/g, '').trim();
-          const parsed = JSON.parse(jsonString);
+          const jsonString = cleanAIJSON(responseText);
+          const parsed = safeJSONParse(jsonString);
+          if (!parsed) throw new Error("Parsed JSON is null");
           encounter = MonsterSchema.array().parse(parsed);
         } catch (e) {
           logger.error(`Failed to parse JSON from generateEncounter with model ${model}:`, { responseText, error: e });
@@ -762,8 +763,9 @@ export async function generateCustomActions(
 
   let actions: Action[] = [];
   try {
-    const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
-    const parsedActions = JSON.parse(jsonString);
+    const jsonString = cleanAIJSON(result.data.text);
+    const parsedActions = safeJSONParse(jsonString);
+    if (!parsedActions) throw new Error("Parsed JSON is null");
     const validatedActions = CustomActionSchema.array().parse(parsedActions);
 
     actions = validatedActions.map(a => ({
@@ -836,8 +838,9 @@ export async function generateSocialCheckOutcome(
   }
 
   try {
-    const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
-    const parsed = JSON.parse(jsonString);
+    const jsonString = cleanAIJSON(result.data.text);
+    const parsed = safeJSONParse(jsonString);
+    if (!parsed) throw new Error("Parsed JSON is null");
     const validated = SocialOutcomeSchema.parse(parsed);
 
     // Cast the status to match GoalStatus enum if needed or ensure safe usage
@@ -937,8 +940,9 @@ export async function generateMerchantInventory(
   }
 
   try {
-    const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
-    const parsed = JSON.parse(jsonString);
+    const jsonString = cleanAIJSON(result.data.text);
+    const parsed = safeJSONParse(jsonString);
+    if (!parsed) throw new Error("Parsed JSON is null");
     const validated = InventoryResponseSchema.parse(parsed);
 
     // Ensure items have IDs
@@ -1020,8 +1024,9 @@ export async function generateHarvestLoot(
   }
 
   try {
-    const jsonString = result.data.text.replace(/```json\n|```/g, '').trim();
-    const parsed = JSON.parse(jsonString);
+    const jsonString = cleanAIJSON(result.data.text);
+    const parsed = safeJSONParse(jsonString);
+    if (!parsed) throw new Error("Parsed JSON is null");
     const rawItems = ItemSchema.array().parse(parsed);
 
     const items = rawItems.map(item => ({
