@@ -113,7 +113,7 @@ export class EntityResolverService {
    * @param state The current game state (to check for dynamic entities)
    * @returns An object containing the entity and a boolean indicating if it was newly created.
    */
-  static ensureEntityExists(type: EntityType, name: string, state: GameState): EntityCreationResult {
+  static async ensureEntityExists(type: EntityType, name: string, state: GameState): Promise<EntityCreationResult> {
     const resolution = this.checkExistence(name, type, state);
 
     if (resolution.exists && resolution.id) {
