@@ -24,6 +24,7 @@ export enum StateTag {
   Poisoned = 'poisoned',
   Electrified = 'electrified',
   Cold = 'cold', // Represents extreme cold or chilling effects
+  Smoke = 'smoke', // Represents smoke, steam, or fog that obscures vision
 }
 
 /**
@@ -34,7 +35,7 @@ export enum StateTag {
 export const StateInteractions: Record<string, StateTag | null> = {
   // Wet interactions
   'cold+wet': StateTag.Frozen,      // Water freezes into ice
-  'burning+wet': null,              // Water extinguishes fire (steam)
+  'burning+wet': StateTag.Smoke,    // Water extinguishes fire (creating steam/smoke)
   'burning+cold': null,             // Extreme cold extinguishes fire
 
   // Oiled interactions
@@ -45,6 +46,7 @@ export const StateInteractions: Record<string, StateTag | null> = {
 
   // Electrified interactions
   // (Placeholder for future: wet+electrified -> AoE damage)
+  // TODO(Simulator): Implement vision obscurement mechanics for the Smoke state.
   // TODO(Simulator): The current system only supports state transformation.
   // To implement wet+electrified -> AoE damage, we need to expand interaction results to include side-effects.
 };
