@@ -2,7 +2,7 @@
  * @file src/systems/crafting/craftingSystem.ts
  * Core logic for crafting items, including recipe validation and execution.
  */
-import { Recipe, CraftingResult, MaterialRequirement } from './types';
+import { Recipe, CraftingResult, QualityOutcome, CraftingQuality } from './types';
 
 /**
  * Interface representing a character capable of crafting.
@@ -53,24 +53,64 @@ export function attemptCraft(crafter: Crafter, recipe: Recipe): CraftingResult {
   // 2. Perform Skill Check (if required)
   let roll = 0;
   let success = true;
-  let quality: 'poor' | 'standard' | 'superior' | 'masterwork' = 'standard';
+  let quality: CraftingQuality = 'standard';
   let materialsLost = false;
+  let outcomeMessage = '';
+  let quantityMultiplier = 1;
+  let itemIdOverride: string | undefined;
 
+  // Default outcomes if none provided
+  // Standard logic: Fail < DC, Success >= DC, Superior >= DC+10
   if (recipe.skillCheck) {
     roll = crafter.rollSkill(recipe.skillCheck.skill);
     const dc = recipe.skillCheck.dc;
 
-    if (roll < dc) {
-      // Failure
-      success = false;
-      materialsLost = true; // Strict ALCHEMIST philosophy: Failure costs resources
-      quality = 'poor';
-    } else if (roll >= dc + 10) {
-      // Critical Success
-      quality = 'superior';
-    } else if (roll >= dc + 5) {
-      // Good Success (could define 'standard' as baseline, but let's allow superior)
-      // For now, let's keep it simple: > DC+10 is superior, else standard.
+    // Use custom outcomes if available
+    if (recipe.qualityOutcomes && recipe.qualityOutcomes.length > 0) {
+      // Sort by threshold descending to find best match
+      const outcomes = [...recipe.qualityOutcomes].sort((a, b) => b.threshold - a.threshold);
+
+      let matchedOutcome: QualityOutcome | undefined;
+      for (const outcome of outcomes) {
+        if (roll >= outcome.threshold) {
+          matchedOutcome = outcome;
+          break;
+        }
+      }
+
+      if (matchedOutcome) {
+        quality = matchedOutcome.quality;
+        success = quality !== 'poor';
+        itemIdOverride = matchedOutcome.itemIdOverride;
+        quantityMultiplier = matchedOutcome.quantityMultiplier || 1;
+        outcomeMessage = matchedOutcome.message || '';
+
+        // If poor quality, assume failure unless recipe says otherwise (usually poor = fail in this system context)
+        // actually, let's treat 'poor' as failure for consistency with existing logic unless we want "success but bad quality"
+        // But for now, let's stick to: if quality is poor, success is false.
+        if (quality === 'poor') {
+            success = false;
+            materialsLost = true; // Default to losing materials on explicit failure outcome
+        }
+      } else {
+        // Rolled lower than lowest threshold? Assume simple failure.
+        success = false;
+        quality = 'poor';
+        materialsLost = true;
+      }
+
+    } else {
+      // Default logic
+      if (roll < dc) {
+        success = false;
+        materialsLost = true;
+        quality = 'poor';
+      } else if (roll >= dc + 10) {
+        quality = 'superior';
+        outcomeMessage = 'Exceptional craftsmanship!';
+      } else {
+        quality = 'standard';
+      }
     }
   }
 
@@ -79,9 +119,6 @@ export function attemptCraft(crafter: Crafter, recipe: Recipe): CraftingResult {
   const consumed: { itemId: string; quantity: number }[] = [];
 
   // Determine consumed materials
-  // Even on failure, if materialsLost is true, we consume "consumed" inputs
-  // If failure but materialsLost is false (e.g. tools broke but materials safe? - simpler to just consume on fail usually)
-  // Logic: If success, consume inputs. If fail and materialsLost, consume inputs.
   if (success || materialsLost) {
     for (const input of recipe.inputs) {
       if (input.consumed) {
@@ -92,10 +129,19 @@ export function attemptCraft(crafter: Crafter, recipe: Recipe): CraftingResult {
 
   if (success) {
     for (const output of recipe.outputs) {
-      let qty = output.quantity;
-      // Future: apply quality bonuses to quantity or item ID mapping
-      outputs.push({ itemId: output.itemId, quantity: qty });
+      let qty = Math.floor(output.quantity * quantityMultiplier);
+      const finalItemId = itemIdOverride || output.itemId;
+
+      outputs.push({ itemId: finalItemId, quantity: qty });
     }
+  }
+
+  // Construct final message
+  let finalMessage = outcomeMessage;
+  if (!finalMessage) {
+    finalMessage = success
+      ? `Successfully crafted ${recipe.name} (${quality}).`
+      : `Failed to craft ${recipe.name}. Materials ${materialsLost ? 'lost' : 'preserved'}.`;
   }
 
   return {
@@ -104,8 +150,6 @@ export function attemptCraft(crafter: Crafter, recipe: Recipe): CraftingResult {
     outputs: success ? outputs : [],
     consumedMaterials: consumed,
     materialsLost: !success && materialsLost,
-    message: success
-      ? `Successfully crafted ${recipe.name} (${quality}).`
-      : `Failed to craft ${recipe.name}. Materials ${materialsLost ? 'lost' : 'preserved'}.`
+    message: finalMessage
   };
 }
