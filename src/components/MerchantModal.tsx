@@ -4,12 +4,13 @@
  * A modal interface for trading items with a merchant.
  * Supports buying items with gold and selling items for half value (or dynamic value).
  */
-import React, { useEffect, useRef, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { Item, Action, EconomyState } from '../types';
 import Tooltip from './Tooltip';
 import { useGameState } from '../state/GameContext';
 import { calculatePrice } from '../utils/economyUtils';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 interface MerchantModalProps {
   isOpen: boolean;
@@ -36,18 +37,8 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
   // Use prop economy if provided (for tests), otherwise fall back to global state economy
   const economy = propEconomy || state.economy;
 
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    if (isOpen) {
-        window.addEventListener('keydown', handleEsc);
-        closeButtonRef.current?.focus();
-    }
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, [isOpen, onClose]);
+  // UX: Use focus trap for accessible modal behavior (traps tab, handles escape, restores focus)
+  const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
 
   const sellableItems = useMemo(() => {
       // Allow selling anything with value or cost string
@@ -81,13 +72,18 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
       onClick={onClose}
     >
       <motion.div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Trading with ${merchantName}`}
         {...{
           initial: { y: -20, opacity: 0 },
           animate: { y: 0, opacity: 1 },
           exit: { y: 20, opacity: 0 },
         } as any}
-        className="bg-gray-800 border border-gray-600 rounded-xl shadow-2xl w-full max-w-5xl h-[80vh] flex flex-col"
+        className="bg-gray-800 border border-gray-600 rounded-xl shadow-2xl w-full max-w-5xl h-[80vh] flex flex-col focus:outline-none"
         onClick={(e) => e.stopPropagation()}
+        tabIndex={-1}
       >
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-gray-700 bg-gray-900/50 rounded-t-xl">
@@ -118,9 +114,9 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                 </div>
             </div>
             <button 
-                ref={closeButtonRef}
                 onClick={onClose}
                 className="text-gray-400 hover:text-white text-3xl"
+                aria-label="Close shop"
             >&times;</button>
         </div>
 
@@ -136,7 +132,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                         return (
                             <div key={`${item.id}-${idx}`} className="bg-gray-700 p-3 rounded-lg flex justify-between items-center shadow-sm">
                                 <div className="flex items-center gap-3">
-                                    <span className="text-2xl">{item.icon || '📦'}</span>
+                                    <span className="text-2xl" aria-hidden="true">{item.icon || '📦'}</span>
                                     <Tooltip content={`${item.description}\nType: ${item.type}`}>
                                         <div>
                                             <p className="font-semibold text-gray-200">{item.name}</p>
@@ -148,6 +144,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                     <button
                                         onClick={() => handleBuy(item)}
                                         disabled={!canAfford}
+                                        aria-label={`Buy ${item.name} for ${finalPrice} gold pieces`}
                                         className={`px-3 py-1.5 rounded text-sm font-bold transition-colors flex items-center gap-1
                                             ${canAfford ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-gray-600 text-gray-400 cursor-not-allowed'}
                                         `}
@@ -177,7 +174,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                         return (
                             <div key={`${item.id}-${idx}`} className="bg-gray-700/50 p-3 rounded-lg flex justify-between items-center border border-gray-600/50">
                                 <div className="flex items-center gap-3">
-                                    <span className="text-2xl">{item.icon || '📦'}</span>
+                                    <span className="text-2xl" aria-hidden="true">{item.icon || '📦'}</span>
                                     <div>
                                         <p className="font-semibold text-gray-300">{item.name}</p>
                                         <p className="text-xs text-gray-500">Value: {finalPrice} GP</p>
@@ -187,6 +184,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                     <button
                                         onClick={() => handleSell(item)}
                                         disabled={!canSell}
+                                        aria-label={`Sell ${item.name} for ${finalPrice} gold pieces`}
                                         className={`px-3 py-1.5 rounded text-sm font-bold transition-colors flex items-center gap-1
                                             ${canSell ? 'bg-yellow-600 hover:bg-yellow-500 text-white' : 'bg-gray-600 text-gray-500 cursor-not-allowed'}
                                         `}
@@ -210,7 +208,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
         {/* Footer */}
         <div className="p-4 border-t border-gray-700 bg-gray-900 rounded-b-xl flex justify-between items-center">
             <div className="flex items-center gap-2 text-xl font-bold text-amber-300">
-                <span>🪙</span>
+                <span aria-hidden="true">🪙</span>
                 <span>{playerGold} GP</span>
             </div>
             <button 
