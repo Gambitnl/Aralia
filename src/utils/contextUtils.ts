@@ -56,14 +56,30 @@ export function generateGeneralActionContext({
     parts.push(`## PLAYER\nAn unknown adventurer`);
   }
 
-  // --- LOCATION ---
-  const biomeName = BIOMES[currentLocation.biomeId]?.name || 'Unknown Biome';
+  // --- ATMOSPHERE & ENVIRONMENT ---
+  // Moved time/weather here for better organization
   const timeDesc = formatGameTime(gameState.gameTime, { hour: '2-digit', minute: '2-digit', hour12: true });
   // Use time modifiers for atmospheric flavor
   const timeModifiers = getTimeModifiers(gameState.gameTime);
-  const flavorTime = timeModifiers.description;
+  let atmosphereDetails = `Time: ${timeDesc}`;
 
-  let locationDetails = `${currentLocation.name} (${biomeName}) | Time: ${timeDesc} (${flavorTime})`;
+  if (gameState.environment) {
+     // If rich weather state exists
+     atmosphereDetails += ` | Weather: ${gameState.environment.currentCondition.name} (Temp: ${gameState.environment.temperature}°F, Wind: ${gameState.environment.windSpeed} mph)`;
+     if (gameState.environment.currentCondition.description) {
+         atmosphereDetails += `\nLook/Feel: ${gameState.environment.currentCondition.description}`;
+     }
+  } else {
+     // Fallback to simple description
+     atmosphereDetails += ` (${timeModifiers.description})`;
+  }
+
+  parts.push(`## ATMOSPHERE & ENVIRONMENT\n${atmosphereDetails}`);
+
+
+  // --- LOCATION ---
+  const biomeName = BIOMES[currentLocation.biomeId]?.name || 'Unknown Biome';
+  let locationDetails = `${currentLocation.name} (${biomeName})`;
 
   // Submap Context
   if (gameState.subMapCoordinates) {
@@ -83,6 +99,27 @@ export function generateGeneralActionContext({
   }
 
   parts.push(`## LOCATION\n${locationDetails}`);
+
+  // --- WORLD RUMORS & NEWS ---
+  // Filter active rumors to show relevant ones.
+  // 1. Sort by recency (newest first)
+  // 2. Prioritize local rumors if we had region data
+  // 3. Take top 3
+  if (gameState.activeRumors && gameState.activeRumors.length > 0) {
+      // Simple sort by timestamp descending
+      const sortedRumors = [...gameState.activeRumors].sort((a, b) => b.timestamp - a.timestamp);
+      const topRumors = sortedRumors.slice(0, 3);
+
+      const rumorLines = topRumors.map(r => {
+          let prefix = "Rumor:";
+          if (r.type === 'skirmish') prefix = "War News:";
+          if (r.type === 'market') prefix = "Economy:";
+
+          return `- ${prefix} "${r.text}"`;
+      });
+
+      parts.push(`## WORLD RUMORS & NEWS\n${rumorLines.join('\n')}`);
+  }
 
   // --- FACTIONS & POLITICS ---
   // Identify factions present in the location via NPCs
