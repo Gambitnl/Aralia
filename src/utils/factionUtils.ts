@@ -223,6 +223,10 @@ export const calculateRippleEffects = (
     return ripples;
 };
 
+/**
+ * @deprecated Use FactionManager.applyReputationChange instead.
+ * This utility function is kept for backward compatibility but does not generate rumors.
+ */
 interface ApplyReputationResult {
     standings: Record<string, PlayerFactionStanding>;
     logs: GameMessage[];
@@ -232,6 +236,8 @@ interface ApplyReputationResult {
  * Applies a reputation change and all its ripple effects.
  * Returns updated standings map and generated log messages.
  * Does NOT mutate the input state.
+ *
+ * @deprecated Use FactionManager.applyReputationChange() for full feature support (rumors).
  */
 export const applyReputationChange = (
     state: GameState,
