@@ -13,12 +13,12 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { Location, Action, NPC, Item } from '../types';
-import { getSubmapTileInfo } from '../utils/submapUtils';
 import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import { BTN_BASE, BTN_SIZE_LG } from '../styles/buttonStyles';
 import { canUseDevTools } from '../utils/permissions';
 import { logger } from '../utils/logger';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { getAdjacentVillageEntry } from '../utils/submapEntryUtils';
 
 interface ActionPaneProps {
   currentLocation: Location;
@@ -239,44 +239,14 @@ const ActionPane: React.FC<ActionPaneProps> = ({
 
   // Check for Village/Town Entry
   // Method 1: Procedural village terrain on coordinate locations AND predefined locations
-  // TODO[VILLAGE-ENTRY-REFACTOR]: Consider extracting adjacency check to a utility
-  // (e.g., getAdjacentVillageEntry() in submapUtils.ts) for reuse in compass/movement handlers.
   if (subMapCoordinates && worldSeed !== undefined) {
-    // Only check cardinal directions (N/E/S/W) for village entry - no diagonals
-    // The offset represents where the VILLAGE is relative to the player
-    // So if village is at offset {x: 1, y: 0}, player enters from the WEST
-    const cardinalOffsets = [
-      { x: 0, y: -1, entryDirection: 'south' },  // Village is north of player -> enter from south
-      { x: 0, y: 1, entryDirection: 'north' },   // Village is south of player -> enter from north
-      { x: -1, y: 0, entryDirection: 'east' },   // Village is west of player -> enter from east
-      { x: 1, y: 0, entryDirection: 'west' },    // Village is east of player -> enter from west
-    ];
-
-    let adjacentToVillage = false;
-    let entryDirection: string | null = null;
-
-    for (const offset of cardinalOffsets) {
-      const checkX = subMapCoordinates.x + offset.x;
-      const checkY = subMapCoordinates.y + offset.y;
-
-      // Only check within submap bounds
-      if (checkX >= 0 && checkX < SUBMAP_DIMENSIONS.cols &&
-        checkY >= 0 && checkY < SUBMAP_DIMENSIONS.rows) {
-        const { effectiveTerrainType: checkType } = getSubmapTileInfo(
-          worldSeed,
-          currentLocation.mapCoordinates,
-          currentLocation.biomeId,
-          SUBMAP_DIMENSIONS,
-          { x: checkX, y: checkY }
-        );
-
-        if (checkType === 'village_area') {
-          adjacentToVillage = true;
-          entryDirection = offset.entryDirection;
-          break; // Use first found village direction
-        }
-      }
-    }
+    const { adjacentToVillage, entryDirection } = getAdjacentVillageEntry(
+      worldSeed,
+      subMapCoordinates,
+      currentLocation.mapCoordinates,
+      currentLocation.biomeId,
+      SUBMAP_DIMENSIONS
+    );
 
     if (adjacentToVillage && entryDirection) {
       if (canUseDevTools()) logger.debug('Player is cardinally adjacent to village', { entryDirection });
