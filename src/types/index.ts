@@ -334,6 +334,9 @@ export interface GeminiLogEntry {
 // Crime & notoriety (Legacy - migrating to src/types/crime)
 // -----------------------------------------------------------------------------
 import { Crime, HeatLevel, Bounty } from './crime';
+import { PlayerLegacy } from './legacy';
+import { Stronghold } from './stronghold';
+
 // Import the new History types to make them available globally
 import { WorldHistory, WorldHistoryEvent } from './history';
 
@@ -613,6 +616,10 @@ export interface GameState {
   // Intriguer: Identity System
   playerIdentity?: import('./identity').PlayerIdentityState;
 
+  // Castellan: Legacy & Strongholds
+  legacy?: PlayerLegacy;
+  strongholds?: Record<string, Stronghold>;
+
   // Depthcrawler: Underdark System
   underdark: UnderdarkState;
 
@@ -839,3 +846,4 @@ export interface Notification {
   duration?: number;
 }
 export * from './elemental';
+export * from './stronghold';
