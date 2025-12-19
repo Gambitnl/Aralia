@@ -54,8 +54,12 @@ export interface CombatCharacter {
   id: string;
   name: string;
   level: number; // For scaling calculations (CR for monsters, Level for PCs)
-  // TODO(Taxonomist): Migrate string[] to CreatureType[] from src/types/creatures.ts
-  creatureTypes?: string[]; // e.g., ['Undead', 'Humanoid']
+  /**
+   * Creature types for targeting (e.g., ['Humanoid', 'Elf']).
+   * Used by spells like Charm Person or Hold Person.
+   * TODO(Taxonomist): Migrate string[] to CreatureType[] from src/types/creatures.ts
+   */
+  creatureTypes?: string[];
   alignment?: string; // e.g., 'Chaotic Evil', 'Lawful Good'
   class: Class;
   savingThrowProficiencies?: AbilityScoreName[]; // For characters that have additional saving throw proficiencies (e.g. from feats)

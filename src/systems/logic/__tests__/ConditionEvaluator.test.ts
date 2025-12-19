@@ -83,4 +83,38 @@ describe('ConditionEvaluator', () => {
       };
       expect(ConditionEvaluator.evaluate(condition, ctx)).toBe(true);
   });
+
+  it('evaluates creature type (Humanoid match)', () => {
+    const human = createMockCharacter('human', 50);
+    human.creatureTypes = ['Humanoid'];
+
+    const contextWithHuman = {
+      self: human,
+      target: human
+    };
+
+    const condition: Condition = {
+      type: 'creature_type',
+      creatureType: 'Humanoid',
+      target: 'self'
+    };
+    expect(ConditionEvaluator.evaluate(condition, contextWithHuman)).toBe(true);
+  });
+
+  it('evaluates creature type (Humanoid mismatch)', () => {
+    const beast = createMockCharacter('beast', 50);
+    beast.creatureTypes = ['Beast'];
+
+    const contextWithBeast = {
+      self: beast,
+      target: beast
+    };
+
+    const condition: Condition = {
+      type: 'creature_type',
+      creatureType: 'Humanoid',
+      target: 'self'
+    };
+    expect(ConditionEvaluator.evaluate(condition, contextWithBeast)).toBe(false);
+  });
 });
