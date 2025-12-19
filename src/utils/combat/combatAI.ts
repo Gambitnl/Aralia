@@ -9,33 +9,73 @@ import { computeAoETiles, getDistance, generateId, resolveAreaDefinition } from 
 import { hasLineOfSight } from '../../utils/lineOfSight';
 import { logger } from '../logger';
 
-// Scoring weights used throughout the planner. Tweakable knobs to steer priorities.
+/**
+ * Scoring weights used to prioritize AI actions.
+ * These constants act as "knobs" to tune the AI's behavior.
+ *
+ * - Positive values encourage behavior.
+ * - Negative values discourage behavior.
+ * - Higher magnitude means stronger preference.
+ */
 const WEIGHTS = {
+  /** Bonus for killing a target (removing an enemy action). */
   KILL_TARGET: 120,
+  /** Multiplier per point of damage dealt. */
   DAMAGE: 1,
-  HEAL: 1.6, // Healing is prioritized slightly over damage
+  /** Multiplier per point of healing delivered. Prioritized slightly over damage. */
+  HEAL: 1.6,
+  /** Bonus for actions that improve the caster's own survival (e.g. retreating when low). */
   SELF_PRESERVATION: 4,
-  DISTANCE_PENALTY: -0.1, // Slight penalty for moving far
-  FOCUS_FIRE_BONUS: 6, // Bonus for attacking a target already damaged
-  SAFETY_DISTANCE: 0.4, // Reward for keeping distance when low HP
-  AOE_MULTI_TARGET: 14, // Encourage clustering hits
-  FRIENDLY_FIRE_PENALTY: -35, // Strongly avoid clipping allies
-  POSITIONING_BONUS: 0.6, // Small reward for holding distance while casting
+  /** Penalty per tile moved to discourage unnecessary movement. */
+  DISTANCE_PENALTY: -0.1,
+  /** Bonus for attacking a target that is already damaged (Focus Fire). */
+  FOCUS_FIRE_BONUS: 6,
+  /** Multiplier for distance from enemies when low on HP. */
+  SAFETY_DISTANCE: 0.4,
+  /** Bonus per additional target hit in an AoE. */
+  AOE_MULTI_TARGET: 14,
+  /** Strong penalty for hitting allies with damaging effects. */
+  FRIENDLY_FIRE_PENALTY: -35,
+  /** Small bonus for keeping distance while casting (kiting). */
+  POSITIONING_BONUS: 0.6,
 };
 
+/**
+ * Represents a candidate action for the AI to consider.
+ * Each plan includes the type of action, targets, and a computed score
+ * indicating its estimated value to the team.
+ */
 interface AIPlan {
+  /** The type of action to perform. */
   actionType: 'move' | 'ability' | 'end_turn';
+  /** The ID of the ability to use, if applicable. */
   abilityId?: string;
+  /** The target location for the action (move destination or spell target). */
   targetPosition?: Position;
+  /** IDs of characters targeted by this action. */
   targetCharacterIds?: string[];
+  /** The utility score of this plan. Higher is better. */
   score: number;
+  /** Human-readable description of the plan for debugging/logging. */
   description: string;
 }
 
 /**
  * Evaluates the combat state and returns the best action for the given AI character.
+ *
+ * The AI uses a "Score-based Utility" approach:
+ * 1. It identifies all possible valid actions (abilities, movement).
+ * 2. It generates a "Plan" for each possibility.
+ * 3. It scores each plan based on heuristics (damage, healing, survival).
+ * 4. It executes the plan with the highest score.
+ *
  * The evaluator is intentionally greedy but aware of positioning: it will move into
  * range/LoS for a high-value cast, heal allies, or retreat when threatened.
+ *
+ * @param character - The AI character taking the turn.
+ * @param characters - All characters in the combat (enemies and allies).
+ * @param mapData - The current state of the battle map.
+ * @returns The chosen CombatAction to execute.
  */
 export function evaluateCombatTurn(
   character: CombatCharacter,
@@ -159,6 +199,9 @@ export function evaluateCombatTurn(
   return createEndTurnAction(character);
 }
 
+/**
+ * Creates a generic 'end turn' action when no other actions are viable.
+ */
 function createEndTurnAction(character: CombatCharacter): CombatAction {
   return {
     id: generateId(),
@@ -169,6 +212,14 @@ function createEndTurnAction(character: CombatCharacter): CombatAction {
   };
 }
 
+/**
+ * Checks if a character can afford an ability based on available action economy.
+ * This is a "soft" check for planning purposes.
+ *
+ * @param character - The character attempting the action.
+ * @param ability - The ability to check.
+ * @returns True if the character has the required action type available.
+ */
 function canAffordIdeally(character: CombatCharacter, ability: Ability): boolean {
   const cost = ability.cost;
   const eco = character.actionEconomy;
@@ -181,6 +232,14 @@ function canAffordIdeally(character: CombatCharacter, ability: Ability): boolean
   return true;
 }
 
+/**
+ * Evaluates the utility of casting a self-targeting ability (buffs, self-heals).
+ *
+ * Heuristics:
+ * - Healing is valuable only when damaged (efficiency).
+ * - Self-preservation (healing when critical) is heavily weighted.
+ * - Buffs are generally considered good to maintain.
+ */
 function evaluateSelfAbility(caster: CombatCharacter, ability: Ability): number {
   let score = 0;
   // Heuristic: If low health and ability heals
@@ -203,6 +262,17 @@ function evaluateSelfAbility(caster: CombatCharacter, ability: Ability): number 
   return score;
 }
 
+/**
+ * Generates a plan to attack a single enemy.
+ *
+ * Considers:
+ * - Damage output vs target HP.
+ * - Kill potential (removing a threat).
+ * - Focus Fire (prioritizing damaged enemies).
+ * - Movement cost (penalty for having to move).
+ *
+ * If the target is out of range, it attempts to find a valid move-and-cast position.
+ */
 function evaluateAttackPlan(
   caster: CombatCharacter,
   target: CombatCharacter,
@@ -263,6 +333,16 @@ function evaluateAttackPlan(
   return null;
 }
 
+/**
+ * Generates a plan to support (heal/buff) a single ally.
+ *
+ * Considers:
+ * - Healing efficiency (not overheating).
+ * - Critical rescue (bonus for saving low-HP allies).
+ * - Buff utility.
+ *
+ * Similar to attack plans, it will search for a move-to-cast position if needed.
+ */
 function evaluateSupportPlan(
   caster: CombatCharacter,
   target: CombatCharacter,
@@ -321,9 +401,18 @@ function evaluateSupportPlan(
 
 /**
  * Evaluates area-of-effect options by scanning likely centers (enemy clusters,
- * ally clumps for healing) and scoring the resulting hit list. The scoring
- * intentionally rewards multi-target hits while strongly penalizing friendly fire
+ * ally clumps for healing) and scoring the resulting hit list.
+ *
+ * The scoring rewards multi-target hits while strongly penalizing friendly fire
  * to keep the AI tactically sane.
+ *
+ * @param caster - The AI character.
+ * @param ability - The AoE ability.
+ * @param enemies - List of enemies.
+ * @param allies - List of allies.
+ * @param mapData - The battle map.
+ * @param reachableTiles - Pre-computed reachable tiles for the caster.
+ * @returns The best AoE plan found, or null.
  */
 function evaluateAoEPlan(
   caster: CombatCharacter,
@@ -508,6 +597,12 @@ function evaluateAoEPlan(
   return bestPlan;
 }
 
+/**
+ * Finds the nearest enemy character.
+ * @param character - The reference character.
+ * @param enemies - List of enemy characters.
+ * @returns The nearest enemy or null if list is empty.
+ */
 function getNearestEnemy(character: CombatCharacter, enemies: CombatCharacter[]): CombatCharacter | null {
   let nearest: CombatCharacter | null = null;
   let minDist = Infinity;
@@ -522,6 +617,18 @@ function getNearestEnemy(character: CombatCharacter, enemies: CombatCharacter[])
   return nearest;
 }
 
+/**
+ * Plans a movement action to get within a desired range of a target position.
+ * It searches the `reachableTiles` for the tile that minimizes distance to the
+ * target while respecting movement costs.
+ *
+ * @param character - The moving character.
+ * @param targetPos - The destination to approach.
+ * @param rangeNeeded - The desired maximum distance from the target (e.g., attack range).
+ * @param mapData - The map data.
+ * @param reachableTiles - (Optional) Pre-computed reachable tiles. If missing, it's computed.
+ * @returns A CombatAction for movement, or null if no valid move exists.
+ */
 function planMovement(
   character: CombatCharacter,
   targetPos: Position,
@@ -572,6 +679,10 @@ function planMovement(
 /**
  * Builds a map of all reachable tiles and their cost using a BFS flood fill.
  * This is reused by many scoring functions to avoid redundant map scans.
+ *
+ * @param character - The character to calculate movement for.
+ * @param mapData - The map data.
+ * @returns A map of Tile ID -> { tile, cost }.
  */
 function buildReachableTileMap(
   character: CombatCharacter,
@@ -613,6 +724,12 @@ function buildReachableTileMap(
 /**
  * Finds a reachable tile from which an ability can be cast at the target position.
  * The search prioritizes minimal movement and valid line of sight.
+ *
+ * @param reachableTiles - The set of tiles the caster can move to.
+ * @param targetPos - The position of the target.
+ * @param ability - The ability to cast.
+ * @param mapData - The map data (for LoS checks).
+ * @returns The best tile to cast from, or null if none found.
  */
 function findCastPosition(
   reachableTiles: Map<string, { tile: BattleMapTile; cost: number }>,
@@ -641,6 +758,11 @@ function findCastPosition(
 /**
  * Returns true if the straight line between origin and target is unobstructed.
  * This reuses the tile-aware line of sight helper for clarity.
+ *
+ * @param origin - The starting position.
+ * @param target - The target position.
+ * @param mapData - The map data.
+ * @returns True if line of sight exists.
  */
 function hasClearShot(origin: Position, target: Position, mapData: BattleMapData): boolean {
   const startTile = mapData.tiles.get(`${origin.x}-${origin.y}`);
@@ -651,6 +773,14 @@ function hasClearShot(origin: Position, target: Position, mapData: BattleMapData
 
 /**
  * When low on HP, try to step away from the closest threat while staying within movement.
+ * This logic identifies the safest tile in movement range that maximizes distance
+ * from the nearest enemy.
+ *
+ * @param caster - The retreating character.
+ * @param enemies - List of enemies.
+ * @param mapData - The map data.
+ * @param reachableTiles - Reachable tiles map.
+ * @returns A movement plan (AIPlan) or null if no safer spot is found.
  */
 function evaluateRetreatPlan(
   caster: CombatCharacter,
