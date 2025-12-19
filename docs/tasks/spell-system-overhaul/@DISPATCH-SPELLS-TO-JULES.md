@@ -373,7 +373,7 @@ WORKFLOW:
    g. Check if spell is ritual (add ritual: true if so)
    h. Check for material components (add materialCost if GP value given)
 3. Create glossary markdown files
-4. Status: Do NOT edit shared status files; log completion in the batch file you’re working in.
+4. Status: Do NOT edit shared status files; log completion in the batch file you're working in.
 5. Run: npx tsx scripts/regenerate-manifest.ts
 6. Run: npm run validate
 7. Run: npx tsx scripts/check-spell-integrity.ts
@@ -494,6 +494,6 @@ UTILITY:
 5. Jules should follow the examples exactly
 6. Jules must run validation before creating PR
 10) **Update Manifest**: Run `npx tsx scripts/regenerate-manifest.ts` to update `spells_manifest.json` with new paths.
-11) **Integration Verification**: After migration, run `docs/spells/SPELL_INTEGRATION_CHECKLIST.md` for the spell and mark completion in the status file (e.g., add an “Integration” checkbox/column when updating status).
+11) **Integration Verification**: After migration, run `docs/spells/SPELL_INTEGRATION_CHECKLIST.md` for the spell and mark completion in the status file (e.g., add an "Integration" checkbox/column when updating status).
 
 **Key Success Factor**: Jules must use the SPELL_JSON_EXAMPLES.md document as the source of truth, not try to infer structure from TypeScript files.

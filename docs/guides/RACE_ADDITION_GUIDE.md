@@ -27,7 +27,7 @@ This is the most critical part, ensuring the race works mechanically.
       abilityBonuses: [], // Leave empty for flexible ASIs handled by Point Buy.
       traits: [
         'Creature Type: Humanoid',
-        'Size: Medium (about 6–7 feet tall)',
+        'Size: Medium (about 6-7 feet tall)',
         'Speed: 30 feet',
         'Darkvision (120ft)',
         'Relentless Endurance: ...',

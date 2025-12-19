@@ -68,7 +68,7 @@
 
 | Doc | Description | Status |
 |-----|-------------|--------|
-| [@PROJECT-INDEX](./tasks/spell-completeness-audit/@PROJECT-INDEX.md) | START HERE — project index, scope, task links | 🟢 Active |
+| [@PROJECT-INDEX](./tasks/spell-completeness-audit/@PROJECT-INDEX.md) | START HERE - project index, scope, task links | 🟢 Active |
 | [@WORKFLOW](./tasks/spell-completeness-audit/@WORKFLOW.md) | Reusable workflows for audit/extraction | 🟢 Active |
 
 ### Phase 1: Completeness Audit

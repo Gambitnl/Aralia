@@ -3,7 +3,7 @@
 **Created:** 2025-12-06
 **Purpose:** Copy-paste ready prompts for completing stub command implementations
 **Parent Task:** [COMPLETE-STUB-COMMANDS.md](COMPLETE-STUB-COMMANDS.md)
-**Status:** Completed — 2025-12-08 (healing/status/defensive commands implemented with supporting tests)
+**Status:** Completed - 2025-12-08 (healing/status/defensive commands implemented with supporting tests)
 
 ---
 

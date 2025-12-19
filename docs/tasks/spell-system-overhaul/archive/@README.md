@@ -3,8 +3,8 @@
 These files describe the **old spell JSON format** and are preserved only for historical reference. All actionable guidance has been migrated or captured in `../SALVAGED_SPELL_CONTEXT.md`.
 
 ## Contents
-- `SPELL_DATA_CREATION_GUIDE.md` — legacy spell JSON guide and normalization rules (superseded)
-- `SPELL_TEMPLATE.json` — legacy JSON template with outdated field shapes
+- `SPELL_DATA_CREATION_GUIDE.md` - legacy spell JSON guide and normalization rules (superseded)
+- `SPELL_TEMPLATE.json` - legacy JSON template with outdated field shapes
 
 ## Notes
 - Do **not** use these files for new work.

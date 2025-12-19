@@ -76,7 +76,17 @@ Run:
 - Validation integration so future regressions are blocked.
 
 ## After completion (required)
-Append to this file:
-- "Completion Notes"
-- "Detected TODOs (Out of Scope)"
+### Completion Notes
+- **Policy**: 
+    - **Strict ASCII**: Enforced for all `.json` files and `docs/spells/reference/**/*.md`.
+    - **Symbol Tolerance**: General documentation (`docs/**/*.md`) is allowed to contain Emojis and standard symbols, but is scanned for mojibake and normalized for quotes/dashes.
+- **Implementation**:
+    - `scripts/check-non-ascii.ts` expanded to scan 1450+ files.
+    - Added `--write` mode for automatic normalization of smart quotes, em-dashes, and NBSP.
+    - Integrated directly into `scripts/validate-data.ts`.
+- **Regressions**: `npm run validate` now automatically blocks non-ASCII characters in data files.
+
+### Detected TODOs (Out of Scope)
+- Consider a pre-commit hook specifically for the charset check if the build time grows too large (current scan ~1.5s for 1450 files).
+
 See `docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md`.

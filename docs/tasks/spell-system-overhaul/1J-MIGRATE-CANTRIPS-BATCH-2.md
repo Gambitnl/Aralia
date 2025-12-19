@@ -7,7 +7,7 @@
 - eldritch-blast (present, old format)
 - dancing-lights (present, old format)
 - druidcraft (present, old format)
-- guidance (missing locally — create new JSON)
+- guidance (missing locally - create new JSON)
 
 ## Required Reading (read in order)
 1. `docs/tasks/spell-system-overhaul/@WORKFLOW-SPELL-CONVERSION.md`

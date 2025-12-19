@@ -23,14 +23,14 @@ Scale the reference extraction process to levels 2-9 using the pilot format from
 - Work level-by-level; do not mix spells from different levels within a batch.
 - Batch size limit: ≤10 spells. Finish online check → local code review → reference entry per batch before moving on.
 - Suggested batch counts based on `PHB-2024-REFERENCE.md` (adjust if sources change):
-  - Level 2: 7 batches (6×10, 1×3)
-  - Level 3: 6 batches (5×10, 1×2)
-  - Level 4: 5 batches (4×10, 1×1)
-  - Level 5: 5 batches (4×10, 1×9)
-  - Level 6: 4 batches (3×10, 1×4)
-  - Level 7: 3 batches (2×10, 1×2)
-  - Level 8: 2 batches (1×10, 1×8)
-  - Level 9: 2 batches (1×10, 1×7)
+  - Level 2: 7 batches (6x10, 1x3)
+  - Level 3: 6 batches (5x10, 1x2)
+  - Level 4: 5 batches (4x10, 1x1)
+  - Level 5: 5 batches (4x10, 1x9)
+  - Level 6: 4 batches (3x10, 1x4)
+  - Level 7: 3 batches (2x10, 1x2)
+  - Level 8: 2 batches (1x10, 1x8)
+  - Level 9: 2 batches (1x10, 1x7)
 
 ## Steps
 1. For each level 2-9, list spells confirmed in the coverage report.
@@ -42,7 +42,7 @@ Scale the reference extraction process to levels 2-9 using the pilot format from
 ## Migration Outputs & Validation (Per Level)
 - Outputs per batch: structured reference updates; JSON at `public/data/spells/level-{N}/{id}.json` for missing/outdated spells; glossary at `public/data/glossary/entries/spells/{id}.md`; batch gap log at `docs/tasks/spell-system-overhaul/gaps/LEVEL-{N}-BATCH-{X}-GAPS.md`.
 - Validation commands (in order): `npm run lint`; `npm test`; `npx tsx scripts/regenerate-manifest.ts`; `npm run validate`. Record outcomes in the batch gap file (successes and failures); rerun once if transient/missing, otherwise log and continue.
-- Log PHB source gaps, schema limitations, ID conflicts, or command issues in the batch gap file; “No blockers” if none. Pause after each level to summarize blockers before moving on.
+- Log PHB source gaps, schema limitations, ID conflicts, or command issues in the batch gap file; "No blockers" if none. Pause after each level to summarize blockers before moving on.
 
 ## Constraints
 - Levels 2-9 only (no cantrips); batch size limit 10; no cross-level mixing.

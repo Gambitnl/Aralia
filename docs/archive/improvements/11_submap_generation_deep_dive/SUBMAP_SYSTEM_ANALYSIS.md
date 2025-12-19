@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-This document provides a deep dive into the current submap generation system for the Aralia RPG. It explains how the system works in relation to the core design requirements and explores potential "better tools"—both algorithmic and technological—for future enhancements.
+This document provides a deep dive into the current submap generation system for the Aralia RPG. It explains how the system works in relation to the core design requirements and explores potential "better tools"-both algorithmic and technological-for future enhancements.
 
 ---
 
@@ -10,7 +10,7 @@ This document provides a deep dive into the current submap generation system for
 
 The system in place is a robust and well-designed **deterministic procedural generation** system. This means it creates dynamic, random-looking maps that are actually the same every time for a given starting "seed." This is a perfect design choice for ensuring a consistent and replayable world in each playthrough.
 
-Here’s a breakdown of how the current implementation addresses the key requirements:
+Here's a breakdown of how the current implementation addresses the key requirements:
 
 ### 2.1. Dynamic Generation & Biome Appropriateness (In-Depth)
 
@@ -136,7 +136,7 @@ This section details how travel time is currently calculated and outlines a clea
 
 ### 2.4. Gradual Biome Transition (In-Depth)
 
-This is a key feature for immersion that the current system does not yet implement. Here’s a detailed breakdown of its current state and a proposed path to implementation.
+This is a key feature for immersion that the current system does not yet implement. Here's a detailed breakdown of its current state and a proposed path to implementation.
 
 *   **Current State: Not Implemented**
     *   **Reason**: The submap generator in `useSubmapProceduralData` is intentionally "self-contained." Its deterministic algorithm is based solely on the coordinates and biome ID of the single world map tile it is generating. It has no knowledge of where the player came from or what the adjacent biomes are.

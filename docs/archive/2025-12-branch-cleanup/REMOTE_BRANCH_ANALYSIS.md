@@ -1,4 +1,4 @@
-﻿# Remote Branch Analysis Report
+# Remote Branch Analysis Report
 Generated: 2025-12-01 14:15:07
 Total Remote Branches: 22
 
@@ -75,7 +75,7 @@ Total Remote Branches: 22
 
 ---
 ## origin/ui-qol-improvements
-**Status**: âœ… MERGED (0 commits ahead of master)
+**Status**: âœ... MERGED (0 commits ahead of master)
 **Last Activity**: 2025-11-24 09:52:40 +0000
 **Last Commit**: Refactor ActionPane layout, fix Tooltip positioning, and standardize buttons
 **Files Changed**: 0
@@ -83,7 +83,7 @@ Total Remote Branches: 22
 
 ---
 ## origin/quest-notification-type-fixes
-**Status**: âœ… MERGED (0 commits ahead of master)
+**Status**: âœ... MERGED (0 commits ahead of master)
 **Last Activity**: 2025-11-24 13:58:06 +0100
 **Last Commit**: Merge master into quest-notification-type-fixes
 **Files Changed**: 0
@@ -91,7 +91,7 @@ Total Remote Branches: 22
 
 ---
 ## origin/feature-combat-overhaul-ai-visuals
-**Status**: âœ… MERGED (0 commits ahead of master)
+**Status**: âœ... MERGED (0 commits ahead of master)
 **Last Activity**: 2025-11-24 10:00:50 +0000
 **Last Commit**: feat: Overhaul combat with smart AI and visual feedback
 **Files Changed**: 0
@@ -99,7 +99,7 @@ Total Remote Branches: 22
 
 ---
 ## origin/fix-village-generation-bugs
-**Status**: âœ… MERGED (0 commits ahead of master)
+**Status**: âœ... MERGED (0 commits ahead of master)
 **Last Activity**: 2025-11-28 00:35:57 +0100
 **Last Commit**: Merge master into fix-village-generation-bugs and resolve conflicts (revert regressions)
 **Files Changed**: 0
@@ -107,7 +107,7 @@ Total Remote Branches: 22
 
 ---
 ## origin/feat/spell-type-patches
-**Status**: âœ… MERGED (0 commits ahead of master)
+**Status**: âœ... MERGED (0 commits ahead of master)
 **Last Activity**: 2025-11-29 17:50:52 +0100
 **Last Commit**: feat: add PixiJS-based submap renderer component with support for WFC/CA grids, biome blending, and seeded features.
 **Files Changed**: 0
@@ -115,7 +115,7 @@ Total Remote Branches: 22
 
 ---
 ## origin/codex/implement-feat-system-and-level-up-framework
-**Status**: âœ… MERGED (0 commits ahead of master)
+**Status**: âœ... MERGED (0 commits ahead of master)
 **Last Activity**: 2025-11-24 21:15:41 +0100
 **Last Commit**: Add feat selection and level-up handling
 **Files Changed**: 0
@@ -123,7 +123,7 @@ Total Remote Branches: 22
 
 ---
 ## origin/codex/implement-persistent-minimap-and-pois
-**Status**: âœ… MERGED (0 commits ahead of master)
+**Status**: âœ... MERGED (0 commits ahead of master)
 **Last Activity**: 2025-11-24 21:14:16 +0100
 **Last Commit**: Add persistent minimap POI markers
 **Files Changed**: 0
@@ -131,7 +131,7 @@ Total Remote Branches: 22
 
 ---
 ## origin/codex/implement-character-progression-system
-**Status**: âœ… MERGED (0 commits ahead of master)
+**Status**: âœ... MERGED (0 commits ahead of master)
 **Last Activity**: 2025-11-25 10:02:32 +0100
 **Last Commit**: Apply battle XP rewards to party
 **Files Changed**: 0
@@ -139,7 +139,7 @@ Total Remote Branches: 22
 
 ---
 ## origin/codex/implement-complex-enemy-ai-and-visual-feedback
-**Status**: âœ… MERGED (0 commits ahead of master)
+**Status**: âœ... MERGED (0 commits ahead of master)
 **Last Activity**: 2025-11-24 21:15:10 +0100
 **Last Commit**: Enhance combat AI and battle overlays
 **Files Changed**: 0
@@ -147,7 +147,7 @@ Total Remote Branches: 22
 
 ---
 ## origin/cartographer-tools-v1
-**Status**: âœ… MERGED (0 commits ahead of master)
+**Status**: âœ... MERGED (0 commits ahead of master)
 **Last Activity**: 2025-11-24 12:12:59 +0000
 **Last Commit**: Implement Minimap, Map Pan/Zoom, and Submap Optimizations
 **Files Changed**: 0
@@ -155,7 +155,7 @@ Total Remote Branches: 22
 
 ---
 ## origin/feat-spell-system-types
-**Status**: âœ… MERGED (0 commits ahead of master)
+**Status**: âœ... MERGED (0 commits ahead of master)
 **Last Activity**: 2025-11-28 01:00:20 +0000
 **Last Commit**: feat(types): implement new spell system interfaces
 **Files Changed**: 0
@@ -163,7 +163,7 @@ Total Remote Branches: 22
 
 ---
 ## origin/codex/implement-quest-tracking-system-and-inventory-containers
-**Status**: âœ… MERGED (0 commits ahead of master)
+**Status**: âœ... MERGED (0 commits ahead of master)
 **Last Activity**: 2025-11-24 21:13:43 +0100
 **Last Commit**: Implement quest system and inventory containers
 **Files Changed**: 0
@@ -171,7 +171,7 @@ Total Remote Branches: 22
 
 ---
 ## origin/codex/refactor-actionpane-and-notification-system
-**Status**: âœ… MERGED (0 commits ahead of master)
+**Status**: âœ... MERGED (0 commits ahead of master)
 **Last Activity**: 2025-11-24 21:14:48 +0100
 **Last Commit**: Refine action menu and notification handling
 **Files Changed**: 0

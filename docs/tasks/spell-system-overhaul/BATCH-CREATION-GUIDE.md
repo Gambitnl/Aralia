@@ -16,12 +16,12 @@ A single sentence defining the goal.
 ### 2. REQUIRED READING (in order)
 An ordered list of files Jules must read **before starting**:
 
-1. `docs/tasks/spell-system-overhaul/JULES_ACCEPTANCE_CRITERIA.md` — The "Iron Rules" (always first)
-2. `docs/tasks/spell-system-overhaul/@WORKFLOW-SPELL-CONVERSION.md` — Conversion procedure
-3. `docs/spells/SPELL_JSON_EXAMPLES.md` — Validated reference examples
-4. `docs/tasks/spell-system-overhaul/archive/SPELL_TEMPLATE.json` — Complete spell JSON template (all possible fields)
-5. `docs/tasks/spell-system-overhaul/SALVAGED_SPELL_CONTEXT.md` — Context for complex spells
-6. `docs/spells/SPELL_INTEGRATION_CHECKLIST.md` — Integration verification steps
+1. `docs/tasks/spell-system-overhaul/JULES_ACCEPTANCE_CRITERIA.md` - The "Iron Rules" (always first)
+2. `docs/tasks/spell-system-overhaul/@WORKFLOW-SPELL-CONVERSION.md` - Conversion procedure
+3. `docs/spells/SPELL_JSON_EXAMPLES.md` - Validated reference examples
+4. `docs/tasks/spell-system-overhaul/archive/SPELL_TEMPLATE.json` - Complete spell JSON template (all possible fields)
+5. `docs/tasks/spell-system-overhaul/SALVAGED_SPELL_CONTEXT.md` - Context for complex spells
+6. `docs/spells/SPELL_INTEGRATION_CHECKLIST.md` - Integration verification steps
 7. The appropriate audit file for selection (e.g., `@SPELL-AUDIT-CANTRIPS.md`)
 
 ### 3. EXECUTION STEPS
@@ -33,7 +33,7 @@ Numbered procedural steps describing **actions**, not concepts:
 - "Run command Y"
 - "Log results in this file"
 
-**Do NOT** embed rules inline — reference the documents instead.
+**Do NOT** embed rules inline - reference the documents instead.
 
 ### 4. CONSTRAINTS (optional but recommended)
 What Jules must **NOT** do:
@@ -62,11 +62,11 @@ A section where Jules logs progress for each spell in the batch.
 
 ## Guiding Principles
 
-1. **Procedural over conceptual** — Write steps as actions, not goals
-2. **Reference over embed** — Point to source files rather than duplicating rules
-3. **Explicit over implicit** — If format is critical, state which file defines it
-4. **No inline examples** — Examples cause LLM overfitting; always reference the examples document
-5. **Acceptance criteria are external** — Always reference `JULES_ACCEPTANCE_CRITERIA.md`
+1. **Procedural over conceptual** - Write steps as actions, not goals
+2. **Reference over embed** - Point to source files rather than duplicating rules
+3. **Explicit over implicit** - If format is critical, state which file defines it
+4. **No inline examples** - Examples cause LLM overfitting; always reference the examples document
+5. **Acceptance criteria are external** - Always reference `JULES_ACCEPTANCE_CRITERIA.md`
 
 ---
 
@@ -110,7 +110,7 @@ Convert batch {N} of {count} {level} spells from Old Format to New Format.
    e) Create glossary entry at `public/data/glossary/entries/spells/{id}.md`
    f) Run integration checklist and log results below
 3) Manifest: `npx tsx scripts/regenerate-manifest.ts`
-4) Validation: `npm run validate` — fix any errors
+4) Validation: `npm run validate` - fix any errors
 5) Do NOT edit shared status files; track completion in this file only.
 
 ## PER-SPELL CHECKLIST (record here)
@@ -119,5 +119,5 @@ Convert batch {N} of {count} {level} spells from Old Format to New Format.
 ...
 ```
 
-**Note**: The skeleton above is intentionally abstract. Do not add specific spell names or inline examples — let Jules discover the spell list from the audit file.
+**Note**: The skeleton above is intentionally abstract. Do not add specific spell names or inline examples - let Jules discover the spell list from the audit file.
 

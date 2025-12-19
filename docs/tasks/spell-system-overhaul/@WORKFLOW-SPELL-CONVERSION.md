@@ -72,7 +72,7 @@ Single-source workflow for converting legacy spell data into the current JSON fo
    - Leveled: `slot_level` scaling and `higherLevels` text where applicable.
 8) **Glossary Entry**: Create/update `public/data/glossary/entries/spells/{spell-id}.md`; include frontmatter with `seeAlso` auto-links if your workflow supports it.
 9) **Status File**: Mark progress in `docs/spells/STATUS_LEVEL_0.md` or `STATUS_LEVEL_1.md` (`[D] Data Only`).
-10) **Integration Verification**: After migration, run `docs/spells/SPELL_INTEGRATION_CHECKLIST.md` for the spell and mark completion in the status file (e.g., add an “Integration” checkbox/column when updating status).
+10) **Integration Verification**: After migration, run `docs/spells/SPELL_INTEGRATION_CHECKLIST.md` for the spell and mark completion in the status file (e.g., add an "Integration" checkbox/column when updating status).
 
 ---
 

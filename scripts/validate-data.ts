@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { SpellValidator } from '../src/systems/spells/validation/spellValidator.ts';
 import { ACTIVE_RACES } from '../src/data/races/index.ts';
 import type { Race } from '../src/types';
+import { checkFile, TARGET_DIRECTORIES } from './check-non-ascii.ts';
+import { globSync } from 'glob';
 
 /**
  * Validates all spell data against the Zod schema.
@@ -110,6 +112,33 @@ const validateRaces = (races: readonly Race[]): void => {
 };
 
 /**
+ * Validates all files in TARGET_DIRECTORIES for non-ASCII or mojibake characters.
+ */
+const validateCharset = (): void => {
+  const files = TARGET_DIRECTORIES.flatMap((pattern) => globSync(pattern));
+  console.log(`[Data Validation] Validating character sets for ${files.length} files...`);
+
+  let errorCount = 0;
+  files.forEach((file) => {
+    const issues = checkFile(file);
+    if (issues.length > 0) {
+      console.error(`[Data Validation] Charset issues found in ${file}:`);
+      issues.forEach((issue) => {
+        console.error(
+          `  - [Line ${issue.line}, Col ${issue.column}] ${issue.type} (${issue.char} / ${issue.codePoint})${issue.suggested !== undefined ? ` -> Suggested: ${issue.suggested}` : ''
+          }`
+        );
+      });
+      errorCount++;
+    }
+  });
+
+  if (errorCount > 0) {
+    throw new Error(`[Data Validation] ${errorCount} files failed charset validation. Run 'npx tsx scripts/check-non-ascii.ts --write' to fix.`);
+  }
+};
+
+/**
  * The main validation function that orchestrates all data validation checks.
  * It calls specific validation functions for different data types.
  */
@@ -118,6 +147,9 @@ const validateRaces = (races: readonly Race[]): void => {
 // we can simply add them to this function to ensure they are all executed.
 const main = () => {
   try {
+    validateCharset();
+    console.log('[Data Validation] All character sets validated successfully.');
+
     validateRaces(ACTIVE_RACES);
     console.log('[Data Validation] All race data validated successfully.');
 

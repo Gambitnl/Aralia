@@ -2,7 +2,7 @@
 
 **Created:** 2025-12-08 12:36 CET  
 **Priority:** 🔴 HIGH  
-**Source:** Consolidated gaps from Level 1 (Batches 1–7) and Cantrip migrations  
+**Source:** Consolidated gaps from Level 1 (Batches 1-7) and Cantrip migrations  
 **Blocking:** Full automation of ~40% of Level 1 spells; all smites, marks, wards, and summons
 
 ---
@@ -163,10 +163,10 @@ Persistent area effects (bonfires, clouds, zones) need to trigger when creatures
 ### Affected Spells
 | Spell | Entry Trigger | Exit Trigger | Additional |
 |-------|---------------|--------------|------------|
-| `create-bonfire` | Dex save, 1d8 fire | — | First time per turn |
-| `grease` | Dex save or prone | — | Also end-of-turn |
-| `fog-cloud` | Obscured (immediate) | Vision restored | — |
-| `entangle` | Restrained (immediate) | — | Str check to escape |
+| `create-bonfire` | Dex save, 1d8 fire | - | First time per turn |
+| `grease` | Dex save or prone | - | Also end-of-turn |
+| `fog-cloud` | Obscured (immediate) | Vision restored | - |
+| `entangle` | Restrained (immediate) | - | Str check to escape |
 
 ### Current State
 - `create-bonfire` uses `turn_start` (misses entry damage)
@@ -351,7 +351,7 @@ Spells that create entities need a structured contract for stats, commands, and 
 - [ ] Migrate `find-familiar`, `unseen-servant`, `tenser's-floating-disk`
 
 ### Complexity Note
-This is a **major system addition** requiring entity management, AI behaviors, and UI work. Recommend deferring until core combat gaps (1–4) are resolved.
+This is a **major system addition** requiring entity management, AI behaviors, and UI work. Recommend deferring until core combat gaps (1-4) are resolved.
 
 ---
 
@@ -410,7 +410,7 @@ defensive: z.object({
 ## Implementation Roadmap
 
 ### Phase 1: Attack & Event Triggers (Gaps 1 + 2)
-**ETA:** 3–5 dev sessions  
+**ETA:** 3-5 dev sessions  
 **Unblocks:** All smites, marks, `booming-blade`, `sanctuary`, `witch-bolt`
 
 1. Extend `EffectTrigger` with `on_attack_hit`, `on_target_move`, `consumption`
@@ -419,7 +419,7 @@ defensive: z.object({
 4. Migrate 10+ spells
 
 ### Phase 2: Area & Save Mechanics (Gaps 3 + 4)
-**ETA:** 2–3 dev sessions  
+**ETA:** 2-3 dev sessions  
 **Unblocks:** Zone spells, laughter/hold effects
 
 1. Add area entry triggers and frequency tracking
@@ -428,7 +428,7 @@ defensive: z.object({
 4. Migrate zone spells and save-repeat spells
 
 ### Phase 3: Filters & Defenses (Gaps 5 + 7)
-**ETA:** 1–2 dev sessions  
+**ETA:** 1-2 dev sessions  
 **Unblocks:** Type-conditional effects, AC spells
 
 1. Add `targetFilter` to condition schema

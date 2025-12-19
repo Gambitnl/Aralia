@@ -1,4 +1,4 @@
-<!-- TODO: Expand scope/title to levels 0–9 so this prompt is reusable for all batches, not just “Level 3+”; ensure batching/acceptance text matches the roll-up docs. -->
+<!-- TODO: Expand scope/title to levels 0-9 so this prompt is reusable for all batches, not just "Level 3+"; ensure batching/acceptance text matches the roll-up docs. -->
 # SPELL MIGRATION TASK (Level 3+)
 
 ## CORE PRINCIPLE: JSON = SOURCE OF TRUTH

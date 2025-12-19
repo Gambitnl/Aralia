@@ -1,6 +1,6 @@
 # Spell Workflow Quick Reference
 
-**1-Page Cheat Sheet** for creating, updating, and validating spell JSON files. Treat this as a guardrail list—do not skip the required fields or nesting rules.
+**1-Page Cheat Sheet** for creating, updating, and validating spell JSON files. Treat this as a guardrail list-do not skip the required fields or nesting rules.
 
 ### Non-Negotiables (all spells, especially cantrips)
 - Files live under `public/data/spells/level-{N}/{id}.json` (cantrips → `level-0`); remove any flat `public/data/spells/{id}.json` after field comparison.

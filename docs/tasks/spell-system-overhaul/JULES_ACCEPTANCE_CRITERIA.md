@@ -28,7 +28,7 @@ You are NOT done with a spell until **ALL** of the following are true.
 - [ ] **Glossary Entry Created**: `public/data/glossary/entries/spells/level-{N}/{id}.md` exists (frontmatter `filePath` must match the level-aware path). Remove any stale flat glossary copies if present.
 - [ ] **Class Spell Lists Updated**: If the spell is new, add its ID to the appropriate class spell list(s) in `src/data/classes/index.ts` (e.g., `DRUID_SPELL_LIST`, `WIZARD_SPELL_LIST`). The `classes` array in the JSON must match the lists the spell is added to.
 - [ ] **Field Comparison Check (CRITICAL)**: If an old file exists at `public/data/spells/{id}.json`:
-    1. **Read the old file FIRST** — It may contain fields not in the new template
+    1. **Read the old file FIRST** - It may contain fields not in the new template
     2. **Check these commonly-missed fields** exist in your new file:
        - `ritual` (boolean, required for all spells)
        - `castingTime.combatCost` (object with `type`, required)

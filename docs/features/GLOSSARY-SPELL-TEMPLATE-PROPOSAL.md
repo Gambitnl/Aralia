@@ -14,7 +14,7 @@ Currently, each spell requires **two files**:
 The markdown files are essentially **hand-formatted views of the JSON data**, creating:
 - **Duplication** - Same info in two places
 - **Sync issues** - JSON says 60ft range, markdown says 30ft
-- **Maintenance burden** - 700+ spells × 2 files = 1400+ files to maintain
+- **Maintenance burden** - 700+ spells x 2 files = 1400+ files to maintain
 - **Folder organization problems** - The original issue that prompted this discussion
 
 ---

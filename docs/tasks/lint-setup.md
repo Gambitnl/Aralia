@@ -37,4 +37,4 @@ Introduce an automated lint checker to catch obvious code issues (unused variabl
 ## Usage
 - Install dependencies: `npm install`
 - Run lint locally or in CI: `npm run lint`
-- Config is intentionally set to warn on existing strictness/style issues so adoption doesn’t block other work; tighten rules over time.
+- Config is intentionally set to warn on existing strictness/style issues so adoption doesn't block other work; tighten rules over time.

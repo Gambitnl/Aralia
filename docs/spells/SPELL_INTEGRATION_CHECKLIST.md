@@ -124,7 +124,7 @@ The factory function `createAbilityFromSpell()` uses these spell fields:
 
 **Range**:
 - `spell.range.type` → 'Self' | 'Touch' | 'Feet'
-- `spell.range.distance` → Converted to tiles (÷5)
+- `spell.range.distance` → Converted to tiles (/5)
 
 **Targeting**:
 - `spell.targeting` → Inferred from description if not present
@@ -132,7 +132,7 @@ The factory function `createAbilityFromSpell()` uses these spell fields:
 
 **Area of Effect**:
 - `spell.areaOfEffect.shape` → Maps to combat AoE shape (Sphere→circle, Cone→cone, Line→line, Cube→square)
-- `spell.areaOfEffect.size` → Converted to tiles (÷5)
+- `spell.areaOfEffect.size` → Converted to tiles (/5)
 - `spell.effects[].areaOfEffect` → Alternative source for AoE data
 
 **Effects**:

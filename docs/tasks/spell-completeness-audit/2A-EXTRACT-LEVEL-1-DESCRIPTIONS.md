@@ -32,7 +32,7 @@ Create a reference-quality catalog of level 1 spells using authoritative mechani
 - Complete online check → local code review → reference entry for each batch before starting the next.
 
 ## Batch Progress
-- Batch 1 (spells 01-10): In Progress — placeholders added in `docs/spells/reference/LEVEL-1-REFERENCE.md`.
+- Batch 1 (spells 01-10): In Progress - placeholders added in `docs/spells/reference/LEVEL-1-REFERENCE.md`.
 
 ## Steps
 1. Select level 1 spells confirmed in the coverage report.
@@ -47,7 +47,7 @@ Create a reference-quality catalog of level 1 spells using authoritative mechani
 ## Migration Outputs & Validation (Level 1)
 - Outputs per batch: structured reference updates; JSON at `public/data/spells/level-1/{id}.json` for missing/outdated spells; glossary at `public/data/glossary/entries/spells/{id}.md`; batch gap log at `docs/tasks/spell-system-overhaul/gaps/LEVEL-1-BATCH-{X}-GAPS.md`.
 - Validation commands (in order): `npm run lint`; `npm test`; `npx tsx scripts/regenerate-manifest.ts`; `npm run validate`. Record outcomes in the batch gap file (successes and failures).
-- Log PHB source gaps, schema limitations, or command issues in the batch gap file; “No blockers” if none.
+- Log PHB source gaps, schema limitations, or command issues in the batch gap file; "No blockers" if none.
 
 ## Constraints
 - Level 1 only (no cantrips); batch size limit 10; no cross-level mixing.

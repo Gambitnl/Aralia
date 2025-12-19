@@ -1,4 +1,4 @@
-# Level 1 Spell Migration — Combined Batches
+# Level 1 Spell Migration - Combined Batches
 
 **Scope:** All Level 1 spells migrated to structured schema, glossary, and manifest. Flat roots removed. Validator/integrity checks green.
 
@@ -12,7 +12,7 @@
 
 ## Batch 3
 - Spells: absorb-elements; catapult; snare
-- Notes: Absorb Elements reaction resist + stored dmg; Catapult hurl 1–5 lb object line Dex save 3d8 bludgeoning, +1d8/slot; Snare trap Dex save restrain, escape/dismantle checks.
+- Notes: Absorb Elements reaction resist + stored dmg; Catapult hurl 1-5 lb object line Dex save 3d8 bludgeoning, +1d8/slot; Snare trap Dex save restrain, escape/dismantle checks.
 
 ## Batch 4
 - Spells: command; compelled-duel; comprehend-languages; create-or-destroy-water; cure-wounds
@@ -36,7 +36,7 @@
 
 ## Batch 9
 - Spells: hellish-rebuke; heroism; hex; hunters-mark; ice-knife
-- Notes: Hellish Rebuke reaction Dex save 2d10 fire +1d10/slot; Heroism temp HP each turn + fear immunity; Hex bonus-action curse extra necrotic dmg + ability check disadvantage, duration scales; Hunter’s Mark bonus-action mark extra weapon dmg + adv to track, duration scales; Ice Knife ranged attack pierce + burst Dex save cold scaling.
+- Notes: Hellish Rebuke reaction Dex save 2d10 fire +1d10/slot; Heroism temp HP each turn + fear immunity; Hex bonus-action curse extra necrotic dmg + ability check disadvantage, duration scales; Hunter's Mark bonus-action mark extra weapon dmg + adv to track, duration scales; Ice Knife ranged attack pierce + burst Dex save cold scaling.
 
 ## Batch 10
 - Spells: identify; illusory-script; inflict-wounds; jump; longstrider
@@ -52,7 +52,7 @@
 
 ## Batch 13
 - Spells: sleep; speak-with-animals; tashas-caustic-brew; tashas-hideous-laughter; tensers-floating-disk
-- Notes: Sleep HP-pool slumber scaling; Speak with Animals (ritual) simple communication; Tasha’s Caustic Brew line acid ongoing until washed, Dex save half, +1d4/slot; Tasha’s Hideous Laughter prone/incapacitated Wis save, Int<4 immune; Tenser’s Floating Disk ritual 3-ft disk carries 500 lb follows caster.
+- Notes: Sleep HP-pool slumber scaling; Speak with Animals (ritual) simple communication; Tasha's Caustic Brew line acid ongoing until washed, Dex save half, +1d4/slot; Tasha's Hideous Laughter prone/incapacitated Wis save, Int<4 immune; Tenser's Floating Disk ritual 3-ft disk carries 500 lb follows caster.
 
 ## Batch 14 (Final)
 - Spells: thunderous-smite; thunderwave; unseen-servant; witch-bolt; wrathful-smite

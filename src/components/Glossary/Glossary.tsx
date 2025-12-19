@@ -778,8 +778,8 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
               onClick={recheckSpells}
               disabled={isCheckingSpells}
               className={`p-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-colors ${isCheckingSpells
-                  ? 'text-emerald-400 animate-pulse cursor-wait'
-                  : 'text-gray-500 hover:text-emerald-400'
+                ? 'text-emerald-400 animate-pulse cursor-wait'
+                : 'text-gray-500 hover:text-emerald-400'
                 }`}
               aria-label="Re-check spells"
               title={isCheckingSpells ? "Checking spells..." : "Re-run spell validation checks"}
@@ -892,7 +892,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
                           { label: "Manifest path under correct level", ok: gate.checklist.manifestPathOk },
                           { label: "Spell JSON exists", ok: gate.checklist.spellJsonExists },
                           { label: "Spell JSON passes schema", ok: gate.checklist.spellJsonValid },
-                          { label: "Marked as gap", ok: gate.checklist.knownGap },
+                          { label: "No known behavior gaps", ok: gate.checklist.noKnownGaps },
                         ];
                         return checks.map((c, idx) => {
                           const pass = c.ok;
@@ -907,7 +907,24 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
                         });
                       })()}
                       {gateResults[selectedEntry.id].status === 'gap' && (
-                        <li className="text-amber-300 mt-1">Marked as a gap; spell exists but may need manual structuring.</li>
+                        <li className="text-amber-300 mt-1">Behavior Gap: This spell has engine-level limitations in the combat system.</li>
+                      )}
+                      {gateResults[selectedEntry.id].gapAnalysis && (
+                        <div className="mt-2 text-xs border-t border-gray-700 pt-2">
+                          <div className="text-gray-400 uppercase tracking-tighter font-bold">Audit Status</div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${gateResults[selectedEntry.id].gapAnalysis!.state === 'analyzed_clean' ? 'bg-emerald-900 text-emerald-300' :
+                                gateResults[selectedEntry.id].gapAnalysis!.state === 'analyzed_with_gaps' ? 'bg-amber-900 text-amber-300' :
+                                  'bg-gray-700 text-gray-400'
+                              }`}>
+                              {gateResults[selectedEntry.id].gapAnalysis!.state.replace('_', ' ')}
+                            </span>
+                            <span className="text-gray-500 italic">Last Audit: {gateResults[selectedEntry.id].gapAnalysis!.lastAuditDate || 'Never'}</span>
+                          </div>
+                          {gateResults[selectedEntry.id].gapAnalysis!.notes && (
+                            <p className="mt-1.5 text-gray-400 line-clamp-3 hover:line-clamp-none transition-all">{gateResults[selectedEntry.id].gapAnalysis!.notes}</p>
+                          )}
+                        </div>
                       )}
                       {gateResults[selectedEntry.id].status === 'fail' && gateResults[selectedEntry.id].reasons.length > 0 && (
                         <li className="text-red-300 mt-1">Issues: {gateResults[selectedEntry.id].reasons.join('; ')}</li>

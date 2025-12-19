@@ -54,7 +54,7 @@ When asking for code modifications or new features, you **must** provide the cur
 *   **Complete Content**: Include the *entire content* of each file. I do not have memory of previous states beyond the current prompt's context.
 
 ### My Output
-When you ask me to make a change, I will provide the complete, updated files in a structured format that the system uses to apply the changes. You don't need to worry about the specific XML syntax—just know that when I provide code, I'm providing the **entire file**, ready to replace the old one.
+When you ask me to make a change, I will provide the complete, updated files in a structured format that the system uses to apply the changes. You don't need to worry about the specific XML syntax-just know that when I provide code, I'm providing the **entire file**, ready to replace the old one.
 
 ## 4. Versioning System
 

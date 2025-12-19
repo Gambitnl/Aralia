@@ -12,7 +12,7 @@ Last Updated: 2025-12-06 15:11 UTC
 - **Phases:**
   - **Phase 1:** Completeness audit (inventory → PHB research → gap analysis).
   - **Phase 2:** Description extraction (pilot level 1 → scale levels 2-9).
-  - **Phase 3:** Migration & validation for levels 1-9 (JSON/glossary updates, structured references, validation + per-batch gap logs) — see `docs/tasks/spell-system-overhaul/LEVELS-1-9-MIGRATION-GUIDE.md`.
+  - **Phase 3:** Migration & validation for levels 1-9 (JSON/glossary updates, structured references, validation + per-batch gap logs) - see `docs/tasks/spell-system-overhaul/LEVELS-1-9-MIGRATION-GUIDE.md`.
 - **Constraints:** Cantrips (level 0) are out of scope for this workstream; follow cantrip learnings for schema/validation patterns.
 
 ## Active Tasks
@@ -26,8 +26,8 @@ Last Updated: 2025-12-06 15:11 UTC
 | 3A | [LEVELS-1-9-MIGRATION-GUIDE.md](../spell-system-overhaul/LEVELS-1-9-MIGRATION-GUIDE.md) | Migration, validation, and per-batch gap logging for levels 1-9 | JSON + glossary + reference updates per level |
 
 ## Outputs & Locations
-- `docs/tasks/spell-completeness-audit/output/` — Intermediate audit outputs.
-- `docs/spells/reference/` — Reference spell descriptions by level.
+- `docs/tasks/spell-completeness-audit/output/` - Intermediate audit outputs.
+- `docs/spells/reference/` - Reference spell descriptions by level.
 
 ## Workflow Shortcuts
 - Inventory workflow: see [@WORKFLOW.md](./@WORKFLOW.md#inventory-collection).
@@ -37,6 +37,6 @@ Last Updated: 2025-12-06 15:11 UTC
 - Migration workflow: see [@WORKFLOW.md](./@WORKFLOW.md#migration--validation-levels-1-9) and `../spell-system-overhaul/LEVELS-1-9-MIGRATION-GUIDE.md`.
 
 ## Next Actions
-1. Prepare level 1 extraction batches (2A) — max 10 spells per batch, no cross-level mixing.
+1. Prepare level 1 extraction batches (2A) - max 10 spells per batch, no cross-level mixing.
 2. Mirror batch sizing for levels 2-9 (2B) before starting extraction.
 3. Shift into migration flow per `LEVELS-1-9-MIGRATION-GUIDE.md`: level-by-level batches ≤10, structured references, JSON/glossary updates for missing/outdated spells, command validation sequence, per-batch gap logs, and level-level pause reviews.

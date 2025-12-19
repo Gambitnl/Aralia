@@ -51,7 +51,7 @@
 
 **Action Required**:
 1. Add `repeatSave` and expanded `saveModifiers` to `STATUS_CONDITION` schema.
-2. Track “damaged this turn” and prompt repeat saves at the correct timings.
+2. Track "damaged this turn" and prompt repeat saves at the correct timings.
 3. Add on-action escape handling (wrathful smite) and migrate laugh/hold/ensnaring spells.
 
 **Related Files**:
@@ -83,7 +83,7 @@
 ---
 
 ### concentration-effect-link
-**Issue**: Concentration commands don’t track effect IDs; breaking concentration leaves buffs/debuffs active.
+**Issue**: Concentration commands don't track effect IDs; breaking concentration leaves buffs/debuffs active.
 
 **Action Required**: Pre-generate/collect effect IDs in SpellCommandFactory, store on StartConcentration, and remove on BreakConcentration.
 
@@ -186,7 +186,7 @@
 ---
 
 ### dynamic-terrain-mutations
-**Issue**: TerrainCommand is stubbed; map tiles are not mutated for grease/web/spike-growth, so movement/cost/visuals don’t change.
+**Issue**: TerrainCommand is stubbed; map tiles are not mutated for grease/web/spike-growth, so movement/cost/visuals don't change.
 
 **Action Required**: Add map mutation layer and update TerrainCommand to apply tile effects and movement cost; render overlays.
 

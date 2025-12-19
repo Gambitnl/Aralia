@@ -33,6 +33,7 @@ export interface GateResult {
     state: string;
     gaps: string[];
     notes: string;
+    lastAuditDate?: string;
   };
 }
 
@@ -69,6 +70,18 @@ const buildKnownGapSet = (): Set<string> => {
   return set;
 };
 
+export interface FidelityData {
+  spells: Record<
+    string,
+    {
+      state: string;
+      gaps: string[];
+      notes: string;
+      lastAuditDate?: string;
+    }
+  >;
+}
+
 export const useSpellGateChecks = () => {
   const [results, setResults] = useState<Record<string, GateResult>>({});
   const [recheckTrigger, setRecheckTrigger] = useState(0);
@@ -79,15 +92,15 @@ export const useSpellGateChecks = () => {
   const recheck = useCallback(() => {
     setRecheckTrigger((prev) => prev + 1);
   }, []);
-
   useEffect(() => {
     setIsLoading(true);
 
     const run = async () => {
       try {
-        const manifest = await fetchWithTimeout<Record<string, SpellManifestEntry>>(
-          assetUrl("data/spells_manifest.json"),
-        );
+        const [manifest, fidelity] = await Promise.all([
+          fetchWithTimeout<Record<string, SpellManifestEntry>>(assetUrl("data/spells_manifest.json")),
+          fetchWithTimeout<FidelityData>(assetUrl("data/spells_fidelity.json")),
+        ]);
 
         const next: Record<string, GateResult> = {};
 
@@ -100,11 +113,25 @@ export const useSpellGateChecks = () => {
               manifestPathOk: false,
               spellJsonExists: false,
               spellJsonValid: false,
-              noKnownGaps: !knownGaps.has(id), // Default to true if not in old markdown list
+              noKnownGaps: !knownGaps.has(id),
             };
             const reasons: string[] = [];
             let status: GateStatus = "pass";
-            let gapAnalysisData = undefined;
+
+            const spellFidelity = fidelity?.spells[id];
+            let gapAnalysisData = spellFidelity;
+
+            if (spellFidelity) {
+              if (spellFidelity.state === "analyzed_with_gaps") {
+                checklist.noKnownGaps = false;
+                reasons.push(`Gaps: ${spellFidelity.gaps.join(", ")}`);
+              } else if (spellFidelity.state === "analyzed_clean") {
+                checklist.noKnownGaps = true;
+              } else if (spellFidelity.state === "not_started" && knownGaps.has(id)) {
+                checklist.noKnownGaps = false;
+                reasons.push("Marked as gap in legacy docs");
+              }
+            }
 
             if (entry.path && entry.path.includes(`/level-${level}/`)) {
               checklist.manifestPathOk = true;
@@ -120,22 +147,6 @@ export const useSpellGateChecks = () => {
               const parsed = SpellValidator.safeParse(spell);
               if (parsed.success) {
                 checklist.spellJsonValid = true;
-
-                // Prioritize GapAnalysis from JSON if it exists and is audited
-                if (spell.gapAnalysis) {
-                  gapAnalysisData = spell.gapAnalysis;
-                  if (spell.gapAnalysis.state === "analyzed_with_gaps") {
-                    checklist.noKnownGaps = false;
-                    reasons.push(`Gaps: ${spell.gapAnalysis.gaps.join(', ')}`);
-                  } else if (spell.gapAnalysis.state === "analyzed_clean") {
-                    checklist.noKnownGaps = true;
-                  } else if (spell.gapAnalysis.state === "not_started" && knownGaps.has(id)) {
-                    // Fallback to markdown if JSON analysis not yet started
-                    checklist.noKnownGaps = false;
-                    reasons.push("Marked as gap in legacy docs");
-                  }
-                }
-
                 if (spell?.legacy === true) {
                   checklist.noKnownGaps = false;
                   reasons.push("Marked as legacy spell");
@@ -152,7 +163,6 @@ export const useSpellGateChecks = () => {
               reasons.push("Spell JSON not found");
             }
 
-            // Final status calculation
             if (!checklist.noKnownGaps && status === "pass") {
               status = "gap";
             }

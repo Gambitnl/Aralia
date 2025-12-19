@@ -147,4 +147,4 @@ This plan will refactor the submap by extracting the individual tile into its ow
     -   Use the React DevTools Profiler to record interactions with the `SubmapPane` (e.g., moving the player, toggling inspect mode).
     -   Verify that after the change, only a small number of `SubmapTile` components re-render on each interaction, instead of the entire grid. The profiler should highlight the memoized components in gray, indicating they did not re-render.
 -   [x] **Functional Testing**:
-    -   Thoroughly test all interactions with the submap—clicking, inspecting, tooltips, player movement—to ensure that no functionality was broken during the refactor.
+    -   Thoroughly test all interactions with the submap-clicking, inspecting, tooltips, player movement-to ensure that no functionality was broken during the refactor.

@@ -80,4 +80,4 @@ Audit of cantrip coverage vs PHB 2024 list, and format status (New vs Old).
 ## Next Actions
 - Migrate Old set in Table 2 using `@WORKFLOW-SPELL-CONVERSION.md`; prioritize by play impact (e.g., fire-bolt, eldritch-blast, guidance once added).
 - Add missing PHB cantrips (Table 3) to backlog and create new JSONs.
-- Confirm local “Extra” entries are intended homebrew; keep but mark as non-PHB.
+- Confirm local "Extra" entries are intended homebrew; keep but mark as non-PHB.

@@ -59,7 +59,7 @@
 | 2.7 | Merge PR | Move to next batch |
 | 2.8 | Jules cleans up old glossary files | Remove duplicate `.md` files for migrated spells |
 
-**Repeat**: 7 batches total (33 cantrips ÷ 5 per batch)
+**Repeat**: 7 batches total (33 cantrips / 5 per batch)
 
 **Deliverable**: All 38 cantrips in new format, validated, tested
 

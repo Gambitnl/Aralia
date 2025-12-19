@@ -9,9 +9,9 @@ The following directories MUST contain only valid ASCII characters (U+0000 to U+
 - `public/data/glossary/entries/**/*.json`
 
 ### Prohibited Characters in Strict Targets
-- **Curly Quotes**: Use straight quotes (`'` and `"`) instead of `‘`, `’`, `“`, `”`.
-- **Special Dashes**: Use a standard hyphen-minus (`-`) instead of en-dash (`–`) or em-dash (`—`).
-- **Ellipses**: Use three literal dots (`...`) instead of the ellipsis character (`…`).
+- **Curly Quotes**: Use straight quotes (`'` and `"`) instead of `'`, `'`, `"`, `"`.
+- **Special Dashes**: Use a standard hyphen-minus (`-`) instead of en-dash (`-`) or em-dash (`-`).
+- **Ellipses**: Use three literal dots (`...`) instead of the ellipsis character (`...`).
 - **Non-breaking Spaces**: Use standard spaces (U+0020).
 
 ## 2. Forbidden Everywhere

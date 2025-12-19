@@ -1,13 +1,13 @@
 # 11B - Save Penalty Rider (Cantrip Gap: Mind Sliver)
 
 ## Context
-- Gap from `1K-MIGRATE-CANTRIPS-BATCH-3.md`: Mind Sliver imposes “subtract 1d4 from the next saving throw” but current schema lacks a structured way to express a temporary save penalty rider.
+- Gap from `1K-MIGRATE-CANTRIPS-BATCH-3.md`: Mind Sliver imposes "subtract 1d4 from the next saving throw" but current schema lacks a structured way to express a temporary save penalty rider.
 
 ## Problem
-- `UTILITY` description holds the mechanic; engine cannot apply a one-time save penalty to the target’s next saving throw. AI/automation can’t account for it.
+- `UTILITY` description holds the mechanic; engine cannot apply a one-time save penalty to the target's next saving throw. AI/automation can't account for it.
 
 ## Goals
-1. Add a structured rider for “next save” penalties (dice or static).
+1. Add a structured rider for "next save" penalties (dice or static).
 2. Ensure it can be consumed by combat save resolution and expires after one save or a duration.
 3. Keep backward compatibility (optional field).
 

@@ -214,7 +214,7 @@ This document maps out which components need to be built in what order for the s
     │
     └─ BARTERING/FINANCIAL TRANSACTIONS
        └─ Spell scroll value based on spell.level
-          └─ Price = 50gp × spell.level × rarity multiplier
+          └─ Price = 50gp x spell.level x rarity multiplier
 
 
 ---

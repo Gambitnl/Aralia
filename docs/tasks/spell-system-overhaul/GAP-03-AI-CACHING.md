@@ -13,7 +13,7 @@ The original plan for Agent Epsilon (`docs/tasks/spell-system-overhaul/AGENT-EPS
 AI calls are:
 1. **Slow:** 1-3 seconds latency disrupts combat flow.
 2. **Expensive:** Repeated calls cost tokens/money.
-3. **Redundant:** Casting "Meld into Stone" on the *exact same tile* 5 seconds later should not require a new AI judgment—the stone didn't move.
+3. **Redundant:** Casting "Meld into Stone" on the *exact same tile* 5 seconds later should not require a new AI judgment-the stone didn't move.
 
 ## Proposed Solution
 Implement an in-memory LRU (Least Recently Used) cache for arbitration results.
