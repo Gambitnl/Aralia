@@ -1,4 +1,5 @@
 import type { AbilityScoreName, AbilityScores } from './core';
+import type { MagicItemProperties } from './magicItems';
 
 /**
  * Equipment and inventory focused types.
@@ -238,6 +239,13 @@ export interface Item {
     minWisdom?: number;
     minCharisma?: number;
   };
+
+  /**
+   * Magical properties for the item.
+   * Defined in src/types/magicItems.ts
+   */
+  // TODO(Schemer): Populate this field in item generation logic.
+  magicProperties?: MagicItemProperties;
 }
 
 /**
