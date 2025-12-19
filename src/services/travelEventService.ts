@@ -51,6 +51,7 @@ export function generateTravelEvent(
         coordinates: { x: worldContext.x, y: worldContext.y },
         rewards: landmark.rewards,
         consequences: landmark.consequences,
+        interactions: landmark.interactions
       };
 
       // Construct a description that hints at consequences

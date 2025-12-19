@@ -72,6 +72,8 @@ import { Fence } from './crime';
 import { UnderdarkState, LightSource } from './underdark';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
 import type { DamageType } from './spells';
+// Import Exploration types
+import { Discovery } from './exploration';
 
 // Import Economy types
 import { EconomyState } from './economy';
@@ -91,6 +93,7 @@ export * from './dialogue';
 export * from './underdark';
 export * from './history';
 export * from './economy'; // Export new economy types
+export * from './exploration'; // Export new exploration types
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
@@ -417,7 +420,9 @@ export type ActionType =
   | 'COMPLETE_QUEST'
   | 'TOGGLE_QUEST_LOG'
   | 'PRAY'
-  | 'REGISTER_DYNAMIC_ENTITY'; // New Action
+  | 'REGISTER_DYNAMIC_ENTITY' // New Action
+  | 'OPEN_DISCOVERY_MODAL'
+  | 'CLOSE_DISCOVERY_MODAL';
 
 export enum DiscoveryType {
   LOCATION_DISCOVERY = 'Location Discovery',
@@ -557,6 +562,12 @@ export interface GameState {
   isDiscoveryLogVisible: boolean;
   isGlossaryVisible: boolean;
   selectedGlossaryTermForModal?: string;
+
+  // Interactive Discovery Modal
+  discoveryModal: {
+    isOpen: boolean;
+    discovery: Discovery | null;
+  };
 
   npcMemory: Record<string, NpcMemory>;
 
@@ -731,6 +742,9 @@ export interface Action {
     // Linker: Dynamic Entity
     entityType?: 'location' | 'faction';
     entity?: Location | Faction;
+
+    // Exploration
+    discovery?: Discovery;
 
     [key: string]: any;
   };

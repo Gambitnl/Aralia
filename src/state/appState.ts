@@ -117,6 +117,12 @@ export const initialGameState: GameState = {
     isGlossaryVisible: false,
     selectedGlossaryTermForModal: undefined,
 
+    // Interactive Discovery Modal
+    discoveryModal: {
+        isOpen: false,
+        discovery: null
+    },
+
     // NPC Memory
     npcMemory: Object.keys(NPCS).reduce((acc, npcId) => {
         const npcData = NPCS[npcId];
@@ -235,6 +241,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     isLogbookVisible: false,
                     isGameGuideVisible: false,
                     merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
+                    discoveryModal: { isOpen: false, discovery: null },
                 };
                 if (action.payload === GamePhase.CHARACTER_CREATION) {
                     // Full reset for a new game
@@ -438,6 +445,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 metNpcIds: loadedState.metNpcIds || [],
                 locationResidues: loadedState.locationResidues || {},
                 merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
+                discoveryModal: { isOpen: false, discovery: null },
                 questLog: loadedState.questLog || [],
                 isQuestLogVisible: false,
                 notoriety: loadedState.notoriety || { globalHeat: 0, localHeat: {}, knownCrimes: [] },
@@ -461,6 +469,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 lastInteractedNpcId: null,
                 lastNpcResponse: null,
                 merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
+                discoveryModal: { isOpen: false, discovery: null },
             };
         }
 
@@ -514,7 +523,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             return {
                 ...state,
                 phase: GamePhase.BATTLE_MAP_DEMO,
-                isMapVisible: false, isSubmapVisible: false, isDiscoveryLogVisible: false, isGlossaryVisible: false, merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] }
+                isMapVisible: false, isSubmapVisible: false, isDiscoveryLogVisible: false, isGlossaryVisible: false, merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] }, discoveryModal: { isOpen: false, discovery: null }
             };
         }
 
@@ -527,7 +536,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 phase: GamePhase.COMBAT, // Now transitions to the actual combat phase
                 currentEnemies: combatants,
                 isEncounterModalVisible: false,
-                isMapVisible: false, isSubmapVisible: false, isDiscoveryLogVisible: false, isGlossaryVisible: false, merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] }
+                isMapVisible: false, isSubmapVisible: false, isDiscoveryLogVisible: false, isGlossaryVisible: false, merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] }, discoveryModal: { isOpen: false, discovery: null }
             };
         }
 

@@ -28,14 +28,31 @@ export interface DiscoveryConsequence {
   description: string;
 }
 
+/**
+ * Represents a choice the player can make at a discovery site.
+ */
+export interface DiscoveryOption {
+  id: string;
+  label: string;
+  description: string;
+  skillCheck?: {
+    skill: string; // e.g., 'Arcana', 'Athletics', 'Religion'
+    difficulty: number;
+  };
+  successRewards?: DiscoveryReward[];
+  successConsequences?: DiscoveryConsequence[];
+  failureConsequences?: DiscoveryConsequence[]; // e.g., damage, curse
+}
+
 export interface Discovery {
   id: string;
   name: string;
   type: string; // 'landmark', 'resource', 'secret'
   description: string;
   coordinates: { x: number; y: number };
-  rewards?: DiscoveryReward[];
-  consequences?: DiscoveryConsequence[];
+  rewards?: DiscoveryReward[]; // Immediate/Passive rewards
+  consequences?: DiscoveryConsequence[]; // Immediate/Passive consequences
+  interactions?: DiscoveryOption[]; // Interactive choices
   firstDiscoveredBy?: string; // Character ID
 }
 

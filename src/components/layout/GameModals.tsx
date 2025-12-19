@@ -24,10 +24,11 @@
  * - MerchantModal: Trading interface.
  * - GameGuideModal: AI helper interface.
  * - MissingChoiceModal: Prompt for resolving pending character choices (e.g., leveling up).
+ * - DiscoveryModal: Interactive exploration events.
  */
 import React, { lazy, Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, MapTile } from '../../types';
+import { GameState, Action, Location, NPC, Item, PlayerCharacter, MissingChoice, MapTile, DiscoveryOption } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { SUBMAP_DIMENSIONS } from '../../config/mapConfig';
 import { NPCS } from '../../constants';
@@ -54,6 +55,8 @@ const EncounterModal = lazy(() => import('../EncounterModal'));
 const MerchantModal = lazy(() => import('../MerchantModal'));
 const GameGuideModal = lazy(() => import('../GameGuideModal'));
 const MissingChoiceModal = lazy(() => import('../MissingChoiceModal'));
+const DiscoveryModal = lazy(() => import('../Exploration/DiscoveryModal').then(module => ({ default: module.DiscoveryModal })));
+
 
 // TODO(FEATURES): Add centralized focus management and keyboard navigation patterns across modals for stronger accessibility (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 
@@ -125,6 +128,44 @@ const GameModals: React.FC<GameModalsProps> = ({
     handleOpenGlossary,
     handleOpenCharacterSheet,
 }) => {
+
+    const handleResolveInteraction = (option: DiscoveryOption, success: boolean) => {
+        // Logic to apply effects.
+        // We need to apply rewards/consequences here based on success/failure.
+
+        const rewards = success ? option.successRewards : [];
+        const consequences = success ? option.successConsequences : option.failureConsequences;
+
+        if (rewards) {
+            rewards.forEach(r => {
+                if (r.type === 'item' && r.resourceId) {
+                    dispatch({ type: 'ADD_ITEM', payload: { itemId: r.resourceId, count: r.amount } });
+                } else if (r.type === 'gold') {
+                     dispatch({ type: 'ADD_ITEM', payload: { itemId: 'gold_piece', count: r.amount } });
+                } else if (r.type === 'xp') {
+                    // Logic for XP is usually handled in END_BATTLE.
+                    dispatch({ type: 'ADD_MESSAGE', payload: { id: Date.now(), text: `[System] Gained ${r.amount} XP (Not fully implemented outside combat yet).`, sender: 'system', timestamp: new Date() } });
+                } else if (r.type === 'health') {
+                     dispatch({ type: 'MODIFY_PARTY_HEALTH', payload: { amount: r.amount } });
+                }
+            });
+        }
+
+        if (consequences) {
+             consequences.forEach(c => {
+                 if (c.type === 'map_reveal') {
+                     // Need to trigger map reveal.
+                     dispatch({ type: 'ADD_MESSAGE', payload: { id: Date.now(), text: `[System] Map revealed (Radius ${c.value}).`, sender: 'system', timestamp: new Date() } });
+                 } else if (c.type === 'reputation' && c.targetId && c.value) {
+                     // Log reputation change
+                     dispatch({ type: 'ADD_MESSAGE', payload: { id: Date.now(), text: `[System] Reputation change: ${c.targetId} ${c.value}`, sender: 'system', timestamp: new Date() } });
+                 } else if (c.type === 'buff') {
+                     // Buffs are complex.
+                     dispatch({ type: 'ADD_MESSAGE', payload: { id: Date.now(), text: `[System] Effect applied: ${c.description}`, sender: 'system', timestamp: new Date() } });
+                 }
+             });
+        }
+    };
 
     return (
         <AnimatePresence>
@@ -377,6 +418,21 @@ const GameModals: React.FC<GameModalsProps> = ({
                             missingChoice={missingChoiceModal.missingChoice}
                             onClose={onCloseMissingChoice}
                             onConfirm={onConfirmMissingChoice}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Interactive Discovery Modal */}
+            {gameState.discoveryModal?.isOpen && gameState.discoveryModal.discovery && (
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Discovery Event.">
+                        <DiscoveryModal
+                            discovery={gameState.discoveryModal.discovery}
+                            onClose={() => dispatch({ type: 'CLOSE_DISCOVERY_MODAL' })}
+                            onResolveInteraction={handleResolveInteraction}
+                            onLeave={() => dispatch({ type: 'CLOSE_DISCOVERY_MODAL' })}
+                            character={gameState.party[0] || null} // Pass the main character
                         />
                     </ErrorBoundary>
                 </Suspense>

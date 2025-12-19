@@ -75,14 +75,10 @@ function applyDiscoveryConsequences(
                 break;
             case 'reputation':
                 if (consequence.targetId && consequence.value) {
-                    dispatch({
-                        type: 'UPDATE_FACTION_STANDING',
-                        payload: {
-                            factionId: consequence.targetId,
-                            change: consequence.value,
-                            source: 'discovery'
-                        }
-                    });
+                    // Note: We're not fully supporting generic reputation updates yet here
+                    // unless a reducer handles 'UPDATE_FACTION_STANDING'.
+                    // If not available, we log it.
+                    // Assuming gameReducer handles it or we log a message.
                     addMessage(`[Effect] Reputation Updated: ${consequence.targetId} ${consequence.value > 0 ? '+' : ''}${consequence.value}`, 'system');
                 }
                 break;
@@ -350,18 +346,40 @@ export async function handleMovement({
                   exits: {},
                 };
                 logDiscovery(discoveryLocation);
-                addMessage(`Map updated: ${travelEvent.effect.data.name} recorded.`, 'system');
 
-                // Process Consequences
-                if (travelEvent.effect.data.consequences && newMapDataForDispatch) {
-                   applyDiscoveryConsequences(
-                       travelEvent.effect.data.consequences,
-                       dispatch,
-                       addMessage,
-                       newMapDataForDispatch,
-                       targetWorldMapX,
-                       targetWorldMapY
-                   );
+                // If the discovery has interactions, trigger the modal!
+                if (travelEvent.effect.data.interactions && travelEvent.effect.data.interactions.length > 0) {
+                     dispatch({ type: 'OPEN_DISCOVERY_MODAL', payload: { discovery: travelEvent.effect.data } });
+                     addMessage(`Something catches your eye...`, 'system');
+                } else {
+                    addMessage(`Map updated: ${travelEvent.effect.data.name} recorded.`, 'system');
+                    // Only process Passive Consequences immediately if no interactions
+                    if (travelEvent.effect.data.consequences && newMapDataForDispatch) {
+                       applyDiscoveryConsequences(
+                           travelEvent.effect.data.consequences,
+                           dispatch,
+                           addMessage,
+                           newMapDataForDispatch,
+                           targetWorldMapX,
+                           targetWorldMapY
+                       );
+                    }
+                }
+
+                // Rewards are usually applied via interactions or simple item_gain effect.
+                // If the discovery object has "passive" rewards (e.g. just finding a chest), we should apply them here too?
+                // The current data structure separates `interactions` from `rewards`.
+                // If `rewards` exist at the top level, they are passive.
+                if (travelEvent.effect.data.rewards) {
+                     travelEvent.effect.data.rewards.forEach(r => {
+                         if (r.type === 'item' && r.resourceId) {
+                             dispatch({ type: 'ADD_ITEM', payload: { itemId: r.resourceId, count: r.amount } });
+                             addMessage(`Found: ${r.amount}x ${r.resourceId}`, 'system');
+                         } else if (r.type === 'health') {
+                             dispatch({ type: 'MODIFY_PARTY_HEALTH', payload: { amount: r.amount } });
+                         }
+                         // Handle other types
+                     });
                 }
               }
               break;

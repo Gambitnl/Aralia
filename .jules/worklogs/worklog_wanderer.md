@@ -1,3 +1,5 @@
-## 2024-05-24 - Meaningful Discoveries
-**Learning:** Players ignore procedural content if it lacks mechanical weight. Adding tangible rewards (gold, items, health) to discovery events transforms them from "flavor text" to "gameplay moments".
-**Action:** Ensure all future procedural generation systems (dungeons, NPC encounters) include a "consequence" layer (reward or risk) beyond just description.
+# Wanderer Worklog
+
+## 2024-05-22 - Initial Assessment
+**Learning:** The project currently has a basic world event manager handling faction skirmishes and market shifts. Location data is in `src/data/landmarks.ts` and `biomes.ts`. Travel events are in `src/data/travelEvents.ts`.
+**Action:** I will focus on enhancing the procedural generation of discovery sites or "points of interest" (POIs) to make exploration more rewarding, as the current system seems to rely on static data or simple events.
