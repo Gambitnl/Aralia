@@ -3,7 +3,9 @@
  * Implements core Underdark mechanics: light source consumption, sanity decay, and madness.
  */
 
-import { GameState, UnderdarkState, LightSource, GameMessage } from '../../types';
+import { GameState, GameMessage } from '../../types';
+import { UnderdarkState, LightSource } from '../../types/underdark';
+import { UNDERDARK_BIOMES } from '../../data/underdark/biomes';
 
 export class UnderdarkMechanics {
 
@@ -60,31 +62,56 @@ export class UnderdarkMechanics {
         }
 
         // 2. Recalculate Light Level
-        // Logic: If there are active light sources, it's 'dim' or 'bright' depending on the source.
-        // For simplicity, any light source makes it 'bright' locally for the player, unless suppressed.
-        // If no sources, it's 'darkness'.
-        // Note: This logic might need to be more complex (e.g., checking if we are actually IN the underdark).
-        // For now, we assume this runs always but only affects state if we are tracking underdark state.
-
-        // TODO: specific check if player is in Underdark biome/region
         const isInUnderdark = nextUnderdark.currentDepth > 0;
 
         if (isInUnderdark) {
+            // Check Biome Natural Light
+            const currentBiome = UNDERDARK_BIOMES[nextUnderdark.currentBiomeId] || UNDERDARK_BIOMES['cavern_standard'];
+            let ambientLight = currentBiome.baseLightLevel;
+
+            // Artificial Light Overrides
             if (nextUnderdark.activeLightSources.length > 0) {
-                nextUnderdark.lightLevel = 'bright'; // Simplified
-            } else {
-                nextUnderdark.lightLevel = 'darkness';
+                if (currentBiome.id === 'shadowfell_rift') {
+                    // Shadowfell dampens light
+                    ambientLight = 'dim';
+                } else {
+                    ambientLight = 'bright';
+                }
             }
+
+            nextUnderdark.lightLevel = ambientLight;
         }
 
-        // 3. Process Sanity Decay (only if in Darkness)
-        if (isInUnderdark && (nextUnderdark.lightLevel === 'darkness' || nextUnderdark.lightLevel === 'magical_darkness')) {
-            // Decay rate: 1 sanity point per hour of darkness?
-            // Let's say 1 point every 30 minutes.
-            const sanityLoss = (minutesPassed / 30);
+        // 3. Process Sanity Decay (Affected by Biome & Light)
+        if (isInUnderdark) {
+            const currentBiome = UNDERDARK_BIOMES[nextUnderdark.currentBiomeId] || UNDERDARK_BIOMES['cavern_standard'];
 
-            if (sanityLoss > 0) {
-                nextUnderdark.sanity.current = Math.max(0, nextUnderdark.sanity.current - sanityLoss);
+            // Base decay rate: 1 sanity point per 30 minutes in darkness
+            // Modified by Biome
+            let decayMultiplier = currentBiome.sanityModifier;
+
+            // Darkness accelerates decay, Light halts or reverses it
+            if (nextUnderdark.lightLevel === 'darkness' || nextUnderdark.lightLevel === 'magical_darkness') {
+                 // Standard decay in darkness
+                 if (nextUnderdark.lightLevel === 'magical_darkness') decayMultiplier *= 2;
+            } else {
+                // In light (dim or bright), decay is halted or reversed
+                // If the biome is SCARY (sanityModifier > 1), light only halts decay (multiplier 0)
+                // If the biome is SAFE (sanityModifier < 1), light allows recovery (multiplier negative)
+                if (decayMultiplier > 1.0) {
+                    decayMultiplier = 0; // Light keeps the horror at bay, but doesn't heal
+                } else {
+                    decayMultiplier = -1.0; // Recovery mode
+                }
+            }
+
+            // Apply Change
+            const baseChange = (minutesPassed / 30);
+            const totalChange = baseChange * decayMultiplier;
+
+            if (totalChange > 0) {
+                // DECAY
+                nextUnderdark.sanity.current = Math.max(0, nextUnderdark.sanity.current - totalChange);
 
                 // Check for Madness Thresholds
                 const sanityPercent = nextUnderdark.sanity.current / nextUnderdark.sanity.max;
@@ -98,19 +125,15 @@ export class UnderdarkMechanics {
                      nextUnderdark.sanity.madnessLevel = newMadnessLevel;
                      messages.push({
                         id: Date.now() + Math.random(),
-                        text: `The darkness presses against your mind. You feel your grip on reality slipping. (Madness Level ${newMadnessLevel})`,
+                        text: `The darkness of the ${currentBiome.name} presses against your mind. (Madness Level ${newMadnessLevel})`,
                         sender: 'system',
                         timestamp: new Date(state.gameTime.getTime() + seconds * 1000)
                     });
                 }
+            } else if (totalChange < 0) {
+                // RECOVERY (totalChange is negative, so subtracting adds)
+                nextUnderdark.sanity.current = Math.min(nextUnderdark.sanity.max, nextUnderdark.sanity.current - totalChange);
             }
-        }
-
-        // 4. Recovery (Slow recovery in light?)
-        if (isInUnderdark && (nextUnderdark.lightLevel === 'bright') && nextUnderdark.sanity.current < nextUnderdark.sanity.max) {
-             // Recover 1 point per hour of light
-             const sanityGain = (minutesPassed / 60);
-             nextUnderdark.sanity.current = Math.min(nextUnderdark.sanity.max, nextUnderdark.sanity.current + sanityGain);
         }
 
         return { underdark: nextUnderdark, messages };

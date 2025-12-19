@@ -23,7 +23,10 @@ export type UnderdarkMechanicType =
     | 'lolth_surveillance'  // Stealth disadvantage, divine intervention chance
     | 'antimagic_zones'     // Magic fails or surges
     | 'radiation'           // Faerzress or other harmful radiation
-    | 'paranoid_watchers';  // Beholders: high perception, ambushes
+    | 'paranoid_watchers'   // Beholders: high perception, ambushes
+    | 'silence'             // Magical silence (stealth adv, no verbal spells)
+    | 'echoes'              // Sound amplified (stealth disadv)
+    | 'hallucinations';     // Visual tricks, difficult terrain perception
 
 export interface UnderdarkMechanic {
     type: UnderdarkMechanicType;
@@ -42,8 +45,31 @@ export interface UnderdarkFaction {
     languages: string[];
 }
 
+export type UnderdarkBiomeId =
+    | 'cavern_standard'
+    | 'fungal_forest'
+    | 'darklake'
+    | 'crystal_cavern'
+    | 'bone_orchard'
+    | 'faerzress_pocket'
+    | 'shadowfell_rift'
+    | 'magma_tube';
+
+export interface UnderdarkBiome {
+    id: UnderdarkBiomeId;
+    name: string;
+    description: string;
+    nativeDepthLayers: DepthLayer[]; // Where this biome appears
+    baseLightLevel: 'darkness' | 'dim' | 'bright'; // Natural ambient light
+    sanityModifier: number; // Multiplier for sanity decay (e.g. 0.5 for safe, 2.0 for scary)
+    hazards: string[];
+    resources: string[];
+    soundscape: 'silent' | 'quiet' | 'echoing' | 'loud' | 'deafening';
+}
+
 export interface UnderdarkState {
     currentDepth: number; // Depth in feet below surface
+    currentBiomeId: UnderdarkBiomeId; // The active biome/region
     lightLevel: 'bright' | 'dim' | 'darkness' | 'magical_darkness';
     activeLightSources: LightSource[];
 
