@@ -15,6 +15,7 @@ interface BattleMapTileProps {
 }
 
 const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidMove, isInPath, isTargetable, isAoePreview, onTileClick }) => {
+  // TODO(Materializer): Use getTerrainVisual and getDecorationVisual from src/config/battleMapVisuals.ts
   const getTerrainColor = (terrain: string) => {
     switch (terrain) {
       case 'grass': return 'bg-green-800';

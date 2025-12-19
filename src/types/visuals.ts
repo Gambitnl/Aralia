@@ -1,13 +1,14 @@
 /**
  * @file src/types/visuals.ts
  * Defines contracts for visual assets and representations in the game.
- * Used to standardize how entities (Spells, Items, NPCs) are displayed
+ * Used to standardize how entities (Spells, Items, NPCs, Terrain) are displayed
  * and to provide specifications for AI asset generation.
  */
 
 import { SpellSchool, DamageType } from './spells';
 import { Item } from './items';
 import { Race } from './character';
+import { BattleMapTerrain, BattleMapDecoration } from './combat';
 
 /**
  * Standard sizes for icons in the UI.
@@ -102,6 +103,41 @@ export interface NPCVisualSpec {
    */
   themeColor?: string;
 }
+
+/**
+ * Defines the visual requirements for a Battle Map Terrain.
+ */
+export interface TerrainVisualSpec {
+  /** The terrain type this visual applies to. */
+  terrain: BattleMapTerrain;
+
+  /** Tailwind CSS class for the background color (e.g., 'bg-green-800'). */
+  colorClass: string;
+
+  /** Optional overlay icon or texture character. */
+  icon?: string;
+
+  /** Optional border color class. */
+  borderClass?: string;
+}
+
+/**
+ * Defines the visual requirements for a Battle Map Decoration.
+ */
+export interface DecorationVisualSpec {
+  /** The decoration type this visual applies to. */
+  decoration: BattleMapDecoration;
+
+  /** The emoji or character to display. */
+  icon: string;
+
+  /** Optional Tailwind text color class (e.g., 'text-green-500'). */
+  colorClass?: string;
+
+  /** Optional scaling factor (default 1.0). */
+  scale?: number;
+}
+
 
 /**
  * Result of resolving a visual request.
