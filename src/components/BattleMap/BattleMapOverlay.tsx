@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Ability, Animation, BattleMapData, CombatCharacter, DamageNumber } from '../types/combat';
-import DamageNumberOverlay from './BattleMap/DamageNumberOverlay';
-import { TILE_SIZE_PX } from '../config/mapConfig';
-import { getStatusEffectIcon } from '../utils/combatUtils';
+import { Ability, Animation, BattleMapData, CombatCharacter, DamageNumber } from '../../types/combat';
+import DamageNumberOverlay from './DamageNumberOverlay';
+import { TILE_SIZE_PX } from '../../config/mapConfig';
+import { getStatusEffectIcon } from '../../utils/combatUtils';
 
 interface BattleMapOverlayProps {
   mapData: BattleMapData;
