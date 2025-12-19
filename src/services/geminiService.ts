@@ -416,8 +416,9 @@ export async function generateLocationDescription(
   context: string,
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
-  const systemInstruction = "Describe a new location in a high fantasy RPG. Response MUST be EXTREMELY BRIEF: 1-2 sentences MAX. Give ONLY key sights, sounds, or atmosphere. No fluff.";
-  const prompt = `Player arrives at "${locationName}". Context: ${context}. Provide an EXTREMELY BRIEF description (1-2 sentences MAX) of the area's key features.`;
+  const systemInstruction = "You are a storyteller for a high fantasy RPG. Describe the location concisely. Incorporate the Time of Day and Weather if available in context. Mention key NPCs if present. Response MUST be 2-3 sentences. Focus on atmosphere.";
+  // Note: 'context' is now a rich markdown string containing PLAYER, LOCATION (Time), FACTIONS, NPCS, etc.
+  const prompt = `Player arrives at "${locationName}".\n\n${context}\n\nProvide a concise, atmospheric description (2-3 sentences) of the area's key features, respecting the time of day and immediate surroundings.`;
 
   return await generateText(prompt, systemInstruction, false, 'generateLocationDescription', devModelOverride, FAST_MODEL);
 }
@@ -430,12 +431,23 @@ export async function generateWildernessLocationDescription(
   worldMapTileTooltip?: string | null,
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
-  const systemInstruction = "You are a concise storyteller describing a wilderness location in a fantasy RPG. Response MUST be 2-3 sentences. Focus on immediate sensory details. No long descriptions.";
-  const prompt = `Player (${playerContext}) has moved to a new spot.
+  // Check if playerContext is a simple string or a full rich context block
+  const isRichContext = playerContext.includes('## PLAYER');
+
+  const systemInstruction = "You are a concise storyteller describing a wilderness location. Incorporate Time of Day and immediate terrain features. Response MUST be 2-3 sentences. Focus on sensory details.";
+
+  let prompt = "";
+  if (isRichContext) {
+     // playerContext is actually the full 'context' string from generateGeneralActionContext
+     prompt = `Player enters a wilderness area.\n\n${playerContext}\n\nBiome: ${biomeName}.\nCoordinates: World(${worldMapCoords.x},${worldMapCoords.y}) Sub(${subMapCoords.x},${subMapCoords.y}).\nBroader Context: ${worldMapTileTooltip || 'N/A'}.\n\nProvide a brief, atmospheric description (2-3 sentences).`;
+  } else {
+     // Fallback for legacy calls
+     prompt = `Player (${playerContext}) has moved to a new spot.
     Location: A wilderness area at sub-tile (${subMapCoords.x},${subMapCoords.y}) within world sector (${worldMapCoords.x},${worldMapCoords.y}).
     Biome: ${biomeName}.
     Broader Context: ${worldMapTileTooltip || 'No additional context.'}
     Provide a brief, 2-3 sentence description.`;
+  }
 
   return await generateText(prompt, systemInstruction, false, 'generateWildernessLocationDescription', devModelOverride, FAST_MODEL);
 }

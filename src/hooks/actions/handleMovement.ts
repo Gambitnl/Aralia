@@ -4,11 +4,11 @@
  * Handles 'move' actions for the game.
  */
 import React from 'react';
-import { GameState, Action, Location, MapData, PlayerCharacter, GamePhase } from '../../types';
+import { GameState, Action, Location, MapData, PlayerCharacter, GamePhase, NPC } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn, LogDiscoveryFn, GetTileTooltipTextFn } from './actionHandlerTypes';
-import { LOCATIONS, BIOMES, STARTING_LOCATION_ID } from '../../constants';
+import { LOCATIONS, BIOMES, STARTING_LOCATION_ID, NPCS } from '../../constants';
 import { DIRECTION_VECTORS, SUBMAP_DIMENSIONS } from '../../config/mapConfig';
 import { determineActiveDynamicNpcsForLocation } from '../../utils/locationUtils';
 import { handleGossipEvent } from './handleWorldEvents';
@@ -16,6 +16,7 @@ import { getSubmapTileInfo } from '../../utils/submapUtils';
 import { INITIAL_QUESTS } from '../../data/quests';
 import { generateTravelEvent } from '../../services/travelEventService';
 import { getTimeModifiers } from '../../utils/timeUtils';
+import { generateGeneralActionContext } from '../../utils/contextUtils';
 
 interface HandleMovementProps {
   action: Action;
@@ -131,7 +132,14 @@ export async function handleMovement({
         newMapDataForDispatch.tiles = newTiles;
       }
       geminiFunctionName = 'generateLocationDescription';
-      descriptionGenerationFn = () => GeminiService.generateLocationDescription(targetLocation.name, `Player (${playerContext}) enters ${targetLocation.name}.`, gameState.devModelOverride);
+      const targetNPCs = (activeDynamicNpcIdsForNewLocation || []).map(id => NPCS[id]).filter(Boolean) as NPC[];
+      const context = generateGeneralActionContext({
+        gameState: { ...gameState, subMapCoordinates: newSubMapCoordinates },
+        playerCharacter,
+        currentLocation: targetLocation,
+        npcsInLocation: targetNPCs
+      });
+      descriptionGenerationFn = () => GeminiService.generateLocationDescription(targetLocation.name, context, gameState.devModelOverride);
 
       // TODO(FEATURES): Replace hardcoded quest triggers with data-driven location metadata so quests can be discovered from any map tile (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
       // Quest Triggers for named locations
@@ -194,7 +202,27 @@ export async function handleMovement({
       const currentWorldTile = gameState.mapData?.tiles[currentWorldY]?.[currentWorldX];
       const tooltip = currentWorldTile ? getTileTooltipText(currentWorldTile) : null;
       geminiFunctionName = 'generateWildernessLocationDescription';
-      descriptionGenerationFn = () => GeminiService.generateWildernessLocationDescription(biome?.name || 'Unknown Biome', { x: currentWorldX, y: currentWorldY }, newSubMapCoordinates, playerContext, tooltip, gameState.devModelOverride);
+
+      const targetNPCs = (activeDynamicNpcIdsForNewLocation || []).map(id => NPCS[id]).filter(Boolean) as NPC[];
+      // Construct a temporary location object for context generation
+      const targetLocationForContext: Location = {
+        id: gameState.currentLocationId,
+        name: currentLoc.name,
+        baseDescription: currentLoc.baseDescription,
+        biomeId: currentLoc.biomeId,
+        mapCoordinates: currentLoc.mapCoordinates,
+        exits: currentLoc.exits,
+        itemIds: currentLoc.itemIds
+      };
+
+      const context = generateGeneralActionContext({
+        gameState: { ...gameState, subMapCoordinates: newSubMapCoordinates },
+        playerCharacter,
+        currentLocation: targetLocationForContext,
+        npcsInLocation: targetNPCs
+      });
+
+      descriptionGenerationFn = () => GeminiService.generateWildernessLocationDescription(biome?.name || 'Unknown Biome', { x: currentWorldX, y: currentWorldY }, newSubMapCoordinates, context, tooltip, gameState.devModelOverride);
     } else {
       const targetWorldMapX = currentWorldX + dx;
       const targetWorldMapY = currentWorldY + dy;
@@ -315,12 +343,38 @@ export async function handleMovement({
       if (LOCATIONS[newLocationId]) {
         const targetDefLocation = LOCATIONS[newLocationId];
         geminiFunctionName = 'generateLocationDescription (world move)';
-        descriptionGenerationFn = () => GeminiService.generateLocationDescription(targetDefLocation.name, `Player (${playerContext}) enters ${targetDefLocation.name}.`, gameState.devModelOverride);
+
+        const targetNPCs = (activeDynamicNpcIdsForNewLocation || []).map(id => NPCS[id]).filter(Boolean) as NPC[];
+        const context = generateGeneralActionContext({
+          gameState: { ...gameState, subMapCoordinates: newSubMapCoordinates },
+          playerCharacter,
+          currentLocation: targetDefLocation,
+          npcsInLocation: targetNPCs
+        });
+
+        descriptionGenerationFn = () => GeminiService.generateLocationDescription(targetDefLocation.name, context, gameState.devModelOverride);
         movedToNewNamedLocation = targetDefLocation;
         baseDescriptionForFallback = targetDefLocation.baseDescription;
       } else {
         geminiFunctionName = 'generateWildernessLocationDescription (world move)';
-        descriptionGenerationFn = () => GeminiService.generateWildernessLocationDescription(targetBiome?.name || 'Unknown Biome', { x: targetWorldMapX, y: targetWorldMapY }, newSubMapCoordinates, playerContext, getTileTooltipText(targetWorldTile), gameState.devModelOverride);
+
+        const targetNPCs = (activeDynamicNpcIdsForNewLocation || []).map(id => NPCS[id]).filter(Boolean) as NPC[];
+        const targetLocationForContext: Location = {
+            id: newLocationId,
+            name: 'Wilderness',
+            baseDescription: 'A wilderness area.',
+            biomeId: targetBiome?.id || 'plains',
+            mapCoordinates: { x: targetWorldMapX, y: targetWorldMapY },
+            exits: {}
+        };
+        const context = generateGeneralActionContext({
+          gameState: { ...gameState, subMapCoordinates: newSubMapCoordinates },
+          playerCharacter,
+          currentLocation: targetLocationForContext,
+          npcsInLocation: targetNPCs
+        });
+
+        descriptionGenerationFn = () => GeminiService.generateWildernessLocationDescription(targetBiome?.name || 'Unknown Biome', { x: targetWorldMapX, y: targetWorldMapY }, newSubMapCoordinates, context, getTileTooltipText(targetWorldTile), gameState.devModelOverride);
       }
     }
   }
