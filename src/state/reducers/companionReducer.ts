@@ -37,10 +37,14 @@ export function companionReducer(state: GameState, action: AppAction): Partial<G
       const oldApproval = companion.relationships[targetId]?.approval || 0;
       const newApproval = updatedCompanion.relationships[targetId].approval;
 
+      const oldUnlocks = companion.relationships[targetId]?.unlocks || [];
+      const newUnlocks = updatedCompanion.relationships[targetId].unlocks || [];
+
+      // Notify on significant approval change
       if (Math.abs(newApproval - oldApproval) >= 5) {
         const sign = change > 0 ? 'approves' : 'disapproves';
         messages = [
-            ...state.messages,
+            ...messages,
             {
                 id: Date.now(),
                 text: `${companion.identity.name} ${sign} of that.`,
@@ -48,6 +52,23 @@ export function companionReducer(state: GameState, action: AppAction): Partial<G
                 timestamp: new Date()
             }
         ];
+      }
+
+      // Notify on New Unlocks
+      if (newUnlocks.length > oldUnlocks.length) {
+          // Find the new ones
+          const newlyUnlocked = newUnlocks.filter(u => !oldUnlocks.some(old => old.id === u.id));
+          newlyUnlocked.forEach(unlock => {
+              messages = [
+                  ...messages,
+                  {
+                      id: Date.now() + Math.random(), // slight offset
+                      text: `RELATIONSHIP MILESTONE: ${companion.identity.name} has unlocked "${unlock.description}"`,
+                      sender: 'system',
+                      timestamp: new Date()
+                  }
+              ];
+          });
       }
 
       return {
