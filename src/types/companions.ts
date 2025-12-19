@@ -43,6 +43,9 @@ export interface RelationshipUnlock {
   type: 'ability' | 'quest' | 'dialogue' | 'item' | 'passive';
   description: string;
   isUnlocked: boolean;
+  // Requirements to unlock
+  requiredLevel?: RelationshipLevel;
+  requiredApproval?: number;
 }
 
 export interface RelationshipEvent {
@@ -142,6 +145,9 @@ export interface Companion {
   loyalty: number; // 0-100, determines chance of leaving/betrayal
   approvalHistory: ApprovalEvent[];
   questline?: CompanionQuestline;
+
+  // Progression: What can be unlocked
+  progression?: RelationshipUnlock[];
 
   // Reaction Logic
   reactionRules: CompanionReactionRule[];
