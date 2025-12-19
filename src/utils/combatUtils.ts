@@ -305,15 +305,23 @@ export function calculateDamage(
   }
 
   let finalDamage = baseDamage;
+  const isResistant = target.resistances?.includes(damageType as DamageType);
+  const isVulnerable = target.vulnerabilities?.includes(damageType as DamageType);
+
+  // XGtE Rule: Resistance and Vulnerability cancel each other out.
+  // We check this explicitly to avoid rounding errors (e.g. floor(25/2)*2 = 24 instead of 25).
+  if (isResistant && isVulnerable) {
+    return Math.max(0, finalDamage);
+  }
 
   // 2. Resistance (PHB p.197: Resistance applied before Vulnerability)
-  if (target.resistances?.includes(damageType as DamageType)) {
+  if (isResistant) {
     // TODO(Feats): Check if caster has Elemental Adept (ignores resistance)
     finalDamage = Math.floor(finalDamage / 2);
   }
 
   // 3. Vulnerability
-  if (target.vulnerabilities?.includes(damageType as DamageType)) {
+  if (isVulnerable) {
     finalDamage *= 2;
   }
 
