@@ -171,28 +171,53 @@ For these files:
 ```
 Example: `.jules/worklogs/worklog_analyst.md`
 
-### ⚠️ MANDATORY DATE VERIFICATION
+### ⚠️ CRITICAL: APPEND-ONLY WORKLOGS
 
-**You MUST verify the actual date before writing ANY journal entry.**
+**NEVER delete or overwrite your worklog file. ONLY append to it.**
 
-AI models commonly hallucinate dates. Before adding an entry:
+```bash
+# ❌ FORBIDDEN: Overwriting the file
+echo "new content" > worklog_persona.md
 
-1. **Check the system-provided current time** in the conversation metadata
-2. **Do NOT assume** what day it is - verify it explicitly
-3. **Use the verified date** in your entry
-
-```typescript
-// ❌ BAD: Assumed/hallucinated date
-## 2025-12-01 - Discovery  // Where did this date come from?
-
-// ✅ GOOD: Date verified from system metadata
-// System says: "The current local time is: 2025-12-18T00:59:28+01:00"
-## 2025-12-18 - Discovery
+# ✅ CORRECT: Appending to the file
+echo "new content" >> worklog_persona.md
 ```
+
+If your worklog doesn't exist, create it. If it exists, append new entries at the end.
+
+### Date Discovery (Best Effort)
+
+**Reference Date:** As of this methodology update, the actual date is **December 2025** (Amsterdam timezone).
+
+If you believe you know the date, you're likely using your training cutoff. Try these commands to discover the real date:
+
+```bash
+# Try these to get the current date/time
+date
+Get-Date
+timedatectl
+cat /etc/timezone && date
+```
+
+**If date discovery works:** Use that date in your entries.
+
+**If date discovery fails:** That's okay! Instead:
+1. Omit the date from your entry, OR
+2. Use "BATCH-UNKNOWN" as a placeholder
+
+**Log your date discovery attempt:**
+
+```markdown
+### DATE DISCOVERY ATTEMPT
+**Method tried:** [command you ran]
+**Result:** [what happened - worked, permission denied, command not found, etc.]
+```
+
+This helps the Core persona (maintainer) understand what's possible in your environment and collectively troubleshoot date discovery for future batches.
 
 ### Entry Format
 ```markdown
-## YYYY-MM-DD - [Title]
+### [Title]
 **Learning:** [The critical insight]
 **Action:** [How to apply this next time]
 ```

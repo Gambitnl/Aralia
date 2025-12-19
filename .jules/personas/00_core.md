@@ -25,19 +25,27 @@ git checkout main
 git pull origin main
 ```
 
-### Phase 2: Check Persona Worklogs for New Files
+### Phase 2: Check Persona Worklogs
 
-Review each worklog in `.jules/worklogs/` for new file entries:
+Review each worklog in `.jules/worklogs/`:
 
 ```bash
-# Find recent "New File Created" entries
-grep -r "New File Created" .jules/worklogs/ --include="*.md"
+# Find UNTRACKED files that need to be added to architecture
+grep -r "UNTRACKED FILES" .jules/worklogs/ --include="*.md" -A 5
+
+# Find date discovery attempts (for troubleshooting)
+grep -r "DATE DISCOVERY ATTEMPT" .jules/worklogs/ --include="*.md" -A 3
 ```
 
-For each new file entry found:
+**For UNTRACKED files found:**
 1. Verify the file exists in the codebase
 2. Add it to the appropriate domain document in `docs/architecture/domains/`
-3. Clear the worklog entry (or mark as processed)
+
+**For DATE DISCOVERY attempts:**
+1. Review what commands were tried and what happened
+2. If a method worked, update `_METHODOLOGY.md` to recommend that method
+3. If all methods failed, document findings so personas don't repeat failed attempts
+4. Consider updating the "Reference Date" in `_METHODOLOGY.md`
 
 ### Phase 3: Regenerate Architecture Artifacts
 
