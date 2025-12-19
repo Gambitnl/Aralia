@@ -5,6 +5,7 @@
 import { GameState, DiscoveryResidue, Location, Faction } from '../../types';
 import { AppAction } from '../actionTypes';
 import { processWorldEvents } from '../../systems/world/WorldEventManager';
+import { UnderdarkMechanics } from '../../systems/underdark/UnderdarkMechanics';
 import { getGameDay } from '../../utils/timeUtils';
 
 export function worldReducer(state: GameState, action: AppAction): Partial<GameState> {
@@ -50,8 +51,22 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       const daysPassed = newDay - oldDay;
 
       let partialUpdate: Partial<GameState> = { gameTime: newTime };
+      let currentMessages = state.messages;
+
+      // Process Underdark Mechanics (Light/Sanity)
+      // We pass the potentially modified state so it has the latest time, but other state properties (like Underdark)
+      // are taken from 'state' and updated in the returned object.
+      const { underdark: newUnderdark, messages: underdarkMessages } = UnderdarkMechanics.processTime(state, action.payload.seconds);
+
+      partialUpdate.underdark = newUnderdark;
+      if (underdarkMessages.length > 0) {
+          currentMessages = [...currentMessages, ...underdarkMessages];
+          partialUpdate.messages = currentMessages;
+      }
 
       if (daysPassed > 0) {
+          // Note: processWorldEvents expects the full state, so we ideally merge our partial updates first
+          // But since processWorldEvents mostly cares about factions/history, passing state with just updated time is OK for now.
           const { state: newState, logs } = processWorldEvents({ ...state, gameTime: newTime }, daysPassed);
 
           // Merge world event changes
@@ -59,7 +74,7 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
               ...partialUpdate,
               factions: newState.factions,
               playerFactionStandings: newState.playerFactionStandings,
-              messages: [...state.messages, ...logs]
+              messages: [...currentMessages, ...logs] // Append logs to whatever we already had
           };
       }
 
