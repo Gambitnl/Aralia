@@ -3,7 +3,7 @@
  * Licensed under the MIT License
  *
  * @file src/systems/puzzles/types.ts
- * Defines types for Locks, Traps, Puzzles, and Pressure Plates.
+ * Defines types for Locks, Traps, Puzzles, Pressure Plates, and Mechanisms.
  */
 
 import { CharacterStats } from '../../types/combat';
@@ -185,4 +185,45 @@ export interface PressurePlateJamResult {
   success: boolean;
   triggered: boolean; // Did we accidentally step on it/trigger it while jamming?
   message: string;
+}
+
+// --- MECHANISM SYSTEM ---
+
+export type MechanismType = 'lever' | 'button' | 'pull_chain' | 'wheel' | 'rune';
+
+export interface Mechanism {
+  id: string;
+  name: string;
+  description: string;
+  type: MechanismType;
+
+  // State
+  currentState: string; // 'on' | 'off' | custom
+  states: string[]; // Allowed states, e.g. ['on', 'off'] or ['left', 'center', 'right']
+
+  // Constraints
+  isHidden: boolean;
+  detectionDC: number;
+
+  isStuck: boolean;
+  stuckDC?: number; // Strength check to unstuck
+
+  isLocked: boolean;
+  lockId?: string; // If locked, this lock must be opened first
+
+  // Links
+  linkedLockId?: string;
+  linkedTrapId?: string;
+  linkedPuzzleId?: string;
+  puzzleSignal?: string; // Signal sent to puzzle (e.g. "lever_pulled")
+}
+
+export interface MechanismResult {
+  success: boolean;
+  newState?: string;
+  message: string;
+  triggeredTrap?: boolean;
+  trapEffect?: TrapEffect;
+  lockUpdate?: { lockId: string; action: 'unlock' | 'lock' | 'toggle' };
+  puzzleUpdate?: { puzzleId: string; signal: string };
 }
