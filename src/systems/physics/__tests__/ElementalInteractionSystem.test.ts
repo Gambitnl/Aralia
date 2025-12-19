@@ -68,6 +68,19 @@ describe('ElementalInteractionSystem', () => {
             expect(result.finalState).toBe(StateTag.Burning);
         });
 
+        it('should handle Poisoned + Burning -> Burning (Burn Away)', () => {
+            const current = [StateTag.Poisoned];
+            const { newStates, result } = applyStateToTags(current, StateTag.Burning);
+
+            // Poisoned + Burning -> Burning
+            // Poisoned is removed (burned away), Burning remains.
+            expect(newStates).toContain(StateTag.Burning);
+            expect(newStates).not.toContain(StateTag.Poisoned);
+
+            expect(result.finalState).toBe(StateTag.Burning);
+            expect(result.interaction).toContain('poisoned + burning -> burning');
+        });
+
         it('should handle Burning + Cold -> Neutral (Thermal Shock)', () => {
             const current = [StateTag.Burning];
             const { newStates, result } = applyStateToTags(current, StateTag.Cold);
