@@ -245,7 +245,7 @@ export async function handleMovement({
         timeToAdvanceSeconds = 3600;
       }
 
-      // TODO(Navigator): Integrate `calculateTravelTime` and `TravelPace` here to allow "forced march" or "stealthy" travel options that affect event chance and duration.
+      // TODO(Navigator): Use the restored `calculateTravelTimeHours` and `TravelPace` from `src/systems/travel/TravelCalculations.ts` here to enable "forced march" or "stealthy" travel options that dynamically affect event chance and travel duration.
       const travelEvent = generateTravelEvent(targetBiome.id, undefined, { worldSeed: gameState.worldSeed, x: targetWorldMapX, y: targetWorldMapY });
       if (travelEvent) {
         addMessage(travelEvent.description, 'system');
