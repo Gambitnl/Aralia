@@ -43,9 +43,6 @@ export const StateInteractions: Record<string, StateTag | null> = {
   // Frozen interactions
   'burning+frozen': StateTag.Wet,   // Fire melts ice
 
-  // Cold interactions
-  'burning+cold': null,             // Extreme heat and cold neutralize each other
-
   // Electrified interactions
   // (Placeholder for future: wet+electrified -> AoE damage)
   // TODO(Simulator): The current system only supports state transformation.
