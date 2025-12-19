@@ -46,6 +46,8 @@ nul
 # Generated assets
 public/assets/images/
 
+*.tsbuildinfo
+
 # Jules Agent Personas
 # .jules/  # TEMP
 
