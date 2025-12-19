@@ -97,6 +97,55 @@ export interface Fence {
   cut: number; // 0.1 to 0.5 (percentage taken)
 }
 
+// --- Smuggling & Contraband Types ---
+
+export enum ContrabandCategory {
+  Narcotics = 'narcotics',
+  DarkMagic = 'dark_magic',
+  StolenGoods = 'stolen_goods', // Bulk
+  ForbiddenTech = 'forbidden_tech',
+  ExoticCreatures = 'exotic_creatures',
+  Slaves = 'slaves'
+}
+
+export interface ContrabandDefinition {
+    id: string;
+    name: string;
+    category: ContrabandCategory;
+    baseValue: number;
+    legality: Record<string, boolean>; // FactionID -> IsLegal
+    weight: number;
+    volume: number; // Affects concealment
+}
+
+export interface SmugglingRoute {
+    id: string;
+    originLocationId: string;
+    destinationLocationId: string;
+    baseRisk: number; // 0-100
+    patrolFrequency: number; // 0-10
+    inspectionStrictness: number; // 0-10 (DC modifier)
+    lengthKm: number;
+    controlledByFactionId?: string;
+}
+
+export enum InspectionResult {
+    Pass = 'Pass',
+    BribeSuccess = 'BribeSuccess',
+    BribeFailure = 'BribeFailure',
+    Confiscation = 'Confiscation',
+    Combat = 'Combat',
+    Flee = 'Flee'
+}
+
+export interface InspectionEvent {
+    routeId: string;
+    difficulty: number;
+    guardsCount: number;
+    canBribe: boolean;
+    bribeCost: number;
+}
+
 // --- Thieves Guild Types ---
 
 export enum GuildJobType {
