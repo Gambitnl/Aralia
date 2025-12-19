@@ -5,11 +5,8 @@
  * that may result from AI generation or legacy saves.
  */
 import { PlayerCharacter, MissingChoice } from '../types';
-import { 
-  DRAGONBORN_ANCESTRIES, 
-  TIEFLING_LEGACIES,
-  RELEVANT_SPELLCASTING_ABILITIES,
-} from '../constants';
+import { RACE_DATA_BUNDLE } from '../data/races/index';
+import { RELEVANT_SPELLCASTING_ABILITIES } from '../data/dndData';
 
 export const validateCharacterChoices = (character: PlayerCharacter): MissingChoice[] => {
   const missingChoices: MissingChoice[] = [];
@@ -24,7 +21,7 @@ export const validateCharacterChoices = (character: PlayerCharacter): MissingCho
       label: 'Draconic Ancestry',
       description: 'You must choose a Draconic Ancestry, which determines your damage resistance and breath weapon type.',
       type: 'race',
-      options: Object.values(DRAGONBORN_ANCESTRIES).map(a => ({
+      options: Object.values(RACE_DATA_BUNDLE.dragonbornAncestries).map(a => ({
         id: a.type,
         label: `${a.type} Dragon`,
         description: `Damage: ${a.damageType}`
@@ -168,7 +165,7 @@ export const validateCharacterChoices = (character: PlayerCharacter): MissingCho
   // Tiefling (Based on Legacy)
   if (race.id === 'tiefling' && racialSelections?.tiefling?.choiceId) {
       const legacyId = racialSelections.tiefling.choiceId;
-      const legacy = TIEFLING_LEGACIES.find(l => l.id === legacyId);
+      const legacy = RACE_DATA_BUNDLE.tieflingLegacies.find(l => l.id === legacyId);
       if (legacy) {
           checkMissingSpell('thaumaturgy', 1, 'Otherworldly Presence', true);
           checkMissingSpell(legacy.level1Benefit.cantripId, 1, 'Fiendish Legacy', true);
