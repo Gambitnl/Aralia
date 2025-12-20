@@ -41,6 +41,8 @@ describe('TurnManager Repeat Saves', () => {
             name: 'Test Char',
             currentHP: 20,
             maxHP: 20,
+            level: 5,
+            class: 'Fighter',
             statusEffects: [],
             conditions: [],
             stats: { wisdom: 10, dexterity: 10, constitution: 10, strength: 10, intelligence: 10, charisma: 10, baseInitiative: 0, speed: 30, cr: '1' },
@@ -55,7 +57,7 @@ describe('TurnManager Repeat Saves', () => {
                 movement: { used: 0, total: 30 },
                 freeActions: 1
             }
-        };
+        } as unknown as CombatCharacter;
     });
 
     it('should trigger repeat save at end of turn', () => {
@@ -75,6 +77,9 @@ describe('TurnManager Repeat Saves', () => {
         };
         character.statusEffects = [effect];
 
+        // Mock successful save BEFORE rendering hook
+        (rollSavingThrow as any).mockReturnValue({ success: true, total: 16 });
+
         const { result } = renderHook(() => useTurnManager({
             characters: [character],
             mapData: null,
@@ -89,9 +94,6 @@ describe('TurnManager Repeat Saves', () => {
             result.current.initializeCombat([character]);
         });
 
-        // Mock successful save
-        (rollSavingThrow as any).mockImplementation(() => ({ success: true, total: 16 }));
-
         act(() => {
             result.current.endTurn();
         });
@@ -100,7 +102,7 @@ describe('TurnManager Repeat Saves', () => {
         expect(mockOnCharacterUpdate).toHaveBeenCalled();
         const lastCall = mockOnCharacterUpdate.mock.calls[mockOnCharacterUpdate.mock.calls.length - 1][0];
         expect(lastCall.statusEffects).toHaveLength(0);
-        expect(rollSavingThrow).toHaveBeenCalledWith(expect.anything(), 'Wisdom', 15);
+        expect(rollSavingThrow).toHaveBeenCalledWith(expect.anything(), 'Wisdom', 15, expect.anything());
     });
 
     it('should explicitly fail repeat save at end of turn', () => {

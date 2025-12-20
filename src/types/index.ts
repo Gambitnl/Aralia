@@ -418,6 +418,7 @@ export type ActionType =
   | 'COMPLETE_QUEST'
   | 'TOGGLE_QUEST_LOG'
   | 'PRAY'
+  | 'AUTO_EQUIP'
   | 'REGISTER_DYNAMIC_ENTITY'; // New Action
 
 export enum DiscoveryType {

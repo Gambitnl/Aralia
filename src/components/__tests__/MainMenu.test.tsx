@@ -52,7 +52,7 @@ describe('MainMenu', () => {
         expect(screen.getByText('Aralia RPG')).toBeInTheDocument();
         expect(screen.getByText('New Game')).toBeInTheDocument();
         expect(screen.getByText('Load Game')).toBeInTheDocument();
-        expect(screen.getByText('Glossary')).toBeInTheDocument();
+        expect(screen.getByText('Lore & Rules')).toBeInTheDocument();
     });
 
     it('calls onNewGame when New Game button is clicked', () => {
@@ -61,9 +61,9 @@ describe('MainMenu', () => {
         expect(defaultProps.onNewGame).toHaveBeenCalledTimes(1);
     });
 
-    it('calls onShowCompendium when Glossary button is clicked', () => {
+    it('calls onShowCompendium when Lore & Rules button is clicked', () => {
         render(<MainMenu {...defaultProps} />);
-        fireEvent.click(screen.getByText('Glossary'));
+        fireEvent.click(screen.getByText('Lore & Rules'));
         expect(defaultProps.onShowCompendium).toHaveBeenCalledTimes(1);
     });
 
@@ -80,7 +80,7 @@ describe('MainMenu', () => {
 
     it('shows Skip Character Creator button when in dev mode', () => {
         render(<MainMenu {...defaultProps} isDevDummyActive={true} />);
-        expect(screen.getByText('Skip Character Creator (Dev)')).toBeInTheDocument();
+        expect(screen.getByText('Quick Start (Dev)')).toBeInTheDocument();
     });
 
     it('opens LoadGameModal when Load Game button is clicked', () => {
@@ -89,9 +89,9 @@ describe('MainMenu', () => {
         expect(screen.getByRole('dialog', { name: 'Load Game Modal' })).toBeInTheDocument();
     });
 
-    it('opens SaveSlotSelector when Save to Slot button is clicked', () => {
+    it('opens SaveSlotSelector when Save Game button is clicked', () => {
         render(<MainMenu {...defaultProps} />);
-        fireEvent.click(screen.getByText('Save to Slot'));
+        fireEvent.click(screen.getByText('Save Game'));
         expect(screen.getByRole('dialog', { name: 'Save Slot Selector' })).toBeInTheDocument();
     });
 });

@@ -11,6 +11,8 @@ vi.mock('../../state/GameContext', () => ({
     state: {
       economy: {
         marketFactors: { surplus: [], scarcity: [] },
+        buyMultiplier: 1,
+        sellMultiplier: 0.5,
         activeEvents: []
       }
     }
@@ -40,7 +42,7 @@ describe('MerchantModal', () => {
     description: 'A sharp sword',
     weight: 2,
     cost: '10 gp',
-    value: 10
+    costInGp: 10
   };
 
   const defaultProps = {
@@ -81,5 +83,37 @@ describe('MerchantModal', () => {
 
     const buyButton = screen.getByLabelText(/Buy Test Sword/i);
     expect(buyButton).toBeInTheDocument();
+  });
+
+  it('dispatches BUY_ITEM when purchasing a low-cost item', () => {
+    const cheapItem: Item = {
+      id: 'torch-item-1',
+      name: 'Torch',
+      type: 'light_source',
+      description: 'A simple torch',
+      weight: 1,
+      cost: '1 cp',
+      costInGp: 0.01
+    };
+
+    render(
+      <MerchantModal
+        {...defaultProps}
+        merchantInventory={[cheapItem]}
+        playerGold={1}
+      />
+    );
+
+    fireEvent.click(screen.getByLabelText(/Buy Torch/i));
+
+    expect(mockOnAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'BUY_ITEM',
+        payload: expect.objectContaining({
+          item: expect.objectContaining({ id: 'torch-item-1' }),
+          cost: 0.01
+        })
+      })
+    );
   });
 });

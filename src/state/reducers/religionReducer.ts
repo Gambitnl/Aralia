@@ -13,11 +13,11 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             if (!deity) return {};
 
             const existingFavor = state.divineFavor[deityId] || {
-                score: 0,
-                rank: 'Neutral',
-                consecutiveDaysPrayed: 0,
+                deityId: deityId,
+                favor: 0,
                 history: [],
-                blessings: []
+                blessings: [],
+                transgressions: []
             };
 
             // Simple logic: Praying gives +1 favor. Offering gold gives +1 per 10gp (capped).
@@ -33,9 +33,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             }
 
             const prayerAction: DeityAction = {
-                id: 'prayer',
                 description,
-                domain: 'social',
                 favorChange: favorBoost
             };
 
@@ -50,10 +48,10 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                 messages: [
                     ...state.messages,
                     {
-                        id: Date.now().toString(),
+                        id: Date.now(),
                         text: `You pray to ${deity.name}. Your faith is noticed.`,
-                        sender: 'system',
-                        timestamp: Date.now()
+                        sender: 'system' as const,
+                        timestamp: new Date()
                     }
                 ]
             };
@@ -70,24 +68,24 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                 const deityAction = evaluateAction(deity.id, trigger);
                 if (deityAction) {
                     const existingFavor = state.divineFavor[deity.id] || {
-                        score: 0,
-                        rank: 'Neutral',
-                        consecutiveDaysPrayed: 0,
+                        deityId: deity.id,
+                        favor: 0,
                         history: [],
-                        blessings: []
+                        blessings: [],
+                        transgressions: []
                     };
 
                     const newFavor = calculateFavorChange(existingFavor, deityAction);
                     updates[deity.id] = newFavor;
 
-                    // Only notify if the change is significant or user is following
-                    if (existingFavor.rank !== 'Neutral' || Math.abs(deityAction.favorChange) >= 5) {
+                    // Only notify if user has existing relationship or change is significant
+                    if (existingFavor.favor !== 0 || Math.abs(deityAction.favorChange) >= 5) {
                         const changeText = deityAction.favorChange > 0 ? 'gains favor' : 'loses favor';
                         messages.push({
-                            id: `${timestamp}-${deity.id}`,
+                            id: timestamp + Math.random(),
                             text: `${deity.name} ${changeText}: ${deityAction.description}`,
-                            sender: 'system',
-                            timestamp: timestamp
+                            sender: 'system' as const,
+                            timestamp: new Date(timestamp)
                         });
                     }
                 }

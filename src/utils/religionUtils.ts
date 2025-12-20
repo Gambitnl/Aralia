@@ -17,17 +17,13 @@ export const calculateFavorChange = (
     currentFavor: DivineFavor,
     action: DeityAction
 ): DivineFavor => {
-    let newFavorValue = currentFavor.score + action.favorChange;
+    let newFavorValue = currentFavor.favor + action.favorChange;
     // Clamp between -100 and 100
     newFavorValue = Math.max(-100, Math.min(100, newFavorValue));
 
-    // Update rank based on score
-    const rank = getDivineStandingRank(newFavorValue);
-
     return {
         ...currentFavor,
-        score: newFavorValue,
-        rank: rank,
+        favor: newFavorValue,
         history: [
             ...currentFavor.history,
             {
@@ -67,7 +63,6 @@ export const evaluateAction = (
     const approval = deity.approves.find(d => d.trigger === actionTrigger);
     if (approval) {
         return {
-            id: actionTrigger,
             description: approval.description,
             favorChange: approval.favorChange
         };
@@ -77,7 +72,6 @@ export const evaluateAction = (
     const forbiddance = deity.forbids.find(d => d.trigger === actionTrigger);
     if (forbiddance) {
         return {
-            id: actionTrigger,
             description: forbiddance.description,
             favorChange: forbiddance.favorChange
         };
@@ -97,18 +91,6 @@ export const getDivineStanding = (favor: number): string => {
     if (favor > -50) return 'Unfavored';
     if (favor > -90) return 'Shunned';
     return 'Enemy of the Faith';
-};
-
-import { FavorRank } from '../types';
-
-export const getDivineStandingRank = (favor: number): FavorRank => {
-     if (favor >= 90) return 'Chosen';
-     if (favor >= 50) return 'Champion'; // Mapped 'Devout' to Champion/Devotee logic if needed, but using strict types
-     if (favor >= 25) return 'Devotee';
-     if (favor >= 10) return 'Initiate';
-     if (favor > -10) return 'Neutral';
-     if (favor > -50) return 'Shunned';
-     return 'Heretic';
 };
 
 

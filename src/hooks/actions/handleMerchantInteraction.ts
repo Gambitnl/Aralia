@@ -25,7 +25,7 @@ export async function handleOpenDynamicMerchant({
   addMessage,
   addGeminiLog,
 }: HandleMerchantInteractionProps): Promise<void> {
-  const { merchantType, villageContext } = action.payload || {};
+  const { merchantType, villageContext, buildingId, seedKey } = action.payload || {};
   if (!merchantType) {
       addMessage("Invalid merchant data.", "system");
       return;
@@ -41,10 +41,20 @@ export async function handleOpenDynamicMerchant({
       'system'
     );
   }
+
+  // TownCanvas interactions often provide `buildingId` but not a full VillageActionContext.
+  // We still want deterministic fallback inventories per-building (when AI is off / fails),
+  // so we pass a stable seed hint through to the generator.
+  const resolvedSeedKey =
+    (typeof seedKey === 'string' && seedKey) ||
+    (typeof buildingId === 'string' && buildingId) ||
+    (typeof (villageContext as any)?.buildingId === 'string' ? (villageContext as any).buildingId : undefined);
+
   const inventoryResult = await GeminiService.generateMerchantInventory(
     contextForPrompt,
     merchantType,
-    gameState.devModelOverride
+    gameState.devModelOverride,
+    resolvedSeedKey
   );
   
   addGeminiLog('generateMerchantInventory', inventoryResult.data?.promptSent || inventoryResult.metadata?.promptSent || "", inventoryResult.data?.rawResponse || inventoryResult.metadata?.rawResponse || inventoryResult.error || "");

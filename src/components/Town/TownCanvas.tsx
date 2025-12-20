@@ -90,6 +90,10 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     onExitTown,
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    // We attach a non-passive wheel listener directly to the viewport element so
+    // we can reliably call `preventDefault()` for zoom (React's onWheel can end up
+    // passive in some browser paths, which produces console errors + page scroll).
+    const mainRef = useRef<HTMLElement | null>(null);
 
     // Map Aralia biome to Realmsmith biome
     const mapBiome = (b: string): BiomeType => {
@@ -150,8 +154,19 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     const [playerFacing, setPlayerFacing] = useState<TownDirection>('south');
 
     const [showDevControls, setShowDevControls] = useState(false);
+
+    // --- Click-and-drag panning state ---
+    // The TownCanvas camera supports two modes:
+    // 1) "Locked": it smoothly follows the player (camera follow effect).
+    // 2) "Free": the player can pan the view by dragging anywhere on the map.
+    //
+    // We keep drag bookkeeping in refs to avoid re-renders on every pointermove and to
+    // ensure we always read the starting coordinates for the current drag gesture.
     const [isDragging, setIsDragging] = useState(false);
-    const [dragStart, setDragStart] = useState<{ x: number, y: number }>({ x: 0, y: 0 });
+    const [isCameraLocked, setIsCameraLocked] = useState(true);
+    const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+    const dragStartPanRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+    const didDragRef = useRef(false);
 
     // Initialize animated position when effectivePlayerPosition first becomes available
     useEffect(() => {
@@ -227,6 +242,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
 
     // Camera follow effect - smooth pan to keep player centered
     useEffect(() => {
+        if (!isCameraLocked) return;
         if (!animatedPosition || !mapData || !canvasRef.current) return;
 
         const canvas = canvasRef.current;
@@ -248,7 +264,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
             x: lerp(currentPan.x, targetPanX, CAMERA_LERP_FACTOR),
             y: lerp(currentPan.y, targetPanY, CAMERA_LERP_FACTOR),
         }));
-    }, [animatedPosition, mapData, zoom]);
+    }, [animatedPosition, isCameraLocked, mapData, setPan, zoom]);
 
 
     // Painting Effect
@@ -332,82 +348,131 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
 
     // --- Zoom & Pan Handlers ---
 
-    const handleWheel = (e: React.WheelEvent) => {
-        // Always prevent default to avoid page scrolling when zooming
-        e.preventDefault();
-        e.stopPropagation();
+    const getBuildingAtClientPos = useCallback((clientX: number, clientY: number): Building | null => {
+        if (!canvasRef.current || !mapData) return null;
+        const rect = canvasRef.current.getBoundingClientRect();
 
-        // Zoom logic
-        const scaleAmount = -e.deltaY * 0.001;
-        const newZoom = Math.min(Math.max(0.5, zoom + scaleAmount * zoom), 3);
-        setZoom(newZoom);
-    };
-
-    const handleMouseDown = (e: React.MouseEvent) => {
-        // Panning disabled - only clear tooltip on click
-        setHoveredBuilding(null); // Clear tooltip on click
-    };
-
-    const handleMouseMove = (e: React.MouseEvent) => {
-        // Panning disabled - only handle hover (Building Detection)
-        if (canvasRef.current && mapData) {
-            const rect = canvasRef.current.getBoundingClientRect();
-
-            // Check if mouse is within canvas bounds
-            if (
-                e.clientX >= rect.left &&
-                e.clientX <= rect.right &&
-                e.clientY >= rect.top &&
-                e.clientY <= rect.bottom
-            ) {
-                // Map screen coordinates to internal canvas coordinates
-                const scaleX = canvasRef.current.width / rect.width;
-                const scaleY = canvasRef.current.height / rect.height;
-
-                const canvasX = (e.clientX - rect.left) * scaleX;
-                const canvasY = (e.clientY - rect.top) * scaleY;
-
-                // TILE_SIZE is 32
-                const tileX = Math.floor(canvasX / 32);
-                const tileY = Math.floor(canvasY / 32);
-
-                if (tileX >= 0 && tileX < mapData.width && tileY >= 0 && tileY < mapData.height) {
-                    const tile = mapData.tiles[tileX][tileY];
-                    if (tile.buildingId) {
-                        const building = mapData.buildings.find(b => b.id === tile.buildingId);
-                        if (building && building !== hoveredBuilding) {
-                            setHoveredBuilding(building);
-                            setHoverPos({ x: e.clientX, y: e.clientY });
-                        } else if (building) {
-                            // Update pos only
-                            setHoverPos({ x: e.clientX, y: e.clientY });
-                        }
-                        return;
-                    }
-                }
-            }
-            // Clear if not hovering a building
-            setHoveredBuilding(null);
+        if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
+            return null;
         }
+
+        // Map screen coordinates to internal canvas coordinates
+        const scaleX = canvasRef.current.width / rect.width;
+        const scaleY = canvasRef.current.height / rect.height;
+
+        const canvasX = (clientX - rect.left) * scaleX;
+        const canvasY = (clientY - rect.top) * scaleY;
+
+        // TILE_SIZE is 32
+        const tileX = Math.floor(canvasX / 32);
+        const tileY = Math.floor(canvasY / 32);
+
+        if (tileX < 0 || tileX >= mapData.width || tileY < 0 || tileY >= mapData.height) {
+            return null;
+        }
+
+        const tile = mapData.tiles[tileX][tileY];
+        if (!tile.buildingId) return null;
+
+        return mapData.buildings.find(b => b.id === tile.buildingId) ?? null;
+    }, [mapData]);
+
+    useEffect(() => {
+        const el = mainRef.current;
+        if (!el) return;
+
+        // Zoom with the mouse wheel. This is intentionally attached with
+        // `{ passive: false }` so we can prevent the browser from scrolling the page.
+        const onWheel = (e: WheelEvent) => {
+            e.preventDefault();
+            const scaleAmount = -e.deltaY * 0.001;
+            setZoom(z => Math.min(Math.max(0.5, z + scaleAmount * z), 3));
+        };
+
+        el.addEventListener('wheel', onWheel, { passive: false });
+        return () => el.removeEventListener('wheel', onWheel as EventListener);
+    }, [setZoom]);
+
+    const handlePointerDown = (e: React.PointerEvent) => {
+        if (e.button !== 0) return;
+        const target = e.target as HTMLElement | null;
+        if (target?.closest?.('[data-no-pan]')) return;
+
+        // Capture the pointer so pan continues even if the cursor leaves the canvas area
+        // while the mouse button remains pressed.
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setIsDragging(true);
+        didDragRef.current = false;
+        dragStartRef.current = { x: e.clientX, y: e.clientY };
+        dragStartPanRef.current = { x: pan.x, y: pan.y };
     };
 
-    const handleMouseUp = () => {
+    const handlePointerMove = (e: React.PointerEvent) => {
+        if (dragStartRef.current) {
+            const dxPx = e.clientX - dragStartRef.current.x;
+            const dyPx = e.clientY - dragStartRef.current.y;
+
+            // Small movements during click are common; require a tiny threshold
+            // before we treat the gesture as an intentional pan.
+            const hasExceededThreshold = Math.abs(dxPx) > 3 || Math.abs(dyPx) > 3;
+            if (!didDragRef.current && hasExceededThreshold) {
+                didDragRef.current = true;
+                setIsCameraLocked(false);
+                setHoveredBuilding(null);
+            }
+
+            if (didDragRef.current) {
+                setPan({
+                    x: dragStartPanRef.current.x + dxPx / zoom,
+                    y: dragStartPanRef.current.y + dyPx / zoom,
+                });
+            }
+            return;
+        }
+
+        // Hover (Building Detection)
+        const building = getBuildingAtClientPos(e.clientX, e.clientY);
+        if (building && building !== hoveredBuilding) {
+            setHoveredBuilding(building);
+            setHoverPos({ x: e.clientX, y: e.clientY });
+            return;
+        }
+        if (building) {
+            setHoverPos({ x: e.clientX, y: e.clientY });
+            return;
+        }
+        setHoveredBuilding(null);
+    };
+
+    const handlePointerUp = (e: React.PointerEvent) => {
+        if (!dragStartRef.current) return;
         setIsDragging(false);
+        dragStartRef.current = null;
+        try {
+            e.currentTarget.releasePointerCapture(e.pointerId);
+        } catch {
+            // Ignore if capture isn't held.
+        }
     };
 
     const handleBuildingClick = (e: React.MouseEvent) => {
-        if (hoveredBuilding) {
-            // Map Realmsmith building types to Aralia actions
-            // This is a basic mapping, can be expanded
-            onAction({
-                type: 'OPEN_DYNAMIC_MERCHANT',
-                label: `Visit ${BUILDING_DESCRIPTIONS[hoveredBuilding.type]?.name}`,
-                payload: {
-                    merchantType: hoveredBuilding.type,
-                    buildingId: hoveredBuilding.id
-                }
-            });
+        const target = e.target as HTMLElement | null;
+        if (target?.closest?.('[data-no-pan]')) return;
+        if (didDragRef.current) {
+            didDragRef.current = false;
+            return;
         }
+        const building = getBuildingAtClientPos(e.clientX, e.clientY);
+        if (!building) return;
+
+        onAction({
+            type: 'OPEN_DYNAMIC_MERCHANT',
+            label: `Visit ${BUILDING_DESCRIPTIONS[building.type]?.name}`,
+            payload: {
+                merchantType: building.type,
+                buildingId: building.id
+            }
+        });
     };
 
     // Center camera on player position
@@ -422,11 +487,17 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
         const playerPixelX = effectivePlayerPosition.x * TILE_SIZE + TILE_SIZE / 2;
         const playerPixelY = effectivePlayerPosition.y * TILE_SIZE + TILE_SIZE / 2;
 
+        setIsCameraLocked(true);
         setPan({
             x: (containerWidth / 2) / zoom - playerPixelX,
             y: (containerHeight / 2) / zoom - playerPixelY,
         });
-    }, [effectivePlayerPosition, mapData, zoom]);
+    }, [effectivePlayerPosition, mapData, setPan, zoom]);
+
+    const handleResetView = useCallback(() => {
+        setIsCameraLocked(true);
+        resetView();
+    }, [resetView]);
 
     // Compute blocked directions for navigation
     const blockedDirections = useMemo((): TownDirection[] => {
@@ -464,7 +535,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     }, [mapData, effectivePlayerPosition]);
 
     return (
-        <div className="relative w-full h-full bg-gray-900 text-gray-100 overflow-hidden" onWheel={handleWheel}>
+        <div className="relative w-full h-full bg-gray-900 text-gray-100 overflow-hidden">
             {/* Dev Controls Panel (Slide-in) */}
             {isDevDummyActive && showDevControls && (
                 <div className="absolute top-0 left-0 z-50 h-full w-80 bg-gray-900/95 border-r border-gray-700 shadow-2xl p-4 overflow-y-auto">
@@ -499,11 +570,12 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
 
             {/* Main Canvas Viewport - fills entire area */}
             <main
-                className="relative w-full h-full bg-gray-950"
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
+                ref={mainRef}
+                className={`relative w-full h-full bg-gray-950 touch-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
                 onClick={handleBuildingClick}
             >
                 {loading && (
@@ -541,7 +613,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 )}
 
                 {/* Top Left Controls - Dev Toggle + Info */}
-                <div className="absolute top-4 left-4 z-20 flex gap-2">
+                <div className="fixed top-4 left-4 z-20 flex gap-2" data-no-pan>
                     {isDevDummyActive && (
                         <button
                             type="button"
@@ -558,7 +630,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 </div>
 
                 {/* Map Toggles (Top Right) */}
-                <div className="absolute top-4 right-4 flex gap-2 z-20">
+                <div className="fixed top-4 right-4 flex gap-2 z-20" data-no-pan>
                     <button
                         type="button"
                         onClick={() => setIsNight(!isNight)}
@@ -578,14 +650,14 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 </div>
 
                 {/* Zoom Controls (Bottom Right) */}
-                <div className="absolute bottom-4 right-4 flex flex-col gap-1 z-20 bg-gray-800/80 backdrop-blur p-1.5 rounded-lg border border-gray-700">
+                <div className="fixed bottom-4 right-4 flex flex-col gap-1 z-20 bg-gray-800/80 backdrop-blur p-1.5 rounded-lg border border-gray-700" data-no-pan>
                     <button type="button" onClick={() => setZoom(z => Math.min(z + 0.2, 3))} className="p-1.5 hover:bg-gray-700 rounded text-white transition-colors" title="Zoom In">
                         <ZoomIn size={18} />
                     </button>
                     <button type="button" onClick={jumpToPlayer} className="p-1.5 hover:bg-gray-700 rounded text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Jump to Player" disabled={!effectivePlayerPosition}>
                         <User size={18} />
                     </button>
-                    <button type="button" onClick={resetView} className="p-1.5 hover:bg-gray-700 rounded text-white transition-colors" title="Reset View">
+                    <button type="button" onClick={handleResetView} className="p-1.5 hover:bg-gray-700 rounded text-white transition-colors" title="Reset View">
                         <Maximize size={18} />
                     </button>
                     <button type="button" onClick={() => setZoom(z => Math.max(z - 0.2, 0.5))} className="p-1.5 hover:bg-gray-700 rounded text-white transition-colors" title="Zoom Out">
@@ -593,7 +665,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                     </button>
                 </div>
 
-                <div className="w-full h-full flex items-center justify-center cursor-default overflow-hidden">
+                <div className="w-full h-full flex items-center justify-center overflow-hidden">
                     <div
                         style={{
                             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
@@ -612,7 +684,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
 
             {/* Navigation Controls - shown when player position is available */}
             {effectivePlayerPosition && (
-                <div className="absolute bottom-4 left-4 z-30">
+                <div className="fixed bottom-4 left-4 z-30" data-no-pan>
                     <TownNavigationControls
                         onMove={handleMove}
                         onExit={onExitTown ?? (() => { })}

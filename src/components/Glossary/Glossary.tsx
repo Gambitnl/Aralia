@@ -907,15 +907,15 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
                         });
                       })()}
                       {gateResults[selectedEntry.id].status === 'gap' && (
-                        <li className="text-amber-300 mt-1">Behavior Gap: This spell has engine-level limitations in the combat system.</li>
+                        <li className="text-amber-300 mt-1">Marked as a gap: This spell has engine-level limitations in the combat system.</li>
                       )}
                       {gateResults[selectedEntry.id].gapAnalysis && (
                         <div className="mt-2 text-xs border-t border-gray-700 pt-2">
                           <div className="text-gray-400 uppercase tracking-tighter font-bold">Audit Status</div>
                           <div className="flex items-center gap-2 mt-1">
                             <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${gateResults[selectedEntry.id].gapAnalysis!.state === 'analyzed_clean' ? 'bg-emerald-900 text-emerald-300' :
-                                gateResults[selectedEntry.id].gapAnalysis!.state === 'analyzed_with_gaps' ? 'bg-amber-900 text-amber-300' :
-                                  'bg-gray-700 text-gray-400'
+                              gateResults[selectedEntry.id].gapAnalysis!.state === 'analyzed_with_gaps' ? 'bg-amber-900 text-amber-300' :
+                                'bg-gray-700 text-gray-400'
                               }`}>
                               {gateResults[selectedEntry.id].gapAnalysis!.state.replace('_', ' ')}
                             </span>

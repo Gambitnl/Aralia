@@ -6,10 +6,10 @@
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronRight, ChevronDown, FilterX, AlertTriangle } from 'lucide-react';
-import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType } from '../types';
-import { canEquipItem } from '../utils/characterUtils';
-import Tooltip from './Tooltip';
-import CoinDisplay from './ui/CoinDisplay';
+import { PlayerCharacter, Item, Action, ItemContainer, InventoryEntry, EquipmentSlotType } from '../../types';
+import { canEquipItem } from '../../utils/characterUtils';
+import Tooltip from '../Tooltip';
+import { CoinBadge } from '../ui/CoinPurseDisplay';
 
 interface InventoryListProps {
   inventory: Item[];
@@ -105,7 +105,6 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
     const counts = {
       PP: inventory.filter(i => i.id === 'platinum_piece').length,
       GP: inventory.filter(i => i.id === 'gold_piece').length,
-      EP: inventory.filter(i => i.id === 'electrum_piece').length,
       SP: inventory.filter(i => i.id === 'silver_piece').length,
       CP: inventory.filter(i => i.id === 'copper_piece').length,
     };
@@ -124,7 +123,6 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
     return {
       PP: counts.PP,
       GP: counts.GP + abstractGP,
-      EP: counts.EP,
       SP: counts.SP + abstractSP,
       CP: counts.CP + abstractCP
     };
@@ -132,7 +130,7 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
 
   // Filter out physical coins from the main list to avoid clutter, since they are shown in the header
   const nonCoinInventory = useMemo(() => {
-    const coinIds = ['platinum_piece', 'gold_piece', 'electrum_piece', 'silver_piece', 'copper_piece'];
+    const coinIds = ['platinum_piece', 'gold_piece', 'silver_piece', 'copper_piece'];
     return inventory.filter(item => !coinIds.includes(item.id));
   }, [inventory]);
 
@@ -390,12 +388,11 @@ const InventoryList: React.FC<InventoryListProps> = ({ inventory, gold, characte
       {/* Currency Header */}
       <div className="mb-3 bg-gray-900/60 p-3 rounded-lg border border-gray-700">
         <h4 className="text-xs font-semibold text-amber-500 mb-2 uppercase tracking-widest border-b border-gray-700 pb-1">Coin Pouch</h4>
-        <div className="flex justify-between items-center gap-2">
-          <CoinDisplay label="PP" amount={currency.PP} color="text-cyan-100" icon="🪙" tooltip="Platinum Pieces (1 PP = 10 GP)" />
-          <CoinDisplay label="GP" amount={currency.GP} color="text-amber-400" icon="🪙" tooltip="Gold Pieces" />
-          <CoinDisplay label="EP" amount={currency.EP} color="text-teal-200" icon="🪙" tooltip="Electrum Pieces (1 EP = 0.5 GP)" />
-          <CoinDisplay label="SP" amount={currency.SP} color="text-gray-300" icon="🪙" tooltip="Silver Pieces (1 SP = 0.1 GP)" />
-          <CoinDisplay label="CP" amount={currency.CP} color="text-orange-400" icon="🪙" tooltip="Copper Pieces (1 CP = 0.01 GP)" />
+        <div className="flex justify-start items-center gap-3 flex-wrap">
+          <CoinBadge type="pp" amount={currency.PP} />
+          <CoinBadge type="gp" amount={currency.GP} />
+          <CoinBadge type="sp" amount={currency.SP} />
+          <CoinBadge type="cp" amount={currency.CP} />
         </div>
       </div>
 

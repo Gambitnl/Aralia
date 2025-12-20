@@ -3,9 +3,10 @@
  * @file src/state/reducers/characterReducer.ts
  * A slice reducer that handles character-related state changes (party, inventory, actions).
  */
-import { GameState, LimitedUseAbility, SpellSlots, DiscoveryType, Item, RacialSelectionData, LevelUpChoices } from '../../types';
+import { GameState, LimitedUseAbility, SpellSlots, DiscoveryType, Item, RacialSelectionData, LevelUpChoices, EquipmentSlotType, ArmorCategory } from '../../types';
 import { AppAction } from '../actionTypes';
-import { calculateArmorClass, createPlayerCharacterFromTemp, calculateFinalAbilityScores, getAbilityModifierValue, applyXpAndHandleLevelUps, canLevelUp, performLevelUp } from '../../utils/characterUtils';
+import { calculateArmorClass, createPlayerCharacterFromTemp, calculateFinalAbilityScores, getAbilityModifierValue, applyXpAndHandleLevelUps, canLevelUp, performLevelUp, getCharacterMaxArmorProficiency, getArmorCategoryHierarchy } from '../../utils/characterUtils';
+import { isWeaponProficient } from '../../utils/weaponUtils';
 import { LOCATIONS, ITEMS, CLASSES_DATA } from '../../constants';
 
 // Helper for resetting limited uses
@@ -209,7 +210,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             } else {
                 // Handle new structured ItemEffect
                 if (itemToUse.effect.type === 'heal') {
-                     playerAfterEffect.hp = Math.min(playerAfterEffect.maxHp, playerAfterEffect.hp + itemToUse.effect.value);
+                    playerAfterEffect.hp = Math.min(playerAfterEffect.maxHp, playerAfterEffect.hp + itemToUse.effect.value);
                 }
                 // Add logic for other effect types (buffs, etc.) here in the future
             }
@@ -339,9 +340,25 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         case 'BUY_ITEM': {
             const { item, cost } = action.payload;
             if (state.gold >= cost) {
+                // Currency is represented in GP but many prices are fractional (CP/SP),
+                // so we round to the nearest copper (0.01 GP) to avoid floating-point drift.
+                const newGold = Math.round((state.gold - cost) * 100) / 100;
+
+                // Also remove the item from merchant inventory (finite stock).
+                // We find and remove only the first matching item by id.
+                const currentMerchantInventory = state.merchantModal?.merchantInventory || [];
+                const itemIndex = currentMerchantInventory.findIndex(i => i.id === item.id);
+                const newMerchantInventory = itemIndex !== -1
+                    ? [...currentMerchantInventory.slice(0, itemIndex), ...currentMerchantInventory.slice(itemIndex + 1)]
+                    : currentMerchantInventory;
+
                 return {
-                    gold: state.gold - cost,
-                    inventory: [...state.inventory, item]
+                    gold: newGold,
+                    inventory: [...state.inventory, item],
+                    merchantModal: state.merchantModal ? {
+                        ...state.merchantModal,
+                        merchantInventory: newMerchantInventory
+                    } : undefined
                 };
             }
             return {};
@@ -358,7 +375,8 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
 
             return {
                 inventory: newInventory,
-                gold: state.gold + value
+                // Round to the nearest copper (0.01 GP) to keep GP display stable.
+                gold: Math.round((state.gold + value) * 100) / 100
             };
         }
 
@@ -466,6 +484,139 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 : state.characterSheetModal;
 
             return { party: newParty, characterSheetModal: newCharacterSheetModalState };
+        }
+
+        case 'AUTO_EQUIP': {
+            const { characterId } = action.payload;
+            const charIndex = state.party.findIndex(c => c.id === characterId);
+            if (charIndex === -1) return {};
+
+            let charToUpdate = { ...state.party[charIndex] };
+            let newInventory = [...state.inventory];
+            const newEquippedItems = { ...charToUpdate.equippedItems };
+
+            // Get character's max armor proficiency level
+            const maxArmorProficiencyLevel = getCharacterMaxArmorProficiency(charToUpdate);
+            const maxArmorValue = getArmorCategoryHierarchy(maxArmorProficiencyLevel.charAt(0).toUpperCase() + maxArmorProficiencyLevel.slice(1) as ArmorCategory);
+
+            // Define slot mappings from item slot to equipment slot
+            const armorSlots: EquipmentSlotType[] = ['Torso', 'Head', 'Hands', 'Legs', 'Feet', 'Wrists'];
+            const accessorySlots: EquipmentSlotType[] = ['Neck', 'Cloak', 'Belt', 'Ring1', 'Ring2'];
+
+            // Helper to find best item for a slot from inventory
+            const findBestItemForSlot = (slot: EquipmentSlotType, items: Item[]): Item | null => {
+                // For Ring slots, treat them as 'Ring' type items
+                const slotToMatch = slot === 'Ring1' || slot === 'Ring2' ? 'Ring' : slot;
+
+                const candidates = items.filter(item => {
+                    if (item.slot !== slotToMatch) return false;
+
+                    // For armor, check proficiency
+                    if (item.type === 'armor' && item.armorCategory) {
+                        if (item.armorCategory === 'Shield') {
+                            return charToUpdate.class.armorProficiencies.map(p => p.toLowerCase()).includes('shields');
+                        }
+                        const itemArmorValue = getArmorCategoryHierarchy(item.armorCategory);
+                        return itemArmorValue <= maxArmorValue;
+                    }
+                    return true;
+                });
+
+                if (candidates.length === 0) return null;
+
+                // For armor slots, pick highest AC
+                if (armorSlots.includes(slot)) {
+                    return candidates.reduce((best, current) => {
+                        const bestAC = best.baseArmorClass ?? 0;
+                        const currentAC = current.baseArmorClass ?? 0;
+                        return currentAC > bestAC ? current : best;
+                    });
+                }
+
+                // For accessories, just pick the first one
+                return candidates[0];
+            };
+
+            // Equip armor slots
+            for (const slot of armorSlots) {
+                if (!newEquippedItems[slot]) {
+                    const bestItem = findBestItemForSlot(slot, newInventory);
+                    if (bestItem) {
+                        newEquippedItems[slot] = bestItem;
+                        newInventory = newInventory.filter(i => i.id !== bestItem.id);
+                    }
+                }
+            }
+
+            // Equip accessory slots
+            for (const slot of accessorySlots) {
+                if (!newEquippedItems[slot]) {
+                    const bestItem = findBestItemForSlot(slot, newInventory);
+                    if (bestItem) {
+                        newEquippedItems[slot] = bestItem;
+                        newInventory = newInventory.filter(i => i.id !== bestItem.id);
+                    }
+                }
+            }
+
+            // Equip Shield in OffHand if proficient and not already equipped
+            if (!newEquippedItems.OffHand) {
+                const hasShieldProficiency = charToUpdate.class.armorProficiencies.map(p => p.toLowerCase()).includes('shields');
+                if (hasShieldProficiency) {
+                    const shield = newInventory.find(item => item.type === 'armor' && item.armorCategory === 'Shield');
+                    if (shield) {
+                        newEquippedItems.OffHand = shield;
+                        newInventory = newInventory.filter(i => i.id !== shield.id);
+                    }
+                }
+            }
+
+            // Equip weapon in MainHand if not already equipped (pick best proficient weapon)
+            if (!newEquippedItems.MainHand) {
+                const proficientWeapons = newInventory.filter(item =>
+                    item.type === 'weapon' && isWeaponProficient(charToUpdate, item)
+                );
+
+                if (proficientWeapons.length > 0) {
+                    // Simple heuristic: prefer higher damage dice (compare first character of damageDice like "1d12" vs "1d6")
+                    const bestWeapon = proficientWeapons.reduce((best, current) => {
+                        const bestDice = parseInt(best.damageDice?.split('d')[1] ?? '0');
+                        const currentDice = parseInt(current.damageDice?.split('d')[1] ?? '0');
+                        return currentDice > bestDice ? current : best;
+                    });
+
+                    newEquippedItems.MainHand = bestWeapon;
+                    newInventory = newInventory.filter(i => i.id !== bestWeapon.id);
+                }
+            }
+
+            // Update character with new equipment
+            charToUpdate.equippedItems = newEquippedItems;
+
+            // Recalculate Stats
+            charToUpdate.finalAbilityScores = calculateFinalAbilityScores(
+                charToUpdate.abilityScores,
+                charToUpdate.race,
+                charToUpdate.equippedItems
+            );
+
+            // Recalculate Max HP (if Con changed)
+            const conMod = getAbilityModifierValue(charToUpdate.finalAbilityScores.Constitution);
+            charToUpdate.maxHp = charToUpdate.class.hitDie + conMod + (charToUpdate.level! - 1) * (Math.floor(charToUpdate.class.hitDie / 2) + 1 + conMod);
+            if (charToUpdate.hp > charToUpdate.maxHp) {
+                charToUpdate.hp = charToUpdate.maxHp;
+            }
+
+            charToUpdate.armorClass = calculateArmorClass(charToUpdate);
+
+            const newParty = [...state.party];
+            newParty[charIndex] = charToUpdate;
+
+            const newCharacterSheetModalState = state.characterSheetModal.isOpen && state.characterSheetModal.character?.id === charToUpdate.id
+                ? { ...state.characterSheetModal, character: charToUpdate }
+                : state.characterSheetModal;
+
+            return { party: newParty, inventory: newInventory, characterSheetModal: newCharacterSheetModalState };
         }
 
         default:

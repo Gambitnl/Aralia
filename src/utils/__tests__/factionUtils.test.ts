@@ -8,6 +8,7 @@ import { PlayerFactionStanding } from '../../types/factions';
 // Mock GameState for testing
 const mockGameState: GameState = {
     factions: FACTIONS,
+    gameTime: new Date('2025-01-01T12:00:00Z'),
     playerFactionStandings: {
         'iron_ledger': {
             factionId: 'iron_ledger',
@@ -112,6 +113,7 @@ describe('Faction Reputation System', () => {
         it('should update primary faction and propagate to others', () => {
             // Deep copy state to avoid mutation pollution
             const testState = JSON.parse(JSON.stringify(mockGameState));
+            testState.gameTime = new Date(mockGameState.gameTime); // Restore Date object
 
             const result = applyReputationChange(testState, 'iron_ledger', 20, 'completed contract');
 
@@ -129,6 +131,7 @@ describe('Faction Reputation System', () => {
 
         it('should clamp values between -100 and 100', () => {
             const testState = JSON.parse(JSON.stringify(mockGameState));
+            testState.gameTime = new Date(mockGameState.gameTime); // Restore Date object
             testState.playerFactionStandings['iron_ledger'].publicStanding = 90;
 
             const result = applyReputationChange(testState, 'iron_ledger', 20, 'big win');

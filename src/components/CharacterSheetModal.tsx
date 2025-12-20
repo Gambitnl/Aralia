@@ -9,8 +9,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { PlayerCharacter, Item, EquipmentSlotType, Action } from '../types';
-import EquipmentMannequin from './EquipmentMannequin';
-import InventoryList from './InventoryList'; 
+import EquipmentMannequin from './CharacterSheet/EquipmentMannequin';
+import InventoryList from './CharacterSheet/InventoryList';
 import SkillDetailDisplay from './CharacterSheet/SkillDetailDisplay';
 import SpellbookOverlay from './SpellbookOverlay'; // Import the new SpellbookOverlay component
 import CharacterOverview from './CharacterSheet/CharacterOverview'; // Import the extracted component
@@ -20,23 +20,23 @@ import CharacterOverview from './CharacterSheet/CharacterOverview'; // Import th
 interface CharacterSheetModalProps {
   isOpen: boolean;
   character: PlayerCharacter | null;
-  inventory: Item[]; 
+  inventory: Item[];
   gold: number;
   onClose: () => void;
-  onAction: (action: Action) => void; 
+  onAction: (action: Action) => void;
   onNavigateToGlossary?: (termId: string) => void; // For glossary navigation
 }
 
 type SheetTab = 'overview'; // Spellbook is now an overlay, not a tab view
 
-const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({ 
-  isOpen, 
-  character, 
-  inventory, 
+const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
+  isOpen,
+  character,
+  inventory,
   gold,
-  onClose, 
+  onClose,
   onAction,
-  onNavigateToGlossary 
+  onNavigateToGlossary
 }) => {
   const [isSkillDetailOverlayOpen, setIsSkillDetailOverlayOpen] = useState(false);
   const [isSpellbookOpen, setIsSpellbookOpen] = useState(false); // State for the spellbook overlay
@@ -68,34 +68,34 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
   const handleSlotClick = (slot: EquipmentSlotType, item?: Item) => {
     if (item && character) {
       // If item is equipped, unequip it
-      onAction({ type: 'UNEQUIP_ITEM', label: `Unequip ${item.name}`, payload: { slot, characterId: character.id! }});
+      onAction({ type: 'UNEQUIP_ITEM', label: `Unequip ${item.name}`, payload: { slot, characterId: character.id! } });
     } else {
       // If slot is empty, toggle filter mode for that slot
       setFilterBySlot(filterBySlot === slot ? null : slot);
     }
   };
-  
+
   if (!isOpen || !character) {
     return null;
   }
-  
+
   const hasSpells = character.spellbook && (character.spellbook.cantrips.length > 0 || character.spellbook.preparedSpells.length > 0 || character.spellbook.knownSpells.length > 0);
 
   return (
     <>
-      <motion.div 
-          {...{
-            initial: { opacity: 0 },
-            animate: { opacity: 1 },
-            exit: { opacity: 0 },
-            transition: { duration: 0.3 },
-          } as any}
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
-          aria-modal="true"
-          role="dialog"
-          aria-labelledby="character-sheet-title"
+      <motion.div
+        {...{
+          initial: { opacity: 0 },
+          animate: { opacity: 1 },
+          exit: { opacity: 0 },
+          transition: { duration: 0.3 },
+        } as any}
+        className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+        aria-modal="true"
+        role="dialog"
+        aria-labelledby="character-sheet-title"
       >
-        <motion.div 
+        <motion.div
           {...{
             initial: { opacity: 0, scale: 0.95 },
             animate: { opacity: 1, scale: 1 },
@@ -110,7 +110,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
               <h2 id="character-sheet-title" className="text-3xl font-bold text-amber-400 font-cinzel tracking-wider">
                 {character.name}
               </h2>
-               {/* Tabs */}
+              {/* Tabs */}
               <div className="mt-2 flex border-b border-gray-600">
                 <button
                   onClick={() => setActiveTab('overview')}
@@ -121,7 +121,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
                   Overview
                 </button>
                 {hasSpells && (
-                   <button
+                  <button
                     onClick={() => setIsSpellbookOpen(true)}
                     className={`px-4 py-2 text-sm font-medium transition-colors text-gray-400 hover:text-white`}
                     role="tab"
@@ -144,58 +144,63 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
           {/* Main Content Area */}
           <div className="flex-grow overflow-hidden min-h-0 flex flex-col">
             {activeTab === 'overview' && (
-               <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-4 h-full overflow-hidden">
-                  {/* Column 1: Core Stats & Features (Extracted to CharacterOverview) */}
-                  <div className="lg:col-span-1 h-full overflow-hidden">
-                    <CharacterOverview
-                      character={character}
-                      onOpenSkillDetails={() => setIsSkillDetailOverlayOpen(true)}
-                    />
-                  </div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-4 h-full overflow-hidden">
+                {/* Column 1: Core Stats & Features (Extracted to CharacterOverview) */}
+                <div className="lg:col-span-1 h-full overflow-hidden">
+                  <CharacterOverview
+                    character={character}
+                    onOpenSkillDetails={() => setIsSkillDetailOverlayOpen(true)}
+                  />
+                </div>
 
-                  {/* Column 2: Equipment */}
-                  <div className="lg:col-span-1 space-y-4 p-1 flex flex-col items-center justify-start overflow-y-auto scrollable-content h-full">
-                      <EquipmentMannequin
-                        character={character}
-                        onSlotClick={handleSlotClick}
-                        activeFilterSlot={filterBySlot}
-                      />
-                  </div>
+                {/* Column 2: Equipment */}
+                <div className="lg:col-span-1 space-y-4 p-1 flex flex-col items-center justify-start overflow-y-auto scrollable-content h-full">
+                  <EquipmentMannequin
+                    character={character}
+                    onSlotClick={handleSlotClick}
+                    activeFilterSlot={filterBySlot}
+                    onAutoEquip={() => onAction({
+                      type: 'AUTO_EQUIP',
+                      label: 'Auto-Equip Best Gear',
+                      payload: { characterId: character.id! }
+                    })}
+                  />
+                </div>
 
-                  {/* Column 3: Inventory */}
-                  <div className="lg:col-span-1 space-y-4 overflow-y-auto scrollable-content p-1 pr-2 h-full">
-                      <InventoryList
-                        inventory={inventory}
-                        gold={gold}
-                        character={character}
-                        onAction={onAction}
-                        filterBySlot={filterBySlot}
-                        onClearFilter={() => setFilterBySlot(null)}
-                      />
-                  </div>
-               </div>
+                {/* Column 3: Inventory */}
+                <div className="lg:col-span-1 space-y-4 overflow-y-auto scrollable-content p-1 pr-2 h-full">
+                  <InventoryList
+                    inventory={inventory}
+                    gold={gold}
+                    character={character}
+                    onAction={onAction}
+                    filterBySlot={filterBySlot}
+                    onClearFilter={() => setFilterBySlot(null)}
+                  />
+                </div>
+              </div>
             )}
           </div>
         </motion.div>
       </motion.div>
-      
+
       {/* Spellbook Overlay */}
       {isSpellbookOpen && (
-          <SpellbookOverlay 
-            isOpen={isSpellbookOpen}
-            character={character}
-            onClose={() => setIsSpellbookOpen(false)}
-            onAction={onAction}
-          />
+        <SpellbookOverlay
+          isOpen={isSpellbookOpen}
+          character={character}
+          onClose={() => setIsSpellbookOpen(false)}
+          onAction={onAction}
+        />
       )}
 
       {/* Skill Detail Overlay */}
       {character && (
-        <SkillDetailDisplay 
+        <SkillDetailDisplay
           isOpen={isSkillDetailOverlayOpen}
           onClose={() => setIsSkillDetailOverlayOpen(false)}
           character={character}
-          onNavigateToGlossary={onNavigateToGlossary} 
+          onNavigateToGlossary={onNavigateToGlossary}
         />
       )}
     </>

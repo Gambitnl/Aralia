@@ -5,32 +5,33 @@
  * It uses a "Paper Doll" layout with a background silhouette to provide context to the slots.
  */
 import React from 'react';
-import { PlayerCharacter, EquipmentSlotType, Item, ArmorCategory } from '../types';
-import Tooltip from './ui/Tooltip';
+import { PlayerCharacter, EquipmentSlotType, Item, ArmorCategory } from '../../types';
+import Tooltip from '../ui/Tooltip';
 
 // Import default icon components
-import HeadIcon from '../assets/icons/HeadIcon';
-import NeckIcon from '../assets/icons/NeckIcon';
-import TorsoIcon from '../assets/icons/TorsoIcon';
-import CloakIcon from '../assets/icons/CloakIcon';
-import BeltIcon from '../assets/icons/BeltIcon';
-import MainHandIcon from '../assets/icons/MainHandIcon';
-import OffHandIcon from '../assets/icons/OffHandIcon';
-import WristsIcon from '../assets/icons/WristsIcon';
-import RingIcon from '../assets/icons/RingIcon';
-import FeetIcon from '../assets/icons/FeetIcon';
-import LegsIcon from '../assets/icons/LegsIcon';
-import HandsIcon from '../assets/icons/HandsIcon';
+import HeadIcon from '../../assets/icons/HeadIcon';
+import NeckIcon from '../../assets/icons/NeckIcon';
+import TorsoIcon from '../../assets/icons/TorsoIcon';
+import CloakIcon from '../../assets/icons/CloakIcon';
+import BeltIcon from '../../assets/icons/BeltIcon';
+import MainHandIcon from '../../assets/icons/MainHandIcon';
+import OffHandIcon from '../../assets/icons/OffHandIcon';
+import WristsIcon from '../../assets/icons/WristsIcon';
+import RingIcon from '../../assets/icons/RingIcon';
+import FeetIcon from '../../assets/icons/FeetIcon';
+import LegsIcon from '../../assets/icons/LegsIcon';
+import HandsIcon from '../../assets/icons/HandsIcon';
 
 // Import the new dynamic icon component
 import DynamicMannequinSlotIcon from './DynamicMannequinSlotIcon';
-import { isWeaponProficient, isWeaponMartial } from '../utils/weaponUtils';
-import { getCharacterMaxArmorProficiency, getArmorCategoryHierarchy, getAbilityModifierValue } from '../utils/characterUtils';
+import { isWeaponProficient, isWeaponMartial } from '../../utils/weaponUtils';
+import { getCharacterMaxArmorProficiency, getArmorCategoryHierarchy, getAbilityModifierValue } from '../../utils/characterUtils';
 
 interface EquipmentMannequinProps {
   character: PlayerCharacter;
   onSlotClick?: (slot: EquipmentSlotType, item?: Item) => void;
   activeFilterSlot?: EquipmentSlotType | null;
+  onAutoEquip?: () => void;
 }
 
 interface SlotDisplayInfo {
@@ -75,13 +76,26 @@ const MannequinSilhouette = () => (
   </svg>
 );
 
-const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSlotClick, activeFilterSlot }) => {
+const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSlotClick, activeFilterSlot, onAutoEquip }) => {
   const characterMaxProficiencyLevel = getCharacterMaxArmorProficiency(character);
   const charMaxProficiencyValue = getArmorCategoryHierarchy(characterMaxProficiencyLevel.charAt(0).toUpperCase() + characterMaxProficiencyLevel.slice(1) as ArmorCategory);
 
   return (
     <div className="flex flex-col items-center">
-      <h3 className="text-xl font-semibold text-amber-400 mb-2 font-cinzel">Equipment</h3>
+      <div className="flex items-center gap-3 mb-2">
+        <h3 className="text-xl font-semibold text-amber-400 font-cinzel">Equipment</h3>
+        {onAutoEquip && (
+          <Tooltip content="Automatically equips the best available gear from your inventory based on your proficiencies. Only items you are proficient with will be equipped.">
+            <button
+              onClick={onAutoEquip}
+              className="px-2 py-1 text-xs bg-teal-700 hover:bg-teal-600 text-white rounded shadow transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400"
+              aria-label="Auto-equip best gear based on proficiencies"
+            >
+              ⚡ Auto-Equip
+            </button>
+          </Tooltip>
+        )}
+      </div>
 
       {/* Mannequin Container */}
       <div className="relative w-[340px] h-[480px] bg-gray-900/50 rounded-xl border border-gray-700 shadow-2xl overflow-hidden">

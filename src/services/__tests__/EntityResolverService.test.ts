@@ -47,15 +47,15 @@ describe('EntityResolverService', () => {
   });
 
   describe('ensureEntityExists', () => {
-    it('should return existing faction if found', () => {
-      const result = EntityResolverService.ensureEntityExists('faction', 'The Iron Ledger', mockState);
+    it('should return existing faction if found', async () => {
+      const result = await EntityResolverService.ensureEntityExists('faction', 'The Iron Ledger', mockState);
       expect(result.created).toBe(false);
       expect(result.entity).toBeDefined();
       expect(result.entity?.id).toBe('iron_ledger');
     });
 
-    it('should create a new faction if missing', () => {
-      const result = EntityResolverService.ensureEntityExists('faction', 'The Silver Swords', mockState);
+    it('should create a new faction if missing', async () => {
+      const result = await EntityResolverService.ensureEntityExists('faction', 'The Silver Swords', mockState);
       expect(result.created).toBe(true);
       expect(result.entity).toBeDefined();
       expect(result.entity?.name).toBe('The Silver Swords');
@@ -63,28 +63,28 @@ describe('EntityResolverService', () => {
       expect(result.entity?.id).toContain('silver_swords');
     });
 
-    it('should create a new location if missing', () => {
-        const result = EntityResolverService.ensureEntityExists('location', 'Castle Ravenloft', mockState);
-        expect(result.created).toBe(true);
-        expect(result.entity).toBeDefined();
-        expect(result.entity?.name).toBe('Castle Ravenloft');
-        expect(result.entity?.id).toContain('castle_ravenloft');
-        // Check default props
-        expect((result.entity as any).mapCoordinates).toEqual({ x: -1, y: -1 });
+    it('should create a new location if missing', async () => {
+      const result = await EntityResolverService.ensureEntityExists('location', 'Castle Ravenloft', mockState);
+      expect(result.created).toBe(true);
+      expect(result.entity).toBeDefined();
+      expect(result.entity?.name).toBe('Castle Ravenloft');
+      expect(result.entity?.id).toContain('castle_ravenloft');
+      // Check default props
+      expect((result.entity as any).mapCoordinates).toEqual({ x: -1, y: -1 });
     });
 
-    it('should check dynamic locations in state', () => {
-       // Mock state with a dynamic location
-       const dynamicState = {
-           ...mockState,
-           dynamicLocations: {
-               'new_place': { id: 'new_place', name: 'New Place', baseDescription: 'Desc', exits: {}, mapCoordinates: {x:0, y:0}, biomeId: 'plains' }
-           }
-       } as unknown as GameState;
+    it('should check dynamic locations in state', async () => {
+      // Mock state with a dynamic location
+      const dynamicState = {
+        ...mockState,
+        dynamicLocations: {
+          'new_place': { id: 'new_place', name: 'New Place', baseDescription: 'Desc', exits: {}, mapCoordinates: { x: 0, y: 0 }, biomeId: 'plains' }
+        }
+      } as unknown as GameState;
 
-       const result = EntityResolverService.ensureEntityExists('location', 'New Place', dynamicState);
-       expect(result.created).toBe(false);
-       expect(result.entity?.id).toBe('new_place');
+      const result = await EntityResolverService.ensureEntityExists('location', 'New Place', dynamicState);
+      expect(result.created).toBe(false);
+      expect(result.entity?.id).toBe('new_place');
     });
   });
 });

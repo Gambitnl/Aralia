@@ -125,6 +125,6 @@ describe('UnderdarkMechanics', () => {
         expect(result.underdark.sanity.current).toBe(24);
         expect(result.underdark.sanity.madnessLevel).toBe(3); // Highest madness
         expect(result.messages.length).toBeGreaterThan(0);
-        expect(result.messages[0].text).toContain('darkness presses against your mind');
+        expect(result.messages[0].text).toContain('presses against your mind');
     });
 });

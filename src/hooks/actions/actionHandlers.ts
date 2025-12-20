@@ -173,6 +173,9 @@ export function buildActionHandlers({
     DROP_ITEM: (action) => {
       handleDropItem(dispatch, action.payload as DropItemPayload);
     },
+    AUTO_EQUIP: (action) => {
+      dispatch({ type: 'AUTO_EQUIP', payload: action.payload as { characterId: string } });
+    },
     HARVEST_RESOURCE: async (action) => {
       await handleHarvestResource({ action, gameState, dispatch, addMessage, addGeminiLog });
     },

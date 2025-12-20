@@ -51,6 +51,7 @@ export type AppAction =
   | { type: 'UNEQUIP_ITEM'; payload: any }
   | { type: 'USE_ITEM'; payload: any }
   | { type: 'DROP_ITEM'; payload: any }
+  | { type: 'AUTO_EQUIP'; payload: { characterId: string } }
   // Merchant Actions
   | { type: 'OPEN_MERCHANT'; payload: { merchantName: string; inventory: Item[]; economy?: EconomyState } }
   | { type: 'CLOSE_MERCHANT' }

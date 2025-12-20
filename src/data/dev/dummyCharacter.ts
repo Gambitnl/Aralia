@@ -8,7 +8,7 @@ import { FEATURES } from '../../config/features';
 
 // --- DUMMY CHARACTER FOR DEVELOPMENT ---
 
-const DUMMY_FIGHTER_RACE_ID = 'human'; 
+const DUMMY_FIGHTER_RACE_ID = 'human';
 const DUMMY_FIGHTER_CLASS_ID = 'fighter';
 
 const DUMMY_CLERIC_RACE_ID = 'dwarf';
@@ -22,9 +22,51 @@ export function getDummyInitialInventory(allItems: Record<string, Item>): Item[]
         allItems['padded_armor'], allItems['leather_armor'], allItems['studded_leather_armor'],
         allItems['hide_armor'], allItems['chain_shirt'], allItems['scale_mail'], allItems['breastplate'], allItems['half_plate_armor'],
         allItems['ring_mail'], allItems['chain_mail'], allItems['splint_armor'], allItems['plate_armor'],
-        // Shields & Weapons
-        allItems['shield_std'], allItems['rusty_sword'], allItems['longsword'], allItems['shortbow'],
-        allItems['dagger'], allItems['mace'], allItems['quarterstaff'], allItems['battleaxe'], allItems['greatsword'],
+        // Shield
+        allItems['shield_std'],
+        // === ALL WEAPONS WITH MASTERIES ===
+        // Simple Melee Weapons (10 weapons)
+        allItems['club'],           // Mastery: Slow
+        allItems['dagger'],         // Mastery: Nick
+        allItems['greatclub'],      // Mastery: Push
+        allItems['handaxe'],        // Mastery: Vex
+        allItems['javelin'],        // Mastery: Slow
+        allItems['light_hammer'],   // Mastery: Nick
+        allItems['mace'],           // Mastery: Sap
+        allItems['quarterstaff'],   // Mastery: Topple
+        allItems['sickle'],         // Mastery: Nick
+        allItems['spear'],          // Mastery: Sap
+        // Simple Ranged Weapons (4 weapons)
+        allItems['dart'],           // Mastery: Vex
+        allItems['light_crossbow'], // Mastery: Slow
+        allItems['shortbow'],       // Mastery: Vex
+        allItems['sling'],          // Mastery: Slow
+        // Martial Melee Weapons (18 weapons)
+        allItems['battleaxe'],      // Mastery: Topple
+        allItems['flail'],          // Mastery: Sap
+        allItems['glaive'],         // Mastery: Graze
+        allItems['greataxe'],       // Mastery: Cleave
+        allItems['greatsword'],     // Mastery: Graze
+        allItems['halberd'],        // Mastery: Cleave
+        allItems['lance'],          // Mastery: Topple
+        allItems['longsword'],      // Mastery: Sap
+        allItems['maul'],           // Mastery: Topple
+        allItems['morningstar'],    // Mastery: Sap
+        allItems['pike'],           // Mastery: Push
+        allItems['rapier'],         // Mastery: Vex
+        allItems['scimitar'],       // Mastery: Nick
+        allItems['shortsword'],     // Mastery: Vex
+        allItems['trident'],        // Mastery: Topple
+        allItems['warhammer'],      // Mastery: Push
+        allItems['war_pick'],       // Mastery: Sap
+        allItems['whip'],           // Mastery: Slow
+        // Martial Ranged Weapons (4 weapons)
+        allItems['blowgun'],        // Mastery: Vex
+        allItems['longbow'],        // Mastery: Slow
+        allItems['hand_crossbow'],  // Mastery: Vex
+        allItems['heavy_crossbow'], // Mastery: Push
+        // Legacy weapon
+        allItems['rusty_sword'],    // Mastery: Nick
         // Head armor
         allItems['leather_cap'], allItems['chainmail_coif'], allItems['steel_helmet'],
         // Hands armor
@@ -59,18 +101,18 @@ export function initializeDummyCharacterData(
         console.error("Failed to initialize dummy fighter: Race or Class data missing.")
         return [];
     }
-    
+
     const DUMMY_FIGHTER_BASE_SCORES: AbilityScores = {
-      Strength: 15, Dexterity: 13, Constitution: 14, Intelligence: 8, Wisdom: 12, Charisma: 10,
+        Strength: 15, Dexterity: 13, Constitution: 14, Intelligence: 8, Wisdom: 12, Charisma: 10,
     };
     const DUMMY_FIGHTER_FINAL_SCORES = calculateFixedRacialBonuses(DUMMY_FIGHTER_BASE_SCORES, dummyFighterRace);
-    const DUMMY_FIGHTER_SKILLS: Skill[] = [ allSkills['athletics'], allSkills['intimidation'], allSkills['perception'] ].filter(Boolean) as Skill[];
+    const DUMMY_FIGHTER_SKILLS: Skill[] = [allSkills['athletics'], allSkills['intimidation'], allSkills['perception']].filter(Boolean) as Skill[];
     const DUMMY_FIGHTER_FIGHTING_STYLE = dummyFighterClass.fightingStyles?.find((style) => style.id === 'defense');
     const DUMMY_FIGHTER_MAX_HP = dummyFighterClass.hitDie + getAbilityModifierValue(DUMMY_FIGHTER_FINAL_SCORES.Constitution);
     const DUMMY_FIGHTER_LIMITED_USES: LimitedUses = {
-      'second_wind': { name: 'Second Wind', current: 1, max: 1, resetOn: 'short_rest' }
+        'second_wind': { name: 'Second Wind', current: 1, max: 1, resetOn: 'short_rest' }
     };
-    
+
     const tempFighter: PlayerCharacter = {
         id: 'dev_dummy_fighter',
         name: "Dev Fighter",
@@ -92,7 +134,7 @@ export function initializeDummyCharacterData(
     // --- Create Cleric ---
     const dummyClericRace = allRaces[DUMMY_CLERIC_RACE_ID];
     const dummyClericClass = allClasses[DUMMY_CLERIC_CLASS_ID];
-    
+
     if (!dummyClericRace || !dummyClericClass) {
         console.error("Failed to initialize dummy cleric: Race or Class data missing.")
         return [tempFighter]; // Return at least the fighter
@@ -103,7 +145,7 @@ export function initializeDummyCharacterData(
     };
     const DUMMY_CLERIC_FINAL_SCORES = calculateFixedRacialBonuses(DUMMY_CLERIC_BASE_SCORES, dummyClericRace);
     const DUMMY_CLERIC_MAX_HP = dummyClericClass.hitDie + getAbilityModifierValue(DUMMY_CLERIC_FINAL_SCORES.Constitution) + 1; // +1 for Dwarven Toughness
-    const DUMMY_CLERIC_SKILLS: Skill[] = [ allSkills['medicine'], allSkills['religion'] ].filter(Boolean) as Skill[];
+    const DUMMY_CLERIC_SKILLS: Skill[] = [allSkills['medicine'], allSkills['religion']].filter(Boolean) as Skill[];
     const clericSpellList = dummyClericClass.spellcasting?.spellList || [];
     const DUMMY_CLERIC_SPELLBOOK: SpellbookData = {
         cantrips: ['sacred-flame', 'light', 'guidance', 'thaumaturgy'], // Using kebab-case
@@ -111,9 +153,9 @@ export function initializeDummyCharacterData(
         preparedSpells: ['cure-wounds', 'bless'] // Using kebab-case
     };
     const DUMMY_CLERIC_SPELL_SLOTS: SpellSlots = {
-      level_1: { current: 2, max: 2 }, level_2: { current: 0, max: 0 }, level_3: { current: 0, max: 0 },
-      level_4: { current: 0, max: 0 }, level_5: { current: 0, max: 0 }, level_6: { current: 0, max: 0 },
-      level_7: { current: 0, max: 0 }, level_8: { current: 0, max: 0 }, level_9: { current: 0, max: 0 },
+        level_1: { current: 2, max: 2 }, level_2: { current: 0, max: 0 }, level_3: { current: 0, max: 0 },
+        level_4: { current: 0, max: 0 }, level_5: { current: 0, max: 0 }, level_6: { current: 0, max: 0 },
+        level_7: { current: 0, max: 0 }, level_8: { current: 0, max: 0 }, level_9: { current: 0, max: 0 },
     };
 
     const tempCleric: PlayerCharacter = {

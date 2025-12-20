@@ -54,6 +54,23 @@ describe('geminiService', () => {
       expect(result.data?.inventory.length).toBeGreaterThan(0);
       expect(result.error).toContain('Failed to parse inventory JSON');
     });
+
+    it('varies fallback inventory when a seed key is provided', async () => {
+      const mockGenerateContent = ai.models.generateContent as any;
+      mockGenerateContent.mockResolvedValue({
+        text: 'This is not JSON',
+      });
+
+      const a = await geminiService.generateMerchantInventory(undefined, 'HOUSE_SMALL', null, 'seed-a');
+      const b = await geminiService.generateMerchantInventory(undefined, 'HOUSE_SMALL', null, 'seed-b');
+
+      const namesA = (a.data?.inventory ?? []).map(i => i.name);
+      const namesB = (b.data?.inventory ?? []).map(i => i.name);
+
+      expect(namesA.length).toBeGreaterThan(2);
+      expect(namesB.length).toBeGreaterThan(2);
+      expect(namesA.join('|')).not.toEqual(namesB.join('|'));
+    });
   });
 
   describe('generateSocialCheckOutcome', () => {

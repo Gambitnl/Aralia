@@ -26,7 +26,7 @@ describe('religionReducer', () => {
         const newState = { ...state, ...result };
 
         expect(newState.divineFavor['pelor']).toBeDefined();
-        expect(newState.divineFavor['pelor'].score).toBe(1); // Default prayer boost
+        expect(newState.divineFavor['pelor'].favor).toBe(1); // Default prayer boost
         expect(newState.messages).toHaveLength(1);
         expect(newState.messages[0].text).toContain('You pray to Pelor');
     });
@@ -42,7 +42,7 @@ describe('religionReducer', () => {
         const newState = { ...state, ...result };
 
         expect(newState.gold).toBe(80); // 100 - 20
-        expect(newState.divineFavor['pelor'].score).toBe(3); // 1 (base) + 2 (20/10)
+        expect(newState.divineFavor['pelor'].favor).toBe(3); // 1 (base) + 2 (20/10)
     });
 
     it('should handle TRIGGER_DEITY_ACTION for approval', () => {
@@ -57,7 +57,7 @@ describe('religionReducer', () => {
         const newState = { ...state, ...result };
 
         expect(newState.divineFavor['bahamut']).toBeDefined();
-        expect(newState.divineFavor['bahamut'].score).toBe(2);
+        expect(newState.divineFavor['bahamut'].favor).toBe(2);
         // Should not generate message for small change on neutral unless specific logic (here < 5 is silent for Neutral)
         // Wait, logic says: if (existingFavor.rank !== 'Neutral' || Math.abs(change) >= 5)
         // Rank starts Neutral. Change is 2. So no message.
@@ -76,7 +76,7 @@ describe('religionReducer', () => {
         const newState = { ...state, ...result };
 
         expect(newState.divineFavor['bahamut']).toBeDefined();
-        expect(newState.divineFavor['bahamut'].score).toBe(-10);
+        expect(newState.divineFavor['bahamut'].favor).toBe(-10);
         // Change is >= 5, so message should appear
         expect(newState.messages).toHaveLength(1);
         expect(newState.messages[0].text).toContain('Bahamut loses favor');
@@ -97,7 +97,7 @@ describe('religionReducer', () => {
         const result = religionReducer(state, action);
         const newState = { ...state, ...result };
 
-        expect(newState.divineFavor['pelor'].score).toBe(1);
-        expect(newState.divineFavor['raven_queen'].score).toBe(3);
+        expect(newState.divineFavor['pelor'].favor).toBe(1);
+        expect(newState.divineFavor['raven_queen'].favor).toBe(3);
     });
 });

@@ -13,6 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ai, isAiEnabled } from './aiClient'; // Import the shared AI client
 import { logger } from '../utils/logger';
 import { Action, PlayerCharacter, InspectSubmapTilePayload, SeededFeatureConfig, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState, VillageActionContext, ItemType } from "../types";
+import { SeededRandom } from '../utils/seededRandom';
 import { SUBMAP_ICON_MEANINGS } from '../data/glossaryData';
 import { XP_BY_CR } from '../data/dndData';
 import { CLASSES_DATA } from '../data/classes';
@@ -184,7 +185,7 @@ interface ExtendedGenerationConfig extends GenerationConfig {
  * Returns a basic inventory based on the shop type to be used as a fallback
  * when the AI fails to generate a valid inventory.
  */
-function getFallbackInventory(shopType: string): Item[] {
+function getFallbackInventory(shopType: string, seedKey?: string): Item[] {
   const defaults: Item[] = [];
   const type = shopType.toLowerCase();
 
@@ -204,6 +205,32 @@ function getFallbackInventory(shopType: string): Item[] {
   defaults.push(createItem("Rations", "Standard travel rations.", "5 cp", 0.05, ItemType.FoodDrink));
   defaults.push(createItem("Torch", "A simple torch.", "1 cp", 0.01, ItemType.LightSource));
 
+  // Deterministic "extra stock" so different buildings don't all sell the same 2 items
+  // when AI generation is unavailable (e.g., no API key, rate-limit, or parse failures).
+  const hashToSeed = (input: string): number => {
+    let hash = 0;
+    for (let i = 0; i < input.length; i++) {
+      hash = (hash * 31 + input.charCodeAt(i)) >>> 0;
+    }
+    return hash || 1;
+  };
+  const rng = new SeededRandom(hashToSeed(`${type}|${seedKey ?? ''}`));
+
+  const generalPool: Array<[string, string, string, number, ItemType]> = [
+    ["Waterskin", "A basic waterskin.", "2 sp", 0.2, ItemType.Consumable],
+    ["Flint & Steel", "A kit for starting fires.", "5 sp", 0.5, ItemType.Tool],
+    ["Bedroll", "A rough bedroll for travel.", "1 sp", 0.1, ItemType.Tool],
+    ["Soap", "A bar of soap.", "2 cp", 0.02, ItemType.Consumable],
+    ["Chalk", "A stick of chalk.", "1 cp", 0.01, ItemType.Tool],
+  ];
+
+  const housePool: Array<[string, string, string, number, ItemType]> = [
+    ["Needle & Thread", "Simple repair kit for clothes.", "5 cp", 0.05, ItemType.Tool],
+    ["Lantern Oil (Small)", "A small flask of lamp oil.", "1 sp", 0.1, ItemType.Consumable],
+    ["Dried Herbs", "Common cooking herbs.", "3 cp", 0.03, ItemType.FoodDrink],
+    ["Handmade Charm", "A lucky charm of local make.", "8 cp", 0.08, ItemType.Treasure],
+  ];
+
   if (type.includes('blacksmith') || type.includes('weapon') || type.includes('armor')) {
     defaults.push(createItem("Iron Dagger", "A simple iron dagger.", "2 gp", 2, ItemType.Weapon));
     defaults.push(createItem("Whetstone", "For sharpening blades.", "1 cp", 0.01, ItemType.Tool));
@@ -213,7 +240,27 @@ function getFallbackInventory(shopType: string): Item[] {
   } else if (type.includes('general') || type.includes('goods')) {
     defaults.push(createItem("Rope (50ft)", "Hempen rope.", "1 gp", 1, ItemType.Tool));
     defaults.push(createItem("Waterskin", "For carrying water.", "2 sp", 0.2, ItemType.Consumable));
+  } else if (type.includes('house')) {
+    // Houses aren't always shops, but TownCanvas currently routes "enter" to a merchant modal.
+    // Give them a small, varied set of household goods instead of always the same 2 items.
+    defaults.push(createItem("Bread Loaf", "Fresh-baked bread.", "2 cp", 0.02, ItemType.FoodDrink));
   }
+
+  const pickUnique = <T,>(pool: T[], count: number): T[] => {
+    const copy = [...pool];
+    const picked: T[] = [];
+    while (copy.length > 0 && picked.length < count) {
+      const idx = rng.nextInt(0, copy.length);
+      picked.push(copy.splice(idx, 1)[0]);
+    }
+    return picked;
+  };
+
+  const extraCount = 2 + rng.nextInt(0, 3); // 2-4 extras
+  const pool = type.includes('house') ? [...housePool, ...generalPool] : generalPool;
+  pickUnique(pool, extraCount).forEach(([name, desc, cost, gp, itemType]) => {
+    defaults.push(createItem(name, desc, cost, gp, itemType));
+  });
 
   return defaults;
 }
@@ -911,7 +958,8 @@ export async function generateSituationAnalysis(
 export async function generateMerchantInventory(
   villageContext: VillageActionContext | undefined,
   shopType: string,
-  devModelOverride: string | null = null
+  devModelOverride: string | null = null,
+  seedKey?: string
 ): Promise<StandardizedResult<GeminiInventoryData>> {
   const templateString = Object.entries(ItemTemplates).map(([key, tmpl]) => `${key}: ${JSON.stringify(tmpl)}`).join('\n\n');
   // Spell out the village context so Gemini receives the culture/biome cues
@@ -944,7 +992,7 @@ export async function generateMerchantInventory(
         promptSent: result.metadata?.promptSent || "",
         rawResponse: result.metadata?.rawResponse || "",
         rateLimitHit: result.metadata?.rateLimitHit,
-        inventory: getFallbackInventory(shopType),
+        inventory: getFallbackInventory(shopType, seedKey),
         economy: defaultEconomy
       },
       error: result.error,
@@ -999,7 +1047,7 @@ export async function generateMerchantInventory(
         promptSent: result.data.promptSent,
         rawResponse: result.data.rawResponse,
         rateLimitHit: result.data.rateLimitHit,
-        inventory: getFallbackInventory(shopType),
+        inventory: getFallbackInventory(shopType, seedKey),
         economy: defaultEconomy
       },
       error: "Failed to parse inventory JSON. Using fallback.",

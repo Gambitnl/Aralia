@@ -16,16 +16,57 @@ const manifest = { 'magic-missile': { name: 'Magic Missile', level: 1, school: '
 const spellJson = {
   id: 'magic-missile',
   name: 'Magic Missile',
+  aliases: [], // Added
+  source: 'PHB', // Added
   level: 1,
   school: 'Evocation',
+  ritual: false, // Added
+  rarity: 'common', // Added
+  attackType: 'ranged', // Added
   legacy: true,
   classes: [],
-  castingTime: { value: 1, unit: 'action', combatCost: { type: 'action' } },
+  castingTime: {
+    value: 1,
+    unit: 'action',
+    combatCost: { type: 'action', condition: '' },
+    explorationCost: { value: 0, unit: 'minute' } // Added
+  },
   range: { type: 'ranged', distance: 120 },
-  components: { verbal: true, somatic: true, material: false },
-  duration: { type: 'instantaneous', concentration: false },
-  targeting: { type: 'ranged', range: 120, validTargets: ['creatures'], lineOfSight: true },
+  components: {
+    verbal: true,
+    somatic: true,
+    material: false,
+    materialDescription: '', // Added
+    materialCost: 0, // Added
+    isConsumed: false // Added
+  },
+  duration: {
+    type: 'instantaneous',
+    concentration: false,
+    value: 0, // Added
+    unit: 'round' // Added
+  },
+  targeting: {
+    type: 'ranged',
+    range: 120,
+    validTargets: ['creatures'],
+    lineOfSight: true,
+    maxTargets: 3, // Added
+    areaOfEffect: { shape: 'Sphere', size: 0 }, // Added dummy
+    filter: {  // Added
+      creatureTypes: [],
+      excludeCreatureTypes: [],
+      sizes: [],
+      alignments: [],
+      hasCondition: [],
+      isNativeToPlane: false
+    }
+  },
   effects: [{ type: 'UTILITY', trigger: { type: 'immediate' }, condition: { type: 'always' }, utilityType: 'other', description: 'desc' }],
+  arbitrationType: 'mechanical', // Added
+  aiContext: { prompt: '', playerInputRequired: false }, // Added
+  higherLevels: 'one more dart', // Added
+  tags: [], // Added
   description: 'desc',
 };
 
@@ -45,6 +86,6 @@ describe('useSpellGateChecks', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     const res = result.current.results['magic-missile'];
     expect(res.status).toBe('gap');
-    expect(res.checklist.knownGap).toBe(true);
+    expect(res.checklist.noKnownGaps).toBe(false);
   });
 });

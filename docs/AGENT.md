@@ -23,6 +23,7 @@
 - **Game Data**: Centralized in src/data/ with modular organization (races, classes, items, monsters, world). JSON manifest workflow for Spells.
 - **Command Pattern**: Used for game actions (src/commands/)
 - **AI Integration**: Google Gemini API for dynamic content generation and NPC interactions
+- **Merchants/Economy**: UI (`src/components/MerchantModal.tsx`) + action handler (`src/hooks/actions/handleMerchantInteraction.ts`) + AI/fallback inventory (`src/services/geminiService.ts`) + price math (`src/utils/economyUtils.ts`)
 
 ## Key Directories
 - `src/components/` - All React components (modular with README files)

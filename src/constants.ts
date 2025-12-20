@@ -29,13 +29,13 @@ import {
   GnomeSubrace,
   GnomeSubraceType,
   TTSVoiceOption,
-  GiantAncestryBenefit, 
+  GiantAncestryBenefit,
   GiantAncestryType,
-  FiendishLegacy, 
+  FiendishLegacy,
   FiendishLegacyType,
   Mastery,
   // MapTile and Biome types are imported where needed (e.g. App.tsx, mapService.ts) directly from ../types
-} from './types'; 
+} from './types';
 
 // Import aggregated data from specialized modules
 import { ALL_RACES_DATA, RACE_DATA_BUNDLE } from './data/races/index.ts';
@@ -61,7 +61,7 @@ const RACES_DATA = ALL_RACES_DATA;
 // Initialize DUMMY_PARTY_FOR_DEV after all its dependencies (RACES_DATA, etc.) are defined.
 const initializedDummyParty = initializeDummyCharacterData(RACES_DATA, CLASSES_DATA, SKILLS_DATA);
 setInitializedDummyCharacter(initializedDummyParty);
-export const initialInventoryForDummyCharacter = getDummyInitialInventory(ITEMS);
+export const initialInventoryForDummyCharacter = getDummyInitialInventory({ ...WEAPONS_DATA, ...ITEMS });
 // Now DUMMY_PARTY_FOR_DEV is populated in dummyCharacter.ts and can be re-exported.
 export { DUMMY_PARTY_FOR_DEV } from './data/dev/dummyCharacter';
 

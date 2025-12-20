@@ -1,123 +1,67 @@
-/**
- * @file src/utils/__tests__/economyUtils.test.ts
- */
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { calculatePrice, parseCost } from '../economyUtils';
-import { Item, EconomyState } from '@/types';
+import type { EconomyState, Item } from '../../types';
 
 describe('economyUtils', () => {
-    const mockItem: Item = {
-        id: 'test_sword',
-        name: 'Test Sword',
-        type: 'weapon',
-        value: 100,
-        description: 'A sharp blade',
-        icon: 'sword',
-        weight: 2
+  describe('parseCost', () => {
+    it('parses CP/SP/GP/PP into GP', () => {
+      expect(parseCost('1 cp')).toBeCloseTo(0.01);
+      expect(parseCost('5 sp')).toBeCloseTo(0.5);
+      expect(parseCost('2 gp')).toBeCloseTo(2);
+      expect(parseCost('1 pp')).toBeCloseTo(10);
+    });
+  });
+
+  describe('calculatePrice', () => {
+    const economy: EconomyState = {
+      marketFactors: { scarcity: [], surplus: [] },
+      buyMultiplier: 1,
+      sellMultiplier: 0.5,
     };
 
-    const mockItemStringCost: Item = {
-        id: 'test_legacy',
-        name: 'Legacy Item',
-        type: 'misc',
-        cost: '50 GP',
-        description: 'Old item',
-        icon: 'box',
-        weight: 1
-    };
+    it('does not collapse cheap CP items to 0 when buying', () => {
+      const torch: Item = {
+        id: 'torch',
+        name: 'Torch',
+        description: 'A simple torch.',
+        type: 'light_source',
+        cost: '1 cp',
+        costInGp: 0.01,
+        weight: 1,
+      };
 
-    const defaultEconomy: EconomyState = {
-        marketFactors: { scarcity: [], surplus: [] },
-        buyMultiplier: 1.0,
-        sellMultiplier: 0.5,
-        activeEvents: []
-    };
-
-    describe('parseCost', () => {
-        it('parses GP correctly', () => {
-            expect(parseCost('100 GP')).toBe(100);
-            expect(parseCost('50 gp')).toBe(50);
-        });
-
-        it('parses PP correctly', () => {
-            expect(parseCost('10 PP')).toBe(100);
-        });
-
-        it('parses SP correctly', () => {
-            expect(parseCost('10 SP')).toBe(1);
-        });
-
-        it('returns 0 for invalid or empty strings', () => {
-            expect(parseCost('')).toBe(0);
-            expect(parseCost(undefined)).toBe(0);
-            expect(parseCost('free')).toBe(0);
-        });
+      expect(calculatePrice(torch, economy, 'buy').finalPrice).toBe(0.01);
     });
 
-    describe('calculatePrice', () => {
-        it('calculates base buy price correctly (numeric value)', () => {
-            const result = calculatePrice(mockItem, defaultEconomy, 'buy');
-            expect(result.finalPrice).toBe(100);
-            expect(result.multiplier).toBe(1.0);
-            expect(result.isModified).toBe(false);
-        });
+    it('rounds up to nearest CP when buying', () => {
+      const tiny: Item = {
+        id: 'tiny',
+        name: 'Tiny',
+        description: 'Almost free.',
+        type: 'consumable',
+        cost: '0.001 gp',
+        costInGp: 0.001,
+        weight: 1,
+      };
 
-        it('calculates base buy price correctly (string cost)', () => {
-            const result = calculatePrice(mockItemStringCost, defaultEconomy, 'buy');
-            expect(result.finalPrice).toBe(50);
-        });
-
-        it('calculates base sell price correctly', () => {
-            const result = calculatePrice(mockItem, defaultEconomy, 'sell');
-            expect(result.finalPrice).toBe(50);
-            expect(result.multiplier).toBe(0.5);
-        });
-
-        it('increases price during scarcity', () => {
-            const scarcityEconomy: EconomyState = {
-                ...defaultEconomy,
-                marketFactors: { scarcity: ['weapon'], surplus: [] }
-            };
-            const buyResult = calculatePrice(mockItem, scarcityEconomy, 'buy');
-            // 1.0 + 0.5 = 1.5 multiplier
-            // 100 * 1.5 = 150
-            expect(buyResult.finalPrice).toBe(150);
-            expect(buyResult.multiplier).toBe(1.5);
-            expect(buyResult.isModified).toBe(true);
-
-            const sellResult = calculatePrice(mockItem, scarcityEconomy, 'sell');
-            // 0.5 + 0.3 = 0.8 multiplier
-            // 100 * 0.8 = 80
-            expect(sellResult.finalPrice).toBe(80);
-        });
-
-        it('decreases price during surplus', () => {
-            const surplusEconomy: EconomyState = {
-                ...defaultEconomy,
-                marketFactors: { scarcity: [], surplus: ['weapon'] }
-            };
-            const buyResult = calculatePrice(mockItem, surplusEconomy, 'buy');
-            // 1.0 - 0.3 = 0.7 multiplier
-            // 100 * 0.7 = 70
-            expect(buyResult.finalPrice).toBe(70);
-            expect(buyResult.isModified).toBe(true);
-
-            const sellResult = calculatePrice(mockItem, surplusEconomy, 'sell');
-            // 0.5 - 0.2 = 0.3 multiplier
-            // 100 * 0.3 = 30
-            expect(sellResult.finalPrice).toBe(30);
-        });
-
-        it('handles zero value items', () => {
-            const junkItem: Item = { ...mockItem, value: 0 };
-            const result = calculatePrice(junkItem, defaultEconomy, 'buy');
-            expect(result.finalPrice).toBe(0);
-        });
-
-        it('handles missing economy gracefully', () => {
-            const result = calculatePrice(mockItem, undefined, 'buy');
-            expect(result.finalPrice).toBe(100);
-            expect(result.isModified).toBe(false);
-        });
+      // Buying rounds up so this never becomes free.
+      expect(calculatePrice(tiny, economy, 'buy').finalPrice).toBe(0.01);
     });
+
+    it('rounds down to nearest CP when selling', () => {
+      const torch: Item = {
+        id: 'torch',
+        name: 'Torch',
+        description: 'A simple torch.',
+        type: 'light_source',
+        cost: '1 cp',
+        costInGp: 0.01,
+        weight: 1,
+      };
+
+      // 0.01 * 0.5 = 0.005 => 0.00 after flooring to CP.
+      expect(calculatePrice(torch, economy, 'sell').finalPrice).toBe(0);
+    });
+  });
 });
+

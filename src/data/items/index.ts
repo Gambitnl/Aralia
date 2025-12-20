@@ -22,8 +22,10 @@ export const WEAPONS_DATA: Record<string, Item> = {
   // REVIEW Q20: After removing isMartial flag, all weapons now rely solely on `category` field.
   // Should we validate that all entries have a valid category? Missing categories would default to Simple.
   // ANSWER: Good practice. Consider adding a build-time validation script to catch data issues.
+  'dart': { id: 'dart', name: 'Dart', icon: '🎯', description: 'A small, pointed missile.', type: 'weapon', category: 'Simple Ranged', slot: 'MainHand', damageDice: '1d4', damageType: 'Piercing', properties: ['Finesse', 'Thrown'], weight: 0.25, cost: '5 CP', mastery: 'Vex' },
   'light_crossbow': { id: 'light_crossbow', name: 'Light Crossbow', icon: '🏹', description: 'A lighter, easier-to-load crossbow.', type: 'weapon', category: 'Simple Ranged', slot: 'MainHand', damageDice: '1d8', damageType: 'Piercing', properties: ['Ammunition', 'Loading', 'Two-Handed'], weight: 5, cost: '25 GP', mastery: 'Slow' },
   'shortbow': { id: 'shortbow', name: 'Shortbow', icon: '🏹', description: 'A small bow.', type: 'weapon', category: 'Simple Ranged', slot: 'MainHand', damageDice: '1d6', damageType: 'Piercing', properties: ['Ammunition', 'Two-Handed'], weight: 2, cost: '25 GP', mastery: 'Vex' },
+  'sling': { id: 'sling', name: 'Sling', icon: '🪢', description: 'A leather strap for hurling stones.', type: 'weapon', category: 'Simple Ranged', slot: 'MainHand', damageDice: '1d4', damageType: 'Bludgeoning', properties: ['Ammunition'], weight: 0, cost: '1 SP', mastery: 'Slow' },
 
   // --- Martial Melee Weapons ---
   'battleaxe': { id: 'battleaxe', name: 'Battleaxe', icon: '🪓', description: 'A versatile axe.', type: 'weapon', category: 'Martial Melee', slot: 'MainHand', damageDice: '1d8', damageType: 'Slashing', properties: ['Versatile'], weight: 4, cost: '10 GP', mastery: 'Topple' },
@@ -46,6 +48,7 @@ export const WEAPONS_DATA: Record<string, Item> = {
   'whip': { id: 'whip', name: 'Whip', icon: '〰️', description: 'A long, flexible whip.', type: 'weapon', category: 'Martial Melee', slot: 'MainHand', damageDice: '1d4', damageType: 'Slashing', properties: ['Finesse', 'Reach'], weight: 3, cost: '2 GP', mastery: 'Slow' },
 
   // --- Martial Ranged Weapons ---
+  'blowgun': { id: 'blowgun', name: 'Blowgun', icon: '🪈', description: 'A long tube for firing darts.', type: 'weapon', category: 'Martial Ranged', slot: 'MainHand', damageDice: '1', damageType: 'Piercing', properties: ['Ammunition', 'Loading'], weight: 1, cost: '10 GP', mastery: 'Vex' },
   'longbow': { id: 'longbow', name: 'Longbow', icon: '🏹', description: 'A large, powerful bow.', type: 'weapon', category: 'Martial Ranged', slot: 'MainHand', damageDice: '1d8', damageType: 'Piercing', properties: ['Ammunition', 'Heavy', 'Two-Handed'], weight: 2, cost: '50 GP', mastery: 'Slow' },
   'hand_crossbow': { id: 'hand_crossbow', name: 'Hand Crossbow', icon: '🏹', description: 'A crossbow small enough to be used with one hand.', type: 'weapon', category: 'Martial Ranged', slot: 'MainHand', damageDice: '1d6', damageType: 'Piercing', properties: ['Ammunition', 'Light', 'Loading'], weight: 3, cost: '75 GP', mastery: 'Vex' },
   'heavy_crossbow': { id: 'heavy_crossbow', name: 'Heavy Crossbow', icon: '🏹', description: 'A powerful, heavy crossbow.', type: 'weapon', category: 'Martial Ranged', slot: 'MainHand', damageDice: '1d10', damageType: 'Piercing', properties: ['Ammunition', 'Heavy', 'Loading', 'Two-Handed'], weight: 18, cost: '50 GP', mastery: 'Push' },
