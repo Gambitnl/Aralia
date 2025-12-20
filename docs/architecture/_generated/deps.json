@@ -1,8 +1,8 @@
 {
   "meta": {
-    "generatedAt": "2025-12-19T20:05:16.770Z",
-    "totalFiles": 1620,
-    "totalImportEdges": 1837,
+    "generatedAt": "2025-12-20T11:38:53.726Z",
+    "totalFiles": 1659,
+    "totalImportEdges": 1912,
     "scanDirectories": [
       "src",
       "scripts",
@@ -29,6 +29,7 @@
         "src/config/mapConfig.ts",
         "src/constants.ts",
         "src/hooks/useAudio.ts",
+        "src/hooks/useCompanionBanter.ts",
         "src/hooks/useCompanionCommentary.ts",
         "src/hooks/useGameActions.ts",
         "src/hooks/useGameInitialization.ts",
@@ -45,103 +46,7 @@
       "importedBy": [
         "src/components/__tests__/GameLayoutErrorBoundary.test.tsx"
       ],
-      "sizeBytes": 32071,
-      "extension": ".tsx"
-    },
-    "src/assets/icons/BeltIcon.tsx": {
-      "imports": [],
-      "importedBy": [
-        "src/components/EquipmentMannequin.tsx"
-      ],
-      "sizeBytes": 2531,
-      "extension": ".tsx"
-    },
-    "src/assets/icons/CloakIcon.tsx": {
-      "imports": [],
-      "importedBy": [
-        "src/components/EquipmentMannequin.tsx"
-      ],
-      "sizeBytes": 1025,
-      "extension": ".tsx"
-    },
-    "src/assets/icons/FeetIcon.tsx": {
-      "imports": [],
-      "importedBy": [
-        "src/components/EquipmentMannequin.tsx"
-      ],
-      "sizeBytes": 2611,
-      "extension": ".tsx"
-    },
-    "src/assets/icons/HandsIcon.tsx": {
-      "imports": [],
-      "importedBy": [
-        "src/components/EquipmentMannequin.tsx"
-      ],
-      "sizeBytes": 3618,
-      "extension": ".tsx"
-    },
-    "src/assets/icons/HeadIcon.tsx": {
-      "imports": [],
-      "importedBy": [
-        "src/components/EquipmentMannequin.tsx"
-      ],
-      "sizeBytes": 1560,
-      "extension": ".tsx"
-    },
-    "src/assets/icons/LegsIcon.tsx": {
-      "imports": [],
-      "importedBy": [
-        "src/components/EquipmentMannequin.tsx"
-      ],
-      "sizeBytes": 2948,
-      "extension": ".tsx"
-    },
-    "src/assets/icons/MainHandIcon.tsx": {
-      "imports": [],
-      "importedBy": [
-        "src/components/EquipmentMannequin.tsx"
-      ],
-      "sizeBytes": 1514,
-      "extension": ".tsx"
-    },
-    "src/assets/icons/NeckIcon.tsx": {
-      "imports": [],
-      "importedBy": [
-        "src/components/EquipmentMannequin.tsx"
-      ],
-      "sizeBytes": 2878,
-      "extension": ".tsx"
-    },
-    "src/assets/icons/OffHandIcon.tsx": {
-      "imports": [],
-      "importedBy": [
-        "src/components/EquipmentMannequin.tsx"
-      ],
-      "sizeBytes": 854,
-      "extension": ".tsx"
-    },
-    "src/assets/icons/RingIcon.tsx": {
-      "imports": [],
-      "importedBy": [
-        "src/components/EquipmentMannequin.tsx"
-      ],
-      "sizeBytes": 987,
-      "extension": ".tsx"
-    },
-    "src/assets/icons/TorsoIcon.tsx": {
-      "imports": [],
-      "importedBy": [
-        "src/components/EquipmentMannequin.tsx"
-      ],
-      "sizeBytes": 2910,
-      "extension": ".tsx"
-    },
-    "src/assets/icons/WristsIcon.tsx": {
-      "imports": [],
-      "importedBy": [
-        "src/components/EquipmentMannequin.tsx"
-      ],
-      "sizeBytes": 2505,
+      "sizeBytes": 32204,
       "extension": ".tsx"
     },
     "src/commands/base/BaseEffectCommand.ts": {
@@ -249,7 +154,7 @@
         "src/commands/factory/__tests__/SpellCommandFactoryAI.test.ts",
         "src/systems/planar/__tests__/PlanarIntegration.test.ts"
       ],
-      "sizeBytes": 7342,
+      "sizeBytes": 7094,
       "extension": ".ts"
     },
     "src/commands/effects/DefensiveCommand.ts": {
@@ -444,7 +349,8 @@
         "src/types/combat.ts",
         "src/types/index.ts",
         "src/types/planes.ts",
-        "src/types/spells.ts"
+        "src/types/spells.ts",
+        "src/utils/planarUtils.ts"
       ],
       "importedBy": [
         "src/commands/__tests__/Concentration.test.ts",
@@ -453,7 +359,7 @@
         "src/systems/planar/__tests__/PlanarIntegration.test.ts",
         "src/systems/spells/__tests__/DefenderFilter.test.ts"
       ],
-      "sizeBytes": 10422,
+      "sizeBytes": 11080,
       "extension": ".ts"
     },
     "src/commands/factory/__tests__/SpellCommandFactoryAI.test.ts": {
@@ -1339,6 +1245,36 @@
       "sizeBytes": 3245,
       "extension": ".tsx"
     },
+    "src/components/CharacterSheet/CharacterOverview.tsx": {
+      "imports": [
+        "src/components/Tooltip.tsx",
+        "src/data/feats/featsData.ts",
+        "src/hooks/useCharacterProficiencies.ts",
+        "src/types/index.ts",
+        "src/utils/characterUtils.ts"
+      ],
+      "importedBy": [
+        "src/components/CharacterSheetModal.tsx"
+      ],
+      "sizeBytes": 11066,
+      "extension": ".tsx"
+    },
+    "src/components/CharacterSheet/DynamicMannequinSlotIcon.tsx": {
+      "imports": [],
+      "importedBy": [
+        "src/components/CharacterSheet/EquipmentMannequin.tsx"
+      ],
+      "sizeBytes": 2439,
+      "extension": ".tsx"
+    },
+    "src/components/CharacterSheet/EquipmentMannequin.tsx": {
+      "imports": [
+        "src/components/CharacterSheet/DynamicMannequinSlotIcon.tsx"
+      ],
+      "importedBy": [],
+      "sizeBytes": 13558,
+      "extension": ".tsx"
+    },
     "src/components/CharacterSheet/SkillDetailDisplay.tsx": {
       "imports": [
         "src/components/Glossary/GlossaryTooltip.tsx",
@@ -1355,15 +1291,10 @@
     },
     "src/components/CharacterSheetModal.tsx": {
       "imports": [
+        "src/components/CharacterSheet/CharacterOverview.tsx",
         "src/components/CharacterSheet/SkillDetailDisplay.tsx",
-        "src/components/EquipmentMannequin.tsx",
-        "src/components/Glossary/SingleGlossaryEntryModal.tsx",
-        "src/components/InventoryList.tsx",
         "src/components/SpellbookOverlay.tsx",
-        "src/components/Tooltip.tsx",
-        "src/data/feats/featsData.ts",
-        "src/types/index.ts",
-        "src/utils/characterUtils.ts"
+        "src/types/index.ts"
       ],
       "importedBy": [
         "src/components/BattleMap/BattleMapDemo.tsx",
@@ -1371,7 +1302,7 @@
         "src/components/__tests__/CharacterSheetModal.test.tsx",
         "src/components/layout/GameModals.tsx"
       ],
-      "sizeBytes": 19973,
+      "sizeBytes": 8078,
       "extension": ".tsx"
     },
     "src/components/Combat/CombatView.tsx": {
@@ -1437,7 +1368,7 @@
         "src/components/__tests__/CompassPane.test.tsx",
         "src/components/layout/GameLayout.tsx"
       ],
-      "sizeBytes": 9819,
+      "sizeBytes": 10550,
       "extension": ".tsx"
     },
     "src/components/debug/NobleHouseList.tsx": {
@@ -1480,16 +1411,6 @@
       "sizeBytes": 9287,
       "extension": ".tsx"
     },
-    "src/components/DynamicMannequinSlotIcon.tsx": {
-      "imports": [
-        "src/types/index.ts"
-      ],
-      "importedBy": [
-        "src/components/EquipmentMannequin.tsx"
-      ],
-      "sizeBytes": 2439,
-      "extension": ".tsx"
-    },
     "src/components/EncounterGenerator/PartyManager.tsx": {
       "imports": [
         "src/constants.ts",
@@ -1512,32 +1433,6 @@
         "src/components/layout/GameModals.tsx"
       ],
       "sizeBytes": 6254,
-      "extension": ".tsx"
-    },
-    "src/components/EquipmentMannequin.tsx": {
-      "imports": [
-        "src/assets/icons/BeltIcon.tsx",
-        "src/assets/icons/CloakIcon.tsx",
-        "src/assets/icons/FeetIcon.tsx",
-        "src/assets/icons/HandsIcon.tsx",
-        "src/assets/icons/HeadIcon.tsx",
-        "src/assets/icons/LegsIcon.tsx",
-        "src/assets/icons/MainHandIcon.tsx",
-        "src/assets/icons/NeckIcon.tsx",
-        "src/assets/icons/OffHandIcon.tsx",
-        "src/assets/icons/RingIcon.tsx",
-        "src/assets/icons/TorsoIcon.tsx",
-        "src/assets/icons/WristsIcon.tsx",
-        "src/components/DynamicMannequinSlotIcon.tsx",
-        "src/components/ui/Tooltip.tsx",
-        "src/types/index.ts",
-        "src/utils/characterUtils.ts",
-        "src/utils/weaponUtils.ts"
-      ],
-      "importedBy": [
-        "src/components/CharacterSheetModal.tsx"
-      ],
-      "sizeBytes": 13558,
       "extension": ".tsx"
     },
     "src/components/ErrorBoundary.tsx": {
@@ -1673,7 +1568,6 @@
       ],
       "importedBy": [
         "src/components/CharacterCreator/Race/RaceDetailModal.tsx",
-        "src/components/CharacterSheetModal.tsx",
         "src/components/SpellbookOverlay.tsx"
       ],
       "sizeBytes": 3850,
@@ -1684,7 +1578,7 @@
       "importedBy": [
         "src/components/Glossary/Glossary.tsx"
       ],
-      "sizeBytes": 10614,
+      "sizeBytes": 11743,
       "extension": ".tsx"
     },
     "src/components/Glossary/__tests__/Glossary.test.tsx": {
@@ -1711,19 +1605,6 @@
         "src/components/CharacterCreator/Race/RaceDetailModal.tsx"
       ],
       "sizeBytes": 1613,
-      "extension": ".tsx"
-    },
-    "src/components/InventoryList.tsx": {
-      "imports": [
-        "src/components/Tooltip.tsx",
-        "src/components/ui/CoinDisplay.tsx",
-        "src/types/index.ts",
-        "src/utils/characterUtils.ts"
-      ],
-      "importedBy": [
-        "src/components/CharacterSheetModal.tsx"
-      ],
-      "sizeBytes": 22068,
       "extension": ".tsx"
     },
     "src/components/layout/GameLayout.tsx": {
@@ -2276,12 +2157,11 @@
         "src/components/CharacterCreator/NameAndReview.tsx",
         "src/components/CharacterCreator/SkillSelection.tsx",
         "src/components/CharacterCreator/WeaponMasterySelection.tsx",
+        "src/components/CharacterSheet/CharacterOverview.tsx",
         "src/components/CharacterSheet/SkillDetailDisplay.tsx",
-        "src/components/CharacterSheetModal.tsx",
         "src/components/CompassPane.tsx",
         "src/components/DiscoveryLogPane.tsx",
         "src/components/Glossary/GlossaryTooltip.tsx",
-        "src/components/InventoryList.tsx",
         "src/components/MerchantModal.tsx",
         "src/components/PartyPane.tsx",
         "src/components/SpellbookOverlay.tsx",
@@ -2393,7 +2273,6 @@
         "src/components/ui/Tooltip.tsx"
       ],
       "importedBy": [
-        "src/components/InventoryList.tsx",
         "src/components/ui/CoinDisplay.test.tsx"
       ],
       "sizeBytes": 960,
@@ -2482,7 +2361,6 @@
     "src/components/ui/Tooltip.tsx": {
       "imports": [],
       "importedBy": [
-        "src/components/EquipmentMannequin.tsx",
         "src/components/ui/CoinDisplay.tsx",
         "src/components/ui/Tooltip.test.tsx"
       ],
@@ -2669,7 +2547,7 @@
         "src/test/config.test.ts",
         "src/utils/securityUtils.ts"
       ],
-      "sizeBytes": 2846,
+      "sizeBytes": 3057,
       "extension": ".ts"
     },
     "src/config/features.ts": {
@@ -2829,7 +2707,6 @@
         "src/utils/__tests__/contextUtils.test.ts",
         "src/utils/actionUtils.ts",
         "src/utils/characterUtils.ts",
-        "src/utils/characterValidation.ts",
         "src/utils/combatUtils.ts",
         "src/utils/contextUtils.ts",
         "src/utils/encounterUtils.ts",
@@ -2838,7 +2715,7 @@
         "src/utils/spellUtils.ts",
         "src/utils/submapUtils.ts"
       ],
-      "sizeBytes": 3749,
+      "sizeBytes": 3568,
       "extension": ".ts"
     },
     "src/context/GlossaryContext.tsx": {
@@ -2892,6 +2769,17 @@
       "sizeBytes": 34911,
       "extension": ".ts"
     },
+    "src/data/banter.ts": {
+      "imports": [
+        "src/types/companions.ts"
+      ],
+      "importedBy": [
+        "src/systems/companions/BanterManager.ts",
+        "src/systems/companions/__tests__/BanterManager.test.ts"
+      ],
+      "sizeBytes": 2616,
+      "extension": ".ts"
+    },
     "src/data/biomes.ts": {
       "imports": [
         "src/types/index.ts"
@@ -2935,6 +2823,7 @@
       ],
       "importedBy": [
         "src/state/appState.ts",
+        "src/state/reducers/religionReducer.ts",
         "src/utils/religionUtils.ts"
       ],
       "sizeBytes": 27009,
@@ -2953,13 +2842,16 @@
       "extension": ".ts"
     },
     "src/data/dndData.ts": {
-      "imports": [],
+      "imports": [
+        "src/types/index.ts"
+      ],
       "importedBy": [
         "src/constants.ts",
         "src/services/geminiService.ts",
+        "src/utils/characterValidation.ts",
         "src/utils/encounterUtils.ts"
       ],
-      "sizeBytes": 2476,
+      "sizeBytes": 2806,
       "extension": ".ts"
     },
     "src/data/factions.ts": {
@@ -2970,6 +2862,7 @@
         "src/services/EntityResolverService.ts",
         "src/services/__tests__/EntityResolverService.test.ts",
         "src/state/appState.ts",
+        "src/systems/world/__tests__/FactionManager.test.ts",
         "src/systems/world/__tests__/WorldEventManager.test.ts",
         "src/utils/__tests__/factionUtils.test.ts",
         "src/utils/factionUtils.ts"
@@ -2985,7 +2878,7 @@
         "src/components/CharacterCreator/CharacterCreator.tsx",
         "src/components/CharacterCreator/NameAndReview.tsx",
         "src/components/CharacterCreator/state/characterCreatorState.ts",
-        "src/components/CharacterSheetModal.tsx",
+        "src/components/CharacterSheet/CharacterOverview.tsx",
         "src/utils/__tests__/characterUtils.test.ts",
         "src/utils/characterUtils.ts"
       ],
@@ -3068,6 +2961,8 @@
         "src/types/navalCombat.ts"
       ],
       "importedBy": [
+        "src/systems/naval/NavalCombatSystem.ts",
+        "src/systems/naval/__tests__/NavalCombatSystem.test.ts",
         "src/utils/__tests__/navalCombatUtils.test.ts"
       ],
       "sizeBytes": 3098,
@@ -3084,7 +2979,7 @@
         "src/utils/__tests__/planarUtils_atmosphere.test.ts",
         "src/utils/planarUtils.ts"
       ],
-      "sizeBytes": 5809,
+      "sizeBytes": 9555,
       "extension": ".ts"
     },
     "src/data/quests/index.ts": {
@@ -3349,7 +3244,8 @@
       ],
       "importedBy": [
         "scripts/validate-data.ts",
-        "src/constants.ts"
+        "src/constants.ts",
+        "src/utils/characterValidation.ts"
       ],
       "sizeBytes": 4216,
       "extension": ".ts"
@@ -3382,14 +3278,6 @@
         "src/data/races/index.ts"
       ],
       "sizeBytes": 1948,
-      "extension": ".ts"
-    },
-    "src/data/religion.ts": {
-      "imports": [
-        "src/types/religion.ts"
-      ],
-      "importedBy": [],
-      "sizeBytes": 6603,
       "extension": ".ts"
     },
     "src/data/settings/ttsOptions.ts": {
@@ -3469,6 +3357,17 @@
         "src/services/travelEventService.ts"
       ],
       "sizeBytes": 6113,
+      "extension": ".ts"
+    },
+    "src/data/underdark/biomes.ts": {
+      "imports": [
+        "src/types/underdark.ts"
+      ],
+      "importedBy": [
+        "src/systems/underdark/UnderdarkMechanics.ts",
+        "src/systems/underdark/__tests__/UnderdarkBiomeMechanics.test.ts"
+      ],
+      "sizeBytes": 4247,
       "extension": ".ts"
     },
     "src/data/underdarkFactions.ts": {
@@ -3599,6 +3498,7 @@
         "src/constants.ts",
         "src/hooks/actions/actionHandlerTypes.ts",
         "src/hooks/actions/handleWorldEvents.ts",
+        "src/services/EntityResolverService.ts",
         "src/services/geminiService.ts",
         "src/state/actionTypes.ts",
         "src/types/index.ts",
@@ -3606,9 +3506,10 @@
         "src/utils/socialUtils.ts"
       ],
       "importedBy": [
-        "src/hooks/actions/actionHandlers.ts"
+        "src/hooks/actions/actionHandlers.ts",
+        "src/services/__tests__/EntityResolutionIntegration.test.ts"
       ],
-      "sizeBytes": 8284,
+      "sizeBytes": 10173,
       "extension": ".ts"
     },
     "src/hooks/actions/handleItemInteraction.ts": {
@@ -3651,6 +3552,7 @@
         "src/services/geminiService.ts",
         "src/services/travelEventService.ts",
         "src/state/actionTypes.ts",
+        "src/systems/time/SeasonalSystem.ts",
         "src/types/exploration.ts",
         "src/types/index.ts",
         "src/utils/locationUtils.ts",
@@ -3658,9 +3560,10 @@
         "src/utils/timeUtils.ts"
       ],
       "importedBy": [
+        "src/hooks/actions/__tests__/handleMovement.test.ts",
         "src/hooks/actions/actionHandlers.ts"
       ],
-      "sizeBytes": 28112,
+      "sizeBytes": 28619,
       "extension": ".ts"
     },
     "src/hooks/actions/handleNpcInteraction.ts": {
@@ -3752,6 +3655,18 @@
       "sizeBytes": 10891,
       "extension": ".ts"
     },
+    "src/hooks/actions/__tests__/handleMovement.test.ts": {
+      "imports": [
+        "src/hooks/actions/handleMovement.ts",
+        "src/services/geminiService.ts",
+        "src/systems/time/SeasonalSystem.ts",
+        "src/types/index.ts",
+        "src/utils/timeUtils.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 4366,
+      "extension": ".ts"
+    },
     "src/hooks/combat/engine/useCombatEngine.test.ts": {
       "imports": [
         "src/hooks/combat/engine/useCombatEngine.ts",
@@ -3786,6 +3701,22 @@
         "src/hooks/combat/useTurnManager.ts"
       ],
       "sizeBytes": 4035,
+      "extension": ".ts"
+    },
+    "src/hooks/combat/useActionExecutor.ts": {
+      "imports": [
+        "src/systems/events/CombatEvents.ts",
+        "src/systems/spells/effects/AreaEffectTracker.ts",
+        "src/systems/spells/effects/index.ts",
+        "src/types/combat.ts",
+        "src/utils/combatUtils.ts",
+        "src/utils/savingThrowUtils.ts"
+      ],
+      "importedBy": [
+        "src/hooks/combat/__tests__/useActionExecutor.test.ts",
+        "src/hooks/combat/useTurnManager.ts"
+      ],
+      "sizeBytes": 16971,
       "extension": ".ts"
     },
     "src/hooks/combat/useCombatAI.ts": {
@@ -3877,16 +3808,13 @@
         "src/config/combatConfig.ts",
         "src/hooks/combat/engine/useCombatEngine.ts",
         "src/hooks/combat/useActionEconomy.ts",
+        "src/hooks/combat/useActionExecutor.ts",
         "src/hooks/combat/useCombatAI.ts",
         "src/hooks/combat/useCombatVisuals.ts",
         "src/hooks/combat/useTurnOrder.ts",
-        "src/systems/events/CombatEvents.ts",
-        "src/systems/spells/effects/AreaEffectTracker.ts",
-        "src/systems/spells/effects/index.ts",
         "src/types/combat.ts",
         "src/utils/combat/actionEconomyUtils.ts",
-        "src/utils/combatUtils.ts",
-        "src/utils/savingThrowUtils.ts"
+        "src/utils/combatUtils.ts"
       ],
       "importedBy": [
         "src/components/BattleMap/BattleMapDemo.tsx",
@@ -3894,7 +3822,7 @@
         "src/hooks/useBattleMap.ts",
         "src/systems/spells/__tests__/RepeatSaves.test.ts"
       ],
-      "sizeBytes": 21616,
+      "sizeBytes": 8611,
       "extension": ".ts"
     },
     "src/hooks/combat/useTurnOrder.test.ts": {
@@ -3915,6 +3843,15 @@
         "src/hooks/combat/useTurnOrder.test.ts"
       ],
       "sizeBytes": 5706,
+      "extension": ".ts"
+    },
+    "src/hooks/combat/__tests__/useActionExecutor.test.ts": {
+      "imports": [
+        "src/hooks/combat/useActionExecutor.ts",
+        "src/types/combat.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 6595,
       "extension": ".ts"
     },
     "src/hooks/combat/__tests__/useGridMovement.test.ts": {
@@ -4009,6 +3946,26 @@
         "src/hooks/__tests__/useBattleMapGeneration.test.ts"
       ],
       "sizeBytes": 4482,
+      "extension": ".ts"
+    },
+    "src/hooks/useCharacterProficiencies.ts": {
+      "imports": [],
+      "importedBy": [
+        "src/components/CharacterSheet/CharacterOverview.tsx"
+      ],
+      "sizeBytes": 2010,
+      "extension": ".ts"
+    },
+    "src/hooks/useCompanionBanter.ts": {
+      "imports": [
+        "src/systems/companions/BanterManager.ts",
+        "src/types/companions.ts",
+        "src/types/index.ts"
+      ],
+      "importedBy": [
+        "src/App.tsx"
+      ],
+      "sizeBytes": 2681,
       "extension": ".ts"
     },
     "src/hooks/useCompanionCommentary.ts": {
@@ -4235,8 +4192,17 @@
       "importedBy": [
         "src/utils/i18n.ts"
       ],
-      "sizeBytes": 3246,
+      "sizeBytes": 3278,
       "extension": ".json"
+    },
+    "src/scripts/audit_enchantment_consistency.ts": {
+      "imports": [
+        "src/types/spells.ts",
+        "src/utils/validation/spellConsistencyValidator.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 2210,
+      "extension": ".ts"
     },
     "src/services/aiClient.ts": {
       "imports": [
@@ -4325,9 +4291,11 @@
         "src/types/index.ts"
       ],
       "importedBy": [
+        "src/hooks/actions/handleGeminiCustom.ts",
+        "src/services/__tests__/EntityResolutionIntegration.test.ts",
         "src/services/__tests__/EntityResolverService.test.ts"
       ],
-      "sizeBytes": 13124,
+      "sizeBytes": 13139,
       "extension": ".ts"
     },
     "src/services/geminiSchemas.ts": {
@@ -4355,6 +4323,7 @@
       ],
       "importedBy": [
         "src/components/GameGuideModal.tsx",
+        "src/hooks/actions/__tests__/handleMovement.test.ts",
         "src/hooks/actions/handleEncounter.ts",
         "src/hooks/actions/handleGeminiCustom.ts",
         "src/hooks/actions/handleItemInteraction.ts",
@@ -4365,6 +4334,7 @@
         "src/hooks/actions/handleOracle.ts",
         "src/hooks/actions/handleWorldEvents.ts",
         "src/hooks/useGameInitialization.ts",
+        "src/services/__tests__/EntityResolutionIntegration.test.ts",
         "src/services/__tests__/geminiService.test.ts",
         "src/services/__tests__/geminiServiceFallback.test.ts",
         "src/systems/spells/ai/AISpellArbitrator.ts",
@@ -4432,6 +4402,16 @@
         "src/hooks/useGameInitialization.ts"
       ],
       "sizeBytes": 5226,
+      "extension": ".ts"
+    },
+    "src/services/organizationService.ts": {
+      "imports": [
+        "src/types/organizations.ts"
+      ],
+      "importedBy": [
+        "src/services/__tests__/organizationService.test.ts"
+      ],
+      "sizeBytes": 8752,
       "extension": ".ts"
     },
     "src/services/realmsmith/painters/BiomePalette.ts": {
@@ -4692,6 +4672,17 @@
       "sizeBytes": 9767,
       "extension": ".ts"
     },
+    "src/services/__tests__/EntityResolutionIntegration.test.ts": {
+      "imports": [
+        "src/hooks/actions/handleGeminiCustom.ts",
+        "src/services/EntityResolverService.ts",
+        "src/services/geminiService.ts",
+        "src/types/index.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 3095,
+      "extension": ".ts"
+    },
     "src/services/__tests__/EntityResolverService.test.ts": {
       "imports": [
         "src/data/factions.ts",
@@ -4738,6 +4729,15 @@
       ],
       "importedBy": [],
       "sizeBytes": 3266,
+      "extension": ".ts"
+    },
+    "src/services/__tests__/organizationService.test.ts": {
+      "imports": [
+        "src/services/organizationService.ts",
+        "src/types/organizations.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 3868,
       "extension": ".ts"
     },
     "src/services/__tests__/saveLoadService.test.ts": {
@@ -4815,6 +4815,7 @@
         "src/state/GameContext.tsx",
         "src/state/appState.ts",
         "src/state/reducers/__tests__/explorationActions.test.ts",
+        "src/state/reducers/__tests__/religionReducer.test.ts",
         "src/state/reducers/characterReducer.ts",
         "src/state/reducers/companionReducer.ts",
         "src/state/reducers/crimeReducer.ts",
@@ -4830,7 +4831,7 @@
         "src/state/reducers/worldReducer.ts",
         "src/systems/companions/__tests__/CompanionSystem.test.ts"
       ],
-      "sizeBytes": 8852,
+      "sizeBytes": 9192,
       "extension": ".ts"
     },
     "src/state/appState.ts": {
@@ -4867,10 +4868,9 @@
         "src/App.tsx",
         "src/hooks/__tests__/useHistorySync.test.ts",
         "src/state/reducers/__tests__/crimeReducer.test.ts",
-        "src/state/reducers/__tests__/religionReducer.test.ts",
         "src/systems/underdark/__tests__/UnderdarkMechanics.test.ts"
       ],
-      "sizeBytes": 27887,
+      "sizeBytes": 27993,
       "extension": ".ts"
     },
     "src/state/GameContext.tsx": {
@@ -5007,6 +5007,7 @@
     },
     "src/state/reducers/religionReducer.ts": {
       "imports": [
+        "src/data/deities/index.ts",
         "src/state/actionTypes.ts",
         "src/types/index.ts",
         "src/utils/religionUtils.ts"
@@ -5015,7 +5016,7 @@
         "src/state/appState.ts",
         "src/state/reducers/__tests__/religionReducer.test.ts"
       ],
-      "sizeBytes": 1798,
+      "sizeBytes": 4238,
       "extension": ".ts"
     },
     "src/state/reducers/townReducer.ts": {
@@ -5054,7 +5055,7 @@
         "src/state/appState.ts",
         "src/state/reducers/__tests__/worldReducer.test.ts"
       ],
-      "sizeBytes": 4823,
+      "sizeBytes": 5009,
       "extension": ".ts"
     },
     "src/state/reducers/__tests__/crimeReducer.test.ts": {
@@ -5064,7 +5065,7 @@
         "src/types/index.ts"
       ],
       "importedBy": [],
-      "sizeBytes": 3038,
+      "sizeBytes": 3250,
       "extension": ".ts"
     },
     "src/state/reducers/__tests__/explorationActions.test.ts": {
@@ -5079,12 +5080,12 @@
     },
     "src/state/reducers/__tests__/religionReducer.test.ts": {
       "imports": [
-        "src/state/appState.ts",
+        "src/state/actionTypes.ts",
         "src/state/reducers/religionReducer.ts",
         "src/types/index.ts"
       ],
       "importedBy": [],
-      "sizeBytes": 1464,
+      "sizeBytes": 4157,
       "extension": ".ts"
     },
     "src/state/reducers/__tests__/worldReducer.test.ts": {
@@ -5161,6 +5162,19 @@
       "sizeBytes": 4318,
       "extension": ".ts"
     },
+    "src/systems/companions/BanterManager.ts": {
+      "imports": [
+        "src/data/banter.ts",
+        "src/types/companions.ts",
+        "src/types/index.ts"
+      ],
+      "importedBy": [
+        "src/hooks/useCompanionBanter.ts",
+        "src/systems/companions/__tests__/BanterManager.test.ts"
+      ],
+      "sizeBytes": 1853,
+      "extension": ".ts"
+    },
     "src/systems/companions/CompanionReactionSystem.ts": {
       "imports": [
         "src/types/companions.ts"
@@ -5181,6 +5195,17 @@
         "src/systems/companions/__tests__/RelationshipManager.test.ts"
       ],
       "sizeBytes": 5531,
+      "extension": ".ts"
+    },
+    "src/systems/companions/__tests__/BanterManager.test.ts": {
+      "imports": [
+        "src/data/banter.ts",
+        "src/systems/companions/BanterManager.ts",
+        "src/types/companions.ts",
+        "src/types/index.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 3662,
       "extension": ".ts"
     },
     "src/systems/companions/__tests__/CompanionReactionSystem.test.ts": {
@@ -5230,11 +5255,21 @@
         "src/systems/crafting/types.ts"
       ],
       "importedBy": [
+        "src/systems/crafting/EnchantingSystem.ts",
+        "src/systems/crafting/__tests__/EnchantingSystem.test.ts",
         "src/systems/crafting/__tests__/craftingSystem.test.ts",
         "src/systems/crafting/__tests__/salvageSystem.test.ts",
         "src/systems/crafting/salvageSystem.ts"
       ],
-      "sizeBytes": 3559,
+      "sizeBytes": 4935,
+      "extension": ".ts"
+    },
+    "src/systems/crafting/data/enchantingRecipes.ts": {
+      "imports": [
+        "src/systems/crafting/types.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 1517,
       "extension": ".ts"
     },
     "src/systems/crafting/data/recipes.ts": {
@@ -5243,6 +5278,17 @@
       ],
       "importedBy": [],
       "sizeBytes": 2012,
+      "extension": ".ts"
+    },
+    "src/systems/crafting/EnchantingSystem.ts": {
+      "imports": [
+        "src/systems/crafting/craftingSystem.ts",
+        "src/systems/crafting/types.ts"
+      ],
+      "importedBy": [
+        "src/systems/crafting/__tests__/EnchantingSystem.test.ts"
+      ],
+      "sizeBytes": 6114,
       "extension": ".ts"
     },
     "src/systems/crafting/salvageSystem.ts": {
@@ -5259,13 +5305,16 @@
     "src/systems/crafting/types.ts": {
       "imports": [],
       "importedBy": [
+        "src/systems/crafting/EnchantingSystem.ts",
+        "src/systems/crafting/__tests__/EnchantingSystem.test.ts",
         "src/systems/crafting/__tests__/craftingSystem.test.ts",
         "src/systems/crafting/__tests__/salvageSystem.test.ts",
         "src/systems/crafting/craftingSystem.ts",
+        "src/systems/crafting/data/enchantingRecipes.ts",
         "src/systems/crafting/data/recipes.ts",
         "src/systems/crafting/salvageSystem.ts"
       ],
-      "sizeBytes": 1384,
+      "sizeBytes": 2218,
       "extension": ".ts"
     },
     "src/systems/crafting/__tests__/craftingService.test.ts": {
@@ -5286,7 +5335,17 @@
         "src/systems/crafting/types.ts"
       ],
       "importedBy": [],
-      "sizeBytes": 3299,
+      "sizeBytes": 4597,
+      "extension": ".ts"
+    },
+    "src/systems/crafting/__tests__/EnchantingSystem.test.ts": {
+      "imports": [
+        "src/systems/crafting/EnchantingSystem.ts",
+        "src/systems/crafting/craftingSystem.ts",
+        "src/systems/crafting/types.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 3058,
       "extension": ".ts"
     },
     "src/systems/crafting/__tests__/salvageSystem.test.ts": {
@@ -5517,7 +5576,7 @@
       ],
       "importedBy": [
         "src/commands/effects/ReactiveEffectCommand.ts",
-        "src/hooks/combat/useTurnManager.ts",
+        "src/hooks/combat/useActionExecutor.ts",
         "src/systems/spells/effects/AreaEffectTracker.ts",
         "src/systems/spells/effects/__tests__/AreaEffectTracker.test.ts"
       ],
@@ -5537,6 +5596,18 @@
       "sizeBytes": 3372,
       "extension": ".ts"
     },
+    "src/systems/intrigue/NobleHouseGenerator.ts": {
+      "imports": [
+        "src/systems/intrigue/SecretGenerator.ts",
+        "src/types/noble.ts",
+        "src/utils/seededRandom.ts"
+      ],
+      "importedBy": [
+        "src/systems/intrigue/__tests__/NobleHouseGenerator.test.ts"
+      ],
+      "sizeBytes": 4799,
+      "extension": ".ts"
+    },
     "src/systems/intrigue/SecretGenerator.ts": {
       "imports": [
         "src/types/factions.ts",
@@ -5544,9 +5615,20 @@
         "src/utils/seededRandom.ts"
       ],
       "importedBy": [
+        "src/systems/intrigue/NobleHouseGenerator.ts",
+        "src/systems/intrigue/__tests__/NobleHouseGenerator.test.ts",
         "src/systems/intrigue/__tests__/SecretSystem.test.ts"
       ],
-      "sizeBytes": 3242,
+      "sizeBytes": 4707,
+      "extension": ".ts"
+    },
+    "src/systems/intrigue/__tests__/NobleHouseGenerator.test.ts": {
+      "imports": [
+        "src/systems/intrigue/NobleHouseGenerator.ts",
+        "src/systems/intrigue/SecretGenerator.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 1904,
       "extension": ".ts"
     },
     "src/systems/intrigue/__tests__/SecretSystem.test.ts": {
@@ -5587,19 +5669,32 @@
         "src/types/naval.ts",
         "src/utils/seededRandom.ts"
       ],
-      "importedBy": [
-        "src/systems/naval/__tests__/CrewManager.test.ts"
-      ],
+      "importedBy": [],
       "sizeBytes": 8606,
       "extension": ".ts"
     },
-    "src/systems/naval/__tests__/CrewManager.test.ts": {
+    "src/systems/naval/NavalCombatSystem.ts": {
       "imports": [
-        "src/systems/naval/CrewManager.ts",
-        "src/types/naval.ts"
+        "src/data/navalManeuvers.ts",
+        "src/types/naval.ts",
+        "src/types/navalCombat.ts",
+        "src/utils/combatUtils.ts",
+        "src/utils/navalUtils.ts"
+      ],
+      "importedBy": [
+        "src/systems/naval/__tests__/NavalCombatSystem.test.ts"
+      ],
+      "sizeBytes": 11317,
+      "extension": ".ts"
+    },
+    "src/systems/naval/__tests__/NavalCombatSystem.test.ts": {
+      "imports": [
+        "src/data/navalManeuvers.ts",
+        "src/systems/naval/NavalCombatSystem.ts",
+        "src/utils/navalUtils.ts"
       ],
       "importedBy": [],
-      "sizeBytes": 3950,
+      "sizeBytes": 4040,
       "extension": ".ts"
     },
     "src/systems/physics/ElementalInteractionSystem.ts": {
@@ -5899,6 +5994,15 @@
       "sizeBytes": 4066,
       "extension": ".ts"
     },
+    "src/systems/religion/__tests__/favor.test.ts": {
+      "imports": [
+        "src/types/index.ts",
+        "src/utils/religionUtils.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 2684,
+      "extension": ".ts"
+    },
     "src/systems/rituals/RitualManager.ts": {
       "imports": [
         "src/types/combat.ts",
@@ -5906,10 +6010,20 @@
         "src/types/spells.ts"
       ],
       "importedBy": [
+        "src/systems/rituals/__tests__/RitualBacklash.test.ts",
         "src/systems/rituals/__tests__/RitualConstraints.test.ts",
         "src/systems/rituals/__tests__/RitualManager.test.ts"
       ],
-      "sizeBytes": 9307,
+      "sizeBytes": 10131,
+      "extension": ".ts"
+    },
+    "src/systems/rituals/__tests__/RitualBacklash.test.ts": {
+      "imports": [
+        "src/systems/rituals/RitualManager.ts",
+        "src/utils/factories.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 3022,
       "extension": ".ts"
     },
     "src/systems/rituals/__tests__/RitualConstraints.test.ts": {
@@ -5979,7 +6093,7 @@
       ],
       "importedBy": [
         "src/hooks/combat/engine/useCombatEngine.ts",
-        "src/hooks/combat/useTurnManager.ts",
+        "src/hooks/combat/useActionExecutor.ts",
         "src/systems/spells/effects/__tests__/AreaEffectTracker.test.ts"
       ],
       "sizeBytes": 7260,
@@ -5989,7 +6103,7 @@
       "imports": [],
       "importedBy": [
         "src/hooks/combat/engine/useCombatEngine.ts",
-        "src/hooks/combat/useTurnManager.ts"
+        "src/hooks/combat/useActionExecutor.ts"
       ],
       "sizeBytes": 533,
       "extension": ".ts"
@@ -6084,7 +6198,7 @@
         "src/systems/spells/mechanics/__tests__/ElementalAdept.test.ts",
         "src/systems/spells/mechanics/__tests__/ResistanceCalculator.test.ts"
       ],
-      "sizeBytes": 2364,
+      "sizeBytes": 2725,
       "extension": ".ts"
     },
     "src/systems/spells/mechanics/SavingThrowResolver.ts": {
@@ -6143,7 +6257,7 @@
         "src/types/index.ts"
       ],
       "importedBy": [],
-      "sizeBytes": 2024,
+      "sizeBytes": 2316,
       "extension": ".ts"
     },
     "src/systems/spells/mechanics/__tests__/SavingThrowResolver.test.ts": {
@@ -6232,6 +6346,18 @@
       "sizeBytes": 1113,
       "extension": ".ts"
     },
+    "src/systems/spells/targeting/TargetAllocator.ts": {
+      "imports": [
+        "src/types/combat.ts",
+        "src/types/spells.ts",
+        "src/utils/combatUtils.ts"
+      ],
+      "importedBy": [
+        "src/systems/spells/targeting/__tests__/TargetAllocator.test.ts"
+      ],
+      "sizeBytes": 5916,
+      "extension": ".ts"
+    },
     "src/systems/spells/targeting/TargetResolver.ts": {
       "imports": [
         "src/systems/spells/targeting/TargetValidationUtils.ts",
@@ -6273,6 +6399,17 @@
       "sizeBytes": 1136,
       "extension": ".ts"
     },
+    "src/systems/spells/targeting/__tests__/TargetAllocator.test.ts": {
+      "imports": [
+        "src/systems/spells/targeting/TargetAllocator.ts",
+        "src/types/spells.ts",
+        "src/utils/combatUtils.ts",
+        "src/utils/factories.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 3018,
+      "extension": ".ts"
+    },
     "src/systems/spells/targeting/__tests__/TargetResolver.test.ts": {
       "imports": [
         "src/systems/spells/targeting/TargetResolver.ts",
@@ -6306,7 +6443,7 @@
         "src/systems/spells/validation/__tests__/materialComponents.test.ts",
         "src/utils/__tests__/factories.test.ts"
       ],
-      "sizeBytes": 20457,
+      "sizeBytes": 21191,
       "extension": ".ts"
     },
     "src/systems/spells/validation/__tests__/materialComponents.test.ts": {
@@ -6348,6 +6485,18 @@
       "sizeBytes": 4913,
       "extension": ".ts"
     },
+    "src/systems/time/SeasonalSystem.ts": {
+      "imports": [
+        "src/utils/timeUtils.ts"
+      ],
+      "importedBy": [
+        "src/hooks/actions/__tests__/handleMovement.test.ts",
+        "src/hooks/actions/handleMovement.ts",
+        "src/systems/time/__tests__/SeasonalSystem.test.ts"
+      ],
+      "sizeBytes": 2948,
+      "extension": ".ts"
+    },
     "src/systems/time/__tests__/CalendarSystem.test.ts": {
       "imports": [
         "src/systems/time/CalendarSystem.ts",
@@ -6355,6 +6504,15 @@
       ],
       "importedBy": [],
       "sizeBytes": 1276,
+      "extension": ".ts"
+    },
+    "src/systems/time/__tests__/SeasonalSystem.test.ts": {
+      "imports": [
+        "src/systems/time/SeasonalSystem.ts",
+        "src/utils/timeUtils.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 2557,
       "extension": ".ts"
     },
     "src/systems/travel/TravelCalculations.ts": {
@@ -6404,13 +6562,16 @@
     },
     "src/systems/underdark/UnderdarkMechanics.ts": {
       "imports": [
-        "src/types/index.ts"
+        "src/data/underdark/biomes.ts",
+        "src/types/index.ts",
+        "src/types/underdark.ts"
       ],
       "importedBy": [
         "src/state/reducers/worldReducer.ts",
+        "src/systems/underdark/__tests__/UnderdarkBiomeMechanics.test.ts",
         "src/systems/underdark/__tests__/UnderdarkMechanics.test.ts"
       ],
-      "sizeBytes": 5701,
+      "sizeBytes": 6597,
       "extension": ".ts"
     },
     "src/systems/underdark/__tests__/FaerzressSystem.test.ts": {
@@ -6419,6 +6580,16 @@
       ],
       "importedBy": [],
       "sizeBytes": 2563,
+      "extension": ".ts"
+    },
+    "src/systems/underdark/__tests__/UnderdarkBiomeMechanics.test.ts": {
+      "imports": [
+        "src/data/underdark/biomes.ts",
+        "src/systems/underdark/UnderdarkMechanics.ts",
+        "src/types/index.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 5334,
       "extension": ".ts"
     },
     "src/systems/underdark/__tests__/UnderdarkFactionSystem.test.ts": {
@@ -6441,9 +6612,23 @@
       "sizeBytes": 4757,
       "extension": ".ts"
     },
+    "src/systems/world/FactionManager.ts": {
+      "imports": [
+        "src/types/index.ts",
+        "src/utils/factionUtils.ts",
+        "src/utils/timeUtils.ts"
+      ],
+      "importedBy": [
+        "src/systems/world/WorldEventManager.ts",
+        "src/systems/world/__tests__/FactionManager.test.ts"
+      ],
+      "sizeBytes": 4843,
+      "extension": ".ts"
+    },
     "src/systems/world/WorldEventManager.ts": {
       "imports": [
         "src/systems/economy/TradeRouteManager.ts",
+        "src/systems/world/FactionManager.ts",
         "src/types/index.ts",
         "src/utils/factionUtils.ts",
         "src/utils/seededRandom.ts",
@@ -6453,7 +6638,17 @@
         "src/state/reducers/worldReducer.ts",
         "src/systems/world/__tests__/WorldEventManager.test.ts"
       ],
-      "sizeBytes": 16882,
+      "sizeBytes": 17180,
+      "extension": ".ts"
+    },
+    "src/systems/world/__tests__/FactionManager.test.ts": {
+      "imports": [
+        "src/data/factions.ts",
+        "src/systems/world/FactionManager.ts",
+        "src/types/index.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 4766,
       "extension": ".ts"
     },
     "src/systems/world/__tests__/WorldEventManager.test.ts": {
@@ -6461,10 +6656,11 @@
         "src/data/factions.ts",
         "src/systems/world/WorldEventManager.ts",
         "src/types/index.ts",
-        "src/utils/factories.ts"
+        "src/utils/factories.ts",
+        "src/utils/timeUtils.ts"
       ],
       "importedBy": [],
-      "sizeBytes": 5166,
+      "sizeBytes": 5531,
       "extension": ".ts"
     },
     "src/test/config.test.ts": {
@@ -6502,7 +6698,7 @@
         "src/types/index.ts",
         "src/types/visuals.ts"
       ],
-      "sizeBytes": 12956,
+      "sizeBytes": 13048,
       "extension": ".ts"
     },
     "src/types/combat.ts": {
@@ -6563,11 +6759,13 @@
         "src/data/monsters.ts",
         "src/hooks/__tests__/useAbilitySystem.test.ts",
         "src/hooks/combat/__test__/useCombatAI.test.ts",
+        "src/hooks/combat/__tests__/useActionExecutor.test.ts",
         "src/hooks/combat/__tests__/useGridMovement.test.ts",
         "src/hooks/combat/__tests__/useTargetSelection.test.ts",
         "src/hooks/combat/engine/useCombatEngine.test.ts",
         "src/hooks/combat/engine/useCombatEngine.ts",
         "src/hooks/combat/useActionEconomy.ts",
+        "src/hooks/combat/useActionExecutor.ts",
         "src/hooks/combat/useCombatAI.ts",
         "src/hooks/combat/useCombatValidation.ts",
         "src/hooks/combat/useCombatVisuals.ts",
@@ -6609,6 +6807,7 @@
         "src/systems/spells/effects/__tests__/triggerHandler.test.ts",
         "src/systems/spells/effects/triggerHandler.ts",
         "src/systems/spells/mechanics/__tests__/ElementalAdept.test.ts",
+        "src/systems/spells/targeting/TargetAllocator.ts",
         "src/systems/spells/targeting/TargetValidationUtils.ts",
         "src/types/environment.ts",
         "src/types/index.ts",
@@ -6620,8 +6819,10 @@
         "src/utils/__tests__/lineOfSight.test.ts",
         "src/utils/__tests__/movementRules.test.ts",
         "src/utils/__tests__/pathfindingHeuristic.test.ts",
+        "src/utils/__tests__/physicsUtils_light.test.ts",
         "src/utils/__tests__/statUtils.test.ts",
         "src/utils/aoeCalculations.ts",
+        "src/utils/combat/__tests__/combatAI.test.ts",
         "src/utils/combat/actionEconomyUtils.ts",
         "src/utils/combat/combatAI.ts",
         "src/utils/combatUtils.ts",
@@ -6630,6 +6831,7 @@
         "src/utils/lineOfSight.ts",
         "src/utils/movementUtils.ts",
         "src/utils/pathfinding.ts",
+        "src/utils/physicsUtils.ts",
         "src/utils/savingThrowUtils.ts",
         "src/utils/spellAbilityFactory.ts",
         "src/utils/statUtils.ts",
@@ -6644,14 +6846,18 @@
       ],
       "importedBy": [
         "src/components/ui/CompanionReaction.tsx",
+        "src/data/banter.ts",
         "src/data/companions.ts",
+        "src/hooks/useCompanionBanter.ts",
         "src/hooks/useCompanionCommentary.ts",
+        "src/systems/companions/BanterManager.ts",
         "src/systems/companions/CompanionReactionSystem.ts",
         "src/systems/companions/RelationshipManager.ts",
+        "src/systems/companions/__tests__/BanterManager.test.ts",
         "src/types/index.ts",
         "src/utils/companionFactories.ts"
       ],
-      "sizeBytes": 4839,
+      "sizeBytes": 5746,
       "extension": ".ts"
     },
     "src/types/core.ts": {
@@ -6756,7 +6962,7 @@
         "src/systems/physics/__tests__/ElementalInteractionSystem.test.ts",
         "src/types/combat.ts"
       ],
-      "sizeBytes": 2206,
+      "sizeBytes": 2392,
       "extension": ".ts"
     },
     "src/types/environment.ts": {
@@ -6793,12 +6999,14 @@
         "src/systems/intrigue/__tests__/SecretSystem.test.ts",
         "src/types/identity.ts",
         "src/types/index.ts",
+        "src/types/noble.ts",
+        "src/types/visuals.ts",
         "src/utils/__tests__/factionUtils.test.ts",
         "src/utils/__tests__/nobleHouseGenerator.test.ts",
         "src/utils/factionUtils.ts",
         "src/utils/nobleHouseGenerator.ts"
       ],
-      "sizeBytes": 2281,
+      "sizeBytes": 2816,
       "extension": ".ts"
     },
     "src/types/history.ts": {
@@ -6822,9 +7030,10 @@
         "src/systems/intrigue/SecretGenerator.ts",
         "src/systems/intrigue/__tests__/SecretSystem.test.ts",
         "src/types/index.ts",
+        "src/types/noble.ts",
         "src/utils/identityUtils.ts"
       ],
-      "sizeBytes": 3989,
+      "sizeBytes": 4015,
       "extension": ".ts"
     },
     "src/types/index.ts": {
@@ -6897,16 +7106,15 @@
         "src/components/CharacterCreator/WeaponMasterySelection.tsx",
         "src/components/CharacterCreator/hooks/useCharacterAssembly.ts",
         "src/components/CharacterCreator/state/characterCreatorState.ts",
+        "src/components/CharacterSheet/CharacterOverview.tsx",
         "src/components/CharacterSheet/SkillDetailDisplay.tsx",
         "src/components/CharacterSheetModal.tsx",
         "src/components/Combat/CombatView.tsx",
         "src/components/CompassPane.tsx",
         "src/components/DiscoveryLogPane.tsx",
         "src/components/DossierPane.tsx",
-        "src/components/DynamicMannequinSlotIcon.tsx",
         "src/components/EncounterGenerator/PartyManager.tsx",
         "src/components/EncounterModal.tsx",
-        "src/components/EquipmentMannequin.tsx",
         "src/components/GameGuideModal.tsx",
         "src/components/GeminiLogViewer.tsx",
         "src/components/Glossary/FullEntryDisplay.tsx",
@@ -6916,7 +7124,6 @@
         "src/components/Glossary/GlossaryTooltip.tsx",
         "src/components/Glossary/SingleGlossaryEntryModal.tsx",
         "src/components/Glossary/__tests__/Glossary.test.tsx",
-        "src/components/InventoryList.tsx",
         "src/components/LoadGameTransition.tsx",
         "src/components/MapPane.tsx",
         "src/components/MapTile.tsx",
@@ -6961,6 +7168,7 @@
         "src/data/classes/index.ts",
         "src/data/deities/index.ts",
         "src/data/dev/dummyCharacter.ts",
+        "src/data/dndData.ts",
         "src/data/feats/featsData.ts",
         "src/data/items/index.ts",
         "src/data/landmarks.ts",
@@ -7001,6 +7209,7 @@
         "src/hooks/__tests__/useAbilitySystem.test.ts",
         "src/hooks/__tests__/useCompanionCommentary.test.ts",
         "src/hooks/__tests__/useHistorySync.test.ts",
+        "src/hooks/actions/__tests__/handleMovement.test.ts",
         "src/hooks/actions/actionHandlerTypes.ts",
         "src/hooks/actions/actionHandlers.ts",
         "src/hooks/actions/handleEncounter.ts",
@@ -7016,6 +7225,7 @@
         "src/hooks/actions/handleWorldEvents.ts",
         "src/hooks/combat/useActionEconomy.ts",
         "src/hooks/useAudio.ts",
+        "src/hooks/useCompanionBanter.ts",
         "src/hooks/useCompanionCommentary.ts",
         "src/hooks/useGameActions.ts",
         "src/hooks/useGameInitialization.ts",
@@ -7024,6 +7234,7 @@
         "src/hooks/useUnderdarkLighting.ts",
         "src/services/EntityResolverService.ts",
         "src/services/SpellService.ts",
+        "src/services/__tests__/EntityResolutionIntegration.test.ts",
         "src/services/__tests__/EntityResolverService.test.ts",
         "src/services/__tests__/dialogueService.test.ts",
         "src/services/__tests__/saveLoadService.test.ts",
@@ -7055,7 +7266,9 @@
         "src/state/reducers/townReducer.ts",
         "src/state/reducers/uiReducer.ts",
         "src/state/reducers/worldReducer.ts",
+        "src/systems/companions/BanterManager.ts",
         "src/systems/companions/RelationshipManager.ts",
+        "src/systems/companions/__tests__/BanterManager.test.ts",
         "src/systems/companions/__tests__/CompanionSystem.test.ts",
         "src/systems/crime/CrimeSystem.ts",
         "src/systems/crime/HeistManager.ts",
@@ -7078,6 +7291,7 @@
         "src/systems/planar/__tests__/ShadowfellMechanics.test.ts",
         "src/systems/planar/__tests__/rest.test.ts",
         "src/systems/planar/rest.ts",
+        "src/systems/religion/__tests__/favor.test.ts",
         "src/systems/spells/ai/AISpellArbitrator.ts",
         "src/systems/spells/ai/MaterialTagService.ts",
         "src/systems/spells/ai/__tests__/AISpellArbitrator.test.ts",
@@ -7098,8 +7312,11 @@
         "src/systems/spells/targeting/gridAlgorithms/line.ts",
         "src/systems/spells/targeting/gridAlgorithms/sphere.ts",
         "src/systems/underdark/UnderdarkMechanics.ts",
+        "src/systems/underdark/__tests__/UnderdarkBiomeMechanics.test.ts",
         "src/systems/underdark/__tests__/UnderdarkMechanics.test.ts",
+        "src/systems/world/FactionManager.ts",
         "src/systems/world/WorldEventManager.ts",
+        "src/systems/world/__tests__/FactionManager.test.ts",
         "src/systems/world/__tests__/WorldEventManager.test.ts",
         "src/types/companions.ts",
         "src/types/crime/index.ts",
@@ -7140,7 +7357,7 @@
         "src/utils/visualUtils.ts",
         "src/utils/weaponUtils.ts"
       ],
-      "sizeBytes": 22071,
+      "sizeBytes": 22212,
       "extension": ".ts"
     },
     "src/types/infernal.ts": {
@@ -7181,6 +7398,14 @@
       "sizeBytes": 7532,
       "extension": ".ts"
     },
+    "src/types/languages.ts": {
+      "imports": [],
+      "importedBy": [
+        "src/types/__tests__/languages.test.ts"
+      ],
+      "sizeBytes": 4342,
+      "extension": ".ts"
+    },
     "src/types/logic.ts": {
       "imports": [],
       "importedBy": [
@@ -7204,9 +7429,11 @@
       "imports": [],
       "importedBy": [
         "src/types/index.ts",
-        "src/types/town.ts"
+        "src/types/town.ts",
+        "src/utils/__tests__/memoryUtils.test.ts",
+        "src/utils/memoryUtils.ts"
       ],
-      "sizeBytes": 2734,
+      "sizeBytes": 3609,
       "extension": ".ts"
     },
     "src/types/naval.ts": {
@@ -7216,7 +7443,7 @@
         "src/data/shipModifications.ts",
         "src/data/ships.ts",
         "src/systems/naval/CrewManager.ts",
-        "src/systems/naval/__tests__/CrewManager.test.ts",
+        "src/systems/naval/NavalCombatSystem.ts",
         "src/types/navalCombat.ts",
         "src/utils/__tests__/navalCombatUtils.test.ts",
         "src/utils/__tests__/navalUtils.test.ts",
@@ -7232,15 +7459,29 @@
       ],
       "importedBy": [
         "src/data/navalManeuvers.ts",
+        "src/systems/naval/NavalCombatSystem.ts",
         "src/utils/navalCombatUtils.ts"
       ],
       "sizeBytes": 2469,
       "extension": ".ts"
     },
+    "src/types/noble.ts": {
+      "imports": [
+        "src/types/factions.ts",
+        "src/types/identity.ts"
+      ],
+      "importedBy": [
+        "src/systems/intrigue/NobleHouseGenerator.ts"
+      ],
+      "sizeBytes": 1698,
+      "extension": ".ts"
+    },
     "src/types/organizations.ts": {
       "imports": [],
       "importedBy": [
-        "src/services/legacyService.ts"
+        "src/services/__tests__/organizationService.test.ts",
+        "src/services/legacyService.ts",
+        "src/services/organizationService.ts"
       ],
       "sizeBytes": 1234,
       "extension": ".ts"
@@ -7290,10 +7531,8 @@
       "imports": [
         "src/types/index.ts"
       ],
-      "importedBy": [
-        "src/data/religion.ts"
-      ],
-      "sizeBytes": 2324,
+      "importedBy": [],
+      "sizeBytes": 3317,
       "extension": ".ts"
     },
     "src/types/rituals.ts": {
@@ -7305,7 +7544,7 @@
         "src/systems/rituals/RitualManager.ts",
         "src/systems/rituals/__tests__/RitualManager.test.ts"
       ],
-      "sizeBytes": 3066,
+      "sizeBytes": 3985,
       "extension": ".ts"
     },
     "src/types/spells.ts": {
@@ -7341,6 +7580,7 @@
         "src/hooks/__tests__/useAbilitySystem.test.ts",
         "src/hooks/combat/useSummons.ts",
         "src/hooks/useAbilitySystem.ts",
+        "src/scripts/audit_enchantment_consistency.ts",
         "src/systems/environment/EnvironmentSystem.ts",
         "src/systems/environment/hazards.ts",
         "src/systems/planar/__tests__/PlanarIntegration.test.ts",
@@ -7357,7 +7597,9 @@
         "src/systems/spells/mechanics/SavingThrowResolver.ts",
         "src/systems/spells/mechanics/ScalingEngine.ts",
         "src/systems/spells/mechanics/__tests__/ElementalAdept.test.ts",
+        "src/systems/spells/targeting/TargetAllocator.ts",
         "src/systems/spells/targeting/TargetValidationUtils.ts",
+        "src/systems/spells/targeting/__tests__/TargetAllocator.test.ts",
         "src/systems/spells/validation/LegacySpellValidator.ts",
         "src/types/__tests__/spells.test-d.ts",
         "src/types/__tests__/spells.test.ts",
@@ -7377,9 +7619,10 @@
         "src/utils/combatUtils.ts",
         "src/utils/factories.ts",
         "src/utils/savingThrowUtils.ts",
+        "src/utils/validation/spellConsistencyValidator.ts",
         "src/utils/visuals/spellVisuals.ts"
       ],
-      "sizeBytes": 25022,
+      "sizeBytes": 26796,
       "extension": ".ts"
     },
     "src/types/stronghold.ts": {
@@ -7429,21 +7672,24 @@
     "src/types/underdark.ts": {
       "imports": [],
       "importedBy": [
+        "src/data/underdark/biomes.ts",
         "src/data/underdarkFactions.ts",
         "src/hooks/useUnderdarkLighting.ts",
         "src/services/__tests__/underdarkService.test.ts",
         "src/services/underdarkService.ts",
         "src/systems/underdark/FaerzressSystem.ts",
         "src/systems/underdark/UnderdarkFactionSystem.ts",
+        "src/systems/underdark/UnderdarkMechanics.ts",
         "src/systems/underdark/__tests__/UnderdarkFactionSystem.test.ts",
         "src/types/index.ts"
       ],
-      "sizeBytes": 2209,
+      "sizeBytes": 3186,
       "extension": ".ts"
     },
     "src/types/visuals.ts": {
       "imports": [
         "src/types/character.ts",
+        "src/types/factions.ts",
         "src/types/items.ts",
         "src/types/spells.ts"
       ],
@@ -7453,7 +7699,15 @@
         "src/utils/visualUtils.ts",
         "src/utils/visuals/spellVisuals.ts"
       ],
-      "sizeBytes": 7434,
+      "sizeBytes": 10692,
+      "extension": ".ts"
+    },
+    "src/types/__tests__/languages.test.ts": {
+      "imports": [
+        "src/types/languages.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 1130,
       "extension": ".ts"
     },
     "src/types/__tests__/spells.test-d.ts": {
@@ -7513,10 +7767,8 @@
         "src/components/CharacterCreator/Race/RacialSpellAbilitySelection.tsx",
         "src/components/CharacterCreator/hooks/useCharacterAssembly.ts",
         "src/components/CharacterCreator/state/characterCreatorState.ts",
+        "src/components/CharacterSheet/CharacterOverview.tsx",
         "src/components/CharacterSheet/SkillDetailDisplay.tsx",
-        "src/components/CharacterSheetModal.tsx",
-        "src/components/EquipmentMannequin.tsx",
-        "src/components/InventoryList.tsx",
         "src/components/SpellbookOverlay.tsx",
         "src/hooks/actions/handleGeminiCustom.ts",
         "src/hooks/actions/handleItemInteraction.ts",
@@ -7531,14 +7783,15 @@
     },
     "src/utils/characterValidation.ts": {
       "imports": [
-        "src/constants.ts",
+        "src/data/dndData.ts",
+        "src/data/races/index.ts",
         "src/types/index.ts"
       ],
       "importedBy": [
         "src/components/PartyPane.tsx",
         "src/utils/__tests__/characterValidation.test.ts"
       ],
-      "sizeBytes": 10053,
+      "sizeBytes": 10090,
       "extension": ".ts"
     },
     "src/utils/combat/actionEconomyUtils.ts": {
@@ -7560,9 +7813,10 @@
         "src/utils/logger.ts"
       ],
       "importedBy": [
-        "src/hooks/combat/useCombatAI.ts"
+        "src/hooks/combat/useCombatAI.ts",
+        "src/utils/combat/__tests__/combatAI.test.ts"
       ],
-      "sizeBytes": 26135,
+      "sizeBytes": 31248,
       "extension": ".ts"
     },
     "src/utils/combat/__tests__/actionEconomyUtils.test.ts": {
@@ -7574,6 +7828,16 @@
       "sizeBytes": 2998,
       "extension": ".ts"
     },
+    "src/utils/combat/__tests__/combatAI.test.ts": {
+      "imports": [
+        "src/types/combat.ts",
+        "src/utils/combat/combatAI.ts",
+        "src/utils/factories.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 6797,
+      "extension": ".ts"
+    },
     "src/utils/combatUtils.ts": {
       "imports": [
         "src/constants.ts",
@@ -7582,7 +7846,6 @@
         "src/types/spells.ts",
         "src/utils/idGenerator.ts",
         "src/utils/lineOfSight.ts",
-        "src/utils/movementUtils.ts",
         "src/utils/spellAbilityFactory.ts",
         "src/utils/statUtils.ts",
         "src/utils/weaponUtils.ts"
@@ -7600,6 +7863,7 @@
         "src/components/BattleMap/CharacterToken.tsx",
         "src/components/Combat/CombatView.tsx",
         "src/hooks/combat/engine/useCombatEngine.ts",
+        "src/hooks/combat/useActionExecutor.ts",
         "src/hooks/combat/useCombatVisuals.ts",
         "src/hooks/combat/useSummons.ts",
         "src/hooks/combat/useTurnManager.ts",
@@ -7610,6 +7874,7 @@
         "src/systems/combat/SavePenaltySystem.ts",
         "src/systems/crafting/__tests__/craftingService.test.ts",
         "src/systems/crafting/craftingService.ts",
+        "src/systems/naval/NavalCombatSystem.ts",
         "src/systems/planar/FeywildMechanics.ts",
         "src/systems/planar/PlanarHazardSystem.ts",
         "src/systems/planar/ShadowfellMechanics.ts",
@@ -7620,6 +7885,8 @@
         "src/systems/puzzles/pressurePlateSystem.ts",
         "src/systems/puzzles/puzzleSystem.ts",
         "src/systems/puzzles/secretDoorSystem.ts",
+        "src/systems/spells/targeting/TargetAllocator.ts",
+        "src/systems/spells/targeting/__tests__/TargetAllocator.test.ts",
         "src/utils/__tests__/combatUtils_attack.test.ts",
         "src/utils/__tests__/combatUtils_character.test.ts",
         "src/utils/__tests__/combatUtils_cover.test.ts",
@@ -7630,7 +7897,7 @@
         "src/utils/combat/combatAI.ts",
         "src/utils/savingThrowUtils.ts"
       ],
-      "sizeBytes": 24267,
+      "sizeBytes": 24222,
       "extension": ".ts"
     },
     "src/utils/companionFactories.ts": {
@@ -7668,7 +7935,7 @@
         "src/utils/__tests__/contextEnhancement.test.ts",
         "src/utils/__tests__/contextUtils.test.ts"
       ],
-      "sizeBytes": 8331,
+      "sizeBytes": 8373,
       "extension": ".ts"
     },
     "src/utils/economyUtils.ts": {
@@ -7700,15 +7967,17 @@
         "src/data/factions.ts",
         "src/types/factions.ts",
         "src/types/index.ts",
-        "src/utils/nobleHouseGenerator.ts"
+        "src/utils/nobleHouseGenerator.ts",
+        "src/utils/timeUtils.ts"
       ],
       "importedBy": [
         "src/components/debug/NobleHouseList.tsx",
         "src/state/appState.ts",
+        "src/systems/world/FactionManager.ts",
         "src/systems/world/WorldEventManager.ts",
         "src/utils/__tests__/factionUtils.test.ts"
       ],
-      "sizeBytes": 12036,
+      "sizeBytes": 13136,
       "extension": ".ts"
     },
     "src/utils/factories.ts": {
@@ -7734,6 +8003,8 @@
         "src/systems/planar/__tests__/PlanarIntegration.test.ts",
         "src/systems/planar/__tests__/PortalSystem.test.ts",
         "src/systems/planar/__tests__/ShadowfellMechanics.test.ts",
+        "src/systems/rituals/__tests__/RitualBacklash.test.ts",
+        "src/systems/spells/targeting/__tests__/TargetAllocator.test.ts",
         "src/systems/spells/validation/__tests__/materialComponents.test.ts",
         "src/systems/world/__tests__/WorldEventManager.test.ts",
         "src/utils/__tests__/characterUtils.test.ts",
@@ -7743,9 +8014,10 @@
         "src/utils/__tests__/savingThrowUtils.test.ts",
         "src/utils/__tests__/statUtils.test.ts",
         "src/utils/__tests__/weaponUtils.test.ts",
-        "src/utils/combat/__tests__/actionEconomyUtils.test.ts"
+        "src/utils/combat/__tests__/actionEconomyUtils.test.ts",
+        "src/utils/combat/__tests__/combatAI.test.ts"
       ],
-      "sizeBytes": 11689,
+      "sizeBytes": 11800,
       "extension": ".ts"
     },
     "src/utils/glossaryUtils.ts": {
@@ -7877,6 +8149,16 @@
       "sizeBytes": 1537,
       "extension": ".ts"
     },
+    "src/utils/memoryUtils.ts": {
+      "imports": [
+        "src/types/memory.ts"
+      ],
+      "importedBy": [
+        "src/utils/__tests__/memoryUtils.test.ts"
+      ],
+      "sizeBytes": 5258,
+      "extension": ".ts"
+    },
     "src/utils/movementUtils.ts": {
       "imports": [
         "src/types/combat.ts"
@@ -7884,7 +8166,6 @@
       "importedBy": [
         "src/hooks/combat/useGridMovement.ts",
         "src/utils/__tests__/movementRules.test.ts",
-        "src/utils/combatUtils.ts",
         "src/utils/pathfinding.ts"
       ],
       "sizeBytes": 1873,
@@ -7908,6 +8189,8 @@
         "src/types/naval.ts"
       ],
       "importedBy": [
+        "src/systems/naval/NavalCombatSystem.ts",
+        "src/systems/naval/__tests__/NavalCombatSystem.test.ts",
         "src/utils/__tests__/navalCombatUtils.test.ts",
         "src/utils/__tests__/navalUtils.test.ts",
         "src/utils/navalCombatUtils.ts"
@@ -7987,12 +8270,14 @@
     },
     "src/utils/physicsUtils.ts": {
       "imports": [
+        "src/types/combat.ts",
         "src/types/dice.ts"
       ],
       "importedBy": [
-        "src/utils/__tests__/physicsUtils.test.ts"
+        "src/utils/__tests__/physicsUtils.test.ts",
+        "src/utils/__tests__/physicsUtils_light.test.ts"
       ],
-      "sizeBytes": 7405,
+      "sizeBytes": 9834,
       "extension": ".ts"
     },
     "src/utils/planarUtils.ts": {
@@ -8003,6 +8288,7 @@
       ],
       "importedBy": [
         "src/commands/effects/DamageCommand.ts",
+        "src/commands/factory/SpellCommandFactory.ts",
         "src/hooks/useAbilitySystem.ts",
         "src/systems/planar/PlanarHazardSystem.ts",
         "src/systems/planar/__tests__/PlanarHazardSystem.test.ts",
@@ -8029,9 +8315,10 @@
       ],
       "importedBy": [
         "src/state/reducers/religionReducer.ts",
+        "src/systems/religion/__tests__/favor.test.ts",
         "src/utils/__tests__/religionUtils.test.ts"
       ],
-      "sizeBytes": 3518,
+      "sizeBytes": 4311,
       "extension": ".ts"
     },
     "src/utils/savingThrowUtils.ts": {
@@ -8045,7 +8332,7 @@
         "src/commands/effects/DamageCommand.ts",
         "src/commands/effects/StatusConditionCommand.ts",
         "src/hooks/combat/engine/useCombatEngine.ts",
-        "src/hooks/combat/useTurnManager.ts",
+        "src/hooks/combat/useActionExecutor.ts",
         "src/systems/combat/SavePenaltySystem.ts",
         "src/systems/planar/FeywildMechanics.ts",
         "src/systems/planar/PlanarHazardSystem.ts",
@@ -8081,7 +8368,7 @@
         "src/utils/__tests__/securityUtils.test.ts",
         "src/utils/securityUtils.test.ts"
       ],
-      "sizeBytes": 4562,
+      "sizeBytes": 4556,
       "extension": ".ts"
     },
     "src/utils/seededRandom.ts": {
@@ -8098,6 +8385,7 @@
         "src/systems/economy/TradeRouteManager.ts",
         "src/systems/economy/__tests__/TradeRouteManager.test.ts",
         "src/systems/intrigue/IdentityManager.ts",
+        "src/systems/intrigue/NobleHouseGenerator.ts",
         "src/systems/intrigue/SecretGenerator.ts",
         "src/systems/naval/CrewManager.ts",
         "src/systems/world/WorldEventManager.ts",
@@ -8137,7 +8425,7 @@
       "importedBy": [
         "src/utils/combatUtils.ts"
       ],
-      "sizeBytes": 13142,
+      "sizeBytes": 14390,
       "extension": ".ts"
     },
     "src/utils/spellFilterUtils.ts": {
@@ -8183,7 +8471,7 @@
         "src/utils/combatUtils.ts",
         "src/utils/savingThrowUtils.ts"
       ],
-      "sizeBytes": 9002,
+      "sizeBytes": 8461,
       "extension": ".ts"
     },
     "src/utils/storageUtils.ts": {
@@ -8249,6 +8537,7 @@
         "src/components/Submap/useDayNightOverlay.ts",
         "src/components/Submap/useQuickTravel.ts",
         "src/components/WorldPane.tsx",
+        "src/hooks/actions/__tests__/handleMovement.test.ts",
         "src/hooks/actions/actionHandlers.ts",
         "src/hooks/actions/handleMovement.ts",
         "src/hooks/actions/handleWorldEvents.ts",
@@ -8256,10 +8545,15 @@
         "src/systems/economy/TradeRouteManager.ts",
         "src/systems/planar/PortalSystem.ts",
         "src/systems/time/CalendarSystem.ts",
+        "src/systems/time/SeasonalSystem.ts",
         "src/systems/time/__tests__/CalendarSystem.test.ts",
+        "src/systems/time/__tests__/SeasonalSystem.test.ts",
+        "src/systems/world/FactionManager.ts",
         "src/systems/world/WorldEventManager.ts",
+        "src/systems/world/__tests__/WorldEventManager.test.ts",
         "src/utils/__tests__/timeUtils.test.ts",
         "src/utils/contextUtils.ts",
+        "src/utils/factionUtils.ts",
         "src/utils/factories.ts"
       ],
       "sizeBytes": 5999,
@@ -8281,6 +8575,25 @@
       ],
       "importedBy": [],
       "sizeBytes": 2878,
+      "extension": ".ts"
+    },
+    "src/utils/validation/spellConsistencyValidator.ts": {
+      "imports": [
+        "src/types/spells.ts"
+      ],
+      "importedBy": [
+        "src/scripts/audit_enchantment_consistency.ts",
+        "src/utils/validation/__tests__/spellConsistency.test.ts"
+      ],
+      "sizeBytes": 4752,
+      "extension": ".ts"
+    },
+    "src/utils/validation/__tests__/spellConsistency.test.ts": {
+      "imports": [
+        "src/utils/validation/spellConsistencyValidator.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 2191,
       "extension": ".ts"
     },
     "src/utils/visuals/spellVisuals.ts": {
@@ -8323,7 +8636,6 @@
         "src/types/index.ts"
       ],
       "importedBy": [
-        "src/components/EquipmentMannequin.tsx",
         "src/utils/__tests__/weaponUtils.test.ts",
         "src/utils/characterUtils.ts",
         "src/utils/combatUtils.ts"
@@ -8509,6 +8821,15 @@
       "sizeBytes": 5547,
       "extension": ".ts"
     },
+    "src/utils/__tests__/memoryUtils.test.ts": {
+      "imports": [
+        "src/types/memory.ts",
+        "src/utils/memoryUtils.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 3927,
+      "extension": ".ts"
+    },
     "src/utils/__tests__/movementRules.test.ts": {
       "imports": [
         "src/types/combat.ts",
@@ -8563,7 +8884,7 @@
         "src/utils/pathfinding.ts"
       ],
       "importedBy": [],
-      "sizeBytes": 1681,
+      "sizeBytes": 1826,
       "extension": ".ts"
     },
     "src/utils/__tests__/physicsUtils.test.ts": {
@@ -8572,6 +8893,15 @@
       ],
       "importedBy": [],
       "sizeBytes": 5639,
+      "extension": ".ts"
+    },
+    "src/utils/__tests__/physicsUtils_light.test.ts": {
+      "imports": [
+        "src/types/combat.ts",
+        "src/utils/physicsUtils.ts"
+      ],
+      "importedBy": [],
+      "sizeBytes": 4608,
       "extension": ".ts"
     },
     "src/utils/__tests__/planarUtils.test.ts": {

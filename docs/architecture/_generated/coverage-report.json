@@ -1,13 +1,13 @@
 {
   "meta": {
-    "generatedAt": "2025-12-19T21:29:36.293Z",
-    "totalCodeFiles": 1509,
-    "totalTestFiles": 170,
-    "claimedFiles": 246,
-    "orphanedFiles": 1263,
-    "missingFiles": 1,
-    "ambiguousFiles": 3,
-    "coveragePercent": 16.3
+    "generatedAt": "2025-12-20T11:39:23.423Z",
+    "totalCodeFiles": 1547,
+    "totalTestFiles": 188,
+    "claimedFiles": 244,
+    "orphanedFiles": 1303,
+    "missingFiles": 17,
+    "ambiguousFiles": 5,
+    "coveragePercent": 15.8
   },
   "orphaned": [
     "public/data/glossary/entries/classes/artificer.json",
@@ -838,7 +838,7 @@
     "scripts/migrate-glossary-entries-to-json.ts",
     "scripts/migrate-legacy-spells-to-v2.ts",
     "scripts/regenerate-manifest.ts",
-    "scripts/validateSpellJsons.js",
+    "scripts/verify-architecture-coverage.ts",
     "src/assets/icons/BeltIcon.tsx",
     "src/assets/icons/CloakIcon.tsx",
     "src/assets/icons/FeetIcon.tsx",
@@ -880,6 +880,10 @@
     "src/components/CharacterCreator/config/sidebarSteps.ts",
     "src/components/CharacterCreator/hooks/useCharacterAssembly.ts",
     "src/components/CharacterCreator/state/characterCreatorState.ts",
+    "src/components/CharacterSheet/CharacterOverview.tsx",
+    "src/components/CharacterSheet/DynamicMannequinSlotIcon.tsx",
+    "src/components/CharacterSheet/EquipmentMannequin.tsx",
+    "src/components/CharacterSheet/InventoryList.tsx",
     "src/components/CharacterSheet/SkillDetailDisplay.tsx",
     "src/components/Combat/CombatView.tsx",
     "src/components/Combat/ReactionPrompt.tsx",
@@ -934,6 +938,7 @@
     "src/components/ui/SelectionCard.tsx",
     "src/components/ui/Spinner.tsx",
     "src/components/ui/Tooltip.tsx",
+    "src/data/banter.ts",
     "src/data/classes/index.ts",
     "src/data/deities/index.ts",
     "src/data/dev/dummyCharacter.ts",
@@ -974,13 +979,13 @@
     "src/data/races/orc.ts",
     "src/data/races/tiefling.ts",
     "src/data/races/water_genasi.ts",
-    "src/data/religion.ts",
     "src/data/settings/ttsOptions.ts",
     "src/data/shipModifications.ts",
     "src/data/ships.ts",
     "src/data/skills/index.ts",
     "src/data/summonTemplates.ts",
     "src/data/temples/index.ts",
+    "src/data/underdark/biomes.ts",
     "src/data/underdarkFactions.ts",
     "src/data/villagePersonalityProfiles.ts",
     "src/data/world/locations.ts",
@@ -1001,6 +1006,7 @@
     "src/hooks/actions/handleWorldEvents.ts",
     "src/hooks/combat/engine/useCombatEngine.ts",
     "src/hooks/combat/useActionEconomy.ts",
+    "src/hooks/combat/useActionExecutor.ts",
     "src/hooks/combat/useCombatAI.ts",
     "src/hooks/combat/useCombatValidation.ts",
     "src/hooks/combat/useCombatVisuals.ts",
@@ -1010,8 +1016,11 @@
     "src/hooks/combat/useTargeting.ts",
     "src/hooks/combat/useTurnManager.ts",
     "src/hooks/combat/useTurnOrder.ts",
+    "src/hooks/useCharacterProficiencies.ts",
+    "src/hooks/useCompanionBanter.ts",
     "src/index.css",
     "src/locales/en.json",
+    "src/scripts/audit_enchantment_consistency.ts",
     "src/scripts/audit_spell_components.ts",
     "src/services/CharacterAssetService.ts",
     "src/services/EntityResolverService.ts",
@@ -1023,6 +1032,7 @@
     "src/services/geminiServiceFallback.ts",
     "src/services/landmarkService.ts",
     "src/services/legacyService.ts",
+    "src/services/organizationService.ts",
     "src/services/realmsmith/painters/BiomePalette.ts",
     "src/services/realmsmith/painters/BuildingPainter.ts",
     "src/services/realmsmith/painters/DoodadPainter.ts",
@@ -1036,10 +1046,13 @@
     "src/services/underdarkService.ts",
     "src/services/wfcService.ts",
     "src/styles/buttonStyles.ts",
+    "src/systems/companions/BanterManager.ts",
     "src/systems/companions/CompanionReactionSystem.ts",
     "src/systems/companions/RelationshipManager.ts",
+    "src/systems/crafting/EnchantingSystem.ts",
     "src/systems/crafting/craftingService.ts",
     "src/systems/crafting/craftingSystem.ts",
+    "src/systems/crafting/data/enchantingRecipes.ts",
     "src/systems/crafting/data/recipes.ts",
     "src/systems/crafting/salvageSystem.ts",
     "src/systems/crafting/types.ts",
@@ -1055,9 +1068,11 @@
     "src/systems/environment/hazards.ts",
     "src/systems/events/CombatEvents.ts",
     "src/systems/intrigue/IdentityManager.ts",
+    "src/systems/intrigue/NobleHouseGenerator.ts",
     "src/systems/intrigue/SecretGenerator.ts",
     "src/systems/logic/ConditionEvaluator.ts",
     "src/systems/naval/CrewManager.ts",
+    "src/systems/naval/NavalCombatSystem.ts",
     "src/systems/physics/ElementalInteractionSystem.ts",
     "src/systems/puzzles/lockSystem.ts",
     "src/systems/puzzles/pressurePlateSystem.ts",
@@ -1079,6 +1094,7 @@
     "src/systems/spells/mechanics/index.ts",
     "src/systems/spells/schema/spell.schema.json",
     "src/systems/spells/targeting/AoECalculator.ts",
+    "src/systems/spells/targeting/TargetAllocator.ts",
     "src/systems/spells/targeting/TargetResolver.ts",
     "src/systems/spells/targeting/TargetValidationUtils.ts",
     "src/systems/spells/targeting/gridAlgorithms/cone.ts",
@@ -1090,18 +1106,23 @@
     "src/systems/spells/validation/LegacySpellValidator.ts",
     "src/systems/spells/validation/spellValidator.ts",
     "src/systems/time/CalendarSystem.ts",
+    "src/systems/time/SeasonalSystem.ts",
     "src/systems/travel/TravelCalculations.ts",
     "src/systems/underdark/FaerzressSystem.ts",
     "src/systems/underdark/UnderdarkFactionSystem.ts",
     "src/systems/underdark/UnderdarkMechanics.ts",
+    "src/systems/world/FactionManager.ts",
     "src/systems/world/WorldEventManager.ts",
     "src/test/setup.ts",
+    "src/types/languages.ts",
+    "src/types/noble.ts",
     "src/utils/combat/actionEconomyUtils.ts",
     "src/utils/combat/combatAI.ts",
     "src/utils/encounterUtils.ts",
     "src/utils/factionUtils.ts",
     "src/utils/identityUtils.ts",
     "src/utils/locationUtils.ts",
+    "src/utils/memoryUtils.ts",
     "src/utils/movementUtils.ts",
     "src/utils/navalCombatUtils.ts",
     "src/utils/navalUtils.ts",
@@ -1113,6 +1134,7 @@
     "src/utils/settlementGeneration.ts",
     "src/utils/socialUtils.ts",
     "src/utils/travel/TravelCalculator.ts",
+    "src/utils/validation/spellConsistencyValidator.ts",
     "src/utils/visuals/spellVisuals.ts",
     "src/utils/walkabilityUtils.ts",
     "src/utils/weaponUtils.ts"
@@ -1156,11 +1178,14 @@
     "src/hooks/__tests__/useLocalStorageIntegration.test.ts",
     "src/hooks/__tests__/useSpellGateChecks.test.ts",
     "src/hooks/__tests__/useTownController.test.tsx",
+    "src/hooks/actions/__tests__/handleMovement.test.ts",
     "src/hooks/combat/__test__/useCombatAI.test.ts",
+    "src/hooks/combat/__tests__/useActionExecutor.test.ts",
     "src/hooks/combat/__tests__/useGridMovement.test.ts",
     "src/hooks/combat/__tests__/useTargetSelection.test.ts",
     "src/hooks/combat/engine/useCombatEngine.test.ts",
     "src/hooks/combat/useTurnOrder.test.ts",
+    "src/services/__tests__/EntityResolutionIntegration.test.ts",
     "src/services/__tests__/EntityResolverService.test.ts",
     "src/services/__tests__/aiClient.test.ts",
     "src/services/__tests__/dialogueService.test.ts",
@@ -1168,6 +1193,7 @@
     "src/services/__tests__/geminiServiceFallback.test.ts",
     "src/services/__tests__/landmarkService.test.ts",
     "src/services/__tests__/legacyService.test.ts",
+    "src/services/__tests__/organizationService.test.ts",
     "src/services/__tests__/saveLoadService.test.ts",
     "src/services/__tests__/strongholdService.test.ts",
     "src/services/__tests__/travelEventService.test.ts",
@@ -1178,9 +1204,11 @@
     "src/state/reducers/__tests__/explorationActions.test.ts",
     "src/state/reducers/__tests__/religionReducer.test.ts",
     "src/state/reducers/__tests__/worldReducer.test.ts",
+    "src/systems/companions/__tests__/BanterManager.test.ts",
     "src/systems/companions/__tests__/CompanionReactionSystem.test.ts",
     "src/systems/companions/__tests__/CompanionSystem.test.ts",
     "src/systems/companions/__tests__/RelationshipManager.test.ts",
+    "src/systems/crafting/__tests__/EnchantingSystem.test.ts",
     "src/systems/crafting/__tests__/craftingService.test.ts",
     "src/systems/crafting/__tests__/craftingSystem.test.ts",
     "src/systems/crafting/__tests__/salvageSystem.test.ts",
@@ -1193,9 +1221,10 @@
     "src/systems/economy/__tests__/TradeRouteManager.test.ts",
     "src/systems/environment/__tests__/EnvironmentSystem.test.ts",
     "src/systems/environment/__tests__/hazards.test.ts",
+    "src/systems/intrigue/__tests__/NobleHouseGenerator.test.ts",
     "src/systems/intrigue/__tests__/SecretSystem.test.ts",
     "src/systems/logic/__tests__/ConditionEvaluator.test.ts",
-    "src/systems/naval/__tests__/CrewManager.test.ts",
+    "src/systems/naval/__tests__/NavalCombatSystem.test.ts",
     "src/systems/physics/__tests__/ElementalInteractionSystem.test.ts",
     "src/systems/planar/__tests__/FeywildMechanics.test.ts",
     "src/systems/planar/__tests__/InfernalMechanics.test.ts",
@@ -1208,6 +1237,8 @@
     "src/systems/puzzles/__tests__/pressurePlateSystem.test.ts",
     "src/systems/puzzles/__tests__/puzzleSystem.test.ts",
     "src/systems/puzzles/__tests__/secretDoorSystem.test.ts",
+    "src/systems/religion/__tests__/favor.test.ts",
+    "src/systems/rituals/__tests__/RitualBacklash.test.ts",
     "src/systems/rituals/__tests__/RitualConstraints.test.ts",
     "src/systems/rituals/__tests__/RitualManager.test.ts",
     "src/systems/spells/__tests__/DefenderFilter.test.ts",
@@ -1224,16 +1255,21 @@
     "src/systems/spells/mechanics/__tests__/SavingThrowResolver.test.ts",
     "src/systems/spells/mechanics/__tests__/ScalingEngine.test.ts",
     "src/systems/spells/targeting/__tests__/AoECalculator.test.ts",
+    "src/systems/spells/targeting/__tests__/TargetAllocator.test.ts",
     "src/systems/spells/targeting/__tests__/TargetResolver.test.ts",
     "src/systems/spells/targeting/__tests__/sphere.test.ts",
     "src/systems/spells/validation/__tests__/materialComponents.test.ts",
     "src/systems/time/__tests__/CalendarSystem.test.ts",
+    "src/systems/time/__tests__/SeasonalSystem.test.ts",
     "src/systems/travel/__tests__/TravelCalculations.test.ts",
     "src/systems/underdark/__tests__/FaerzressSystem.test.ts",
+    "src/systems/underdark/__tests__/UnderdarkBiomeMechanics.test.ts",
     "src/systems/underdark/__tests__/UnderdarkFactionSystem.test.ts",
     "src/systems/underdark/__tests__/UnderdarkMechanics.test.ts",
+    "src/systems/world/__tests__/FactionManager.test.ts",
     "src/systems/world/__tests__/WorldEventManager.test.ts",
     "src/test/config.test.ts",
+    "src/types/__tests__/languages.test.ts",
     "src/types/__tests__/spells.test-d.ts",
     "src/types/__tests__/spells.test.ts",
     "src/utils/__tests__/aoeCalculations.test.ts",
@@ -1255,6 +1291,7 @@
     "src/utils/__tests__/i18n.test.ts",
     "src/utils/__tests__/identityUtils.test.ts",
     "src/utils/__tests__/lineOfSight.test.ts",
+    "src/utils/__tests__/memoryUtils.test.ts",
     "src/utils/__tests__/movementRules.test.ts",
     "src/utils/__tests__/navalCombatUtils.test.ts",
     "src/utils/__tests__/navalUtils.test.ts",
@@ -1262,6 +1299,7 @@
     "src/utils/__tests__/nobleHouseGenerator.test.ts",
     "src/utils/__tests__/pathfindingHeuristic.test.ts",
     "src/utils/__tests__/physicsUtils.test.ts",
+    "src/utils/__tests__/physicsUtils_light.test.ts",
     "src/utils/__tests__/planarUtils.test.ts",
     "src/utils/__tests__/planarUtils_atmosphere.test.ts",
     "src/utils/__tests__/religionUtils.test.ts",
@@ -1273,27 +1311,109 @@
     "src/utils/__tests__/visualUtils.test.ts",
     "src/utils/__tests__/weaponUtils.test.ts",
     "src/utils/combat/__tests__/actionEconomyUtils.test.ts",
+    "src/utils/combat/__tests__/combatAI.test.ts",
     "src/utils/securityUtils.test.ts",
-    "src/utils/travel/__tests__/TravelCalculator.test.ts"
+    "src/utils/travel/__tests__/TravelCalculator.test.ts",
+    "src/utils/validation/__tests__/spellConsistency.test.ts"
   ],
   "missing": [
     {
+      "file": "src/components/EquipmentMannequin.tsx",
+      "claimedIn": "character-sheet"
+    },
+    {
+      "file": "src/components/DynamicMannequinSlotIcon.tsx",
+      "claimedIn": "character-sheet"
+    },
+    {
       "file": "scripts/migrate-*.ts",
       "claimedIn": "data-pipelines"
+    },
+    {
+      "file": "public/data/glossary/entries/classes/*.json",
+      "claimedIn": "glossary-data"
+    },
+    {
+      "file": "public/data/glossary/entries/classes/*_spell_list.json",
+      "claimedIn": "glossary-data"
+    },
+    {
+      "file": "public/data/glossary/entries/classes/*_subclasses/*.json",
+      "claimedIn": "glossary-data"
+    },
+    {
+      "file": "public/data/glossary/entries/races/*.json",
+      "claimedIn": "glossary-data"
+    },
+    {
+      "file": "public/data/glossary/entries/races/elf_lineages/*.json",
+      "claimedIn": "glossary-data"
+    },
+    {
+      "file": "public/data/glossary/entries/races/gnome_subraces/*.json",
+      "claimedIn": "glossary-data"
+    },
+    {
+      "file": "public/data/glossary/entries/races/goliath_ancestries/*.json",
+      "claimedIn": "glossary-data"
+    },
+    {
+      "file": "public/data/glossary/entries/rules/*.json",
+      "claimedIn": "glossary-data"
+    },
+    {
+      "file": "public/data/glossary/entries/rules/conditions/*.json",
+      "claimedIn": "glossary-data"
+    },
+    {
+      "file": "public/data/glossary/entries/magic_items/*.json",
+      "claimedIn": "glossary-data"
+    },
+    {
+      "file": "public/data/spells/*.json",
+      "claimedIn": "glossary-data"
+    },
+    {
+      "file": "src/services/spellLoader.ts",
+      "claimedIn": "glossary-data"
+    },
+    {
+      "file": "src/hooks/useSpellLoader.ts",
+      "claimedIn": "glossary-data"
+    },
+    {
+      "file": "src/components/InventoryList.tsx",
+      "claimedIn": "items-trade-inventory"
     }
   ],
   "ambiguous": [
     {
+      "file": "public/data/spells_fidelity.json",
+      "claimedIn": [
+        "glossary-data",
+        "spells"
+      ]
+    },
+    {
       "file": "public/data/spells_manifest.json",
       "claimedIn": [
         "data-pipelines",
+        "glossary-data",
         "spells"
+      ]
+    },
+    {
+      "file": "scripts/validate-data.ts",
+      "claimedIn": [
+        "data-pipelines",
+        "glossary-data"
       ]
     },
     {
       "file": "src/types/spells.ts",
       "claimedIn": [
         "commands",
+        "glossary-data",
         "spells"
       ]
     },
@@ -1320,8 +1440,8 @@
     },
     "character-sheet": {
       "claimedFiles": 12,
-      "validFiles": 12,
-      "missingFiles": 0,
+      "validFiles": 10,
+      "missingFiles": 2,
       "testFiles": 0
     },
     "combat": {
@@ -1348,6 +1468,12 @@
       "missingFiles": 1,
       "testFiles": 0
     },
+    "glossary-data": {
+      "claimedFiles": 18,
+      "validFiles": 5,
+      "missingFiles": 13,
+      "testFiles": 0
+    },
     "glossary": {
       "claimedFiles": 8,
       "validFiles": 8,
@@ -1356,8 +1482,8 @@
     },
     "items-trade-inventory": {
       "claimedFiles": 8,
-      "validFiles": 8,
-      "missingFiles": 0,
+      "validFiles": 7,
+      "missingFiles": 1,
       "testFiles": 0
     },
     "npcs-companions": {
@@ -1406,6 +1532,7 @@
       "combat",
       "core-systems",
       "data-pipelines",
+      "glossary-data",
       "glossary",
       "items-trade-inventory",
       "npcs-companions",

@@ -21,8 +21,9 @@ Run this prompt after completing a batch of Jules agent runs:
 
 ```bash
 # Ensure you have the latest merged state
-git checkout main
-git pull origin main
+# Note: Default branch may be 'main' or 'master' depending on repo setup
+git checkout main  # or 'master'
+git pull origin main  # or 'master'
 ```
 
 ### Phase 2: Check Persona Worklogs
@@ -126,7 +127,7 @@ git add docs/architecture/
 git add .jules/worklogs/
 git add .jules/personas/
 git commit -m "🏛️ Core: Update architecture docs from persona batch [DATE]"
-git push origin main
+git push origin main  # or 'master'
 ```
 
 ---
