@@ -1,1 +1,5 @@
-## 2024-05-24 - Terminology Standards **Learning:** The codebase uses "HP" and "AC" in user-facing UI labels (`character_label_hp`, `character_label_ac`) and combat logs, contradicting the guideline to always use "Hit Points" and "Armor Class". **Action:** Update `src/locales/en.json` to use full terms. Audit UI components for space constraints, but prioritize clarity and immersion.
+# Bard's Worklog
+
+## 2024-05-23 - Initial Setup
+**Learning:** Established the Bard persona journal.
+**Action:** Will record critical content learnings here.
