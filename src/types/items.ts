@@ -29,6 +29,75 @@ export interface Mastery {
 }
 
 /**
+ * The standard rarity tiers for items.
+ * Used to determine value, availability, and power level.
+ * Source: DMG
+ */
+export enum ItemRarity {
+  Common = 'Common',
+  Uncommon = 'Uncommon',
+  Rare = 'Rare',
+  VeryRare = 'Very Rare',
+  Legendary = 'Legendary',
+  Artifact = 'Artifact',
+}
+
+export interface ItemRarityTraits {
+  /** Display name for the rarity. */
+  name: string;
+  /** Color code associated with the rarity (Hex). */
+  color: string;
+  /** Minimum gold piece value (approximate guide). */
+  minPrice: number;
+  /** Maximum gold piece value (approximate guide). */
+  maxPrice: number;
+}
+
+/**
+ * Trait definitions for ItemRarity.
+ * Value ranges based on D&D 5e DMG.
+ * Colors based on standard RPG conventions.
+ */
+export const ItemRarityDefinitions: Record<ItemRarity, ItemRarityTraits> = {
+  [ItemRarity.Common]: {
+    name: "Common",
+    color: "#ffffff", // White
+    minPrice: 50,
+    maxPrice: 100,
+  },
+  [ItemRarity.Uncommon]: {
+    name: "Uncommon",
+    color: "#1eff00", // Green
+    minPrice: 101,
+    maxPrice: 500,
+  },
+  [ItemRarity.Rare]: {
+    name: "Rare",
+    color: "#0070dd", // Blue
+    minPrice: 501,
+    maxPrice: 5000,
+  },
+  [ItemRarity.VeryRare]: {
+    name: "Very Rare",
+    color: "#a335ee", // Purple
+    minPrice: 5001,
+    maxPrice: 50000,
+  },
+  [ItemRarity.Legendary]: {
+    name: "Legendary",
+    color: "#ff8000", // Orange
+    minPrice: 50001,
+    maxPrice: 200000, // Arbitrary cap
+  },
+  [ItemRarity.Artifact]: {
+    name: "Artifact",
+    color: "#e6cc80", // Heirloom/Gold/Red? Using a distinct gold/pale yellow.
+    minPrice: 0, // Priceless
+    maxPrice: 0,
+  },
+};
+
+/**
  * Classification of items in the game world.
  * Each type carries inherent properties like equippability or stackability.
  */
@@ -189,6 +258,14 @@ export interface Item {
     | 'spell_component'
     | 'crafting_material'
     | 'treasure';
+
+  /**
+   * The rarity of the item.
+   * Controls value, color coding, and availability.
+   * Defaults to ItemRarity.Common if undefined.
+   */
+  rarity?: ItemRarity;
+
   icon?: string;
   slot?: EquipmentSlotType;
   effect?: ItemEffect;
