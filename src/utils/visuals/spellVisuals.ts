@@ -50,10 +50,9 @@ export function getSpellVisual(spell: Spell): VisualAsset {
 
   // Determine fallback content (could be damage type based in future)
   let fallback = schoolIcon;
-  if (spell.damageType) {
-    // Override fallback icon for specific damage types if desired
-    // For now, sticking to school identity for consistency
-  }
+  // Note: spell.damageType is not a valid property on Spell.
+  // We should check spell.effects for damage types if we want to override based on damage.
+  // For now, sticking to school identity for consistency.
 
   return {
     src: undefined, // No static assets yet

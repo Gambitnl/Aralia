@@ -467,6 +467,20 @@ export interface MovementEffect extends BaseEffect {
   forcedMovement?: ForcedMovement;
 }
 
+/**
+ * Defines a special action granted to a summoned creature.
+ */
+export interface SummonAction {
+  name: string;
+  description: string;
+  cost?: "action" | "bonus_action" | "reaction";
+  range?: number;
+  damage?: {
+    dice: string;
+    type: string; // Should ideally match DamageType but keeping string for flexibility
+  };
+}
+
 /** An effect that summons creatures or objects. */
 export interface SummoningEffect extends BaseEffect {
   type: "SUMMONING";
@@ -476,6 +490,7 @@ export interface SummoningEffect extends BaseEffect {
   count: number; // How many creatures/objects are summoned
   duration: EffectDuration;
   familiarContract?: FamiliarContract;
+  specialActions?: SummonAction[];
 }
 
 /** Structured terrain manipulation for spells like Mold Earth */

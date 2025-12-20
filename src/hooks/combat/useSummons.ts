@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { CombatCharacter } from '../../types/combat';
-import { Spell, SummoningEffect, FamiliarContract } from '../../types/spells';
+import { Spell, SummoningEffect, FamiliarContract, SummonAction } from '../../types/spells';
 import { generateId } from '../../utils/combatUtils';
 import { getSummonTemplate, SummonTemplate } from '../../data/summonTemplates';
 
@@ -18,7 +18,7 @@ interface ResolvedSummonEffect extends Partial<SummoningEffect> {
     // Additional runtime fields used in addSummon
     statBlock?: SummonTemplate;
     formOptions?: string[];
-    specialActions?: any[]; // Keep any for now or define a stricter Action type if possible
+    specialActions?: SummonAction[];
     entityType?: string; // Appears to be an alias or legacy field for summonType
     dismissAction?: boolean;
 }
@@ -74,7 +74,7 @@ export const useSummons = ({ onSummonAdded, onSummonRemoved }: UseSummonsProps =
                 speed: statBlock.speed || 30,
                 cr: statBlock.cr ? String(statBlock.cr) : "0"
             },
-            abilities: (summonEffect.specialActions || []).map((action: any, index: number) => {
+            abilities: (summonEffect.specialActions || []).map((action: SummonAction, index: number) => {
                 const isAttack = !!action.damage;
                 // Calculate average damage for the value field (e.g., "1d6" -> 3.5 -> 3)
                 let effectValue = 0;
@@ -99,7 +99,7 @@ export const useSummons = ({ onSummonAdded, onSummonRemoved }: UseSummonsProps =
                     effects: action.damage ? [{
                         type: 'damage',
                         value: effectValue,
-                        damageType: action.damage.type || 'physical'
+                        damageType: (action.damage.type as any) || 'physical'
                     }] : [],
                     icon: isAttack ? '⚔️' : '✨'
                 };

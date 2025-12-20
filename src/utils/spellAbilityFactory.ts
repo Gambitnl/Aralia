@@ -11,7 +11,16 @@
  * This allows us to define a spell ONCE in the JSON data, and have it automatically
  * work in the BattleMap without writing manual code for every single spell.
  */
-import { Spell, AbilityScoreName, PlayerCharacter } from '../types';
+import {
+  Spell,
+  AbilityScoreName,
+  PlayerCharacter,
+  isDamageEffect,
+  isHealingEffect,
+  isStatusConditionEffect,
+  isUtilityEffect,
+  SpellEffect
+} from '../types';
 import { Ability, AbilityCost, AbilityEffect, AreaOfEffect, TargetingType } from '../types/combat';
 import { getAbilityModifierValue } from './characterUtils';
 
@@ -36,13 +45,14 @@ const inferTargeting = (spell: Spell): TargetingType => {
 
     const spellRange = spell.range;
     if (spellRange && typeof spellRange === 'object' && 'type' in spellRange) {
-        range = spellRange.type.toLowerCase();
+        // Cast to any to avoid TS narrowing issues where it thinks type is never
+        range = (spellRange as any).type.toLowerCase();
     } else if (typeof spellRange === 'string') {
-        range = spellRange.toLowerCase();
+        range = (spellRange as string).toLowerCase();
     }
 
     if (range === 'self') {
-        if (spell.areaOfEffect || desc.includes('cone') || desc.includes('sphere') || desc.includes('cube') || desc.includes('line') || desc.includes('radius')) {
+        if ((spell.targeting && spell.targeting.type === 'area') || desc.includes('cone') || desc.includes('sphere') || desc.includes('cube') || desc.includes('line') || desc.includes('radius')) {
             return 'area';
         }
         return 'self';
@@ -70,8 +80,12 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
 
     // Check JSON effects first if they exist
     if (spell.effects) {
-        const aoeEffect = spell.effects.find(e => e.areaOfEffect);
-        if (aoeEffect && aoeEffect.areaOfEffect) {
+        // Find an effect that *actually* has areaOfEffect property.
+        // In the V2 schema, simple DAMAGE effects don't carry the AoE; the root targeting object does.
+        // However, TERRAIN effects might.
+        const aoeEffect = spell.effects.find(e => 'areaOfEffect' in e && (e as any).areaOfEffect);
+        if (aoeEffect && 'areaOfEffect' in aoeEffect) {
+             const effectAoe = (aoeEffect as any).areaOfEffect;
             // Map JSON AoE shape to Combat AoE shape
             const shapeMap: Record<string, 'circle' | 'cone' | 'line' | 'square'> = {
                 'Sphere': 'circle',
@@ -81,14 +95,16 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
                 'Cylinder': 'circle' // Best approximation for 2D grid
             };
             return {
-                shape: shapeMap[aoeEffect.areaOfEffect.shape] || 'circle',
-                size: aoeEffect.areaOfEffect.size / 5, // Convert feet to tiles (5ft = 1 tile)
+                shape: shapeMap[effectAoe.shape] || 'circle',
+                size: effectAoe.size / 5, // Convert feet to tiles (5ft = 1 tile)
             };
         }
     }
 
-    // Also check top-level areaOfEffect property
-    if (spell.areaOfEffect) {
+    // Also check top-level areaOfEffect property from targeting
+    // The Spell interface defines targeting: SpellTargeting.
+    // We should check spell.targeting.areaOfEffect if it exists (for AreaTargeting)
+    if (spell.targeting && spell.targeting.type === 'area' && spell.targeting.areaOfEffect) {
         const shapeMap: Record<string, 'circle' | 'cone' | 'line' | 'square'> = {
             'Sphere': 'circle',
             'Cone': 'cone',
@@ -97,10 +113,13 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
             'Cylinder': 'circle'
         };
         return {
-            shape: shapeMap[spell.areaOfEffect.shape] || 'circle',
-            size: spell.areaOfEffect.size / 5,
+            shape: shapeMap[spell.targeting.areaOfEffect.shape] || 'circle',
+            size: spell.targeting.areaOfEffect.size / 5,
         };
     }
+
+    // Fallback: Check for legacy top-level areaOfEffect property if the type definition allows it (it doesn't seem to)
+    // But we'll keep the logic if it was intended for raw JSON access, though ideally we trust 'targeting'.
 
     // Fallback to text parsing (basic)
     if (desc.includes('15-foot cone')) return { shape: 'cone', size: 3 };
@@ -196,8 +215,8 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
         costType = castingTime.unit.toLowerCase().includes('bonus') ? 'bonus' :
             castingTime.unit.toLowerCase().includes('reaction') ? 'reaction' : 'action';
     } else if (typeof castingTime === 'string') {
-        costType = castingTime.toLowerCase().includes('bonus') ? 'bonus' :
-            castingTime.toLowerCase().includes('reaction') ? 'reaction' : 'action';
+        costType = (castingTime as string).toLowerCase().includes('bonus') ? 'bonus' :
+            (castingTime as string).toLowerCase().includes('reaction') ? 'reaction' : 'action';
     }
 
     const cost: AbilityCost = {
@@ -209,15 +228,15 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
     let rangeTiles = 1;
     const spellRange = spell.range;
     if (spellRange && typeof spellRange === 'object' && 'type' in spellRange) {
-        if (spellRange.type === 'Feet' && spellRange.distance) {
+        if (spellRange.type === 'ranged' && spellRange.distance) {
             rangeTiles = Math.floor(spellRange.distance / 5);
-        } else if (spellRange.type === 'Touch') {
+        } else if (spellRange.type === 'touch') {
             rangeTiles = 1;
-        } else if (spellRange.type === 'Self') {
+        } else if (spellRange.type === 'self') {
             rangeTiles = 0;
         }
     } else if (typeof spellRange === 'string') {
-        const r = spellRange.toLowerCase();
+        const r = (spellRange as string).toLowerCase();
         if (r.includes('touch')) {
             rangeTiles = 1;
         } else if (r.includes('self')) {
@@ -233,8 +252,8 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
 
     if (spell.effects && spell.effects.length > 0) {
         // Use structured data if available (Gold Standard)
-        spell.effects.forEach(jsonEffect => {
-            if (jsonEffect.type === 'Damage' && jsonEffect.damage) {
+        spell.effects.forEach((jsonEffect: SpellEffect) => {
+            if (isDamageEffect(jsonEffect)) {
                 const avgDmg = calculateAverageDamage(jsonEffect.damage.dice);
                 // Note: If spell has explicit saveRequired, combat engine handles roll.
                 // Ability definition doesn't strictly enforce save logic yet, 
@@ -244,42 +263,40 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
                     value: avgDmg,
                     damageType: jsonEffect.damage.type.toLowerCase() as any
                 });
-            } else if (jsonEffect.type === 'Healing') {
+            } else if (isHealingEffect(jsonEffect)) {
                 let healAmount = 0;
-                if (jsonEffect.special && jsonEffect.special.includes('1d4')) healAmount = calculateAverageDamage('1d4', modifier);
-                else if (jsonEffect.special && jsonEffect.special.includes('1d8')) healAmount = calculateAverageDamage('1d8', modifier);
-                else if (jsonEffect.healing && jsonEffect.healing.dice) healAmount = calculateAverageDamage(jsonEffect.healing.dice, modifier);
-                else if (jsonEffect.special && jsonEffect.special.includes('4d8')) healAmount = calculateAverageDamage('4d8', 15); // Regenerate
+                // Check different healing fields or fallback to parsing if dice is complex
+                // The new schema strictly has jsonEffect.healing.dice
+                if (jsonEffect.healing && jsonEffect.healing.dice) {
+                     healAmount = calculateAverageDamage(jsonEffect.healing.dice, modifier);
+                } else {
+                     // Fallback/Legacy checks if data hasn't fully migrated or if specialized fields exist
+                     // Note: 'special' field does not exist on HealingEffect interface in V2 schema
+                     // We default to 0 if dice is missing, or rely on Silver Standard fallback if needed.
+                }
 
                 effects.push({
                     type: 'heal',
                     value: healAmount
                 });
-            } else if (jsonEffect.type === 'Buff') {
-                effects.push({
-                    type: 'status',
-                    statusEffect: {
-                        id: `spell_${spell.id}_buff`,
-                        name: spell.name,
-                        type: 'buff',
-                        duration: (typeof spell.duration === 'object' && spell.duration?.concentration) ? 10 : 100, // Approximation
-                        // Simple visual effect. In real app, this would hook into actual stat modifiers.
-                        // For now, we use a placeholder stat modifier to allow the UI to show it.
-                        effect: { type: 'stat_modifier', value: 1 }
-                    }
-                });
-            } else if (jsonEffect.type === 'Debuff' || jsonEffect.type === 'Control') {
-                effects.push({
-                    type: 'status',
-                    statusEffect: {
-                        id: `spell_${spell.id}_debuff`,
-                        name: spell.name,
-                        type: 'debuff',
-                        duration: 10,
-                        effect: { type: 'stat_modifier', value: -1 }
-                    }
-                });
+            } else if (isUtilityEffect(jsonEffect) || isStatusConditionEffect(jsonEffect)) {
+                 // Map simple buffs/debuffs if possible
+                 // This is a simplification; full status support needs more mapping
+                 if (jsonEffect.type === 'STATUS_CONDITION') {
+                     const isBuff = jsonEffect.statusCondition.name === 'Invisible' || jsonEffect.statusCondition.name === 'Ignited'; // Example logic
+                      effects.push({
+                        type: 'status',
+                        statusEffect: {
+                            id: `spell_${spell.id}_status`,
+                            name: jsonEffect.statusCondition.name,
+                            type: isBuff ? 'buff' : 'debuff',
+                            duration: 10,
+                            effect: { type: 'condition' }
+                        }
+                    });
+                 }
             }
+            // Note: Legacy 'Buff'/'Debuff'/'Control' logic removed as per data audit confirming they don't exist.
         });
     } else {
         // Fallback: Parse description (Silver Standard)
