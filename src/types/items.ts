@@ -229,6 +229,11 @@ export interface Item {
   nutritionValue?: number;
   perishable?: boolean;
   statBonuses?: Partial<AbilityScores>;
+  /**
+   * For items that set an ability score to a fixed value (e.g., Gauntlets of Ogre Power setting Strength to 19).
+   * D&D 5e Rules: The score becomes X unless it is already higher.
+   */
+  statOverrides?: Partial<AbilityScores>;
   requirements?: {
     minLevel?: number;
     classId?: string[];
