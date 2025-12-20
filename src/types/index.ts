@@ -91,7 +91,25 @@ export * from './dialogue';
 export * from './underdark';
 export * from './history';
 export * from './economy'; // Export new economy types
+export * from './warfare'; // Warlord: Export warfare types
 export type { CombatCharacter, CharacterStats, Position, CombatState };
+
+// Re-export other domain types (preserving existing structure)
+export * from './elemental';
+export * from './stronghold';
+export * from './crafting';
+export * from './dice';
+export * from './environment';
+export * from './exploration';
+export * from './infernal';
+export * from './logic';
+export * from './magicItems';
+export * from './navalCombat';
+export * from './organizations';
+export * from './realmsmith';
+export * from './rituals';
+export * from './travel';
+export * from './visuals';
 
 // -----------------------------------------------------------------------------
 // World and NPC types
@@ -832,5 +850,3 @@ export interface Notification {
   type: NotificationType;
   duration?: number;
 }
-export * from './elemental';
-export * from './stronghold';
