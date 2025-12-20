@@ -2,9 +2,14 @@
  * @file src/data/dev/dummyCharacter.ts
  * Defines the dummy character data for development and testing purposes.
  */
-import { PlayerCharacter, Race, Class as CharClass, AbilityScores, Skill, LimitedUses, SpellSlots, SpellbookData, Item } from '../../types';
+import { PlayerCharacter, AbilityScores, Skill, LimitedUses, SpellSlots, SpellbookData, Item } from '../../types';
 import { getAbilityModifierValue, calculateArmorClass, calculateFixedRacialBonuses } from '../../utils/statUtils';
 import { FEATURES } from '../../config/features';
+
+import { ALL_RACES_DATA, RACE_DATA_BUNDLE } from '../races/index.ts';
+import { CLASSES_DATA } from '../classes';
+import { SKILLS_DATA } from '../skills';
+import { ITEMS, WEAPONS_DATA } from '../items';
 
 // --- DUMMY CHARACTER FOR DEVELOPMENT ---
 
@@ -87,18 +92,21 @@ export function getDummyInitialInventory(allItems: Record<string, Item>): Item[]
     ].filter(Boolean) as Item[];
 }
 
+export const initialInventoryForDummyCharacter = getDummyInitialInventory({ ...WEAPONS_DATA, ...ITEMS });
 
-export function initializeDummyCharacterData(
-    allRaces: Record<string, Race>,
-    allClasses: Record<string, CharClass>,
-    allSkills: Record<string, Skill>
-): PlayerCharacter[] {
+
+function initializeDummyCharacterDataInternal(): PlayerCharacter[] {
+    const allRaces = ALL_RACES_DATA;
+    // Define RACES_DATA using the imported ALL_RACES_DATA if needed, but we use allRaces directly
+    const allClasses = CLASSES_DATA;
+    const allSkills = SKILLS_DATA;
+
     // --- Create Fighter ---
     const dummyFighterRace = allRaces[DUMMY_FIGHTER_RACE_ID];
     const dummyFighterClass = allClasses[DUMMY_FIGHTER_CLASS_ID];
 
     if (!dummyFighterRace || !dummyFighterClass) {
-        console.error("Failed to initialize dummy fighter: Race or Class data missing.")
+        // console.error("Failed to initialize dummy fighter: Race or Class data missing.")
         return [];
     }
 
@@ -136,7 +144,7 @@ export function initializeDummyCharacterData(
     const dummyClericClass = allClasses[DUMMY_CLERIC_CLASS_ID];
 
     if (!dummyClericRace || !dummyClericClass) {
-        console.error("Failed to initialize dummy cleric: Race or Class data missing.")
+        // console.error("Failed to initialize dummy cleric: Race or Class data missing.")
         return [tempFighter]; // Return at least the fighter
     }
 
@@ -181,6 +189,11 @@ export function initializeDummyCharacterData(
     return [tempFighter, tempCleric];
 }
 
+// Perform initialization immediately (or lazily if we wanted, but immediate is fine here as this file is specific to dev dummy)
+const initializedDummyParty = initializeDummyCharacterDataInternal();
+DUMMY_PARTY_FOR_DEV.push(...initializedDummyParty);
+
+
 export const USE_DUMMY_CHARACTER_FOR_DEV = FEATURES.ENABLE_DEV_TOOLS;
 
 export { DUMMY_PARTY_FOR_DEV };
@@ -188,4 +201,13 @@ export { DUMMY_PARTY_FOR_DEV };
 export function setInitializedDummyCharacter(party: PlayerCharacter[]) {
     DUMMY_PARTY_FOR_DEV.length = 0; // Clear existing array
     DUMMY_PARTY_FOR_DEV.push(...party); // Push new characters
+}
+
+// Keep the old export for backward compatibility if needed, but explicit imports are preferred
+export function initializeDummyCharacterData(
+    allRaces: any,
+    allClasses: any,
+    allSkills: any
+): PlayerCharacter[] {
+    return initializeDummyCharacterDataInternal();
 }
