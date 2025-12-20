@@ -24,7 +24,7 @@ const COIN_NAMES: Record<keyof CoinBreakdown, string> = {
     cp: 'Copper',
 };
 
-const CoinBadge: React.FC<CoinBadgeProps> = ({ type, amount, compact = false }) => {
+export const CoinBadge: React.FC<CoinBadgeProps> = ({ type, amount, compact = false }) => {
     if (amount === 0) return null;
 
     return (
