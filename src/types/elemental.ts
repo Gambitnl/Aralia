@@ -44,6 +44,10 @@ export const StateInteractions: Record<string, StateTag | null> = {
   // Frozen interactions
   'burning+frozen': StateTag.Wet,   // Fire melts ice
 
+  // Poisoned interactions
+  'burning+poisoned': StateTag.Burning, // Fire burns away organic toxins/sludge
+  'poisoned+wet': StateTag.Wet,     // Water washes away surface poisons
+
   // Electrified interactions
   // (Placeholder for future: wet+electrified -> AoE damage)
   // TODO(Simulator): Implement vision obscurement mechanics for the Smoke state.
