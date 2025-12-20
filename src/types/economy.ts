@@ -1,45 +1,75 @@
-/**
- * Copyright (c) 2024 Aralia RPG
- * Licensed under the MIT License
- *
- * @file src/types/economy.ts
- * Type definitions for the economy system, including markets, trade routes, and pricing.
- */
+export interface EconomyState {
+  marketEvents: MarketEvent[];
+  tradeRoutes: TradeRoute[];
+  globalInflation: number;
+  regionalWealth: Record<string, number>; // locationId -> wealthLevel (0-100)
+
+  // Legacy fields restored to prevent breaking changes
+  marketFactors: {
+    scarcity: string[];
+    surplus: string[];
+  };
+  buyMultiplier: number;
+  sellMultiplier: number;
+  activeEvents: any[]; // Deprecated, use marketEvents
+}
 
 export interface MarketEvent {
   id: string;
-  name: string;
-  description: string;
-  affectedTags: string[]; // Tags like 'weapon', 'food', 'magic'
-  effect: 'scarcity' | 'surplus';
-  duration: number; // In game ticks or arbitrary units (days)
+  type: MarketEventType;
+  locationId?: string; // If undefined, global
+  startTime: number;
+  duration: number;
+  intensity: number; // 0-1
+  // Optional descriptive fields
+  name?: string;
+  description?: string;
 }
 
-export type TradeRouteStatus = 'active' | 'blocked' | 'booming' | 'disrupted';
+export enum MarketEventType {
+  BOOM = 'BOOM',
+  BUST = 'BUST',
+  SHORTAGE = 'SHORTAGE',
+  SURPLUS = 'SURPLUS',
+  WAR_TAX = 'WAR_TAX',
+  FESTIVAL = 'FESTIVAL'
+}
+
+export interface TradeGood {
+  id: string;
+  name: string;
+  basePrice: number;
+  category: string;
+  legality: 'legal' | 'contraband' | 'restricted';
+}
+
+export interface ShopInventory {
+  items: string[]; // Item IDs
+  gold: number;
+  lastRestock: number;
+  specialization?: string;
+}
 
 export interface TradeRoute {
   id: string;
   name: string;
-  description: string;
-  originId: string; // Location ID or Region Name
-  destinationId: string; // Location ID or Region Name
-  goods: string[]; // Tags of goods transported (e.g. ['iron', 'weapon'])
-
-  status: TradeRouteStatus;
-  riskLevel: number; // 0.0 to 1.0 (Chance of disruption)
-  profitability: number; // 0.0 to 1.0 (Chance of boom)
-
-  // Dynamic state
-  daysInStatus: number; // How long it has been in current status
+  description?: string;
+  originId: string;
+  destinationId: string;
+  goods: string[]; // List of good categories or IDs
+  resources?: string[]; // Legacy support
+  status: 'active' | 'disrupted' | 'blockaded';
+  riskLevel: number; // 0-1.0
+  profitability: number; // 0-100
+  controllingFactionId?: string;
+  daysInStatus?: number;
+  lastCaravanDispatch?: number; // timestamp
 }
 
-export interface EconomyState {
-  marketFactors: {
-    scarcity: string[]; // Item types or tags that are scarce (high demand)
-    surplus: string[]; // Item types or tags that are abundant (low value)
-  };
-  buyMultiplier: number; // Base multiplier for buying
-  sellMultiplier: number; // Base multiplier for selling
-  activeEvents?: MarketEvent[];
-  tradeRoutes?: TradeRoute[]; // Active trade routes tracking
+export interface RegionalEconomy {
+  id: string;
+  name: string;
+  exports: string[]; // Categories or Item IDs they produce (Cheap here)
+  imports: string[]; // Categories or Item IDs they need (Expensive here)
+  wealthLevel: number; // 0-100 modifier on prices
 }
