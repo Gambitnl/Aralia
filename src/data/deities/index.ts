@@ -143,6 +143,35 @@ export const DEITIES: Deity[] = [
         ]
     },
     {
+        id: 'bane',
+        name: 'Bane',
+        titles: ['The Black Hand', 'The Iron General'],
+        alignment: 'Lawful Evil',
+        domains: ['War', 'Order'],
+        symbol: 'Black hand',
+        description: 'Bane is the evil god of war and conquest. He commands his followers to crush their enemies and rule with an iron fist.',
+        commandments: [
+            'Fear is your ally; use it to break your enemies.',
+            'Disorder is weakness; impose order through force.',
+            'Victory goes to the strong; show no mercy to the weak.'
+        ],
+        favoredWeapon: 'Morningstar', // Or Flail/Gauntlet
+        approves: [
+            { trigger: 'CONQUER_SETTLEMENT', description: 'Take control of a settlement', favorChange: 5 },
+            { trigger: 'EXECUTE_PRISONER', description: 'Execute a prisoner of war', favorChange: 1 },
+            { trigger: 'INTIMIDATE_FOE', description: 'Successfully intimidate an enemy', favorChange: 1 }
+        ],
+        forbids: [
+            { trigger: 'SHOW_MERCY', description: 'Spare a defeated enemy', favorChange: -5 },
+            { trigger: 'RETREAT', description: 'Retreat from battle', favorChange: -10 },
+            { trigger: 'DISOBEY_ORDER', description: 'Disobey a superior', favorChange: -5 }
+        ],
+        relationships: [
+            { targetDeityId: 'gruumsh', type: 'rival' }, // Both war gods
+            { targetDeityId: 'tiamat', type: 'ally' }
+        ]
+    },
+    {
         id: 'lolth',
         name: 'Lolth',
         titles: ['Spider Queen', 'Queen of the Demonweb Pits'],
@@ -372,6 +401,36 @@ export const DEITIES: Deity[] = [
         relationships: [
             { targetDeityId: 'melora', type: 'rival' },
             { targetDeityId: 'pelor', type: 'ally' }
+        ]
+    },
+    {
+        id: 'oghma',
+        name: 'Oghma',
+        titles: ['The Binder', 'The Lord of Knowledge'],
+        alignment: 'True Neutral',
+        domains: ['Knowledge', 'Arcana'],
+        symbol: 'A blank scroll',
+        description: 'God of knowledge, invention, and inspiration. He values the preservation and discovery of knowledge above all else.',
+        commandments: [
+            'Share knowledge freely.',
+            'Record what is forgotten.',
+            'Innovate and create.'
+        ],
+        favoredWeapon: 'Longsword', // Often portrayed with a scroll or instrument, but longsword is standard FR
+        approves: [
+            { trigger: 'DISCOVER_LORE', description: 'Find ancient text or lore', favorChange: 2 },
+            { trigger: 'CRAFT_ITEM', description: 'Create a new item or invention', favorChange: 2 },
+            { trigger: 'TEACH', description: 'Share knowledge with others', favorChange: 1 }
+        ],
+        forbids: [
+            { trigger: 'DESTROY_BOOK', description: 'Destroy a book or scroll', favorChange: -10 },
+            { trigger: 'HOARD_KNOWLEDGE', description: 'Keep knowledge secret', favorChange: -5 },
+            { trigger: 'SUPPRESS_TRUTH', description: 'Hide the truth from others', favorChange: -5 }
+        ],
+        relationships: [
+             // Oghma is often neutral or allied with other knowledge gods like Ioun (if cross-setting) or Deneir/Gond/Milil in FR.
+             // In this mixed setting, we can say he respects Ioun.
+             { targetDeityId: 'ioun', type: 'ally' }
         ]
     },
     {

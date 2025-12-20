@@ -11,19 +11,36 @@ export type Alignment =
   | 'Lawful Neutral' | 'True Neutral' | 'Chaotic Neutral'
   | 'Lawful Evil' | 'Neutral Evil' | 'Chaotic Evil';
 
-export type Domain = 'Life' | 'Light' | 'Nature' | 'Tempest' | 'Trickery' | 'War' | 'Death' | 'Knowledge' | 'Arcana' | 'Forge' | 'Grave' | 'Order' | 'Peace' | 'Twilight';
+export type Domain = 'Life' | 'Light' | 'Nature' | 'Tempest' | 'Trickery' | 'War' | 'Death' | 'Knowledge' | 'Arcana' | 'Forge' | 'Grave' | 'Order' | 'Peace' | 'Twilight' | 'Freedom';
+
+export interface DeityApproval {
+    trigger: string;
+    description: string;
+    favorChange: number;
+}
+
+export interface DeityRelationship {
+    targetDeityId: string;
+    type: 'ally' | 'enemy' | 'rival';
+}
 
 export interface Deity {
   id: string;
   name: string;
-  title: string; // e.g., "The Sun Lord"
+  titles: string[]; // e.g., ["The Sun Lord", "The Shining One"]
   domains: Domain[];
   alignment: Alignment;
   symbol: string;
   description: string;
   commandments: string[]; // Roleplay guidelines
-  approvedActions: string[]; // Mechanical or narrative actions that gain favor
-  forbiddenActions: string[]; // Actions that lose favor
+  favoredWeapon?: string;
+  approves: DeityApproval[];
+  forbids: DeityApproval[];
+  relationships?: DeityRelationship[];
+  // Legacy compatibility fields (optional, marked deprecated if needed)
+  approvedActions?: string[];
+  forbiddenActions?: string[];
+  title?: string;
 }
 
 export type FavorRank = 'Heretic' | 'Shunned' | 'Neutral' | 'Initiate' | 'Devotee' | 'Champion' | 'Chosen';

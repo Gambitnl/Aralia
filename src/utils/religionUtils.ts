@@ -2,13 +2,18 @@
 import {
     Deity,
     DivineFavor,
-    DeityAction,
+    DeityApproval,
     Temple,
     TempleService,
-    DeityReaction,
-    Blessing
+    FavorRank
 } from '../types';
 import { DEITIES } from '../data/deities';
+
+// Helper interface for return values since DeityAction was removed/renamed to DeityApproval
+interface ApprovalResult {
+    description: string;
+    favorChange: number;
+}
 
 /**
  * Calculates the new favor level based on an action.
@@ -16,47 +21,33 @@ import { DEITIES } from '../data/deities';
  */
 export const calculateFavorChange = (
     currentFavor: DivineFavor,
-    action: DeityAction
+    action: { description: string; favorChange: number }
 ): DivineFavor => {
-    let newFavorValue = currentFavor.favor + action.favorChange;
+    let newScore = currentFavor.score + action.favorChange;
     // Clamp between -100 and 100
-    newFavorValue = Math.max(-100, Math.min(100, newFavorValue));
+    newScore = Math.max(-100, Math.min(100, newScore));
+
+    // Recalculate rank
+    const newRank = getDivineStanding(newScore);
 
     return {
         ...currentFavor,
-        favor: newFavorValue,
-        history: [
-            ...currentFavor.history,
-            {
-                timestamp: Date.now(),
-                reason: action.description,
-                change: action.favorChange
-            }
-        ]
-    };
-};
-
-/**
- * Grants a blessing to the favor record.
- */
-export const grantBlessing = (
-    currentFavor: DivineFavor,
-    blessing: Blessing
-): DivineFavor => {
-    return {
-        ...currentFavor,
-        blessings: [...currentFavor.blessings, blessing]
+        score: newScore,
+        rank: newRank,
+        // Reset or increment consecutive days logic would go here, but for simple favor change:
+        // We keep other props as is or update them.
+        // Since we don't have history in the new type, we just return the new state.
     };
 };
 
 /**
  * Evaluates an action trigger against a deity's preferences.
- * Returns the DeityAction object if the deity cares about this trigger, or null.
+ * Returns the approval result if the deity cares about this trigger, or null.
  */
 export const evaluateAction = (
     deityId: string,
     actionTrigger: string
-): DeityAction | null => {
+): ApprovalResult | null => {
     const deity = getDeity(deityId);
     if (!deity) return null;
 
@@ -82,16 +73,16 @@ export const evaluateAction = (
 };
 
 /**
- * Returns the player's standing with a deity as a descriptive string.
+ * Returns the player's standing with a deity as a rank.
  */
-export const getDivineStanding = (favor: number): string => {
-    if (favor >= 90) return 'Chosen';
-    if (favor >= 50) return 'Devout';
-    if (favor >= 10) return 'Follower';
-    if (favor > -10) return 'Neutral';
-    if (favor > -50) return 'Unfavored';
-    if (favor > -90) return 'Shunned';
-    return 'Enemy of the Faith';
+export const getDivineStanding = (score: number): FavorRank => {
+    if (score >= 90) return 'Chosen';
+    if (score >= 50) return 'Champion'; // Or Devotee? Type has Champion.
+    if (score >= 25) return 'Devotee';
+    if (score >= 10) return 'Initiate';
+    if (score > -10) return 'Neutral';
+    if (score > -50) return 'Shunned';
+    return 'Heretic';
 };
 
 /**
@@ -102,25 +93,13 @@ export const canAffordService = (
     playerGold: number,
     currentFavor: number
 ): { allowed: boolean; reason?: string } => {
-    if (playerGold < service.costGp) {
+    if (service.requirement.goldCost && playerGold < service.requirement.goldCost) {
         return { allowed: false, reason: 'Insufficient gold.' };
     }
-    if (service.minFavor && currentFavor < service.minFavor) {
+    if (service.requirement.minFavor && currentFavor < service.requirement.minFavor) {
         return { allowed: false, reason: 'Insufficient divine favor.' };
     }
     return { allowed: true };
-};
-
-/**
- * Returns available services for a given deity/temple based on favor.
- */
-export const getAvailableServices = (
-    temple: Temple,
-    currentFavor: number
-): TempleService[] => {
-    // Some services might only be visible to faithful.
-    // For now, we return all, but disable ones they can't use in UI.
-    return temple.services;
 };
 
 /**

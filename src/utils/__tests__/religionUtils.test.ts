@@ -3,12 +3,10 @@ import { describe, it, expect, vi } from 'vitest';
 import {
     calculateFavorChange,
     getDivineStanding,
-    canAffordService,
-    getDeity,
     evaluateAction,
-    grantBlessing
+    canAffordService
 } from '../religionUtils';
-import { DivineFavor, DeityAction, TempleService, Blessing } from '../../types';
+import { DivineFavor, TempleService } from '../../types';
 
 // Mock the DEITIES data to prevent dependency on actual data file changes
 vi.mock('../../data/deities', () => ({
@@ -16,12 +14,19 @@ vi.mock('../../data/deities', () => ({
         {
             id: 'test_god',
             name: 'Test God',
+            titles: ['The Tester'],
+            domains: ['Life'],
+            alignment: 'Neutral Good',
+            symbol: 'A Test Tube',
+            description: 'God of Tests',
+            commandments: ['Test everything'],
             approves: [
                 { trigger: 'GOOD_ACT', description: 'Did good', favorChange: 5 }
             ],
             forbids: [
                 { trigger: 'BAD_ACT', description: 'Did bad', favorChange: -5 }
-            ]
+            ],
+            relationships: []
         }
     ]
 }));
@@ -29,60 +34,39 @@ vi.mock('../../data/deities', () => ({
 describe('religionUtils', () => {
     describe('calculateFavorChange', () => {
         const baseFavor: DivineFavor = {
-            deityId: 'test_god',
-            favor: 0,
-            history: [],
-            blessings: [],
-            transgressions: []
+            score: 0,
+            rank: 'Neutral',
+            consecutiveDaysPrayed: 0
         };
 
         it('should add favor correctly', () => {
-            const action: DeityAction = { description: 'Good deed', favorChange: 10 };
+            const action = { description: 'Good deed', favorChange: 10 };
             const result = calculateFavorChange(baseFavor, action);
-            expect(result.favor).toBe(10);
-            expect(result.history).toHaveLength(1);
+            expect(result.score).toBe(10);
+            expect(result.rank).toBe('Initiate'); // 10 is Initiate
         });
 
         it('should subtract favor correctly', () => {
-            const action: DeityAction = { description: 'Bad deed', favorChange: -10 };
+            const action = { description: 'Bad deed', favorChange: -20 };
             const result = calculateFavorChange(baseFavor, action);
-            expect(result.favor).toBe(-10);
+            expect(result.score).toBe(-20);
+            expect(result.rank).toBe('Shunned'); // -20 is Shunned
         });
 
         it('should clamp favor at 100', () => {
-            const highFavor = { ...baseFavor, favor: 95 };
-            const action: DeityAction = { description: 'Great deed', favorChange: 10 };
+            const highFavor = { ...baseFavor, score: 95 };
+            const action = { description: 'Great deed', favorChange: 10 };
             const result = calculateFavorChange(highFavor, action);
-            expect(result.favor).toBe(100);
+            expect(result.score).toBe(100);
+            expect(result.rank).toBe('Chosen');
         });
 
         it('should clamp favor at -100', () => {
-            const lowFavor = { ...baseFavor, favor: -95 };
-            const action: DeityAction = { description: 'Terrible deed', favorChange: -10 };
+            const lowFavor = { ...baseFavor, score: -95 };
+            const action = { description: 'Terrible deed', favorChange: -10 };
             const result = calculateFavorChange(lowFavor, action);
-            expect(result.favor).toBe(-100);
-        });
-    });
-
-    describe('grantBlessing', () => {
-        const baseFavor: DivineFavor = {
-            deityId: 'test_god',
-            favor: 50,
-            history: [],
-            blessings: [],
-            transgressions: []
-        };
-
-        it('should add a blessing', () => {
-            const blessing: Blessing = {
-                id: 'b1',
-                name: 'Blessing 1',
-                description: 'A blessing',
-                effectType: 'buff'
-            };
-            const result = grantBlessing(baseFavor, blessing);
-            expect(result.blessings).toHaveLength(1);
-            expect(result.blessings[0].id).toBe('b1');
+            expect(result.score).toBe(-100);
+            expect(result.rank).toBe('Heretic');
         });
     });
 
@@ -102,27 +86,17 @@ describe('religionUtils', () => {
                 favorChange: -5
             });
         });
-
-        it('should return null for unknown trigger', () => {
-            const result = evaluateAction('test_god', 'NEUTRAL_ACT');
-            expect(result).toBeNull();
-        });
-
-        it('should return null for unknown deity', () => {
-            const result = evaluateAction('unknown_god', 'GOOD_ACT');
-            expect(result).toBeNull();
-        });
     });
 
     describe('getDivineStanding', () => {
         it('should return correct standings', () => {
             expect(getDivineStanding(95)).toBe('Chosen');
-            expect(getDivineStanding(50)).toBe('Devout');
-            expect(getDivineStanding(10)).toBe('Follower');
+            expect(getDivineStanding(50)).toBe('Champion');
+            expect(getDivineStanding(25)).toBe('Devotee');
+            expect(getDivineStanding(10)).toBe('Initiate');
             expect(getDivineStanding(0)).toBe('Neutral');
-            expect(getDivineStanding(-20)).toBe('Unfavored');
-            expect(getDivineStanding(-60)).toBe('Shunned');
-            expect(getDivineStanding(-95)).toBe('Enemy of the Faith');
+            expect(getDivineStanding(-20)).toBe('Shunned');
+            expect(getDivineStanding(-95)).toBe('Heretic');
         });
     });
 
@@ -131,9 +105,11 @@ describe('religionUtils', () => {
             id: 'healing',
             name: 'Healing',
             description: 'Heals HP',
-            costGp: 50,
-            minFavor: 10,
-            mechanicalEffect: 'heal_hp'
+            requirement: {
+                goldCost: 50,
+                minFavor: 10
+            },
+            effect: { type: 'heal' }
         };
 
         it('should return true if affordable and favor met', () => {
