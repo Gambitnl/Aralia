@@ -125,6 +125,13 @@ export type AppAction =
   // Notoriety Actions
   | { type: 'COMMIT_CRIME'; payload: { type: CrimeType; locationId: string; severity: number; witnessed: boolean } }
   | { type: 'LOWER_HEAT'; payload: { amount: number; locationId?: string } }
+  // Thieves Guild Actions
+  | { type: 'JOIN_GUILD'; payload: { guildId: string } }
+  | { type: 'ACCEPT_GUILD_JOB'; payload: { job: GuildJob } }
+  | { type: 'COMPLETE_GUILD_JOB'; payload: { jobId: string; success: boolean; rewardGold: number; rewardRep: number } }
+  | { type: 'ABANDON_GUILD_JOB'; payload: { jobId: string } }
+  | { type: 'USE_GUILD_SERVICE'; payload: { serviceId: string; cost: number; description: string } }
+  | { type: 'SET_AVAILABLE_GUILD_JOBS'; payload: { jobs: GuildJob[] } }
   // Identity & Intrigue Actions
   | { type: 'CREATE_ALIAS'; payload: CreateAliasPayload }
   | { type: 'EQUIP_DISGUISE'; payload: EquipDisguisePayload }

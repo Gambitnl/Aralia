@@ -190,3 +190,14 @@ export interface GuildService {
   costGold: number;
   cooldownHours: number; // How often it can be used
 }
+
+export interface GuildMembership {
+  memberId: string; // Player ID
+  guildId: string; // 'shadow_hands' etc.
+  rank: number;
+  reputation: number;
+  activeJobs: GuildJob[];
+  availableJobs: GuildJob[]; // Jobs offered but not taken
+  completedJobs: string[]; // IDs of completed jobs
+  servicesUnlocked: string[]; // IDs of services
+}

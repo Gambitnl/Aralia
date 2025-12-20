@@ -106,6 +106,176 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             };
         }
 
+        case 'JOIN_GUILD': {
+            const { guildId } = action.payload;
+            return {
+                thievesGuild: {
+                    ...state.thievesGuild,
+                    guildId,
+                    rank: 1,
+                    reputation: 0,
+                    memberId: state.party[0]?.id || 'player'
+                },
+                messages: [
+                    ...state.messages,
+                    {
+                        id: Date.now(),
+                        text: `You have joined the Thieves Guild.`,
+                        sender: 'system',
+                        timestamp: state.gameTime
+                    }
+                ]
+            };
+        }
+
+        case 'ACCEPT_GUILD_JOB': {
+            const { job } = action.payload;
+            // Add to active jobs
+            return {
+                thievesGuild: {
+                    ...state.thievesGuild,
+                    activeJobs: [...state.thievesGuild.activeJobs, job],
+                    // Remove from available if we were tracking that separately?
+                    // For now, assuming available jobs are transient or managed by UI
+                },
+                messages: [
+                    ...state.messages,
+                    {
+                        id: Date.now(),
+                        text: `Accepted job: ${job.title}`,
+                        sender: 'system',
+                        timestamp: state.gameTime
+                    }
+                ]
+            };
+        }
+
+        case 'COMPLETE_GUILD_JOB': {
+            const { jobId, success, rewardGold, rewardRep } = action.payload;
+            const job = state.thievesGuild.activeJobs.find(j => j.id === jobId);
+            if (!job) return {};
+
+            const newActiveJobs = state.thievesGuild.activeJobs.filter(j => j.id !== jobId);
+            const newCompletedJobs = [...state.thievesGuild.completedJobs, jobId];
+            const newRep = state.thievesGuild.reputation + rewardRep;
+
+            // Rank up logic? (Simple threshold for now)
+            let newRank = state.thievesGuild.rank;
+            let rankUpMsg = '';
+            if (newRep >= 100 && newRank < 2) { newRank = 2; rankUpMsg = 'You have been promoted to Footpad!'; }
+            else if (newRep >= 300 && newRank < 3) { newRank = 3; rankUpMsg = 'You have been promoted to Prowler!'; }
+            else if (newRep >= 600 && newRank < 4) { newRank = 4; rankUpMsg = 'You have been promoted to Shadow!'; }
+            else if (newRep >= 1000 && newRank < 5) { newRank = 5; rankUpMsg = 'You have been promoted to Master Thief!'; }
+
+            const msgs = [
+                ...state.messages,
+                {
+                    id: Date.now(),
+                    text: success
+                        ? `Job completed! Earned ${rewardGold}gp and ${rewardRep} rep.`
+                        : `Job failed. Reputation change: ${rewardRep}.`,
+                    sender: 'system' as const,
+                    timestamp: state.gameTime
+                }
+            ];
+
+            if (rankUpMsg) {
+                msgs.push({
+                    id: Date.now() + 1,
+                    text: rankUpMsg,
+                    sender: 'system' as const,
+                    timestamp: state.gameTime
+                });
+            }
+
+            return {
+                gold: state.gold + rewardGold,
+                thievesGuild: {
+                    ...state.thievesGuild,
+                    activeJobs: newActiveJobs,
+                    completedJobs: newCompletedJobs,
+                    reputation: newRep,
+                    rank: newRank
+                },
+                messages: msgs
+            };
+        }
+
+        case 'ABANDON_GUILD_JOB': {
+            const { jobId } = action.payload;
+            const newActiveJobs = state.thievesGuild.activeJobs.filter(j => j.id !== jobId);
+            return {
+                thievesGuild: {
+                    ...state.thievesGuild,
+                    activeJobs: newActiveJobs
+                },
+                messages: [
+                    ...state.messages,
+                    {
+                        id: Date.now(),
+                        text: `You abandoned the job.`,
+                        sender: 'system',
+                        timestamp: state.gameTime
+                    }
+                ]
+            };
+        }
+
+        case 'USE_GUILD_SERVICE': {
+            const { serviceId, cost, description } = action.payload;
+
+            if (state.gold < cost) {
+                return {
+                    messages: [
+                        ...state.messages,
+                        { id: Date.now(), text: `Not enough gold for service: ${description}`, sender: 'system', timestamp: state.gameTime }
+                    ]
+                };
+            }
+
+            // Apply effect based on service ID or type.
+            // Simplified: Just deduct gold and add unlocked service ID to history for now.
+            // Real implementation would lower heat, etc.
+
+            let newNotoriety = { ...state.notoriety };
+            let msg = `Used service: ${description}.`;
+
+            if (serviceId === 'service_bribe') {
+                // Bribe lowers heat
+                newNotoriety.globalHeat = Math.max(0, newNotoriety.globalHeat - 20);
+                // Lower all local heat by 50
+                const updatedLocalHeat: Record<string, number> = {};
+                for (const loc in newNotoriety.localHeat) {
+                    updatedLocalHeat[loc] = Math.max(0, newNotoriety.localHeat[loc] - 50);
+                }
+                newNotoriety.localHeat = updatedLocalHeat;
+                msg += " Heat reduced.";
+            }
+
+            return {
+                gold: state.gold - cost,
+                thievesGuild: {
+                    ...state.thievesGuild,
+                    servicesUnlocked: [...state.thievesGuild.servicesUnlocked, serviceId] // Track usage?
+                },
+                notoriety: newNotoriety,
+                messages: [
+                    ...state.messages,
+                    { id: Date.now(), text: msg, sender: 'system', timestamp: state.gameTime }
+                ]
+            };
+        }
+
+        case 'SET_AVAILABLE_GUILD_JOBS': {
+            const { jobs } = action.payload;
+            return {
+                thievesGuild: {
+                    ...state.thievesGuild,
+                    availableJobs: jobs
+                }
+            };
+        }
+
         default:
             return {};
     }
