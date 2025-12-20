@@ -44,7 +44,7 @@ import { ITEMS, WEAPONS_DATA } from './data/items';
 import { MASTERY_DATA } from './data/masteryData';
 import { SKILLS_DATA } from './data/skills';
 import { CLASSES_DATA, AVAILABLE_CLASSES } from './data/classes';
-import { XP_THRESHOLDS_BY_LEVEL, XP_BY_CR } from './data/dndData';
+import { XP_THRESHOLDS_BY_LEVEL, XP_BY_CR, ABILITY_SCORE_NAMES, RELEVANT_SPELLCASTING_ABILITIES } from './data/dndData';
 import { MONSTERS_DATA } from './data/monsters';
 
 // Import newly separated data modules
@@ -57,21 +57,6 @@ import { USE_DUMMY_CHARACTER_FOR_DEV, initializeDummyCharacterData, getDummyInit
 
 // Define RACES_DATA using the imported ALL_RACES_DATA
 const RACES_DATA = ALL_RACES_DATA;
-
-// D&D Data
-export const ABILITY_SCORE_NAMES: AbilityScoreName[] = [
-  'Strength',
-  'Dexterity',
-  'Constitution',
-  'Intelligence',
-  'Wisdom',
-  'Charisma',
-];
-export const RELEVANT_SPELLCASTING_ABILITIES: AbilityScoreName[] = [
-  'Intelligence',
-  'Wisdom',
-  'Charisma',
-];
 
 // Initialize DUMMY_PARTY_FOR_DEV after all its dependencies (RACES_DATA, etc.) are defined.
 const initializedDummyParty = initializeDummyCharacterData(RACES_DATA, CLASSES_DATA, SKILLS_DATA);
@@ -109,4 +94,6 @@ export {
   XP_THRESHOLDS_BY_LEVEL, // Re-export from new dndData
   XP_BY_CR, // Re-export from new dndData
   MONSTERS_DATA, // Re-export from new monsterData
+  ABILITY_SCORE_NAMES,
+  RELEVANT_SPELLCASTING_ABILITIES,
 };

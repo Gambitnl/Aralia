@@ -3,6 +3,22 @@
  * Stores static data related to D&D 5e rules, such as XP values and encounter thresholds.
  */
 
+import { AbilityScoreName } from '../types';
+
+export const ABILITY_SCORE_NAMES: AbilityScoreName[] = [
+  'Strength',
+  'Dexterity',
+  'Constitution',
+  'Intelligence',
+  'Wisdom',
+  'Charisma',
+];
+export const RELEVANT_SPELLCASTING_ABILITIES: AbilityScoreName[] = [
+  'Intelligence',
+  'Wisdom',
+  'Charisma',
+];
+
 // XP Thresholds by Character Level
 export const XP_THRESHOLDS_BY_LEVEL: Record<number, { easy: number; medium: number; hard: number; deadly: number }> = {
     1: { easy: 25, medium: 50, hard: 75, deadly: 100 },
