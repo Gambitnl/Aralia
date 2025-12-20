@@ -18,6 +18,24 @@ export type ObjectMaterial = 'cloth' | 'paper' | 'rope' | 'crystal' | 'glass' | 
 export type LightLevel = 'bright' | 'dim' | 'darkness';
 
 /**
+ * Configuration for calculating movement costs based on physical conditions.
+ */
+export interface MovementConfig {
+  /** Whether the terrain is difficult (e.g. rubble, swamp). Adds 1ft cost per ft. */
+  isDifficultTerrain?: boolean;
+  /** Whether the character is climbing. Adds 1ft cost per ft (unless has climb speed). */
+  isClimbing?: boolean;
+  /** Whether the character is swimming. Adds 1ft cost per ft (unless has swim speed). */
+  isSwimming?: boolean;
+  /** Whether the character is crawling (prone). Adds 1ft cost per ft. */
+  isCrawling?: boolean;
+  /** Whether the character has a native climbing speed (negates climbing penalty). */
+  hasClimbSpeed?: boolean;
+  /** Whether the character has a native swimming speed (negates swimming penalty). */
+  hasSwimSpeed?: boolean;
+}
+
+/**
  * Gets the Armor Class (AC) of an object based on its material.
  * D&D 5e DMG pg 246.
  *
@@ -210,6 +228,48 @@ export function calculateThrowDistance(
 
   // Minimum distance of 5 feet
   return Math.max(5, baseDist - weightPenalty);
+}
+
+/**
+ * Calculates the movement cost for a given distance based on terrain and movement mode.
+ * D&D 5e Rules (PHB Ch 8):
+ * - Difficult Terrain: +1 ft per ft.
+ * - Climbing/Swimming/Crawling: +1 ft per ft (unless creature has speed).
+ * - Costs are additive: Climbing in Difficult Terrain = 1 (base) + 1 (climb) + 1 (terrain) = 3 ft cost per 1 ft moved.
+ *
+ * @param distance - The base distance to move (e.g. 5 feet).
+ * @param config - The movement configuration (terrain, mode, speeds).
+ * @returns The total movement cost in feet.
+ */
+export function calculateMovementCost(
+  distance: number,
+  config: MovementConfig
+): number {
+  // Base cost is the distance itself (1 ft per 1 ft)
+  let extraCostPerFoot = 0;
+
+  // Difficult Terrain adds 1 ft per foot
+  if (config.isDifficultTerrain) {
+    extraCostPerFoot += 1;
+  }
+
+  // Climbing adds 1 ft per foot, unless you have a climbing speed
+  if (config.isClimbing && !config.hasClimbSpeed) {
+    extraCostPerFoot += 1;
+  }
+
+  // Swimming adds 1 ft per foot, unless you have a swimming speed
+  if (config.isSwimming && !config.hasSwimSpeed) {
+    extraCostPerFoot += 1;
+  }
+
+  // Crawling (prone) adds 1 ft per foot
+  if (config.isCrawling) {
+    extraCostPerFoot += 1;
+  }
+
+  // Total Cost = Distance * (1 + Sum of Extras)
+  return distance * (1 + extraCostPerFoot);
 }
 
 /**
