@@ -402,6 +402,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     baseInitiative: getAbilityModifierValue(player.finalAbilityScores.Dexterity),
     speed: player.speed,
     cr: 'N/A',
+    senses: { darkvision: 0, blindsight: 0, tremorsense: 0, truesight: 0 },
   };
 
   // 1. Basic Physical Abilities
@@ -511,7 +512,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     });
   }
 
-  return {
+  const combatChar: CombatCharacter = {
     id: player.id || `player_${player.name.toLowerCase().replace(' ', '_')}`,
     name: player.name,
     level: player.level || 1,
@@ -536,6 +537,18 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     savingThrowProficiencies: player.savingThrowProficiencies,
     resistances: player.race.resistance as any, // Cast because Race uses string[], CombatCharacter uses DamageType[]
   };
+
+  // Basic Darkvision inference
+  // TODO(Depthcrawler): Replace with robust feature mapping from Race traits
+  if (combatChar.stats.senses) {
+      if (player.race.name.includes("Drow") || player.race.name.includes("Deep Gnome")) {
+          combatChar.stats.senses.darkvision = 120;
+      } else if (player.race.name.includes("Elf") || player.race.name.includes("Dwarf") || player.race.name.includes("Gnome") || player.race.name.includes("Tiefling")) {
+          combatChar.stats.senses.darkvision = 60;
+      }
+  }
+
+  return combatChar;
 }
 
 /**
@@ -561,7 +574,7 @@ export function createEnemyFromMonster(monster: Monster, index: number): CombatC
 
   if (!monsterData) {
     console.warn(`No data found for monster: ${monster.name}. Creating a generic enemy.`);
-    const fallbackStats: CharacterStats = { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, baseInitiative: 0, speed: 30, cr: monster.cr || '1/4' };
+    const fallbackStats: CharacterStats = { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, baseInitiative: 0, speed: 30, cr: monster.cr || '1/4', senses: { darkvision: 0, blindsight: 0, tremorsense: 0, truesight: 0 } };
     return {
       id: `enemy_${monsterId}_${index}`,
       name: `${monster.name} ${index + 1}`,

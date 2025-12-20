@@ -20,6 +20,7 @@ const GOBLIN_STATS: Omit<CharacterStats, 'cr'> = {
     charisma: 8,
     baseInitiative: 2,
     speed: 30,
+    senses: { darkvision: 60, blindsight: 0, tremorsense: 0, truesight: 0 },
 };
 
 const ORC_ABILITIES: Ability[] = [
@@ -36,6 +37,7 @@ const ORC_STATS: Omit<CharacterStats, 'cr'> = {
     charisma: 10,
     baseInitiative: 1,
     speed: 30,
+    senses: { darkvision: 60, blindsight: 0, tremorsense: 0, truesight: 0 },
 };
 
 export const MONSTERS_DATA: Record<string, MonsterData> = {

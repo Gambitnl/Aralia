@@ -20,6 +20,15 @@ export interface Position {
   y: number;
 }
 
+export type LightLevel = 'bright' | 'dim' | 'darkness' | 'magical_darkness';
+
+export interface CharacterSenses {
+  darkvision: number; // Radius in feet (0 if none)
+  blindsight: number;
+  tremorsense: number;
+  truesight: number;
+}
+
 export interface CharacterStats {
   strength: number;
   dexterity: number;
@@ -31,6 +40,7 @@ export interface CharacterStats {
   speed: number; // in feet
   cr: string;
   size?: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Gargantuan';
+  senses?: CharacterSenses;
 }
 
 export interface ActionEconomyState {
