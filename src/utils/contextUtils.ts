@@ -195,12 +195,33 @@ export function generateGeneralActionContext({
         return line;
     });
     parts.push(`## ACTIVE QUESTS\n${questLines.join('\n')}`);
+
+    // --- QUEST RELEVANCE ---
+    // Highlight if the current location or NPCs are relevant to any active quests
+    const relevantNotes: string[] = [];
+    activeQuests.forEach(q => {
+      // Check Objectives for location name match
+      const relevantObjectives = (q.objectives || []).filter(o =>
+        !o.isCompleted && (
+          o.description.toLowerCase().includes(currentLocation.name.toLowerCase()) ||
+          npcsInLocation.some(npc => o.description.toLowerCase().includes(npc.name.toLowerCase()))
+        )
+      );
+
+      if (relevantObjectives.length > 0) {
+        relevantNotes.push(`- Quest "${q.title}" is relevant here: ${relevantObjectives.map(o => o.description).join('; ')}`);
+      }
+    });
+
+    if (relevantNotes.length > 0) {
+      parts.push(`## QUEST RELEVANCE (CRITICAL)\n${relevantNotes.join('\n')}\n*Narrator Note: Prioritize these elements in your description.*`);
+    }
   }
 
   // --- RECENT HISTORY ---
   const recentHistory = (gameState.messages ?? [])
     .filter(m => m.sender === 'system' || m.sender === 'player' || m.sender === 'npc')
-    .slice(-5) // Increased from 3 to 5 for better context
+    .slice(-10) // Increased from 5 to 10 for better narrative continuity
     .map(m => {
       const role = m.sender === 'player' ? 'Player' : (m.sender === 'npc' ? 'NPC' : 'Narrator');
       return `[${role}]: ${m.text}`;

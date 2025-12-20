@@ -192,6 +192,16 @@ export const initialGameState: GameState = {
 
     // Shadowbroker: Crime System
     fences: {},
+    thievesGuild: {
+        memberId: 'player',
+        guildId: 'shadow_hands',
+        rank: 0,
+        reputation: 0,
+        activeJobs: [],
+        availableJobs: [],
+        completedJobs: [],
+        servicesUnlocked: []
+    },
 
     // Linker: World Coherence System
     dynamicLocations: {},
