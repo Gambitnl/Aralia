@@ -222,6 +222,7 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
                 >
                   {/* Inner content container */}
                   <div className="w-full h-full p-2 flex flex-col items-center justify-center overflow-hidden">
+                    {/* TODO(Materializer): Refactor to use `resolveItemVisual(equippedItem)` from src/utils/visualUtils.ts to handle images vs emojis properly. */}
                     {equippedItem?.icon ? (
                       // Check if it's a complex SVG string or a character/emoji
                       equippedItem.icon.startsWith('data:image/svg+xml') || equippedItem.icon.includes('<svg') || equippedItem.icon.endsWith('.svg') ? (
