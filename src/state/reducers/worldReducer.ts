@@ -7,6 +7,8 @@ import { AppAction } from '../actionTypes';
 import { processWorldEvents } from '../../systems/world/WorldEventManager';
 import { UnderdarkMechanics } from '../../systems/underdark/UnderdarkMechanics';
 import { getGameDay } from '../../utils/timeUtils';
+import { RitualManager } from '../../systems/rituals/RitualManager';
+import { generateId } from '../../utils/combatUtils';
 
 export function worldReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
@@ -52,6 +54,28 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
 
       let partialUpdate: Partial<GameState> = { gameTime: newTime };
       let currentMessages = state.messages;
+
+      // RITUALIST: Advance Active Ritual if present
+      if (state.activeRitual && !state.activeRitual.isComplete && !state.activeRitual.interrupted) {
+        const ritual = state.activeRitual;
+        const minutesPassed = action.payload.seconds / 60;
+
+        const updatedRitual = RitualManager.advanceRitual(ritual, minutesPassed);
+
+        partialUpdate.activeRitual = updatedRitual;
+
+        // Check if just completed
+        if (updatedRitual.isComplete && !ritual.isComplete) {
+           currentMessages = [...currentMessages, {
+             id: generateId(),
+             text: `Ritual Complete: ${updatedRitual.spell.name} is ready to be unleashed.`,
+             sender: 'system',
+             timestamp: newTime,
+             metadata: { type: 'ritual_complete', ritualId: updatedRitual.id }
+           }];
+           partialUpdate.messages = currentMessages;
+        }
+      }
 
       // Process Underdark Mechanics (Light/Sanity)
       // We pass the potentially modified state so it has the latest time, but other state properties (like Underdark)

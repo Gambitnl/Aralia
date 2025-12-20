@@ -95,6 +95,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
   }
 
   // TODO(Ritualist): Implement ritual progress visualization in the map overlay or UI panel.
+  // The 'activeRitual' state is now available in GameState. Render a progress bar if activeRitual is present and !isComplete.
   // Ensure the progress bar clearly shows interruption conditions (e.g., "Damage breaks concentration").
 
   return (

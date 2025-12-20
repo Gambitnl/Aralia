@@ -4,6 +4,7 @@
  * Defines the main AppAction type for the application's state management.
  */
 import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, GuildJob, HeistIntel } from '../types';
+import { RitualState, RitualEvent } from '../types/rituals';
 import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload } from './payloads/identityPayloads';
 import { DialogueSession } from '../types/dialogue';
 
@@ -158,4 +159,9 @@ export type AppAction =
   // Dialogue Actions
   | { type: 'START_DIALOGUE_SESSION'; payload: { npcId: string } }
   | { type: 'UPDATE_DIALOGUE_SESSION'; payload: { session: DialogueSession } }
-  | { type: 'END_DIALOGUE_SESSION' };
+  | { type: 'END_DIALOGUE_SESSION' }
+  // Ritual Actions
+  | { type: 'START_RITUAL'; payload: RitualState }
+  | { type: 'ADVANCE_RITUAL'; payload: { minutes: number } }
+  | { type: 'INTERRUPT_RITUAL'; payload: { event: RitualEvent } }
+  | { type: 'COMPLETE_RITUAL'; payload: { result?: any } };
