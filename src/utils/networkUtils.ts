@@ -20,6 +20,13 @@ interface FetchOptions extends RequestInit {
   responseType?: 'json' | 'text';
 }
 
+interface RetryOptions {
+  retries?: number;
+  delay?: number;
+  backoff?: number; // Multiplier for delay
+  shouldRetry?: (error: any) => boolean;
+}
+
 /**
  * A wrapper around fetch that adds timeout support and typed error handling.
  * Automatically parses JSON response by default, or text if specified.
@@ -100,3 +107,43 @@ export async function fetchWithTimeout<T>(
     }
   }
 }
+
+/**
+ * Check if device is online
+ */
+export const isOnline = (): boolean => {
+  return typeof navigator !== 'undefined' ? navigator.onLine : true;
+};
+
+/**
+ * Retries a promise-returning function with exponential backoff
+ */
+export const withRetry = async <T>(
+  fn: () => Promise<T>,
+  options: RetryOptions = {}
+): Promise<T> => {
+  const {
+    retries = 3,
+    delay = 1000,
+    backoff = 2,
+    shouldRetry = () => true
+  } = options;
+
+  let attempt = 0;
+  let currentDelay = delay;
+
+  while (true) {
+    try {
+      return await fn();
+    } catch (error) {
+      attempt++;
+
+      if (attempt > retries || !shouldRetry(error)) {
+        throw error;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, currentDelay));
+      currentDelay *= backoff;
+    }
+  }
+};

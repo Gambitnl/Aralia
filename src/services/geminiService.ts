@@ -11,6 +11,7 @@
 import { GenerateContentResponse, GenerationConfig, Tool } from "@google/genai";
 import { v4 as uuidv4 } from 'uuid';
 import { ai, isAiEnabled } from './aiClient'; // Import the shared AI client
+import { withRetry } from '../utils/networkUtils';
 import { logger } from '../utils/logger';
 import { Action, PlayerCharacter, InspectSubmapTilePayload, SeededFeatureConfig, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState, VillageActionContext, ItemType } from "../types";
 import { SeededRandom } from '../utils/seededRandom';
@@ -353,15 +354,34 @@ export async function generateText(
         setTimeout(() => reject(new Error(`Request timed out after ${API_TIMEOUT_MS}ms`)), API_TIMEOUT_MS);
       });
 
-      // Cast config to any or GenerationConfig (with ignore) because the official type lacks systemInstruction
-      const response: GenerateContentResponse = await Promise.race([
-        ai.models.generateContent({
-          model: model,
-          contents: promptContent,
-          config: config as any,
-        }),
-        timeoutPromise
-      ]);
+      // Execute request with retry logic
+      const response: GenerateContentResponse = await withRetry(async () => {
+        // Cast config to any or GenerationConfig (with ignore) because the official type lacks systemInstruction
+        return await Promise.race([
+          ai.models.generateContent({
+            model: model,
+            contents: promptContent,
+            config: config as any,
+          }),
+          timeoutPromise
+        ]);
+      }, {
+        retries: 3,
+        delay: 1000,
+        backoff: 2,
+        shouldRetry: (error: any) => {
+          // Retry on network errors or 503 Service Unavailable
+          // Specifically check for rate limit errors or server errors which might be transient
+          const errorMsg = error?.message || '';
+          const status = error?.status;
+
+          if (status === 429 || errorMsg.includes('429')) return false; // Don't retry rate limits immediately
+          if (status >= 400 && status < 500) return false; // Don't retry client errors
+
+          if (errorMsg.includes('503') || errorMsg.includes('network') || errorMsg.includes('fetch')) return true;
+          return true; // Default to retry for safety
+        }
+      });
 
       // Success! Update timestamp and reset rate limit tracking
       lastRequestTimestamp = Date.now();
