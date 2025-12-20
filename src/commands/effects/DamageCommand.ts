@@ -58,24 +58,22 @@ export class DamageCommand extends BaseEffectCommand {
       const isCritical = this.context.isCritical || false;
       let damageRoll = this.rollDamage(this.effect.damage.dice, isCritical, minRoll);
 
-      // Apply Planar Modifier to Damage if appropriate (usually it's DC/Attack, but maybe "Empowered" means damage?)
-      // The current definition of `getPlanarSpellModifier` returns +1 for Empowered.
-      // If it's damage, we might add it to damage too?
-      // "Illusion spells are cast as if one level higher" implies stronger effects.
-      // "Fire spells burn hotter" -> +1 damage?
-      // Let's assume +1 damage per die or just flat +1?
-      // The PlanarUtils says: "Returns modified DC or effectiveness".
-      // Let's add it to the total damage.
-      if (planarModifier !== 0) {
-        damageRoll += planarModifier; // Simple +1 damage
+      // PLANESHIFTER: Apply Planar Impediment (Negative Modifier)
+      // Empowered (+1) is now handled by SpellCommandFactory via upcasting.
+      // We only apply negative modifiers here (e.g., Impeded schools).
+      if (planarModifier < 0) {
+        damageRoll += planarModifier; // Reduce damage
+        damageRoll = Math.max(0, damageRoll);
       }
 
       // 2. Handle Saving Throw (if applicable)
       if (this.effect.condition.type === 'save' && this.effect.condition.saveType) {
         let dc = calculateSpellDC(caster);
 
-        // Apply Planar Modifier to DC
-        dc += planarModifier;
+        // Apply Planar Modifier to DC (Only negative)
+        if (planarModifier < 0) {
+          dc += planarModifier;
+        }
 
         const saveResult = rollSavingThrow(target, this.effect.condition.saveType, dc);
 

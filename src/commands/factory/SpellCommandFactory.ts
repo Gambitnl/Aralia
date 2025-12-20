@@ -33,11 +33,26 @@ export class SpellCommandFactory {
   ): Promise<SpellCommand[]> {
     const commands: SpellCommand[] = []
 
+    // PLANESHIFTER: Apply Planar Empowerment
+    // If the plane empowers this school of magic, cast as if 1 level higher.
+    let effectiveCastLevel = castAtLevel;
+    let planarMod = 0;
+
+    if (currentPlane && spell.school) {
+      const { getPlanarSpellModifier } = await import('@/utils/planarUtils')
+      planarMod = getPlanarSpellModifier(spell.school, currentPlane)
+
+      if (planarMod > 0) {
+        effectiveCastLevel += planarMod
+        console.debug(`[Planeshifter] Planar empowerment active: ${spell.name} cast at level ${effectiveCastLevel} (+${planarMod})`)
+      }
+    }
+
     const context: CommandContext = {
       spellId: spell.id,
       spellName: spell.name,
       spellSchool: spell.school, // Use the spell school directly
-      castAtLevel,
+      castAtLevel: effectiveCastLevel, // Updated below
       caster,
       targets,
       gameState,
@@ -90,7 +105,7 @@ export class SpellCommandFactory {
       if (arbitrationResult.mechanicalEffects) {
         for (const effectData of arbitrationResult.mechanicalEffects) {
           const effect = effectData as SpellEffect
-          const scaledEffect = this.applyScaling(effect, spell.level, castAtLevel, caster.level)
+          const scaledEffect = this.applyScaling(effect, spell.level, effectiveCastLevel, caster.level)
           const command = this.createCommand(scaledEffect, context)
           if (command) {
             commands.push(command)
@@ -100,7 +115,7 @@ export class SpellCommandFactory {
     }
 
     for (const effect of spell.effects) {
-      const scaledEffect = this.applyScaling(effect, spell.level, castAtLevel, caster.level)
+      const scaledEffect = this.applyScaling(effect, spell.level, effectiveCastLevel, caster.level)
       const command = this.createCommand(scaledEffect, context)
       if (command) {
         commands.push(command)
