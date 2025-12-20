@@ -6,7 +6,7 @@
  * Generates procedural secrets for factions and NPCs.
  */
 
-import { Secret, Identity } from '../../types/identity';
+import { Secret } from '../../types/identity';
 import { Faction } from '../../types/factions';
 import { SeededRandom } from '../../utils/seededRandom';
 
@@ -21,6 +21,19 @@ const SECRET_TEMPLATES = [
     { template: "{subject} forged their credentials.", type: 'personal', valueBase: 5 },
     { template: "{subject} plans to betray {target}.", type: 'political', valueBase: 8 },
     { template: "{subject} is blackmailing {target}.", type: 'criminal', valueBase: 6 },
+    { template: "{subject} has a bastard child with {target}.", type: 'personal', valueBase: 7 },
+    { template: "{subject} is suffering from a magical curse.", type: 'magical', valueBase: 4 },
+    { template: "{subject} is actually a doppelganger.", type: 'supernatural', valueBase: 10 },
+    { template: "{subject} is funnelling house funds to {target}.", type: 'financial', valueBase: 6 }
+];
+
+// Fallback targets if no specific target is provided
+const GENERIC_TARGETS = [
+  "a rival house",
+  "the Thieves Guild",
+  "a commoner",
+  "a foreign spy",
+  "a dark cult"
 ];
 
 export class SecretGenerator {
@@ -39,12 +52,12 @@ export class SecretGenerator {
         const template = this.rng.pick(SECRET_TEMPLATES);
 
         let targetName = "Unknown Party";
-        let targetId = "unknown";
 
         if (otherFactions.length > 0) {
             const target = this.rng.pick(otherFactions);
             targetName = target.name;
-            targetId = target.id;
+        } else {
+            targetName = this.rng.pick(GENERIC_TARGETS);
         }
 
         const content = template.template
@@ -60,7 +73,33 @@ export class SecretGenerator {
             content: content,
             verified: this.rng.next() > 0.3, // 70% chance to be verified initially, else rumor
             value: value,
-            knownBy: [], // Initially known by no one (or maybe the generator adds some default knowers)
+            knownBy: [],
+            tags: [template.type as any]
+        };
+    }
+
+    /**
+     * Generates a secret about a specific individual (e.g. noble member).
+     */
+    generateMemberSecret(subjectId: string, subjectName: string, potentialTargets: string[] = []): Secret {
+        const template = this.rng.pick(SECRET_TEMPLATES);
+
+        const targetPool = potentialTargets.length > 0 ? potentialTargets : GENERIC_TARGETS;
+        const target = this.rng.pick(targetPool);
+
+        const content = template.template
+            .replace('{subject}', subjectName)
+            .replace('{target}', target);
+
+        const value = Math.max(1, Math.min(10, template.valueBase + Math.floor(this.rng.next() * 5) - 2));
+
+        return {
+            id: `secret_${this.rng.nextInt(100000, 999999)}`,
+            subjectId: subjectId,
+            content: content,
+            verified: this.rng.next() > 0.3,
+            value: value,
+            knownBy: [],
             tags: [template.type as any]
         };
     }

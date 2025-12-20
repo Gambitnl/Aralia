@@ -35,6 +35,9 @@ export interface RitualState {
   // Material Tracking
   materialsConsumed: boolean;
   consumptionThreshold: number; // 0.0 to 1.0, progress point where materials are consumed
+
+  // Consequences for failure
+  backlash?: RitualBacklash[];
 }
 
 /**
@@ -95,4 +98,27 @@ export interface RitualContext {
   locationType?: 'indoors' | 'outdoors' | 'underground';
   biomeId?: string;
   weather?: string; // 'clear', 'rain', 'storm'
+}
+
+// -----------------------------------------------------------------------------
+// Ritual Backlash (Consequences of Failure)
+// -----------------------------------------------------------------------------
+
+/**
+ * Defines the consequences if a ritual is interrupted or fails.
+ */
+export interface RitualBacklash {
+  type: 'damage' | 'status' | 'summon' | 'area_damage' | 'drain_slot';
+
+  // The effect value
+  value: string; // "4d6", "stunned", "imp_id", "slot_level_3"
+
+  // Optional configuration
+  damageType?: string; // "necrotic", "force"
+  radius?: number; // For area_damage
+  saveDC?: number; // Save to halve damage or negate status
+
+  // Triggers
+  minProgress?: number; // Only triggers if progress > X% (0.0 - 1.0). Default 0.
+  description: string; // Flavor text e.g. "The pentagram explodes in necrotic fire."
 }

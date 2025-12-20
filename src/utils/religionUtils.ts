@@ -5,7 +5,6 @@ import {
     DeityAction,
     Temple,
     TempleService,
-    DeityReaction,
     Blessing
 } from '../types';
 import { DEITIES } from '../data/deities';
@@ -18,13 +17,17 @@ export const calculateFavorChange = (
     currentFavor: DivineFavor,
     action: DeityAction
 ): DivineFavor => {
-    let newFavorValue = currentFavor.favor + action.favorChange;
+    let newFavorValue = currentFavor.score + action.favorChange;
     // Clamp between -100 and 100
     newFavorValue = Math.max(-100, Math.min(100, newFavorValue));
 
+    // Update rank based on score
+    const rank = getDivineStandingRank(newFavorValue);
+
     return {
         ...currentFavor,
-        favor: newFavorValue,
+        score: newFavorValue,
+        rank: rank,
         history: [
             ...currentFavor.history,
             {
@@ -64,6 +67,7 @@ export const evaluateAction = (
     const approval = deity.approves.find(d => d.trigger === actionTrigger);
     if (approval) {
         return {
+            id: actionTrigger,
             description: approval.description,
             favorChange: approval.favorChange
         };
@@ -73,6 +77,7 @@ export const evaluateAction = (
     const forbiddance = deity.forbids.find(d => d.trigger === actionTrigger);
     if (forbiddance) {
         return {
+            id: actionTrigger,
             description: forbiddance.description,
             favorChange: forbiddance.favorChange
         };
@@ -94,6 +99,19 @@ export const getDivineStanding = (favor: number): string => {
     return 'Enemy of the Faith';
 };
 
+import { FavorRank } from '../types';
+
+export const getDivineStandingRank = (favor: number): FavorRank => {
+     if (favor >= 90) return 'Chosen';
+     if (favor >= 50) return 'Champion'; // Mapped 'Devout' to Champion/Devotee logic if needed, but using strict types
+     if (favor >= 25) return 'Devotee';
+     if (favor >= 10) return 'Initiate';
+     if (favor > -10) return 'Neutral';
+     if (favor > -50) return 'Shunned';
+     return 'Heretic';
+};
+
+
 /**
  * Checks if a player qualifies for a specific temple service.
  */
@@ -102,10 +120,12 @@ export const canAffordService = (
     playerGold: number,
     currentFavor: number
 ): { allowed: boolean; reason?: string } => {
-    if (playerGold < service.costGp) {
+    const cost = service.costGp || 0;
+    if (playerGold < cost) {
         return { allowed: false, reason: 'Insufficient gold.' };
     }
-    if (service.minFavor && currentFavor < service.minFavor) {
+    const minFavor = service.minFavor || 0;
+    if (currentFavor < minFavor) {
         return { allowed: false, reason: 'Insufficient divine favor.' };
     }
     return { allowed: true };
@@ -118,9 +138,10 @@ export const getAvailableServices = (
     temple: Temple,
     currentFavor: number
 ): TempleService[] => {
-    // Some services might only be visible to faithful.
-    // For now, we return all, but disable ones they can't use in UI.
-    return temple.services;
+    // Filter services that are objects (not IDs)
+    // In a real app we might need to look up IDs.
+    // For now assuming the temple has the full objects populated or we trust the caller.
+    return temple.services.filter(s => typeof s !== 'string') as TempleService[];
 };
 
 /**

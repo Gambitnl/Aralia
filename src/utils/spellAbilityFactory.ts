@@ -69,7 +69,7 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
     const desc = spell.description.toLowerCase();
 
     // Check JSON effects first if they exist
-    if (spell.effects) {
+    if (Array.isArray(spell.effects)) {
         const aoeEffect = spell.effects.find(e => e.areaOfEffect);
         if (aoeEffect && aoeEffect.areaOfEffect) {
             // Map JSON AoE shape to Combat AoE shape
@@ -80,9 +80,10 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
                 'Cube': 'square',
                 'Cylinder': 'circle' // Best approximation for 2D grid
             };
+            const shapeKey = aoeEffect.areaOfEffect.shape;
             return {
-                shape: shapeMap[aoeEffect.areaOfEffect.shape] || 'circle',
-                size: aoeEffect.areaOfEffect.size / 5, // Convert feet to tiles (5ft = 1 tile)
+                shape: shapeMap[shapeKey] || 'circle',
+                size: (aoeEffect.areaOfEffect.size || 0) / 5, // Convert feet to tiles (5ft = 1 tile)
             };
         }
     }
@@ -104,6 +105,9 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
             'Ring': 'circle'        // Ring is hollow circle
         };
 
+        // Merge conflict resolved: Kept HEAD's approach with semantics passthrough for
+        // extended AoE shapes (e.g., Emanations with followsCaster for Spirit Guardians).
+        // The other branch's early return would have skipped this critical functionality.
         const result: AreaOfEffect = {
             shape: shapeMap[spell.areaOfEffect.shape] || 'circle',
             size: spell.areaOfEffect.size / 5, // Convert feet to tiles (5ft = 1 tile)
@@ -133,12 +137,15 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
  * Parses damage or healing dice (e.g., "1d8") into a raw number average for preview.
  */
 const calculateAverageDamage = (diceString: string, modifier: number = 0): number => {
+    if (!diceString) return 0;
     const match = diceString.match(/(\d+)d(\d+)/);
     if (!match) return 0;
     const numDice = parseInt(match[1]);
     const dieSize = parseInt(match[2]);
     const average = numDice * ((dieSize + 1) / 2);
-    return Math.floor(average) + modifier;
+    const mod = isNaN(modifier) ? 0 : modifier;
+    const total = Math.floor(average) + mod;
+    return isNaN(total) ? 0 : total;
 };
 
 /**
@@ -198,11 +205,19 @@ const inferEffectsFromDescription = (description: string, modifier: number): Abi
  * Converts cost, range, and effects into a format the BattleMap can execute.
  */
 export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): Ability {
-    const spellcastingStat = caster.spellcastingAbility
+    let spellcastingStat = caster.spellcastingAbility
         ? (caster.spellcastingAbility.charAt(0).toUpperCase() + caster.spellcastingAbility.slice(1)) as AbilityScoreName
         : 'Intelligence'; // Default fallback
 
-    const modifier = getAbilityModifierValue(caster.finalAbilityScores[spellcastingStat]);
+    // Safe access to ability modifier
+    let statScore = caster.finalAbilityScores[spellcastingStat];
+    if (statScore === undefined) {
+        // Fallback if the preferred stat isn't present
+        spellcastingStat = 'Intelligence';
+        statScore = caster.finalAbilityScores[spellcastingStat] || 10;
+    }
+
+    const modifier = getAbilityModifierValue(statScore);
 
     // 1. Determine Cost
     let costType = 'action';
@@ -246,7 +261,8 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
     // 3. Determine Effects
     let effects: AbilityEffect[] = [];
 
-    if (spell.effects && spell.effects.length > 0) {
+    // Safety check: verify effects is an array before iterating
+    if (Array.isArray(spell.effects) && spell.effects.length > 0) {
         // Use structured data if available (Gold Standard)
         spell.effects.forEach(jsonEffect => {
             if (jsonEffect.type === 'Damage' && jsonEffect.damage) {

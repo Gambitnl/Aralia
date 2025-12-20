@@ -7,6 +7,7 @@
  * The submap toggle button is hidden if the compass is being shown within the SubmapPane itself.
  */
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Action, Location, MapData } from '../types';
 import { BIOMES } from '../constants'; // To get biome details like color
 import { DIRECTION_VECTORS, SUBMAP_DIMENSIONS } from '../config/mapConfig';
@@ -134,10 +135,13 @@ const CompassPane: React.FC<CompassPaneProps> = ({
             const isDisabledBySystem = isCompassActionDisabled(point);
 
             return (
-              <button
+              <motion.button
                 key={point.label}
                 onClick={() => actionToPerform && onAction(actionToPerform)}
                 disabled={isDisabledBySystem}
+                whileTap={!isDisabledBySystem ? { scale: 0.9 } : undefined}
+                whileHover={!isDisabledBySystem ? { scale: 1.1 } : undefined}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 className={`
                   ${point.gridPosition}
                   flex items-center justify-center
@@ -154,42 +158,48 @@ const CompassPane: React.FC<CompassPaneProps> = ({
                 title={point.ariaLabel + (isDisabledBySystem && point.actionType === 'move' ? ' (unavailable)' : '')}
               >
                 {point.label}
-              </button>
+              </motion.button>
             );
           })}
         </div>
         <div className="mt-3 flex justify-center items-center gap-3">
           <Tooltip content="Open World Map">
-            <button
+            <motion.button
               onClick={() => onAction({ type: 'toggle_map', label: 'Toggle World Map'})}
               disabled={disabled}
+              whileTap={!disabled ? { scale: 0.9 } : undefined}
+              whileHover={!disabled ? { scale: 1.1 } : undefined}
               className="p-2 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white disabled:bg-gray-600 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-colors text-xl"
               aria-label="Toggle World Map"
             >
               🌍
-            </button>
+            </motion.button>
           </Tooltip>
           {!isSubmapContext && (
             <Tooltip content="Open Local Submap">
-              <button
+              <motion.button
                 onClick={() => onAction({ type: 'toggle_submap_visibility', label: 'Toggle Submap'})}
                 disabled={disabled}
+                whileTap={!disabled ? { scale: 0.9 } : undefined}
+                whileHover={!disabled ? { scale: 1.1 } : undefined}
                 className="p-2 rounded-full bg-cyan-600 hover:bg-cyan-500 text-white disabled:bg-gray-600 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-colors text-xl"
                 aria-label="Toggle Submap"
               >
                 🗺️
-              </button>
+              </motion.button>
             </Tooltip>
           )}
           <Tooltip content={calendarDescription}>
-            <button
+            <motion.button
               onClick={() => setIsPassTimeModalOpen(true)}
               disabled={disabled}
+              whileTap={!disabled ? { scale: 0.9 } : undefined}
+              whileHover={!disabled ? { scale: 1.1 } : undefined}
               className="p-2 rounded-full bg-gray-500 hover:bg-gray-400 text-white disabled:bg-gray-600 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors text-xl"
               aria-label="Pass Time"
             >
               🕰️
-            </button>
+            </motion.button>
           </Tooltip>
         </div>
         <div className="mt-2 text-center">

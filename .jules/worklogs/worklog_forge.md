@@ -1,0 +1,2 @@
+## 2024-05-23 - Vite Environment Types **Learning:** Defining  in  allows strict typing of , removing the need for  in config files. **Action:** Always add  interface to  in Vite projects.
+## 2024-05-23 - Vite Environment Types **Learning:** Defining ImportMetaEnv in vite-env.d.ts allows strict typing of import.meta.env, removing the need for @ts-ignore in config files. **Action:** Always add ImportMetaEnv interface to vite-env.d.ts in Vite projects.

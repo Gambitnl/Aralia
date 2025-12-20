@@ -19,24 +19,25 @@ interface EnvConfig {
 const RAW_ENV = {
   API_KEY: process.env.API_KEY || process.env.GEMINI_API_KEY || '',
   IMAGE_API_KEY: process.env.IMAGE_API_KEY || process.env.GEMINI_IMAGE_API_KEY || '',
-  // @ts-ignore
   BASE_URL: (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env.BASE_URL : '/',
-  // @ts-ignore
   DEV: (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env.DEV : true,
   // Parse 'true', '1', 'on' as true for VITE_ENABLE_DEV_TOOLS
-  // @ts-ignore
   VITE_ENABLE_DEV_TOOLS: (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_ENABLE_DEV_TOOLS)
-    // @ts-ignore
     ? ['true', '1', 'on'].includes((import.meta.env.VITE_ENABLE_DEV_TOOLS || '').toLowerCase())
     : undefined,
 };
+
+// Ensure BASE_URL always has a trailing slash for consistency
+const normalizedBaseUrl = RAW_ENV.BASE_URL.endsWith('/')
+  ? RAW_ENV.BASE_URL
+  : `${RAW_ENV.BASE_URL}/`;
 
 /**
  * The consolidated Environment Configuration object.
  */
 export const ENV: EnvConfig = {
   API_KEY: RAW_ENV.API_KEY,
-  BASE_URL: RAW_ENV.BASE_URL,
+  BASE_URL: normalizedBaseUrl,
   DEV: RAW_ENV.DEV,
   // If not explicitly set, fall back to DEV to mirror previous “always on in dev” behavior.
   VITE_ENABLE_DEV_TOOLS: RAW_ENV.VITE_ENABLE_DEV_TOOLS ?? RAW_ENV.DEV,
@@ -65,7 +66,14 @@ export function validateEnv() {
  * Normalize a relative asset path against the configured BASE_URL.
  */
 export function assetUrl(path: string): string {
+  // Check if the path is an absolute URL (http:// or https://)
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+
+  // Ensure BASE_URL has a trailing slash
+  const baseUrl = ENV.BASE_URL.endsWith('/') ? ENV.BASE_URL : `${ENV.BASE_URL}/`;
+
   // Note: use /^\// not /^\\/ - double backslash breaks esbuild parser
-  // TODO: Normalize ENV.BASE_URL once (ensure trailing slash) and bypass prefixing when path is absolute (http/https) to avoid malformed URLs.
-  return `${ENV.BASE_URL}${path.replace(/^\//, '')}`;
+  return `${baseUrl}${path.replace(/^\//, '')}`;
 }

@@ -36,15 +36,20 @@ describe('ResistanceCalculator', () => {
   })
 
   it('should apply both resistance and vulnerability (cancel out effectively)', () => {
-    // Math: floor(10 / 2) * 2 = 5 * 2 = 10.
+    // XGtE Rule: They cancel out, damage is unchanged.
     const mockCharacter = {
         resistances: ['Fire'],
         vulnerabilities: ['Fire'],
         immunities: []
     } as unknown as CombatCharacter
 
-    const damage = ResistanceCalculator.applyResistances(10, 'Fire', mockCharacter)
-    expect(damage).toBe(10)
+    // Test with even number (previously worked by accident: floor(10/2)*2 = 10)
+    const damageEven = ResistanceCalculator.applyResistances(10, 'Fire', mockCharacter)
+    expect(damageEven).toBe(10)
+
+    // Test with odd number (previously failed: floor(25/2)*2 = 24)
+    const damageOdd = ResistanceCalculator.applyResistances(25, 'Fire', mockCharacter)
+    expect(damageOdd).toBe(25)
   })
 
   it('should apply immunity (zero damage) regardless of others', () => {

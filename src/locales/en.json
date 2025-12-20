@@ -1,17 +1,17 @@
 {
   "app": {
-    "game_over": "GAME OVER",
+    "game_over": "YOUR JOURNEY ENDS",
     "tooltip": {
-      "undiscovered": "Undiscovered area ({x}, {y}). Potential biome: {biome}.",
+      "undiscovered": "Uncharted Territory. The mists obscure a potential {biome} at {x}, {y}.",
       "undiscovered_biome_unknown": "Unknown",
-      "discovered": "{biome} at world map coordinates ({x}, {y})",
+      "discovered": "{biome} known at {x}, {y}",
       "biome_unknown": "Unknown Area",
       "location": " - Location: {locationName}.",
       "dot": ".",
-      "description": " General description: {description}"
+      "description": " {description}"
     },
-    "unknown_terrain_nature": "The nature of this terrain is unknown.",
-    "impassable_reason": "You cannot travel to the {biome}. It is impassable by normal means.",
+    "unknown_terrain_nature": "The lay of the land is a mystery to you.",
+    "impassable_reason": "The way to the {biome} is barred by treacherous terrain, impassable to all but the most desperate.",
     "ui": {
       "loading": {
         "default": "Aralia is weaving fate...",
@@ -25,10 +25,10 @@
   },
   "main_menu": {
     "title": "Aralia RPG",
-    "back": "Back",
-    "back_aria": "Go back to previous screen",
-    "continue": "Continue",
-    "last_played": "Last played: {date}",
+    "back": "Return",
+    "back_aria": "Return to previous screen",
+    "continue": "Continue Journey",
+    "last_played": "Last Seen: {date}",
     "new_game": "New Game",
     "save_to_slot": "Save Game",
     "skip_character_creator": "Quick Start (Dev)",
@@ -36,7 +36,7 @@
     "load_game_aria": "Load a saved game",
     "load_game_empty_aria": "Load a saved game (no save file found)",
     "load_game_empty_title": "Load Game (No save file found)",
-    "glossary": "Glossary",
+    "glossary": "Lore & Rules",
     "glossary_aria": "View game glossary",
     "glossary_title": "View Game Glossary",
     "powered_by": "Powered by Gemini"
@@ -44,36 +44,36 @@
   "encounter_modal": {
     "loading": "Conjuring Monsters...",
     "loading_flavor": "The Dungeon Master is consulting ancient tomes and searching the planes...",
-    "error_title": "An Error Occurred",
-    "no_encounter": "No encounter was generated. Try adjusting the party.",
-    "generated_for": "Generated For Party:",
-    "sources": "Sources",
-    "title": "Generated Encounter",
+    "error_title": "An Omen of Failure",
+    "no_encounter": "The mists swirl, but no threats emerge. Adjust your party to tempt fate again.",
+    "generated_for": "Enemies gathered against:",
+    "sources": "Compendiums",
+    "title": "Encounter Revealed",
     "close_aria": "Close encounter details",
     "simulate": "Simulate Battle",
     "close": "Close"
   },
   "game_guide": {
-    "title": "Game Guide",
-    "intro": "Ask a question about gameplay, rules, or ask me to create a new character for your party.",
-    "toggle_tools_hide": "▼ Hide Creation Tools",
-    "toggle_tools_show": "▶ Show Creation Tools",
-    "quick_creator_title": "Quick Character Creator",
+    "title": "Oracle",
+    "intro": "Consult the Oracle regarding gameplay, rules, or to summon a new hero for your cause.",
+    "toggle_tools_hide": "▼ Hide Rites",
+    "toggle_tools_show": "▶ Show Rites",
+    "quick_creator_title": "Hero Conjuration",
     "label_race": "Race",
     "label_class": "Class",
-    "button_generate": "Generate Character",
+    "button_generate": "Conjure Hero",
     "placeholder_query": "e.g., What is a saving throw?",
-    "button_thinking": "Thinking...",
-    "button_ask": "Ask",
+    "button_thinking": "Divining...",
+    "button_ask": "Inquire",
     "character_label_race": "Race:",
     "character_label_class": "Class:",
     "character_label_hp": "Hit Points:",
     "character_label_ac": "Armor Class:",
-    "button_add_party": "Add to Party",
-    "error_handler_missing": "You cannot recruit new allies here.",
-    "error_connection": "I'm having trouble connecting to the archives. Please try again.",
-    "error_general": "An error occurred while consulting the guide.",
+    "button_add_party": "Recruit to Party",
+    "error_handler_missing": "The stars are not aligned for new alliances here.",
+    "error_connection": "The ethereal link is severed. Please attempt your communion again.",
+    "error_general": "The mists cloud the Oracle's vision.",
     "error_invalid_config": "I attempted to form this hero from the mists, but the vision was unclear. Please try again.",
-    "recruit_prompt": "I've drafted a character sheet for {name}. Would you like to recruit them?"
+    "recruit_prompt": "I have drafted a chronicle for {name}. Shall they join your quest?"
   }
 }

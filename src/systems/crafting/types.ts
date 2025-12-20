@@ -3,7 +3,7 @@
  * Type definitions for the crafting system.
  */
 
-export type CraftingStationType = 'forge' | 'alchemy_bench' | 'workbench' | 'campfire' | 'loom' | 'tannery' | 'disassembler';
+export type CraftingStationType = 'forge' | 'alchemy_bench' | 'workbench' | 'campfire' | 'loom' | 'tannery' | 'disassembler' | 'enchanters_table';
 export type CraftingQuality = 'poor' | 'standard' | 'superior' | 'masterwork';
 
 export interface MaterialRequirement {
@@ -24,16 +24,35 @@ export interface CraftingOutput {
   qualityBound?: boolean;
 }
 
+export interface QualityOutcome {
+  /** The roll threshold (inclusive) to achieve this outcome. e.g., DC+5 or absolute value like 15. */
+  threshold: number;
+  /** The quality label applied to the result. */
+  quality: CraftingQuality;
+  /** Optional: Override the output item ID (e.g. 'iron_sword' -> 'fine_iron_sword'). */
+  itemIdOverride?: string;
+  /** Optional: Multiply the output quantity (e.g. x2 potions). */
+  quantityMultiplier?: number;
+  /** Optional: Additional message to display (e.g. "You crafted a masterpiece!"). */
+  message?: string;
+}
+
 export interface Recipe {
   id: string;
   name: string;
   description: string;
   /** Defaults to 'craft' if undefined. */
-  recipeType?: 'craft' | 'salvage';
+  recipeType?: 'craft' | 'salvage' | 'enchant';
   station: CraftingStationType;
   inputs: MaterialRequirement[];
   outputs: CraftingOutput[];
   skillCheck?: CraftingSkillRequirement;
+  /**
+   * Optional list of outcomes based on skill check results.
+   * If provided, these override the default logic.
+   * Outcomes are checked in descending order of threshold.
+   */
+  qualityOutcomes?: QualityOutcome[];
   timeMinutes: number;
 }
 

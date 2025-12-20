@@ -111,21 +111,26 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
     }
 
     case 'REGISTER_DYNAMIC_ENTITY': {
-      const { entityType, entity } = action.payload as { entityType: 'location' | 'faction', entity: Location | Faction };
-      if (entityType === 'location') {
-        const loc = entity as Location;
+      // Discriminated union handling without ts-ignore
+      if (action.payload.entityType === 'location') {
         return {
           dynamicLocations: {
             ...state.dynamicLocations,
-            [loc.id]: loc
+            [action.payload.entity.id]: action.payload.entity
           }
         };
-      } else if (entityType === 'faction') {
-        const fac = entity as Faction;
+      } else if (action.payload.entityType === 'faction') {
         return {
           factions: {
             ...state.factions,
-            [fac.id]: fac
+            [action.payload.entity.id]: action.payload.entity
+          }
+        };
+      } else if (action.payload.entityType === 'npc') {
+        return {
+          dynamicNPCs: {
+            ...(state.dynamicNPCs || {}),
+            [action.payload.entity.id]: action.payload.entity
           }
         };
       }

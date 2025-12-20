@@ -15,6 +15,7 @@ import { handleGossipEvent } from './handleWorldEvents';
 import { getSubmapTileInfo } from '../../utils/submapUtils';
 import { INITIAL_QUESTS } from '../../data/quests';
 import { generateTravelEvent } from '../../services/travelEventService';
+import { getSeasonalEffects } from '../../systems/time/SeasonalSystem';
 import { getTimeModifiers } from '../../utils/timeUtils';
 import { DiscoveryConsequence } from '../../types/exploration';
 
@@ -133,6 +134,7 @@ export async function handleMovement({
   let movedToNewNamedLocation: Location | null = null;
 
   const timeModifiers = getTimeModifiers(gameState.gameTime);
+  const seasonalEffects = getSeasonalEffects(gameState.gameTime);
 
   let descriptionGenerationFn: (() => Promise<GeminiService.StandardizedResult<GeminiService.GeminiTextData>>) | null = null;
   let geminiFunctionName = '';
@@ -426,7 +428,8 @@ export async function handleMovement({
 
   // Apply Time/Season modifiers to travel time
   if (timeToAdvanceSeconds > 0) {
-    timeToAdvanceSeconds = Math.round(timeToAdvanceSeconds * timeModifiers.travelCostMultiplier);
+    // Combine day/night multiplier with seasonal multiplier
+    timeToAdvanceSeconds = Math.round(timeToAdvanceSeconds * timeModifiers.travelCostMultiplier * seasonalEffects.travelCostMultiplier);
   }
 
   if (timeModifiers.description && timeModifiers.travelCostMultiplier > 1.0 && timeToAdvanceSeconds > 0) {
@@ -434,6 +437,13 @@ export async function handleMovement({
     if (Math.random() < 0.2) {
       addMessage(timeModifiers.description, 'system');
     }
+  }
+
+  // Show seasonal description occasionally if it has a significant effect
+  if (seasonalEffects.travelCostMultiplier > 1.0 && timeToAdvanceSeconds > 0) {
+     if (Math.random() < 0.2) {
+         addMessage(seasonalEffects.description, 'system');
+     }
   }
 
   if (timeToAdvanceSeconds > 0) {

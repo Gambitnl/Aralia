@@ -91,6 +91,7 @@ export * from './dialogue';
 export * from './underdark';
 export * from './history';
 export * from './economy'; // Export new economy types
+export * from './languages'; // New taxonomy export
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
@@ -600,6 +601,7 @@ export interface GameState {
 
   // Linker: World Coherence System
   dynamicLocations: Record<string, Location>; // Generated locations that don't exist in static data
+  dynamicNPCs?: Record<string, NPC>; // Generated NPCs that don't exist in static data
   // Intriguer: Identity System
   playerIdentity?: import('./identity').PlayerIdentityState;
 

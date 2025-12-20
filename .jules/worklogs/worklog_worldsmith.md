@@ -1,1 +1,5 @@
-## 2024-05-24 - Rumor Propagation System **Learning:** Static rumor lists fail to create a sense of a living world. By giving rumors `virality` and `spreadDistance`, and iterating them daily, we create an organic "word of mouth" flow where news travels over time. **Action:** Applied this pattern to `WorldEventManager`. Future systems should hook into this to modify virality based on faction interest (e.g., spies spread rumors faster).
+# Worldsmith Worklog
+
+## 2024-05-22 - Initial Setup
+**Learning:** Establishing the Worldsmith persona worklog to track critical simulation learnings.
+**Action:** Will record high-level insights about world simulation here.

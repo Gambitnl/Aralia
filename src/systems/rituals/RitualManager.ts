@@ -3,7 +3,7 @@
  * Logic for managing ritual casting, progress tracking, and interruptions.
  */
 
-import { RitualState, RitualEvent, InterruptResult, InterruptCondition, RitualRequirement, RitualContext } from '../../types/rituals';
+import { RitualState, RitualEvent, InterruptResult, InterruptCondition, RitualRequirement, RitualContext, RitualBacklash } from '../../types/rituals';
 import { Spell, CastingTime } from '../../types/spells';
 import { CombatCharacter } from '../../types/combat';
 
@@ -14,6 +14,7 @@ export interface RitualConfig {
   materialConsumptionProgress?: number; // 0.0 to 1.0 (default 1.0)
   requirements?: RitualRequirement[]; // Optional constraints to validate
   context?: RitualContext; // Context for validation
+  backlash?: RitualBacklash[]; // Custom backlash rules
 }
 
 export class RitualManager {
@@ -84,7 +85,8 @@ export class RitualManager {
       interrupted: false,
       interruptConditions: defaultInterrupts,
       materialsConsumed: false,
-      consumptionThreshold
+      consumptionThreshold,
+      backlash: config.backlash
     };
   }
 
@@ -155,6 +157,25 @@ export class RitualManager {
     }
 
     return { interrupted: false, canSave: false };
+  }
+
+  /**
+   * Calculates the backlash effects if a ritual is interrupted.
+   * Filters effects based on current progress.
+   */
+  static getBacklashOnFailure(ritual: RitualState): RitualBacklash[] {
+    if (!ritual.backlash || ritual.backlash.length === 0) {
+      return [];
+    }
+
+    const progressPercent = ritual.durationMinutes > 0
+      ? ritual.progressMinutes / ritual.durationMinutes
+      : 0;
+
+    return ritual.backlash.filter(effect => {
+      const minProgress = effect.minProgress || 0;
+      return progressPercent >= minProgress;
+    });
   }
 
   /**
@@ -266,3 +287,5 @@ export class RitualManager {
     }
   }
 }
+
+// TODO(Ritualist): Integrate getBacklashOnFailure with the event system to apply damage/effects when a ritual is confirmed interrupted.

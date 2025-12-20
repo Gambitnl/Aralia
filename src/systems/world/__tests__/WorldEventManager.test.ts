@@ -15,6 +15,7 @@ import { getGameDay } from '../../../utils/timeUtils';
 
 describe('WorldEventManager', () => {
     const mockDate = new Date('2024-01-01T12:00:00Z');
+    const mockDay = getGameDay(mockDate);
 
     const baseState: GameState = createMockGameState({
         factions: FACTIONS,
@@ -83,8 +84,8 @@ describe('WorldEventManager', () => {
             id: 'old-rumor',
             text: 'Old news',
             type: 'misc' as const,
-            timestamp: 1,
-            expiration: 5, // Expires on day 5
+            timestamp: mockDay - 10,
+            expiration: mockDay - 5, // Already expired
             spreadDistance: 0,
             virality: 0.5
         };
@@ -103,16 +104,15 @@ describe('WorldEventManager', () => {
     });
 
     it('should propagate rumors over time', () => {
-        // Use the same game day calculation as the implementation
-        const gameDay = getGameDay(mockDate);
-
-        // Setup state with a high virality rumor  
+        // Setup state with a high virality rumor
+        // Note: Using mockDay (defined at top of file) rather than a local variable.
+        // Both branches computed the same value via getGameDay(mockDate); mockDay is cleaner.
         const viralRumor = {
             id: 'viral-news',
             text: 'War declared!',
             type: 'skirmish' as const,
-            timestamp: gameDay,
-            expiration: gameDay + 100, // Expires 100 days from now
+            timestamp: mockDay,
+            expiration: mockDay + 100,
             spreadDistance: 0,
             virality: 1.0 // 100% chance to spread at distance 0
         };

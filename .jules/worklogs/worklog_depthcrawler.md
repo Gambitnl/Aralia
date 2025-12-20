@@ -1,1 +1,5 @@
-## 2025-05-23 - Light as a Resource **Learning:** Light levels need to be part of the core `GameState` to truly be a mechanic, not just a visual effect. By integrating `UnderdarkState` into `appState.ts`, we can now drive gameplay mechanics (sanity loss, monster spawns) based on `lightLevel`. **Action:** Always look for ways to tie environmental states (Light, Depth) to character states (Sanity, Health) in the shared `GameState`.
+# Depthcrawler's Worklog
+
+## 2025-05-20 - Initial Delve
+**Learning:** The Underdark is a central pillar of Aralia's vision, emphasizing alien environments, faction complexity (Drow, Mind Flayers, etc.), and the mechanical importance of light/darkness.
+**Action:** Focus on implementing systems that enforce these pillars, specifically looking at light mechanics and faction depth.

@@ -76,6 +76,9 @@ export type AppAction =
   | { type: 'TOGGLE_PREPARED_SPELL'; payload: { characterId: string; spellId: string } }
   | { type: 'LONG_REST'; payload?: { deniedCharacterIds?: string[] } }
   | { type: 'SHORT_REST' }
+  // Religion Actions
+  | { type: 'PRAY'; payload: { deityId: string; offering?: number } }
+  | { type: 'TRIGGER_DEITY_ACTION'; payload: { trigger: string } }
   // NPC Memory Actions
   | { type: 'UPDATE_NPC_DISPOSITION'; payload: { npcId: string; amount: number } }
   | { type: 'ADD_NPC_KNOWN_FACT'; payload: { npcId: string; fact: KnownFact } }
@@ -94,6 +97,7 @@ export type AppAction =
   // World State Actions
   | { type: 'ADD_LOCATION_RESIDUE'; payload: AddLocationResiduePayload }
   | { type: 'REMOVE_LOCATION_RESIDUE'; payload: RemoveLocationResiduePayload }
+  | { type: 'REGISTER_DYNAMIC_ENTITY'; payload: { entityType: 'location', entity: Location } | { entityType: 'faction', entity: Faction } | { entityType: 'npc', entity: NPC } }
   // Gemini Intelligence Action
   | { type: 'ANALYZE_SITUATION' }
   // Dynamic Actions
