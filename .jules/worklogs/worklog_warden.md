@@ -18,3 +18,10 @@ This journal tracks CRITICAL error handling learnings, patterns, and strategies.
 ## 2024-05-23 - LocalStorage Quota Handling
 **Learning:** `localStorage.setItem` throws a `QuotaExceededError` when storage is full. This crashes the application if unhandled.
 **Action:** Always wrap `setItem` calls in a `try-catch` block. If the write fails (especially for metadata or indexes), implement a "graceful degradation" strategy: update the in-memory state or SessionStorage so the user can continue their current session without interruption, even if persistence fails. Log a warning for debugging.
+
+## 2024-05-24 - Data Factory Reliability
+**Learning:** Factory functions (like `createAbilityFromSpell`) that transform raw JSON data into runtime objects are a major source of silent "poisoned data" failures. Simple type checking isn't enough because JSON loaded at runtime can be malformed (e.g., `effects: {}` instead of `[]`) or missing expected keys. This leads to `NaN` propagating through the system (e.g., infinite damage or healing) rather than a clear error.
+**Action:** Implement defensive checks at the factory level.
+1.  Verify array integrity (`Array.isArray()`) before iterating, even if TypeScript types say it's an array.
+2.  Use explicit fallbacks for critical calculations (e.g., `spellcastingStat` lookup) to prevent `undefined` -> `NaN` cascades.
+3.  Sanitize inputs to parsing functions (e.g., check `diceString` validity) before processing.
