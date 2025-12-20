@@ -13,7 +13,6 @@ import { createAbilityFromSpell } from './spellAbilityFactory';
 import { isWeaponProficient } from './weaponUtils';
 import { generateId } from './idGenerator';
 import { getAbilityModifierValue } from './statUtils';
-import { getTargetDistance } from './movementUtils';
 
 import { bresenhamLine } from './lineOfSight';
 
@@ -149,9 +148,10 @@ export function getActionMessage(action: CombatAction, character: CombatCharacte
   switch (action.type) {
     case 'move':
       return `${character.name} moves to (${action.targetPosition?.x}, ${action.targetPosition?.y})`;
-    case 'ability':
+    case 'ability': {
       const ability = character.abilities.find(a => a.id === action.abilityId);
       return `${character.name} casts ${ability?.name || 'a spell'}`;
+    }
     case 'end_turn':
       return `${character.name} ends their turn`;
     default:

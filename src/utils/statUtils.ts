@@ -1,13 +1,5 @@
-import { AbilityScores, Race, PlayerCharacter, ArmorCategory, Item, EquipmentSlotType } from '../types';
+import { AbilityScores, Race, PlayerCharacter, Item, EquipmentSlotType } from '../types';
 import { ActiveEffect } from '../types/combat';
-
-
-
-// ... (keep intervening functions same if possible, but replace_file_content needs contiguous block. I'll replace from the imports down to end of file to be safe and clean, or just the function if I can context match. The imports are at the top.)
-// I will split this into two edits if needed, but I can replace the whole key section updates.
-
-// Let's replace the whole file content from imports down to ensure clean structure.
-// Actually, I can just replace the definition of calculateArmorClass and the imports.
 
 /**
  * Calculates the D&D ability score modifier as a number.
@@ -109,7 +101,7 @@ export const calculateFinalAC = (components: ACComponents): number => {
   // Standard: baseAC + dexMod + unarmoredBonus
   // Spell (Set Base): value + dexMod (usually)
 
-  let standardTotal = baseAC + (stdBaseIncludesDex ? 0 : dexMod) + unarmoredBonus;
+  const standardTotal = baseAC + (stdBaseIncludesDex ? 0 : dexMod) + unarmoredBonus;
 
   // Check for Set Base AC effects (Mage Armor)
   // These usually replace the calculation: "Your AC becomes 13 + Dex"
