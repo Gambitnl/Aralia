@@ -6,6 +6,8 @@
 import { Item, Monster } from '../types';
 import { ITEMS, WEAPONS_DATA } from '../constants';
 
+// TODO(Schemer): Refactor this to use the new `src/types/loot.ts` structures (LootTable, LootResult).
+// The current implementation uses a simplified local interface and hardcoded logic.
 interface LootResult {
   gold: number;
   items: Item[];

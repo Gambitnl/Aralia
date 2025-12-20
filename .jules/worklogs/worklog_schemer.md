@@ -11,3 +11,7 @@
 ## 2024-05-27 - Magic Item Complexity
 **Learning:** `Item` interfaces often rely on loose string properties for magical effects (`properties: string[]`), which fails to capture structural data like attunement logic, charge reset conditions, or specific curse triggers.
 **Action:** Created `MagicItemProperties` as a distinct, optional interface attached to `Item`. This separates "physical" item traits (weight, cost) from "magical" mechanics (charges, attunement), allowing systems like `AttunementManager` to operate purely on the `magicProperties` object without needing the full item context.
+
+## 2024-05-28 - Loot System Structure
+**Learning:** Loot systems often suffer from rigid "drop lists" that don't scale to nested tables or conditional drops (e.g., quest items).
+**Action:** Designed `LootEntry` as a discriminated union (`item` | `currency` | `table` | `nothing`) within a `LootTable`. This allows recursive table rolls (a chest rolling on "Rare Weapons") and failure states ("Nothing" entry) without complex logic in the service layer.
