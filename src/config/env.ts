@@ -19,14 +19,10 @@ interface EnvConfig {
 const RAW_ENV = {
   API_KEY: process.env.API_KEY || process.env.GEMINI_API_KEY || '',
   IMAGE_API_KEY: process.env.IMAGE_API_KEY || process.env.GEMINI_IMAGE_API_KEY || '',
-  // @ts-ignore
   BASE_URL: (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env.BASE_URL : '/',
-  // @ts-ignore
   DEV: (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env.DEV : true,
   // Parse 'true', '1', 'on' as true for VITE_ENABLE_DEV_TOOLS
-  // @ts-ignore
   VITE_ENABLE_DEV_TOOLS: (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_ENABLE_DEV_TOOLS)
-    // @ts-ignore
     ? ['true', '1', 'on'].includes((import.meta.env.VITE_ENABLE_DEV_TOOLS || '').toLowerCase())
     : undefined,
 };
