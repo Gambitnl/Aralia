@@ -24,6 +24,7 @@
  * - MerchantModal: Trading interface.
  * - GameGuideModal: AI helper interface.
  * - MissingChoiceModal: Prompt for resolving pending character choices (e.g., leveling up).
+ * - TempleModal: Interface for temple services.
  */
 import React, { lazy, Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
@@ -54,6 +55,7 @@ const EncounterModal = lazy(() => import('../EncounterModal'));
 const MerchantModal = lazy(() => import('../MerchantModal'));
 const GameGuideModal = lazy(() => import('../GameGuideModal'));
 const MissingChoiceModal = lazy(() => import('../MissingChoiceModal'));
+const TempleModal = lazy(() => import('../TempleModal'));
 
 // TODO(FEATURES): Add centralized focus management and keyboard navigation patterns across modals for stronger accessibility (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 
@@ -346,6 +348,21 @@ const GameModals: React.FC<GameModalsProps> = ({
                             playerInventory={gameState.inventory}
                             playerGold={gameState.gold}
                             onClose={() => dispatch({ type: 'CLOSE_MERCHANT' })}
+                            onAction={onAction}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Temple / Religion Interface */}
+            {gameState.templeModal?.isOpen && gameState.templeModal.temple && (
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Temple Interface.">
+                        <TempleModal
+                            isOpen={gameState.templeModal.isOpen}
+                            temple={gameState.templeModal.temple}
+                            playerGold={gameState.gold}
+                            onClose={() => dispatch({ type: 'CLOSE_TEMPLE' })}
                             onAction={onAction}
                         />
                     </ErrorBoundary>
