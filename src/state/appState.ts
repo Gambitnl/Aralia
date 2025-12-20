@@ -44,8 +44,11 @@ const createInitialGameTime = (): Date => {
 
 const INITIAL_UNDERDARK_STATE: UnderdarkState = {
     currentDepth: 0,
+    currentBiomeId: 'cavern_standard', // Default start
     lightLevel: 'bright', // Surface default
     activeLightSources: [],
+    faerzressLevel: 0,
+    wildMagicChance: 0,
     sanity: {
         current: 100,
         max: 100,
