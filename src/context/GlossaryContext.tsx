@@ -3,6 +3,7 @@ import React, { createContext, useState, useEffect, ReactNode } from "react";
 import { GlossaryEntry } from '../types';
 import { fetchWithTimeout } from '../utils/networkUtils';
 import { assetUrl } from '../config/env';
+import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 
 const GlossaryContext = createContext<GlossaryEntry[] | null>(null);
 
@@ -57,26 +58,7 @@ export const GlossaryProvider: React.FC<{ children: ReactNode }> = ({ children }
       try {
         const allEntries = await fetchAndProcessIndex(assetUrl('data/glossary/index/main.json'));
         
-        const uniqueEntriesMap = new Map<string, GlossaryEntry>();
-        
-        // Recursive function to traverse all entries and sub-entries for deduplication
-        const addAllEntriesToMap = (entryList: GlossaryEntry[]) => {
-            for (const entry of entryList) {
-                if (!uniqueEntriesMap.has(entry.id)) {
-                    uniqueEntriesMap.set(entry.id, entry);
-                } else {
-                    // This warning can be noisy if sub-entries are intentionally re-used.
-                    // For now, we assume IDs should be globally unique.
-                    // console.warn(`Duplicate glossary ID found during context load: ${entry.id}. Keeping first instance.`);
-                }
-                if (entry.subEntries) {
-                    addAllEntriesToMap(entry.subEntries);
-                }
-            }
-        }
-        
-        // This process of de-duplication is less critical now that files are split,
-        // but it's a good safeguard. We operate on the final flat list from all sources.
+        // We operate on the final flat list from all sources.
         const finalUniqueEntries = [...new Map(allEntries.map(item => [item.id, item])).values()];
         
         setEntries(finalUniqueEntries);
@@ -93,9 +75,14 @@ export const GlossaryProvider: React.FC<{ children: ReactNode }> = ({ children }
     fetchAllData();
   }, []);
 
-  // TODO: Add loading spinner and error UI similar to SpellContext.
-  // Currently renders children while entries=null, risking null reference errors in consumers.
-  // See SpellContext.tsx:94-100 for reference implementation.
+  if (entries === null && !error) {
+    return <LoadingSpinner message="Loading archives..." />;
+  }
+
+  if (error) {
+     return <div className="fixed inset-0 bg-red-900 text-white flex items-center justify-center p-4">Error loading glossary data: {error}</div>;
+  }
+
   return (
     <GlossaryContext.Provider value={entries}>
       {children}
