@@ -8,6 +8,7 @@
 import { SpellSchool, DamageType } from './spells';
 import { Item } from './items';
 import { Race } from './character';
+import { FactionType } from './factions';
 
 /**
  * Standard sizes for icons in the UI.
@@ -119,6 +120,42 @@ export interface ClassVisualSpec {
 
   /** Description for tooltips or AI generation context. */
   description?: string;
+}
+
+/**
+ * Defines the visual requirements for a Faction.
+ * Used for UI, map markers, and heraldry generation.
+ */
+export interface FactionVisualSpec {
+  /** Path to the faction's logo or crest image. */
+  logoPath?: string;
+
+  /**
+   * Text description of the faction's heraldry.
+   * Useful for tooltips and AI generation (e.g., "A golden lion on a crimson field").
+   */
+  heraldryDescription: string;
+
+  /**
+   * Primary color for UI themes and territory borders.
+   */
+  primaryColor: string;
+
+  /**
+   * Secondary color for accents.
+   */
+  secondaryColor: string;
+
+  /**
+   * Fallback emoji or icon if no logo is available.
+   */
+  fallbackIcon: string;
+
+  /**
+   * Artistic style for generated assets.
+   * e.g., "minimalist", "ornate", "grunge"
+   */
+  style?: string;
 }
 
 /**
@@ -251,6 +288,71 @@ export const DEFAULT_CLASS_VISUAL: ClassVisualSpec = {
 export function getClassVisual(classId: string): ClassVisualSpec {
   if (!classId) return DEFAULT_CLASS_VISUAL;
   return CLASS_VISUALS[classId.toLowerCase()] || DEFAULT_CLASS_VISUAL;
+}
+
+/**
+ * Standard default visuals for faction types.
+ */
+export const FACTION_TYPE_DEFAULTS: Record<FactionType, Partial<FactionVisualSpec>> = {
+  NOBLE_HOUSE: {
+    fallbackIcon: '👑',
+    primaryColor: '#7C3AED', // violet-600
+    secondaryColor: '#FCD34D', // amber-300
+    heraldryDescription: 'A noble crest featuring heraldic beasts.'
+  },
+  GUILD: {
+    fallbackIcon: '⚖️',
+    primaryColor: '#2563EB', // blue-600
+    secondaryColor: '#9CA3AF', // gray-400
+    heraldryDescription: 'A symbol representing the trade or craft.'
+  },
+  RELIGIOUS_ORDER: {
+    fallbackIcon: '☀️',
+    primaryColor: '#F59E0B', // amber-500
+    secondaryColor: '#FEF3C7', // amber-100
+    heraldryDescription: 'A divine symbol radiating light.'
+  },
+  CRIMINAL_SYNDICATE: {
+    fallbackIcon: '🗡️',
+    primaryColor: '#1F2937', // gray-800
+    secondaryColor: '#DC2626', // red-600
+    heraldryDescription: 'A subtle mark hidden in shadows.'
+  },
+  GOVERNMENT: {
+    fallbackIcon: '🏛️',
+    primaryColor: '#4B5563', // gray-600
+    secondaryColor: '#E5E7EB', // gray-200
+    heraldryDescription: 'A formal seal of authority.'
+  },
+  MILITARY: {
+    fallbackIcon: '🛡️',
+    primaryColor: '#991B1B', // red-800
+    secondaryColor: '#D1D5DB', // gray-300
+    heraldryDescription: 'A martial emblem on a shield.'
+  },
+  SECRET_SOCIETY: {
+    fallbackIcon: '👁️',
+    primaryColor: '#111827', // gray-900
+    secondaryColor: '#4C1D95', // violet-900
+    heraldryDescription: 'An esoteric symbol with hidden meaning.'
+  }
+};
+
+/**
+ * Resolves the visual specification for a faction, applying defaults based on type.
+ * @param type The faction type.
+ * @param customSpec Any custom visual data available.
+ */
+export function getFactionVisual(type: FactionType, customSpec?: Partial<FactionVisualSpec>): FactionVisualSpec {
+  const defaults = FACTION_TYPE_DEFAULTS[type];
+  return {
+    logoPath: customSpec?.logoPath,
+    heraldryDescription: customSpec?.heraldryDescription || defaults.heraldryDescription || 'Unknown heraldry',
+    primaryColor: customSpec?.primaryColor || defaults.primaryColor || '#000000',
+    secondaryColor: customSpec?.secondaryColor || defaults.secondaryColor || '#FFFFFF',
+    fallbackIcon: customSpec?.fallbackIcon || defaults.fallbackIcon || '🏳️',
+    style: customSpec?.style || 'standard'
+  };
 }
 
 // TODO(Materializer): Refactor `CharacterToken.tsx` and `InitiativeTracker.tsx` to use `getClassVisual` instead of hardcoded `getClassIcon` switch statements.
