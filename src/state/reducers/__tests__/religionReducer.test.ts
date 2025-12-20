@@ -1,41 +1,103 @@
 
 import { describe, it, expect } from 'vitest';
 import { religionReducer } from '../religionReducer';
-import { GameState, GamePhase } from '../../../types';
-import { initialGameState } from '../../appState';
+import { GameState, DivineFavor } from '../../../types';
+import { AppAction } from '../../actionTypes';
 
 describe('religionReducer', () => {
-    it('should increase favor when PRAY action is dispatched', () => {
-        const initialState: GameState = {
-            ...initialGameState,
-            gold: 100,
-            divineFavor: {
-                bahamut: { deityId: 'bahamut', favor: 0, history: [] }
-            }
-        };
+    // Helper to create a minimal valid state
+    const createInitialState = (): GameState => ({
+        divineFavor: {},
+        gold: 100,
+        messages: [],
+        // ... include other required fields as minimal stubs if necessary
+        // Typescript partial matching might be needed if state is huge, but let's try casting
+    } as unknown as GameState);
 
-        const action: any = {
+    it('should handle PRAY action', () => {
+        const state = createInitialState();
+        const action: AppAction = {
             type: 'PRAY',
-            payload: { deityId: 'bahamut', offering: 50 }
+            payload: { deityId: 'pelor', offering: 0 }
         };
 
-        const newState = religionReducer(initialState, action);
+        const result = religionReducer(state, action);
+        // The reducer returns partial state, merge it
+        const newState = { ...state, ...result };
 
-        expect(newState.divineFavor).toBeDefined();
-        expect(newState.divineFavor!['bahamut'].favor).toBeGreaterThan(0);
-        // Base 1 + (50/10) = 6
-        expect(newState.divineFavor!['bahamut'].favor).toBe(6);
-        expect(newState.gold).toBe(50);
-        expect(newState.messages).toHaveLength(initialState.messages.length + 1);
+        expect(newState.divineFavor['pelor']).toBeDefined();
+        expect(newState.divineFavor['pelor'].score).toBe(1); // Default prayer boost
+        expect(newState.messages).toHaveLength(1);
+        expect(newState.messages[0].text).toContain('You pray to Pelor');
     });
 
-    it('should ignore invalid deity', () => {
-        const initialState: GameState = { ...initialGameState };
-        const action: any = {
+    it('should handle PRAY action with offering', () => {
+        const state = createInitialState();
+        const action: AppAction = {
             type: 'PRAY',
-            payload: { deityId: 'invalid_god' }
+            payload: { deityId: 'pelor', offering: 20 }
         };
-        const newState = religionReducer(initialState, action);
-        expect(newState).toEqual({});
+
+        const result = religionReducer(state, action);
+        const newState = { ...state, ...result };
+
+        expect(newState.gold).toBe(80); // 100 - 20
+        expect(newState.divineFavor['pelor'].score).toBe(3); // 1 (base) + 2 (20/10)
+    });
+
+    it('should handle TRIGGER_DEITY_ACTION for approval', () => {
+        const state = createInitialState();
+        // Bahamut approves PROTECT_WEAK (+2)
+        const action: AppAction = {
+            type: 'TRIGGER_DEITY_ACTION',
+            payload: { trigger: 'PROTECT_WEAK' }
+        };
+
+        const result = religionReducer(state, action);
+        const newState = { ...state, ...result };
+
+        expect(newState.divineFavor['bahamut']).toBeDefined();
+        expect(newState.divineFavor['bahamut'].score).toBe(2);
+        // Should not generate message for small change on neutral unless specific logic (here < 5 is silent for Neutral)
+        // Wait, logic says: if (existingFavor.rank !== 'Neutral' || Math.abs(change) >= 5)
+        // Rank starts Neutral. Change is 2. So no message.
+        expect(newState.messages).toHaveLength(0);
+    });
+
+    it('should handle TRIGGER_DEITY_ACTION for forbiddance', () => {
+        const state = createInitialState();
+        // Bahamut forbids HARM_INNOCENT (-10)
+        const action: AppAction = {
+            type: 'TRIGGER_DEITY_ACTION',
+            payload: { trigger: 'HARM_INNOCENT' }
+        };
+
+        const result = religionReducer(state, action);
+        const newState = { ...state, ...result };
+
+        expect(newState.divineFavor['bahamut']).toBeDefined();
+        expect(newState.divineFavor['bahamut'].score).toBe(-10);
+        // Change is >= 5, so message should appear
+        expect(newState.messages).toHaveLength(1);
+        expect(newState.messages[0].text).toContain('Bahamut loses favor');
+    });
+
+    it('should affect multiple deities if applicable', () => {
+        const state = createInitialState();
+        // Assume 'DESTROY_UNDEAD' is liked by Pelor (+1) and Raven Queen (+3)
+        // Note: Check actual data in src/data/deities/index.ts
+        // Pelor: DESTROY_UNDEAD (+1)
+        // Raven Queen: DESTROY_UNDEAD (+3)
+
+        const action: AppAction = {
+            type: 'TRIGGER_DEITY_ACTION',
+            payload: { trigger: 'DESTROY_UNDEAD' }
+        };
+
+        const result = religionReducer(state, action);
+        const newState = { ...state, ...result };
+
+        expect(newState.divineFavor['pelor'].score).toBe(1);
+        expect(newState.divineFavor['raven_queen'].score).toBe(3);
     });
 });

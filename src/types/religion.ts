@@ -11,19 +11,36 @@ export type Alignment =
   | 'Lawful Neutral' | 'True Neutral' | 'Chaotic Neutral'
   | 'Lawful Evil' | 'Neutral Evil' | 'Chaotic Evil';
 
-export type Domain = 'Life' | 'Light' | 'Nature' | 'Tempest' | 'Trickery' | 'War' | 'Death' | 'Knowledge' | 'Arcana' | 'Forge' | 'Grave' | 'Order' | 'Peace' | 'Twilight';
+export type Domain = 'Life' | 'Light' | 'Nature' | 'Tempest' | 'Trickery' | 'War' | 'Death' | 'Knowledge' | 'Arcana' | 'Forge' | 'Grave' | 'Order' | 'Peace' | 'Twilight' | 'Freedom';
+
+export interface DeityActionTrigger {
+  trigger: string;
+  description: string;
+  favorChange: number;
+}
+
+export interface DeityRelationship {
+  targetDeityId: string;
+  type: 'ally' | 'enemy' | 'rival';
+}
 
 export interface Deity {
   id: string;
   name: string;
-  title: string; // e.g., "The Sun Lord"
+  titles: string[]; // e.g., ["The Sun Lord"]
   domains: Domain[];
   alignment: Alignment;
   symbol: string;
   description: string;
   commandments: string[]; // Roleplay guidelines
-  approvedActions: string[]; // Mechanical or narrative actions that gain favor
-  forbiddenActions: string[]; // Actions that lose favor
+  favoredWeapon?: string;
+  approves: DeityActionTrigger[]; // Mechanical or narrative actions that gain favor
+  forbids: DeityActionTrigger[]; // Actions that lose favor
+  relationships?: DeityRelationship[];
+  // Legacy fields for backward compatibility (optional)
+  title?: string;
+  approvedActions?: string[];
+  forbiddenActions?: string[];
 }
 
 export type FavorRank = 'Heretic' | 'Shunned' | 'Neutral' | 'Initiate' | 'Devotee' | 'Champion' | 'Chosen';
@@ -33,6 +50,16 @@ export interface DivineFavor {
   rank: FavorRank;
   consecutiveDaysPrayed: number;
   lastPrayerTimestamp?: number;
+  history: { timestamp: number; reason: string; change: number }[];
+  blessings: Blessing[];
+}
+
+export interface Blessing {
+  id: string;
+  name: string;
+  description: string;
+  duration?: number;
+  effect: any;
 }
 
 export interface TempleServiceRequirement {
@@ -46,8 +73,10 @@ export interface TempleService {
   id: string;
   name: string;
   description: string;
-  requirement: TempleServiceRequirement;
-  effect: {
+  costGp?: number; // Simplified cost
+  minFavor?: number; // Simplified requirement
+  requirement?: TempleServiceRequirement;
+  effect: string | { // Allow string description or complex object
     type: 'heal' | 'buff' | 'cure' | 'identify' | 'quest' | 'favor' | 'restoration';
     value?: number;
     stat?: AbilityScoreName;
@@ -62,15 +91,23 @@ export interface Temple {
   name: string;
   description: string;
   locationId?: string; // If tied to a specific location
-  services: string[]; // IDs of available services
+  services: (TempleService | string)[]; // Can be objects or IDs
 }
 
 export interface ReligionState {
-  deityFavor: Record<string, DivineFavor>; // Map of deityId -> DivineFavor
+  divineFavor: Record<string, DivineFavor>; // Map of deityId -> DivineFavor
   discoveredDeities: string[]; // IDs of deities the player knows about
   activeBlessings: {
     deityId: string;
     effectId: string;
     expirationTimestamp: number;
   }[];
+}
+
+// Action Types for Favor System
+export interface DeityAction {
+    id: string;
+    description: string;
+    domain?: string;
+    favorChange: number;
 }
