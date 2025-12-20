@@ -28,25 +28,35 @@ export class ResistanceCalculator {
     target: CombatCharacter,
     source?: CombatCharacter
   ): number {
-    let finalDamage = baseDamage
+    let finalDamage = Math.max(0, baseDamage)
 
     // 1. Immunity (Damage -> 0)
     if (this.isImmune(target, damageType)) {
       return 0
     }
 
-    // 2. Resistance (Damage -> floor(Damage / 2))
-    // Check for Elemental Adept ignore resistance
-    const elementalAdeptChoice = source?.featChoices?.['elemental_adept']?.selectedDamageType;
-    const ignoresResistance = elementalAdeptChoice &&
-                              elementalAdeptChoice.toLowerCase() === damageType.toLowerCase();
+    // Determine effective resistance (accounting for feats like Elemental Adept)
+    const hasResistance = this.isResistant(target, damageType)
+    const hasVulnerability = this.isVulnerable(target, damageType)
 
-    if (this.isResistant(target, damageType) && !ignoresResistance) {
+    const elementalAdeptChoice = source?.featChoices?.['elemental_adept']?.selectedDamageType
+    const ignoresResistance = elementalAdeptChoice &&
+                              elementalAdeptChoice.toLowerCase() === damageType.toLowerCase()
+
+    const effectiveResistance = hasResistance && !ignoresResistance
+
+    // 2. Interaction: Resistance and Vulnerability cancel each other out (XGtE p.77)
+    if (effectiveResistance && hasVulnerability) {
+      return finalDamage
+    }
+
+    // 3. Resistance (Damage -> floor(Damage / 2))
+    if (effectiveResistance) {
       finalDamage = Math.floor(finalDamage / 2)
     }
 
-    // 3. Vulnerability (Damage -> Damage * 2)
-    if (this.isVulnerable(target, damageType)) {
+    // 4. Vulnerability (Damage -> Damage * 2)
+    if (hasVulnerability) {
       finalDamage = finalDamage * 2
     }
 
