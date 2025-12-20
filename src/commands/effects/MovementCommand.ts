@@ -1,9 +1,28 @@
+/**
+ * @file src/commands/effects/MovementCommand.ts
+ * Command for executing movement-based effects in combat.
+ * Handles forced movement (push/pull), teleports, speed modifications, and collision detection.
+ */
+
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { MovementEffect } from '@/types/spells'
 import { CombatState, CombatCharacter, Position } from '@/types/combat'
 import { getDistance } from '../../utils/combatUtils'
 
+/**
+ * Command responsible for applying movement effects to characters.
+ *
+ * This command handles:
+ * - **Forced Movement**: Pushing or pulling targets relative to the caster (e.g., *Thunderwave*, *Thorn Whip*).
+ * - **Teleportation**: Instantaneously moving a target to a new location (e.g., *Misty Step*, *Dimension Door*).
+ * - **Speed Changes**: Buffing or debuffing movement speed (e.g., *Longstrider*, *Ray of Frost*).
+ * - **Collision & Bounds**: Ensuring movement respects map boundaries and doesn't end in occupied spaces.
+ *
+ * @remarks
+ * Movement calculations assume a standard 5-foot grid system.
+ * Forced movement stops early if the path is blocked by terrain or other creatures.
+ */
 export class MovementCommand extends BaseEffectCommand {
     constructor(
         effect: MovementEffect,
@@ -12,6 +31,12 @@ export class MovementCommand extends BaseEffectCommand {
         super(effect, context)
     }
 
+    /**
+     * Executes the movement effect on all valid targets.
+     *
+     * @param state - The current combat state.
+     * @returns The new combat state with updated character positions or stats.
+     */
     execute(state: CombatState): CombatState {
         const effect = this.effect as MovementEffect
         const targets = this.getTargets(state)
@@ -40,6 +65,17 @@ export class MovementCommand extends BaseEffectCommand {
         return newState
     }
 
+    /**
+     * Pushes a target away from the caster.
+     *
+     * implementation:
+     * Calculates a vector from caster to target and moves the target along that line.
+     * Stops early if the target hits a wall or another creature.
+     *
+     * @param state - Current state.
+     * @param target - The character being pushed.
+     * @param effect - The movement effect containing distance.
+     */
     private applyPush(state: CombatState, target: CombatCharacter, effect: MovementEffect): CombatState {
         const caster = this.getCaster(state)
         const distance = effect.distance || 0
@@ -91,6 +127,17 @@ export class MovementCommand extends BaseEffectCommand {
         })
     }
 
+    /**
+     * Pulls a target toward the caster.
+     *
+     * Implementation:
+     * Calculates a vector from target to caster.
+     * Stops early if the target hits a wall, another creature, or would occupy the caster's space.
+     *
+     * @param state - Current state.
+     * @param target - The character being pulled.
+     * @param effect - The movement effect containing distance.
+     */
     private applyPull(state: CombatState, target: CombatCharacter, effect: MovementEffect): CombatState {
         const caster = this.getCaster(state)
         const distance = effect.distance || 0
@@ -144,6 +191,19 @@ export class MovementCommand extends BaseEffectCommand {
         })
     }
 
+    /**
+     * Teleports a target to a specific or selected destination.
+     *
+     * Logic:
+     * 1. Checks for an explicit destination in the effect.
+     * 2. If valid and within range, uses it.
+     * 3. If explicit fails or is missing, falls back to `findAvailableDestination`.
+     * 4. Clamps destination to map bounds and checks collision.
+     *
+     * @param state - Current state.
+     * @param target - The character teleporting.
+     * @param effect - The movement effect.
+     */
     private applyTeleport(state: CombatState, target: CombatCharacter, effect: MovementEffect): CombatState {
         const origin = target.position
         const maxTiles = Math.max(0, Math.floor((effect.distance || 0) / 5))
@@ -192,6 +252,11 @@ export class MovementCommand extends BaseEffectCommand {
         })
     }
 
+    /**
+     * Modifies a target's movement speed.
+     *
+     * Used for buffs (Haste, Longstrider) or debuffs (Ray of Frost).
+     */
     private applySpeedChange(state: CombatState, target: CombatCharacter, effect: MovementEffect): CombatState {
         if (!effect.speedChange) return state
 
@@ -208,6 +273,12 @@ export class MovementCommand extends BaseEffectCommand {
         })
     }
 
+    /**
+     * Applies a "Stop" effect, which can reduce speed to 0 OR force movement in a specific direction.
+     *
+     * Note: "Stop" is a legacy term here that encompasses generic forced movement instructions
+     * that aren't strictly push/pull (e.g., Frightened condition causing movement "away").
+     */
     private applyStop(state: CombatState, target: CombatCharacter, effect: MovementEffect): CombatState {
         // Treat stop as either a forced-movement instruction or a speed clamp.
         if (effect.forcedMovement) {
@@ -287,6 +358,15 @@ export class MovementCommand extends BaseEffectCommand {
         })
     }
 
+    /**
+     * Resolves the target destination for a teleport action.
+     *
+     * @param state - Current combat state.
+     * @param target - The character teleporting.
+     * @param maxTiles - Maximum distance in tiles.
+     * @param effect - The movement effect definition.
+     * @returns The resolved position or null if no valid destination is found.
+     */
     private resolveTeleportDestination(
         state: CombatState,
         target: CombatCharacter,
@@ -342,6 +422,10 @@ export class MovementCommand extends BaseEffectCommand {
         }
     }
 
+    /**
+     * Clamps a position to the boundaries of the current map.
+     * Checks BattleMap first, then falls back to WorldMap data.
+     */
     private clampToBounds(position: Position, state: CombatState): Position {
         let width: number | undefined
         let height: number | undefined
@@ -372,6 +456,10 @@ export class MovementCommand extends BaseEffectCommand {
      * Checks if a position is valid:
      * 1. Within map bounds (if map data is available)
      * 2. Not occupied by another character
+     *
+     * @param state - Combat state.
+     * @param position - The coordinate to check.
+     * @param excludeCharacterId - Optional ID to ignore (e.g. self).
      */
     private validatePosition(state: CombatState, position: Position, excludeCharacterId?: string): boolean {
         // 1. Check bounds
