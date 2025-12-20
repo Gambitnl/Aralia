@@ -110,6 +110,25 @@ export interface ReactionResult {
   isSilent: boolean; // If true, approval changes but no dialogue (e.g. if far away or strictly internal)
 }
 
+export interface BanterLine {
+  speakerId: string;
+  text: string;
+  emotion?: string; // Optional emotion/anim
+  delay?: number; // Time before next line
+}
+
+export interface BanterDefinition {
+  id: string;
+  participants: string[]; // IDs of required companions
+  conditions?: {
+    locationId?: string;
+    minRelationship?: Record<string, RelationshipLevel>;
+    chance?: number;
+    cooldown?: number; // Minutes
+  };
+  lines: BanterLine[];
+}
+
 /**
  * Triggers that can initiate a companion reaction.
  */

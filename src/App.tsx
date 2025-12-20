@@ -27,6 +27,7 @@ import { useGameActions } from './hooks/useGameActions';
 import { useGameInitialization } from './hooks/useGameInitialization';
 import { useHistorySync } from './hooks/useHistorySync';
 import { useCompanionCommentary } from './hooks/useCompanionCommentary';
+import { useCompanionBanter } from './hooks/useCompanionBanter';
 import { determineSettlementInfo } from './utils/settlementGeneration';
 import { t } from './utils/i18n';
 
@@ -80,6 +81,8 @@ const App: React.FC = () => {
 
   // 💕 Heartkeeper: Companion Commentary (Reactions 2.0)
   useCompanionCommentary(gameState, dispatch);
+  // Companion Banter
+  useCompanionBanter(gameState, dispatch);
 
   // State for Missing Choice Modal
   const [missingChoiceModal, setMissingChoiceModal] = useState<{
