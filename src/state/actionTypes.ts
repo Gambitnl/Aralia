@@ -3,7 +3,7 @@
  * @file src/state/actionTypes.ts
  * Defines the main AppAction type for the application's state management.
  */
-import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType } from '../types';
+import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, GuildJob, HeistIntel } from '../types';
 import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload } from './payloads/identityPayloads';
 
 export type AppAction =
@@ -137,6 +137,12 @@ export type AppAction =
   | { type: 'ABANDON_GUILD_JOB'; payload: { jobId: string } }
   | { type: 'USE_GUILD_SERVICE'; payload: { serviceId: string; cost: number; description: string } }
   | { type: 'SET_AVAILABLE_GUILD_JOBS'; payload: { jobs: GuildJob[] } }
+  // Heist Actions
+  | { type: 'START_HEIST_PLANNING'; payload: { targetLocationId: string; leaderId: string; guildJobId?: string } }
+  | { type: 'ADD_HEIST_INTEL'; payload: { intel: HeistIntel } }
+  | { type: 'ADVANCE_HEIST_PHASE' }
+  | { type: 'PERFORM_HEIST_ACTION'; payload: { actionDifficulty: number; description: string; success: boolean; alertChange: number; skillCheckResult?: string } }
+  | { type: 'ABORT_HEIST' }
   // Identity & Intrigue Actions
   | { type: 'CREATE_ALIAS'; payload: CreateAliasPayload }
   | { type: 'EQUIP_DISGUISE'; payload: EquipDisguisePayload }

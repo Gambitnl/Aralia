@@ -68,7 +68,7 @@ import { NPCMemory } from './memory';
 import { NPCKnowledgeProfile } from './dialogue';
 import { Companion } from './companions';
 import { DivineFavor, Temple } from './deity';
-import { Fence } from './crime';
+import { Fence, GuildMembership, HeistPlan } from './crime';
 import { UnderdarkState, LightSource } from './underdark';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
 import type { DamageType } from './spells';
@@ -599,6 +599,8 @@ export interface GameState {
 
   // Shadowbroker: Crime System
   fences: Record<string, Fence>; // Keyed by Fence ID (or Location ID)
+  thievesGuild?: GuildMembership; // Membership data
+  activeHeist?: HeistPlan | null; // Currently active heist
 
   // Linker: World Coherence System
   dynamicLocations: Record<string, Location>; // Generated locations that don't exist in static data
