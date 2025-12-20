@@ -265,7 +265,7 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
     if (Array.isArray(spell.effects) && spell.effects.length > 0) {
         // Use structured data if available (Gold Standard)
         spell.effects.forEach(jsonEffect => {
-            if (jsonEffect.type === 'Damage' && jsonEffect.damage) {
+            if (jsonEffect.type === 'DAMAGE' && jsonEffect.damage) {
                 const avgDmg = calculateAverageDamage(jsonEffect.damage.dice);
                 // Note: If spell has explicit saveRequired, combat engine handles roll.
                 // Ability definition doesn't strictly enforce save logic yet, 
@@ -275,18 +275,17 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
                     value: avgDmg,
                     damageType: jsonEffect.damage.type.toLowerCase() as any
                 });
-            } else if (jsonEffect.type === 'Healing') {
-                let healAmount = 0;
-                if (jsonEffect.special && jsonEffect.special.includes('1d4')) healAmount = calculateAverageDamage('1d4', modifier);
-                else if (jsonEffect.special && jsonEffect.special.includes('1d8')) healAmount = calculateAverageDamage('1d8', modifier);
-                else if (jsonEffect.healing && jsonEffect.healing.dice) healAmount = calculateAverageDamage(jsonEffect.healing.dice, modifier);
-                else if (jsonEffect.special && jsonEffect.special.includes('4d8')) healAmount = calculateAverageDamage('4d8', 15); // Regenerate
+            } else if (jsonEffect.type === 'HEALING') {
+                // HealingEffect has a properly typed healing.dice field
+                const healAmount = jsonEffect.healing?.dice
+                    ? calculateAverageDamage(jsonEffect.healing.dice, modifier)
+                    : 0;
 
                 effects.push({
                     type: 'heal',
                     value: healAmount
                 });
-            } else if (jsonEffect.type === 'Buff') {
+            } else if (jsonEffect.type === 'DEFENSIVE') {
                 effects.push({
                     type: 'status',
                     statusEffect: {
@@ -299,7 +298,7 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
                         effect: { type: 'stat_modifier', value: 1 }
                     }
                 });
-            } else if (jsonEffect.type === 'Debuff' || jsonEffect.type === 'Control') {
+            } else if (jsonEffect.type === 'STATUS_CONDITION') {
                 effects.push({
                     type: 'status',
                     statusEffect: {
