@@ -121,10 +121,65 @@ export type TargetFilter = "creatures" | "objects" | "allies" | "enemies" | "sel
 
 /** Defines the shape and size of an area of effect. */
 export interface AreaOfEffect {
-  shape: "Cone" | "Cube" | "Cylinder" | "Line" | "Sphere" | "Square";
-  size: number; // in feet (e.g., radius for Sphere, length for Line)
+  /**
+   * Shape of the area of effect.
+   * Basic shapes: Cone, Cube, Cylinder, Line, Sphere, Square
+   * Extended shapes:
+   * - Emanation: Centered on caster, optionally moves with caster
+   * - Wall: Linear barrier with length/height/thickness
+   * - Hemisphere: Dome shape (half-sphere)
+   * - Ring: Hollow circle/cylinder
+   */
+  shape: "Cone" | "Cube" | "Cylinder" | "Line" | "Sphere" | "Square"
+  | "Emanation" | "Wall" | "Hemisphere" | "Ring";
+  /** Primary dimension in feet (radius for spheres/emanations, length for lines/walls). */
+  size: number;
   /** Optional vertical dimension for planar effects like squares on the ground. */
   height?: number;
+
+  // --- Extended semantics (optional, shape-dependent) ---
+
+  /**
+   * For Emanation: whether the AoE moves with the caster.
+   * If true, the zone re-centers on the caster at the start of their turn.
+   */
+  followsCaster?: boolean;
+
+  /** For Wall/Line shapes: thickness in feet (default 1 if not specified). */
+  thickness?: number;
+
+  /** For Wall shapes: width of each segment in feet. */
+  width?: number;
+
+  /**
+   * For spells that allow shape choice at cast time (e.g., Wall of Fire: line or ring).
+   * The caster selects one of the options when the spell is cast.
+   */
+  shapeVariant?: {
+    options: ("Line" | "Ring" | "Hemisphere" | "Sphere")[];
+    default: string;
+  };
+
+  /**
+   * For destructible walls: AC and HP per section.
+   * Used by terrain/wall destruction logic.
+   */
+  wallStats?: {
+    ac: number;
+    hpPerSection: number;
+    sectionSize: number; // in feet, e.g., 10 for "10-foot section"
+  };
+
+  /**
+   * For zones that trigger damage on entry/proximity.
+   * E.g., Wall of Fire deals damage within 10 feet of one side.
+   */
+  triggerZone?: {
+    /** Distance from the wall/area that still triggers the effect. */
+    triggerDistance?: number;
+    /** Which side(s) of the wall trigger the effect. */
+    triggerSide?: "one" | "both" | "inside";
+  };
 }
 
 /**

@@ -2,7 +2,7 @@
 import { Plane, PlanarTrait } from '../types/planes';
 
 const FeywildTimeTrait: PlanarTrait = {
-  id: 'feywild_time',
+  id: 'time_warp',
   name: 'Timeless',
   type: 'time',
   description: 'Time flows strangely here. A day in the Feywild might be a minute or a year in the Material Plane.',
@@ -125,6 +125,7 @@ export const PLANES: Record<string, Plane> = {
     id: 'nine_hells',
     name: 'The Nine Hells',
     description: 'A plane of rigid order, tyranny, and fire, ruled by devils.',
+    alignment: 'Lawful Evil',
     traits: [PervasiveEvilTrait],
     natives: ['Devil', 'Imp', 'Tiefling'],
     hazards: [
@@ -158,6 +159,7 @@ export const PLANES: Record<string, Plane> = {
     id: 'abyss',
     name: 'The Abyss',
     description: 'Infinite layers of chaos and evil, home to demons.',
+    alignment: 'Chaotic Evil',
     traits: [PsychicStaticTrait],
     natives: ['Demon'],
     hazards: [
@@ -174,5 +176,111 @@ export const PLANES: Record<string, Plane> = {
     effects: {
       psychicDamagePerMinute: 3 // Average of 1d4 approx, simplified
     }
+  },
+  ethereal: {
+    id: 'ethereal',
+    name: 'The Ethereal Plane',
+    description: 'A misty realm that overlaps the Material Plane, used for travel between worlds.',
+    traits: [],
+    natives: ['Ghost', 'Phase Spider'],
+    hazards: [],
+    emotionalValence: 'neutral',
+    timeFlow: 'normal',
+    atmosphereDescription: "Everything appears shrouded in silvery mist. The Material Plane is visible but distant and muted.",
+    effects: {}
+  },
+  astral: {
+    id: 'astral',
+    name: 'The Astral Plane',
+    description: 'A silvery void connecting all planes, where thoughts become reality.',
+    traits: [],
+    natives: ['Githyanki', 'Astral Dreadnought'],
+    hazards: [],
+    emotionalValence: 'neutral',
+    timeFlow: 'timeless',
+    atmosphereDescription: "An endless silver expanse. Color pools dot the void, each a portal to another plane.",
+    effects: {}
+  },
+  elemental_fire: {
+    id: 'elemental_fire',
+    name: 'Elemental Plane of Fire',
+    description: 'A realm of burning heat and flames that sustain no mortal life.',
+    traits: [],
+    natives: ['Fire Elemental', 'Efreeti', 'Salamander'],
+    hazards: [
+      {
+        name: 'Extreme Heat',
+        description: 'The plane itself burns all mortal flesh.',
+        saveDC: 15,
+        damage: '1d10 fire'
+      }
+    ],
+    emotionalValence: 'chaotic',
+    timeFlow: 'normal',
+    atmosphereDescription: "Rivers of lava flow beneath skies of flame. The heat is unrelenting.",
+    effects: {}
+  },
+  elemental_water: {
+    id: 'elemental_water',
+    name: 'Elemental Plane of Water',
+    description: 'An endless ocean with no surface, where light filters through impossible depths.',
+    traits: [],
+    natives: ['Water Elemental', 'Marid', 'Sea Elf'],
+    hazards: [
+      {
+        name: 'Crushing Depths',
+        description: 'Pressure increases as you descend.',
+        saveDC: 10
+      }
+    ],
+    emotionalValence: 'neutral',
+    timeFlow: 'normal',
+    atmosphereDescription: "Water in every direction, with bioluminescent creatures providing distant light.",
+    effects: {}
+  },
+  mechanus: {
+    id: 'mechanus',
+    name: 'Mechanus',
+    description: 'The plane of absolute law, made of interlocking gears and clockwork precision.',
+    alignment: 'Lawful Neutral',
+    traits: [],
+    natives: ['Modron', 'Inevitable'],
+    hazards: [],
+    emotionalValence: 'neutral',
+    timeFlow: 'normal',
+    atmosphereDescription: "Infinite interlocking gears turn in perfect harmony. Everything here follows an exact schedule.",
+    effects: {}
+  },
+  limbo: {
+    id: 'limbo',
+    name: 'Limbo',
+    description: 'A plane of pure chaos where reality is shaped by will alone.',
+    alignment: 'Chaotic Neutral',
+    traits: [PsychicStaticTrait],
+    natives: ['Slaad', 'Githzerai'],
+    hazards: [
+      {
+        name: 'Unstable Reality',
+        description: 'The plane shifts constantly without conscious control.',
+        saveDC: 15
+      }
+    ],
+    emotionalValence: 'chaotic',
+    timeFlow: 'erratic',
+    atmosphereDescription: "Reality churns and shifts. Solid ground may become water or fire without warning.",
+    effects: {}
+  },
+  mount_celestia: {
+    id: 'mount_celestia',
+    name: 'Mount Celestia',
+    description: 'The realm of law and good, a mountain rising through seven heavenly layers.',
+    alignment: 'Lawful Good',
+    traits: [],
+    natives: ['Angel', 'Archon'],
+    hazards: [],
+    emotionalValence: 'positive',
+    timeFlow: 'normal',
+    atmosphereDescription: "Golden light bathes a majestic mountain. Peace and order flow from every stone.",
+    effects: {}
   }
 };

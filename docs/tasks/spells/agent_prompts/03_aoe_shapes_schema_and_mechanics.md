@@ -96,3 +96,125 @@ Append to this file:
 - "Completion Notes"
 - "Detected TODOs (Out of Scope)"
 See `docs/tasks/spells/agent_prompts/00_overview_and_execution_order.md`.
+
+---
+
+## Completion Notes
+
+**Date/Time:** 2025-12-19 23:45 CET
+
+### What was done (step-by-step):
+
+1. **Investigated existing code mechanics**
+   - Reviewed `useTargeting.ts`, `combatUtils.ts`, `spellAbilityFactory.ts` for AoE targeting logic
+   - Reviewed `AreaEffectTracker.ts`, `triggerHandler.ts` for zone persistence/triggers
+   - Searched for `terrainType`, `wallProperties` patterns across codebase
+
+2. **Schema decision: Option A (Extend existing `areaOfEffect`)**
+   - Chose to extend the existing `targeting.areaOfEffect` rather than adding a parallel `advancedAreaOfEffect`
+   - Rationale: simpler migration, single consumption point, no schema bifurcation
+
+3. **Updated types (`src/types/spells.ts`)**
+   - Extended shape enum: added `Emanation`, `Wall`, `Hemisphere`, `Ring`
+   - Added optional semantic fields: `followsCaster`, `thickness`, `width`, `shapeVariant`, `wallStats`, `triggerZone`
+
+4. **Updated Zod validator (`src/systems/spells/validation/spellValidator.ts`)**
+   - Extended `TargetingAreaOfEffect` schema with new shapes and optional fields
+
+5. **Updated JSON Schema (`src/systems/spells/schema/spell.schema.json`)**
+   - Mirrored Zod changes
+
+6. **Updated runtime (`src/utils/spellAbilityFactory.ts`)**
+   - Extended shape mapping in `inferAoE()` to handle new shapes
+   - Passes through `followsCaster` property
+
+7. **Updated glossary display (`src/components/Glossary/SpellCardTemplate.tsx`)**
+   - Extended `SpellData.areaOfEffect` interface
+   - Updated `formatRange()` with emojis for new shapes and semantic notes
+
+8. **Migrated 2 fixture spells**
+   - `spirit-guardians.json`: `Sphere` → `Emanation` with `followsCaster: true`
+   - `wall-of-fire.json`: `Sphere` → `Wall` with dimensions, `shapeVariant`, and `triggerZone`
+
+9. **Verification**
+   - `npm run validate`: ✅ PASSED (469 spells validated)
+   - `npx --no-install tsx scripts/regenerate-manifest.ts`: ✅ PASSED
+   - `node scripts/generateGlossaryIndex.js`: ❌ BLOCKED by pre-existing `travel.json` JSON syntax error (unrelated)
+
+### What changed (high-level):
+- AoE schema now supports advanced shapes (Emanation, Wall, Hemisphere, Ring)
+- AoE can express semantic properties (follows caster, one-sided damage, shape choices)
+- Glossary displays extended AoE info with shape emojis and notes
+
+### Files added/modified/deleted:
+- **Modified:** `src/types/spells.ts`
+- **Modified:** `src/systems/spells/validation/spellValidator.ts`
+- **Modified:** `src/systems/spells/schema/spell.schema.json`
+- **Modified:** `src/utils/spellAbilityFactory.ts`
+- **Modified:** `src/components/Glossary/SpellCardTemplate.tsx`
+- **Modified:** `public/data/spells/level-3/spirit-guardians.json`
+- **Modified:** `public/data/spells/level-4/wall-of-fire.json`
+
+### Commands run and outcomes:
+- `npm run validate` → Success (469 spells validated)
+- `npx --no-install tsx scripts/regenerate-manifest.ts` → Success (469 spells in manifest)
+- `node scripts/generateGlossaryIndex.js` → Failed due to pre-existing `travel.json` error
+
+### Decisions that might affect other tasks:
+- **Option A chosen**: All AoE logic should read from `targeting.areaOfEffect`, not a separate `advancedAreaOfEffect`
+- **Shape enum extended**: New spells can now use `Emanation`, `Wall`, `Hemisphere`, `Ring` as valid shape values
+- **Backward compatible**: Existing spells using `Sphere`, `Cone`, etc. continue to work unchanged
+
+---
+
+## Detected TODOs (Out of Scope)
+
+### 1. Pre-existing TypeScript errors in `spellAbilityFactory.ts`
+**Where:** `src/utils/spellAbilityFactory.ts` (lines 41, 45, 73-113, 214-267)
+**Why it matters:** The file has type mismatches between the `Spell` type and the actual JSON properties (e.g., `spell.areaOfEffect` doesn't exist on the TypeScript `Spell` type, but the JSON data has it in `targeting.areaOfEffect`). This causes numerous "property does not exist on type 'never'" errors.
+**Suggested next step:** Audit the `spellAbilityFactory.ts` file to align its type expectations with the actual Spell interface. May require adding `areaOfEffect` as a top-level optional property or changing access patterns.
+
+### 2. Pre-existing JSON syntax error in `travel.json`
+**Where:** `public/data/glossary/entries/rules/travel.json` (line 10)
+**Why it matters:** Blocks `generateGlossaryIndex.js` from completing
+**Suggested next step:** Fix JSON syntax error in `travel.json`
+
+### 3. SSOT consolidation for AoE geometry
+**Where:** `combatUtils.ts::computeAoETiles()` vs `triggerHandler.ts::isPositionInArea()`
+**Why it matters:** Duplicated shape calculation logic that could diverge over time
+**Suggested next step:** Extract AoE geometry into `src/utils/aoeGeometry.ts` and have both consumers import from single source
+
+### 4. Bulk migration script for remaining AoE spells
+**Where:** New script needed
+**Why it matters:** ~15+ spells use emanation/wall/hemisphere semantics not yet migrated
+**Suggested next step:** Create migration script or batch migrate manually
+
+### 5. Reference-to-JSON mapping update
+**Where:** `scripts/update-spell-json-from-references.ts`
+**Why it matters:** Script should map reference `Area Shape` values to new schema
+**Suggested next step:** Update script to recognize `emanation`, `wall`, `hemisphere`, `circle`, `line, ring` and map to new extended `areaOfEffect`
+
+---
+
+## Bulk Rollout Plan
+
+### Spells requiring migration:
+
+| Shape | Spells to Migrate |
+|-------|-------------------|
+| Emanation | `arms-of-hadar`, `antilife-shell`, `aura-of-vitality`, `aura-of-purity`, `aura-of-life`, `holy-aura` |
+| Hemisphere | `leomunds-tiny-hut`, `wall-of-ice` (dome variant) |
+| Wall | `wall-of-ice`, `wall-of-thorns`, `wall-of-stone`, `wall-of-sand`, `wall-of-water`, `wall-of-light`, `wall-of-force`, `blade-barrier`, `prismatic-wall`, `tsunami` |
+| Ring | Already handled via `shapeVariant` in Wall spells that offer ring option |
+
+### Migration steps:
+1. For each spell, identify current AoE representation
+2. Update `areaOfEffect.shape` to appropriate extended type
+3. Add semantic fields as needed (`followsCaster`, `thickness`, `shapeVariant`, etc.)
+4. Remove `height: 0` placeholder if not needed
+5. Run `npm run validate` after each batch
+
+### User review checkpoints:
+- [ ] Validate that `followsCaster` semantics match official spell text
+- [ ] Review wall dimension calculations (some walls have variable sizing)
+- [ ] Confirm trigger zone distances match official spell text

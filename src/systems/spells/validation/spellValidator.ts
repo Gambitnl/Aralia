@@ -100,9 +100,34 @@ const ScalableNumber = z.union([
 ]);
 
 const TargetingAreaOfEffect = z.object({
-  shape: z.enum(["Cone", "Cube", "Cylinder", "Line", "Sphere", "Square"]),
+  // Extended shape enum to include Emanation, Wall, Hemisphere, Ring
+  shape: z.enum([
+    "Cone", "Cube", "Cylinder", "Line", "Sphere", "Square",
+    "Emanation", "Wall", "Hemisphere", "Ring"
+  ]),
   size: z.number(),
-  height: z.number()
+  height: z.number().optional(),
+
+  // Extended semantics (optional, shape-dependent)
+  followsCaster: z.boolean().optional(),
+  thickness: z.number().optional(),
+  width: z.number().optional(),
+
+  shapeVariant: z.object({
+    options: z.array(z.enum(["Line", "Ring", "Hemisphere", "Sphere"])),
+    default: z.string()
+  }).optional(),
+
+  wallStats: z.object({
+    ac: z.number(),
+    hpPerSection: z.number(),
+    sectionSize: z.number()
+  }).optional(),
+
+  triggerZone: z.object({
+    triggerDistance: z.number().optional(),
+    triggerSide: z.enum(["one", "both", "inside"]).optional()
+  }).optional()
 });
 
 const ValidTargetType = z.enum([

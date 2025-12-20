@@ -13,6 +13,7 @@ describe('crimeReducer', () => {
       globalHeat: 0,
       localHeat: {},
       knownCrimes: [],
+      bounties: [],
     };
   });
 
@@ -34,10 +35,11 @@ describe('crimeReducer', () => {
     expect(updatedNotoriety.knownCrimes[0].type).toBe(CrimeType.Theft);
     expect(updatedNotoriety.knownCrimes[0].witnessed).toBe(true);
 
-    // Witnessed crime: severity * 2
-    expect(updatedNotoriety.localHeat['loc1']).toBe(10);
-    // Global heat: severity * 2 * 0.1
-    expect(updatedNotoriety.globalHeat).toBe(1);
+    // Severity 5 is normalized to 50 (since <= 10)
+    // Witnessed crime: normalizedSeverity * 0.5 = 50 * 0.5 = 25
+    expect(updatedNotoriety.localHeat['loc1']).toBe(25);
+    // Global heat: heatIncrease * 0.1 = 25 * 0.1 = 2.5
+    expect(updatedNotoriety.globalHeat).toBe(2.5);
   });
 
   it('should increase heat less when crime is not witnessed', () => {
@@ -54,11 +56,13 @@ describe('crimeReducer', () => {
     const newState = crimeReducer(initialState, action);
     const updatedNotoriety = newState.notoriety!;
 
-    // Unwitnessed crime: severity * 0.5
-    expect(updatedNotoriety.localHeat['loc1']).toBe(2.5);
-    // Global heat: severity * 0.5 * 0.1
-    expect(updatedNotoriety.globalHeat).toBe(0.25);
+    // Severity 5 is normalized to 50 (since <= 10)
+    // Unwitnessed crime: normalizedSeverity * 0.1 = 50 * 0.1 = 5
+    expect(updatedNotoriety.localHeat['loc1']).toBe(5);
+    // Global heat: heatIncrease * 0.1 = 5 * 0.1 = 0.5
+    expect(updatedNotoriety.globalHeat).toBe(0.5);
   });
+
 
   it('should lower local heat when LOWER_HEAT is dispatched with location', () => {
     // Setup initial heat

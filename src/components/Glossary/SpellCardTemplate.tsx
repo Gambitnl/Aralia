@@ -42,6 +42,18 @@ export interface SpellData {
         areaOfEffect?: {
             shape: string;
             size: number;
+            height?: number;
+            followsCaster?: boolean;
+            thickness?: number;
+            width?: number;
+            shapeVariant?: {
+                options: string[];
+                default: string;
+            };
+            triggerZone?: {
+                triggerDistance?: number;
+                triggerSide?: string;
+            };
         };
     };
     effects?: Array<{
@@ -78,6 +90,7 @@ const formatCastingTime = (castingTime?: SpellData['castingTime']): string => {
 /**
  * Helper to format range/area
  * For melee blade cantrips (range.type: "self" but targeting.range exists), show the weapon reach
+ * Extended to display new AoE shapes and semantic properties
  */
 const formatRange = (range?: SpellData['range'], targeting?: SpellData['targeting']): string => {
     if (!range) return 'Self';
@@ -95,9 +108,30 @@ const formatRange = (range?: SpellData['range'], targeting?: SpellData['targetin
 
     // Add area of effect if present
     if (targeting?.areaOfEffect) {
-        const { shape, size } = targeting.areaOfEffect;
-        const shapeEmoji = shape === 'Sphere' ? '🌐' : shape === 'Cone' ? '📐' : shape === 'Cube' ? '⬜' : '';
-        result += ` (${size} ft. ${shapeEmoji})`;
+        const { shape, size, followsCaster, shapeVariant, triggerZone } = targeting.areaOfEffect;
+
+        // Shape emoji mapping (extended with new shapes)
+        const shapeEmoji: Record<string, string> = {
+            'Sphere': '🌐',
+            'Cone': '📐',
+            'Cube': '⬜',
+            'Line': '➖',
+            'Cylinder': '🛢️',
+            'Square': '⬛',
+            'Emanation': '🔄',
+            'Wall': '🧱',
+            'Hemisphere': '🏠',
+            'Ring': '⭕'
+        };
+
+        let aoeLabel = `${size} ft. ${shapeEmoji[shape] || shape}`;
+
+        // Add semantic notes for extended AoE types
+        if (followsCaster) aoeLabel += ' (follows caster)';
+        if (shapeVariant) aoeLabel += ` [${shapeVariant.options.join(' or ')}]`;
+        if (triggerZone?.triggerSide === 'one') aoeLabel += ' (one side)';
+
+        result += ` (${aoeLabel})`;
     }
 
     return result;

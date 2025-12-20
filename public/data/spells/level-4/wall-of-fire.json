@@ -53,9 +53,21 @@
     "lineOfSight": true,
     "maxTargets": 1,
     "areaOfEffect": {
-      "shape": "Sphere",
-      "size": 0,
-      "height": 0
+      "shape": "Wall",
+      "size": 60,
+      "height": 20,
+      "thickness": 1,
+      "shapeVariant": {
+        "options": [
+          "Line",
+          "Ring"
+        ],
+        "default": "Line"
+      },
+      "triggerZone": {
+        "triggerDistance": 10,
+        "triggerSide": "one"
+      }
     },
     "filter": {
       "creatureTypes": [],

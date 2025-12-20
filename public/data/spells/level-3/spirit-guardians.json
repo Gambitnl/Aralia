@@ -49,9 +49,9 @@
     ],
     "lineOfSight": true,
     "areaOfEffect": {
-      "shape": "Sphere",
+      "shape": "Emanation",
       "size": 15,
-      "height": 0
+      "followsCaster": true
     },
     "range": 0,
     "maxTargets": 1,

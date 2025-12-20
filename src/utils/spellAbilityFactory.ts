@@ -89,17 +89,32 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
 
     // Also check top-level areaOfEffect property
     if (spell.areaOfEffect) {
+        // Map JSON AoE shape to Combat AoE shape for 2D grid rendering
+        // Extended shapes map to closest basic shape for grid calculations
         const shapeMap: Record<string, 'circle' | 'cone' | 'line' | 'square'> = {
             'Sphere': 'circle',
             'Cone': 'cone',
             'Line': 'line',
             'Cube': 'square',
-            'Cylinder': 'circle'
+            'Cylinder': 'circle',
+            // Extended shapes mapped to closest basic equivalent
+            'Emanation': 'circle',  // Emanation is a sphere that follows caster
+            'Wall': 'line',         // Walls are linear barriers
+            'Hemisphere': 'circle', // Dome is half-sphere, renders as circle on 2D grid
+            'Ring': 'circle'        // Ring is hollow circle
         };
-        return {
+
+        const result: AreaOfEffect = {
             shape: shapeMap[spell.areaOfEffect.shape] || 'circle',
-            size: spell.areaOfEffect.size / 5,
+            size: spell.areaOfEffect.size / 5, // Convert feet to tiles (5ft = 1 tile)
         };
+
+        // Pass through extended semantics for downstream handlers
+        if ((spell.areaOfEffect as any).followsCaster) {
+            (result as any).followsCaster = true;
+        }
+
+        return result;
     }
 
     // Fallback to text parsing (basic)

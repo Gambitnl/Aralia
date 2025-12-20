@@ -317,11 +317,16 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
     notifications: [],
 
     underdark: {
-      depth: 0,
-      lightSources: [],
-      sanity: 100,
+      currentDepth: 0,
+      lightLevel: 'bright',
+      activeLightSources: [],
       faerzressLevel: 0,
-      discoveredLocations: []
+      wildMagicChance: 0,
+      sanity: {
+        current: 100,
+        max: 100,
+        madnessLevel: 0
+      }
     },
 
     isQuestLogVisible: false,

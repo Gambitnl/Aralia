@@ -266,7 +266,11 @@
                 "Cylinder",
                 "Line",
                 "Sphere",
-                "Square"
+                "Square",
+                "Emanation",
+                "Wall",
+                "Hemisphere",
+                "Ring"
               ]
             },
             "size": {
@@ -274,6 +278,65 @@
             },
             "height": {
               "type": "number"
+            },
+            "followsCaster": {
+              "type": "boolean"
+            },
+            "thickness": {
+              "type": "number"
+            },
+            "width": {
+              "type": "number"
+            },
+            "shapeVariant": {
+              "type": "object",
+              "properties": {
+                "options": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "Line",
+                      "Ring",
+                      "Hemisphere",
+                      "Sphere"
+                    ]
+                  }
+                },
+                "default": {
+                  "type": "string"
+                }
+              }
+            },
+            "wallStats": {
+              "type": "object",
+              "properties": {
+                "ac": {
+                  "type": "number"
+                },
+                "hpPerSection": {
+                  "type": "number"
+                },
+                "sectionSize": {
+                  "type": "number"
+                }
+              }
+            },
+            "triggerZone": {
+              "type": "object",
+              "properties": {
+                "triggerDistance": {
+                  "type": "number"
+                },
+                "triggerSide": {
+                  "type": "string",
+                  "enum": [
+                    "one",
+                    "both",
+                    "inside"
+                  ]
+                }
+              }
             }
           },
           "required": [
