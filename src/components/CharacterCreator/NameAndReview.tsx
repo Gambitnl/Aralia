@@ -10,6 +10,7 @@ import { RACES_DATA, WEAPONS_DATA, MASTERY_DATA, DRAGONBORN_ANCESTRIES } from '.
 import { FEATS_DATA } from '../../data/feats/featsData';
 import { getCharacterSpells } from '../../utils/spellUtils';
 import { getAbilityModifierString, getCharacterRaceDisplayString } from '../../utils/characterUtils';
+import { validateCharacterName } from '../../utils/securityUtils';
 import SpellContext from '../../context/SpellContext'; // Import the new context
 import Tooltip from '../Tooltip';
 
@@ -27,6 +28,7 @@ interface NameAndReviewProps {
  */
 const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfirm, onBack, initialName = '', featStepSkipped }) => {
   const [name, setName] = useState(initialName);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const { 
     race, 
@@ -51,12 +53,29 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
 
   useEffect(() => {
     setName(initialName);
+    if (initialName) {
+       const { valid, error } = validateCharacterName(initialName);
+       if (!valid && error) setValidationError(error);
+    }
   }, [initialName]);
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value;
+    setName(newName);
+
+    // Validate on change for immediate feedback
+    const { valid, error } = validateCharacterName(newName);
+    setValidationError(valid ? null : (error || 'Invalid name'));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name.trim()) {
+    const { valid, error } = validateCharacterName(name);
+
+    if (valid) {
       onConfirm(name.trim());
+    } else {
+      setValidationError(error || 'Invalid name');
     }
   };
   
@@ -218,13 +237,24 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
             type="text"
             id="characterName"
             value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
+            onChange={handleNameChange}
+            className={`w-full px-4 py-2 bg-gray-900 border rounded-lg text-gray-200 focus:ring-2 outline-none transition-all ${
+              validationError
+                ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                : 'border-gray-600 focus:ring-amber-500 focus:border-amber-500'
+            }`}
             placeholder="E.g., Valerius Stonebeard"
             required
             aria-required="true"
+            aria-invalid={!!validationError}
             aria-label="Enter your character's name"
+            aria-describedby={validationError ? "name-error" : undefined}
           />
+          {validationError && (
+            <p id="name-error" className="mt-1 text-sm text-red-400" role="alert">
+              {validationError}
+            </p>
+          )}
         </div>
 
         
@@ -239,8 +269,8 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
             </button>
             <button
                 type="submit"
-                disabled={!name.trim()}
-                className="w-1/2 bg-green-600 hover:bg-green-500 disabled:bg-gray-500 text-white font-bold py-3 px-4 rounded-lg shadow transition-all duration-150 ease-in-out"
+                disabled={!!validationError || !name.trim()}
+                className="w-1/2 bg-green-600 hover:bg-green-500 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg shadow transition-all duration-150 ease-in-out"
                 aria-label="Confirm character and begin adventure"
             >
                 Begin Adventure!

@@ -138,3 +138,37 @@ export function cleanAIJSON(text: string): string {
   if (!text) return "";
   return text.replace(/\`\`\`json\n|\`\`\`/g, '').trim();
 }
+
+/**
+ * Validates a character name to prevent abuse, UI breaking issues, and potential injection vectors.
+ * Enforces length limits and an allow-list of characters.
+ *
+ * @param name The character name to validate.
+ * @returns An object containing validity status and an optional error message.
+ */
+export function validateCharacterName(name: string): { valid: boolean; error?: string } {
+  const trimmed = name ? name.trim() : '';
+
+  if (trimmed.length === 0) {
+    return { valid: false, error: "Name cannot be empty." };
+  }
+
+  if (trimmed.length > 50) {
+    return { valid: false, error: "Name is too long (max 50 characters)." };
+  }
+
+  if (trimmed.length < 2) {
+    return { valid: false, error: "Name is too short (min 2 characters)." };
+  }
+
+  // Allow alphanumeric (including international), spaces, apostrophes, and hyphens.
+  // This prevents control characters, HTML tags (<, >), and other potential script injection vectors.
+  // Using unicode property escapes to support accented characters (e.g., Björn, Zoë).
+  const nameRegex = /^[\p{L}\p{N}\s'-]+$/u;
+
+  if (!nameRegex.test(trimmed)) {
+    return { valid: false, error: "Name contains invalid characters. Use letters, numbers, spaces, hyphens, and apostrophes only." };
+  }
+
+  return { valid: true };
+}
