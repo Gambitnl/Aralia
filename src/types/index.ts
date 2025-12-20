@@ -601,6 +601,7 @@ export interface GameState {
 
   // Linker: World Coherence System
   dynamicLocations: Record<string, Location>; // Generated locations that don't exist in static data
+  dynamicNPCs?: Record<string, NPC>; // Generated NPCs that don't exist in static data
   // Intriguer: Identity System
   playerIdentity?: import('./identity').PlayerIdentityState;
 
