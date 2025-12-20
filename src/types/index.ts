@@ -65,7 +65,7 @@ import {
 import { Faction, PlayerFactionStanding } from './factions';
 import { NPCVisualSpec } from './visuals';
 import { NPCMemory } from './memory';
-import { NPCKnowledgeProfile } from './dialogue';
+import { NPCKnowledgeProfile, DialogueSession } from './dialogue';
 import { Companion } from './companions';
 import { DivineFavor, Temple } from './deity';
 import { Fence, GuildMembership, HeistPlan } from './crime';
@@ -422,7 +422,10 @@ export type ActionType =
   | 'TOGGLE_QUEST_LOG'
   | 'PRAY'
   | 'AUTO_EQUIP'
-  | 'REGISTER_DYNAMIC_ENTITY'; // New Action
+  | 'REGISTER_DYNAMIC_ENTITY'
+  | 'START_DIALOGUE_SESSION'
+  | 'UPDATE_DIALOGUE_SESSION'
+  | 'END_DIALOGUE_SESSION';
 
 export enum DiscoveryType {
   LOCATION_DISCOVERY = 'Location Discovery',
@@ -631,6 +634,10 @@ export interface GameState {
 
   /** Direction from which the player entered the town (north/east/south/west) */
   townEntryDirection: 'north' | 'east' | 'south' | 'west' | null;
+
+  // Dialogist: Active Dialogue
+  activeDialogueSession: DialogueSession | null;
+  isDialogueInterfaceOpen: boolean;
 }
 
 export interface InspectSubmapTilePayload {

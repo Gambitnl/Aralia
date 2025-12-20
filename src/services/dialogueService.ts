@@ -13,6 +13,7 @@ import { GameState, QuestStatus, Item, NPC } from '../types/index';
 import { rollDice } from '../utils/combatUtils';
 
 // In a real implementation, this would likely load from a data file
+// TODO(Dialogist): Move this to a proper data loader or src/data/dialogue/topics.ts
 const TOPIC_REGISTRY: Record<string, ConversationTopic> = {};
 
 export function registerTopic(topic: ConversationTopic) {

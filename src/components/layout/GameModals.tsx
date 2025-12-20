@@ -25,6 +25,7 @@
  * - GameGuideModal: AI helper interface.
  * - MissingChoiceModal: Prompt for resolving pending character choices (e.g., leveling up).
  * - TempleModal: Interface for temple services.
+ * - DialogueInterface: Interactive conversation UI.
  */
 import React, { lazy, Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
@@ -34,6 +35,7 @@ import { SUBMAP_DIMENSIONS } from '../../config/mapConfig';
 import { NPCS } from '../../constants';
 import { canUseDevTools } from '../../utils/permissions';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
+import * as GeminiService from '../../services/geminiService';
 
 import ErrorBoundary from '../ErrorBoundary';
 
@@ -56,6 +58,7 @@ const MerchantModal = lazy(() => import('../MerchantModal'));
 const GameGuideModal = lazy(() => import('../GameGuideModal'));
 const MissingChoiceModal = lazy(() => import('../MissingChoiceModal'));
 const TempleModal = lazy(() => import('../TempleModal'));
+const DialogueInterface = lazy(() => import('../Dialogue/DialogueInterface').then(module => ({ default: module.DialogueInterface })));
 
 // TODO(FEATURES): Add centralized focus management and keyboard navigation patterns across modals for stronger accessibility (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 
@@ -127,6 +130,21 @@ const GameModals: React.FC<GameModalsProps> = ({
     handleOpenGlossary,
     handleOpenCharacterSheet,
 }) => {
+
+    const handleGenerateDialogueResponse = async (prompt: string): Promise<string> => {
+        // Simple wrapper to call Gemini service.
+        // In a real implementation, we might want to pass more context.
+        const npc = gameState.activeDialogueSession ? NPCS[gameState.activeDialogueSession.npcId] : null;
+        if (!npc) return "...";
+
+        const systemPrompt = npc.initialPersonalityPrompt;
+        const result = await GeminiService.generateNPCResponse(systemPrompt, prompt, gameState.devModelOverride);
+        if (result.data?.text) {
+            dispatch({ type: 'SET_LAST_NPC_INTERACTION', payload: { npcId: npc.id, response: result.data.text } });
+            return result.data.text;
+        }
+        return "...";
+    };
 
     return (
         <AnimatePresence>
@@ -394,6 +412,25 @@ const GameModals: React.FC<GameModalsProps> = ({
                             missingChoice={missingChoiceModal.missingChoice}
                             onClose={onCloseMissingChoice}
                             onConfirm={onConfirmMissingChoice}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Dialogue Interface (Conversation) */}
+            {gameState.isDialogueInterfaceOpen && gameState.activeDialogueSession && gameState.party[0] && (
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Conversation.">
+                        <DialogueInterface
+                            isOpen={gameState.isDialogueInterfaceOpen}
+                            session={gameState.activeDialogueSession}
+                            gameState={gameState}
+                            npc={NPCS[gameState.activeDialogueSession.npcId]}
+                            playerCharacter={gameState.party[0]}
+                            onClose={() => dispatch({ type: 'END_DIALOGUE_SESSION' })}
+                            onUpdateSession={(newSession) => dispatch({ type: 'UPDATE_DIALOGUE_SESSION', payload: { session: newSession } })}
+                            onUpdateGameState={(updates) => { /* TODO: Implement partial updates if needed */ }}
+                            onGenerateResponse={handleGenerateDialogueResponse}
                         />
                     </ErrorBoundary>
                 </Suspense>
