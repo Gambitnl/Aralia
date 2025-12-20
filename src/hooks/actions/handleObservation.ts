@@ -9,6 +9,7 @@ import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn, GetTileTooltipTextFn } from './actionHandlerTypes';
 import { DIRECTION_VECTORS } from '../../config/mapConfig';
+import { resolveAndRegisterEntities } from '../../utils/entityIntegrationUtils';
 
 interface HandleLookAroundProps {
   gameState: GameState;
@@ -49,6 +50,10 @@ export async function handleLookAround({
   if (lookDescResult.data?.text) {
     const descText = lookDescResult.data.text;
     addMessage(descText, 'system');
+
+    // Linker Coherence Check
+    await resolveAndRegisterEntities(descText, gameState, dispatch, addGeminiLog);
+
     const customActionsResult = await GeminiService.generateCustomActions(descText, generalActionContext, gameState.devModelOverride);
     
     addGeminiLog('generateCustomActions', customActionsResult.data?.promptSent || customActionsResult.metadata?.promptSent || "", customActionsResult.data?.rawResponse || customActionsResult.metadata?.rawResponse || customActionsResult.error || "");
@@ -117,6 +122,10 @@ export async function handleInspectSubmapTile({
 
   if (inspectionResult.data?.text) {
     addMessage(inspectionResult.data.text, "system");
+
+    // Linker Coherence Check
+    await resolveAndRegisterEntities(inspectionResult.data.text, gameState, dispatch, addGeminiLog);
+
     const tileKey = `${inspectTileDetails.parentWorldMapCoords.x}_${inspectTileDetails.parentWorldMapCoords.y}_${inspectTileDetails.tileX}_${inspectTileDetails.tileY}`;
     const updatePayload: UpdateInspectedTileDescriptionPayload = {
       tileKey,
@@ -157,6 +166,7 @@ export async function handleAnalyzeSituation({
 
     if (analysisResult.data?.text) {
         addMessage(`DM Insight: "${analysisResult.data.text}"`, 'system');
+        // We don't resolve entities from Analysis - it's meta-game advice.
     } else {
         addMessage("The spirits are silent.", 'system');
     }

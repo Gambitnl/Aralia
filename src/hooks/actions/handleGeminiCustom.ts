@@ -4,7 +4,7 @@
  * Handles 'gemini_custom_action', including social skill checks.
  */
 import React from 'react';
-import { GameState, Action, SuspicionLevel, GoalStatus, KnownFact, Location, NPC } from '../../types';
+import { GameState, Action, SuspicionLevel, GoalStatus, KnownFact } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn, GetCurrentLocationFn, GetCurrentNPCsFn } from './actionHandlerTypes';
@@ -12,7 +12,7 @@ import { NPCS, SKILLS_DATA } from '../../constants';
 import { getAbilityModifierValue } from '../../utils/characterUtils';
 import { assessPlausibility } from '../../utils/socialUtils';
 import { handleImmediateGossip } from './handleWorldEvents';
-import { EntityResolverService } from '../../services/EntityResolverService';
+import { resolveAndRegisterEntities } from '../../utils/entityIntegrationUtils';
 
 interface HandleGeminiCustomProps {
   action: Action;
@@ -159,36 +159,8 @@ export async function handleGeminiCustom({
         }
 
         // --- Linker Coherence Check ---
-        // Scan the generated text for referenced entities that might be missing
-        try {
-          const entitiesToResolve = EntityResolverService.resolveEntitiesInText(outcomeResult.data.text, gameState);
-          for (const ref of entitiesToResolve) {
-            // Ensure they exist (create stubs if needed)
-            const result = await EntityResolverService.ensureEntityExists(ref.type, ref.normalizedName, gameState);
-            if (result.created && result.entity) {
-               // Register the new entity in the state
-               if (result.type === 'location') {
-                 dispatch({
-                   type: 'REGISTER_DYNAMIC_ENTITY',
-                   payload: { entityType: 'location', entity: result.entity as Location }
-                 });
-               } else if (result.type === 'faction') {
-                 dispatch({
-                   type: 'REGISTER_DYNAMIC_ENTITY',
-                   payload: { entityType: 'faction', entity: result.entity as Faction }
-                 });
-               } else if (result.type === 'npc') {
-                 dispatch({
-                   type: 'REGISTER_DYNAMIC_ENTITY',
-                   payload: { entityType: 'npc', entity: result.entity as NPC }
-                 });
-               }
-               addGeminiLog('EntityResolver', `Created new ${result.type}: ${ref.normalizedName}`, JSON.stringify(result.entity));
-            }
-          }
-        } catch (error) {
-           console.error("Entity Resolution Error:", error);
-        }
+        await resolveAndRegisterEntities(outcomeResult.data.text, gameState, dispatch, addGeminiLog);
+
         // TODO(Linker): Enhance entity creation by linking new NPCs to the current location (e.g. location.npcIds.push(newNpc.id)) and establishing relationships.
         // -----------------------------
 
