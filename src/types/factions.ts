@@ -38,6 +38,7 @@ export interface Faction {
   description: string;
   type: FactionType;
   motto?: string;
+  // TODO(Materializer): Refactor Faction interface to integrate FactionVisualSpec for standardized asset handling.
   symbolIcon?: string; // Icon name
   colors: {
     primary: string;
