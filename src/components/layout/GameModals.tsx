@@ -226,6 +226,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                             party={gameState.party}
                             onViewCharacterSheet={handleOpenCharacterSheet}
                             onFixMissingChoice={onFixMissingChoice}
+                            companions={gameState.companions}
                         />
                     </ErrorBoundary>
                 </Suspense>
