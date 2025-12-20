@@ -12,8 +12,9 @@ import { getGameDay, addGameTime } from '../../utils/timeUtils';
 import { SeededRandom } from '../../utils/seededRandom';
 import { processDailyRoutes } from '../economy/TradeRouteManager';
 import { FactionManager } from './FactionManager';
+import { generateNobleIntrigue } from './NobleIntrigueManager';
 
-export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD';
+export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD' | 'NOBLE_INTRIGUE';
 
 export interface WorldEventResult {
   state: GameState;
@@ -482,9 +483,11 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
       const roll = rng.next();
       let result: WorldEventResult;
 
-      if (roll < 0.5) {
+      if (roll < 0.4) {
           result = handleFactionSkirmish(currentState, rng);
-      } else if (roll < 0.8) {
+      } else if (roll < 0.6) {
+          result = generateNobleIntrigue(currentState, rng);
+      } else if (roll < 0.85) {
           result = handleMarketShift(currentState, rng);
       } else {
           result = handleRumorSpread(currentState, rng);

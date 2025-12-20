@@ -23,7 +23,8 @@ import {
   TransportMode,
   CombatState,
   QuestStatus,
-  ItemType
+  ItemType,
+  Faction
 } from '@/types/index';
 
 import {
@@ -125,6 +126,29 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
     higherLevels: "",
     tags: [],
 
+    ...overrides
+  };
+}
+
+/**
+ * Creates a mock Faction object.
+ */
+export function createMockFaction(overrides: Partial<Faction> = {}): Faction {
+  return {
+    id: `faction-${crypto.randomUUID()}`,
+    name: "Mock Faction",
+    description: "A generic mock faction.",
+    type: "NOBLE_HOUSE",
+    colors: { primary: "#000000", secondary: "#ffffff" },
+    ranks: [],
+    allies: [],
+    enemies: [],
+    rivals: [],
+    relationships: {},
+    values: [],
+    hates: [],
+    power: 50,
+    assets: [],
     ...overrides
   };
 }
