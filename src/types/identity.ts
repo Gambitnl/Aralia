@@ -123,7 +123,7 @@ export interface Secret {
   /**
    * Categories for filtering/bonuses.
    */
-  tags: ('political' | 'military' | 'personal' | 'criminal' | 'supernatural')[];
+  tags: ('political' | 'military' | 'personal' | 'criminal' | 'supernatural' | 'financial' | 'magical')[];
 }
 
 /**
