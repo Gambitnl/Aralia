@@ -118,8 +118,8 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
       <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-2xl w-full max-w-2xl p-6 text-gray-100">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-bold text-amber-300">Save to Slot</h2>
-            <p className="text-sm text-gray-400">Choose a slot to overwrite or create a new one.</p>
+            <h2 className="text-2xl font-bold text-amber-300">Chronicle Journey</h2>
+            <p className="text-sm text-gray-400">Preserve your current state in the archives.</p>
           </div>
           <button
             onClick={onClose}
@@ -132,7 +132,7 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
 
         {isSavingDisabled && (
           <div className="bg-red-900/40 border border-red-700 text-red-200 px-4 py-3 rounded-lg mb-4">
-            Saving is currently unavailable. Return to your adventure to create manual saves.
+            The ink is dry. You cannot chronicle your journey at this moment.
           </div>
         )}
 
@@ -158,13 +158,13 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
         </div>
 
         <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 mb-4">
-          <h3 className="text-lg font-semibold text-amber-200 mb-2">Create New Slot</h3>
+          <h3 className="text-lg font-semibold text-amber-200 mb-2">New Entry</h3>
           <div className="flex flex-col md:flex-row gap-2">
             <input
               type="text"
               value={newSlotName}
               onChange={(e) => setNewSlotName(e.target.value)}
-              placeholder="Enter slot name"
+              placeholder="Name this memory..."
               className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-400"
             />
             <button
@@ -180,7 +180,7 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
                   : 'bg-gray-700 text-gray-500 cursor-not-allowed'
               }`}
             >
-              Save New Slot
+              Scribe Entry
             </button>
           </div>
         </div>

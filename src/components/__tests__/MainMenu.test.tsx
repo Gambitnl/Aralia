@@ -50,14 +50,14 @@ describe('MainMenu', () => {
     it('renders the title and basic buttons', () => {
         render(<MainMenu {...defaultProps} />);
         expect(screen.getByText('Aralia RPG')).toBeInTheDocument();
-        expect(screen.getByText('New Game')).toBeInTheDocument();
-        expect(screen.getByText('Load Game')).toBeInTheDocument();
+        expect(screen.getByText('Begin Legend')).toBeInTheDocument();
+        expect(screen.getByText('Resume Journey')).toBeInTheDocument();
         expect(screen.getByText('Lore & Rules')).toBeInTheDocument();
     });
 
-    it('calls onNewGame when New Game button is clicked', () => {
+    it('calls onNewGame when Begin Legend button is clicked', () => {
         render(<MainMenu {...defaultProps} />);
-        fireEvent.click(screen.getByText('New Game'));
+        fireEvent.click(screen.getByText('Begin Legend'));
         expect(defaultProps.onNewGame).toHaveBeenCalledTimes(1);
     });
 
@@ -69,12 +69,13 @@ describe('MainMenu', () => {
 
     it('shows Continue button when a save exists', () => {
         render(<MainMenu {...defaultProps} hasSaveGame={true} latestSaveTimestamp={Date.now()} />);
-        expect(screen.getByText('Continue')).toBeInTheDocument();
+        // Use regex to match text that might be split across elements or have extra whitespace
+        expect(screen.getByText(/Continue Journey/)).toBeInTheDocument();
     });
 
     it('calls onLoadGame when Continue button is clicked', () => {
         render(<MainMenu {...defaultProps} hasSaveGame={true} latestSaveTimestamp={Date.now()} />);
-        fireEvent.click(screen.getByText('Continue'));
+        fireEvent.click(screen.getByText(/Continue Journey/));
         expect(defaultProps.onLoadGame).toHaveBeenCalledTimes(1);
     });
 
@@ -83,15 +84,15 @@ describe('MainMenu', () => {
         expect(screen.getByText('Quick Start (Dev)')).toBeInTheDocument();
     });
 
-    it('opens LoadGameModal when Load Game button is clicked', () => {
+    it('opens LoadGameModal when Resume Journey button is clicked', () => {
         render(<MainMenu {...defaultProps} hasSaveGame={true} />); // Enable button
-        fireEvent.click(screen.getByText('Load Game'));
+        fireEvent.click(screen.getByText('Resume Journey'));
         expect(screen.getByRole('dialog', { name: 'Load Game Modal' })).toBeInTheDocument();
     });
 
-    it('opens SaveSlotSelector when Save Game button is clicked', () => {
+    it('opens SaveSlotSelector when Chronicle Journey button is clicked', () => {
         render(<MainMenu {...defaultProps} />);
-        fireEvent.click(screen.getByText('Save Game'));
+        fireEvent.click(screen.getByText('Chronicle Journey'));
         expect(screen.getByRole('dialog', { name: 'Save Slot Selector' })).toBeInTheDocument();
     });
 });
