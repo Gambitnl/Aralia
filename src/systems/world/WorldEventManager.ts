@@ -7,10 +7,11 @@
  */
 
 import { GameState, GameMessage, WorldRumor, MarketEvent, EconomyState } from '../../types';
-import { applyReputationChange, modifyFactionRelationship } from '../../utils/factionUtils';
+import { modifyFactionRelationship } from '../../utils/factionUtils';
 import { getGameDay, addGameTime } from '../../utils/timeUtils';
 import { SeededRandom } from '../../utils/seededRandom';
 import { processDailyRoutes } from '../economy/TradeRouteManager';
+import { FactionManager } from './FactionManager';
 
 export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD';
 
@@ -184,9 +185,17 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
   if (winnerStanding > 20) { // If player is friendly with winner
      const penalty = -5;
      const reason = `your association with their rival, ${winner.name}`;
-     const result = applyReputationChange(newState, loserId, penalty, reason);
+     // Use new FactionManager
+     const result = FactionManager.applyReputationChange(newState, loserId, penalty, reason);
      newState = { ...newState, playerFactionStandings: result.standings };
+
+     // Add new logs
      logs.push(...result.logs);
+
+     // Add new rumors generated from this reputation change
+     if (result.rumors.length > 0) {
+         newState.activeRumors = [...(newState.activeRumors || []), ...result.rumors];
+     }
   }
 
   return { state: newState, logs };

@@ -11,9 +11,11 @@ import { processWorldEvents } from '../WorldEventManager';
 import { GameState, GamePhase } from '../../../types';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../../../data/factions';
 import { createMockGameState } from '../../../utils/factories';
+import { getGameDay } from '../../../utils/timeUtils';
 
 describe('WorldEventManager', () => {
     const mockDate = new Date('2024-01-01T12:00:00Z');
+    const mockDay = getGameDay(mockDate);
 
     const baseState: GameState = createMockGameState({
         factions: FACTIONS,
@@ -82,8 +84,8 @@ describe('WorldEventManager', () => {
             id: 'old-rumor',
             text: 'Old news',
             type: 'misc' as const,
-            timestamp: 1,
-            expiration: 5, // Expires on day 5
+            timestamp: mockDay - 10,
+            expiration: mockDay - 5, // Already expired
             spreadDistance: 0,
             virality: 0.5
         };
@@ -107,8 +109,8 @@ describe('WorldEventManager', () => {
             id: 'viral-news',
             text: 'War declared!',
             type: 'skirmish' as const,
-            timestamp: 1,
-            expiration: 100,
+            timestamp: mockDay,
+            expiration: mockDay + 100,
             spreadDistance: 0,
             virality: 1.0 // 100% chance to spread at distance 0
         };
