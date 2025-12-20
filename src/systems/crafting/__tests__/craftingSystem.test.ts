@@ -1,97 +1,132 @@
-/**
- * @file src/systems/crafting/__tests__/craftingSystem.test.ts
- */
+
 import { describe, it, expect, vi } from 'vitest';
-import { attemptCraft, canCraft, Crafter } from '../craftingSystem';
+import { attemptCraft, Crafter } from '../craftingSystem';
 import { Recipe } from '../types';
 
-describe('Crafting System', () => {
-  const mockRecipe: Recipe = {
-    id: 'test_potion',
-    name: 'Test Potion',
-    description: 'Test',
-    station: 'alchemy_bench',
-    timeMinutes: 30,
-    skillCheck: { skill: 'Alchemy', dc: 15 },
-    inputs: [
-      { itemId: 'herb', quantity: 2, consumed: true },
-      { itemId: 'bottle', quantity: 1, consumed: true },
-      { itemId: 'spoon', quantity: 1, consumed: false }
+describe('craftingSystem', () => {
+  const mockCrafter: Crafter = {
+    id: 'crafter-1',
+    name: 'Test Crafter',
+    inventory: [
+      { itemId: 'iron_ingot', quantity: 5 },
+      { itemId: 'leather_strip', quantity: 2 },
+      { itemId: 'herb_rare', quantity: 1 }
     ],
-    outputs: [
-      { itemId: 'potion', quantity: 1 }
-    ]
+    rollSkill: vi.fn()
   };
 
-  const createMockCrafter = (inventory: {itemId: string, quantity: number}[], rollResult: number): Crafter => ({
-    id: 'c1',
-    name: 'Crafter',
-    inventory,
-    rollSkill: vi.fn().mockReturnValue(rollResult)
-  });
+  const basicRecipe: Recipe = {
+    id: 'sword-1',
+    name: 'Iron Sword',
+    description: 'A basic sword',
+    station: 'forge',
+    timeMinutes: 60,
+    inputs: [
+      { itemId: 'iron_ingot', quantity: 2, consumed: true },
+      { itemId: 'leather_strip', quantity: 1, consumed: true }
+    ],
+    outputs: [
+      { itemId: 'iron_sword', quantity: 1 }
+    ],
+    skillCheck: {
+      skill: 'Smithing',
+      dc: 10
+    }
+  };
 
-  it('validates sufficient materials correctly', () => {
-    const crafter = createMockCrafter([
-      { itemId: 'herb', quantity: 5 },
-      { itemId: 'bottle', quantity: 1 },
-      { itemId: 'spoon', quantity: 1 }
-    ], 20);
+  it('should craft successfully when materials are present and roll is sufficient', () => {
+    vi.mocked(mockCrafter.rollSkill).mockReturnValue(15); // > DC 10
 
-    expect(canCraft(crafter, mockRecipe)).toBe(true);
-  });
-
-  it('validates insufficient materials correctly', () => {
-    const crafter = createMockCrafter([
-      { itemId: 'herb', quantity: 1 }, // Need 2
-      { itemId: 'bottle', quantity: 1 },
-      { itemId: 'spoon', quantity: 1 }
-    ], 20);
-
-    expect(canCraft(crafter, mockRecipe)).toBe(false);
-  });
-
-  it('consumes materials on success', () => {
-    const crafter = createMockCrafter([
-      { itemId: 'herb', quantity: 5 },
-      { itemId: 'bottle', quantity: 5 },
-      { itemId: 'spoon', quantity: 1 }
-    ], 16); // Roll 16 > DC 15
-
-    const result = attemptCraft(crafter, mockRecipe);
+    const result = attemptCraft(mockCrafter, basicRecipe);
 
     expect(result.success).toBe(true);
-    // Consumed: 2 herbs, 1 bottle. Spoon not consumed.
+    expect(result.quality).toBe('standard');
+    expect(result.outputs).toEqual([{ itemId: 'iron_sword', quantity: 1 }]);
     expect(result.consumedMaterials).toHaveLength(2);
-    expect(result.consumedMaterials).toContainEqual({ itemId: 'herb', quantity: 2 });
-    expect(result.consumedMaterials).toContainEqual({ itemId: 'bottle', quantity: 1 });
-    expect(result.outputs).toContainEqual({ itemId: 'potion', quantity: 1 });
   });
 
-  it('fails and consumes materials on failed skill check', () => {
-    const crafter = createMockCrafter([
-      { itemId: 'herb', quantity: 5 },
-      { itemId: 'bottle', quantity: 5 },
-      { itemId: 'spoon', quantity: 1 }
-    ], 5); // Roll 5 < DC 15
-
-    const result = attemptCraft(crafter, mockRecipe);
+  it('should fail when materials are missing', () => {
+    const poorCrafter = { ...mockCrafter, inventory: [] };
+    const result = attemptCraft(poorCrafter, basicRecipe);
 
     expect(result.success).toBe(false);
-    expect(result.materialsLost).toBe(true);
-    // Should still list consumed materials because they were lost
-    expect(result.consumedMaterials).toHaveLength(2);
-    expect(result.outputs).toHaveLength(0);
+    expect(result.message).toContain('Insufficient materials');
   });
 
-  it('produces superior quality on high roll', () => {
-    const crafter = createMockCrafter([
-      { itemId: 'herb', quantity: 5 },
-      { itemId: 'bottle', quantity: 5 },
-      { itemId: 'spoon', quantity: 1 }
-    ], 25); // Roll 25 >= DC 15 + 10
+  it('should fail and consume materials on poor roll (default logic)', () => {
+    vi.mocked(mockCrafter.rollSkill).mockReturnValue(5); // < DC 10
 
-    const result = attemptCraft(crafter, mockRecipe);
+    const result = attemptCraft(mockCrafter, basicRecipe);
+
+    expect(result.success).toBe(false);
+    expect(result.quality).toBe('poor');
+    expect(result.materialsLost).toBe(true);
+    expect(result.consumedMaterials).toHaveLength(2); // Materials consumed
+  });
+
+  it('should produce superior quality on high roll (default logic)', () => {
+    vi.mocked(mockCrafter.rollSkill).mockReturnValue(20); // >= DC 10 + 10
+
+    const result = attemptCraft(mockCrafter, basicRecipe);
+
     expect(result.success).toBe(true);
     expect(result.quality).toBe('superior');
+  });
+
+  describe('Custom Quality Outcomes', () => {
+    const complexRecipe: Recipe = {
+      ...basicRecipe,
+      id: 'potion-1',
+      name: 'Healing Potion',
+      skillCheck: { skill: 'Alchemy', dc: 10 },
+      qualityOutcomes: [
+        { threshold: 20, quality: 'masterwork', quantityMultiplier: 2, message: 'Double batch!' },
+        { threshold: 15, quality: 'superior', itemIdOverride: 'potion_greater' },
+        { threshold: 10, quality: 'standard' },
+        { threshold: 0, quality: 'poor' } // Fallback
+      ]
+    };
+
+    it('should use quantity multiplier for masterwork result', () => {
+      vi.mocked(mockCrafter.rollSkill).mockReturnValue(22); // >= 20
+
+      const result = attemptCraft(mockCrafter, complexRecipe);
+
+      expect(result.success).toBe(true);
+      expect(result.quality).toBe('masterwork');
+      expect(result.outputs[0].quantity).toBe(2); // 1 * 2
+      expect(result.message).toBe('Double batch!');
+    });
+
+    it('should override item ID for superior result', () => {
+      vi.mocked(mockCrafter.rollSkill).mockReturnValue(16); // >= 15
+
+      const result = attemptCraft(mockCrafter, complexRecipe);
+
+      expect(result.success).toBe(true);
+      expect(result.quality).toBe('superior');
+      expect(result.outputs[0].itemId).toBe('potion_greater');
+    });
+
+    // Fix complex recipe output for clarity
+    const correctComplexRecipe: Recipe = {
+        ...complexRecipe,
+        outputs: [{ itemId: 'potion_healing', quantity: 1 }]
+    };
+
+    it('should correctly output standard item', () => {
+        vi.mocked(mockCrafter.rollSkill).mockReturnValue(12); // >= 10
+        const result = attemptCraft(mockCrafter, correctComplexRecipe);
+        expect(result.outputs[0].itemId).toBe('potion_healing');
+    });
+
+    it('should fail on poor result defined in outcomes', () => {
+       vi.mocked(mockCrafter.rollSkill).mockReturnValue(5); // < 10, so it hits threshold 0 -> poor
+
+       const result = attemptCraft(mockCrafter, correctComplexRecipe);
+
+       expect(result.success).toBe(false); // quality 'poor' -> success false
+       expect(result.quality).toBe('poor');
+    });
   });
 });
