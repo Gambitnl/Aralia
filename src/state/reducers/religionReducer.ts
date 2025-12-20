@@ -1,7 +1,7 @@
 
 import { GameState, DeityAction } from '../../types';
 import { AppAction } from '../actionTypes';
-import { calculateFavorChange, getDeity, evaluateAction } from '../../utils/religionUtils';
+import { calculateFavorChange, getDeity, evaluateAction, grantBlessing } from '../../utils/religionUtils';
 import { DEITIES } from '../../data/deities';
 
 export function religionReducer(state: GameState, action: AppAction): Partial<GameState> {
@@ -104,6 +104,82 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     ...state.messages,
                     ...messages
                 ]
+            };
+        }
+
+        case 'USE_TEMPLE_SERVICE': {
+            const { templeId, deityId, cost, effect } = action.payload;
+
+            // Deduct gold
+            if (state.gold < cost) return {}; // Should be checked by UI but safety first
+
+            const newGold = state.gold - cost;
+            const messages = [...state.messages];
+            const timestamp = Date.now();
+
+            let party = [...state.party];
+            let favorUpdates = { ...state.divineFavor };
+
+            // Apply Effects
+            if (effect === 'restore_hp_full') {
+                party = party.map(char => ({
+                    ...char,
+                    hp: char.maxHp,
+                    statusEffects: char.statusEffects.filter(e => e.type !== 'wounded')
+                }));
+                messages.push({
+                    id: timestamp,
+                    text: 'The divine light washes over the party, restoring all health.',
+                    sender: 'system',
+                    timestamp: new Date(timestamp)
+                });
+            } else if (effect === 'remove_condition_poisoned') {
+                party = party.map(char => ({
+                    ...char,
+                    statusEffects: char.statusEffects.filter(e => e.type !== 'poisoned' && e.type !== 'diseased')
+                }));
+                messages.push({
+                    id: timestamp,
+                    text: 'The purification ritual cleanses toxins from your bodies.',
+                    sender: 'system',
+                    timestamp: new Date(timestamp)
+                });
+            } else if (effect === 'remove_curse') {
+                 party = party.map(char => ({
+                    ...char,
+                    statusEffects: char.statusEffects.filter(e => e.type !== 'cursed')
+                }));
+                messages.push({
+                    id: timestamp,
+                    text: 'A heavy weight lifts as the curse is broken.',
+                    sender: 'system',
+                    timestamp: new Date(timestamp)
+                });
+            } else if (effect === 'grant_favor_small' && deityId) {
+                 const existing = favorUpdates[deityId] || { deityId, favor: 0, history: [], blessings: [], transgressions: [] };
+                 favorUpdates[deityId] = calculateFavorChange(existing, { description: 'Temple Donation', favorChange: 5 });
+                 messages.push({
+                    id: timestamp,
+                    text: 'You feel a sense of approval from the deity.',
+                    sender: 'system',
+                    timestamp: new Date(timestamp)
+                });
+            } else if (effect === 'grant_favor_large' && deityId) {
+                 const existing = favorUpdates[deityId] || { deityId, favor: 0, history: [], blessings: [], transgressions: [] };
+                 favorUpdates[deityId] = calculateFavorChange(existing, { description: 'Major Temple Donation', favorChange: 15 });
+                 messages.push({
+                    id: timestamp,
+                    text: 'The very air hums with divine gratitude.',
+                    sender: 'system',
+                    timestamp: new Date(timestamp)
+                });
+            }
+
+            return {
+                gold: newGold,
+                party,
+                messages,
+                divineFavor: favorUpdates
             };
         }
 

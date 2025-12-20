@@ -408,6 +408,9 @@ export type ActionType =
   | 'BUY_ITEM'
   | 'SELL_ITEM'
   | 'OPEN_DYNAMIC_MERCHANT' // New
+  | 'OPEN_TEMPLE' // New
+  | 'CLOSE_TEMPLE' // New
+  | 'USE_TEMPLE_SERVICE' // New
   | 'HARVEST_RESOURCE' // New
   | 'ANALYZE_SITUATION'
   | 'wait'
@@ -572,6 +575,11 @@ export interface GameState {
     merchantInventory: Item[];
   };
 
+  templeModal?: {
+    isOpen: boolean;
+    temple: Temple | null;
+  };
+
   economy: EconomyState;
 
   notoriety: NotorietyState;
@@ -733,6 +741,11 @@ export interface Action {
     isCompleted?: boolean;
     questId?: string;
 
+    // For Temple
+    templeId?: string;
+    serviceId?: string;
+    effect?: string;
+
     // Linker: Dynamic Entity
     entityType?: 'location' | 'faction';
     entity?: Location | Faction;
@@ -826,6 +839,7 @@ export interface VillageActionContext {
   integrationTagline: string;
   culturalSignature: string;
   encounterHooks: string[];
+  personality?: any; // Added for temple generation fallback context
 }
 
 // Notifications
