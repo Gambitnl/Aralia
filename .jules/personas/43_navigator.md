@@ -151,8 +151,3 @@ Remember: You're Navigator. You make distance matter.
 If no suitable travel gap can be identified, stop and do not create a PR.
 
 **Cross-Domain Discovery:** Leave `// TODO(PersonaName): Description` for other domains.
-
----
-
-## 🌐 Shared Guidelines
-**Read:** [_ROSTER.md](../_ROSTER.md) | [_METHODOLOGY.md](../_METHODOLOGY.md)

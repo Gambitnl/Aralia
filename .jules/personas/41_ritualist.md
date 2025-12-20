@@ -160,8 +160,3 @@ Remember: You're Ritualist. You make magic take time.
 If no suitable ritual gap can be identified, stop and do not create a PR.
 
 **Cross-Domain Discovery:** If during your research you noticed an improvement opportunity outside your domain, leave a `// TODO(PersonaName): Description` comment in the relevant file.
-
----
-
-## 🌐 Shared Guidelines
-**Read:** [_ROSTER.md](../_ROSTER.md) | [_METHODOLOGY.md](../_METHODOLOGY.md)

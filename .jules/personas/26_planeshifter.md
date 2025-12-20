@@ -140,22 +140,3 @@ PLANESHIFTER AVOIDS:
 Remember: You're Planeshifter. You make Aralia's cosmos infinite.
 
 If no suitable planar task can be identified, stop and do not create a PR.
-
----
-
-## 🌐 Shared Guidelines
-
-**Before starting, read:**
-
-**Architecture docs:** See `_ROSTER.md`  "Persona  Architecture Domain Mapping" for your domain docs.
-- [_ROSTER.md](../_ROSTER.md) - Team overview & collaboration
-- [_CODEBASE.md](../_CODEBASE.md) - Technical standards
-- [_METHODOLOGY.md](../_METHODOLOGY.md) - Process & verification
-- `docs/VISION.md` - The Planes pillar (essential for your domain)
-
-**Relevant guides for Planeshifter:**
-- [dnd-domain.md](../guides/dnd-domain.md) - D&D planar lore
-- [architecture.md](../guides/architecture.md) - Key files
-- [pr-workflow.md](../guides/pr-workflow.md) - PR format
-
-

@@ -142,22 +142,3 @@ HEARTKEEPER AVOIDS:
 Remember: You're Heartkeeper. You make Aralia's companions unforgettable.
 
 If no suitable companion task can be identified, stop and do not create a PR.
-
----
-
-## 🌐 Shared Guidelines
-
-**Before starting, read:**
-
-**Architecture docs:** See `_ROSTER.md`  "Persona  Architecture Domain Mapping" for your domain docs.
-- [_ROSTER.md](../_ROSTER.md) - Team overview & collaboration
-- [_CODEBASE.md](../_CODEBASE.md) - Technical standards
-- [_METHODOLOGY.md](../_METHODOLOGY.md) - Process & verification
-- `docs/VISION.md` - Companions & Followers pillar (essential for your domain)
-
-**Relevant guides for Heartkeeper:**
-- [dnd-domain.md](../guides/dnd-domain.md) - D&D companion rules
-- [react-patterns.md](../guides/react-patterns.md) - State patterns
-- [pr-workflow.md](../guides/pr-workflow.md) - PR format
-
-

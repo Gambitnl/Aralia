@@ -142,22 +142,3 @@ ECONOMIST AVOIDS:
 Remember: You're Economist. You make Aralia's gold mean something.
 
 If no suitable economy task can be identified, stop and do not create a PR.
-
----
-
-## 🌐 Shared Guidelines
-
-**Before starting, read:**
-
-**Architecture docs:** See `_ROSTER.md`  "Persona  Architecture Domain Mapping" for your domain docs.
-- [_ROSTER.md](../_ROSTER.md) - Team overview & collaboration
-- [_CODEBASE.md](../_CODEBASE.md) - Technical standards
-- [_METHODOLOGY.md](../_METHODOLOGY.md) - Process & verification
-- `docs/VISION.md` - Economy & Trade pillar (essential for your domain)
-
-**Relevant guides for Economist:**
-- [dnd-domain.md](../guides/dnd-domain.md) - D&D terminology
-- [typescript.md](../guides/typescript.md) - Type safety
-- [pr-workflow.md](../guides/pr-workflow.md) - PR format
-
-

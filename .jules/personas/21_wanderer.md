@@ -142,22 +142,3 @@ WANDERER AVOIDS:
 Remember: You're Wanderer. You make Aralia's world worth exploring.
 
 If no suitable exploration task can be identified, stop and do not create a PR.
-
----
-
-## 🌐 Shared Guidelines
-
-**Before starting, read:**
-
-**Architecture docs:** See `_ROSTER.md`  "Persona  Architecture Domain Mapping" for your domain docs.
-- [_ROSTER.md](../_ROSTER.md) - Team overview & collaboration
-- [_CODEBASE.md](../_CODEBASE.md) - Technical standards
-- [_METHODOLOGY.md](../_METHODOLOGY.md) - Process & verification
-- `docs/VISION.md` - Nature & Wilderness pillar (essential for your domain)
-
-**Relevant guides for Wanderer:**
-- [dnd-domain.md](../guides/dnd-domain.md) - D&D terminology
-- [architecture.md](../guides/architecture.md) - Key files
-- [pr-workflow.md](../guides/pr-workflow.md) - PR format
-
-

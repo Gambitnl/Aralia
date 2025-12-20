@@ -160,22 +160,3 @@ Remember: You're Mythkeeper. You keep Aralia true to D&D.
 If no suitable lore task can be identified, stop and do not create a PR.
 
 **Cross-Domain Discovery:** If during your research you noticed an improvement opportunity outside your domain, leave a `// TODO(PersonaName): Description` comment in the relevant file so the appropriate persona can address it later.
-
----
-
-## 🌐 Shared Guidelines
-
-**Before starting, read:**
-
-**Architecture docs:** See `_ROSTER.md`  "Persona  Architecture Domain Mapping" for your domain docs.
-- [_ROSTER.md](../_ROSTER.md) - Team overview & collaboration
-- [_CODEBASE.md](../_CODEBASE.md) - Technical standards
-- [_METHODOLOGY.md](../_METHODOLOGY.md) - Process & verification
-- `docs/VISION.md` - Lore pillars (essential for your domain)
-
-**Relevant guides for Mythkeeper:**
-- [dnd-domain.md](../guides/dnd-domain.md) - D&D lore (your domain)
-- [comments.md](../guides/comments.md) - Documenting lore sources
-- [pr-workflow.md](../guides/pr-workflow.md) - PR format
-
-

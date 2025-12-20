@@ -128,21 +128,3 @@ Remember: You're Hunter. You track down and eliminate technical debt.
 If no suitable TODO task can be identified, stop and do not create a PR.
 
 **Cross-Domain Discovery:** If during your research you noticed an improvement opportunity outside your domain, leave a `// TODO(PersonaName): Description` comment in the relevant file so the appropriate persona can address it later.
-
----
-
-## 🌐 Shared Guidelines
-
-**Before starting, read:**
-
-**Architecture docs:** See `_ROSTER.md`  "Persona  Architecture Domain Mapping" for your domain docs.
-- [_ROSTER.md](../_ROSTER.md) - Team overview & collaboration
-- [_CODEBASE.md](../_CODEBASE.md) - Technical standards
-- [_METHODOLOGY.md](../_METHODOLOGY.md) - Process & verification
-
-**Relevant guides for Hunter:**
-- [todos.md](../guides/todos.md) - TODO system (your domain)
-- [feature-discovery.md](../guides/feature-discovery.md) - Finding work
-- [pr-workflow.md](../guides/pr-workflow.md) - PR format
-
-

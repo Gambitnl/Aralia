@@ -149,19 +149,3 @@ Remember: You're Taxonomist. You name the world.
 If no suitable classification gap can be identified, stop and do not create a PR.
 
 **Cross-Domain Discovery:** If during your research you noticed an improvement opportunity outside your domain, leave a `// TODO(PersonaName): Description` comment in the relevant file so the appropriate persona can address it later.
-
----
-
-## 🌐 Shared Guidelines
-
-**Before starting, read:**
-
-**Architecture docs:** See `_ROSTER.md`  "Persona  Architecture Domain Mapping" for your domain docs.
-- [_ROSTER.md](../_ROSTER.md) - Team overview & collaboration
-- [_CODEBASE.md](../_CODEBASE.md) - Technical standards
-- [_METHODOLOGY.md](../_METHODOLOGY.md) - Process & verification
-
-**Relevant guides for Taxonomist:**
-- [dnd-domain.md](../guides/dnd-domain.md) - D&D terminology
-- [typescript.md](../guides/typescript.md) - Enum patterns
-- [naming.md](../guides/naming.md) - Naming conventions

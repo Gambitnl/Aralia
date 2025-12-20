@@ -143,8 +143,3 @@ Remember: You're Dialogist. You make conversation meaningful.
 If no suitable dialogue gap can be identified, stop and do not create a PR.
 
 **Cross-Domain Discovery:** Leave `// TODO(PersonaName): Description` for other domains.
-
----
-
-## 🌐 Shared Guidelines
-**Read:** [_ROSTER.md](../_ROSTER.md) | [_METHODOLOGY.md](../_METHODOLOGY.md)
