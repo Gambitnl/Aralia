@@ -464,7 +464,15 @@ export async function generateLocationDescription(
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
   const systemInstruction = "Describe a new location in a high fantasy RPG. Response MUST be EXTREMELY BRIEF: 1-2 sentences MAX. Give ONLY key sights, sounds, or atmosphere. No fluff.";
-  const prompt = `Player arrives at "${locationName}". Context: ${context}. Provide an EXTREMELY BRIEF description (1-2 sentences MAX) of the area's key features.`;
+
+  // Structured prompt for better narrative consistency
+  const prompt = `## NARRATIVE TASK
+Describe the location "${locationName}" as the player arrives. Focus on atmosphere, key features, and sensory details (sound/smell).
+
+${context}
+
+## OUTPUT
+Provide an EXTREMELY BRIEF description (1-2 sentences MAX). No fluff.`;
 
   return await generateText(prompt, systemInstruction, false, 'generateLocationDescription', devModelOverride, FAST_MODEL);
 }
@@ -478,11 +486,18 @@ export async function generateWildernessLocationDescription(
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
   const systemInstruction = "You are a concise storyteller describing a wilderness location in a fantasy RPG. Response MUST be 2-3 sentences. Focus on immediate sensory details. No long descriptions.";
-  const prompt = `Player (${playerContext}) has moved to a new spot.
-    Location: A wilderness area at sub-tile (${subMapCoords.x},${subMapCoords.y}) within world sector (${worldMapCoords.x},${worldMapCoords.y}).
-    Biome: ${biomeName}.
-    Broader Context: ${worldMapTileTooltip || 'No additional context.'}
-    Provide a brief, 2-3 sentence description.`;
+
+  // Structured prompt for better narrative consistency
+  const prompt = `## NARRATIVE TASK
+Describe the wilderness area the player has moved into.
+Biome: ${biomeName}
+Coordinates: World(${worldMapCoords.x},${worldMapCoords.y}) Sub(${subMapCoords.x},${subMapCoords.y})
+Broader Region: ${worldMapTileTooltip || 'None'}
+
+${playerContext}
+
+## OUTPUT
+Provide a brief, 2-3 sentence description focusing on immediate sensory details (weather, terrain, wildlife sounds).`;
 
   return await generateText(prompt, systemInstruction, false, 'generateWildernessLocationDescription', devModelOverride, FAST_MODEL);
 }
