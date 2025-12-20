@@ -42,6 +42,9 @@ export const grantBlessing = (
     currentFavor: DivineFavor,
     blessing: Blessing
 ): DivineFavor => {
+    // TODO(Religion): Add mechanical application of blessing.effect here.
+    // Currently we just store the blessing object, but the effects need to be
+    // registered with the Actor/Character system (e.g. as StatusEffects).
     return {
         ...currentFavor,
         blessings: [...currentFavor.blessings, blessing]
