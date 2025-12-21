@@ -1,6 +1,6 @@
 import React from 'react';
 import { Quest, QuestStatus } from '../../types';
-import { formatGameDateTime } from '@/utils/timeUtils';
+import { formatQuestDate } from './questUtils';
 
 const statusBadgeStyles: Record<QuestStatus, string> = {
   [QuestStatus.Active]: 'bg-amber-900/40 text-amber-200 border-amber-500',
@@ -12,11 +12,6 @@ const statusText: Record<QuestStatus, string> = {
   [QuestStatus.Active]: 'Active',
   [QuestStatus.Completed]: 'Completed',
   [QuestStatus.Failed]: 'Failed',
-};
-
-const formatQuestDate = (timestamp?: number): string => {
-  if (!timestamp) return '—';
-  return formatGameDateTime(new Date(timestamp));
 };
 
 const calculateProgress = (quest: Quest): number => {

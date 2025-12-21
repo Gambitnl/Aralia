@@ -12,35 +12,27 @@ def verify_quest_log():
 
         try:
             # Wait for ActionPane
-            page.wait_for_selector("text=Actions", timeout=10000)
+            expect(page.get_by_text("Actions")).to_be_visible(timeout=10000)
 
             # Click Menu button
             menu_btn = page.get_by_role("button", name="Menu")
             if menu_btn.count() > 0:
                 print("Clicking Menu button...")
                 menu_btn.click()
-                page.wait_for_timeout(1000) # Wait for animation
-
-            # The image shows "Quests" button is clearly visible in the menu.
-            # But the script failed to find it by role "button" and name "Quests".
-            # The button might be using a generic role or structure.
-            # Let's try get_by_text("Quests")
+                # Wait for Quests button to appear
+                expect(page.get_by_text("Quests", exact=True)).to_be_visible()
 
             quest_btn = page.get_by_text("Quests", exact=True)
 
             if quest_btn.count() > 0:
                 print("Clicking Quests button (by text)...")
                 quest_btn.click()
-                page.wait_for_timeout(1000)
 
                  # Check for modal header
-                if page.get_by_text("Quest Log").count() > 0:
-                    print("Quest Log modal is visible!")
-                    page.screenshot(path="verification/quest_log.png")
-                    print("Screenshot saved.")
-                else:
-                    print("Quest Log modal NOT found after click.")
-                    page.screenshot(path="verification/failed_quest_log_after_click.png")
+                expect(page.get_by_text("Quest Log")).to_be_visible()
+                print("Quest Log modal is visible!")
+                page.screenshot(path="verification/quest_log.png")
+                print("Screenshot saved.")
 
             else:
                  print("Quests button not found!")

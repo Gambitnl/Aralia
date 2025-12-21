@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Quest, QuestStatus } from '../../types';
 import { QuestCard } from './QuestCard';
 import { QuestHistoryRow } from './QuestHistoryRow';
@@ -10,11 +10,11 @@ interface QuestLogProps {
 }
 
 const QuestLog: React.FC<QuestLogProps> = ({ isOpen, onClose, quests }) => {
-  if (!isOpen) return null;
+  const activeQuests = useMemo(() => quests.filter(q => q.status === QuestStatus.Active), [quests]);
+  const completedQuests = useMemo(() => quests.filter(q => q.status === QuestStatus.Completed), [quests]);
+  const failedQuests = useMemo(() => quests.filter(q => q.status === QuestStatus.Failed), [quests]);
 
-  const activeQuests = quests.filter(q => q.status === QuestStatus.Active);
-  const completedQuests = quests.filter(q => q.status === QuestStatus.Completed);
-  const failedQuests = quests.filter(q => q.status === QuestStatus.Failed);
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
