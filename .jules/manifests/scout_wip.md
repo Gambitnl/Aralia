@@ -9,7 +9,7 @@ Tracks active items Scout is monitoring. Updated each Scout iteration.
 | PR # | Persona | Triggered | Reviewed | Bridged | Jules Ack | Status |
 |------|---------|-----------|----------|---------|-----------|--------|
 | #651 | Heartkeeper | 21:14 | ✅ | 21:14 | ✅ | Waiting for Jules (Code pending) |
-| #650 | Castellan | 21:15 | ✅ | 21:15 | ✅ | **Ready for Core** (Fixed) |
+| #650 | Castellan | 21:15 | ✅ | 21:15 | ✅ | **Merged** (Core) |
 | #646 | Planeshifter | 21:15 | ✅ | 21:15 | ❌ | **Ready for Core** (Fixed) |
 | #644 | Architect | 21:15 | ✅ | 21:15 | ✅ | **Ready for Core** (Fixed) |
 | #643 | Bard | 21:15 | ✅ | 21:15 | ✅ | **Ready for Core** (Fixed) |
@@ -37,11 +37,13 @@ Tracks active items Scout is monitoring. Updated each Scout iteration.
 
 ---
 
-## Resolved This Session
+## Conflict Registry
 
-| PR # | Issue | Resolution | Time |
-|------|-------|------------|------|
-| — | — | — | — |
+| File / Component | Conflicting PRs | Arbitration Verdict | Status |
+|------------------|-----------------|---------------------|--------|
+| `package-lock.json` | #650, #646, #642, #635, #634, #632, #629, #628, #626, #625, #624, #623, #622, #621, #620, #619, #618, #617, #616, #615 | **Ignore.** Core will regenerate dependencies. | 🟢 Ack (by multiple) |
+| `src/components/ui/CoinPurseDisplay.tsx` | #641 (Bolt) vs #644 (Architect) | **Winner: #641 (Bolt).** #644 must revert changes. | 🟢 Resolved (#644 reverted) |
+| `verification/` folder | #643 (Bard) vs [Repo Integrity] | **Restoration.** Bard must restore deleted tests. | 🟢 Resolved (#643 restored) |
 
 ---
 
