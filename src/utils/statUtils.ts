@@ -62,6 +62,19 @@ export const calculateFinalAbilityScores = (
     }
   });
 
+  // 3. Apply overrides (e.g. Gauntlets of Ogre Power set Str to 19)
+  // Logic: score = Math.max(current, override)
+  Object.values(equippedItems).forEach(item => {
+    if (item && item.statOverrides) {
+      (Object.keys(item.statOverrides) as Array<keyof AbilityScores>).forEach(stat => {
+        const overrideVal = item.statOverrides![stat];
+        if (overrideVal) {
+          scores[stat] = Math.max(scores[stat], overrideVal);
+        }
+      });
+    }
+  });
+
   return scores;
 };
 

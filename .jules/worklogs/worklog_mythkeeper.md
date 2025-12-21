@@ -1,3 +1,3 @@
-# Mythkeeper Journal
+# Mythkeeper's Worklog
 
-## 2024-05-22 - Missing Deity Data **Learning:** The codebase completely lacks any deity or pantheon data, which is a core pillar of the Vision. **Action:** Creating `src/data/deities` and defining the `Deity` type to establish the foundation for the "Faith & Religion" system.
+## 2024-05-23 - Lore Authenticity & Data Structures **Learning:** The codebase previously contained a "MYTHKEEPER PROPOSAL" file (`src/data/deities/index.ts`) that was actually the active source of truth, yet it contained tentative domain assignments (e.g., Avandra having 'Freedom'). This highlights the need to finalize "proposals" into "standards" promptly to avoid technical debt where temporary lore becomes permanent. **Action:** I finalized the deity data, removing the proposal header and standardizing domains to 5e (2014/2024) norms (e.g., Avandra getting 'Trickery' and 'Peace'). I also noticed `Dragonborn` data was a mix of PHB 2014 and 2024; I standardized it towards the 2024 philosophy in flavor but retained the 2014 Ability Score Increases to ensure mechanical stability until the Background system handles stats globally.

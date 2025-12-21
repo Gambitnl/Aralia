@@ -4,8 +4,10 @@
  */
 import React, { useEffect, useRef } from 'react';
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN } from '../config/geminiConfig';
+import { useGameState } from '../state/GameContext';
+import { generateVillageTemple } from '../utils/templeUtils';
 
-type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses';
+type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple';
 
 interface DevMenuProps {
   isOpen: boolean;
@@ -18,6 +20,7 @@ interface DevMenuProps {
 
 const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewRateLimitError, currentModelOverride, onModelChange }) => {
   const firstFocusableElementRef = useRef<HTMLButtonElement>(null);
+  const { dispatch, state } = useGameState();
 
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -43,7 +46,36 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
     onModelChange(value === 'default' ? null : value);
   };
 
-  const devActionButtons: Array<{ label: string; action: DevMenuActionType; style?: string }> = [
+  const openTestTemple = () => {
+      // Force open a temple modal with a dummy temple
+      const temple = generateVillageTemple('dev_test', {
+          wealth: 'rich', culture: 'scholarly', population: 'large', primaryIndustry: 'magic', architecturalStyle: 'magical', biomeStyle: 'temperate', governingBody: 'council'
+      } as any, 12345);
+
+      // Dispatch the action to open it.
+      // We need to use the reducer action pattern.
+      // Note: The townReducer handles 'OPEN_TEMPLE', but 'GameModals' reads 'gameState.templeModal'.
+      // We need to ensure 'OPEN_TEMPLE' is dispatched.
+      // But 'DevMenu' receives 'onDevAction' which bubbles up to App.tsx usually.
+      // Here we have access to 'dispatch' via context, so we can dispatch directly!
+
+      // We need to construct the action carefully.
+      // The reducer expects `villageContext` in payload.
+      dispatch({
+          type: 'OPEN_TEMPLE',
+          label: 'Test Temple',
+          payload: {
+              villageContext: {
+                  worldX: 0, worldY: 0, biomeId: 'test', buildingType: 'shop_temple', description: 'Test Temple',
+                  integrationProfileId: 'test', integrationPrompt: '', integrationTagline: '', culturalSignature: '', encounterHooks: [],
+                  personality: { wealth: 'rich', culture: 'scholarly' }
+              }
+          }
+      });
+      onClose();
+  };
+
+  const devActionButtons: Array<{ label: string; action: DevMenuActionType; style?: string; onClick?: () => void }> = [
     { label: 'Go to Main Menu', action: 'main_menu', style: 'bg-blue-600 hover:bg-blue-500' },
     { label: 'Go to Character Creator', action: 'char_creator', style: 'bg-green-600 hover:bg-green-500' },
     { label: 'Force Save Game', action: 'save', style: 'bg-yellow-500 hover:bg-yellow-400 text-gray-900' },
@@ -54,6 +86,7 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
     { label: 'View Gemini Prompt Log', action: 'toggle_log_viewer', style: 'bg-purple-600 hover:bg-purple-500' },
     { label: 'NPC Interaction Test Plan', action: 'toggle_npc_test_plan', style: 'bg-cyan-600 hover:bg-cyan-500' },
     { label: 'Inspect Noble Houses', action: 'inspect_noble_houses', style: 'bg-orange-600 hover:bg-orange-500' },
+    { label: 'Test Temple UI', action: 'test_temple', style: 'bg-amber-600 hover:bg-amber-500', onClick: openTestTemple },
   ];
 
   return (
@@ -84,7 +117,7 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
               <button
                 key={btn.action}
                 ref={index === 0 ? firstFocusableElementRef : null}
-                onClick={() => onDevAction(btn.action)}
+                onClick={btn.onClick || (() => onDevAction(btn.action))}
                 className={`relative w-full text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors text-lg ${btn.style || 'bg-gray-600 hover:bg-gray-500'}`}
               >
                 {btn.label}

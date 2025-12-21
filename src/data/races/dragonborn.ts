@@ -7,7 +7,6 @@
 import {
   Race,
   DraconicAncestorType,
-  DraconicDamageType,
   DraconicAncestryInfo,
 } from '../../types'; // Path relative to src/data/races/
 
@@ -39,18 +38,18 @@ export const DRAGONBORN_DATA: Race = {
   id: 'dragonborn',
   name: 'Dragonborn',
   description:
-    'Born of dragons, dragonborn are proud and honorable, with innate draconic abilities. Their appearance reflects their chosen ancestry. (Example ASIs: +2 STR, +1 CHA)',
+    'Born of dragons, dragonborn are proud and honorable, with innate draconic abilities. Their appearance reflects their chosen ancestry.',
   abilityBonuses: [
-    { ability: 'Strength', bonus: 2 },
-    { ability: 'Charisma', bonus: 1 },
-  ],
+      { ability: 'Strength', bonus: 2 },
+      { ability: 'Charisma', bonus: 1 },
+  ], // Kept 2014 ASIs for now to ensure mechanical balance until Backgrounds system fully handles stats.
   traits: [
     'Speed: 30 feet',
-    'Draconic Ancestry (Choose ancestor: determines Damage Resistance and Breath Weapon type)',
-    'Breath Weapon (Attack action replacement, Dex save for half, Prof Bonus uses/Long Rest, 1d10 damage, scales)', // Specifics (range, shape) depend on ancestry. Scaling & uses not fully implemented.
-    'Damage Resistance (Type based on ancestry)',
-    'Darkvision (60ft)', // Some interpretations grant Darkvision, others do not. Included for playability.
-    'Draconic Flight (Gained at Lvl 5)', // Placeholder for higher-level feature.
+    'Draconic Ancestry: You have a draconic ancestor that determines your breath weapon and damage resistance.',
+    'Breath Weapon: You can use your Breath Weapon as part of the Attack action. Each creature in the area must make a Dexterity saving throw (DC 8 + Con mod + Prof Bonus).',
+    'Damage Resistance: You have resistance to the damage type associated with your Draconic Ancestry.',
+    'Darkvision: You have Darkvision with a range of 60 feet.',
+    'Draconic Flight (Level 5): You sprout wings and gain a flying speed equal to your walking speed.', // Fizban's/2024 Variant option, kept as placeholder for progression.
   ],
   imageUrl: 'https://i.ibb.co/mrxb2Hwz/Dragonborn.png',
 };

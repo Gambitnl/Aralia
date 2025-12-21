@@ -1,0 +1,138 @@
+import { MarketEvent, MarketEventType } from '../../types/economy';
+import { SeededRandom } from '../seededRandom';
+
+export const MARKET_EVENT_TEMPLATES = [
+  {
+    name: 'Bumper Harvest',
+    description: 'Farms are overflowing with produce, driving food prices down.',
+    affectedCategories: ['food', 'ingredients'],
+    priceModifier: 0.5,
+    durationDays: 7,
+    type: MarketEventType.SURPLUS
+  },
+  {
+    name: 'War shortage',
+    description: 'Military conflicts have restricted trade routes, increasing weapon costs.',
+    affectedCategories: ['weapon', 'armor', 'ammo'],
+    priceModifier: 1.5,
+    durationDays: 14,
+    type: MarketEventType.SHORTAGE
+  },
+  {
+    name: 'Magic Surge',
+    description: 'A surge of raw magic has made enchanting materials unstable and rare.',
+    affectedCategories: ['potion', 'scroll', 'magic_item'],
+    priceModifier: 2.0,
+    durationDays: 5,
+    type: MarketEventType.SHORTAGE
+  },
+  {
+    name: 'Trade Fair',
+    description: 'Merchants from all over have gathered, creating competitive pricing.',
+    affectedCategories: ['all'],
+    priceModifier: 0.8,
+    durationDays: 3,
+    type: MarketEventType.FESTIVAL
+  },
+  {
+    name: 'Plague Outbreak',
+    description: 'Sickness spreads, making medicine precious.',
+    affectedCategories: ['medicine', 'potion', 'herb'],
+    priceModifier: 3.0,
+    durationDays: 10,
+    type: MarketEventType.BUST
+  },
+  {
+    name: 'Bandit Activity',
+    description: 'Roads are dangerous, increasing transport risks.',
+    affectedCategories: ['luxury', 'gold'], // Bandits target wealth
+    priceModifier: 1.2,
+    durationDays: 7,
+    type: MarketEventType.BUST
+  }
+];
+
+// Interface for the templates used above
+interface MarketEventTemplate {
+  name: string;
+  description: string;
+  affectedCategories: string[];
+  priceModifier: number;
+  durationDays: number;
+  type: MarketEventType;
+}
+
+/**
+ * Helper interface for events that includes the template data needed for calculation
+ */
+export interface EnrichedMarketEvent extends MarketEvent {
+  affectedCategories: string[];
+  priceModifier: number;
+}
+
+/**
+ * Generates active market events based on the current game time
+ * This is deterministic - same time always yields same events
+ */
+export function generateMarketEvents(gameTime: number): EnrichedMarketEvent[] {
+  // Use day count as seed component to change events daily
+  const dayCount = Math.floor(gameTime / (24 * 60 * 60 * 1000));
+
+  // Create a seeded random based on the day
+  const events: EnrichedMarketEvent[] = [];
+
+  // Look back up to 14 days to see if an event started then and is still active
+  for (let i = 0; i < 14; i++) {
+    const checkDay = dayCount - i;
+    const rng = new SeededRandom(checkDay);
+
+    // 20% chance of an event starting on any given day
+    if (rng.nextFloat() < 0.2) {
+      const template = rng.pick(MARKET_EVENT_TEMPLATES);
+
+      // Check if it's still active
+      if (i < template.durationDays) {
+        events.push({
+          id: `evt_${checkDay}_${template.name.replace(/\s+/g, '_')}`,
+          type: template.type,
+          startTime: checkDay * 24 * 60 * 60 * 1000,
+          duration: template.durationDays,
+          intensity: 1.0,
+          locationId: undefined, // Global by default
+          // Extra properties for calculation logic
+          affectedCategories: template.affectedCategories,
+          priceModifier: template.priceModifier,
+          // Just in case these are needed for UI
+          // We can cast to any if the strict MarketEvent type forbids them,
+          // but since EnrichedMarketEvent extends MarketEvent, we should be fine
+          // if we pass this object where EnrichedMarketEvent is expected.
+          // However, to satisfy strict MarketEvent where name/desc aren't there:
+          // We might need to handle that. But for now let's assume Enriched is used internally.
+          name: template.name,
+          description: template.description
+        } as any);
+      }
+    }
+  }
+
+  return events;
+}
+
+/**
+ * Gets the total price modifier for a category based on active events
+ */
+export function getEventPriceModifier(category: string, events: MarketEvent[]): number {
+  let modifier = 1.0;
+
+  for (const event of events) {
+    // We cast to EnrichedMarketEvent to access the extra properties
+    // In a real DB backed system these would be looked up from a template ID
+    const enriched = event as unknown as EnrichedMarketEvent;
+
+    if (enriched.affectedCategories && (enriched.affectedCategories.includes('all') || enriched.affectedCategories.includes(category))) {
+      modifier *= enriched.priceModifier;
+    }
+  }
+
+  return modifier;
+}

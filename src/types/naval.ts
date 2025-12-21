@@ -126,4 +126,44 @@ export interface CargoManifest {
   items: CargoItem[];
   totalWeight: number;
   capacityUsed: number;
+  supplies: {
+    food: number; // Days of rations
+    water: number; // Days of water
+  };
+}
+
+// ============================================================================
+// VOYAGE DEFINITIONS
+// ============================================================================
+
+export type VoyageStatus = 'Docked' | 'Sailing' | 'Lost' | 'Combat' | 'Storm';
+
+export interface VoyageState {
+  shipId: string;
+  status: VoyageStatus;
+  daysAtSea: number;
+  distanceTraveled: number; // Miles
+  distanceToDestination: number; // Miles
+  currentWeather: string; // e.g., 'Calm', 'Storm', 'Fog'
+  suppliesConsumed: {
+    food: number;
+    water: number;
+  };
+  log: VoyageLogEntry[];
+}
+
+export interface VoyageLogEntry {
+  day: number;
+  event: string;
+  type: 'Info' | 'Warning' | 'Combat' | 'Discovery' | 'Fluff';
+}
+
+export interface VoyageEvent {
+  id: string;
+  name: string;
+  description: string;
+  type: 'Weather' | 'Encounter' | 'Discovery' | 'Crew' | 'Fluff';
+  probability: number; // 0-1
+  conditions?: (state: VoyageState) => boolean;
+  effect: (state: VoyageState, ship: Ship) => { log: string; type: VoyageLogEntry['type'] };
 }
