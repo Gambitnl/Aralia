@@ -48,6 +48,12 @@ export interface NobleHouse extends Faction {
   familyName: string;
 
   /**
+   * The house motto (e.g., "Winter is Coming").
+   * Overrides Faction.motto to be required.
+   */
+  motto: string;
+
+  /**
    * 1-10 Scale
    */
   wealth: number;
