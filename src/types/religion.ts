@@ -5,6 +5,7 @@
  * divine favor, and temple services.
  */
 import { AbilityScoreName } from './index';
+import { MechanicalEffect } from './effects';
 
 export type Alignment =
   | 'Lawful Good' | 'Neutral Good' | 'Chaotic Good'
@@ -59,7 +60,11 @@ export interface Blessing {
   name: string;
   description: string;
   duration?: number;
-  effect: any;
+  /**
+   * The mechanical effect granted by this blessing.
+   * Can be a single effect or a list of effects.
+   */
+  effect: MechanicalEffect | MechanicalEffect[];
 }
 
 export interface TempleServiceRequirement {

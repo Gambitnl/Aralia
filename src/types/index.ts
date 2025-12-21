@@ -92,6 +92,7 @@ export * from './underdark';
 export * from './history';
 export * from './economy'; // Export new economy types
 export * from './languages'; // New taxonomy export
+export * from './effects'; // Export universal effect types
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
