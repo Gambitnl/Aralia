@@ -19,23 +19,51 @@ export class HealingCommand extends BaseEffectCommand {
       // 1. Roll healing
       const healingRoll = this.rollHealing(this.effect.healing.dice)
 
-      // 2. Calculate new HP (capped at maxHP)
-      // TODO: Honor healing.isTemporaryHp by granting temp HP (respect higher-value rule) instead of normal healing when flagged (see docs/tasks/spell-system-overhaul/COMPLETE-STUB-COMMANDS.md; if this block is moved/refactored/modularized, update the COMPLETE-STUB-COMMANDS entry path).
-      const newHP = Math.min(target.maxHP, target.currentHP + healingRoll)
-      const actualHealing = newHP - target.currentHP
+      // 2. Calculate new HP (capped at maxHP) or Temp HP
+      if (this.effect.healing?.isTemporaryHp) {
+        // Temporary HP rules:
+        // 1. Temp HP does not stack.
+        // 2. If you have Temp HP and gain more, you choose whether to keep the old or take the new.
+        //    (In this automated system, we default to "keep highest" which is the standard optimal play)
+        const currentTemp = target.tempHP || 0
 
-      // 3. Update character
-      currentState = this.updateCharacter(currentState, target.id, {
-        currentHP: newHP
-      })
+        if (healingRoll > currentTemp) {
+          currentState = this.updateCharacter(currentState, target.id, {
+            tempHP: healingRoll
+          })
 
-      // 4. Add combat log entry
-      currentState = this.addLogEntry(currentState, {
-        type: 'heal',
-        message: `${target.name} is healed for ${actualHealing} HP (${target.currentHP} → ${newHP})`,
-        characterId: target.id,
-        data: { value: actualHealing }
-      })
+          currentState = this.addLogEntry(currentState, {
+            type: 'heal',
+            message: `${target.name} gains ${healingRoll} Temporary HP (replacing ${currentTemp})`,
+            characterId: target.id,
+            data: { value: healingRoll, type: 'temporary' }
+          })
+        } else {
+           currentState = this.addLogEntry(currentState, {
+            type: 'heal',
+            message: `${target.name} gains ${healingRoll} Temporary HP but already has ${currentTemp} (No change)`,
+            characterId: target.id,
+            data: { value: 0, type: 'temporary' }
+          })
+        }
+      } else {
+        // Standard Healing
+        const newHP = Math.min(target.maxHP, target.currentHP + healingRoll)
+        const actualHealing = newHP - target.currentHP
+
+        // 3. Update character
+        currentState = this.updateCharacter(currentState, target.id, {
+          currentHP: newHP
+        })
+
+        // 4. Add combat log entry
+        currentState = this.addLogEntry(currentState, {
+          type: 'heal',
+          message: `${target.name} is healed for ${actualHealing} HP (${target.currentHP} → ${newHP})`,
+          characterId: target.id,
+          data: { value: actualHealing }
+        })
+      }
     }
 
     return currentState
