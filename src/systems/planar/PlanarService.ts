@@ -34,9 +34,9 @@ export class PlanarService {
         // For this task, we will allow an explicit override or default.
 
         // Temporary: check if we are in a known planar ID directly (if stored in locationId for simple maps)
-        if (gameState.currentLocationId.startsWith('feywild_')) return PLANES['feywild'];
-        if (gameState.currentLocationId.startsWith('shadowfell_')) return PLANES['shadowfell'];
-        if (gameState.currentLocationId.startsWith('hell_')) return PLANES['nine_hells'];
+        if (gameState.currentLocationId.startsWith('feywild_')) return PLANES['feywild'] || MATERIAL_PLANE;
+        if (gameState.currentLocationId.startsWith('shadowfell_')) return PLANES['shadowfell'] || MATERIAL_PLANE;
+        if (gameState.currentLocationId.startsWith('hell_')) return PLANES['nine_hells'] || MATERIAL_PLANE;
 
         return getPlane('material') || MATERIAL_PLANE;
     }

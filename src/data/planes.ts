@@ -9,16 +9,14 @@ const TRAIT_MEMORY_LOSS: PlanarTrait = {
   id: 'memory_loss',
   name: 'Memory Loss',
   description: 'Creatures who leave this plane may lose all memory of their time spent here.',
-  type: 'memory',
-  mechanics: 'DC 15 Wisdom save upon leaving. Failure wipes memories of the visit.'
+  type: 'memory'
 };
 
 const TRAIT_DESPAIR: PlanarTrait = {
   id: 'despair',
   name: 'Shadowfell Despair',
   description: 'A pervasive melancholy that saps the will to live.',
-  type: 'environmental',
-  mechanics: 'DC 10 Wisdom save after Long Rest. Failure results in Disadvantage on ability checks/attacks until next Long Rest.'
+  type: 'environmental'
 };
 
 const TRAIT_INFERNAL_HIERARCHY: PlanarTrait = {
@@ -89,6 +87,7 @@ export const FEYWILD: Plane = {
   atmosphereDescription: 'The colors are too bright, the shadows too purple. Every emotion feels like a shouting match.',
   alignment: 'Chaotic Neutral',
   effects: {
+    onPlaneExit: 'DC 15 Wisdom save upon leaving. Failure wipes memories of the visit.',
     affectsMagic: [
       {
         school: 'Illusion',
@@ -165,7 +164,7 @@ export const NINE_HELLS: Plane = {
       name: 'Hellfire',
       description: 'Fire that burns even the soul.',
       saveDC: 15,
-      damage: '2d10 fire + 2d10 necrotic'
+      damage: '4d10 fire' // Simplified for hazard system compatibility
     }
   ],
   emotionalValence: 'negative',
