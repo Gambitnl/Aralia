@@ -8,6 +8,11 @@ import { Item, ItemType } from '../../types/items';
 import { Crafter } from './craftingSystem';
 import { CraftingResult } from './types';
 
+// --- Constants ---
+const BASE_ALCHEMY_DC = 12;
+const DC_INCREASE_PER_REAGENT = 2;
+const CRITICAL_SUCCESS_DC_MARGIN = 10;
+
 // --- Types ---
 
 export type ReagentProperty =
@@ -31,9 +36,18 @@ export interface AlchemyResult extends CraftingResult {
   discoveredProperties: string[]; // Properties revealed to the player
 }
 
+export interface AlchemyRecipe {
+    /** Minimum counts of properties required */
+    requirements: Partial<Record<ReagentProperty, number>>;
+    /** Output item ID */
+    outputItemId: string;
+    /** Base success message */
+    successMessage: string;
+    /** If true, presence of 'reactive' property makes result volatile */
+    reactivityMakesVolatile?: boolean;
+}
+
 // --- Data ---
-// In a full system, this would be in `data/reagents.ts` or on the Item definitions.
-// For the framework, we map specific IDs or use a fallback.
 
 const REAGENT_DATABASE: Record<string, ReagentProperty[]> = {
   'herb_red_root': ['curative', 'binding'],
@@ -43,6 +57,31 @@ const REAGENT_DATABASE: Record<string, ReagentProperty[]> = {
   'dust_glow': ['reactive', 'concentrated'],
   'vial_glass': ['inert'] // Container
 };
+
+const ALCHEMY_RECIPES: AlchemyRecipe[] = [
+    {
+        requirements: { curative: 2 },
+        outputItemId: 'potion_healing',
+        successMessage: 'The mixture turns a vibrant red.',
+        reactivityMakesVolatile: true
+    },
+    {
+        requirements: { toxic: 2 },
+        outputItemId: 'poison_vial',
+        successMessage: 'A dark, fuming liquid forms.'
+    },
+    {
+        requirements: { reactive: 2, concentrated: 1 },
+        outputItemId: 'bomb_fire',
+        successMessage: 'The solution glows with dangerous heat.'
+    }
+];
+
+// --- Type Guards ---
+
+function isReagentProperty(value: string): value is ReagentProperty {
+    return ['curative', 'reactive', 'toxic', 'binding', 'concentrated', 'inert'].includes(value);
+}
 
 /**
  * Analyzes an item to determine its alchemical properties.
@@ -55,11 +94,12 @@ export function getReagentProperties(item: Item): ReagentProperty[] {
 
   // 2. Check item tags/properties
   if (item.properties) {
-    // Filter item properties that match ReagentProperty
-    const props = item.properties.filter(p =>
-      ['curative', 'reactive', 'toxic', 'binding', 'concentrated', 'inert'].includes(p)
-    ) as ReagentProperty[];
-
+    const props: ReagentProperty[] = [];
+    for (const p of item.properties) {
+        if (isReagentProperty(p)) {
+            props.push(p);
+        }
+    }
     if (props.length > 0) return props;
   }
 
@@ -101,7 +141,7 @@ export function attemptAlchemy(crafter: Crafter, reagents: Item[]): AlchemyResul
   // Prefer tool skill, fallback to raw intelligence. Handle 0 as a valid roll result.
   const toolRoll = crafter.rollSkill('Alchemist\'s Supplies');
   const roll = toolRoll > 0 ? toolRoll : crafter.rollSkill('Intelligence');
-  const dc = 12 + (reagents.length * 2); // Harder with more ingredients
+  const dc = BASE_ALCHEMY_DC + (reagents.length * DC_INCREASE_PER_REAGENT); // Harder with more ingredients
 
   let outcomeType: AlchemyOutcomeType = 'sludge';
   let outputItemId: string | undefined;
@@ -115,51 +155,52 @@ export function attemptAlchemy(crafter: Crafter, reagents: Item[]): AlchemyResul
     return acc;
   }, {} as Record<ReagentProperty, number>);
 
-  // Logic:
-  // Curative x2 = Healing Potion
-  // Toxic x2 = Poison
-  // Reactive + X = Volatile X
+  // Check recipes
+  let matchedRecipe: AlchemyRecipe | undefined;
 
-  if (counts['curative'] >= 2) {
-    outputItemId = 'potion_healing';
-    outcomeType = 'success';
-    message = 'The mixture turns a vibrant red.';
+  // Simple matching: First match wins (could be improved to 'best match' later)
+  for (const recipe of ALCHEMY_RECIPES) {
+      let match = true;
+      for (const [prop, minCount] of Object.entries(recipe.requirements)) {
+          if ((counts[prop as ReagentProperty] || 0) < minCount!) {
+              match = false;
+              break;
+          }
+      }
+      if (match) {
+          matchedRecipe = recipe;
+          break;
+      }
+  }
 
-    if (counts['reactive']) {
-      outcomeType = 'volatile';
-      message = 'The mixture bubbles violently! Unstable healing potion created.';
-      // Could output a 'potion_healing_volatile' if it existed, or just standard with side effect text
-    }
-  } else if (counts['toxic'] >= 2) {
-    outputItemId = 'poison_vial'; // Hypothetical item
-    outcomeType = 'success';
-    message = 'A dark, fuming liquid forms.';
-  } else if (counts['reactive'] >= 2 && counts['concentrated']) {
-    outputItemId = 'bomb_fire'; // Hypothetical
-    outcomeType = 'success';
-    message = 'The solution glows with dangerous heat.';
+  if (matchedRecipe) {
+      outputItemId = matchedRecipe.outputItemId;
+      outcomeType = 'success';
+      message = matchedRecipe.successMessage;
+
+      if (matchedRecipe.reactivityMakesVolatile && counts['reactive']) {
+          outcomeType = 'volatile';
+          message = 'The mixture bubbles violently! Unstable healing potion created.';
+      }
   } else {
-    // No match
-    outcomeType = 'sludge';
-    message = 'The mixture turns into a foul-smelling gray sludge.';
+      outcomeType = 'sludge';
+      message = 'The mixture turns into a foul-smelling gray sludge.';
   }
 
   // 5. Apply Skill Results
   if (outcomeType !== 'sludge') {
     if (roll < dc) {
       // Failure to stabilize
-      if (outcomeType === 'volatile' || counts['reactive']) {
-        // Explosion!
-        outcomeType = 'sludge'; // Or 'explosion'
+      const isVolatileFailure = outcomeType === 'volatile' || counts['reactive'];
+      outcomeType = 'sludge';
+      outputItemId = undefined;
+
+      if (isVolatileFailure) {
         message = 'The mixture destabilizes and evaporates violently! (Failure)';
-        outputItemId = undefined;
       } else {
-        // Just ruined
-        outcomeType = 'sludge';
         message = 'You failed to bind the reagents properly. (Failure)';
-        outputItemId = undefined;
       }
-    } else if (roll >= dc + 10) {
+    } else if (roll >= dc + CRITICAL_SUCCESS_DC_MARGIN) {
       // Critical Success
       quantity = 2;
       message += ' (Masterful synthesis!)';
@@ -171,7 +212,7 @@ export function attemptAlchemy(crafter: Crafter, reagents: Item[]): AlchemyResul
 
   return {
     success: !!outputItemId && outcomeType !== 'sludge',
-    quality: roll >= dc + 10 ? 'superior' : (roll >= dc ? 'standard' : 'poor'),
+    quality: roll >= dc + CRITICAL_SUCCESS_DC_MARGIN ? 'superior' : (roll >= dc ? 'standard' : 'poor'),
     outputs,
     consumedMaterials: consumed,
     materialsLost: true, // Always lose ingredients in alchemy

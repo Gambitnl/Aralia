@@ -65,13 +65,13 @@ describe('AlchemySystem', () => {
 
   describe('attemptAlchemy', () => {
     it('should create a healing potion from 2 curative items', () => {
-      const crafter = createMockCrafter(15); // High roll
+      const crafter = createMockCrafter(18); // High roll (DC is 12 + 4 = 16)
       const reagents = [RED_ROOT, RED_ROOT]; // 2x Curative
 
       const result = attemptAlchemy(crafter, reagents);
 
       expect(result.success).toBe(true);
-      expect(result.outputs[0].itemId).toBe('potion_healing');
+      expect(result.outputs).toEqual([{ itemId: 'potion_healing', quantity: 1 }]);
       expect(result.outcomeType).toBe('success');
     });
 
@@ -109,13 +109,13 @@ describe('AlchemySystem', () => {
     });
 
     it('should handle critical success', () => {
-        const crafter = createMockCrafter(25); // Super high
+        const crafter = createMockCrafter(30); // Super high (DC 16 + 10 margin = 26 needed)
         const reagents = [RED_ROOT, RED_ROOT];
 
         const result = attemptAlchemy(crafter, reagents);
 
         expect(result.quality).toBe('superior');
-        expect(result.outputs[0].quantity).toBe(2);
+        expect(result.outputs).toEqual([{ itemId: 'potion_healing', quantity: 2 }]);
     });
   });
 });
