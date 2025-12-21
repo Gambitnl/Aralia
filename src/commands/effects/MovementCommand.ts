@@ -68,7 +68,7 @@ export class MovementCommand extends BaseEffectCommand {
     /**
      * Pushes a target away from the caster.
      *
-     * implementation:
+     * @remarks
      * Calculates a vector from caster to target and moves the target along that line.
      * Stops early if the target hits a wall or another creature.
      *
@@ -130,7 +130,7 @@ export class MovementCommand extends BaseEffectCommand {
     /**
      * Pulls a target toward the caster.
      *
-     * Implementation:
+     * @remarks
      * Calculates a vector from target to caster.
      * Stops early if the target hits a wall, another creature, or would occupy the caster's space.
      *
@@ -194,11 +194,12 @@ export class MovementCommand extends BaseEffectCommand {
     /**
      * Teleports a target to a specific or selected destination.
      *
-     * Logic:
-     * 1. Checks for an explicit destination in the effect.
-     * 2. If valid and within range, uses it.
-     * 3. If explicit fails or is missing, falls back to `findAvailableDestination`.
-     * 4. Clamps destination to map bounds and checks collision.
+     * @remarks
+     * The fallback sequence for determining the destination is:
+     * 1. Resolve: Check for an explicit destination in the effect.
+     * 2. Clamp: Restrict destination to valid map bounds.
+     * 3. Validate: Check if the destination is occupied.
+     * 4. Fallback: If blocked, attempt to find the nearest available valid tile.
      *
      * @param state - Current state.
      * @param target - The character teleporting.
