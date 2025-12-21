@@ -59,7 +59,7 @@ export class AreaEffectTracker {
         results.push(...entryResults);
 
         // Process Movement Within third
-        const movementResults = this.processMovementWithin(character, newPosition, previousPosition, currentRound);
+        const movementResults = this.processMovementWithin(character, newPosition, previousPosition);
         results.push(...movementResults);
 
         return results;
@@ -73,8 +73,7 @@ export class AreaEffectTracker {
     public processMovementWithin(
         character: CombatCharacter,
         newPosition: Position,
-        previousPosition: Position,
-        currentRound: number
+        previousPosition: Position
     ): TriggerResult[] {
         const results: TriggerResult[] = [];
 
@@ -90,20 +89,28 @@ export class AreaEffectTracker {
                     effect.trigger?.type === 'on_move_in_area'
                 );
 
-                for (const effect of moveEffects) {
-                    if (!shouldTriggerForFrequency(effect.trigger?.frequency, zone, character.id)) {
-                        continue;
-                    }
+                // Calculate Chebyshev distance (tiles moved)
+                const dx = Math.abs(newPosition.x - previousPosition.x);
+                const dy = Math.abs(newPosition.y - previousPosition.y);
+                const distanceInTiles = Math.max(dx, dy);
 
-                    if (!matchesTargetFilter(effect.condition?.targetFilter, character)) {
-                        continue;
-                    }
+                // Trigger once per tile (5 feet) moved
+                for (let i = 0; i < distanceInTiles; i++) {
+                    for (const effect of moveEffects) {
+                        if (!shouldTriggerForFrequency(effect.trigger?.frequency, zone, character.id)) {
+                            continue;
+                        }
 
-                    results.push({
-                        triggered: true,
-                        effects: convertSpellEffectToProcessed(effect),
-                        triggerType: 'on_move_in_area'
-                    });
+                        if (!matchesTargetFilter(effect.condition?.targetFilter, character)) {
+                            continue;
+                        }
+
+                        results.push({
+                            triggered: true,
+                            effects: convertSpellEffectToProcessed(effect),
+                            triggerType: 'on_move_in_area'
+                        });
+                    }
                 }
             }
         }
