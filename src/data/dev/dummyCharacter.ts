@@ -2,11 +2,11 @@
  * @file src/data/dev/dummyCharacter.ts
  * Defines the dummy character data for development and testing purposes.
  */
-import { PlayerCharacter, AbilityScores, Skill, LimitedUses, SpellSlots, SpellbookData, Item } from '../../types';
+import { PlayerCharacter, AbilityScores, Skill, LimitedUses, SpellSlots, SpellbookData, Item, Race, Class as CharClass } from '../../types';
 import { getAbilityModifierValue, calculateArmorClass, calculateFixedRacialBonuses } from '../../utils/statUtils';
 import { FEATURES } from '../../config/features';
 
-import { ALL_RACES_DATA, RACE_DATA_BUNDLE } from '../races/index.ts';
+import { ALL_RACES_DATA } from '../races/index.ts';
 import { CLASSES_DATA } from '../classes';
 import { SKILLS_DATA } from '../skills';
 import { ITEMS, WEAPONS_DATA } from '../items';
@@ -94,13 +94,15 @@ export function getDummyInitialInventory(allItems: Record<string, Item>): Item[]
 
 export const initialInventoryForDummyCharacter = getDummyInitialInventory({ ...WEAPONS_DATA, ...ITEMS });
 
-
-function initializeDummyCharacterDataInternal(): PlayerCharacter[] {
-    const allRaces = ALL_RACES_DATA;
-    // Define RACES_DATA using the imported ALL_RACES_DATA if needed, but we use allRaces directly
-    const allClasses = CLASSES_DATA;
-    const allSkills = SKILLS_DATA;
-
+/**
+ * Initializes dummy characters using the provided data.
+ * This function is pure(ish) - it returns a new array of characters based on inputs.
+ */
+export function initializeDummyCharacterData(
+    allRaces: Record<string, Race>,
+    allClasses: Record<string, CharClass>,
+    allSkills: Record<string, Skill>
+): PlayerCharacter[] {
     // --- Create Fighter ---
     const dummyFighterRace = allRaces[DUMMY_FIGHTER_RACE_ID];
     const dummyFighterClass = allClasses[DUMMY_FIGHTER_CLASS_ID];
@@ -189,9 +191,16 @@ function initializeDummyCharacterDataInternal(): PlayerCharacter[] {
     return [tempFighter, tempCleric];
 }
 
-// Perform initialization immediately (or lazily if we wanted, but immediate is fine here as this file is specific to dev dummy)
-const initializedDummyParty = initializeDummyCharacterDataInternal();
-DUMMY_PARTY_FOR_DEV.push(...initializedDummyParty);
+// Internal function to populate the global DUMMY_PARTY_FOR_DEV using imports
+// This keeps the side effect contained here, but allows the exported function
+// to remain pure and testable with mocks.
+function initializeInternal() {
+    const initializedDummyParty = initializeDummyCharacterData(ALL_RACES_DATA, CLASSES_DATA, SKILLS_DATA);
+    DUMMY_PARTY_FOR_DEV.push(...initializedDummyParty);
+}
+
+// Perform initialization immediately
+initializeInternal();
 
 
 export const USE_DUMMY_CHARACTER_FOR_DEV = FEATURES.ENABLE_DEV_TOOLS;
@@ -201,13 +210,4 @@ export { DUMMY_PARTY_FOR_DEV };
 export function setInitializedDummyCharacter(party: PlayerCharacter[]) {
     DUMMY_PARTY_FOR_DEV.length = 0; // Clear existing array
     DUMMY_PARTY_FOR_DEV.push(...party); // Push new characters
-}
-
-// Keep the old export for backward compatibility if needed, but explicit imports are preferred
-export function initializeDummyCharacterData(
-    allRaces: any,
-    allClasses: any,
-    allSkills: any
-): PlayerCharacter[] {
-    return initializeDummyCharacterDataInternal();
 }
