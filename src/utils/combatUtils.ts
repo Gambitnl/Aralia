@@ -8,7 +8,8 @@
 import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect } from '../types/combat';
 import { PlayerCharacter, Monster, Item } from '../types';
 import { Spell, DamageType } from '../types/spells'; // Explicit import to avoid conflicts
-import { CLASSES_DATA, MONSTERS_DATA } from '../constants';
+import { CLASSES_DATA } from '../data/classes';
+import { MONSTERS_DATA } from '../data/monsters';
 import { createAbilityFromSpell } from './spellAbilityFactory';
 import { isWeaponProficient } from './weaponUtils';
 import { generateId } from './idGenerator';

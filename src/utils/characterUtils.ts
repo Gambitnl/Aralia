@@ -18,7 +18,15 @@ import {
   MagicInitiateSource,
   FeatChoice,
 } from '../types';
-import { RACES_DATA, GIANT_ANCESTRIES, TIEFLING_LEGACIES, CLASSES_DATA, DRAGONBORN_ANCESTRIES, SKILLS_DATA } from '../constants';
+import { ALL_RACES_DATA as RACES_DATA, RACE_DATA_BUNDLE } from '../data/races';
+import { CLASSES_DATA } from '../data/classes';
+import { SKILLS_DATA } from '../data/skills';
+
+const {
+  dragonbornAncestries: DRAGONBORN_ANCESTRIES,
+  goliathGiantAncestries: GIANT_ANCESTRIES,
+  tieflingLegacies: TIEFLING_LEGACIES,
+} = RACE_DATA_BUNDLE;
 import { FEATS_DATA } from '../data/feats/featsData';
 
 /**
