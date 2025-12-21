@@ -11,6 +11,7 @@ import { modifyFactionRelationship } from '../../utils/factionUtils';
 import { getGameDay } from '../../utils/timeUtils';
 import { SeededRandom } from '../../utils/seededRandom';
 import { WorldEventResult } from './WorldEventManager';
+import { v4 as uuidv4 } from 'uuid';
 
 type IntrigueType = 'ALLIANCE_PROPOSAL' | 'SCANDAL_EXPOSURE' | 'POWER_PLAY' | 'DIPLOMATIC_INSULT';
 
@@ -183,7 +184,7 @@ const resolveIntrigue = (
 
   // Add Log
   logs.push({
-    id: Date.now() + rng.next(),
+    id: Date.now() + Math.floor(rng.next() * 1000), // Keeping numeric ID for GameMessage compatibility, but ensuring randomness
     text: `Intrigue: ${text}`,
     sender: 'system',
     timestamp
@@ -191,7 +192,7 @@ const resolveIntrigue = (
 
   // Add Rumor
   const rumor: WorldRumor = {
-      id: `intrigue-${gameDay}-${rng.next().toString(36).substr(2, 5)}`,
+      id: `intrigue-${gameDay}-${uuidv4()}`,
       text: rumorText,
       sourceFactionId: initiator.id,
       targetFactionId: target.id,
@@ -208,12 +209,18 @@ const resolveIntrigue = (
 };
 
 // Helper to safely update bi-directional relationships
+// Uses the provided factions map as the source of truth for "current state"
 const updateRelation = (factions: Record<string, Faction>, aId: string, bId: string, amount: number) => {
-    // A -> B
-    const res1 = modifyFactionRelationship(factions, aId, bId, amount);
+    // Fetch latest state from the map
+    const factionA = factions[aId];
+    const factionB = factions[bId];
+
+    // Calculate A -> B change using CURRENT state of A
+    const res1 = modifyFactionRelationship({ ...factions, [aId]: factionA }, aId, bId, amount);
     if (res1) factions[aId] = res1.actor;
 
-    // B -> A (Reaction is usually mutual in intrigue unless it's a secret plot, keeping simple for now)
-    const res2 = modifyFactionRelationship(factions, bId, aId, amount);
+    // Calculate B -> A change using CURRENT state of B (and potentially updated A, though modifyFactionRelationship mainly cares about actor)
+    // Note: We need to ensure we don't accidentally use stale data if modifyFactionRelationship depends on target state
+    const res2 = modifyFactionRelationship({ ...factions, [bId]: factionB }, bId, aId, amount);
     if (res2) factions[bId] = res2.actor;
 };

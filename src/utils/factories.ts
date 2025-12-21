@@ -32,6 +32,7 @@ import {
 } from '@/types/combat';
 
 import { CommandContext } from '@/commands/base/SpellCommand';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Creates a mock Spell object with sensible defaults.
@@ -48,7 +49,7 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
   };
 
   return {
-    id: `spell-${crypto.randomUUID()}`,
+    id: `spell-${uuidv4()}`,
     name: "Mock Spell",
     aliases: [],
     level: 1,
@@ -135,7 +136,7 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
  */
 export function createMockFaction(overrides: Partial<Faction> = {}): Faction {
   return {
-    id: `faction-${crypto.randomUUID()}`,
+    id: `faction-${uuidv4()}`,
     name: "Mock Faction",
     description: "A generic mock faction.",
     type: "NOBLE_HOUSE",
@@ -161,17 +162,17 @@ export function createMockFaction(overrides: Partial<Faction> = {}): Faction {
 export function createMockCommandContext(overrides: Partial<CommandContext> = {}): CommandContext {
   // Use existing factories for complex sub-objects to ensure validity
   const caster = createMockCombatCharacter({
-    id: `caster-${crypto.randomUUID()}`,
+    id: `caster-${uuidv4()}`,
     name: 'Mock Caster'
   });
 
   const target = createMockCombatCharacter({
-    id: `target-${crypto.randomUUID()}`,
+    id: `target-${uuidv4()}`,
     name: 'Mock Target'
   });
 
   return {
-    spellId: `spell-${crypto.randomUUID()}`,
+    spellId: `spell-${uuidv4()}`,
     spellName: 'Mock Spell',
     castAtLevel: 1,
     caster,
@@ -217,7 +218,7 @@ export function createMockPlayerCharacter(overrides: Partial<PlayerCharacter> = 
   };
 
   return {
-    id: `char-${crypto.randomUUID()}`,
+    id: `char-${uuidv4()}`,
     name: "Mock Hero",
     race: mockRace,
     class: mockClass,
@@ -381,7 +382,7 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
   };
 
   const defaults: CombatCharacter = {
-    id: `combat-char-${crypto.randomUUID()}`,
+    id: `combat-char-${uuidv4()}`,
     name: "Mock Combatant",
     level: 1,
     team: 'player',
@@ -468,7 +469,7 @@ export function createMockCombatState(overrides: Partial<CombatState> = {}): Com
  */
 export function createMockItem(overrides: Partial<Item> = {}): Item {
   return {
-    id: `item-${crypto.randomUUID()}`,
+    id: `item-${uuidv4()}`,
     name: "Mock Item",
     type: ItemType.Treasure, // Default to a valid enum
     description: "A generic mock item.",
@@ -481,7 +482,7 @@ export function createMockItem(overrides: Partial<Item> = {}): Item {
  */
 export function createMockQuest(overrides: Partial<Quest> = {}): Quest {
   return {
-    id: `quest-${crypto.randomUUID()}`,
+    id: `quest-${uuidv4()}`,
     title: "Mock Quest",
     description: "A quest to test the quest system.",
     status: QuestStatus.Active,
@@ -498,7 +499,7 @@ export function createMockQuest(overrides: Partial<Quest> = {}): Quest {
 export function createMockMonster(overrides: Partial<Monster> = {}): Monster {
   // @ts-ignore - Partial implementation for tests
   return {
-    id: `monster-${crypto.randomUUID()}`,
+    id: `monster-${uuidv4()}`,
     name: "Mock Monster",
     type: "beast",
     cr: "1",

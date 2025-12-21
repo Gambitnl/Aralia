@@ -1,8 +1,26 @@
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { generateNobleIntrigue } from '../NobleIntrigueManager';
 import { createMockGameState, createMockFaction } from '../../../utils/factories';
 import { SeededRandom } from '../../../utils/seededRandom';
+
+// Mock SeededRandom to control outcomes
+// We need to extend or mock the class used in the SUT.
+// Since we import the class directly, we can use vi.spyOn regarding the instance methods if we had access to the instance,
+// but inside generateNobleIntrigue, it uses the passed instance. So we can pass a mock.
+
+const createMockRng = (values: number[]) => {
+    let index = 0;
+    return {
+        next: () => {
+            const val = index < values.length ? values[index] : 0.5;
+            index++;
+            return val;
+        },
+        pick: (arr: any[]) => arr[0], // Simplified pick
+        nextInt: (min: number, max: number) => min
+    } as unknown as SeededRandom;
+};
 
 describe('NobleIntrigueManager', () => {
   it('should generate an alliance proposal between compatible factions', () => {
@@ -29,24 +47,24 @@ describe('NobleIntrigueManager', () => {
       }
     });
 
-    // Mock RNG to pick House A as initiator (0 index of keys) and then pick the alliance action
-    const rng = new SeededRandom(12345);
+    // Mock RNG
+    // 1. Pick Initiator (keys sorted typically? or just array order). We'll assume first is picked via our mock pick.
+    // 2. Roll for action selection. We want low value to pick first available action (ALLIANCE)
+    const rng = createMockRng([0.1]);
+    // We override pick in the mock to just return house_a (if it's the first key)
+    // Actually, generateNobleIntrigue calls rng.pick(factionIds).
+    // Let's force pick to return house_a
+    rng.pick = <T>(arr: T[]): T => {
+        // Assume arr of strings for factionIds
+        return 'house_a' as unknown as T;
+    };
 
-    // We can't easily force specific paths with SeededRandom unless we know the implementation details or mock it.
-    // However, since they have shared values ('honor'), an Alliance Proposal should be heavily weighted.
-
-    // Let's run it multiple times to ensure we get a result and it's valid
-    let result = generateNobleIntrigue(state, rng);
-    let attempts = 0;
-
-    while (result.logs.length === 0 && attempts < 10) {
-       result = generateNobleIntrigue(state, rng);
-       attempts++;
-    }
+    const result = generateNobleIntrigue(state, rng);
 
     expect(result.logs.length).toBeGreaterThan(0);
     const logText = result.logs[0].text;
     expect(logText).toContain('Intrigue:');
+    expect(logText).toContain('publicly praised'); // Alliance text
 
     // Check if relationships improved
     const newRelationA = result.state.factions.house_a.relationships.house_b;
@@ -77,15 +95,13 @@ describe('NobleIntrigueManager', () => {
       }
     });
 
-    const rng = new SeededRandom(67890);
-    let result = generateNobleIntrigue(state, rng);
-    let attempts = 0;
-    while (result.logs.length === 0 && attempts < 10) {
-        result = generateNobleIntrigue(state, rng);
-        attempts++;
-    }
+    const rng = createMockRng([0.1]);
+    rng.pick = <T>(arr: T[]): T => 'house_a' as unknown as T;
+
+    const result = generateNobleIntrigue(state, rng);
 
     expect(result.logs.length).toBeGreaterThan(0);
+    expect(result.logs[0].text).toContain('publicly denounced'); // Insult text
 
     // Check relations worsened
     const newRelationA = result.state.factions.house_a.relationships.house_b;
@@ -145,25 +161,37 @@ describe('NobleIntrigueManager', () => {
 
     // Mock RNG:
     // We need to trigger the SCANDAL_EXPOSURE path.
-    // House A hates corruption (House B has it).
-    // House A has 'ambition', so Scandal is possible alongside Insult.
-    const rng = new SeededRandom(111);
+    // In this setup, we have Insult (due to hate) and Scandal (due to hate + ambition).
+    // We want to pick Scandal.
+    // The code weights them. Insult: 20 + 30 = 50. Scandal: 15.
+    // To pick Scandal (which is likely 2nd in list or at least present), we need the RNG to land in its range.
+    // Since we don't know exact order, we can just ensure we mock enough next calls or force pick.
+    // However, easier: Since we removed the loop, we must rely on a targeted roll.
+    // Or we can just ensure ONLY Scandal is possible by removing the Hate trigger?
+    // No, Hate is required for Scandal in current logic ("hatedValues.length > 0").
 
-    // We loop until we get a scandal
-    let result = generateNobleIntrigue(state, rng);
-    let attempts = 0;
-    let foundScandal = false;
+    // So we have both. We need to rig the roll.
+    // Total weight approx 65. Scandal is 15.
+    // Let's assume Insult is first. We need a roll > 50.
+    // Let's try passing 0.9 to `next()` used for selection.
 
-    while (attempts < 50) {
-        result = generateNobleIntrigue(state, rng);
-        if (result.logs.length > 0 && result.logs[0].text.includes('exposed a scandal')) {
-            foundScandal = true;
-            break;
-        }
-        attempts++;
+    const rng = createMockRng([0.9, 0.5, 0.5]);
+    rng.pick = <T>(arr: T[]): T => 'house_a' as unknown as T;
+
+    const result = generateNobleIntrigue(state, rng);
+
+    // If we picked Insult, this test fails. But let's see.
+    // If it fails, we adjust the mock value.
+    if (!result.logs[0].text.includes('exposed a scandal')) {
+         // Try a different value if order was swapped or logic differs
+         // Actually, let's just assert one OR the other if we can't control order perfectly without inspecting implementation details.
+         // But better to be deterministic.
+         // The implementation pushes Insult then Scandal.
+         // So Insult (0-50), Scandal (50-65).
+         // 0.9 * 65 = 58.5. Should pick Scandal.
     }
 
-    expect(foundScandal).toBe(true);
+    expect(result.logs[0].text).toContain('exposed a scandal');
 
     // Verify consequences:
     // 1. Relationship worsens (-25)
@@ -200,23 +228,14 @@ describe('NobleIntrigueManager', () => {
       }
     });
 
-    const rng = new SeededRandom(222);
+    // Only Power Play should be available (no shared values, no hates defined)
+    const rng = createMockRng([0.1]);
+    rng.pick = <T>(arr: T[]): T => 'house_a' as unknown as T;
 
-    // We loop until we get a power play
-    let result = generateNobleIntrigue(state, rng);
-    let attempts = 0;
-    let foundPowerPlay = false;
+    const result = generateNobleIntrigue(state, rng);
 
-    while (attempts < 50) {
-        result = generateNobleIntrigue(state, rng);
-        if (result.logs.length > 0 && result.logs[0].text.includes('seize assets')) {
-            foundPowerPlay = true;
-            break;
-        }
-        attempts++;
-    }
-
-    expect(foundPowerPlay).toBe(true);
+    expect(result.logs.length).toBeGreaterThan(0);
+    expect(result.logs[0].text).toContain('seize assets'); // Power play text
 
     // Verify consequences:
     // 1. Relationship worsens
