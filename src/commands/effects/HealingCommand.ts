@@ -26,17 +26,15 @@ export class HealingCommand extends BaseEffectCommand {
         // 2. If you have Temp HP and gain more, you choose whether to keep the old or take the new.
         //    (In this automated system, we default to "keep highest" which is the standard optimal play)
         const currentTemp = target.tempHP || 0
-        const newTemp = Math.max(currentTemp, healingRoll)
-        const gained = newTemp - currentTemp
 
-        if (gained > 0 || healingRoll > currentTemp) {
+        if (healingRoll > currentTemp) {
           currentState = this.updateCharacter(currentState, target.id, {
-            tempHP: newTemp
+            tempHP: healingRoll
           })
 
           currentState = this.addLogEntry(currentState, {
             type: 'heal',
-            message: `${target.name} gains ${healingRoll} Temporary HP (Total: ${newTemp})`,
+            message: `${target.name} gains ${healingRoll} Temporary HP (replacing ${currentTemp})`,
             characterId: target.id,
             data: { value: healingRoll, type: 'temporary' }
           })
