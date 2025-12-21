@@ -30,8 +30,8 @@ The `GlossaryProvider` component performs the following steps when it mounts:
 ## Provided Context Value
 
 Components consuming this context will receive:
-*   `null` while the data is being fetched.
 *   An array of `GlossaryEntry` objects on success.
+*   The Provider handles loading and error states internally, displaying a `LoadingSpinner` or `ErrorOverlay` respectively. It does not render children until data is available or an error has occurred (and been displayed).
 
 ## Usage
 
@@ -61,4 +61,4 @@ const glossaryIndex = useContext(GlossaryContext);
 
 ## Error Handling
 
-If any of the fetch operations fail, the context logs an error to the console and sets its internal state to an empty array (`[]`). This allows consuming components to handle the absence of data gracefully without crashing.
+If any of the fetch operations fail, the context sets its internal `error` state. The Provider then renders an `ErrorOverlay` component covering the screen, preventing the application from proceeding with incomplete or missing data. This ensures the user is aware of critical data loading failures.
