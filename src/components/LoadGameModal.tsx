@@ -79,8 +79,8 @@ const LoadGameModal: React.FC<LoadGameModalProps> = ({ slots, onClose, onLoadSlo
       <div className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-3xl p-6 text-gray-100 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-bold text-sky-300">Load Game</h2>
-            <p className="text-sm text-gray-400">Select a slot to resume your adventure.</p>
+            <h2 className="text-2xl font-bold text-sky-300">Resume Journey</h2>
+            <p className="text-sm text-gray-400">Choose a moment in time to return to.</p>
           </div>
           <button
             onClick={onClose}
@@ -94,8 +94,8 @@ const LoadGameModal: React.FC<LoadGameModalProps> = ({ slots, onClose, onLoadSlo
         {autoSlots.length > 0 && (
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-semibold text-sky-200">Auto-Saves</h3>
-              <span className="text-xs text-gray-400">Automatically captured safety nets.</span>
+              <h3 className="text-lg font-semibold text-sky-200">Echoes (Auto-Saves)</h3>
+              <span className="text-xs text-gray-400">Moments preserved automatically by the Weave.</span>
             </div>
             <div className="space-y-3">
               {autoSlots.map(renderSlotCard)}
@@ -105,16 +105,16 @@ const LoadGameModal: React.FC<LoadGameModalProps> = ({ slots, onClose, onLoadSlo
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold text-amber-200">Manual Slots</h3>
-            <span className="text-xs text-gray-400">Create as many as you need to experiment.</span>
+            <h3 className="text-lg font-semibold text-amber-200">Chronicles</h3>
+            <span className="text-xs text-gray-400">Permanent records of your legend.</span>
           </div>
           {manualSlots.length > 0 ? (
             <div className="space-y-3">
               {manualSlots.map(renderSlotCard)}
             </div>
           ) : (
-            <div className="border border-dashed border-gray-700 rounded-lg p-6 text-center text-gray-400">
-              No manual saves yet. Start a game and use the Save to Slot menu to capture your progress.
+            <div className="border border-dashed border-gray-700 rounded-lg p-6 text-center text-gray-400 italic">
+              The archives are silent. Begin your journey and use &quot;Chronicle Journey&quot; to chronicle your deeds.
             </div>
           )}
         </div>
@@ -124,15 +124,15 @@ const LoadGameModal: React.FC<LoadGameModalProps> = ({ slots, onClose, onLoadSlo
         isOpen={!!slotToDelete}
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
-        title="Delete Save Slot"
-        confirmLabel="Delete"
-        cancelLabel="Keep Save"
+        title="Erase Chronicle"
+        confirmLabel="Erase Forever"
+        cancelLabel="Keep Memory"
       >
         <p>
-          Are you sure you want to delete <span className="font-semibold text-amber-200">{slotToDelete?.slotName}</span>?
+          Are you sure you want to strike <span className="font-semibold text-amber-200">{slotToDelete?.slotName}</span> from the archives?
         </p>
         <p className="mt-2 text-red-300">
-          This action cannot be undone. The save data will be permanently lost.
+          This timeline will be lost to the void. This action cannot be undone.
         </p>
       </ConfirmationModal>
     </div>
