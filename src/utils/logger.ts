@@ -27,23 +27,26 @@ class Logger {
     }
 
     // Direct mapping to console methods to avoid index signature issues
-    // and preserve method context if needed
+    // and preserve method context if needed.
+    // We construct the arguments array to avoid printing 'undefined' when context is missing,
+    // while keeping the switch statement minimal.
+    const args: [string, ...unknown[]] = [`${prefix} ${safeMessage}`];
+    if (safeContext) {
+      args.push(safeContext);
+    }
+
     switch (level) {
       case 'debug':
-        if (safeContext) console.debug(`${prefix} ${safeMessage}`, safeContext);
-        else console.debug(`${prefix} ${safeMessage}`);
+        console.debug(...args);
         break;
       case 'info':
-        if (safeContext) console.info(`${prefix} ${safeMessage}`, safeContext);
-        else console.info(`${prefix} ${safeMessage}`);
+        console.info(...args);
         break;
       case 'warn':
-        if (safeContext) console.warn(`${prefix} ${safeMessage}`, safeContext);
-        else console.warn(`${prefix} ${safeMessage}`);
+        console.warn(...args);
         break;
       case 'error':
-        if (safeContext) console.error(`${prefix} ${safeMessage}`, safeContext);
-        else console.error(`${prefix} ${safeMessage}`);
+        console.error(...args);
         break;
     }
   }

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { logger } from '../logger';
+import * as securityUtils from '../securityUtils';
 
 // Mock ENV to have a predictable secret for redaction
 vi.mock('../../config/env', () => ({
@@ -8,6 +9,15 @@ vi.mock('../../config/env', () => ({
     DEV: true
   }
 }));
+
+// Mock securityUtils so we can force errors
+vi.mock('../securityUtils', async (importOriginal) => {
+  const actual = await importOriginal<typeof securityUtils>();
+  return {
+    ...actual,
+    redactSensitiveData: vi.fn(actual.redactSensitiveData),
+  };
+});
 
 describe('Logger Security', () => {
   beforeEach(() => {
@@ -24,12 +34,6 @@ describe('Logger Security', () => {
   it('should redact secrets from the message', () => {
     logger.info('This message contains SECRET_API_KEY_123 inside it.');
 
-    // Use expect.stringContaining to match the message part
-    // Note: logger.info calls console.info with ONE argument if context is undefined.
-    // However, my implementation in logger.ts says:
-    // if (safeContext) console.info(...) else console.info(...)
-    // So if no context is provided, it's called with ONE argument.
-
     expect(console.info).toHaveBeenCalledWith(
       expect.stringContaining('[REDACTED]')
     );
@@ -44,13 +48,32 @@ describe('Logger Security', () => {
 
     logger.warn('Warning message', sensitiveContext);
 
-    // We expect the context object passed to console.warn to have the secret redacted
     expect(console.warn).toHaveBeenCalledWith(
       expect.stringContaining('[WARN] Warning message'),
       expect.objectContaining({
         apiKey: '[REDACTED]',
         nested: expect.objectContaining({ key: '[REDACTED]' })
       })
+    );
+  });
+
+  it('should fallback securely when redaction fails', () => {
+    // Force redaction to throw an error
+    vi.mocked(securityUtils.redactSensitiveData).mockImplementationOnce(() => {
+      throw new Error('Redaction failed');
+    });
+
+    const dangerousMessage = 'This message causes a crash';
+    logger.error(dangerousMessage);
+
+    // Should verify that:
+    // 1. The original message was NOT logged (implied by not being called with it)
+    // 2. A security error message WAS logged
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining('[LOGGER SECURITY ERROR]')
+    );
+    expect(console.error).not.toHaveBeenCalledWith(
+      expect.stringContaining(dangerousMessage)
     );
   });
 });
