@@ -6,11 +6,12 @@
  * - Pace: Slow (Stealth), Normal, Fast (Penalty).
  * - Encumbrance: Variant encumbrance rules affecting speed.
  * - Group Speed: Limited by the slowest member.
+ * - Terrain: Difficult terrain halves speed.
  */
 
 import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
-import { TravelPace, PACE_MODIFIERS } from '../../types/travel';
+import { TravelPace, TravelTerrain, PACE_MODIFIERS, TERRAIN_TRAVEL_MODIFIERS } from '../../types/travel';
 
 // --- Types ---
 
@@ -28,8 +29,10 @@ export interface EncumbranceResult {
 export interface TravelGroupStats {
   slowestMemberId: string;
   baseSpeed: number; // Speed of slowest member (ft/round)
-  travelSpeedMph: number; // Effective MPH including pace
+  travelSpeedMph: number; // Effective MPH including pace and terrain
   pace: TravelPace;
+  terrain: TravelTerrain;
+  terrainModifier: number;
   dailyDistanceMiles: number; // Assuming 8 hours
 }
 
@@ -83,11 +86,13 @@ export function calculateEncumbrance(
  * @param characters List of characters in the travel group
  * @param inventories Map of character ID to their specific inventory items
  * @param pace Selected travel pace
+ * @param terrain Terrain type (affects speed multiplier)
  */
 export function calculateGroupTravelStats(
   characters: PlayerCharacter[],
   inventories: Record<string, Item[]>,
-  pace: TravelPace = 'normal'
+  pace: TravelPace = 'normal',
+  terrain: TravelTerrain = 'open'
 ): TravelGroupStats {
   if (characters.length === 0) {
     return {
@@ -95,6 +100,8 @@ export function calculateGroupTravelStats(
       baseSpeed: 0,
       travelSpeedMph: 0,
       pace,
+      terrain,
+      terrainModifier: TERRAIN_TRAVEL_MODIFIERS[terrain],
       dailyDistanceMiles: 0,
     };
   }
@@ -125,7 +132,11 @@ export function calculateGroupTravelStats(
   // Apply Pace Modifier
   // @ts-ignore - Backward compatibility for types if speedMultiplier was used
   const paceMod = PACE_MODIFIERS[pace].speedModifier || PACE_MODIFIERS[pace].speedMultiplier;
-  const travelSpeedMph = baseMph * paceMod;
+
+  // Apply Terrain Modifier
+  const terrainMod = TERRAIN_TRAVEL_MODIFIERS[terrain];
+
+  const travelSpeedMph = baseMph * paceMod * terrainMod;
 
   // Calculate Daily Distance (8 hours travel)
   const dailyDistanceMiles = travelSpeedMph * 8;
@@ -135,6 +146,8 @@ export function calculateGroupTravelStats(
     baseSpeed: minSpeed,
     travelSpeedMph: Number(travelSpeedMph.toFixed(2)),
     pace,
+    terrain,
+    terrainModifier: terrainMod,
     dailyDistanceMiles: Number(dailyDistanceMiles.toFixed(2)),
   };
 }

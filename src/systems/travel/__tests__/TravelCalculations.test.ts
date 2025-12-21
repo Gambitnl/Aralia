@@ -111,5 +111,34 @@ describe('TravelCalculations', () => {
       // 3 mph * 0.67 = 2.01
       expect(stats.travelSpeedMph).toBeCloseTo(2.01, 2);
     });
+
+    // --- Terrain Tests ---
+
+    it('applies difficult terrain modifier (half speed)', () => {
+      const char = mockChar('hero', 10, 30);
+      // Normal: 3mph. Difficult: 1.5mph
+      const stats = calculateGroupTravelStats([char], { hero: [] }, 'normal', 'difficult');
+
+      expect(stats.travelSpeedMph).toBeCloseTo(1.5, 2);
+      expect(stats.dailyDistanceMiles).toBeCloseTo(12, 1);
+    });
+
+    it('maintains normal speed on roads', () => {
+      const char = mockChar('hero', 10, 30);
+      const stats = calculateGroupTravelStats([char], { hero: [] }, 'normal', 'road');
+
+      expect(stats.travelSpeedMph).toBe(3.0);
+    });
+
+    it('combines fast pace and difficult terrain correctly', () => {
+      const char = mockChar('hero', 10, 30);
+      // Base: 3mph
+      // Fast: * 1.33 = 3.99
+      // Difficult: * 0.5 = 1.995
+      // The function rounds to 2 decimals, so 1.995 -> 2.00
+      const stats = calculateGroupTravelStats([char], { hero: [] }, 'fast', 'difficult');
+
+      expect(stats.travelSpeedMph).toBe(2.00);
+    });
   });
 });
