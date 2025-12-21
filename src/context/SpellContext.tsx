@@ -2,6 +2,7 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { Spell } from '../types';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
+import { ErrorOverlay } from '../components/ui/ErrorOverlay';
 import { fetchWithTimeout } from '../utils/networkUtils';
 import { ENV, assetUrl } from '../config/env';
 
@@ -98,7 +99,7 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }
 
   if (error) {
-    return <div className="fixed inset-0 bg-red-900 text-white flex items-center justify-center p-4">Error loading spell data: {error}</div>;
+    return <ErrorOverlay message={error} />;
   }
 
   return (

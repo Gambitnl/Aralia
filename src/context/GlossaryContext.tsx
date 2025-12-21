@@ -4,6 +4,7 @@ import { GlossaryEntry } from '../types';
 import { fetchWithTimeout } from '../utils/networkUtils';
 import { assetUrl } from '../config/env';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
+import { ErrorOverlay } from '../components/ui/ErrorOverlay';
 
 const GlossaryContext = createContext<GlossaryEntry[] | null>(null);
 
@@ -80,7 +81,7 @@ export const GlossaryProvider: React.FC<{ children: ReactNode }> = ({ children }
   }
 
   if (error) {
-     return <div className="fixed inset-0 bg-red-900 text-white flex items-center justify-center p-4">Error loading glossary data: {error}</div>;
+     return <ErrorOverlay message={error} />;
   }
 
   return (
