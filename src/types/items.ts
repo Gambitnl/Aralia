@@ -1,6 +1,5 @@
 import type { AbilityScoreName, AbilityScores } from './core';
 import type { MagicItemProperties } from './magicItems';
-import type { ItemVisualSpec } from './visuals';
 
 /**
  * Equipment and inventory focused types.
@@ -191,7 +190,6 @@ export interface Item {
     | 'crafting_material'
     | 'treasure';
   icon?: string;
-  visual?: ItemVisualSpec;
   slot?: EquipmentSlotType;
   effect?: ItemEffect;
   mastery?: string;

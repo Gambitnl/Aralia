@@ -1,53 +1,100 @@
-import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
-import { withRetry, fetchWithTimeout } from '../networkUtils';
+
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { fetchWithTimeout, NetworkError } from '../networkUtils';
 
 describe('fetchWithTimeout', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
     global.fetch = vi.fn();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    vi.useRealTimers();
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
-  it('should return data on success', async () => {
+  it('should successfully fetch data', async () => {
+    const mockResponse = { id: 1, name: 'Test' };
     (global.fetch as any).mockResolvedValue({
       ok: true,
-      json: async () => ({ data: 'test' }),
+      json: async () => mockResponse,
     });
 
-    const result = await fetchWithTimeout('https://example.com');
-    expect(result).toEqual({ data: 'test' });
-  });
-});
-
-describe('withRetry', () => {
-  it('should return result on first success', async () => {
-    const fn = vi.fn().mockResolvedValue('success');
-    const result = await withRetry(fn);
-    expect(result).toBe('success');
-    expect(fn).toHaveBeenCalledTimes(1);
+    const result = await fetchWithTimeout<{ id: number; name: string }>('/api/test');
+    expect(result).toEqual(mockResponse);
+    expect(global.fetch).toHaveBeenCalledWith('/api/test', expect.objectContaining({
+      signal: expect.any(AbortSignal),
+    }));
   });
 
-  it('should retry on failure and eventually succeed', async () => {
-    const fn = vi.fn()
-      .mockRejectedValueOnce(new Error('fail 1'))
-      .mockRejectedValueOnce(new Error('fail 2'))
-      .mockResolvedValue('success');
+  it('should handle text response type', async () => {
+    const mockResponse = 'Plain Text';
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      text: async () => mockResponse,
+    });
 
-    const result = await withRetry(fn, { retries: 3, delay: 1 });
-    expect(result).toBe('success');
-    expect(fn).toHaveBeenCalledTimes(3);
+    const result = await fetchWithTimeout<string>('/api/test', { responseType: 'text' });
+    expect(result).toEqual(mockResponse);
   });
 
-  it('should throw last error after max retries', async () => {
-    const fn = vi.fn().mockRejectedValue(new Error('always fail'));
+  it('should throw NetworkError on HTTP error', async () => {
+    (global.fetch as any).mockResolvedValue({
+      ok: false,
+      status: 404,
+      statusText: 'Not Found',
+    });
 
-    await expect(withRetry(fn, { retries: 2, delay: 1 }))
-      .rejects.toThrow('always fail');
+    await expect(fetchWithTimeout('/api/test')).rejects.toThrow(NetworkError);
+    await expect(fetchWithTimeout('/api/test')).rejects.toThrow('Request to /api/test failed: 404 Not Found');
+  });
 
-    expect(fn).toHaveBeenCalledTimes(3); // Initial + 2 retries
+  it('should throw NetworkError on timeout', async () => {
+    // To simulate timeout, we can make the fetch promise reject with an AbortError
+    // But since we are mocking fetch, we need to simulate the AbortSignal aborting.
+    // However, the fetch implementation in fetchWithTimeout uses an internal controller.
+
+    // We can simulate the abort error directly coming from fetch
+    (global.fetch as any).mockRejectedValue({ name: 'AbortError' });
+
+    // We can't easily test the timeout trigger itself without more complex mocking because
+    // fetch is called immediately. But we can test that AbortError is converted to Timeout error.
+
+    await expect(fetchWithTimeout('/api/test')).rejects.toThrow('timed out');
+  });
+
+  it('should respect external AbortSignal', async () => {
+    // Use real timers for this test since we are dealing with promises and signals
+    vi.useRealTimers();
+
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    // Mock fetch to wait for abort
+    (global.fetch as any).mockImplementation((url: string, options: any) => {
+        return new Promise((resolve, reject) => {
+             if (options.signal) {
+                 if (options.signal.aborted) {
+                     const e = new Error('Aborted');
+                     e.name = 'AbortError';
+                     reject(e);
+                     return;
+                 }
+                 options.signal.addEventListener('abort', () => {
+                     const e = new Error('Aborted');
+                     e.name = 'AbortError';
+                     reject(e);
+                 });
+             }
+        });
+    });
+
+    const promise = fetchWithTimeout('/api/test', { signal, timeoutMs: 5000 });
+
+    // Trigger abort
+    controller.abort();
+
+    // Expect the promise to reject with AbortError, NOT NetworkError (timeout)
+    await expect(promise).rejects.toThrow('Aborted');
   });
 });

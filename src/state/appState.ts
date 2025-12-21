@@ -19,7 +19,6 @@ import { determineActiveDynamicNpcsForLocation } from '../utils/locationUtils';
 import { applyXpAndHandleLevelUps, createPlayerCharacterFromTemp } from '../utils/characterUtils';
 import { createEnemyFromMonster } from '../utils/combatUtils';
 import { logger } from '../utils/logger';
-import { INITIAL_TRADE_ROUTES } from '../data/tradeRoutes';
 
 // Import slice reducers
 import { uiReducer } from './reducers/uiReducer';
@@ -148,11 +147,6 @@ export const initialGameState: GameState = {
     },
 
     economy: {
-        marketEvents: [],
-        globalInflation: 0,
-        regionalWealth: {},
-        tradeRoutes: INITIAL_TRADE_ROUTES,
-        // Legacy fields for backward compatibility
         marketFactors: {
             scarcity: [],
             surplus: []

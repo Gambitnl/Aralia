@@ -1,6 +1,6 @@
 import React from 'react';
 import { gpToCoins, COIN_ICONS, COIN_COLORS, CoinBreakdown } from '../../utils/coinPurseUtils';
-import Tooltip from '../Tooltip';
+import Tooltip from './Tooltip';
 
 interface CoinPurseDisplayProps {
     /** Total value in gold pieces (stored as decimal) */
@@ -24,7 +24,7 @@ const COIN_NAMES: Record<keyof CoinBreakdown, string> = {
     cp: 'Copper',
 };
 
-export const CoinBadge: React.FC<CoinBadgeProps> = ({ type, amount, compact = false }) => {
+const CoinBadge: React.FC<CoinBadgeProps> = ({ type, amount, compact = false }) => {
     if (amount === 0) return null;
 
     return (

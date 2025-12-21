@@ -24,7 +24,6 @@
  * - MerchantModal: Trading interface.
  * - GameGuideModal: AI helper interface.
  * - MissingChoiceModal: Prompt for resolving pending character choices (e.g., leveling up).
- * - TempleModal: Interface for temple services.
  * - DialogueInterface: Interactive conversation UI.
  */
 import React, { lazy, Suspense } from 'react';
@@ -57,7 +56,6 @@ const EncounterModal = lazy(() => import('../EncounterModal'));
 const MerchantModal = lazy(() => import('../MerchantModal'));
 const GameGuideModal = lazy(() => import('../GameGuideModal'));
 const MissingChoiceModal = lazy(() => import('../MissingChoiceModal'));
-const TempleModal = lazy(() => import('../TempleModal'));
 const DialogueInterface = lazy(() => import('../Dialogue/DialogueInterface').then(module => ({ default: module.DialogueInterface })));
 
 // TODO(FEATURES): Add centralized focus management and keyboard navigation patterns across modals for stronger accessibility (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
@@ -140,8 +138,8 @@ const GameModals: React.FC<GameModalsProps> = ({
         const systemPrompt = npc.initialPersonalityPrompt;
         const result = await GeminiService.generateNPCResponse(systemPrompt, prompt, gameState.devModelOverride);
         if (result.data?.text) {
-            dispatch({ type: 'SET_LAST_NPC_INTERACTION', payload: { npcId: npc.id, response: result.data.text } });
-            return result.data.text;
+             dispatch({ type: 'SET_LAST_NPC_INTERACTION', payload: { npcId: npc.id, response: result.data.text } });
+             return result.data.text;
         }
         return "...";
     };
@@ -372,21 +370,6 @@ const GameModals: React.FC<GameModalsProps> = ({
                 </Suspense>
             )}
 
-            {/* Temple / Religion Interface */}
-            {gameState.templeModal?.isOpen && gameState.templeModal.temple && (
-                <Suspense fallback={<LoadingSpinner />}>
-                    <ErrorBoundary fallbackMessage="Error in Temple Interface.">
-                        <TempleModal
-                            isOpen={gameState.templeModal.isOpen}
-                            temple={gameState.templeModal.temple}
-                            playerGold={gameState.gold}
-                            onClose={() => dispatch({ type: 'CLOSE_TEMPLE' })}
-                            onAction={onAction}
-                        />
-                    </ErrorBoundary>
-                </Suspense>
-            )}
-
             {/* Game Guide (AI Assistant) Modal */}
             {gameState.isGameGuideVisible && (
                 <Suspense fallback={<LoadingSpinner />}>
@@ -419,21 +402,21 @@ const GameModals: React.FC<GameModalsProps> = ({
 
             {/* Dialogue Interface (Conversation) */}
             {gameState.isDialogueInterfaceOpen && gameState.activeDialogueSession && gameState.party[0] && (
-                <Suspense fallback={<LoadingSpinner />}>
-                    <ErrorBoundary fallbackMessage="Error in Conversation.">
-                        <DialogueInterface
-                            isOpen={gameState.isDialogueInterfaceOpen}
-                            session={gameState.activeDialogueSession}
-                            gameState={gameState}
-                            npc={NPCS[gameState.activeDialogueSession.npcId]}
-                            playerCharacter={gameState.party[0]}
-                            onClose={() => dispatch({ type: 'END_DIALOGUE_SESSION' })}
-                            onUpdateSession={(newSession) => dispatch({ type: 'UPDATE_DIALOGUE_SESSION', payload: { session: newSession } })}
-                            onUpdateGameState={(updates) => { /* TODO: Implement partial updates if needed */ }}
-                            onGenerateResponse={handleGenerateDialogueResponse}
-                        />
-                    </ErrorBoundary>
-                </Suspense>
+                 <Suspense fallback={<LoadingSpinner />}>
+                     <ErrorBoundary fallbackMessage="Error in Conversation.">
+                         <DialogueInterface
+                             isOpen={gameState.isDialogueInterfaceOpen}
+                             session={gameState.activeDialogueSession}
+                             gameState={gameState}
+                             npc={NPCS[gameState.activeDialogueSession.npcId]}
+                             playerCharacter={gameState.party[0]}
+                             onClose={() => dispatch({ type: 'END_DIALOGUE_SESSION' })}
+                             onUpdateSession={(newSession) => dispatch({ type: 'UPDATE_DIALOGUE_SESSION', payload: { session: newSession } })}
+                             onUpdateGameState={(updates) => { /* TODO: Implement partial updates if needed */ }}
+                             onGenerateResponse={handleGenerateDialogueResponse}
+                         />
+                     </ErrorBoundary>
+                 </Suspense>
             )}
         </AnimatePresence>
     );

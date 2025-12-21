@@ -1,7 +1,6 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_GEMINI_API_KEY: string;
   readonly VITE_ENABLE_DEV_TOOLS: string;
   readonly BASE_URL: string;
   readonly DEV: boolean;

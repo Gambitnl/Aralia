@@ -68,7 +68,7 @@ import { NPCMemory } from './memory';
 import { NPCKnowledgeProfile, DialogueSession } from './dialogue';
 import { Companion } from './companions';
 import { DivineFavor, Temple } from './deity';
-import { Fence, GuildMembership, HeistPlan } from './crime';
+import { Fence } from './crime';
 import { UnderdarkState, LightSource } from './underdark';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
 import type { DamageType } from './spells';
@@ -408,9 +408,6 @@ export type ActionType =
   | 'BUY_ITEM'
   | 'SELL_ITEM'
   | 'OPEN_DYNAMIC_MERCHANT' // New
-  | 'OPEN_TEMPLE' // New
-  | 'CLOSE_TEMPLE' // New
-  | 'USE_TEMPLE_SERVICE' // New
   | 'HARVEST_RESOURCE' // New
   | 'ANALYZE_SITUATION'
   | 'wait'
@@ -578,11 +575,6 @@ export interface GameState {
     merchantInventory: Item[];
   };
 
-  templeModal?: {
-    isOpen: boolean;
-    temple: Temple | null;
-  };
-
   economy: EconomyState;
 
   notoriety: NotorietyState;
@@ -610,8 +602,6 @@ export interface GameState {
 
   // Shadowbroker: Crime System
   fences: Record<string, Fence>; // Keyed by Fence ID (or Location ID)
-  thievesGuild?: GuildMembership; // Membership data
-  activeHeist?: HeistPlan | null; // Currently active heist
 
   // Linker: World Coherence System
   dynamicLocations: Record<string, Location>; // Generated locations that don't exist in static data
@@ -748,11 +738,6 @@ export interface Action {
     isCompleted?: boolean;
     questId?: string;
 
-    // For Temple
-    templeId?: string;
-    serviceId?: string;
-    effect?: string;
-
     // Linker: Dynamic Entity
     entityType?: 'location' | 'faction';
     entity?: Location | Faction;
@@ -846,7 +831,6 @@ export interface VillageActionContext {
   integrationTagline: string;
   culturalSignature: string;
   encounterHooks: string[];
-  personality?: any; // Added for temple generation fallback context
 }
 
 // Notifications
