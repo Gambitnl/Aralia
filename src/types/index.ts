@@ -65,10 +65,10 @@ import {
 import { Faction, PlayerFactionStanding } from './factions';
 import { NPCVisualSpec } from './visuals';
 import { NPCMemory } from './memory';
-import { NPCKnowledgeProfile } from './dialogue';
+import { NPCKnowledgeProfile, DialogueSession } from './dialogue';
 import { Companion } from './companions';
 import { DivineFavor, Temple } from './deity';
-import { Fence } from './crime';
+import { Fence, GuildMembership, HeistPlan } from './crime';
 import { UnderdarkState, LightSource } from './underdark';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
 import type { DamageType } from './spells';
@@ -409,6 +409,9 @@ export type ActionType =
   | 'BUY_ITEM'
   | 'SELL_ITEM'
   | 'OPEN_DYNAMIC_MERCHANT' // New
+  | 'OPEN_TEMPLE' // New
+  | 'CLOSE_TEMPLE' // New
+  | 'USE_TEMPLE_SERVICE' // New
   | 'HARVEST_RESOURCE' // New
   | 'ANALYZE_SITUATION'
   | 'wait'
@@ -420,7 +423,10 @@ export type ActionType =
   | 'TOGGLE_QUEST_LOG'
   | 'PRAY'
   | 'AUTO_EQUIP'
-  | 'REGISTER_DYNAMIC_ENTITY'; // New Action
+  | 'REGISTER_DYNAMIC_ENTITY'
+  | 'START_DIALOGUE_SESSION'
+  | 'UPDATE_DIALOGUE_SESSION'
+  | 'END_DIALOGUE_SESSION';
 
 export enum DiscoveryType {
   LOCATION_DISCOVERY = 'Location Discovery',
@@ -573,6 +579,11 @@ export interface GameState {
     merchantInventory: Item[];
   };
 
+  templeModal?: {
+    isOpen: boolean;
+    temple: Temple | null;
+  };
+
   economy: EconomyState;
 
   notoriety: NotorietyState;
@@ -600,6 +611,8 @@ export interface GameState {
 
   // Shadowbroker: Crime System
   fences: Record<string, Fence>; // Keyed by Fence ID (or Location ID)
+  thievesGuild?: GuildMembership; // Membership data
+  activeHeist?: HeistPlan | null; // Currently active heist
 
   // Linker: World Coherence System
   dynamicLocations: Record<string, Location>; // Generated locations that don't exist in static data
@@ -622,6 +635,10 @@ export interface GameState {
 
   /** Direction from which the player entered the town (north/east/south/west) */
   townEntryDirection: 'north' | 'east' | 'south' | 'west' | null;
+
+  // Dialogist: Active Dialogue
+  activeDialogueSession: DialogueSession | null;
+  isDialogueInterfaceOpen: boolean;
 }
 
 export interface InspectSubmapTilePayload {
@@ -732,6 +749,11 @@ export interface Action {
     isCompleted?: boolean;
     questId?: string;
 
+    // For Temple
+    templeId?: string;
+    serviceId?: string;
+    effect?: string;
+
     // Linker: Dynamic Entity
     entityType?: 'location' | 'faction';
     entity?: Location | Faction;
@@ -825,6 +847,7 @@ export interface VillageActionContext {
   integrationTagline: string;
   culturalSignature: string;
   encounterHooks: string[];
+  personality?: any; // Added for temple generation fallback context
 }
 
 // Notifications

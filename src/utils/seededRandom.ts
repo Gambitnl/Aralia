@@ -35,3 +35,46 @@ export class SeededRandom {
     return array[index];
   }
 }
+
+/**
+ * Creates a simple deterministic RNG function for use in procedural generation.
+ * This is a lighter wrapper than the class if you just need a next() function.
+ *
+ * @param seed The base seed
+ * @param coords Optional coordinates to vary the seed
+ * @param contextString Optional context (e.g., 'village', 'temple')
+ * @returns A function that returns a number between 0 and 1
+ */
+export const createSeededRandom = (seed: number, coords?: { x: number, y: number }, contextString?: string, salt?: string) => {
+    let s = seed;
+
+    // Mix in coordinates
+    if (coords) {
+        s = (s * 9301 + 49297) % 233280;
+        s = (s + coords.x * 123 + coords.y * 456) % 233280;
+    }
+
+    // Mix in context string hash
+    if (contextString) {
+        for (let i = 0; i < contextString.length; i++) {
+            s = ((s << 5) - s) + contextString.charCodeAt(i);
+            s |= 0;
+        }
+    }
+
+    if (salt) {
+         for (let i = 0; i < salt.length; i++) {
+            s = ((s << 5) - s) + salt.charCodeAt(i);
+            s |= 0;
+        }
+    }
+
+    // Ensure positive
+    s = Math.abs(s);
+
+    // Simple Linear Congruential Generator
+    return () => {
+        s = (s * 9301 + 49297) % 233280;
+        return s / 233280;
+    };
+};

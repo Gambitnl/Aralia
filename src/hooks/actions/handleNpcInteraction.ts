@@ -61,9 +61,13 @@ export async function handleTalk({
     }
 
     // TODO(FEATURES): Add quest-giver hooks so NPCs can offer/advance quests through dialogue outcomes (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
-    // TODO(Dialogist): Integrate structured dialogue system (src/services/dialogueService.ts) here.
-    // Replace current open-ended prompt with getAvailableTopics(gameState, npc.id) to offer player choices.
-    // Upon selection, feed topic.playerPrompt into the Gemini prompt or handle specialized outcomes.
+
+    // START DIALOGUE SESSION
+    // Instead of immediately generating a generic response, we now open the Dialogue Interface.
+    // The "Greeting" will be generated dynamically by the Interface or service if needed,
+    // or we can generate a preliminary one here.
+
+    // For now, let's keep the initial "Greeting" generation to seed the conversation window with text.
 
     // 2. Construct Memory Context string
     let memoryContextString = `Disposition towards player: ${memory.disposition}.`;
@@ -122,6 +126,9 @@ export async function handleTalk({
       dispatch({ type: 'UPDATE_NPC_INTERACTION_TIMESTAMP', payload: { npcId: npc.id, timestamp: gameState.gameTime.getTime() } });
       dispatch({ type: 'UPDATE_NPC_DISPOSITION', payload: { npcId: npc.id, amount: 1 } });
       
+      // Dispatch START_DIALOGUE_SESSION to open the UI
+      dispatch({ type: 'START_DIALOGUE_SESSION', payload: { npcId: npc.id } });
+
       try {
         const ttsResult = await synthesizeSpeech(responseText, npc.voice?.name || 'Kore', gameState.devModelOverride);
         if (ttsResult.rateLimitHit) {

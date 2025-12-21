@@ -3,8 +3,9 @@
  * @file src/state/actionTypes.ts
  * Defines the main AppAction type for the application's state management.
  */
-import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType } from '../types';
+import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, GuildJob, HeistIntel } from '../types';
 import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload } from './payloads/identityPayloads';
+import { DialogueSession } from '../types/dialogue';
 
 export type AppAction =
   | { type: 'SET_GAME_PHASE'; payload: GamePhase }
@@ -137,6 +138,12 @@ export type AppAction =
   | { type: 'ABANDON_GUILD_JOB'; payload: { jobId: string } }
   | { type: 'USE_GUILD_SERVICE'; payload: { serviceId: string; cost: number; description: string } }
   | { type: 'SET_AVAILABLE_GUILD_JOBS'; payload: { jobs: GuildJob[] } }
+  // Heist Actions
+  | { type: 'START_HEIST_PLANNING'; payload: { targetLocationId: string; leaderId: string; guildJobId?: string } }
+  | { type: 'ADD_HEIST_INTEL'; payload: { intel: HeistIntel } }
+  | { type: 'ADVANCE_HEIST_PHASE' }
+  | { type: 'PERFORM_HEIST_ACTION'; payload: { actionDifficulty: number; description: string; success: boolean; alertChange: number; skillCheckResult?: string } }
+  | { type: 'ABORT_HEIST' }
   // Identity & Intrigue Actions
   | { type: 'CREATE_ALIAS'; payload: CreateAliasPayload }
   | { type: 'EQUIP_DISGUISE'; payload: EquipDisguisePayload }
@@ -147,4 +154,8 @@ export type AppAction =
   | { type: 'ADD_LEGACY_TITLE'; payload: { title: string; description: string; grantedBy?: string } }
   | { type: 'ADD_LEGACY_MONUMENT'; payload: { name: string; description: string; locationId: string; cost: number } }
   | { type: 'REGISTER_HEIR'; payload: { name: string; relation: string; age: number; heirClass?: string } }
-  | { type: 'FOUND_STRONGHOLD'; payload: { name: string; type: StrongholdType; locationId: string } };
+  | { type: 'FOUND_STRONGHOLD'; payload: { name: string; type: StrongholdType; locationId: string } }
+  // Dialogue Actions
+  | { type: 'START_DIALOGUE_SESSION'; payload: { npcId: string } }
+  | { type: 'UPDATE_DIALOGUE_SESSION'; payload: { session: DialogueSession } }
+  | { type: 'END_DIALOGUE_SESSION' };

@@ -18,7 +18,7 @@ export const INITIAL_TRADE_ROUTES: TradeRoute[] = [
     goods: ['spice', 'silk', 'luxury', 'gold'],
     status: 'active',
     riskLevel: 0.2,
-    profitability: 0.8,
+    profitability: 80, // High demand
     daysInStatus: 0
   },
   {
@@ -26,11 +26,11 @@ export const INITIAL_TRADE_ROUTES: TradeRoute[] = [
     name: 'The Iron Way',
     description: 'Mountain passes used to transport ore and weapons.',
     originId: 'region_mountains',
-    destinationId: 'region_plains',
+    destinationId: 'region_plains', // Note: region_plains might need to be defined in regions.ts or mapped
     goods: ['iron', 'weapon', 'armor', 'tool'],
     status: 'active',
     riskLevel: 0.4,
-    profitability: 0.5,
+    profitability: 50,
     daysInStatus: 0
   },
   {
@@ -42,7 +42,7 @@ export const INITIAL_TRADE_ROUTES: TradeRoute[] = [
     goods: ['salt', 'consumable', 'food'],
     status: 'active',
     riskLevel: 0.6,
-    profitability: 0.9, // High risk, high reward
+    profitability: 90, // High risk, high reward
     daysInStatus: 0
   },
   {
@@ -54,7 +54,7 @@ export const INITIAL_TRADE_ROUTES: TradeRoute[] = [
     goods: ['food', 'material', 'wood'],
     status: 'active',
     riskLevel: 0.1,
-    profitability: 0.3,
+    profitability: 30, // Safe, low margin
     daysInStatus: 0
   }
 ];
