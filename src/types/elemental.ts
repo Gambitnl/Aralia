@@ -40,6 +40,7 @@ export const StateInteractions: Record<string, StateTag | null> = {
 
   // Oiled interactions
   'burning+oiled': StateTag.Burning, // Oil ignites (intensifies burning)
+  'oiled+wet': StateTag.Wet,        // Water washes away oil
 
   // Frozen interactions
   'burning+frozen': StateTag.Wet,   // Fire melts ice
@@ -47,9 +48,6 @@ export const StateInteractions: Record<string, StateTag | null> = {
   // Poisoned interactions
   'burning+poisoned': StateTag.Burning, // Fire burns away organic toxins/sludge
   'poisoned+wet': StateTag.Wet,     // Water washes away surface poisons
-
-  // Oiled interactions
-  'oiled+wet': StateTag.Wet,        // Water washes away oil
 
   // Electrified interactions
   // (Placeholder for future: wet+electrified -> AoE damage)
