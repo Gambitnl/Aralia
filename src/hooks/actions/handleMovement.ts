@@ -194,7 +194,7 @@ export async function handleMovement({
         newMapDataForDispatch.tiles = newTiles;
       }
       geminiFunctionName = 'generateLocationDescription';
-      descriptionGenerationFn = () => GeminiService.generateLocationDescription(targetLocation.name, `Player (${playerContext}) enters ${targetLocation.name}.`, gameState.devModelOverride);
+      descriptionGenerationFn = () => GeminiService.generateLocationDescription(targetLocation.name, playerContext, gameState.devModelOverride);
 
       // TODO(FEATURES): Replace hardcoded quest triggers with data-driven location metadata so quests can be discovered from any map tile (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
       // Quest Triggers for named locations
@@ -393,7 +393,7 @@ export async function handleMovement({
       if (LOCATIONS[newLocationId]) {
         const targetDefLocation = LOCATIONS[newLocationId];
         geminiFunctionName = 'generateLocationDescription (world move)';
-        descriptionGenerationFn = () => GeminiService.generateLocationDescription(targetDefLocation.name, `Player (${playerContext}) enters ${targetDefLocation.name}.`, gameState.devModelOverride);
+        descriptionGenerationFn = () => GeminiService.generateLocationDescription(targetDefLocation.name, playerContext, gameState.devModelOverride);
         movedToNewNamedLocation = targetDefLocation;
         baseDescriptionForFallback = targetDefLocation.baseDescription;
       } else {

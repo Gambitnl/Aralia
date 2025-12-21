@@ -6,7 +6,6 @@
  */
 
 import { SpellSchool, DamageType } from './spells';
-import { Item } from './items';
 import { Race } from './character';
 import { FactionType } from './factions';
 

@@ -11,6 +11,7 @@
 import { GenerateContentResponse, GenerationConfig, Tool } from "@google/genai";
 import { v4 as uuidv4 } from 'uuid';
 import { ai, isAiEnabled } from './aiClient'; // Import the shared AI client
+import { withRetry } from '../utils/networkUtils';
 import { logger } from '../utils/logger';
 import { Action, PlayerCharacter, InspectSubmapTilePayload, SeededFeatureConfig, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState, VillageActionContext, ItemType } from "../types";
 import { SeededRandom } from '../utils/seededRandom';
@@ -353,15 +354,34 @@ export async function generateText(
         setTimeout(() => reject(new Error(`Request timed out after ${API_TIMEOUT_MS}ms`)), API_TIMEOUT_MS);
       });
 
-      // Cast config to any or GenerationConfig (with ignore) because the official type lacks systemInstruction
-      const response: GenerateContentResponse = await Promise.race([
-        ai.models.generateContent({
-          model: model,
-          contents: promptContent,
-          config: config as any,
-        }),
-        timeoutPromise
-      ]);
+      // Execute request with retry logic
+      const response: GenerateContentResponse = await withRetry(async () => {
+        // Cast config to any or GenerationConfig (with ignore) because the official type lacks systemInstruction
+        return await Promise.race([
+          ai.models.generateContent({
+            model: model,
+            contents: promptContent,
+            config: config as any,
+          }),
+          timeoutPromise
+        ]);
+      }, {
+        retries: 3,
+        delay: 1000,
+        backoff: 2,
+        shouldRetry: (error: any) => {
+          // Retry on network errors or 503 Service Unavailable
+          // Specifically check for rate limit errors or server errors which might be transient
+          const errorMsg = error?.message || '';
+          const status = error?.status;
+
+          if (status === 429 || errorMsg.includes('429')) return false; // Don't retry rate limits immediately
+          if (status >= 400 && status < 500) return false; // Don't retry client errors
+
+          if (errorMsg.includes('503') || errorMsg.includes('network') || errorMsg.includes('fetch')) return true;
+          return true; // Default to retry for safety
+        }
+      });
 
       // Success! Update timestamp and reset rate limit tracking
       lastRequestTimestamp = Date.now();
@@ -464,7 +484,15 @@ export async function generateLocationDescription(
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
   const systemInstruction = "Describe a new location in a high fantasy RPG. Response MUST be EXTREMELY BRIEF: 1-2 sentences MAX. Give ONLY key sights, sounds, or atmosphere. No fluff.";
-  const prompt = `Player arrives at "${locationName}". Context: ${context}. Provide an EXTREMELY BRIEF description (1-2 sentences MAX) of the area's key features.`;
+
+  // Structured prompt for better narrative consistency
+  const prompt = `## NARRATIVE TASK
+Describe the location "${locationName}" as the player arrives. Focus on atmosphere, key features, and sensory details (sound/smell).
+
+${context}
+
+## OUTPUT
+Provide an EXTREMELY BRIEF description (1-2 sentences MAX). No fluff.`;
 
   return await generateText(prompt, systemInstruction, false, 'generateLocationDescription', devModelOverride, FAST_MODEL);
 }
@@ -478,11 +506,18 @@ export async function generateWildernessLocationDescription(
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
   const systemInstruction = "You are a concise storyteller describing a wilderness location in a fantasy RPG. Response MUST be 2-3 sentences. Focus on immediate sensory details. No long descriptions.";
-  const prompt = `Player (${playerContext}) has moved to a new spot.
-    Location: A wilderness area at sub-tile (${subMapCoords.x},${subMapCoords.y}) within world sector (${worldMapCoords.x},${worldMapCoords.y}).
-    Biome: ${biomeName}.
-    Broader Context: ${worldMapTileTooltip || 'No additional context.'}
-    Provide a brief, 2-3 sentence description.`;
+
+  // Structured prompt for better narrative consistency
+  const prompt = `## NARRATIVE TASK
+Describe the wilderness area the player has moved into.
+Biome: ${biomeName}
+Coordinates: World(${worldMapCoords.x},${worldMapCoords.y}) Sub(${subMapCoords.x},${subMapCoords.y})
+Broader Region: ${worldMapTileTooltip || 'None'}
+
+${playerContext}
+
+## OUTPUT
+Provide a brief, 2-3 sentence description focusing on immediate sensory details (weather, terrain, wildlife sounds).`;
 
   return await generateText(prompt, systemInstruction, false, 'generateWildernessLocationDescription', devModelOverride, FAST_MODEL);
 }
