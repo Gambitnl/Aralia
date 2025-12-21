@@ -40,6 +40,7 @@ export const StateInteractions: Record<string, StateTag | null> = {
 
   // Oiled interactions
   'burning+oiled': StateTag.Burning, // Oil ignites (intensifies burning)
+  'oiled+wet': StateTag.Wet,        // Water washes away oil
 
   // Frozen interactions
   'burning+frozen': StateTag.Wet,   // Fire melts ice

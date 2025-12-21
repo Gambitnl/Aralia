@@ -68,6 +68,16 @@ describe('ElementalInteractionSystem', () => {
             expect(result.finalState).toBe(StateTag.Burning);
         });
 
+        it('should handle Oiled + Wet -> Wet (Wash away)', () => {
+            const current = [StateTag.Oiled];
+            const { newStates, result } = applyStateToTags(current, StateTag.Wet);
+
+            expect(newStates).toContain(StateTag.Wet);
+            expect(newStates).not.toContain(StateTag.Oiled);
+
+            expect(result.finalState).toBe(StateTag.Wet);
+        });
+
         it('should handle Burning + Cold -> Neutral (Thermal Shock)', () => {
             const current = [StateTag.Burning];
             const { newStates, result } = applyStateToTags(current, StateTag.Cold);
