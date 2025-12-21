@@ -103,7 +103,7 @@ export function findPath(startTile: BattleMapTile, endTile: BattleMapTile, mapDa
         // Calculate cost
         const { cost: baseStepCost, isDiagonal } = calculateMovementCost(dx, dy, currentNode.diagonalCount);
 
-        // TODO(Mechanist): Replace this simple multiplier with `calculateMovementCost` from `physicsUtils.ts` to support stacking penalties (climbing/crawling) and speed offsets.
+        // TODO(Mechanist): Replace this simple multiplier with `applyMovementCostModifiers` from `physicsUtils.ts` to support stacking penalties (climbing/crawling) and speed offsets.
         const terrainMultiplier = neighborTile.movementCost || 1;
         const stepCost = baseStepCost * terrainMultiplier;
 

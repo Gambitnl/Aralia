@@ -231,7 +231,7 @@ export function calculateThrowDistance(
 }
 
 /**
- * Calculates the movement cost for a given distance based on terrain and movement mode.
+ * Calculates the modified movement cost for a given distance based on terrain and movement mode.
  * D&D 5e Rules (PHB Ch 8):
  * - Difficult Terrain: +1 ft per ft.
  * - Climbing/Swimming/Crawling: +1 ft per ft (unless creature has speed).
@@ -241,32 +241,17 @@ export function calculateThrowDistance(
  * @param config - The movement configuration (terrain, mode, speeds).
  * @returns The total movement cost in feet.
  */
-export function calculateMovementCost(
+export function applyMovementCostModifiers(
   distance: number,
   config: MovementConfig
 ): number {
-  // Base cost is the distance itself (1 ft per 1 ft)
-  let extraCostPerFoot = 0;
+  // Declarative calculation of extra costs (1 ft per condition)
+  const difficultTerrainCost = config.isDifficultTerrain ? 1 : 0;
+  const climbingCost = (config.isClimbing && !config.hasClimbSpeed) ? 1 : 0;
+  const swimmingCost = (config.isSwimming && !config.hasSwimSpeed) ? 1 : 0;
+  const crawlingCost = config.isCrawling ? 1 : 0;
 
-  // Difficult Terrain adds 1 ft per foot
-  if (config.isDifficultTerrain) {
-    extraCostPerFoot += 1;
-  }
-
-  // Climbing adds 1 ft per foot, unless you have a climbing speed
-  if (config.isClimbing && !config.hasClimbSpeed) {
-    extraCostPerFoot += 1;
-  }
-
-  // Swimming adds 1 ft per foot, unless you have a swimming speed
-  if (config.isSwimming && !config.hasSwimSpeed) {
-    extraCostPerFoot += 1;
-  }
-
-  // Crawling (prone) adds 1 ft per foot
-  if (config.isCrawling) {
-    extraCostPerFoot += 1;
-  }
+  const extraCostPerFoot = difficultTerrainCost + climbingCost + swimmingCost + crawlingCost;
 
   // Total Cost = Distance * (1 + Sum of Extras)
   return distance * (1 + extraCostPerFoot);
