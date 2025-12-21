@@ -2,7 +2,7 @@
  * @file src/utils/encounterUtils.ts
  * This file contains utility functions for calculating encounter parameters.
  */
-import { GameMessage, Monster, TempPartyMember } from '../types';
+import type { GameMessage, Monster, TempPartyMember } from '../types';
 import { XP_THRESHOLDS_BY_LEVEL, XP_BY_CR } from '../data/dndData';
 import { LOCATIONS, BIOMES, MONSTERS_DATA } from '../constants';
 
