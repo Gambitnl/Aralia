@@ -5,6 +5,7 @@
  */
 import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, GuildJob, HeistIntel } from '../types';
 import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload } from './payloads/identityPayloads';
+import { DialogueSession } from '../types/dialogue';
 
 export type AppAction =
   | { type: 'SET_GAME_PHASE'; payload: GamePhase }
@@ -153,4 +154,8 @@ export type AppAction =
   | { type: 'ADD_LEGACY_TITLE'; payload: { title: string; description: string; grantedBy?: string } }
   | { type: 'ADD_LEGACY_MONUMENT'; payload: { name: string; description: string; locationId: string; cost: number } }
   | { type: 'REGISTER_HEIR'; payload: { name: string; relation: string; age: number; heirClass?: string } }
-  | { type: 'FOUND_STRONGHOLD'; payload: { name: string; type: StrongholdType; locationId: string } };
+  | { type: 'FOUND_STRONGHOLD'; payload: { name: string; type: StrongholdType; locationId: string } }
+  // Dialogue Actions
+  | { type: 'START_DIALOGUE_SESSION'; payload: { npcId: string } }
+  | { type: 'UPDATE_DIALOGUE_SESSION'; payload: { session: DialogueSession } }
+  | { type: 'END_DIALOGUE_SESSION' };
