@@ -43,8 +43,6 @@ export enum ItemRarity {
 }
 
 export interface ItemRarityTraits {
-  /** Display name for the rarity. */
-  name: string;
   /** Color code associated with the rarity (Hex). */
   color: string;
   /** Minimum gold piece value (approximate guide). */
@@ -60,37 +58,31 @@ export interface ItemRarityTraits {
  */
 export const ItemRarityDefinitions: Record<ItemRarity, ItemRarityTraits> = {
   [ItemRarity.Common]: {
-    name: "Common",
     color: "#ffffff", // White
     minPrice: 50,
     maxPrice: 100,
   },
   [ItemRarity.Uncommon]: {
-    name: "Uncommon",
     color: "#1eff00", // Green
     minPrice: 101,
     maxPrice: 500,
   },
   [ItemRarity.Rare]: {
-    name: "Rare",
     color: "#0070dd", // Blue
     minPrice: 501,
     maxPrice: 5000,
   },
   [ItemRarity.VeryRare]: {
-    name: "Very Rare",
     color: "#a335ee", // Purple
     minPrice: 5001,
     maxPrice: 50000,
   },
   [ItemRarity.Legendary]: {
-    name: "Legendary",
     color: "#ff8000", // Orange
     minPrice: 50001,
     maxPrice: 200000, // Arbitrary cap
   },
   [ItemRarity.Artifact]: {
-    name: "Artifact",
     color: "#e6cc80", // Heirloom/Gold/Red? Using a distinct gold/pale yellow.
     minPrice: 0, // Priceless
     maxPrice: 0,
