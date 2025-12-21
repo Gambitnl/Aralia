@@ -1,17 +1,20 @@
 # 🎭 Jules Persona Roster
 
-46 personas that work together on Aralia development (45 automated + 1 human-run).
+48 personas that work together on Aralia development (45 automated Jules + 3 human-run).
 
 ---
 
-## CORE (Human-Run)
-*Coordination and architecture maintenance - run by the maintainer between batch runs*
+## ORCHESTRATION (Human-Run)
+*Coordination and architecture maintenance - run by the maintainer around batch runs*
 
-| Persona | Emoji | Domain | Primary Focus |
-|---------|-------|--------|---------------|
-| **Core** | 🏛️ | Architecture | Consolidate worklogs, update architecture docs, resolve conflicts |
+| Order | Persona | Emoji | Timing | Primary Focus |
+|-------|---------|-------|--------|---------------|
+| 1 | **Herald** | 🚀 | Before Jules | Initialize batch uplink, push to GitHub |
+| 2 | *Jules (45)* | ⚙️ | Parallel | Execute persona tasks, create PRs |
+| 3 | **Scout** | 🔍 | After Jules | Coordinate PRs, trigger Code Assist, resolve conflicts |
+| 4 | **Core** | 🏛️ | After Scout | Consolidate worklogs, resolve conflicts, merge |
 
-> See [00_core.md](personas/00_core.md) for the full protocol.
+> See [_00_herald.md](personas/_00_herald.md), [_00_scout.md](personas/_00_scout.md), [00_core.md](personas/00_core.md) for full protocols.
 
 ---
 
@@ -166,6 +169,62 @@ Each persona should consult their relevant architecture docs in `docs/architectu
 
 ---
 
+## 📡 Agent Uplink Protocol
+
+> [!IMPORTANT]
+> **You are working in isolation.** Each Jules agent runs in its own cloned environment. You cannot see what other agents are doing, and they cannot see your work. The only shared state is GitHub (main branch) and this uplink channel.
+
+### Current Batch Topic
+
+**Uplink URL:** `https://ntfy.sh/BATCH_TOPIC_PLACEHOLDER`
+
+> The Core persona updates this URL before each batch run. If you see `BATCH_TOPIC_PLACEHOLDER`, the batch has not been initialized yet.
+
+### Why This Matters
+
+With 45 agents running in parallel, multiple agents may attempt to work on overlapping files or duplicate functionality. The uplink lets you:
+1. **Announce** what you're working on
+2. **Check** what others have claimed
+3. **Coordinate** when decisions affect multiple domains
+4. **Request help** when stuck
+
+### Message Protocol
+
+Use the uplink script at `.agent_tools/uplink.py`:
+
+```bash
+# Read existing messages FIRST (required before starting work)
+python .agent_tools/uplink.py --read
+
+# Announce your task (after checking no one else claimed it)
+python .agent_tools/uplink.py --message "START: <YourPersona> — <task description>" --title "<YourPersona>" --tags "rocket"
+
+# Request input on a decision fork
+python .agent_tools/uplink.py --message "FORK: <YourPersona> — Option A vs Option B, looking for input" --title "<YourPersona>" --tags "thinking"
+
+# Request help when stuck
+python .agent_tools/uplink.py --message "HELP: <YourPersona> — <problem description>" --title "<YourPersona>" --tags "warning"
+
+# Mark task complete
+python .agent_tools/uplink.py --message "DONE: <YourPersona> — <summary of changes>" --title "<YourPersona>" --tags "white_check_mark"
+```
+
+### Rules
+
+1. **Read before write** — Always check existing messages before posting START
+2. **Yield on collision** — If another agent already claimed your intended task, pick a different task
+3. **Be specific** — Include file paths or component names in your task description
+4. **Post DONE** — Always announce completion so others know the work is finished
+
+### View the Uplink
+
+You can view all messages at the topic URL in a browser, or use:
+```bash
+python .agent_tools/uplink.py --read
+```
+
+---
+
 ## Before You Start
 
 Every persona should read these files before starting work:
@@ -173,6 +232,7 @@ Every persona should read these files before starting work:
 1. **This file** (`_ROSTER.md`) - Know your team
 2. **[_CODEBASE.md](_CODEBASE.md)** - Technical standards, stack, patterns
 3. **[_METHODOLOGY.md](_METHODOLOGY.md)** - Process, PRs, testing, TODOs
+4. **Check the uplink** — Run `python .agent_tools/uplink.py --read` to see what others are working on
 
 Then dive into specific **[guides/](guides/)** as needed for your task.
 

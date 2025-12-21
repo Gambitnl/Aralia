@@ -45,6 +45,7 @@ export interface PlanarEffect {
   affectsRest?: RestModifier;
   affectsMortality?: MortalityRule;
   psychicDamagePerMinute?: number; // For hostile planes
+  onPlaneExit?: string; // Mechanical description of exit effects (e.g., Memory Loss)
 }
 
 export interface PlanarHazard {
