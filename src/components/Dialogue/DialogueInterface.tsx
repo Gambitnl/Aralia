@@ -67,9 +67,20 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
         onUpdateSession(newSession);
 
         // 3. Update Global State (Disposition, Unlocks)
-        // This is tricky without a reducer dispatch, but we have onUpdateGameState callback
-        // This part requires the parent to handle the heavy lifting of state mutations usually.
-        // For this component, we'll focus on the DISPLAY and RESPONSE generation.
+        if (result.dispositionChange !== 0) {
+            const currentMem = gameState.npcMemory[npc.id] || { disposition: 0, knownFacts: [], suspicion: 0, goals: [] };
+            const newDisposition = (currentMem.disposition || 0) + result.dispositionChange;
+
+            onUpdateGameState({
+                npcMemory: {
+                    ...gameState.npcMemory,
+                    [npc.id]: {
+                        ...currentMem,
+                        disposition: newDisposition
+                    }
+                }
+            });
+        }
 
         // 4. Generate AI Response
         const response = await onGenerateResponse(result.responsePrompt);
