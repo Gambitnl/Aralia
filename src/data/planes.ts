@@ -1,286 +1,210 @@
 
-import { Plane, PlanarTrait } from '../types/planes';
+import { Plane, PlanarTrait, PlanarHazard, PlanarEffect } from '../types/planes';
 
-const FeywildTimeTrait: PlanarTrait = {
-  id: 'time_warp',
-  name: 'Timeless',
-  type: 'time',
-  description: 'Time flows strangely here. A day in the Feywild might be a minute or a year in the Material Plane.',
-  mechanics: 'Long rests feel instant but might pass days in the material world.'
+// -----------------------------------------------------------------------------
+// Common Planar Traits
+// -----------------------------------------------------------------------------
+
+const TRAIT_MEMORY_LOSS: PlanarTrait = {
+  id: 'memory_loss',
+  name: 'Memory Loss',
+  description: 'Creatures who leave this plane may lose all memory of their time spent here.',
+  type: 'memory'
 };
 
-const FeywildMagicTrait: PlanarTrait = {
-  id: 'feywild_magic',
-  name: 'Wild Magic',
-  type: 'magic',
-  description: 'Magic is amplified and unpredictable.',
-  mechanics: 'Illusion and Enchantment spells are cast as if one level higher.'
-};
-
-const ShadowfellDespairTrait: PlanarTrait = {
-  id: 'shadowfell_despair',
+const TRAIT_DESPAIR: PlanarTrait = {
+  id: 'despair',
   name: 'Shadowfell Despair',
-  type: 'environmental',
-  description: 'A weighing melancholy that saps the will to live.',
-  mechanics: 'Wisdom saving throws at disadvantage. Long rests require a Wisdom save to gain benefits.'
+  description: 'A pervasive melancholy that saps the will to live.',
+  type: 'environmental'
 };
 
-const PsychicStaticTrait: PlanarTrait = {
-  id: 'psychic_static',
-  name: 'Psychic Static',
-  type: 'environmental',
-  description: 'The chaos of this plane assaults the mind.',
-  mechanics: 'Take 1d4 psychic damage every minute.'
-};
-
-const PervasiveEvilTrait: PlanarTrait = {
-  id: 'pervasive_evil',
-  name: 'Pervasive Evil',
+const TRAIT_INFERNAL_HIERARCHY: PlanarTrait = {
+  id: 'infernal_hierarchy',
+  name: 'Infernal Hierarchy',
+  description: 'Devils instantly know the relative rank of all other devils.',
   type: 'alignment',
-  description: 'The very land is infused with tyranny and malice.',
-  mechanics: 'Good-aligned creatures feel a constant spiritual weight.'
+  mechanics: 'Social checks against Devils have DC based on rank difference.'
 };
 
-export const PLANES: Record<string, Plane> = {
-  material: {
-    id: 'material',
-    name: 'Material Plane',
-    description: 'The nexus of the multiverse, where worlds exist in balance.',
-    traits: [],
-    natives: ['Humanoid', 'Beast', 'Monstrosity'],
-    hazards: [],
-    emotionalValence: 'neutral',
-    timeFlow: 'normal',
-    effects: {},
-    atmosphereDescription: "The air feels stable and familiar."
-  },
-  feywild: {
-    id: 'feywild',
-    name: 'The Feywild',
-    description: 'A place of unrestrained nature and emotion, an echo of the Material Plane.',
-    traits: [FeywildTimeTrait, FeywildMagicTrait],
-    natives: ['Fey', 'Elf', 'Satyr', 'Hag'],
-    hazards: [
-      {
-        name: 'Memory Loss',
-        description: 'Visitors may forget their time here upon leaving.',
-        saveDC: 15
-      }
-    ],
-    emotionalValence: 'chaotic',
-    timeFlow: 'erratic',
-    atmosphereDescription: "Colors seem more vivid here, and the air hums with an unseen melody. Your emotions feel closer to the surface.",
-    effects: {
-      affectsMagic: [
-        {
-          school: 'Illusion',
-          effect: 'empowered',
-          description: 'Illusion spells are more potent.'
-        },
-        {
-          school: 'Enchantment',
-          effect: 'empowered',
-          description: 'Enchantment spells are more potent.'
-        }
-      ]
+const TRAIT_WILD_MAGIC: PlanarTrait = {
+  id: 'wild_magic',
+  name: 'Wild Magic Surge',
+  description: 'Magic here is untamed and explosive.',
+  type: 'magic',
+  mechanics: 'Casting a spell of 1st level or higher triggers a Wild Magic Surge check (d20, on 1 surge happens).'
+};
+
+const TRAIT_TIMELESS: PlanarTrait = {
+  id: 'timeless',
+  name: 'Timeless',
+  description: 'Time does not pass for creatures here.',
+  type: 'time',
+  mechanics: 'Creatures do not age or feel hunger/thirst. Effects occur upon leaving.'
+};
+
+const TRAIT_PSYCHIC_WIND: PlanarTrait = {
+  id: 'psychic_wind',
+  name: 'Psychic Wind',
+  description: 'Mental storms that buffet the minds of travelers.',
+  type: 'environmental',
+  mechanics: 'Random encounters with storms that cause Psychic damage or transport travelers.'
+};
+
+// -----------------------------------------------------------------------------
+// Plane Definitions
+// -----------------------------------------------------------------------------
+
+export const MATERIAL_PLANE: Plane = {
+  id: 'material',
+  name: 'The Material Plane',
+  description: 'The nexus of the multiverse, where elemental forces meet. A world of balance, nature, and civilizations.',
+  traits: [],
+  natives: ['Humanoid', 'Beast', 'Monstrosity', 'Dragon', 'Giant'],
+  hazards: [],
+  emotionalValence: 'neutral',
+  timeFlow: 'normal',
+  atmosphereDescription: 'The air tastes of dust and rain. The sun rises and sets with comforting regularity.',
+  alignment: 'Neutral'
+};
+
+export const FEYWILD: Plane = {
+  id: 'feywild',
+  name: 'The Feywild',
+  description: 'A place of soft lights, vivid colors, and heightened emotions. The echo of the world created by the Fey.',
+  traits: [TRAIT_MEMORY_LOSS],
+  natives: ['Fey', 'Elf', 'Giant Owl', 'Blink Dog', 'Satyr'],
+  hazards: [
+    {
+      name: 'Time Warp',
+      description: 'Time flows strangely here.',
+      saveDC: 0, // Narrative hazard mostly
+      effect: 'Time spent may be minutes or years in the Material Plane.'
     }
-  },
-  shadowfell: {
-    id: 'shadowfell',
-    name: 'The Shadowfell',
-    description: 'A dark echo of the Material Plane, a place of decay and death.',
-    traits: [ShadowfellDespairTrait],
-    natives: ['Undead', 'Shadar-kai', 'Shadow'],
-    hazards: [
+  ],
+  emotionalValence: 'chaotic',
+  timeFlow: 'erratic',
+  atmosphereDescription: 'The colors are too bright, the shadows too purple. Every emotion feels like a shouting match.',
+  alignment: 'Chaotic Neutral',
+  effects: {
+    onPlaneExit: 'DC 15 Wisdom save upon leaving. Failure wipes memories of the visit.',
+    affectsMagic: [
       {
-        name: 'Gloom',
-        description: 'Non-magical light sources illuminate half as far.',
-        saveDC: 0
-      }
-    ],
-    emotionalValence: 'negative',
-    timeFlow: 'normal', // Usually normal but gloomy
-    atmosphereDescription: "The world is drained of color, appearing in shades of gray. A heavy gloom weighs on your spirit, making every step feel like a chore.",
-    effects: {
-      affectsMagic: [
-        {
-          school: 'Necromancy',
-          effect: 'empowered',
-          description: 'Necromancy spells are more potent.'
-        },
-        {
-          school: 'Evocation', // specifically light
-          effect: 'impeded',
-          description: 'Light spells are dimmed.'
-        }
-      ],
-      affectsRest: {
-        shortRestAllowed: true,
-        longRestAllowed: true,
-        effects: ['Must succeed on DC 15 Wisdom save to gain Long Rest benefits']
-      }
-    }
-  },
-  nine_hells: {
-    id: 'nine_hells',
-    name: 'The Nine Hells',
-    description: 'A plane of rigid order, tyranny, and fire, ruled by devils.',
-    alignment: 'Lawful Evil',
-    traits: [PervasiveEvilTrait],
-    natives: ['Devil', 'Imp', 'Tiefling'],
-    hazards: [
+        school: 'Illusion',
+        effect: 'empowered',
+        description: 'Illusion spells last twice as long.'
+      },
       {
-        name: 'Infernal Heat',
-        description: 'The heat is oppressive and drains vitality.',
-        saveDC: 10,
-        damage: '1d4 fire', // Example implementation
-        effect: 'exhaustion'
+        school: 'Enchantment',
+        effect: 'empowered',
+        description: 'Enchantment spells are cast with Advantage on the attack or Disadvantage on the save.'
       }
-    ],
-    emotionalValence: 'negative',
-    timeFlow: 'normal',
-    atmosphereDescription: "The air smells of brimstone and burning iron. The heat is oppressive, and a sense of rigid, malicious order permeates everything.",
-    effects: {
-      affectsMagic: [
-        {
-          school: 'Evocation', // Fire spells
-          effect: 'empowered',
-          description: 'Fire spells burn hotter here.'
-        },
-        {
-          school: 'Divination',
-          effect: 'impeded',
-          description: 'The gods have difficulty seeing into this realm.'
-        }
-      ]
-    }
-  },
-  abyss: {
-    id: 'abyss',
-    name: 'The Abyss',
-    description: 'Infinite layers of chaos and evil, home to demons.',
-    alignment: 'Chaotic Evil',
-    traits: [PsychicStaticTrait],
-    natives: ['Demon'],
-    hazards: [
-      {
-        name: 'Corrupting Chaos',
-        description: 'The plane warps the mind and body.',
-        saveDC: 15,
-        damage: '1d4 psychic'
-      }
-    ],
-    emotionalValence: 'chaotic',
-    timeFlow: 'normal',
-    atmosphereDescription: "The air tastes of copper and sulfur. Distant screams echo constantly, and the geometry of the world feels wrong.",
-    effects: {
-      psychicDamagePerMinute: 3 // Average of 1d4 approx, simplified
-    }
-  },
-  ethereal: {
-    id: 'ethereal',
-    name: 'The Ethereal Plane',
-    description: 'A misty realm that overlaps the Material Plane, used for travel between worlds.',
-    traits: [],
-    natives: ['Ghost', 'Phase Spider'],
-    hazards: [],
-    emotionalValence: 'neutral',
-    timeFlow: 'normal',
-    atmosphereDescription: "Everything appears shrouded in silvery mist. The Material Plane is visible but distant and muted.",
-    effects: {}
-  },
-  astral: {
-    id: 'astral',
-    name: 'The Astral Plane',
-    description: 'A silvery void connecting all planes, where thoughts become reality.',
-    traits: [],
-    natives: ['Githyanki', 'Astral Dreadnought'],
-    hazards: [],
-    emotionalValence: 'neutral',
-    timeFlow: 'timeless',
-    atmosphereDescription: "An endless silver expanse. Color pools dot the void, each a portal to another plane.",
-    effects: {}
-  },
-  elemental_fire: {
-    id: 'elemental_fire',
-    name: 'Elemental Plane of Fire',
-    description: 'A realm of burning heat and flames that sustain no mortal life.',
-    traits: [],
-    natives: ['Fire Elemental', 'Efreeti', 'Salamander'],
-    hazards: [
-      {
-        name: 'Extreme Heat',
-        description: 'The plane itself burns all mortal flesh.',
-        saveDC: 15,
-        damage: '1d10 fire'
-      }
-    ],
-    emotionalValence: 'chaotic',
-    timeFlow: 'normal',
-    atmosphereDescription: "Rivers of lava flow beneath skies of flame. The heat is unrelenting.",
-    effects: {}
-  },
-  elemental_water: {
-    id: 'elemental_water',
-    name: 'Elemental Plane of Water',
-    description: 'An endless ocean with no surface, where light filters through impossible depths.',
-    traits: [],
-    natives: ['Water Elemental', 'Marid', 'Sea Elf'],
-    hazards: [
-      {
-        name: 'Crushing Depths',
-        description: 'Pressure increases as you descend.',
-        saveDC: 10
-      }
-    ],
-    emotionalValence: 'neutral',
-    timeFlow: 'normal',
-    atmosphereDescription: "Water in every direction, with bioluminescent creatures providing distant light.",
-    effects: {}
-  },
-  mechanus: {
-    id: 'mechanus',
-    name: 'Mechanus',
-    description: 'The plane of absolute law, made of interlocking gears and clockwork precision.',
-    alignment: 'Lawful Neutral',
-    traits: [],
-    natives: ['Modron', 'Inevitable'],
-    hazards: [],
-    emotionalValence: 'neutral',
-    timeFlow: 'normal',
-    atmosphereDescription: "Infinite interlocking gears turn in perfect harmony. Everything here follows an exact schedule.",
-    effects: {}
-  },
-  limbo: {
-    id: 'limbo',
-    name: 'Limbo',
-    description: 'A plane of pure chaos where reality is shaped by will alone.',
-    alignment: 'Chaotic Neutral',
-    traits: [PsychicStaticTrait],
-    natives: ['Slaad', 'Githzerai'],
-    hazards: [
-      {
-        name: 'Unstable Reality',
-        description: 'The plane shifts constantly without conscious control.',
-        saveDC: 15
-      }
-    ],
-    emotionalValence: 'chaotic',
-    timeFlow: 'erratic',
-    atmosphereDescription: "Reality churns and shifts. Solid ground may become water or fire without warning.",
-    effects: {}
-  },
-  mount_celestia: {
-    id: 'mount_celestia',
-    name: 'Mount Celestia',
-    description: 'The realm of law and good, a mountain rising through seven heavenly layers.',
-    alignment: 'Lawful Good',
-    traits: [],
-    natives: ['Angel', 'Archon'],
-    hazards: [],
-    emotionalValence: 'positive',
-    timeFlow: 'normal',
-    atmosphereDescription: "Golden light bathes a majestic mountain. Peace and order flow from every stone.",
-    effects: {}
+    ]
   }
 };
+
+export const SHADOWFELL: Plane = {
+  id: 'shadowfell',
+  name: 'The Shadowfell',
+  description: 'A desolate, grayscale reflection of the world. A place of decay, death, and memory.',
+  traits: [TRAIT_DESPAIR],
+  natives: ['Undead', 'Shadar-Kai', 'Shadow Mastiff', 'Darkmantle'],
+  hazards: [
+    {
+      name: 'Gloom',
+      description: 'Visibility is reduced.',
+      saveDC: 0,
+      effect: 'Light sources shed light for only half their normal radius.'
+    }
+  ],
+  emotionalValence: 'negative',
+  timeFlow: 'normal',
+  atmosphereDescription: 'The air is cold and still. Colors are muted to greys. You feel a weight on your soul.',
+  alignment: 'Neutral Evil',
+  effects: {
+    affectsRest: {
+      shortRestAllowed: true,
+      longRestAllowed: true,
+      effects: ['Despair check required after Long Rest.']
+    },
+    affectsMortality: {
+      deathSavingThrows: 'disadvantage',
+      resurrectionPossible: true,
+      ghosts: true
+    },
+    affectsMagic: [
+      {
+        school: 'Necromancy',
+        effect: 'empowered',
+        description: 'Necromancy spells roll damage dice twice and take the higher total.'
+      },
+      {
+        school: 'Evocation',
+        effect: 'impeded',
+        description: 'Spells that create light have their radius halved.'
+      }
+    ]
+  }
+};
+
+export const NINE_HELLS: Plane = {
+  id: 'nine_hells',
+  name: 'The Nine Hells',
+  description: 'A plane of rigid order and tyranny, ruled by Devils under the iron fist of Asmodeus.',
+  traits: [TRAIT_INFERNAL_HIERARCHY],
+  natives: ['Devil', 'Imp', 'Hell Hound'],
+  hazards: [
+    {
+      name: 'River Styx',
+      description: 'The river of lost memories.',
+      saveDC: 15, // Int save
+      effect: 'Total amnesia (Feeblemind effect).'
+    },
+    {
+      name: 'Hellfire',
+      description: 'Fire that burns even the soul.',
+      saveDC: 15,
+      damage: '4d10 fire' // Simplified for hazard system compatibility
+    }
+  ],
+  emotionalValence: 'negative',
+  timeFlow: 'normal',
+  atmosphereDescription: 'The sky is a bruised purple or fiery red. The smell of brimstone is omnipresent.',
+  alignment: 'Lawful Evil'
+};
+
+export const ASTRAL_PLANE: Plane = {
+  id: 'astral_plane',
+  name: 'The Astral Plane',
+  description: 'The space between the planes. A silvery void where thought is motion.',
+  traits: [TRAIT_TIMELESS, TRAIT_PSYCHIC_WIND],
+  natives: ['Githyanki', 'Astral Dreadnought'],
+  hazards: [],
+  emotionalValence: 'neutral',
+  timeFlow: 'timeless',
+  atmosphereDescription: 'A silver void stretches infinitely. Distant color pools swirl like stars.',
+  alignment: 'Neutral',
+  effects: {
+    affectsRest: {
+      shortRestAllowed: true,
+      longRestAllowed: false, // You don't get tired? Or cannot sleep? Rules vary, but "Time doesn't pass" usually means no resting benefits for age/hunger.
+      effects: ['No aging or hunger.']
+    }
+  }
+};
+
+// -----------------------------------------------------------------------------
+// Registry
+// -----------------------------------------------------------------------------
+
+export const PLANES: Record<string, Plane> = {
+  [MATERIAL_PLANE.id]: MATERIAL_PLANE,
+  [FEYWILD.id]: FEYWILD,
+  [SHADOWFELL.id]: SHADOWFELL,
+  [NINE_HELLS.id]: NINE_HELLS,
+  [ASTRAL_PLANE.id]: ASTRAL_PLANE
+};
+
+export const getPlane = (id: string): Plane | undefined => PLANES[id];
+
+export const getAllPlanes = (): Plane[] => Object.values(PLANES);
