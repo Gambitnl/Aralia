@@ -1,6 +1,6 @@
 import React from 'react';
 import { gpToCoins, COIN_ICONS, COIN_COLORS, CoinBreakdown } from '../../utils/coinPurseUtils';
-import Tooltip from '../Tooltip';
+import Tooltip from './Tooltip';
 
 interface CoinPurseDisplayProps {
     /** Total value in gold pieces (stored as decimal) */

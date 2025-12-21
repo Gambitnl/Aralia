@@ -1,5 +1,5 @@
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { resolveAndRegisterEntities } from '../entityIntegrationUtils';
 import { EntityResolverService } from '../../services/EntityResolverService';
 import { GameState, Location, Faction, NPC } from '../../types';
@@ -7,8 +7,8 @@ import { GameState, Location, Faction, NPC } from '../../types';
 vi.mock('../../services/EntityResolverService');
 
 describe('resolveAndRegisterEntities', () => {
-    let mockDispatch: any;
-    let mockAddGeminiLog: any;
+    let mockDispatch: Mock;
+    let mockAddGeminiLog: Mock;
     let mockGameState: GameState;
 
     beforeEach(() => {

@@ -4,7 +4,7 @@
  * Handles the "Scan Text -> Resolve -> Register in Redux" loop.
  */
 
-import React from 'react';
+import type { Dispatch } from 'react';
 import { GameState, Location, Faction, NPC } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { EntityResolverService } from '../services/EntityResolverService';
@@ -22,7 +22,7 @@ import { AddGeminiLogFn } from '../hooks/actions/actionHandlerTypes';
 export async function resolveAndRegisterEntities(
   text: string,
   gameState: GameState,
-  dispatch: React.Dispatch<AppAction>,
+  dispatch: Dispatch<AppAction>,
   addGeminiLog: AddGeminiLogFn
 ): Promise<void> {
   try {
@@ -34,21 +34,25 @@ export async function resolveAndRegisterEntities(
 
       if (result.created && result.entity) {
         // Register the new entity in the state
-        if (result.type === 'location') {
-          dispatch({
-            type: 'REGISTER_DYNAMIC_ENTITY',
-            payload: { entityType: 'location', entity: result.entity as Location }
-          });
-        } else if (result.type === 'faction') {
-          dispatch({
-            type: 'REGISTER_DYNAMIC_ENTITY',
-            payload: { entityType: 'faction', entity: result.entity as Faction }
-          });
-        } else if (result.type === 'npc') {
-          dispatch({
-            type: 'REGISTER_DYNAMIC_ENTITY',
-            payload: { entityType: 'npc', entity: result.entity as NPC }
-          });
+        switch (result.type) {
+            case 'location':
+                dispatch({
+                    type: 'REGISTER_DYNAMIC_ENTITY',
+                    payload: { entityType: 'location', entity: result.entity as Location }
+                });
+                break;
+            case 'faction':
+                dispatch({
+                    type: 'REGISTER_DYNAMIC_ENTITY',
+                    payload: { entityType: 'faction', entity: result.entity as Faction }
+                });
+                break;
+            case 'npc':
+                dispatch({
+                    type: 'REGISTER_DYNAMIC_ENTITY',
+                    payload: { entityType: 'npc', entity: result.entity as NPC }
+                });
+                break;
         }
 
         addGeminiLog(
