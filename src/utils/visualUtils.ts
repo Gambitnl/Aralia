@@ -4,8 +4,8 @@
  * Implements the "Pipeline" part of the Asset Requirement Standards.
  */
 
-import { NPC, Race } from '../types';
-import { NPCVisualSpec, VisualAsset } from '../types/visuals';
+import { NPC, Race, Item } from '../types';
+import { NPCVisualSpec, VisualAsset, ItemVisualSpec } from '../types/visuals';
 
 /**
  * Resolves the visual representation for an NPC, handling fallbacks.
@@ -46,6 +46,56 @@ export function resolveNPCVisual(
     secondaryColor: '#1f2937', // dark gray
     label: `${npc.name} (${npc.role})`
   };
+}
+
+/**
+ * Resolves the visual representation for an Item, handling legacy icons and fallbacks.
+ *
+ * @param item - The item entity
+ * @returns A fully resolved VisualAsset ready for UI rendering
+ */
+export function resolveItemVisual(item: Item): VisualAsset {
+  // 1. Try to use explicit visual spec if present
+  if (item.visual?.iconPath) {
+    return {
+      src: item.visual.iconPath,
+      fallbackContent: item.visual.fallbackIcon || item.icon || '📦',
+      primaryColor: getItemRarityColor(item.visual.rarity),
+      label: item.name
+    };
+  }
+
+  // 2. Try to use legacy icon if it looks like a path
+  if (item.icon && (item.icon.startsWith('/') || item.icon.startsWith('http'))) {
+    return {
+      src: item.icon,
+      fallbackContent: '📦',
+      primaryColor: '#9ca3af', // gray-400
+      label: item.name
+    };
+  }
+
+  // 3. Use legacy icon as fallback content (emoji/text) if not a path
+  // If no icon at all, default to box
+  return {
+    fallbackContent: item.icon || '📦',
+    primaryColor: '#9ca3af', // gray-400
+    label: item.name
+  };
+}
+
+/**
+ * Helper to get border color based on item rarity.
+ */
+function getItemRarityColor(rarity?: ItemVisualSpec['rarity']): string {
+  switch (rarity) {
+    case 'common': return '#9ca3af'; // gray-400
+    case 'uncommon': return '#10b981'; // emerald-500
+    case 'rare': return '#3b82f6'; // blue-500
+    case 'very_rare': return '#8b5cf6'; // violet-500
+    case 'legendary': return '#f59e0b'; // amber-500
+    default: return '#9ca3af';
+  }
 }
 
 /**

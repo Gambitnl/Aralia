@@ -1,5 +1,6 @@
 import type { AbilityScoreName, AbilityScores } from './core';
 import type { MagicItemProperties } from './magicItems';
+import type { ItemVisualSpec } from './visuals';
 
 /**
  * Equipment and inventory focused types.
@@ -190,6 +191,7 @@ export interface Item {
     | 'crafting_material'
     | 'treasure';
   icon?: string;
+  visual?: ItemVisualSpec;
   slot?: EquipmentSlotType;
   effect?: ItemEffect;
   mastery?: string;
@@ -229,6 +231,11 @@ export interface Item {
   nutritionValue?: number;
   perishable?: boolean;
   statBonuses?: Partial<AbilityScores>;
+  /**
+   * For items that set an ability score to a fixed value (e.g., Gauntlets of Ogre Power setting Strength to 19).
+   * D&D 5e Rules: The score becomes X unless it is already higher.
+   */
+  statOverrides?: Partial<AbilityScores>;
   requirements?: {
     minLevel?: number;
     classId?: string[];

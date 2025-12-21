@@ -1,1 +1,3 @@
-## 2024-05-24 - Naval Foundation **Learning:** To make ships distinct, they need stats beyond speed/hp and a crew that affects those stats. **Action:** Implement Ship and Crew interfaces with morale, loyalty, and ship classes.
+## 2024-05-24 - Initial Journal Creation
+**Learning:** Naval systems require deep integration with travel and combat mechanics to feel meaningful, not just a reskinned travel method.
+**Action:** Always check `src/systems/travel/` and `src/utils/combatUtils.ts` when implementing naval features.

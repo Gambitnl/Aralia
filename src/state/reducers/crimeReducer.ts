@@ -2,12 +2,133 @@
 import { GameState, Crime } from '../../types';
 import { AppAction } from '../actionTypes';
 import { CrimeSystem } from '../../systems/crime/CrimeSystem';
+import { HeistManager } from '../../systems/crime/HeistManager';
 
 /**
  * Handles crime and notoriety related actions.
  */
 export const crimeReducer = (state: GameState, action: AppAction): Partial<GameState> => {
     switch (action.type) {
+        // --- Heist Actions ---
+
+        case 'START_HEIST_PLANNING': {
+            const { targetLocationId, leaderId, guildJobId } = action.payload;
+
+            // HeistManager.startPlanning currently only uses the ID from the location object.
+            // We pass a minimal object to avoid needing to look up the full Location entity here.
+            // TODO: If startPlanning needs more location data later, fetch it from state.dynamicLocations or similar.
+            const targetLocation = { id: targetLocationId } as any;
+            let plan = HeistManager.startPlanning(targetLocation, leaderId);
+
+            if (guildJobId) {
+                plan = { ...plan, guildJobId };
+            }
+
+            return {
+                activeHeist: plan,
+                messages: [
+                    ...state.messages,
+                    {
+                        id: Date.now(),
+                        text: `Heist planning started for location: ${targetLocationId}.`,
+                        sender: 'system',
+                        timestamp: state.gameTime
+                    }
+                ]
+            };
+        }
+
+        case 'ADD_HEIST_INTEL': {
+            const { intel } = action.payload;
+            if (!state.activeHeist) return {};
+
+            const updatedPlan = HeistManager.addIntel(state.activeHeist, intel);
+
+            return {
+                activeHeist: updatedPlan,
+                messages: [
+                    ...state.messages,
+                    {
+                        id: Date.now(),
+                        text: `Intel gathered: ${intel.description}`,
+                        sender: 'system',
+                        timestamp: state.gameTime
+                    }
+                ]
+            };
+        }
+
+        case 'ADVANCE_HEIST_PHASE': {
+            if (!state.activeHeist) return {};
+            const updatedPlan = HeistManager.advancePhase(state.activeHeist);
+
+            return {
+                activeHeist: updatedPlan,
+                messages: [
+                    ...state.messages,
+                    {
+                        id: Date.now(),
+                        text: `Heist phase advanced to: ${updatedPlan.phase}`,
+                        sender: 'system',
+                        timestamp: state.gameTime
+                    }
+                ]
+            };
+        }
+
+        case 'PERFORM_HEIST_ACTION': {
+            const { actionDifficulty, description, success, alertChange, skillCheckResult } = action.payload;
+            if (!state.activeHeist) return {};
+
+            let outcomeMessage = '';
+
+            if (skillCheckResult) {
+                outcomeMessage = `${description} - ${skillCheckResult}`;
+            } else {
+                // Use a default message if no skill check string provided
+                // Use the calculated chance just for display if needed, but success is pre-determined
+                const chance = HeistManager.calculateActionSuccessChance(state.activeHeist, actionDifficulty);
+                outcomeMessage = success
+                    ? `${description} - Success! (Risk: ${100 - chance}%)`
+                    : `${description} - Failed! (Risk: ${100 - chance}%)`;
+            }
+
+            const newAlertLevel = Math.min(100, state.activeHeist.alertLevel + alertChange);
+            const turnsElapsed = state.activeHeist.turnsElapsed + 1;
+
+            return {
+                activeHeist: {
+                    ...state.activeHeist,
+                    alertLevel: newAlertLevel,
+                    turnsElapsed
+                },
+                messages: [
+                    ...state.messages,
+                    {
+                        id: Date.now(),
+                        text: outcomeMessage,
+                        sender: 'system',
+                        timestamp: state.gameTime
+                    }
+                ]
+            };
+        }
+
+        case 'ABORT_HEIST': {
+            return {
+                activeHeist: null,
+                messages: [
+                    ...state.messages,
+                    {
+                        id: Date.now(),
+                        text: `Heist aborted.`,
+                        sender: 'system',
+                        timestamp: state.gameTime
+                    }
+                ]
+            };
+        }
+
         case 'COMMIT_CRIME': {
             const { type, locationId, severity, witnessed } = action.payload;
 

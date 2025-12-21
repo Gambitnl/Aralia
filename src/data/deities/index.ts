@@ -1,21 +1,11 @@
 /**
  * @file src/data/deities/index.ts
  * =========================================================================================
- * 🏛️ MYTHKEEPER PROPOSAL: NEW DEITY DATA STRUCTURE
+ * 🏛️ MYTHKEEPER DEITY DATA
  * =========================================================================================
  *
- * This file represents the proposed new structure for deity data: an Array of Deity objects.
- * This contrasts with the legacy `Record<string, Deity>` found in `src/data/religion.ts`.
- *
- * RATIONALE:
- * - Arrays are easier to iterate over for UI selection lists.
- * - Consistent with `races` and `classes` data structures.
- * - Allows for stricter typing and easier expansion.
- *
- * USAGE:
- * This file is currently imported by `src/utils/religionUtils.ts` and `src/state/appState.ts`,
- * effectively making it the ACTIVE source of truth for the application's runtime.
- * `src/data/religion.ts` appears to be legacy/dead code but contains the original data.
+ * This file represents the authoritative source for deity data in Aralia RPG.
+ * It adheres to D&D 5e (2014 & 2024) standards for domains and alignments.
  *
  * =========================================================================================
  */
@@ -466,7 +456,7 @@ export const DEITIES: Deity[] = [
         name: 'Avandra',
         titles: ['The Changebringer', 'Lady of Luck'],
         alignment: 'Chaotic Good',
-        domains: ['Trickery', 'Freedom'], // Freedom isn't standard 5e domain, maybe Peace/Life/Trickery. Stick to Trickery.
+        domains: ['Trickery', 'Peace'],
         symbol: 'Woman’s profile, coin',
         description: 'Avandra champions freedom, travel, and adventure.',
         commandments: [

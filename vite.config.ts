@@ -12,6 +12,8 @@ export default defineConfig(({ mode }) => {
       },
       plugins: [react()],
       define: {
+        // Shim process.env for legacy support (allows process.env.API_KEY to work).
+        // New code should prefer import.meta.env.VITE_GEMINI_API_KEY.
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
       },
@@ -23,10 +25,11 @@ export default defineConfig(({ mode }) => {
       build: {
         rollupOptions: {
           output: {
-            // TODO: tighten chunking/lazy-load heavy modules to bring main bundle (~1.6MB) under the 500k warning.
             manualChunks: {
               'vendor-react': ['react', 'react-dom', 'framer-motion'],
-              'vendor-pixi': ['pixi.js']
+              'vendor-utils': ['lucide-react', 'marked', 'dompurify', 'uuid', 'zod'],
+              'vendor-pixi': ['pixi.js'],
+              'vendor-ai': ['@google/genai']
             }
           }
         }

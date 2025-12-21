@@ -47,6 +47,10 @@ export function createShip(name: string, type: keyof typeof SHIP_TEMPLATES): Shi
       items: [],
       totalWeight: 0,
       capacityUsed: 0,
+      supplies: {
+        food: 0,
+        water: 0
+      }
     },
     modifications: [],
     weapons: [],
