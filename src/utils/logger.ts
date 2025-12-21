@@ -1,3 +1,5 @@
+import { redactSensitiveData } from './securityUtils';
+
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 interface LogContext {
@@ -9,24 +11,42 @@ class Logger {
     const timestamp = new Date().toISOString();
     const prefix = `[${timestamp}] [${level.toUpperCase()}]`;
 
+    let safeMessage = message;
+    let safeContext = context;
+
+    try {
+        // Redact sensitive data automatically
+        // We cast to string because we know if we pass a string, we get a string (or redacted string) back
+        safeMessage = redactSensitiveData(message) as string;
+        safeContext = context ? redactSensitiveData(context) : undefined;
+    } catch (error) {
+        // Fallback if redaction fails (e.g., circular dependency in context object, though JSON.stringify usually catches that in securityUtils)
+        // We do NOT want to log the original message/context if redaction failed, as it might contain the secret that caused the failure (unlikely but possible)
+        console.error(`${prefix} [LOGGER SECURITY ERROR] Failed to redact log message. Original log suppressed.`);
+        return;
+    }
+
     // Direct mapping to console methods to avoid index signature issues
-    // and preserve method context if needed
+    // and preserve method context if needed.
+    // We construct the arguments array to avoid printing 'undefined' when context is missing,
+    // while keeping the switch statement minimal.
+    const args: [string, ...unknown[]] = [`${prefix} ${safeMessage}`];
+    if (safeContext) {
+      args.push(safeContext);
+    }
+
     switch (level) {
       case 'debug':
-        if (context) console.debug(`${prefix} ${message}`, context);
-        else console.debug(`${prefix} ${message}`);
+        console.debug(...args);
         break;
       case 'info':
-        if (context) console.info(`${prefix} ${message}`, context);
-        else console.info(`${prefix} ${message}`);
+        console.info(...args);
         break;
       case 'warn':
-        if (context) console.warn(`${prefix} ${message}`, context);
-        else console.warn(`${prefix} ${message}`);
+        console.warn(...args);
         break;
       case 'error':
-        if (context) console.error(`${prefix} ${message}`, context);
-        else console.error(`${prefix} ${message}`);
+        console.error(...args);
         break;
     }
   }
