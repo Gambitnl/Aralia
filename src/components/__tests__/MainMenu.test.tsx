@@ -6,7 +6,7 @@ import MainMenu from '../MainMenu';
 // Mock child components
 vi.mock('../LoadGameModal', () => ({
     default: ({ onClose }: { onClose: () => void }) => (
-        <div role="dialog" aria-label="Load Game Modal">
+        <div role="dialog" aria-label="Resume Journey Modal">
             <button onClick={onClose}>Close</button>
         </div>
     ),
@@ -14,7 +14,7 @@ vi.mock('../LoadGameModal', () => ({
 
 vi.mock('../SaveSlotSelector', () => ({
     default: ({ onClose }: { onClose: () => void }) => (
-        <div role="dialog" aria-label="Save Slot Selector">
+        <div role="dialog" aria-label="Chronicle Journey Selector">
             <button onClick={onClose}>Close</button>
         </div>
     ),
@@ -87,12 +87,12 @@ describe('MainMenu', () => {
     it('opens LoadGameModal when Resume Journey button is clicked', () => {
         render(<MainMenu {...defaultProps} hasSaveGame={true} />); // Enable button
         fireEvent.click(screen.getByText('Resume Journey'));
-        expect(screen.getByRole('dialog', { name: 'Load Game Modal' })).toBeInTheDocument();
+        expect(screen.getByRole('dialog', { name: 'Resume Journey Modal' })).toBeInTheDocument();
     });
 
     it('opens SaveSlotSelector when Chronicle Journey button is clicked', () => {
         render(<MainMenu {...defaultProps} />);
         fireEvent.click(screen.getByText('Chronicle Journey'));
-        expect(screen.getByRole('dialog', { name: 'Save Slot Selector' })).toBeInTheDocument();
+        expect(screen.getByRole('dialog', { name: 'Chronicle Journey Selector' })).toBeInTheDocument();
     });
 });

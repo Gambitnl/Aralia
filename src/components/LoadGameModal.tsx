@@ -114,7 +114,7 @@ const LoadGameModal: React.FC<LoadGameModalProps> = ({ slots, onClose, onLoadSlo
             </div>
           ) : (
             <div className="border border-dashed border-gray-700 rounded-lg p-6 text-center text-gray-400 italic">
-              The archives are silent. Begin your journey and use &quot;Save Game&quot; to chronicle your deeds.
+              The archives are silent. Begin your journey and use &quot;Chronicle Journey&quot; to chronicle your deeds.
             </div>
           )}
         </div>
