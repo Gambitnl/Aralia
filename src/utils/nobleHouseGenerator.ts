@@ -3,11 +3,14 @@
  * Licensed under the MIT License
  *
  * @file src/utils/nobleHouseGenerator.ts
- * Procedural generation for Noble Houses, including names, mottos, and relationships.
+ * Procedural generation for Noble Houses, including names, mottos, relationships, members, and secrets.
  */
 
-import { Faction, FactionRank } from '../types/factions';
+import { FactionRank } from '../types/factions';
+import { NobleHouse, NobleMember, NobleRole } from '../types/noble';
+import { Secret } from '../types/identity';
 import { SeededRandom } from './seededRandom';
+import { generateSecret } from './secretGenerator';
 
 // -----------------------------------------------------------------------------
 // Data Tables
@@ -36,6 +39,28 @@ const SURNAMES = [
   'Celtigar', 'Sunglass', 'Bar Emmon', 'Massey', 'Ryne', 'Corbray', 'Hunter',
   'Royce', 'Waynwood', 'Redfort', 'Belmore', 'Templeton', 'Manderly', 'Glover',
   'Tallhart', 'Mormont', 'Karstark', 'Umber', 'Bolton', 'Dustin', 'Ryswell'
+];
+
+const MALE_NAMES = [
+  'Eddard', 'Tywin', 'Robert', 'Stannis', 'Renly', 'Jaime', 'Tyrion', 'Joffrey',
+  'Tommen', 'Bran', 'Rickon', 'Robb', 'Jon', 'Theon', 'Balon', 'Euron', 'Victarion',
+  'Oberyn', 'Doran', 'Mace', 'Loras', 'Randyll', 'Dickon', 'Hoster', 'Edmure',
+  'Brynden', 'Jon', 'Robin', 'Yohn', 'Nestor', 'Lyn', 'Walder', 'Roose', 'Ramsay',
+  'Rickard', 'Brandon', 'Benjen', 'Aerys', 'Rhaegar', 'Viserys', 'Aegon', 'Daemon'
+];
+
+const FEMALE_NAMES = [
+  'Catelyn', 'Cersei', 'Myrcella', 'Sansa', 'Arya', 'Lyanna', 'Daenerys', 'Rhaella',
+  'Elia', 'Arianne', 'Obara', 'Nymeria', 'Tyene', 'Margaery', 'Olenna', 'Lysa',
+  'Asha', 'Yara', 'Meera', 'Jeyne', 'Roslin', 'Walda', 'Barbrey', 'Dacey', 'Maege',
+  'Lyra', 'Jorelle', 'Wylla', 'Wynafryd', 'Bethany', 'Donella', 'Selyse', 'Shireen',
+  'Brienne', 'Melisandre', 'Ygritte', 'Gilly', 'Osha', 'Shae', 'Missandei'
+];
+
+const TRAITS = [
+  'Ambitious', 'Paranoid', 'Hedonistic', 'Honorable', 'Just', 'Cruel', 'Greedy',
+  'Generous', 'Pious', 'Cynical', 'Brave', 'Cowardly', 'Intelligent', 'Dull',
+  'Charming', 'Repulsive', 'Loyal', 'Treacherous', 'Patient', 'Impulsive'
 ];
 
 const MOTTOS_PART_1 = [
@@ -121,15 +146,17 @@ const DEFAULT_RANKS: FactionRank[] = [
   }
 ];
 
-export function generateNobleHouseName(rng: SeededRandom): string {
+export function generateNobleHouseName(rng: SeededRandom): { fullName: string, familyName: string } {
   // 30% chance of compound name (e.g. Blackwood), 70% chance of existing surname
+  let familyName: string;
   if (rng.next() < 0.3) {
     const prefix = rng.pick(HOUSE_NAME_PREFIXES);
     const suffix = rng.pick(HOUSE_NAME_SUFFIXES);
-    return `House ${prefix}${suffix}`;
+    familyName = `${prefix}${suffix}`;
   } else {
-    return `House ${rng.pick(SURNAMES)}`;
+    familyName = rng.pick(SURNAMES);
   }
+  return { fullName: `House ${familyName}`, familyName };
 }
 
 export function generateMotto(rng: SeededRandom): string {
@@ -150,10 +177,46 @@ export function generateColors(rng: SeededRandom): { primary: string, secondary:
   return { primary, secondary };
 }
 
-export function generateNobleHouse(options: NobleHouseGenerationOptions): Faction {
+function generateStats(rng: SeededRandom) {
+  return {
+    intrigue: Math.floor(rng.next() * 10) + 1,
+    warfare: Math.floor(rng.next() * 10) + 1,
+    stewardship: Math.floor(rng.next() * 10) + 1,
+    charm: Math.floor(rng.next() * 10) + 1,
+  };
+}
+
+// Poor man's deterministic ID
+function generateId(rng: SeededRandom): string {
+    return `mem_${Math.floor(rng.next() * 1000000000)}`;
+}
+
+function generateMember(rng: SeededRandom, familyName: string, role: NobleRole, minAge: number, maxAge: number): NobleMember {
+  const isMale = rng.next() > 0.5;
+  const firstName = isMale ? rng.pick(MALE_NAMES) : rng.pick(FEMALE_NAMES);
+
+  const numTraits = Math.floor(rng.next() * 2) + 1; // 1-2 traits
+  const traits: string[] = [];
+  for(let i=0; i<numTraits; i++) {
+      traits.push(rng.pick(TRAITS));
+  }
+
+  return {
+    id: generateId(rng),
+    firstName,
+    lastName: familyName,
+    role,
+    age: Math.floor(rng.next() * (maxAge - minAge)) + minAge,
+    stats: generateStats(rng),
+    traits,
+    personalSecretIds: [] // To be populated
+  };
+}
+
+export function generateNobleHouse(options: NobleHouseGenerationOptions): NobleHouse {
   const rng = new SeededRandom(options.seed);
 
-  const name = generateNobleHouseName(rng);
+  const { fullName, familyName } = generateNobleHouseName(rng);
   const motto = generateMotto(rng);
   const colors = generateColors(rng);
 
@@ -173,13 +236,52 @@ export function generateNobleHouse(options: NobleHouseGenerationOptions): Factio
   }
 
   const age = options.isAncient ? 'ancient' : rng.next() > 0.7 ? 'old' : 'new';
-  const wealth = rng.next() > 0.8 ? 'vastly wealthy' : rng.next() > 0.4 ? 'wealthy' : 'struggling';
+  const wealthLevel = rng.next();
+  const wealthDesc = wealthLevel > 0.8 ? 'vastly wealthy' : wealthLevel > 0.4 ? 'wealthy' : 'struggling';
 
-  const description = `A ${age} noble house, known to be ${wealth}. Their motto is "${motto}".`;
+  const description = `A ${age} noble house, known to be ${wealthDesc}. Their motto is "${motto}".`;
+
+  // Generate Members
+  const head = generateMember(rng, familyName, 'head', 40, 80);
+  const spouse = generateMember(rng, familyName, 'spouse', 35, 75);
+  const heir = generateMember(rng, familyName, 'heir', 18, 35);
+  const scion = generateMember(rng, familyName, 'scion', 16, 30);
+
+  const members = [head, spouse, heir, scion];
+
+  // Generate House Secrets
+  const houseSecrets: Secret[] = [];
+  const houseId = `house_${familyName.toLowerCase()}_${options.seed}`;
+
+  // 50% chance of a major house secret
+  if (rng.next() > 0.5) {
+      houseSecrets.push(generateSecret({
+          seed: options.seed + 100,
+          subjectId: houseId,
+          subjectName: fullName,
+          category: rng.pick(['political', 'financial', 'military'])
+      }));
+  }
+
+  // Generate Personal Secrets
+  members.forEach((member, idx) => {
+      // 30% chance of a personal secret
+      if (rng.next() > 0.7) {
+          const secret = generateSecret({
+              seed: options.seed + 200 + idx,
+              subjectId: member.id,
+              subjectName: `${member.firstName} ${member.lastName}`,
+              category: 'personal'
+          });
+          member.personalSecretIds.push(secret.id);
+          houseSecrets.push(secret);
+      }
+  });
 
   return {
-    id: `generated_house_${rng.nextInt(10000, 99999)}`,
-    name,
+    id: houseId,
+    name: fullName,
+    familyName,
     description,
     type: 'NOBLE_HOUSE',
     motto,
@@ -191,7 +293,15 @@ export function generateNobleHouse(options: NobleHouseGenerationOptions): Factio
     values: Array.from(values),
     hates: Array.from(hates),
     services: ['patronage', 'political_favor'],
-    relationships: {}
+    relationships: {},
+
+    // NobleHouse specific
+    wealth: Math.floor(wealthLevel * 10) + 1,
+    militaryPower: Math.floor(rng.next() * 10) + 1,
+    politicalInfluence: Math.floor(rng.next() * 10) + 1,
+    members,
+    heldSecrets: [], // Starts with no leverage
+    houseSecrets
   };
 }
 
@@ -201,9 +311,9 @@ export function generateNobleHouse(options: NobleHouseGenerationOptions): Factio
 export function generateRegionalPolitics(
   seed: number,
   numHouses: number
-): Faction[] {
+): NobleHouse[] {
   const rng = new SeededRandom(seed);
-  const houses: Faction[] = [];
+  const houses: NobleHouse[] = [];
 
   // Generate houses
   for (let i = 0; i < numHouses; i++) {

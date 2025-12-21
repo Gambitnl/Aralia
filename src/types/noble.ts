@@ -40,14 +40,18 @@ export interface NobleMember {
 }
 
 export interface NobleHouse extends Faction {
-  type: 'political'; // Enforced type
+  type: 'NOBLE_HOUSE';
 
-  houseName: string; // e.g. "Valerius"
+  /**
+   * The family name (e.g. "Stark" for "House Stark")
+   */
+  familyName: string;
+
+  /**
+   * The house motto (e.g., "Winter is Coming").
+   * Overrides Faction.motto to be required.
+   */
   motto: string;
-  heraldry: {
-    colors: string[];
-    symbol: string;
-  };
 
   /**
    * 1-10 Scale
