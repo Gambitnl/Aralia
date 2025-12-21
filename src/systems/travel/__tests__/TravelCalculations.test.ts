@@ -135,9 +135,10 @@ describe('TravelCalculations', () => {
       // Base: 3mph
       // Fast: * 1.33 = 3.99
       // Difficult: * 0.5 = 1.995
+      // The function rounds to 2 decimals, so 1.995 -> 2.00
       const stats = calculateGroupTravelStats([char], { hero: [] }, 'fast', 'difficult');
 
-      expect(stats.travelSpeedMph).toBeCloseTo(1.995, 2);
+      expect(stats.travelSpeedMph).toBe(2.00);
     });
   });
 });

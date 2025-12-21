@@ -101,7 +101,7 @@ export function calculateGroupTravelStats(
       travelSpeedMph: 0,
       pace,
       terrain,
-      terrainModifier: 1.0,
+      terrainModifier: TERRAIN_TRAVEL_MODIFIERS[terrain],
       dailyDistanceMiles: 0,
     };
   }
