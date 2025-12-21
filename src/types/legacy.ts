@@ -62,7 +62,8 @@ export interface SuccessionResult {
     };
     assetsLost: {
         gold: number;
-        strongholds: string[]; // Strongholds lost due to tax/instability
+        strongholds: string[];
+        organizations: string[]; // Strongholds/Orgs lost due to instability
     };
     legacyScore: number;
     log: string[];

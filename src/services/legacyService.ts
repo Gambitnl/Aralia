@@ -15,6 +15,20 @@ const INITIAL_REPUTATION: LegacyReputation = {
     history: []
 };
 
+// --- Constants ---
+const TAX_RATE_RETIREMENT = 0.10;
+const TAX_RATE_DEATH = 0.20;
+const TAX_MODIFIER_INFAMY = 0.05;
+const TAX_MODIFIER_HONOR = 0.05;
+const TAX_CAP_MIN = 0.0;
+const TAX_CAP_MAX = 0.5;
+
+const HONOR_THRESHOLD_BONUS = 50;
+
+const BASE_STABILITY_CHANCE = 70;
+const STABILITY_LOYALTY_WEIGHT = 0.3;
+const ORG_TRANSFER_CHANCE_DEATH = 80;
+
 /**
  * Initializes a new Player Legacy.
  */
@@ -157,6 +171,7 @@ export const calculateLegacyScore = (legacy: PlayerLegacy): number => {
  * @param isRetirement Whether this is a voluntary retirement (lower tax) or death.
  * @param strongholds Optional list of strongholds to check for loyalty/stability.
  * @param organizations Optional list of organizations to check for loyalty.
+ * @param dateProvider Optional function to provide the current date (for testing).
  */
 export const processSuccession = (
     legacy: PlayerLegacy,
@@ -164,7 +179,8 @@ export const processSuccession = (
     heirId: string,
     isRetirement: boolean = false,
     strongholds: Stronghold[] = [],
-    organizations: Organization[] = []
+    organizations: Organization[] = [],
+    dateProvider: () => Date = () => new Date()
 ): { updatedLegacy: PlayerLegacy; result: SuccessionResult } => {
     const heir = legacy.heirs.find(h => h.id === heirId);
     if (!heir) {
@@ -176,20 +192,20 @@ export const processSuccession = (
 
     // 1. Calculate Inheritance Tax
     // Base Tax: 10% (Retirement) or 20% (Death)
-    let taxRate = isRetirement ? 0.10 : 0.20;
+    let taxRate = isRetirement ? TAX_RATE_RETIREMENT : TAX_RATE_DEATH;
 
     // Reputation Modifiers
     if (legacy.reputation.infamy > legacy.reputation.fame) {
-        taxRate += 0.05; // Infamy penalty
+        taxRate += TAX_MODIFIER_INFAMY; // Infamy penalty
         log.push("High infamy increased inheritance tax by 5%.");
     }
-    if (legacy.reputation.honor > 50) {
-        taxRate -= 0.05; // Honor bonus
+    if (legacy.reputation.honor > HONOR_THRESHOLD_BONUS) {
+        taxRate -= TAX_MODIFIER_HONOR; // Honor bonus
         log.push("High honor reduced inheritance tax by 5%.");
     }
 
-    // Cap tax between 0% and 50%
-    taxRate = Math.max(0, Math.min(0.5, taxRate));
+    // Cap tax
+    taxRate = Math.max(TAX_CAP_MIN, Math.min(TAX_CAP_MAX, taxRate));
 
     const taxAmount = Math.floor(characterGold * taxRate);
     const goldTransferred = characterGold - taxAmount;
@@ -219,7 +235,7 @@ export const processSuccession = (
             ? stronghold.staff.reduce((sum, s) => sum + s.morale, 0) / stronghold.staff.length
             : 100; // No staff = stable (nobody to revolt)
 
-        const stabilityChance = 70 + (avgLoyalty * 0.3);
+        const stabilityChance = BASE_STABILITY_CHANCE + (avgLoyalty * STABILITY_LOYALTY_WEIGHT);
         const roll = Math.floor(Math.random() * 100) + 1;
 
         if (roll <= stabilityChance || isRetirement) {
@@ -232,6 +248,8 @@ export const processSuccession = (
 
     // 3. Asset Stability Check (Organizations)
     const transferredOrgs: string[] = [];
+    const lostOrgs: string[] = [];
+
     // Organization logic similar to strongholds could be added here.
     // For now, Organizations transfer 100% if retirement, 80% chance if death.
     for (const oId of legacy.organizationIds) {
@@ -239,11 +257,12 @@ export const processSuccession = (
         const roll = Math.floor(Math.random() * 100) + 1;
 
         // If we have org data, use loyalty, else flat check
-        const chance = isRetirement ? 100 : 80;
+        const chance = isRetirement ? 100 : ORG_TRANSFER_CHANCE_DEATH;
 
         if (roll <= chance) {
             transferredOrgs.push(oId);
         } else {
+            lostOrgs.push(oId);
             log.push(`Lost control of organization ${org ? "'" + org.name + "'" : oId} during transition.`);
         }
     }
@@ -254,7 +273,7 @@ export const processSuccession = (
 
     const newHistory = [
         ...legacy.reputation.history,
-        `Succession: ${heir.name} took over from the previous generation on ${new Date().toLocaleDateString()}.`
+        `Succession: ${heir.name} took over from the previous generation on ${dateProvider().toLocaleDateString()}.`
     ];
 
     if (isRetirement) {
@@ -290,7 +309,8 @@ export const processSuccession = (
         },
         assetsLost: {
             gold: taxAmount,
-            strongholds: lostStrongholds
+            strongholds: lostStrongholds,
+            organizations: lostOrgs
         },
         legacyScore: updatedLegacy.legacyScore,
         log
