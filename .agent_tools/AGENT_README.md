@@ -2,7 +2,7 @@
 
 ## Communication Channel
 
-The uplink topic is dynamically read from `.jules/_ROSTER.md`.
+The uplink topic is dynamically read from `.jules/_ROSTER.md`.  
 **Fallback Topic:** [https://ntfy.sh/jules-ops-73918a](https://ntfy.sh/jules-ops-73918a)
 
 ## Usage
@@ -52,3 +52,4 @@ python uplink.py --topic my-custom-topic --message "Test message" --title "Test"
     *   `3`: Default (Info)
     *   `4`: Warning
     *   `5`: Critical (Pagers/Alerts)
+

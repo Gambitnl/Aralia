@@ -20,7 +20,7 @@ def get_topic_from_roster():
         Path(".jules/_ROSTER.md"),
         Path(__file__).parent.parent / ".jules" / "_ROSTER.md",
     ]
-
+    
     for roster_path in roster_paths:
         if roster_path.exists():
             content = roster_path.read_text(encoding='utf-8')
@@ -31,7 +31,7 @@ def get_topic_from_roster():
                 # Skip if it's the placeholder
                 if "PLACEHOLDER" not in topic:
                     return topic
-
+    
     return DEFAULT_TOPIC
 
 def generate_topic():
@@ -163,3 +163,4 @@ if __name__ == "__main__":
     else:
         # Default behavior: Print usage help
         parser.print_help()
+

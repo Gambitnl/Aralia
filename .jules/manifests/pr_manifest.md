@@ -1,6 +1,6 @@
 # PR Manifest
 
-This file tracks all PRs scanned by the Scout persona.
+This file tracks all PRs scanned by the Scout persona.  
 **Purpose:** Provide visibility into PR activity for conflict detection and coordination.
 
 ---

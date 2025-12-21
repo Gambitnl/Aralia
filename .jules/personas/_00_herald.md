@@ -1,6 +1,6 @@
 # Herald Persona - Batch Initializer
 
-**Run by:** The human maintainer (you) BEFORE dispatching Jules agents
+**Run by:** The human maintainer (you) BEFORE dispatching Jules agents  
 **Execution:** Via Gemini CLI or manually
 
 **Purpose:** Prepare the communication infrastructure for a new Jules batch run by creating a fresh uplink topic and pushing it to GitHub.
