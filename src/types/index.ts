@@ -847,7 +847,7 @@ export interface VillageActionContext {
   integrationTagline: string;
   culturalSignature: string;
   encounterHooks: string[];
-  personality?: any; // Added for temple generation fallback context
+  personality?: Partial<VillagePersonality>; // Added for temple generation fallback context
 }
 
 // Notifications
