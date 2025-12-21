@@ -3,14 +3,14 @@ import { Spell } from '../../types/spells';
 import { SpellValidator } from '../../systems/spells/validation/spellValidator';
 import { ZodError } from 'zod';
 
-interface AuditResult {
+export interface AuditResult {
   spellId: string;
   spellName: string;
   issues: AuditIssue[];
 }
 
-interface AuditIssue {
-  type: 'phantom_scaling' | 'invalid_schema' | 'missing_audio' | 'complex_scaling';
+export interface AuditIssue {
+  type: 'phantom_scaling' | 'invalid_schema' | 'complex_scaling';
   severity: 'error' | 'warning' | 'info';
   message: string;
 }
@@ -58,13 +58,13 @@ export function auditSpell(spellData: unknown): AuditResult {
     if (!scaling) return false;
 
     // Check for standard bonusPerLevel (dice or flat number)
-    const hasBonus = scaling.bonusPerLevel && scaling.bonusPerLevel.trim().length > 0;
+    const hasBonus = !!scaling.bonusPerLevel && scaling.bonusPerLevel.trim().length > 0;
 
     // Check for custom formula (rare)
-    const hasCustom = scaling.customFormula && scaling.customFormula.trim().length > 0;
+    const hasCustom = !!scaling.customFormula && scaling.customFormula.trim().length > 0;
 
     // Check for explicit tiers (cantrips)
-    const hasTiers = scaling.scalingTiers && Object.keys(scaling.scalingTiers).length > 0;
+    const hasTiers = !!scaling.scalingTiers && Object.keys(scaling.scalingTiers).length > 0;
 
     return hasBonus || hasCustom || hasTiers;
   });

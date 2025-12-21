@@ -1,27 +1,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-
-// Minimal interface definitions to match the JSON structure
-interface ScalingFormula {
-  type: string;
-  bonusPerLevel?: string;
-  customFormula?: string;
-  scalingTiers?: Record<string, string>;
-}
-
-interface SpellEffect {
-    type: string;
-    scaling?: ScalingFormula;
-}
-
-interface Spell {
-  id: string;
-  name: string;
-  level: number;
-  effects: SpellEffect[];
-  higherLevels?: string;
-}
+import { auditSpell, AuditResult } from '../src/utils/validation/spellAuditor';
 
 const SPELL_ROOT = 'public/data/spells';
 
@@ -51,29 +31,20 @@ function auditAllSpells() {
       for (const file of files) {
         const content = fs.readFileSync(path.join(dirPath, file), 'utf-8');
         try {
-          const spell: Spell = JSON.parse(content);
+          const spellData = JSON.parse(content);
           totalAudited++;
 
-          const hasHigherLevelsText = !!spell.higherLevels && spell.higherLevels.trim().length > 0;
+          const result: AuditResult = auditSpell(spellData);
 
-          // Check if ANY effect has functional scaling
-          const hasScalingLogic = spell.effects.some(effect => {
-              const scaling = effect.scaling;
-              return scaling && (
-                (scaling.bonusPerLevel && scaling.bonusPerLevel.trim().length > 0) ||
-                (scaling.customFormula && scaling.customFormula.trim().length > 0) ||
-                (scaling.scalingTiers && Object.keys(scaling.scalingTiers || {}).length > 0)
-              );
+          result.issues.forEach(issue => {
+             if (issue.type === 'phantom_scaling') {
+                 // Truncate message for display
+                 const shortMsg = issue.message.substring(0, 50) + '...';
+                 console.log(`| ${result.spellName} | Phantom Scaling | ${shortMsg} |`);
+                 phantomScalingCount++;
+             }
+             // We can log other issues here too if desired
           });
-
-          // Issue 1: Phantom Scaling
-          // Text says it scales, but logic is empty
-          if (hasHigherLevelsText && !hasScalingLogic) {
-            // Truncate text for display
-            const text = spell.higherLevels?.replace(/\n/g, ' ').substring(0, 30) + '...';
-            console.log(`| ${spell.name} | Phantom Scaling | Text: "${text}" but no logic |`);
-            phantomScalingCount++;
-          }
 
         } catch (e) {
           console.error(`Failed to parse ${file}: ${e}`);
