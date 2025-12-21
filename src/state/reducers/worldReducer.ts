@@ -7,8 +7,7 @@ import { AppAction } from '../actionTypes';
 import { processWorldEvents } from '../../systems/world/WorldEventManager';
 import { UnderdarkMechanics } from '../../systems/underdark/UnderdarkMechanics';
 import { getGameDay } from '../../utils/timeUtils';
-import { RitualManager } from '../../systems/rituals/RitualManager';
-import { generateId } from '../../utils/combatUtils';
+import { ritualReducer } from './ritualReducer';
 
 export function worldReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
@@ -55,26 +54,24 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       let partialUpdate: Partial<GameState> = { gameTime: newTime };
       let currentMessages = state.messages;
 
-      // RITUALIST: Advance Active Ritual if present
-      if (state.activeRitual && !state.activeRitual.isComplete && !state.activeRitual.interrupted) {
-        const ritual = state.activeRitual;
-        const minutesPassed = action.payload.seconds / 60;
+      // RITUALIST: Delegate ritual advancement to ritualReducer
+      // We pass the new time to the ritualReducer via state, but ritualReducer mostly cares about minutes passed
+      // which it can calculate from payload if we pass the action, OR we just let it handle ADVANCE_TIME directly.
+      // Since worldReducer is handling ADVANCE_TIME, we can call ritualReducer with the same action.
+      const ritualUpdates = ritualReducer({ ...state, gameTime: newTime }, action);
+      if (ritualUpdates.activeRitual) {
+          partialUpdate.activeRitual = ritualUpdates.activeRitual;
+      }
+      if (ritualUpdates.messages) {
+          // If ritualReducer added messages, append them.
+          // Note: ritualReducer.ts returns the *new full list* of messages based on state.messages.
+          // So we should use that list, but we also have other updates pending (Underdark).
+          // We need to be careful about merging message arrays.
 
-        const updatedRitual = RitualManager.advanceRitual(ritual, minutesPassed);
-
-        partialUpdate.activeRitual = updatedRitual;
-
-        // Check if just completed
-        if (updatedRitual.isComplete && !ritual.isComplete) {
-           currentMessages = [...currentMessages, {
-             id: generateId(),
-             text: `Ritual Complete: ${updatedRitual.spell.name} is ready to be unleashed.`,
-             sender: 'system',
-             timestamp: newTime,
-             metadata: { type: 'ritual_complete', ritualId: updatedRitual.id }
-           }];
-           partialUpdate.messages = currentMessages;
-        }
+          // Strategy: Calculate ritual messages diff or just trust the latest list if we chain updates.
+          // Simpler: Let's extract the *new* messages from ritualReducer if possible, or just use its result as the base
+          // for the next step.
+          currentMessages = ritualUpdates.messages;
       }
 
       // Process Underdark Mechanics (Light/Sanity)

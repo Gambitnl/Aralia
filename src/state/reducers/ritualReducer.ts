@@ -24,27 +24,53 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
       };
     }
 
-    case 'ADVANCE_RITUAL': {
-      if (!state.activeRitual) return {};
+    case 'ADVANCE_TIME': {
+      // This reducer handles the implicit advancement of rituals via time
+      if (!state.activeRitual || state.activeRitual.isComplete || state.activeRitual.interrupted) {
+        return {};
+      }
 
-      // Delegate logic to RitualManager
-      const updatedRitual = RitualManager.advanceRitual(state.activeRitual, action.payload.minutes);
+      const minutesPassed = action.payload.seconds / 60;
+      const updatedRitual = RitualManager.advanceRitual(state.activeRitual, minutesPassed);
 
-      const newMessages = [...state.messages];
+      let messages = state.messages;
 
       // Check for completion transition
       if (updatedRitual.isComplete && !state.activeRitual.isComplete) {
-        newMessages.push({
+        messages = [...state.messages, {
           id: generateId(),
-          text: `The ritual is complete! The magic of ${updatedRitual.spell.name} takes hold.`,
+          text: `Ritual Complete: ${updatedRitual.spell.name} is ready to be unleashed.`,
           sender: 'system',
-          timestamp: state.gameTime
-        });
+          timestamp: state.gameTime, // Note: gameTime in state is technically old time before ADVANCE_TIME completes, but acceptable here
+          metadata: { type: 'ritual_complete', ritualId: updatedRitual.id }
+        }];
       }
 
       return {
         activeRitual: updatedRitual,
-        messages: newMessages
+        messages: messages
+      };
+    }
+
+    case 'ADVANCE_RITUAL': {
+      if (!state.activeRitual) return {};
+
+      const updatedRitual = RitualManager.advanceRitual(state.activeRitual, action.payload.minutes);
+
+      let messages = state.messages;
+
+      if (updatedRitual.isComplete && !state.activeRitual.isComplete) {
+        messages = [...state.messages, {
+          id: generateId(),
+          text: `The ritual is complete! The magic of ${updatedRitual.spell.name} takes hold.`,
+          sender: 'system',
+          timestamp: state.gameTime
+        }];
+      }
+
+      return {
+        activeRitual: updatedRitual,
+        messages: messages
       };
     }
 
@@ -54,13 +80,6 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
       const interruptResult = RitualManager.checkInterruption(state.activeRitual, action.payload.event);
 
       if (interruptResult.interrupted) {
-         // Apply interruption logic (marking as interrupted)
-         // NOTE: RitualManager.checkInterruption checks IF it should interrupt, but doesn't return a new state.
-         // We need to manually update the state to reflect interruption if verified.
-         // However, RitualManager doesn't seem to have a 'markInterrupted' method exposed publicly in the class interface I saw earlier,
-         // but looking at usage, we might just need to update the object.
-         // Wait, RitualState has `interrupted` boolean.
-
          const updatedRitual = {
              ...state.activeRitual,
              interrupted: true,
@@ -73,12 +92,12 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
             : 'The magic dissipates harmlessly.';
 
          return {
-             activeRitual: updatedRitual, // Kept in state so UI can show "Failed", cleared later or by COMPLETE
+             activeRitual: updatedRitual,
              messages: [
                  ...state.messages,
                  {
                      id: generateId(),
-                     text: `Ritual Interrupted! ${interruptResult.reason} ${backlashMessage}`,
+                     text: `Ritual Interrupted! ${interruptResult.reason}. ${backlashMessage}`,
                      sender: 'system',
                      timestamp: state.gameTime,
                      metadata: { type: 'ritual_interruption', backlash: backlashEffects }
@@ -91,7 +110,6 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
     }
 
     case 'COMPLETE_RITUAL': {
-      // Clears the ritual from state, assuming effects are applied elsewhere
       return {
         activeRitual: null
       };

@@ -35,18 +35,38 @@ describe('ritualReducer', () => {
     expect(result.messages![0].text).toContain('A ritual to cast Test Spell has begun');
   });
 
-  it('should handle INTERRUPT_RITUAL', () => {
+  it('should handle ADVANCE_RITUAL', () => {
     const stateWithRitual = { ...mockState, activeRitual: mockRitual };
-    // Simulate an event that triggers interruption
-    // We need to ensure the RitualManager logic inside the reducer respects the input.
-    // However, ritualReducer calls RitualManager.checkInterruption.
-    // Since we can't easily mock the static RitualManager here without complexity,
-    // we rely on the fact that an empty interrupt condition list usually means no interruption,
-    // unless we mock the manager.
-    // But let's assume we pass an event that *would* interrupt if configured.
+    const action = { type: 'ADVANCE_RITUAL', payload: { minutes: 10 } };
+    const result = ritualReducer(stateWithRitual as GameState, action as any);
 
-    // Actually, integration testing the reducer with the real manager is better.
-    // Let's add an interrupt condition to the mock ritual.
+    expect(result.activeRitual?.progressMinutes).toBe(10);
+    expect(result.activeRitual?.isComplete).toBe(false);
+    expect(result.messages).toHaveLength(0); // No messages yet
+  });
+
+  it('should complete ritual via ADVANCE_RITUAL', () => {
+    const almostDoneRitual = { ...mockRitual, progressMinutes: 15 };
+    const stateWithRitual = { ...mockState, activeRitual: almostDoneRitual };
+    const action = { type: 'ADVANCE_RITUAL', payload: { minutes: 10 } };
+    const result = ritualReducer(stateWithRitual as GameState, action as any);
+
+    expect(result.activeRitual?.progressMinutes).toBe(25); // Cap usually handled by manager logic but simple addition here
+    expect(result.activeRitual?.isComplete).toBe(true);
+    expect(result.messages).toHaveLength(1);
+    expect(result.messages![0].text).toContain('The ritual is complete!');
+  });
+
+  it('should handle ADVANCE_TIME', () => {
+    const stateWithRitual = { ...mockState, activeRitual: mockRitual };
+    // 600 seconds = 10 minutes
+    const action = { type: 'ADVANCE_TIME', payload: { seconds: 600 } };
+    const result = ritualReducer(stateWithRitual as GameState, action as any);
+
+    expect(result.activeRitual?.progressMinutes).toBe(10);
+  });
+
+  it('should handle INTERRUPT_RITUAL', () => {
     const interruptibleRitual = {
         ...mockRitual,
         interruptConditions: [{ type: 'damage', threshold: 0 }]
@@ -57,11 +77,16 @@ describe('ritualReducer', () => {
         payload: { event: { type: 'damage', targetId: 'caster-1', value: 5 } }
     };
 
-    // The reducer uses the state's activeRitual.
     const result = ritualReducer({ ...mockState, activeRitual: interruptibleRitual } as GameState, action as any);
 
-    // With damage condition and damage event, it should interrupt.
     expect(result.activeRitual?.interrupted).toBe(true);
     expect(result.messages![0].text).toContain('Ritual Interrupted!');
+  });
+
+  it('should handle COMPLETE_RITUAL', () => {
+      const completedRitual = { ...mockRitual, isComplete: true };
+      const action = { type: 'COMPLETE_RITUAL', payload: {} };
+      const result = ritualReducer({ ...mockState, activeRitual: completedRitual } as GameState, action as any);
+      expect(result.activeRitual).toBeNull();
   });
 });
