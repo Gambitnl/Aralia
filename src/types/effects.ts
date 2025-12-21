@@ -6,6 +6,7 @@
  */
 
 import { AbilityScoreName } from './core';
+import { DamageType, ConditionName } from './spells';
 
 /**
  * Base interface for all effects.
@@ -29,7 +30,7 @@ export interface StatBonusEffect extends BaseEffect {
  */
 export interface SkillAdvantageEffect extends BaseEffect {
   type: 'skill_advantage';
-  skills: string[]; // e.g., ['Persuasion', 'Insight']
+  skillIds: string[]; // e.g., ['persuasion', 'insight']
 }
 
 /**
@@ -37,7 +38,7 @@ export interface SkillAdvantageEffect extends BaseEffect {
  */
 export interface ResistanceEffect extends BaseEffect {
   type: 'resistance';
-  damageTypes: string[]; // e.g., ['fire', 'necrotic']
+  damageTypes: DamageType[]; // e.g., [DamageType.Fire, DamageType.Necrotic]
 }
 
 /**
@@ -47,7 +48,7 @@ export interface RestorationEffect extends BaseEffect {
   type: 'restore';
   subtype: 'heal' | 'cure_condition' | 'restore_slot';
   amount?: number | 'full'; // For healing
-  conditions?: string[]; // For cure_condition
+  conditions?: ConditionName[]; // For cure_condition
   spellLevel?: number; // For restore_slot
 }
 
