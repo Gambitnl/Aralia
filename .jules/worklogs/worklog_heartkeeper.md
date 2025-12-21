@@ -1,4 +1,1 @@
-## 2024-05-23 - Dynamic Relationship Unlocks
-**Learning:** Hard-coded relationship levels (Stranger -> Friend) feel empty without mechanical consequences.
-**Insight:** Tying "Unlocks" (passive buffs, items) directly to the `RelationshipManager.processApprovalEvent` loop creates an immediate dopamine hit for the player and reinforces the narrative bond.
-**Action:** When designing future companion systems, always pair narrative milestones (Label Change) with mechanical rewards (Unlocks) in the same state update cycle.
+## 2025-05-23 - Companion UI Gap **Learning:** The backend logic for companion relationships (approval, reactions, memory) is robust, but the frontend is completely invisible to the player. The `PartyOverlay` only lists combat stats. There is no way for the player to see *who* their companions are as people, or check their relationship status. **Action:** I am upgrading `PartyOverlay` to include a "Relationships" tab. This will display detailed Companion Cards with approval bars, personality traits, and goals. This makes the "Heartkeeper" systems (approval math) visible and meaningful to the player.
