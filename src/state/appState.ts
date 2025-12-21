@@ -34,6 +34,7 @@ import { townReducer } from './reducers/townReducer';
 import { crimeReducer } from './reducers/crimeReducer';
 import { companionReducer } from './reducers/companionReducer';
 import { identityReducer } from './reducers/identityReducer';
+import { dialogueReducer } from './reducers/dialogueReducer';
 import { COMPANIONS } from '../constants';
 
 
@@ -221,6 +222,10 @@ export const initialGameState: GameState = {
 
     // Environment System
     environment: DEFAULT_WEATHER,
+
+    // Dialogist: Dialogue System
+    activeDialogueSession: null,
+    isDialogueInterfaceOpen: false
 };
 
 
@@ -254,6 +259,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     isLogbookVisible: false,
                     isGameGuideVisible: false,
                     merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
+                    isDialogueInterfaceOpen: false,
+                    activeDialogueSession: null,
                 };
                 if (action.payload === GamePhase.CHARACTER_CREATION) {
                     // Full reset for a new game
@@ -466,6 +473,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 playerFactionStandings: loadedStandings,
                 underdark: loadedState.underdark || INITIAL_UNDERDARK_STATE,
                 dynamicLocations: loadedState.dynamicLocations || {},
+                activeDialogueSession: null,
+                isDialogueInterfaceOpen: false
             };
         }
 
@@ -480,6 +489,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 lastInteractedNpcId: null,
                 lastNpcResponse: null,
                 merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
+                isDialogueInterfaceOpen: false,
+                activeDialogueSession: null
             };
         }
 
@@ -620,6 +631,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ...crimeReducer(state, action),
                 ...companionReducer(state, action),
                 ...identityReducer(state, action),
+                ...dialogueReducer(state, action),
             };
 
             if (Object.keys(changes).length === 0) {

@@ -80,6 +80,10 @@ export interface NPCKnowledgeProfile {
 /**
  * Represents the state of a dialogue session.
  */
+/**
+ * Represents the state of a dialogue session.
+ * Used by the dialogueReducer to track active conversations.
+ */
 export interface DialogueSession {
   npcId: string;
   /** Topics currently available to choose from */
