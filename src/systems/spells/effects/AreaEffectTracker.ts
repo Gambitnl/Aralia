@@ -58,6 +58,63 @@ export class AreaEffectTracker {
         const entryResults = this.processEntry(character, newPosition, previousPosition, currentRound);
         results.push(...entryResults);
 
+        // Process Movement Within third
+        const movementResults = this.processMovementWithin(character, newPosition, previousPosition);
+        results.push(...movementResults);
+
+        return results;
+    }
+
+    /**
+     * Process triggers when a character moves within an area.
+     * Used by spells like Spike Growth that damage "for every 5 feet traveled within the area".
+     * TODO(Analyst): Migrate Spike Growth and similar spells from simple 'TERRAIN' effects to use this 'on_move_in_area' Zone capability.
+     */
+    public processMovementWithin(
+        character: CombatCharacter,
+        newPosition: Position,
+        previousPosition: Position
+    ): TriggerResult[] {
+        const results: TriggerResult[] = [];
+
+        for (const zone of this.zones) {
+            if (!zone.areaOfEffect) continue;
+
+            const wasInZone = isPositionInArea(previousPosition, zone.position, zone.areaOfEffect);
+            const isNowInZone = isPositionInArea(newPosition, zone.position, zone.areaOfEffect);
+
+            // Trigger if moving *within* the zone (start and end are both in)
+            if (wasInZone && isNowInZone) {
+                const moveEffects = zone.effects.filter(effect =>
+                    effect.trigger?.type === 'on_move_in_area'
+                );
+
+                // Calculate Chebyshev distance (tiles moved)
+                const dx = Math.abs(newPosition.x - previousPosition.x);
+                const dy = Math.abs(newPosition.y - previousPosition.y);
+                const distanceInTiles = Math.max(dx, dy);
+
+                // Trigger once per tile (5 feet) moved
+                for (let i = 0; i < distanceInTiles; i++) {
+                    for (const effect of moveEffects) {
+                        if (!shouldTriggerForFrequency(effect.trigger?.frequency, zone, character.id)) {
+                            continue;
+                        }
+
+                        if (!matchesTargetFilter(effect.condition?.targetFilter, character)) {
+                            continue;
+                        }
+
+                        results.push({
+                            triggered: true,
+                            effects: convertSpellEffectToProcessed(effect),
+                            triggerType: 'on_move_in_area'
+                        });
+                    }
+                }
+            }
+        }
+
         return results;
     }
 

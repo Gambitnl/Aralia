@@ -55,7 +55,7 @@ export interface TriggerResult {
     triggered: boolean;
     effects: ProcessedEffect[];
     sourceId?: string;
-    triggerType?: 'on_enter_area' | 'on_exit_area' | 'on_end_turn_in_area' | 'on_target_move';
+    triggerType?: 'on_enter_area' | 'on_exit_area' | 'on_end_turn_in_area' | 'on_move_in_area' | 'on_target_move';
 }
 
 export interface ProcessedEffect {
@@ -434,6 +434,7 @@ export function createSpellZone(
             e.trigger?.type === 'on_enter_area' ||
             e.trigger?.type === 'on_exit_area' ||
             e.trigger?.type === 'on_end_turn_in_area' ||
+            e.trigger?.type === 'on_move_in_area' ||
             e.trigger?.type === 'turn_end' ||
             e.trigger?.type === 'turn_start'
         ),
