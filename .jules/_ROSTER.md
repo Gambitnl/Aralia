@@ -18,6 +18,13 @@
 
 ---
 
+## Global Priority: UI/UX Integration
+
+- When implementing or adjusting systems, prioritize adding a usable UI component or interaction path where feasible.
+- Favor changes the human can interact with (buttons, inputs, modals, views) instead of backend-only work unless explicitly requested.
+
+---
+
 ## CODE GUILD (15)
 *Technical excellence - code quality, architecture, testing*
 
