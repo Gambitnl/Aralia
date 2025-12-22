@@ -31,5 +31,6 @@ export * from './rituals';
 export * from './village';
 export * from './elemental';
 export * from './stronghold';
+export * from './loot'; // Export LootTable types
 
 export type { CombatCharacter, CharacterStats, Position, CombatState };
