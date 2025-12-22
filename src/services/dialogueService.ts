@@ -95,16 +95,9 @@ export function checkTopicPrerequisites(
           met = false;
           break;
         }
-        const standing = gameState.playerFactionStandings[factionId];
-        if (!standing) {
-          // If no standing record exists, assume 0 (neutral) or check if value is <= 0
-          // For now, if prerequisite requires positive standing, return false.
-          met = (Number(prereq.value) || 0) <= 0;
-          break;
-        }
 
-        // We check public standing by default
-        met = standing.publicStanding >= (Number(prereq.value) || 0);
+        const standingValue = gameState.playerFactionStandings[factionId]?.publicStanding ?? 0;
+        met = standingValue >= (Number(prereq.value) || 0);
         break;
       }
     }
