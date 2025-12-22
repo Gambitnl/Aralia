@@ -4,6 +4,12 @@ import { describe, it, expect, vi } from 'vitest';
 import { ReactionPrompt } from '../ReactionPrompt';
 import { createMockSpell } from '../../../utils/factories';
 
+// Mock the useFocusTrap hook to verify it's being called
+const mockFocusTrapRef = { current: null };
+vi.mock('../../hooks/useFocusTrap', () => ({
+    useFocusTrap: vi.fn(() => mockFocusTrapRef)
+}));
+
 describe('ReactionPrompt', () => {
     const mockOnResolve = vi.fn();
     const mockSpells = [
@@ -21,9 +27,6 @@ describe('ReactionPrompt', () => {
             />
         );
         expect(screen.getByText(/reaction opportunity/i)).toBeInTheDocument();
-        // The text is split into a span for "Goblin" and the rest.
-        // We can check for "Goblin" separately or use a custom matcher if needed,
-        // but for now checking "hit you!" is sufficient context verification.
         expect(screen.getByText(/Goblin/i)).toBeInTheDocument();
         expect(screen.getByText(/hit you!/i)).toBeInTheDocument();
     });
@@ -65,5 +68,44 @@ describe('ReactionPrompt', () => {
         );
         fireEvent.click(screen.getByRole('button', { name: /Skip Reaction/i }));
         expect(mockOnResolve).toHaveBeenCalledWith(null);
+    });
+
+    // Accessibility Tests
+    it('has correct ARIA roles and attributes', () => {
+        render(
+            <ReactionPrompt
+                attackerName="Goblin"
+                reactionSpells={mockSpells}
+                triggerType="hit"
+                onResolve={mockOnResolve}
+            />
+        );
+
+        const dialog = screen.getByRole('dialog');
+        expect(dialog).toBeInTheDocument();
+        expect(dialog).toHaveAttribute('aria-modal', 'true');
+        expect(dialog).toHaveAttribute('aria-labelledby', 'reaction-title');
+        expect(dialog).toHaveAttribute('aria-describedby', 'reaction-description');
+    });
+
+    it('links title and description via IDs', () => {
+        render(
+            <ReactionPrompt
+                attackerName="Goblin"
+                reactionSpells={mockSpells}
+                triggerType="hit"
+                onResolve={mockOnResolve}
+            />
+        );
+
+        const title = screen.getByText(/Reaction Opportunity!/i);
+        expect(title).toHaveAttribute('id', 'reaction-title');
+
+        // Note: The description text is split, but the container p tag has the ID
+        // We find the element by ID to verify it exists and contains the text
+        const description = document.getElementById('reaction-description');
+        expect(description).toBeInTheDocument();
+        expect(description).toHaveTextContent(/Goblin/);
+        expect(description).toHaveTextContent(/hit you!/);
     });
 });
