@@ -51,6 +51,13 @@ const TRAIT_PSYCHIC_WIND: PlanarTrait = {
   mechanics: 'Random encounters with storms that cause Psychic damage or transport travelers.'
 };
 
+const TRAIT_TIME_WARP: PlanarTrait = {
+  id: 'time_warp',
+  name: 'Time Warp',
+  description: 'Time flows strangely here. Time spent may be minutes or years in the Material Plane.',
+  type: 'time'
+};
+
 // -----------------------------------------------------------------------------
 // Plane Definitions
 // -----------------------------------------------------------------------------
@@ -64,7 +71,7 @@ export const MATERIAL_PLANE: Plane = {
   hazards: [],
   emotionalValence: 'neutral',
   timeFlow: 'normal',
-  atmosphereDescription: 'The air tastes of dust and rain. The sun rises and sets with comforting regularity.',
+  atmosphereDescription: 'The air tastes of dust and rain, stable and familiar. The sun rises and sets with comforting regularity.',
   alignment: 'Neutral'
 };
 
@@ -72,19 +79,12 @@ export const FEYWILD: Plane = {
   id: 'feywild',
   name: 'The Feywild',
   description: 'A place of soft lights, vivid colors, and heightened emotions. The echo of the world created by the Fey.',
-  traits: [TRAIT_MEMORY_LOSS],
+  traits: [TRAIT_MEMORY_LOSS, TRAIT_TIME_WARP],
   natives: ['Fey', 'Elf', 'Giant Owl', 'Blink Dog', 'Satyr'],
-  hazards: [
-    {
-      name: 'Time Warp',
-      description: 'Time flows strangely here.',
-      saveDC: 0, // Narrative hazard mostly
-      effect: 'Time spent may be minutes or years in the Material Plane.'
-    }
-  ],
+  hazards: [],
   emotionalValence: 'chaotic',
   timeFlow: 'erratic',
-  atmosphereDescription: 'The colors are too bright, the shadows too purple. Every emotion feels like a shouting match.',
+  atmosphereDescription: 'The colors are too bright, the shadows too purple. Colors seem more vivid and every emotion feels like a shouting match.',
   alignment: 'Chaotic Neutral',
   effects: {
     onPlaneExit: 'DC 15 Wisdom save upon leaving. Failure wipes memories of the visit.',
@@ -174,7 +174,7 @@ export const NINE_HELLS: Plane = {
 };
 
 export const ASTRAL_PLANE: Plane = {
-  id: 'astral_plane',
+  id: 'astral',
   name: 'The Astral Plane',
   description: 'The space between the planes. A silvery void where thought is motion.',
   traits: [TRAIT_TIMELESS, TRAIT_PSYCHIC_WIND],
@@ -193,6 +193,97 @@ export const ASTRAL_PLANE: Plane = {
   }
 };
 
+export const ETHEREAL_PLANE: Plane = {
+  id: 'ethereal',
+  name: 'The Ethereal Plane',
+  description: 'A misty, fog-bound dimension that coexists with the Material Plane.',
+  traits: [],
+  natives: ['Ghost', 'Phase Spider'],
+  hazards: [],
+  emotionalValence: 'neutral',
+  timeFlow: 'normal',
+  atmosphereDescription: 'Wisps of grey fog surround you.',
+  alignment: 'Neutral'
+};
+
+export const ELEMENTAL_FIRE: Plane = {
+  id: 'elemental_fire',
+  name: 'The Plane of Fire',
+  description: 'An infinite expanse of flame.',
+  traits: [],
+  natives: ['Fire Elemental', 'Efreeti'],
+  hazards: [],
+  emotionalValence: 'neutral',
+  timeFlow: 'normal',
+  atmosphereDescription: 'The air shimmers with heat.',
+  alignment: 'Neutral'
+};
+
+export const ELEMENTAL_WATER: Plane = {
+  id: 'elemental_water',
+  name: 'The Plane of Water',
+  description: 'A boundless ocean.',
+  traits: [],
+  natives: ['Water Elemental', 'Marid'],
+  hazards: [],
+  emotionalValence: 'neutral',
+  timeFlow: 'normal',
+  atmosphereDescription: 'The water is warm and inviting.',
+  alignment: 'Neutral'
+};
+
+export const ABYSS: Plane = {
+  id: 'abyss',
+  name: 'The Abyss',
+  description: 'A chaotic evil plane of infinite layers.',
+  traits: [],
+  natives: ['Demon'],
+  hazards: [],
+  emotionalValence: 'negative',
+  timeFlow: 'erratic',
+  atmosphereDescription: 'The air is filled with the stench of chaos and tastes of copper.',
+  alignment: 'Chaotic Evil'
+};
+
+export const MECHANUS: Plane = {
+  id: 'mechanus',
+  name: 'Mechanus',
+  description: 'A plane of absolute law and order.',
+  traits: [],
+  natives: ['Modron'],
+  hazards: [],
+  emotionalValence: 'neutral',
+  timeFlow: 'normal',
+  atmosphereDescription: 'The air hums with the sound of gears.',
+  alignment: 'Lawful Neutral'
+};
+
+export const LIMBO: Plane = {
+  id: 'limbo',
+  name: 'Limbo',
+  description: 'A plane of pure chaos.',
+  traits: [TRAIT_WILD_MAGIC],
+  natives: ['Slaad'],
+  hazards: [],
+  emotionalValence: 'chaotic',
+  timeFlow: 'erratic',
+  atmosphereDescription: 'The landscape shifts and changes in an instant.',
+  alignment: 'Chaotic Neutral'
+};
+
+export const MOUNT_CELESTIA: Plane = {
+  id: 'mount_celestia',
+  name: 'Mount Celestia',
+  description: 'A plane of ultimate law and good.',
+  traits: [],
+  natives: ['Angel'],
+  hazards: [],
+  emotionalValence: 'positive',
+  timeFlow: 'normal',
+  atmosphereDescription: 'The air is filled with celestial choirs.',
+  alignment: 'Lawful Good'
+};
+
 // -----------------------------------------------------------------------------
 // Registry
 // -----------------------------------------------------------------------------
@@ -201,8 +292,15 @@ export const PLANES: Record<string, Plane> = {
   [MATERIAL_PLANE.id]: MATERIAL_PLANE,
   [FEYWILD.id]: FEYWILD,
   [SHADOWFELL.id]: SHADOWFELL,
+  [ETHEREAL_PLANE.id]: ETHEREAL_PLANE,
+  [ASTRAL_PLANE.id]: ASTRAL_PLANE,
+  [ELEMENTAL_FIRE.id]: ELEMENTAL_FIRE,
+  [ELEMENTAL_WATER.id]: ELEMENTAL_WATER,
   [NINE_HELLS.id]: NINE_HELLS,
-  [ASTRAL_PLANE.id]: ASTRAL_PLANE
+  [ABYSS.id]: ABYSS,
+  [MECHANUS.id]: MECHANUS,
+  [LIMBO.id]: LIMBO,
+  [MOUNT_CELESTIA.id]: MOUNT_CELESTIA
 };
 
 export const getPlane = (id: string): Plane | undefined => PLANES[id];
