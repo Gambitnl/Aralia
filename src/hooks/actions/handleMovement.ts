@@ -340,6 +340,22 @@ export async function handleMovement({
               }
               break;
 
+            case 'gold_gain':
+              dispatch({
+                type: 'MODIFY_GOLD',
+                payload: { amount: travelEvent.effect.amount }
+              });
+              addMessage(travelEvent.effect.description || `You found ${travelEvent.effect.amount} gold pieces.`, 'system');
+              break;
+
+            case 'xp_gain':
+              dispatch({
+                type: 'GRANT_EXPERIENCE',
+                payload: { amount: travelEvent.effect.amount }
+              });
+              addMessage(travelEvent.effect.description || `Party gained ${travelEvent.effect.amount} XP.`, 'system');
+              break;
+
             case 'discovery':
               if (travelEvent.effect.data) {
                 // Log the discovery in the game state (UI log/journal)
@@ -353,6 +369,33 @@ export async function handleMovement({
                 };
                 logDiscovery(discoveryLocation);
                 addMessage(`Map updated: ${travelEvent.effect.data.name} recorded.`, 'system');
+
+                // Process Rewards
+                if (travelEvent.effect.data.rewards) {
+                   travelEvent.effect.data.rewards.forEach(reward => {
+                     switch (reward.type) {
+                        case 'item':
+                          if (reward.resourceId) {
+                            dispatch({ type: 'ADD_ITEM', payload: { itemId: reward.resourceId, count: reward.amount } });
+                            addMessage(`Gained ${reward.amount}x ${reward.description || 'Items'}`, 'system');
+                          }
+                          break;
+                        case 'gold':
+                          dispatch({ type: 'MODIFY_GOLD', payload: { amount: reward.amount } });
+                          addMessage(`Gained ${reward.amount} Gold`, 'system');
+                          break;
+                        case 'xp':
+                          dispatch({ type: 'GRANT_EXPERIENCE', payload: { amount: reward.amount } });
+                          addMessage(`Party gained ${reward.amount} XP`, 'system');
+                          break;
+                        case 'health':
+                          dispatch({ type: 'MODIFY_PARTY_HEALTH', payload: { amount: reward.amount } });
+                          const hpText = reward.amount > 0 ? 'Healed' : 'Took damage';
+                          addMessage(`${hpText} ${Math.abs(reward.amount)} HP`, 'system');
+                          break;
+                     }
+                   });
+                }
 
                 // Process Consequences
                 if (travelEvent.effect.data.consequences && newMapDataForDispatch) {
