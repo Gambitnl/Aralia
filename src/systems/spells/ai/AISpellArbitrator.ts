@@ -4,7 +4,8 @@ import { GameState } from '../../../types'
 import { generateText } from '../../../services/geminiService'
 import { Position } from '../../../types/map'
 import { MaterialTagService } from './MaterialTagService'
-import { sanitizeAIInput, detectSuspiciousInput } from '../../../utils/securityUtils'
+import { sanitizeAIInput, detectSuspiciousInput, cleanAIJSON, safeJSONParse } from '../../../utils/securityUtils'
+import { ArbitrationResultSchema } from './schemas'
 
 export interface ArbitrationRequest {
     spell: Spell
@@ -118,12 +119,32 @@ class AISpellArbitrator {
                 }
             }
 
-            const responseData = JSON.parse(result.data.text.replace(/```json\n|```/g, '').trim())
+            const cleanJson = cleanAIJSON(result.data.text);
+            const rawData = safeJSONParse(cleanJson);
+
+            if (!rawData) {
+                 return {
+                    allowed: false,
+                    reason: 'AI validation returned invalid data'
+                }
+            }
+
+            // Safe parsing with Zod fallback
+            const responseData = ArbitrationResultSchema.safeParse(rawData);
+
+            if (!responseData.success) {
+                console.warn('AI validation schema mismatch', responseData.error);
+                // Try to salvage if basic fields exist, otherwise fail safe
+                return {
+                    allowed: false,
+                    reason: 'AI validation returned malformed data'
+                }
+            }
 
             return {
-                allowed: responseData.valid === true,
-                reason: responseData.reason,
-                narrativeOutcome: responseData.flavorText
+                allowed: responseData.data.valid === true,
+                reason: responseData.data.reason,
+                narrativeOutcome: responseData.data.flavorText
             }
         } catch (error) {
             console.error('AI validation failed:', error)
@@ -186,13 +207,31 @@ class AISpellArbitrator {
                 }
             }
 
-            const responseData = JSON.parse(result.data.text.replace(/```json\n|```/g, '').trim())
+            const cleanJson = cleanAIJSON(result.data.text);
+            const rawData = safeJSONParse(cleanJson);
+
+            if (!rawData) {
+                return {
+                    allowed: false,
+                    reason: 'AI DM returned invalid data'
+                }
+            }
+
+            const responseData = ArbitrationResultSchema.safeParse(rawData);
+
+            if (!responseData.success) {
+                console.warn('AI DM schema mismatch', responseData.error);
+                return {
+                    allowed: false,
+                    reason: 'AI DM returned malformed data'
+                }
+            }
 
             return {
-                allowed: responseData.allowed !== false, // Default to true if missing
-                reason: responseData.reason,
-                narrativeOutcome: responseData.narrativeOutcome,
-                mechanicalEffects: responseData.mechanicalEffects
+                allowed: responseData.data.allowed !== false, // Default to true if missing
+                reason: responseData.data.reason,
+                narrativeOutcome: responseData.data.narrativeOutcome,
+                mechanicalEffects: responseData.data.mechanicalEffects
             }
         } catch (error) {
             console.error('AI DM adjudication failed:', error)
