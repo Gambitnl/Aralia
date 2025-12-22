@@ -103,7 +103,7 @@ describe('organizationService', () => {
             expect(summary.some(s => s.includes('Guild business generated 10gp'))).toBe(true);
         });
 
-        it('should resolve completed missions', () => {
+        it('should resolve completed missions and calculate gold correctly', () => {
             org = recruitMember(org, 'Hero', 'Paladin', 10); // High level ensuring success
             const memberId = org.members[0].id;
             // Promote to master to ensure high bonus
@@ -112,9 +112,9 @@ describe('organizationService', () => {
             org = promoteMember(org, memberId); // leader
             org = promoteMember(org, memberId); // master
 
+            const preUpdateGold = org.resources.gold;
+
             // Start mission with 1 day remaining (will finish today since we decrement 1)
-            // Actually service sets 3-6 days, so we need to mock or loop
-            // For testing, let's just manually inject a mission with 1 day left
             const mission = {
                 id: 'm1',
                 description: 'Easy Win',
@@ -129,20 +129,26 @@ describe('organizationService', () => {
 
             expect(updatedOrg.missions).toHaveLength(0);
             expect(summary.some(s => s.includes('Mission \'Easy Win\' successful'))).toBe(true);
-            // Gold change: -250 (Master wage) + 500 (Reward) + 10 (Guild income) = +260
-            // Previous gold was 10000 - 5000 (recruit cost? no we manually set org members)
-            // Wait, we used recruitMember above which costs gold.
-            // Let's just check relative increase from *before update*
 
-            // Re-calculate expected
-            // Wage: 250 (Master)
-            // Income: 10 (1 member)
-            // Reward: 500
-            // Net: +260
+            // Exact Gold Calculation:
+            // 1. Pay Wages: Master rank = 250gp (cost)
+            // 2. Mission Reward: +500gp (gain)
+            // 3. Passive Income: Guild (1 member) = +10gp (gain)
+            // Net Change: -250 + 500 + 10 = +260
 
-            // But we need to account for what `recruitMember` and promotions did to gold.
-            // Let's check the summary strings which are easier
-            expect(summary.some(s => s.includes('Gained 500 gold'))).toBe(true);
+            expect(updatedOrg.resources.gold).toBe(preUpdateGold + 260);
+        });
+
+        it('should generate connections for Syndicates', () => {
+            org = createOrganization('Mob', 'syndicate', 'don-1');
+            org = recruitMember(org, 'Thug', 'Rogue');
+            org = recruitMember(org, 'Thug 2', 'Rogue');
+
+            const { updatedOrg, summary } = processDailyOrgUpdate(org);
+
+            // 2 members = 2 connections
+            expect(updatedOrg.resources.connections).toBe(5 + 2); // 5 base + 2 generated
+            expect(summary.some(s => s.includes('Syndicate network generated 2 connections'))).toBe(true);
         });
     });
 });

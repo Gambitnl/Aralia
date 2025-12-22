@@ -239,17 +239,54 @@ export const processDailyOrgUpdate = (org: Organization): { updatedOrg: Organiza
         }
     }
 
-    // 3. Passive Income/Influence based on type (simple implementation)
-    // Guilds make money, Cults make secrets, etc.
-    if (org.type === 'guild') {
-        const income = 10 * org.members.length;
-        currentGold += income;
-        summary.push(`Guild business generated ${income}gp.`);
-    } else if (org.type === 'cult') {
-        const secrets = Math.floor(org.members.length / 5);
-        if (secrets > 0) {
-            currentSecrets += secrets;
-            summary.push(`Cult activities uncovered ${secrets} secrets.`);
+    // 3. Passive Income/Influence based on type
+    const memberCount = org.members.length;
+
+    switch (org.type) {
+        case 'guild': {
+            const income = 10 * memberCount;
+            currentGold += income;
+            summary.push(`Guild business generated ${income}gp.`);
+            break;
+        }
+        case 'company': {
+            // Companies are profit-focused, generating more gold than guilds
+            const income = 12 * memberCount;
+            currentGold += income;
+            summary.push(`Company ventures generated ${income}gp.`);
+            break;
+        }
+        case 'order': {
+            // Orders generate Influence through prestige
+            const influence = 1 * memberCount;
+            currentInfluence += influence;
+            summary.push(`Order deeds generated ${influence} influence.`);
+            break;
+        }
+        case 'syndicate': {
+            // Syndicates generate Connections through the underworld
+            const connections = 1 * memberCount;
+            currentConnections += connections;
+            summary.push(`Syndicate network generated ${connections} connections.`);
+            break;
+        }
+        case 'academy': {
+            // Academies generate Secrets through research
+            const secrets = Math.floor(memberCount / 3);
+            if (secrets > 0) {
+                currentSecrets += secrets;
+                summary.push(`Academy research uncovered ${secrets} secrets.`);
+            }
+            break;
+        }
+        case 'cult': {
+            // Cults generate Secrets through forbidden knowledge (slower but stealthy)
+            const secrets = Math.floor(memberCount / 5);
+            if (secrets > 0) {
+                currentSecrets += secrets;
+                summary.push(`Cult activities uncovered ${secrets} secrets.`);
+            }
+            break;
         }
     }
 
