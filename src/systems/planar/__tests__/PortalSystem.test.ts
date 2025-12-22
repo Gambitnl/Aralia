@@ -1,5 +1,5 @@
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { PortalSystem } from '../PortalSystem';
 import { Portal } from '../../../types/planes';
 import { GameState, GamePhase } from '../../../types/index';

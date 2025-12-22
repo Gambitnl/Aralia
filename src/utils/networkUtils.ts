@@ -24,7 +24,7 @@ interface RetryOptions {
   retries?: number;
   delay?: number;
   backoff?: number; // Multiplier for delay
-  shouldRetry?: (error: any) => boolean;
+  shouldRetry?: (error: unknown) => boolean;
 }
 
 /**
@@ -77,7 +77,7 @@ export async function fetchWithTimeout<T>(
     }
 
     return (await response.json()) as T;
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(id);
 
     // Clean up external signal listener
@@ -85,7 +85,7 @@ export async function fetchWithTimeout<T>(
       externalSignal.removeEventListener('abort', onExternalAbort);
     }
 
-    if (error.name === 'AbortError') {
+    if (error instanceof Error && error.name === 'AbortError') {
       // If the external signal was aborted, rethrow the AbortError (or a wrapped version)
       // to indicate it was a user cancellation, not a timeout.
       if (externalSignal?.aborted) {
@@ -100,7 +100,8 @@ export async function fetchWithTimeout<T>(
     if (error instanceof NetworkError) {
       throw error;
     }
-    throw new NetworkError(error.message || 'Unknown network error', undefined, undefined, error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown network error';
+    throw new NetworkError(errorMessage, undefined, undefined, error);
   } finally {
      if (externalSignal) {
       externalSignal.removeEventListener('abort', onExternalAbort);
@@ -131,10 +132,13 @@ export const withRetry = async <T>(
 
   let attempt = 0;
   let currentDelay = delay;
+  let success = false;
+  let result: T | undefined;
 
-  while (true) {
+  while (!success && attempt <= retries) {
     try {
-      return await fn();
+      result = await fn();
+      success = true;
     } catch (error) {
       attempt++;
 
@@ -146,4 +150,6 @@ export const withRetry = async <T>(
       currentDelay *= backoff;
     }
   }
+  
+  return result as T;
 };

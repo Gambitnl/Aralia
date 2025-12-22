@@ -8,7 +8,7 @@
  * It manages the state for each step using a useReducer hook.
  */
 import React, { useReducer, useCallback, useContext, useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import {
   PlayerCharacter,
   AbilityScores,
@@ -16,13 +16,11 @@ import {
   Spell,
   FightingStyle,
   AbilityScoreName,
-  DraconicAncestryInfo,
   ElvenLineageType,
   GnomeSubraceType,
   GiantAncestryType,
   FiendishLegacyType,
   Item,
-  Class as CharClass,
   DraconicAncestorType,
 } from '../../types';
 import {
@@ -66,10 +64,12 @@ import {
   characterCreatorReducer,
   initialCharacterCreatorState,
 } from './state/characterCreatorState';
+import type { CharacterCreationState } from './state/characterCreatorState';
+import type { AppAction } from '../../state/actionTypes';
 
 // Helper function to determine the next step based on current step and state
-// TODO: This skips race-specific follow-ups (e.g., ChangelingInstincts), so those screens never render—reintroduce branching here before jumping to Class.
-const getNextStep = (state: any, selectedRace: any, racialSelections: any): CreationStep => {
+// TODO: This skips race-specific follow-ups (e.g., ChangelingInstincts), so those screens never render - reintroduce branching here before jumping to Class.
+const getNextStep = (state: CharacterCreationState): CreationStep => {
   switch (state.step) {
     case CreationStep.AgeSelection:
       return CreationStep.BackgroundSelection;
@@ -90,7 +90,7 @@ import { LoadingSpinner } from '../ui/LoadingSpinner';
 interface CharacterCreatorProps {
   onCharacterCreate: (character: PlayerCharacter, startingInventory: Item[]) => void;
   onExitToMainMenu: () => void;
-  dispatch: React.Dispatch<any>;
+  dispatch: React.Dispatch<AppAction>;
 }
 
 // Main CharacterCreator component.
@@ -126,7 +126,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
 
       return { ...feat, isEligible: eligibility.isEligible, unmet: eligibility.unmet };
     });
-  }, [finalAbilityScores, selectedRace, selectedClass, state.baseAbilityScores, state.selectedFeat]);
+  }, [finalAbilityScores, selectedRace, selectedClass, state.baseAbilityScores]);
 
   // A quick availability check lets us skip the feat screen when no picks are valid and helps the UI explain why skipping is fine.
   const hasEligibleFeats = useMemo(() => featOptions.some(option => option.isEligible), [featOptions]);
@@ -273,13 +273,12 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
       case CreationStep.Race:
         return <RaceSelection races={Object.values(RACES_DATA)} onRaceSelect={handleRaceSelect} />;
       case CreationStep.AgeSelection:
-        // TODO: Route AgeSelection through the clamped handler so negative/NaN ages never enter reducer state.
         if (!selectedRace) { dispatch({ type: 'SET_STEP', payload: CreationStep.Race }); return null; }
         return <AgeSelection
           selectedRace={selectedRace}
           currentAge={state.characterAge}
-          onAgeChange={(age) => dispatch({ type: 'SET_CHARACTER_AGE', payload: age })}
-          onNext={() => dispatch({ type: 'SET_STEP', payload: getNextStep(state, selectedRace, state.racialSelections) })}
+          onAgeChange={handleAgeChange}
+          onNext={() => dispatch({ type: 'SET_STEP', payload: getNextStep(state) })}
           onBack={goBack}
         />;
       case CreationStep.BackgroundSelection:
@@ -289,7 +288,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
           characterAge={state.characterAge}
           currentBackground={state.selectedBackground}
           onBackgroundChange={(backgroundId) => dispatch({ type: 'SELECT_BACKGROUND', payload: backgroundId })}
-          onNext={() => dispatch({ type: 'SET_STEP', payload: getNextStep(state, selectedRace, state.racialSelections) })}
+          onNext={() => dispatch({ type: 'SET_STEP', payload: getNextStep(state) })}
           onBack={goBack}
         />;
       case CreationStep.Visuals:
@@ -398,21 +397,23 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
           />
         );
       case CreationStep.NameAndReview:
-        const characterToPreview: PlayerCharacter | null = generatePreviewCharacter(state, state.characterName);
-        if (!characterToPreview) {
-          console.error("Missing critical data for review step. Reverting to Race Selection.", state);
-          dispatch({ type: 'SET_STEP', payload: CreationStep.Race });
-          return <p className="text-red-400">Error: Missing critical character data. Returning to start.</p>;
+        {
+          const characterToPreview: PlayerCharacter | null = generatePreviewCharacter(state, state.characterName);
+          if (!characterToPreview) {
+            console.error("Missing critical data for review step. Reverting to Race Selection.", state);
+            dispatch({ type: 'SET_STEP', payload: CreationStep.Race });
+            return <p className="text-red-400">Error: Missing critical character data. Returning to start.</p>;
+          }
+          return (
+            <NameAndReview
+              characterPreview={characterToPreview}
+              onConfirm={handleNameAndReviewSubmit}
+              initialName={state.characterName}
+              onBack={goBack}
+              featStepSkipped={state.featStepSkipped}
+            />
+          );
         }
-        return (
-          <NameAndReview
-            characterPreview={characterToPreview}
-            onConfirm={handleNameAndReviewSubmit}
-            initialName={state.characterName}
-            onBack={goBack}
-            featStepSkipped={state.featStepSkipped}
-          />
-        );
       default:
         return <p>Unknown character creation step.</p>;
     }

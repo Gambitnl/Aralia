@@ -5,7 +5,7 @@
  * showing details about NPCs they have met and their relationships.
  */
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 import { GameState, NPC, SuspicionLevel, GoalStatus } from '../types';
 
 interface DossierPaneProps {
@@ -15,6 +15,18 @@ interface DossierPaneProps {
   npcMemory: GameState['npcMemory'];
   allNpcs: Record<string, NPC>;
 }
+
+const overlayMotion: MotionProps = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+};
+
+const panelMotion: MotionProps = {
+  initial: { y: -30, opacity: 0 },
+  animate: { y: 0, opacity: 1 },
+  exit: { y: -30, opacity: 0 },
+};
 
 const getDispositionDetails = (score: number): { label: string; colorClass: string } => {
   if (score > 80) return { label: 'Adored', colorClass: 'text-green-300' };
@@ -75,21 +87,13 @@ const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, n
 
   return (
     <motion.div
-      {...{
-        initial: { opacity: 0 },
-        animate: { opacity: 1 },
-        exit: { opacity: 0 },
-      } as any}
+      {...overlayMotion}
       className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
       onClick={onClose}
       aria-modal="true" role="dialog" aria-labelledby="dossier-title"
     >
       <motion.div
-        {...{
-          initial: { y: -30, opacity: 0 },
-          animate: { y: 0, opacity: 1 },
-          exit: { y: -30, opacity: 0 },
-        } as any}
+        {...panelMotion}
         className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-4xl h-[90vh] flex flex-col"
         onClick={e => e.stopPropagation()}
       >

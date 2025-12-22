@@ -6,7 +6,7 @@
  * Logic for resolving naval combat maneuvers and state updates.
  */
 
-import { Ship, ShipStats } from '../types/naval';
+import { Ship, /* TODO: ShipStats */ } from '../types/naval';
 import {
     NavalCombatState,
     NavalManeuver,
@@ -119,17 +119,19 @@ export function resolveManeuver(
             case 'FULL_SAIL':
                 updatedSource.currentSpeed *= 1.5;
                 break;
-            case 'REPAIR':
+            case 'REPAIR': {
                 const heal = 20;
                 updatedSource.currentHullPoints = Math.min(
                     updatedSource.ship.stats.maxHullPoints,
                     updatedSource.currentHullPoints + heal
                 );
                 break;
-            case 'BOARDING_PARTY':
+            }
+            case 'BOARDING_PARTY': {
                 updatedSource.grappledWith = [...(updatedSource.grappledWith || []), targetShipId];
                 updatedTarget.grappledWith = [...(updatedTarget.grappledWith || []), sourceShipId];
                 break;
+            }
         }
     }
 
@@ -141,7 +143,7 @@ export function resolveManeuver(
     updates.ships![targetShipId] = updatedTarget;
 
     // Add log
-    const logEntry = {
+    const _logEntry = {
         round: state.round,
         message: `${source.ship.name} used ${maneuver.name}: ${success ? 'Success' : 'Failure'}. ${resultDetails}`,
         type: success ? 'Attack' : 'Info' as const

@@ -43,7 +43,7 @@ describe('ThievesGuildInterface', () => {
     const mockDispatch = vi.fn();
     const mockOnClose = vi.fn();
 
-    const renderWithState = (customState: any = {}) => {
+    const renderWithState = (customState: Partial<typeof initialGameState> = {}) => {
         const state = {
             ...initialGameState,
             ...customState,

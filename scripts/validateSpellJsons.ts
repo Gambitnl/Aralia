@@ -35,12 +35,13 @@ function validateSpellFile(filePath: string, level: number): ValidationResult {
             );
             return { file: fileName, level, valid: false, errors };
         }
-    } catch (e: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
         return {
             file: fileName,
             level,
             valid: false,
-            errors: [`Parse error: ${e.message}`]
+            errors: [`Parse error: ${message}`]
         };
     }
 }

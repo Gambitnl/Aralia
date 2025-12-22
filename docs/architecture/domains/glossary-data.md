@@ -12,6 +12,7 @@ Contains all the JSON data files that populate the glossary. These are the "sour
 |------|-------------|
 | `public/data/glossary/entries/**/*.json` | All glossary JSON entries |
 | `public/data/glossary/index/*.json` | Glossary index files |
+| `src/test/glossaryData.test.ts` | Data integrity tests |
 
 ## Subcomponents
 

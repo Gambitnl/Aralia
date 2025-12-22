@@ -84,7 +84,7 @@ export async function handleOracle({
         } else if (ttsResult.error) {
           throw ttsResult.error;
         }
-      } catch (ttsError: any) {
+      } catch {
         addMessage(`(TTS Error: Could not synthesize speech for Oracle)`, 'system');
       }
     } else {

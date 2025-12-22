@@ -5,13 +5,14 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
 import { CombatState } from '../../types/combat';
 import { generateId } from '../../utils/combatUtils';
-import { movementEvents, MovementEventEmitter, MovementEvent } from '../../systems/combat/MovementEventEmitter';
-import { attackEvents, AttackEventEmitter, AttackEvent } from '../../systems/combat/AttackEventEmitter';
+import { movementEvents, MovementEvent } from '../../systems/combat/MovementEventEmitter';
+import { attackEvents, AttackEvent } from '../../systems/combat/AttackEventEmitter';
 import { combatEvents, CastEvent } from '../../systems/events/CombatEvents';
 import { sustainActionSystem, SustainedSpell } from '../../systems/combat/SustainActionSystem';
 import { logger } from '../../utils/logger';
 
 type ReactiveEvent = MovementEvent | AttackEvent | CastEvent;
+type DurationLike = { type?: string; unit?: string; value?: number };
 
 /**
  * Command that registers reactive triggers or sustain requirements for a spell.
@@ -81,9 +82,8 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
      *
      * @param triggerId - The unique ID of the trigger being registered.
      */
-    private registerEventListeners(triggerId: string): void {
+    private registerEventListeners(_triggerId: string): void {
         const trigger = this.effect.trigger;
-        const casterId = this.context.caster.id;
         const targetId = this.context.targets[0]?.id;
 
         switch (trigger.type) {
@@ -186,14 +186,14 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
 
     private getDurationInRounds(): number | undefined {
         // 1. Try to get duration from the effect itself (e.g. MovementTriggerDebuff might have it)
-        const effectAny = this.effect as any;
-        let duration = effectAny.duration;
+        const effectDuration = (this.effect as { duration?: DurationLike }).duration;
+        let duration = effectDuration;
 
         // TODO: Use the originating spell duration for sustain/reactive windows (e.g., Witch Bolt) when effect duration is absent.
         // 2. Fallback to spell duration from context if not on effect
         // triggers like 'on_caster_action' for sustain rely on the spell's duration
         if (!duration && this.context.effectDuration) {
-            duration = this.context.effectDuration;
+            duration = this.context.effectDuration as DurationLike;
         }
 
         if (!duration) return undefined;

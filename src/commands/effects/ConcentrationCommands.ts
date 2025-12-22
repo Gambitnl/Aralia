@@ -1,8 +1,7 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
-import { CombatState, ConcentrationState, CombatCharacter } from '../../types/combat'
-import { Spell } from '../../types/spells'
-import { generateId } from '../../utils/idGenerator'
+import { CombatState, ConcentrationState } from '../../types/combat'
+import type { Spell, UtilityEffect } from '../../types/spells'
 import { AttackRiderSystem } from '../../systems/combat/AttackRiderSystem'
 
 /**
@@ -14,14 +13,15 @@ export class StartConcentrationCommand extends BaseEffectCommand {
         private spell: Spell,
         protected context: CommandContext
     ) {
-        // Utility effect type is used for concentration tracking
-        super({
+        const baseEffect: UtilityEffect = {
             type: 'UTILITY',
             utilityType: 'other',
             description: 'Maintains concentration on spell',
             trigger: { type: 'immediate' },
             condition: { type: 'always' }
-        } as any, context)
+        };
+        // Utility effect type is used for concentration tracking
+        super(baseEffect, context)
     }
 
     /**
@@ -108,14 +108,15 @@ export class BreakConcentrationCommand extends BaseEffectCommand {
     constructor(
         protected context: CommandContext
     ) {
-        // Using a dummy utility effect for the base command
-        super({
+        const baseEffect: UtilityEffect = {
             type: 'UTILITY',
             utilityType: 'other',
             description: 'Breaks concentration',
             trigger: { type: 'immediate' },
             condition: { type: 'always' }
-        } as any, context)
+        };
+        // Using a dummy utility effect for the base command
+        super(baseEffect, context)
     }
 
     /**

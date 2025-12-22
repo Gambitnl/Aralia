@@ -9,6 +9,10 @@ interface GlossaryContentRendererProps {
   onNavigate?: (termId: string) => void;
 }
 
+type GlossaryLinkElement = HTMLSpanElement & {
+  _glossaryClickHandler?: boolean;
+};
+
 /**
  * Build a Set of all valid term IDs from the glossary index (including sub-entries).
  */
@@ -162,19 +166,20 @@ export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = (
         links.forEach(link => {
             const termId = link.getAttribute('data-term-id');
             if (termId) {
+                const glossaryLink = link as GlossaryLinkElement;
                 const handler = (e: Event) => {
                     e.preventDefault();
                     e.stopPropagation();
                     onNavigate(termId);
                 };
-                if (!(link as any)._glossaryClickHandler) {
-                    link.addEventListener('click', handler);
-                    link.addEventListener('keydown', (e: KeyboardEvent) => {
+                if (!glossaryLink._glossaryClickHandler) {
+                    glossaryLink.addEventListener('click', handler);
+                    glossaryLink.addEventListener('keydown', (e: KeyboardEvent) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                             handler(e);
                         }
                     });
-                    (link as any)._glossaryClickHandler = true;
+                    glossaryLink._glossaryClickHandler = true;
                 }
             }
         });

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { findBuildingAt, VillageLayout, VillageBuildingFootprint, VillageTileType , VillagePersonality } from './villageGenerator';
 
 import { VillageIntegrationProfile } from '../data/villagePersonalityProfiles';

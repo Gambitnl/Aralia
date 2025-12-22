@@ -62,14 +62,27 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, p
   };
 
   const icon = getClassIcon(character.class.id);
+  const handleActivate = () => onCharacterClick(character);
 
   return (
-    <div style={style} className="relative flex items-center justify-center pointer-events-auto" onClick={() => onCharacterClick(character)}>
+    <div
+      style={style}
+      className="relative flex items-center justify-center pointer-events-auto"
+      onClick={handleActivate}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          handleActivate();
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-label={`Select ${character.name}`}
+    >
       <Tooltip content={`${character.name} (Armor Class: ${character.class.id === 'fighter' ? 18 : 12}, Hit Points: ${character.currentHP}/${character.maxHP})`}>
         <div
           style={tokenStyle}
           className="flex items-center justify-center font-bold text-white text-lg"
-          aria-label={`Select ${character.name}`}
         >
           {icon}
         </div>
@@ -105,5 +118,7 @@ const CharacterToken: React.FC<CharacterTokenProps> = React.memo(({ character, p
     </div>
   );
 });
+
+CharacterToken.displayName = 'CharacterToken';
 
 export default CharacterToken;

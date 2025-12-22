@@ -19,7 +19,7 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
   disabled,
   unreadDiscoveryCount,
   hasNewRateLimitError,
-  isDevDummyActive
+  isDevDummyActive: _isDevDummyActive
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -49,7 +49,7 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
         ? { action: { type: 'toggle_dev_menu', label: 'Dev Menu' }, hasNotification: hasNewRateLimitError }
         : null,
     ].filter(Boolean) as { action: Action; badgeCount?: number; hasNotification?: boolean }[],
-    [unreadDiscoveryCount, hasNewRateLimitError, isDevDummyActive], // Added isDevDummyActive to deps
+    [unreadDiscoveryCount, hasNewRateLimitError],
   );
 
   // Close menu when clicking outside

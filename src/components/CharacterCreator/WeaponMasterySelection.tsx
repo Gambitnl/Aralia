@@ -4,7 +4,7 @@
  * Allows users to choose by mastery property or by weapon type.
  */
 import React, { useState, useMemo, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 import { Class as CharClass, Item } from '../../types';
 import { WEAPONS_DATA, MASTERY_DATA } from '../../constants';
 import Tooltip from '../Tooltip';
@@ -16,6 +16,12 @@ interface WeaponMasterySelectionProps {
 }
 
 type ViewMode = 'byWeapon' | 'byMastery' | 'byHandling' | 'byType';
+
+const containerMotion: MotionProps = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
+};
 
 const WeaponMasterySelection: React.FC<WeaponMasterySelectionProps> = ({
   charClass,
@@ -168,12 +174,8 @@ const WeaponMasterySelection: React.FC<WeaponMasterySelectionProps> = ({
 
   return (
     <motion.div
-      {...{
-        key: "weaponMasterySelection",
-        initial: { opacity: 0, y: 20 },
-        animate: { opacity: 1, y: 0 },
-        exit: { opacity: 0, y: -20 },
-      } as any}
+      key="weaponMasterySelection"
+      {...containerMotion}
     >
       <h2 className="text-2xl text-sky-300 mb-2 text-center">Select Weapon Masteries</h2>
       <p className="text-sm text-gray-400 mb-4 text-center">As a {charClass.name}, you can master {selectionLimit} types of weapons.</p>

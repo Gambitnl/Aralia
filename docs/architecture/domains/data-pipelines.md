@@ -39,7 +39,6 @@ This domain covers all build-time scripts, validators, and generators that proce
 | Path | Type | Description |
 |------|------|-------------|
 | `scripts/*.{ts,js,mjs,cjs}` | Directory | All pipeline scripts |
-| `scripts/generate-glossary-md-tables.ts` | Script | Internal doc helper |
 | `src/scripts/*.ts` | Directory | System audit and validation scripts |
 | `src/utils/validation/*.ts` | Utils | Data validation utilities |
 | `docs/architecture/_generated/*.json` | Generated | Architecture artifacts |

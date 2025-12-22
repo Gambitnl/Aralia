@@ -111,7 +111,7 @@ const BackgroundSelection: React.FC<BackgroundSelectionProps> = ({
 
         <div className="mb-6">
           <p className="text-gray-300 text-center mb-4">
-            Choose your {selectedRace?.name}'s background. This determines your skills, equipment, and life experience.
+            Choose your {selectedRace?.name}{"'"}s background. This determines your skills, equipment, and life experience.
           </p>
 
           <div className="bg-blue-900 bg-opacity-30 p-4 rounded-lg mb-6 border border-blue-800 border-opacity-50">

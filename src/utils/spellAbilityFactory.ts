@@ -12,7 +12,7 @@
  * work in the BattleMap without writing manual code for every single spell.
  */
 import { Spell, AbilityScoreName, PlayerCharacter } from '../types';
-import { Ability, AbilityCost, AbilityEffect, AreaOfEffect, TargetingType } from '../types/combat';
+import { Ability, AbilityCost, AbilityEffect, AreaOfEffect, TargetingType, ActionCostType } from '../types/combat';
 import { getAbilityModifierValue } from './characterUtils';
 
 // TODO(FEATURES): Expand spell-to-ability translation coverage (conditions, multi-step effects, unique spell riders) so more spells execute without bespoke handlers (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
@@ -114,8 +114,8 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
         };
 
         // Pass through extended semantics for downstream handlers
-        if ((spell.areaOfEffect as any).followsCaster) {
-            (result as any).followsCaster = true;
+        if ((spell.areaOfEffect as unknown as { followsCaster?: boolean }).followsCaster) {
+            (result as unknown as { followsCaster: boolean }).followsCaster = true;
         }
 
         return result;
@@ -167,7 +167,7 @@ const inferEffectsFromDescription = (description: string, modifier: number): Abi
         effects.push({
             type: 'damage',
             value: calculateAverageDamage(diceString, 0), // Don't add mod to base spell damage usually
-            damageType: type as any
+            damageType: type as AbilityEffect['damageType']
         });
     } else if (lowerDesc.includes("magic missile")) {
         // Hardcode for magic missile specific
@@ -231,7 +231,7 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
     }
 
     const cost: AbilityCost = {
-        type: costType as any,
+        type: costType as ActionCostType,
         spellSlotLevel: spell.level
     };
 
@@ -273,7 +273,7 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
                 effects.push({
                     type: 'damage',
                     value: avgDmg,
-                    damageType: jsonEffect.damage.type.toLowerCase() as any
+                    damageType: jsonEffect.damage.type.toLowerCase() as AbilityEffect['damageType']
                 });
             } else if (jsonEffect.type === 'HEALING') {
                 // HealingEffect has a properly typed healing.dice field

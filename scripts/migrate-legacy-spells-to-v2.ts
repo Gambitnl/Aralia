@@ -44,7 +44,7 @@ const parseCastingTime = (raw: string | undefined) => {
   const valueUnit = String(raw || '').trim();
   const normalized = valueUnit.toLowerCase();
 
-  const unitMap: Record<string, any> = {
+  const unitMap: Record<string, { unit: string; combatCost?: { type: string }; explorationCost?: true }> = {
     action: { unit: 'action', combatCost: { type: 'action' } },
     'bonus action': { unit: 'bonus_action', combatCost: { type: 'bonus_action' } },
     reaction: { unit: 'reaction', combatCost: { type: 'reaction' } },
@@ -61,7 +61,12 @@ const parseCastingTime = (raw: string | undefined) => {
     const value = Number(match[1]);
     const key = match[2].toLowerCase();
     const meta = unitMap[key] ?? { unit: 'special' };
-    const castingTime: any = { value, unit: meta.unit };
+    const castingTime: {
+      value: number;
+      unit: string;
+      combatCost?: { type: string };
+      explorationCost?: { value: number; unit: string };
+    } = { value, unit: meta.unit };
     if (meta.combatCost) castingTime.combatCost = meta.combatCost;
     if (meta.explorationCost) castingTime.explorationCost = { value, unit: meta.unit };
     return castingTime;
@@ -136,7 +141,7 @@ const parseDuration = (raw: string | undefined) => {
   return { type: 'special', concentration: isConcentration };
 };
 
-const inferTargeting = (range: any) => {
+const inferTargeting = (range: ReturnType<typeof parseRange>) => {
   if (range.type === 'self') {
     return { type: 'self', range: 0, validTargets: ['self'], lineOfSight: false };
   }
@@ -261,4 +266,3 @@ const main = () => {
 };
 
 main();
-

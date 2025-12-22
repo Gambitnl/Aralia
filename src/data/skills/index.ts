@@ -2,7 +2,7 @@
  * @file src/data/skills/index.ts
  * Defines all skill data for the Aralia RPG.
  */
-import { Skill, AbilityScoreName } from '../types';
+import { Skill, AbilityScoreName } from '../../types';
 
 export const SKILLS_DATA: Record<string, Skill> = {
   'acrobatics': { id: 'acrobatics', name: 'Acrobatics', ability: 'Dexterity' },

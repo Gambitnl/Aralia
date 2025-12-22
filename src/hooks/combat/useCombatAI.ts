@@ -5,7 +5,7 @@
  * It handles the lifecycle of an AI turn: Thinking -> Evaluating -> Acting -> Waiting -> Repeating.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { CombatCharacter, CombatAction, BattleMapData } from '../../types/combat';
 import { evaluateCombatTurn } from '../../utils/combat/combatAI';
 import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
@@ -64,7 +64,7 @@ export const useCombatAI = ({
         if (!character) return;
 
         // Reset state for the new turn
-        setAiActionsPerformed(0);
+        setTimeout(() => setAiActionsPerformed(0), 0);
 
         const isAiControlled = character.team === 'enemy' || autoCharacters.has(character.id);
 
@@ -81,7 +81,7 @@ export const useCombatAI = ({
             return () => clearTimeout(timer);
         } else {
             // Human turn, ensure AI is idle
-            setAiState('idle');
+            setTimeout(() => setAiState('idle'), 0);
         }
     }, [currentCharacterId, characters, autoCharacters, difficulty]);
 
@@ -99,7 +99,7 @@ export const useCombatAI = ({
         const character = characters.find(c => c.id === currentCharacterId);
         if (!character) {
             // If character disappeared (e.g. died mid-turn?), abort to idle
-            setAiState('idle');
+            setTimeout(() => setAiState('idle'), 0);
             return;
         }
 
@@ -107,7 +107,7 @@ export const useCombatAI = ({
         // Prevent infinite loops with a hard cap on actions per turn (e.g. Move + Action + Bonus)
         // Also requires mapData to be present for pathfinding.
         if (aiActionsPerformed >= 3 || !mapData) {
-            setAiState('done');
+            setTimeout(() => setAiState('done'), 0);
             endTurn();
             return;
         }
@@ -117,7 +117,7 @@ export const useCombatAI = ({
         // though evaluateCombatTurn is currently synchronous.
         const performTurnLogic = async () => {
             // Lock the state to prevent re-entry while processing
-            setAiState('acting');
+            setTimeout(() => setAiState('acting'), 0);
 
             // 4. Evaluate Best Move
             // evaluateCombatTurn (in combatAI.ts) analyzes the board and returns the optimal CombatAction.
@@ -126,7 +126,7 @@ export const useCombatAI = ({
 
             if (action.type === 'end_turn') {
                 // AI decided it has nothing productive left to do
-                setAiState('done');
+                setTimeout(() => setAiState('done'), 0);
                 endTurn();
             } else {
                 // 5. Execute Action
@@ -148,7 +148,7 @@ export const useCombatAI = ({
                     // Action failed (e.g., resource exhaustion not caught by planner).
                     // Fallback to ending turn to prevent getting stuck in 'acting' state.
                     console.warn(`AI Action failed: ${action.type}. Ending turn.`);
-                    setAiState('done');
+                    setTimeout(() => setAiState('done'), 0);
                     endTurn();
                 }
             }

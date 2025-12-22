@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, type MotionProps } from 'framer-motion';
 import { Action } from '../../types';
 import { BTN_BASE, BTN_SIZE_LG } from '../../styles/buttonStyles';
 
@@ -56,16 +56,18 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
     }
   };
 
+  const motionProps: MotionProps = {
+    layout: true,
+    initial: { opacity: 0, scale: 0.8 },
+    animate: { opacity: 1, scale: 1 },
+    exit: { opacity: 0, scale: 0.8 },
+    whileHover: { scale: 1.05 },
+    whileTap: { scale: 0.95 },
+  };
+
   return (
     <motion.button
-      {...{
-        layout: true,
-        initial: { opacity: 0, scale: 0.8 },
-        animate: { opacity: 1, scale: 1 },
-        exit: { opacity: 0, scale: 0.8 },
-        whileHover: { scale: 1.05 },
-        whileTap: { scale: 0.95 },
-      } as any}
+      {...motionProps}
       onClick={handleClick}
       disabled={disabled}
       className={`${baseClasses} ${colorClasses} ${className}`}

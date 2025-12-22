@@ -1,5 +1,5 @@
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { FenceSystem } from '../FenceSystem';
 import { Fence, StolenItem, CrimeType } from '../../../../types/crime';
 import { PlayerCharacter } from '../../../../types/character';

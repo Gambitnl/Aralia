@@ -1,5 +1,5 @@
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { findPath } from '../pathfinding';
 import { calculateMovementCost, getTargetDistance } from '../movementUtils';
 import { BattleMapData, BattleMapTile } from '../../types/combat';

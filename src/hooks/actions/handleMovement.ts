@@ -8,7 +8,7 @@ import { GameState, Action, Location, MapData, PlayerCharacter, GamePhase } from
 import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn, LogDiscoveryFn, GetTileTooltipTextFn } from './actionHandlerTypes';
-import { LOCATIONS, BIOMES, STARTING_LOCATION_ID } from '../../constants';
+import { LOCATIONS, BIOMES } from '../../constants';
 import { DIRECTION_VECTORS, SUBMAP_DIMENSIONS } from '../../config/mapConfig';
 import { determineActiveDynamicNpcsForLocation } from '../../utils/locationUtils';
 import { handleGossipEvent } from './handleWorldEvents';

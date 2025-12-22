@@ -19,7 +19,7 @@ function auditAllSpells() {
         const fullPath = path.join(SPELL_ROOT, f);
         return fs.statSync(fullPath).isDirectory() && f.startsWith('level-');
     });
-  } catch (e) {
+  } catch (_error) {
       console.error(`Could not read spell root: ${SPELL_ROOT}`);
       process.exit(1);
   }

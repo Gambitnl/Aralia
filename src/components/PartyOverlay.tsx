@@ -3,7 +3,7 @@
  * A modal overlay to display the player's party members.
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 import { PlayerCharacter, MissingChoice, GameState } from '../types';
 import PartyPane from './PartyPane';
 import { RelationshipsPane } from './RelationshipsPane';
@@ -23,6 +23,18 @@ interface PartyOverlayProps {
 }
 
 type Tab = 'party' | 'relationships';
+
+const overlayMotion: MotionProps = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+};
+
+const modalMotion: MotionProps = {
+  initial: { y: 30, opacity: 0 },
+  animate: { y: 0, opacity: 1 },
+  exit: { y: 30, opacity: 0 },
+};
 
 const PartyOverlay: React.FC<PartyOverlayProps> = ({ isOpen, onClose, party, onViewCharacterSheet, onFixMissingChoice, companions }) => {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -50,20 +62,12 @@ const PartyOverlay: React.FC<PartyOverlayProps> = ({ isOpen, onClose, party, onV
 
   return (
     <motion.div
-      {...{
-        initial: { opacity: 0 },
-        animate: { opacity: 1 },
-        exit: { opacity: 0 },
-      } as any}
+      {...overlayMotion}
       className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
       <motion.div
-        {...{
-          initial: { y: 30, opacity: 0 },
-          animate: { y: 0, opacity: 1 },
-          exit: { y: 30, opacity: 0 },
-        } as any}
+        {...modalMotion}
         className="relative bg-gray-800 rounded-xl shadow-2xl border border-gray-700 w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
         role="dialog"

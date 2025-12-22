@@ -36,6 +36,9 @@ The shared foundation that all other domains depend on. Contains type definition
 |------|---------|
 | `src/types/index.ts` | Central type exports |
 | `src/types/core.ts` | Core game types |
+| `src/types/state.ts` | Global GameState types |
+| `src/types/actions.ts` | Player action types |
+| `src/types/ui.ts` | UI system types |
 | `src/types/visuals.ts` | Visual effect types |
 | `src/types/languages.ts` | Language types |
 | `src/types/effects.ts` | Universal effect types |

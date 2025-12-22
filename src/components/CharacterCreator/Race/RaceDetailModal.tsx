@@ -4,8 +4,6 @@
  * It's used by RaceSelection.tsx and features an updated layout and collapsible trait sections.
  */
 import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Race } from '../../../types';
 import ImageModal from '../../ImageModal';
 // Race details can deep-link into the shared glossary modal
 import SingleGlossaryEntryModal from '../../Glossary/SingleGlossaryEntryModal';
@@ -149,6 +147,19 @@ const RaceDetailModal: React.FC<RaceDetailModalProps> = ({ race, onSelect, onClo
   const [isImageExpanded, setIsImageExpanded] = useState(false);
   const [infoSpellId, setInfoSpellId] = useState<string | null>(null);
 
+  const handleBackdropClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  };
+
+  const handleBackdropKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onClose();
+    }
+  };
+
   React.useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -167,8 +178,20 @@ const RaceDetailModal: React.FC<RaceDetailModalProps> = ({ race, onSelect, onClo
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" onClick={onClose} aria-modal="true" role="dialog" aria-labelledby={`race-modal-title-${race.id}`}>
-        <div className="bg-gray-900 text-gray-300 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-5xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+      <div
+        className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+        onClick={handleBackdropClick}
+        onKeyDown={handleBackdropKeyDown}
+        role="button"
+        aria-label="Close race details"
+        tabIndex={0}
+      >
+        <div
+          className="bg-gray-900 text-gray-300 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-5xl max-h-[90vh] flex flex-col"
+          aria-modal="true"
+          role="dialog"
+          aria-labelledby={`race-modal-title-${race.id}`}
+        >
           {/* Header */}
           <div className="flex justify-between items-center mb-4 flex-shrink-0">
             <h2 id={`race-modal-title-${race.id}`} className="text-4xl font-bold text-amber-400 font-cinzel">{race.name}</h2>
@@ -180,10 +203,15 @@ const RaceDetailModal: React.FC<RaceDetailModalProps> = ({ race, onSelect, onClo
             {/* Left Column (Image & Stats) */}
             <div className="md:col-span-2 space-y-4">
               {race.image && (
-                  <div className="relative group cursor-pointer" onClick={() => setIsImageExpanded(true)}>
+                  <button
+                    type="button"
+                    className="relative group cursor-pointer"
+                    onClick={() => setIsImageExpanded(true)}
+                    aria-label={`Expand ${race.name} image`}
+                  >
                     <img src={race.image} alt={`${race.name} illustration`} className="w-full h-auto rounded-lg object-contain shadow-lg border border-gray-700"/>
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-2xl" aria-hidden="true">🔍</div>
-                  </div>
+                  </button>
               )}
                <div className="p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
                 <h3 className="text-xl font-semibold text-sky-300 mb-2">Racial Stats</h3>

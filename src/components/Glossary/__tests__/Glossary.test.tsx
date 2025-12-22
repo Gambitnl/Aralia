@@ -4,6 +4,7 @@ import { describe, it, expect, vi } from 'vitest';
 import Glossary from '../Glossary';
 import GlossaryContext from '../../../context/GlossaryContext';
 import { GlossaryEntry } from '../../../types';
+import type { GateResult } from '../../../hooks/useSpellGateChecks';
 
 // Prevent errors from scrollIntoView in JSDOM
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -21,7 +22,7 @@ vi.mock('../FullEntryDisplay', () => ({
   ),
 }));
 
-let mockGateHookReturn: { results: Record<string, any>; recheck: any; isLoading: boolean } = {
+let mockGateHookReturn: { results: Record<string, GateResult>; recheck: () => void; isLoading: boolean } = {
   results: {},
   recheck: vi.fn(),
   isLoading: false,

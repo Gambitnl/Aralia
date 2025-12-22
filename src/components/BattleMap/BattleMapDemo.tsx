@@ -59,8 +59,6 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
 
   const [mapData, setMapData] = useState<BattleMapData | null>(initialSetup.mapData);
   const [characters, setCharacters] = useState<CombatCharacter[]>(initialSetup.positionedCharacters);
-  const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
-
   const [sheetCharacter, setSheetCharacter] = useState<PlayerCharacter | null>(null);
   const [autoCharacters, setAutoCharacters] = useState<Set<string>>(new Set());
 
@@ -103,6 +101,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
 
   // When initialCharacters prop changes (i.e., a new encounter starts), reset the component's state.
   const didInitFromPropsRef = useRef(false);
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!didInitFromPropsRef.current) {
       didInitFromPropsRef.current = true;
@@ -115,12 +114,12 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
 
     setSeed(nextSeed);
     setCombatLog([]);
-    setSelectedCharacterId(null);
     setSheetCharacter(null);
     setMapData(setup.mapData);
     setCharacters(setup.positionedCharacters);
     initializeCombat(setup.positionedCharacters);
   }, [getBaseCombatants, initialCharacters, initializeCombat]);
+  /* eslint-enable react-hooks/set-state-in-effect */
   
   const abilitySystem = useAbilitySystem({
     characters,
@@ -152,7 +151,6 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
 
     setSeed(nextSeed);
     setCombatLog([]); // Clear log on new map
-    setSelectedCharacterId(null);
     setSheetCharacter(null);
     setAutoCharacters(new Set());
     setMapData(setup.mapData);
@@ -160,9 +158,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
     turnManager.initializeCombat(setup.positionedCharacters);
   };
 
-  const handleCharacterSelect = (charId: string) => {
-    setSelectedCharacterId(charId);
-  }
+  const handleCharacterSelect = useCallback(() => {}, []);
 
   const handleSheetOpen = (charId: string) => {
     const playerToShow = party.find(p => p.id === charId);

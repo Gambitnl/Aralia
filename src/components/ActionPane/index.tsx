@@ -7,7 +7,7 @@
  * It is now structured to separate UI components (ActionButton, SystemMenu)
  * and logic (useActionGeneration) from the main view.
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Location, Action, NPC, Item } from '../../types';
 import { ActionButton } from './ActionButton';
@@ -43,6 +43,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   subMapCoordinates,
   worldSeed,
 }) => {
+  const oracleInputRef = useRef<HTMLInputElement | null>(null);
   const [isOracleInputVisible, setIsOracleInputVisible] = useState(false);
   const [oracleQuery, setOracleQuery] = useState('');
 
@@ -53,6 +54,12 @@ const ActionPane: React.FC<ActionPaneProps> = ({
     subMapCoordinates,
     worldSeed
   });
+
+  useEffect(() => {
+    if (isOracleInputVisible) {
+      oracleInputRef.current?.focus();
+    }
+  }, [isOracleInputVisible]);
 
   const handleAskOracleClick = () => setIsOracleInputVisible(true);
   const handleOracleSubmit = () => {
@@ -93,7 +100,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
             placeholder="Ask your question..."
             className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md text-gray-200 focus:ring-1 focus:ring-purple-500 outline-none mb-2"
             onKeyDown={(e) => e.key === 'Enter' && handleOracleSubmit()}
-            autoFocus
+            ref={oracleInputRef}
             aria-label="Ask the Oracle"
           />
           <div className="flex gap-2">

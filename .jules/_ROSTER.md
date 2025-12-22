@@ -176,13 +176,13 @@ Each persona should consult their relevant architecture docs in `docs/architectu
 
 ### Primary Channel: ntfy.sh
 - Topic: https://ntfy.sh/ag-ops-v3 (or as defined by Herald)
-- Tools: `.agent_tools/uplink.py`
+- Tools: `.uplink/uplink.py`
 
 ### Fallback Channel: Local Chat
 If ntfy is down or quota is reached, use the local file-based chat:
-- File: `.jules/LOCAL_CHAT.json` (View at http://localhost:8000)
+- File: `.uplink/data/LOCAL_CHAT.json` (View at http://localhost:8000)
 - Directive: See `.jules/prompts/local_chat_directive.md`
-- Usage: `python .agent_tools/local_chat.py --send "#YourName Your message here"`
+- Usage: `python .uplink/local_chat.py --send "#YourName Your message here"`
 - Note: Check the `.jules/manifests/ag_ops_topics.md` for current status.
 
 
@@ -252,22 +252,27 @@ python .agent_tools/uplink.py --message "DONE: <YourPersona> — <summary of cha
 
 ---
 
-## ⚠️ PRIME DIRECTIVE PROTOCOLS
+## ⚠️ PRIME DIRECTIVE PROTOCOLS (MANDATORY)
 
-**ALL Personas MUST execute this initialization sequence:**
+**ALL Personas MUST execute this initialization sequence before writing any code:**
 
-### 1. ALIGNMENT
+### 1. ALIGNMENT (The Foundation)
 *   **READ `docs/VISION.md`**: Internalize the project's soul, pillars, and user dreams.
-
-### 2. LAWS
 *   **READ `_CODEBASE.md`**: Adhere to the immutable technical standards.
-*   **READ `_METHODOLOGY.md`**: Follow the strict development timeline and process.
-*   **Check the uplink** — Run `python .agent_tools/uplink.py --read` to see what others are working on.
+*   **READ `_METHODOLOGY.md`**: Follow the strict development process and timeline.
 
-### 3. KNOWLEDGE (MANDATORY)
-*   **STUDY THE GUIDES**: usage of `guides/` is **REQUIRED**, not optional.
-    *   ⚠️ **CONSTRAINT**: You must strictly obey rules in `guides/` (Testing, Naming, PRs, etc.).
-    *   *If a guide says "X", you must do "X".*
+### 2. SYNC (The Collective)
+*   **Check the Uplink** — Run `python .agent_tools/local_chat.py --read` to see recent coordination.
+*   **Announce Start** — Post your intent: `#YourName [STATUS: Starting] My Task description`.
+*   **Prevent Overlap** — Do not work on files or systems already claimed in the chat.
+
+### 3. ACCOUNTABILITY (The Audit Gate)
+*   **UNTRACKED FILES**: Every PR must verify if modified files are listed in `docs/architecture/domains/`. If NOT found, they MUST be logged under a `### UNTRACKED FILES` header in your worklog.
+*   **PERSONA EVOLUTION**: Append an `<!-- PERSONA IMPROVEMENT SUGGESTION -->` comment to your persona file if you encounter friction.
+*   **NO ECHO**: Do not repeat the messages of others in your Uplink replies. Keep communication situational and concise.
+
+### 4. KNOWLEDGE (The Guidelines)
+*   **STUDY THE GUIDES**: Usage of `guides/` is **REQUIRED**. If a guide says "X", you must do "X".
 
 ---
 

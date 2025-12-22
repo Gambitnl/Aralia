@@ -5,7 +5,7 @@
  * This allows the AI (or other systems) to create valid characters without going through
  * the UI wizard, while ensuring all derived stats (HP, AC, Speed, etc.) are calculated correctly.
  */
-import { PlayerCharacter, AbilityScores, SpellbookData, SpellSlots, LimitedUses, Item } from '../types';
+import { PlayerCharacter, AbilityScores, SpellbookData, SpellSlots, LimitedUses, Item, Skill, EquipmentSlotType } from '../types';
 import { RACES_DATA as ALL_RACES_DATA, CLASSES_DATA, SKILLS_DATA, WEAPONS_DATA, ITEMS } from '../constants';
 import { getAbilityModifierValue, calculateArmorClass } from '../utils/characterUtils';
 
@@ -65,7 +65,7 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
     }
 
     // 2. Handle Skills
-    const selectedSkills = [];
+    const selectedSkills: Skill[] = [];
     // Basic logic: Pick the first N skills from the class list if not specified
     const numSkills = charClass.numberOfSkillProficiencies;
     const available = charClass.skillProficienciesAvailable;
@@ -114,14 +114,14 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
 
     // 4. Equipment (Simplified: Class "A" or default approximations)
     // In a real app, we'd parse `charClass.startingEquipment`. Here we map manually for key classes or generic fallbacks.
-    const equippedItems: Record<string, Item> = {};
+    const equippedItems: Partial<Record<EquipmentSlotType, Item>> = {};
     const inventory: Item[] = [];
     
     // Generic gear allocation
-    const addIfExists = (id: string, slot?: string) => {
+    const addIfExists = (id: string, slot?: EquipmentSlotType) => {
         const item = WEAPONS_DATA[id] || ITEMS[id];
         if (item) {
-            if (slot) equippedItems[slot as any] = item;
+            if (slot) equippedItems[slot] = item;
             else inventory.push(item);
         }
     };
@@ -160,11 +160,14 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
     let spellcastingAbility: 'intelligence' | 'wisdom' | 'charisma' | undefined;
 
     if (charClass.spellcasting) {
-        spellcastingAbility = charClass.spellcasting.ability.toLowerCase() as any;
+        const ability = charClass.spellcasting.ability.toLowerCase();
+        if (ability === 'intelligence' || ability === 'wisdom' || ability === 'charisma') {
+            spellcastingAbility = ability;
+        }
         
         // Assign default spells from the class list
         const cantrips = charClass.spellcasting.spellList
-            .filter(id => {
+            .filter(_id => {
                 // In a real scenario we'd check level=0, for now relying on ID naming or external check
                 // Simplified: just take first N
                 return true; 

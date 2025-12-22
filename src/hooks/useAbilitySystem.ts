@@ -15,14 +15,13 @@ import {
   BattleMapData,
   CombatState,
   CombatLogEntry,
-  ReactiveTrigger
-} from '../types/combat';
+  ReactiveTrigger,
+  GameState
+} from '../types';
 import {
   Spell,
   isDamageEffect,
   isStatusConditionEffect,
-  isMovementEffect,
-  isUtilityEffect,
   isDefensiveEffect
 } from '../types/spells';
 import { SpellCommandFactory, CommandExecutor } from '../commands'; // Import Command System
@@ -33,7 +32,6 @@ import { calculateAffectedTiles } from '../utils/aoeCalculations';
 import { useTargeting } from './combat/useTargeting'; // New Hook
 import { resolveAoEParams } from '../utils/targetingUtils';
 import { AttackRiderSystem, AttackContext } from '../systems/combat/AttackRiderSystem';
-import { getPlanarSpellModifier } from '../utils/planarUtils';
 import { Plane } from '../types/planes';
 
 interface UseAbilitySystemProps {
@@ -87,117 +85,124 @@ export const useAbilitySystem = ({
   // --- Command Pattern Execution Logic ---
   // TODO(Ritualist): Integrate RitualManager here to handle ritual casting (10+ min duration) instead of immediate execution.
   // Also integrate RitualManager.validateRequirements() to check for ritual constraints (Time, Location) before starting.
-  const executeSpell = useCallback(async (
-    spell: Spell,
-    caster: CombatCharacter,
-    targets: CombatCharacter[],
-    castAtLevel: number,
-    playerInput?: string
-  ) => {
-    // 0. Check for AI Input Requirements
-    if (spell.arbitrationType === 'ai_dm' && spell.aiContext?.playerInputRequired && !playerInput) {
-      if (onRequestInput) {
-        onRequestInput(spell, (input) => {
-          // Re-trigger execution with the collected input
-          executeSpell(spell, caster, targets, castAtLevel, input);
-        });
-        return; // Halt execution until input is provided
-      } else {
-        console.warn("Spell requires input but no onRequestInput handler provided.");
+  const executeSpell = useCallback(
+    async function executeSpellImpl(
+      spell: Spell,
+      caster: CombatCharacter,
+      targets: CombatCharacter[],
+      castAtLevel: number,
+      playerInput?: string
+    ) {
+      // 0. Check for AI Input Requirements
+      if (spell.arbitrationType === 'ai_dm' && spell.aiContext?.playerInputRequired && !playerInput) {
+        if (onRequestInput) {
+          onRequestInput(spell, (input) => {
+            // Re-trigger execution with the collected input
+            executeSpellImpl(spell, caster, targets, castAtLevel, input);
+          });
+          return; // Halt execution until input is provided
+        } else {
+          console.warn("Spell requires input but no onRequestInput handler provided.");
+        }
       }
-    }
 
-    // 1. Construct temporary CombatState
-    const currentState: CombatState = {
-      isActive: true,
-      characters: characters,
-      turnState: {} as any, // Mock, commands usually don't read this
-      selectedCharacterId: null,
-      selectedAbilityId: null,
-      actionMode: 'select',
-      validTargets: [],
-      validMoves: [],
-      combatLog: [], // Start empty to capture new entries
-      reactiveTriggers: reactiveTriggers || [], // Pass current triggers
-      activeLightSources: [],
-      currentPlane: currentPlane
-    };
+      // 1. Construct temporary CombatState
+      const currentState: CombatState = {
+        isActive: true,
+        characters: characters,
+        turnState: {
+          currentTurn: 0,
+          turnOrder: [],
+          currentCharacterId: null,
+          phase: 'planning',
+          actionsThisTurn: []
+        },
+        selectedCharacterId: null,
+        selectedAbilityId: null,
+        actionMode: 'select',
+        validTargets: [],
+        validMoves: [],
+        combatLog: [], // Start empty to capture new entries
+        reactiveTriggers: reactiveTriggers || [], // Pass current triggers
+        activeLightSources: [],
+        currentPlane: currentPlane
+      };
 
-    const mockGameState: any = {
-      // Add necessary GameState fields if factory needs them
-    };
+      const mockGameState = {} as unknown as GameState; // Using unknown as GameState for global state mock as it's too large to mock here fully
 
-    try {
-      // Asynchronously generate the chain of effect commands
-      const commands = await SpellCommandFactory.createCommands(
-        spell,
-        caster,
-        targets,
-        castAtLevel,
-        mockGameState,
-        playerInput,
-        currentPlane
-      );
+      try {
+        // Asynchronously generate the chain of effect commands
+        const commands = await SpellCommandFactory.createCommands(
+          spell,
+          caster,
+          targets,
+          castAtLevel,
+          mockGameState,
+          playerInput,
+          currentPlane
+        );
 
-      // 3. Execute
-      const result = CommandExecutor.execute(commands, currentState);
+        // 3. Execute
+        const result = CommandExecutor.execute(commands, currentState);
 
-      if (result.success) {
-        // 4. Propagate State Changes
-        result.finalState.characters.forEach(finalChar => {
-          const isTarget = targets.some(t => t.id === finalChar.id);
-          const isCaster = caster.id === finalChar.id;
+        if (result.success) {
+          // 4. Propagate State Changes
+          result.finalState.characters.forEach(finalChar => {
+            const isTarget = targets.some(t => t.id === finalChar.id);
+            const isCaster = caster.id === finalChar.id;
 
-          if (isTarget || isCaster) {
-            onCharacterUpdate(finalChar);
+            if (isTarget || isCaster) {
+              onCharacterUpdate(finalChar);
+            }
+          });
+
+          // 5. Propagate Log Entries
+          if (onLogEntry) {
+            result.finalState.combatLog.forEach(entry => onLogEntry(entry));
           }
-        });
 
-        // 5. Propagate Log Entries
-        if (onLogEntry) {
-          result.finalState.combatLog.forEach(entry => onLogEntry(entry));
-        }
+          // 6. Propagate Reactive Triggers
+          if (onReactiveTriggerUpdate && result.finalState.reactiveTriggers !== currentState.reactiveTriggers) {
+            onReactiveTriggerUpdate(result.finalState.reactiveTriggers);
+          }
 
-        // 6. Propagate Reactive Triggers
-        if (onReactiveTriggerUpdate && result.finalState.reactiveTriggers !== currentState.reactiveTriggers) {
-          onReactiveTriggerUpdate(result.finalState.reactiveTriggers);
-        }
+          // 7. Propagate Map Changes
+          if (onMapUpdate && result.finalState.mapData) {
+            // Simple check if mapData was modified. In TerrainCommand, we clone mapData if we modify it.
+            // If the reference changed, we update.
+            if (result.finalState.mapData !== mapData) {
+              onMapUpdate(result.finalState.mapData);
+            }
+          }
 
-        // 7. Propagate Map Changes
-        if (onMapUpdate && result.finalState.mapData) {
-          // Simple check if mapData was modified. In TerrainCommand, we clone mapData if we modify it.
-          // If the reference changed, we update.
-          if (result.finalState.mapData !== mapData) {
-            onMapUpdate(result.finalState.mapData);
+        } else {
+          console.error("Spell execution failed:", result.error);
+          if (onLogEntry) {
+            onLogEntry({
+              id: generateId(),
+              timestamp: Date.now(),
+              type: 'action',
+              message: `The weave falters... (${result.error})`,
+              characterId: caster.id
+            });
           }
         }
-
-      } else {
-        console.error("Spell execution failed:", result.error);
+      } catch (error) {
+        console.error("SpellCommandFactory error:", error);
         if (onLogEntry) {
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
           onLogEntry({
             id: generateId(),
             timestamp: Date.now(),
-            type: 'info',
-            message: `The weave falters... (${result.error})`,
+            type: 'action',
+            message: `The spell fizzles before it can be cast. (${errorMessage})`,
             characterId: caster.id
           });
         }
       }
-    } catch (error) {
-      console.error("SpellCommandFactory error:", error);
-      if (onLogEntry) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        onLogEntry({
-          id: generateId(),
-          timestamp: Date.now(),
-          type: 'info',
-          message: `The spell fizzles before it can be cast. (${errorMessage})`,
-          characterId: caster.id
-        });
-      }
-    }
-  }, [characters, onCharacterUpdate, onLogEntry, onRequestInput, reactiveTriggers, onReactiveTriggerUpdate, currentPlane]);
+    },
+    [characters, onCharacterUpdate, onLogEntry, onRequestInput, reactiveTriggers, onReactiveTriggerUpdate, currentPlane, mapData, onMapUpdate]
+  );
 
 
   // Helper: Find character at exact grid position
@@ -341,7 +346,13 @@ export const useAbilitySystem = ({
       const tempState: CombatState = {
         isActive: true,
         characters: characters,
-        turnState: {} as any,
+        turnState: {
+          currentTurn: 0,
+          turnOrder: [],
+          currentCharacterId: null,
+          phase: 'planning',
+          actionsThisTurn: []
+        },
         selectedCharacterId: null,
         selectedAbilityId: null,
         actionMode: 'select',
@@ -511,8 +522,6 @@ export const useAbilitySystem = ({
           const isRanged = ability.range > 1 || ability.weapon?.properties?.includes('range');
           const abilityMod = isRanged ? dexMod : strMod;
 
-          // Apply Planar Modifier
-          const planarModifier = 0;
           if (currentPlane && ability.weapon) {
              // For simplicity, assume all melee weapons are affected by "Empowered" if applicable,
              // or check damage type.
@@ -719,7 +728,13 @@ export const useAbilitySystem = ({
     const currentState: CombatState = {
       isActive: true,
       characters: characters,
-      turnState: {} as any,
+      turnState: {
+        currentTurn: 0,
+        turnOrder: [],
+        currentCharacterId: null,
+        phase: 'planning',
+        actionsThisTurn: []
+      },
       selectedCharacterId: null,
       selectedAbilityId: null,
       actionMode: 'select',
@@ -737,7 +752,7 @@ export const useAbilitySystem = ({
       caster: character,
       targets: [],
       castAtLevel: character.concentratingOn.spellLevel,
-      gameState: {} as any,
+      gameState: {} as unknown as GameState, // Mock
     });
 
     const result = CommandExecutor.execute([command], currentState);
@@ -752,7 +767,7 @@ export const useAbilitySystem = ({
         result.finalState.combatLog.forEach(entry => onLogEntry(entry));
       }
     }
-  }, [characters, onCharacterUpdate, onLogEntry]);
+  }, [characters, onCharacterUpdate, onLogEntry, reactiveTriggers]);
 
 
   // Expose API

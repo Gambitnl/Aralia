@@ -5,10 +5,10 @@
  */
 import en from '../locales/en.json';
 
-type LocaleData = Record<string, any>;
+type LocaleData = Record<string, unknown>;
 
 const locales: Record<string, LocaleData> = {
-  en,
+  en: en as LocaleData,
 };
 
 const currentLocale = 'en';
@@ -32,11 +32,11 @@ const currentLocale = 'en';
  */
 export const t = (key: string, params?: Record<string, string | number>): string => {
   const keys = key.split('.');
-  let value: any = locales[currentLocale];
+  let value: unknown = locales[currentLocale];
 
   for (const k of keys) {
-    if (value && typeof value === 'object' && k in value) {
-      value = value[k];
+    if (value && typeof value === 'object' && k in (value as Record<string, unknown>)) {
+      value = (value as Record<string, unknown>)[k];
     } else {
       return key; // Return key if not found
     }

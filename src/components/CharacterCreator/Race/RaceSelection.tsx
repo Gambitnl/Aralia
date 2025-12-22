@@ -7,7 +7,7 @@
  * Races are displayed in alphabetical order.
  */
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 import { Race } from '../../../types';
 import { BTN_PRIMARY_SM } from '../../../styles/buttonStyles';
 import RaceDetailModal, { RaceForModal } from './RaceDetailModal';
@@ -48,14 +48,18 @@ const transformRaceDataForModal = (race: Race): RaceForModal => {
                     baseTraits.size = value;
                     break;
                 case 'speed:':
-                    const speedMatch = value.match(/(\d+)/);
-                    baseTraits.speed = speedMatch ? parseInt(speedMatch[1], 10) : 30;
+                    {
+                        const speedMatch = value.match(/(\d+)/);
+                        baseTraits.speed = speedMatch ? parseInt(speedMatch[1], 10) : 30;
+                    }
                     break;
                 case 'darkvision:':
-                    const dvMatch = value.match(/(\d+)/);
-                    baseTraits.darkvision = dvMatch ? parseInt(dvMatch[1], 10) : 0;
-                    if (value.toLowerCase().includes('superior') || value.toLowerCase().includes('120')) {
-                        baseTraits.darkvision = 120;
+                    {
+                        const dvMatch = value.match(/(\d+)/);
+                        baseTraits.darkvision = dvMatch ? parseInt(dvMatch[1], 10) : 0;
+                        if (value.toLowerCase().includes('superior') || value.toLowerCase().includes('120')) {
+                            baseTraits.darkvision = 120;
+                        }
                     }
                     break;
             }
@@ -100,6 +104,13 @@ interface RaceSelectionProps {
   onRaceSelect: (raceId: string) => void;
 }
 
+const containerMotion: MotionProps = {
+  initial: { x: 300, opacity: 0 },
+  animate: { x: 0, opacity: 1 },
+  exit: { x: -300, opacity: 0 },
+  transition: { duration: 0.3, ease: 'easeInOut' },
+};
+
 const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) => {
   const [viewingRace, setViewingRace] = useState<Race | null>(null);
 
@@ -127,13 +138,8 @@ const RaceSelection: React.FC<RaceSelectionProps> = ({ races, onRaceSelect }) =>
 
   return (
     <motion.div
-      {...{
-        key: "raceSelection",
-        initial: { x: 300, opacity: 0 },
-        animate: { x: 0, opacity: 1 },
-        exit: { x: -300, opacity: 0 },
-        transition: { duration: 0.3, ease: 'easeInOut' },
-      } as any}
+      key="raceSelection"
+      {...containerMotion}
     >
       <h2 className="text-2xl text-sky-300 mb-6 text-center">Choose Your Race</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">

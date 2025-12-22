@@ -6,19 +6,20 @@ import React, { useMemo, useRef, useCallback } from 'react';
 import { BattleMapData, CombatCharacter } from '../../types/combat';
 import { useBattleMap } from '../../hooks/useBattleMap';
 import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
+import type { useTurnManager } from '../../hooks/combat/useTurnManager';
+import type { useAbilitySystem } from '../../hooks/useAbilitySystem';
 import BattleMapTile from './BattleMapTile';
 import CharacterToken from './CharacterToken';
 import BattleMapOverlay from './BattleMapOverlay';
 import { TILE_SIZE_PX } from '../../config/mapConfig';
-import { generateId } from '../../utils/combatUtils';
 
 interface BattleMapProps {
   mapData: BattleMapData | null;
   characters: CombatCharacter[];
   combatState: {
-    turnManager: any; // The full turn manager hook return object
-    turnState: any; // Simplified for now
-    abilitySystem: any; // Simplified for now
+    turnManager: ReturnType<typeof useTurnManager>;
+    turnState: ReturnType<typeof useTurnManager>['turnState'];
+    abilitySystem: ReturnType<typeof useAbilitySystem>;
     isCharacterTurn: (id: string) => boolean;
     onCharacterUpdate: (character: CombatCharacter) => void;
   };
@@ -34,7 +35,6 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
   const damageNumbers = turnManager.damageNumbers || [];
 
   const {
-    characterPositions,
     selectedCharacterId,
     validMoves,
     activePath,

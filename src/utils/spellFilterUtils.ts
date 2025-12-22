@@ -3,7 +3,7 @@
  * Artisanal utilities for filtering and displaying spells in feat selection.
  * Provides school-aware filtering, attack spell detection, and visual helpers.
  */
-import { Spell, SpellSchool, FeatSpellRequirement, SpellEffect } from '../types';
+import { Spell, SpellSchool, FeatSpellRequirement } from '../types';
 import { SpellDataRecord } from '../context/SpellContext';
 import { CLASSES_DATA } from '../constants';
 

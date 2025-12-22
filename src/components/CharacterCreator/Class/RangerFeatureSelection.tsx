@@ -4,7 +4,7 @@
  * their initial known Level 1 spells. Fighting Style is a level 2 feature and is no longer selected here.
  */
 import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 import { Spell, Class as CharClass } from '../../../types';
 
 interface RangerFeatureSelectionProps {
@@ -13,6 +13,13 @@ interface RangerFeatureSelectionProps {
   onRangerFeaturesSelect: (spellsL1: Spell[]) => void;
   onBack: () => void;
 }
+
+const containerMotion: MotionProps = {
+  initial: { x: 300, opacity: 0 },
+  animate: { x: 0, opacity: 1 },
+  exit: { x: -300, opacity: 0 },
+  transition: { duration: 0.3, ease: 'easeInOut' },
+};
 
 const RangerFeatureSelection: React.FC<RangerFeatureSelectionProps> = ({
   spellcastingInfo,
@@ -51,13 +58,8 @@ const RangerFeatureSelection: React.FC<RangerFeatureSelectionProps> = ({
 
   return (
     <motion.div
-      {...{
-        key: "rangerFeatures",
-        initial: { x: 300, opacity: 0 },
-        animate: { x: 0, opacity: 1 },
-        exit: { x: -300, opacity: 0 },
-        transition: { duration: 0.3, ease: 'easeInOut' },
-      } as any}
+      key="rangerFeatures"
+      {...containerMotion}
     >
       <h2 className="text-2xl text-sky-300 mb-4 text-center">Ranger Spell Selection</h2>
       

@@ -1,5 +1,5 @@
 
-import { GroupTravelParameters, TravelResult, PACE_MODIFIERS } from '../types/travel';
+import { GroupTravelParameters, TravelResult } from '../types/travel';
 import { calculateGroupTravelStats, calculateTravelTimeHours } from '../systems/travel/TravelCalculations';
 import { PlayerCharacter } from '../types/character';
 import { Item } from '../types/items';

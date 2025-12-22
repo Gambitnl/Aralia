@@ -71,7 +71,7 @@ const SpellSourceSelector: React.FC<SpellSourceSelectorProps> = ({
       <div>
         <h4 className="text-amber-300 font-cinzel text-lg">Choose Spell Source</h4>
         <p className="text-sm text-gray-400">
-          Select which class's spell list you want to learn from:
+          Select which class&apos;s spell list you want to learn from:
         </p>
       </div>
 

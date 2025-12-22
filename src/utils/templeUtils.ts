@@ -6,7 +6,6 @@
 
 import { DEITIES } from '../data/deities';
 import { Temple, TempleService, VillagePersonality } from '../types';
-import { generateId } from './idGenerator';
 import { createSeededRandom } from './seededRandom';
 
 /**
@@ -81,7 +80,7 @@ const selectDeityForVillage = (
  * Different deities might offer slightly different flavored services or prices,
  * but mechanically they map to standard effects.
  */
-const generateServicesForDeity = (deityId: string): TempleService[] => {
+const generateServicesForDeity = (_deityId: string): TempleService[] => {
     const baseServices: TempleService[] = [
         {
             id: 'donate_small',

@@ -4,7 +4,7 @@
  * their initial known cantrips and Level 1 spells.
  */
 import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 import { Spell, Class as CharClass } from '../../../types';
 
 interface SorcererFeatureSelectionProps {
@@ -13,6 +13,13 @@ interface SorcererFeatureSelectionProps {
   onSorcererFeaturesSelect: (cantrips: Spell[], spellsL1: Spell[]) => void;
   onBack: () => void;
 }
+
+const containerMotion: MotionProps = {
+  initial: { x: 300, opacity: 0 },
+  animate: { x: 0, opacity: 1 },
+  exit: { x: -300, opacity: 0 },
+  transition: { duration: 0.3, ease: 'easeInOut' },
+};
 
 const SorcererFeatureSelection: React.FC<SorcererFeatureSelectionProps> = ({
   spellcastingInfo,
@@ -55,13 +62,8 @@ const SorcererFeatureSelection: React.FC<SorcererFeatureSelectionProps> = ({
 
   return (
     <motion.div
-      {...{
-        key: "sorcererFeatures",
-        initial: { x: 300, opacity: 0 },
-        animate: { x: 0, opacity: 1 },
-        exit: { x: -300, opacity: 0 },
-        transition: { duration: 0.3, ease: 'easeInOut' },
-      } as any}
+      key="sorcererFeatures"
+      {...containerMotion}
     >
       <h2 className="text-2xl text-sky-300 mb-4 text-center">Sorcerer Spell Selection</h2>
       <p className="text-sm text-gray-400 mb-6 text-center">

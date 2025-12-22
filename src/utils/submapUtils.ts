@@ -4,7 +4,7 @@
  * ensuring that both UI components and game logic can access the same
  * deterministic data.
  */
-import { SeededFeatureConfig, PathDetails, BiomeVisuals } from '../types';
+import { SeededFeatureConfig, PathDetails } from '../types';
 import { LOCATIONS, STARTING_LOCATION_ID, BIOMES } from '../constants';
 import { biomeVisualsConfig, defaultBiomeVisuals } from '../config/submapVisualsConfig';
 import { CellularAutomataGenerator } from '../services/cellularAutomataService';

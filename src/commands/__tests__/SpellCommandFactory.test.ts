@@ -1,14 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import { SpellCommandFactory } from '../factory/SpellCommandFactory'
 import { DamageCommand } from '../effects/DamageCommand'
-import type { Spell } from '@/types/spells'
-import type { CombatCharacter, CombatState } from '@/types/combat'
+import type { DamageEffect, Spell } from '@/types/spells'
+import type { CombatCharacter } from '@/types/combat'
 import { createMockGameState } from '@/utils/factories'
 
 // Mocks
 const mockCaster = { id: 'c1', name: 'Caster', level: 5 } as CombatCharacter
 const mockTarget = { id: 't1', name: 'Target' } as CombatCharacter
-const mockState = { characters: [mockCaster, mockTarget] } as CombatState
+const getContextTargets = (command: unknown): CombatCharacter[] =>
+  (command as { context: { targets: CombatCharacter[] } }).context.targets
 
 const createMockSpell = (id: string, overrides: Partial<Spell> = {}): Spell => ({
   id,
@@ -66,7 +67,7 @@ describe('SpellCommandFactory', () => {
       )
 
       const cmd = commands[0] as DamageCommand
-      const effect: any = (cmd as any).effect;
+      const effect = (cmd as unknown as { effect: DamageEffect }).effect;
       expect(effect.damage.dice).toBe('4d6') // 3d6 + 1d6
     })
 
@@ -106,7 +107,7 @@ describe('SpellCommandFactory', () => {
       // We can check if the command context targets were filtered.
       // Since context is protected/private, we can't check directly without casting.
 
-      const contextTargets = (cmd as any).context.targets;
+      const contextTargets = getContextTargets(cmd);
       expect(contextTargets).toHaveLength(1);
       expect(contextTargets[0].id).toBe('undead');
     })
@@ -162,7 +163,7 @@ describe('SpellCommandFactory', () => {
 
       expect(commands).toHaveLength(1)
       const cmd = commands[0]
-      const contextTargets = (cmd as any).context.targets;
+      const contextTargets = getContextTargets(cmd);
       expect(contextTargets).toHaveLength(1);
       expect(contextTargets[0].id).toBe('small');
     })
@@ -192,7 +193,7 @@ describe('SpellCommandFactory', () => {
       )
 
       expect(commands).toHaveLength(1)
-      const contextTargets = (commands[0] as any).context.targets;
+      const contextTargets = getContextTargets(commands[0]);
       expect(contextTargets).toHaveLength(1);
       expect(contextTargets[0].id).toBe('evil');
     })
@@ -227,7 +228,7 @@ describe('SpellCommandFactory', () => {
       )
 
       expect(commands).toHaveLength(1)
-      const contextTargets = (commands[0] as any).context.targets;
+      const contextTargets = getContextTargets(commands[0]);
       expect(contextTargets).toHaveLength(1);
       expect(contextTargets[0].id).toBe('frozen');
     })

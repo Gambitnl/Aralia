@@ -3,13 +3,19 @@
  * A component for displaying a large image in a full-screen modal overlay.
  */
 import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 
 interface ImageModalProps {
   src: string;
   alt: string;
   onClose: () => void;
 }
+
+const modalMotion: MotionProps = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+};
 
 const ImageModal: React.FC<ImageModalProps> = ({ src, alt, onClose }) => {
   useEffect(() => {
@@ -26,11 +32,7 @@ const ImageModal: React.FC<ImageModalProps> = ({ src, alt, onClose }) => {
 
   return (
     <motion.div
-      {...{
-        initial: { opacity: 0 },
-        animate: { opacity: 1 },
-        exit: { opacity: 0 },
-      } as any}
+      {...modalMotion}
       className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[100] p-8"
       onClick={onClose}
       aria-modal="true"

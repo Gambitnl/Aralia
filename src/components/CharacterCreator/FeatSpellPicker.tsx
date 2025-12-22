@@ -5,7 +5,7 @@
  */
 import React, { useState, useMemo, useContext, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Spell, FeatSpellRequirement, SpellSchool } from '../../types';
+import { FeatSpellRequirement, SpellSchool } from '../../types';
 import SpellContext from '../../context/SpellContext';
 import {
   filterSpellsForRequirement,
@@ -191,7 +191,20 @@ const FeatSpellPicker: React.FC<FeatSpellPickerProps> = ({
                 `}
               >
                 {/* Main clickable area */}
-                <div onClick={() => handleSpellToggle(spell.id)} className="p-3">
+                <div
+                  onClick={() => handleSpellToggle(spell.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      handleSpellToggle(spell.id);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={disabled ? -1 : 0}
+                  aria-pressed={isSelected}
+                  aria-disabled={disabled}
+                  className="p-3"
+                >
                   <div className="flex items-start gap-3">
                     {/* School Icon */}
                     <div

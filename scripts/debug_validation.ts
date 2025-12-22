@@ -11,10 +11,10 @@ const main = () => {
     try {
         SpellValidator.parse(data);
         console.log('Success!');
-    } catch (e: any) {
+    } catch (error: unknown) {
         console.error('Caught error:');
-        console.error(e);
-        if (e.stack) console.error(e.stack);
+        console.error(error);
+        if (error instanceof Error && error.stack) console.error(error.stack);
     }
 };
 

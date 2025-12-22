@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { UtilityCommand } from '../effects/UtilityCommand'
-import { UtilityEffect, Spell } from '@/types/spells'
-import { CombatCharacter, CombatState, Position } from '@/types/combat'
+import { UtilityEffect } from '@/types/spells'
+import { CombatCharacter, CombatState } from '@/types/combat'
 import { CommandContext } from '../base/SpellCommand'
+import { createMockGameState } from '@/utils/factories'
 
 describe('UtilityCommand', () => {
     // --- Mock Data Setup ---
@@ -36,7 +37,7 @@ describe('UtilityCommand', () => {
         castAtLevel: 1,
         caster: mockCaster,
         targets: [mockTarget],
-        gameState: {} as any
+        gameState: createMockGameState()
     }
 
     // --- Tests ---

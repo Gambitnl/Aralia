@@ -7,7 +7,7 @@
  * SkillDetailDisplay is now a separate overlay triggered from this modal.
  */
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 import { PlayerCharacter, Item, EquipmentSlotType, Action } from '../types';
 import EquipmentMannequin from './CharacterSheet/EquipmentMannequin';
 import InventoryList from './CharacterSheet/InventoryList';
@@ -28,6 +28,20 @@ interface CharacterSheetModalProps {
 }
 
 type SheetTab = 'overview'; // Spellbook is now an overlay, not a tab view
+
+const overlayMotion: MotionProps = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+  transition: { duration: 0.3 },
+};
+
+const sheetMotion: MotionProps = {
+  initial: { opacity: 0, scale: 0.95 },
+  animate: { opacity: 1, scale: 1 },
+  exit: { opacity: 0, scale: 0.95 },
+  transition: { duration: 0.2 },
+};
 
 const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
   isOpen,
@@ -84,24 +98,14 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
   return (
     <>
       <motion.div
-        {...{
-          initial: { opacity: 0 },
-          animate: { opacity: 1 },
-          exit: { opacity: 0 },
-          transition: { duration: 0.3 },
-        } as any}
+        {...overlayMotion}
         className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
         aria-modal="true"
         role="dialog"
         aria-labelledby="character-sheet-title"
       >
         <motion.div
-          {...{
-            initial: { opacity: 0, scale: 0.95 },
-            animate: { opacity: 1, scale: 1 },
-            exit: { opacity: 0, scale: 0.95 },
-            transition: { duration: 0.2 },
-          } as any}
+          {...sheetMotion}
           className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-6xl max-h-[90vh] flex flex-col"
         >
           {/* Header */}

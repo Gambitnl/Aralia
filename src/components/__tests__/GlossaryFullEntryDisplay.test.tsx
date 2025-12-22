@@ -33,12 +33,9 @@ describe('FullEntryDisplay', () => {
   };
 
   it('renders fetched markdown without frontmatter and wires see-also navigation', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      text: () =>
-        Promise.resolve('---\nid: test-entry\ntags: [level 3]\n---\n\n# Heading\nContent body'),
-    } as any);
-    global.fetch = fetchMock as any;
+    const response = new Response('---\nid: test-entry\ntags: [level 3]\n---\n\n# Heading\nContent body');
+    const fetchMock = vi.fn().mockResolvedValue(response);
+    global.fetch = fetchMock as unknown as typeof fetch;
 
     const onNavigate = vi.fn();
     render(<FullEntryDisplay entry={entry} onNavigate={onNavigate} />);
@@ -56,13 +53,9 @@ describe('FullEntryDisplay', () => {
   });
 
   it('shows an error message when fetch fails', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 500,
-      statusText: 'Server Error',
-      text: () => Promise.resolve(''),
-    } as any);
-    global.fetch = fetchMock as any;
+    const response = new Response('', { status: 500, statusText: 'Server Error' });
+    const fetchMock = vi.fn().mockResolvedValue(response);
+    global.fetch = fetchMock as unknown as typeof fetch;
 
     render(<FullEntryDisplay entry={entry} />);
 

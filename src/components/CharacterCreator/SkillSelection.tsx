@@ -8,7 +8,7 @@
  * - Header uses `mb-2` instead of standard `mb-6` (intentional due to subtitle below)
  * - This is acceptable since there's explanatory text immediately after the header
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Class as CharClass,
   Skill,

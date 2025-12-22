@@ -5,10 +5,11 @@
 import React, { useEffect, useCallback } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Notification } from '../types';
+import type { AppAction } from '../state/actionTypes';
 
 interface NotificationSystemProps {
   notifications: Notification[];
-  dispatch: React.Dispatch<any>;
+  dispatch: React.Dispatch<AppAction>;
 }
 
 const NotificationToast: React.FC<{ notification: Notification; onDismiss: (id: string) => void }> = ({ notification, onDismiss }) => {

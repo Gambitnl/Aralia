@@ -4,7 +4,7 @@
  * Handles interactions with dynamic merchants and shops.
  */
 import React from 'react';
-import { GameState, Action, EconomyState, VillageActionContext } from '../../types';
+import { GameState, Action, VillageActionContext } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
@@ -48,7 +48,7 @@ export async function handleOpenDynamicMerchant({
   const resolvedSeedKey =
     (typeof seedKey === 'string' && seedKey) ||
     (typeof buildingId === 'string' && buildingId) ||
-    (typeof (villageContext as any)?.buildingId === 'string' ? (villageContext as any).buildingId : undefined);
+    (typeof (villageContext as VillageActionContext)?.buildingId === 'string' ? (villageContext as VillageActionContext).buildingId : undefined);
 
   const inventoryResult = await GeminiService.generateMerchantInventory(
     contextForPrompt,
@@ -64,7 +64,7 @@ export async function handleOpenDynamicMerchant({
   }
 
   if (inventoryResult.data) {
-      const { inventory, economy } = inventoryResult.data;
+      const { inventory, economy: _economy } = inventoryResult.data;
 
       // Use global economy logic instead of generating local events
       // We pass the global economy state if available, or the one returned by Gemini

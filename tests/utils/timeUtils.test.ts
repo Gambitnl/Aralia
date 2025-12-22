@@ -1,5 +1,5 @@
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { getGameEpoch, formatGameTime, formatGameDate, formatGameDateTime, GAME_EPOCH_YEAR } from '../../src/utils/timeUtils';
 
 describe('timeUtils', () => {

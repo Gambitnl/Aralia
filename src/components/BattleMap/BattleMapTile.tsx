@@ -57,11 +57,28 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
     overlayClass = 'bg-blue-500/40';
   }
   
+  const isInteractive = isValidMove || isTargetable;
+
+  const handleActivate = () => {
+    if (!isInteractive) return;
+    onTileClick(tile);
+  };
+
   return (
     <div
       className={`${tileBaseClasses} ${terrainColor} relative transition-colors duration-150`}
-      onClick={() => onTileClick(tile)}
-      style={{ cursor: (isValidMove || isTargetable) ? 'pointer' : 'default' }}
+      onClick={handleActivate}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          handleActivate();
+        }
+      }}
+      role="button"
+      tabIndex={isInteractive ? 0 : -1}
+      aria-disabled={!isInteractive}
+      aria-label={`Tile ${tile.terrain} at ${tile.coordinates.x}, ${tile.coordinates.y}`}
+      style={{ cursor: isInteractive ? 'pointer' : 'default' }}
       title={`(${tile.coordinates.x}, ${tile.coordinates.y}) - ${tile.terrain} - Elev: ${tile.elevation}`}
     >
       {tile.elevation > 0 && (
@@ -74,5 +91,7 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
     </div>
   );
 });
+
+BattleMapTile.displayName = 'BattleMapTile';
 
 export default BattleMapTile;

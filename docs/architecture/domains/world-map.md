@@ -30,6 +30,7 @@ The World Map provides region-level navigation showing the broader geography of 
 | `src/components/WorldPane.tsx` | Component | World overview |
 | `src/components/Minimap.tsx` | Component | Minimap navigation |
 | `src/services/mapService.ts` | Service | Map data handling |
+| `src/types/world.ts` | Types | World entity types |
 | `src/types/exploration.ts` | Types | Exploration types |
 | `src/utils/economyUtils.ts` | Utils | Economy helper |
 

@@ -110,7 +110,7 @@ function parseImports(filePath: string): string[] {
     let content: string;
     try {
         content = fs.readFileSync(filePath, 'utf-8');
-    } catch (e) {
+    } catch (_error) {
         console.warn(`Warning: Could not read file ${filePath}`);
         return [];
     }

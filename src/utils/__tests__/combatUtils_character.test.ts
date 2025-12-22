@@ -1,5 +1,5 @@
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { createPlayerCombatCharacter } from '../combatUtils';
 import { PlayerCharacter, Item } from '../../types';
 import { Spell } from '../../types/spells';

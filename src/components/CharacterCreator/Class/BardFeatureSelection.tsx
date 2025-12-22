@@ -4,7 +4,7 @@
  * their initial known cantrips and Level 1 spells.
  */
 import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, type MotionProps } from 'framer-motion';
 import { Spell, Class as CharClass } from '../../../types';
 
 interface BardFeatureSelectionProps {
@@ -53,16 +53,16 @@ const BardFeatureSelection: React.FC<BardFeatureSelectionProps> = ({
 
   const isSubmitDisabled = selectedCantripIds.size !== knownCantrips || selectedSpellL1Ids.size !== knownSpellsL1;
 
+  const motionProps: MotionProps = {
+    key: "bardFeatures",
+    initial: { x: 300, opacity: 0 },
+    animate: { x: 0, opacity: 1 },
+    exit: { x: -300, opacity: 0 },
+    transition: { duration: 0.3, ease: 'easeInOut' },
+  };
+
   return (
-    <motion.div
-      {...{
-        key: "bardFeatures",
-        initial: { x: 300, opacity: 0 },
-        animate: { x: 0, opacity: 1 },
-        exit: { x: -300, opacity: 0 },
-        transition: { duration: 0.3, ease: 'easeInOut' },
-      } as any}
-    >
+    <motion.div {...motionProps}>
       <h2 className="text-2xl text-sky-300 mb-4 text-center">Bard Spell Selection</h2>
       <p className="text-sm text-gray-400 mb-6 text-center">
         As a Bard, you weave magic through your art. Choose the spells that will be your instruments.

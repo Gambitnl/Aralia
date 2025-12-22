@@ -13,12 +13,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { ai, isAiEnabled } from './aiClient'; // Import the shared AI client
 import { withRetry } from '../utils/networkUtils';
 import { logger } from '../utils/logger';
-import { Action, PlayerCharacter, InspectSubmapTilePayload, SeededFeatureConfig, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState, VillageActionContext, ItemType } from "../types";
+import { Action, PlayerCharacter, InspectSubmapTilePayload, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState, ItemType, VillageActionContext, ItemRarity } from "../types";
 import { SeededRandom } from '../utils/seededRandom';
 import { SUBMAP_ICON_MEANINGS } from '../data/glossaryData';
-import { XP_BY_CR } from '../data/dndData';
 import { CLASSES_DATA } from '../data/classes';
-import { MONSTERS_DATA } from '../constants';
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, FAST_MODEL, COMPLEX_MODEL } from '../config/geminiConfig';
 import * as ItemTemplates from '../data/item_templates';
 import { sanitizeAIInput, redactSensitiveData, safeJSONParse, cleanAIJSON } from '../utils/securityUtils';
@@ -30,7 +28,6 @@ const API_TIMEOUT_MS = 20000; // 20 seconds
 // --- Adaptive Rate Limiting State ---
 let lastRequestTimestamp = 0;
 let globalCooldownUntil = 0; // Timestamp when cooldown ends (0 = no cooldown)
-let consecutiveRateLimitHits = 0; // Tracks consecutive rate limit failures across all models
 
 // Rate limiting configuration
 const RATE_LIMIT_CONFIG = {
@@ -64,7 +61,6 @@ function activateGlobalCooldown(): void {
  * Resets rate limit tracking after a successful request.
  */
 function resetRateLimitTracking(): void {
-  consecutiveRateLimitHits = 0;
 }
 
 /**
@@ -361,7 +357,7 @@ export async function generateText(
           ai.models.generateContent({
             model: model,
             contents: promptContent,
-            config: config as any,
+            config: config as unknown as GenerationConfig,
           }),
           timeoutPromise
         ]);
@@ -369,14 +365,14 @@ export async function generateText(
         retries: 3,
         delay: 1000,
         backoff: 2,
-        shouldRetry: (error: any) => {
+        shouldRetry: (error: unknown) => {
           // Retry on network errors or 503 Service Unavailable
           // Specifically check for rate limit errors or server errors which might be transient
-          const errorMsg = error?.message || '';
-          const status = error?.status;
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          const status = (error as { status?: number })?.status;
 
           if (status === 429 || errorMsg.includes('429')) return false; // Don't retry rate limits immediately
-          if (status >= 400 && status < 500) return false; // Don't retry client errors
+          if (status !== undefined && status >= 400 && status < 500) return false; // Don't retry client errors
 
           if (errorMsg.includes('503') || errorMsg.includes('network') || errorMsg.includes('fetch')) return true;
           return true; // Default to retry for safety
@@ -420,7 +416,7 @@ export async function generateText(
       if (typeof error === 'object' && error !== null) {
           try {
              errorString = JSON.stringify(error, Object.getOwnPropertyNames(error));
-          } catch(e) {
+          } catch {
              errorString = String(error);
           }
       } else {
@@ -433,7 +429,6 @@ export async function generateText(
 
       if (isRateLimitError || isServiceOverloaded) {
         rateLimitHitInChain = true;
-        consecutiveRateLimitHits++;
         const errorType = isRateLimitError ? 'rate limit' : 'service overloaded';
         logger.warn(`Gemini API ${errorType} error with model ${model}. Attempt ${attemptNumber}/${modelsToTry.length}`, { model });
         continue;
@@ -459,7 +454,7 @@ export async function generateText(
   if (typeof lastError === 'object' && lastError !== null) {
       try {
           safeRawResponse = JSON.stringify(lastError, Object.getOwnPropertyNames(lastError));
-      } catch (e) {
+      } catch {
           safeRawResponse = String(lastError);
       }
   } else {
@@ -711,14 +706,12 @@ export async function generateEncounter(
 
   let lastError: unknown = null;
   let rateLimitHitInChain = false;
-  let lastModelUsed = '';
 
   const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, null);
   const initialModel = devModelOverride || adaptiveModel;
   const modelsToTry = [initialModel, ...GEMINI_TEXT_MODEL_FALLBACK_CHAIN.filter(m => m !== initialModel)];
 
   for (const model of modelsToTry) {
-    lastModelUsed = model;
     try {
       const useThinking = model.includes('gemini-2.5') || model.includes('gemini-3');
       const config: ExtendedGenerationConfig = {
@@ -733,7 +726,7 @@ export async function generateEncounter(
       const response = await ai.models.generateContent({
         model: model,
         contents: prompt,
-        config: config as any,
+        config: config as unknown as GenerationConfig,
       });
 
       const responseText = response.text?.trim();
@@ -745,8 +738,8 @@ export async function generateEncounter(
           const parsed = safeJSONParse(jsonString);
           if (!parsed) throw new Error("Parsed JSON is null");
           encounter = MonsterSchema.array().parse(parsed);
-        } catch (e) {
-          logger.error(`Failed to parse JSON from generateEncounter with model ${model}:`, { responseText, error: e });
+        } catch {
+          logger.error(`Failed to parse JSON from generateEncounter with model ${model}:`, { responseText });
           throw new Error("The AI returned a malformed encounter suggestion.");
         }
       }
@@ -773,7 +766,7 @@ export async function generateEncounter(
       if (typeof error === 'object' && error !== null) {
           try {
              errorString = JSON.stringify(error, Object.getOwnPropertyNames(error));
-          } catch(e) {
+          } catch {
              errorString = String(error);
           }
       } else {
@@ -955,7 +948,7 @@ export async function generateSocialCheckOutcome(
       },
       error: null
     };
-  } catch (e) {
+  } catch {
     return {
       data: {
         ...result.data,
@@ -1014,9 +1007,14 @@ export async function generateMerchantInventory(
 
   // Use a default EconomyState for fallbacks
   const defaultEconomy: EconomyState = {
+      marketEvents: [],
+      tradeRoutes: [],
+      globalInflation: 1.0,
+      regionalWealth: {},
       marketFactors: { scarcity: [], surplus: [] },
       buyMultiplier: 1.0,
-      sellMultiplier: 0.5
+      sellMultiplier: 0.5,
+      activeEvents: []
   };
 
   // If the API call itself failed
@@ -1041,28 +1039,29 @@ export async function generateMerchantInventory(
     if (!parsed) throw new Error("Parsed JSON is null");
     const validated = InventoryResponseSchema.parse(parsed);
 
-    // Ensure items have IDs
-    const safeInventory = validated.inventory.map(item => ({
+    // Ensure items have IDs and proper rarity type
+    const safeInventory: Item[] = validated.inventory.map(item => ({
       ...item,
       id: item.id || uuidv4(),
-      cost: String(item.cost) // Ensure cost is a string (Item interface)
+      cost: String(item.cost), // Ensure cost is a string (Item interface)
+      rarity: item.rarity as ItemRarity // Cast from string to Enum
     })) as Item[];
 
     // Ensure economy matches EconomyState interface
     const economyState: EconomyState = {
+        ...defaultEconomy,
         marketFactors: {
             scarcity: validated.economy?.scarcity || [],
             surplus: validated.economy?.surplus || []
         },
-        buyMultiplier: 1.0,
-        sellMultiplier: 0.5,
         ...validated.economy // Override if present and matching
     };
 
     // Fix mismatch if validated.economy had flat structure instead of marketFactors
     if (validated.economy) {
-         if ((validated.economy as any).scarcity) economyState.marketFactors.scarcity = (validated.economy as any).scarcity;
-         if ((validated.economy as any).surplus) economyState.marketFactors.surplus = (validated.economy as any).surplus;
+         const rawEconomy = validated.economy as Record<string, unknown>;
+         if (rawEconomy.scarcity) economyState.marketFactors.scarcity = rawEconomy.scarcity as string[];
+         if (rawEconomy.surplus) economyState.marketFactors.surplus = rawEconomy.surplus as string[];
     }
 
     return {
@@ -1125,10 +1124,11 @@ export async function generateHarvestLoot(
     if (!parsed) throw new Error("Parsed JSON is null");
     const rawItems = ItemSchema.array().parse(parsed);
 
-    const items = rawItems.map(item => ({
+    const items: Item[] = rawItems.map(item => ({
       ...item,
       id: item.id || uuidv4(),
-      cost: String(item.cost) // Ensure cost is a string
+      cost: String(item.cost), // Ensure cost is a string
+      rarity: item.rarity as ItemRarity
     })) as Item[];
 
     return {
@@ -1140,7 +1140,7 @@ export async function generateHarvestLoot(
       },
       error: null
     };
-  } catch (e) {
+  } catch {
     return {
       data: {
         items: [],

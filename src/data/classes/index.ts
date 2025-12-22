@@ -296,5 +296,6 @@ export const CLASSES_DATA: Record<string, CharClass> = {
 
 export const AVAILABLE_CLASSES: SelectableClass[] = Object.values(CLASSES_DATA).map(c => ({
     id: c.id,
-    name: c.name
+    name: c.name,
+    description: c.description
 }));

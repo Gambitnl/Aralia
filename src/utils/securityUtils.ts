@@ -72,7 +72,7 @@ export function detectSuspiciousInput(input: string): boolean {
  * @param secret The secret to redact. Defaults to ENV.API_KEY.
  * @returns A safe string representation or object with the secret replaced.
  */
-export function redactSensitiveData(data: any, secret?: string): any {
+export function redactSensitiveData(data: unknown, secret?: string): unknown {
   if (data === null || data === undefined) return data;
 
   const keyToRedact = secret !== undefined ? secret : ENV.API_KEY;
@@ -88,7 +88,7 @@ export function redactSensitiveData(data: any, secret?: string): any {
     } else {
       stringified = String(data);
     }
-  } catch (e) {
+  } catch {
     return '[Unable to sanitize data]';
   }
 
@@ -122,7 +122,7 @@ export function safeJSONParse<T>(jsonString: string, fallback: T | null = null):
   if (!jsonString) return fallback;
   try {
     return JSON.parse(jsonString);
-  } catch (error) {
+  } catch {
     return fallback;
   }
 }

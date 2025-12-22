@@ -4,8 +4,8 @@
  * to name their character and review all their selections (race, class, ability scores,
  * skills, features, spells) before finalizing the character.
  */
-import React, { useState, useEffect, useContext } from 'react';
-import { PlayerCharacter, AbilityScoreName, Spell, Item, DraconicAncestryInfo } from '../../types';
+import React, { useState, useContext } from 'react';
+import { PlayerCharacter, AbilityScoreName, DraconicAncestryInfo } from '../../types';
 import { RACES_DATA, WEAPONS_DATA, MASTERY_DATA, DRAGONBORN_ANCESTRIES } from '../../constants'; // For lineage/subrace name & item names
 import { FEATS_DATA } from '../../data/feats/featsData';
 import { getCharacterSpells } from '../../utils/spellUtils';
@@ -28,10 +28,15 @@ interface NameAndReviewProps {
  */
 const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfirm, onBack, initialName = '', featStepSkipped }) => {
   const [name, setName] = useState(initialName);
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(() => {
+    if (!initialName) {
+      return null;
+    }
+    const { valid, error } = validateCharacterName(initialName);
+    return valid ? null : (error || 'Invalid name');
+  });
 
   const { 
-    race, 
     class: charClass, 
     finalAbilityScores, 
     skills, 
@@ -50,14 +55,6 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
 
   // Use the new centralized utility to get all spells
   const { cantrips: allKnownCantrips, spells: allKnownSpells } = getCharacterSpells(characterPreview, allSpells);
-
-  useEffect(() => {
-    setName(initialName);
-    if (initialName) {
-       const { valid, error } = validateCharacterName(initialName);
-       if (!valid && error) setValidationError(error);
-    }
-  }, [initialName]);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value;
@@ -97,7 +94,7 @@ const NameAndReview: React.FC<NameAndReviewProps> = ({ characterPreview, onConfi
 
       {featStepSkipped && (
         <div className="mb-4 text-center text-sm text-sky-200 bg-sky-900/30 border border-sky-700/60 rounded-lg px-3 py-2">
-          The optional Feat selection step was bypassed because your character doesn't qualify for any feats at 1st level.
+          The optional Feat selection step was bypassed because your character doesn&apos;t qualify for any feats at 1st level.
         </div>
       )}
       

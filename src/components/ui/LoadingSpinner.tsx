@@ -5,12 +5,19 @@
  * such as an API call to Gemini. It now accepts an optional message prop.
  */
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 import { t } from '../../utils/i18n';
 
 export interface LoadingSpinnerProps {
   message?: string | null; // Optional message to display
 }
+
+const overlayMotion: MotionProps = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+  transition: { duration: 0.3 },
+};
 
 /**
  * LoadingSpinner component.
@@ -22,12 +29,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message }) => {
   const displayMessage = message || t('app.ui.loading.default');
   return (
     <motion.div
-      {...{
-        initial: { opacity: 0 },
-        animate: { opacity: 1 },
-        exit: { opacity: 0 },
-        transition: { duration: 0.3 },
-      } as any}
+      {...overlayMotion}
       className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
       aria-label="Loading content"
       role="status"

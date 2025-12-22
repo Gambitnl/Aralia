@@ -3,7 +3,7 @@
  * This component displays a guided test plan for the "Living NPC" system.
  */
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, MotionProps } from 'framer-motion';
 import { Action } from '../types';
 
 interface NpcInteractionTestModalProps {
@@ -11,6 +11,18 @@ interface NpcInteractionTestModalProps {
   onClose: () => void;
   onAction: (action: Action) => void;
 }
+
+const overlayMotion: MotionProps = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+};
+
+const modalMotion: MotionProps = {
+  initial: { y: -30, opacity: 0 },
+  animate: { y: 0, opacity: 1 },
+  exit: { y: -30, opacity: 0 },
+};
 
 const NpcInteractionTestModal: React.FC<NpcInteractionTestModalProps> = ({ isOpen, onClose, onAction }) => {
   const [step, setStep] = useState(1);
@@ -73,22 +85,14 @@ const NpcInteractionTestModal: React.FC<NpcInteractionTestModalProps> = ({ isOpe
 
   return (
     <motion.div
-      {...{
-        initial: { opacity: 0 },
-        animate: { opacity: 1 },
-        exit: { opacity: 0 },
-      } as any}
+      {...overlayMotion}
       className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[70] p-4"
       aria-modal="true"
       role="dialog"
       aria-labelledby="npc-test-title"
     >
       <motion.div
-        {...{
-          initial: { y: -30, opacity: 0 },
-          animate: { y: 0, opacity: 1 },
-          exit: { y: -30, opacity: 0 },
-        } as any}
+        {...modalMotion}
         className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-cyan-500/50 w-full max-w-2xl"
       >
         <div className="flex justify-between items-center mb-4">

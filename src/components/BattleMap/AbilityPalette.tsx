@@ -19,7 +19,7 @@ const AbilityPalette: React.FC<AbilityPaletteProps> = ({ character, onSelectAbil
 
   return (
     <div className="bg-gray-800/80 p-3 rounded-lg backdrop-blur-sm shadow-lg border border-gray-700">
-        <h3 className="text-center text-sm font-bold text-amber-300 mb-2">{character.name}'s Abilities</h3>
+        <h3 className="text-center text-sm font-bold text-amber-300 mb-2">{character.name}{"'"}s Abilities</h3>
         <div className="flex justify-center flex-wrap gap-2">
             {character.abilities.map(ability => {
                 const isAffordable = canAffordAction(ability.cost);

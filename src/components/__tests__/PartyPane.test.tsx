@@ -8,7 +8,9 @@ import { RACES_DATA, AVAILABLE_CLASSES } from '../../constants';
 
 // Mock Tooltip as it might use portal or other things
 vi.mock('../Tooltip', () => ({
-  default: ({ content, children }: any) => <div data-testid="tooltip" data-content={content}>{children}</div>
+  default: ({ content, children }: { content?: React.ReactNode; children?: React.ReactNode }) => (
+    <div data-testid="tooltip" data-content={content}>{children}</div>
+  )
 }));
 
 describe('PartyPane', () => {

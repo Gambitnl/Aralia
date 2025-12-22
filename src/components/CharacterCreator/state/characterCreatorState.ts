@@ -50,6 +50,21 @@ export enum CreationStep {
   NameAndReview,
 }
 
+export type FeatChoiceValue = AbilityScoreName | string | string[] | undefined;
+
+export type FeatChoiceState = {
+  selectedAbilityScore?: AbilityScoreName;
+  selectedSpells?: string[];
+  selectedCantrips?: string[];
+  selectedLeveledSpells?: string[];
+  selectedSpellSource?: string;
+  selectedSkills?: string[];
+  selectedWeapons?: string[];
+  selectedTools?: string[];
+  selectedDamageType?: string;
+  [key: string]: FeatChoiceValue;
+};
+
 export interface CharacterCreationState {
   step: CreationStep;
   selectedRace: Race | null;
@@ -71,18 +86,7 @@ export interface CharacterCreationState {
   selectedSpellsL1: Spell[];
   selectedWeaponMasteries: string[] | null;
   selectedFeat: string | null;
-  featChoices?: {
-    // Store choices made for feats (e.g., selected ability score, spells, etc.)
-    [featId: string]: {
-      selectedAbilityScore?: AbilityScoreName;
-      selectedSpells?: string[];
-      selectedSkills?: string[];
-      selectedWeapons?: string[];
-      selectedTools?: string[];
-      selectedDamageType?: string;
-      [key: string]: any; // Allow for future choice types
-    };
-  };
+  featChoices?: Record<string, FeatChoiceState>;
   characterName: string;
   characterAge: number;
   selectedBackground: string | null;
@@ -122,7 +126,7 @@ export type CharacterCreatorAction =
   | ClassFeatureFinalSelectionAction
   | { type: 'SELECT_WEAPON_MASTERIES'; payload: string[] }
   | { type: 'SELECT_FEAT'; payload: string }
-  | { type: 'SET_FEAT_CHOICE'; payload: { featId: string; choiceType: string; value: any } }
+  | { type: 'SET_FEAT_CHOICE'; payload: { featId: string; choiceType: string; value: FeatChoiceValue } }
   | { type: 'CONFIRM_FEAT_STEP' }
   | { type: 'SET_CHARACTER_NAME'; payload: string }
   | { type: 'SET_CHARACTER_AGE'; payload: number }

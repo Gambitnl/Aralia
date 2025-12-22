@@ -2,7 +2,9 @@
  * @file FeatSelection.tsx
  */
 import React, { useContext, useCallback, useMemo } from 'react';
-import { Feat, AbilityScoreName, MagicInitiateSource, FeatGrantedSpell } from '../../types';
+import { Feat, MagicInitiateSource, FeatGrantedSpell } from '../../types';
+import type { AppAction } from '../../state/actionTypes';
+import type { FeatChoiceState, FeatChoiceValue } from './state/characterCreatorState';
 import SpellContext from '../../context/SpellContext';
 import FeatSpellPicker from './FeatSpellPicker';
 import SpellSourceSelector from './SpellSourceSelector';
@@ -16,13 +18,13 @@ interface FeatOption extends Feat {
 interface FeatSelectionProps {
   availableFeats: FeatOption[];
   selectedFeatId?: string;
-  featChoices?: { [featId: string]: { selectedAbilityScore?: AbilityScoreName; [key: string]: any } };
+  featChoices?: Record<string, FeatChoiceState>;
   onSelectFeat: (featId: string) => void;
-  onSetFeatChoice: (featId: string, choiceType: string, value: any) => void;
+  onSetFeatChoice: (featId: string, choiceType: string, value: FeatChoiceValue) => void;
   onConfirm: () => void;
   onBack?: () => void;
   hasEligibleFeats: boolean;
-  dispatch: React.Dispatch<any>;
+  dispatch: React.Dispatch<AppAction>;
 }
 
 /**
@@ -158,7 +160,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
     <div className="flex flex-col h-full">
       <h2 className="text-2xl text-sky-300 mb-6 text-center">Select a Feat</h2>
       <p className="text-gray-400 text-center mb-6">
-        Choose a feat to customize your character's abilities. This step is optional&mdash;continue without a selection if no feat fits your build.
+        Choose a feat to customize your character&apos;s abilities. This step is optional&mdash;continue without a selection if no feat fits your build.
       </p>
       {!hasEligibleFeats && (
         <div className="mb-4 text-center text-sm text-amber-200 bg-amber-900/30 border border-amber-700/60 rounded-lg px-3 py-2">
@@ -174,6 +176,15 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
             <div
               key={feat.id}
               onClick={() => handleToggle(feat.id, disabled)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  handleToggle(feat.id, disabled);
+                }
+              }}
+              role="button"
+              tabIndex={disabled ? -1 : 0}
+              aria-disabled={disabled}
               className={`
                 p-4 rounded-lg border cursor-pointer transition-all duration-200 relative
                 ${disabled ? 'bg-gray-900 border-gray-800 cursor-not-allowed opacity-70'
@@ -250,9 +261,9 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
           </div>
           {hasSelectableASI && (
             <div className="mt-3">
-              <label className="block text-sm text-gray-300 mb-2">
+              <p className="block text-sm text-gray-300 mb-2">
                 Select Ability Score to Increase:
-              </label>
+              </p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {selectedFeat.benefits.selectableAbilityScores!.map((ability) => (
                   <button
@@ -283,9 +294,9 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
 
           {hasSelectableDamageType && (
             <div className="mt-3">
-              <label className="block text-sm text-gray-300 mb-2">
+              <p className="block text-sm text-gray-300 mb-2">
                 Select Damage Type:
-              </label>
+              </p>
               <div className="flex flex-wrap gap-2">
                 {selectedFeat.benefits.selectableDamageTypes!.map((damageType) => (
                   <button

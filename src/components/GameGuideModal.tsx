@@ -4,7 +4,7 @@
  * A modal containing a chatbot powered by Gemini-3-Pro.
  */
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, MotionProps } from 'framer-motion';
 import { generateGuideResponse } from '../services/geminiService';
 import { generateCharacterFromConfig, CharacterGenerationConfig } from '../services/characterGenerator';
 import { PlayerCharacter } from '../types';
@@ -19,6 +19,22 @@ interface GameGuideModalProps {
   devModelOverride: string | null;
   onAction?: (action: AppAction) => void; 
 }
+
+const creationToolsMotion: MotionProps = {
+  initial: { height: 0, opacity: 0 },
+  animate: { height: 'auto', opacity: 1 },
+  exit: { height: 0, opacity: 0 },
+};
+
+const responseMotion: MotionProps = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
+};
+
+const generatedCharacterMotion: MotionProps = {
+  initial: { opacity: 0, scale: 0.9 },
+  animate: { opacity: 1, scale: 1 },
+};
 
 const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameContext, devModelOverride, onAction }) => {
   const [query, setQuery] = useState('');
@@ -145,11 +161,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
         <AnimatePresence>
             {showCreationTools && (
                 <motion.div 
-                    {...{
-                        initial: { height: 0, opacity: 0 },
-                        animate: { height: 'auto', opacity: 1 },
-                        exit: { height: 0, opacity: 0 },
-                    } as any}
+                    {...creationToolsMotion}
                     className="mb-4 overflow-hidden bg-gray-900/50 p-3 rounded-lg border border-gray-700"
                 >
                     <h3 className="text-xs font-bold text-gray-400 uppercase mb-2">{t('game_guide.quick_creator_title')}</h3>
@@ -218,10 +230,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
 
         {response && (
             <motion.div
-                {...{
-                    initial: { opacity: 0, y: 10 },
-                    animate: { opacity: 1, y: 0 },
-                } as any}
+                {...responseMotion}
                 className="p-4 bg-gray-900/50 border border-gray-700 rounded-lg max-h-60 overflow-y-auto scrollable-content"
             >
                 <p className="text-gray-200 whitespace-pre-wrap">{response}</p>
@@ -230,10 +239,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
         
         {generatedCharacter && (
             <motion.div
-                 {...{
-                     initial: { opacity: 0, scale: 0.9 },
-                     animate: { opacity: 1, scale: 1 },
-                 } as any}
+                 {...generatedCharacterMotion}
                  className="mt-4 p-4 bg-gray-700 rounded-lg border border-gray-600"
             >
                 <h3 className="text-lg font-bold text-amber-400 mb-2">{generatedCharacter.name}</h3>

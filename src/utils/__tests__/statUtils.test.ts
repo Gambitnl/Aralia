@@ -1,5 +1,5 @@
 
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { calculateArmorClass, calculateFinalAbilityScores } from '../statUtils';
 import { createMockPlayerCharacter } from '../factories';
 import { ActiveEffect } from '@/types/combat';

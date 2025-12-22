@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { CharacterVisualConfig, CharacterGender } from '../../services/CharacterAssetService';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -32,10 +31,15 @@ const VisualsSelection: React.FC<VisualsSelectionProps> = ({
         });
     };
 
-    const cyclingUpdate = (list: any[], current: any, key: keyof CharacterVisualConfig, delta: number) => {
+    const cyclingUpdate = <K extends keyof CharacterVisualConfig>(
+        list: CharacterVisualConfig[K][],
+        current: CharacterVisualConfig[K],
+        key: K,
+        delta: number
+    ) => {
         const index = list.indexOf(current);
         const nextIndex = (index + delta + list.length) % list.length;
-        onVisualsChange({ [key]: list[nextIndex] });
+        onVisualsChange({ [key]: list[nextIndex] } as Partial<CharacterVisualConfig>);
     };
 
     return (
@@ -47,7 +51,7 @@ const VisualsSelection: React.FC<VisualsSelectionProps> = ({
                 <div className="space-y-8 bg-black/40 p-8 rounded-2xl border border-gray-700 shadow-xl">
                     {/* Gender Selection */}
                     <div className="space-y-3">
-                        <label className="text-gray-400 uppercase text-xs font-bold tracking-widest">Gender</label>
+                        <p className="text-gray-400 uppercase text-xs font-bold tracking-widest">Gender</p>
                         <div className="flex gap-4">
                             {(['Male', 'Female'] as CharacterGender[]).map(g => (
                                 <button
@@ -66,19 +70,21 @@ const VisualsSelection: React.FC<VisualsSelectionProps> = ({
 
                     {/* Skin Tone Selection */}
                     <div className="space-y-3">
-                        <label className="text-gray-400 uppercase text-xs font-bold tracking-widest">Skin Tone</label>
+                        <p className="text-gray-400 uppercase text-xs font-bold tracking-widest">Skin Tone</p>
                         <div className="flex justify-between items-center gap-4">
                             <button onClick={() => cyclingUpdate(skinColors, visuals.skinColor, 'skinColor', -1)} className="p-2 hover:bg-gray-700 rounded-full transition-colors text-amber-500">
                                 <ChevronLeft />
                             </button>
                             <div className="flex gap-2 justify-center flex-1">
                                 {skinColors.map(c => (
-                                    <div
+                                    <button
                                         key={c}
+                                        type="button"
                                         onClick={() => onVisualsChange({ skinColor: c })}
                                         className={`w-8 h-8 rounded-full cursor-pointer border-2 transition-transform hover:scale-110 ${visuals.skinColor === c ? 'border-amber-400 ring-2 ring-amber-500/50' : 'border-black'
                                             }`}
                                         style={{ backgroundColor: getSkinHex(c) }}
+                                        aria-label={`Select skin tone ${c}`}
                                     />
                                 ))}
                             </div>
@@ -90,7 +96,7 @@ const VisualsSelection: React.FC<VisualsSelectionProps> = ({
 
                     {/* Hair Style */}
                     <div className="space-y-3">
-                        <label className="text-gray-400 uppercase text-xs font-bold tracking-widest">Hair Style</label>
+                        <p className="text-gray-400 uppercase text-xs font-bold tracking-widest">Hair Style</p>
                         <div className="flex justify-between items-center bg-gray-800 border-2 border-gray-700 rounded-xl px-4 py-3">
                             <button onClick={() => cyclingUpdate(hairStyles, visuals.hairStyle, 'hairStyle', -1)} className="p-1 hover:text-amber-500 transition-colors">
                                 <ChevronLeft />
@@ -104,7 +110,7 @@ const VisualsSelection: React.FC<VisualsSelectionProps> = ({
 
                     {/* Clothing */}
                     <div className="space-y-3">
-                        <label className="text-gray-400 uppercase text-xs font-bold tracking-widest">Outfit</label>
+                        <p className="text-gray-400 uppercase text-xs font-bold tracking-widest">Outfit</p>
                         <div className="flex justify-between items-center bg-gray-800 border-2 border-gray-700 rounded-xl px-4 py-3">
                             <button onClick={() => cyclingUpdate(clothingOptions, visuals.clothing, 'clothing', -1)} className="p-1 hover:text-amber-500 transition-colors">
                                 <ChevronLeft />
@@ -125,7 +131,7 @@ const VisualsSelection: React.FC<VisualsSelectionProps> = ({
                         {/* Placeholder for real layered preview if we could use the painter here */}
                         <div className="absolute inset-0 flex items-center justify-center select-none opacity-20 group">
                             <div className="text-amber-500 font-cinzel text-center">
-                                <div className="text-4xl mb-4">✦ Preview ✦</div>
+                                <div className="text-4xl mb-4">Preview</div>
                                 <div className="text-xs uppercase tracking-[0.2em]">Appearance Locked</div>
                             </div>
                         </div>
@@ -134,7 +140,7 @@ const VisualsSelection: React.FC<VisualsSelectionProps> = ({
                         <LayeredPreview visuals={visuals} />
                     </div>
                     <div className="text-center italic text-gray-400 text-sm max-w-xs">
-                        "Your outward form reflects the spirit within. Choose wisely, traveler."
+                        &quot;Your outward form reflects the spirit within. Choose wisely, traveler.&quot;
                     </div>
                 </div>
             </div>

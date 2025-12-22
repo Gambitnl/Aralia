@@ -3,8 +3,8 @@
  * This component allows a player who has chosen the Druid class to select
  * their Primal Order and their initial known cantrips and Level 1 spells.
  */
-import React, { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useMemo } from 'react';
+import { motion, MotionProps } from 'framer-motion';
 import { PrimalOrderOption, Spell, Class as CharClass } from '../../../types';
 import Tooltip from '../../Tooltip';
 
@@ -15,6 +15,13 @@ interface DruidFeatureSelectionProps {
   onDruidFeaturesSelect: (order: 'Magician' | 'Warden', cantrips: Spell[], spellsL1: Spell[]) => void;
   onBack: () => void;
 }
+
+const containerMotion: MotionProps = {
+  initial: { x: 300, opacity: 0 },
+  animate: { x: 0, opacity: 1 },
+  exit: { x: -300, opacity: 0 },
+  transition: { duration: 0.3, ease: 'easeInOut' },
+};
 
 const DruidFeatureSelection: React.FC<DruidFeatureSelectionProps> = ({
   primalOrders,
@@ -27,10 +34,13 @@ const DruidFeatureSelection: React.FC<DruidFeatureSelectionProps> = ({
   const [selectedCantripIds, setSelectedCantripIds] = useState<Set<string>>(new Set());
   const [selectedSpellL1Ids, setSelectedSpellL1Ids] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    setSelectedCantripIds(new Set());
-    setSelectedSpellL1Ids(new Set());
-  }, [selectedOrder]);
+  const handleOrderSelect = (orderId: 'Magician' | 'Warden') => {
+    if (orderId !== selectedOrder) {
+      setSelectedCantripIds(new Set());
+      setSelectedSpellL1Ids(new Set());
+    }
+    setSelectedOrder(orderId);
+  };
 
   const numCantripsToSelect = spellcastingInfo.knownCantrips + (selectedOrder === 'Magician' ? 1 : 0);
   const numSpellsL1ToSelect = spellcastingInfo.knownSpellsL1;
@@ -70,13 +80,8 @@ const DruidFeatureSelection: React.FC<DruidFeatureSelectionProps> = ({
 
   return (
     <motion.div
-      {...{
-        key: "druidFeatures",
-        initial: { x: 300, opacity: 0 },
-        animate: { x: 0, opacity: 1 },
-        exit: { x: -300, opacity: 0 },
-        transition: { duration: 0.3, ease: 'easeInOut' },
-      } as any}
+      key="druidFeatures"
+      {...containerMotion}
     >
       <h2 className="text-2xl text-sky-300 mb-4 text-center">Druid Choices</h2>
       
@@ -85,7 +90,7 @@ const DruidFeatureSelection: React.FC<DruidFeatureSelectionProps> = ({
         {primalOrders.map(order => (
           <button
             key={order.id}
-            onClick={() => setSelectedOrder(order.id)}
+            onClick={() => handleOrderSelect(order.id)}
             className={`w-full text-left p-3 mb-2 rounded-lg transition-colors border-2 ${selectedOrder === order.id ? 'bg-sky-700 border-sky-500 ring-2 ring-sky-400' : 'bg-gray-700 hover:bg-gray-600 border-gray-600 hover:border-sky-600'}`}
           >
             <h4 className="font-semibold">{order.name}</h4>

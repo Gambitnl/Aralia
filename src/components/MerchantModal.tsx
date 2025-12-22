@@ -5,7 +5,7 @@
  * Supports buying items with gold and selling items for half value (or dynamic value).
  */
 import React, { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 import { Item, Action, EconomyState } from '../types';
 import Tooltip from './Tooltip';
 import { useGameState } from '../state/GameContext';
@@ -24,6 +24,18 @@ interface MerchantModalProps {
     onAction: (action: Action) => void;
     economy?: EconomyState; // Keep prop for backward compatibility or testing overrides
 }
+
+const overlayMotion: MotionProps = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+};
+
+const modalMotion: MotionProps = {
+    initial: { y: -20, opacity: 0 },
+    animate: { y: 0, opacity: 1 },
+    exit: { y: 20, opacity: 0 },
+};
 
 const MerchantModal: React.FC<MerchantModalProps> = ({
     isOpen,
@@ -67,11 +79,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
 
     return (
         <motion.div
-            {...{
-                initial: { opacity: 0 },
-                animate: { opacity: 1 },
-                exit: { opacity: 0 },
-            } as any}
+            {...overlayMotion}
             className="fixed inset-0 bg-black bg-opacity-85 flex items-center justify-center z-50 p-4"
             onClick={onClose}
         >
@@ -80,11 +88,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                 role="dialog"
                 aria-modal="true"
                 aria-label={`Trading with ${merchantName}`}
-                {...{
-                    initial: { y: -20, opacity: 0 },
-                    animate: { y: 0, opacity: 1 },
-                    exit: { y: 20, opacity: 0 },
-                } as any}
+                {...modalMotion}
                 className="bg-gray-800 border border-gray-600 rounded-xl shadow-2xl w-full max-w-5xl h-[80vh] flex flex-col focus:outline-none"
                 onClick={(e) => e.stopPropagation()}
                 tabIndex={-1}

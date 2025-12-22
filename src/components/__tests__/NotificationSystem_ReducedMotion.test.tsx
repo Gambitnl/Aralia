@@ -10,7 +10,18 @@ const mockUseReducedMotion = vi.fn();
 
 vi.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, className, layout, ...props }: any) => (
+    div: ({
+      children,
+      className,
+      layout,
+      ...props
+    }: React.HTMLAttributes<HTMLDivElement> & {
+      layout?: unknown;
+      initial?: unknown;
+      animate?: unknown;
+      exit?: unknown;
+      children?: React.ReactNode;
+    }) => (
       <div
         className={className}
         data-testid="notification-toast"
@@ -24,7 +35,7 @@ vi.mock('framer-motion', () => ({
       </div>
     ),
   },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
+  AnimatePresence: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
   useReducedMotion: () => mockUseReducedMotion(),
 }));
 

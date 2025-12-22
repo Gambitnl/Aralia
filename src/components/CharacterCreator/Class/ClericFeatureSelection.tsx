@@ -3,7 +3,7 @@
  * This component allows a player who has chosen the Cleric class to select
  * their Divine Order and their initial known cantrips and Level 1 spells.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { DivineOrderOption, Spell, Class as CharClass } from '../../../types'; 
 
 interface ClericFeatureSelectionProps {
@@ -21,11 +21,13 @@ const ClericFeatureSelection: React.FC<ClericFeatureSelectionProps> = ({
   const [selectedCantripIds, setSelectedCantripIds] = useState<Set<string>>(new Set());
   const [selectedSpellL1Ids, setSelectedSpellL1Ids] = useState<Set<string>>(new Set());
 
-  // Reset spell selections if order changes
-  useEffect(() => {
-    setSelectedCantripIds(new Set());
-    setSelectedSpellL1Ids(new Set());
-  }, [selectedOrder]);
+  const handleOrderSelect = (orderId: 'Protector' | 'Thaumaturge') => {
+    if (orderId !== selectedOrder) {
+      setSelectedCantripIds(new Set());
+      setSelectedSpellL1Ids(new Set());
+    }
+    setSelectedOrder(orderId);
+  };
 
   const numCantripsToSelect = spellcastingInfo.knownCantrips + (selectedOrder === 'Thaumaturge' ? 1 : 0);
   const numSpellsL1ToSelect = spellcastingInfo.knownSpellsL1;
@@ -67,7 +69,7 @@ const ClericFeatureSelection: React.FC<ClericFeatureSelectionProps> = ({
         {divineOrders.map(order => (
           <button
             key={order.id}
-            onClick={() => setSelectedOrder(order.id)}
+            onClick={() => handleOrderSelect(order.id)}
             className={`w-full text-left p-3 mb-2 rounded-lg transition-colors border-2 ${
               selectedOrder === order.id ? 'bg-sky-700 border-sky-500 ring-2 ring-sky-400' : 'bg-gray-700 hover:bg-gray-600 border-gray-600 hover:border-sky-600'
             }`}

@@ -1,10 +1,10 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { StartConcentrationCommand, BreakConcentrationCommand } from '../effects/ConcentrationCommands'
 import { DamageCommand } from '../effects/DamageCommand'
 import { SpellCommandFactory } from '../factory/SpellCommandFactory'
 import { calculateConcentrationDC, checkConcentration } from '../../utils/concentrationUtils'
 import { createMockSpell, createMockCombatCharacter, createMockCombatState } from '../../utils/factories'
-import type { CombatCharacter } from '@/types/combat'
+import type { DamageEffect } from '@/types/spells'
 
 describe('Concentration System', () => {
 
@@ -17,9 +17,8 @@ describe('Concentration System', () => {
         })
 
         it('checks concentration success', () => {
-            const mockTarget = createMockCombatCharacter({
-                stats: { constitution: 10 } as any // Simplified for test
-            });
+            const mockTarget = createMockCombatCharacter();
+            mockTarget.stats.constitution = 10;
 
             const result = checkConcentration(mockTarget, 10);
             expect(result.dc).toBe(10);
@@ -74,7 +73,6 @@ describe('Concentration System', () => {
             const mockTarget = createMockCombatCharacter({
                 id: 't1',
                 name: 'Target',
-                stats: { constitution: 10 } as any, // +0 modifier
                 concentratingOn: {
                     spellId: 'spell1',
                     spellName: 'Bless',
@@ -84,8 +82,9 @@ describe('Concentration System', () => {
                     canDropAsFreeAction: true
                 }
             });
+            mockTarget.stats.constitution = 10;
 
-            const damageEffect = {
+            const damageEffect: DamageEffect = {
                 type: 'DAMAGE',
                 damage: { dice: '10d1', type: 'Force' }, // Fixed heavy damage: 10 damage
                 trigger: { type: 'immediate' },
@@ -97,7 +96,7 @@ describe('Concentration System', () => {
                 combatLog: []
             });
 
-            const command = new DamageCommand(damageEffect as any, {
+            const command = new DamageCommand(damageEffect, {
                 spellId: spell.id,
                 spellName: spell.name,
                 castAtLevel: 1,
@@ -109,7 +108,7 @@ describe('Concentration System', () => {
             const newState = command.execute(mockState);
 
             // Check if log contains concentration check message
-            const logMessages = newState.combatLog.map((l: any) => l.message).join(' ');
+            const logMessages = newState.combatLog.map((entry) => entry.message).join(' ');
             expect(logMessages).toContain('concentration');
         })
     })
@@ -118,9 +117,10 @@ describe('Concentration System', () => {
         it('StartConcentrationCommand sets state', () => {
             const spell = createMockSpell();
             const mockCaster = createMockCombatCharacter();
+            const baseTurnState = createMockCombatState().turnState;
             const mockState = createMockCombatState({
                 characters: [mockCaster],
-                turnState: { currentTurn: 5 } as any,
+                turnState: { ...baseTurnState, currentTurn: 5 },
                 combatLog: []
             });
 
@@ -168,7 +168,7 @@ describe('Concentration System', () => {
             const newState = command.execute(mockState);
 
             expect(newState.characters[0].concentratingOn).toBeUndefined();
-            const logMessages = newState.combatLog.map((l: any) => l.message).join(' ');
+            const logMessages = newState.combatLog.map((entry) => entry.message).join(' ');
             expect(logMessages).toContain('stops concentrating');
         })
     })

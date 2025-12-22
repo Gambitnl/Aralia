@@ -6,7 +6,7 @@
  * Tests for the WorldEventManager.
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { processWorldEvents } from '../WorldEventManager';
 import { GameState, GamePhase } from '../../../types';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../../../data/factions';

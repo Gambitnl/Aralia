@@ -4,6 +4,7 @@ import { TerrainCommand } from '../effects/TerrainCommand'
 import type { CommandContext } from '../base/SpellCommand'
 import type { CombatCharacter, CombatState, Position } from '@/types/combat'
 import type { MovementEffect, TerrainEffect } from '@/types/spells'
+import { createMockCombatCharacter, createMockGameState } from '../../utils/factories'
 
 const baseStats = {
   strength: 10,
@@ -25,11 +26,13 @@ const baseEconomy = {
   freeActions: 0
 }
 
+const baseClass = createMockCombatCharacter().class
+
 const makeCharacter = (id: string, position: Position): CombatCharacter => ({
   id,
   name: id,
   level: 1,
-  class: 'Wizard' as any,
+  class: baseClass,
   position,
   stats: { ...baseStats },
   abilities: [],
@@ -67,7 +70,7 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
   castAtLevel: 1,
   caster,
   targets,
-  gameState: {} as any
+  gameState: createMockGameState()
 })
 
 describe('MovementCommand', () => {

@@ -5,7 +5,7 @@
  * prepared spells is dynamically calculated based on their Intelligence modifier.
  */
 import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, type MotionProps } from 'framer-motion';
 import { Spell, Class as CharClass, AbilityScores } from '../../../types';
 import { getAbilityModifierValue } from '../../../utils/characterUtils';
 
@@ -58,16 +58,16 @@ const ArtificerFeatureSelection: React.FC<ArtificerFeatureSelectionProps> = ({
 
   const isButtonDisabled = selectedCantripIds.size !== spellcastingInfo.knownCantrips || selectedSpellL1Ids.size !== numPreparedSpells;
 
+  const motionProps: MotionProps = {
+    key: "artificerFeatures",
+    initial: { x: 300, opacity: 0 },
+    animate: { x: 0, opacity: 1 },
+    exit: { x: -300, opacity: 0 },
+    transition: { duration: 0.3, ease: 'easeInOut' },
+  };
+
   return (
-    <motion.div
-      {...{
-        key: "artificerFeatures",
-        initial: { x: 300, opacity: 0 },
-        animate: { x: 0, opacity: 1 },
-        exit: { x: -300, opacity: 0 },
-        transition: { duration: 0.3, ease: 'easeInOut' },
-      } as any}
-    >
+    <motion.div {...motionProps}>
       <h2 className="text-2xl text-sky-300 mb-4 text-center">Artificer Spell Selection</h2>
 
       {/* Cantrip Selection */}

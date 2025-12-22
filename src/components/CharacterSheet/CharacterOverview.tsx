@@ -29,21 +29,53 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character, onOpen
      <div className="grid grid-cols-1 gap-y-4 h-full overflow-hidden">
         {/* Column 1: Core Stats & Features */}
         <div className="space-y-4 overflow-y-auto scrollable-content p-1 pr-2 h-full">
-            <p className="text-lg text-sky-300">{getCharacterRaceDisplayString(character)} {character.class.name}</p>
+            <div className="flex justify-between items-start">
+                <div>
+                    <p className="text-lg text-sky-300">{getCharacterRaceDisplayString(character)} {character.class.name}</p>
+                    <p className="text-xs text-gray-400">Age: {character.age} | Background: {character.background?.replace(/_/g, ' ') || 'None'}</p>
+                </div>
+                <div className="text-right">
+                    <p className="text-xs text-gray-400">Level {character.level}</p>
+                    <p className="text-xs text-amber-200/70">XP: {character.xp || 0}</p>
+                </div>
+            </div>
 
             {/* Vitals */}
             <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/60">
-                <h4 className="text-lg font-semibold text-sky-300 mb-1.5">Vitals</h4>
-                <p className="text-sm">Hit Points: <span className="font-semibold text-green-400">{character.hp}</span> / {character.maxHp}</p>
-                <p className="text-sm">Armor Class: <span className="font-semibold text-blue-400">{character.armorClass}</span></p>
-                <p className="text-sm">Speed: <span className="font-semibold">{character.speed}ft</span></p>
-                {character.darkvisionRange > 0 && <p className="text-sm">Darkvision: {character.darkvisionRange}ft</p>}
+                <h4 className="text-lg font-semibold text-sky-300 mb-1.5 flex items-center gap-2">
+                    <span className="text-sm">❤️</span> Vitals
+                </h4>
+                <div className="grid grid-cols-2 gap-2">
+                    <p className="text-sm">Hit Points: <span className="font-semibold text-green-400">{character.hp}</span> / {character.maxHp}</p>
+                    <p className="text-sm">Armor Class: <span className="font-semibold text-blue-400">{character.armorClass}</span></p>
+                    <p className="text-sm">Speed: <span className="font-semibold">{character.speed}ft</span></p>
+                    <p className="text-sm">Prof. Bonus: <span className="font-semibold text-amber-300">+{profBonus}</span></p>
+                    {character.darkvisionRange > 0 && <p className="text-sm col-span-2">Darkvision: {character.darkvisionRange}ft</p>}
+                </div>
             </div>
+
+            {/* Weapon Masteries */}
+            {character.selectedWeaponMasteries && character.selectedWeaponMasteries.length > 0 && (
+                <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/60 border-amber-500/30">
+                    <h4 className="text-lg font-semibold text-amber-300 mb-1.5 flex items-center gap-2">
+                        <span className="text-sm">⚔️</span> Weapon Masteries
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                        {character.selectedWeaponMasteries.map(mastery => (
+                            <span key={mastery} className="px-2 py-0.5 bg-amber-900/30 border border-amber-700/50 rounded text-xs text-amber-200 capitalize">
+                                {mastery.replace(/_/g, ' ')}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Spellcasting Stats */}
             {character.spellcastingAbility && spellcastingAbilityName && (
-              <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/60">
-                  <h4 className="text-lg font-semibold text-sky-300 mb-1.5">Spellcasting</h4>
+              <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/60 border-purple-500/20">
+                  <h4 className="text-lg font-semibold text-purple-300 mb-1.5 flex items-center gap-2">
+                      <span className="text-sm">✨</span> Spellcasting
+                  </h4>
                   <div className="text-sm space-y-1">
                       <Tooltip content={`The core ability used for your spells.`}>
                           <p>Ability: <span className="font-semibold text-amber-300">{spellcastingAbilityName}</span></p>
@@ -60,7 +92,9 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character, onOpen
 
             {/* Ability Scores */}
             <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/60">
-                <h4 className="text-lg font-semibold text-sky-300 mb-1.5">Ability Scores</h4>
+                <h4 className="text-lg font-semibold text-sky-300 mb-1.5 flex items-center gap-2">
+                    <span className="text-sm">🎲</span> Ability Scores
+                </h4>
                 <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
                 {Object.entries(character.finalAbilityScores).map(([key, value]) => (
                     <p key={key}>{key.substring(0,3)}: <span className="font-semibold text-amber-300">{value as number}</span> ({getAbilityModifierString(value as number)})</p>
@@ -70,7 +104,9 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character, onOpen
 
             {/* Features & Traits */}
             <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/60">
-                <h4 className="text-lg font-semibold text-sky-300 mb-1.5">Features & Traits</h4>
+                <h4 className="text-lg font-semibold text-sky-300 mb-1.5 flex items-center gap-2">
+                    <span className="text-sm">📜</span> Features & Traits
+                </h4>
                 <ul className="space-y-2 text-sm text-gray-300">
                     {/* Class Features */}
                     {character.class.features.map(feature => (
@@ -150,7 +186,9 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character, onOpen
 
             {/* Proficiencies */}
             <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/60">
-              <h4 className="text-lg font-semibold text-sky-300 mb-1.5">Proficiencies</h4>
+              <h4 className="text-lg font-semibold text-sky-300 mb-1.5 flex items-center gap-2">
+                  <span className="text-sm">🛡️</span> Proficiencies
+              </h4>
               <div className="space-y-2 text-sm">
                 <div>
                   <p className="font-semibold text-gray-300">Armor:</p>

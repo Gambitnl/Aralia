@@ -1,9 +1,10 @@
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { DamageCommand } from '../DamageCommand'
-import { CombatState, CombatCharacter, CombatLogEntry } from '../../../types/combat'
+import { CombatState, CombatCharacter } from '../../../types/combat'
 import { SpellEffect } from '../../../types/spells'
 import { CommandContext } from '../base/SpellCommand'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/factories'
 
 describe('DamageCommand', () => {
     let mockState: CombatState;
@@ -12,19 +13,18 @@ describe('DamageCommand', () => {
     let mockContext: CommandContext;
 
     beforeEach(() => {
-        mockCaster = {
+        mockCaster = createMockCombatCharacter({
             id: 'caster-1',
             name: 'Hero',
-            stats: { intelligence: 16 } as any,
             position: { x: 0, y: 0 },
             currentHP: 10,
             maxHP: 20
-        } as CombatCharacter;
+        });
+        mockCaster.stats.intelligence = 16;
 
-        mockTarget = {
+        mockTarget = createMockCombatCharacter({
             id: 'target-1',
             name: 'Goblin',
-            stats: { constitution: 10 } as any,
             position: { x: 1, y: 1 },
             currentHP: 10,
             maxHP: 10,
@@ -32,21 +32,20 @@ describe('DamageCommand', () => {
             resistances: [],
             vulnerabilities: [],
             immunities: []
-        } as CombatCharacter;
+        });
+        mockTarget.stats.constitution = 10;
 
-        mockState = {
-            isActive: true,
+        mockState = createMockCombatState({
             characters: [mockCaster, mockTarget],
-            combatLog: [],
-            activeLightSources: []
-        } as unknown as CombatState;
+            combatLog: []
+        });
 
         mockContext = {
             spellId: 'spell-1',
             spellName: 'Fireball',
             caster: mockCaster,
             targets: [mockTarget],
-            gameState: {} as any,
+            gameState: createMockGameState(),
             castAtLevel: 3
         };
     });

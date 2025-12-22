@@ -22,8 +22,26 @@ import { getAbilityModifierValue, applyAllFeats } from '../../../utils/character
 
 // --- Helper Functions for Character Assembly ---
 
+type AgeSizeOverride = NonNullable<PlayerCharacter['ageSizeOverride']>;
+
+interface AgeCategory {
+  max: number;
+  statPenalty: number;
+  sizeModifier?: AgeSizeOverride;
+}
+
+interface AgeData {
+  categories: {
+    child: AgeCategory;
+    adolescent: AgeCategory;
+    adult: AgeCategory;
+    middleAged: AgeCategory;
+    elderly: AgeCategory;
+  };
+}
+
 // Age ranges and categories for different races (mechanical effects)
-const getAgeDataForAssembly = (raceId: string) => {
+const getAgeDataForAssembly = (raceId: string): AgeData => {
   switch (raceId) {
     case 'human':
       return {
@@ -225,7 +243,7 @@ const getAgeDataForAssembly = (raceId: string) => {
   }
 };
 
-const getAgeCategoryForAssembly = (age: number, ageData: any) => {
+const getAgeCategoryForAssembly = (age: number, ageData: AgeData): AgeCategory => {
   if (age <= ageData.categories.child.max) return ageData.categories.child;
   if (age <= ageData.categories.adolescent.max) return ageData.categories.adolescent;
   if (age <= ageData.categories.adult.max) return ageData.categories.adult;
@@ -503,7 +521,7 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
 
       // Apply size modifier for children
       if (ageCategory.sizeModifier) {
-        assembledCharacter.ageSizeOverride = ageCategory.sizeModifier as any;
+        assembledCharacter.ageSizeOverride = ageCategory.sizeModifier;
       }
     }
 

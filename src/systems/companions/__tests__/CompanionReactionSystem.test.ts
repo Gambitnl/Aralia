@@ -6,7 +6,7 @@
  * Tests for the CompanionReactionSystem.
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { CompanionReactionSystem } from '../CompanionReactionSystem';
 import { Companion, DecisionContext, CompanionReactionRule } from '../../types/companions';
 

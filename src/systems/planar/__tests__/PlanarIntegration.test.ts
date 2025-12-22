@@ -1,5 +1,5 @@
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { SpellCommandFactory } from '../../../commands/factory/SpellCommandFactory';
 import { DamageCommand } from '../../../commands/effects/DamageCommand';
 import { Spell, SpellEffect } from '../../../types/spells';

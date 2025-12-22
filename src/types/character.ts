@@ -376,6 +376,7 @@ export interface PlayerCharacter {
   spellSlots?: SpellSlots;
   spellbook?: SpellbookData;
   limitedUses?: LimitedUses;
+  activeEffects?: any[]; // For temporary spell effects (e.g. Shield, Mage Armor)
   selectedFightingStyle?: FightingStyle;
   selectedDivineOrder?: 'Protector' | 'Thaumaturge';
   selectedDruidOrder?: 'Magician' | 'Warden';

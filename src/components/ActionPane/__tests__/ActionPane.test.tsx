@@ -4,13 +4,33 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ActionPane from '../index';
 import { Action, Item, Location, NPC } from '../../../types';
 
+const MotionButton = React.forwardRef<HTMLButtonElement, React.ComponentPropsWithoutRef<'button'> & {
+  whileHover?: unknown;
+  whileTap?: unknown;
+  layout?: unknown;
+  initial?: unknown;
+  animate?: unknown;
+  exit?: unknown;
+  transition?: unknown;
+}>(({ whileHover, whileTap, layout, initial, animate, exit, transition, ...props }, ref) => (
+  <button ref={ref} {...props} />
+));
+MotionButton.displayName = 'MotionButton';
+
+const MotionDiv = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<'div'> & {
+  layout?: unknown;
+  initial?: unknown;
+  animate?: unknown;
+  exit?: unknown;
+  transition?: unknown;
+}>(({ initial, animate, exit, transition, ...props }, ref) => <div ref={ref} {...props} />);
+MotionDiv.displayName = 'MotionDiv';
+
 vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   motion: {
-    button: React.forwardRef(({ whileHover, whileTap, layout, initial, animate, exit, transition, ...props }: any, ref) => (
-      <button ref={ref} {...props} />
-    )),
-    div: React.forwardRef(({ initial, animate, exit, transition, ...props }: any, ref) => <div ref={ref} {...props} />),
+    button: MotionButton,
+    div: MotionDiv,
   },
 }));
 
@@ -91,7 +111,7 @@ describe('ActionPane', () => {
 
   it('converts non-string move targetIds when invoking onAction', () => {
     const onAction = vi.fn();
-    const geminiActions: Action[] = [{ type: 'move', label: 'Move to point', targetId: 123 as any }];
+    const geminiActions: Action[] = [{ type: 'move', label: 'Move to point', targetId: 123 } as unknown as Action];
     render(<ActionPane {...defaultProps} geminiGeneratedActions={geminiActions} onAction={onAction} />);
 
     fireEvent.click(screen.getByText('Move to point'));

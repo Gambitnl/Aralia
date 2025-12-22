@@ -14,11 +14,11 @@ export interface SubmapPathNode {
   coordinates: { x: number; y: number };
   movementCost: number;
   blocksMovement: boolean;
-  terrain?: any;
-  elevation?: any;
-  blocksLoS?: any;
-  decoration?: any;
-  effects?: any;
+  terrain?: unknown;
+  elevation?: unknown;
+  blocksLoS?: unknown;
+  decoration?: unknown;
+  effects?: unknown;
 }
 
 type TileVisualResolver = (rowIndex: number, colIndex: number) => { effectiveTerrainType: string };

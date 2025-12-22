@@ -1,7 +1,7 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { TerrainEffect, EffectDuration, DamageType } from '@/types/spells'
-import { CombatState, Position, BattleMapTile, StatusEffect, BattleMapTerrain, EnvironmentalEffect } from '@/types/combat'
+import { CombatState, Position, BattleMapTile, StatusEffect, EnvironmentalEffect } from '@/types/combat'
 import { calculateAffectedTiles, AoEParams } from '../../utils/aoeCalculations'
 import { mapShapeToStandard } from '../../utils/targetingUtils'
 
@@ -78,16 +78,20 @@ export class TerrainCommand extends BaseEffectCommand {
                     this.removeDifficultTerrain(tile, theme)
                     break
                 case 'excavate':
-                    // Assume 1 unit of elevation = 5 feet.
-                    // If depth is specified, use it, otherwise default to 1 unit (5ft)
-                    const depth = effect.manipulation.volume?.depth ?? 5
-                    tile.elevation -= Math.max(1, Math.floor(depth / 5))
+                    {
+                        // Assume 1 unit of elevation = 5 feet.
+                        // If depth is specified, use it, otherwise default to 1 unit (5ft)
+                        const depth = effect.manipulation.volume?.depth ?? 5
+                        tile.elevation -= Math.max(1, Math.floor(depth / 5))
+                    }
                     break
                 case 'fill':
-                    // Assume filling adds elevation.
-                    // If no volume specified, default to 1 unit.
-                    const height = effect.manipulation.volume?.size ?? 5
-                    tile.elevation += Math.max(1, Math.floor(height / 5))
+                    {
+                        // Assume filling adds elevation.
+                        // If no volume specified, default to 1 unit.
+                        const height = effect.manipulation.volume?.size ?? 5
+                        tile.elevation += Math.max(1, Math.floor(height / 5))
+                    }
                     break
                 case 'cosmetic':
                     // Cosmetic changes don't affect mechanics, but we could update decoration?

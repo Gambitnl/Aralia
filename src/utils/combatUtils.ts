@@ -503,7 +503,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
         // Here we pass the JSON data to the factory.
         // The factory reads 'effects' array from the JSON (Gold Standard)
         // and returns an executable 'Ability' for the combat engine.
-        const ability = createAbilityFromSpell(spellData as any, player);
+        const ability = createAbilityFromSpell(spellData as unknown as Spell, player);
         ability.spell = spellData; // Link original spell data
         abilities.push(ability);
       } else {
@@ -536,7 +536,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     spellbook: player.spellbook,
     spellSlots: player.spellSlots,
     savingThrowProficiencies: player.savingThrowProficiencies,
-    resistances: player.race.resistance as any, // Cast because Race uses string[], CombatCharacter uses DamageType[]
+    resistances: player.race.resistance as unknown as import('../types').DamageType[], // Cast because Race uses string[], CombatCharacter uses DamageType[]
   };
 
   // Basic Darkvision inference

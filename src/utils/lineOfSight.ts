@@ -22,10 +22,14 @@ export function bresenhamLine(x0: number, y0: number, x1: number, y1: number): {
 
   let x = x0;
   let y = y0;
+  let reachedEnd = false;
 
-  while (true) {
+  while (!reachedEnd) {
     points.push({ x: Math.round(x), y: Math.round(y) });
-    if (Math.round(x) === x1 && Math.round(y) === y1) break;
+    if (Math.round(x) === x1 && Math.round(y) === y1) {
+      reachedEnd = true;
+      break;
+    }
     const e2 = 2 * err;
     if (e2 > -dy) {
       err -= dy;

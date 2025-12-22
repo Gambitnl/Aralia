@@ -18,7 +18,8 @@ import { SKILLS_DATA } from '../../../data/skills';
 import { WEAPONS_DATA } from '../../../data/items';
 import { ALL_RACES_DATA as RACES_DATA, TIEFLING_LEGACIES_DATA as TIEFLING_LEGACIES } from '../../../data/races';
 import { CharacterCreationState } from '../state/characterCreatorState'; 
-import { getAbilityModifierValue } from '../../../utils/characterUtils';
+import { getAbilityModifierValue, applyFeatToCharacter } from '../../../utils/characterUtils';
+import { FEATS_DATA } from '../../../data/feats/featsData';
 
 // --- Helper Functions for Character Assembly ---
 function validateAllSelectionsMade(state: CharacterCreationState): boolean {
@@ -81,7 +82,7 @@ function calculateCharacterSpeed(race: Race, lineageId?: string): number {
     return speed;
 }
 
-function calculateCharacterDarkvision(race: Race, lineageId?: string, subraceId?: string): number {
+function calculateCharacterDarkvision(race: Race, lineageId?: string): number {
     let range = 0;
     const dvTrait = race.traits.find(t => t.toLowerCase().includes('darkvision'));
     if (dvTrait) {
@@ -222,9 +223,11 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
     
     const castingProperties = assembleCastingProperties(currentState);
     
-    const assembledCharacter: PlayerCharacter = {
+    let assembledCharacter: PlayerCharacter = {
       id: `${Date.now()}-${(currentName || "char").replace(/\s+/g, '-')}`,
       name: currentName || "Adventurer",
+      age: currentState.characterAge,
+      background: currentState.selectedBackground || undefined,
       level: 1,
       proficiencyBonus: 2,
       race: selectedRace,
@@ -236,7 +239,7 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       maxHp: calculateCharacterMaxHp(selectedClass, finalAbilityScores, selectedRace),
       armorClass: 10 + getAbilityModifierValue(finalAbilityScores.Dexterity),
       speed: calculateCharacterSpeed(selectedRace, racialSelections['elf']?.choiceId as 'drow' | 'high_elf' | 'wood_elf' | undefined),
-      darkvisionRange: calculateCharacterDarkvision(selectedRace, racialSelections['elf']?.choiceId as 'drow' | 'high_elf' | 'wood_elf' | undefined, racialSelections['gnome']?.choiceId as 'forest_gnome' | 'rock_gnome' | 'deep_gnome' | undefined),
+      darkvisionRange: calculateCharacterDarkvision(selectedRace, racialSelections['elf']?.choiceId as 'drow' | 'high_elf' | 'wood_elf' | undefined),
       transportMode: 'foot',
       selectedWeaponMasteries: currentState.selectedWeaponMasteries || [],
       equippedItems: {}, 
@@ -246,7 +249,28 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       selectedDruidOrder: currentState.selectedDruidOrder || undefined,
       selectedWarlockPatron: currentState.selectedWarlockPatron || undefined,
       racialSelections: currentState.racialSelections,
+      featChoices: currentState.featChoices as any,
+      visuals: {
+        gender: currentState.visuals.gender === 'Male' ? 'Male' : 'Female',
+        skinColor: currentState.visuals.skinColor,
+        hairStyle: currentState.visuals.hairStyle,
+        clothingStyle: currentState.visuals.clothing,
+      },
     };
+
+    // Apply selected feat if present
+    if (currentState.selectedFeat) {
+      const feat = FEATS_DATA.find(f => f.id === currentState.selectedFeat);
+      if (feat) {
+        const choices = currentState.featChoices?.[currentState.selectedFeat];
+        assembledCharacter = applyFeatToCharacter(assembledCharacter, feat, {
+          selectedAbilityScore: choices?.selectedAbilityScore,
+          selectedCantrips: choices?.selectedCantrips,
+          selectedLeveledSpells: choices?.selectedLeveledSpells,
+          selectedSpellSource: choices?.selectedSpellSource,
+        });
+      }
+    }
     
     return assembledCharacter;
 

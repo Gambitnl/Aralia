@@ -14,8 +14,28 @@ interface AgeSelectionProps {
   onBack: () => void;
 }
 
+type AgeCategory = {
+  max: number;
+  statPenalty: number;
+  sizeModifier?: string;
+};
+
+type AgeData = {
+  min: number;
+  max: number;
+  categories: {
+    child: AgeCategory;
+    adolescent: AgeCategory;
+    adult: AgeCategory;
+    middleAged: AgeCategory;
+    elderly: AgeCategory;
+  };
+};
+
+type AgeCategoryWithName = AgeCategory & { name: string };
+
 // Age ranges and categories for different races
-const getAgeData = (raceId: string) => {
+const getAgeData = (raceId: string): AgeData => {
   switch (raceId) {
     case 'human':
       return {
@@ -236,7 +256,7 @@ const getAgeData = (raceId: string) => {
   }
 };
 
-const getAgeCategory = (age: number, ageData: any) => {
+const getAgeCategory = (age: number, ageData: AgeData): AgeCategoryWithName => {
   if (age <= ageData.categories.child.max) return { name: 'Child', ...ageData.categories.child };
   if (age <= ageData.categories.adolescent.max) return { name: 'Adolescent', ...ageData.categories.adolescent };
   if (age <= ageData.categories.adult.max) return { name: 'Adult', ...ageData.categories.adult };
@@ -289,7 +309,7 @@ const AgeSelection: React.FC<AgeSelectionProps> = ({
 
       <div className="mb-6 max-w-2xl mx-auto">
         <p className="text-gray-300 text-center mb-4">
-          Choose your {selectedRace?.name}'s age. Age affects ability scores, size, hit points, and armor class.
+          Choose your {selectedRace?.name}{"'"}s age. Age affects ability scores, size, hit points, and armor class.
         </p>
 
         <div className="bg-gray-700 p-4 rounded-lg mb-6 border border-gray-600">

@@ -28,7 +28,13 @@ The Town Map renders interior layouts of villages and towns, allowing players to
 | `src/components/Town/*.ts*` | Directory | Town UI components and index |
 | `src/services/realmsmith/**/*.ts` | Directory | RealmSmith subsystems |
 | `src/services/RealmSmith*.ts` | Service | Town generation and assets |
+| `src/services/BuildingGenerator.ts` | Service | Modular building placement |
+| `src/services/DoodadGenerator.ts` | Service | Modular doodad placement |
+| `src/services/RoadGenerator.ts` | Service | Modular road placement |
+| `src/services/TerrainGenerator.ts` | Service | Modular terrain placement |
 | `src/services/villageGenerator.ts` | Service | Village generation |
+| `src/constants/realmsmith.ts` | Constants | RealmSmith configuration |
+| `src/data/realmsmithBiomes.ts` | Data | Biome definitions for RealmSmith |
 | `src/hooks/useTownController.ts` | Hook | Town navigation |
 | `src/state/reducers/townReducer.ts` | Reducer | Town state |
 | `src/types/town.ts` | Types | Town type definitions |

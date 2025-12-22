@@ -497,7 +497,7 @@ export function createMockQuest(overrides: Partial<Quest> = {}): Quest {
  * Creates a mock Monster object.
  */
 export function createMockMonster(overrides: Partial<Monster> = {}): Monster {
-  // @ts-ignore - Partial implementation for tests
+  // @ts-expect-error - Partial implementation for tests
   return {
     id: `monster-${uuidv4()}`,
     name: "Mock Monster",

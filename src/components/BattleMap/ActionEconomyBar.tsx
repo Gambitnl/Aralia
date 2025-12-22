@@ -3,7 +3,7 @@
  * A component to display the character's current action economy status.
  */
 import React from 'react';
-import { CombatCharacter, CombatAction } from '../../types/combat';
+import { CombatCharacter, CombatAction, AbilityCost } from '../../types/combat';
 import Tooltip from '../Tooltip';
 import { generateId } from '../../utils/combatUtils';
 
@@ -31,7 +31,9 @@ const ActionEconomyBar: React.FC<ActionEconomyBarProps> = ({ character, onExecut
     // sustainCost in ConcentrationState is { actionType: "..." }. 
     // We need to shape it as AbilityCost: { type: 'action' | 'bonus' | ... }
 
-    const actionCost: any = { type: cost.actionType }; // Simplified cost object
+    const actionCost: AbilityCost = {
+      type: cost.actionType === 'bonus_action' ? 'bonus' : cost.actionType
+    };
 
     onExecuteAction({
       id: generateId(),
@@ -88,7 +90,7 @@ const ActionEconomyBar: React.FC<ActionEconomyBarProps> = ({ character, onExecut
       <div className="pt-2">
         <Tooltip content={`Movement: ${actionEconomy.movement.total - actionEconomy.movement.used} / ${actionEconomy.movement.total} ft remaining`}>
           <div>
-            <label className="text-xs font-bold text-green-400 text-center block mb-1">Movement</label>
+            <span className="text-xs font-bold text-green-400 text-center block mb-1">Movement</span>
             <div className="w-full bg-gray-600 rounded-full h-4 shadow-inner overflow-hidden relative border border-gray-500">
               <div
                 className="bg-green-500 h-full rounded-full transition-all duration-300 ease-out"

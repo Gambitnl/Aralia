@@ -125,7 +125,7 @@ export const useActionExecutor = ({
           type: 'unit_sustain',
           casterId: updatedCharacter.id,
           spellId: updatedCharacter.concentratingOn.spellId,
-          actionType: action.cost.type as any
+          actionType: action.cost.type as 'action' | 'bonus_action' | 'reaction'
         });
 
         onLogEntry({
@@ -172,7 +172,7 @@ export const useActionExecutor = ({
         unitId: startCharacter.id,
         from: previousPosition,
         to: action.targetPosition,
-        cost: (action.cost && 'movement' in action.cost) ? (action.cost as any).movement : 0,
+        cost: action.cost.movementCost || 0,
         isForced: false
       });
 
@@ -412,7 +412,6 @@ export const useActionExecutor = ({
   }, [
     characters,
     turnState,
-    mapData,
     endTurn,
     canAfford,
     consumeAction,

@@ -4,7 +4,7 @@
  * A modal that prompts the user to make a specific missing choice for a character.
  */
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 import { MissingChoice } from '../types';
 
 interface MissingChoiceModalProps {
@@ -12,8 +12,20 @@ interface MissingChoiceModalProps {
   onClose: () => void;
   characterName: string;
   missingChoice: MissingChoice | null;
-  onConfirm: (choiceId: string, extraData?: any) => void;
+  onConfirm: (choiceId: string, extraData?: unknown) => void;
 }
+
+const overlayMotion: MotionProps = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+};
+
+const modalMotion: MotionProps = {
+  initial: { y: 20, opacity: 0 },
+  animate: { y: 0, opacity: 1 },
+  exit: { y: 20, opacity: 0 },
+};
 
 const MissingChoiceModal: React.FC<MissingChoiceModalProps> = ({ 
   isOpen, 
@@ -50,22 +62,14 @@ const MissingChoiceModal: React.FC<MissingChoiceModalProps> = ({
 
   return (
     <motion.div
-      {...{
-        initial: { opacity: 0 },
-        animate: { opacity: 1 },
-        exit: { opacity: 0 },
-      } as any}
+      {...overlayMotion}
       className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[80] p-4"
       onClick={onClose}
       aria-modal="true"
       role="dialog"
     >
       <motion.div
-        {...{
-          initial: { y: 20, opacity: 0 },
-          animate: { y: 0, opacity: 1 },
-          exit: { y: 20, opacity: 0 },
-        } as any}
+        {...modalMotion}
         className="bg-gray-800 border border-amber-500/50 rounded-xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >

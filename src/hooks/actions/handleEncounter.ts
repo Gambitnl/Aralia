@@ -38,8 +38,9 @@ export async function handleGenerateEncounter({ gameState, dispatch }: HandleGen
         const payload: ShowEncounterModalPayload = { encounter: finalEncounter, sources: result.data.sources, partyUsed: partyForEncounter };
         dispatch({ type: 'SHOW_ENCOUNTER_MODAL', payload: { encounterData: payload } });
 
-    } catch (err: any) {
-        const payload: ShowEncounterModalPayload = { error: err.message };
+    } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+        const payload: ShowEncounterModalPayload = { error: errorMessage };
         dispatch({ type: 'SHOW_ENCOUNTER_MODAL', payload: { encounterData: payload } });
     }
 }

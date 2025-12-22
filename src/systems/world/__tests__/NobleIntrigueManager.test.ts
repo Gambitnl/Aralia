@@ -1,5 +1,5 @@
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { generateNobleIntrigue } from '../NobleIntrigueManager';
 import { createMockGameState, createMockFaction } from '../../../utils/factories';
 import { SeededRandom } from '../../../utils/seededRandom';

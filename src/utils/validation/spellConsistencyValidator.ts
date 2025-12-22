@@ -1,5 +1,5 @@
 
-import { Spell, SpellEffect } from '../../types/spells';
+import { Spell } from '../../types/spells';
 
 export interface ValidationIssue {
   spellId: string;
@@ -23,7 +23,7 @@ export function validateEnchantmentConsistency(spell: Spell): ValidationIssue[] 
 
   // 1. Check for Undead/Construct Exclusions
   const mentionsUndead = descLower.includes('undead');
-  const mentionsConstruct = descLower.includes('construct');
+  const _mentionsConstruct = descLower.includes('construct');
 
   // Check targeting filter
   const excludedTypes = spell.targeting.filter?.excludeCreatureTypes || [];

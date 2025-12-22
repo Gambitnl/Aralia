@@ -81,9 +81,10 @@ export function calculateAffectedTiles(params: AoEParams): Position[] {
             return getConeAoE(params.origin, params.direction ?? 0, params.size);
         case 'Cube':
             return getCubeAoE(params.origin, params.size);
-        case 'Line':
+        case 'Line': {
             const target = params.targetPoint ?? projectPoint(params.origin, params.direction ?? 0, params.size);
             return getLineAoE(params.origin, target, params.width ?? 5);
+        }
         default:
             console.warn(`Unknown AoE shape: ${params.shape}`);
             return [];
@@ -211,11 +212,11 @@ function getCubeAoE(origin: Position, size: number): Position[] {
  *
  * @param origin - The starting position of the line
  * @param target - The ending position of the line
- * @param width - The width of the line in feet. Kept for interface compatibility with standard 5e line shapes
+ * @param _width - The width of the line in feet. Kept for interface compatibility with standard 5e line shapes
  *                (usually 5ft wide), but currently unused in calculation as we default to a ray.
  * @returns Array of affected grid positions representing the line's path
  */
-function getLineAoE(origin: Position, target: Position, width: number): Position[] {
+function getLineAoE(origin: Position, target: Position, _width: number): Position[] {
     const dx = target.x - origin.x;
     const dy = target.y - origin.y;
     const distance = Math.sqrt(dx * dx + dy * dy);

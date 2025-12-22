@@ -7,17 +7,20 @@
  * Replaces the basic useCompanionReactions hook.
  */
 
-import { useEffect, useRef, useState } from 'react';
-import { GameState, Action } from '../types';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { GameState } from '../types';
 import { Companion, ReactionTriggerType, CompanionReactionRule } from '../types/companions';
-import { COMPANIONS } from '../data/companions';
 
 // Cooldown tracking: companionId -> triggerType -> timestamp
 type CooldownMap = Record<string, Record<string, number>>;
 
+type CompanionAction = 
+  | { type: 'ADD_COMPANION_REACTION'; payload: { companionId: string; reaction: string } }
+  | { type: 'UPDATE_COMPANION_APPROVAL'; payload: { companionId: string; change: number; reason: string; source: string } };
+
 export const useCompanionCommentary = (
   gameState: GameState,
-  dispatch: React.Dispatch<any>,
+  dispatch: React.Dispatch<CompanionAction>,
   // lastAction is removed from props as we rely on state diffing
 ) => {
   const [cooldowns, setCooldowns] = useState<CooldownMap>({});
@@ -28,14 +31,14 @@ export const useCompanionCommentary = (
   const prevGoldRef = useRef(gameState.gold);
 
   // Helper to check cooldowns
-  const isOnCooldown = (companionId: string, triggerType: string, cooldownMinutes: number = 1): boolean => {
+  const isOnCooldown = useCallback((companionId: string, triggerType: string, cooldownMinutes: number = 1): boolean => {
     const lastTrigger = cooldowns[companionId]?.[triggerType] || 0;
     const now = Date.now();
     return (now - lastTrigger) < (cooldownMinutes * 60 * 1000);
-  };
+  }, [cooldowns]);
 
   // Helper to set cooldown
-  const setCooldown = (companionId: string, triggerType: string) => {
+  const setCooldown = useCallback((companionId: string, triggerType: string) => {
     setCooldowns(prev => ({
       ...prev,
       [companionId]: {
@@ -43,10 +46,10 @@ export const useCompanionCommentary = (
         [triggerType]: Date.now()
       }
     }));
-  };
+  }, []);
 
   // Main evaluation logic
-  const evaluateReaction = (triggerType: ReactionTriggerType, tags: string[] = []) => {
+  const evaluateReaction = useCallback((triggerType: ReactionTriggerType, tags: string[] = []) => {
     if (!gameState.companions) return;
 
     // Find all valid reactions from all companions
@@ -136,7 +139,7 @@ export const useCompanionCommentary = (
           setCooldown(winner.companionId, `${triggerType}_${winner.rule.triggerTags.join('_')}`);
       }
     }
-  };
+  }, [gameState.companions, gameState.currentLocationId, isOnCooldown, setCooldown, dispatch]);
 
   // --- EVENT LISTENERS (State Diffing) ---
 
@@ -144,9 +147,9 @@ export const useCompanionCommentary = (
   useEffect(() => {
     if (gameState.currentLocationId !== prevLocationRef.current) {
         prevLocationRef.current = gameState.currentLocationId;
-        evaluateReaction('location'); // Tag could be biome or region derived from location
+        setTimeout(() => evaluateReaction('location'), 0); // Tag could be biome or region derived from location
     }
-  }, [gameState.currentLocationId]); // Re-run when location changes
+  }, [gameState.currentLocationId, evaluateReaction]); // Re-run when location changes
 
   // 2. Loot / Messages
   useEffect(() => {
@@ -158,7 +161,7 @@ export const useCompanionCommentary = (
           // Or if Gold amount increased significantly
           const goldDiff = gameState.gold - prevGoldRef.current;
           if (goldDiff > 50) {
-              evaluateReaction('loot', ['gold']);
+              setTimeout(() => evaluateReaction('loot', ['gold']), 0);
           }
           prevGoldRef.current = gameState.gold;
 
@@ -167,14 +170,14 @@ export const useCompanionCommentary = (
           newMessages.forEach(msg => {
               if (msg.text.includes("picked up") || msg.text.includes("received")) {
                   if (msg.text.toLowerCase().includes("gem") || msg.text.toLowerCase().includes("artifact")) {
-                       evaluateReaction('loot', ['valuable']);
+                       setTimeout(() => evaluateReaction('loot', ['valuable']), 0);
                   }
               }
               if (msg.text.includes("Victory!")) {
-                   evaluateReaction('combat_end', ['victory']);
+                   setTimeout(() => evaluateReaction('combat_end', ['victory']), 0);
               }
           });
       }
-  }, [gameState.messages, gameState.gold]);
+  }, [gameState.messages, gameState.gold, evaluateReaction]);
 
 };

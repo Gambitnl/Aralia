@@ -1,5 +1,5 @@
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { characterReducer } from '../characterReducer';
 import { GameState, Item } from '../../../types';
 import { AppAction } from '../../actionTypes';

@@ -5,7 +5,7 @@
  * (Intelligence, Wisdom, or Charisma) for one of its racial traits.
  */
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 import { AbilityScoreName, AbilityScores, Class as CharClass } from '../../../types';
 import { RELEVANT_SPELLCASTING_ABILITIES } from '../../../constants';
 import { getAbilityModifierString } from '../../../utils/characterUtils';
@@ -27,6 +27,13 @@ export interface RacialSpellAbilitySelectionProps {
   selectedClass: CharClass | null;
 }
 
+const containerMotion: MotionProps = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+  transition: { duration: 0.3 },
+};
+
 const RacialSpellAbilitySelection: React.FC<RacialSpellAbilitySelectionProps> = ({
   raceName,
   traitName,
@@ -47,12 +54,7 @@ const RacialSpellAbilitySelection: React.FC<RacialSpellAbilitySelectionProps> = 
   return (
     <motion.div
       key="racialSpellAbility"
-      {...{
-        initial: { opacity: 0 },
-        animate: { opacity: 1 },
-        exit: { opacity: 0 },
-        transition: { duration: 0.3 },
-      } as any}
+      {...containerMotion}
     >
       <h2 className="text-2xl text-sky-300 mb-4 text-center">{raceName} Trait: {traitName}</h2>
       <p className="text-sm text-gray-400 mb-6 text-center">

@@ -4,7 +4,7 @@
  * Handles item interaction actions like 'take_item', 'EQUIP_ITEM', etc.
  */
 import React from 'react';
-import { GameState, Action, Item, EquipItemPayload, UnequipItemPayload, UseItemPayload, DropItemPayload, DiscoveryType, DiscoveryEntry } from '../../types';
+import { GameState, Action, EquipItemPayload, UnequipItemPayload, UseItemPayload, DropItemPayload, DiscoveryType, DiscoveryEntry } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
 import { ITEMS, LOCATIONS, SKILLS_DATA } from '../../constants';

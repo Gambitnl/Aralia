@@ -10,7 +10,15 @@ console.log('Scanning for spells in:', spellsDir);
 // glob.sync returns relative paths from cwd
 const spellFiles = glob.sync('**/*.json', { cwd: spellsDir });
 
-const manifest: Record<string, any> = {};
+type ManifestEntry = {
+    name: string;
+    aliases?: string[];
+    level: number;
+    school: string;
+    path: string;
+};
+
+const manifest: Record<string, ManifestEntry> = {};
 
 spellFiles.forEach(file => {
     const filePath = path.join(spellsDir, file);
@@ -35,8 +43,9 @@ spellFiles.forEach(file => {
             school: spell.school,
             path: webPath
         };
-    } catch (e: any) {
-        console.error(`Error reading spell file ${file}: ${e.message}`);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`Error reading spell file ${file}: ${message}`);
     }
 });
 
@@ -44,7 +53,7 @@ spellFiles.forEach(file => {
 const sortedManifest = Object.keys(manifest).sort().reduce((obj, key) => {
     obj[key] = manifest[key];
     return obj;
-}, {} as Record<string, any>);
+}, {} as Record<string, ManifestEntry>);
 
 // TODO(safety): Consider diffing old vs new manifest and warning if spells were removed.
 // A spell disappearing could indicate an accidental deletion or file rename issue.

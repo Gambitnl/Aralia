@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Spell } from '../../types/spells';
 import { detectSuspiciousInput } from '../../utils/securityUtils';
 
@@ -14,6 +14,13 @@ const MAX_INPUT_LENGTH = 500;
 const AISpellInputModal: React.FC<AISpellInputModalProps> = ({ spell, onSubmit, onCancel, isOpen }) => {
     const [input, setInput] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            inputRef.current?.focus();
+        }
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -59,12 +66,12 @@ const AISpellInputModal: React.FC<AISpellInputModalProps> = ({ spell, onSubmit, 
 
                 <div className="relative mb-6">
                     <textarea
+                        ref={inputRef}
                         value={input}
                         onChange={handleChange}
                         maxLength={MAX_INPUT_LENGTH}
                         placeholder={spell.id === 'suggestion' ? 'e.g., "Drop your weapons and flee!"' : 'Describe the desired effect...'}
                         className={`w-full bg-gray-900 border ${error ? 'border-red-500' : 'border-gray-700'} rounded p-3 text-white min-h-[100px] focus:border-amber-500 focus:outline-none`}
-                        autoFocus
                     />
                     <div className="absolute bottom-2 right-2 text-xs text-gray-500">
                         {input.length}/{MAX_INPUT_LENGTH}

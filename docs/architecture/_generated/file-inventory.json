@@ -1,11 +1,11 @@
 {
   "meta": {
-    "generatedAt": "2025-12-22T08:37:02.978Z",
-    "totalFiles": 1711,
+    "generatedAt": "2025-12-22T15:29:58.697Z",
+    "totalFiles": 1722,
     "byExtension": {
       ".json": 815,
-      ".ts": 597,
-      ".tsx": 175,
+      ".ts": 607,
+      ".tsx": 176,
       ".md": 110,
       ".js": 7,
       ".cjs": 4,
@@ -4112,12 +4112,12 @@
     {
       "path": "scripts/audit_spells.ts",
       "extension": ".ts",
-      "sizeBytes": 1967
+      "sizeBytes": 1968
     },
     {
       "path": "scripts/check-non-ascii.ts",
       "extension": ".ts",
-      "sizeBytes": 6593
+      "sizeBytes": 6566
     },
     {
       "path": "scripts/check-spell-integrity.ts",
@@ -4137,7 +4137,7 @@
     {
       "path": "scripts/debug_validation.ts",
       "extension": ".ts",
-      "sizeBytes": 640
+      "sizeBytes": 680
     },
     {
       "path": "scripts/deep_inspect.ts",
@@ -4147,7 +4147,7 @@
     {
       "path": "scripts/expand-spell-jsons.ts",
       "extension": ".ts",
-      "sizeBytes": 9222
+      "sizeBytes": 9760
     },
     {
       "path": "scripts/extract_cantrip_values.cjs",
@@ -4172,17 +4172,12 @@
     {
       "path": "scripts/gemini_monitor.ts",
       "extension": ".ts",
-      "sizeBytes": 4479
+      "sizeBytes": 4481
     },
     {
       "path": "scripts/generate-architecture-compendium.ts",
       "extension": ".ts",
-      "sizeBytes": 11039
-    },
-    {
-      "path": "scripts/generate-glossary-md-tables.ts",
-      "extension": ".ts",
-      "sizeBytes": 2668
+      "sizeBytes": 11040
     },
     {
       "path": "scripts/generate-spell-manifest.mjs",
@@ -4212,17 +4207,17 @@
     {
       "path": "scripts/migrate-legacy-spells-to-v2.ts",
       "extension": ".ts",
-      "sizeBytes": 9099
+      "sizeBytes": 9331
     },
     {
       "path": "scripts/regenerate-manifest.ts",
       "extension": ".ts",
-      "sizeBytes": 2005
+      "sizeBytes": 2228
     },
     {
       "path": "scripts/update-spell-json-from-references.ts",
       "extension": ".ts",
-      "sizeBytes": 25148
+      "sizeBytes": 24843
     },
     {
       "path": "scripts/validate-data.ts",
@@ -4237,12 +4232,12 @@
     {
       "path": "scripts/validateSpellJsons.ts",
       "extension": ".ts",
-      "sizeBytes": 3147
+      "sizeBytes": 3224
     },
     {
       "path": "scripts/verify-architecture-coverage.ts",
       "extension": ".ts",
-      "sizeBytes": 13192
+      "sizeBytes": 12808
     },
     {
       "path": "src/App.README.md",
@@ -4317,12 +4312,12 @@
     {
       "path": "src/commands/__tests__/CommandExecutor.test.ts",
       "extension": ".ts",
-      "sizeBytes": 1666
+      "sizeBytes": 1688
     },
     {
       "path": "src/commands/__tests__/Concentration.test.ts",
       "extension": ".ts",
-      "sizeBytes": 7236
+      "sizeBytes": 7227
     },
     {
       "path": "src/commands/__tests__/DefensiveCommand.test.ts",
@@ -4337,17 +4332,17 @@
     {
       "path": "src/commands/__tests__/LightMechanics.test.ts",
       "extension": ".ts",
-      "sizeBytes": 7517
+      "sizeBytes": 7304
     },
     {
       "path": "src/commands/__tests__/MovementCommand.test.ts",
       "extension": ".ts",
-      "sizeBytes": 7835
+      "sizeBytes": 7958
     },
     {
       "path": "src/commands/__tests__/SpellCommandFactory.test.ts",
       "extension": ".ts",
-      "sizeBytes": 8188
+      "sizeBytes": 8241
     },
     {
       "path": "src/commands/__tests__/StatusConditionCommand.test.ts",
@@ -4362,7 +4357,7 @@
     {
       "path": "src/commands/__tests__/UtilityCommand.test.ts",
       "extension": ".ts",
-      "sizeBytes": 6637
+      "sizeBytes": 6677
     },
     {
       "path": "src/commands/base/BaseEffectCommand.ts",
@@ -4382,27 +4377,27 @@
     {
       "path": "src/commands/effects/__tests__/DamageCommand.test.ts",
       "extension": ".ts",
-      "sizeBytes": 4037
+      "sizeBytes": 3967
     },
     {
       "path": "src/commands/effects/__tests__/ReactiveEffectCommand.test.ts",
       "extension": ".ts",
-      "sizeBytes": 2311
+      "sizeBytes": 2127
     },
     {
       "path": "src/commands/effects/ConcentrationCommands.ts",
       "extension": ".ts",
-      "sizeBytes": 8470
+      "sizeBytes": 8486
     },
     {
       "path": "src/commands/effects/DamageCommand.ts",
       "extension": ".ts",
-      "sizeBytes": 7094
+      "sizeBytes": 7049
     },
     {
       "path": "src/commands/effects/DefensiveCommand.ts",
       "extension": ".ts",
-      "sizeBytes": 14440
+      "sizeBytes": 14400
     },
     {
       "path": "src/commands/effects/HealingCommand.ts",
@@ -4422,7 +4417,7 @@
     {
       "path": "src/commands/effects/ReactiveEffectCommand.ts",
       "extension": ".ts",
-      "sizeBytes": 9434
+      "sizeBytes": 9452
     },
     {
       "path": "src/commands/effects/RegisterRiderCommand.ts",
@@ -4442,7 +4437,7 @@
     {
       "path": "src/commands/effects/TerrainCommand.ts",
       "extension": ".ts",
-      "sizeBytes": 16362
+      "sizeBytes": 16451
     },
     {
       "path": "src/commands/effects/UtilityCommand.ts",
@@ -4452,12 +4447,12 @@
     {
       "path": "src/commands/factory/__tests__/SpellCommandFactoryAI.test.ts",
       "extension": ".ts",
-      "sizeBytes": 4317
+      "sizeBytes": 4384
     },
     {
       "path": "src/commands/factory/SpellCommandFactory.ts",
       "extension": ".ts",
-      "sizeBytes": 11080
+      "sizeBytes": 11168
     },
     {
       "path": "src/commands/index.ts",
@@ -4492,7 +4487,7 @@
     {
       "path": "src/components/__tests__/GlossaryFullEntryDisplay.test.tsx",
       "extension": ".tsx",
-      "sizeBytes": 2375
+      "sizeBytes": 2354
     },
     {
       "path": "src/components/__tests__/MainMenu.test.tsx",
@@ -4532,12 +4527,12 @@
     {
       "path": "src/components/ActionPane/__tests__/ActionPane.test.tsx",
       "extension": ".tsx",
-      "sizeBytes": 4869
+      "sizeBytes": 4879
     },
     {
       "path": "src/components/ActionPane/ActionButton.tsx",
       "extension": ".tsx",
-      "sizeBytes": 3238
+      "sizeBytes": 3259
     },
     {
       "path": "src/components/ActionPane/index.tsx",
@@ -4547,7 +4542,7 @@
     {
       "path": "src/components/ActionPane/SystemMenu.tsx",
       "extension": ".tsx",
-      "sizeBytes": 5876
+      "sizeBytes": 5834
     },
     {
       "path": "src/components/ActionPane/useActionGeneration.ts",
@@ -4572,17 +4567,17 @@
     {
       "path": "src/components/BattleMap/AbilityPalette.tsx",
       "extension": ".tsx",
-      "sizeBytes": 1643
+      "sizeBytes": 1646
     },
     {
       "path": "src/components/BattleMap/ActionEconomyBar.tsx",
       "extension": ".tsx",
-      "sizeBytes": 5199
+      "sizeBytes": 5247
     },
     {
       "path": "src/components/BattleMap/AISpellInputModal.tsx",
       "extension": ".tsx",
-      "sizeBytes": 3906
+      "sizeBytes": 4086
     },
     {
       "path": "src/components/BattleMap/BattleMap.README.md",
@@ -4667,12 +4662,12 @@
     {
       "path": "src/components/CharacterCreator/AgeSelection.tsx",
       "extension": ".tsx",
-      "sizeBytes": 14435
+      "sizeBytes": 14813
     },
     {
       "path": "src/components/CharacterCreator/BackgroundSelection.tsx",
       "extension": ".tsx",
-      "sizeBytes": 8456
+      "sizeBytes": 8460
     },
     {
       "path": "src/components/CharacterCreator/CharacterCreator.README.md",
@@ -4687,12 +4682,12 @@
     {
       "path": "src/components/CharacterCreator/Class/ArtificerFeatureSelection.tsx",
       "extension": ".tsx",
-      "sizeBytes": 6100
+      "sizeBytes": 6115
     },
     {
       "path": "src/components/CharacterCreator/Class/BardFeatureSelection.tsx",
       "extension": ".tsx",
-      "sizeBytes": 5673
+      "sizeBytes": 5688
     },
     {
       "path": "src/components/CharacterCreator/Class/ClassSelection.tsx",
@@ -4707,7 +4702,7 @@
     {
       "path": "src/components/CharacterCreator/Class/DruidFeatureSelection.tsx",
       "extension": ".tsx",
-      "sizeBytes": 7653
+      "sizeBytes": 7659
     },
     {
       "path": "src/components/CharacterCreator/Class/FighterFeatureSelection.tsx",
@@ -4717,22 +4712,22 @@
     {
       "path": "src/components/CharacterCreator/Class/PaladinFeatureSelection.tsx",
       "extension": ".tsx",
-      "sizeBytes": 3667
+      "sizeBytes": 3674
     },
     {
       "path": "src/components/CharacterCreator/Class/RangerFeatureSelection.tsx",
       "extension": ".tsx",
-      "sizeBytes": 3763
+      "sizeBytes": 3770
     },
     {
       "path": "src/components/CharacterCreator/Class/SorcererFeatureSelection.tsx",
       "extension": ".tsx",
-      "sizeBytes": 5711
+      "sizeBytes": 5718
     },
     {
       "path": "src/components/CharacterCreator/Class/WarlockFeatureSelection.tsx",
       "extension": ".tsx",
-      "sizeBytes": 5725
+      "sizeBytes": 5732
     },
     {
       "path": "src/components/CharacterCreator/Class/WizardFeatureSelection.tsx",
@@ -4752,7 +4747,7 @@
     {
       "path": "src/components/CharacterCreator/FeatSelection.tsx",
       "extension": ".tsx",
-      "sizeBytes": 18327
+      "sizeBytes": 18390
     },
     {
       "path": "src/components/CharacterCreator/FeatSpellPicker.tsx",
@@ -4762,7 +4757,7 @@
     {
       "path": "src/components/CharacterCreator/hooks/useCharacterAssembly.ts",
       "extension": ".ts",
-      "sizeBytes": 21547
+      "sizeBytes": 21918
     },
     {
       "path": "src/components/CharacterCreator/NameAndReview.README.md",
@@ -4847,7 +4842,7 @@
     {
       "path": "src/components/CharacterCreator/Race/RaceSelection.tsx",
       "extension": ".tsx",
-      "sizeBytes": 6331
+      "sizeBytes": 6342
     },
     {
       "path": "src/components/CharacterCreator/Race/RacialSpellAbilitySelection.README.md",
@@ -4857,7 +4852,7 @@
     {
       "path": "src/components/CharacterCreator/Race/RacialSpellAbilitySelection.tsx",
       "extension": ".tsx",
-      "sizeBytes": 4753
+      "sizeBytes": 4767
     },
     {
       "path": "src/components/CharacterCreator/Race/TieflingLegacySelection.tsx",
@@ -4877,7 +4872,7 @@
     {
       "path": "src/components/CharacterCreator/SkillSelection.tsx",
       "extension": ".tsx",
-      "sizeBytes": 12190
+      "sizeBytes": 12192
     },
     {
       "path": "src/components/CharacterCreator/SpellSourceSelector.tsx",
@@ -4902,7 +4897,12 @@
     {
       "path": "src/components/CharacterCreator/WeaponMasterySelection.tsx",
       "extension": ".tsx",
-      "sizeBytes": 11250
+      "sizeBytes": 11269
+    },
+    {
+      "path": "src/components/CharacterSheet/__tests__/CharacterOverview.test.tsx",
+      "extension": ".tsx",
+      "sizeBytes": 2098
     },
     {
       "path": "src/components/CharacterSheet/CharacterOverview.tsx",
@@ -4957,7 +4957,7 @@
     {
       "path": "src/components/CharacterSheetModal.tsx",
       "extension": ".tsx",
-      "sizeBytes": 8207
+      "sizeBytes": 8186
     },
     {
       "path": "src/components/Combat/CombatView.tsx",
@@ -5007,7 +5007,7 @@
     {
       "path": "src/components/DevMenu.tsx",
       "extension": ".tsx",
-      "sizeBytes": 6837
+      "sizeBytes": 7136
     },
     {
       "path": "src/components/Dialogue/DialogueInterface.tsx",
@@ -5027,7 +5027,7 @@
     {
       "path": "src/components/DossierPane.tsx",
       "extension": ".tsx",
-      "sizeBytes": 9287
+      "sizeBytes": 9299
     },
     {
       "path": "src/components/EncounterGenerator/PartyManager.tsx",
@@ -5052,7 +5052,7 @@
     {
       "path": "src/components/GameGuideModal.tsx",
       "extension": ".tsx",
-      "sizeBytes": 11551
+      "sizeBytes": 11499
     },
     {
       "path": "src/components/GeminiLogViewer.README.md",
@@ -5087,12 +5087,12 @@
     {
       "path": "src/components/Glossary/Glossary.tsx",
       "extension": ".tsx",
-      "sizeBytes": 43148
+      "sizeBytes": 45989
     },
     {
       "path": "src/components/Glossary/GlossaryContentRenderer.tsx",
       "extension": ".tsx",
-      "sizeBytes": 7560
+      "sizeBytes": 7713
     },
     {
       "path": "src/components/Glossary/GlossaryDisplay.README.md",
@@ -5122,7 +5122,7 @@
     {
       "path": "src/components/Glossary/SingleGlossaryEntryModal.tsx",
       "extension": ".tsx",
-      "sizeBytes": 3850
+      "sizeBytes": 3838
     },
     {
       "path": "src/components/Glossary/SpellCardTemplate.tsx",
@@ -5132,7 +5132,7 @@
     {
       "path": "src/components/ImageModal.tsx",
       "extension": ".tsx",
-      "sizeBytes": 1613
+      "sizeBytes": 1622
     },
     {
       "path": "src/components/ImagePane.tsx",
@@ -5162,7 +5162,7 @@
     {
       "path": "src/components/LoadGameTransition.tsx",
       "extension": ".tsx",
-      "sizeBytes": 1372
+      "sizeBytes": 1401
     },
     {
       "path": "src/components/LogbookPane.README.md",
@@ -5177,7 +5177,7 @@
     {
       "path": "src/components/MainMenu.tsx",
       "extension": ".tsx",
-      "sizeBytes": 9140
+      "sizeBytes": 9142
     },
     {
       "path": "src/components/MapPane.README.md",
@@ -5187,7 +5187,7 @@
     {
       "path": "src/components/MapPane.tsx",
       "extension": ".tsx",
-      "sizeBytes": 12312
+      "sizeBytes": 12314
     },
     {
       "path": "src/components/MapTile.tsx",
@@ -5197,7 +5197,7 @@
     {
       "path": "src/components/MerchantModal.tsx",
       "extension": ".tsx",
-      "sizeBytes": 13235
+      "sizeBytes": 13183
     },
     {
       "path": "src/components/Minimap.tsx",
@@ -5207,7 +5207,7 @@
     {
       "path": "src/components/MissingChoiceModal.tsx",
       "extension": ".tsx",
-      "sizeBytes": 4603
+      "sizeBytes": 4611
     },
     {
       "path": "src/components/NotFound.tsx",
@@ -5222,7 +5222,7 @@
     {
       "path": "src/components/NpcInteractionTestModal.tsx",
       "extension": ".tsx",
-      "sizeBytes": 7454
+      "sizeBytes": 7468
     },
     {
       "path": "src/components/PartyEditorModal.tsx",
@@ -5237,7 +5237,7 @@
     {
       "path": "src/components/PartyOverlay.tsx",
       "extension": ".tsx",
-      "sizeBytes": 4448
+      "sizeBytes": 4466
     },
     {
       "path": "src/components/PartyPane.README.md",
@@ -5252,7 +5252,7 @@
     {
       "path": "src/components/PassTimeModal.tsx",
       "extension": ".tsx",
-      "sizeBytes": 5095
+      "sizeBytes": 5107
     },
     {
       "path": "src/components/PlayerSprite.tsx",
@@ -5462,7 +5462,7 @@
     {
       "path": "src/components/Town/TownCanvas.tsx",
       "extension": ".tsx",
-      "sizeBytes": 32467
+      "sizeBytes": 33302
     },
     {
       "path": "src/components/Town/TownDevControls.tsx",
@@ -5547,7 +5547,7 @@
     {
       "path": "src/components/ui/LoadingSpinner.tsx",
       "extension": ".tsx",
-      "sizeBytes": 1577
+      "sizeBytes": 1581
     },
     {
       "path": "src/components/ui/SelectionCard.test.tsx",
@@ -5680,6 +5680,11 @@
       "sizeBytes": 3589
     },
     {
+      "path": "src/constants/realmsmith.ts",
+      "extension": ".ts",
+      "sizeBytes": 51
+    },
+    {
       "path": "src/context/GlossaryContext.README.md",
       "extension": ".md",
       "sizeBytes": 3618
@@ -5732,7 +5737,7 @@
     {
       "path": "src/data/classes/index.ts",
       "extension": ".ts",
-      "sizeBytes": 23668
+      "sizeBytes": 23701
     },
     {
       "path": "src/data/classes/README.md",
@@ -5757,7 +5762,7 @@
     {
       "path": "src/data/dev/dummyCharacter.ts",
       "extension": ".ts",
-      "sizeBytes": 10595
+      "sizeBytes": 10597
     },
     {
       "path": "src/data/dndData.ts",
@@ -5837,7 +5842,7 @@
     {
       "path": "src/data/planes.ts",
       "extension": ".ts",
-      "sizeBytes": 7188
+      "sizeBytes": 10001
     },
     {
       "path": "src/data/quests/index.ts",
@@ -6002,7 +6007,7 @@
     {
       "path": "src/data/races/index.ts",
       "extension": ".ts",
-      "sizeBytes": 4216
+      "sizeBytes": 4235
     },
     {
       "path": "src/data/races/orc.README.md",
@@ -6030,6 +6035,11 @@
       "sizeBytes": 1948
     },
     {
+      "path": "src/data/realmsmithBiomes.ts",
+      "extension": ".ts",
+      "sizeBytes": 5942
+    },
+    {
       "path": "src/data/settings/TTS_OPTIONS.README.md",
       "extension": ".md",
       "sizeBytes": 2893
@@ -6052,7 +6062,7 @@
     {
       "path": "src/data/skills/index.ts",
       "extension": ".ts",
-      "sizeBytes": 1630
+      "sizeBytes": 1633
     },
     {
       "path": "src/data/skills/README.md",
@@ -6152,7 +6162,7 @@
     {
       "path": "src/hooks/__tests__/useHistorySync.test.ts",
       "extension": ".ts",
-      "sizeBytes": 9342
+      "sizeBytes": 9405
     },
     {
       "path": "src/hooks/__tests__/useLocalStorage.test.ts",
@@ -6172,7 +6182,7 @@
     {
       "path": "src/hooks/__tests__/useTownController.test.tsx",
       "extension": ".tsx",
-      "sizeBytes": 2403
+      "sizeBytes": 2378
     },
     {
       "path": "src/hooks/actions/__tests__/handleMovement.test.ts",
@@ -6202,7 +6212,7 @@
     {
       "path": "src/hooks/actions/handleEncounter.ts",
       "extension": ".ts",
-      "sizeBytes": 2934
+      "sizeBytes": 3035
     },
     {
       "path": "src/hooks/actions/handleGeminiCustom.README.md",
@@ -6222,12 +6232,12 @@
     {
       "path": "src/hooks/actions/handleItemInteraction.ts",
       "extension": ".ts",
-      "sizeBytes": 7853
+      "sizeBytes": 7862
     },
     {
       "path": "src/hooks/actions/handleMerchantInteraction.ts",
       "extension": ".ts",
-      "sizeBytes": 4301
+      "sizeBytes": 4359
     },
     {
       "path": "src/hooks/actions/handleMovement.README.md",
@@ -6237,7 +6247,7 @@
     {
       "path": "src/hooks/actions/handleMovement.ts",
       "extension": ".ts",
-      "sizeBytes": 28526
+      "sizeBytes": 28510
     },
     {
       "path": "src/hooks/actions/handleNpcInteraction.README.md",
@@ -6247,7 +6257,7 @@
     {
       "path": "src/hooks/actions/handleNpcInteraction.ts",
       "extension": ".ts",
-      "sizeBytes": 6462
+      "sizeBytes": 6446
     },
     {
       "path": "src/hooks/actions/handleObservation.README.md",
@@ -6267,7 +6277,7 @@
     {
       "path": "src/hooks/actions/handleOracle.ts",
       "extension": ".ts",
-      "sizeBytes": 4157
+      "sizeBytes": 4141
     },
     {
       "path": "src/hooks/actions/handleResourceActions.README.md",
@@ -6322,7 +6332,7 @@
     {
       "path": "src/hooks/combat/engine/useCombatEngine.ts",
       "extension": ".ts",
-      "sizeBytes": 15449
+      "sizeBytes": 15451
     },
     {
       "path": "src/hooks/combat/useActionEconomy.ts",
@@ -6332,17 +6342,17 @@
     {
       "path": "src/hooks/combat/useActionExecutor.ts",
       "extension": ".ts",
-      "sizeBytes": 16971
+      "sizeBytes": 16943
     },
     {
       "path": "src/hooks/combat/useCombatAI.ts",
       "extension": ".ts",
-      "sizeBytes": 7086
+      "sizeBytes": 7220
     },
     {
       "path": "src/hooks/combat/useCombatValidation.ts",
       "extension": ".ts",
-      "sizeBytes": 948
+      "sizeBytes": 964
     },
     {
       "path": "src/hooks/combat/useCombatVisuals.ts",
@@ -6357,17 +6367,17 @@
     {
       "path": "src/hooks/combat/useSummons.ts",
       "extension": ".ts",
-      "sizeBytes": 6567
+      "sizeBytes": 6734
     },
     {
       "path": "src/hooks/combat/useTargeting.ts",
       "extension": ".ts",
-      "sizeBytes": 3322
+      "sizeBytes": 3357
     },
     {
       "path": "src/hooks/combat/useTargetSelection.ts",
       "extension": ".ts",
-      "sizeBytes": 2485
+      "sizeBytes": 2611
     },
     {
       "path": "src/hooks/combat/useTurnManager.ts",
@@ -6382,12 +6392,12 @@
     {
       "path": "src/hooks/combat/useTurnOrder.ts",
       "extension": ".ts",
-      "sizeBytes": 5706
+      "sizeBytes": 5700
     },
     {
       "path": "src/hooks/useAbilitySystem.ts",
       "extension": ".ts",
-      "sizeBytes": 28068
+      "sizeBytes": 28654
     },
     {
       "path": "src/hooks/useAudio.README.md",
@@ -6412,7 +6422,7 @@
     {
       "path": "src/hooks/useCharacterAssembly.ts",
       "extension": ".ts",
-      "sizeBytes": 12348
+      "sizeBytes": 12235
     },
     {
       "path": "src/hooks/useCharacterProficiencies.ts",
@@ -6427,7 +6437,7 @@
     {
       "path": "src/hooks/useCompanionCommentary.ts",
       "extension": ".ts",
-      "sizeBytes": 6532
+      "sizeBytes": 7010
     },
     {
       "path": "src/hooks/useFocusTrap.ts",
@@ -6452,7 +6462,7 @@
     {
       "path": "src/hooks/useGameInitialization.ts",
       "extension": ".ts",
-      "sizeBytes": 7705
+      "sizeBytes": 7707
     },
     {
       "path": "src/hooks/useHistorySync.ts",
@@ -6467,7 +6477,7 @@
     {
       "path": "src/hooks/useSpellGateChecks.ts",
       "extension": ".ts",
-      "sizeBytes": 5893
+      "sizeBytes": 5903
     },
     {
       "path": "src/hooks/useSubmapProceduralData.README.md",
@@ -6532,7 +6542,7 @@
     {
       "path": "src/services/__tests__/geminiService.test.ts",
       "extension": ".ts",
-      "sizeBytes": 5816
+      "sizeBytes": 6310
     },
     {
       "path": "src/services/__tests__/geminiServiceFallback.test.ts",
@@ -6547,12 +6557,12 @@
     {
       "path": "src/services/__tests__/legacyService.test.ts",
       "extension": ".ts",
-      "sizeBytes": 6284
+      "sizeBytes": 6296
     },
     {
       "path": "src/services/__tests__/organizationService.test.ts",
       "extension": ".ts",
-      "sizeBytes": 3868
+      "sizeBytes": 3870
     },
     {
       "path": "src/services/__tests__/prompt_inspector.test.ts",
@@ -6567,7 +6577,7 @@
     {
       "path": "src/services/__tests__/strongholdService.test.ts",
       "extension": ".ts",
-      "sizeBytes": 13413
+      "sizeBytes": 13100
     },
     {
       "path": "src/services/__tests__/travelEventService.test.ts",
@@ -6577,7 +6587,7 @@
     {
       "path": "src/services/__tests__/travelService.test.ts",
       "extension": ".ts",
-      "sizeBytes": 3409
+      "sizeBytes": 3457
     },
     {
       "path": "src/services/__tests__/underdarkService.test.ts",
@@ -6600,6 +6610,11 @@
       "sizeBytes": 5028
     },
     {
+      "path": "src/services/BuildingGenerator.ts",
+      "extension": ".ts",
+      "sizeBytes": 21256
+    },
+    {
       "path": "src/services/cellularAutomataService.ts",
       "extension": ".ts",
       "sizeBytes": 7096
@@ -6612,12 +6627,17 @@
     {
       "path": "src/services/characterGenerator.ts",
       "extension": ".ts",
-      "sizeBytes": 9795
+      "sizeBytes": 9990
     },
     {
       "path": "src/services/dialogueService.ts",
       "extension": ".ts",
-      "sizeBytes": 8929
+      "sizeBytes": 8965
+    },
+    {
+      "path": "src/services/DoodadGenerator.ts",
+      "extension": ".ts",
+      "sizeBytes": 9538
     },
     {
       "path": "src/services/EntityResolverService.ts",
@@ -6637,12 +6657,12 @@
     {
       "path": "src/services/geminiService.ts",
       "extension": ".ts",
-      "sizeBytes": 48662
+      "sizeBytes": 48729
     },
     {
       "path": "src/services/geminiServiceFallback.ts",
       "extension": ".ts",
-      "sizeBytes": 3726
+      "sizeBytes": 3728
     },
     {
       "path": "src/services/landmarkService.ts",
@@ -6682,7 +6702,7 @@
     {
       "path": "src/services/realmsmith/painters/BiomePalette.ts",
       "extension": ".ts",
-      "sizeBytes": 1856
+      "sizeBytes": 1858
     },
     {
       "path": "src/services/realmsmith/painters/BuildingPainter.ts",
@@ -6702,7 +6722,7 @@
     {
       "path": "src/services/realmsmith/painters/PlayerPainter.ts",
       "extension": ".ts",
-      "sizeBytes": 5640
+      "sizeBytes": 5642
     },
     {
       "path": "src/services/realmsmith/painters/shared.ts",
@@ -6722,7 +6742,12 @@
     {
       "path": "src/services/RealmSmithTownGenerator.ts",
       "extension": ".ts",
-      "sizeBytes": 52982
+      "sizeBytes": 4670
+    },
+    {
+      "path": "src/services/RoadGenerator.ts",
+      "extension": ".ts",
+      "sizeBytes": 13360
     },
     {
       "path": "src/services/saveLoad.README.md",
@@ -6742,7 +6767,12 @@
     {
       "path": "src/services/strongholdService.ts",
       "extension": ".ts",
-      "sizeBytes": 21225
+      "sizeBytes": 21227
+    },
+    {
+      "path": "src/services/TerrainGenerator.ts",
+      "extension": ".ts",
+      "sizeBytes": 1802
     },
     {
       "path": "src/services/travelEventService.ts",
@@ -6752,7 +6782,7 @@
     {
       "path": "src/services/travelService.ts",
       "extension": ".ts",
-      "sizeBytes": 2754
+      "sizeBytes": 2738
     },
     {
       "path": "src/services/ttsService.README.md",
@@ -6767,12 +6797,12 @@
     {
       "path": "src/services/underdarkService.ts",
       "extension": ".ts",
-      "sizeBytes": 6085
+      "sizeBytes": 6087
     },
     {
       "path": "src/services/villageGenerator.test.ts",
       "extension": ".ts",
-      "sizeBytes": 2347
+      "sizeBytes": 2227
     },
     {
       "path": "src/services/villageGenerator.ts",
@@ -6792,7 +6822,7 @@
     {
       "path": "src/state/actionTypes.ts",
       "extension": ".ts",
-      "sizeBytes": 10693
+      "sizeBytes": 10883
     },
     {
       "path": "src/state/appState.README.md",
@@ -6802,7 +6832,7 @@
     {
       "path": "src/state/appState.ts",
       "extension": ".ts",
-      "sizeBytes": 29109
+      "sizeBytes": 29080
     },
     {
       "path": "src/state/GameContext.tsx",
@@ -6817,7 +6847,7 @@
     {
       "path": "src/state/reducers/__tests__/crimeReducer.heist.test.ts",
       "extension": ".ts",
-      "sizeBytes": 4347
+      "sizeBytes": 4225
     },
     {
       "path": "src/state/reducers/__tests__/crimeReducer.test.ts",
@@ -6827,7 +6857,7 @@
     {
       "path": "src/state/reducers/__tests__/explorationActions.test.ts",
       "extension": ".ts",
-      "sizeBytes": 2820
+      "sizeBytes": 2734
     },
     {
       "path": "src/state/reducers/__tests__/religionReducer.test.ts",
@@ -6852,7 +6882,7 @@
     {
       "path": "src/state/reducers/characterReducer.ts",
       "extension": ".ts",
-      "sizeBytes": 31183
+      "sizeBytes": 31191
     },
     {
       "path": "src/state/reducers/companionReducer.ts",
@@ -6862,7 +6892,7 @@
     {
       "path": "src/state/reducers/crimeReducer.ts",
       "extension": ".ts",
-      "sizeBytes": 15886
+      "sizeBytes": 15890
     },
     {
       "path": "src/state/reducers/dialogueReducer.ts",
@@ -6917,7 +6947,7 @@
     {
       "path": "src/state/reducers/religionReducer.ts",
       "extension": ".ts",
-      "sizeBytes": 7660
+      "sizeBytes": 7662
     },
     {
       "path": "src/state/reducers/ritualReducer.ts",
@@ -6992,7 +7022,7 @@
     {
       "path": "src/systems/companions/__tests__/CompanionReactionSystem.test.ts",
       "extension": ".ts",
-      "sizeBytes": 3394
+      "sizeBytes": 3291
     },
     {
       "path": "src/systems/companions/__tests__/CompanionSystem.test.ts",
@@ -7052,12 +7082,12 @@
     {
       "path": "src/systems/crafting/craftingService.ts",
       "extension": ".ts",
-      "sizeBytes": 3520
+      "sizeBytes": 3522
     },
     {
       "path": "src/systems/crafting/craftingSystem.ts",
       "extension": ".ts",
-      "sizeBytes": 4935
+      "sizeBytes": 4937
     },
     {
       "path": "src/systems/crafting/data/enchantingRecipes.ts",
@@ -7102,12 +7132,12 @@
     {
       "path": "src/systems/crime/__tests__/SmugglingSystem.test.ts",
       "extension": ".ts",
-      "sizeBytes": 4314
+      "sizeBytes": 4181
     },
     {
       "path": "src/systems/crime/__tests__/ThievesGuildSystem.test.ts",
       "extension": ".ts",
-      "sizeBytes": 4377
+      "sizeBytes": 4265
     },
     {
       "path": "src/systems/crime/BlackMarketSystem.ts",
@@ -7117,12 +7147,12 @@
     {
       "path": "src/systems/crime/CrimeSystem.ts",
       "extension": ".ts",
-      "sizeBytes": 3595
+      "sizeBytes": 3597
     },
     {
       "path": "src/systems/crime/fencing/__tests__/FenceSystem.test.ts",
       "extension": ".ts",
-      "sizeBytes": 3822
+      "sizeBytes": 3700
     },
     {
       "path": "src/systems/crime/fencing/FenceSystem.ts",
@@ -7152,7 +7182,7 @@
     {
       "path": "src/systems/economy/__tests__/TradeRouteSystem.test.ts",
       "extension": ".ts",
-      "sizeBytes": 2509
+      "sizeBytes": 2470
     },
     {
       "path": "src/systems/economy/TradeRouteManager.ts",
@@ -7247,12 +7277,12 @@
     {
       "path": "src/systems/naval/__tests__/VoyageManager.test.ts",
       "extension": ".ts",
-      "sizeBytes": 3721
+      "sizeBytes": 3727
     },
     {
       "path": "src/systems/naval/CrewManager.ts",
       "extension": ".ts",
-      "sizeBytes": 8606
+      "sizeBytes": 8608
     },
     {
       "path": "src/systems/naval/NavalCombatSystem.ts",
@@ -7292,7 +7322,7 @@
     {
       "path": "src/systems/planar/__tests__/PlanarIntegration.test.ts",
       "extension": ".ts",
-      "sizeBytes": 3059
+      "sizeBytes": 2963
     },
     {
       "path": "src/systems/planar/__tests__/PlanarService.test.ts",
@@ -7302,7 +7332,7 @@
     {
       "path": "src/systems/planar/__tests__/PortalSystem.test.ts",
       "extension": ".ts",
-      "sizeBytes": 2896
+      "sizeBytes": 2813
     },
     {
       "path": "src/systems/planar/__tests__/rest.test.ts",
@@ -7327,7 +7357,7 @@
     {
       "path": "src/systems/planar/PlanarHazardSystem.ts",
       "extension": ".ts",
-      "sizeBytes": 6107
+      "sizeBytes": 6067
     },
     {
       "path": "src/systems/planar/PlanarService.ts",
@@ -7377,7 +7407,7 @@
     {
       "path": "src/systems/puzzles/pressurePlateSystem.ts",
       "extension": ".ts",
-      "sizeBytes": 6257
+      "sizeBytes": 6259
     },
     {
       "path": "src/systems/puzzles/puzzleSystem.ts",
@@ -7417,12 +7447,12 @@
     {
       "path": "src/systems/rituals/__tests__/RitualConstraints.test.ts",
       "extension": ".ts",
-      "sizeBytes": 3438
+      "sizeBytes": 3329
     },
     {
       "path": "src/systems/rituals/__tests__/RitualManager.test.ts",
       "extension": ".ts",
-      "sizeBytes": 5635
+      "sizeBytes": 5473
     },
     {
       "path": "src/systems/rituals/RitualManager.ts",
@@ -7512,7 +7542,7 @@
     {
       "path": "src/systems/spells/mechanics/__tests__/SavingThrowResolver.test.ts",
       "extension": ".ts",
-      "sizeBytes": 2507
+      "sizeBytes": 2479
     },
     {
       "path": "src/systems/spells/mechanics/__tests__/ScalingEngine.test.ts",
@@ -7572,7 +7602,7 @@
     {
       "path": "src/systems/spells/targeting/__tests__/TargetResolver.test.ts",
       "extension": ".ts",
-      "sizeBytes": 5339
+      "sizeBytes": 5311
     },
     {
       "path": "src/systems/spells/targeting/AoECalculator.ts",
@@ -7612,12 +7642,12 @@
     {
       "path": "src/systems/spells/targeting/TargetAllocator.ts",
       "extension": ".ts",
-      "sizeBytes": 5916
+      "sizeBytes": 5918
     },
     {
       "path": "src/systems/spells/targeting/TargetResolver.ts",
       "extension": ".ts",
-      "sizeBytes": 7226
+      "sizeBytes": 7198
     },
     {
       "path": "src/systems/spells/targeting/TargetValidationUtils.ts",
@@ -7717,12 +7747,12 @@
     {
       "path": "src/systems/world/__tests__/NobleIntrigueManager.test.ts",
       "extension": ".ts",
-      "sizeBytes": 8369
+      "sizeBytes": 8117
     },
     {
       "path": "src/systems/world/__tests__/WorldEventManager.test.ts",
       "extension": ".ts",
-      "sizeBytes": 5531
+      "sizeBytes": 5391
     },
     {
       "path": "src/systems/world/FactionManager.ts",
@@ -7732,17 +7762,22 @@
     {
       "path": "src/systems/world/NobleIntrigueManager.ts",
       "extension": ".ts",
-      "sizeBytes": 8209
+      "sizeBytes": 8213
     },
     {
       "path": "src/systems/world/WorldEventManager.ts",
       "extension": ".ts",
-      "sizeBytes": 17848
+      "sizeBytes": 17852
     },
     {
       "path": "src/test/config.test.ts",
       "extension": ".ts",
-      "sizeBytes": 1536
+      "sizeBytes": 1500
+    },
+    {
+      "path": "src/test/glossaryData.test.ts",
+      "extension": ".ts",
+      "sizeBytes": 1321
     },
     {
       "path": "src/test/setup.ts",
@@ -7765,9 +7800,14 @@
       "sizeBytes": 3029
     },
     {
+      "path": "src/types/actions.ts",
+      "extension": ".ts",
+      "sizeBytes": 5233
+    },
+    {
       "path": "src/types/character.ts",
       "extension": ".ts",
-      "sizeBytes": 13048
+      "sizeBytes": 13131
     },
     {
       "path": "src/types/combat.ts",
@@ -7857,7 +7897,7 @@
     {
       "path": "src/types/index.ts",
       "extension": ".ts",
-      "sizeBytes": 22886
+      "sizeBytes": 1215
     },
     {
       "path": "src/types/infernal.ts",
@@ -7950,6 +7990,11 @@
       "sizeBytes": 26796
     },
     {
+      "path": "src/types/state.ts",
+      "extension": ".ts",
+      "sizeBytes": 5869
+    },
+    {
       "path": "src/types/stronghold.ts",
       "extension": ".ts",
       "sizeBytes": 3803
@@ -7963,6 +8008,11 @@
       "path": "src/types/travel.ts",
       "extension": ".ts",
       "sizeBytes": 2233
+    },
+    {
+      "path": "src/types/ui.ts",
+      "extension": ".ts",
+      "sizeBytes": 2298
     },
     {
       "path": "src/types/underdark.ts",
@@ -7980,6 +8030,11 @@
       "sizeBytes": 10659
     },
     {
+      "path": "src/types/world.ts",
+      "extension": ".ts",
+      "sizeBytes": 6711
+    },
+    {
       "path": "src/utils/__tests__/aoeCalculations.test.ts",
       "extension": ".ts",
       "sizeBytes": 4915
@@ -7992,7 +8047,7 @@
     {
       "path": "src/utils/__tests__/characterValidation.test.ts",
       "extension": ".ts",
-      "sizeBytes": 8829
+      "sizeBytes": 8795
     },
     {
       "path": "src/utils/__tests__/coinPurseUtils.test.ts",
@@ -8007,7 +8062,7 @@
     {
       "path": "src/utils/__tests__/combatUtils_character.test.ts",
       "extension": ".ts",
-      "sizeBytes": 5222
+      "sizeBytes": 5052
     },
     {
       "path": "src/utils/__tests__/combatUtils_cover.test.ts",
@@ -8057,7 +8112,7 @@
     {
       "path": "src/utils/__tests__/factories.test.ts",
       "extension": ".ts",
-      "sizeBytes": 5052
+      "sizeBytes": 5022
     },
     {
       "path": "src/utils/__tests__/glossaryUtils.test.ts",
@@ -8097,7 +8152,7 @@
     {
       "path": "src/utils/__tests__/movementRules.test.ts",
       "extension": ".ts",
-      "sizeBytes": 3583
+      "sizeBytes": 3470
     },
     {
       "path": "src/utils/__tests__/navalCombatUtils.test.ts",
@@ -8107,7 +8162,7 @@
     {
       "path": "src/utils/__tests__/navalUtils.test.ts",
       "extension": ".ts",
-      "sizeBytes": 6180
+      "sizeBytes": 6198
     },
     {
       "path": "src/utils/__tests__/networkUtils.test.ts",
@@ -8142,7 +8197,7 @@
     {
       "path": "src/utils/__tests__/planarUtils_atmosphere.test.ts",
       "extension": ".ts",
-      "sizeBytes": 698
+      "sizeBytes": 703
     },
     {
       "path": "src/utils/__tests__/planarUtils.test.ts",
@@ -8167,17 +8222,17 @@
     {
       "path": "src/utils/__tests__/securityUtils.test.ts",
       "extension": ".ts",
-      "sizeBytes": 3241
+      "sizeBytes": 3208
     },
     {
       "path": "src/utils/__tests__/statUtils.test.ts",
       "extension": ".ts",
-      "sizeBytes": 12962
+      "sizeBytes": 12613
     },
     {
       "path": "src/utils/__tests__/storageUtils.test.ts",
       "extension": ".ts",
-      "sizeBytes": 3760
+      "sizeBytes": 3748
     },
     {
       "path": "src/utils/__tests__/timeUtils.test.ts",
@@ -8207,7 +8262,7 @@
     {
       "path": "src/utils/aoeCalculations.ts",
       "extension": ".ts",
-      "sizeBytes": 10445
+      "sizeBytes": 10460
     },
     {
       "path": "src/utils/characterUtils.README.md",
@@ -8217,7 +8272,7 @@
     {
       "path": "src/utils/characterUtils.ts",
       "extension": ".ts",
-      "sizeBytes": 28588
+      "sizeBytes": 28621
     },
     {
       "path": "src/utils/characterValidation.ts",
@@ -8252,7 +8307,7 @@
     {
       "path": "src/utils/combatUtils.ts",
       "extension": ".ts",
-      "sizeBytes": 24992
+      "sizeBytes": 25044
     },
     {
       "path": "src/utils/companionFactories.ts",
@@ -8302,7 +8357,7 @@
     {
       "path": "src/utils/factories.ts",
       "extension": ".ts",
-      "sizeBytes": 12264
+      "sizeBytes": 12270
     },
     {
       "path": "src/utils/glossaryUtils.ts",
@@ -8322,7 +8377,7 @@
     {
       "path": "src/utils/i18n.ts",
       "extension": ".ts",
-      "sizeBytes": 1736
+      "sizeBytes": 1822
     },
     {
       "path": "src/utils/identityUtils.ts",
@@ -8337,7 +8392,7 @@
     {
       "path": "src/utils/lineOfSight.ts",
       "extension": ".ts",
-      "sizeBytes": 2562
+      "sizeBytes": 2638
     },
     {
       "path": "src/utils/locationUtils.ts",
@@ -8347,7 +8402,7 @@
     {
       "path": "src/utils/logger.ts",
       "extension": ".ts",
-      "sizeBytes": 2369
+      "sizeBytes": 2361
     },
     {
       "path": "src/utils/memoryUtils.ts",
@@ -8362,7 +8417,7 @@
     {
       "path": "src/utils/navalCombatUtils.ts",
       "extension": ".ts",
-      "sizeBytes": 5780
+      "sizeBytes": 5827
     },
     {
       "path": "src/utils/navalUtils.ts",
@@ -8372,7 +8427,7 @@
     {
       "path": "src/utils/networkUtils.ts",
       "extension": ".ts",
-      "sizeBytes": 4086
+      "sizeBytes": 4316
     },
     {
       "path": "src/utils/nobleHouseGenerator.ts",
@@ -8437,7 +8492,7 @@
     {
       "path": "src/utils/securityUtils.ts",
       "extension": ".ts",
-      "sizeBytes": 5863
+      "sizeBytes": 5859
     },
     {
       "path": "src/utils/seededRandom.ts",
@@ -8462,12 +8517,12 @@
     {
       "path": "src/utils/spellAbilityFactory.ts",
       "extension": ".ts",
-      "sizeBytes": 14390
+      "sizeBytes": 14534
     },
     {
       "path": "src/utils/spellFilterUtils.ts",
       "extension": ".ts",
-      "sizeBytes": 6292
+      "sizeBytes": 6279
     },
     {
       "path": "src/utils/spellUtils.README.md",
@@ -8477,12 +8532,12 @@
     {
       "path": "src/utils/spellUtils.ts",
       "extension": ".ts",
-      "sizeBytes": 4364
+      "sizeBytes": 4349
     },
     {
       "path": "src/utils/statUtils.ts",
       "extension": ".ts",
-      "sizeBytes": 8943
+      "sizeBytes": 8969
     },
     {
       "path": "src/utils/storageUtils.ts",
@@ -8492,17 +8547,17 @@
     {
       "path": "src/utils/submapUtils.ts",
       "extension": ".ts",
-      "sizeBytes": 13990
+      "sizeBytes": 13976
     },
     {
       "path": "src/utils/targetingUtils.ts",
       "extension": ".ts",
-      "sizeBytes": 4734
+      "sizeBytes": 4736
     },
     {
       "path": "src/utils/templeUtils.ts",
       "extension": ".ts",
-      "sizeBytes": 5041
+      "sizeBytes": 4997
     },
     {
       "path": "src/utils/testUtils.ts",
@@ -8532,7 +8587,7 @@
     {
       "path": "src/utils/validation/__tests__/spellConsistency.test.ts",
       "extension": ".ts",
-      "sizeBytes": 2191
+      "sizeBytes": 2136
     },
     {
       "path": "src/utils/validation/spellAuditor.ts",
@@ -8542,12 +8597,12 @@
     {
       "path": "src/utils/validation/spellConsistencyValidator.ts",
       "extension": ".ts",
-      "sizeBytes": 4752
+      "sizeBytes": 4740
     },
     {
       "path": "src/utils/visuals/spellVisuals.ts",
       "extension": ".ts",
-      "sizeBytes": 2541
+      "sizeBytes": 2543
     },
     {
       "path": "src/utils/visualUtils.ts",

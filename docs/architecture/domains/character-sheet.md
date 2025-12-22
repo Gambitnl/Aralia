@@ -26,7 +26,7 @@ The Character Sheet Modal displays comprehensive character information including
 | Path | Type | Description |
 |------|------|-------------|
 | `src/components/CharacterSheetModal.tsx` | Component | Main modal |
-| `src/components/CharacterSheet/*.tsx` | Directory | Sheet sub-components |
+| `src/components/CharacterSheet/**/*.tsx` | Directory | Sheet sub-components and tests |
 | `src/components/Party*.tsx` | Component | Party management UI |
 | `src/components/SpellbookOverlay.tsx` | Component | Spell management |
 | `src/utils/character*.ts` | Utils | Character logic |

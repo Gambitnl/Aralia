@@ -4,7 +4,7 @@
  * A modal component for granularly passing time in the game.
  */
 import React, { useState, useMemo, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 import { formatGameTime, getGameDay, addGameTime } from '@/utils/timeUtils';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 
@@ -23,6 +23,18 @@ interface PassTimeModalProps {
   onConfirm: (totalSeconds: number) => void;
   currentTime: Date;
 }
+
+const overlayMotion: MotionProps = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+};
+
+const modalMotion: MotionProps = {
+  initial: { y: -30, opacity: 0 },
+  animate: { y: 0, opacity: 1 },
+  exit: { y: -30, opacity: 0 },
+};
 
 const PassTimeModal: React.FC<PassTimeModalProps> = ({ isOpen, onClose, onConfirm, currentTime }) => {
   const [time, setTime] = useState<TimeInputState>({
@@ -80,11 +92,7 @@ const PassTimeModal: React.FC<PassTimeModalProps> = ({ isOpen, onClose, onConfir
 
   return (
     <motion.div
-      {...{
-        initial: { opacity: 0 },
-        animate: { opacity: 1 },
-        exit: { opacity: 0 },
-      } as any}
+      {...overlayMotion}
       className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
       onClick={onClose}
       aria-modal="true"
@@ -93,11 +101,7 @@ const PassTimeModal: React.FC<PassTimeModalProps> = ({ isOpen, onClose, onConfir
     >
       <motion.div
         ref={modalRef}
-        {...{
-          initial: { y: -30, opacity: 0 },
-          animate: { y: 0, opacity: 1 },
-          exit: { y: -30, opacity: 0 },
-        } as any}
+        {...modalMotion}
         className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-md focus:outline-none"
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}

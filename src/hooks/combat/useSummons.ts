@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
-import { CombatCharacter } from '../../types/combat';
+import { CombatCharacter, ActionCostType, AbilityEffect } from '../../types/combat';
 import { Spell, SummoningEffect, FamiliarContract } from '../../types/spells';
 import { generateId } from '../../utils/combatUtils';
 import { getSummonTemplate, SummonTemplate } from '../../data/summonTemplates';
+import { Class } from '../../types/character';
 
 interface UseSummonsProps {
     onSummonAdded?: (summon: CombatCharacter) => void;
@@ -18,7 +19,7 @@ interface ResolvedSummonEffect extends Partial<SummoningEffect> {
     // Additional runtime fields used in addSummon
     statBlock?: SummonTemplate;
     formOptions?: string[];
-    specialActions?: any[]; // Keep any for now or define a stricter Action type if possible
+    specialActions?: { name: string; description: string; cost?: string; damage?: { dice: string; type: string } }[];
     entityType?: string; // Appears to be an alias or legacy field for summonType
     dismissAction?: boolean;
 }
@@ -74,7 +75,7 @@ export const useSummons = ({ onSummonAdded, onSummonRemoved }: UseSummonsProps =
                 speed: statBlock.speed || 30,
                 cr: statBlock.cr ? String(statBlock.cr) : "0"
             },
-            abilities: (summonEffect.specialActions || []).map((action: any, index: number) => {
+            abilities: (summonEffect.specialActions || []).map((action, index: number) => {
                 const isAttack = !!action.damage;
                 // Calculate average damage for the value field (e.g., "1d6" -> 3.5 -> 3)
                 let effectValue = 0;
@@ -93,13 +94,13 @@ export const useSummons = ({ onSummonAdded, onSummonRemoved }: UseSummonsProps =
                     name: action.name,
                     description: action.description,
                     type: isAttack ? 'attack' : 'utility',
-                    cost: { type: action.cost || 'action' },
+                    cost: { type: (action.cost as ActionCostType) || 'action' },
                     targeting: isAttack ? 'single_enemy' : 'self', // Default assumption
                     range: isAttack ? 5 : 0, // Default to melee range
                     effects: action.damage ? [{
                         type: 'damage',
                         value: effectValue,
-                        damageType: action.damage.type || 'physical'
+                        damageType: (action.damage.type as AbilityEffect['damageType']) || 'physical'
                     }] : [],
                     icon: isAttack ? '⚔️' : '✨'
                 };
@@ -107,7 +108,7 @@ export const useSummons = ({ onSummonAdded, onSummonRemoved }: UseSummonsProps =
             statusEffects: [],
             conditions: [],
             level: 1, // Default for summons
-            class: 'Monster' as any, // Or specific class if applicable
+            class: 'Monster' as unknown as Class, // Or specific class if applicable
             initiative: 0,
             actionEconomy: {
                 action: { used: false, remaining: 1 },
@@ -136,7 +137,7 @@ export const useSummons = ({ onSummonAdded, onSummonRemoved }: UseSummonsProps =
         if (onSummonRemoved) onSummonRemoved(summonId);
     }, [onSummonRemoved]);
 
-    const updateSummons = useCallback((activeRound: number) => {
+    const _updateSummons = useCallback((_activeRound: number) => {
         // Decrement duration logic could go here if managed centrally
         // For now, rely on TurnManager to handle generic duration if added as status effect
     }, []);

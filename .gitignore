@@ -47,7 +47,18 @@ nul
 public/assets/images/
 
 # Jules Agent Personas
-# .jules/  # TEMP
+# Aralia Uplink
+.uplink/
+.uplink/data/
+.uplink/attachments/
+.uplink/.*last_seen
+.uplink/*.log
+
+# Jules Agent State
+.jules/lint_output.txt
+.jules/claude_last_seen_id.txt
+.jules/codex_last_seen_id.txt
+.jules/LAST_CONVERSATION_SUMMARY.md
 
 # Sideprojects
 sideprojects/basic-chat/

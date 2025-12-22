@@ -2,7 +2,7 @@ import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { DefensiveEffect, isDefensiveEffect } from '@/types/spells'
 import { CombatState, CombatCharacter, ActiveEffect } from '@/types/combat'
-import { getAbilityModifierValue, calculateFinalAC, ACComponents } from '@/utils/statUtils';
+import { calculateFinalAC } from '@/utils/statUtils';
 
 /**
  * Calculates AC for a CombatCharacter using the shared statUtils logic.

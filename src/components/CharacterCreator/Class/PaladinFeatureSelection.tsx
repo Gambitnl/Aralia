@@ -4,7 +4,7 @@
  * their initial known Level 1 spells.
  */
 import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 import { Spell, Class as CharClass } from '../../../types';
 
 interface PaladinFeatureSelectionProps {
@@ -13,6 +13,13 @@ interface PaladinFeatureSelectionProps {
   onPaladinFeaturesSelect: (spellsL1: Spell[]) => void;
   onBack: () => void;
 }
+
+const containerMotion: MotionProps = {
+  initial: { x: 300, opacity: 0 },
+  animate: { x: 0, opacity: 1 },
+  exit: { x: -300, opacity: 0 },
+  transition: { duration: 0.3, ease: 'easeInOut' },
+};
 
 const PaladinFeatureSelection: React.FC<PaladinFeatureSelectionProps> = ({
   spellcastingInfo,
@@ -51,13 +58,8 @@ const PaladinFeatureSelection: React.FC<PaladinFeatureSelectionProps> = ({
 
   return (
     <motion.div
-      {...{
-        key: "paladinFeatures",
-        initial: { x: 300, opacity: 0 },
-        animate: { x: 0, opacity: 1 },
-        exit: { x: -300, opacity: 0 },
-        transition: { duration: 0.3, ease: 'easeInOut' },
-      } as any}
+      key="paladinFeatures"
+      {...containerMotion}
     >
       <h2 className="text-2xl text-sky-300 mb-4 text-center">Paladin Spell Selection</h2>
       

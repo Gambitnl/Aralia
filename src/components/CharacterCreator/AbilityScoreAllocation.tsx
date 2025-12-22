@@ -67,7 +67,7 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
     setFirstUnaffordableScore(firstUnaffordable);
   }, [baseScores]);
 
-  const calculateFinalScore = useCallback(
+  const _calculateFinalScore = useCallback(
     (abilityName: AbilityScoreName, baseVal: number): number => {
       const racialBonus = race.abilityBonuses?.find((b) => b.ability === abilityName)?.bonus || 0;
       return baseVal + racialBonus;

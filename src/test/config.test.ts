@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 // Mock import.meta.env before importing the config
 // Vitest handles import.meta.env automatically, but we can override it if needed.

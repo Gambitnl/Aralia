@@ -1,11 +1,8 @@
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ReactiveEffectCommand } from '../ReactiveEffectCommand';
-import { logger } from '../../utils/logger';
 import { createMockCombatCharacter } from '../../../utils/factories';
-import { CombatState } from '../../../types/combat';
-import { MovementEventEmitter } from '../../systems/combat/MovementEventEmitter';
-import { AttackEventEmitter } from '../../systems/combat/AttackEventEmitter';
+import { CombatCharacter, CombatState } from '../../../types/combat';
 
 // Mock logger
 vi.mock('../../utils/logger', () => ({
@@ -19,8 +16,8 @@ vi.mock('../../utils/logger', () => ({
 
 describe('ReactiveEffectCommand Security Check', () => {
     let mockState: CombatState;
-    let caster: any;
-    let target: any;
+    let caster: CombatCharacter;
+    let target: CombatCharacter;
 
     beforeEach(() => {
         caster = createMockCombatCharacter({ id: 'caster-1', name: 'Wizard' });

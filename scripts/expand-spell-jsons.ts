@@ -1,5 +1,4 @@
 import fs from 'fs';
-import path from 'path';
 import { globSync } from 'glob';
 
 /**
@@ -22,6 +21,12 @@ import { globSync } from 'glob';
 const SHOULD_WRITE = process.argv.includes('--write');
 
 const SPELL_DATA_DIR = 'public/data/spells/**/*.json';
+
+type JsonValue = string | number | boolean | null | JsonObject | JsonValue[];
+type JsonObject = Record<string, JsonValue>;
+
+const isJsonObject = (value: JsonValue | unknown): value is JsonObject =>
+    typeof value === 'object' && value !== null && !Array.isArray(value);
 
 /**
  * NESTED TEMPLATES
@@ -146,20 +151,24 @@ const MASTER_TEMPLATE = {
     tags: []
 };
 
-function deepMerge(target: any, template: any): any {
+function deepMerge(target: JsonValue | undefined, template: JsonObject): JsonObject {
     if (target === null || target === undefined) return template;
-    if (typeof template !== 'object' || Array.isArray(template)) return target;
 
-    const result = { ...target };
+    const targetObject = isJsonObject(target) ? target : {};
+    const result: JsonObject = { ...targetObject };
 
-    for (const key in template) {
+    for (const key of Object.keys(template)) {
         const templateValue = template[key];
-        const targetValue = target[key];
+        const targetValue = targetObject[key];
 
         if (Array.isArray(templateValue)) {
-            result[key] = Array.isArray(targetValue) ? targetValue : (targetValue !== undefined ? [targetValue] : templateValue);
-        } else if (templateValue !== null && typeof templateValue === 'object') {
-            result[key] = deepMerge(targetValue || {}, templateValue);
+            result[key] = Array.isArray(targetValue)
+                ? targetValue
+                : targetValue !== undefined
+                    ? [targetValue]
+                    : templateValue;
+        } else if (isJsonObject(templateValue)) {
+            result[key] = deepMerge(targetValue, templateValue);
         } else {
             result[key] = targetValue !== undefined ? targetValue : templateValue;
         }
@@ -168,7 +177,7 @@ function deepMerge(target: any, template: any): any {
     return result;
 }
 
-function expandEffect(effect: any): any {
+function expandEffect(effect: JsonObject): JsonObject {
     let expanded = deepMerge(effect, {
         trigger: EFFECT_TRIGGER_TEMPLATE,
         condition: EFFECT_CONDITION_TEMPLATE,
@@ -176,18 +185,24 @@ function expandEffect(effect: any): any {
         description: ""
     });
 
-    if (expanded.condition.targetFilter) {
-        expanded.condition.targetFilter = deepMerge(expanded.condition.targetFilter, TARGET_CONDITION_FILTER_TEMPLATE);
-    }
-    if (Array.isArray(expanded.condition.saveModifiers)) {
-        expanded.condition.saveModifiers = expanded.condition.saveModifiers.map((m: any) => deepMerge(m, SAVE_MODIFIER_TEMPLATE));
+    const condition = expanded.condition;
+    if (isJsonObject(condition)) {
+        if (condition.targetFilter) {
+            condition.targetFilter = deepMerge(condition.targetFilter as JsonValue, TARGET_CONDITION_FILTER_TEMPLATE);
+        }
+        if (Array.isArray(condition.saveModifiers)) {
+            condition.saveModifiers = condition.saveModifiers.map((modifier) =>
+                deepMerge(modifier as JsonValue, SAVE_MODIFIER_TEMPLATE)
+            );
+        }
     }
 
-    if (expanded.type === "DAMAGE") {
+    const expandedType = typeof expanded.type === 'string' ? expanded.type : undefined;
+    if (expandedType === "DAMAGE") {
         expanded = deepMerge(expanded, { damage: { dice: "", type: "" } });
-    } else if (expanded.type === "HEALING") {
+    } else if (expandedType === "HEALING") {
         expanded = deepMerge(expanded, { healing: { dice: "", isTemporaryHp: false } });
-    } else if (expanded.type === "STATUS_CONDITION") {
+    } else if (expandedType === "STATUS_CONDITION") {
         expanded = deepMerge(expanded, {
             statusCondition: {
                 name: "",
@@ -197,7 +212,7 @@ function expandEffect(effect: any): any {
                 repeatSave: { timing: "turn_end", saveType: "Wisdom", successEnds: true, useOriginalDC: true }
             }
         });
-    } else if (expanded.type === "MOVEMENT") {
+    } else if (expandedType === "MOVEMENT") {
         expanded = deepMerge(expanded, {
             movementType: "push",
             distance: 0,
@@ -205,7 +220,7 @@ function expandEffect(effect: any): any {
             duration: { type: "rounds", value: 0 },
             forcedMovement: { usesReaction: false, direction: "away_from_caster", maxDistance: "" }
         });
-    } else if (expanded.type === "TERRAIN") {
+    } else if (expandedType === "TERRAIN") {
         expanded = deepMerge(expanded, {
             terrainType: "difficult",
             areaOfEffect: { shape: "Sphere", size: 0, height: 0 },
@@ -215,7 +230,7 @@ function expandEffect(effect: any): any {
             dispersedByStrongWind: false,
             manipulation: { type: "cosmetic", volume: { shape: "Cube", size: 0, depth: 0 }, duration: { type: "rounds", value: 0 }, depositDistance: 0 }
         });
-    } else if (expanded.type === "UTILITY") {
+    } else if (expandedType === "UTILITY") {
         expanded = deepMerge(expanded, {
             utilityType: "other",
             description: "",
@@ -226,7 +241,7 @@ function expandEffect(effect: any): any {
             savePenalty: { dice: "", flat: 0, applies: "next_save", duration: { type: "rounds", value: 0 } },
             light: { brightRadius: 0, dimRadius: 0, attachedTo: "caster", color: "" }
         });
-    } else if (expanded.type === "DEFENSIVE") {
+    } else if (expandedType === "DEFENSIVE") {
         expanded = deepMerge(expanded, {
             defenseType: "ac_bonus",
             value: 0,
@@ -248,18 +263,20 @@ function processSpell(filePath: string) {
     const content = fs.readFileSync(filePath, 'utf-8');
     const spellData = JSON.parse(content);
 
-    const expandedData = deepMerge(spellData, MASTER_TEMPLATE);
+    const expandedData = deepMerge(spellData as JsonValue, MASTER_TEMPLATE);
 
     if (expandedData.arbitrationType === "") {
         expandedData.arbitrationType = "mechanical";
     }
 
     if (Array.isArray(expandedData.effects)) {
-        expandedData.effects = expandedData.effects.map(expandEffect);
+        expandedData.effects = expandedData.effects.map((effect) =>
+            isJsonObject(effect) ? expandEffect(effect) : effect
+        );
     }
 
     // Re-order keys to match MASTER_TEMPLATE for consistency
-    const orderedData: any = {};
+    const orderedData: JsonObject = {};
     Object.keys(MASTER_TEMPLATE).forEach(key => {
         orderedData[key] = expandedData[key];
     });

@@ -5,9 +5,7 @@
 
 import {
   ConversationTopic,
-  TopicPrerequisite,
-  DialogueSession,
-  NPCKnowledgeProfile
+  DialogueSession
 } from '../types/dialogue';
 import { GameState, QuestStatus, Item, NPC } from '../types/index';
 import { rollDice } from '../utils/combatUtils';
@@ -40,19 +38,21 @@ export function checkTopicPrerequisites(
     let met = false;
 
     switch (prereq.type) {
-      case 'relationship':
+      case 'relationship': {
         const memory = gameState.npcMemory[npcId];
         const disposition = memory ? memory.disposition : 0;
         met = disposition >= (Number(prereq.value) || 0);
         break;
+      }
 
-      case 'topic_known':
+      case 'topic_known': {
         met = gameState.discoveryLog.some(entry =>
            entry.flags.some(f => f.key === 'topic_unlocked' && f.value === prereq.targetId)
         );
         break;
+      }
 
-      case 'quest_status':
+      case 'quest_status': {
         const quest = gameState.questLog.find(q => q.id === prereq.targetId);
         const requiredStatus = prereq.value as QuestStatus;
         if (!quest) {
@@ -61,8 +61,9 @@ export function checkTopicPrerequisites(
             met = quest.status === requiredStatus;
         }
         break;
+      }
 
-      case 'item_owned':
+      case 'item_owned': {
         if (!prereq.targetId) { met = false; break; }
         // Count total quantity, handling both unstacked objects and stacked items (if 'count' or 'quantity' exists)
         const totalQuantity = gameState.inventory.reduce((sum, item: Item & { count?: number; quantity?: number }) => {
@@ -74,15 +75,18 @@ export function checkTopicPrerequisites(
         const requiredCount = Number(prereq.value) || 1;
         met = totalQuantity >= requiredCount;
         break;
+      }
 
-      case 'min_gold':
+      case 'min_gold': {
         const requiredGold = Number(prereq.value) || 0;
         met = gameState.gold >= requiredGold;
         break;
+      }
 
-      case 'faction_standing':
+      case 'faction_standing': {
         met = true; // Placeholder
         break;
+      }
     }
 
     return prereq.negate ? !met : met;
@@ -97,7 +101,7 @@ export function checkTopicPrerequisites(
 export function canNPCDiscuss(
   topic: ConversationTopic,
   npc: NPC,
-  disposition: number
+  _disposition: number
 ): boolean {
   // 1. Check if the topic is globally available (generic topics like "Weather" or "Who are you")
   if (topic.isGlobal) {
@@ -112,7 +116,7 @@ export function canNPCDiscuss(
     return false;
   }
 
-  const { topicOverrides, baseOpenness } = npc.knowledgeProfile;
+  const { topicOverrides, baseOpenness: _baseOpenness } = npc.knowledgeProfile;
 
   // 3. Check specific knowledge override
   const override = topicOverrides[topic.id];

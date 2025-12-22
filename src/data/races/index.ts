@@ -6,31 +6,31 @@
  * It also re-exports specific data like `DRAGONBORN_ANCESTRIES_DATA`.
  */
 import type { Race } from '../../types'; // Path relative to src/data/races/
-import { AARAKOCRA_DATA } from './aarakocra.ts';
-import { AASIMAR_DATA } from './aasimar.ts';
-import { AIR_GENASI_DATA } from './air_genasi.ts';
-import { BUGBEAR_DATA } from './bugbear.ts';
-import { CENTAUR_DATA } from './centaur.ts';
-import { CHANGELING_DATA } from './changeling.ts';
-import { DRAGONBORN_ANCESTRIES_DATA, DRAGONBORN_DATA } from './dragonborn.ts';
-import { DUERGAR_DATA } from './duergar.ts';
-import { DWARF_DATA } from './dwarf.ts';
-import { EARTH_GENASI_DATA } from './earth_genasi.ts';
-import { ELF_DATA } from './elf.ts';
-import { ELADRIN_DATA } from './eladrin.ts';
-import { FAIRY_DATA } from './fairy.ts';
-import { FIENDISH_LEGACIES_DATA, TIEFLING_DATA } from './tiefling.ts';
-import { FIRBOLG_DATA } from './firbolg.ts';
-import { FIRE_GENASI_DATA } from './fire_genasi.ts';
-import { GIANT_ANCESTRY_BENEFITS_DATA, GOLIATH_DATA } from './goliath.ts';
-import { GITHYANKI_DATA } from './githyanki.ts';
-import { GITHZERAI_DATA } from './githzerai.ts';
-import { GNOME_DATA, GNOME_SUBRACES_DATA } from './gnome.ts';
-import { GOBLIN_DATA } from './goblin.ts';
-import { HALFLING_DATA } from './halfling.ts';
-import { HUMAN_DATA } from './human.ts';
-import { ORC_DATA } from './orc.ts';
-import { WATER_GENASI_DATA } from './water_genasi.ts';
+import { AARAKOCRA_DATA } from './aarakocra';
+import { AASIMAR_DATA } from './aasimar';
+import { AIR_GENASI_DATA } from './air_genasi';
+import { BUGBEAR_DATA } from './bugbear';
+import { CENTAUR_DATA } from './centaur';
+import { CHANGELING_DATA } from './changeling';
+import { DRAGONBORN_ANCESTRIES_DATA, DRAGONBORN_DATA } from './dragonborn';
+import { DUERGAR_DATA } from './duergar';
+import { DWARF_DATA } from './dwarf';
+import { EARTH_GENASI_DATA } from './earth_genasi';
+import { ELF_DATA } from './elf';
+import { ELADRIN_DATA } from './eladrin';
+import { FAIRY_DATA } from './fairy';
+import { FIENDISH_LEGACIES_DATA, TIEFLING_DATA } from './tiefling';
+import { FIRBOLG_DATA } from './firbolg';
+import { FIRE_GENASI_DATA } from './fire_genasi';
+import { GIANT_ANCESTRY_BENEFITS_DATA, GOLIATH_DATA } from './goliath';
+import { GITHYANKI_DATA } from './githyanki';
+import { GITHZERAI_DATA } from './githzerai';
+import { GNOME_DATA, GNOME_SUBRACES_DATA } from './gnome';
+import { GOBLIN_DATA } from './goblin';
+import { HALFLING_DATA } from './halfling';
+import { HUMAN_DATA } from './human';
+import { ORC_DATA } from './orc';
+import { WATER_GENASI_DATA } from './water_genasi';
 
 /**
  * A frozen array of all active races, ensuring runtime immutability.

@@ -1,6 +1,7 @@
 import React from 'react';
 import { RefreshCw, Download, TreeDeciduous, Home, Compass, BookOpen } from 'lucide-react';
 import { BiomeType, TownDensity } from '../../types/realmsmith';
+import type { Action } from '../../types';
 
 interface TownDevControlsProps {
     seed: number;
@@ -14,7 +15,7 @@ interface TownDevControlsProps {
     toggleConnection: (dir: keyof TownDevControlsProps['connections']) => void;
     loading: boolean;
     generateMap: () => void;
-    onAction: (action: any) => void;
+    onAction: (action: Action) => void;
     handleDownload: () => void;
 }
 

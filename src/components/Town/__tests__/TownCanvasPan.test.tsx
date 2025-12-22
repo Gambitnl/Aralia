@@ -6,7 +6,7 @@ import TownCanvas from '../TownCanvas';
 const mockUseTownController = vi.fn();
 
 vi.mock('../../../hooks/useTownController', () => ({
-  useTownController: (...args: any[]) => mockUseTownController(...args),
+  useTownController: (...args: unknown[]) => mockUseTownController(...args),
 }));
 
 describe('TownCanvas panning', () => {
@@ -128,4 +128,3 @@ describe('TownCanvas panning', () => {
     expect(setPan).toHaveBeenCalledWith({ x: 20, y: 40 });
   });
 });
-

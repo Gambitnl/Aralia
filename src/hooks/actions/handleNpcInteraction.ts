@@ -139,7 +139,7 @@ export async function handleTalk({
         } else if (ttsResult.error) {
           throw ttsResult.error;
         }
-      } catch (ttsError: any) {
+      } catch {
         addMessage(`(TTS Error: Could not synthesize speech for ${npc.name})`, 'system');
       }
     } else {

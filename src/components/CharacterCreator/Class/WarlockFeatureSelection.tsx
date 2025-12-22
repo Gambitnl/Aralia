@@ -4,7 +4,7 @@
  * their initial known cantrips and Level 1 spells. Patron selection happens at level 3.
  */
 import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, MotionProps } from 'framer-motion';
 import { Spell, Class as CharClass } from '../../../types';
 
 interface WarlockFeatureSelectionProps {
@@ -13,6 +13,13 @@ interface WarlockFeatureSelectionProps {
   onWarlockFeaturesSelect: (cantrips: Spell[], spellsL1: Spell[]) => void;
   onBack: () => void;
 }
+
+const containerMotion: MotionProps = {
+  initial: { x: 300, opacity: 0 },
+  animate: { x: 0, opacity: 1 },
+  exit: { x: -300, opacity: 0 },
+  transition: { duration: 0.3, ease: 'easeInOut' },
+};
 
 const WarlockFeatureSelection: React.FC<WarlockFeatureSelectionProps> = ({
   spellcastingInfo,
@@ -55,13 +62,8 @@ const WarlockFeatureSelection: React.FC<WarlockFeatureSelectionProps> = ({
 
   return (
     <motion.div
-      {...{
-        key: "warlockFeatures",
-        initial: { x: 300, opacity: 0 },
-        animate: { x: 0, opacity: 1 },
-        exit: { x: -300, opacity: 0 },
-        transition: { duration: 0.3, ease: 'easeInOut' },
-      } as any}
+      key="warlockFeatures"
+      {...containerMotion}
     >
       <h2 className="text-2xl text-sky-300 mb-4 text-center">Warlock Spell Selection</h2>
       <p className="text-sm text-gray-400 mb-6 text-center">

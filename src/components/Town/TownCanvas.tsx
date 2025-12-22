@@ -3,11 +3,13 @@ import { AssetPainter } from '../../services/RealmSmithAssetPainter';
 import { BiomeType, BuildingType, Building } from '../../types/realmsmith';
 import { TownPosition, TownDirection, TOWN_DIRECTION_VECTORS } from '../../types/town';
 import { PlayerCharacter } from '../../types/character';
+import type { Action } from '../../types';
 import { isPositionWalkable, getAdjacentBuildings } from '../../utils/walkabilityUtils';
 import TownNavigationControls from './TownNavigationControls';
 import { TownDevControls } from './TownDevControls';
 import { RefreshCw, ZoomIn, ZoomOut, Maximize, Moon, Sun, Grid, Settings, X, User } from 'lucide-react';
 import { useTownController } from '../../hooks/useTownController';
+import { CharacterVisualConfig } from '../../services/CharacterAssetService';
 
 const BUILDING_DESCRIPTIONS: Record<BuildingType, { name: string; desc: string }> = {
     [BuildingType.HOUSE_SMALL]: { name: 'Small House', desc: 'A modest residence for common folk.' },
@@ -40,15 +42,15 @@ interface TownCanvasProps {
     worldX: number;
     worldY: number;
     biome: string;
-    settlementInfo?: any; // Settlement type information for culturally appropriate generation
-    onAction: (action: any) => void;
+    settlementInfo?: unknown; // Settlement type information for culturally appropriate generation
+    onAction: (action: Action) => void;
     // Additional props to match VillageScene signature if needed
     gameTime?: Date;
-    currentLocation?: any;
-    npcsInLocation?: any[];
-    itemsInLocation?: any[];
+    currentLocation?: unknown;
+    npcsInLocation?: unknown[];
+    itemsInLocation?: unknown[];
     disabled?: boolean;
-    geminiGeneratedActions?: any[];
+    geminiGeneratedActions?: Action[] | null;
     isDevDummyActive?: boolean;
     unreadDiscoveryCount?: number;
     hasNewRateLimitError?: boolean;
@@ -71,18 +73,42 @@ const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
 // Linear interpolation helper
 const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
 
+const isCharacterVisualConfig = (
+    visuals: PlayerCharacter['visuals']
+): visuals is PlayerCharacter['visuals'] & CharacterVisualConfig => {
+    return (
+        typeof (visuals as CharacterVisualConfig)?.clothing === 'string' &&
+        typeof (visuals as CharacterVisualConfig)?.hairColor === 'string'
+    );
+};
+
+const resolvePlayerVisuals = (visuals?: PlayerCharacter['visuals']): CharacterVisualConfig | undefined => {
+    if (!visuals) return undefined;
+    if (isCharacterVisualConfig(visuals)) {
+        return visuals;
+    }
+
+    return {
+        gender: visuals.gender,
+        skinColor: visuals.skinColor,
+        hairStyle: visuals.hairStyle ?? 'Hair1',
+        hairColor: 'Black',
+        clothing: visuals.clothingStyle ?? 'Clothing1',
+    };
+};
+
 const TownCanvas: React.FC<TownCanvasProps> = ({
     worldSeed,
     worldX,
     worldY,
     biome: araliaBiome,
-    settlementInfo,
+    settlementInfo: _settlementInfo,
     onAction,
-    gameTime,
+    gameTime: _gameTime,
     disabled = false,
     isDevDummyActive = false,
-    unreadDiscoveryCount,
-    hasNewRateLimitError,
+    unreadDiscoveryCount: _unreadDiscoveryCount,
+    hasNewRateLimitError: _hasNewRateLimitError,
     playerCharacter,
     playerPosition,
     entryDirection,
@@ -301,7 +327,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 playerPosition: animatedPosition ?? effectivePlayerPosition ?? undefined,
                 playerFacing,
                 isMoving: isAnimating,
-                playerVisuals: playerCharacter?.visuals as any,
+                playerVisuals: resolvePlayerVisuals(playerCharacter?.visuals),
             });
         } catch (err) {
             console.error("AssetPainter failed:", err);

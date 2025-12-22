@@ -78,7 +78,6 @@ export class DamageCommand extends BaseEffectCommand {
         const saveResult = rollSavingThrow(target, this.effect.condition.saveType, dc);
 
         // Adjust damage based on save result
-        const originalDamage = damageRoll;
         damageRoll = calculateSaveDamage(
           damageRoll,
           saveResult,

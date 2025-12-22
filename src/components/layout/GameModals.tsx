@@ -57,11 +57,11 @@ interface GameModalsProps {
         missingChoice: MissingChoice | null;
     };
     onCloseMissingChoice: () => void;
-    onConfirmMissingChoice: (choiceId: string, extraData?: any) => void;
+    onConfirmMissingChoice: (choiceId: string, extraData?: unknown) => void;
     onFixMissingChoice: (character: PlayerCharacter, missing: MissingChoice) => void;
     handleCloseCharacterSheet: () => void;
     handleClosePartyOverlay: () => void;
-    handleDevMenuAction: (action: any) => void;
+    handleDevMenuAction: (action: string) => void;
     handleModelChange: (model: string | null) => void;
     handleNavigateToGlossaryFromTooltip: (termId: string) => void;
     handleOpenGlossary: (initialTermId?: string) => void;

@@ -103,7 +103,8 @@ export interface ACComponents {
  */
 export const calculateFinalAC = (components: ACComponents): number => {
   const { maxDexBonus, unarmoredBonus = 0, shieldBonus = 0, activeEffects = [], stdBaseIncludesDex = false } = components;
-  let { baseAC, dexMod } = components;
+  const { baseAC } = components;
+  let { dexMod } = components;
 
   // Apply Max Dex logic to input
   if (maxDexBonus !== undefined) {

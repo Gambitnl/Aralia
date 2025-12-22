@@ -5,7 +5,7 @@
  *
  * Separated from useTurnManager to decouple "scheduling" from "game engine logic".
  */
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { CombatCharacter, TurnState, CombatAction } from '../../types/combat';
 
 interface UseTurnOrderProps {

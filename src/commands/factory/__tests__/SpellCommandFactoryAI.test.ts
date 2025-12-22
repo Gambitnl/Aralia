@@ -1,42 +1,41 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SpellCommandFactory } from '../SpellCommandFactory';
-import { Spell, SpellEffect } from '@/types/spells';
-import { CombatCharacter, CombatState } from '@/types/combat';
-import { GameState } from '@/types';
+import { DamageEffect, Spell, SpellEffect } from '@/types/spells';
+import { CombatCharacter } from '@/types/combat';
 import { DamageCommand } from '@/commands/effects/DamageCommand';
 import { NarrativeCommand } from '@/commands/effects/NarrativeCommand';
+import { createMockCombatCharacter, createMockGameState } from '@/utils/factories';
 
 // Mock AISpellArbitrator
 const mockArbitrate = vi.fn();
 vi.mock('@/systems/spells/ai/AISpellArbitrator', () => ({
   aiSpellArbitrator: {
-    arbitrate: (...args: any[]) => mockArbitrate(...args)
+    arbitrate: (...args: unknown[]) => mockArbitrate(...args)
   }
 }));
 
 describe('SpellCommandFactory - AI Integration', () => {
-  const mockCaster: CombatCharacter = {
+  const mockCaster: CombatCharacter = createMockCombatCharacter({
     id: 'caster-1',
     name: 'Merlin',
-    level: 5,
     position: { x: 10, y: 10 },
-    stats: { currentHP: 20, maxHP: 20, size: 'Medium' },
     team: 'player'
-  } as any;
+  });
+  mockCaster.stats.size = 'Medium';
+  mockCaster.currentHP = 20;
+  mockCaster.maxHP = 20;
 
-  const mockTarget: CombatCharacter = {
+  const mockTarget: CombatCharacter = createMockCombatCharacter({
     id: 'target-1',
     name: 'Goblin',
     position: { x: 12, y: 10 },
-    stats: { currentHP: 10, maxHP: 10, size: 'Small' },
     team: 'enemy'
-  } as any;
+  });
+  mockTarget.stats.size = 'Small';
+  mockTarget.currentHP = 10;
+  mockTarget.maxHP = 10;
 
-  const mockGameState: GameState = {
-    currentLocation: 'dungeon',
-    timeOfDay: 'night',
-    weather: 'none'
-  } as any;
+  const mockGameState = createMockGameState();
 
   const aiSpell: Spell = {
     id: 'wish',
@@ -91,7 +90,8 @@ describe('SpellCommandFactory - AI Integration', () => {
 
     const damageCmd = commands[1] as DamageCommand;
     expect(damageCmd.effect.type).toBe('DAMAGE');
-    expect((damageCmd.effect as any).damage.dice).toBe('4d8');
+    const damageEffect = damageCmd.effect as DamageEffect;
+    expect(damageEffect.damage.dice).toBe('4d8');
   });
 
   it('should supplement existing effects with AI effects', async () => {

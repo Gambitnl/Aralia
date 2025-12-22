@@ -138,14 +138,6 @@ const toTitleCase = (raw: string) =>
     .toLowerCase()
     .replace(/\b\w/g, ch => ch.toUpperCase());
 
-const normalizeCreatureType = (raw: string) => {
-  const v = normalizeWhitespace(raw).toLowerCase();
-  if (v === 'humanoid' || v === 'humanoids') return 'Humanoid';
-  if (v === 'beast' || v === 'beasts') return 'Beast';
-  if (v === 'plant' || v === 'plants') return 'Plant';
-  return toTitleCase(v);
-};
-
 type ParsedTargets = {
   validTargets: Array<'self' | 'creatures' | 'allies' | 'enemies' | 'objects' | 'point' | 'ground'>;
   filter?: { creatureTypes?: string[] };

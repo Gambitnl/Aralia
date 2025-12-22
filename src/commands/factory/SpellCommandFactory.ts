@@ -1,5 +1,5 @@
 import { Spell, SpellEffect, TargetConditionFilter , isDamageEffect, isHealingEffect } from '@/types/spells'
-import { CombatCharacter, CombatState } from '@/types/combat'
+import { CombatCharacter } from '@/types/combat'
 
 import { SpellCommand, CommandContext } from '../base/SpellCommand'
 import { DamageCommand } from '../effects/DamageCommand'
@@ -76,7 +76,13 @@ export class SpellCommandFactory {
         combatState: {
           isActive: true,
           characters: [caster, ...targets],
-          turnState: {} as any,
+          turnState: {
+            currentTurn: 0,
+            turnOrder: [],
+            currentCharacterId: null,
+            phase: 'planning',
+            actionsThisTurn: []
+          },
           selectedCharacterId: null,
           selectedAbilityId: null,
           actionMode: 'select',
@@ -204,7 +210,7 @@ export class SpellCommandFactory {
         return new DefensiveCommand(effect, context)
 
       default:
-        console.warn(`Unknown effect type: ${(effect as any).type}`)
+        console.warn(`Unknown effect type: ${effect.type}`)
         return null
     }
   }

@@ -6,7 +6,9 @@ import { Item, PlayerCharacter } from '../../types';
 
 vi.mock('framer-motion', () => ({
   motion: {
-    div: React.forwardRef((props: any, ref) => <div ref={ref} {...props} />),
+    div: React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<'div'>>((props, ref) => (
+      <div ref={ref} {...props} />
+    )),
   },
 }));
 

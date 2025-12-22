@@ -6,6 +6,7 @@ import React, { useEffect, useRef } from 'react';
 import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN } from '../config/geminiConfig';
 import { useGameState } from '../state/GameContext';
 import { generateVillageTemple } from '../utils/templeUtils';
+import { VillageActionContext, VillagePersonality } from '../types';
 
 type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple' | 'toggle_thieves_guild';
 
@@ -48,21 +49,38 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
 
   const openTestTemple = () => {
       // Force open a temple modal with a dummy temple
-      const temple = generateVillageTemple('dev_test', {
-          wealth: 'rich', culture: 'scholarly', population: 'large', primaryIndustry: 'magic', architecturalStyle: 'magical', biomeStyle: 'temperate', governingBody: 'council'
-      } as any, 12345);
+      const testPersonality: VillagePersonality = {
+          wealth: 'rich',
+          culture: 'scholarly',
+          population: 'large',
+          primaryIndustry: 'magic',
+          architecturalStyle: 'magical',
+          biomeStyle: 'temperate',
+          governingBody: 'council',
+      };
+      const temple = generateVillageTemple('dev_test', testPersonality, 12345);
+
+      const villageContext: VillageActionContext & { personality?: VillagePersonality } = {
+          worldX: 0,
+          worldY: 0,
+          biomeId: 'test',
+          buildingType: 'shop_temple',
+          description: 'Test Temple',
+          integrationProfileId: 'test',
+          integrationPrompt: '',
+          integrationTagline: '',
+          culturalSignature: '',
+          encounterHooks: [],
+          personality: testPersonality,
+      };
 
       // Dispatch the action to open it.
       dispatch({
           type: 'OPEN_TEMPLE',
           payload: {
-              villageContext: {
-                  worldX: 0, worldY: 0, biomeId: 'test', buildingType: 'shop_temple', description: 'Test Temple',
-                  integrationProfileId: 'test', integrationPrompt: '', integrationTagline: '', culturalSignature: '', encounterHooks: [],
-                  personality: { wealth: 'rich', culture: 'scholarly' }
-              }
+              villageContext
           }
-      } as any);
+      });
       onClose();
   };
 

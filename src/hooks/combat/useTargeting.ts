@@ -19,7 +19,7 @@ interface UseTargetingProps {
     characters: CombatCharacter[]; // Needed for validation logic if we add it here later
 }
 
-export const useTargeting = ({ mapData }: UseTargetingProps) => {
+export const useTargeting = ({ mapData: _mapData, characters: _characters }: UseTargetingProps) => {
     const [selectedAbility, setSelectedAbility] = useState<Ability | null>(null);
     const [targetingMode, setTargetingMode] = useState<boolean>(false);
 

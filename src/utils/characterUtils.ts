@@ -701,8 +701,8 @@ export const performLevelUp = (
   const retroactiveConAdjustment = (conMod - previousConMod) * previousLevel;
   const retroactiveFeatAdjustment = hpBonusPerLevel * previousLevel;
 
-  updatedCharacter.maxHp = character.maxHp + hpGainThisLevel + retroactiveConAdjustment + retroactiveFeatAdjustment;
-  updatedCharacter.hp = Math.min(updatedCharacter.maxHp, character.hp + hpGainThisLevel + retroactiveConAdjustment + retroactiveFeatAdjustment);
+  updatedCharacter.maxHp = (character.maxHp || 0) + hpGainThisLevel + retroactiveConAdjustment + retroactiveFeatAdjustment;
+  updatedCharacter.hp = Math.min(updatedCharacter.maxHp, (character.hp || 0) + hpGainThisLevel + retroactiveConAdjustment + retroactiveFeatAdjustment);
 
   // Calculate new Proficiency Bonus
   updatedCharacter.proficiencyBonus = Math.floor((newLevel - 1) / 4) + 2;
@@ -719,7 +719,7 @@ export const applyXpAndHandleLevelUps = (
   xpGained: number,
   choices?: LevelUpChoices,
 ): PlayerCharacter => {
-  let updatedCharacter = { ...character, xp: (character.xp || 0) + xpGained };
+  let updatedCharacter = { ...character, xp: (character.xp || 0) + xpGained } as PlayerCharacter;
   let safetyCounter = 0;
 
   while (canLevelUp(updatedCharacter) && safetyCounter < 20) {

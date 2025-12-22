@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
 import { CommandExecutor } from '../base/CommandExecutor'
-import { SpellCommand } from '../base/SpellCommand'
 import type { CombatState } from '@/types/combat'
 
 describe('CommandExecutor', () => {
@@ -10,13 +9,13 @@ describe('CommandExecutor', () => {
     const cmd1 = {
         id: '1',
         description: 'Cmd1',
-        metadata: {} as any,
+        metadata: {} as Record<string, unknown>,
         execute: vi.fn().mockReturnValue(mockState)
     }
     const cmd2 = {
         id: '2',
         description: 'Cmd2',
-        metadata: {} as any,
+        metadata: {} as Record<string, unknown>,
         execute: vi.fn().mockReturnValue(mockState)
     }
 
@@ -32,13 +31,13 @@ describe('CommandExecutor', () => {
     const cmd1 = {
         id: '1',
         description: 'Cmd1',
-        metadata: {} as any,
+        metadata: {} as Record<string, unknown>,
         execute: vi.fn().mockReturnValue(mockState)
     }
     const cmdFail = {
         id: '2',
         description: 'CmdFail',
-        metadata: {} as any,
+        metadata: {} as Record<string, unknown>,
         execute: vi.fn().mockImplementation(() => { throw new Error('Boom') })
     }
 

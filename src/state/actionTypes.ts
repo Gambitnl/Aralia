@@ -2,7 +2,7 @@
  * @file src/state/actionTypes.ts
  * Defines the main AppAction type for the application's state management.
  */
-import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, GuildJob, HeistIntel, NPC, Faction, Location } from '../types';
+import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality } from '../types';
 import { RitualState, RitualEvent } from '../types/rituals';
 import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload } from './payloads/identityPayloads';
 import { DialogueSession } from '../types/dialogue';
@@ -58,6 +58,8 @@ export type AppAction =
   | { type: 'CLOSE_MERCHANT' }
   | { type: 'BUY_ITEM'; payload: { item: Item; cost: number } }
   | { type: 'SELL_ITEM'; payload: { itemId: string; value: number } }
+  | { type: 'OPEN_TEMPLE'; payload: { villageContext: VillageActionContext & { personality?: VillagePersonality } } }
+  | { type: 'CLOSE_TEMPLE' }
   // Encounter Actions
   | { type: 'GENERATE_ENCOUNTER'; }
   | { type: 'SHOW_ENCOUNTER_MODAL'; payload: { encounterData: any } }

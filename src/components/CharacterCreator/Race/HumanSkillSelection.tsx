@@ -4,7 +4,7 @@
  * from all available skills, as per their "Skillful" racial trait.
  */
 import React, { useState } from 'react';
-import { Skill, AbilityScores } from '../../../types'; // Path relative to src/components/CharacterCreator/Human/
+import { AbilityScores } from '../../../types'; // Path relative to src/components/CharacterCreator/Human/
 import { SKILLS_DATA } from '../../../constants'; // Path relative to src/components/CharacterCreator/Human/
 
 interface HumanSkillSelectionProps {
