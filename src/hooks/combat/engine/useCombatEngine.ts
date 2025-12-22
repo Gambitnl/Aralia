@@ -280,6 +280,7 @@ export const useCombatEngine = ({
         updatedCharacter.damagedThisTurn = false;
 
         onCharacterUpdate(updatedCharacter);
+        return updatedCharacter;
     }, [addDamageNumber, onCharacterUpdate, onLogEntry, spellZones, handleDamage, processRepeatSaves, processTileEffects]);
 
     // --- State Managers ---

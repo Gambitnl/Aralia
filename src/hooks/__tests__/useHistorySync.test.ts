@@ -6,16 +6,17 @@ import * as locationUtils from '../../utils/locationUtils';
 
 // Mock dependencies
 vi.mock('../../constants', () => ({
-  LOCATIONS: {
-    'loc_1': { id: 'loc_1', dynamicNpcConfig: null }
-  },
-  USE_DUMMY_CHARACTER_FOR_DEV: false,
-  DUMMY_PARTY_FOR_DEV: [],
-  STARTING_LOCATION_ID: 'loc_1',
-  ITEMS: {},
-  initialInventoryForDummyCharacter: [],
-  CLASSES_DATA: {},
-  NPCS: {},
+    LOCATIONS: {
+        'loc_1': { id: 'loc_1', dynamicNpcConfig: null }
+    },
+    USE_DUMMY_CHARACTER_FOR_DEV: false,
+    DUMMY_PARTY_FOR_DEV: [],
+    STARTING_LOCATION_ID: 'loc_1',
+    ITEMS: {},
+    initialInventoryForDummyCharacter: [],
+    CLASSES_DATA: {},
+    NPCS: {},
+    COMPANIONS: {},
 }));
 
 vi.mock('../../utils/locationUtils');
@@ -56,7 +57,7 @@ describe('useHistorySync', () => {
         // Try to delete first to handle JSDOM constraints
         try {
             delete (window as any).location;
-        } catch (e) {}
+        } catch (e) { }
 
         Object.defineProperty(window, 'location', {
             get: () => mockLocation,

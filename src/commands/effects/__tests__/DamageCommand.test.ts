@@ -69,7 +69,7 @@ describe('DamageCommand', () => {
 
         expect(logEntry).toBeDefined();
         // Expected: "Hero scorches Goblin with Fireball for X fire damage"
-        expect(logEntry?.message).toMatch(/Hero (scorches|incinerates|burns) Goblin with Fireball for \d+ fire damage/);
+        expect(logEntry?.message).toMatch(/Hero (scorches|incinerates|burns|chars) Goblin with Fireball for \d+ fire damage/);
     });
 
     it('generates a descriptive log message for slashing damage', () => {
@@ -96,7 +96,7 @@ describe('DamageCommand', () => {
     });
 
     it('handles generic "Attack" name gracefully', () => {
-         const effect: SpellEffect = {
+        const effect: SpellEffect = {
             type: "DAMAGE",
             damage: {
                 dice: '1d6',

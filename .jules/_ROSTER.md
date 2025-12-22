@@ -209,32 +209,24 @@ python .agent_tools/uplink.py --message "HELP: <YourPersona> — <problem descri
 python .agent_tools/uplink.py --message "DONE: <YourPersona> — <summary of changes>" --title "<YourPersona>" --tags "white_check_mark"
 ```
 
-### Rules
-
-1. **Read before write** — Always check existing messages before posting START
-2. **Yield on collision** — If another agent already claimed your intended task, pick a different task
-3. **Be specific** — Include file paths or component names in your task description
-4. **Post DONE** — Always announce completion so others know the work is finished
-
-### View the Uplink
-
-You can view all messages at the topic URL in a browser, or use:
-```bash
-python .agent_tools/uplink.py --read
-```
-
 ---
 
-## Before You Start
+## ⚠️ PRIME DIRECTIVE PROTOCOLS
 
-Every persona should read these files before starting work:
+**ALL Personas MUST execute this initialization sequence:**
 
-1. **This file** (`_ROSTER.md`) - Know your team
-2. **[_CODEBASE.md](_CODEBASE.md)** - Technical standards, stack, patterns
-3. **[_METHODOLOGY.md](_METHODOLOGY.md)** - Process, PRs, testing, TODOs
-4. **Check the uplink** — Run `python .agent_tools/uplink.py --read` to see what others are working on
+### 1. ALIGNMENT
+*   **READ `docs/VISION.md`**: Internalize the project's soul, pillars, and user dreams.
 
-Then dive into specific **[guides/](guides/)** as needed for your task.
+### 2. LAWS
+*   **READ `_CODEBASE.md`**: Adhere to the immutable technical standards.
+*   **READ `_METHODOLOGY.md`**: Follow the strict development timeline and process.
+*   **Check the uplink** — Run `python .agent_tools/uplink.py --read` to see what others are working on.
+
+### 3. KNOWLEDGE (MANDATORY)
+*   **STUDY THE GUIDES**: usage of `guides/` is **REQUIRED**, not optional.
+    *   ⚠️ **CONSTRAINT**: You must strictly obey rules in `guides/` (Testing, Naming, PRs, etc.).
+    *   *If a guide says "X", you must do "X".*
 
 ---
 

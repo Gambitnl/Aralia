@@ -7,7 +7,7 @@ import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN } from '../config/geminiConfig';
 import { useGameState } from '../state/GameContext';
 import { generateVillageTemple } from '../utils/templeUtils';
 
-type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple';
+type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple' | 'toggle_thieves_guild';
 
 interface DevMenuProps {
   isOpen: boolean;
@@ -53,17 +53,8 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
       } as any, 12345);
 
       // Dispatch the action to open it.
-      // We need to use the reducer action pattern.
-      // Note: The townReducer handles 'OPEN_TEMPLE', but 'GameModals' reads 'gameState.templeModal'.
-      // We need to ensure 'OPEN_TEMPLE' is dispatched.
-      // But 'DevMenu' receives 'onDevAction' which bubbles up to App.tsx usually.
-      // Here we have access to 'dispatch' via context, so we can dispatch directly!
-
-      // We need to construct the action carefully.
-      // The reducer expects `villageContext` in payload.
       dispatch({
           type: 'OPEN_TEMPLE',
-          label: 'Test Temple',
           payload: {
               villageContext: {
                   worldX: 0, worldY: 0, biomeId: 'test', buildingType: 'shop_temple', description: 'Test Temple',
@@ -71,7 +62,7 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
                   personality: { wealth: 'rich', culture: 'scholarly' }
               }
           }
-      });
+      } as any);
       onClose();
   };
 
@@ -87,6 +78,7 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
     { label: 'NPC Interaction Test Plan', action: 'toggle_npc_test_plan', style: 'bg-cyan-600 hover:bg-cyan-500' },
     { label: 'Inspect Noble Houses', action: 'inspect_noble_houses', style: 'bg-orange-600 hover:bg-orange-500' },
     { label: 'Test Temple UI', action: 'test_temple', style: 'bg-amber-600 hover:bg-amber-500', onClick: openTestTemple },
+    { label: 'Access Criminal Underworld', action: 'toggle_thieves_guild', style: 'bg-purple-900 hover:bg-purple-800 border border-purple-600' },
   ];
 
   return (

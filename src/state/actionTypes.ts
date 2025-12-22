@@ -1,9 +1,8 @@
-
 /**
  * @file src/state/actionTypes.ts
  * Defines the main AppAction type for the application's state management.
  */
-import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, GuildJob, HeistIntel } from '../types';
+import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, GuildJob, HeistIntel, NPC, Faction, Location } from '../types';
 import { RitualState, RitualEvent } from '../types/rituals';
 import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload } from './payloads/identityPayloads';
 import { DialogueSession } from '../types/dialogue';
@@ -133,6 +132,7 @@ export type AppAction =
   | { type: 'COMMIT_CRIME'; payload: { type: CrimeType; locationId: string; severity: number; witnessed: boolean } }
   | { type: 'LOWER_HEAT'; payload: { amount: number; locationId?: string } }
   // Thieves Guild Actions
+  | { type: 'TOGGLE_THIEVES_GUILD' }
   | { type: 'JOIN_GUILD'; payload: { guildId: string } }
   | { type: 'ACCEPT_GUILD_JOB'; payload: { job: GuildJob } }
   | { type: 'COMPLETE_GUILD_JOB'; payload: { jobId: string; success: boolean; rewardGold: number; rewardRep: number } }

@@ -152,6 +152,12 @@ export interface Goal {
   status: GoalStatus;
 }
 
+export interface Goal {
+  id: string;
+  description: string;
+  status: GoalStatus;
+}
+
 export interface GoalUpdatePayload {
   npcId: string;
   goalId: string;
@@ -437,6 +443,7 @@ export type ActionType =
   | 'TOGGLE_QUEST_LOG'
   | 'PRAY'
   | 'AUTO_EQUIP'
+  | 'TOGGLE_THIEVES_GUILD'
   | 'REGISTER_DYNAMIC_ENTITY'
   | 'START_DIALOGUE_SESSION'
   | 'UPDATE_DIALOGUE_SESSION'
@@ -643,6 +650,8 @@ export interface GameState {
 
   // Ecologist: Environment System
   environment: import('./environment').WeatherState;
+
+  isThievesGuildVisible: boolean;
 
   // Ritualist: Ritual System
   activeRitual?: RitualState | null;
@@ -864,7 +873,7 @@ export interface VillageActionContext {
   integrationTagline: string;
   culturalSignature: string;
   encounterHooks: string[];
-  personality?: Partial<VillagePersonality>; // Added for temple generation fallback context
+  personality?: Partial<import('./village').VillagePersonality>; // Added for temple generation fallback context
 }
 
 // Notifications
@@ -878,3 +887,4 @@ export interface Notification {
 }
 export * from './elemental';
 export * from './stronghold';
+export * from './village';

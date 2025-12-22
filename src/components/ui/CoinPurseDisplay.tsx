@@ -11,13 +11,13 @@ interface CoinPurseDisplayProps {
     showZeros?: boolean;
 }
 
-interface CoinBadgeProps {
+export interface CoinBadgeProps {
     type: keyof CoinBreakdown;
     amount: number;
     compact?: boolean;
 }
 
-const COIN_NAMES: Record<keyof CoinBreakdown, string> = {
+export const COIN_NAMES: Record<keyof CoinBreakdown, string> = {
     pp: 'Platinum',
     gp: 'Gold',
     sp: 'Silver',

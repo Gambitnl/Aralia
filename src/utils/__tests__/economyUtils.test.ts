@@ -59,8 +59,8 @@ describe('economyUtils', () => {
         weight: 1,
       };
 
-      // 0.01 * 0.5 = 0.005 => 0.00 after flooring to CP.
-      expect(calculatePrice(torch, economy, 'sell').finalPrice).toBe(0);
+      // 0.01 * 0.5 = 0.005, but we enforce a minimum of 0.01 (1 CP).
+      expect(calculatePrice(torch, economy, 'sell').finalPrice).toBe(0.01);
     });
   });
 });

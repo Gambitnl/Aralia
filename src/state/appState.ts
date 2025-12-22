@@ -79,6 +79,7 @@ export const initialGameState: GameState = {
     isNpcTestModalVisible: false,
     isLogbookVisible: false,
     isGameGuideVisible: false,
+    isThievesGuildVisible: false,
     dynamicLocationItemIds: {},
     currentLocationActiveDynamicNpcIds: null,
     geminiGeneratedActions: null,
@@ -258,6 +259,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                     isNpcTestModalVisible: false,
                     isLogbookVisible: false,
                     isGameGuideVisible: false,
+                    isThievesGuildVisible: false,
                     merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
                     isDialogueInterfaceOpen: false,
                     activeDialogueSession: null,
@@ -327,7 +329,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
 
             Object.values(allFactions).forEach(faction => {
                 if (!factionStandings[faction.id]) {
-                     factionStandings[faction.id] = {
+                    factionStandings[faction.id] = {
                         factionId: faction.id,
                         publicStanding: 0,
                         secretStanding: 0,
@@ -449,7 +451,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isPartyEditorVisible: false,
                 isPartyOverlayVisible: false, isGeminiLogViewerVisible: false, isDiscoveryLogVisible: false,
                 isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isLogbookVisible: false,
-                isGameGuideVisible: false,
+                isGameGuideVisible: false, isThievesGuildVisible: false,
                 geminiGeneratedActions: null,
                 party: partyFromLoad.map(p => ({ ...(p as PlayerCharacter), equippedItems: (p as PlayerCharacter).equippedItems || {} })),
                 inventory: migratedInventory,

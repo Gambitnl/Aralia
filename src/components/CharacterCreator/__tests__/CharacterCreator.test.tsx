@@ -28,7 +28,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 
 
 describe('CharacterCreator Flow', () => {
-  it('should allow a Changeling to proceed to class selection after background selection', () => {
+  it('renders race selection, selects changeling, selects skills, and proceeds', async () => {
     render(
       <TestWrapper>
         <CharacterCreator
@@ -46,28 +46,27 @@ describe('CharacterCreator Flow', () => {
     const changelingButton = screen.getByRole('button', { name: /Changeling/i });
     fireEvent.click(changelingButton);
 
+    // Confirm selection in modal
+    const confirmButton = screen.getByRole('button', { name: /Select Changeling/i });
+    fireEvent.click(confirmButton);
+
     // 3. Advance past Changeling Instincts
     // The component re-renders. We need to find the "Next" button in the new step.
     // The instincts selection gives two skills. We'll just select two.
-
-    // TODO(Bard): Test Failure Investigation
-    // This test currently fails with "Unable to find an accessible element with the role 'checkbox'".
-    // Analysis suggests the test misses a step: clicking "Changeling" opens the details modal,
-    // but the test does not click the "Select Race" confirmation button within that modal.
-    // As a result, the ChangelingInstinctsSelection component (which contains the checkboxes) is never rendered.
-    // This needs to be fixed by adding the confirmation click interaction.
-    const skillCheckboxes = screen.getAllByRole('checkbox');
+    const skillCheckboxes = await screen.findAllByRole('checkbox');
     fireEvent.click(skillCheckboxes[0]);
     fireEvent.click(skillCheckboxes[1]);
-    const nextButtonAfterInstincts = screen.getByRole('button', { name: /Next/i });
+    const nextButtonAfterInstincts = screen.getByRole('button', { name: /Confirm.*Skills/i });
     fireEvent.click(nextButtonAfterInstincts);
-    
+
     // 4. Advance past Age Selection
     const nextButtonAfterAge = screen.getByRole('button', { name: /Next/i });
     fireEvent.click(nextButtonAfterAge);
 
     // 5. Advance past Background Selection
-    // We assume a default background is selected or no selection is needed to proceed.
+    const acolyteBackgroundStart = await screen.findByText(/Acolyte/i);
+    fireEvent.click(acolyteBackgroundStart);
+
     const nextButtonAfterBackground = screen.getByRole('button', { name: /Next/i });
     fireEvent.click(nextButtonAfterBackground);
 

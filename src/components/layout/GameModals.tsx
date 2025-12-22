@@ -6,26 +6,6 @@
  * 
  * By separating this logic from `App.tsx`, we declutter the main render function and centralize
  * the logic for what overlays are active on top of the main game view.
- * 
- * Managed Modals:
- * - MapPane: The full world map view.
- * - SubmapPane: The local tactical grid view.
- * - QuestLog: Displays active and completed quests.
- * - CharacterSheetModal: Detailed view of player stats and inventory.
- * - DevMenu: Developer tools and debug actions.
- * - PartyOverlay: Quick-access party status.
- * - PartyEditorModal: Dev tool for editing party composition.
- * - GeminiLogViewer: Debug view for AI interactions.
- * - NpcInteractionTestModal: Dev tool for testing NPC AI.
- * - LogbookPane: Player journal of met NPCs.
- * - DiscoveryLogPane: Log of discovered locations/items.
- * - Glossary: In-game encyclopedia.
- * - EncounterModal: Combat encounter setup/preview.
- * - MerchantModal: Trading interface.
- * - GameGuideModal: AI helper interface.
- * - MissingChoiceModal: Prompt for resolving pending character choices (e.g., leveling up).
- * - TempleModal: Interface for temple services.
- * - DialogueInterface: Interactive conversation UI.
  */
 import React, { lazy, Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
@@ -59,31 +39,18 @@ const GameGuideModal = lazy(() => import('../GameGuideModal'));
 const MissingChoiceModal = lazy(() => import('../MissingChoiceModal'));
 const TempleModal = lazy(() => import('../TempleModal'));
 const DialogueInterface = lazy(() => import('../Dialogue/DialogueInterface').then(module => ({ default: module.DialogueInterface })));
-
-// TODO(FEATURES): Add centralized focus management and keyboard navigation patterns across modals for stronger accessibility (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+const ThievesGuildInterface = lazy(() => import('../Crime/ThievesGuild/ThievesGuildInterface'));
 
 interface GameModalsProps {
-    /** The full game state object, needed for various modal visibility flags and data. */
     gameState: GameState;
-    /** Dispatcher for updating global state (e.g., closing modals). */
     dispatch: React.Dispatch<AppAction>;
-    /** Action handler for game events triggered within modals. */
     onAction: (action: Action) => void;
-    /** Callback for when a map tile is clicked in the MapPane. */
     onTileClick: (x: number, y: number, tile: MapTile) => void;
-    /** Current location context for modals that display local info (e.g., GameGuide, Submap). */
     currentLocation: Location;
-    /** List of NPCs in the current location. */
     npcsInLocation: NPC[];
-    /** List of items in the current location. */
     itemsInLocation: Item[];
-    /** Flag determining if the UI is interactive (not loading/blocked). */
     isUIInteractive: boolean;
-    /** Specific flag to disable Submap interactions during other events. */
     submapPaneDisabled: boolean;
-
-    // --- Missing Choice Modal Props ---
-    // These specific props handle the "Missing Choice" flow (e.g., picking a spell or language).
     missingChoiceModal: {
         isOpen: boolean;
         character: PlayerCharacter | null;
@@ -92,9 +59,6 @@ interface GameModalsProps {
     onCloseMissingChoice: () => void;
     onConfirmMissingChoice: (choiceId: string, extraData?: any) => void;
     onFixMissingChoice: (character: PlayerCharacter, missing: MissingChoice) => void;
-
-    // --- Encapsulated Handlers ---
-    // Pre-bound event handlers passed from App.tsx to keep this component logic simple.
     handleCloseCharacterSheet: () => void;
     handleClosePartyOverlay: () => void;
     handleDevMenuAction: (action: any) => void;
@@ -104,10 +68,6 @@ interface GameModalsProps {
     handleOpenCharacterSheet: (character: PlayerCharacter) => void;
 }
 
-/**
- * Renders all conditional application modals.
- * Uses <AnimatePresence> to allow for exit animations if supported by child components.
- */
 const GameModals: React.FC<GameModalsProps> = ({
     gameState,
     dispatch,
@@ -132,11 +92,8 @@ const GameModals: React.FC<GameModalsProps> = ({
 }) => {
 
     const handleGenerateDialogueResponse = async (prompt: string): Promise<string> => {
-        // Simple wrapper to call Gemini service.
-        // In a real implementation, we might want to pass more context.
         const npc = gameState.activeDialogueSession ? NPCS[gameState.activeDialogueSession.npcId] : null;
         if (!npc) return "...";
-
         const systemPrompt = npc.initialPersonalityPrompt;
         const result = await GeminiService.generateNPCResponse(systemPrompt, prompt, gameState.devModelOverride);
         if (result.data?.text) {
@@ -432,6 +389,17 @@ const GameModals: React.FC<GameModalsProps> = ({
                             onUpdateSession={(newSession) => dispatch({ type: 'UPDATE_DIALOGUE_SESSION', payload: { session: newSession } })}
                             onUpdateGameState={(updates) => { /* TODO: Implement partial updates if needed */ }}
                             onGenerateResponse={handleGenerateDialogueResponse}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Thieves Guild Interface */}
+            {gameState.isThievesGuildVisible && (
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Thieves Guild Interface.">
+                        <ThievesGuildInterface
+                            onClose={() => dispatch({ type: 'TOGGLE_THIEVES_GUILD' })}
                         />
                     </ErrorBoundary>
                 </Suspense>

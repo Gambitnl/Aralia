@@ -10,11 +10,11 @@ vi.mock('framer-motion', () => ({
   },
 }));
 
-vi.mock('../EquipmentMannequin', () => ({
+vi.mock('../CharacterSheet/EquipmentMannequin', () => ({
   default: () => <div data-testid="equipment-mannequin">EquipmentMannequin</div>,
 }));
 
-vi.mock('../InventoryList', () => ({
+vi.mock('../CharacterSheet/InventoryList', () => ({
   default: () => <div data-testid="inventory-list">InventoryList</div>,
 }));
 

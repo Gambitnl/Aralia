@@ -98,10 +98,13 @@ describe('TurnManager Repeat Saves', () => {
             result.current.endTurn();
         });
 
-        // Character update should be called with effect removed
+        // Verify state update via callback
         expect(mockOnCharacterUpdate).toHaveBeenCalled();
-        const lastCall = mockOnCharacterUpdate.mock.calls[mockOnCharacterUpdate.mock.calls.length - 1][0];
-        expect(lastCall.statusEffects).toHaveLength(0);
+        const lastCallArgs = mockOnCharacterUpdate.mock.calls[mockOnCharacterUpdate.mock.calls.length - 1];
+        const updatedChar = lastCallArgs[0];
+
+        // The updated character should have the effect removed
+        expect(updatedChar.statusEffects).toHaveLength(0);
         expect(rollSavingThrow).toHaveBeenCalledWith(expect.anything(), 'Wisdom', 15, expect.anything());
     });
 
@@ -174,8 +177,11 @@ describe('TurnManager Repeat Saves', () => {
             result.current.endTurn();
         });
 
-        const lastCall = mockOnCharacterUpdate.mock.calls[mockOnCharacterUpdate.mock.calls.length - 1][0];
-        expect(lastCall.damagedThisTurn).toBe(false);
+        // Verify damagedThisTurn is reset in the update
+        expect(mockOnCharacterUpdate).toHaveBeenCalled();
+        const lastCallArgs = mockOnCharacterUpdate.mock.calls[mockOnCharacterUpdate.mock.calls.length - 1];
+        const updatedChar = lastCallArgs[0];
+        expect(updatedChar.damagedThisTurn).toBe(false);
     });
 
 });

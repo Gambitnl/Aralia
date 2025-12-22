@@ -31,6 +31,27 @@ vi.mock('../services/saveLoadService', () => ({
 // TODO: Add test case where getSaveSlots returns actual save data to verify
 // Continue button text formatting and latestSlot sorting logic.
 
+// Mock i18n to ensure consistent text
+vi.mock('../utils/i18n', () => ({
+    t: (key: string) => {
+        const translations: Record<string, string> = {
+            'main_menu.title': 'Aralia RPG',
+            'main_menu.new_game': 'New Game',
+            'main_menu.load_game': 'Load Game',
+            'main_menu.load_game_aria': 'Load Game',
+            'main_menu.load_game_empty_aria': 'Load Game (Empty)',
+            'main_menu.save_to_slot': 'Save Game',
+            'main_menu.glossary': 'Lore & Rules',
+            'main_menu.continue': 'Continue',
+            'main_menu.skip_character_creator': 'Quick Start (Dev)',
+            'main_menu.back': 'Back',
+            'main_menu.powered_by': 'Powered by Gemini',
+            'main_menu.last_played': 'Last played: {date}'
+        };
+        return translations[key] || key;
+    }
+}));
+
 describe('MainMenu', () => {
     const defaultProps = {
         onNewGame: vi.fn(),
@@ -70,12 +91,12 @@ describe('MainMenu', () => {
     it('shows Continue button when a save exists', () => {
         render(<MainMenu {...defaultProps} hasSaveGame={true} latestSaveTimestamp={Date.now()} />);
         // Use regex to match text that might be split across elements or have extra whitespace
-        expect(screen.getByText(/Continue Journey/)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Continue Journey/i })).toBeInTheDocument();
     });
 
     it('calls onLoadGame when Continue button is clicked', () => {
         render(<MainMenu {...defaultProps} hasSaveGame={true} latestSaveTimestamp={Date.now()} />);
-        fireEvent.click(screen.getByText(/Continue Journey/));
+        fireEvent.click(screen.getByRole('button', { name: /Continue Journey/i }));
         expect(defaultProps.onLoadGame).toHaveBeenCalledTimes(1);
     });
 

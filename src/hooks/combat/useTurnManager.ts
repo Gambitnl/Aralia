@@ -175,7 +175,7 @@ export const useTurnManager = ({
     if (!currentCharacter) return;
 
     // 1. Apply end-of-turn effects to the current character (Delegated to Engine)
-    processEndOfTurnEffects(currentCharacter, turnState.currentTurn);
+    const processedChar = processEndOfTurnEffects(currentCharacter, turnState.currentTurn);
 
     // 2. Advance the turn order
     const { isNewRound, nextCharacterId } = advanceTurnOrder();
@@ -195,7 +195,14 @@ export const useTurnManager = ({
 
     // 4. Start turn for the next character
     if (nextCharacterId) {
-      const nextCharacter = characters.find(c => c.id === nextCharacterId);
+      let nextCharacter = characters.find(c => c.id === nextCharacterId);
+
+      // Fix for stale closure: If the next character is the one we just processed (e.g. solo combat),
+      // use the updated state returned from processEndOfTurnEffects instead of the stale one from 'characters'.
+      if (nextCharacter && processedChar && nextCharacter.id === processedChar.id) {
+        nextCharacter = processedChar;
+      }
+
       if (nextCharacter) {
         startTurnFor(nextCharacter);
       }
