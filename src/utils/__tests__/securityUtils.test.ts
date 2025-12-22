@@ -1,6 +1,6 @@
 
 import { describe, it, expect } from 'vitest';
-import { redactSensitiveData } from '../securityUtils';
+import { redactSensitiveData , safeJSONParse, cleanAIJSON } from '../securityUtils';
 
 describe('redactSensitiveData', () => {
   const FAKE_KEY = 'TEST_API_KEY_12345';
@@ -53,7 +53,7 @@ describe('redactSensitiveData', () => {
   });
 });
 
-import { safeJSONParse, cleanAIJSON } from '../securityUtils';
+
 
 describe('safeJSONParse', () => {
   it('should parse valid JSON', () => {

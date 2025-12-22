@@ -56,7 +56,7 @@ describe('VoyageManager', () => {
         // Mock random to pick smooth sailing (index 0)
         vi.spyOn(Math, 'random').mockReturnValue(0.0);
 
-        let voyage = VoyageManager.startVoyage(mockShip, 500);
+        const voyage = VoyageManager.startVoyage(mockShip, 500);
         const result = VoyageManager.advanceDay(voyage, mockShip);
 
         // 5 crew members = 5 food, 5 water
@@ -91,8 +91,8 @@ describe('VoyageManager', () => {
         const fastShip = { ...mockShip, stats: { ...mockShip.stats, speed: 500 } }; // Very fast
         const voyage = VoyageManager.startVoyage(fastShip, 10);
 
-        let currentState = voyage;
-        let currentShip = fastShip;
+        const currentState = voyage;
+        const currentShip = fastShip;
 
         // Let's manually set distance to 0 to test the check logic.
         currentState.distanceToDestination = 0;

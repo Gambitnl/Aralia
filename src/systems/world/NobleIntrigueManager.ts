@@ -119,8 +119,8 @@ const resolveIntrigue = (
   action: { type: IntrigueType; context: string },
   rng: SeededRandom
 ): WorldEventResult => {
-  let newState = { ...state };
-  let newFactions = { ...newState.factions };
+  const newState = { ...state };
+  const newFactions = { ...newState.factions };
   const logs: GameMessage[] = [];
   const timestamp = state.gameTime || new Date();
   const gameDay = getGameDay(timestamp);

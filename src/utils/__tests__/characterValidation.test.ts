@@ -2,8 +2,8 @@
 import { describe, it, expect } from 'vitest';
 import { validateCharacterChoices } from '../characterValidation';
 import { createMockPlayerCharacter } from '../factories';
-import { PlayerCharacter } from '../../types/index';
-import { Race, Class } from '../../types/index';
+import { PlayerCharacter , Race, Class } from '../../types/index';
+
 
 describe('validateCharacterChoices', () => {
   // Helper to create basic character

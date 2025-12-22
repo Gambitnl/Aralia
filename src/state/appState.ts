@@ -7,7 +7,7 @@
 import { GameState, GamePhase, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, SuspicionLevel, KnownFact, QuestStatus, UnderdarkState } from '../types';
 import { AppAction } from './actionTypes';
 import { DEFAULT_WEATHER } from '../systems/environment/EnvironmentSystem';
-import { STARTING_LOCATION_ID, DUMMY_PARTY_FOR_DEV, LOCATIONS, ITEMS, initialInventoryForDummyCharacter, CLASSES_DATA, NPCS } from '../constants';
+import { STARTING_LOCATION_ID, DUMMY_PARTY_FOR_DEV, LOCATIONS, ITEMS, initialInventoryForDummyCharacter, CLASSES_DATA, NPCS , COMPANIONS } from '../constants';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../data/factions';
 import { getAllFactions } from '../utils/factionUtils';
 import { DEITIES } from '../data/deities';
@@ -35,7 +35,7 @@ import { crimeReducer } from './reducers/crimeReducer';
 import { companionReducer } from './reducers/companionReducer';
 import { identityReducer } from './reducers/identityReducer';
 import { dialogueReducer } from './reducers/dialogueReducer';
-import { COMPANIONS } from '../constants';
+
 
 
 // Helper function to create a date at 07:00 AM on an arbitrary fixed date

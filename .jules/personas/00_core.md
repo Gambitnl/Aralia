@@ -85,14 +85,35 @@ Review recent PRs for:
 > Jules personas are forbidden from committing `package-lock.json` and `tsconfig.tsbuildinfo`. Core is responsible for regenerating these after all PRs are merged.
 
 ```bash
-# Reinstall dependencies to regenerate lockfile
+# Step 1: Reinstall dependencies to regenerate lockfile
 rm -rf node_modules package-lock.json
 npm install
 
-# Clean and rebuild to regenerate build artifacts
+# Step 2: Clean and rebuild
 npm run build
+```
 
-# Commit the canonical lockfile
+> [!CAUTION]
+> **MANDATORY GATES** — Do NOT proceed to commit if these fail.
+
+```bash
+# Step 3: Lint check (MUST PASS - 0 errors, warnings OK)
+npm run lint
+
+# Step 4: Test verification (MUST PASS - all tests green)
+npm test
+```
+
+If Step 3 or 4 fails:
+1. Fix the errors before proceeding
+2. Document what failed in the uplink channel
+3. Do NOT push broken code to master
+
+> [!TIP]
+> **PAUSE POINT** — Before committing, wait 30 seconds and check the uplink channel for any objections from other agents or the human.
+
+```bash
+# Step 5: Commit the canonical lockfile (only after gates pass)
 git add package-lock.json
 git commit -m "🏛️ Core: Regenerate lockfile post-batch"
 git push origin main

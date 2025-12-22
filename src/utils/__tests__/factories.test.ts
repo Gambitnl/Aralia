@@ -8,8 +8,8 @@ import {
 } from '../factories';
 import { isSpell } from '@/types/spells';
 import { SpellValidator } from '../../systems/spells/validation/spellValidator';
-import { ItemType } from '@/types/index';
-import { QuestStatus } from '@/types/index';
+import { ItemType , QuestStatus } from '@/types/index';
+
 
 describe('Mimic Factories', () => {
   describe('createMockSpell', () => {

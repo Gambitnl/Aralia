@@ -2,9 +2,9 @@
 import { GameState, PlayerCharacter } from '../../types';
 import { PlanarHazard, Plane } from '../../types/planes';
 import { getCurrentPlane } from '../../utils/planarUtils';
-import { rollDice } from '../../utils/combatUtils';
+import { rollDice , createPlayerCombatCharacter } from '../../utils/combatUtils';
 import { rollSavingThrow } from '../../utils/savingThrowUtils';
-import { createPlayerCombatCharacter } from '../../utils/combatUtils';
+
 import { generateId } from '../../utils/idGenerator';
 import { logger } from '../../utils/logger';
 

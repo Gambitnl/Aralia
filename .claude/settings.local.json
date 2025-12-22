@@ -46,7 +46,17 @@
       "Bash(powershell -ExecutionPolicy Bypass -File fix-pnpm.ps1)",
       "Bash(powershell:*)",
       "Bash(curl:*)",
-      "Bash(1)"
+      "Bash(1)",
+      "Bash(npm test:*)",
+      "Bash(python .agent_tools/uplink.py:*)",
+      "Bash(for:*)",
+      "Bash(do)",
+      "Bash(done)",
+      "Bash(python3:*)",
+      "Bash(npx:*)",
+      "Bash(git reset:*)",
+      "Bash(timeout 30 npx:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

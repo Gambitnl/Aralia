@@ -128,7 +128,7 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
 
   // 5. UPDATE STATE
   let newState = { ...state };
-  let newFactions = { ...newState.factions };
+  const newFactions = { ...newState.factions };
 
   // Update Faction Power
   const powerChange = 2 + Math.floor(rng.next() * 3); // 2-4 power swing
@@ -362,7 +362,7 @@ const handleRumorSpread = (state: GameState, rng: SeededRandom): WorldEventResul
 const propagateRumors = (state: GameState, rng: SeededRandom): GameState => {
     if (!state.activeRumors || state.activeRumors.length === 0) return state;
 
-    let newRumors = [...state.activeRumors];
+    const newRumors = [...state.activeRumors];
     let changed = false;
 
     // Use a fixed iteration to avoid infinite spread in one tick if we append immediately

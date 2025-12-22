@@ -19,7 +19,7 @@ const DUMMY_FIGHTER_CLASS_ID = 'fighter';
 const DUMMY_CLERIC_RACE_ID = 'dwarf';
 const DUMMY_CLERIC_CLASS_ID = 'cleric';
 
-let DUMMY_PARTY_FOR_DEV: PlayerCharacter[] = [];
+const DUMMY_PARTY_FOR_DEV: PlayerCharacter[] = [];
 
 export function getDummyInitialInventory(allItems: Record<string, Item>): Item[] {
     return [

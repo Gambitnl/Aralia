@@ -84,7 +84,7 @@ export class TargetAllocator {
     // TODO: Handle scaling dice (e.g. +2d8 per level).
     // For now, we assume the dice string is fully resolved or we use base.
     // In a full implementation, we'd use context.castLevel and poolConfig.scaling to adjust the dice string.
-    let finalDice = dice;
+    const finalDice = dice;
     // NOTE: Simple scaling injection could happen here if we had a dice string builder.
 
     const poolTotal = rollDice(finalDice);

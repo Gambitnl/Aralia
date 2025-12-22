@@ -195,7 +195,7 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
         case 'LOWER_HEAT': {
             const { amount, locationId } = action.payload;
 
-            let newNotoriety = { ...state.notoriety };
+            const newNotoriety = { ...state.notoriety };
 
             if (locationId) {
                 const current = newNotoriety.localHeat[locationId] || 0;
@@ -358,7 +358,7 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             // Simplified: Just deduct gold and add unlocked service ID to history for now.
             // Real implementation would lower heat, etc.
 
-            let newNotoriety = { ...state.notoriety };
+            const newNotoriety = { ...state.notoriety };
             let msg = `Used service: ${description}.`;
 
             if (serviceId === 'service_bribe') {

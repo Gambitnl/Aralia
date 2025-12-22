@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { TargetResolver } from '../TargetResolver'
-import type { SpellTargeting, BattleMapTile } from '@/types'
-import type { CombatCharacter, CombatState, Position } from '@/types'
+import type { SpellTargeting, BattleMapTile , CombatCharacter, CombatState, Position } from '@/types'
+
 
 // Mock Character
 const createMockChar = (id: string, team: 'player' | 'enemy', x: number, y: number): CombatCharacter => ({

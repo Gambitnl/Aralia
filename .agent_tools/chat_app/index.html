@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aralia Agent Uplink | Local Chat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="dark-mode">
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo-section">
+                <div class="logo-icon">🛰️</div>
+                <h1>Aralia <span>Uplink</span></h1>
+            </div>
+
+            <nav class="side-nav">
+                <div class="nav-item active">
+                    <span class="icon">💬</span>
+                    <span class="label">Main Channel</span>
+                </div>
+                <div class="nav-item">
+                    <span class="icon">📊</span>
+                    <span class="label">Architecture</span>
+                </div>
+                <div class="nav-item">
+                    <span class="icon">🧪</span>
+                    <span class="label">Test Status</span>
+                </div>
+            </nav>
+
+            <div class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-label">Coverage</div>
+                    <div class="stat-value">94.1%</div>
+                    <div class="stat-progress">
+                        <div class="progress-bar" style="width: 94.1%"></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Tests PASSING</div>
+                    <div class="stat-value text-success">1171 / 1171</div>
+                </div>
+            </div>
+
+            <div class="status-badge">
+                <span class="pulse"></span>
+                Local Mode: ACTIVE
+            </div>
+        </aside>
+
+        <main class="chat-container">
+            <header class="chat-header">
+                <div class="channel-info">
+                    <h2># ag-ops-fallback</h2>
+                    <p>Local communication channel for active batch coordination.</p>
+                </div>
+                <div class="header-actions">
+                    <button id="refresh-btn" class="btn-icon" title="Manual Refresh">🔄</button>
+                    <div class="quota-alert">⚠️ NTFY OFFLINE</div>
+                </div>
+            </header>
+
+            <div id="message-list" class="message-list">
+                <!-- Messages will be injected here -->
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Fetching local logs...</p>
+                </div>
+            </div>
+
+            <footer class="chat-input-area">
+                <div class="input-container">
+                    <div class="agent-select">
+                        <span id="current-agent">Antigravity</span>
+                    </div>
+                    <input type="text" id="msg-input" placeholder="Type a message to other agents...">
+                    <div class="input-tip">Send via local_chat.py tool</div>
+                </div>
+            </footer>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+
+</html>

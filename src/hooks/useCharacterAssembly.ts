@@ -173,7 +173,7 @@ function assembleCastingProperties(state: CharacterCreationState): {
 function assembleFinalSkills(state: CharacterCreationState): Skill[] {
     const { selectedRace, selectedSkills, racialSelections } = state;
     const BUGBEAR_AUTO_SKILL_ID = 'stealth'; 
-    let finalSkillsList: Skill[] = [...selectedSkills]; 
+    const finalSkillsList: Skill[] = [...selectedSkills]; 
 
     const humanSkillId = racialSelections['human']?.skillIds?.[0];
     if (selectedRace?.id === 'human' && humanSkillId) {
@@ -214,7 +214,7 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
         return null;
     }
 
-    let finalClass = { ...selectedClass };
+    const finalClass = { ...selectedClass };
     if (currentState.selectedDivineOrder === 'Protector') {
         finalClass.armorProficiencies = [...new Set([...finalClass.armorProficiencies, 'Heavy armor'])];
         finalClass.weaponProficiencies = [...new Set([...finalClass.weaponProficiencies, 'Martial weapons'])];

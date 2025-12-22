@@ -103,7 +103,9 @@ The shared foundation that all other domains depend on. Contains type definition
 | File | Purpose |
 |------|---------|
 | `src/data/dndData.ts` | Base D&D definitions |
+| `src/data/settings/*.ts` | Shared settings |
 | `src/locales/*.json` | Localization data |
+| `src/styles/*.ts` | Shared styles |
 | `src/index.css` | Global CSS |
 | `src/test/setup.ts` | Test configuration |
 

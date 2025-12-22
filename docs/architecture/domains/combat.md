@@ -91,6 +91,7 @@ The Combat domain handles all tactical combat mechanics including initiative tra
 | `src/hooks/actions/__tests__/handleMovement.test.ts` | Movement action handler tests |
 | `src/systems/logic/__tests__/ConditionEvaluator.test.ts` | Condition evaluation logic tests |
 | `src/utils/__tests__/aoeCalculations.test.ts` | Area of effect calculation tests |
+| `src/utils/__tests__/lineOfSight.test.ts` | Line of sight calculation tests |
 | `src/utils/__tests__/combatUtils_attack.test.ts` | Attack resolution utility tests |
 | `src/utils/__tests__/combatUtils_character.test.ts` | Character combat utility tests |
 | `src/utils/__tests__/combatUtils_cover.test.ts` | Cover calculation utility tests |

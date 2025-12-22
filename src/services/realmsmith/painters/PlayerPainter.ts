@@ -75,7 +75,7 @@ export class PlayerPainter {
         const bodyHeight = 12;
 
         let bodyOffsetY = 0;
-        let headOffsetY = 0;
+        const headOffsetY = 0;
 
         if (facing === 'north' || facing === 'northwest' || facing === 'northeast') {
             bodyOffsetY = -1;

@@ -250,7 +250,7 @@ export class CrewManager {
    */
   static modifyCrewLoyalty(crew: Crew, amount: number, reason?: string): void {
       crew.members.forEach(member => {
-          let modifiedAmount = amount;
+          const modifiedAmount = amount;
 
           // Trait modifiers could go here (e.g., 'Fickle')
 

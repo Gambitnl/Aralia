@@ -91,6 +91,20 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
     startEntryWidth: 0,
   });
 
+  const [dragState, setDragState] = useState<{
+    isDragging: boolean;
+    startX: number;
+    startY: number;
+    startLeft: number;
+    startTop: number;
+  }>({
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    startLeft: 0,
+    startTop: 0,
+  });
+
   const entryRefs = useRef<Record<string, HTMLLIElement | HTMLButtonElement | null>>({});
 
   // Get breadcrumb path for current entry
@@ -616,6 +630,60 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
     }
   }, []);
 
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    if (resizeState.isResizing || columnResizeState.isResizing) return;
+    if (!modalRef.current || e.button !== 0) return;
+
+    const target = e.target as HTMLElement;
+    if (target.closest('button, input, textarea, select, [role="button"], a')) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const rect = modalRef.current.getBoundingClientRect();
+    setDragState({
+      isDragging: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      startLeft: rect.left,
+      startTop: rect.top,
+    });
+  }, [resizeState.isResizing, columnResizeState.isResizing]);
+
+  useEffect(() => {
+    if (!dragState.isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!modalRef.current) return;
+
+      const deltaX = e.clientX - dragState.startX;
+      const deltaY = e.clientY - dragState.startY;
+      const rect = modalRef.current.getBoundingClientRect();
+
+      const minLeft = 20;
+      const minTop = 20;
+      const maxLeft = Math.max(minLeft, window.innerWidth - rect.width - 20);
+      const maxTop = Math.max(minTop, window.innerHeight - rect.height - 20);
+
+      const nextLeft = Math.min(Math.max(dragState.startLeft + deltaX, minLeft), maxLeft);
+      const nextTop = Math.min(Math.max(dragState.startTop + deltaY, minTop), maxTop);
+
+      setModalPosition({ left: nextLeft, top: nextTop });
+    };
+
+    const handleMouseUp = () => {
+      setDragState(prev => ({ ...prev, isDragging: false }));
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dragState, setModalPosition]);
+
   if (!isOpen) return null;
 
   if (glossaryIndex === null && !error) {
@@ -722,7 +790,8 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
           top: modalPosition ? `${modalPosition.top}px` : '50%',
           transform: modalPosition ? 'none' : 'translate(-50%, -50%)',
           margin: modalPosition ? '0' : undefined,
-          userSelect: resizeState.isResizing ? 'none' : undefined,
+          userSelect: resizeState.isResizing || dragState.isDragging ? 'none' : undefined,
+          cursor: dragState.isDragging ? 'grabbing' : undefined,
         }}
       >
         {/* Modal resize handles - subtle, appear on hover */}
@@ -770,7 +839,16 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
           title="Resize"
         />
         <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-600">
-          <h2 id="glossary-title" className="text-3xl font-bold text-amber-400 font-cinzel">Game Glossary</h2>
+          <div
+            className="flex items-center gap-2 cursor-grab active:cursor-grabbing select-none"
+            onMouseDown={handleDragStart}
+            title="Drag to move the glossary"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path d="M9 4.5a1 1 0 0 1 2 0v2.086l1.293-1.293a1 1 0 1 1 1.414 1.414L12.414 8H14.5a1 1 0 1 1 0 2h-2.086l1.293 1.293a1 1 0 1 1-1.414 1.414L11 11.414V13.5a1 1 0 1 1-2 0v-2.086l-1.293 1.293a1 1 0 0 1-1.414-1.414L7.586 10H5.5a1 1 0 0 1 0-2h2.086L6.293 6.707a1 1 0 0 1 1.414-1.414L9 6.586V4.5Z" />
+            </svg>
+            <h2 id="glossary-title" className="text-3xl font-bold text-amber-400 font-cinzel">Game Glossary</h2>
+          </div>
           <div className="flex items-center gap-3">
             {/* Re-check Spells Button */}
             <button

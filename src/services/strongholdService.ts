@@ -466,7 +466,7 @@ export const processDailyUpkeep = (stronghold: Stronghold): { updatedStronghold:
     summary.goldChange -= totalWages;
 
     // --- Threat Management ---
-    let activeThreats = [...stronghold.threats];
+    const activeThreats = [...stronghold.threats];
 
     // 1. Generate new threat?
     const newThreat = generateThreat(stronghold);

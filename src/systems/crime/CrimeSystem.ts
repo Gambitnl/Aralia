@@ -27,7 +27,7 @@ export class CrimeSystem {
         const globalHeatFactor = currentNotoriety.globalHeat * 0.2;
 
         // Higher heat means guards are more alert
-        let totalRisk = baseRisk + (locationHeat * 0.5) + globalHeatFactor;
+        const totalRisk = baseRisk + (locationHeat * 0.5) + globalHeatFactor;
 
         // Cap risk at 95% (always a small chance of luck)
         return Math.min(95, Math.max(5, totalRisk));

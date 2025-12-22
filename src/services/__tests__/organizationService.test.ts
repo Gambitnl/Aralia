@@ -34,7 +34,7 @@ describe('OrganizationService', () => {
     });
 
     it('should fail to recruit if insufficient funds', () => {
-        let org = createOrganization('Poor Org', 'company', 'p1');
+        const org = createOrganization('Poor Org', 'company', 'p1');
         org.resources.gold = 10;
 
         expect(() => {

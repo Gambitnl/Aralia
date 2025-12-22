@@ -55,7 +55,7 @@ export const useCombatEngine = ({
         actionEffectId?: string
     ): CombatCharacter => {
         let updatedCharacter = { ...character };
-        let savedEffectIds: string[] = [];
+        const savedEffectIds: string[] = [];
         const savePenaltySystem = new SavePenaltySystem();
 
         updatedCharacter.statusEffects.forEach(effect => {

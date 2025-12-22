@@ -77,7 +77,7 @@ describe('StrongholdService', () => {
         });
 
         it('should throw error if not affordable', () => {
-            let castle = createStronghold('My Castle', 'castle', 'loc-123');
+            const castle = createStronghold('My Castle', 'castle', 'loc-123');
             castle.resources.gold = 100; // Too poor
 
             expect(() => purchaseUpgrade(castle, 'market_stall')).toThrow('Not enough gold.');
@@ -104,7 +104,7 @@ describe('StrongholdService', () => {
 
     describe('Daily Upkeep', () => {
         it('should apply upgrade income bonuses', () => {
-            let castle = createStronghold('My Castle', 'castle', 'loc-123');
+            const castle = createStronghold('My Castle', 'castle', 'loc-123');
             // Base income 10
 
             // Add Market Stall (+15 income) manually to skip costs for this test
@@ -117,7 +117,7 @@ describe('StrongholdService', () => {
         });
 
         it('should apply upgrade influence bonuses', () => {
-            let castle = createStronghold('My Castle', 'castle', 'loc-123');
+            const castle = createStronghold('My Castle', 'castle', 'loc-123');
             // Add Marketplace (+1 influence) - needs ID not full object logic here as we just check ID lookup
             castle.upgrades.push('marketplace');
 
@@ -218,7 +218,7 @@ describe('StrongholdService', () => {
         });
 
         it('should apply threat consequences in daily upkeep', () => {
-            let castle = createStronghold('My Castle', 'castle', 'loc-123');
+            const castle = createStronghold('My Castle', 'castle', 'loc-123');
             castle.resources.gold = 2000;
 
             // Add a threat about to trigger
@@ -248,7 +248,7 @@ describe('StrongholdService', () => {
              const originalRandom = Math.random;
              Math.random = () => 0.05; // Force threat (threshold 0.1)
 
-             let castle = createStronghold('My Castle', 'castle', 'loc-123');
+             const castle = createStronghold('My Castle', 'castle', 'loc-123');
              const result = processDailyUpkeep(castle);
 
              expect(result.updatedStronghold.threats.length).toBe(1);

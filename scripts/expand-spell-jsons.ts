@@ -248,7 +248,7 @@ function processSpell(filePath: string) {
     const content = fs.readFileSync(filePath, 'utf-8');
     const spellData = JSON.parse(content);
 
-    let expandedData = deepMerge(spellData, MASTER_TEMPLATE);
+    const expandedData = deepMerge(spellData, MASTER_TEMPLATE);
 
     if (expandedData.arbitrationType === "") {
         expandedData.arbitrationType = "mechanical";

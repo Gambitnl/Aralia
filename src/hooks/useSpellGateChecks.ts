@@ -119,7 +119,7 @@ export const useSpellGateChecks = () => {
             let status: GateStatus = "pass";
 
             const spellFidelity = fidelity?.spells[id];
-            let gapAnalysisData = spellFidelity;
+            const gapAnalysisData = spellFidelity;
 
             if (spellFidelity) {
               if (spellFidelity.state === "analyzed_with_gaps") {

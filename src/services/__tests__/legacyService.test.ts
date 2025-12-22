@@ -63,7 +63,7 @@ describe('Legacy Service - Succession', () => {
     });
 
     it('should process standard succession with tax', () => {
-        let legacy = initializeLegacy('Baratheon');
+        const legacy = initializeLegacy('Baratheon');
 
         // Add an heir
         legacy.heirs.push({
@@ -86,7 +86,7 @@ describe('Legacy Service - Succession', () => {
     });
 
     it('should apply lower tax for retirement', () => {
-        let legacy = initializeLegacy('Targaryen');
+        const legacy = initializeLegacy('Targaryen');
         legacy.heirs.push({ id: 'heir-2', name: 'Rhaegar', relation: 'Son', age: 20, isDesignatedHeir: true });
 
         const gold = 1000;
@@ -99,7 +99,7 @@ describe('Legacy Service - Succession', () => {
     });
 
     it('should increase tax for high infamy', () => {
-        let legacy = initializeLegacy('Bolton');
+        const legacy = initializeLegacy('Bolton');
         legacy.reputation.infamy = 100; // High infamy
         legacy.reputation.fame = 0;
         legacy.heirs.push({ id: 'heir-3', name: 'Ramsay', relation: 'Bastard', age: 18, isDesignatedHeir: true });
@@ -113,7 +113,7 @@ describe('Legacy Service - Succession', () => {
     });
 
     it('should handle stronghold transfer logic', () => {
-        let legacy = initializeLegacy('Tully');
+        const legacy = initializeLegacy('Tully');
         legacy.strongholdIds = ['sh-1'];
         legacy.heirs.push({ id: 'heir-4', name: 'Edmure', relation: 'Son', age: 25, isDesignatedHeir: true });
 
@@ -127,7 +127,7 @@ describe('Legacy Service - Succession', () => {
     });
 
     it('should guarantee stronghold transfer during retirement', () => {
-        let legacy = initializeLegacy('Frey');
+        const legacy = initializeLegacy('Frey');
         legacy.strongholdIds = ['sh-unstable'];
         legacy.heirs.push({ id: 'heir-5', name: 'Walder Jr', relation: 'Son', age: 40, isDesignatedHeir: true });
 
@@ -141,7 +141,7 @@ describe('Legacy Service - Succession', () => {
     });
 
     it('should track lost organizations in the result object', () => {
-        let legacy = initializeLegacy('Greyjoy');
+        const legacy = initializeLegacy('Greyjoy');
         legacy.organizationIds = ['org-1'];
         legacy.heirs.push({ id: 'heir-6', name: 'Yara', relation: 'Daughter', age: 25, isDesignatedHeir: true });
 

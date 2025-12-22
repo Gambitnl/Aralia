@@ -118,7 +118,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             const timestamp = Date.now();
 
             let party = [...state.party];
-            let favorUpdates = { ...state.divineFavor };
+            const favorUpdates = { ...state.divineFavor };
 
             // Apply Effects
             if (effect === 'restore_hp_full') {

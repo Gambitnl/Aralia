@@ -49,7 +49,7 @@ export function getSpellVisual(spell: Spell): VisualAsset {
   const schoolIcon = SCHOOL_ICONS[spell.school] || '✨';
 
   // Determine fallback content (could be damage type based in future)
-  let fallback = schoolIcon;
+  const fallback = schoolIcon;
   if (spell.damageType) {
     // Override fallback icon for specific damage types if desired
     // For now, sticking to school identity for consistency

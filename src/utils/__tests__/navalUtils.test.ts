@@ -66,7 +66,7 @@ describe('Naval Utils', () => {
   });
 
   it('should detect mutiny risk', () => {
-    let ship = createShip('Mutinous Boat', 'Sloop');
+    const ship = createShip('Mutinous Boat', 'Sloop');
     ship.crew.unrest = 80;
     ship.crew.averageMorale = 20;
     expect(checkMutinyRisk(ship)).toBe(true);
@@ -79,7 +79,7 @@ describe('Naval Utils', () => {
   // NEW TESTS FOR MODIFICATIONS
   describe('Ship Modifications', () => {
     it('should install a modification correctly', () => {
-      let ship = createShip('Test Sloop', 'Sloop');
+      const ship = createShip('Test Sloop', 'Sloop');
       const mod = SHIP_MODIFICATIONS.REINFORCED_HULL;
 
       const result = installModification(ship, mod);
@@ -90,11 +90,11 @@ describe('Naval Utils', () => {
     });
 
     it('should correctly apply additive modifiers (Reinforced Hull)', () => {
-      let ship = createShip('Tanky Sloop', 'Sloop');
+      const ship = createShip('Tanky Sloop', 'Sloop');
       // Base: AC 13, HP 150, Speed 60
       const mod = SHIP_MODIFICATIONS.REINFORCED_HULL;
       const result = installModification(ship, mod);
-      let moddedShip = result.ship!;
+      const moddedShip = result.ship!;
 
       // Add crew properly to ensure morale is set correctly (default createShip is 100, we want neutral 50)
       moddedShip.crew.averageMorale = 50;
@@ -114,10 +114,10 @@ describe('Naval Utils', () => {
     });
 
     it('should correctly apply multiplicative modifiers (Silk Sails)', () => {
-        let ship = createShip('Fast Sloop', 'Sloop');
+        const ship = createShip('Fast Sloop', 'Sloop');
         const mod = SHIP_MODIFICATIONS.SILK_SAILS;
         const result = installModification(ship, mod);
-        let moddedShip = result.ship!;
+        const moddedShip = result.ship!;
 
         // Add crew and set neutral morale
         moddedShip.crew.averageMorale = 50;
@@ -131,7 +131,7 @@ describe('Naval Utils', () => {
     });
 
     it('should prevent installing the same modification twice', () => {
-        let ship = createShip('Double Sloop', 'Sloop');
+        const ship = createShip('Double Sloop', 'Sloop');
         const mod = SHIP_MODIFICATIONS.REINFORCED_HULL;
 
         const result1 = installModification(ship, mod);
@@ -143,14 +143,14 @@ describe('Naval Utils', () => {
     });
 
     it('should enforce size requirements (Extended Hold)', () => {
-        let tinyShip = createShip('Tiny Boat', 'Rowboat'); // Size: Small
+        const tinyShip = createShip('Tiny Boat', 'Rowboat'); // Size: Small
         const mod = SHIP_MODIFICATIONS.EXTENDED_HOLD; // Requires Large+
 
         const result = installModification(tinyShip, mod);
         expect(result.success).toBe(false);
         expect(result.reason).toContain('not supported');
 
-        let bigShip = createShip('Big Boat', 'SailingShip'); // Size: Huge
+        const bigShip = createShip('Big Boat', 'SailingShip'); // Size: Huge
         const result2 = installModification(bigShip, mod);
         expect(result2.success).toBe(true);
     });

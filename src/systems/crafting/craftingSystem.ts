@@ -129,7 +129,7 @@ export function attemptCraft(crafter: Crafter, recipe: Recipe): CraftingResult {
 
   if (success) {
     for (const output of recipe.outputs) {
-      let qty = Math.floor(output.quantity * quantityMultiplier);
+      const qty = Math.floor(output.quantity * quantityMultiplier);
       const finalItemId = itemIdOverride || output.itemId;
 
       outputs.push({ itemId: finalItemId, quantity: qty });

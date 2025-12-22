@@ -64,7 +64,7 @@ export const resolveAoEParams = (
     center: Position,
     caster?: CombatCharacter
 ): AoEParams | null => {
-    let shape = mapShapeToStandard(aoe.shape);
+    const shape = mapShapeToStandard(aoe.shape);
     let direction = 0;
     let origin = center;
     let targetPoint: Position | undefined = undefined;

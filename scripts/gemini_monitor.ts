@@ -82,7 +82,7 @@ async function run() {
 
     // Initial state
     await page.waitForSelector('ul#messages');
-    let knownMessages = await page.locator('ul#messages li').allTextContents();
+    const knownMessages = await page.locator('ul#messages li').allTextContents();
     let lastCount = knownMessages.length;
     console.log(`Initial message count: ${lastCount}`);
 

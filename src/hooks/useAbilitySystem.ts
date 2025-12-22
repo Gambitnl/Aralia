@@ -288,7 +288,7 @@ export const useAbilitySystem = ({
     isCritical: boolean = false
   ) => {
     // Clone once so we can safely layer mutations.
-    let modifiedTarget = { ...target, statusEffects: [...target.statusEffects] };
+    const modifiedTarget = { ...target, statusEffects: [...target.statusEffects] };
 
     ability.effects.forEach(effect => {
       switch (effect.type) {
@@ -512,7 +512,7 @@ export const useAbilitySystem = ({
           const abilityMod = isRanged ? dexMod : strMod;
 
           // Apply Planar Modifier
-          let planarModifier = 0;
+          const planarModifier = 0;
           if (currentPlane && ability.weapon) {
              // For simplicity, assume all melee weapons are affected by "Empowered" if applicable,
              // or check damage type.

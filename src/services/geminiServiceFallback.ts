@@ -37,7 +37,7 @@ export function getFallbackEncounter(xpBudget: number, themeTags: string[]): Mon
   const getXp = (m: any) => XP_BY_CR[m.baseStats.cr] || 0;
 
   // Sort by XP descending, but filter out monsters that are too strong (XP > budget)
-  let validCandidates = candidates
+  const validCandidates = candidates
     .filter(m => getXp(m) <= xpBudget)
     .sort((a, b) => getXp(b) - getXp(a));
 

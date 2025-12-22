@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { TradeRouteSystem } from '../TradeRouteSystem';
-import { TradeRoute } from '../../../types/economy';
-import { MarketEventType } from '../../../types/economy';
+import { TradeRoute , MarketEventType } from '../../../types/economy';
+
 
 describe('TradeRouteSystem', () => {
   const mockRoute: TradeRoute = {

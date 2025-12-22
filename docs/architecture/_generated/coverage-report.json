@@ -1,31 +1,22 @@
 {
   "meta": {
-    "generatedAt": "2025-12-22T11:31:48.148Z",
+    "generatedAt": "2025-12-22T11:43:13.818Z",
     "totalCodeFiles": 1599,
     "totalTestFiles": 207,
-    "claimedFiles": 1596,
-    "orphanedFiles": 3,
-    "missingFiles": 1,
+    "claimedFiles": 1599,
+    "orphanedFiles": 0,
+    "missingFiles": 0,
     "ambiguousFiles": 0,
-    "coveragePercent": 99.8
+    "coveragePercent": 100
   },
-  "orphaned": [
-    "src/data/settings/ttsOptions.ts",
-    "src/services/battleMapGenerator.ts",
-    "src/styles/buttonStyles.ts"
-  ],
+  "orphaned": [],
   "orphanedTests": [],
-  "missing": [
-    {
-      "file": "src/hooks/__tests__/useSubmapProceduralData.test.ts",
-      "claimedIn": "submap"
-    }
-  ],
+  "missing": [],
   "ambiguous": [],
   "byDomain": {
     "battle-map": {
-      "claimedFiles": 21,
-      "validFiles": 21,
+      "claimedFiles": 22,
+      "validFiles": 22,
       "missingFiles": 0,
       "testFiles": 4
     },
@@ -54,8 +45,8 @@
       "testFiles": 13
     },
     "core-systems": {
-      "claimedFiles": 146,
-      "validFiles": 140,
+      "claimedFiles": 148,
+      "validFiles": 142,
       "missingFiles": 0,
       "testFiles": 32
     },
@@ -132,10 +123,10 @@
       "testFiles": 21
     },
     "submap": {
-      "claimedFiles": 29,
+      "claimedFiles": 28,
       "validFiles": 28,
-      "missingFiles": 1,
-      "testFiles": 4
+      "missingFiles": 0,
+      "testFiles": 3
     },
     "time-world-events": {
       "claimedFiles": 35,

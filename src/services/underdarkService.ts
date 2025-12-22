@@ -123,7 +123,7 @@ export const updateSanity = (state: UnderdarkState, minutesPassed: number): Unde
     // If recovering (Normal Light), we don't multiply the recovery.
     // (Or we could reduce it, but keeping it simple for now)
 
-    let newSanity = Math.max(0, Math.min(state.sanity.max, state.sanity.current - sanityDrain));
+    const newSanity = Math.max(0, Math.min(state.sanity.max, state.sanity.current - sanityDrain));
 
     // Calculate Madness Level
     // 0: Fine (100-80)

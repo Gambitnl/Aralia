@@ -47,7 +47,7 @@ export const attemptCraft = (
     };
   }
 
-  let success = true;
+  const success = true;
   let quality: CraftResult['quality'] = 'common';
   let isCrit = false;
 

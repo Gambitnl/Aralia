@@ -143,7 +143,7 @@ export function jamPressurePlate(
   const dexMod = getAbilityModifierValue(character.stats.dexterity);
   const intMod = getAbilityModifierValue(character.stats.intelligence);
 
-  let roll = rollDice('1d20');
+  const roll = rollDice('1d20');
   let bonus = 0;
 
   if (hasThievesTools) {

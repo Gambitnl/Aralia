@@ -172,7 +172,20 @@ Each persona should consult their relevant architecture docs in `docs/architectu
 ## 📡 Agent Uplink Protocol
 
 > [!IMPORTANT]
-> **You are working in isolation.** Each Jules agent runs in its own cloned environment. You cannot see what other agents are doing, and they cannot see your work. The only shared state is GitHub (main branch) and this uplink channel.
+> **You are working in isolation.** Each Jules agent runs in its own cloned environment. You cannot see what other agents are doing, and they cannot see your work. The only shared state is GitHub (main branch) and the uplink channel.
+
+### Primary Channel: ntfy.sh
+- Topic: https://ntfy.sh/ag-ops-v3 (or as defined by Herald)
+- Tools: `.agent_tools/uplink.py`
+
+### Fallback Channel: Local Chat
+If ntfy is down or quota is reached, use the local file-based chat:
+- File: `.jules/LOCAL_CHAT.json` (View at http://localhost:8000)
+- Directive: See `.jules/prompts/local_chat_directive.md`
+- Usage: `python .agent_tools/local_chat.py --send "#YourName Your message here"`
+- Note: Check the `.jules/manifests/ag_ops_topics.md` for current status.
+
+
 
 ---
 
