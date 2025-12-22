@@ -8,7 +8,7 @@ const STANDARD_SERVICES: Record<string, TempleService> = {
     description: 'A brief prayer for guidance.',
     costGp: 5,
     minFavor: 0,
-    effect: 'Morale boost'
+    effect: 'grant_blessing_minor'
   },
   HEALING_LIGHT: {
     id: 'healing_light',
@@ -16,7 +16,7 @@ const STANDARD_SERVICES: Record<string, TempleService> = {
     description: 'Restores 20 HP and cures non-magical diseases.',
     costGp: 50,
     minFavor: 10,
-    effect: 'Heal 20 HP'
+    effect: 'restore_hp_full'
   },
   REMOVE_CURSE: {
     id: 'remove_curse',
@@ -24,7 +24,7 @@ const STANDARD_SERVICES: Record<string, TempleService> = {
     description: 'Attempts to remove a curse.',
     costGp: 150,
     minFavor: 30,
-    effect: 'Remove Curse'
+    effect: 'remove_curse'
   },
   DIVINE_INTERVENTION: {
     id: 'divine_intervention',
@@ -52,7 +52,7 @@ export const TEMPLES: Temple[] = [
         description: 'Grants advantage on Insight checks for 24 hours.',
         costGp: 25,
         minFavor: 20,
-        effect: 'Buff: Insight Advantage'
+        effect: 'grant_blessing_scales_of_justice'
       }
     ]
   },
@@ -70,7 +70,7 @@ export const TEMPLES: Temple[] = [
         description: 'Blesses a crafting attempt or repair.',
         costGp: 40,
         minFavor: 10,
-        effect: 'Buff: Crafting'
+        effect: 'grant_blessing_artisans_touch'
       }
     ]
   },

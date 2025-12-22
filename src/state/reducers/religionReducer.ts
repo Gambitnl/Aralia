@@ -1,7 +1,7 @@
 
 import { GameState, DeityAction } from '../../types';
 import { AppAction } from '../actionTypes';
-import { calculateFavorChange, getDeity, evaluateAction, grantBlessing } from '../../utils/religionUtils';
+import { calculateFavorChange, getDeity, evaluateAction, grantBlessing, resolveBlessingEffect } from '../../utils/religionUtils';
 import { DEITIES } from '../../data/deities';
 
 export function religionReducer(state: GameState, action: AppAction): Partial<GameState> {
@@ -173,6 +173,48 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     sender: 'system',
                     timestamp: new Date(timestamp)
                 });
+            } else if (effect.startsWith('grant_blessing_') && deityId) {
+                // Parse blessing ID from effect string (e.g. 'grant_blessing_scales_of_justice' -> 'blessing_scales_of_justice')
+                // Actually the effect IS the blessing ID if we follow the convention, or we map it.
+                // Let's assume the effect string is 'grant_blessing_' + remaining part which constructs the blessing ID.
+                // However, our blessings in blessings.ts have IDs like 'blessing_scales_of_justice'.
+                // So if the effect is 'grant_blessing_scales_of_justice', we can try to derive 'blessing_scales_of_justice'.
+
+                const blessingIdFragment = effect.replace('grant_blessing_', '');
+                const blessingId = `blessing_${blessingIdFragment}`;
+
+                const statusEffect = resolveBlessingEffect(blessingId);
+
+                if (statusEffect) {
+                    // 1. Add Status Effect to Party
+                    party = party.map(char => ({
+                        ...char,
+                        statusEffects: [...char.statusEffects, {
+                            ...statusEffect,
+                            // Ensure unique IDs for instances
+                            id: `${statusEffect.id}_${char.id}_${timestamp}`
+                        }]
+                    }));
+
+                    // 2. Add Blessing to Favor Record
+                    const existing = favorUpdates[deityId] || { deityId, favor: 0, history: [], blessings: [], transgressions: [] };
+                    const blessingRecord = {
+                        id: blessingId,
+                        name: statusEffect.name,
+                        description: statusEffect.name, // Simplified
+                        effectType: 'buff' as const,
+                        durationHours: statusEffect.duration ? statusEffect.duration / 600 : undefined // approx
+                    };
+
+                    favorUpdates[deityId] = grantBlessing(existing, blessingRecord);
+
+                    messages.push({
+                        id: timestamp,
+                        text: `You receive the blessing: ${statusEffect.name}.`,
+                        sender: 'system',
+                        timestamp: new Date(timestamp)
+                    });
+                }
             }
 
             return {
