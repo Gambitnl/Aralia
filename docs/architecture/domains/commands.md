@@ -64,16 +64,16 @@ Encapsulates spell effects and game actions as discrete command objects that can
 
 ## Dependencies
 
-- **Imports from:** `src/types/spells.ts`, `src/utils/combatUtils.ts`
-- **Imported by:** `src/hooks/combat/`, spell resolution systems
+- **Imports from:** src/types/spells.ts, src/utils/combatUtils.ts
+- **Imported by:** src/hooks/combat/, spell resolution systems
 
 ## Boundaries
 
 ### Owned by this domain
-- All files in `src/commands/`
+- All files in src/commands/
 
 ### Shared (modify with care)
-- `src/types/spells.ts` - shared with Spells domain
+- src/types/spells.ts - shared with Spells domain
 
 ### DO NOT MODIFY
-- `src/utils/combatUtils.ts` - owned by Combat domain
+- src/utils/combatUtils.ts - owned by Combat domain

@@ -25,16 +25,10 @@ The Glossary provides an in-game reference system for D&D 5e rules, spells, item
 
 | Path | Type | Description |
 |------|------|-------------|
-| `src/components/Glossary/` | Directory | All glossary UI components |
-| `src/components/Glossary/Glossary.tsx` | Component | Main modal (43KB, complex) |
-| `src/components/Glossary/GlossaryContentRenderer.tsx` | Component | Content rendering logic |
-| `src/components/Glossary/GlossaryTooltip.tsx` | Component | Inline tooltip system |
-| `src/components/Glossary/SpellCardTemplate.tsx` | Component | Spell-specific formatting |
-| `src/components/Glossary/glossaryUIUtils.tsx` | Utils | UI helper functions |
-| `src/components/Glossary/index.ts` | Index | Public exports |
+| `src/components/Glossary/*.ts*` | Directory | All glossary UI components and index |
 | `src/data/glossaryData.ts` | Data | Glossary data utilities |
 | `src/utils/glossaryUtils.ts` | Utils | General glossary utilities |
-| `public/data/glossary/` | Data | JSON glossary entries (~342 files) |
+
 
 ## Dependencies
 
@@ -60,3 +54,10 @@ The Glossary provides an in-game reference system for D&D 5e rules, spells, item
 - [ ] Consider caching strategy for large glossary datasets
 - [ ] Evaluate search performance with growing entry count
 - [ ] Document relationship between glossary entries and spell JSON schema
+
+### Claimed Tests (Auto-generated)
+
+| Test File | Description |
+|-----------|-------------|
+| `src/components/Glossary/__tests__/Glossary.test.tsx` | Unit test |
+| `src/components/Glossary/__tests__/GlossaryDisplay.test.tsx` | Unit test |

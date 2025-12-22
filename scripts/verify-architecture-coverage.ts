@@ -20,6 +20,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { globSync } from 'glob';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -104,7 +105,7 @@ function isExcluded(filePath: string): boolean {
 
 /**
  * Parse a domain markdown file to extract claimed files
- * Requires EVERY SINGLE FILE to be explicitly listed (no directory wildcards)
+ * Supports explicit file paths and glob patterns
  */
 function parseDomainDoc(filePath: string): DomainClaim {
     const content = fs.readFileSync(filePath, 'utf-8');
@@ -112,28 +113,42 @@ function parseDomainDoc(filePath: string): DomainClaim {
 
     const files: string[] = [];
 
-    // Match file paths in markdown - must be explicit file paths
+    // Match file paths in markdown - can be explicit paths or glob patterns
     // Patterns we're looking for:
-    // | `src/components/X.tsx` | ... |
+    // | `src/components/*.tsx` | ... |
     // - `src/components/X.tsx`
     // `src/components/X.tsx`
 
     // Pattern 1: Backtick-wrapped paths (most common)
-    const backtickPattern = /`((?:src|scripts|public\/data)\/[^`]+\.(ts|tsx|js|jsx|mjs|cjs|json|css))`/g;
+    const backtickPattern = /`((?:src|scripts|public\/data)\/[^`]+)`/g;
     let match;
     while ((match = backtickPattern.exec(content)) !== null) {
-        const filePath = match[1];
-        if (!files.includes(filePath)) {
-            files.push(filePath);
+        const pattern = match[1];
+        if (/[\*\{\[?]/.test(pattern)) {
+            const matches = globSync(pattern, { cwd: projectRoot }).map(f => f.replace(/\\/g, '/'));
+            for (const f of matches) {
+                if (!files.includes(f)) files.push(f);
+            }
+        } else {
+            if (!files.includes(pattern)) {
+                files.push(pattern);
+            }
         }
     }
 
     // Pattern 2: Table cells with paths (no backticks)
-    const tablePattern = /\|\s*((?:src|scripts|public\/data)\/[^\s|]+\.(ts|tsx|js|jsx|mjs|cjs|json|css))\s*\|/g;
+    const tablePattern = /\|\s*((?:src|scripts|public\/data)\/[^\s|]+)\s*\|/g;
     while ((match = tablePattern.exec(content)) !== null) {
-        const filePath = match[1];
-        if (!files.includes(filePath)) {
-            files.push(filePath);
+        const pattern = match[1];
+        if (/[\*\{\[?]/.test(pattern)) {
+            const matches = globSync(pattern, { cwd: projectRoot }).map(f => f.replace(/\\/g, '/'));
+            for (const f of matches) {
+                if (!files.includes(f)) files.push(f);
+            }
+        } else {
+            if (!files.includes(pattern)) {
+                files.push(pattern);
+            }
         }
     }
 

@@ -10,9 +10,8 @@ Contains all the JSON data files that populate the glossary. These are the "sour
 
 | Path | Description |
 |------|-------------|
-| `public/data/glossary/entries/` | All glossary JSON entries |
-| `public/data/spells/` | Spell JSON files |
-| `public/data/spells_manifest.json` | Spell index/manifest |
+| `public/data/glossary/entries/**/*.json` | All glossary JSON entries |
+| `public/data/glossary/index/*.json` | Glossary index files |
 
 ## Subcomponents
 
@@ -35,19 +34,13 @@ Contains all the JSON data files that populate the glossary. These are the "sour
 | Path | Content |
 |------|---------|
 | `public/data/glossary/entries/rules/*.json` | Core rules (ability checks, actions, etc.) |
+| `public/data/glossary/entries/rules/**/*.json` | Detailed rules and equipment rules |
 | `public/data/glossary/entries/rules/conditions/*.json` | Condition definitions |
 
 ### Item Data
 | Path | Content |
 |------|---------|
 | `public/data/glossary/entries/magic_items/*.json` | Magic item definitions |
-
-### Spell Data
-| Path | Content |
-|------|---------|
-| `public/data/spells/*.json` | Individual spell files |
-| `public/data/spells_manifest.json` | Spell manifest/index |
-| `public/data/spells_fidelity.json` | Spell fidelity tracking |
 
 ### Other Data Files
 | Path | Content |
@@ -57,15 +50,14 @@ Contains all the JSON data files that populate the glossary. These are the "sour
 
 ## Adding New Content
 
-1. Create JSON file following the schema in `src/types/spells.ts` (for spells) or existing examples
+1. Create JSON file following the schema in src/types/spells.ts (for spells) or existing examples
 2. Validate with `npx tsx scripts/validate-data.ts`
 3. Update manifest if applicable
 4. Run `npm run build` to verify
 
 ## Dependencies
 
-- **Imported by:** `src/services/spellLoader.ts`, `src/components/Glossary/`, `src/hooks/useSpellLoader.ts`
-- **Validated by:** `scripts/validateSpellJsons.js`, `scripts/validate-data.ts`
+- **Imported by:** `src/components/Glossary/`
 
 ## Boundaries
 
@@ -77,3 +69,10 @@ Contains all the JSON data files that populate the glossary. These are the "sour
 ### DO NOT MODIFY without validation
 - Spell JSONs must pass schema validation
 - Adding new classes/races requires corresponding validator updates
+
+### Claimed Tests (Auto-generated)
+
+| Test File | Description |
+|-----------|-------------|
+| `src/components/Glossary/__tests__/Glossary.test.tsx` | Unit test |
+| `src/components/Glossary/__tests__/GlossaryDisplay.test.tsx` | Unit test |

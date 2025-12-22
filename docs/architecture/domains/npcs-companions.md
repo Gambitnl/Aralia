@@ -21,15 +21,17 @@ This domain manages all non-player character systems including party companions,
 - **Dialogue Service**: `dialogueService.ts` - AI-powered dialogue
 - **Companion Factories**: `companionFactories.ts` - Companion generation
 
-## File Ownership
-
 | Path | Type | Description |
 |------|------|-------------|
-| `src/systems/companions/` | Directory | Companion systems (~5 files) |
+| `src/systems/companions/*.ts` | Directory | Companion systems |
+| `src/components/Dialogue/*.ts*` | Directory | Dialogue interface and index |
+| `src/components/RelationshipsPane.tsx` | Component | Relationship tracking |
+| `src/components/DossierPane.tsx` | Component | NPC dossiers |
+| `src/components/Npc*.tsx` | Component | NPC testing and interaction |
 | `src/data/companions.ts` | Data | Companion definitions |
 | `src/state/reducers/npcReducer.ts` | Reducer | NPC state |
 | `src/state/reducers/companionReducer.ts` | Reducer | Companion state |
-| `src/hooks/useCompanionCommentary.ts` | Hook | Commentary system |
+| `src/hooks/useCompanion*.ts` | Hook | Companion and commentary |
 | `src/services/dialogueService.ts` | Service | Dialogue generation |
 | `src/utils/companionFactories.ts` | Utils | Companion creation |
 | `src/types/companions.ts` | Types | Companion types |
@@ -62,3 +64,12 @@ This domain manages all non-player character systems including party companions,
 - [ ] Document companion recruitment flow
 - [ ] Clarify loyalty/approval mechanics
 - [ ] Map NPC memory system
+
+### Claimed Tests (Auto-generated)
+
+| Test File | Description |
+|-----------|-------------|
+| `src/systems/companions/__tests__/BanterManager.test.ts` | Unit test |
+| `src/systems/companions/__tests__/CompanionReactionSystem.test.ts` | Unit test |
+| `src/systems/companions/__tests__/CompanionSystem.test.ts` | Unit test |
+| `src/systems/companions/__tests__/RelationshipManager.test.ts` | Unit test |

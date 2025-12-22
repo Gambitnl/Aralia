@@ -40,18 +40,10 @@ This domain covers all build-time scripts, validators, and generators that proce
 
 | Path | Type | Description |
 |------|------|-------------|
-| `scripts/` | Directory | All pipeline scripts (~28 files) |
-| `scripts/validate-data.ts` | Script | Data validation |
-| `scripts/check-non-ascii.ts` | Script | Encoding checks |
-| `scripts/validateSpellJsons.ts` | Script | Spell validation |
-| `scripts/generateGlossaryIndex.js` | Script | Glossary index |
-| `scripts/generate-spell-manifest.mjs` | Script | Spell manifest |
-| `scripts/expand-spell-jsons.ts` | Script | Spell expansion |
-| `scripts/formatSpellJsons.js` | Script | JSON formatting |
-| `scripts/migrate-*.ts` | Scripts | Migration tools |
-| `scripts/update-spell-json-from-references.ts` | Script | Reference updates |
-| `public/data/spells_manifest.json` | Generated | Spell index |
-| `docs/architecture/_generated/` | Generated | Architecture artifacts |
+| `scripts/*.{ts,js,mjs,cjs}` | Directory | All pipeline scripts |
+| `src/utils/validation/*.ts` | Utils | Data validation utilities |
+| `docs/architecture/_generated/*.json` | Generated | Architecture artifacts |
+
 
 ## Dependencies
 
@@ -97,3 +89,10 @@ npx --no-install tsx scripts/generate-architecture-compendium.ts
 - [ ] Document script dependencies and execution order
 - [ ] Clarify which scripts are safe to run automatically
 - [ ] Map generated file locations and purposes
+
+### Claimed Tests (Auto-generated)
+
+| Test File | Description |
+|-----------|-------------|
+| `src/utils/validation/__tests__/spellAuditor.test.ts` | Unit test |
+| `src/utils/validation/__tests__/spellConsistency.test.ts` | Unit test |

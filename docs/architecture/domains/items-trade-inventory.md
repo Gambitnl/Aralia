@@ -8,7 +8,6 @@ This domain manages the item system including inventory management, equipment, m
 
 | File | Role |
 |------|------|
-| `src/components/InventoryList.tsx` | Main inventory component (22KB) |
 | `src/components/MerchantModal.tsx` | Trading interface |
 | `src/types/items.ts` | Item type definitions |
 | `src/data/items/` | Item data definitions |
@@ -25,7 +24,6 @@ This domain manages the item system including inventory management, equipment, m
 
 | Path | Type | Description |
 |------|------|-------------|
-| `src/components/InventoryList.tsx` | Component | Inventory UI |
 | `src/components/MerchantModal.tsx` | Component | Merchant interface |
 | `src/data/items/` | Directory | Item definitions |
 | `src/data/item_templates/` | Directory | Item templates |
@@ -62,3 +60,10 @@ This domain manages the item system including inventory management, equipment, m
 - [ ] Document item stacking rules
 - [ ] Clarify magic item attunement system
 - [ ] Map crafting integration (if any)
+
+### Claimed Tests (Auto-generated)
+
+| Test File | Description |
+|-----------|-------------|
+| `src/systems/economy/__tests__/TradeRouteManager.test.ts` | Unit test |
+| `src/systems/economy/__tests__/TradeRouteSystem.test.ts` | Unit test |

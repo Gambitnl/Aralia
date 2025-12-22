@@ -28,20 +28,13 @@ This domain handles planar mechanics (Feywild, Shadowfell, etc.) and travel syst
 
 | Path | Type | Description |
 |------|------|-------------|
-| `src/systems/planar/` | Directory | Planar systems (~13 files) |
-| `src/systems/planar/FeywildMechanics.ts` | System | Feywild rules |
-| `src/systems/planar/ShadowfellMechanics.ts` | System | Shadowfell rules |
-| `src/systems/planar/InfernalMechanics.ts` | System | Infernal rules |
-| `src/systems/planar/PlanarHazardSystem.ts` | System | Hazards |
-| `src/systems/planar/PortalSystem.ts` | System | Portals |
-| `src/systems/planar/rest.ts` | System | Planar rest mechanics |
-| `src/systems/travel/` | Directory | Travel systems |
-| `src/services/travelEventService.ts` | Service | Travel events |
-| `src/services/travelService.ts` | Service | Travel logic |
+| `src/systems/planar/*.ts` | Directory | Planar systems |
+| `src/systems/travel/*.ts` | Directory | Travel systems |
+| `src/services/travel*.ts` | Service | Travel logic and events |
 | `src/data/planes.ts` | Data | Plane definitions |
 | `src/data/travelEvents.ts` | Data | Travel event definitions |
-| `src/utils/planarUtils.ts` | Utils | Planar utilities |
-| `src/utils/travel/` | Utils | Travel utilities |
+| `src/utils/planar*.ts` | Utils | Planar utilities |
+| `src/utils/travel/*.ts` | Utils | Travel utilities |
 | `src/types/planes.ts` | Types | Plane types |
 | `src/types/travel.ts` | Types | Travel types |
 
@@ -69,3 +62,18 @@ This domain handles planar mechanics (Feywild, Shadowfell, etc.) and travel syst
 - [ ] Document planar corruption mechanics
 - [ ] Clarify portal discovery system
 - [ ] Map planar faction interactions
+
+### Claimed Tests (Auto-generated)
+
+| Test File | Description |
+|-----------|-------------|
+| `src/systems/planar/__tests__/FeywildMechanics.test.ts` | Unit test |
+| `src/systems/planar/__tests__/InfernalMechanics.test.ts` | Unit test |
+| `src/systems/planar/__tests__/PlanarHazardSystem.test.ts` | Unit test |
+| `src/systems/planar/__tests__/PlanarIntegration.test.ts` | Unit test |
+| `src/systems/planar/__tests__/PlanarService.test.ts` | Unit test |
+| `src/systems/planar/__tests__/PortalSystem.test.ts` | Unit test |
+| `src/systems/planar/__tests__/ShadowfellMechanics.test.ts` | Unit test |
+| `src/systems/planar/__tests__/rest.test.ts` | Unit test |
+| `src/systems/travel/__tests__/TravelCalculations.test.ts` | Unit test |
+| `src/utils/travel/__tests__/TravelCalculator.test.ts` | Unit test |

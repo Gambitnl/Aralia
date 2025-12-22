@@ -28,24 +28,10 @@ The Battle Map provides a tactical grid for combat encounters, displaying charac
 
 | Path | Type | Description |
 |------|------|-------------|
-| `src/components/BattleMap/` | Directory | Battle map components |
-| `src/components/BattleMap/BattleMap.tsx` | Component | Main grid |
-| `src/components/BattleMap/BattleMapDemo.tsx` | Component | Demo/test mode |
-| `src/components/BattleMap/BattleMapTile.tsx` | Component | Grid tiles |
-| `src/components/BattleMap/BattleMapOverlay.tsx` | Component | Overlays |
-| `src/components/BattleMap/CharacterToken.tsx` | Component | Tokens |
-| `src/components/BattleMap/InitiativeTracker.tsx` | Component | Initiative |
-| `src/components/BattleMap/CombatLog.tsx` | Component | Log display |
-| `src/components/BattleMap/ActionEconomyBar.tsx` | Component | Action economy |
-| `src/components/BattleMap/PartyDisplay.tsx` | Component | Party status |
-| `src/components/BattleMap/DamageNumberOverlay.tsx` | Component | Damage numbers |
-| `src/components/BattleMap/AbilityButton.tsx` | Component | Ability buttons |
-| `src/components/BattleMap/AbilityPalette.tsx` | Component | Ability palette |
-| `src/components/BattleMap/AISpellInputModal.tsx` | Component | AI spell input |
-| `src/components/BattleMap/index.ts` | Index | Public exports |
-| `src/hooks/useBattleMap.ts` | Hook | Map state |
-| `src/hooks/useBattleMapGeneration.ts` | Hook | Map generation |
+| `src/components/BattleMap/*.ts*` | Directory | Battle map components and index |
+| `src/hooks/useBattleMap*.ts` | Hook | Map state and generation |
 | `src/services/battleMapGenerator.ts` | Service | Map generation |
+
 
 ## Dependencies
 
@@ -71,3 +57,10 @@ The Battle Map provides a tactical grid for combat encounters, displaying charac
 - [ ] Document terrain generation system
 - [ ] Clarify token positioning and grid system
 - [ ] Map targeting overlay mechanics
+
+### Claimed Tests (Auto-generated)
+
+| Test File | Description |
+|-----------|-------------|
+| `src/components/BattleMap/__tests__/AbilityButton.test.tsx` | Unit test |
+| `src/components/BattleMap/__tests__/BattleMapTile.test.tsx` | Unit test |

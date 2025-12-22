@@ -26,20 +26,18 @@ The Combat domain handles all tactical combat mechanics including initiative tra
 
 | Path | Type | Description |
 |------|------|-------------|
-| `src/systems/combat/` | Directory | Combat subsystems |
-| `src/systems/combat/AttackEventEmitter.ts` | System | Attack event handling |
-| `src/systems/combat/AttackRiderSystem.ts` | System | Attack rider effects |
-| `src/systems/combat/MovementEventEmitter.ts` | System | Movement events |
-| `src/systems/combat/SavePenaltySystem.ts` | System | Save DC modifiers |
-| `src/systems/combat/SustainActionSystem.ts` | System | Sustained actions |
-| `src/hooks/combat/` | Directory | Combat hooks (~16 files) |
-| `src/components/Combat/` | Directory | Combat UI |
+| `src/systems/combat/*.ts` | Directory | Combat subsystems |
+| `src/hooks/combat/**/*.ts` | Directory | Combat hooks |
+| `src/components/Combat/*.ts*` | Directory | Combat UI and index |
+| `src/components/Encounter*.tsx` | Component | Encounter modals and managers |
+| `src/utils/combat/*.ts` | Utils | Combat utilities |
 | `src/utils/combatUtils.ts` | Utils | Combat calculations |
 | `src/utils/savingThrowUtils.ts` | Utils | Saving throw logic |
 | `src/utils/targetingUtils.ts` | Utils | Target selection |
 | `src/utils/aoeCalculations.ts` | Utils | Area of effect math |
 | `src/utils/lineOfSight.ts` | Utils | Line of sight checks |
 | `src/types/combat.ts` | Types | Combat type definitions |
+
 
 ## Dependencies
 
@@ -67,3 +65,10 @@ The Combat domain handles all tactical combat mechanics including initiative tra
 - [ ] Document action economy rules implementation
 - [ ] Clarify relationship between combat hooks and utils
 - [ ] Map reaction and bonus action handling
+
+### Claimed Tests (Auto-generated)
+
+| Test File | Description |
+|-----------|-------------|
+| `src/utils/combat/__tests__/actionEconomyUtils.test.ts` | Unit test |
+| `src/utils/combat/__tests__/combatAI.test.ts` | Unit test |

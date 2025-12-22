@@ -91,6 +91,27 @@ The shared foundation that all other domains depend on. Contains type definition
 | `src/hooks/useLocalStorage.ts` | Local storage persistence |
 | `src/hooks/useUnderdarkLighting.ts` | Underdark lighting effects |
 
+### UI Components (Core)
+| File | Purpose |
+|------|---------|
+| `src/assets/icons/*.tsx` | Common UI icons |
+| `src/components/ui/*.tsx` | Reusable UI primitives |
+| `src/components/ActionPane/*.tsx` | Action interface components |
+| `src/components/QuestLog/**/*.ts*` | Quest tracking interface |
+| `src/components/layout/*.tsx` | Core layout components |
+| `src/components/providers/*.tsx` | React context providers |
+| `src/components/NotificationSystem.tsx` | Global notifications |
+| `src/components/Tooltip.tsx` | Common tooltip component |
+| `src/components/DevMenu.tsx` | Developer menu |
+| `src/components/ErrorBoundary.tsx` | Application error handling |
+| `src/components/NotFound.tsx` | 404 page |
+| `src/components/MainMenu.tsx` | Game main menu |
+
+### Core Data
+| File | Purpose |
+|------|---------|
+| `src/data/*.ts` | Shared game data (excluding domain-specific files) |
+
 ### Utilities (Core)
 | File | Purpose |
 |------|---------|
@@ -109,7 +130,6 @@ The shared foundation that all other domains depend on. Contains type definition
 | `src/utils/seededRandom.ts` | Seeded random generation |
 | `src/utils/storageUtils.ts` | Storage utilities |
 | `src/utils/testUtils.ts` | Test utilities |
-| `src/utils/timeUtils.ts` | Time utilities |
 | `src/utils/visualUtils.ts` | Visual utilities |
 
 ## Dependencies
@@ -132,3 +152,30 @@ The shared foundation that all other domains depend on. Contains type definition
 
 ### DO NOT MODIFY without coordination
 - `src/types/index.ts` - re-exports many types
+
+### Claimed Tests (Auto-generated)
+
+| Test File | Description |
+|-----------|-------------|
+| `src/components/ActionPane/__tests__/ActionPane.test.tsx` | Unit test |
+| `src/components/ui/__tests__/LoadingSpinner.test.tsx` | Unit test |
+| `src/data/__tests__/planes.test.ts` | Unit test |
+| `src/hooks/__tests__/useAbilitySystem.test.ts` | Unit test |
+| `src/hooks/__tests__/useBattleMapGeneration.test.ts` | Unit test |
+| `src/hooks/__tests__/useCombatVisuals.test.ts` | Unit test |
+| `src/hooks/__tests__/useCompanionCommentary.test.ts` | Unit test |
+| `src/hooks/__tests__/useHistorySync.test.ts` | Unit test |
+| `src/hooks/__tests__/useLocalStorage.test.ts` | Unit test |
+| `src/hooks/__tests__/useLocalStorageIntegration.test.ts` | Unit test |
+| `src/hooks/__tests__/useSpellGateChecks.test.ts` | Unit test |
+| `src/hooks/__tests__/useTownController.test.tsx` | Unit test |
+| `src/hooks/actions/__tests__/handleMovement.test.ts` | Unit test |
+| `src/state/reducers/__tests__/crimeReducer.heist.test.ts` | Unit test |
+| `src/state/reducers/__tests__/crimeReducer.test.ts` | Unit test |
+| `src/state/reducers/__tests__/explorationActions.test.ts` | Unit test |
+| `src/state/reducers/__tests__/religionReducer.test.ts` | Unit test |
+| `src/state/reducers/__tests__/ritualReducer.test.ts` | Unit test |
+| `src/state/reducers/__tests__/worldReducer.test.ts` | Unit test |
+| `src/types/__tests__/languages.test.ts` | Unit test |
+| `src/types/__tests__/spells.test-d.ts` | Unit test |
+| `src/types/__tests__/spells.test.ts` | Unit test |

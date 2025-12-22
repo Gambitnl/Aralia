@@ -27,23 +27,14 @@ The Submap is the primary exploration interface where players navigate tile-base
 
 | Path | Type | Description |
 |------|------|-------------|
-| `src/components/Submap/` | Directory | All submap components |
-| `src/components/Submap/SubmapPane.tsx` | Component | Main container |
-| `src/components/Submap/SubmapRendererPixi.tsx` | Component | PixiJS renderer |
-| `src/components/Submap/SubmapTile.tsx` | Component | Individual tile component |
-| `src/components/Submap/submapData.ts` | Data | Tile/feature definitions |
-| `src/components/Submap/submapVisuals.ts` | Config | Visual configuration |
-| `src/components/Submap/painters/` | Directory | PixiJS painter classes |
-| `src/components/Submap/hooks/` | Directory | Submap-specific hooks |
-| `src/components/Submap/useQuickTravel.ts` | Hook | Quick travel system |
-| `src/components/Submap/useInspectableTiles.ts` | Hook | Tile inspection |
-| `src/components/Submap/useDayNightOverlay.ts` | Hook | Day/night cycle |
-| `src/components/Submap/useSubmapGlossaryItems.ts` | Hook | Glossary integration |
-| `src/components/Submap/useSubmapGrid.ts` | Hook | Grid management |
-| `src/components/Submap/useTileHintGenerator.ts` | Hook | AI tile descriptions |
-| `src/hooks/useSubmapProceduralData.ts` | Hook | Procedural generation |
+| `src/components/Submap/*.tsx` | Directory | All submap components |
+| `src/components/Submap/painters/*.ts` | Directory | PixiJS painter classes |
+| `src/components/Submap/hooks/*.ts` | Directory | Submap-specific hooks |
+| `src/components/Submap/use*.ts` | Hook | Submap-related hooks |
+| `src/hooks/useSubmap*.ts` | Hook | Procedural generation |
 | `src/utils/submapUtils.ts` | Utils | Submap utility functions |
 | `src/data/biomes.ts` | Data | Biome definitions |
+
 
 ## Dependencies
 

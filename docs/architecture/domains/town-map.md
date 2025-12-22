@@ -25,20 +25,12 @@ The Town Map renders interior layouts of villages and towns, allowing players to
 
 | Path | Type | Description |
 |------|------|-------------|
-| `src/components/Town/` | Directory | Town UI components |
-| `src/components/Town/TownCanvas.tsx` | Component | Main renderer |
-| `src/components/Town/VillageScene.tsx` | Component | Scene wrapper |
-| `src/components/Town/TownDevControls.tsx` | Component | Dev tools |
-| `src/components/Town/TownNavigationControls.tsx` | Component | Navigation |
-| `src/components/Town/index.ts` | Index | Public exports |
-| `src/services/RealmSmithTownGenerator.ts` | Service | Town generation |
-| `src/services/realmsmith/` | Directory | RealmSmith subsystems |
-| `src/services/RealmSmithAssetPainter.ts` | Service | Asset rendering |
-| `src/services/villageGenerator.ts` | Service | Village generation (26KB) |
+| `src/components/Town/*.ts*` | Directory | Town UI components and index |
+| `src/services/realmsmith/**/*.ts` | Directory | RealmSmith subsystems |
+| `src/services/RealmSmith*.ts` | Service | Town generation and assets |
+| `src/services/villageGenerator.ts` | Service | Village generation |
 | `src/hooks/useTownController.ts` | Hook | Town navigation |
-| `src/state/reducers/townReducer.ts` | Reducer | Town state |
-| `src/types/town.ts` | Types | Town type definitions |
-| `src/types/realmsmith.ts` | Types | RealmSmith types |
+
 
 ## Dependencies
 
@@ -64,3 +56,11 @@ The Town Map renders interior layouts of villages and towns, allowing players to
 - [ ] Document RealmSmith architecture
 - [ ] Clarify asset painter system
 - [ ] Map building interaction system
+
+### Claimed Tests (Auto-generated)
+
+| Test File | Description |
+|-----------|-------------|
+| `src/components/Town/__tests__/TownCanvasPan.test.tsx` | Unit test |
+| `src/components/Town/__tests__/TownDevControls.test.tsx` | Unit test |
+| `src/components/Town/__tests__/TownNavigationControls.test.tsx` | Unit test |

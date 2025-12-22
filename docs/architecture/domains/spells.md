@@ -26,21 +26,19 @@ The Spells domain manages all spell data, casting mechanics, targeting systems, 
 
 | Path | Type | Description |
 |------|------|-------------|
-| `src/systems/spells/` | Directory | Spell system implementation |
-| `src/systems/spells/targeting/` | Directory | Targeting subsystem (~12 files) |
-| `src/systems/spells/effects/` | Directory | Effect subsystem (~7 files) |
-| `src/systems/spells/mechanics/` | Directory | Core mechanics (~12 files) |
-| `src/systems/spells/validation/` | Directory | Validation (~3 files) |
-| `src/systems/spells/schema/` | Directory | JSON schema |
-| `src/systems/spells/ai/` | Directory | AI integration (~3 files) |
+| `src/systems/spells/**/*.ts` | Directory | Spell system implementation |
+| `src/systems/spells/targeting/*.ts` | Directory | Targeting subsystem |
+| `src/systems/spells/effects/*.ts` | Directory | Effect subsystem |
+| `src/systems/spells/mechanics/*.ts` | Directory | Core mechanics |
+| `src/systems/spells/validation/*.ts` | Directory | Validation |
+| `src/systems/spells/schema/*.json` | Directory | JSON schema |
+| `src/systems/spells/ai/*.ts` | Directory | AI integration |
 | `src/types/spells.ts` | Types | Spell type definitions |
-| `src/utils/spellUtils.ts` | Utils | Spell utility functions |
-| `src/utils/spellFilterUtils.ts` | Utils | Spell filtering/search |
-| `src/utils/spellAbilityFactory.ts` | Utils | Spell-to-ability conversion |
+| `src/utils/spell*.ts` | Utils | Spell utility functions |
 | `src/utils/concentrationUtils.ts` | Utils | Concentration management |
 | `src/hooks/useSpellGateChecks.ts` | Hook | Spell validation |
 | `src/services/SpellService.ts` | Service | Spell data service |
-| `public/data/spells/` | Data | Spell JSON files (~470 spells) |
+| `public/data/spells/**/*.json` | Data | Spell JSON files |
 | `public/data/spells_manifest.json` | Data | Spell index/manifest |
 | `public/data/spells_fidelity.json` | Data | Spell fidelity tracking |
 

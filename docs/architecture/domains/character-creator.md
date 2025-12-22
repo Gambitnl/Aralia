@@ -30,29 +30,18 @@ The Character Creator provides a step-by-step wizard for generating new player c
 
 | Path | Type | Description |
 |------|------|-------------|
-| `src/components/CharacterCreator/` | Directory | All creator components |
-| `src/components/CharacterCreator/CharacterCreator.tsx` | Component | Main wizard |
-| `src/components/CharacterCreator/Race/` | Directory | Race selection (~18 files) |
-| `src/components/CharacterCreator/Class/` | Directory | Class selection (~11 files) |
-| `src/components/CharacterCreator/AbilityScoreAllocation.tsx` | Component | Ability scores |
-| `src/components/CharacterCreator/SkillSelection.tsx` | Component | Skills |
-| `src/components/CharacterCreator/BackgroundSelection.tsx` | Component | Background |
-| `src/components/CharacterCreator/FeatSelection.tsx` | Component | Feats |
-| `src/components/CharacterCreator/FeatSpellPicker.tsx` | Component | Feat spells |
-| `src/components/CharacterCreator/VisualsSelection.tsx` | Component | Appearance |
-| `src/components/CharacterCreator/AgeSelection.tsx` | Component | Age |
-| `src/components/CharacterCreator/WeaponMasterySelection.tsx` | Component | Weapons |
-| `src/components/CharacterCreator/NameAndReview.tsx` | Component | Final review |
-| `src/components/CharacterCreator/CreationSidebar.tsx` | Component | Progress sidebar |
-| `src/components/CharacterCreator/SpellSourceSelector.tsx` | Component | Spell source |
-| `src/components/CharacterCreator/state/` | Directory | State management |
-| `src/components/CharacterCreator/hooks/` | Directory | Creator-specific hooks |
-| `src/components/CharacterCreator/config/` | Directory | Configuration |
+| `src/components/CharacterCreator/*.tsx` | Directory | All creator components |
+| `src/components/CharacterCreator/Race/*.tsx` | Directory | Race selection |
+| `src/components/CharacterCreator/Class/*.tsx` | Directory | Class selection |
+| `src/components/CharacterCreator/state/*.ts` | Directory | State management |
+| `src/components/CharacterCreator/hooks/*.ts` | Directory | Creator-specific hooks |
+| `src/components/CharacterCreator/config/*.ts` | Directory | Configuration |
 | `src/hooks/useCharacterAssembly.ts` | Hook | Character assembly |
-| `src/data/races/` | Data | Race definitions (~37 files) |
-| `src/data/classes/` | Data | Class definitions |
+| `src/data/races/*.ts` | Data | Race definitions |
+| `src/data/classes/*.ts` | Data | Class definitions |
 | `src/data/backgrounds.ts` | Data | Background definitions |
-| `src/data/feats/` | Data | Feat definitions |
+| `src/data/feats/*.ts` | Data | Feat definitions |
+
 
 ## Dependencies
 
@@ -79,3 +68,10 @@ The Character Creator provides a step-by-step wizard for generating new player c
 - [ ] Document step flow and validation requirements
 - [ ] Clarify relationship between Race/ and src/data/races/
 - [ ] Map feat prerequisite validation
+
+### Claimed Tests (Auto-generated)
+
+| Test File | Description |
+|-----------|-------------|
+| `src/components/CharacterCreator/__tests__/CharacterCreator.test.tsx` | Unit test |
+| `src/data/__tests__/planes.test.ts` | Unit test |
