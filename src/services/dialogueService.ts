@@ -9,10 +9,16 @@ import {
 } from '../types/dialogue';
 import { GameState, QuestStatus, Item, NPC } from '../types/index';
 import { rollDice } from '../utils/combatUtils';
+import { INITIAL_TOPICS } from '../data/dialogue/topics';
 
 // In a real implementation, this would likely load from a data file
-// TODO(Dialogist): Move this to a proper data loader or src/data/dialogue/topics.ts
+// TODO(Dialogist): Consider async loading if topic list grows too large.
 const TOPIC_REGISTRY: Record<string, ConversationTopic> = {};
+
+// Initialize registry with default topics
+INITIAL_TOPICS.forEach(topic => {
+  TOPIC_REGISTRY[topic.id] = topic;
+});
 
 export function registerTopic(topic: ConversationTopic) {
   TOPIC_REGISTRY[topic.id] = topic;
@@ -84,7 +90,21 @@ export function checkTopicPrerequisites(
       }
 
       case 'faction_standing': {
-        met = true; // Placeholder
+        const factionId = prereq.targetId;
+        if (!factionId) {
+          met = false;
+          break;
+        }
+        const standing = gameState.playerFactionStandings[factionId];
+        if (!standing) {
+          // If no standing record exists, assume 0 (neutral) or check if value is <= 0
+          // For now, if prerequisite requires positive standing, return false.
+          met = (Number(prereq.value) || 0) <= 0;
+          break;
+        }
+
+        // We check public standing by default
+        met = standing.publicStanding >= (Number(prereq.value) || 0);
         break;
       }
     }
@@ -263,3 +283,5 @@ export function processTopicSelection(
     unlocks
   };
 }
+
+// TODO(Dialogist): Integrate with AI service to generate dynamic responses based on NPC Knowledge Profile.
