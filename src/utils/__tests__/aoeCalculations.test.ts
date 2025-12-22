@@ -114,8 +114,13 @@ describe('calculateAffectedTiles', () => {
         expect(hasTile(tiles, 11, 9)).toBe(false); // Right
 
         // Distance 10ft (2 tiles): y=8. Width 10ft (2 tiles).
-        // Center (10,8) + Left (9,8) + Right (11,8).
-        // (9,8) and (11,8) are exactly on the atan(0.5) boundary.
+        // For a cone with width equal to distance, at distance 2 tiles, width is 2 tiles.
+        // However, on a discrete grid, a center tile + 1 neighbor on each side creates a width of 3 tiles.
+        // The mathematical boundaries (26.5 deg) intersect the center of the adjacent tiles (at angle ~26.5 deg).
+        // Center (10,8) is 0 deg offset.
+        // Left (9,8) is at offset x=-1, y=2 (from origin 10,10). Angle = atan(1/2) = 26.565 deg.
+        // This exactly matches the cone half-angle boundary.
+        // Therefore, we include it, resulting in 3 total tiles.
         expect(hasTile(tiles, 10, 8)).toBe(true); // Center
         expect(hasTile(tiles, 9, 8)).toBe(true);  // Left Boundary
         expect(hasTile(tiles, 11, 8)).toBe(true); // Right Boundary
