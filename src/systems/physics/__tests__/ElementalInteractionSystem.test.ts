@@ -113,5 +113,17 @@ describe('ElementalInteractionSystem', () => {
             expect(newStates).not.toContain(StateTag.Cold);
             expect(result.finalState).toBeUndefined();
         });
+
+        it('should handle Smoke + Cold -> Wet (Condensation)', () => {
+            const current = [StateTag.Smoke];
+            const { newStates, result } = applyStateToTags(current, StateTag.Cold);
+
+            // Smoke + Cold -> Wet
+            expect(newStates).toContain(StateTag.Wet);
+            expect(newStates).not.toContain(StateTag.Smoke);
+            expect(newStates).not.toContain(StateTag.Cold);
+
+            expect(result.finalState).toBe(StateTag.Wet);
+        });
     });
 });
