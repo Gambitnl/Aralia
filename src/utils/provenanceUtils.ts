@@ -13,21 +13,21 @@ import { GameDate } from '../types/memory';
 
 /**
  * Creates an empty provenance record for a newly created item.
- * @param creator The name of the creator (e.g., "Player", "Elven Smith").
+ * @param creatorId The ID of the creator (e.g., "player_1", "npc_blacksmith").
  * @param date The current game date.
  * @returns A new ItemProvenance object.
  */
-export function createProvenance(creator: string, date: GameDate): ItemProvenance {
+export function createProvenance(creatorId: string, date: GameDate): ItemProvenance {
   return {
-    creator,
+    creatorId,
     createdDate: date,
-    previousOwners: [],
+    previousOwnerIds: [],
     history: [
       {
         date,
         type: 'CRAFTED',
-        description: `Created by ${creator}`,
-        actorId: creator
+        description: `Created by ${creatorId}`,
+        actorId: creatorId
       }
     ]
   };
@@ -49,8 +49,6 @@ export function addProvenanceEvent(
   date: GameDate,
   actorId?: string
 ): Item {
-  const currentProvenance = item.provenance || createProvenance('Unknown', date);
-
   const newEvent = {
     date,
     type,
@@ -58,11 +56,27 @@ export function addProvenanceEvent(
     actorId
   };
 
+  if (!item.provenance) {
+      // FIX: Do NOT use createProvenance here, as it assumes a CRAFTED event.
+      // Instead, initialize a fresh provenance object with just this new event.
+      const initialProvenance: ItemProvenance = {
+          creatorId: 'Unknown',
+          createdDate: date, // Best guess
+          previousOwnerIds: [],
+          history: [newEvent]
+      };
+
+      return {
+          ...item,
+          provenance: initialProvenance
+      };
+  }
+
   return {
     ...item,
     provenance: {
-      ...currentProvenance,
-      history: [...currentProvenance.history, newEvent]
+      ...item.provenance,
+      history: [...item.provenance.history, newEvent]
     }
   };
 }
@@ -80,9 +94,9 @@ export function generateLegendaryHistory(item: Item, date: GameDate): Item {
   const ancientDate = date - (oneYear * 100); // 100 years ago (approx)
 
   const provenance: ItemProvenance = {
-    creator: 'Ancient Smith',
+    creatorId: 'Ancient Smith',
     createdDate: ancientDate,
-    previousOwners: ['The Lost King', 'General Thorne'],
+    previousOwnerIds: ['The Lost King', 'General Thorne'],
     history: [
       {
         date: ancientDate,
