@@ -6,6 +6,10 @@ import { StatusEffect } from '../../types/combat';
  * These map a blessing ID (from DivineFavor or TempleService) to a StatusEffect.
  */
 
+const ROUNDS_PER_MINUTE = 10;
+const ROUNDS_PER_HOUR = 60 * ROUNDS_PER_MINUTE;
+const ROUNDS_PER_DAY = 24 * ROUNDS_PER_HOUR;
+
 export interface BlessingDefinition {
     id: string;
     name: string;
@@ -23,7 +27,7 @@ export const BLESSING_EFFECTS: Record<string, BlessingDefinition> = {
             id: 'status_scales_of_justice',
             name: 'Scales of Justice',
             type: 'buff',
-            duration: 14400, // 24 hours in rounds (assuming 6s rounds) -> 14400 rounds
+            duration: ROUNDS_PER_DAY,
             effect: {
                 type: 'stat_modifier',
                 stat: 'wisdom', // Simplified, actual advantage logic would be in skill checks
@@ -41,7 +45,7 @@ export const BLESSING_EFFECTS: Record<string, BlessingDefinition> = {
             id: 'status_artisans_touch',
             name: 'Artisan\'s Touch',
             type: 'buff',
-            duration: 14400,
+            duration: ROUNDS_PER_DAY,
             effect: {
                 type: 'stat_modifier',
                 stat: 'strength', // Placeholder for crafting stat
@@ -59,7 +63,7 @@ export const BLESSING_EFFECTS: Record<string, BlessingDefinition> = {
             id: 'status_blessing_minor',
             name: 'Blessed',
             type: 'buff',
-            duration: 600, // 1 hour
+            duration: ROUNDS_PER_HOUR,
             effect: {
                 type: 'stat_modifier',
                 // Assuming temp HP or similar mechanic, but keeping it simple for now
@@ -78,4 +82,11 @@ export const getBlessingEffect = (blessingId: string): StatusEffect | null => {
     const definition = BLESSING_EFFECTS[blessingId];
     if (!definition) return null;
     return definition.effect;
+};
+
+/**
+ * Helper to get the full definition.
+ */
+export const getBlessingDefinition = (blessingId: string): BlessingDefinition | null => {
+    return BLESSING_EFFECTS[blessingId] || null;
 };

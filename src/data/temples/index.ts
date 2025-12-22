@@ -16,7 +16,7 @@ const STANDARD_SERVICES: Record<string, TempleService> = {
     description: 'Restores 20 HP and cures non-magical diseases.',
     costGp: 50,
     minFavor: 10,
-    effect: 'restore_hp_full'
+    effect: 'heal_20_hp'
   },
   REMOVE_CURSE: {
     id: 'remove_curse',

@@ -8,7 +8,7 @@ import {
     Blessing
 } from '../types';
 import { DEITIES } from '../data/deities';
-import { BLESSING_EFFECTS, getBlessingEffect } from '../data/religion/blessings';
+import { BLESSING_EFFECTS, getBlessingEffect, getBlessingDefinition, BlessingDefinition } from '../data/religion/blessings';
 import { StatusEffect } from '../types/combat';
 
 /**
@@ -35,6 +35,13 @@ export const calculateFavorChange = (
             }
         ]
     };
+};
+
+/**
+ * Resolves the full definition for a given blessing ID.
+ */
+export const resolveBlessingDefinition = (blessingId: string): BlessingDefinition | null => {
+    return getBlessingDefinition(blessingId);
 };
 
 /**
