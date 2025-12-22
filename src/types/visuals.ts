@@ -336,7 +336,7 @@ export const STATUS_VISUALS: Record<string, StatusVisualSpec> = {
   ignited: { id: 'ignited', label: 'Ignited', icon: '🔥', color: '#EF4444', description: 'Taking fire damage over time.' }, // red-500
   taunted: { id: 'taunted', label: 'Taunted', icon: '🤬', color: '#7F1D1D', description: 'Must attack the taunter.' }, // red-900
   blessed: { id: 'blessed', label: 'Blessed', icon: '✨', color: '#FBBF24', description: 'Adds 1d4 to attack rolls and saving throws.' }, // amber-400
-  baned: { id: 'baned', label: 'Baned', icon: '📉', color: '#4C1D95', description: 'Subtracts 1d4 from attack rolls and saving throws.' } // violet-900
+  bane: { id: 'bane', label: 'Bane', icon: '📉', color: '#4C1D95', description: 'Subtracts 1d4 from attack rolls and saving throws.' } // violet-900
 };
 
 /**
@@ -358,9 +358,15 @@ export const DEFAULT_STATUS_VISUAL: StatusVisualSpec = {
  */
 export function getStatusVisual(conditionId: string): StatusVisualSpec {
   if (!conditionId) return DEFAULT_STATUS_VISUAL;
-  // Normalize key: keys in registry are typically Title Case in the legacy map, but lowercase in spec.
-  // We'll try exact match, then lowercase.
-  return STATUS_VISUALS[conditionId.toLowerCase()] || STATUS_VISUALS[conditionId] || DEFAULT_STATUS_VISUAL;
+
+  // Normalize key: keys in registry are lowercase.
+  const normalizedId = conditionId.toLowerCase();
+
+  // Handle the 'baned' to 'bane' mapping for legacy compatibility if needed,
+  // though typically we should rely on the correct ID.
+  // The registry now has 'bane'.
+
+  return STATUS_VISUALS[normalizedId] || DEFAULT_STATUS_VISUAL;
 }
 
 /**

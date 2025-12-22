@@ -4,15 +4,22 @@ import { getStatusVisual, STATUS_VISUALS, DEFAULT_STATUS_VISUAL, getClassVisual,
 
 describe('visuals.ts', () => {
     describe('getStatusVisual', () => {
-        it('should return correct spec for known condition id', () => {
-            const result = getStatusVisual('blinded');
-            expect(result).toBe(STATUS_VISUALS['blinded']);
-            expect(result.icon).toBe('👁️');
-        });
+        // Table-driven test for standard status visuals
+        const testCases = [
+            { input: 'blinded', expectedId: 'blinded', expectedIcon: '👁️' },
+            { input: 'Blinded', expectedId: 'blinded', expectedIcon: '👁️' },
+            { input: 'charmed', expectedId: 'charmed', expectedIcon: '💕' },
+            { input: 'Poisoned', expectedId: 'poisoned', expectedIcon: '🤢' },
+            { input: 'bane', expectedId: 'bane', expectedIcon: '📉' },
+            { input: 'Bane', expectedId: 'bane', expectedIcon: '📉' },
+        ];
 
-        it('should return correct spec for known condition id with different case', () => {
-             const result = getStatusVisual('Blinded');
-             expect(result).toBe(STATUS_VISUALS['blinded']);
+        it.each(testCases)('should return correct spec for "$input"', ({ input, expectedId, expectedIcon }) => {
+            const result = getStatusVisual(input);
+            expect(result.id).toBe(expectedId);
+            expect(result.icon).toBe(expectedIcon);
+            // Verify it matches the registry
+            expect(result).toBe(STATUS_VISUALS[expectedId]);
         });
 
         it('should return default spec for unknown condition', () => {
@@ -25,24 +32,21 @@ describe('visuals.ts', () => {
             const result = getStatusVisual('');
             expect(result).toBe(DEFAULT_STATUS_VISUAL);
         });
-
-         // Verify some key entries exist from the migration
-        it('should have key entries from statusIcons.ts', () => {
-            expect(getStatusVisual('Poisoned').icon).toBe('🤢');
-            expect(getStatusVisual('Charmed').icon).toBe('💕');
-        });
     });
 
     describe('getClassVisual', () => {
-         it('should return correct spec for known class id', () => {
-            const result = getClassVisual('fighter');
-            expect(result).toBe(CLASS_VISUALS['fighter']);
-            expect(result.icon).toBe('⚔️');
-         });
+         // Table-driven test for class visuals
+         const classTestCases = [
+             { input: 'fighter', expectedId: 'fighter', expectedIcon: '⚔️' },
+             { input: 'Wizard', expectedId: 'wizard', expectedIcon: '🧙' },
+             { input: 'CLERIC', expectedId: 'cleric', expectedIcon: '✝️' },
+         ];
 
-         it('should return correct spec for known class id with different case', () => {
-            const result = getClassVisual('Wizard');
-            expect(result).toBe(CLASS_VISUALS['wizard']);
+         it.each(classTestCases)('should return correct spec for "$input"', ({ input, expectedId, expectedIcon }) => {
+            const result = getClassVisual(input);
+            expect(result.id).toBe(expectedId);
+            expect(result.icon).toBe(expectedIcon);
+            expect(result).toBe(CLASS_VISUALS[expectedId]);
          });
 
           it('should return default spec for unknown class', () => {
