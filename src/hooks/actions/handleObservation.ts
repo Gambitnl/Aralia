@@ -101,8 +101,8 @@ export async function handleInspectSubmapTile({
   addGeminiLog,
   generalActionContext,
 }: HandleInspectSubmapTileProps): Promise<void> {
-  if (!action.payload?.inspectTileDetails) {
-    addMessage("Cannot inspect tile: missing details.", "system");
+  if (!action.payload?.inspectTileDetails || !gameState.party[0]) {
+    addMessage("Cannot inspect tile: missing details or character information.", "system");
     return;
   }
   const { inspectTileDetails } = action.payload;

@@ -664,8 +664,7 @@ export async function generateTileInspectionDetails(
   if (terrainContext === 'path_adj') terrainContext = 'area immediately adjacent to a discernible path';
   if (terrainContext === 'path') terrainContext = 'a discernible path';
 
-  const prompt = `
-${context}
+  const prompt = `${context}
 
 ## INSPECTION TARGET
 The character is closely inspecting a specific spot nearby.
