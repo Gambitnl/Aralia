@@ -8,6 +8,7 @@ import { createMockSpell, createMockCombatCharacter, createMockGameState } from 
 import { PLANES } from '../../../data/planes';
 import { Spell, SpellEffect } from '../../../types/spells';
 import { CombatState } from '../../../types/combat';
+import { rollSavingThrow } from '../../../utils/savingThrowUtils';
 
 // Mock dependencies
 vi.mock('../../../utils/planarUtils', async (importOriginal) => {
@@ -19,6 +20,21 @@ vi.mock('../../../utils/planarUtils', async (importOriginal) => {
         getPlanarSpellModifier: vi.fn()
     };
 });
+
+// Mock savingThrowUtils to spy on rollSavingThrow
+vi.mock('../../../utils/savingThrowUtils', async (importOriginal) => {
+    const actual = await importOriginal();
+    return {
+        // @ts-ignore
+        ...actual,
+        rollSavingThrow: vi.fn().mockImplementation((target, ability, dc, modifiers, advantageState) => {
+             return { success: true, roll: 15, total: 15, dc: 10, natural20: false, natural1: false };
+        }),
+        calculateSpellDC: vi.fn().mockReturnValue(15),
+        calculateSaveDamage: vi.fn().mockReturnValue(5) // Just return distinct damage
+    };
+});
+
 
 describe('Planar Magic Resonance', () => {
     let mockCaster = createMockCombatCharacter({ id: 'caster', name: 'Caster' });
@@ -87,12 +103,6 @@ describe('Planar Magic Resonance', () => {
 
     describe('DamageCommand - Damage Reroll', () => {
         it('should roll dice twice if reroll_damage mechanic is present', () => {
-            // We can't easily verify the internal rolling without spying on rollDamageUtil or seeing the result.
-            // Since rollDamageUtil is deterministic with seeded randomness or we can mock it?
-            // Actually, let's verify context is passed and logic runs.
-            // Since we updated DamageCommand to use getPlanarMagicMechanic, if that returns 'reroll_damage',
-            // it executes the branch.
-
             const effect: SpellEffect = {
                 type: 'DAMAGE',
                 trigger: { type: 'on_cast' },
@@ -113,7 +123,7 @@ describe('Planar Magic Resonance', () => {
             // Mock Planar Utils behavior
             vi.mocked(getPlanarMagicMechanic).mockReturnValue('reroll_damage');
 
-            // Just ensure it doesn't crash
+            // Just ensure it doesn't crash and logic runs
             const command = new DamageCommand(effect, context);
             const state = command.execute({
                 isActive: true,
@@ -130,6 +140,53 @@ describe('Planar Magic Resonance', () => {
             const logs = state.combatLog;
             const resonanceLog = logs.find(l => l.message.includes('Planar Resonance'));
             expect(resonanceLog).toBeDefined();
+        });
+    });
+
+    describe('DamageCommand - Advantage/Disadvantage', () => {
+        it('should enforce disadvantage on save if mechanic is "advantage" (Enchantment in Feywild)', () => {
+            const effect: SpellEffect = {
+                type: 'DAMAGE',
+                trigger: { type: 'on_cast' },
+                damage: { type: 'psychic', dice: '1d4' },
+                condition: { type: 'save', saveType: 'Wisdom' }
+            };
+
+            const context = {
+                spellId: 'vicious_mockery',
+                spellName: 'Vicious Mockery',
+                spellSchool: 'Enchantment',
+                castAtLevel: 1,
+                caster: mockCaster,
+                targets: [mockTarget],
+                gameState: mockGameState,
+                currentPlane: PLANES['feywild']
+            };
+
+            // Mock Planar Utils behavior
+            vi.mocked(getPlanarMagicMechanic).mockReturnValue('advantage'); // Logic translates this to disadvantage on save
+
+            const command = new DamageCommand(effect, context);
+            command.execute({
+                isActive: true,
+                characters: [mockCaster, mockTarget],
+                turnState: { currentTurn: 0, turnOrder: [], currentCharacterId: null, phase: 'combat', actionsThisTurn: [] },
+                combatLog: [],
+                validTargets: [],
+                validMoves: [],
+                reactiveTriggers: [],
+                activeLightSources: []
+            });
+
+            // Check that rollSavingThrow was called with 'disadvantage'
+            // @ts-ignore
+            expect(rollSavingThrow).toHaveBeenCalledWith(
+                expect.objectContaining({ id: 'target' }),
+                'Wisdom',
+                expect.any(Number),
+                undefined,
+                'disadvantage'
+            );
         });
     });
 });

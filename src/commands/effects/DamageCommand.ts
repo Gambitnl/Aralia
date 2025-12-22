@@ -2,7 +2,7 @@ import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CombatState } from '../../types/combat'
 import { isDamageEffect } from '../../types/spells'
 import { checkConcentration } from '../../utils/concentrationUtils';
-import { calculateSpellDC, rollSavingThrow, calculateSaveDamage } from '../../utils/savingThrowUtils';
+import { calculateSpellDC, rollSavingThrow, calculateSaveDamage, AdvantageState } from '../../utils/savingThrowUtils';
 import { rollDamage as rollDamageUtil } from '../../utils/combatUtils';
 import { BreakConcentrationCommand } from './ConcentrationCommands'
 import { ResistanceCalculator } from '../../systems/spells/mechanics/ResistanceCalculator';
@@ -87,7 +87,18 @@ export class DamageCommand extends BaseEffectCommand {
           dc += planarModifier;
         }
 
-        const saveResult = rollSavingThrow(target, this.effect.condition.saveType, dc);
+        // PLANESHIFTER: Apply Advantage/Disadvantage Mechanic
+        let advantageState: AdvantageState = 'normal';
+        if (planarMechanic === 'advantage') {
+          // Rule: "Advantage on attack OR Disadvantage on save"
+          // Since this is a save, we force disadvantage on the target.
+          advantageState = 'disadvantage';
+        } else if (planarMechanic === 'disadvantage') {
+           // Rule: "Disadvantage on attack OR Advantage on save" (hypothetical inverse)
+           advantageState = 'advantage';
+        }
+
+        const saveResult = rollSavingThrow(target, this.effect.condition.saveType, dc, undefined, advantageState);
 
         // Adjust damage based on save result
         damageRoll = calculateSaveDamage(
@@ -97,9 +108,12 @@ export class DamageCommand extends BaseEffectCommand {
         );
 
         // Log save outcome
+        let saveMsg = `${target.name} ${saveResult.success ? 'succeeds' : 'fails'} ${this.effect.condition.saveType} save (${saveResult.total} vs DC ${dc})`;
+        if (advantageState === 'disadvantage') saveMsg += ' [Disadvantage (Planar)]';
+
         currentState = this.addLogEntry(currentState, {
           type: 'status',
-          message: `${target.name} ${saveResult.success ? 'succeeds' : 'fails'} ${this.effect.condition.saveType} save (${saveResult.total} vs DC ${dc})`,
+          message: saveMsg,
           characterId: target.id
         });
       }

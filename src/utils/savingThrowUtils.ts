@@ -22,6 +22,8 @@ export interface SavingThrowResult {
     modifiersApplied?: { source: string; value: number }[];
 }
 
+export type AdvantageState = 'normal' | 'advantage' | 'disadvantage';
+
 /**
  * Modifier to apply to a saving throw from external effects.
  * Supports both bonuses (Bless) and penalties (Mind Sliver).
@@ -63,14 +65,24 @@ export function calculateSpellDC(caster: CombatCharacter): number {
  * @param ability The ability to use for the save
  * @param dc The difficulty class to beat
  * @param modifiers Optional array of modifiers from active effects (e.g., Mind Sliver's -1d4)
+ * @param advantageState Optional: 'advantage' | 'disadvantage' | 'normal'
  */
 export function rollSavingThrow(
     target: CombatCharacter,
     ability: SavingThrowAbility,
     dc: number,
-    modifiers?: SavingThrowModifier[]
+    modifiers?: SavingThrowModifier[],
+    advantageState: AdvantageState = 'normal'
 ): SavingThrowResult {
-    const roll = rollDice('1d20');
+    let roll1 = rollDice('1d20');
+    let roll2 = rollDice('1d20');
+    let roll = roll1;
+
+    if (advantageState === 'advantage') {
+        roll = Math.max(roll1, roll2);
+    } else if (advantageState === 'disadvantage') {
+        roll = Math.min(roll1, roll2);
+    }
 
     // Get ability modifier
     const score = (target.stats[ability.toLowerCase() as keyof typeof target.stats] || 10) as number;
