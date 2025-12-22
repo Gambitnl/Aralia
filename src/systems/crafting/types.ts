@@ -42,7 +42,7 @@ export interface Recipe {
   name: string;
   description: string;
   /** Defaults to 'craft' if undefined. */
-  recipeType?: 'craft' | 'salvage' | 'enchant';
+  recipeType?: 'craft' | 'salvage' | 'enchant' | 'refine';
   station: CraftingStationType;
   inputs: MaterialRequirement[];
   outputs: CraftingOutput[];
