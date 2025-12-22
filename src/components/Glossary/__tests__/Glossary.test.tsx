@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Glossary from '../Glossary';
 import GlossaryContext from '../../../context/GlossaryContext';
 import { GlossaryEntry } from '../../../types';
@@ -31,6 +31,11 @@ vi.mock('../../../hooks/useSpellGateChecks', () => ({
   useSpellGateChecks: () => mockGateHookReturn,
 }));
 
+// Mock networkUtils to handle fetchWithTimeout calls
+vi.mock('../../../utils/networkUtils', () => ({
+  fetchWithTimeout: vi.fn().mockImplementation(() => Promise.resolve({})),
+}));
+
 const entries: GlossaryEntry[] = [
   { id: 'entry-a', title: 'Entry A', category: 'Alpha', filePath: '/alpha.md', seeAlso: ['entry-b-1'] },
   {
@@ -56,9 +61,10 @@ const renderGlossary = (props?: Partial<React.ComponentProps<typeof Glossary>>, 
 describe('Glossary', () => {
   beforeEach(() => {
     mockGateHookReturn = { results: {}, recheck: vi.fn(), isLoading: false };
+    vi.clearAllMocks();
   });
 
-  it('renders categories, selects the first entry, and allows selecting another', () => {
+  it('renders categories, selects the first entry, and allows selecting another', async () => {
     renderGlossary();
 
     expect(screen.getByText('Game Glossary')).toBeInTheDocument();
@@ -69,7 +75,11 @@ describe('Glossary', () => {
 
     fireEvent.click(screen.getByText('Beta (1)'));
     fireEvent.click(screen.getByText('Entry B'));
-    expect(screen.getByTestId('full-entry')).toHaveTextContent('Entry B');
+
+    // Wait for any potential effects to settle
+    await waitFor(() => {
+      expect(screen.getByTestId('full-entry')).toHaveTextContent('Entry B');
+    });
   });
 
   it('filters entries by search term and shows empty state when no match', () => {
@@ -97,7 +107,7 @@ describe('Glossary', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it('shows spell gate indicators and checklist for spell entries', () => {
+  it('shows spell gate indicators and checklist for spell entries', async () => {
     mockGateHookReturn = {
       ...mockGateHookReturn,
       results: {
@@ -117,6 +127,9 @@ describe('Glossary', () => {
     expect(screen.getAllByTitle('Spell JSON not found').length).toBeGreaterThan(0);
     expect(screen.getByText(/Spell Gate Checks/)).toBeInTheDocument();
     expect(screen.getByText(/Spell JSON not found/)).toBeInTheDocument();
+
+    // Allow the mocked fetch promise to resolve and state to update
+    await waitFor(() => {});
   });
 
   it('navigates to see-also targets and expands nested parents', () => {
@@ -129,7 +142,7 @@ describe('Glossary', () => {
     expect(screen.getAllByText('Entry B Child').length).toBeGreaterThan(0);
   });
 
-  it('shows gap status messaging for spell entries', () => {
+  it('shows gap status messaging for spell entries', async () => {
     mockGateHookReturn = {
       ...mockGateHookReturn,
       results: {
@@ -147,5 +160,8 @@ describe('Glossary', () => {
     fireEvent.click(screen.getByText('Spell Entry'));
 
     expect(screen.getByText(/Marked as a gap/)).toBeInTheDocument();
+
+    // Allow the mocked fetch promise to resolve and state to update
+    await waitFor(() => {});
   });
 });

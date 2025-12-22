@@ -6,12 +6,6 @@
  * Defines the core types for the Companion and Relationship systems.
  */
 
-// TODO(Recorder): Integrate new NPCMemory system into Companion and NPC types.
-// Currently, Companion uses `approvalHistory` which is unstructured.
-// 1. Replace `approvalHistory` with `memory: NPCMemory` in `src/types/companions.ts`.
-// 2. Update `src/systems/companions/RelationshipManager.ts` to use `addInteraction` and `decayMemories`.
-// 3. Ensure `processWorldEvents` in `WorldEventManager` triggers `decayMemories` daily.
-
 // Core types for companion logic
 import { NPC } from './index';
 
@@ -155,8 +149,8 @@ export interface CompanionReactionRule {
     minRelationship?: RelationshipLevel;
     maxRelationship?: RelationshipLevel;
     locationId?: string; // Only triggers in specific location
-    chance?: number; // 0-1 probability (default 1)
   };
+  chance?: number; // 0-1 probability (default 1)
   cooldown?: number; // Minutes before this specific rule can trigger again
   priority?: number; // Higher overrides lower (default 0)
 }

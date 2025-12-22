@@ -9,16 +9,28 @@ vi.mock('framer-motion', async (importOriginal) => {
   const actual = await importOriginal<typeof import('framer-motion')>();
   const React = await import('react');
 
-  const MotionButton = React.forwardRef<HTMLButtonElement, any>(
+  // Define types for props we want to strip
+  type MotionProps = {
+    whileHover?: unknown;
+    whileTap?: unknown;
+    layout?: unknown;
+    initial?: unknown;
+    animate?: unknown;
+    exit?: unknown;
+    transition?: unknown;
+    children?: React.ReactNode;
+  } & React.ComponentPropsWithoutRef<'button'> & React.ComponentPropsWithoutRef<'div'>;
+
+  const MotionButton = React.forwardRef<HTMLButtonElement, MotionProps>(
     ({ whileHover, whileTap, layout, initial, animate, exit, transition, ...props }, ref) => (
-      <button ref={ref} {...props} />
+      <button ref={ref} {...(props as React.ComponentPropsWithoutRef<'button'>)} />
     )
   );
   MotionButton.displayName = 'MotionButton';
 
-  const MotionDiv = React.forwardRef<HTMLDivElement, any>(
+  const MotionDiv = React.forwardRef<HTMLDivElement, MotionProps>(
     ({ layout, initial, animate, exit, transition, ...props }, ref) => (
-      <div ref={ref} {...props} />
+      <div ref={ref} {...(props as React.ComponentPropsWithoutRef<'div'>)} />
     )
   );
   MotionDiv.displayName = 'MotionDiv';

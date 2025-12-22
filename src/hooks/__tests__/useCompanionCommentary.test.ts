@@ -3,6 +3,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useCompanionCommentary } from '../useCompanionCommentary';
 import { GameState } from '../../types';
 import { COMPANIONS } from '../../data/companions';
+import { CompanionReactionRule } from '../../types/companions';
 
 describe('useCompanionCommentary', () => {
   let mockDispatch: any;
@@ -16,7 +17,7 @@ describe('useCompanionCommentary', () => {
 
     // Ensure Kaelen has a cooldown on his loot reaction for the cooldown test
     if (mockCompanions['kaelen_thorne']) {
-      const lootRule = mockCompanions['kaelen_thorne'].reactionRules.find((r: any) => r.triggerType === 'loot');
+      const lootRule = mockCompanions['kaelen_thorne'].reactionRules.find((r: CompanionReactionRule) => r.triggerType === 'loot');
       if (lootRule) {
         lootRule.cooldown = 1; // 1 minute cooldown
         lootRule.chance = 1.0; // Ensure it passes chance check
