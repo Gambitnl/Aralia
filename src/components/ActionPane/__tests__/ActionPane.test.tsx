@@ -4,35 +4,34 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ActionPane from '../index';
 import { Action, Item, Location, NPC } from '../../../types';
 
-const MotionButton = React.forwardRef<HTMLButtonElement, React.ComponentPropsWithoutRef<'button'> & {
-  whileHover?: unknown;
-  whileTap?: unknown;
-  layout?: unknown;
-  initial?: unknown;
-  animate?: unknown;
-  exit?: unknown;
-  transition?: unknown;
-}>(({ whileHover, whileTap, layout, initial, animate, exit, transition, ...props }, ref) => (
-  <button ref={ref} {...props} />
-));
-MotionButton.displayName = 'MotionButton';
+// Mock framer-motion to avoid animation issues and hoisting errors
+vi.mock('framer-motion', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('framer-motion')>();
+  const React = await import('react');
 
-const MotionDiv = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<'div'> & {
-  layout?: unknown;
-  initial?: unknown;
-  animate?: unknown;
-  exit?: unknown;
-  transition?: unknown;
-}>(({ initial, animate, exit, transition, ...props }, ref) => <div ref={ref} {...props} />);
-MotionDiv.displayName = 'MotionDiv';
+  const MotionButton = React.forwardRef<HTMLButtonElement, any>(
+    ({ whileHover, whileTap, layout, initial, animate, exit, transition, ...props }, ref) => (
+      <button ref={ref} {...props} />
+    )
+  );
+  MotionButton.displayName = 'MotionButton';
 
-vi.mock('framer-motion', () => ({
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  motion: {
-    button: MotionButton,
-    div: MotionDiv,
-  },
-}));
+  const MotionDiv = React.forwardRef<HTMLDivElement, any>(
+    ({ layout, initial, animate, exit, transition, ...props }, ref) => (
+      <div ref={ref} {...props} />
+    )
+  );
+  MotionDiv.displayName = 'MotionDiv';
+
+  return {
+    ...actual,
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    motion: {
+      button: MotionButton,
+      div: MotionDiv,
+    },
+  };
+});
 
 describe('ActionPane', () => {
   const baseLocation: Location = {

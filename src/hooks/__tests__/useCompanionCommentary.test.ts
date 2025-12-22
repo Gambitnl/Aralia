@@ -10,8 +10,21 @@ describe('useCompanionCommentary', () => {
 
   beforeEach(() => {
     mockDispatch = vi.fn();
+
+    // Deep copy/modification of COMPANIONS to ensure predictable test data
+    const mockCompanions = JSON.parse(JSON.stringify(COMPANIONS));
+
+    // Ensure Kaelen has a cooldown on his loot reaction for the cooldown test
+    if (mockCompanions['kaelen_thorne']) {
+      const lootRule = mockCompanions['kaelen_thorne'].reactionRules.find((r: any) => r.triggerType === 'loot');
+      if (lootRule) {
+        lootRule.cooldown = 1; // 1 minute cooldown
+        lootRule.chance = 1.0; // Ensure it passes chance check
+      }
+    }
+
     mockState = {
-      companions: COMPANIONS,
+      companions: mockCompanions,
       currentLocationId: 'loc_1',
       messages: [],
       gold: 0
@@ -24,7 +37,7 @@ describe('useCompanionCommentary', () => {
     vi.restoreAllMocks();
   });
 
-  it('should trigger a loot reaction when gold increases significantly', () => {
+  it('should trigger a loot reaction when gold increases significantly', async () => {
     const { rerender } = renderHook(({ state }) => useCompanionCommentary(state, mockDispatch), {
       initialProps: { state: mockState }
     });
@@ -41,6 +54,10 @@ describe('useCompanionCommentary', () => {
       rerender({ state: newState });
     });
 
+    await act(async () => {
+      vi.runAllTimers();
+    });
+
     expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
       type: 'ADD_COMPANION_REACTION',
       payload: expect.objectContaining({
@@ -49,8 +66,7 @@ describe('useCompanionCommentary', () => {
     }));
   });
 
-  // TODO: Fix test harness for cooldowns. Logic is verified manually.
-  it.skip('should respect cooldowns', () => {
+  it('should respect cooldowns', async () => {
      vi.spyOn(Math, 'random').mockReturnValue(0);
 
      const { rerender } = renderHook(({ state }) => useCompanionCommentary(state, mockDispatch), {
@@ -68,10 +84,14 @@ describe('useCompanionCommentary', () => {
         rerender({ state: newState });
      });
 
+     await act(async () => {
+       vi.runAllTimers();
+     });
+
      expect(mockDispatch).toHaveBeenCalledTimes(1);
      mockDispatch.mockClear();
 
-     // Trigger again immediately
+     // Trigger again immediately (within 1 minute cooldown)
      const newerState = {
        ...newState,
        gold: 200,
@@ -80,6 +100,10 @@ describe('useCompanionCommentary', () => {
 
      act(() => {
         rerender({ state: newerState });
+     });
+
+     await act(async () => {
+       vi.runAllTimers();
      });
 
      // Should be blocked by cooldown
