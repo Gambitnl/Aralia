@@ -1,7 +1,13 @@
 # AG-Ops Topic Tracker
 
-**Channel:** ag-ops-v3
-**Last Updated:** 2025-12-22 12:05 CET (Claude Code - PHASE A COMPLETE)
+**Channel:** [🗨️ LOCAL_CHAT.md](file:///c:/Users/gambi/Documents/Git/AraliaV4/Aralia/.jules/LOCAL_CHAT.json)
+**Last Updated:** 2025-12-22 12:50 CET (Claude Code)
+
+> [!CAUTION]
+> **NTFY UPLINK IS DOWN.** Quota limit reached. 
+> All agents MUST use **.jules/LOCAL_CHAT.json** for communication.
+> Syntax: `python .agent_tools/local_chat.py --send "#Name #Tags Message"`
+> Directive: `.jules/prompts/local_chat_directive.md`
 
 ---
 
@@ -9,7 +15,9 @@
 
 | From | To | Question | Status |
 |------|-----|----------|--------|
-| @Core | @Human | 👤 Next priority: Refactor "Hot Files" or finish mapping Orphans? | ✅ Human said "Refactor Hot Files" and "Map Orphans" |
+| @Core | @Human | 👤 Finish 100% map (Phase B)? | ✅ YES (Proceeding) |
+| @Core | @Human | 👤 Ghost Files: Map or Prune? | ✅ MAP THEM to Core Systems/UI |
+| @Claude | @Human | 👤 Future Refactor: Depth/Breadth? | ✅ BREADTH FIRST (hit 100%) |
 
 ---
 
@@ -17,16 +25,20 @@
 
 | Topic | Resolution | By |
 |-------|------------|-----|
-| Hot Files (Ambiguous) | ✅ ALL 13 FILES CONSOLIDATED. Single primary owners established. | Claude/Core |
+| Hot Files (Ambiguous) | ✅ 100% COMPLETE. All 13 ambiguous claims resolved. | Claude/Core |
+| Orphaned Tests (91) | ✅ 100% COMPLETE. All 91 orphaned tests mapped to domains. | Claude |
+| Ghost Files (3) | ✅ 100% COMPLETE. All 3 orphaned code files mapped to domains. | Claude |
+| Architecture coverage | ✅ 100% (PHASE A + B + C complete) | Claude |
 | Phase 8 completion | 27 files committed/pushed to master | Core |
-| Phase 8 commit message | "🏛️ Core: Post-batch consolidation (89.6% arch coverage)" | Core |
-| Architecture coverage | 94.1% (PHASE A complete: 0 ambiguous) | Claude/Core |
 | Test status | ✅ ALL 207 FILES PASSING (1171 tests) | Core/Jules |
 | Lint status | ✅ 0 ERRORS (13 fixed) | Claude |
-| npm test before push? | ✅ NO (Core confirmed 5 times) | Core |
+| npm test before push? | ✅ NO (Core confirmed - Protocol updated) | Core/AG |
 | Orphaned Files (167) | ✅ MAP THEM (Human instruction) | Human |
-| agent speed asset/risk?| ✅ BOTH (AG response) | AG |
-| Code Decay? | ✅ STANDARDS EVOLVING (Claude response) | Claude |
+| Protocol Update | ✅ PHASE 6 now includes mandatory Test/Lint gates | AG |
+| Chat Archiving | ✅ KEEP IN LOCAL_CHAT.md (ntfy quota exhausted) | AG |
+| PHASE A (Hot Files) | ✅ 100% COMPLETE (13/13 Ambiguous files resolved) | Claude/Core |
+| PHASE B (Orphaned Tests) | ✅ 100% COMPLETE (91/91 orphaned test files mapped) | Claude |
+| PHASE C (Ghost Files) | ✅ 100% COMPLETE (3/3 orphaned code files mapped) | Claude |
 
 ---
 
@@ -36,17 +48,18 @@
 - Monitoring coordination flow and addressing "alpha phase" friction.
 
 ### 🛰️ Antigravity (AG)
-- Updating 00_core.md protocol with new Phase 6 gates (test/lint).
+- Auditing terminal output issues and updating core protocol.
 
 ### 🤖 Core
-- Mapping final 91 orphaned tests to reach 100% architecture coverage.
-- Coordinating final consolidation with Claude.
+- Archiving chat history (v1, v2, v3).
+- PHASE B mapping complete - awaiting next direction.
 
 ### 🔧 Claude Code
-- ✅ PHASE A HOT FILES: 100% COMPLETE (13/13 consolidated, 0 ambiguous)
-  - Final coverage: 94.1%
-  - Commits: 6 total (acf49540, ffee92b6, f5ad5256, 987024ea, 719edc0e, 6980b616)
-- Ready for PHASE B: Orphaned test file mapping (91 tests)
+- ✅ PHASE A COMPLETE (Hot Files - 13 ambiguous → 0)
+- ✅ PHASE B COMPLETE (Orphaned Tests - 91 → 0)
+- ✅ PHASE C COMPLETE (Ghost Files - 3 orphaned → 0)
+- 🎯 **100% ARCHITECTURE COVERAGE ACHIEVED**
+- Ready for next priority tasks.
 
 ---
 
