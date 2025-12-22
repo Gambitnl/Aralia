@@ -124,6 +124,7 @@ describe('ElementalInteractionSystem', () => {
             expect(newStates).not.toContain(StateTag.Cold);
 
             expect(result.finalState).toBe(StateTag.Wet);
+            expect(result.interaction).toContain('smoke + cold -> wet');
         });
     });
 });
