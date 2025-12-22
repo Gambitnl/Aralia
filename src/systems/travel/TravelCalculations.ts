@@ -36,7 +36,35 @@ export interface TravelGroupStats {
   dailyDistanceMiles: number; // Assuming 8 hours
 }
 
+export interface ForcedMarchStatus {
+  isForcedMarch: boolean;
+  hoursOverLimit: number;
+  constitutionSaveDC: number; // 0 if not forced
+}
+
 // --- Calculations ---
+
+/**
+ * Calculates the forced march status based on hours traveled.
+ * Rules:
+ * - Normal travel day is 8 hours.
+ * - For each hour beyond 8, characters risk exhaustion.
+ * - DC = 10 + 1 per hour past 8.
+ */
+export function calculateForcedMarchStatus(hoursTraveled: number): ForcedMarchStatus {
+  const SAFE_TRAVEL_HOURS = 8;
+  const isForcedMarch = hoursTraveled > SAFE_TRAVEL_HOURS;
+  const hoursOverLimit = Math.max(0, hoursTraveled - SAFE_TRAVEL_HOURS);
+
+  // PHB: "The DC is 10 + 1 for each hour of past 8 hours."
+  const constitutionSaveDC = isForcedMarch ? 10 + hoursOverLimit : 0;
+
+  return {
+    isForcedMarch,
+    hoursOverLimit,
+    constitutionSaveDC,
+  };
+}
 
 /**
  * Calculates the encumbrance level and effects for a character.
