@@ -1,0 +1,75 @@
+import { TargetConditionFilter } from '@/types/spells';
+
+/**
+ * Standard targeting filters for common D&D spell constraints.
+ * Use these to populate the `targeting.filter` field in spell JSONs.
+ */
+export const TARGET_FILTERS = {
+  /**
+   * For most healing spells (Cure Wounds, Healing Word, etc.)
+   * which explicitly do not affect Undead or Constructs.
+   */
+  HEALING_STANDARD: {
+    creatureTypes: [],
+    excludeCreatureTypes: ['Undead', 'Construct'],
+    sizes: [],
+    alignments: [],
+    hasCondition: [],
+    isNativeToPlane: false,
+  } as TargetConditionFilter,
+
+  /**
+   * For spells that only affect Humanoids (Charm Person, Hold Person).
+   */
+  HUMANOID_ONLY: {
+    creatureTypes: ['Humanoid'],
+    excludeCreatureTypes: [],
+    sizes: [],
+    alignments: [],
+    hasCondition: [],
+    isNativeToPlane: false,
+  } as TargetConditionFilter,
+
+  /**
+   * For spells that only affect Beasts (Animal Friendship).
+   */
+  BEAST_ONLY: {
+    creatureTypes: ['Beast'],
+    excludeCreatureTypes: [],
+    sizes: [],
+    alignments: [],
+    hasCondition: [],
+    isNativeToPlane: false,
+  } as TargetConditionFilter,
+
+  /**
+   * For spells that do not affect Undead (Sleep, etc.).
+   */
+  NO_UNDEAD: {
+    creatureTypes: [],
+    excludeCreatureTypes: ['Undead'],
+    sizes: [],
+    alignments: [],
+    hasCondition: [],
+    isNativeToPlane: false,
+  } as TargetConditionFilter,
+};
+
+/**
+ * Helper to check if a spell JSON matches a known preset pattern.
+ * Useful for validation scripts.
+ */
+// TODO(Auditor): Apply these presets to the Level 1 spell JSON files identified in docs/audits/level-1-targeting-audit.md
+
+export function matchTargetFilter(description: string): TargetConditionFilter | null {
+  const lowerDesc = description.toLowerCase();
+
+  if (lowerDesc.includes('no effect on undead or constructs')) {
+    return TARGET_FILTERS.HEALING_STANDARD;
+  }
+  if (lowerDesc.includes('humanoid')) {
+    // This is a weak heuristic, needs manual verification, but good for warnings
+    // return TARGET_FILTERS.HUMANOID_ONLY;
+  }
+  return null;
+}
