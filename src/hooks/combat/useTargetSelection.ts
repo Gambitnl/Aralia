@@ -24,7 +24,7 @@ export function useTargetSelection({
             });
         }
         return set;
-    }, [abilitySystem?.aoePreview]);
+    }, [abilitySystem?.aoePreview]); // eslint-disable-line react-hooks/preserve-manual-memoization
 
     // 2. Valid Target Set: Validates if a tile is a valid target for the selected ability
     // This is the most expensive check (LoS), so memoization here is critical.
@@ -57,7 +57,7 @@ export function useTargetSelection({
         currentCharacter,
         mapData,
         characters // Re-calc if any character moves (blocking)
-    ]);
+    ]); // eslint-disable-line react-hooks/preserve-manual-memoization
 
     return {
         aoeSet,

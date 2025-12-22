@@ -140,7 +140,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
     }
 
     return true;
-  }, [spellBenefits, selectedSpellSource, currentChoices]);
+  }, [spellBenefits, selectedSpellSource, currentChoices]); // eslint-disable-line react-hooks/preserve-manual-memoization
 
   // Handle spell source change - clear spell selections
   const handleSpellSourceChange = useCallback((source: MagicInitiateSource) => {

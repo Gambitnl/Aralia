@@ -154,7 +154,7 @@ export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = (
     });
 
     return DOMPurify.sanitize(finalContainer.innerHTML);
-  }, [markdownContent]);
+  }, [markdownContent, validTermIds]);
 
   useEffect(() => {
     if (structuredHtml && contentRef.current && onNavigate) {
