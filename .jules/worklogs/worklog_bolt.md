@@ -7,3 +7,15 @@
 ## 2024-05-23 - Breaking the Constants Monolith
 **Learning:** `src/constants.ts` acts as a "God Object" re-exporting massive data sets (Items, NPCs, Locations). Importing *any* constant from it (like simple rule values) pulls the entire world data into the bundle of the consuming component.
 **Action:** Move lightweight rule constants (Ability Names, etc.) to dedicated data files (`src/data/dndData.ts`) and ensure utilities like `characterValidation.ts` import from specific data sources, not the aggregator.
+
+## 2024-05-23 - TODO: Aggressive Decoupling of Constants (Aborted)
+**Context:** `src/constants.ts` is a major performance bottleneck because it aggregates all game data. A plan was formed to refactor this but was deemed too high-risk/sweeping for the current session.
+
+**The Plan:**
+1.  **Stop Re-exporting Heavy Data:** Remove exports like `ITEMS`, `NPCS`, `LOCATIONS` from `src/constants.ts`.
+2.  **Direct Imports:** Update all ~90 files currently importing from `constants.ts` to import directly from their source files (e.g., `import { ITEMS } from './data/items'`).
+3.  **Lazy Dev Data:** Refactor `src/data/dev/dummyCharacter.ts` to export a getter (`getDummyParty()`) rather than a static array, preventing immediate calculation of the dummy party (and thus immediate loading of all dependencies) at app startup.
+4.  **Update Consumers:** Update `appState.ts` and `useGameInitialization.ts` to use the lazy getter.
+
+**Benefit:** Significant reduction in initial bundle parse time and circular dependency risks.
+**Status:** Deferred. Future "Bolt" or "Architect" agents should execute this in smaller chunks.
