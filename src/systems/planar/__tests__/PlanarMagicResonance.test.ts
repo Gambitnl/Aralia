@@ -9,6 +9,7 @@ import { PLANES } from '../../../data/planes';
 import { Spell, SpellEffect } from '../../../types/spells';
 import { CombatState } from '../../../types/combat';
 import { rollSavingThrow } from '../../../utils/savingThrowUtils';
+import * as combatUtils from '../../../utils/combatUtils'; // Import module to mock
 
 // Mock dependencies
 vi.mock('../../../utils/planarUtils', async (importOriginal) => {
@@ -102,7 +103,7 @@ describe('Planar Magic Resonance', () => {
     });
 
     describe('DamageCommand - Damage Reroll', () => {
-        it('should roll dice twice if reroll_damage mechanic is present', () => {
+        it('should roll dice twice and take the higher value if reroll_damage mechanic is present', () => {
             const effect: SpellEffect = {
                 type: 'DAMAGE',
                 trigger: { type: 'on_cast' },
@@ -123,7 +124,18 @@ describe('Planar Magic Resonance', () => {
             // Mock Planar Utils behavior
             vi.mocked(getPlanarMagicMechanic).mockReturnValue('reroll_damage');
 
-            // Just ensure it doesn't crash and logic runs
+            // Spy on rollDamageUtil
+            // Since rollDamageUtil is imported directly in DamageCommand, standard spying on the module might work
+            // if we mock the whole module or spy on the export.
+            // Using vi.spyOn(combatUtils, 'rollDamage') requires 'combatUtils' to be imported as * or namespace.
+            // We added `import * as combatUtils` above.
+
+            const rollDamageSpy = vi.spyOn(combatUtils, 'rollDamage');
+
+            // Mock implementation to return a sequence: 2 then 8
+            // 2 is low, 8 is high. The logic should pick 8.
+            rollDamageSpy.mockReturnValueOnce(2).mockReturnValueOnce(8);
+
             const command = new DamageCommand(effect, context);
             const state = command.execute({
                 isActive: true,
@@ -136,10 +148,24 @@ describe('Planar Magic Resonance', () => {
                 activeLightSources: []
             });
 
-            // Check logs for "Planar Resonance" which we added
+            // Verify logic
+            // 1. rollDamage should be called twice
+            expect(rollDamageSpy).toHaveBeenCalledTimes(2);
+
+            // 2. The log should reflect the higher damage (8)
+            // Note: Final damage might be modified by resistance or planar modifiers.
+            // mockTarget has no resistances mocked here.
+            // Planar modifier is 0 unless mocked.
+            // ResistanceCalculator will be called with 8.
+
             const logs = state.combatLog;
             const resonanceLog = logs.find(l => l.message.includes('Planar Resonance'));
             expect(resonanceLog).toBeDefined();
+
+            // Extract damage value from log data
+            // data: { value: finalDamage, type: ... }
+            const damageEntry = logs.find(l => l.type === 'damage');
+            expect(damageEntry?.data?.value).toBe(8);
         });
     });
 

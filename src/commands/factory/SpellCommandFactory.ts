@@ -66,9 +66,7 @@ export class SpellCommandFactory {
         value: (effectDuration.value || 0) * 2
       };
 
-      if (spell.duration.unit === 'round' || spell.duration.unit === 'minute') {
-          console.debug(`[Planeshifter] Duration doubled for ${spell.name} (${spell.school})`);
-      }
+      console.debug(`[Planeshifter] Duration doubled for ${spell.name} (${spell.school}) - New Value: ${effectDuration.value} ${effectDuration.type}`);
     }
 
     const context: CommandContext = {
