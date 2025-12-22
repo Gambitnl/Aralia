@@ -6,7 +6,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion, MotionProps } from 'framer-motion';
 import { PlayerCharacter, MissingChoice, GameState } from '../../types';
 import PartyPane from './PartyPane';
-import { RelationshipsPane } from '../RelationshipsPane';
+import { RelationshipsPane } from './RelationshipsPane';
 import { COMPANIONS } from '../../constants'; // Fallback
 
 // We need to access GameState companions if possible, but props might limit us.
