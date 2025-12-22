@@ -8,21 +8,10 @@
 
 import { Item } from './items';
 
-export type LootEntryType = 'item' | 'currency' | 'table_reference' | 'nothing';
-
 /**
- * A single entry in a loot pool.
- * Can represent an item, a pile of gold, a call to another table, or nothing.
+ * Common properties shared by all loot entry types.
  */
-export interface LootEntry {
-  type: LootEntryType;
-
-  /**
-   * ID of the item, currency type (e.g. 'gold', 'silver'), or referenced table ID.
-   * Required unless type is 'nothing'.
-   */
-  id?: string;
-
+interface BaseLootEntry {
   /** Relative weight for weighted random selection within the pool. */
   weight: number;
 
@@ -37,7 +26,15 @@ export interface LootEntry {
    * If used in a weighted pool, this check happens AFTER selection.
    */
   chance?: number;
+}
 
+/**
+ * Represents a specific item drop.
+ */
+export interface ItemLootEntry extends BaseLootEntry {
+  type: 'item';
+  /** ID of the item to drop. */
+  id: string;
   /**
    * Specific item data overrides (e.g. "Broken Sword" variant).
    * Useful for generating unique versions of standard items.
@@ -46,11 +43,49 @@ export interface LootEntry {
 }
 
 /**
+ * Represents a currency drop (e.g. Gold, Silver).
+ */
+export interface CurrencyLootEntry extends BaseLootEntry {
+  type: 'currency';
+  /** Currency type ID (e.g. 'gold', 'silver'). */
+  id: string;
+}
+
+/**
+ * Represents a reference to another loot table (nested loot).
+ */
+export interface TableReferenceLootEntry extends BaseLootEntry {
+  type: 'table_reference';
+  /** ID of the referenced loot table. */
+  id: string;
+}
+
+/**
+ * Represents a "no drop" result in the weighted pool.
+ */
+export interface NothingLootEntry extends BaseLootEntry {
+  type: 'nothing';
+  /** No ID is needed for a "nothing" result. */
+  id?: never;
+}
+
+/**
+ * A single entry in a loot pool.
+ * Can represent an item, a pile of gold, a call to another table, or nothing.
+ */
+export type LootEntry = ItemLootEntry | CurrencyLootEntry | TableReferenceLootEntry | NothingLootEntry;
+
+export type LootEntryType = LootEntry['type'];
+
+/**
  * A grouping of potential drops.
  * A LootTable can have multiple pools (e.g. one for Gold, one for Items).
  */
 export interface LootPool {
-  /** How many times to roll on this pool. */
+  /**
+   * How many times to roll on this pool.
+   * @note `min` must be less than or equal to `max`.
+   */
   rolls: {
     min: number;
     max: number;
