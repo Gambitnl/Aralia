@@ -48,28 +48,37 @@ export function processRefiningBatch(crafter: Crafter, request: BatchRefineReque
   let failures = 0;
   let totalExperience = 0;
 
-  // Clone inventory for simulation tracking
-  // We use a simple array clone, assuming items are simple objects {itemId, quantity}
+  // Optimize lookups with a Map (O(1) vs O(N))
+  // We need to keep the original array structure for the virtualCrafter interface,
+  // but we can use the map for quick updates and then sync back if needed,
+  // OR just assume the virtualCrafter.inventory references the objects we modify.
+  // BUT: Crafter.inventory is an array.
+
+  // Strategy: Clone the array deep enough to modify quantities.
   const virtualInventory = crafter.inventory.map(i => ({ ...i }));
+
+  // Create a Map for O(1) access to these same objects
+  const inventoryMap = new Map<string, { itemId: string; quantity: number }>();
+  virtualInventory.forEach(item => inventoryMap.set(item.itemId, item));
 
   // Create a proxy crafter that uses the virtual inventory
   const virtualCrafter: Crafter = {
     ...crafter,
     inventory: virtualInventory,
-    rollSkill: crafter.rollSkill // Reuse the actual roller logic (randomness is fine)
+    rollSkill: crafter.rollSkill // Reuse the actual roller logic
   };
 
   // Process each item in the batch
   for (let i = 0; i < batchSize; i++) {
-    // Check if we still have materials for this iteration using the virtual state
-    // attemptCraft calls canCraft which reads inventory
     const result = attemptCraft(virtualCrafter, recipe);
 
-    // If successful or materials lost, we must update our virtual inventory
-    // so the next iteration knows we used them.
+    // Add result unconditionally first (simplifies flow)
+    results.push(result);
+
+    // If successful or materials lost, update virtual inventory
     if (result.success || result.materialsLost) {
       result.consumedMaterials.forEach(consumed => {
-        const item = virtualInventory.find(inv => inv.itemId === consumed.itemId);
+        const item = inventoryMap.get(consumed.itemId);
         if (item) {
           item.quantity -= consumed.quantity;
         }
@@ -84,19 +93,16 @@ export function processRefiningBatch(crafter: Crafter, request: BatchRefineReque
             totalOutput[out.itemId] = (totalOutput[out.itemId] || 0) + out.quantity;
         });
 
-        // XP Calculation (Simple placeholder)
-        totalExperience += (result.experienceGained || (recipe.timeMinutes * 2)); // Default if not in result
+        // XP Calculation
+        totalExperience += (result.experienceGained || (recipe.timeMinutes * 2));
 
     } else {
         failures++;
-        // If we ran out of materials mid-batch (e.g. materialsLost was false because check failed), stop.
+        // Stop on critical resource failure
         if (result.message === 'Insufficient materials.') {
-            results.push(result);
             break;
         }
     }
-
-    results.push(result);
   }
 
   return {
