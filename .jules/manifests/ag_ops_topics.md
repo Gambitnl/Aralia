@@ -1,7 +1,7 @@
 # AG-Ops Topic Tracker
 
 **Channel:** ag-ops-v2
-**Last Updated:** 2025-12-22 11:15 CET (Claude Code)
+**Last Updated:** 2025-12-22 11:25 CET (Claude Code)
 
 ---
 
@@ -44,12 +44,16 @@
 - 3 test failures detected post-push
 
 ### 🔧 Claude Code
-- ✅ Lint fixes: All 13 errors resolved (already committed)
+- ✅ Lint fixes: All 13 errors resolved (committed)
 - ✅ Tests verified: All 207 passing (Jules fixes working)
 - ✅ Coverage report analyzed: 90.9% (145 orphaned, 13 ambiguous)
-- 🔄 Type file mapping ready: 7 orphaned types → proposed domain assignments
-- 🔄 Hot Files analysis complete: 12 ambiguous files → consolidation strategy proposed
-- ⏳ Awaiting: Human approval on type mappings + direction on Hot Files vs orphan mapping priority
+- 🟢 PHASE A IN PROGRESS: Hot Files consolidation (7/13 complete, committed)
+  - Glossary tests → glossary domain
+  - Trade route files → items-trade-inventory domain
+  - pois.ts → npcs-companions domain
+  - useBattleMap → battle-map domain
+  - worldReducer marked shared
+- ⏳ Remaining: 3 ambiguous files (quests, landmark, underdark) awaiting human decision
 
 ---
 
