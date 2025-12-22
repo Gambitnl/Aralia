@@ -33,5 +33,15 @@ describe('statUtils', () => {
             // 10 + 4 + 3 - 5 = 12
             expect(calculatePassiveScore(4, 3, 'disadvantage')).toBe(12);
         });
+
+        it('handles negative ability modifiers correctly', () => {
+            // Mod: -2
+            // 10 - 2 = 8
+            expect(calculatePassiveScore(-2)).toBe(8);
+
+            // Mod: -1, Prof: +2, Adv (+5)
+            // 10 - 1 + 2 + 5 = 16
+            expect(calculatePassiveScore(-1, 2, 'advantage')).toBe(16);
+        });
     });
 });

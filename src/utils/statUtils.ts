@@ -251,10 +251,16 @@ export const calculatePassiveScore = (
 ): number => {
   let score = 10 + modifier + proficiencyBonus;
 
-  if (advantageState === 'advantage') {
-    score += 5;
-  } else if (advantageState === 'disadvantage') {
-    score -= 5;
+  switch (advantageState) {
+    case 'advantage':
+      score += 5;
+      break;
+    case 'disadvantage':
+      score -= 5;
+      break;
+    case 'none':
+    default:
+      break;
   }
 
   return score;
