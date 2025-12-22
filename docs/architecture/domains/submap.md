@@ -37,13 +37,12 @@ The Submap is the primary exploration interface where players navigate tile-base
 | `src/utils/submapUtils.ts` | Utils | Submap utility functions |
 | `src/utils/realmsmithRng.ts` | Utils | RNG utilities |
 
-## Shared Ownership with Battle Map
+## Battle Map Systems (Owned by Battle Map Domain)
 
-| File | Shared With | Notes |
-|------|---|---|
-| `src/hooks/useBattleMap.ts` | battle-map | Battle map functionality owned by battle-map domain |
-| `src/hooks/useBattleMapGeneration.ts` | battle-map | Battle map functionality owned by battle-map domain |
-| `src/services/battleMapGenerator.ts` | battle-map | Tactical grid generation owned by battle-map domain |
+The following battle map systems are owned by the [Battle Map](./battle-map.md) domain:
+- `src/hooks/useBattleMap.ts` — battle map state management
+- `src/hooks/useBattleMapGeneration.ts` — tactical map generation
+- `src/services/battleMapGenerator.ts` — tactical grid generation
 
 
 ## Dependencies

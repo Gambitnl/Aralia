@@ -25,17 +25,19 @@ Handles environmental effects (weather, day/night cycles, hazards), terrain mech
 | `src/components/Submap/submapVisuals.ts` | Config | Visual settings |
 | `src/data/biomes.ts` | Data | Biome definitions |
 | `src/data/underdark/*.ts` | Data | Underdark environment data |
+| `src/types/realmsmith.ts` | Types | RealmSmith generation types |
+| `src/types/village.ts` | Types | Village generation types |
+| `src/types/environment.ts` | Types | Environmental types |
 | `src/utils/physicsUtils*.ts` | Utils | Physics utilities |
 | `src/utils/walkabilityUtils.ts` | Utils | Movement validation |
 | `src/utils/locationUtils.ts` | Utils | Position helpers |
 
-## Shared Ownership with Other Domains
+## Systems Owned by Other Domains
 
-| File | Shared With | Notes |
-|------|---|---|
-| `src/data/world/pois.ts` | npcs-companions | POIs primary responsibility of NPCs |
-| `src/services/landmarkService.ts` | time-world-events | Landmarks also relate to world events |
-| `src/services/underdarkService.ts` | naval-underdark | Underdark also part of naval-underdark domain |
+The following files have environmental aspects but are primarily owned elsewhere:
+- `src/data/world/pois.ts` — managed by npcs-companions (NPC locations)
+- `src/services/landmarkService.ts` — managed by time-world-events (historical landmarks)
+- `src/services/underdarkService.ts` — managed by naval-underdark (underdark exploration)
 
 ## Dependencies
 

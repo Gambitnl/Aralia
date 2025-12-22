@@ -24,14 +24,14 @@ Manages crafting systems (alchemy, enchanting, salvaging), trade routes, market 
 | `src/data/economy/*.ts` | Data | Economic definitions |
 | `src/utils/coinPurseUtils.ts` | Utils | Currency handling |
 
-## Shared Ownership (with Items/Trade/Inventory)
+## Economy Systems (Shared with Items/Trade Domain)
 
-The following trade and economy files are owned by [Items / Trade / Inventory](./items-trade-inventory.md):
-| File | Primary Owner |
-|------|---|
-| `src/systems/economy/TradeRouteManager.ts` | items-trade-inventory |
-| `src/systems/economy/TradeRouteSystem.ts` | items-trade-inventory |
-| `src/utils/economy/marketEvents.ts` | items-trade-inventory |
+Trade route and market economy systems are managed by the [Items / Trade / Inventory](./items-trade-inventory.md) domain. See that domain for:
+- `src/systems/economy/TradeRouteManager.ts`
+- `src/systems/economy/TradeRouteSystem.ts`
+- `src/utils/economy/marketEvents.ts`
+
+This crafting-economy domain owns only pure crafting mechanics.
 
 ## Dependencies
 
