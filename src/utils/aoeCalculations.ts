@@ -130,13 +130,28 @@ function getSphereAoE(origin: Position, radius: number): Position[] {
 /**
  * Calculates tiles within a Cone using grid coordinates.
  *
+ * Updates to align with 5e Grid Rules (XGE/DMG):
+ * "A cone's width at a given point along its length is equal to that point's distance from the point of origin."
+ * Mathematically, this corresponds to an isosceles triangle where Base = Height,
+ * implying a half-angle of arctan(0.5) ≈ 26.565°. Total angle ≈ 53.13°.
+ *
+ * PREVIOUS BUG:
+ * The hardcoded angle of 53° excluded tiles that were exactly on the boundary (e.g., orthogonal range 10ft, width 10ft).
+ * We use 53.2° to safely include floating point results of atan(0.5).
+ *
  * @param origin - The starting point of the cone
  * @param direction - Compass direction in degrees (0=N, 90=E)
  * @param length - Length of the cone in feet
  * @returns Array of affected grid positions
  */
 function getConeAoE(origin: Position, direction: number, length: number): Position[] {
-    const coneAngle = 53; // Standard 5e Cone angle (~53 degrees)
+    // 5e Rule: Width = Distance.
+    // tan(theta/2) = (Width/2) / Distance = 0.5
+    // theta/2 = arctan(0.5) ≈ 26.56505... degrees
+    // theta ≈ 53.1301... degrees
+    // We use 53.2 to ensure floating point precision includes the boundary tiles.
+    const coneAngle = 53.2;
+
     const affected: Position[] = [];
     const lengthInTiles = length / TILE_SIZE;
 
