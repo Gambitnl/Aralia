@@ -17,13 +17,13 @@ import { DIRECTION_VECTORS } from '../config/mapConfig';
  * @param action - The Action object describing what the player wants to do.
  * @param gameNpcs - A record of NPCs in the current context (used to resolve target IDs to names).
  * @param gameLocations - A record of known locations (used to resolve target IDs to names).
- * @param playerCharacter - The active player character (used for checking inventory slots).
+ * @param playerCharacter - The active player character (used for checking inventory slots). Can be undefined.
  *
  * @returns A string describing the action in the second person ("You..."), or `null` if the action
  *          should not generate a separate log entry (e.g., system commands or actions that generate their own logs).
  *
  * @example
- * // Returns "You approach Blacksmith for a chat."
+ * // Returns "You approach Blacksmith to speak."
  * getDiegeticPlayerActionMessage({ type: 'talk', targetId: 'blacksmith' }, npcs, {}, pc);
  *
  * @example
