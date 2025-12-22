@@ -189,23 +189,25 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
         const effectDuration = (this.effect as { duration?: DurationLike }).duration;
         let duration = effectDuration;
 
-        // TODO: Use the originating spell duration for sustain/reactive windows (e.g., Witch Bolt) when effect duration is absent.
         // 2. Fallback to spell duration from context if not on effect
         // triggers like 'on_caster_action' for sustain rely on the spell's duration
         if (!duration && this.context.effectDuration) {
             duration = this.context.effectDuration as DurationLike;
         }
 
-        if (!duration) return undefined;
+        if (!duration) {
+            return undefined;
+        }
 
         // Handle EffectDuration structure { type: 'rounds' | 'minutes', value: number }
-        if (duration.type === 'rounds') return duration.value || 1;
-        if (duration.type === 'minutes') return (duration.value || 1) * 10;
+        if (duration.type === 'rounds') return (duration.value !== undefined ? duration.value : 1);
+        if (duration.type === 'minutes') return ((duration.value !== undefined ? duration.value : 1) * 10);
 
         // Handle Legacy/Spell Duration structure { unit: 'round' | 'minute', value: number }
-        if (duration.unit === 'round') return duration.value || 1;
-        if (duration.unit === 'minute') return (duration.value || 1) * 10;
+        if (duration.unit === 'round') return (duration.value !== undefined ? duration.value : 1);
+        if (duration.unit === 'minute') return ((duration.value !== undefined ? duration.value : 1) * 10);
 
+        // Handle "special" or other types by returning undefined (infinite/conditional)
         return undefined;
     }
 
