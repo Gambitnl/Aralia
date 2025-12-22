@@ -52,8 +52,14 @@ Tracks game time (calendar, seasons) and manages global world events and faction
 
 | Test File | Description |
 |-----------|-------------|
-| `src/systems/time/__tests__/CalendarSystem.test.ts` | Unit test |
-| `src/systems/time/__tests__/SeasonalSystem.test.ts` | Unit test |
-| `src/systems/world/__tests__/FactionManager.test.ts` | Unit test |
-| `src/systems/world/__tests__/NobleIntrigueManager.test.ts` | Unit test |
-| `src/systems/world/__tests__/WorldEventManager.test.ts` | Unit test |
+| `src/systems/time/__tests__/CalendarSystem.test.ts` | Calendar system tests |
+| `src/systems/time/__tests__/SeasonalSystem.test.ts` | Seasonal system tests |
+| `src/systems/world/__tests__/FactionManager.test.ts` | Faction manager tests |
+| `src/systems/world/__tests__/NobleIntrigueManager.test.ts` | Noble intrigue manager tests |
+| `src/systems/world/__tests__/WorldEventManager.test.ts` | World event manager tests |
+| `src/state/reducers/__tests__/explorationActions.test.ts` | Exploration action reducer tests |
+| `src/state/reducers/__tests__/religionReducer.test.ts` | Religion reducer tests |
+| `src/state/reducers/__tests__/worldReducer.test.ts` | World reducer tests |
+| `src/utils/__tests__/historyUtils.test.ts` | History utility tests |
+| `src/utils/__tests__/timeUtils.test.ts` | Time utility tests |
+| `src/services/__tests__/landmarkService.test.ts` | Landmark service tests |

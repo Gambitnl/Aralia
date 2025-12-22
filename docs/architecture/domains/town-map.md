@@ -30,6 +30,8 @@ The Town Map renders interior layouts of villages and towns, allowing players to
 | `src/services/RealmSmith*.ts` | Service | Town generation and assets |
 | `src/services/villageGenerator.ts` | Service | Village generation |
 | `src/hooks/useTownController.ts` | Hook | Town navigation |
+| `src/state/reducers/townReducer.ts` | Reducer | Town state |
+| `src/types/town.ts` | Types | Town type definitions |
 
 
 ## Dependencies
@@ -61,6 +63,9 @@ The Town Map renders interior layouts of villages and towns, allowing players to
 
 | Test File | Description |
 |-----------|-------------|
-| `src/components/Town/__tests__/TownCanvasPan.test.tsx` | Unit test |
-| `src/components/Town/__tests__/TownDevControls.test.tsx` | Unit test |
-| `src/components/Town/__tests__/TownNavigationControls.test.tsx` | Unit test |
+| `src/components/Town/__tests__/TownCanvasPan.test.tsx` | Town canvas panning tests |
+| `src/components/Town/__tests__/TownDevControls.test.tsx` | Town dev controls tests |
+| `src/components/Town/__tests__/TownNavigationControls.test.tsx` | Town navigation control tests |
+| `src/hooks/__tests__/useTownController.test.tsx` | Town controller hook tests |
+| `src/components/__tests__/MerchantModal.test.tsx` | Merchant modal component tests |
+| `src/services/__tests__/strongholdService.test.ts` | Stronghold service tests |

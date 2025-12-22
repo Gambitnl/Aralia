@@ -39,7 +39,7 @@ The Character Creator provides a step-by-step wizard for generating new player c
 | `src/hooks/useCharacterAssembly.ts` | Hook | Character assembly |
 | `src/data/races/*.ts` | Data | Race definitions |
 | `src/data/classes/*.ts` | Data | Class definitions |
-| `src/data/backgrounds.ts` | Data | Background definitions |
+| `src/data/dev/*.ts` | Data | Development and dummy data |
 | `src/data/feats/*.ts` | Data | Feat definitions |
 
 
@@ -73,5 +73,7 @@ The Character Creator provides a step-by-step wizard for generating new player c
 
 | Test File | Description |
 |-----------|-------------|
-| `src/components/CharacterCreator/__tests__/CharacterCreator.test.tsx` | Unit test |
-| `src/data/__tests__/planes.test.ts` | Unit test |
+| `src/components/CharacterCreator/__tests__/CharacterCreator.test.tsx` | Character creator component tests |
+| `src/utils/__tests__/characterUtils.test.ts` | Character utility tests |
+| `src/utils/__tests__/characterValidation.test.ts` | Character validation tests |
+| `src/utils/__tests__/statUtils.test.ts` | Stat utility tests |

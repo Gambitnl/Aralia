@@ -1,296 +1,51 @@
 {
   "meta": {
-    "generatedAt": "2025-12-22T08:52:23.620Z",
+    "generatedAt": "2025-12-22T11:31:48.148Z",
     "totalCodeFiles": 1599,
     "totalTestFiles": 207,
-    "claimedFiles": 1432,
-    "orphanedFiles": 167,
-    "missingFiles": 0,
-    "ambiguousFiles": 12,
-    "coveragePercent": 89.6
+    "claimedFiles": 1596,
+    "orphanedFiles": 3,
+    "missingFiles": 1,
+    "ambiguousFiles": 0,
+    "coveragePercent": 99.8
   },
   "orphaned": [
-    "scripts/generate-glossary-md-tables.ts",
-    "src/components/ActionPane/useActionGeneration.ts",
-    "src/components/CompassPane.tsx",
-    "src/components/DiscoveryLogPane.tsx",
-    "src/components/EncounterGenerator/PartyManager.tsx",
-    "src/components/GameGuideModal.tsx",
-    "src/components/GeminiLogViewer.tsx",
-    "src/components/ImageModal.tsx",
-    "src/components/ImagePane.tsx",
-    "src/components/LoadGameModal.tsx",
-    "src/components/LoadGameTransition.tsx",
-    "src/components/MissingChoiceModal.tsx",
-    "src/components/PassTimeModal.tsx",
-    "src/components/PlayerSprite.tsx",
-    "src/components/SaveSlotSelector.tsx",
-    "src/components/Submap/submapVisuals.ts",
-    "src/components/VersionDisplay.css",
-    "src/components/VersionDisplay.tsx",
-    "src/components/debug/NobleHouseList.tsx",
-    "src/data/deities/index.ts",
-    "src/data/dev/dummyCharacter.ts",
-    "src/data/economy/regions.ts",
-    "src/data/item_templates/index.ts",
-    "src/data/items/index.ts",
-    "src/data/naval/crewTraits.ts",
-    "src/data/quests/index.ts",
     "src/data/settings/ttsOptions.ts",
-    "src/data/skills/index.ts",
-    "src/data/temples/index.ts",
-    "src/data/underdark/biomes.ts",
-    "src/data/world/locations.ts",
-    "src/data/world/npcs.ts",
-    "src/data/world/pois.ts",
-    "src/hooks/actions/actionHandlerTypes.ts",
-    "src/hooks/actions/actionHandlers.ts",
-    "src/hooks/actions/handleEncounter.ts",
-    "src/hooks/actions/handleGeminiCustom.ts",
-    "src/hooks/actions/handleItemInteraction.ts",
-    "src/hooks/actions/handleMerchantInteraction.ts",
-    "src/hooks/actions/handleMovement.ts",
-    "src/hooks/actions/handleNpcInteraction.ts",
-    "src/hooks/actions/handleObservation.ts",
-    "src/hooks/actions/handleOracle.ts",
-    "src/hooks/actions/handleResourceActions.ts",
-    "src/hooks/actions/handleSystemAndUi.ts",
-    "src/hooks/actions/handleWorldEvents.ts",
-    "src/hooks/useCharacterProficiencies.ts",
-    "src/index.css",
-    "src/locales/en.json",
-    "src/scripts/audit_enchantment_consistency.ts",
-    "src/scripts/audit_spell_components.ts",
-    "src/services/CharacterAssetService.ts",
-    "src/services/EntityResolverService.ts",
-    "src/services/aiClient.ts",
-    "src/services/cellularAutomataService.ts",
-    "src/services/characterGenerator.ts",
-    "src/services/geminiSchemas.ts",
-    "src/services/geminiService.ts",
-    "src/services/geminiServiceFallback.ts",
-    "src/services/landmarkService.ts",
-    "src/services/legacyService.ts",
-    "src/services/organizationService.ts",
-    "src/services/saveLoadService.ts",
-    "src/services/strongholdService.ts",
-    "src/services/ttsService.ts",
-    "src/services/underdarkService.ts",
-    "src/services/wfcService.ts",
-    "src/state/reducers/dialogueReducer.ts",
-    "src/state/reducers/ritualReducer.ts",
-    "src/state/reducers/townReducer.ts",
-    "src/styles/buttonStyles.ts",
-    "src/systems/events/CombatEvents.ts",
-    "src/systems/logic/ConditionEvaluator.ts",
-    "src/test/setup.ts",
-    "src/types/effects.ts",
-    "src/types/languages.ts",
-    "src/types/legacy.ts",
-    "src/types/noble.ts",
-    "src/types/realmsmith.ts",
-    "src/types/town.ts",
-    "src/types/village.ts",
-    "src/utils/encounterUtils.ts",
-    "src/utils/entityIntegrationUtils.ts",
-    "src/utils/memoryUtils.ts",
-    "src/utils/movementUtils.ts",
-    "src/utils/realmsmithRng.ts",
-    "src/utils/religionUtils.ts",
-    "src/utils/settlementGeneration.ts",
-    "src/utils/socialUtils.ts",
-    "src/utils/templeUtils.ts",
-    "src/utils/visuals/spellVisuals.ts",
-    "src/utils/weaponUtils.ts"
+    "src/services/battleMapGenerator.ts",
+    "src/styles/buttonStyles.ts"
   ],
-  "orphanedTests": [
-    "src/components/__tests__/CharacterSheetModal.test.tsx",
-    "src/components/__tests__/CompassPane.test.tsx",
-    "src/components/__tests__/EncounterModal.test.tsx",
-    "src/components/__tests__/GameLayoutErrorBoundary.test.tsx",
-    "src/components/__tests__/GlossaryContentRenderer.test.tsx",
-    "src/components/__tests__/GlossaryFullEntryDisplay.test.tsx",
-    "src/components/__tests__/MainMenu.test.tsx",
-    "src/components/__tests__/MapTile.test.tsx",
-    "src/components/__tests__/MerchantModal.test.tsx",
-    "src/components/__tests__/NotificationSystem.test.tsx",
-    "src/components/__tests__/NotificationSystem_ReducedMotion.test.tsx",
-    "src/components/__tests__/PartyPane.test.tsx",
-    "src/services/__tests__/EntityResolutionIntegration.test.ts",
-    "src/services/__tests__/EntityResolverService.test.ts",
-    "src/services/__tests__/aiClient.test.ts",
-    "src/services/__tests__/dialogueService.test.ts",
-    "src/services/__tests__/geminiService.test.ts",
-    "src/services/__tests__/geminiServiceFallback.test.ts",
-    "src/services/__tests__/landmarkService.test.ts",
-    "src/services/__tests__/legacyService.test.ts",
-    "src/services/__tests__/organizationService.test.ts",
-    "src/services/__tests__/prompt_inspector.test.ts",
-    "src/services/__tests__/saveLoadService.test.ts",
-    "src/services/__tests__/strongholdService.test.ts",
-    "src/services/__tests__/travelEventService.test.ts",
-    "src/services/__tests__/travelService.test.ts",
-    "src/services/__tests__/underdarkService.test.ts",
-    "src/services/villageGenerator.test.ts",
-    "src/systems/logic/__tests__/ConditionEvaluator.test.ts",
-    "src/systems/religion/__tests__/favor.test.ts",
-    "src/test/config.test.ts",
-    "src/utils/__tests__/aoeCalculations.test.ts",
-    "src/utils/__tests__/characterUtils.test.ts",
-    "src/utils/__tests__/characterValidation.test.ts",
-    "src/utils/__tests__/coinPurseUtils.test.ts",
-    "src/utils/__tests__/combatUtils_attack.test.ts",
-    "src/utils/__tests__/combatUtils_character.test.ts",
-    "src/utils/__tests__/combatUtils_cover.test.ts",
-    "src/utils/__tests__/combatUtils_damage.test.ts",
-    "src/utils/__tests__/combatUtils_damage_logic.test.ts",
-    "src/utils/__tests__/combatUtils_rollDice.test.ts",
-    "src/utils/__tests__/contextEnhancement.test.ts",
-    "src/utils/__tests__/contextUtils.test.ts",
-    "src/utils/__tests__/economyUtils.test.ts",
-    "src/utils/__tests__/entityIntegrationUtils.test.ts",
-    "src/utils/__tests__/factionUtils.test.ts",
-    "src/utils/__tests__/factories.test.ts",
-    "src/utils/__tests__/glossaryUtils.test.ts",
-    "src/utils/__tests__/historyUtils.test.ts",
-    "src/utils/__tests__/i18n.test.ts",
-    "src/utils/__tests__/identityUtils.test.ts",
-    "src/utils/__tests__/lineOfSight.test.ts",
-    "src/utils/__tests__/logger.test.ts",
-    "src/utils/__tests__/memoryUtils.test.ts",
-    "src/utils/__tests__/movementRules.test.ts",
-    "src/utils/__tests__/navalCombatUtils.test.ts",
-    "src/utils/__tests__/navalUtils.test.ts",
-    "src/utils/__tests__/networkUtils.test.ts",
-    "src/utils/__tests__/nobleHouseGenerator.test.ts",
-    "src/utils/__tests__/pathfindingHeuristic.test.ts",
-    "src/utils/__tests__/physicsUtils.test.ts",
-    "src/utils/__tests__/physicsUtils_light.test.ts",
-    "src/utils/__tests__/physicsUtils_movement.test.ts",
-    "src/utils/__tests__/planarUtils.test.ts",
-    "src/utils/__tests__/planarUtils_atmosphere.test.ts",
-    "src/utils/__tests__/religionUtils.test.ts",
-    "src/utils/__tests__/savingThrowUtils.test.ts",
-    "src/utils/__tests__/securityUtils.test.ts",
-    "src/utils/__tests__/securityUtils_validation.test.ts",
-    "src/utils/__tests__/statUtils.test.ts",
-    "src/utils/__tests__/storageUtils.test.ts",
-    "src/utils/__tests__/timeUtils.test.ts",
-    "src/utils/__tests__/visualUtils.test.ts",
-    "src/utils/__tests__/weaponUtils.test.ts",
-    "src/utils/securityUtils.test.ts"
-  ],
-  "missing": [],
-  "ambiguous": [
+  "orphanedTests": [],
+  "missing": [
     {
-      "file": "src/components/Glossary/__tests__/Glossary.test.tsx",
-      "claimedIn": [
-        "glossary-data",
-        "glossary"
-      ]
-    },
-    {
-      "file": "src/components/Glossary/__tests__/GlossaryDisplay.test.tsx",
-      "claimedIn": [
-        "glossary-data",
-        "glossary"
-      ]
-    },
-    {
-      "file": "src/data/__tests__/planes.test.ts",
-      "claimedIn": [
-        "character-creator",
-        "core-systems"
-      ]
-    },
-    {
-      "file": "src/data/backgrounds.ts",
-      "claimedIn": [
-        "character-creator",
-        "core-systems"
-      ]
-    },
-    {
-      "file": "src/data/biomes.ts",
-      "claimedIn": [
-        "core-systems",
-        "submap"
-      ]
-    },
-    {
-      "file": "src/data/companions.ts",
-      "claimedIn": [
-        "core-systems",
-        "npcs-companions"
-      ]
-    },
-    {
-      "file": "src/data/glossaryData.ts",
-      "claimedIn": [
-        "core-systems",
-        "glossary"
-      ]
-    },
-    {
-      "file": "src/data/planes.ts",
-      "claimedIn": [
-        "core-systems",
-        "planes-travel"
-      ]
-    },
-    {
-      "file": "src/data/tradeRoutes.ts",
-      "claimedIn": [
-        "core-systems",
-        "items-trade-inventory"
-      ]
-    },
-    {
-      "file": "src/data/travelEvents.ts",
-      "claimedIn": [
-        "core-systems",
-        "planes-travel"
-      ]
-    },
-    {
-      "file": "src/systems/economy/__tests__/TradeRouteManager.test.ts",
-      "claimedIn": [
-        "crafting-economy",
-        "items-trade-inventory"
-      ]
-    },
-    {
-      "file": "src/systems/economy/__tests__/TradeRouteSystem.test.ts",
-      "claimedIn": [
-        "crafting-economy",
-        "items-trade-inventory"
-      ]
+      "file": "src/hooks/__tests__/useSubmapProceduralData.test.ts",
+      "claimedIn": "submap"
     }
   ],
+  "ambiguous": [],
   "byDomain": {
     "battle-map": {
-      "claimedFiles": 19,
-      "validFiles": 19,
-      "missingFiles": 0,
-      "testFiles": 2
-    },
-    "character-creator": {
-      "claimedFiles": 73,
-      "validFiles": 71,
+      "claimedFiles": 21,
+      "validFiles": 21,
       "missingFiles": 0,
       "testFiles": 4
     },
+    "character-creator": {
+      "claimedFiles": 75,
+      "validFiles": 73,
+      "missingFiles": 0,
+      "testFiles": 6
+    },
     "character-sheet": {
-      "claimedFiles": 16,
-      "validFiles": 16,
+      "claimedFiles": 19,
+      "validFiles": 19,
       "missingFiles": 0,
       "testFiles": 0
     },
     "combat": {
-      "claimedFiles": 40,
-      "validFiles": 37,
+      "claimedFiles": 85,
+      "validFiles": 82,
       "missingFiles": 0,
-      "testFiles": 8
+      "testFiles": 24
     },
     "commands": {
       "claimedFiles": 30,
@@ -299,114 +54,113 @@
       "testFiles": 13
     },
     "core-systems": {
-      "claimedFiles": 164,
-      "validFiles": 159,
+      "claimedFiles": 146,
+      "validFiles": 140,
       "missingFiles": 0,
-      "testFiles": 28
+      "testFiles": 32
     },
     "crafting-economy": {
-      "claimedFiles": 21,
-      "validFiles": 19,
-      "missingFiles": 0,
-      "testFiles": 7
-    },
-    "data-pipelines": {
-      "claimedFiles": 35,
-      "validFiles": 33,
-      "missingFiles": 0,
-      "testFiles": 2
-    },
-    "environment-physics": {
-      "claimedFiles": 14,
-      "validFiles": 12,
-      "missingFiles": 0,
-      "testFiles": 4
-    },
-    "glossary-data": {
-      "claimedFiles": 349,
-      "validFiles": 344,
-      "missingFiles": 0,
-      "testFiles": 2
-    },
-    "glossary": {
-      "claimedFiles": 15,
-      "validFiles": 13,
-      "missingFiles": 0,
-      "testFiles": 2
-    },
-    "intrigue-crime": {
-      "claimedFiles": 25,
-      "validFiles": 23,
-      "missingFiles": 0,
-      "testFiles": 9
-    },
-    "items-trade-inventory": {
-      "claimedFiles": 12,
-      "validFiles": 9,
-      "missingFiles": 0,
-      "testFiles": 2
-    },
-    "naval-underdark": {
-      "claimedFiles": 16,
-      "validFiles": 14,
-      "missingFiles": 0,
-      "testFiles": 6
-    },
-    "npcs-companions": {
-      "claimedFiles": 22,
-      "validFiles": 21,
-      "missingFiles": 0,
-      "testFiles": 4
-    },
-    "planes-travel": {
-      "claimedFiles": 28,
-      "validFiles": 26,
-      "missingFiles": 0,
-      "testFiles": 10
-    },
-    "puzzles-quests-rituals": {
-      "claimedFiles": 18,
+      "claimedFiles": 17,
       "validFiles": 15,
-      "missingFiles": 0,
-      "testFiles": 8
-    },
-    "spells": {
-      "claimedFiles": 524,
-      "validFiles": 521,
-      "missingFiles": 0,
-      "testFiles": 18
-    },
-    "submap": {
-      "claimedFiles": 23,
-      "validFiles": 23,
-      "missingFiles": 0,
-      "testFiles": 0
-    },
-    "time-world-events": {
-      "claimedFiles": 15,
-      "validFiles": 13,
       "missingFiles": 0,
       "testFiles": 5
     },
-    "town-map": {
-      "claimedFiles": 19,
-      "validFiles": 19,
+    "data-pipelines": {
+      "claimedFiles": 40,
+      "validFiles": 40,
       "missingFiles": 0,
-      "testFiles": 3
+      "testFiles": 6
+    },
+    "environment-physics": {
+      "claimedFiles": 23,
+      "validFiles": 21,
+      "missingFiles": 0,
+      "testFiles": 7
+    },
+    "glossary-data": {
+      "claimedFiles": 347,
+      "validFiles": 342,
+      "missingFiles": 0,
+      "testFiles": 0
+    },
+    "glossary": {
+      "claimedFiles": 18,
+      "validFiles": 16,
+      "missingFiles": 0,
+      "testFiles": 5
+    },
+    "intrigue-crime": {
+      "claimedFiles": 33,
+      "validFiles": 31,
+      "missingFiles": 0,
+      "testFiles": 11
+    },
+    "items-trade-inventory": {
+      "claimedFiles": 20,
+      "validFiles": 18,
+      "missingFiles": 0,
+      "testFiles": 5
+    },
+    "naval-underdark": {
+      "claimedFiles": 29,
+      "validFiles": 27,
+      "missingFiles": 0,
+      "testFiles": 9
+    },
+    "npcs-companions": {
+      "claimedFiles": 45,
+      "validFiles": 44,
+      "missingFiles": 0,
+      "testFiles": 11
+    },
+    "planes-travel": {
+      "claimedFiles": 36,
+      "validFiles": 34,
+      "missingFiles": 0,
+      "testFiles": 17
+    },
+    "puzzles-quests-rituals": {
+      "claimedFiles": 28,
+      "validFiles": 25,
+      "missingFiles": 0,
+      "testFiles": 10
+    },
+    "spells": {
+      "claimedFiles": 528,
+      "validFiles": 525,
+      "missingFiles": 0,
+      "testFiles": 21
+    },
+    "submap": {
+      "claimedFiles": 29,
+      "validFiles": 28,
+      "missingFiles": 1,
+      "testFiles": 4
+    },
+    "time-world-events": {
+      "claimedFiles": 35,
+      "validFiles": 33,
+      "missingFiles": 0,
+      "testFiles": 11
+    },
+    "town-map": {
+      "claimedFiles": 24,
+      "validFiles": 24,
+      "missingFiles": 0,
+      "testFiles": 6
     },
     "world-map": {
       "claimedFiles": 8,
-      "validFiles": 7,
+      "validFiles": 8,
       "missingFiles": 0,
-      "testFiles": 0
+      "testFiles": 1
     }
   },
   "testCoverage": {
-    "domainsWithTests": 19,
+    "domainsWithTests": 20,
     "domainsWithoutTests": [
       "character-sheet",
-      "submap",
-      "world-map"
+      "glossary-data"
     ]
   }
 }

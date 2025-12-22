@@ -54,7 +54,10 @@ The following files have environmental aspects but are primarily owned elsewhere
 
 | Test File | Description |
 |-----------|-------------|
-| `src/systems/environment/__tests__/EnvironmentSystem.test.ts` | Unit test |
-| `src/systems/environment/__tests__/TerrainSystem.test.ts` | Unit test |
-| `src/systems/environment/__tests__/hazards.test.ts` | Unit test |
-| `src/systems/physics/__tests__/ElementalInteractionSystem.test.ts` | Unit test |
+| `src/systems/environment/__tests__/EnvironmentSystem.test.ts` | Environment system tests |
+| `src/systems/environment/__tests__/TerrainSystem.test.ts` | Terrain system tests |
+| `src/systems/environment/__tests__/hazards.test.ts` | Hazard system tests |
+| `src/systems/physics/__tests__/ElementalInteractionSystem.test.ts` | Elemental interaction tests |
+| `src/utils/__tests__/physicsUtils.test.ts` | Physics utility tests |
+| `src/utils/__tests__/physicsUtils_light.test.ts` | Physics light utility tests |
+| `src/utils/__tests__/physicsUtils_movement.test.ts` | Physics movement utility tests |

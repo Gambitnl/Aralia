@@ -25,6 +25,10 @@ Handles the logic for game quests, environmental puzzles (locks, plates), and th
 | `src/systems/quests/*.ts` | Directory | Quest systems |
 | `src/systems/rituals/*.ts` | Directory | Ritual systems |
 | `src/systems/puzzles/*.ts` | Directory | Puzzle mechanics |
+| `src/components/QuestLog/**/*.ts*` | Directory | Quest tracking interface |
+| `src/state/reducers/ritualReducer.ts` | Reducer | Ritual state |
+| `src/data/quests/**/*.ts` | Data | Quest definitions |
+| `src/types/rituals.ts` | Types | Ritual types |
 
 ## Dependencies
 
@@ -37,11 +41,12 @@ Handles the logic for game quests, environmental puzzles (locks, plates), and th
 
 | Test File | Description |
 |-----------|-------------|
-| `src/systems/puzzles/__tests__/lockSystem.test.ts` | Unit test |
-| `src/systems/puzzles/__tests__/pressurePlateSystem.test.ts` | Unit test |
-| `src/systems/puzzles/__tests__/puzzleSystem.test.ts` | Unit test |
-| `src/systems/puzzles/__tests__/secretDoorSystem.test.ts` | Unit test |
-| `src/systems/quests/__tests__/QuestManager.test.ts` | Unit test |
-| `src/systems/rituals/__tests__/RitualBacklash.test.ts` | Unit test |
-| `src/systems/rituals/__tests__/RitualConstraints.test.ts` | Unit test |
-| `src/systems/rituals/__tests__/RitualManager.test.ts` | Unit test |
+| `src/systems/puzzles/__tests__/lockSystem.test.ts` | Lock system tests |
+| `src/systems/puzzles/__tests__/pressurePlateSystem.test.ts` | Pressure plate system tests |
+| `src/systems/puzzles/__tests__/puzzleSystem.test.ts` | Puzzle system tests |
+| `src/systems/puzzles/__tests__/secretDoorSystem.test.ts` | Secret door system tests |
+| `src/systems/quests/__tests__/QuestManager.test.ts` | Quest manager tests |
+| `src/systems/rituals/__tests__/RitualBacklash.test.ts` | Ritual backlash tests |
+| `src/systems/rituals/__tests__/RitualConstraints.test.ts` | Ritual constraint tests |
+| `src/systems/rituals/__tests__/RitualManager.test.ts` | Ritual manager tests |
+| `src/state/reducers/__tests__/ritualReducer.test.ts` | Ritual reducer tests |

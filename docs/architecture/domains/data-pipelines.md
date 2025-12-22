@@ -36,11 +36,11 @@ This domain covers all build-time scripts, validators, and generators that proce
   - `fix-spell-frontmatter.js` - Frontmatter fixes
   - `add_spell.js` - Single spell addition
 
-## File Ownership
-
 | Path | Type | Description |
 |------|------|-------------|
 | `scripts/*.{ts,js,mjs,cjs}` | Directory | All pipeline scripts |
+| `scripts/generate-glossary-md-tables.ts` | Script | Internal doc helper |
+| `src/scripts/*.ts` | Directory | System audit and validation scripts |
 | `src/utils/validation/*.ts` | Utils | Data validation utilities |
 | `docs/architecture/_generated/*.json` | Generated | Architecture artifacts |
 
@@ -94,5 +94,9 @@ npx --no-install tsx scripts/generate-architecture-compendium.ts
 
 | Test File | Description |
 |-----------|-------------|
-| `src/utils/validation/__tests__/spellAuditor.test.ts` | Unit test |
-| `src/utils/validation/__tests__/spellConsistency.test.ts` | Unit test |
+| `src/utils/validation/__tests__/spellAuditor.test.ts` | Spell auditor tests |
+| `src/utils/validation/__tests__/spellConsistency.test.ts` | Spell consistency tests |
+| `src/services/__tests__/aiClient.test.ts` | AI client service tests |
+| `src/services/__tests__/geminiService.test.ts` | Gemini service tests |
+| `src/services/__tests__/geminiServiceFallback.test.ts` | Gemini fallback service tests |
+| `src/services/__tests__/prompt_inspector.test.ts` | Prompt inspector service tests |

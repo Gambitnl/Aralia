@@ -35,6 +35,7 @@ The Spells domain manages all spell data, casting mechanics, targeting systems, 
 | `src/systems/spells/ai/*.ts` | Directory | AI integration |
 | `src/types/spells.ts` | Types | Spell type definitions |
 | `src/utils/spell*.ts` | Utils | Spell utility functions |
+| `src/utils/visuals/spellVisuals.ts` | Utils | Spell visual effect logic |
 | `src/utils/concentrationUtils.ts` | Utils | Concentration management |
 | `src/hooks/useSpellGateChecks.ts` | Hook | Spell validation |
 | `src/services/SpellService.ts` | Service | Spell data service |
@@ -68,3 +69,11 @@ The Spells domain manages all spell data, casting mechanics, targeting systems, 
 - [ ] Document targeting system architecture
 - [ ] Clarify higher-level casting mechanics
 - [ ] Map spell school effects and interactions
+
+## Claimed Tests
+
+| Test File | Description |
+|-----------|-------------|
+| `src/hooks/__tests__/useSpellGateChecks.test.ts` | Spell gate checking tests |
+| `src/types/__tests__/spells.test.ts` | Spell type definition tests |
+| `src/types/__tests__/spells.test-d.ts` | Spell type declaration tests |

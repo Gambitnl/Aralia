@@ -36,27 +36,14 @@ The shared foundation that all other domains depend on. Contains type definition
 |------|---------|
 | `src/types/index.ts` | Central type exports |
 | `src/types/core.ts` | Core game types |
-| `src/types/crafting.ts` | Crafting system types |
-| `src/types/creatures.ts` | Creature types |
-| `src/types/crime/index.ts` | Crime system types |
-| `src/types/deity.ts` | Deity and divine types |
-| `src/types/dice.ts` | Dice rolling types |
-| `src/types/elemental.ts` | Elemental damage types |
-| `src/types/environment.ts` | Environmental types |
-| `src/types/factions.ts` | Faction types |
-| `src/types/history.ts` | Historical event types |
-| `src/types/identity.ts` | Identity/disguise types |
-| `src/types/infernal.ts` | Infernal plane types |
-| `src/types/logic.ts` | Logic evaluation types |
-| `src/types/memory.ts` | NPC memory types |
-| `src/types/naval.ts` | Naval system types |
-| `src/types/navalCombat.ts` | Naval combat types |
-| `src/types/organizations.ts` | Organization types |
-| `src/types/religion.ts` | Religion types |
-| `src/types/rituals.ts` | Ritual magic types |
-| `src/types/stronghold.ts` | Stronghold types |
-| `src/types/underdark.ts` | Underdark types |
 | `src/types/visuals.ts` | Visual effect types |
+| `src/types/languages.ts` | Language types |
+| `src/types/effects.ts` | Universal effect types |
+| `src/types/creatures.ts` | Shared creature types |
+| `src/types/dice.ts` | Dice rolling types |
+| `src/types/elemental.ts` | Elemental types |
+| `src/types/logic.ts` | Logic types |
+| `src/types/legacy.ts` | Migration types |
 
 ### State Management
 | File | Purpose |
@@ -65,14 +52,9 @@ The shared foundation that all other domains depend on. Contains type definition
 | `src/state/actionTypes.ts` | Action type constants |
 | `src/state/appState.ts` | Initial state and shape |
 | `src/state/payloads/identityPayloads.ts` | Identity action payloads |
-| `src/state/reducers/crimeReducer.ts` | Crime state reducer |
-| `src/state/reducers/encounterReducer.ts` | Encounter state reducer |
-| `src/state/reducers/identityReducer.ts` | Identity state reducer |
-| `src/state/reducers/legacyReducer.ts` | Legacy/migration reducer |
-| `src/state/reducers/logReducer.ts` | Log state reducer |
-| `src/state/reducers/questReducer.ts` | Quest state reducer |
-| `src/state/reducers/religionReducer.ts` | Religion state reducer |
-| `src/state/reducers/uiReducer.ts` | UI state reducer |
+| `src/state/reducers/uireducer.ts` | UI state reducer |
+| `src/state/reducers/uiReducer.ts` | UI state reducer (alt casing) |
+| `src/state/reducers/legacyReducer.ts` | Legacy migration reducer |
 
 ### Context
 | File | Purpose |
@@ -96,21 +78,50 @@ The shared foundation that all other domains depend on. Contains type definition
 |------|---------|
 | `src/assets/icons/*.tsx` | Common UI icons |
 | `src/components/ui/*.tsx` | Reusable UI primitives |
-| `src/components/ActionPane/*.tsx` | Action interface components |
-| `src/components/QuestLog/**/*.ts*` | Quest tracking interface |
 | `src/components/layout/*.tsx` | Core layout components |
 | `src/components/providers/*.tsx` | React context providers |
+| `src/components/SaveSlotSelector.tsx` | Persistence UI |
+| `src/components/LoadGame*.tsx` | Persistence UI |
+| `src/components/PassTimeModal.tsx` | Time UI |
+| `src/components/GameGuideModal.tsx` | Help UI |
+| `src/components/GeminiLogViewer.tsx` | Debug UI |
 | `src/components/NotificationSystem.tsx` | Global notifications |
 | `src/components/Tooltip.tsx` | Common tooltip component |
-| `src/components/DevMenu.tsx` | Developer menu |
 | `src/components/ErrorBoundary.tsx` | Application error handling |
 | `src/components/NotFound.tsx` | 404 page |
 | `src/components/MainMenu.tsx` | Game main menu |
+| `src/components/VersionDisplay.*` | Version info |
+| `src/components/CompassPane.tsx` | UI Compass |
+| `src/components/DiscoveryLogPane.tsx` | UI Logs |
+| `src/components/Image*.tsx` | UI Image display |
+| `src/components/MissingChoiceModal.tsx` | UI Choice handling |
+| `src/components/PlayerSprite.tsx` | UI Character sprite |
+| `src/components/PassTimeModal.tsx` | UI Time skip |
+| `src/components/DevMenu.tsx` | Developer tools |
 
 ### Core Data
 | File | Purpose |
 |------|---------|
-| `src/data/*.ts` | Shared game data (excluding domain-specific files) |
+| `src/data/dndData.ts` | Base D&D definitions |
+| `src/locales/*.json` | Localization data |
+| `src/index.css` | Global CSS |
+| `src/test/setup.ts` | Test configuration |
+
+### Core Services & Hooks
+| File | Purpose |
+|------|---------|
+| `src/services/aiClient.ts` | AI client foundation |
+| `src/services/geminiSchemas.ts` | AI schemas |
+| `src/services/legacyService.ts` | Migration support |
+| `src/services/saveLoadService.ts` | Persistence foundation |
+| `src/services/ttsService.ts` | Text-to-speech |
+| `src/hooks/useAudio.ts` | Audio hook |
+| `src/hooks/useFocusTrap.ts` | Accessibility hook |
+| `src/hooks/useGameActions.ts` | Dispatch hook |
+| `src/hooks/useGameInitialization.ts` | Setup hook |
+| `src/hooks/useHistorySync.ts` | Router-like hook |
+| `src/hooks/useLocalStorage.ts` | Persistence hook |
+| `src/hooks/useUnderdarkLighting.ts` | Core visual hook |
 
 ### Utilities (Core)
 | File | Purpose |
@@ -157,25 +168,38 @@ The shared foundation that all other domains depend on. Contains type definition
 
 | Test File | Description |
 |-----------|-------------|
-| `src/components/ActionPane/__tests__/ActionPane.test.tsx` | Unit test |
-| `src/components/ui/__tests__/LoadingSpinner.test.tsx` | Unit test |
-| `src/data/__tests__/planes.test.ts` | Unit test |
-| `src/hooks/__tests__/useAbilitySystem.test.ts` | Unit test |
-| `src/hooks/__tests__/useBattleMapGeneration.test.ts` | Unit test |
-| `src/hooks/__tests__/useCombatVisuals.test.ts` | Unit test |
-| `src/hooks/__tests__/useCompanionCommentary.test.ts` | Unit test |
-| `src/hooks/__tests__/useHistorySync.test.ts` | Unit test |
-| `src/hooks/__tests__/useLocalStorage.test.ts` | Unit test |
-| `src/hooks/__tests__/useLocalStorageIntegration.test.ts` | Unit test |
-| `src/hooks/__tests__/useSpellGateChecks.test.ts` | Unit test |
-| `src/hooks/__tests__/useTownController.test.tsx` | Unit test |
-| `src/hooks/actions/__tests__/handleMovement.test.ts` | Unit test |
-| `src/state/reducers/__tests__/crimeReducer.heist.test.ts` | Unit test |
-| `src/state/reducers/__tests__/crimeReducer.test.ts` | Unit test |
-| `src/state/reducers/__tests__/explorationActions.test.ts` | Unit test |
-| `src/state/reducers/__tests__/religionReducer.test.ts` | Unit test |
-| `src/state/reducers/__tests__/ritualReducer.test.ts` | Unit test |
-| `src/state/reducers/__tests__/worldReducer.test.ts` | Unit test |
-| `src/types/__tests__/languages.test.ts` | Unit test |
-| `src/types/__tests__/spells.test-d.ts` | Unit test |
-| `src/types/__tests__/spells.test.ts` | Unit test |
+| `src/components/ui/__tests__/LoadingSpinner.test.tsx` | UI primitive tests |
+| `src/hooks/__tests__/useHistorySync.test.ts` | History sync tests |
+| `src/hooks/__tests__/useLocalStorage.test.ts` | Storage persistence tests |
+| `src/hooks/__tests__/useLocalStorageIntegration.test.ts` | Integration test |
+| `src/hooks/__tests__/useHistorySync.test.ts` | Router logic test |
+| `src/utils/__tests__/networkUtils.test.ts` | Network logic test |
+| `src/utils/__tests__/storageUtils.test.ts` | Storage logic test |
+| `src/services/__tests__/saveLoadService.test.ts` | Persistence logic test |
+| `src/services/ttsService.ts` | TTS logic |
+| `src/components/__tests__/MainMenu.test.tsx` | Main menu UI test |
+| `src/components/__tests__/NotificationSystem.test.tsx` | UI test |
+| `src/components/__tests__/GameLayoutErrorBoundary.test.tsx` | UI test |
+| `src/components/__tests__/CharacterSheetModal.test.tsx` | Sheet modal tests |
+| `src/components/__tests__/CompassPane.test.tsx` | Compass UI tests |
+| `src/components/__tests__/GameLayoutErrorBoundary.test.tsx` | Error boundary tests |
+| `src/components/__tests__/MainMenu.test.tsx` | Main menu tests |
+| `src/components/__tests__/NotificationSystem.test.tsx` | Notification system tests |
+| `src/components/__tests__/NotificationSystem_ReducedMotion.test.tsx` | Reduced motion tests |
+| `src/services/__tests__/legacyService.test.ts` | Legacy service migration tests |
+| `src/services/__tests__/saveLoadService.test.ts` | Save/load persistence tests |
+| `src/test/config.test.ts` | Configuration tests |
+| `src/types/__tests__/languages.test.ts` | Language type tests |
+| `src/utils/__tests__/contextEnhancement.test.ts` | Context enhancement tests |
+| `src/utils/__tests__/contextUtils.test.ts` | Context utility tests |
+| `src/utils/__tests__/factories.test.ts` | Factory function tests |
+| `src/utils/__tests__/i18n.test.ts` | Internationalization tests |
+| `src/utils/__tests__/identityUtils.test.ts` | Identity utility tests |
+| `src/utils/__tests__/logger.test.ts` | Logger utility tests |
+| `src/utils/__tests__/memoryUtils.test.ts` | Memory utility tests |
+| `src/utils/__tests__/networkUtils.test.ts` | Network utility tests |
+| `src/utils/__tests__/securityUtils.test.ts` | Security utility tests |
+| `src/utils/__tests__/securityUtils_validation.test.ts` | Security validation tests |
+| `src/utils/__tests__/storageUtils.test.ts` | Storage utility tests |
+| `src/utils/securityUtils.test.ts` | Security core tests |
+| `src/components/__tests__/PartyPane.test.tsx` | Party pane component tests |

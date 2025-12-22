@@ -59,5 +59,8 @@ The Glossary provides an in-game reference system for D&D 5e rules, spells, item
 
 | Test File | Description |
 |-----------|-------------|
-| `src/components/Glossary/__tests__/Glossary.test.tsx` | Unit test |
-| `src/components/Glossary/__tests__/GlossaryDisplay.test.tsx` | Unit test |
+| `src/components/Glossary/__tests__/Glossary.test.tsx` | Glossary main component tests |
+| `src/components/Glossary/__tests__/GlossaryDisplay.test.tsx` | Glossary display component tests |
+| `src/components/__tests__/GlossaryContentRenderer.test.tsx` | Glossary content renderer tests |
+| `src/components/__tests__/GlossaryFullEntryDisplay.test.tsx` | Glossary full entry display tests |
+| `src/utils/__tests__/glossaryUtils.test.ts` | Glossary utility tests |

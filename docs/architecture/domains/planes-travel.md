@@ -37,6 +37,7 @@ This domain handles planar mechanics (Feywild, Shadowfell, etc.) and travel syst
 | `src/utils/travel/*.ts` | Utils | Travel utilities |
 | `src/types/planes.ts` | Types | Plane types |
 | `src/types/travel.ts` | Types | Travel types |
+| `src/types/history.ts` | Types | Historical event types |
 
 ## Dependencies
 
@@ -67,13 +68,20 @@ This domain handles planar mechanics (Feywild, Shadowfell, etc.) and travel syst
 
 | Test File | Description |
 |-----------|-------------|
-| `src/systems/planar/__tests__/FeywildMechanics.test.ts` | Unit test |
-| `src/systems/planar/__tests__/InfernalMechanics.test.ts` | Unit test |
-| `src/systems/planar/__tests__/PlanarHazardSystem.test.ts` | Unit test |
-| `src/systems/planar/__tests__/PlanarIntegration.test.ts` | Unit test |
-| `src/systems/planar/__tests__/PlanarService.test.ts` | Unit test |
-| `src/systems/planar/__tests__/PortalSystem.test.ts` | Unit test |
-| `src/systems/planar/__tests__/ShadowfellMechanics.test.ts` | Unit test |
-| `src/systems/planar/__tests__/rest.test.ts` | Unit test |
-| `src/systems/travel/__tests__/TravelCalculations.test.ts` | Unit test |
-| `src/utils/travel/__tests__/TravelCalculator.test.ts` | Unit test |
+| `src/systems/planar/__tests__/FeywildMechanics.test.ts` | Feywild mechanics tests |
+| `src/systems/planar/__tests__/InfernalMechanics.test.ts` | Infernal mechanics tests |
+| `src/systems/planar/__tests__/PlanarHazardSystem.test.ts` | Planar hazard system tests |
+| `src/systems/planar/__tests__/PlanarIntegration.test.ts` | Planar integration tests |
+| `src/systems/planar/__tests__/PlanarService.test.ts` | Planar service tests |
+| `src/systems/planar/__tests__/PortalSystem.test.ts` | Portal system tests |
+| `src/systems/planar/__tests__/ShadowfellMechanics.test.ts` | Shadowfell mechanics tests |
+| `src/systems/planar/__tests__/rest.test.ts` | Rest mechanics tests |
+| `src/systems/travel/__tests__/TravelCalculations.test.ts` | Travel calculation tests |
+| `src/utils/travel/__tests__/TravelCalculator.test.ts` | Travel calculator utility tests |
+| `src/services/__tests__/travelEventService.test.ts` | Travel event service tests |
+| `src/services/__tests__/travelService.test.ts` | Travel service tests |
+| `src/systems/religion/__tests__/favor.test.ts` | Religion favor system tests |
+| `src/utils/__tests__/planarUtils.test.ts` | Planar utility tests |
+| `src/utils/__tests__/planarUtils_atmosphere.test.ts` | Planar atmosphere utility tests |
+| `src/utils/__tests__/religionUtils.test.ts` | Religion utility tests |
+| `src/data/__tests__/planes.test.ts` | Planes data tests |

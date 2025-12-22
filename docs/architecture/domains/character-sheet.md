@@ -29,12 +29,22 @@ The Character Sheet Modal displays comprehensive character information including
 | `src/components/CharacterSheet/*.tsx` | Directory | Sheet sub-components |
 | `src/components/Party*.tsx` | Component | Party management UI |
 | `src/components/SpellbookOverlay.tsx` | Component | Spell management |
-| `src/utils/characterUtils.ts` | Utils | Character calculations |
-| `src/utils/characterValidation.ts` | Utils | Character validation |
+| `src/utils/character*.ts` | Utils | Character logic |
+| `src/data/skills/*.ts` | Data | Skill definitions |
+| `src/data/backgrounds.ts` | Data | Background definitions |
 | `src/utils/statUtils.ts` | Utils | Stat calculations |
 | `src/hooks/useAbilitySystem.ts` | Hook | Ability management |
+| `src/hooks/useCharacterProficiencies.ts` | Hook | Proficiency logic |
 | `src/types/character.ts` | Types | Character types |
 | `src/state/reducers/characterReducer.ts` | Reducer | Character state |
+
+## Tests
+
+Tests for character sheet functionality are owned by other domains:
+- CharacterSheetModal component tests → core-systems
+- PartyPane component tests → core-systems
+- Character utility tests → character-creator
+- Ability system tests → combat
 
 ## Dependencies
 

@@ -35,6 +35,7 @@ This domain manages the item system including inventory management, equipment, m
 | `src/types/items.ts` | Types | Item types |
 | `src/types/magicItems.ts` | Types | Magic item types |
 | `src/types/economy.ts` | Types | Economy types |
+| `src/types/crafting.ts` | Types | Crafting types |
 
 
 ## Dependencies
@@ -67,5 +68,8 @@ This domain manages the item system including inventory management, equipment, m
 
 | Test File | Description |
 |-----------|-------------|
-| `src/systems/economy/__tests__/TradeRouteManager.test.ts` | Unit test |
-| `src/systems/economy/__tests__/TradeRouteSystem.test.ts` | Unit test |
+| `src/systems/economy/__tests__/TradeRouteManager.test.ts` | Trade route manager tests |
+| `src/systems/economy/__tests__/TradeRouteSystem.test.ts` | Trade route system tests |
+| `src/utils/__tests__/coinPurseUtils.test.ts` | Coin purse utility tests |
+| `src/utils/__tests__/economyUtils.test.ts` | Economy utility tests |
+| `src/utils/__tests__/entityIntegrationUtils.test.ts` | Entity integration utility tests |
