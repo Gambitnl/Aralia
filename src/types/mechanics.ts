@@ -1,4 +1,3 @@
-import { DiceRoll } from './dice';
 import { DamageType, StatusCondition, AbilityScoreName } from './index';
 
 // ==========================================
@@ -61,7 +60,7 @@ export interface TrapEffect {
   type: 'damage' | 'condition' | 'alarm' | 'restrain' | 'teleport';
 
   // Damage
-  damage?: DiceRoll;      // e.g., "2d6"
+  damage?: string;      // e.g., "2d6"
   damageType?: DamageType;
 
   // Conditions

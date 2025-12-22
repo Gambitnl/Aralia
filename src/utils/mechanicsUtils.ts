@@ -9,8 +9,6 @@ import { rollDice } from './combatUtils';
  * Attempts to pick a lock.
  * @param dexMod The character's Dexterity modifier
  * @param proficiencyBonus The character's proficiency bonus (if proficient in Thieves' Tools)
- * @param hasThievesTools Whether the character has the tools (disadvantage if not, or impossible?)
- *                        D&D 5e: Usually requires tools. We'll assume tools are present for this check.
  * @param lock The lock being attempted
  * @returns Result of the attempt
  */
@@ -30,7 +28,7 @@ export function attemptLockpick(
   const margin = total - lock.dc;
 
   // Trap triggers if failed by 5 or more, AND it's trapped
-  const triggeredTrap = lock.isTrapped === true && !success && (lock.dc - total >= 5);
+  const triggeredTrap = !!lock.isTrapped && !success && (lock.dc - total >= 5);
 
   let details = "";
   if (success) {
@@ -84,19 +82,35 @@ export function resolveTrapEffect(trap: Trap): { damageValue: number; descriptio
   let damageValue = 0;
   let description = `Trap '${trap.name}' triggered!`;
 
-  if (trap.effect.damage) {
-    // Basic roll parsing - simpler version than full combat engine
-    // Assuming trap.effect.damage is a string like "2d6" or "1d8+2"
-    // Using existing rollDice utility which handles "1d8+2"
-    // However, rollDice returns a number.
+  // Handle various effect types
+  switch (trap.effect.type) {
+    case 'condition':
+      if (trap.effect.condition) {
+        description += ` Condition applied: ${trap.effect.condition.name}`;
+        if (trap.effect.durationRounds) {
+          description += ` for ${trap.effect.durationRounds} rounds`;
+        }
+        description += '.';
+      }
+      break;
+    case 'alarm':
+      description += " A loud mechanical alarm rings out!";
+      break;
+    case 'restrain':
+      description += " Restraints snap into place! (Restrained condition)";
+      break;
+    case 'teleport':
+      description += " A flash of arcane energy attempts to displace the victim!";
+      break;
+    case 'damage':
+    default:
+      // Handled below if damage property exists
+      break;
+  }
 
-    // We need to parse the dice string if it's a DiceRoll type (which is likely string or object)
-    // Looking at mechanics.ts import, DiceRoll is likely a string alias based on context.
-    // If it's a string:
-    if (typeof trap.effect.damage === 'string') {
-        damageValue = rollDice(trap.effect.damage);
-        description += ` It deals ${damageValue} ${trap.effect.damageType || 'piercing'} damage.`;
-    }
+  if (trap.effect.damage) {
+    damageValue = rollDice(trap.effect.damage);
+    description += ` It deals ${damageValue} ${trap.effect.damageType || 'piercing'} damage.`;
   }
 
   if (trap.effect.saveDC) {
