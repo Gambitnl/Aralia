@@ -10,8 +10,9 @@
  * - Prevention: Disengage action, Teleportation, Forced Movement.
  */
 
-import { CombatCharacter, Position } from '../../../types/combat';
+import { CombatCharacter, Position, BattleMapData } from '../../../types/combat';
 import { getDistance } from '../../../utils/combatUtils';
+import { hasLineOfSight } from '../../../utils/lineOfSight';
 
 export interface OpportunityAttackResult {
   canAttack: boolean;
@@ -29,13 +30,15 @@ export class OpportunityAttackSystem {
    * @param fromPos The tile the mover is leaving.
    * @param toPos The tile the mover is entering.
    * @param potentialAttackers List of all other characters in combat.
+   * @param mapData Map data for Line of Sight checks.
    * @returns List of valid Opportunity Attacks triggered by this specific step.
    */
   public checkOpportunityAttacks(
     mover: CombatCharacter,
     fromPos: Position,
     toPos: Position,
-    potentialAttackers: CombatCharacter[]
+    potentialAttackers: CombatCharacter[],
+    mapData?: BattleMapData | null
   ): OpportunityAttackResult[] {
     const results: OpportunityAttackResult[] = [];
 
@@ -59,6 +62,16 @@ export class OpportunityAttackSystem {
 
       // Skip if no reaction
       if (attacker.actionEconomy.reaction.used) continue;
+
+      // Check Visibility (Line of Sight)
+      if (mapData) {
+        // We check LoS from attacker to the 'fromPos' (where the provoke happens)
+        const startTile = mapData.tiles.get(`${attacker.position.x}-${attacker.position.y}`);
+        const targetTile = mapData.tiles.get(`${fromPos.x}-${fromPos.y}`);
+        if (startTile && targetTile && !hasLineOfSight(startTile, targetTile, mapData)) {
+            continue; // Cannot see target
+        }
+      }
 
       // Calculate Reach
       const reach = this.getReach(attacker);

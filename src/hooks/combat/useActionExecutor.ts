@@ -19,6 +19,7 @@ import {
   getActionMessage,
   rollDice
 } from '../../utils/combatUtils';
+import { getAbilityModifierValue } from '../../utils/statUtils';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
 import {
   ActiveSpellZone,
@@ -190,7 +191,8 @@ export const useActionExecutor = ({
           updatedCharacter,
           previousPosition,
           action.targetPosition,
-          characters
+          characters,
+          mapData
       );
 
       for (const result of oaResults) {
@@ -201,8 +203,14 @@ export const useActionExecutor = ({
                   // Resolve Attack
                   // For now, we assume a basic melee attack using the first available melee weapon ability.
                   // TODO(Warlord): Allow selecting which weapon to use for OA if multiple exist.
+                  // 1. Select Weapon
+                  // Logic: Must be a melee weapon (range 1) or reach weapon (range 2).
+                  // Exclude ranged weapons (range >= 5 without specific reach property).
+                  // Fallback to Unarmed Strike.
                   const weaponAbility = attacker.abilities.find(a =>
-                      a.type === 'attack' && a.range > 1 && a.weapon
+                      a.type === 'attack' &&
+                      a.weapon &&
+                      (a.range <= 2) // Fix: Explicitly allow range 1 (5ft) and 2 (10ft) but filter out bows
                   ) || attacker.abilities.find(a => a.id === 'unarmed_strike') || attacker.abilities[0];
 
                   if (weaponAbility) {
@@ -217,17 +225,20 @@ export const useActionExecutor = ({
                       onCharacterUpdate(updatedAttacker);
 
                       // Roll Attack
-                      // Standard 5e Attack Logic
                       const d20 = rollDice('1d20');
-                      // Assuming standard proficiency + str/dex mod logic
-                      // For MVP we approximate "to hit" if not explicitly stored,
-                      // but normally this is calculated via getAbilityModifier(stats) + prof.
-                      // We will default to a sensible +5 if stats are murky, but let's try to do it right if possible.
-                      // Since 'resolveAttack' isn't imported, we do a basic calculation here.
-                      // TODO(Refactor): Move this to a proper CombatService.resolveAttack(attacker, target, weapon)
 
-                      const abilityMod = 3; // Fallback +3 (Stat 16)
-                      const profBonus = Math.ceil(attacker.level / 4) + 1;
+                      // 2. Calculate Modifiers
+                      // Dynamic calculation based on weapon type (Finesse -> Dex, otherwise Str)
+                      let abilityScore = attacker.stats.strength;
+                      if (weaponAbility.weapon?.properties?.includes('finesse')) {
+                          abilityScore = Math.max(attacker.stats.strength, attacker.stats.dexterity);
+                      } else if (weaponAbility.weapon?.properties?.some(p => p.includes('range') || p === 'finesse')) {
+                          // Ranged weapons use Dex (though they shouldn't trigger OAs usually, barring feats)
+                          abilityScore = attacker.stats.dexterity;
+                      }
+
+                      const abilityMod = getAbilityModifierValue(abilityScore);
+                      const profBonus = weaponAbility.isProficient ? Math.ceil(attacker.level / 4) + 1 : 0;
                       const attackBonus = abilityMod + profBonus;
 
                       const targetAC = updatedCharacter.armorClass || updatedCharacter.baseAC || 10;
