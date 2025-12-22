@@ -13,6 +13,7 @@ import { SeededRandom } from '../../utils/seededRandom';
 import { processDailyRoutes } from '../economy/TradeRouteManager';
 import { FactionManager } from './FactionManager';
 import { generateNobleIntrigue } from './NobleIntrigueManager';
+import { checkQuestDeadlines } from '../quests/QuestManager';
 
 export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD' | 'NOBLE_INTRIGUE';
 
@@ -499,6 +500,15 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
           allLogs = [...allLogs, ...result.logs];
       }
     }
+  }
+
+  // 4. Check Quest Deadlines
+  // Only check once per batch (at the end), or check after time advance.
+  // Since time advanced before this function call usually, checking now is correct.
+  const questResult = checkQuestDeadlines(currentState);
+  if (questResult.state !== currentState || questResult.logs.length > 0) {
+      currentState = questResult.state;
+      allLogs = [...allLogs, ...questResult.logs];
   }
 
   return { state: currentState, logs: allLogs };

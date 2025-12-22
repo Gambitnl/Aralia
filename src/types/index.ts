@@ -324,6 +324,18 @@ export interface Quest {
   regionHint?: string;
   /** Narrative tag such as "Main", "Side", "Guild" for filtering */
   questType?: 'Main' | 'Side' | 'Guild' | 'Dynamic';
+
+  /** Game day timestamp by which the quest must be completed */
+  deadline?: number;
+
+  /** Consequence logic for missing the deadline */
+  deadlineConsequence?: {
+    action: 'fail_quest' | 'fail_with_note' | 'log_only';
+    message: string; // "The merchant has left town."
+  };
+
+  /** Internal notes or system comments appended to the quest (e.g. failure reasons) */
+  notes?: string;
 }
 
 export interface QuestTemplate extends Omit<Quest, 'status' | 'objectives' | 'dateStarted' | 'dateCompleted'> {
