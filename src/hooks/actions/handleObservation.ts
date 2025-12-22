@@ -90,6 +90,7 @@ interface HandleInspectSubmapTileProps {
   dispatch: React.Dispatch<AppAction>;
   addMessage: AddMessageFn;
   addGeminiLog: AddGeminiLogFn;
+  generalActionContext: string;
 }
 
 export async function handleInspectSubmapTile({
@@ -98,19 +99,17 @@ export async function handleInspectSubmapTile({
   dispatch,
   addMessage,
   addGeminiLog,
+  generalActionContext,
 }: HandleInspectSubmapTileProps): Promise<void> {
-  if (!action.payload?.inspectTileDetails || !gameState.party[0]) {
-    addMessage("Cannot inspect tile: missing details or character information.", "system");
+  if (!action.payload?.inspectTileDetails) {
+    addMessage("Cannot inspect tile: missing details.", "system");
     return;
   }
   const { inspectTileDetails } = action.payload;
-  const playerChar = gameState.party[0];
-  const gameTimeStr = gameState.gameTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
 
   const inspectionResult = await GeminiService.generateTileInspectionDetails(
-    inspectTileDetails as InspectSubmapTilePayload, 
-    playerChar,
-    gameTimeStr,
+    inspectTileDetails as InspectSubmapTilePayload,
+    generalActionContext,
     gameState.devModelOverride,
   );
   

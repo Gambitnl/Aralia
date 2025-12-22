@@ -645,11 +645,10 @@ export async function generateCharacterName(
 
 export async function generateTileInspectionDetails(
   tileDetails: InspectSubmapTilePayload,
-  playerCharacter: PlayerCharacter,
-  gameTime: string,
+  context: string,
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
-  const systemInstruction = `You are a Dungeon Master describing what a player character observes when they carefully inspect a nearby area in a fantasy RPG. Your response must be an evocative, 2-3 sentence description. CRITICAL: Do NOT use game jargon. Focus on sensory details.`;
+  const systemInstruction = `You are a Dungeon Master describing what a player character observes when they carefully inspect a nearby area in a fantasy RPG. Your response must be an evocative, 2-3 sentence description. CRITICAL: Do NOT use game jargon. Focus on sensory details. Use the Atmosphere and Location context to ground the description.`;
 
   let featureContext = "no specific large feature.";
   if (tileDetails.activeFeatureConfig) {
@@ -665,12 +664,17 @@ export async function generateTileInspectionDetails(
   if (terrainContext === 'path_adj') terrainContext = 'area immediately adjacent to a discernible path';
   if (terrainContext === 'path') terrainContext = 'a discernible path';
 
-  const prompt = `Player Character (${playerCharacter.name}) is inspecting a specific spot.
-  - Current Time: ${gameTime}
-  - General Biome: ${tileDetails.worldBiomeId}
-  - Terrain Type: ${terrainContext}
-  - The spot contains: ${featureContext}
-  Describe what the character sees, hears, or smells in 2-3 sentences.`;
+  const prompt = `
+${context}
+
+## INSPECTION TARGET
+The character is closely inspecting a specific spot nearby.
+- General Biome: ${tileDetails.worldBiomeId}
+- Terrain Type: ${terrainContext}
+- The spot contains: ${featureContext}
+
+## TASK
+Describe what the character sees, hears, or smells at this specific spot in 2-3 sentences. Ensure the description matches the Atmosphere & Environment described in the context (e.g. if it's raining, the spot is wet).`;
 
   return await generateText(prompt, systemInstruction, false, 'generateTileInspectionDetails', devModelOverride);
 }
