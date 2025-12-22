@@ -72,6 +72,7 @@ import { Fence, GuildMembership, HeistPlan } from './crime';
 import { UnderdarkState, LightSource } from './underdark';
 import type { CombatCharacter, CharacterStats, Position, CombatState } from './combat';
 import type { DamageType } from './spells';
+import type { RitualState } from './rituals';
 
 // Import Economy types
 import { EconomyState } from './economy';
@@ -93,6 +94,7 @@ export * from './history';
 export * from './economy'; // Export new economy types
 export * from './languages'; // New taxonomy export
 export * from './effects'; // Export universal effect types
+export * from './rituals';
 export type { CombatCharacter, CharacterStats, Position, CombatState };
 
 // -----------------------------------------------------------------------------
@@ -629,6 +631,9 @@ export interface GameState {
 
   // Ecologist: Environment System
   environment: import('./environment').WeatherState;
+
+  // Ritualist: Ritual System
+  activeRitual?: RitualState | null;
 
   /** Town exploration state - present when in VILLAGE_VIEW phase */
   townState: import('./town').TownState | null;
