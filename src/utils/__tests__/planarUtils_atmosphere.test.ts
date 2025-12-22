@@ -5,14 +5,14 @@ import { PLANES } from '../../data/planes';
 
 describe('planarUtils Atmosphere', () => {
     it('should return correct atmosphere for Material Plane', () => {
-        expect(getPlanarAtmosphere(PLANES['material'])).toContain('stable and familiar');
+        expect(getPlanarAtmosphere(PLANES['material'])).toContain('dust and rain');
     });
 
     it('should return correct atmosphere for Feywild', () => {
-        expect(getPlanarAtmosphere(PLANES['feywild'])).toContain('Colors seem more vivid');
+        expect(getPlanarAtmosphere(PLANES['feywild'])).toContain('colors are too bright');
     });
 
-    it('should return correct atmosphere for Abyss', () => {
-        expect(getPlanarAtmosphere(PLANES['abyss'])).toContain('tastes of copper');
+    it('should return correct atmosphere for Nine Hells', () => {
+        expect(getPlanarAtmosphere(PLANES['nine_hells'])).toContain('smell of brimstone');
     });
 });

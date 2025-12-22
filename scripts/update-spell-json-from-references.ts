@@ -412,7 +412,7 @@ const parseReferenceVars = (markdown: string): ReferenceVars => {
   let started = false;
 
   for (const line of lines) {
-    const match = /^\-\s+\*\*([^*]+)\*\*:\s*(.*)$/.exec(line);
+    const match = /^-\s+\*\*([^*]+)\*\*:\s*(.*)$/.exec(line);
     if (!match) {
       if (started && line.trim() === '---') break;
       continue;

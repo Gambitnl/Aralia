@@ -57,7 +57,9 @@ describe('useHistorySync', () => {
         // Try to delete first to handle JSDOM constraints
         try {
             delete (window as any).location;
-        } catch (e) { }
+        } catch {
+            // Ignore error if location can't be deleted
+        }
 
         Object.defineProperty(window, 'location', {
             get: () => mockLocation,

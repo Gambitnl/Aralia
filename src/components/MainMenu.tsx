@@ -118,7 +118,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
             <button
               onClick={() => handleLoadSlot(latestSlot?.slotId)}
               className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg shadow-md text-xl transition-all duration-150 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-opacity-75"
-              aria-label="Continue your last adventure"
+              aria-label={t('main_menu.continue')}
             >
               {t('main_menu.continue')}
               {(latestSlot?.lastSaved || latestSaveTimestamp) && (

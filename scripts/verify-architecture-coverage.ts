@@ -124,7 +124,7 @@ function parseDomainDoc(filePath: string): DomainClaim {
     let match;
     while ((match = backtickPattern.exec(content)) !== null) {
         const pattern = match[1];
-        if (/[\*\{\[?]/.test(pattern)) {
+        if (/[*{[?]/.test(pattern)) {
             const matches = globSync(pattern, { cwd: projectRoot }).map(f => f.replace(/\\/g, '/'));
             for (const f of matches) {
                 if (!files.includes(f)) files.push(f);
@@ -140,7 +140,7 @@ function parseDomainDoc(filePath: string): DomainClaim {
     const tablePattern = /\|\s*((?:src|scripts|public\/data)\/[^\s|]+)\s*\|/g;
     while ((match = tablePattern.exec(content)) !== null) {
         const pattern = match[1];
-        if (/[\*\{\[?]/.test(pattern)) {
+        if (/[*{[?]/.test(pattern)) {
             const matches = globSync(pattern, { cwd: projectRoot }).map(f => f.replace(/\\/g, '/'));
             for (const f of matches) {
                 if (!files.includes(f)) files.push(f);

@@ -87,7 +87,7 @@ export const useSpellGateChecks = () => {
   const [recheckTrigger, setRecheckTrigger] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
-  const knownGaps = useMemo(buildKnownGapSet, []);
+  const knownGaps = useMemo(() => buildKnownGapSet(), []);
 
   const recheck = useCallback(() => {
     setRecheckTrigger((prev) => prev + 1);
