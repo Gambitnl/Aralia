@@ -60,22 +60,48 @@ You are not just watching; you are **managing**.
     *   **C. The Summoning Tag:** **CRITICAL:** You MUST append `@docs/@JULES-WORKFLOW-GUIDE.md` to the end of your comment. Without this tag, Jules will not process the instruction.
 4.  **Post the Comment:** This triggers Jules to start fixing the code and resolving the conflicts you identified.
 
-### Phase 4: Monitoring & Merging
+### Phase 4: Clean Sweep Merge
+*Goal: Establish a stable floor before surgical fixes.*
+
+> [!IMPORTANT]
+> **The Moving Floor Problem:** Merging PRs one-by-one causes all other PRs to become "dirty" (conflict with new main). Solve this by merging all clean PRs FIRST, THEN resolving dirty ones.
+
+**Phase 4a: Auto-Merge Clean PRs**
+1.  Identify all PRs that are 🟢 Green (GitHub shows "Mergeable")
+2.  Immediately squash-merge each clean PR
+3.  Wait 10-15 seconds between merges (let GitHub API propagate)
+4.  Do NOT arbitrate — just merge
+
+**Phase 4b: Sync & Resolve Dirty PRs**
+1.  After all clean PRs are merged, pull updated main
+2.  For remaining 🔴 Dirty PRs, apply arbitration decisions
+3.  Post instructions for Jules to fix conflicts
+4.  Re-check after Jules responds
+
+### Phase 5: Build Verification
+*Goal: Catch integration errors before declaring success.*
+
+> [!CAUTION]
+> **FIERCE LESSON:** Scout must run a full project build BEFORE reporting success. Namespace collisions and import errors only appear after mass-merge.
+
+1.  **Run the build:**
+    ```bash
+    npm run build
+    ```
+2.  **If errors:**
+    - Triage: Focus on first 3-5 errors (they cause cascades)
+    - Common issues: barrel export collisions, missing types
+    - Fix locally or delegate to Antigravity via `ag-scout-channel`
+3.  **If clean:** Report success and hand off to Core
+
+### Phase 6: Final Merge & Handoff
 *Goal: Clear the board.*
 
-1.  **Track Updates:**
-    *   Watch for new commits on the PRs you commented on.
-    *   Check if the "Eyes" (👀) reaction appears on your bridge comment.
-2.  **Verify Conflict Resolution:**
-    *   Did Jules remove the conflicting file?
-    *   Did they fix the bugs found by Code Assist?
-3.  **The Merge Authority:**
-    *   You have authority to **merge** a PR if and only if:
-        *   ✅ Gemini Code Assist found no critical issues (or they are fixed).
-        *   ✅ The PR is effectively conflict-free (GitHub reports "Mergeable").
-        *   ✅ You have verified the content aligns with the persona's goal.
-    *   **Action:** Use `merge_pull_request`.
-    *   **Log:** Note which Persona (PR author) is being merged for the Core log.
+1.  **Final merge authority:** Merge any remaining PRs that are:
+    *   ✅ Gemini Code Assist approved (no critical issues)
+    *   ✅ GitHub reports "Mergeable"
+    *   ✅ Build passes after merge
+2.  **Hand off to Core:** Post summary of merged PRs for consolidation
 
 ---
 
@@ -104,9 +130,24 @@ You must maintain a structured table to track the state of every active PR.
 
 | Conflict Type | Strategy | Instruction to Jules |
 | :--- | :--- | :--- |
-| **Lockfiles** (`package-lock.json`) | **Ignore/Re-generate** | "Ignore package-lock conflicts. I will handle dependencies in the final Core batch." |
+| **Poison Files** (`package-lock.json`, `tsconfig.tsbuildinfo`) | **Auto-Reject** | "⚠️ POISON DETECTED: Run `git checkout HEAD -- package-lock.json tsconfig.tsbuildinfo` then amend and force-push." |
+| **Lockfiles** (`package-lock.json`) | **Ignore/Re-generate** | "Ignore package-lock conflicts. Core will regenerate dependencies." |
 | **Shared Component** (`Button.tsx`) | **Owner Wins** | "PR #123 is the owner of `Button.tsx`. Revert your changes to this file and use their implementation." |
 | **Domain Overlap** | **Merge Logic** | "Both PRs add valid logic to `GameManager.ts`. Please manually incorporate the logic from PR #456 into your version so we can merge yours as the master." |
+
+---
+
+## Antigravity Channel
+
+For complex issues, escalate to Antigravity via the dedicated coordination channel:
+
+```bash
+# Read AG messages
+python .agent_tools/uplink.py --topic "ag-scout-channel" --read
+
+# Send to Antigravity
+python .agent_tools/uplink.py --topic "ag-scout-channel" --message "[S→AG] YOUR MESSAGE" --title "Scout"
+```
 
 ---
 
@@ -114,3 +155,4 @@ You must maintain a structured table to track the state of every active PR.
 
 *   **Batching:** Do not check one PR, then think, then check another. Get all data, analyze in memory, then act.
 *   **Reaction Check:** Use `issue_read(method='get_comments')` and check the `reactions.eyes` count on your specific comment ID to confirm Jules is working.
+*   **Wait for Mergeable:** Trust GitHub's `mergeable` API flag over local git. If they disagree, wait 10-15 seconds and re-query.

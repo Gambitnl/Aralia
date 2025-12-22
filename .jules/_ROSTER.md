@@ -174,6 +174,34 @@ Each persona should consult their relevant architecture docs in `docs/architectu
 > [!IMPORTANT]
 > **You are working in isolation.** Each Jules agent runs in its own cloned environment. You cannot see what other agents are doing, and they cannot see your work. The only shared state is GitHub (main branch) and this uplink channel.
 
+---
+
+## ⛔ Files You Must NEVER Commit
+
+> [!CAUTION]
+> The following files cause massive merge conflicts in batch runs. **Do not commit them.**
+
+### Forbidden Files
+- `package-lock.json` — Dependencies are managed by Core
+- `tsconfig.tsbuildinfo` — Build cache, not source code
+- `dist/` — Build output, regenerated on deploy
+
+### Before Your Final Push
+
+Run this command to unstage any forbidden files:
+```bash
+git checkout HEAD -- package-lock.json tsconfig.tsbuildinfo
+git reset HEAD -- dist/
+```
+
+If you accidentally committed these files, amend your commit:
+```bash
+git checkout HEAD~1 -- package-lock.json tsconfig.tsbuildinfo
+git commit --amend --no-edit
+```
+
+---
+
 ### Current Batch Topic
 
 **Uplink URL:** `https://ntfy.sh/BATCH_TOPIC_PLACEHOLDER`

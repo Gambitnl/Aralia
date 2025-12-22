@@ -79,6 +79,25 @@ Review recent PRs for:
 - Logic changes that might conflict semantically (even if git auto-merged)
 - New files with overlapping purposes
 
+### Phase 6: Regenerate Lockfiles & Build Artifacts
+
+> [!IMPORTANT]
+> Jules personas are forbidden from committing `package-lock.json` and `tsconfig.tsbuildinfo`. Core is responsible for regenerating these after all PRs are merged.
+
+```bash
+# Reinstall dependencies to regenerate lockfile
+rm -rf node_modules package-lock.json
+npm install
+
+# Clean and rebuild to regenerate build artifacts
+npm run build
+
+# Commit the canonical lockfile
+git add package-lock.json
+git commit -m "🏛️ Core: Regenerate lockfile post-batch"
+git push origin main
+```
+
 ```bash
 # See which files were modified across recent commits
 git log --oneline --name-only -20

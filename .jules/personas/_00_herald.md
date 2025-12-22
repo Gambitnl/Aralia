@@ -71,13 +71,37 @@ python .agent_tools/uplink.py --message "INIT: Herald — Batch initialized, dis
 
 ---
 
+## Post-Batch: Poison Detection (Scout's Job)
+
+After Jules PRs are created, Scout should flag any PR containing forbidden files:
+
+### Forbidden Files (Auto-Reject)
+- `package-lock.json`
+- `tsconfig.tsbuildinfo`
+- `dist/` folder contents
+
+### Scout Action
+If a PR modifies these files, Scout posts:
+```
+⚠️ POISON DETECTED: This PR modifies forbidden files (package-lock.json, tsconfig.tsbuildinfo).
+
+Please run:
+git checkout HEAD -- package-lock.json tsconfig.tsbuildinfo
+git commit --amend --no-edit
+git push --force
+
+Then request re-review.
+```
+
+---
+
 ## After Herald
 
 Once Herald completes:
 
 1. **Dispatch Jules agents** (all 45 personas)
 2. Wait for Jules to complete
-3. **Run Scout** (scan PRs, trigger reviews)
+3. **Run Scout** (scan PRs, trigger reviews, **detect poison**)
 4. **Run Core** (consolidate, merge)
 
 ---
