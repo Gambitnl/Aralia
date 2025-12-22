@@ -53,16 +53,7 @@ export interface VillageBuildingFootprint {
   pattern?: 'stripe' | 'check' | 'dot';
 }
 
-export interface VillagePersonality {
-  wealth: 'poor' | 'comfortable' | 'rich';
-  culture: 'stoic' | 'festive' | 'scholarly' | 'martial';
-  biomeStyle: 'temperate' | 'arid' | 'coastal' | 'swampy';
-  population: 'small' | 'medium' | 'large';
-  dominantRace?: 'human' | 'elf' | 'dwarf' | 'orc' | 'halfling' | 'gnome' | 'dragonborn' | 'tiefling' | 'other';
-  architecturalStyle: 'colonial' | 'medieval' | 'tribal' | 'magical' | 'industrial' | 'nomadic' | 'aquatic' | 'martial';
-  governingBody: 'mayor' | 'council' | 'elder' | 'warlord' | 'guild' | 'temple' | 'monarch' | 'anarchy';
-  primaryIndustry: 'agriculture' | 'mining' | 'fishing' | 'trade' | 'crafting' | 'magic' | 'military' | 'scholarship';
-}
+import { VillagePersonality, VillageIntegrationProfile } from '../types';
 
 export interface VillageLayout {
   width: number;
