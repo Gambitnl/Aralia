@@ -26,10 +26,7 @@ Manages crafting systems (alchemy, enchanting, salvaging), trade routes, market 
 
 ## Economy Systems (Shared with Items/Trade Domain)
 
-Trade route and market economy systems are managed by the [Items / Trade / Inventory](./items-trade-inventory.md) domain. See that domain for:
-- `src/systems/economy/TradeRouteManager.ts`
-- `src/systems/economy/TradeRouteSystem.ts`
-- `src/utils/economy/marketEvents.ts`
+Trade route and market economy systems are managed by the [Items / Trade / Inventory](./items-trade-inventory.md) domain. These files are not owned by crafting-economy.
 
 This crafting-economy domain owns only pure crafting mechanics.
 

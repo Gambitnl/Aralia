@@ -35,9 +35,9 @@ Handles environmental effects (weather, day/night cycles, hazards), terrain mech
 ## Systems Owned by Other Domains
 
 The following files have environmental aspects but are primarily owned elsewhere:
-- `src/data/world/pois.ts` — managed by npcs-companions (NPC locations)
-- `src/services/landmarkService.ts` — managed by time-world-events (historical landmarks)
-- `src/services/underdarkService.ts` — managed by naval-underdark (underdark exploration)
+- POIs (pois.ts) — managed by npcs-companions for NPC locations
+- Landmark service — managed by time-world-events for historical landmarks
+- Underdark service — managed by naval-underdark for underdark exploration
 
 ## Dependencies
 

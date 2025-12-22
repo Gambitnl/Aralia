@@ -39,10 +39,7 @@ The Submap is the primary exploration interface where players navigate tile-base
 
 ## Battle Map Systems (Owned by Battle Map Domain)
 
-The following battle map systems are owned by the [Battle Map](./battle-map.md) domain:
-- `src/hooks/useBattleMap.ts` — battle map state management
-- `src/hooks/useBattleMapGeneration.ts` — tactical map generation
-- `src/services/battleMapGenerator.ts` — tactical grid generation
+Battle map systems (hooks and services for tactical grid generation and state management) are owned by the [Battle Map](./battle-map.md) domain and not claimed by submap.
 
 
 ## Dependencies
