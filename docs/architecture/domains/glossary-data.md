@@ -70,9 +70,7 @@ Contains all the JSON data files that populate the glossary. These are the "sour
 - Spell JSONs must pass schema validation
 - Adding new classes/races requires corresponding validator updates
 
-### Claimed Tests (Auto-generated)
+### Tests
 
-| Test File | Description |
-|-----------|-------------|
-| `src/components/Glossary/__tests__/Glossary.test.tsx` | Unit test |
-| `src/components/Glossary/__tests__/GlossaryDisplay.test.tsx` | Unit test |
+Tests for glossary functionality are owned by the [Glossary](./glossary.md) domain.
+See glossary.md for test ownership details.

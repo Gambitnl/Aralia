@@ -21,9 +21,17 @@ Manages crafting systems (alchemy, enchanting, salvaging), trade routes, market 
 | Path | Type | Description |
 |------|------|-------------|
 | `src/systems/crafting/**/*.ts` | Directory | Crafting systems |
-| `src/systems/economy/*.ts` | Directory | Economic systems |
-| `src/utils/economy/*.ts` | Utils | Economic helpers |
+| `src/data/economy/*.ts` | Data | Economic definitions |
 | `src/utils/coinPurseUtils.ts` | Utils | Currency handling |
+
+## Shared Ownership (with Items/Trade/Inventory)
+
+The following trade and economy files are owned by [Items / Trade / Inventory](./items-trade-inventory.md):
+| File | Primary Owner |
+|------|---|
+| `src/systems/economy/TradeRouteManager.ts` | items-trade-inventory |
+| `src/systems/economy/TradeRouteSystem.ts` | items-trade-inventory |
+| `src/utils/economy/marketEvents.ts` | items-trade-inventory |
 
 ## Dependencies
 
@@ -36,9 +44,7 @@ Manages crafting systems (alchemy, enchanting, salvaging), trade routes, market 
 - **[Character Sheet](./character-sheet.md)**: Crafting interfaces
 - **[Town Map](./town-map.md)**: Economic state in towns
 
-### Claimed Tests (Auto-generated)
+### Tests
 
-| Test File | Description |
-|-----------|-------------|
-| `src/systems/economy/__tests__/TradeRouteManager.test.ts` | Unit test |
-| `src/systems/economy/__tests__/TradeRouteSystem.test.ts` | Unit test |
+Trade route tests are owned by the [Items / Trade / Inventory](./items-trade-inventory.md) domain.
+See items-trade-inventory.md for test ownership details.

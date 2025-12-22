@@ -32,8 +32,18 @@ The Submap is the primary exploration interface where players navigate tile-base
 | `src/components/Submap/hooks/*.ts` | Directory | Submap-specific hooks |
 | `src/components/Submap/use*.ts` | Hook | Submap-related hooks |
 | `src/hooks/useSubmap*.ts` | Hook | Procedural generation |
+| `src/services/cellularAutomataService.ts` | Service | Procedural generation |
+| `src/services/wfcService.ts` | Service | Procedural generation |
 | `src/utils/submapUtils.ts` | Utils | Submap utility functions |
-| `src/data/biomes.ts` | Data | Biome definitions |
+| `src/utils/realmsmithRng.ts` | Utils | RNG utilities |
+
+## Shared Ownership with Battle Map
+
+| File | Shared With | Notes |
+|------|---|---|
+| `src/hooks/useBattleMap.ts` | battle-map | Battle map functionality owned by battle-map domain |
+| `src/hooks/useBattleMapGeneration.ts` | battle-map | Battle map functionality owned by battle-map domain |
+| `src/services/battleMapGenerator.ts` | battle-map | Tactical grid generation owned by battle-map domain |
 
 
 ## Dependencies

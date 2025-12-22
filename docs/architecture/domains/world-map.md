@@ -25,13 +25,19 @@ The World Map provides region-level navigation showing the broader geography of 
 | Path | Type | Description |
 |------|------|-------------|
 | `src/components/MapPane.tsx` | Component | Main map display |
+| `src/components/__tests__/MapTile.test.tsx` | Test | Region tile tests |
 | `src/components/MapTile.tsx` | Component | Region tile |
 | `src/components/WorldPane.tsx` | Component | World overview |
 | `src/components/Minimap.tsx` | Component | Minimap navigation |
 | `src/services/mapService.ts` | Service | Map data handling |
-| `src/data/world/` | Data | World data definitions |
 | `src/types/exploration.ts` | Types | Exploration types |
-| `src/state/reducers/worldReducer.ts` | Reducer | World state |
+| `src/state/reducers/worldReducer.ts` | Reducer | World state (shared with time-world-events) |
+
+## Shared Ownership
+
+| File | Shared With | Notes |
+|------|---|---|
+| `src/state/reducers/worldReducer.ts` | time-world-events | World state reducer is used by both domains |
 
 ## Dependencies
 

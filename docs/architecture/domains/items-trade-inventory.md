@@ -25,15 +25,17 @@ This domain manages the item system including inventory management, equipment, m
 | Path | Type | Description |
 |------|------|-------------|
 | `src/components/MerchantModal.tsx` | Component | Merchant interface |
-| `src/data/items/` | Directory | Item definitions |
-| `src/data/item_templates/` | Directory | Item templates |
-| `src/systems/economy/` | Directory | Economy systems |
+| `src/data/items/**/*.ts` | Directory | Item definitions |
+| `src/data/item_templates/**/*.ts` | Directory | Item templates |
+| `src/data/tradeRoutes.ts` | Data | Trade route definitions |
+| `src/systems/economy/*.ts` | Directory | Economy systems |
 | `src/services/lootService.ts` | Service | Loot generation |
-| `src/utils/economyUtils.ts` | Utils | Economy calculations |
+| `src/services/organizationService.ts` | Service | Faction and trade organizations |
+| `src/utils/economy/*.ts` | Utils | Economy calculations |
 | `src/types/items.ts` | Types | Item types |
 | `src/types/magicItems.ts` | Types | Magic item types |
 | `src/types/economy.ts` | Types | Economy types |
-| `src/data/tradeRoutes.ts` | Data | Trade route definitions |
+
 
 ## Dependencies
 

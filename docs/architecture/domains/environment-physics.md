@@ -22,9 +22,20 @@ Handles environmental effects (weather, day/night cycles, hazards), terrain mech
 |------|------|-------------|
 | `src/systems/environment/*.ts` | Directory | Environment systems |
 | `src/systems/physics/*.ts` | Directory | Physics systems |
+| `src/components/Submap/submapVisuals.ts` | Config | Visual settings |
+| `src/data/biomes.ts` | Data | Biome definitions |
+| `src/data/underdark/*.ts` | Data | Underdark environment data |
 | `src/utils/physicsUtils*.ts` | Utils | Physics utilities |
 | `src/utils/walkabilityUtils.ts` | Utils | Movement validation |
 | `src/utils/locationUtils.ts` | Utils | Position helpers |
+
+## Shared Ownership with Other Domains
+
+| File | Shared With | Notes |
+|------|---|---|
+| `src/data/world/pois.ts` | npcs-companions | POIs primary responsibility of NPCs |
+| `src/services/landmarkService.ts` | time-world-events | Landmarks also relate to world events |
+| `src/services/underdarkService.ts` | naval-underdark | Underdark also part of naval-underdark domain |
 
 ## Dependencies
 
