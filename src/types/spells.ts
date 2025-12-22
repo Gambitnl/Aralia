@@ -474,6 +474,12 @@ export interface StatusConditionEffect extends BaseEffect {
 }
 
 /** Defines the applied status condition and its duration. */
+export const CONDITION_NAMES = [
+  "Blinded", "Charmed", "Deafened", "Exhaustion", "Frightened",
+  "Grappled", "Incapacitated", "Invisible", "Paralyzed", "Petrified",
+  "Poisoned", "Prone", "Restrained", "Stunned", "Unconscious", "Ignited"
+] as const;
+
 export interface StatusCondition {
   name: ConditionName;
   duration: EffectDuration;
