@@ -23,6 +23,21 @@ Tracks game time (calendar, seasons) and manages global world events and faction
 | `src/systems/time/*.ts` | Directory | Time systems |
 | `src/systems/world/*.ts` | Directory | World systems |
 | `src/components/TempleModal.tsx` | Component | Temple interaction UI |
+| `src/services/landmarkService.ts` | Service | Landmark management |
+| `src/services/strongholdService.ts` | Service | Stronghold and faction base logic |
+| `src/data/factions.ts` | Data | Faction data |
+| `src/data/landmarks.ts` | Data | Landmark data |
+| `src/data/deities/**/*.ts` | Data | Deity definitions |
+| `src/data/temples/*.ts` | Data | Temple data |
+| `src/data/deities/index.ts` | Data | Deity index |
+| `src/types/deity.ts` | Types | Deity types |
+| `src/types/religion.ts` | Types | Religion types |
+| `src/types/stronghold.ts` | Types | Stronghold types |
+| `src/types/factions.ts` | Types | Faction types |
+| `src/types/organizations.ts` | Types | Organization types |
+| `src/state/reducers/worldReducer.ts` | Reducer | World state |
+| `src/state/reducers/questReducer.ts` | Reducer | Quest state |
+| `src/state/reducers/religionReducer.ts` | Reducer | Religion state |
 | `src/utils/timeUtils.ts` | Utils | Time calculations |
 | `src/utils/factionUtils.ts` | Utils | Faction helpers |
 

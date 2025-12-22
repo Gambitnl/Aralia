@@ -31,7 +31,6 @@ The World Map provides region-level navigation showing the broader geography of 
 | `src/components/Minimap.tsx` | Component | Minimap navigation |
 | `src/services/mapService.ts` | Service | Map data handling |
 | `src/types/exploration.ts` | Types | Exploration types |
-| `src/state/reducers/worldReducer.ts` | Reducer | World state (managed by time-world-events) |
 | `src/utils/economyUtils.ts` | Utils | Economy helper |
 
 
