@@ -14,7 +14,7 @@ vi.mock('../aiClient', () => ({
 }));
 
 // Mock logger to avoid noise
-vi.mock('../utils/logger', () => ({
+vi.mock('../../utils/logger', () => ({
   logger: {
     debug: vi.fn(),
     info: vi.fn(),
@@ -30,6 +30,21 @@ vi.mock('../../config/geminiConfig', () => ({
   FAST_MODEL: 'gemini-test-model',
   COMPLEX_MODEL: 'gemini-test-model',
 }));
+
+// We need to mock withRetry to avoid its own timer logic interfering with the timeout test.
+// We want to test the timeout in `generateText` in isolation from the retry logic.
+vi.mock('../../utils/networkUtils', async (importOriginal) => {
+  const mod = await importOriginal();
+  return {
+    // Keep original exports
+    ...mod,
+    // Override withRetry to simply execute the function without retrying.
+    withRetry: vi.fn().mockImplementation((fn, _options) => {
+      return fn();
+    }),
+  };
+});
+
 
 describe('geminiService', () => {
   beforeEach(() => {
@@ -150,16 +165,15 @@ describe('geminiService', () => {
         );
 
         // Fast-forward time past the 20s timeout.
-        // Because we mocked GEMINI_TEXT_MODEL_FALLBACK_CHAIN to have only 1 model,
-        // this single advance should trigger the timeout for that model,
-        // causing the loop to finish and the function to return the error.
-        vi.advanceTimersByTime(21000);
+        // Using the async version allows the promise rejection from the timeout
+        // to be processed, preventing the test from hanging.
+        await vi.advanceTimersByTimeAsync(21000);
 
         // Await the result
         const result = await promise;
 
-        // Check that we got the timeout error message
-        expect(result.error).toContain('Request timed out');
+        // Check that we got the exact timeout error message
+        expect(result.error).toContain('Request timed out after 20000ms');
     });
   });
 });
