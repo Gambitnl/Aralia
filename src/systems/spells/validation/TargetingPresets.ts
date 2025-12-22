@@ -16,7 +16,7 @@ export const TARGET_FILTERS = {
     alignments: [],
     hasCondition: [],
     isNativeToPlane: false,
-  } as TargetConditionFilter,
+  } as const,
 
   /**
    * For spells that only affect Humanoids (Charm Person, Hold Person).
@@ -28,7 +28,7 @@ export const TARGET_FILTERS = {
     alignments: [],
     hasCondition: [],
     isNativeToPlane: false,
-  } as TargetConditionFilter,
+  } as const,
 
   /**
    * For spells that only affect Beasts (Animal Friendship).
@@ -40,7 +40,7 @@ export const TARGET_FILTERS = {
     alignments: [],
     hasCondition: [],
     isNativeToPlane: false,
-  } as TargetConditionFilter,
+  } as const,
 
   /**
    * For spells that do not affect Undead (Sleep, etc.).
@@ -52,8 +52,8 @@ export const TARGET_FILTERS = {
     alignments: [],
     hasCondition: [],
     isNativeToPlane: false,
-  } as TargetConditionFilter,
-};
+  } as const,
+} as const;
 
 /**
  * Helper to check if a spell JSON matches a known preset pattern.
@@ -65,11 +65,23 @@ export function matchTargetFilter(description: string): TargetConditionFilter | 
   const lowerDesc = description.toLowerCase();
 
   if (lowerDesc.includes('no effect on undead or constructs')) {
-    return TARGET_FILTERS.HEALING_STANDARD;
+    return TARGET_FILTERS.HEALING_STANDARD as TargetConditionFilter;
   }
+
+  // Weak heuristic: Spells targeting "humanoids" usually mention the word explicitly.
   if (lowerDesc.includes('humanoid')) {
-    // This is a weak heuristic, needs manual verification, but good for warnings
-    // return TARGET_FILTERS.HUMANOID_ONLY;
+    return TARGET_FILTERS.HUMANOID_ONLY as TargetConditionFilter;
   }
+
+  // Weak heuristic: Spells targeting "beasts" usually mention the word explicitly.
+  if (lowerDesc.includes('beast') && !lowerDesc.includes('beast shape')) {
+    return TARGET_FILTERS.BEAST_ONLY as TargetConditionFilter;
+  }
+
+  // Common phrasing for spells like Sleep
+  if (lowerDesc.includes('undead') && lowerDesc.includes('aren\'t affected')) {
+    return TARGET_FILTERS.NO_UNDEAD as TargetConditionFilter;
+  }
+
   return null;
 }
