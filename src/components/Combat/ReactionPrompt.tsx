@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import { Spell } from '../../types/spells';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface ReactionPromptProps {
     attackerName: string;
@@ -19,12 +20,28 @@ export const ReactionPrompt: React.FC<ReactionPromptProps> = ({
     triggerType,
     onResolve
 }) => {
+    // 🎨 UX/A11y: Trap focus within the modal and handle Escape key to dismiss
+    const containerRef = useFocusTrap<HTMLDivElement>(true, () => onResolve(null));
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-gray-900 border border-purple-500/50 rounded-xl shadow-2xl p-6 max-w-md w-full animate-in zoom-in-95 duration-200 ring-1 ring-white/10">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reaction-title"
+            aria-describedby="reaction-description"
+        >
+            <div
+                ref={containerRef}
+                className="bg-gray-900 border border-purple-500/50 rounded-xl shadow-2xl p-6 max-w-md w-full animate-in zoom-in-95 duration-200 ring-1 ring-white/10"
+                tabIndex={-1}
+            >
 
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                    <h2
+                        id="reaction-title"
+                        className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400"
+                    >
                         Reaction Opportunity!
                     </h2>
                     <div className="px-2 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs rounded uppercase tracking-wider font-semibold">
@@ -32,7 +49,7 @@ export const ReactionPrompt: React.FC<ReactionPromptProps> = ({
                     </div>
                 </div>
 
-                <p className="text-gray-300 mb-6 leading-relaxed">
+                <p id="reaction-description" className="text-gray-300 mb-6 leading-relaxed">
                     <span className="text-white font-medium">{attackerName}</span> hit you!
                     Would you like to use your reaction?
                 </p>
@@ -42,7 +59,7 @@ export const ReactionPrompt: React.FC<ReactionPromptProps> = ({
                         <button
                             key={spell.id}
                             onClick={() => onResolve(spell.id)}
-                            className="w-full group relative overflow-hidden p-4 rounded-lg bg-gray-800 border border-gray-700 hover:border-purple-500/50 hover:bg-gray-800/80 transition-all duration-200 text-left"
+                            className="w-full group relative overflow-hidden p-4 rounded-lg bg-gray-800 border border-gray-700 hover:border-purple-500/50 hover:bg-gray-800/80 transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900"
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                             <div className="flex items-center justify-between relative z-10">
@@ -63,7 +80,7 @@ export const ReactionPrompt: React.FC<ReactionPromptProps> = ({
                 <div className="flex justify-end pt-4 border-t border-gray-800">
                     <button
                         onClick={() => onResolve(null)}
-                        className="px-4 py-2 text-gray-400 hover:text-white transition-colors text-sm font-medium hover:bg-white/5 rounded-lg"
+                        className="px-4 py-2 text-gray-400 hover:text-white transition-colors text-sm font-medium hover:bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900"
                     >
                         Skip Reaction
                     </button>
