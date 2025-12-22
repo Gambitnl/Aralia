@@ -1,5 +1,6 @@
 
 import { COMPANIONS } from '../constants';
+import { Companion } from '../types/companions';
 
 type TimeoutID = ReturnType<typeof setTimeout>;
 let activeTimeouts: TimeoutID[] = [];
@@ -8,7 +9,7 @@ export const BanterDisplayService = {
   queueBanter: (
     lines: { text: string; speakerId: string; delay?: number }[],
     addMessage: (text: string, sender: string) => void,
-    companions: Record<string, any>
+    companions: Record<string, Companion>
   ) => {
     // Clear any existing banter to prevent overlap
     BanterDisplayService.cancelActiveBanter();

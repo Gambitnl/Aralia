@@ -90,12 +90,16 @@ describe('BanterManager', () => {
       const banter = BanterManager.selectBanter(mockGameState);
       expect(banter?.id).toBe('test_banter_1');
 
-      if (banter) {
-          BanterManager.markBanterUsed(banter.id);
-      }
+      // Simulate cooldown by adding to state
+      const cooldownState = {
+        ...mockGameState,
+        banterCooldowns: {
+          'test_banter_1': Date.now()
+        }
+      } as unknown as GameState;
 
       // Now it should be on cooldown
-      const nextBanter = BanterManager.selectBanter(mockGameState);
+      const nextBanter = BanterManager.selectBanter(cooldownState);
       // Since test_banter_loc_fail is invalid due to location, and test_banter_1 is on cooldown...
       // Result should be null
       expect(nextBanter).toBeNull();

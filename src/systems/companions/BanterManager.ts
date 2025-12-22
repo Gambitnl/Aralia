@@ -11,19 +11,20 @@ import { BanterDefinition, BanterLine } from '../../types/companions';
 import { BANTER_DEFINITIONS } from '../../data/banter';
 
 export class BanterManager {
-  private static cooldowns: Record<string, number> = {}; // banterId -> timestamp
-
   /**
    * Selects a random valid banter based on current game state.
    * Does not manage active state, only selection.
+   * Uses gameState.banterCooldowns for persistence.
    */
   static selectBanter(gameState: GameState): BanterDefinition | null {
     const now = Date.now();
+    const cooldowns = gameState.banterCooldowns || {};
+
     const validBanters = BANTER_DEFINITIONS.filter(banter => {
       // 1. Check Cooldown
-      if (this.cooldowns[banter.id]) {
+      if (cooldowns[banter.id]) {
         const cooldownMs = (banter.conditions?.cooldown || 5) * 60 * 1000;
-        if (now - this.cooldowns[banter.id] < cooldownMs) return false;
+        if (now - cooldowns[banter.id] < cooldownMs) return false;
       }
 
       // 2. Check Participants
@@ -50,7 +51,5 @@ export class BanterManager {
     return validBanters[Math.floor(Math.random() * validBanters.length)];
   }
 
-  static markBanterUsed(banterId: string) {
-    this.cooldowns[banterId] = Date.now();
-  }
+  // Removed static markBanterUsed in favor of dispatching UPDATE_BANTER_COOLDOWN action
 }

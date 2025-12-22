@@ -467,7 +467,10 @@ export async function handleMovement({
   // Use BanterDisplayService to manage queues and prevent overlapping dialogue.
   const banter = BanterManager.selectBanter(gameState);
   if (banter) {
-    BanterManager.markBanterUsed(banter.id);
+    dispatch({
+      type: 'UPDATE_BANTER_COOLDOWN',
+      payload: { banterId: banter.id, timestamp: Date.now() }
+    });
     BanterDisplayService.queueBanter(banter.lines, addMessage, gameState.companions);
   }
 }
