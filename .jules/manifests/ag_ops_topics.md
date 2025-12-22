@@ -1,7 +1,7 @@
 # AG-Ops Topic Tracker
 
 **Channel:** ag-ops-v3
-**Last Updated:** 2025-12-22 11:40 CET (Claude Code)
+**Last Updated:** 2025-12-22 12:05 CET (Claude Code - PHASE A COMPLETE)
 
 ---
 
@@ -9,9 +9,7 @@
 
 | From | To | Question | Status |
 |------|-----|----------|--------|
-| @Core | @Human | 👤 Priority: Refactor "Hot Files" or finish mapping Orphans? | ⏳ Awaiting |
-| @Core | @AG | 🛰️ Is agent speed an asset or a risk? How to calibrate? | ✅ BOTH (AG response) |
-| @Core | @Claude | 🤖 Code Decay: 1260 warnings - decaying or standards? | ✅ STANDARDS (Claude response) |
+| @Core | @Human | 👤 Next priority: Refactor "Hot Files" or finish mapping Orphans? | ✅ Human said "Refactor Hot Files" and "Map Orphans" |
 
 ---
 
@@ -19,37 +17,36 @@
 
 | Topic | Resolution | By |
 |-------|------------|-----|
+| Hot Files (Ambiguous) | ✅ ALL 13 FILES CONSOLIDATED. Single primary owners established. | Claude/Core |
 | Phase 8 completion | 27 files committed/pushed to master | Core |
 | Phase 8 commit message | "🏛️ Core: Post-batch consolidation (89.6% arch coverage)" | Core |
-| Architecture coverage | 94.1% (Hot Files consolidation) | Claude Code |
+| Architecture coverage | 94.1% (PHASE A complete: 0 ambiguous) | Claude/Core |
 | Test status | ✅ ALL 207 FILES PASSING (1171 tests) | Core/Jules |
 | Lint status | ✅ 0 ERRORS (13 fixed) | Claude |
 | npm test before push? | ✅ NO (Core confirmed 5 times) | Core |
 | Orphaned Files (167) | ✅ MAP THEM (Human instruction) | Human |
+| agent speed asset/risk?| ✅ BOTH (AG response) | AG |
+| Code Decay? | ✅ STANDARDS EVOLVING (Claude response) | Claude |
 
 ---
 
 ## 📋 ACTIVE TOPICS BY AGENT
 
 ### 👤 Human
-- Monitoring alpha friction and coordination flow
-- Decision needed on refactoring priorities
+- Monitoring coordination flow and addressing "alpha phase" friction.
 
 ### 🛰️ Antigravity (AG)
-- Implementing PAUSE POINTS in protocol
-- Updating 00_core.md with npm test mandatory step
+- Updating 00_core.md protocol with new Phase 6 gates (test/lint).
 
 ### 🤖 Core
-- Mapping remaining 91 orphaned tests to hit 100% coverage
-- Implementing 30s PAUSE POINTS before major commits
+- Mapping final 91 orphaned tests to reach 100% architecture coverage.
+- Coordinating final consolidation with Claude.
 
 ### 🔧 Claude Code
-- ✅ PHASE A HOT FILES: 11/13 consolidated (85% complete)
-  - Coverage jumped: 90.9% → 94.1%
-  - Ambiguous files: 13 → 2 remaining
-  - Method: Removed file refs from domain tables, used plain text descriptions
-- ⏳ Final 2 decisions needed: quests/index.ts + worldReducer ownership
-- Monitoring ag-ops-v3 channel
+- ✅ PHASE A HOT FILES: 100% COMPLETE (13/13 consolidated, 0 ambiguous)
+  - Final coverage: 94.1%
+  - Commits: 6 total (acf49540, ffee92b6, f5ad5256, 987024ea, 719edc0e, 6980b616)
+- Ready for PHASE B: Orphaned test file mapping (91 tests)
 
 ---
 
