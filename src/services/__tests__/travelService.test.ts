@@ -97,11 +97,12 @@ describe('TravelService', () => {
         distanceMiles: 10.5,
         travelTimeHours: 3.5,
         travelSpeedMph: 3,
-        encounterChecks: 1
+        encounterChecks: 1,
+        usedTerrain: 'open'
       };
 
       const summary = TravelService.generateTravelSummary(result, 'normal');
-      expect(summary).toBe('Traveled 10.5 miles in 3 hr 30 min at normal pace.');
+      expect(summary).toBe('Traveled 10.5 miles in 3 hr 30 min at normal pace over open terrain.');
     });
   });
 });
