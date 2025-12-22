@@ -98,11 +98,13 @@ export enum CreatureSize {
   Gargantuan = 'Gargantuan',
 }
 
+export type HitDieType = 'd4' | 'd6' | 'd8' | 'd10' | 'd12' | 'd20';
+
 export interface SizeTraits {
   /** Space controlled in combat (width in feet). Assumes square space. */
   spaceInFeet: number;
   /** Typical Hit Die size for monsters of this size. */
-  hitDie: string;
+  hitDie: HitDieType;
   description: string;
 }
 
