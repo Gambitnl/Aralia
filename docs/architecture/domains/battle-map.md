@@ -31,6 +31,8 @@ The Battle Map provides a tactical grid for combat encounters, displaying charac
 | `src/components/BattleMap/*.ts*` | Directory | Battle map components and index |
 | `src/components/EncounterGenerator/*.tsx` | Component | Encounter and party management |
 | `src/hooks/useBattleMap.ts` | Hook | Map state hook |
+| `src/hooks/useBattleMapGeneration.ts` | Hook | Map generation hook |
+| `src/services/battleMapGenerator.ts` | Service | Procedural map generation |
 
 
 ## Dependencies

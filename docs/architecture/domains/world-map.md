@@ -38,8 +38,6 @@ The World Map provides region-level navigation showing the broader geography of 
 | Test File | Description |
 |-----------|-------------|
 | `src/components/__tests__/MapTile.test.tsx` | Map tile UI tests |
-| `src/services/__tests__/mapService.test.ts` | Map service logic tests |
-| `src/state/reducers/__tests__/worldReducer.test.ts` | World reducer tests |
 
 
 ## Dependencies

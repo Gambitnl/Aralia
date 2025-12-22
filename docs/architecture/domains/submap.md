@@ -74,6 +74,5 @@ Battle map systems (hooks and services for tactical grid generation and state ma
 | Test File | Description |
 |-----------|-------------|
 | `src/services/villageGenerator.test.ts` | Village generator tests |
-| `src/hooks/__tests__/useSubmapProceduralData.test.ts` | Procedural data logic tests |
 | `src/utils/__tests__/visualUtils.test.ts` | Visual utility tests |
 | `src/utils/__tests__/pathfindingHeuristic.test.ts` | Pathfinding heuristic tests |
