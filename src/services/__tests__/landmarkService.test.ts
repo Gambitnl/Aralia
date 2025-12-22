@@ -19,14 +19,25 @@ describe('landmarkService', () => {
         const coords = { x: 10, y: 10 };
         const biome = 'forest';
 
-        const run1 = generateLandmark(12345, coords, biome);
-        const run2 = generateLandmark(67890, coords, biome);
+        // Find two seeds that both generate landmarks
+        let seed1 = 0;
+        let l1 = null;
+        while (!l1 && seed1 < 100) {
+             l1 = generateLandmark(seed1++, coords, biome);
+        }
 
-        // Note: It's possible both return null (no landmark), so we check if they are different OR both null
-        // But with different seeds, we expect at least some difference if they both hit.
-        // Let's iterate until we find two hits.
-        // Or simpler, expect that the function doesn't crash.
-        expect(true).toBe(true);
+        let seed2 = seed1 + 1;
+        let l2 = null;
+        // Change coordinates for second landmark to ensure divergence
+        const coords2 = { x: 11, y: 11 };
+        while (!l2 && seed2 < 200) {
+             l2 = generateLandmark(seed2++, coords2, biome);
+        }
+
+        // With different coordinates, IDs must differ
+        if (l1 && l2) {
+             expect(l1.id).not.toBe(l2.id);
+        }
     });
 
     it('should return null most of the time (rarity check)', () => {

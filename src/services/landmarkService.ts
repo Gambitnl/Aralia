@@ -37,8 +37,18 @@ export function generateLandmark(
   const origin = validOrigins[Math.floor(rng() * validOrigins.length)];
 
   // 2. Select Type
-  // Weighted selection could be added here, but flat random for now is fine
-  const type = LANDMARK_TYPES[Math.floor(rng() * LANDMARK_TYPES.length)];
+  // Use baseWeight for weighted selection
+  const totalWeight = LANDMARK_TYPES.reduce((sum, t) => sum + t.baseWeight, 0);
+  let randomVal = rng() * totalWeight;
+  let type = LANDMARK_TYPES[LANDMARK_TYPES.length - 1];
+
+  for (const t of LANDMARK_TYPES) {
+    randomVal -= t.baseWeight;
+    if (randomVal <= 0) {
+      type = t;
+      break;
+    }
+  }
 
   // 3. Select State
   const state = LANDMARK_STATES[Math.floor(rng() * LANDMARK_STATES.length)];
