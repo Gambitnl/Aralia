@@ -200,12 +200,12 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
         }
 
         // Handle EffectDuration structure { type: 'rounds' | 'minutes', value: number }
-        if (duration.type === 'rounds') return (duration.value !== undefined ? duration.value : 1);
-        if (duration.type === 'minutes') return ((duration.value !== undefined ? duration.value : 1) * 10);
+        if (duration.type === 'rounds') return duration.value ?? 1;
+        if (duration.type === 'minutes') return (duration.value ?? 1) * 10;
 
         // Handle Legacy/Spell Duration structure { unit: 'round' | 'minute', value: number }
-        if (duration.unit === 'round') return (duration.value !== undefined ? duration.value : 1);
-        if (duration.unit === 'minute') return ((duration.value !== undefined ? duration.value : 1) * 10);
+        if (duration.unit === 'round') return duration.value ?? 1;
+        if (duration.unit === 'minute') return (duration.value ?? 1) * 10;
 
         // Handle "special" or other types by returning undefined (infinite/conditional)
         return undefined;
