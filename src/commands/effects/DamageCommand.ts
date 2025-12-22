@@ -6,7 +6,7 @@ import { calculateSpellDC, rollSavingThrow, calculateSaveDamage } from '../../ut
 import { rollDamage as rollDamageUtil } from '../../utils/combatUtils';
 import { BreakConcentrationCommand } from './ConcentrationCommands'
 import { ResistanceCalculator } from '../../systems/spells/mechanics/ResistanceCalculator';
-import { getPlanarSpellModifier } from '../../utils/planarUtils';
+import { getPlanarSpellModifier, getPlanarMagicMechanic } from '../../utils/planarUtils';
 
 const DAMAGE_VERBS: Record<string, string[]> = {
   acid: ['melts', 'corrodes', 'dissolves', 'burns'],
@@ -49,8 +49,10 @@ export class DamageCommand extends BaseEffectCommand {
 
     // NEW: Get Planar Modifier
     let planarModifier = 0;
+    let planarMechanic = undefined;
     if (this.context.currentPlane && this.context.spellSchool) {
       planarModifier = getPlanarSpellModifier(this.context.spellSchool, this.context.currentPlane);
+      planarMechanic = getPlanarMagicMechanic(this.context.spellSchool, this.context.currentPlane);
     }
 
     for (const target of this.getTargets(currentState)) {
@@ -58,8 +60,17 @@ export class DamageCommand extends BaseEffectCommand {
       const isCritical = this.context.isCritical || false;
       let damageRoll = this.rollDamage(this.effect.damage.dice, isCritical, minRoll);
 
+      // PLANESHIFTER: Apply Damage Reroll (e.g., Shadowfell Necromancy)
+      // "Necromancy spells roll damage dice twice and take the higher total."
+      if (planarMechanic === 'reroll_damage') {
+        const secondRoll = this.rollDamage(this.effect.damage.dice, isCritical, minRoll);
+        if (secondRoll > damageRoll) {
+          damageRoll = secondRoll;
+        }
+      }
+
       // PLANESHIFTER: Apply Planar Impediment (Negative Modifier)
-      // Empowered (+1) is now handled by SpellCommandFactory via upcasting.
+      // Empowered (+1) is now handled by SpellCommandFactory via upcasting OR reroll above.
       // We only apply negative modifiers here (e.g., Impeded schools).
       if (planarModifier < 0) {
         damageRoll += planarModifier; // Reduce damage
@@ -67,7 +78,8 @@ export class DamageCommand extends BaseEffectCommand {
       }
 
       // 2. Handle Saving Throw (if applicable)
-      if (this.effect.condition.type === 'save' && this.effect.condition.saveType) {
+      // Ensure 'condition' exists before checking properties
+      if (this.effect.condition && this.effect.condition.type === 'save' && this.effect.condition.saveType) {
         let dc = calculateSpellDC(caster);
 
         // Apply Planar Modifier to DC (Only negative)
@@ -116,7 +128,9 @@ export class DamageCommand extends BaseEffectCommand {
 
       if (sourceName && sourceName !== 'Attack') {
         logMessage = `${caster.name} ${verb} ${target.name} with ${sourceName} for ${finalDamage} ${damageType} damage`;
-        if (planarModifier !== 0) {
+        if (planarMechanic === 'reroll_damage') {
+           logMessage += ` (Planar Resonance)`;
+        } else if (planarModifier !== 0) {
            logMessage += ` (Planar Boost: ${planarModifier > 0 ? '+' : ''}${planarModifier})`;
         }
       } else {

@@ -1,5 +1,5 @@
 
-import { Plane, Portal, PortalRequirement } from '../types/planes';
+import { Plane, Portal, PortalRequirement, PlanarMagicMechanic } from '../types/planes';
 import { PLANES } from '../data/planes';
 import { Location, GameState, MagicSchool } from '../types/index';
 
@@ -63,7 +63,6 @@ function checkRequirement(req: PortalRequirement, gameState: GameState): boolean
  * Calculates the modified DC or effectiveness of a spell based on the current plane.
  * @param spellSchool - The school of the spell being cast.
  * @param plane - The plane the spell is being cast on.
- * @param baseDC - The original DC of the spell.
  * @returns The modified DC.
  */
 export function getPlanarSpellModifier(spellSchool: MagicSchool, plane: Plane): number {
@@ -84,6 +83,19 @@ export function getPlanarSpellModifier(spellSchool: MagicSchool, plane: Plane): 
     default:
       return 0;
   }
+}
+
+/**
+ * Retrieves the specific mechanic code for a spell school on the current plane.
+ * @param spellSchool - The school of the spell.
+ * @param plane - The current plane.
+ * @returns The mechanic code (e.g., 'reroll_damage') or undefined.
+ */
+export function getPlanarMagicMechanic(spellSchool: MagicSchool, plane: Plane): PlanarMagicMechanic | undefined {
+  if (!plane.effects || !plane.effects.affectsMagic) return undefined;
+
+  const modifier = plane.effects.affectsMagic.find(m => m.school === spellSchool);
+  return modifier?.mechanic;
 }
 
 /**

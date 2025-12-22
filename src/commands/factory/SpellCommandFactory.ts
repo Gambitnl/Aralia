@@ -1,4 +1,4 @@
-import { Spell, SpellEffect, TargetConditionFilter , isDamageEffect, isHealingEffect } from '@/types/spells'
+import { Spell, SpellEffect, TargetConditionFilter , isDamageEffect, isHealingEffect, EffectDuration } from '@/types/spells'
 import { CombatCharacter } from '@/types/combat'
 
 import { SpellCommand, CommandContext } from '../base/SpellCommand'
@@ -37,14 +37,37 @@ export class SpellCommandFactory {
     // If the plane empowers this school of magic, cast as if 1 level higher.
     let effectiveCastLevel = castAtLevel;
     let planarMod = 0;
+    let planarMechanic = undefined;
 
     if (currentPlane && spell.school) {
-      const { getPlanarSpellModifier } = await import('@/utils/planarUtils')
+      const { getPlanarSpellModifier, getPlanarMagicMechanic } = await import('@/utils/planarUtils')
       planarMod = getPlanarSpellModifier(spell.school, currentPlane)
+      planarMechanic = getPlanarMagicMechanic(spell.school, currentPlane)
 
       if (planarMod > 0) {
         effectiveCastLevel += planarMod
         console.debug(`[Planeshifter] Planar empowerment active: ${spell.name} cast at level ${effectiveCastLevel} (+${planarMod})`)
+      }
+    }
+
+    let effectDuration: EffectDuration | undefined = undefined;
+
+    if (spell.duration.type === 'timed' && spell.duration.unit) {
+      effectDuration = {
+        type: spell.duration.unit === 'round' ? 'rounds' : spell.duration.unit === 'minute' ? 'minutes' : 'special',
+        value: spell.duration.value
+      };
+    }
+
+    // PLANESHIFTER: Apply Duration Doubling (e.g., Illusion in Feywild)
+    if (effectDuration && planarMechanic === 'double_duration') {
+      effectDuration = {
+        ...effectDuration,
+        value: (effectDuration.value || 0) * 2
+      };
+
+      if (spell.duration.unit === 'round' || spell.duration.unit === 'minute') {
+          console.debug(`[Planeshifter] Duration doubled for ${spell.name} (${spell.school})`);
       }
     }
 
@@ -56,12 +79,7 @@ export class SpellCommandFactory {
       caster,
       targets,
       gameState,
-      effectDuration: spell.duration.type === 'timed' && spell.duration.unit
-        ? {
-          type: spell.duration.unit === 'round' ? 'rounds' : spell.duration.unit === 'minute' ? 'minutes' : 'special',
-          value: spell.duration.value
-        }
-        : undefined,
+      effectDuration: effectDuration,
       attackType: spell.attackType,
       currentPlane // Pass to context
     }

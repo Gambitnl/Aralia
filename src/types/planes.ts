@@ -22,9 +22,12 @@ export interface PlanarTrait {
   mechanics?: string; // Description of mechanical effect
 }
 
+export type PlanarMagicMechanic = 'reroll_damage' | 'double_duration' | 'advantage' | 'disadvantage';
+
 export interface MagicModifier {
   school?: MagicSchool;
   effect: 'empowered' | 'impeded' | 'wild' | 'nullified';
+  mechanic?: PlanarMagicMechanic;
   description: string;
 }
 

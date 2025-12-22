@@ -92,11 +92,13 @@ export const FEYWILD: Plane = {
       {
         school: 'Illusion',
         effect: 'empowered',
+        mechanic: 'double_duration',
         description: 'Illusion spells last twice as long.'
       },
       {
         school: 'Enchantment',
         effect: 'empowered',
+        mechanic: 'advantage',
         description: 'Enchantment spells are cast with Advantage on the attack or Disadvantage on the save.'
       }
     ]
@@ -136,6 +138,7 @@ export const SHADOWFELL: Plane = {
       {
         school: 'Necromancy',
         effect: 'empowered',
+        mechanic: 'reroll_damage',
         description: 'Necromancy spells roll damage dice twice and take the higher total.'
       },
       {
