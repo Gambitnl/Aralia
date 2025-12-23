@@ -16,6 +16,7 @@ import { NPCS } from '../../constants';
 import { canUseDevTools } from '../../utils/permissions';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import * as GeminiService from '../../services/geminiService';
+import { useDialogueSystem } from '../../hooks/useDialogueSystem';
 
 import ErrorBoundary from '../ErrorBoundary';
 
@@ -91,17 +92,7 @@ const GameModals: React.FC<GameModalsProps> = ({
     handleOpenCharacterSheet,
 }) => {
 
-    const handleGenerateDialogueResponse = async (prompt: string): Promise<string> => {
-        const npc = gameState.activeDialogueSession ? NPCS[gameState.activeDialogueSession.npcId] : null;
-        if (!npc) return "...";
-        const systemPrompt = npc.initialPersonalityPrompt;
-        const result = await GeminiService.generateNPCResponse(systemPrompt, prompt, gameState.devModelOverride);
-        if (result.data?.text) {
-            dispatch({ type: 'SET_LAST_NPC_INTERACTION', payload: { npcId: npc.id, response: result.data.text } });
-            return result.data.text;
-        }
-        return "...";
-    };
+    const { generateResponse, handleTopicOutcome } = useDialogueSystem(gameState, dispatch);
 
     return (
         <AnimatePresence>
@@ -387,8 +378,8 @@ const GameModals: React.FC<GameModalsProps> = ({
                             playerCharacter={gameState.party[0]}
                             onClose={() => dispatch({ type: 'END_DIALOGUE_SESSION' })}
                             onUpdateSession={(newSession) => dispatch({ type: 'UPDATE_DIALOGUE_SESSION', payload: { session: newSession } })}
-                            onUpdateGameState={(updates) => { /* TODO: Implement partial updates if needed */ }}
-                            onGenerateResponse={handleGenerateDialogueResponse}
+                            onTopicOutcome={handleTopicOutcome}
+                            onGenerateResponse={generateResponse}
                         />
                     </ErrorBoundary>
                 </Suspense>
