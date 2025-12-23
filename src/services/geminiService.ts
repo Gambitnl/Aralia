@@ -586,9 +586,9 @@ export async function generateActionOutcome(
     result.data.text = validateNarrativeResponse(result.data.text);
   }
 
-  // TODO(Linker): Use EntityResolverService.ensureEntityExists() to generate missing entities from AI text and dispatch 'REGISTER_ENTITIES' action.
-  // const entities = await EntityResolverService.resolveEntitiesInText(result.data.text, { gameState });
-  // This requires plumbing GameState into this service or accessing a global store.
+  // NOTE: Entity resolution (checking if mentioned entities exist and creating them)
+  // is handled by the caller (e.g., handleGeminiCustom.ts, handleObservation.ts)
+  // to keep this service function pure and free of side effects like 'dispatch'.
 
   return result;
 }
