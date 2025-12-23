@@ -29,6 +29,7 @@ import { motion } from 'framer-motion';
 import AISpellInputModal from '../BattleMap/AISpellInputModal';
 import { Spell } from '../../types/spells';
 import { ReactionPrompt } from './ReactionPrompt';
+import { CombatResultModal } from './CombatResultModal/CombatResultModal';
 import { Plane } from '../../types/planes';
 
 interface CombatViewProps {
@@ -216,40 +217,11 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
     <div className="bg-gray-900 text-white min-h-screen flex flex-col p-4 relative">
       {/* Victory / Defeat Modal */}
       {battleState !== 'active' && (
-        <div className="absolute inset-0 bg-black/80 z-50 flex items-center justify-center">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-gray-800 p-8 rounded-xl border-2 border-amber-500 max-w-md w-full text-center"
-          >
-            <h2 className={`text-4xl font-cinzel mb-4 ${battleState === 'victory' ? 'text-amber-400' : 'text-red-500'}`}>
-              {battleState === 'victory' ? 'Victory!' : 'Defeat!'}
-            </h2>
-
-            {battleState === 'victory' && rewards && (
-              <div className="mb-6 text-left bg-gray-900/50 p-4 rounded-lg">
-                <h3 className="text-sky-300 font-bold mb-2 border-b border-gray-700 pb-1">Rewards</h3>
-                <p className="text-yellow-200">🪙 {rewards.gold} Gold</p>
-                <p className="text-purple-300">✨ {rewards.xp} XP</p>
-                {rewards.items.length > 0 && (
-                  <div className="mt-2">
-                    <p className="text-gray-400 text-sm">Items Found:</p>
-                    <ul className="list-disc list-inside text-green-300 text-sm">
-                      {rewards.items.map((item, i) => <li key={i}>{item.name}</li>)}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <button
-              onClick={() => onBattleEnd(battleState, rewards || undefined)}
-              className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg shadow-lg transition-colors"
-            >
-              {battleState === 'victory' ? 'Collect & Continue' : 'Return to Title'}
-            </button>
-          </motion.div>
-        </div>
+        <CombatResultModal
+          battleState={battleState}
+          rewards={rewards}
+          onClose={() => onBattleEnd(battleState, rewards || undefined)}
+        />
       )}
 
       {/* AI Spell Input Modal */}
