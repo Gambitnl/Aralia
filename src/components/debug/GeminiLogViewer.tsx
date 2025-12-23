@@ -3,7 +3,7 @@
  * This component displays a modal with a log of prompts sent to and responses received from Gemini.
  */
 import React, { useEffect, useRef } from 'react';
-import { GeminiLogEntry } from '../types';
+import { GeminiLogEntry } from '../../types';
 
 interface GeminiLogViewerProps {
   isOpen: boolean;

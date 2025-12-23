@@ -7,8 +7,8 @@
  */
 
 import React from 'react';
-import { Companion } from '../types/companions';
-import { CompanionCard } from './ui/CompanionCard';
+import { Companion } from '../../types/companions';
+import { CompanionCard } from '../ui/CompanionCard';
 
 interface RelationshipsPaneProps {
   companions: Record<string, Companion>;

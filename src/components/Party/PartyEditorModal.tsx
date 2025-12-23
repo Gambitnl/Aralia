@@ -3,9 +3,9 @@
  * A dedicated modal for editing the encounter party composition.
  */
 import React, { useState, useEffect, useRef } from 'react';
-import { PlayerCharacter, TempPartyMember } from '../types';
-import { PartyManager } from './EncounterGenerator/PartyManager';
-import { DUMMY_PARTY_FOR_DEV } from '../constants';
+import { PlayerCharacter, TempPartyMember } from '../../types';
+import { PartyManager } from '../EncounterGenerator/PartyManager';
+import { DUMMY_PARTY_FOR_DEV } from '../../constants';
 
 interface PartyEditorModalProps {
   isOpen: boolean;

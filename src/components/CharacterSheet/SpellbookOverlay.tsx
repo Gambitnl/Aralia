@@ -3,13 +3,13 @@
  * A component for displaying a character's spellbook as a full-screen overlay.
  */
 import React, { useState, useEffect, useContext, useMemo } from 'react';
-import { PlayerCharacter, Spell, Action, AbilityScoreName, LimitedUseAbility, ResourceVial } from '../types';
-import SpellContext from '../context/SpellContext';
-import { CLASSES_DATA } from '../constants';
-import Tooltip from './Tooltip';
-import { getAbilityModifierValue } from '../utils/characterUtils';
+import { PlayerCharacter, Spell, Action, AbilityScoreName, LimitedUseAbility, ResourceVial } from '../../types';
+import SpellContext from '../../context/SpellContext';
+import { CLASSES_DATA } from '../../constants';
+import Tooltip from '../Tooltip';
+import { getAbilityModifierValue } from '../../utils/characterUtils';
 // Spell info modal is housed under the Glossary folder
-import SingleGlossaryEntryModal from './Glossary/SingleGlossaryEntryModal';
+import SingleGlossaryEntryModal from '../Glossary/SingleGlossaryEntryModal';
 
 interface SpellbookOverlayProps {
   isOpen: boolean;

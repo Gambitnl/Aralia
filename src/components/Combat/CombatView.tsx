@@ -18,7 +18,7 @@ import AbilityPalette from '../BattleMap/AbilityPalette';
 import CombatLog from '../BattleMap/CombatLog';
 import ActionEconomyBar from '../BattleMap/ActionEconomyBar';
 import PartyDisplay from '../BattleMap/PartyDisplay';
-import CharacterSheetModal from '../CharacterSheetModal';
+import CharacterSheetModal from '../CharacterSheet/CharacterSheetModal';
 import { canUseDevTools } from '../../utils/permissions';
 import { logger } from '../../utils/logger';
 import { createPlayerCombatCharacter } from '../../utils/combatUtils';

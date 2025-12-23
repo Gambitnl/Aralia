@@ -6,9 +6,9 @@
  * It now includes a warning indicator if a character has missing required choices.
  */
 import React, { useMemo } from 'react';
-import { PlayerCharacter, MissingChoice } from '../types'; // Path relative to src/components/
-import Tooltip from './Tooltip'; 
-import { validateCharacterChoices } from '../utils/characterValidation';
+import { PlayerCharacter, MissingChoice } from '../../types';
+import Tooltip from '../Tooltip';
+import { validateCharacterChoices } from '../../utils/characterValidation';
 
 interface PartyCharacterButtonProps {
   character: PlayerCharacter;
