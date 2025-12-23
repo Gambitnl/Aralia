@@ -19,6 +19,7 @@ import {
   getActionMessage,
   rollDice
 } from '../../utils/combatUtils';
+import { getAbilityModifierValue } from '../../utils/statUtils';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
 import {
   ActiveSpellZone,
@@ -27,6 +28,7 @@ import {
 } from '../../systems/spells/effects';
 import { AreaEffectTracker } from '../../systems/spells/effects/AreaEffectTracker';
 import { combatEvents } from '../../systems/events/CombatEvents';
+import { OpportunityAttackSystem } from '../../systems/combat/reactions/OpportunityAttackSystem';
 
 export interface UseActionExecutorProps {
   characters: CombatCharacter[];
@@ -177,6 +179,111 @@ export const useActionExecutor = ({
       });
 
       updatedCharacter = processTileEffects(updatedCharacter, action.targetPosition);
+
+      // --- Opportunity Attack Check ---
+      // We check if the move from 'previousPosition' to 'action.targetPosition' provokes an OA.
+      // NOTE: D&D 5e OAs occur *before* the creature leaves the reach.
+      // However, we are in the 'executeAction' phase where the move is already committed.
+      // In a synchronous engine, we resolve the attack now and retroactively apply damage,
+      // potentially stopping the move if Sentinel feat existed (not yet implemented).
+      const oaSystem = new OpportunityAttackSystem();
+      const oaResults = oaSystem.checkOpportunityAttacks(
+          updatedCharacter,
+          previousPosition,
+          action.targetPosition,
+          characters,
+          mapData
+      );
+
+      for (const result of oaResults) {
+          if (result.canAttack) {
+              // Get attacker
+              const attacker = characters.find(c => c.id === result.attackerId);
+              if (attacker) {
+                  // Resolve Attack
+                  // For now, we assume a basic melee attack using the first available melee weapon ability.
+                  // TODO(Warlord): Allow selecting which weapon to use for OA if multiple exist.
+                  // 1. Select Weapon
+                  // Logic: Must be a melee weapon (range 1) or reach weapon (range 2).
+                  // Exclude ranged weapons (range >= 5 without specific reach property).
+                  // Fallback to Unarmed Strike.
+                  const weaponAbility = attacker.abilities.find(a =>
+                      a.type === 'attack' &&
+                      a.weapon &&
+                      (a.range <= 2) // Fix: Explicitly allow range 1 (5ft) and 2 (10ft) but filter out bows
+                  ) || attacker.abilities.find(a => a.id === 'unarmed_strike') || attacker.abilities[0];
+
+                  if (weaponAbility) {
+                      // Mark Reaction Used
+                      const updatedAttacker = {
+                          ...attacker,
+                          actionEconomy: {
+                              ...attacker.actionEconomy,
+                              reaction: { ...attacker.actionEconomy.reaction, used: true }
+                          }
+                      };
+                      onCharacterUpdate(updatedAttacker);
+
+                      // Roll Attack
+                      const d20 = rollDice('1d20');
+
+                      // 2. Calculate Modifiers
+                      // Dynamic calculation based on weapon type (Finesse -> Dex, otherwise Str)
+                      let abilityScore = attacker.stats.strength;
+                      if (weaponAbility.weapon?.properties?.includes('finesse')) {
+                          abilityScore = Math.max(attacker.stats.strength, attacker.stats.dexterity);
+                      } else if (weaponAbility.weapon?.properties?.some(p => p.includes('range') || p === 'finesse')) {
+                          // Ranged weapons use Dex (though they shouldn't trigger OAs usually, barring feats)
+                          abilityScore = attacker.stats.dexterity;
+                      }
+
+                      const abilityMod = getAbilityModifierValue(abilityScore);
+                      const profBonus = weaponAbility.isProficient ? Math.ceil(attacker.level / 4) + 1 : 0;
+                      const attackBonus = abilityMod + profBonus;
+
+                      const targetAC = updatedCharacter.armorClass || updatedCharacter.baseAC || 10;
+                      const totalRoll = d20 + attackBonus;
+                      const isHit = d20 === 20 || (d20 !== 1 && totalRoll >= targetAC);
+
+                      if (isHit) {
+                          onLogEntry({
+                              id: generateId(),
+                              timestamp: Date.now(),
+                              type: 'action',
+                              message: `${attacker.name} hits ${updatedCharacter.name} with Opportunity Attack! (${d20}+${attackBonus}=${totalRoll} vs AC ${targetAC})`,
+                              characterId: attacker.id,
+                              targetIds: [updatedCharacter.id]
+                          });
+
+                          const damageEffect = weaponAbility.effects.find(e => e.type === 'damage');
+                          if (damageEffect && damageEffect.dice) {
+                              // Crit check
+                              const isCrit = d20 === 20;
+                              let damage = rollDice(damageEffect.dice);
+                              if (isCrit) damage += rollDice(damageEffect.dice);
+
+                              updatedCharacter = handleDamage(
+                                  updatedCharacter,
+                                  damage,
+                                  `${attacker.name} (Opportunity Attack)`,
+                                  damageEffect.damageType
+                              );
+                          }
+                      } else {
+                          onLogEntry({
+                              id: generateId(),
+                              timestamp: Date.now(),
+                              type: 'action',
+                              message: `${attacker.name} misses Opportunity Attack against ${updatedCharacter.name}. (${d20}+${attackBonus}=${totalRoll} vs AC ${targetAC})`,
+                              characterId: attacker.id,
+                              targetIds: [updatedCharacter.id]
+                          });
+                          addDamageNumber(0, updatedCharacter.position, 'miss');
+                      }
+                  }
+              }
+          }
+      }
 
       const moveTriggerResults = processMovementTriggers(movementDebuffs, updatedCharacter, turnState.currentTurn);
 
