@@ -130,13 +130,32 @@ function getSphereAoE(origin: Position, radius: number): Position[] {
 /**
  * Calculates tiles within a Cone using grid coordinates.
  *
+ * Updates to align with 5e Grid Rules (XGE/DMG):
+ * "A cone's width at a given point along its length is equal to that point's distance from the point of origin."
+ * Mathematically, this corresponds to an isosceles triangle where Base = Height,
+ * implying a half-angle of arctan(0.5) ≈ 26.565°. Total angle ≈ 53.13°.
+ *
+ * The implementation uses a derived constant to represent this angle mathematically,
+ * with a small epsilon to account for floating-point precision when checking boundaries.
+ *
+ * TODO: Note that `src/systems/spells/targeting/gridAlgorithms/cone.ts` contains a similar implementation.
+ * Consider future refactoring to consolidate these logic paths into a single source of truth.
+ *
  * @param origin - The starting point of the cone
  * @param direction - Compass direction in degrees (0=N, 90=E)
  * @param length - Length of the cone in feet
  * @returns Array of affected grid positions
  */
 function getConeAoE(origin: Position, direction: number, length: number): Position[] {
-    const coneAngle = 53; // Standard 5e Cone angle (~53 degrees)
+    // 5e Rule: Width = Distance.
+    // tan(theta/2) = (Width/2) / Distance = 0.5
+    // theta/2 = arctan(0.5) ≈ 26.56505... degrees
+    const HALF_ANGLE_RAD = Math.atan(0.5);
+    const FULL_ANGLE_DEG = (HALF_ANGLE_RAD * 2) * (180 / Math.PI); // ~53.1301... degrees
+
+    // Add small epsilon for floating point inclusion on exact boundaries
+    const CONE_ANGLE = FULL_ANGLE_DEG + 0.1;
+
     const affected: Position[] = [];
     const lengthInTiles = length / TILE_SIZE;
 
@@ -177,7 +196,7 @@ function getConeAoE(origin: Position, direction: number, length: number): Positi
             let diff = Math.abs(gridAngle - direction);
             if (diff > 180) diff = 360 - diff;
 
-            if (diff <= coneAngle / 2) {
+            if (diff <= CONE_ANGLE / 2) {
                 affected.push({ x, y });
             }
         }
