@@ -25,6 +25,8 @@ import { createPlayerCombatCharacter } from '../../utils/combatUtils';
 import SpellContext from '../../context/SpellContext';
 import { generateLoot } from '../../services/lootService';
 import { motion } from 'framer-motion';
+import { CombatReligionAdapter } from '../../systems/religion/CombatReligionAdapter';
+import { useGameState } from '../../state/GameContext';
 
 import AISpellInputModal from '../BattleMap/AISpellInputModal';
 import { Spell } from '../../types/spells';
@@ -47,6 +49,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   if (!allSpells) throw new Error("CombatView must be used within a SpellProvider");
 
   const [seed] = useState(() => Date.now()); // Generate map once
+  const { dispatch } = useGameState();
   const [combatLog, setCombatLog] = useState<CombatLogEntry[]>([]);
 
   // Initialize map and characters directly from props (Lazy Initialization)
@@ -87,7 +90,10 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   const handleLogEntry = useCallback((entry: CombatLogEntry) => {
     // TODO: Cap and virtualize combatLog length (Reason: long fights will append thousands of entries and bloat memory/UI diffing; Expectation: keep only the most recent N turns while streaming older logs to a history panel).
     setCombatLog(prev => [...prev, entry]);
-  }, []);
+
+    // Process religion triggers
+    CombatReligionAdapter.processLogEntry(entry, dispatch);
+  }, [dispatch]);
 
   const turnManager = useTurnManager({
     characters,
