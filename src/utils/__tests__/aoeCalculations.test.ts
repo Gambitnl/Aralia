@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { calculateAffectedTiles } from '../aoeCalculations'
+import { Position } from '../../types/combat'
 
 describe('calculateAffectedTiles', () => {
   describe('Sphere', () => {
@@ -27,6 +28,10 @@ describe('calculateAffectedTiles', () => {
   })
 
   describe('Cone', () => {
+    // Helper to find a specific tile in the results
+    const hasTile = (tiles: Position[], x: number, y: number) =>
+        tiles.some(t => t.x === x && t.y === y);
+
     it('calculates a 15-foot cone facing North (0 deg)', () => {
       const result = calculateAffectedTiles({
         shape: 'Cone',
@@ -90,6 +95,36 @@ describe('calculateAffectedTiles', () => {
       // Ensure origin is excluded (handled by implementation)
       expect(result).not.toContainEqual({ x: 5, y: 5 })
     })
+
+    it('generates a 15ft orthogonal cone (North) matching 5e Width=Distance rule', () => {
+        // Origin (10, 10). North is -y.
+        // Rule: Width at distance D equals D.
+        // Testing specifically for the boundary tiles at distance 10ft (2 tiles).
+
+        const tiles = calculateAffectedTiles({
+            shape: 'Cone',
+            origin: { x: 10, y: 10 },
+            size: 15,
+            direction: 0 // North
+        });
+
+        // Distance 5ft (1 tile): y=9. Width 5ft (1 tile).
+        expect(hasTile(tiles, 10, 9)).toBe(true); // Center
+        expect(hasTile(tiles, 9, 9)).toBe(false); // Left
+        expect(hasTile(tiles, 11, 9)).toBe(false); // Right
+
+        // Distance 10ft (2 tiles): y=8. Width 10ft (2 tiles).
+        // For a cone with width equal to distance, at distance 2 tiles, width is 2 tiles.
+        // However, on a discrete grid, a center tile + 1 neighbor on each side creates a width of 3 tiles.
+        // The mathematical boundaries (26.5 deg) intersect the center of the adjacent tiles (at angle ~26.5 deg).
+        // Center (10,8) is 0 deg offset.
+        // Left (9,8) is at offset x=-1, y=2 (from origin 10,10). Angle = atan(1/2) = 26.565 deg.
+        // This exactly matches the cone half-angle boundary.
+        // Therefore, we include it, resulting in 3 total tiles.
+        expect(hasTile(tiles, 10, 8)).toBe(true); // Center
+        expect(hasTile(tiles, 9, 8)).toBe(true);  // Left Boundary
+        expect(hasTile(tiles, 11, 8)).toBe(true); // Right Boundary
+    });
   })
 
   describe('Cube', () => {

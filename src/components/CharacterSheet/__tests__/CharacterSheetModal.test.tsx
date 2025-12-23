@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import CharacterSheetModal from '../CharacterSheetModal';
-import { Item, PlayerCharacter } from '../../types';
+import { Item, PlayerCharacter } from '../../../types';
 
 vi.mock('framer-motion', () => ({
   motion: {
@@ -12,15 +12,15 @@ vi.mock('framer-motion', () => ({
   },
 }));
 
-vi.mock('../CharacterSheet/EquipmentMannequin', () => ({
+vi.mock('../EquipmentMannequin', () => ({
   default: () => <div data-testid="equipment-mannequin">EquipmentMannequin</div>,
 }));
 
-vi.mock('../CharacterSheet/InventoryList', () => ({
+vi.mock('../InventoryList', () => ({
   default: () => <div data-testid="inventory-list">InventoryList</div>,
 }));
 
-vi.mock('../CharacterSheet/SkillDetailDisplay', () => ({
+vi.mock('../SkillDetailDisplay', () => ({
   default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
     isOpen ? (
       <div data-testid="skill-detail-display">
@@ -39,15 +39,23 @@ vi.mock('../SpellbookOverlay', () => ({
     ) : null,
 }));
 
-vi.mock('../Tooltip', () => ({
+vi.mock('../CharacterOverview', () => ({
+  default: ({ onOpenSkillDetails }: { onOpenSkillDetails: () => void }) => (
+    <div data-testid="character-overview">
+      <button onClick={onOpenSkillDetails}>Skills</button>
+    </div>
+  ),
+}));
+
+vi.mock('../../Tooltip', () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-vi.mock('../Glossary/SingleGlossaryEntryModal', () => ({
+vi.mock('../../Glossary/SingleGlossaryEntryModal', () => ({
   default: () => null,
 }));
 
-vi.mock('../../data/feats/featsData', () => ({
+vi.mock('../../../data/feats/featsData', () => ({
   FEATS_DATA: [],
 }));
 
@@ -125,21 +133,16 @@ describe('CharacterSheetModal', () => {
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Test Hero')).toBeInTheDocument();
-    expect(screen.getByText('Vitals')).toBeInTheDocument();
-    expect(screen.getByText('Ability Scores')).toBeInTheDocument();
     expect(screen.getByTestId('equipment-mannequin')).toBeInTheDocument();
     expect(screen.getByTestId('inventory-list')).toBeInTheDocument();
   });
 
-  it('displays key character stats and ability scores', () => {
-    render(<CharacterSheetModal {...defaultProps} />);
+  // The below test has been removed because the text content is now rendered inside
+  // CharacterOverview (which is mocked in this test suite).
+  // CharacterOverview has its own dedicated test file (CharacterOverview.test.tsx).
+  // Removing duplicate integration assertion here to focus on modal structure.
 
-    expect(screen.getByText(/Hit Points:/)).toHaveTextContent('Hit Points: 10 / 12');
-    expect(screen.getByText(/Armor Class:/)).toHaveTextContent('Armor Class: 15');
-    expect(screen.getByText(/Speed:/)).toHaveTextContent('Speed: 30ft');
-    expect(screen.getByText(/Str:/)).toHaveTextContent('Str: 14');
-    expect(screen.getByText('Second Wind')).toBeInTheDocument();
-  });
+  // it('displays key character stats and ability scores', () => { ... });
 
   it('opens and closes the spellbook overlay via the tab control', () => {
     render(<CharacterSheetModal {...defaultProps} />);
@@ -182,7 +185,7 @@ describe('CharacterSheetModal', () => {
     render(<CharacterSheetModal {...defaultProps} />);
 
     expect(screen.queryByTestId('skill-detail-display')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByText('View Skill Details'));
+    fireEvent.click(screen.getByText('Skills'));
     expect(screen.getByTestId('skill-detail-display')).toBeInTheDocument();
 
     fireEvent.keyDown(window, { key: 'Escape' });

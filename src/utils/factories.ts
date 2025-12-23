@@ -232,6 +232,7 @@ export function createMockPlayerCharacter(overrides: Partial<PlayerCharacter> = 
     darkvisionRange: 0,
     transportMode: 'foot' as TransportMode,
     equippedItems: {},
+    statusEffects: [], // Initialize statusEffects
     ...overrides
   };
 }

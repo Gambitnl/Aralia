@@ -68,6 +68,7 @@ Battle map systems (hooks and services for tactical grid generation and state ma
 - [ ] Optimize PixiJS rendering for large submaps
 - [ ] Document painter architecture (SubmapTilePainter, SubmapFeaturePainter, etc.)
 - [ ] Clarify boundary between submapData.ts and biomes.ts
+- [ ] TODO(Lockpick): Integrate trap detection into Submap movement logic.
 
 ## Claimed Tests
 

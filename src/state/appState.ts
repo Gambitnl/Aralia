@@ -226,7 +226,9 @@ export const initialGameState: GameState = {
 
     // Dialogist: Dialogue System
     activeDialogueSession: null,
-    isDialogueInterfaceOpen: false
+    isDialogueInterfaceOpen: false,
+
+    banterCooldowns: {}
 };
 
 
@@ -409,6 +411,11 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         }
 
         case 'LOAD_GAME_SUCCESS': {
+            // Heartkeeper: Clear active banter queues when loading a new game state to prevent "ghost" dialogue.
+            import('../services/BanterDisplayService').then(({ BanterDisplayService }) => {
+                BanterDisplayService.cancelActiveBanter();
+            });
+
             const loadedState = action.payload;
             const gameTimeFromLoad = typeof loadedState.gameTime === 'string' ? new Date(loadedState.gameTime) : loadedState.gameTime;
             const partyFromLoad = (loadedState.party && loadedState.party.length > 0) ? loadedState.party : (((loadedState as any).playerCharacter) ? [(loadedState as any).playerCharacter] : []);
@@ -476,7 +483,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 underdark: loadedState.underdark || INITIAL_UNDERDARK_STATE,
                 dynamicLocations: loadedState.dynamicLocations || {},
                 activeDialogueSession: null,
-                isDialogueInterfaceOpen: false
+                isDialogueInterfaceOpen: false,
+                banterCooldowns: loadedState.banterCooldowns || {}
             };
         }
 
@@ -617,6 +625,15 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             }
             return newState;
         }
+
+        case 'UPDATE_BANTER_COOLDOWN':
+            return {
+                ...state,
+                banterCooldowns: {
+                    ...state.banterCooldowns,
+                    [action.payload.banterId]: action.payload.timestamp
+                }
+            };
 
         // 2. Delegate to slice reducers for single-domain actions
         default: {

@@ -1,5 +1,5 @@
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
     createOrganization,
     recruitMember,
@@ -9,96 +9,146 @@ import {
 } from '../organizationService';
 import { Organization } from '../../types/organizations';
 
-describe('OrganizationService', () => {
+describe('organizationService', () => {
+    let org: Organization;
 
-    it('should create a new organization correctly', () => {
-        const org = createOrganization('Thieves Guild', 'guild', 'player-1', 'stronghold-1');
-
-        expect(org.name).toBe('Thieves Guild');
-        expect(org.type).toBe('guild');
-        expect(org.leaderId).toBe('player-1');
-        expect(org.headquartersId).toBe('stronghold-1');
-        expect(org.members).toHaveLength(0);
-        expect(org.resources.gold).toBe(500);
+    beforeEach(() => {
+        // Create a test organization with plenty of gold
+        org = createOrganization('Test Guild', 'guild', 'leader-123');
+        org.resources.gold = 10000;
     });
 
-    it('should recruit a member if funds allow', () => {
-        let org = createOrganization('My Org', 'company', 'p1');
-        // Initial gold 500, cost 50
-        org = recruitMember(org, 'Alice', 'Rogue', 3);
-
-        expect(org.members).toHaveLength(1);
-        expect(org.members[0].name).toBe('Alice');
-        expect(org.members[0].rank).toBe('initiate');
-        expect(org.resources.gold).toBe(450);
+    describe('createOrganization', () => {
+        it('should create a new organization with default values', () => {
+            const newOrg = createOrganization('Thieves Guild', 'guild', 'player-1');
+            expect(newOrg.name).toBe('Thieves Guild');
+            expect(newOrg.type).toBe('guild');
+            expect(newOrg.leaderId).toBe('player-1');
+            expect(newOrg.members).toHaveLength(0);
+            expect(newOrg.resources.gold).toBe(500);
+        });
     });
 
-    it('should fail to recruit if insufficient funds', () => {
-        const org = createOrganization('Poor Org', 'company', 'p1');
-        org.resources.gold = 10;
+    describe('recruitMember', () => {
+        it('should recruit a new member and deduct gold', () => {
+            const initialGold = org.resources.gold;
+            const updatedOrg = recruitMember(org, 'Rookie', 'Rogue', 1);
 
-        expect(() => {
-            recruitMember(org, 'Bob', 'Fighter');
-        }).toThrow(/Not enough gold/);
+            expect(updatedOrg.members).toHaveLength(1);
+            expect(updatedOrg.members[0].name).toBe('Rookie');
+            expect(updatedOrg.members[0].rank).toBe('initiate');
+            // Recruitment cost for initiate is 50
+            expect(updatedOrg.resources.gold).toBe(initialGold - 50);
+        });
+
+        it('should throw error if not enough gold', () => {
+            org.resources.gold = 0;
+            expect(() => recruitMember(org, 'Rookie', 'Rogue')).toThrow(/Not enough gold/);
+        });
     });
 
-    it('should promote a member', () => {
-        let org = createOrganization('Org', 'company', 'p1');
-        org = recruitMember(org, 'Alice', 'Rogue');
-        const memberId = org.members[0].id;
+    describe('promoteMember', () => {
+        it('should promote a member to the next rank', () => {
+            let updatedOrg = recruitMember(org, 'Member', 'Fighter');
+            const memberId = updatedOrg.members[0].id;
 
-        org = promoteMember(org, memberId);
-        expect(org.members[0].rank).toBe('member');
+            updatedOrg = promoteMember(updatedOrg, memberId);
+            expect(updatedOrg.members[0].rank).toBe('member');
 
-        org = promoteMember(org, memberId);
-        expect(org.members[0].rank).toBe('officer');
+            updatedOrg = promoteMember(updatedOrg, memberId);
+            expect(updatedOrg.members[0].rank).toBe('officer');
+        });
+
+        it('should fail if member not found', () => {
+            expect(() => promoteMember(org, 'fake-id')).toThrow(/Member not found/);
+        });
     });
 
-    it('should start a mission', () => {
-        let org = createOrganization('Org', 'company', 'p1');
-        org = recruitMember(org, 'Alice', 'Rogue');
-        const memberId = org.members[0].id;
+    describe('startMission', () => {
+        it('should start a mission with assigned members', () => {
+            org = recruitMember(org, 'Agent 1', 'Rogue');
+            const memberId = org.members[0].id;
 
-        org = startMission(org, 'Heist', 10, [memberId], { gold: 100 });
+            const updatedOrg = startMission(org, 'Steal Gem', 10, [memberId], { gold: 100 });
 
-        expect(org.missions).toHaveLength(1);
-        expect(org.missions[0].description).toBe('Heist');
-        expect(org.missions[0].assignedMemberIds).toContain(memberId);
+            expect(updatedOrg.missions).toHaveLength(1);
+            expect(updatedOrg.missions[0].description).toBe('Steal Gem');
+            expect(updatedOrg.missions[0].assignedMemberIds).toContain(memberId);
+        });
+
+        it('should fail if member is already on a mission', () => {
+            org = recruitMember(org, 'Agent 1', 'Rogue');
+            const memberId = org.members[0].id;
+
+            let updatedOrg = startMission(org, 'Mission 1', 10, [memberId], {});
+
+            expect(() => startMission(updatedOrg, 'Mission 2', 10, [memberId], {}))
+                .toThrow(/already on a mission/);
+        });
     });
 
-    it('should fail to assign busy member to new mission', () => {
-        let org = createOrganization('Org', 'company', 'p1');
-        org = recruitMember(org, 'Alice', 'Rogue');
-        const memberId = org.members[0].id;
+    describe('processDailyOrgUpdate', () => {
+        it('should pay wages and generate passive income', () => {
+            // Add a member (Initiate wage: 2)
+            org = recruitMember(org, 'Grunt', 'Fighter');
+            const initialGold = org.resources.gold;
 
-        org = startMission(org, 'Heist 1', 10, [memberId], { gold: 100 });
+            // Guilds generate 10 gold per member passively
+            // Net change expected: +10 (income) - 2 (wage) = +8
 
-        expect(() => {
-            startMission(org, 'Heist 2', 10, [memberId], { gold: 100 });
-        }).toThrow(/already on a mission/);
-    });
+            const { updatedOrg, summary } = processDailyOrgUpdate(org);
 
-    it('should process daily updates: wages and missions', () => {
-        let org = createOrganization('Org', 'guild', 'p1'); // Guild generates income
-        org = recruitMember(org, 'Alice', 'Rogue'); // Wage: 2
-        const memberId = org.members[0].id;
+            expect(updatedOrg.resources.gold).toBe(initialGold + 8);
+            expect(summary.some(s => s.includes('Paid 2gp'))).toBe(true);
+            expect(summary.some(s => s.includes('Guild business generated 10gp'))).toBe(true);
+        });
 
-        // Start a short mission (hack: manually set days to 1 for testing)
-        org = startMission(org, 'Quick Job', 0, [memberId], { gold: 50 });
-        org.missions[0].daysRemaining = 1;
+        it('should resolve completed missions and calculate gold correctly', () => {
+            org = recruitMember(org, 'Hero', 'Paladin', 10); // High level ensuring success
+            const memberId = org.members[0].id;
+            // Promote to master to ensure high bonus
+            org = promoteMember(org, memberId); // member
+            org = promoteMember(org, memberId); // officer
+            org = promoteMember(org, memberId); // leader
+            org = promoteMember(org, memberId); // master
 
-        const { updatedOrg, summary } = processDailyOrgUpdate(org);
+            const preUpdateGold = org.resources.gold;
 
-        // Wages: -2
-        // Guild Income: +10 (1 member * 10)
-        // Mission Reward: +50
-        // Net: +58
-        // Initial gold was 450 (after recruitment cost 50)
-        // Expected: 450 + 58 = 508
+            // Start mission with 1 day remaining (will finish today since we decrement 1)
+            const mission = {
+                id: 'm1',
+                description: 'Easy Win',
+                difficulty: 1, // impossible to fail with lvl 10 master
+                assignedMemberIds: [memberId],
+                daysRemaining: 1,
+                rewards: { gold: 500 }
+            };
+            org.missions = [mission];
 
-        expect(updatedOrg.missions).toHaveLength(0); // Mission completed
-        expect(updatedOrg.resources.gold).toBe(508);
-        expect(summary).toContain('Gained 50 gold.');
-        expect(summary).toContain('Guild business generated 10gp.');
+            const { updatedOrg, summary } = processDailyOrgUpdate(org);
+
+            expect(updatedOrg.missions).toHaveLength(0);
+            expect(summary.some(s => s.includes('Mission \'Easy Win\' successful'))).toBe(true);
+
+            // Exact Gold Calculation:
+            // 1. Pay Wages: Master rank = 250gp (cost)
+            // 2. Mission Reward: +500gp (gain)
+            // 3. Passive Income: Guild (1 member) = +10gp (gain)
+            // Net Change: -250 + 500 + 10 = +260
+
+            expect(updatedOrg.resources.gold).toBe(preUpdateGold + 260);
+        });
+
+        it('should generate connections for Syndicates', () => {
+            org = createOrganization('Mob', 'syndicate', 'don-1');
+            org = recruitMember(org, 'Thug', 'Rogue');
+            org = recruitMember(org, 'Thug 2', 'Rogue');
+
+            const { updatedOrg, summary } = processDailyOrgUpdate(org);
+
+            // 2 members = 2 connections
+            expect(updatedOrg.resources.connections).toBe(5 + 2); // 5 base + 2 generated
+            expect(summary.some(s => s.includes('Syndicate network generated 2 connections'))).toBe(true);
+        });
     });
 });

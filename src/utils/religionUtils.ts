@@ -8,6 +8,8 @@ import {
     Blessing
 } from '../types';
 import { DEITIES } from '../data/deities';
+import { BLESSING_EFFECTS, getBlessingEffect, getBlessingDefinition, BlessingDefinition } from '../data/religion/blessings';
+import { StatusEffect } from '../types/combat';
 
 /**
  * Calculates the new favor level based on an action.
@@ -36,19 +38,30 @@ export const calculateFavorChange = (
 };
 
 /**
+ * Resolves the full definition for a given blessing ID.
+ */
+export const resolveBlessingDefinition = (blessingId: string): BlessingDefinition | null => {
+    return getBlessingDefinition(blessingId);
+};
+
+/**
  * Grants a blessing to the favor record.
  */
 export const grantBlessing = (
     currentFavor: DivineFavor,
     blessing: Blessing
 ): DivineFavor => {
-    // TODO(Religion): Add mechanical application of blessing.effect here.
-    // Currently we just store the blessing object, but the effects need to be
-    // registered with the Actor/Character system (e.g. as StatusEffects).
     return {
         ...currentFavor,
         blessings: [...currentFavor.blessings, blessing]
     };
+};
+
+/**
+ * Resolves the status effect for a given blessing ID.
+ */
+export const resolveBlessingEffect = (blessingId: string): StatusEffect | null => {
+    return getBlessingEffect(blessingId);
 };
 
 /**

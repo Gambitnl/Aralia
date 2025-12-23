@@ -276,6 +276,8 @@ export interface Item {
   capacityWeight?: number;
   /** Restrict what item types can be placed in this container. */
   allowedItemTypes?: Item['type'][];
+  /** Reference to a Lock (see mechanics.ts) */
+  lockId?: string;
 
   armorCategory?: ArmorCategory;
   baseArmorClass?: number;

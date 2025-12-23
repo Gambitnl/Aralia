@@ -53,6 +53,19 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             };
         }
 
+        case 'MODIFY_GOLD': {
+            const { amount } = action.payload;
+            // Round to nearest copper to avoid floating point issues
+            const newGold = Math.max(0, Math.round((state.gold + amount) * 100) / 100);
+            return { gold: newGold };
+        }
+
+        case 'GRANT_EXPERIENCE': {
+            const { amount } = action.payload;
+            const newParty = state.party.map(char => applyXpAndHandleLevelUps(char, amount));
+            return { party: newParty };
+        }
+
         case 'MODIFY_PARTY_HEALTH': {
             const { amount, characterIds } = action.payload;
 

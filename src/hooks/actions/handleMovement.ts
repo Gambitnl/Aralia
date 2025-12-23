@@ -18,6 +18,8 @@ import { generateTravelEvent } from '../../services/travelEventService';
 import { getSeasonalEffects } from '../../systems/time/SeasonalSystem';
 import { getTimeModifiers } from '../../utils/timeUtils';
 import { DiscoveryConsequence } from '../../types/exploration';
+import { BanterManager } from '../../systems/companions/BanterManager';
+import { BanterDisplayService } from '../../services/BanterDisplayService';
 
 interface HandleMovementProps {
   action: Action;
@@ -308,7 +310,7 @@ export async function handleMovement({
         timeToAdvanceSeconds = 3600;
       }
 
-      // TODO(Navigator): Use the restored `calculateTravelTimeHours` and `TravelPace` from `src/systems/travel/TravelCalculations.ts` here to enable "forced march" or "stealthy" travel options that dynamically affect event chance and travel duration.
+      // TODO(Navigator): Use `calculateForcedMarchStatus` from `src/systems/travel/TravelCalculations.ts` to check if the party has traveled > 8 hours and apply exhaustion risks.
       const travelEvent = generateTravelEvent(targetBiome.id, undefined, { worldSeed: gameState.worldSeed, x: targetWorldMapX, y: targetWorldMapY });
       if (travelEvent) {
         addMessage(travelEvent.description, 'system');
@@ -340,6 +342,22 @@ export async function handleMovement({
               }
               break;
 
+            case 'gold_gain':
+              dispatch({
+                type: 'MODIFY_GOLD',
+                payload: { amount: travelEvent.effect.amount }
+              });
+              addMessage(travelEvent.effect.description || `You found ${travelEvent.effect.amount} gold pieces.`, 'system');
+              break;
+
+            case 'xp_gain':
+              dispatch({
+                type: 'GRANT_EXPERIENCE',
+                payload: { amount: travelEvent.effect.amount }
+              });
+              addMessage(travelEvent.effect.description || `Party gained ${travelEvent.effect.amount} XP.`, 'system');
+              break;
+
             case 'discovery':
               if (travelEvent.effect.data) {
                 // Log the discovery in the game state (UI log/journal)
@@ -353,6 +371,33 @@ export async function handleMovement({
                 };
                 logDiscovery(discoveryLocation);
                 addMessage(`Map updated: ${travelEvent.effect.data.name} recorded.`, 'system');
+
+                // Process Rewards
+                if (travelEvent.effect.data.rewards) {
+                   travelEvent.effect.data.rewards.forEach(reward => {
+                     switch (reward.type) {
+                        case 'item':
+                          if (reward.resourceId) {
+                            dispatch({ type: 'ADD_ITEM', payload: { itemId: reward.resourceId, count: reward.amount } });
+                            addMessage(`Gained ${reward.amount}x ${reward.description || 'Items'}`, 'system');
+                          }
+                          break;
+                        case 'gold':
+                          dispatch({ type: 'MODIFY_GOLD', payload: { amount: reward.amount } });
+                          addMessage(`Gained ${reward.amount} Gold`, 'system');
+                          break;
+                        case 'xp':
+                          dispatch({ type: 'GRANT_EXPERIENCE', payload: { amount: reward.amount } });
+                          addMessage(`Party gained ${reward.amount} XP`, 'system');
+                          break;
+                        case 'health':
+                          dispatch({ type: 'MODIFY_PARTY_HEALTH', payload: { amount: reward.amount } });
+                          const hpText = reward.amount > 0 ? 'Healed' : 'Took damage';
+                          addMessage(`${hpText} ${Math.abs(reward.amount)} HP`, 'system');
+                          break;
+                     }
+                   });
+                }
 
                 // Process Consequences
                 if (travelEvent.effect.data.consequences && newMapDataForDispatch) {
@@ -459,6 +504,18 @@ export async function handleMovement({
   dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
 
   addMessage(newDescription, 'system');
+
+  // Trigger Banter (Contextual Companion Dialogue)
+  // Heartkeeper: Companions should speak up during travel to feel alive.
+  // Use BanterDisplayService to manage queues and prevent overlapping dialogue.
+  const banter = BanterManager.selectBanter(gameState);
+  if (banter) {
+    dispatch({
+      type: 'UPDATE_BANTER_COOLDOWN',
+      payload: { banterId: banter.id, timestamp: Date.now() }
+    });
+    BanterDisplayService.queueBanter(banter.lines, addMessage, gameState.companions);
+  }
 }
 
 interface HandleQuickTravelProps {

@@ -74,6 +74,8 @@ export type AppAction =
   | { type: 'ADD_GENERATED_CHARACTER'; payload: PlayerCharacter }
   // Resource Management Actions
   | { type: 'ADD_ITEM'; payload: { itemId: string; count?: number } }
+  | { type: 'MODIFY_GOLD'; payload: { amount: number } }
+  | { type: 'GRANT_EXPERIENCE'; payload: { amount: number } }
   | { type: 'MODIFY_PARTY_HEALTH'; payload: { amount: number; characterIds?: string[] } }
   | { type: 'CAST_SPELL'; payload: { characterId: string; spellLevel: number } }
   | { type: 'USE_LIMITED_ABILITY'; payload: { characterId: string; abilityId: string } }
@@ -118,6 +120,7 @@ export type AppAction =
   // Companion Actions
   | { type: 'UPDATE_COMPANION_APPROVAL'; payload: { companionId: string; change: number; reason: string; source?: string } }
   | { type: 'ADD_COMPANION_REACTION'; payload: { companionId: string; reaction: string } }
+  | { type: 'UPDATE_BANTER_COOLDOWN'; payload: { banterId: string; timestamp: number } }
   // Notification Actions
   | { type: 'ADD_NOTIFICATION'; payload: { type: 'success' | 'error' | 'info' | 'warning'; message: string; duration?: number } }
   | { type: 'REMOVE_NOTIFICATION'; payload: { id: string } }

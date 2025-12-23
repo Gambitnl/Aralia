@@ -377,6 +377,7 @@ export interface PlayerCharacter {
   spellbook?: SpellbookData;
   limitedUses?: LimitedUses;
   activeEffects?: any[]; // For temporary spell effects (e.g. Shield, Mage Armor)
+  statusEffects: import('./combat').StatusEffect[]; // Required for status effects
   selectedFightingStyle?: FightingStyle;
   selectedDivineOrder?: 'Protector' | 'Thaumaturge';
   selectedDruidOrder?: 'Magician' | 'Warden';

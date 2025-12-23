@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import {
   calculateEncumbrance,
   calculateGroupTravelStats,
+  calculateForcedMarchStatus,
   PACE_MODIFIERS
 } from '../TravelCalculations';
 import { Item } from '../../../types/items';
@@ -139,6 +140,54 @@ describe('TravelCalculations', () => {
       const stats = calculateGroupTravelStats([char], { hero: [] }, 'fast', 'difficult');
 
       expect(stats.travelSpeedMph).toBe(2.00);
+    });
+  });
+
+  describe('calculateForcedMarchStatus', () => {
+    it('identifies safe travel duration', () => {
+      const result = calculateForcedMarchStatus(8);
+      expect(result.isForcedMarch).toBe(false);
+      expect(result.hoursOverLimit).toBe(0);
+      expect(result.constitutionSaveDC).toBe(0);
+    });
+
+    it('identifies forced march (1 hour over)', () => {
+      const result = calculateForcedMarchStatus(9);
+      expect(result.isForcedMarch).toBe(true);
+      expect(result.hoursOverLimit).toBe(1);
+      // DC 10 + 1 = 11
+      expect(result.constitutionSaveDC).toBe(11);
+    });
+
+    it('identifies forced march (2 hours over)', () => {
+      const result = calculateForcedMarchStatus(10);
+      expect(result.isForcedMarch).toBe(true);
+      expect(result.hoursOverLimit).toBe(2);
+      // DC 10 + 2 = 12
+      expect(result.constitutionSaveDC).toBe(12);
+    });
+
+    it('handles fractional hours - no save if hour not completed', () => {
+      // 8.5 hours traveled. Forced march status is true (traveling beyond 8h),
+      // but no save required yet as 9th hour isn't finished.
+      const result = calculateForcedMarchStatus(8.5);
+      expect(result.isForcedMarch).toBe(true);
+      expect(result.hoursOverLimit).toBe(0.5);
+      expect(result.constitutionSaveDC).toBe(0);
+    });
+
+    it('handles fractional hours - save after completion', () => {
+      // 9.5 hours traveled. Finished 9th hour (DC 11). Not finished 10th.
+      const result = calculateForcedMarchStatus(9.5);
+      expect(result.isForcedMarch).toBe(true);
+      expect(result.hoursOverLimit).toBe(1.5);
+      expect(result.constitutionSaveDC).toBe(11);
+    });
+
+    it('handles under 8 hours safely', () => {
+      const result = calculateForcedMarchStatus(4);
+      expect(result.isForcedMarch).toBe(false);
+      expect(result.constitutionSaveDC).toBe(0);
     });
   });
 });

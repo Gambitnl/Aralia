@@ -807,12 +807,12 @@ This section is intentionally implementation-agnostic. It describes the working 
 
 ### Task-Driven Execution and Traceable Decisions
 - Write task files for non-trivial work with: goals, constraints, inputs, steps, and a definition of done.
-- After completing a task, append completion notes:
+- After completing a task, pre-pend completion notes:
   - What was done (step-by-step)
   - What changed (high-level)
   - Files touched and commands run
   - Decisions made and why
-- Also append "Detected TODOs (Out of Scope)" to capture insights that should not be lost.
+- Also pre-pend "Detected TODOs (Out of Scope)" to capture insights that should not be lost.
 
 ### Comment for Intent (Not for Noise)
 - Add comments for non-obvious logic explaining intent, assumptions, and why the approach was chosen.

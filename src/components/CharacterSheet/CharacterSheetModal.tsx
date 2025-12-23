@@ -8,12 +8,12 @@
  */
 import React, { useEffect, useState } from 'react';
 import { motion, MotionProps } from 'framer-motion';
-import { PlayerCharacter, Item, EquipmentSlotType, Action } from '../types';
-import EquipmentMannequin from './CharacterSheet/EquipmentMannequin';
-import InventoryList from './CharacterSheet/InventoryList';
-import SkillDetailDisplay from './CharacterSheet/SkillDetailDisplay';
+import { PlayerCharacter, Item, EquipmentSlotType, Action } from '../../types';
+import EquipmentMannequin from './EquipmentMannequin';
+import InventoryList from './InventoryList';
+import SkillDetailDisplay from './SkillDetailDisplay';
 import SpellbookOverlay from './SpellbookOverlay'; // Import the new SpellbookOverlay component
-import CharacterOverview from './CharacterSheet/CharacterOverview'; // Import the extracted component
+import CharacterOverview from './CharacterOverview'; // Import the extracted component
 // Glossary modal is nested under the Glossary folder to keep related UI together
 
 

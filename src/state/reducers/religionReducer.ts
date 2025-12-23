@@ -1,7 +1,7 @@
 
 import { GameState, DeityAction } from '../../types';
 import { AppAction } from '../actionTypes';
-import { calculateFavorChange, getDeity, evaluateAction, grantBlessing } from '../../utils/religionUtils';
+import { calculateFavorChange, getDeity, evaluateAction, grantBlessing, resolveBlessingDefinition } from '../../utils/religionUtils';
 import { DEITIES } from '../../data/deities';
 
 export function religionReducer(state: GameState, action: AppAction): Partial<GameState> {
@@ -133,6 +133,17 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     sender: 'system',
                     timestamp: new Date(timestamp)
                 });
+            } else if (effect === 'heal_20_hp') {
+                party = party.map(char => ({
+                    ...char,
+                    hp: Math.min(char.maxHp, char.hp + 20)
+                }));
+                messages.push({
+                    id: timestamp,
+                    text: 'A soothing warmth heals your wounds.',
+                    sender: 'system',
+                    timestamp: new Date(timestamp)
+                });
             } else if (effect === 'remove_condition_poisoned') {
                 party = party.map(char => ({
                     ...char,
@@ -173,6 +184,44 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     sender: 'system',
                     timestamp: new Date(timestamp)
                 });
+            } else if (effect.startsWith('grant_blessing_') && deityId) {
+                const blessingIdFragment = effect.slice(15); // 'grant_blessing_'.length === 15
+                const blessingId = `blessing_${blessingIdFragment}`;
+
+                const definition = resolveBlessingDefinition(blessingId);
+
+                if (definition) {
+                    const { effect: statusEffect, name, description } = definition;
+
+                    // 1. Add Status Effect to Party
+                    party = party.map(char => ({
+                        ...char,
+                        statusEffects: [...char.statusEffects, {
+                            ...statusEffect,
+                            // Ensure unique IDs for instances
+                            id: `${statusEffect.id}_${char.id}_${timestamp}`
+                        }]
+                    }));
+
+                    // 2. Add Blessing to Favor Record
+                    const existing = favorUpdates[deityId] || { deityId, favor: 0, history: [], blessings: [], transgressions: [] };
+                    const blessingRecord = {
+                        id: blessingId,
+                        name: name,
+                        description: description,
+                        effectType: 'buff' as const,
+                        durationHours: statusEffect.duration ? statusEffect.duration / 600 : undefined // approx
+                    };
+
+                    favorUpdates[deityId] = grantBlessing(existing, blessingRecord);
+
+                    messages.push({
+                        id: timestamp,
+                        text: `You receive the blessing: ${name}.`,
+                        sender: 'system',
+                        timestamp: new Date(timestamp)
+                    });
+                }
             }
 
             return {

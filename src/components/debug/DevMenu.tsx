@@ -3,10 +3,10 @@
  * This component displays a developer menu modal with various debug/utility actions.
  */
 import React, { useEffect, useRef } from 'react';
-import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN } from '../config/geminiConfig';
-import { useGameState } from '../state/GameContext';
-import { generateVillageTemple } from '../utils/templeUtils';
-import { VillageActionContext, VillagePersonality } from '../types';
+import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN } from '../../config/geminiConfig';
+import { useGameState } from '../../state/GameContext';
+import { generateVillageTemple } from '../../utils/templeUtils';
+import { VillageActionContext, VillagePersonality } from '../../types';
 
 type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple' | 'toggle_thieves_guild';
 

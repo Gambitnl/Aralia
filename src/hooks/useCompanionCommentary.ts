@@ -14,7 +14,7 @@ import { Companion, ReactionTriggerType, CompanionReactionRule } from '../types/
 // Cooldown tracking: companionId -> triggerType -> timestamp
 type CooldownMap = Record<string, Record<string, number>>;
 
-type CompanionAction = 
+type CompanionAction =
   | { type: 'ADD_COMPANION_REACTION'; payload: { companionId: string; reaction: string } }
   | { type: 'UPDATE_COMPANION_APPROVAL'; payload: { companionId: string; change: number; reason: string; source: string } };
 
@@ -67,20 +67,21 @@ export const useCompanionCommentary = (
         if (ruleType !== triggerType) return;
 
         if (rule.triggerTags.length > 0) {
-           const hasMatch = rule.triggerTags.some(tag => tags.includes(tag));
-           if (!hasMatch) return;
+          const hasMatch = rule.triggerTags.some(tag => tags.includes(tag));
+          if (!hasMatch) return;
         }
 
         if (rule.cooldown && isOnCooldown(companion.id, `${triggerType}_${rule.triggerTags.join('_')}`, rule.cooldown)) {
-           return;
+          return;
         }
 
+        // 4. Check Chance
         if (rule.chance !== undefined && Math.random() > rule.chance) {
-           return;
+          return;
         }
 
         if (rule.requirements?.locationId && rule.requirements.locationId !== gameState.currentLocationId) {
-           return;
+          return;
         }
 
         const priority = rule.priority || 0;
@@ -106,19 +107,19 @@ export const useCompanionCommentary = (
       });
 
       if (winner.rule.approvalChange !== 0) {
-          dispatch({
-              type: 'UPDATE_COMPANION_APPROVAL',
-              payload: {
-                  companionId: winner.companionId,
-                  change: winner.rule.approvalChange,
-                  reason: `Reaction to ${triggerType}`,
-                  source: 'system'
-              }
-          });
+        dispatch({
+          type: 'UPDATE_COMPANION_APPROVAL',
+          payload: {
+            companionId: winner.companionId,
+            change: winner.rule.approvalChange,
+            reason: `Reaction to ${triggerType}`,
+            source: 'system'
+          }
+        });
       }
 
       if (winner.rule.cooldown) {
-          setCooldown(winner.companionId, `${triggerType}_${winner.rule.triggerTags.join('_')}`);
+        setCooldown(winner.companionId, `${triggerType}_${winner.rule.triggerTags.join('_')}`);
       }
     }
   }, [gameState.companions, gameState.currentLocationId, isOnCooldown, setCooldown, dispatch]);
@@ -128,38 +129,38 @@ export const useCompanionCommentary = (
   // 1. Location Changes
   useEffect(() => {
     if (gameState.currentLocationId !== prevLocationRef.current) {
-        prevLocationRef.current = gameState.currentLocationId;
-        evaluateReaction('location'); // Tag could be biome or region derived from location
+      prevLocationRef.current = gameState.currentLocationId;
+      evaluateReaction('location'); // Tag could be biome or region derived from location
     }
   }, [gameState.currentLocationId, evaluateReaction]); // Re-run when location changes
 
   // 2. Loot / Messages
   useEffect(() => {
-      if (gameState.messages.length > prevMessagesLengthRef.current) {
-          const newMessages = gameState.messages.slice(prevMessagesLengthRef.current);
-          prevMessagesLengthRef.current = gameState.messages.length;
+    if (gameState.messages.length > prevMessagesLengthRef.current) {
+      const newMessages = gameState.messages.slice(prevMessagesLengthRef.current);
+      prevMessagesLengthRef.current = gameState.messages.length;
 
-          // Check if any message indicates valuable loot
-          // Or if Gold amount increased significantly
-          const goldDiff = gameState.gold - prevGoldRef.current;
-          if (goldDiff > 50) {
-              evaluateReaction('loot', ['gold']);
-          }
-          prevGoldRef.current = gameState.gold;
-
-          // Check messages for item pickups (if log text is consistent)
-          // "You picked up X"
-          newMessages.forEach(msg => {
-              if (msg.text.includes("picked up") || msg.text.includes("received")) {
-                  if (msg.text.toLowerCase().includes("gem") || msg.text.toLowerCase().includes("artifact")) {
-                       evaluateReaction('loot', ['valuable']);
-                  }
-              }
-              if (msg.text.includes("Victory!")) {
-                   evaluateReaction('combat_end', ['victory']);
-              }
-          });
+      // Check if any message indicates valuable loot
+      // Or if Gold amount increased significantly
+      const goldDiff = gameState.gold - prevGoldRef.current;
+      if (goldDiff > 50) {
+        evaluateReaction('loot', ['gold']);
       }
+      prevGoldRef.current = gameState.gold;
+
+      // Check messages for item pickups (if log text is consistent)
+      // "You picked up X"
+      newMessages.forEach(msg => {
+        if (msg.text.includes("picked up") || msg.text.includes("received")) {
+          if (msg.text.toLowerCase().includes("gem") || msg.text.toLowerCase().includes("artifact")) {
+            evaluateReaction('loot', ['valuable']);
+          }
+        }
+        if (msg.text.includes("Victory!")) {
+          evaluateReaction('combat_end', ['victory']);
+        }
+      });
+    }
   }, [gameState.messages, gameState.gold, evaluateReaction]);
 
 };
