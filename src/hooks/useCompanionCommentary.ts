@@ -82,7 +82,7 @@ export const useCompanionCommentary = (
         }
 
         // 4. Check Chance
-        if (rule.requirements?.chance && Math.random() > rule.requirements.chance) {
+        if (rule.chance !== undefined && Math.random() > rule.chance) {
            return;
         }
 
