@@ -255,6 +255,8 @@ export interface Monster {
   quantity: number;
   cr: string;
   description: string;
+  // TODO(Schemer): Link to LootTable ID once loot tables are populated in src/data/lootTables.ts
+  lootTableId?: string;
 }
 
 export interface GameMessage {
