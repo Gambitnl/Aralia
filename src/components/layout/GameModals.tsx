@@ -325,6 +325,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                             playerGold={gameState.gold}
                             onClose={() => dispatch({ type: 'CLOSE_MERCHANT' })}
                             onAction={onAction}
+                            regionId={currentLocation.regionId}
                         />
                     </ErrorBoundary>
                 </Suspense>
