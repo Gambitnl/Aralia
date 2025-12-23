@@ -24,9 +24,9 @@ import {
   isStatusConditionEffect,
   isDefensiveEffect
 } from '../types/spells';
-import { SpellCommandFactory, CommandExecutor } from '../commands'; // Import Command System
+import { SpellCommandFactory, AbilityCommandFactory, CommandExecutor } from '../commands'; // Import Command System
 import { BreakConcentrationCommand } from '../commands/effects/ConcentrationCommands'; // Import Break Concentration
-import { getDistance, calculateDamage, generateId, rollDice, rollDamage } from '../utils/combatUtils';
+import { getDistance, calculateDamage, generateId, rollDamage } from '../utils/combatUtils';
 import { hasLineOfSight } from '../utils/lineOfSight';
 import { calculateAffectedTiles } from '../utils/aoeCalculations';
 import { useTargeting } from './combat/useTargeting'; // New Hook
@@ -282,163 +282,7 @@ export const useAbilitySystem = ({
   }, [mapData, isValidTarget]);
 
 
-  /**
-   * Legacy effect application (Direct Mutation).
-   * Used for non-spell abilities until fully migrated to Command Pattern.
-   */
-  const applyAbilityEffects = useCallback((
-    ability: Ability,
-    caster: CombatCharacter,
-    target: CombatCharacter,
-    isCritical: boolean = false
-  ) => {
-    // Clone once so we can safely layer mutations.
-    const modifiedTarget = { ...target, statusEffects: [...target.statusEffects] };
-
-    ability.effects.forEach(effect => {
-      switch (effect.type) {
-        case 'damage': {
-          let rolledValue = effect.value || 0;
-
-          if (effect.dice) {
-            rolledValue = rollDamage(effect.dice, isCritical);
-          } else if (rolledValue === 0 && ability.weapon) {
-             // Fallback if dice string missing but weapon present (legacy support)
-             // Though creating ability should have populated dice now.
-          }
-
-          const damage = calculateDamage(rolledValue, caster, target, effect.damageType);
-          modifiedTarget.currentHP = Math.max(0, modifiedTarget.currentHP - damage);
-          if (onAbilityEffect) onAbilityEffect(damage, target.position, 'damage');
-          break;
-        }
-        case 'heal': {
-          let healAmount = effect.value || 0;
-          if (effect.dice) {
-             healAmount = rollDamage(effect.dice, false);
-          }
-
-          modifiedTarget.currentHP = Math.min(modifiedTarget.maxHP, modifiedTarget.currentHP + healAmount);
-          if (onAbilityEffect) onAbilityEffect(healAmount, target.position, 'heal');
-          break;
-        }
-        case 'status': {
-          const statusEffect = effect.statusEffect;
-          if (statusEffect) {
-            const effectDuration = effect.duration ?? statusEffect.duration ?? 1;
-            modifiedTarget.statusEffects.push({
-              ...statusEffect,
-              duration: effectDuration,
-              id: statusEffect.id || generateId(),
-            });
-          }
-          break;
-        }
-      }
-    });
-
-
-    // --- Rider System Integration ---
-    if (ability.type === 'attack') {
-      // TODO: reuse/memoize AttackRiderSystem per combat; constructing per hit recomputes rider rules unnecessarily.
-      const riderSystem = new AttackRiderSystem();
-
-      const tempState: CombatState = {
-        isActive: true,
-        characters: characters,
-        turnState: {
-          currentTurn: 0,
-          turnOrder: [],
-          currentCharacterId: null,
-          phase: 'planning',
-          actionsThisTurn: []
-        },
-        selectedCharacterId: null,
-        selectedAbilityId: null,
-        actionMode: 'select',
-        validTargets: [],
-        validMoves: [],
-        combatLog: [],
-        reactiveTriggers: [],
-        activeLightSources: []
-      };
-
-      const weaponType = ability.range <= 2 ? 'melee' : 'ranged';
-
-      const context: AttackContext = {
-        attackerId: caster.id,
-        targetId: target.id,
-        attackType: 'weapon',
-        weaponType: weaponType,
-        isHit: true
-      };
-
-      const matchingRiders = riderSystem.getMatchingRiders(tempState, context);
-
-      if (matchingRiders.length > 0) {
-        matchingRiders.forEach(rider => {
-          // Apply Rider Effect
-          if (isDamageEffect(rider.effect)) {
-            const rolledDamage = rollDice(rider.effect.damage.dice || '0');
-            const damage = calculateDamage(rolledDamage, caster, target, rider.effect.damage.type);
-
-            modifiedTarget.currentHP = Math.max(0, modifiedTarget.currentHP - damage);
-
-            if (onAbilityEffect) onAbilityEffect(damage, target.position, 'damage');
-            if (onLogEntry) {
-              onLogEntry({
-                id: generateId(),
-                timestamp: Date.now(),
-                type: 'damage',
-                message: `${caster.name}'s ${rider.sourceName} deals ${damage} additional ${rider.effect.damage.type} damage.`,
-                characterId: caster.id,
-                targetIds: [target.id],
-                data: { value: damage, type: rider.effect.damage.type }
-              });
-            }
-          } else if (isStatusConditionEffect(rider.effect)) {
-            const statusData = rider.effect.statusCondition;
-
-            if (statusData) {
-              let duration = 1;
-              const effectDuration = statusData.duration;
-              if (effectDuration.type === 'minutes') duration = (effectDuration.value || 1) * 10;
-              if (effectDuration.type === 'rounds') duration = effectDuration.value || 1;
-
-              modifiedTarget.statusEffects.push({
-                id: generateId(),
-                name: statusData.name,
-                type: 'debuff',
-                duration: duration,
-                effect: { type: 'condition', value: 0 }
-              });
-
-              if (onLogEntry) {
-                onLogEntry({
-                  id: generateId(),
-                  timestamp: Date.now(),
-                  type: 'status',
-                  message: `${target.name} is affected by ${statusData.name}`,
-                  characterId: target.id,
-                  targetIds: [target.id]
-                });
-              }
-
-              // Handle Consumption
-              const stateAfterConsumption = riderSystem.consumeRiders(tempState, caster.id, matchingRiders);
-              const updatedCaster = stateAfterConsumption.characters.find(c => c.id === caster.id);
-
-              if (updatedCaster) {
-                onCharacterUpdate(updatedCaster);
-              }
-            }
-          }
-        });
-      }
-    }
-
-    onCharacterUpdate(modifiedTarget);
-  }, [onCharacterUpdate, onAbilityEffect, characters, onLogEntry]);
+  // Legacy applyAbilityEffects removed - Logic moved to WeaponAttackCommand in AbilityCommandFactory
 
 
 
@@ -470,7 +314,41 @@ export const useAbilitySystem = ({
       return;
     }
 
-    // --- Path B: Legacy Ability System (Action Object) ---
+    // --- Path B: Ability System (Command Pattern) ---
+
+    // Construct State
+    const currentState: CombatState = {
+      isActive: true,
+      characters: characters,
+      turnState: {
+        currentTurn: 0,
+        turnOrder: [],
+        currentCharacterId: null,
+        phase: 'planning',
+        actionsThisTurn: []
+      },
+      selectedCharacterId: null,
+      selectedAbilityId: null,
+      actionMode: 'select',
+      validTargets: [],
+      validMoves: [],
+      combatLog: [],
+      reactiveTriggers: reactiveTriggers || [],
+      activeLightSources: [],
+      currentPlane
+    };
+
+    const mockGameState = {} as unknown as GameState;
+
+    // Use Factory
+    const targets = targetCharacterIds
+        .map(id => characters.find(c => c.id === id))
+        .filter((c): c is CombatCharacter => !!c);
+
+    const commands = AbilityCommandFactory.createCommands(ability, caster, targets, mockGameState);
+
+    // Verify economy costs (Action Points)
+    // We still check this first before executing commands
     const action: CombatAction = {
       id: generateId(),
       characterId: caster.id,
@@ -482,187 +360,42 @@ export const useAbilitySystem = ({
       timestamp: Date.now()
     };
 
-    // Verify economy costs (Action Points)
-    const success = onExecuteAction(action);
+    if (!onExecuteAction(action)) {
+      cancelTargeting();
+      return;
+    }
 
-    if (success) {
-      // Loop through targets sequentially to allow for individual reactions
-      for (const targetId of targetCharacterIds) {
-        const target = characters.find(c => c.id === targetId);
-        if (!target) continue;
+    // Execute
+    const result = CommandExecutor.execute(commands, currentState);
 
-        if (ability.type === 'attack') {
-          // Task 09: Attack Roll Implementation
+    if (result.success) {
+      // Propagate State Changes
+      result.finalState.characters.forEach(finalChar => {
+        onCharacterUpdate(finalChar);
+      });
 
-          // Check for Disadvantage from target's active effects (e.g., Protection from Evil and Good)
-          const hasDisadvantage = target.activeEffects?.some(e =>
-            e.type === 'disadvantage_on_attacks' &&
-            SpellCommandFactory.matchesFilter(caster, e.attackerFilter)
-          );
+      // Propagate Logs
+      if (onLogEntry) {
+        result.finalState.combatLog.forEach(entry => onLogEntry(entry));
+      }
 
-          let d20 = rollDice('1d20');
-          if (hasDisadvantage) {
-            const d20_second = rollDice('1d20');
-            d20 = Math.min(d20, d20_second);
-            if (onLogEntry) {
-              onLogEntry({
-                id: generateId(),
-                timestamp: Date.now(),
-                type: 'status',
-                message: `Attack has Disadvantage! (Rolled ${d20})`,
-                characterId: caster.id,
-                targetIds: [targetId]
-              });
-            }
-          }
-
-          const strMod = Math.floor((caster.stats.strength - 10) / 2);
-          const dexMod = Math.floor((caster.stats.dexterity - 10) / 2);
-
-          const isRanged = ability.range > 1 || ability.weapon?.properties?.includes('range');
-          const abilityMod = isRanged ? dexMod : strMod;
-
-          if (currentPlane && ability.weapon) {
-             // For simplicity, assume all melee weapons are affected by "Empowered" if applicable,
-             // or check damage type.
-             // But `getPlanarSpellModifier` is for spells.
-             // We could add `getPlanarAttackModifier` later.
-             // For now, if ability has a spell school (e.g. Green-Flame Blade), it might use that.
-             // But standard attacks don't have schools.
-             // Skipping attack modification for now, focusing on SPELLS.
-          }
-
-          let proficiencyBonus = 0;
-          if (ability.weapon) {
-            const pb = Math.ceil((caster.level || 1) / 4) + 1;
-            proficiencyBonus = ability.isProficient ? pb : 0;
-            const initialAttackRoll = d20 + abilityMod + proficiencyBonus;
-            const initialAC = target.armorClass || 10;
-            const initialIsHit = initialAttackRoll >= initialAC;
-
-            if (onLogEntry) {
-              onLogEntry({
-                id: generateId(),
-                timestamp: Date.now(),
-                type: 'action',
-                message: `${caster.name} attacks ${target.name} (Roll: ${d20} + ${abilityMod} + ${proficiencyBonus} = ${initialAttackRoll})`,
-                characterId: caster.id,
-                targetIds: [targetId]
-              });
-            }
-
-            let finalAC = initialAC;
-            let finalIsHit = initialIsHit;
-
-            // --- REACTION CHECK ---
-            if (initialIsHit) {
-              // Check for available reactions (e.g., Shield)
-              const hasReactionResource = (target.actionEconomy?.reaction?.remaining ?? 0) > 0;
-
-              // Scan `target.abilities` for spells with reactionTrigger
-              const reactionSpells = target.abilities
-                .map(a => a.spell)
-                .filter(s => {
-                  if (!s || s.castingTime.unit !== 'reaction') return false;
-                  // Check if any defensive effect has a reaction trigger of type 'when_hit'
-                  return s.effects.some(e => isDefensiveEffect(e) && e.reactionTrigger?.event === 'when_hit');
-                }) as Spell[];
-
-              if (hasReactionResource && reactionSpells.length > 0) {
-                // Pause for User Input
-                const usedSpellId = await new Promise<string | null>(resolve => {
-                  setPendingReaction({
-                    attackerId: caster.id,
-                    targetId: target.id,
-                    triggerType: 'on_hit',
-                    reactionSpells,
-                    onResolve: resolve
-                  });
-                });
-
-                setPendingReaction(null);
-
-                if (usedSpellId) {
-                  const spell = reactionSpells.find(s => s.id === usedSpellId);
-                  if (spell) {
-                    await executeSpell(spell, target, [target], spell.level); // Cast Shield on self
-
-                    // For calculation, assume Shield adds +5 (read from defensive effect)
-                    const defensiveEffect = spell.effects.find(isDefensiveEffect);
-                    const acBonus = defensiveEffect?.acBonus || 5; // Default to 5 if undefined
-
-                    finalAC += acBonus;
-                    finalIsHit = initialAttackRoll >= finalAC;
-
-                    if (onLogEntry) {
-                      onLogEntry({
-                        id: generateId(),
-                        timestamp: Date.now(),
-                        type: 'action',
-                        message: `${target.name} casts ${spell.name}! AC increases to ${finalAC}. Attack ${finalIsHit ? 'still HITS' : 'now MISSES'}!`,
-                        characterId: target.id,
-                        data: { spellId: spell.id, reaction: true }
-                      });
-                    }
-                  }
-                }
-              }
-            }
-            // --- END REACTION CHECK ---
-
-            if (!finalIsHit) {
-              if (onLogEntry) {
-                onLogEntry({
-                  id: generateId(),
-                  timestamp: Date.now(),
-                  type: 'action',
-                  message: `Attack MISSES ${target.name} (AC ${finalAC}).`,
-                  characterId: caster.id,
-                  targetIds: [targetId]
-                });
-              }
-              if (onAbilityEffect) onAbilityEffect(0, target.position, 'miss');
-              continue; // Next target
-            } else {
-              // Determine Critical Hit based on d20 roll (Natural 20)
-              // TODO: Handle Expanded Crit Range (Champion Fighter, Hexblade)
-              const isCritical = d20 === 20;
-
-              if (onLogEntry) {
-                onLogEntry({
-                  id: generateId(),
-                  timestamp: Date.now(),
-                  type: 'damage', // Log as damage event or just hit confirmation
-                  message: isCritical ? `Critical Hit! (${d20})` : `Attack HITS ${target.name}!`,
-                  characterId: caster.id,
-                  targetIds: [targetId]
-                });
-              }
-
-              // Apply effects with critical status
-              applyAbilityEffects(ability, caster, target, isCritical);
-              continue; // Handled
-            }
-          }
-        }
-
-        applyAbilityEffects(ability, caster, target, false);
-      } // end target loop
-
-      // Handle Cooldowns
+      // Handle Cooldowns (Manually for now, could be a command)
       if (ability.cooldown) {
-        const updatedCaster = {
-          ...caster,
-          abilities: caster.abilities.map(a =>
+        const updatedCaster = result.finalState.characters.find(c => c.id === caster.id) || caster;
+        const newCaster = {
+          ...updatedCaster,
+          abilities: updatedCaster.abilities.map(a =>
             a.id === ability.id ? { ...a, currentCooldown: ability.cooldown } : a
           )
         };
-        onCharacterUpdate(updatedCaster);
+        onCharacterUpdate(newCaster);
       }
+    } else {
+      console.error("Ability execution failed:", result.error);
     }
 
     cancelTargeting();
-  }, [onExecuteAction, characters, applyAbilityEffects, onCharacterUpdate, cancelTargeting, executeSpell, onLogEntry, onAbilityEffect, currentPlane]);
+  }, [onExecuteAction, characters, onCharacterUpdate, cancelTargeting, executeSpell, onLogEntry, onAbilityEffect, currentPlane]);
 
   const executeAbility = useCallback((...args: Parameters<typeof executeAbilityInternal>) => {
     return executeAbilityInternal(...args);
