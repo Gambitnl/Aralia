@@ -233,3 +233,37 @@ export const calculateArmorClass = (character: PlayerCharacter, activeEffects: A
 
   return calculateFinalAC(components);
 };
+
+/**
+ * Calculates a passive score (e.g., Passive Perception) based on modifiers.
+ * Formula: 10 + Modifier + Proficiency + Advantage/Disadvantage (+/- 5).
+ * D&D 5e / 2024 PHB Rules.
+ *
+ * @param modifier - The ability modifier (e.g., Wisdom modifier).
+ * @param proficiencyBonus - The proficiency bonus (if applicable). Default 0.
+ * @param advantageState - 'none' | 'advantage' | 'disadvantage'. Default 'none'.
+ * @returns The calculated passive score.
+ */
+export const calculatePassiveScore = (
+  modifier: number,
+  proficiencyBonus: number = 0,
+  advantageState: 'none' | 'advantage' | 'disadvantage' = 'none'
+): number => {
+  let score = 10 + modifier + proficiencyBonus;
+
+  switch (advantageState) {
+    case 'advantage':
+      score += 5;
+      break;
+    case 'disadvantage':
+      score -= 5;
+      break;
+    case 'none':
+    default:
+      break;
+  }
+
+  return score;
+};
+
+// TODO(Mechanist): Wire up `calculatePassiveScore` to `CharacterSheet` to display Passive Perception/Investigation.

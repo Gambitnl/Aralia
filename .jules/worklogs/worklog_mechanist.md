@@ -7,3 +7,7 @@
 ## 2024-05-23 - Suffocation Minimums
 **Learning:** D&D 5e suffocation rules include strict minimums (30 seconds for breath, 1 round for survival) that are critical for characters with negative Constitution modifiers but are often overlooked in "simplified" math.
 **Action:** Implemented `calculateBreathDuration` and `calculateSuffocationRounds` with explicit `Math.max` guards to enforce these minimums, preventing potential "instant death" bugs for low-CON characters.
+
+## 2024-05-24 - Passive Scores
+**Learning:** The codebase lacked a centralized calculation for Passive Perception/Investigation (10 + Mod + Prof + Adv/Dis).
+**Action:** Implemented `calculatePassiveScore` in `src/utils/statUtils.ts` to standardize this math, ensuring Advantage/Disadvantage (+/-5) is handled correctly per PHB 2024.
