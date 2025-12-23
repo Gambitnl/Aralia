@@ -34,7 +34,7 @@ const DiscoveryLogPane = lazy(() => import('../DiscoveryLogPane'));
 // Glossary exports a named component from its index barrel
 const Glossary = lazy(() => import('../Glossary').then(module => ({ default: module.Glossary })));
 const EncounterModal = lazy(() => import('../EncounterModal'));
-const MerchantModal = lazy(() => import('../MerchantModal'));
+const MerchantModal = lazy(() => import('../Trade/MerchantModal'));
 const GameGuideModal = lazy(() => import('../GameGuideModal'));
 const MissingChoiceModal = lazy(() => import('../MissingChoiceModal'));
 const TempleModal = lazy(() => import('../TempleModal'));
