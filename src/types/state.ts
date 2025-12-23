@@ -205,4 +205,6 @@ export interface GameState {
 
   activeDialogueSession: import('./dialogue').DialogueSession | null;
   isDialogueInterfaceOpen: boolean;
+
+  banterCooldowns: Record<string, number>;
 }

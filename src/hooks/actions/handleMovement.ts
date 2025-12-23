@@ -18,6 +18,8 @@ import { generateTravelEvent } from '../../services/travelEventService';
 import { getSeasonalEffects } from '../../systems/time/SeasonalSystem';
 import { getTimeModifiers } from '../../utils/timeUtils';
 import { DiscoveryConsequence } from '../../types/exploration';
+import { BanterManager } from '../../systems/companions/BanterManager';
+import { BanterDisplayService } from '../../services/BanterDisplayService';
 
 interface HandleMovementProps {
   action: Action;
@@ -459,6 +461,18 @@ export async function handleMovement({
   dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
 
   addMessage(newDescription, 'system');
+
+  // Trigger Banter (Contextual Companion Dialogue)
+  // Heartkeeper: Companions should speak up during travel to feel alive.
+  // Use BanterDisplayService to manage queues and prevent overlapping dialogue.
+  const banter = BanterManager.selectBanter(gameState);
+  if (banter) {
+    dispatch({
+      type: 'UPDATE_BANTER_COOLDOWN',
+      payload: { banterId: banter.id, timestamp: Date.now() }
+    });
+    BanterDisplayService.queueBanter(banter.lines, addMessage, gameState.companions);
+  }
 }
 
 interface HandleQuickTravelProps {
