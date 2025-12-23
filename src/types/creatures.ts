@@ -84,3 +84,64 @@ export const CreatureTypeTraits: Record<CreatureType, TypeTraits> = {
     conditionImmunities: ['Poisoned'],
   },
 };
+
+/**
+ * Creature size categories.
+ * Source: PHB 2024
+ */
+export enum CreatureSize {
+  Tiny = 'Tiny',
+  Small = 'Small',
+  Medium = 'Medium',
+  Large = 'Large',
+  Huge = 'Huge',
+  Gargantuan = 'Gargantuan',
+}
+
+export type HitDieType = 'd4' | 'd6' | 'd8' | 'd10' | 'd12' | 'd20';
+
+export interface SizeTraits {
+  /** Space controlled in combat (width in feet). Assumes square space. */
+  spaceInFeet: number;
+  /** Typical Hit Die size for monsters of this size. */
+  hitDie: HitDieType;
+  description: string;
+}
+
+/**
+ * Standard traits associated with creature sizes.
+ */
+export const CreatureSizeTraits: Record<CreatureSize, SizeTraits> = {
+  [CreatureSize.Tiny]: {
+    spaceInFeet: 2.5,
+    hitDie: 'd4',
+    description: "Tiny creatures control a space 2.5 by 2.5 feet.",
+  },
+  [CreatureSize.Small]: {
+    spaceInFeet: 5,
+    hitDie: 'd6',
+    description: "Small creatures control a space 5 by 5 feet.",
+  },
+  [CreatureSize.Medium]: {
+    spaceInFeet: 5,
+    hitDie: 'd8',
+    description: "Medium creatures control a space 5 by 5 feet.",
+  },
+  [CreatureSize.Large]: {
+    spaceInFeet: 10,
+    hitDie: 'd10',
+    description: "Large creatures control a space 10 by 10 feet.",
+  },
+  [CreatureSize.Huge]: {
+    spaceInFeet: 15,
+    hitDie: 'd12',
+    description: "Huge creatures control a space 15 by 15 feet.",
+  },
+  [CreatureSize.Gargantuan]: {
+    spaceInFeet: 20,
+    hitDie: 'd20',
+    description: "Gargantuan creatures control a space 20 by 20 feet or larger.",
+  },
+};
+
+// TODO(Taxonomist): Update codebase to use CreatureSize enum instead of magic strings
