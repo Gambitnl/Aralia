@@ -11,3 +11,9 @@
 **Learning:** "Enchantment" spells in D&D 5e have strong implicit targeting rules (Immunity to Charmed, Undead/Construct immunity) that are often omitted from structured JSON data because they are "assumed" or buried in description text. A purely schema-based validation misses these gaps because the fields are optional.
 
 **Action:** Build "Semantic Validators" (`LegacySpellValidator`) that enforce domain-specific rules (e.g., "If School=Enchantment, require ExclusionFilter") rather than just checking type correctness.
+
+## 2024-05-25 - Systematic Targeting Gaps in JSON
+
+**Learning:** A systematic audit of Level 1 spells revealed that text-based targeting constraints (e.g., "no effect on Undead") are consistently missing from the `targeting.filter` JSON objects. This forces the engine to rely on unstable text parsing or the honor system.
+
+**Action:** Created `src/systems/spells/validation/TargetingPresets.ts` to provide standardized, reusable filter configurations. Future audits should map these text constraints to these strict constants.
