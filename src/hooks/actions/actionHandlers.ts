@@ -143,7 +143,7 @@ export function buildActionHandlers({
       await handleAnalyzeSituation({ gameState, dispatch, addMessage, addGeminiLog, generalActionContext });
     },
     inspect_submap_tile: async (action) => {
-      await handleInspectSubmapTile({ action, gameState, dispatch, addMessage, addGeminiLog });
+      await handleInspectSubmapTile({ action, gameState, dispatch, addMessage, addGeminiLog, generalActionContext });
     },
 
     // NPC dialogue and narrative AI (handleNpcInteraction.ts, handleOracle.ts, handleGeminiCustom.ts).
