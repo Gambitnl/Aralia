@@ -47,6 +47,30 @@ export interface Bounty {
   isActive: boolean;
 }
 
+// --- Bounty Hunter Types ---
+
+export enum HunterTier {
+    Thug = 'Thug',           // Level 1-3, poorly equipped
+    Mercenary = 'Mercenary', // Level 4-7, organized
+    Elite = 'Elite'          // Level 8+, deadly, unique abilities
+}
+
+export interface HunterProfile {
+    id: string;
+    name: string;
+    tier: HunterTier;
+    className: string; // "Ranger", "Rogue", etc.
+    level: number;
+    specialAbilities: string[];
+}
+
+export interface AmbushEvent {
+    hunter: HunterProfile;
+    tier: HunterTier;
+    bountiesChased: string[]; // IDs of bounties triggering this
+    locationId: string;
+}
+
 export interface HeistIntel {
   id: string;
   locationId: string;
