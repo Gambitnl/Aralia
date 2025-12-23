@@ -1,7 +1,7 @@
 /**
  * @file src/types/visuals.ts
  * Defines contracts for visual assets and representations in the game.
- * Used to standardize how entities (Spells, Items, NPCs, Classes) are displayed
+ * Used to standardize how entities (Spells, Items, NPCs, Classes, Status Effects) are displayed
  * and to provide specifications for AI asset generation.
  */
 
@@ -119,6 +119,30 @@ export interface ClassVisualSpec {
 
   /** Description for tooltips or AI generation context. */
   description?: string;
+}
+
+/**
+ * Defines the visual requirements for a Status Condition.
+ * Standardizes icons, colors, and descriptions for buffs, debuffs, and conditions.
+ */
+export interface StatusVisualSpec {
+  /** Unique ID for the condition (e.g., 'blinded', 'charmed'). */
+  id: string;
+
+  /** Human-readable label for tooltips and logs. */
+  label: string;
+
+  /** Primary icon (emoji or character). */
+  icon: string;
+
+  /**
+   * Theme color (hex code).
+   * Used for badge backgrounds, borders, or text highlights.
+   */
+  color: string;
+
+  /** Short description of the mechanical effect or flavor. */
+  description: string;
 }
 
 /**
@@ -287,6 +311,62 @@ export const DEFAULT_CLASS_VISUAL: ClassVisualSpec = {
 export function getClassVisual(classId: string): ClassVisualSpec {
   if (!classId) return DEFAULT_CLASS_VISUAL;
   return CLASS_VISUALS[classId.toLowerCase()] || DEFAULT_CLASS_VISUAL;
+}
+
+/**
+ * Registry of standard visuals for status conditions.
+ * Replaces the simple string map in `src/config/statusIcons.ts`.
+ */
+export const STATUS_VISUALS: Record<string, StatusVisualSpec> = {
+  blinded: { id: 'blinded', label: 'Blinded', icon: '👁️', color: '#9CA3AF', description: 'Can’t see and automatically fails any ability check that requires sight.' }, // gray-400
+  charmed: { id: 'charmed', label: 'Charmed', icon: '💕', color: '#EC4899', description: 'Can’t attack the charmer or target the charmer with harmful abilities or magical effects.' }, // pink-500
+  deafened: { id: 'deafened', label: 'Deafened', icon: '🙉', color: '#9CA3AF', description: 'Can’t hear and automatically fails any ability check that requires hearing.' }, // gray-400
+  frightened: { id: 'frightened', label: 'Frightened', icon: '😱', color: '#F59E0B', description: 'Has disadvantage on ability checks and attack rolls while the source of its fear is within line of sight.' }, // amber-500
+  grappled: { id: 'grappled', label: 'Grappled', icon: '✊', color: '#D97706', description: 'Speed becomes 0, and it can’t benefit from any bonus to its speed.' }, // amber-600
+  incapacitated: { id: 'incapacitated', label: 'Incapacitated', icon: '🤕', color: '#DC2626', description: 'Can’t take actions or reactions.' }, // red-600
+  invisible: { id: 'invisible', label: 'Invisible', icon: '👻', color: '#E5E7EB', description: 'Impossible to see without the aid of magic or a special sense.' }, // gray-200
+  paralyzed: { id: 'paralyzed', label: 'Paralyzed', icon: '⚡', color: '#FBBF24', description: 'Incapacitated and can’t move or speak. Attacks against the creature have advantage.' }, // amber-400
+  petrified: { id: 'petrified', label: 'Petrified', icon: '🗿', color: '#4B5563', description: 'Transformed into a solid inanimate substance (usually stone).' }, // gray-600
+  poisoned: { id: 'poisoned', label: 'Poisoned', icon: '🤢', color: '#10B981', description: 'Has disadvantage on attack rolls and ability checks.' }, // emerald-500
+  prone: { id: 'prone', label: 'Prone', icon: '🛌', color: '#6B7280', description: 'Only movement option is to crawl. Attack rolls have disadvantage.' }, // gray-500
+  restrained: { id: 'restrained', label: 'Restrained', icon: '⛓️', color: '#B91C1C', description: 'Speed becomes 0. Attack rolls against the creature have advantage, and the creature’s attack rolls have disadvantage.' }, // red-700
+  stunned: { id: 'stunned', label: 'Stunned', icon: '💫', color: '#FCD34D', description: 'Incapacitated, can’t move, and can speak only falteringly.' }, // amber-300
+  unconscious: { id: 'unconscious', label: 'Unconscious', icon: '💤', color: '#1F2937', description: 'Incapacitated, can’t move or speak, and is unaware of its surroundings.' }, // gray-800
+  exhaustion: { id: 'exhaustion', label: 'Exhaustion', icon: '😫', color: '#7C2D12', description: 'Effects vary by level of exhaustion.' }, // orange-900
+  ignited: { id: 'ignited', label: 'Ignited', icon: '🔥', color: '#EF4444', description: 'Taking fire damage over time.' }, // red-500
+  taunted: { id: 'taunted', label: 'Taunted', icon: '🤬', color: '#7F1D1D', description: 'Must attack the taunter.' }, // red-900
+  blessed: { id: 'blessed', label: 'Blessed', icon: '✨', color: '#FBBF24', description: 'Adds 1d4 to attack rolls and saving throws.' }, // amber-400
+  bane: { id: 'bane', label: 'Bane', icon: '📉', color: '#4C1D95', description: 'Subtracts 1d4 from attack rolls and saving throws.' } // violet-900
+};
+
+/**
+ * Default visual for unknown conditions.
+ */
+export const DEFAULT_STATUS_VISUAL: StatusVisualSpec = {
+  id: 'unknown',
+  label: 'Effect',
+  icon: '💀',
+  color: '#9CA3AF',
+  description: 'Unknown status effect.'
+};
+
+/**
+ * Retrieves the visual specification for a given status condition ID.
+ *
+ * @param conditionId - The ID of the condition (case-insensitive).
+ * @returns The StatusVisualSpec for the condition.
+ */
+export function getStatusVisual(conditionId: string): StatusVisualSpec {
+  if (!conditionId) return DEFAULT_STATUS_VISUAL;
+
+  // Normalize key: keys in registry are lowercase.
+  const normalizedId = conditionId.toLowerCase();
+
+  // Handle the 'baned' to 'bane' mapping for legacy compatibility if needed,
+  // though typically we should rely on the correct ID.
+  // The registry now has 'bane'.
+
+  return STATUS_VISUALS[normalizedId] || DEFAULT_STATUS_VISUAL;
 }
 
 /**
