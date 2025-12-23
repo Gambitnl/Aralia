@@ -36,7 +36,62 @@ export interface TravelGroupStats {
   dailyDistanceMiles: number; // Assuming 8 hours
 }
 
+export interface ForcedMarchStatus {
+  isForcedMarch: boolean;
+  hoursOverLimit: number;
+  constitutionSaveDC: number; // 0 if not forced
+}
+
 // --- Calculations ---
+
+/**
+ * Calculates the forced march status based on hours traveled.
+ * Rules:
+ * - Normal travel day is 8 hours.
+ * - For each hour beyond 8, characters risk exhaustion.
+ * - DC = 10 + 1 per hour past 8.
+ */
+export function calculateForcedMarchStatus(hoursTraveled: number): ForcedMarchStatus {
+  const SAFE_TRAVEL_HOURS = 8;
+  const isForcedMarch = hoursTraveled > SAFE_TRAVEL_HOURS;
+
+  // Per 5e rules, the check is made at the end of each hour traveled beyond 8.
+  // We floor the hours over limit to ensure we only count full hours completed past the limit for the DC scaling.
+  // Example: 8.5 hours -> 0.5 hours over -> floor(0.5) = 0 -> No DC increase yet (or DC 10 base if we consider it forced).
+  // However, "Forced March" applies to *any* travel beyond 8 hours.
+  // The DC specifically scales with hours *past* 8.
+  // Logic:
+  // 9 hours -> 1 hour over -> DC 10 + 1 = 11.
+  // 8.5 hours -> 0.5 hours over. If we check at the END of the hour, we haven't triggered the DC 11 check yet.
+  // We will treat hoursOverLimit as the integer count of full hours past 8.
+
+  const hoursOverLimit = Math.floor(Math.max(0, hoursTraveled - SAFE_TRAVEL_HOURS));
+
+  // PHB: "The DC is 10 + 1 for each hour of past 8 hours."
+  // If we have traveled > 8 hours, it is a forced march.
+  // But if hoursOverLimit is 0 (e.g. 8.5 hours), strict reading might imply no check or DC 10.
+  // Reviewer feedback implies DC should only increase after a full hour.
+  // Let's assume:
+  // 8.0 -> Not forced.
+  // 8.1 -> Forced. But haven't finished hour 9. So maybe no save yet?
+  // "At the end of each hour" -> implies if you stop at 8.5, you didn't finish the 9th hour, so no save.
+  // So we only return a valid save DC if hoursOverLimit >= 1.
+
+  const effectiveHoursOver = Math.floor(hoursTraveled - SAFE_TRAVEL_HOURS);
+  const requireSave = effectiveHoursOver >= 1;
+
+  // Re-evaluating based on "The DC is 10 + 1 for each hour".
+  // Hour 9 (total 9): DC 10 + 1 = 11.
+  // Hour 10 (total 10): DC 10 + 2 = 12.
+
+  const constitutionSaveDC = requireSave ? 10 + effectiveHoursOver : 0;
+
+  return {
+    isForcedMarch: hoursTraveled > SAFE_TRAVEL_HOURS,
+    hoursOverLimit: Math.max(0, hoursTraveled - SAFE_TRAVEL_HOURS), // Keep exact float for display/logic
+    constitutionSaveDC,
+  };
+}
 
 /**
  * Calculates the encumbrance level and effects for a character.
