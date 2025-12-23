@@ -14,22 +14,6 @@ dist-ssr
 
 # Editor directories and files
 .vscode/*
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
@@ -46,16 +30,10 @@ nul
 # Generated assets
 public/assets/images/
 
-# Jules Agent Personas
-# Aralia Uplink
+# Aralia Uplink (local-only coordination files)
 .uplink/
-.uplink/data/
-.uplink/attachments/
-.uplink/.*last_seen
-.uplink/*.log
 
 # Jules Agent State
-.jules/lint_output.txt
 .jules/claude_last_seen_id.txt
 .jules/codex_last_seen_id.txt
 .jules/LAST_CONVERSATION_SUMMARY.md

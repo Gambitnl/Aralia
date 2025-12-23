@@ -24,7 +24,7 @@ describe('useCompanionCommentary', () => {
     vi.restoreAllMocks();
   });
 
-  it('should trigger a loot reaction when gold increases significantly', () => {
+  it('should trigger a loot reaction when gold increases significantly', async () => {
     const { rerender } = renderHook(({ state }) => useCompanionCommentary(state, mockDispatch), {
       initialProps: { state: mockState }
     });
@@ -37,8 +37,9 @@ describe('useCompanionCommentary', () => {
       messages: [...mockState.messages, { text: "You found 100 gold." }]
     };
 
-    act(() => {
+    await act(async () => {
       rerender({ state: newState });
+      vi.runAllTimers();
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
@@ -49,8 +50,7 @@ describe('useCompanionCommentary', () => {
     }));
   });
 
-  // TODO: Fix test harness for cooldowns. Logic is verified manually.
-  it.skip('should respect cooldowns', () => {
+  it('should respect cooldowns', async () => {
      vi.spyOn(Math, 'random').mockReturnValue(0);
 
      const { rerender } = renderHook(({ state }) => useCompanionCommentary(state, mockDispatch), {
@@ -64,12 +64,18 @@ describe('useCompanionCommentary', () => {
        messages: [...mockState.messages, { text: "You found 100 gold." }]
      };
 
-     act(() => {
+     await act(async () => {
         rerender({ state: newState });
+        vi.runAllTimers();
      });
 
      expect(mockDispatch).toHaveBeenCalledTimes(1);
      mockDispatch.mockClear();
+
+     // Advance time slightly but stay within cooldown (e.g. 30 seconds)
+     await act(async () => {
+        vi.advanceTimersByTime(30000);
+     });
 
      // Trigger again immediately
      const newerState = {
@@ -78,8 +84,9 @@ describe('useCompanionCommentary', () => {
        messages: [...newState.messages, { text: "You found another 100 gold." }]
      };
 
-     act(() => {
+     await act(async () => {
         rerender({ state: newerState });
+        vi.runAllTimers();
      });
 
      // Should be blocked by cooldown

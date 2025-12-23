@@ -155,8 +155,8 @@ export interface CompanionReactionRule {
     minRelationship?: RelationshipLevel;
     maxRelationship?: RelationshipLevel;
     locationId?: string; // Only triggers in specific location
-    chance?: number; // 0-1 probability (default 1)
   };
+  chance?: number; // 0-1 probability (default 1)
   cooldown?: number; // Minutes before this specific rule can trigger again
   priority?: number; // Higher overrides lower (default 0)
 }

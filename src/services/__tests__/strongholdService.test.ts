@@ -218,6 +218,10 @@ describe('StrongholdService', () => {
         });
 
         it('should apply threat consequences in daily upkeep', () => {
+            // Mock Math.random to prevent random new threat generation during this test
+            const originalRandom = Math.random;
+            Math.random = () => 0.5; // High roll = no new threat
+
             const castle = createStronghold('My Castle', 'castle', 'loc-123');
             castle.resources.gold = 2000;
 
@@ -235,6 +239,9 @@ describe('StrongholdService', () => {
             castle.threats.push(threat);
 
             const result = processDailyUpkeep(castle);
+
+            // Restore random
+            Math.random = originalRandom;
 
             // Should fail and lose gold
             expect(result.updatedStronghold.resources.gold).toBeLessThan(2000);
