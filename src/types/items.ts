@@ -324,6 +324,12 @@ export interface Item {
    */
   // TODO(Schemer): Populate this field in item generation logic.
   magicProperties?: MagicItemProperties;
+
+  /**
+   * The history and origin of the item.
+   * "If they don't remember, it didn't happen."
+   */
+  provenance?: import('./provenance').ItemProvenance;
 }
 
 /**

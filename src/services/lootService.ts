@@ -47,6 +47,8 @@ export function generateLoot(monsters: Monster[]): LootResult {
     }
   });
 
+  // TODO(Recorder): Call generateLegendaryHistory for Rare/Legendary items so they have a backstory.
+
   return {
     gold: totalGold,
     items: droppedItems

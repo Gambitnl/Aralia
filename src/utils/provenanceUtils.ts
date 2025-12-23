@@ -13,21 +13,21 @@ import { GameDate } from '../types/memory';
 
 /**
  * Creates an empty provenance record for a newly created item.
- * @param creatorId The ID of the creator (e.g., "player_1", "npc_blacksmith").
+ * @param creator The ID of the creator (e.g., "player_1", "npc_blacksmith").
  * @param date The current game date.
  * @returns A new ItemProvenance object.
  */
-export function createProvenance(creatorId: string, date: GameDate): ItemProvenance {
+export function createProvenance(creator: string, date: GameDate): ItemProvenance {
   return {
-    creatorId,
+    creator,
     createdDate: date,
-    previousOwnerIds: [],
+    previousOwners: [],
     history: [
       {
         date,
         type: 'CRAFTED',
-        description: `Created by ${creatorId}`,
-        actorId: creatorId
+        description: `Created by ${creator}`,
+        actorId: creator
       }
     ]
   };
@@ -57,12 +57,11 @@ export function addProvenanceEvent(
   };
 
   if (!item.provenance) {
-      // FIX: Do NOT use createProvenance here, as it assumes a CRAFTED event.
       // Instead, initialize a fresh provenance object with just this new event.
       const initialProvenance: ItemProvenance = {
-          creatorId: 'Unknown',
+          creator: 'Unknown',
           createdDate: date, // Best guess
-          previousOwnerIds: [],
+          previousOwners: [],
           history: [newEvent]
       };
 
@@ -94,9 +93,9 @@ export function generateLegendaryHistory(item: Item, date: GameDate): Item {
   const ancientDate = date - (oneYear * 100); // 100 years ago (approx)
 
   const provenance: ItemProvenance = {
-    creatorId: 'Ancient Smith',
+    creator: 'Ancient Smith',
     createdDate: ancientDate,
-    previousOwnerIds: ['The Lost King', 'General Thorne'],
+    previousOwners: ['The Lost King', 'General Thorne'],
     history: [
       {
         date: ancientDate,
