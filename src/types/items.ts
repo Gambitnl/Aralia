@@ -1,6 +1,7 @@
 import type { AbilityScoreName, AbilityScores } from './core';
 import type { MagicItemProperties } from './magicItems';
 import type { ItemVisualSpec } from './visuals';
+import { ItemProvenance } from './provenance';
 
 /**
  * Equipment and inventory focused types.
@@ -324,6 +325,12 @@ export interface Item {
    */
   // TODO(Schemer): Populate this field in item generation logic.
   magicProperties?: MagicItemProperties;
+
+  /**
+   * The history and origin of the item.
+   * Tracks creation, past owners, and significant events.
+   */
+  provenance?: ItemProvenance;
 }
 
 /**
