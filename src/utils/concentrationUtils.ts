@@ -1,4 +1,5 @@
 import { CombatCharacter } from '../types/combat'
+import { rollSavingThrow } from './savingThrowUtils'
 
 /**
  * Calculates the DC for a concentration saving throw based on damage taken.
@@ -10,12 +11,14 @@ export function calculateConcentrationDC(damageDealt: number): number {
 
 /**
  * Rolls a Constitution saving throw for the character.
+ * @deprecated Use checkConcentration which uses rollSavingThrow internally.
+ * This is kept for backward compatibility but now delegates to the standard saving throw logic.
  */
 export function rollConcentrationSave(character: CombatCharacter): number {
-    // Constitution saving throw
-    const constitutionMod = Math.floor((character.stats.constitution - 10) / 2)
-    const roll = Math.floor(Math.random() * 20) + 1
-    return roll + constitutionMod
+    // Delegate to the robust saving throw logic
+    // This ensures proficiency is included if applicable
+    const result = rollSavingThrow(character, 'Constitution', 10); // DC doesn't matter for getting the total
+    return result.total;
 }
 
 /**
@@ -30,11 +33,13 @@ export function checkConcentration(
     damageDealt: number
 ): { success: boolean; dc: number; roll: number } {
     const dc = calculateConcentrationDC(damageDealt)
-    const roll = rollConcentrationSave(character)
+
+    // Use the standard saving throw utility to ensure proficiency and modifiers are handled correctly
+    const result = rollSavingThrow(character, 'Constitution', dc)
 
     return {
-        success: roll >= dc,
+        success: result.success,
         dc,
-        roll
+        roll: result.total
     }
 }
