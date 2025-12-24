@@ -9,3 +9,6 @@
 ### 2025-12-22 - Unified Inspection Context
 **Learning:** Specific prompts like 'Inspect Tile' often lack the broader atmospheric context (weather, time, location vibe) available to general actions. This leads to dry, disconnected descriptions.
 **Action:** Always inject the full `generalActionContext` (or a subset of it) into specific, localized prompts to ground them in the current world state. Use a '## INSPECTION TARGET' header to distinguish the specific focus from the general context.
+### 2025-12-22 - Environment Context Injection
+**Learning:** General context strings (even with headers) can be overlooked for specific environmental details like weather and time when generating location descriptions. Explicitly passing structured environment data and injecting it into a dedicated `## ENVIRONMENT` prompt section ensures these details are consistently reflected in the narrative.
+**Action:** When updating narrative generation functions, prioritize passing structured environment data alongside the general text context to force specific atmospheric inclusion.

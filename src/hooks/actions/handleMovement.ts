@@ -196,7 +196,12 @@ export async function handleMovement({
         newMapDataForDispatch.tiles = newTiles;
       }
       geminiFunctionName = 'generateLocationDescription';
-      descriptionGenerationFn = () => GeminiService.generateLocationDescription(targetLocation.name, playerContext, gameState.devModelOverride);
+      const environment: GeminiService.EnvironmentContext = {
+        timeDescription: timeModifiers.description,
+        seasonDescription: seasonalEffects.description,
+        weatherDescription: gameState.environment?.currentCondition?.name
+      };
+      descriptionGenerationFn = () => GeminiService.generateLocationDescription(targetLocation.name, playerContext, environment, gameState.devModelOverride);
 
       // TODO(FEATURES): Replace hardcoded quest triggers with data-driven location metadata so quests can be discovered from any map tile (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
       // Quest Triggers for named locations
@@ -259,7 +264,12 @@ export async function handleMovement({
       const currentWorldTile = gameState.mapData?.tiles[currentWorldY]?.[currentWorldX];
       const tooltip = currentWorldTile ? getTileTooltipText(currentWorldTile) : null;
       geminiFunctionName = 'generateWildernessLocationDescription';
-      descriptionGenerationFn = () => GeminiService.generateWildernessLocationDescription(biome?.name || 'Unknown Biome', { x: currentWorldX, y: currentWorldY }, newSubMapCoordinates, playerContext, tooltip, gameState.devModelOverride);
+      const environment: GeminiService.EnvironmentContext = {
+          timeDescription: timeModifiers.description,
+          seasonDescription: seasonalEffects.description,
+          weatherDescription: gameState.environment?.currentCondition?.name
+      };
+      descriptionGenerationFn = () => GeminiService.generateWildernessLocationDescription(biome?.name || 'Unknown Biome', { x: currentWorldX, y: currentWorldY }, newSubMapCoordinates, playerContext, tooltip, environment, gameState.devModelOverride);
     } else {
       const targetWorldMapX = currentWorldX + dx;
       const targetWorldMapY = currentWorldY + dy;
@@ -438,12 +448,22 @@ export async function handleMovement({
       if (LOCATIONS[newLocationId]) {
         const targetDefLocation = LOCATIONS[newLocationId];
         geminiFunctionName = 'generateLocationDescription (world move)';
-        descriptionGenerationFn = () => GeminiService.generateLocationDescription(targetDefLocation.name, playerContext, gameState.devModelOverride);
+        const environment: GeminiService.EnvironmentContext = {
+            timeDescription: timeModifiers.description,
+            seasonDescription: seasonalEffects.description,
+            weatherDescription: gameState.environment?.currentCondition?.name
+        };
+        descriptionGenerationFn = () => GeminiService.generateLocationDescription(targetDefLocation.name, playerContext, environment, gameState.devModelOverride);
         movedToNewNamedLocation = targetDefLocation;
         baseDescriptionForFallback = targetDefLocation.baseDescription;
       } else {
         geminiFunctionName = 'generateWildernessLocationDescription (world move)';
-        descriptionGenerationFn = () => GeminiService.generateWildernessLocationDescription(targetBiome?.name || 'Unknown Biome', { x: targetWorldMapX, y: targetWorldMapY }, newSubMapCoordinates, playerContext, getTileTooltipText(targetWorldTile), gameState.devModelOverride);
+        const environment: GeminiService.EnvironmentContext = {
+            timeDescription: timeModifiers.description,
+            seasonDescription: seasonalEffects.description,
+            weatherDescription: gameState.environment?.currentCondition?.name
+        };
+        descriptionGenerationFn = () => GeminiService.generateWildernessLocationDescription(targetBiome?.name || 'Unknown Biome', { x: targetWorldMapX, y: targetWorldMapY }, newSubMapCoordinates, playerContext, getTileTooltipText(targetWorldTile), environment, gameState.devModelOverride);
       }
     }
   }

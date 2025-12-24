@@ -473,21 +473,38 @@ export async function generateText(
 }
 
 
+export interface EnvironmentContext {
+  timeDescription?: string;
+  seasonDescription?: string;
+  weatherDescription?: string;
+}
+
 export async function generateLocationDescription(
   locationName: string,
   context: string,
+  environment?: EnvironmentContext,
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
   const systemInstruction = "Describe a new location in a high fantasy RPG. Response MUST be EXTREMELY BRIEF: 1-2 sentences MAX. Give ONLY key sights, sounds, or atmosphere. No fluff.";
 
+  let envDetails = "";
+  if (environment) {
+    const parts = [];
+    if (environment.timeDescription) parts.push(`Time: ${environment.timeDescription}`);
+    if (environment.seasonDescription) parts.push(`Season: ${environment.seasonDescription}`);
+    if (environment.weatherDescription) parts.push(`Weather: ${environment.weatherDescription}`);
+    if (parts.length > 0) envDetails = `\n## ENVIRONMENT\n${parts.join(' | ')}`;
+  }
+
   // Structured prompt for better narrative consistency
   const prompt = `## NARRATIVE TASK
 Describe the location "${locationName}" as the player arrives. Focus on atmosphere, key features, and sensory details (sound/smell).
+${envDetails}
 
 ${context}
 
 ## OUTPUT
-Provide an EXTREMELY BRIEF description (1-2 sentences MAX). No fluff.`;
+Provide an EXTREMELY BRIEF description (1-2 sentences MAX). No fluff. Ensure the description reflects the specific time and weather if provided.`;
 
   return await generateText(prompt, systemInstruction, false, 'generateLocationDescription', devModelOverride, FAST_MODEL);
 }
@@ -498,9 +515,19 @@ export async function generateWildernessLocationDescription(
   subMapCoords: { x: number, y: number },
   playerContext: string,
   worldMapTileTooltip?: string | null,
+  environment?: EnvironmentContext,
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
   const systemInstruction = "You are a concise storyteller describing a wilderness location in a fantasy RPG. Response MUST be 2-3 sentences. Focus on immediate sensory details. No long descriptions.";
+
+  let envDetails = "";
+  if (environment) {
+    const parts = [];
+    if (environment.timeDescription) parts.push(`Time: ${environment.timeDescription}`);
+    if (environment.seasonDescription) parts.push(`Season: ${environment.seasonDescription}`);
+    if (environment.weatherDescription) parts.push(`Weather: ${environment.weatherDescription}`);
+    if (parts.length > 0) envDetails = `\n## ENVIRONMENT\n${parts.join(' | ')}`;
+  }
 
   // Structured prompt for better narrative consistency
   const prompt = `## NARRATIVE TASK
@@ -508,11 +535,12 @@ Describe the wilderness area the player has moved into.
 Biome: ${biomeName}
 Coordinates: World(${worldMapCoords.x},${worldMapCoords.y}) Sub(${subMapCoords.x},${subMapCoords.y})
 Broader Region: ${worldMapTileTooltip || 'None'}
+${envDetails}
 
 ${playerContext}
 
 ## OUTPUT
-Provide a brief, 2-3 sentence description focusing on immediate sensory details (weather, terrain, wildlife sounds).`;
+Provide a brief, 2-3 sentence description focusing on immediate sensory details (weather, terrain, wildlife sounds). Ensure the description reflects the specific time and weather if provided.`;
 
   return await generateText(prompt, systemInstruction, false, 'generateWildernessLocationDescription', devModelOverride, FAST_MODEL);
 }
