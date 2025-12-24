@@ -53,7 +53,7 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
     name: "Mock Spell",
     aliases: [],
     level: 1,
-    school: "Evocation" as SpellSchool,
+    school: SpellSchool.Evocation,
     classes: ["Wizard"],
     description: "A mock spell for testing.",
     source: "PHB",
