@@ -31,6 +31,24 @@ const DAILY_EVENT_CHANCE = 0.2; // Increased from 0.1 for more liveliness
  * Relationships ripple outward.
  */
 const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventResult => {
+  // Check Weather Conditions
+  // Armies do not march in blizzards or severe storms.
+  const weather = state.weather;
+  if (weather) {
+      if (weather.precipitation === 'blizzard' || weather.precipitation === 'storm') {
+          // 90% chance to cancel skirmish due to weather
+          if (rng.next() < 0.9) {
+              return { state, logs: [] };
+          }
+      }
+      if (weather.wind.speed === 'gale') {
+          // 50% chance to cancel
+          if (rng.next() < 0.5) {
+              return { state, logs: [] };
+          }
+      }
+  }
+
   const factionIds = Object.keys(state.factions);
   if (factionIds.length < 2) return { state, logs: [] };
 
@@ -209,54 +227,114 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
  */
 const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResult => {
     // Define potential market events with actual gameplay effects
-    const events: Array<{ text: string; event: MarketEvent }> = [
+    // Structure: { weight: number, data: ... }
+    const eventDefinitions = [
         {
+            id: 'surplus_iron',
+            baseWeight: 10,
             text: "A surplus of iron from the mines has lowered weapon prices.",
             event: {
                 id: 'surplus_iron',
                 name: 'Iron Surplus',
                 description: 'Weapons and heavy armor are cheaper.',
                 affectedTags: ['weapon', 'armor'],
-                effect: 'surplus',
+                effect: 'surplus' as const,
                 duration: 5
             }
         },
         {
+            id: 'scarcity_food',
+            baseWeight: 10,
             text: "Drought in the farmlands has driven up food costs.",
             event: {
                 id: 'scarcity_food',
                 name: 'Food Shortage',
                 description: 'Food items are expensive.',
                 affectedTags: ['consumable', 'food'],
-                effect: 'scarcity',
+                effect: 'scarcity' as const,
                 duration: 7
             }
         },
         {
+            id: 'scarcity_luxury',
+            baseWeight: 5, // Rarer
             text: "A sunken merchant ship has made silk a rare luxury.",
             event: {
                 id: 'scarcity_luxury',
                 name: 'Silk Shortage',
                 description: 'Luxury goods prices have spiked.',
                 affectedTags: ['valuable', 'cloth'],
-                effect: 'scarcity',
+                effect: 'scarcity' as const,
                 duration: 10
             }
         },
         {
+            id: 'surplus_spices',
+            baseWeight: 5,
             text: "A new trade route has opened, flooding the market with exotic spices.",
             event: {
                 id: 'surplus_spices',
                 name: 'Spice Influx',
                 description: 'Exotic goods are cheaper.',
                 affectedTags: ['valuable', 'spice'],
-                effect: 'surplus',
+                effect: 'surplus' as const,
                 duration: 5
+            }
+        },
+        {
+            id: 'surplus_food',
+            baseWeight: 10,
+            text: "A bountiful harvest has lowered food prices.",
+            event: {
+                id: 'surplus_food',
+                name: 'Bountiful Harvest',
+                description: 'Food is plentiful and cheap.',
+                affectedTags: ['consumable', 'food'],
+                effect: 'surplus' as const,
+                duration: 7
             }
         }
     ];
 
-    const selection = events[Math.floor(rng.next() * events.length)];
+    // Apply Weather Modifiers to Weights
+    const weather = state.weather;
+    const candidates = eventDefinitions.map(def => {
+        let weight = def.baseWeight;
+
+        if (weather) {
+            // Drought / Extreme Heat -> High chance of Food Scarcity
+            if (weather.temperature === 'extreme_heat' || weather.temperature === 'hot') {
+                if (def.id === 'scarcity_food') weight += 50;
+                if (def.id === 'surplus_food') weight = 0;
+            }
+
+            // Storms -> High chance of Sinkings (Luxury Scarcity)
+            if (weather.precipitation === 'storm' || weather.precipitation === 'blizzard') {
+                if (def.id === 'scarcity_luxury') weight += 40;
+            }
+
+            // Good Weather -> Better harvests
+            if (weather.temperature === 'temperate' && weather.precipitation !== 'none' && weather.precipitation !== 'storm') {
+                 if (def.id === 'surplus_food') weight += 20;
+            }
+        }
+
+        return { ...def, weight };
+    }).filter(c => c.weight > 0);
+
+    // Weighted Random Selection
+    const totalWeight = candidates.reduce((sum, c) => sum + c.weight, 0);
+    let roll = rng.next() * totalWeight;
+    let selection = candidates[0];
+
+    for (const candidate of candidates) {
+        if (roll < candidate.weight) {
+            selection = candidate;
+            break;
+        }
+        roll -= candidate.weight;
+    }
+
     const timestamp = state.gameTime || new Date();
     const gameDay = getGameDay(timestamp);
 
