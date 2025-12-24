@@ -22,24 +22,25 @@ describe('useTargetSelection', () => {
         position: { x: 0, y: 0 }
     });
 
-    const mockAbilitySystem = {
-        targetingMode: true,
-        selectedAbility: {
-            id: 'ability-1',
-            range: 1,
-        },
-        aoePreview: {
-            affectedTiles: [{ x: 1, y: 1 }]
-        },
-        isValidTarget: vi.fn((ability, caster, target) => {
-            // Mock simple validation: allow everything except specific coordinates
-            return !(target.x === 9 && target.y === 9);
-        })
+    // Mock primitives
+    const mockSelectedAbility: any = {
+        id: 'ability-1',
+        range: 1,
     };
+    const mockAoePreview = {
+        affectedTiles: [{ x: 1, y: 1 }]
+    };
+    const mockIsValidTarget = vi.fn((ability, caster, target) => {
+        // Mock simple validation: allow everything except specific coordinates
+        return !(target.x === 9 && target.y === 9);
+    });
 
     it('should return empty sets when targeting is disabled', () => {
         const { result } = renderHook(() => useTargetSelection({
-            abilitySystem: { ...mockAbilitySystem, targetingMode: false },
+            selectedAbility: mockSelectedAbility,
+            targetingMode: false,
+            isValidTarget: mockIsValidTarget,
+            aoePreview: mockAoePreview,
             currentCharacter: mockCaster,
             mapData: mockMapData,
             characters: [mockCaster]
@@ -50,7 +51,10 @@ describe('useTargetSelection', () => {
 
     it('should calculate aoeSet correctly', () => {
         const { result } = renderHook(() => useTargetSelection({
-            abilitySystem: mockAbilitySystem,
+            selectedAbility: mockSelectedAbility,
+            targetingMode: true,
+            isValidTarget: mockIsValidTarget,
+            aoePreview: mockAoePreview,
             currentCharacter: mockCaster,
             mapData: mockMapData,
             characters: [mockCaster]
@@ -62,7 +66,10 @@ describe('useTargetSelection', () => {
 
     it('should calculate validTargetSet based on range and validation', () => {
         const { result } = renderHook(() => useTargetSelection({
-            abilitySystem: mockAbilitySystem,
+            selectedAbility: mockSelectedAbility,
+            targetingMode: true,
+            isValidTarget: mockIsValidTarget,
+            aoePreview: mockAoePreview,
             currentCharacter: mockCaster,
             mapData: mockMapData,
             characters: [mockCaster]
@@ -83,7 +90,10 @@ describe('useTargetSelection', () => {
         const movedCaster = { ...mockCaster, position: { x: 1, y: 0 } };
 
         const { result } = renderHook(() => useTargetSelection({
-            abilitySystem: mockAbilitySystem,
+            selectedAbility: mockSelectedAbility,
+            targetingMode: true,
+            isValidTarget: mockIsValidTarget,
+            aoePreview: mockAoePreview,
             currentCharacter: movedCaster,
             mapData: mockMapData,
             characters: [movedCaster]

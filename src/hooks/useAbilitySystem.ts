@@ -33,6 +33,7 @@ import { useTargeting } from './combat/useTargeting'; // New Hook
 import { resolveAoEParams } from '../utils/targetingUtils';
 import { AttackRiderSystem, AttackContext } from '../systems/combat/AttackRiderSystem';
 import { Plane } from '../types/planes';
+import { useTargetValidator } from './combat/useTargetValidator';
 
 interface UseAbilitySystemProps {
   characters: CombatCharacter[];
@@ -79,6 +80,13 @@ export const useAbilitySystem = ({
     cancelTargeting,
     previewAoE
   } = useTargeting({ mapData, characters });
+
+  // Delegate Validation Logic to specialized hook
+  const {
+    isValidTarget,
+    getValidTargets,
+    getCharacterAtPosition
+  } = useTargetValidator({ characters, mapData });
 
   const [pendingReaction, setPendingReaction] = useState<PendingReaction | null>(null);
 
@@ -203,83 +211,6 @@ export const useAbilitySystem = ({
     },
     [characters, onCharacterUpdate, onLogEntry, onRequestInput, reactiveTriggers, onReactiveTriggerUpdate, currentPlane, mapData, onMapUpdate]
   );
-
-
-  // Helper: Find character at exact grid position
-  const getCharacterAtPosition = useCallback((position: Position): CombatCharacter | null => {
-    return characters.find(char =>
-      char.position.x === position.x && char.position.y === position.y
-    ) || null;
-  }, [characters]);
-
-
-  /**
-   * Validates if a target position is legal for the given ability.
-   */
-  const isValidTarget = useCallback((
-    ability: Ability,
-    caster: CombatCharacter,
-    targetPosition: Position
-  ): boolean => {
-    if (!mapData) return false;
-
-    // 1. Tile Existence Check
-    const startTile = mapData.tiles.get(`${caster.position.x}-${caster.position.y}`);
-    const endTile = mapData.tiles.get(`${targetPosition.x}-${targetPosition.y}`);
-    if (!startTile || !endTile) return false;
-
-    // 2. Range Check
-    const distance = getDistance(caster.position, targetPosition);
-    if (distance > ability.range) return false;
-
-    // 3. Line of Sight Check
-    if (ability.type === 'attack' || ability.type === 'spell') {
-      if (!hasLineOfSight(startTile, endTile, mapData)) {
-        return false;
-      }
-    }
-
-    const targetCharacter = getCharacterAtPosition(targetPosition);
-
-    // 4. Logic by Targeting Type
-    switch (ability.targeting) {
-      case 'single_enemy':
-        return !!targetCharacter && targetCharacter.team !== caster.team;
-      case 'single_ally':
-        return !!targetCharacter && targetCharacter.team === caster.team && targetCharacter.id !== caster.id;
-      case 'single_any':
-        return !!targetCharacter;
-      case 'self':
-        return targetPosition.x === caster.position.x && targetPosition.y === caster.position.y;
-      case 'area':
-        return true;
-      default:
-        return false;
-    }
-  }, [mapData, getCharacterAtPosition]);
-
-
-  /**
-   * Generates a list of all valid target positions on the map.
-   */
-  const getValidTargets = useCallback((
-    ability: Ability,
-    caster: CombatCharacter
-  ): Position[] => {
-    // TODO: cache valid targets per ability + map snapshot; full grid scan each click is expensive on large maps.
-    if (!mapData) return [];
-    const validPositions: Position[] = [];
-
-    for (let x = 0; x < mapData.dimensions.width; x++) {
-      for (let y = 0; y < mapData.dimensions.height; y++) {
-        const position = { x, y };
-        if (isValidTarget(ability, caster, position)) {
-          validPositions.push(position);
-        }
-      }
-    }
-    return validPositions;
-  }, [mapData, isValidTarget]);
 
 
   // Legacy applyAbilityEffects removed - Logic moved to WeaponAttackCommand in AbilityCommandFactory
