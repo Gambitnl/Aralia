@@ -1,7 +1,8 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
 import { CommandContext } from '../base/SpellCommand'
 import { DefensiveEffect, isDefensiveEffect } from '@/types/spells'
-import { CombatState, CombatCharacter, ActiveEffect } from '@/types/combat'
+import { CombatState, CombatCharacter } from '@/types/combat'
+import { ActiveEffect } from '@/types/effects'
 import { calculateFinalAC } from '@/utils/statUtils';
 
 /**

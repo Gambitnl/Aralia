@@ -10,7 +10,9 @@ import type { Item } from './items';
 import type { Spell, DamageType, SavingThrowAbility, ConditionName, EffectDuration, SpellEffect } from './spells'; // Import Spell
 import { StateTag } from './elemental';
 import { Plane } from './planes';
+import { ActiveEffect } from './effects';
 
+export { ActiveEffect };
 export type { SpellSlots };
 
 // --- NEW COMBAT SYSTEM TYPES ---
@@ -112,21 +114,6 @@ export interface CombatCharacter {
   riders?: ActiveRider[];   // Active damage riders (smites, hex, etc)
   damagedThisTurn?: boolean; // Track if character took damage this turn (for concentration/repeat saves)
   savePenaltyRiders?: SavePenaltyRider[]; // Save penalties from Mind Sliver etc.
-}
-
-export interface ActiveEffect {
-  type: 'ac_bonus' | 'advantage_on_saves' | 'disadvantage_on_attacks' | 'set_base_ac' | 'ac_minimum' | 'other';
-  name: string;
-  value?: number;  // For numeric effects like AC bonus
-  duration: {
-    type: 'rounds' | 'until_condition' | 'permanent' | 'minutes' | 'hours' | 'special';
-    value?: number;
-  };
-  appliedTurn: number;
-  source: string;  // Spell ID or effect name
-  description?: string;
-  savingThrows?: SavingThrowAbility[];  // For advantage_on_saves
-  attackerFilter?: any; // TargetConditionFilter
 }
 
 export type AbilityType = 'attack' | 'spell' | 'skill' | 'movement' | 'utility';

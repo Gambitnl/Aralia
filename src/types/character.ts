@@ -1,4 +1,5 @@
 import type { SpellSchool } from './spells';
+import type { ActiveEffect } from './effects';
 import type { AbilityScoreName, AbilityScores, Skill } from './core';
 import type { EquipmentSlotType, Item } from './items';
 
@@ -376,7 +377,7 @@ export interface PlayerCharacter {
   spellSlots?: SpellSlots;
   spellbook?: SpellbookData;
   limitedUses?: LimitedUses;
-  activeEffects?: any[]; // For temporary spell effects (e.g. Shield, Mage Armor)
+  activeEffects?: ActiveEffect[]; // For temporary spell effects (e.g. Shield, Mage Armor)
   statusEffects: import('./combat').StatusEffect[]; // Required for status effects
   selectedFightingStyle?: FightingStyle;
   selectedDivineOrder?: 'Protector' | 'Thaumaturge';

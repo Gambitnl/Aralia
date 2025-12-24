@@ -6,7 +6,7 @@
  */
 
 import { AbilityScoreName } from './core';
-import { DamageType, ConditionName } from './spells';
+import { DamageType, ConditionName, SavingThrowAbility, TargetConditionFilter } from './spells';
 
 /**
  * Base interface for all effects.
@@ -71,3 +71,22 @@ export type MechanicalEffect =
   | ResistanceEffect
   | RestorationEffect
   | MiscEffect;
+
+/**
+ * Represents an active effect applied to a character in combat.
+ * Originally defined in combat.ts, moved here to avoid circular dependencies with character.ts.
+ */
+export interface ActiveEffect {
+  type: 'ac_bonus' | 'advantage_on_saves' | 'disadvantage_on_attacks' | 'set_base_ac' | 'ac_minimum' | 'other';
+  name: string;
+  value?: number;  // For numeric effects like AC bonus
+  duration: {
+    type: 'rounds' | 'until_condition' | 'permanent' | 'minutes' | 'hours' | 'special';
+    value?: number;
+  };
+  appliedTurn: number;
+  source: string;  // Spell ID or effect name
+  description?: string;
+  savingThrows?: SavingThrowAbility[];  // For advantage_on_saves
+  attackerFilter?: TargetConditionFilter; // Strict typing replacing 'any'
+}
