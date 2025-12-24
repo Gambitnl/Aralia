@@ -46,10 +46,6 @@ describe('OpportunityAttackSystem', () => {
     // Attacker at 0,0. Reach 1.
     const attacker = createAttacker('orc', 0, 0);
     // Mover at 1,0 (in reach) moves to 1,1 (still in reach - diagonal is dist 1 in Chebyshev).
-    // Wait, 5e diagonals:
-    // In Chebyshev (5-5-5), 1,1 is distance 1.
-    // In Euclidean/5-10-5, 1,1 is distance 1.5 (approx 5ft, but logically adjacent).
-    // The system uses `getDistance` which is Chebyshev.
 
     const mover = createMover('hero', 1, 0);
     const results = system.checkOpportunityAttacks(mover, { x: 1, y: 0 }, { x: 1, y: 1 }, [attacker]);
@@ -80,5 +76,34 @@ describe('OpportunityAttackSystem', () => {
 
      const results = system.checkOpportunityAttacks(mover, { x: 0, y: 1 }, { x: 0, y: 2 }, [attacker]);
      expect(results).toHaveLength(0);
+  });
+
+  it('does NOT detect OA if attacker is Paralyzed', () => {
+    const attacker = createAttacker('orc', 0, 0);
+    attacker.statusEffects.push({
+      id: 'hold-person',
+      name: 'Paralyzed',
+      type: 'debuff',
+      duration: 1,
+      effect: { type: 'condition' }
+    });
+
+    const mover = createMover('hero', 0, 1);
+    const results = system.checkOpportunityAttacks(mover, { x: 0, y: 1 }, { x: 0, y: 2 }, [attacker]);
+    expect(results).toHaveLength(0);
+  });
+
+  it('does NOT detect OA if attacker is Unconscious', () => {
+    const attacker = createAttacker('orc', 0, 0);
+    // Testing the 'conditions' array fallback if that's used
+    attacker.conditions = [{
+      name: 'Unconscious',
+      duration: { type: 'rounds', value: 1 },
+      appliedTurn: 0
+    }];
+
+    const mover = createMover('hero', 0, 1);
+    const results = system.checkOpportunityAttacks(mover, { x: 0, y: 1 }, { x: 0, y: 2 }, [attacker]);
+    expect(results).toHaveLength(0);
   });
 });

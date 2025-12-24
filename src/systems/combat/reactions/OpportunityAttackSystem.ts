@@ -49,6 +49,8 @@ export class OpportunityAttackSystem {
     // Note: Teleportation and Forced Movement checks are handled by the caller
     // (caller should not call this system if moveType !== 'willing')
 
+    const blockingConditions = ['Incapacitated', 'Paralyzed', 'Stunned', 'Unconscious', 'Petrified'];
+
     for (const attacker of potentialAttackers) {
       // Skip self
       if (attacker.id === mover.id) continue;
@@ -58,7 +60,13 @@ export class OpportunityAttackSystem {
 
       // Skip incapacitated/dead attackers
       if (attacker.currentHP <= 0) continue;
-      // TODO: Check conditions like Paralyzed, Stunned, Unconscious
+
+      // Check conditions like Paralyzed, Stunned, Unconscious
+      const hasBlockingCondition =
+        attacker.statusEffects.some(e => blockingConditions.includes(e.name)) ||
+        attacker.conditions?.some(c => blockingConditions.includes(c.name));
+
+      if (hasBlockingCondition) continue;
 
       // Skip if no reaction
       if (attacker.actionEconomy.reaction.used) continue;
