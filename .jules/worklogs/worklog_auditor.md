@@ -17,3 +17,8 @@
 **Learning:** A systematic audit of Level 1 spells revealed that text-based targeting constraints (e.g., "no effect on Undead") are consistently missing from the `targeting.filter` JSON objects. This forces the engine to rely on unstable text parsing or the honor system.
 
 **Action:** Created `src/systems/spells/validation/TargetingPresets.ts` to provide standardized, reusable filter configurations. Future audits should map these text constraints to these strict constants.
+## 2024-05-25 - Modal Spell Schema Gap
+
+**Learning:** Spells with choices (Blinded OR Deafened) are breaking the schema by concatenating keys ('Blinded/Deafened') or being reduced to text. This causes runtime errors in condition lookups.
+
+**Action:** Patched 'blindness-deafness' to use 'UTILITY' and 'player_choice' arbitration. Future schema update must support 'EffectChoice' structures.
