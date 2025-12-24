@@ -10,6 +10,7 @@ import type { Item } from './items';
 import type { Spell, DamageType, SavingThrowAbility, ConditionName, EffectDuration, SpellEffect } from './spells'; // Import Spell
 import { StateTag } from './elemental';
 import { Plane } from './planes';
+import { RitualState } from './ritual';
 
 export type { SpellSlots };
 
@@ -88,6 +89,7 @@ export interface CombatCharacter {
   spellbook?: SpellbookData;
   spellSlots?: SpellSlots;
   concentratingOn?: ConcentrationState;
+  currentRitual?: RitualState;
 
   /** Elemental states (Wet, Frozen, etc.) affecting the character */
   stateTags?: StateTag[];

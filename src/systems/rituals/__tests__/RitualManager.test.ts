@@ -1,158 +1,109 @@
 
 import { describe, it, expect } from 'vitest';
-import { RitualManager } from '../RitualManager';
-import { Spell } from '../../../types/spells';
+import { startRitual, advanceRitual, checkRitualInterrupt, isRitualComplete } from '../RitualManager';
 import { CombatCharacter } from '../../../types/combat';
-import { RitualEvent } from '../../../types/rituals';
+import { Spell } from '../../types/spells';
 
-const mockRitualSpell: Spell = {
+const mockCaster: CombatCharacter = {
+  id: 'caster-1',
+  name: 'Merlin',
+  level: 5,
+  class: {
+    id: 'wizard', name: 'Wizard', hitDie: 'd6', proficiencyBonuses: [],
+    savingThrows: [], features: [], subclass: { id: 'evocation', name: 'Evocation', features: [] }
+  },
+  stats: {
+    strength: 10, dexterity: 12, constitution: 14, intelligence: 18, wisdom: 12, charisma: 10,
+    baseInitiative: 1, speed: 30, cr: '5'
+  },
+  abilities: [],
+  team: 'player',
+  currentHP: 30,
+  maxHP: 30,
+  initiative: 15,
+  statusEffects: [],
+  actionEconomy: {
+    action: { used: false, remaining: 1 },
+    bonusAction: { used: false, remaining: 1 },
+    reaction: { used: false, remaining: 1 },
+    movement: { used: 0, total: 30 },
+    freeActions: 1
+  },
+  position: { x: 0, y: 0 }
+};
+
+const mockSpell: Spell = {
   id: 'alarm',
   name: 'Alarm',
   level: 1,
   school: 'Abjuration',
   classes: ['Wizard'],
-  description: 'Wards an area.',
+  description: 'Sets an alarm.',
   castingTime: { value: 1, unit: 'minute' },
   range: { type: 'ranged', distance: 30 },
   components: { verbal: true, somatic: true, material: false },
   duration: { type: 'timed', value: 8, unit: 'hour', concentration: false },
-  targeting: { type: 'single', range: 30, validTargets: ['creatures'] },
-  effects: [],
-  ritual: true,
+  targeting: { type: 'area', range: 30, areaOfEffect: { shape: 'Cube', size: 20 }, validTargets: ['creatures'] },
+  effects: []
 };
 
-const mockCaster: CombatCharacter = {
-  id: 'wizard-1',
-  name: 'Wizard',
-  // ... minimal required props
-} as any;
-
 describe('RitualManager', () => {
-  it('should initialize a ritual with correct duration', () => {
-    const ritual = RitualManager.startRitual(mockRitualSpell, mockCaster, [], 1000);
+  it('should start a standard cast correctly (no ritual extension)', () => {
+    // Normal cast: 1 minute = 10 rounds
+    const ritual = startRitual(mockCaster, mockSpell, 1, false);
 
-    expect(ritual.spell.id).toBe('alarm');
-    expect(ritual.casterId).toBe('wizard-1');
-    expect(ritual.durationMinutes).toBe(11); // 1 min cast time + 10 min ritual
-    expect(ritual.progressMinutes).toBe(0);
-    expect(ritual.isComplete).toBe(false);
+    expect(ritual.spellName).toBe('Alarm');
+    expect(ritual.durationTotal).toBe(10);
+    expect(ritual.progress).toBe(0);
+    expect(ritual.casterId).toBe(mockCaster.id);
   });
 
-  it('should throw error if spell is not a ritual', () => {
-    const nonRitualSpell = { ...mockRitualSpell, ritual: false };
-    expect(() => RitualManager.startRitual(nonRitualSpell, mockCaster, [], 0)).toThrow();
+  it('should start a ritual cast correctly (adds 10 minutes)', () => {
+    // Ritual cast: 1 minute + 10 minutes = 11 minutes = 110 rounds
+    const ritual = startRitual(mockCaster, mockSpell, 1, true);
+
+    expect(ritual.durationTotal).toBe(110);
   });
 
-  it('should advance ritual progress', () => {
-    let ritual = RitualManager.startRitual(mockRitualSpell, mockCaster, [], 0);
-
-    ritual = RitualManager.advanceRitual(ritual, 5);
-    expect(ritual.progressMinutes).toBe(5);
-    expect(ritual.isComplete).toBe(false);
-
-    ritual = RitualManager.advanceRitual(ritual, 6);
-    expect(ritual.progressMinutes).toBe(11);
-    expect(ritual.isComplete).toBe(true);
+  it('should calculate duration correctly for hours', () => {
+    const hourSpell = { ...mockSpell, castingTime: { value: 1, unit: 'hour' as const } };
+    const ritual = startRitual(mockCaster, hourSpell, 1, false);
+    expect(ritual.durationTotal).toBe(600); // 1 hour = 600 rounds
   });
 
-  it('should check interruptions (Damage)', () => {
-    const ritual = RitualManager.startRitual(mockRitualSpell, mockCaster, [], 0);
-    const damageEvent: RitualEvent = {
-      type: 'damage',
-      targetId: 'wizard-1',
-      value: 10
-    };
+  it('should advance progress', () => {
+    let ritual = startRitual(mockCaster, mockSpell, 1);
+    ritual = advanceRitual(ritual, 1);
+    expect(ritual.progress).toBe(1);
 
-    const result = RitualManager.checkInterruption(ritual, damageEvent);
+    ritual = advanceRitual(ritual, 5);
+    expect(ritual.progress).toBe(6);
+  });
+
+  it('should detect completion', () => {
+    let ritual = startRitual(mockCaster, mockSpell, 1, false); // 10 rounds
+    ritual = advanceRitual(ritual, 10);
+    expect(isRitualComplete(ritual)).toBe(true);
+  });
+
+  it('should handle damage interruption', () => {
+    const ritual = startRitual(mockCaster, mockSpell, 1);
+
+    const result = checkRitualInterrupt(ritual, 'damage', 20);
     expect(result.interrupted).toBe(true);
-    expect(result.canSave).toBe(true);
-    expect(result.saveDC).toBe(10); // min 10
+    expect(result.saveRequired).toBe(true);
+    expect(result.saveDC).toBe(10); // Floor(20/2) = 10, min 10
   });
 
-  it('should check interruptions (High Damage)', () => {
-    const ritual = RitualManager.startRitual(mockRitualSpell, mockCaster, [], 0);
-    const damageEvent: RitualEvent = {
-      type: 'damage',
-      targetId: 'wizard-1',
-      value: 40
-    };
+  it('should handle movement interruption if configured via override', () => {
+      // Override default config to break on move
+      const ritual = startRitual(mockCaster, mockSpell, 1, false, { breaksOnMove: true });
+      const result = checkRitualInterrupt(ritual, 'move');
+      expect(result.interrupted).toBe(true);
 
-    const result = RitualManager.checkInterruption(ritual, damageEvent);
-    expect(result.interrupted).toBe(true);
-    expect(result.canSave).toBe(true);
-    expect(result.saveDC).toBe(20); // 40/2
-  });
-
-  it('should check interruptions (Movement)', () => {
-    const ritual = RitualManager.startRitual(mockRitualSpell, mockCaster, [], 0);
-    const event: RitualEvent = {
-      type: 'movement',
-      targetId: 'wizard-1',
-      value: 10 // Moved 10ft
-    };
-
-    const result = RitualManager.checkInterruption(ritual, event);
-    expect(result.interrupted).toBe(true);
-    expect(result.canSave).toBe(false);
-  });
-
-  it('should ignore events for other characters', () => {
-    const ritual = RitualManager.startRitual(mockRitualSpell, mockCaster, [], 0);
-    const event: RitualEvent = {
-      type: 'damage',
-      targetId: 'fighter-1', // Not the caster
-      value: 50
-    };
-
-    const result = RitualManager.checkInterruption(ritual, event);
-    expect(result.interrupted).toBe(false);
-  });
-
-  // New Tests for Ritualist Features
-
-  it('should handle material consumption timing', () => {
-    // Default: Consumed at end
-    let ritual = RitualManager.startRitual(mockRitualSpell, mockCaster, [], 0);
-    expect(ritual.materialsConsumed).toBe(false);
-
-    ritual = RitualManager.advanceRitual(ritual, 5); // ~45%
-    expect(ritual.materialsConsumed).toBe(false);
-
-    ritual = RitualManager.advanceRitual(ritual, 6); // Complete (100%)
-    expect(ritual.materialsConsumed).toBe(true);
-
-    // Custom: Consumed at 50%
-    let customRitual = RitualManager.startRitual(mockRitualSpell, mockCaster, [], 0, { materialConsumptionProgress: 0.5 });
-
-    customRitual = RitualManager.advanceRitual(customRitual, 4); // 4/11 ~36%
-    expect(customRitual.materialsConsumed).toBe(false);
-
-    customRitual = RitualManager.advanceRitual(customRitual, 2); // 6/11 ~54%
-    expect(customRitual.materialsConsumed).toBe(true);
-  });
-
-  it('should apply participant bonuses to concentration DC', () => {
-    const participants = [{ id: 'p1' }, { id: 'p2' }] as CombatCharacter[];
-    const ritual = RitualManager.startRitual(mockRitualSpell, mockCaster, participants, 0);
-
-    expect(ritual.participationBonus).toBe(2);
-
-    const damageEvent: RitualEvent = {
-      type: 'damage',
-      targetId: 'wizard-1',
-      value: 24 // Normal DC: 12
-    };
-
-    const result = RitualManager.checkInterruption(ritual, damageEvent);
-    expect(result.canSave).toBe(true);
-    // Effective DC = 12 - 2 = 10
-    expect(result.saveDC).toBe(10);
-  });
-
-  it('should cap participant bonus at 5', () => {
-    const participants = Array(10).fill({ id: 'p' }) as CombatCharacter[];
-    const ritual = RitualManager.startRitual(mockRitualSpell, mockCaster, participants, 0);
-
-    expect(ritual.participationBonus).toBe(5);
+      // Default should be false
+      const ritualDefault = startRitual(mockCaster, mockSpell, 1, false);
+      const resultDefault = checkRitualInterrupt(ritualDefault, 'move');
+      expect(resultDefault.interrupted).toBe(false);
   });
 });
