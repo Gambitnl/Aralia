@@ -3,7 +3,16 @@
  * Licensed under the MIT License.
  *
  * @file src/utils/combatUtils.ts
- * Utility functions for the combat system.
+ * Central utility module for the combat system ("God Object").
+ *
+ * This module aggregates logic for:
+ * 1. Dice rolling and damage calculation (D&D 5e rules).
+ * 2. Grid geometry (Cover, AoE, Distance).
+ * 3. Entity conversion (Player/Monster -> CombatCharacter).
+ *
+ * @see src/utils/physicsUtils.ts - For movement physics (jumping, falling).
+ * @see src/types/combat.ts - For core combat type definitions.
+ * @see src/commands/base/SpellCommand.ts - For the Command pattern consuming these utilities.
  */
 import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect } from '../types/combat';
 import { PlayerCharacter, Monster, Item } from '../types';
@@ -97,10 +106,19 @@ export function rollDice(diceString: string): number {
 /**
  * Rolls damage, optionally doubling the dice for a critical hit.
  *
+ * Safety:
+ * - Returns 0 for invalid/empty strings.
+ * - Handles complex formulas like "1d8 + 1d6 + 2".
+ * - Ignores spaces.
+ *
  * @param diceString The dice notation (e.g., '2d6+3').
  * @param isCritical Whether this is a critical hit (doubles dice).
  * @param minRoll Optional minimum value for each die (e.g. for Elemental Adept).
  * @returns The total damage.
+ *
+ * @example
+ * rollDamage('2d6+3', false) // Returns 5-15
+ * rollDamage('2d6', true)    // Returns 4-24 (4d6)
  */
 export function rollDamage(diceString: string, isCritical: boolean, minRoll: number = 1): number {
   if (!diceString || diceString === '0') return 0;
@@ -377,16 +395,20 @@ export function getStatusEffectIcon(effect: StatusEffect): string {
 /**
  * Converts a PlayerCharacter from the main game state into a CombatCharacter for the battle map.
  *
- * WHY:
+ * ## Architecture Note: Persistent vs Transient State
  * The game maintains two separate character representations:
- * 1. PlayerCharacter (Persistent): Stores long-term state (inventory, XP, all known spells).
- * 2. CombatCharacter (Transient): Optimized for the turn-based combat engine (flat ability list, position).
+ * 1. **PlayerCharacter (Persistent):** Stores long-term state (inventory, XP, all known spells) in Redux/LocalStorage.
+ * 2. **CombatCharacter (Transient):** Optimized for the turn-based combat engine (flat ability list, position) and discarded after combat.
  *
- * HOW:
- * This factory function bridges that gap by:
- * - Transforming equipped weapons into 'Attack' abilities (checking proficiency & mastery).
- * - Injecting universal combat actions (Dash, Disengage).
- * - Hydrating the spellbook into executable abilities using the `createAbilityFromSpell` factory.
+ * This factory acts as the bridge (Adapter Pattern), ensuring the combat engine receives a standardized interface
+ * regardless of whether the source is a Player or a Monster.
+ *
+ * ## Key Transformations
+ * - **Weapons -> Abilities:** Equipped weapons are converted into 'Attack' abilities.
+ *   - Note: We set `value: 0` in the damage effect as a SENTINEL. The combat system detects this and
+ *     dynamically rolls the weapon's damage dice at runtime.
+ * - **Spells -> Abilities:** Hydrates the spellbook using the global spell dictionary.
+ * - **Stats:** Flattens nested stat objects for easier access by combat systems.
  *
  * @param player - The persistent PlayerCharacter object.
  * @param allSpells - Dictionary of all spell data, used to resolve spell IDs into full ability objects.
