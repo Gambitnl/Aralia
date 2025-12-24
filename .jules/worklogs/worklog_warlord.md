@@ -13,3 +13,7 @@ This journal tracks deep insights into the combat system, 5e rules compliance, a
 ## 2025-05-20 - Movement Economy
 **Learning:** Grid movement has been updated from Chebyshev (1:1 diagonals) to the D&D 5e Variant Rule (5-10-5), where diagonals alternate cost between 5ft and 10ft. This significantly changes tactical positioning and flanking ranges.
 **Action:** Pathfinding algorithms (`A*` and BFS) now must track "diagonal parity" in their state to find optimal paths. Standard G-score pruning is insufficient; pruning must consider parity (even/odd diagonal count).
+
+## 2025-05-20 - Reaction Eligibility
+**Learning:** `CombatCharacter` state is split between legacy `statusEffects` (UI-focused) and `conditions` (mechanics-focused). Checking for incapacitation requires validating both. Heuristic matching on status IDs must exclude terms like "immunity" or "resistance" to prevent false positives (e.g. `ring_of_paralysis_resistance` incorrectly flagging a character as Paralyzed).
+**Action:** Use the centralized `canTakeReaction` utility in `src/utils/combatUtils.ts` for all reaction logic. Do not implement ad-hoc status checks.

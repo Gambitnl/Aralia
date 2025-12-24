@@ -676,3 +676,52 @@ export function resolveAttack(
 
   return { isHit, isCritical, isAutoMiss, total };
 }
+
+/**
+ * Checks if a character is capable of taking a reaction.
+ * According to D&D 5e rules, a creature cannot take reactions if it is Incapacitated.
+ * The following conditions cause Incapacitation:
+ * - Incapacitated
+ * - Paralyzed
+ * - Petrified
+ * - Stunned
+ * - Unconscious
+ *
+ * @param character The character to check.
+ * @returns True if the character can take a reaction, false otherwise.
+ */
+export function canTakeReaction(character: CombatCharacter): boolean {
+  if (character.currentHP <= 0) return false;
+
+  const incapacitatingConditions = [
+    'Incapacitated',
+    'Paralyzed',
+    'Petrified',
+    'Stunned',
+    'Unconscious'
+  ];
+
+  // Check legacy statusEffects with safe navigation
+  // We prefer strict matching on name, but allow partial match on ID for backward compatibility with older generated IDs
+  const hasIncapacitatingEffect = character.statusEffects?.some(effect => {
+    const name = (effect.name || '').toLowerCase();
+    const id = (effect.id || '').toLowerCase();
+
+    return incapacitatingConditions.some(cond => {
+        const condLower = cond.toLowerCase();
+        return name === condLower || (id && id.includes(condLower) && !id.includes('immunity') && !id.includes('resistance'));
+    });
+  }) ?? false;
+
+  if (hasIncapacitatingEffect) return false;
+
+  // Check new conditions array if present
+  if (character.conditions) {
+    const hasIncapacitatingCondition = character.conditions.some(cond =>
+      incapacitatingConditions.some(ic => cond.name.toLowerCase() === ic.toLowerCase())
+    );
+    if (hasIncapacitatingCondition) return false;
+  }
+
+  return true;
+}
