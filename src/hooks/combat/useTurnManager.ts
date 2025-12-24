@@ -199,6 +199,10 @@ export const useTurnManager = ({
 
       // Fix for stale closure: If the next character is the one we just processed (e.g. solo combat),
       // use the updated state returned from processEndOfTurnEffects instead of the stale one from 'characters'.
+      // FIXME: This workaround is fragile. A cleaner solution would be to have processEndOfTurnEffects
+      // return the updated character ID alongside the updated character, or use a ref to track the latest
+      // character state. This workaround will break if processEndOfTurnEffects ever returns a different
+      // character (e.g., summoned creature).
       if (nextCharacter && processedChar && nextCharacter.id === processedChar.id) {
         nextCharacter = processedChar;
       }

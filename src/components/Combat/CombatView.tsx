@@ -85,6 +85,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   }, []);
 
   const handleLogEntry = useCallback((entry: CombatLogEntry) => {
+    // TODO: PERFORMANCE: Implement log virtualization or truncation. Currently, 'combatLog' grows indefinitely, which will degrade performance in long encounters due to React rendering of the list.
     // TODO: Cap and virtualize combatLog length (Reason: long fights will append thousands of entries and bloat memory/UI diffing; Expectation: keep only the most recent N turns while streaming older logs to a history panel).
     setCombatLog(prev => [...prev, entry]);
   }, []);
@@ -96,6 +97,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
     onLogEntry: handleLogEntry,
     autoCharacters, // Pass auto characters to turn manager if needed, but easier to modify turnManager props to accept "isAuto" check
     onMapUpdate: setMapData,
+    // TODO: Feature: Bind difficulty to user settings or campaign state instead of hardcoding 'normal'.
     difficulty: 'normal'
   });
 

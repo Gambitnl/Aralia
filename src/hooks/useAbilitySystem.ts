@@ -31,6 +31,7 @@ import { hasLineOfSight } from '../utils/lineOfSight';
 import { calculateAffectedTiles } from '../utils/aoeCalculations';
 import { useTargeting } from './combat/useTargeting'; // New Hook
 import { resolveAoEParams } from '../utils/targetingUtils';
+// TODO: CLEANUP: Check if AttackRiderSystem is still needed. It appears unused after the refactor to Command Pattern.
 import { AttackRiderSystem, AttackContext } from '../systems/combat/AttackRiderSystem';
 import { Plane } from '../types/planes';
 
@@ -128,7 +129,13 @@ export const useAbilitySystem = ({
         currentPlane: currentPlane
       };
 
-      const mockGameState = {} as unknown as GameState; // Using unknown as GameState for global state mock as it's too large to mock here fully
+      const mockGameState = {} as unknown as GameState;
+      // TODO: CRITICAL: Replace the empty '{}' assertion for GameState with a real context value or a safer default object (e.g., useGameState() hook). Passing an empty object will cause crashes if spells access flags like 'isDaytime' or 'weather'.
+      // Passing an empty object (`{} as GameState`) is a time-bomb; if any Command strictly accesses `gameState.flags` or `gameState.weather`,
+      // it will crash the app. At minimum, provide safe defaults.
+      // TODO: SAFETY: We are passing an empty object as GameState.
+      // If any SpellCommands rely on global flags (e.g. 'isDaytime', 'difficulty'), this will crash or behave unexpectedly.
+      // Consider passing a minimal valid GameState or fetching the real one from a context.
 
       try {
         // Asynchronously generate the chain of effect commands
@@ -221,6 +228,9 @@ export const useAbilitySystem = ({
     caster: CombatCharacter,
     targetPosition: Position
   ): boolean => {
+    // TODO: Refactor: Move `isValidTarget` and `getValidTargets` to `src/utils/targetingUtils.ts` or `src/hooks/combat/useTargeting.ts`.
+    // The file header states targeting logic is delegated, but these core validation functions remain here,
+    // violating the separation of concerns between "Orchestration" vs "Geometric Calculation".
     if (!mapData) return false;
 
     // 1. Tile Existence Check
@@ -266,7 +276,15 @@ export const useAbilitySystem = ({
     ability: Ability,
     caster: CombatCharacter
   ): Position[] => {
-    // TODO: cache valid targets per ability + map snapshot; full grid scan each click is expensive on large maps.
+    // TODO: OPTIMIZATION: Memoize 'getValidTargets' or optimize the spatial scan. Currently, this performs (MapWidth * MapHeight) line-of-sight checks on every render where the ability palette is open, which can cause significant frame drops on larger maps (50x50+).
+    // TODO: PERFORMANCE: This brute-force scan (Width * Height) runs Line-of-Sight checks on every tile.
+    // On large maps (e.g., 50x50), this is 2500 raycasts per render/click.
+    // Optimization:
+    // 1. Only scan tiles within `ability.range` (bounding box).
+    // 2. Use a flood-fill algorithm for movement/range instead of checking every coordinate.
+    // TODO: Performance: Implement `useMemo` or a ref-based cache for valid targets.
+    // Currently, this scans (MapWidth * MapHeight) tiles on every render/tick where it's called.
+    // Cache key should be: `[ability.id, caster.position, mapData.revisionId]`.
     if (!mapData) return [];
     const validPositions: Position[] = [];
 
@@ -342,8 +360,8 @@ export const useAbilitySystem = ({
 
     // Use Factory
     const targets = targetCharacterIds
-        .map(id => characters.find(c => c.id === id))
-        .filter((c): c is CombatCharacter => !!c);
+      .map(id => characters.find(c => c.id === id))
+      .filter((c): c is CombatCharacter => !!c);
 
     const commands = AbilityCommandFactory.createCommands(ability, caster, targets, mockGameState);
 
@@ -456,6 +474,9 @@ export const useAbilitySystem = ({
    */
   const dropConcentration = useCallback((character: CombatCharacter) => {
     // TODO: include reactiveTriggers in deps or refresh inside to avoid stale trigger cleanup when dropping concentration.
+    // TODO: BUG RISK: `reactiveTriggers` is not in the dependency array. 
+    // If `reactiveTriggers` updates (e.g. a new reaction is added), this closure will be stale,
+    // and `currentState.reactiveTriggers` will be empty/old, potentially causing bugs in command execution.
     if (!character.concentratingOn) return;
 
     const currentState: CombatState = {

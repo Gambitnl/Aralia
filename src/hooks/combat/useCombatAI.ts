@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { CombatCharacter, CombatAction, BattleMapData } from '../../types/combat';
 import { evaluateCombatTurn } from '../../utils/combat/combatAI';
+// TODO: Refactor: Move 'AI_THINKING_DELAY_MS' into a dynamic 'AIConfigContext' to support per-monster personalities and user overrides.
 import { AI_THINKING_DELAY_MS } from '../../config/combatConfig';
 
 interface UseCombatAIProps {
@@ -31,6 +32,14 @@ interface UseCombatAIProps {
  * Custom hook to encapsulate all AI decision-making logic.
  * Detects if the current turn is an AI turn, waits for a thinking delay,
  * determines the best action, and executes it.
+ *
+ * TODO: Add unit tests for useCombatAI state machine transitions.
+ * Cases to cover:
+ * 1. AI turn detection (enemy team vs autoCharacters set)
+ * 2. State transitions: idle -> thinking -> acting -> done
+ * 3. Action limit enforcement (max 3 actions per turn)
+ * 4. Graceful handling when executeAction returns false
+ * 5. Timer cleanup on component unmount
  */
 export const useCombatAI = ({
     difficulty,
@@ -106,6 +115,8 @@ export const useCombatAI = ({
         // 2. Safety / Existential Checks
         // Prevent infinite loops with a hard cap on actions per turn (e.g. Move + Action + Bonus)
         // Also requires mapData to be present for pathfinding.
+        // TODO: Replace magic number '3' with a configurable constant (e.g., MAX_AI_ACTIONS_PER_TURN).
+        // Consider making it per-creature (some monsters may have Legendary Actions or Multi-attack).
         if (aiActionsPerformed >= 3 || !mapData) {
             setTimeout(() => setAiState('done'), 0);
             endTurn();
@@ -156,6 +167,11 @@ export const useCombatAI = ({
 
         performTurnLogic();
 
+        // WARNING: This dependency array includes `characters` which changes on every action.
+        // This is intentional to ensure the AI sees fresh state, but it means the effect
+        // re-fires frequently. Verify that the `aiState !== 'thinking'` guard (line 104) is
+        // sufficient to prevent double-execution. Consider using a ref for characters if
+        // performance issues arise in large battles.
     }, [
         aiState,
         characters,

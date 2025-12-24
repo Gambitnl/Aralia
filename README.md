@@ -7,11 +7,22 @@ For a complete index of all documentation, please see the [README Index](./docs/
 ## 1. Getting Started
 
 ### Prerequisites
-*   **Node.js**: (Version 18+ recommended). [Download here](https://nodejs.org/).
-*   **pnpm**: This project uses `pnpm` for dependency management. If you don't have it installed:
+*   **Node.js**: (Version 22+ recommended). [Download here](https://nodejs.org/).
+*   **pnpm**: This project uses `pnpm` for dependency management. (Pre-installed in the Jules environment).
+    *   If running locally: `npm install -g pnpm`
+*   **Python**: Version 3.12+ (Required for some utility scripts).
+
+### Jules Environment Configuration
+To configure this repository in the Jules IDE:
+1.  Go to the repository settings in the sidebar.
+2.  Select **Configuration**.
+3.  In the **Initial Setup** script, add:
     ```bash
-    npm install -g pnpm
+    pnpm install
+    # Optional: Validate environment
+    pnpm run typecheck
     ```
+4.  Click **Run and Snapshot**.
 
 ### Installation
 

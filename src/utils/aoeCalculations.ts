@@ -73,6 +73,7 @@ const TILE_SIZE = 5; // feet
  * });
  */
 export function calculateAffectedTiles(params: AoEParams): Position[] {
+    // TODO: Future: Support gridless (Euclidean) AoE for non-tile maps by returning a polygon instead of tile list.
     switch (params.shape) {
         case 'Sphere':
         case 'Cylinder': // 2D projection of Cylinder is a Circle/Sphere
@@ -138,8 +139,10 @@ function getSphereAoE(origin: Position, radius: number): Position[] {
  * The implementation uses a derived constant to represent this angle mathematically,
  * with a small epsilon to account for floating-point precision when checking boundaries.
  *
- * TODO: Note that `src/systems/spells/targeting/gridAlgorithms/cone.ts` contains a similar implementation.
- * Consider future refactoring to consolidate these logic paths into a single source of truth.
+ * TODO: CLEANUP: Check for usage of 'src/systems/spells/targeting/gridAlgorithms/cone.ts' and deprecate it in favor of this utility to centralize AoE logic.
+ * TODO: Refactor: Validate if `src/systems/spells/targeting/gridAlgorithms/cone.ts` is still in use.
+ * If so, deprecate it and redirect all calls to this utility to eliminate logic duplication.
+ * We should have a single source of truth for "53-degree grid cones".
  *
  * @param origin - The starting point of the cone
  * @param direction - Compass direction in degrees (0=N, 90=E)
@@ -236,6 +239,10 @@ function getCubeAoE(origin: Position, size: number): Position[] {
  * @returns Array of affected grid positions representing the line's path
  */
 function getLineAoE(origin: Position, target: Position, _width: number): Position[] {
+    // TODO: Feature: Implement 'Thick Line' logic using the `width` parameter.
+    // Currently `_width` is unused, enforcing a 1-tile ray.
+    // TODO: FEATURE: Implement 'Thick Line' logic here. Currently 'width' is ignored, forcing all lines to be 1 tile wide. Spells like 'Lightning Bolt' or dragon breath weapons may require wider areas.
+    // Needed for spells with >5ft width (e.g., massive beam attacks) to correctly hit multiple parallel tiles.
     const dx = target.x - origin.x;
     const dy = target.y - origin.y;
     const distance = Math.sqrt(dx * dx + dy * dy);

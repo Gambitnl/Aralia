@@ -83,6 +83,8 @@ export const resolveAoEParams = (
                 // Math.atan2(y, x) gives angle from +X axis (East) in radians.
                 // Range: -PI to +PI. 
                 // 0 = East, 90 = South, 180 = West, -90 = North.
+                // TODO: REFACTOR: This angle calculation logic duplicates `aoeCalculations.ts` and `combatUtils.ts`.
+                // Extract a shared `getAngleBetweenPositions(posA, posB)` helper in `src/utils/geometry.ts`.
                 const angleRad = Math.atan2(dy, dx);
                 const angleDeg = angleRad * (180 / Math.PI);
 
