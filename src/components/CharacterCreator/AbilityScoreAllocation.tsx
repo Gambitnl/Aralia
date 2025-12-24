@@ -197,11 +197,11 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
       {selectedClass && (selectedClass.statRecommendationFocus || selectedClass.statRecommendationDetails) && (
         <div className="mb-4 p-3 bg-gray-700/70 rounded-lg border border-sky-700 shadow">
           <h3 className="text-lg font-semibold text-sky-300 mb-1.5">
-            Stat Recommendation for {selectedClass.name}
+            Archetype Guidance: {selectedClass.name}
           </h3>
           {selectedClass.statRecommendationFocus && selectedClass.statRecommendationFocus.length > 0 && (
             <p className="text-sm text-gray-300 mb-0.5">
-              Consider focusing on: <strong className="text-amber-300">{selectedClass.statRecommendationFocus.join(', ')}</strong>
+              Prioritize: <strong className="text-amber-300">{selectedClass.statRecommendationFocus.join(', ')}</strong>
             </p>
           )}
           {selectedClass.statRecommendationDetails && (
@@ -218,7 +218,7 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
           aria-label={canSetRecommended ? `Set recommended stats for ${selectedClass?.name}` : "Recommended stats not available for this class"}
           title={canSetRecommended ? `Apply recommended stats for ${selectedClass?.name}` : "Recommended stats not available for this class"}
         >
-          Set Recommended Stats for {selectedClass?.name || "Class"}
+          Channel {selectedClass?.name || "Class"} Archetype
         </button>
       </div>
 
@@ -333,7 +333,7 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
           className="w-1/2 bg-green-600 hover:bg-green-500 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-semibold py-2 px-4 rounded-lg shadow transition-colors"
           aria-label="Confirm ability scores"
         >
-          {pointsRemaining === 0 ? 'Confirm Scores' : `Spend ${pointsRemaining} more points`}
+          {pointsRemaining === 0 ? 'Confirm Attributes' : `Spend ${pointsRemaining} more points`}
         </button>
       </div>
     </div>
