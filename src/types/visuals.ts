@@ -104,6 +104,30 @@ export interface NPCVisualSpec {
 }
 
 /**
+ * Defines the visual requirements for a Playable Race.
+ * Standardizes illustrations, icons, and AI generation data.
+ */
+export interface RaceVisualSpec {
+  /** Unique ID for the race visual (usually matches race ID). */
+  id: string;
+
+  /** Primary icon (emoji or character). */
+  icon: string;
+
+  /** Theme color (hex code). */
+  color: string;
+
+  /** Path to the main illustration (formerly imageUrl). */
+  illustrationPath?: string;
+
+  /** Path to a top-down token for map representation. */
+  tokenPath?: string;
+
+  /** Description for AI generation contexts. */
+  description?: string;
+}
+
+/**
  * Defines the visual requirements for a Character Class.
  * Provides standard icons and colors for UI consistency.
  */
