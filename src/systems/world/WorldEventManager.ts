@@ -8,7 +8,7 @@
 
 import { GameState, GameMessage, WorldRumor, MarketEvent, EconomyState } from '../../types';
 import { modifyFactionRelationship } from '../../utils/factionUtils';
-import { getGameDay, addGameTime } from '../../utils/timeUtils';
+import { getGameDay } from '../../utils/timeUtils';
 import { SeededRandom } from '../../utils/seededRandom';
 import { processDailyRoutes } from '../economy/TradeRouteManager';
 import { FactionManager } from './FactionManager';
@@ -31,6 +31,20 @@ const DAILY_EVENT_CHANCE = 0.2; // Increased from 0.1 for more liveliness
  * Relationships ripple outward.
  */
 const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventResult => {
+  // Check Weather
+  // Storms and Blizzards prevent military movement
+  if (state.weather) {
+      const p = state.weather.precipitation;
+      const w = state.weather.wind.speed;
+
+      if (p === 'blizzard' || p === 'storm' || w === 'gale') {
+          // 80% chance that the skirmish is called off due to weather
+          if (rng.next() < 0.8) {
+              return { state, logs: [] };
+          }
+      }
+  }
+
   const factionIds = Object.keys(state.factions);
   if (factionIds.length < 2) return { state, logs: [] };
 
@@ -209,7 +223,7 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
  */
 const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResult => {
     // Define potential market events with actual gameplay effects
-    const events: Array<{ text: string; event: MarketEvent }> = [
+    const allEvents: Array<{ text: string; event: MarketEvent; weight?: number }> = [
         {
             text: "A surplus of iron from the mines has lowered weapon prices.",
             event: {
@@ -219,7 +233,8 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 affectedTags: ['weapon', 'armor'],
                 effect: 'surplus',
                 duration: 5
-            }
+            },
+            weight: 1
         },
         {
             text: "Drought in the farmlands has driven up food costs.",
@@ -230,7 +245,8 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 affectedTags: ['consumable', 'food'],
                 effect: 'scarcity',
                 duration: 7
-            }
+            },
+            weight: 1
         },
         {
             text: "A sunken merchant ship has made silk a rare luxury.",
@@ -241,7 +257,8 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 affectedTags: ['valuable', 'cloth'],
                 effect: 'scarcity',
                 duration: 10
-            }
+            },
+            weight: 1
         },
         {
             text: "A new trade route has opened, flooding the market with exotic spices.",
@@ -252,11 +269,50 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 affectedTags: ['valuable', 'spice'],
                 effect: 'surplus',
                 duration: 5
-            }
+            },
+            weight: 1
         }
     ];
 
-    const selection = events[Math.floor(rng.next() * events.length)];
+    // Adjust weights based on Weather
+    if (state.weather) {
+        const { temperature, precipitation, wind } = state.weather;
+
+        // Drought / Heat -> Food Scarcity
+        if (temperature === 'extreme_heat' || temperature === 'hot') {
+            const foodEvent = allEvents.find(e => e.event.id === 'scarcity_food');
+            if (foodEvent) foodEvent.weight = 5; // Very likely
+        }
+
+        // Storms -> Luxury Scarcity (Shipping issues)
+        if (precipitation === 'storm' || precipitation === 'blizzard' || wind.speed === 'gale') {
+             const luxuryEvent = allEvents.find(e => e.event.id === 'scarcity_luxury');
+             if (luxuryEvent) luxuryEvent.weight = 5;
+        }
+
+        // Good Weather -> Surplus
+        if (precipitation === 'none' && temperature === 'temperate' && wind.speed === 'light') {
+             const surplusEvent = allEvents.find(e => e.event.id === 'surplus_food'); // If we had one, or general surplus
+             // We don't have a surplus_food defined above, let's boost iron/spices
+             allEvents.forEach(e => {
+                 if (e.event.effect === 'surplus') e.weight = (e.weight || 1) + 1;
+             });
+        }
+    }
+
+    // Weighted Random Selection
+    const totalWeight = allEvents.reduce((sum, e) => sum + (e.weight || 1), 0);
+    let roll = rng.next() * totalWeight;
+    let selection = allEvents[0];
+
+    for (const e of allEvents) {
+        if (roll < (e.weight || 1)) {
+            selection = e;
+            break;
+        }
+        roll -= (e.weight || 1);
+    }
+
     const timestamp = state.gameTime || new Date();
     const gameDay = getGameDay(timestamp);
 
