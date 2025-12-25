@@ -5,16 +5,26 @@ import CompassPane from '../CompassPane';
 import { Location } from '../../types';
 
 // Mock dependencies
-vi.mock('@/utils/timeUtils', () => ({
-  formatGameTime: vi.fn(() => '12:00 PM'),
-  getGameDay: vi.fn(() => 1),
-  getSeason: vi.fn(() => 'Winter'),
-  getGameEpoch: vi.fn(() => new Date(Date.UTC(351, 0, 1))),
-  addGameTime: vi.fn((date) => date), // Mock addGameTime to return same date
-}));
+vi.mock('@/utils/timeUtils', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/utils/timeUtils')>();
+  return {
+    ...actual,
+    formatGameTime: vi.fn(() => '12:00 PM'),
+    getGameDay: vi.fn(() => 1),
+    getSeason: vi.fn(() => actual.Season.Winter),
+    getTimeOfDay: vi.fn(() => actual.TimeOfDay.Day),
+    getTimeModifiers: vi.fn(() => ({ description: 'Test Weather' })),
+    getGameEpoch: vi.fn(() => new Date(Date.UTC(351, 0, 1))),
+    addGameTime: vi.fn((date) => date), // Mock addGameTime to return same date
+  };
+});
 
 vi.mock('@/systems/time/CalendarSystem', () => ({
   getCalendarDescription: vi.fn(() => 'It is Deepwinter, 351 (Winter). Moon: Waxing Crescent.'),
+  getMoonPhase: vi.fn(() => 'Full Moon'),
+  MoonPhase: { FullMoon: 'Full Moon' },
+  getHoliday: vi.fn(() => null),
+  getMonthName: vi.fn(() => 'Deepwinter'),
 }));
 
 describe('CompassPane', () => {
@@ -40,6 +50,9 @@ describe('CompassPane', () => {
 
   it('renders time with season', () => {
     render(<CompassPane {...defaultProps} />);
-    expect(screen.getByText(/Day 1 \(Winter\)/)).toBeInTheDocument();
+    // The previous text check is no longer valid as the display has changed to a widget
+    // We should check for the TimeWidget content
+    expect(screen.getByText(/❄️ 1 Deepwinter/)).toBeInTheDocument();
+    expect(screen.getByText(/☀️ Day/)).toBeInTheDocument();
   });
 });
