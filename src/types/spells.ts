@@ -43,6 +43,21 @@ export interface Spell {
   aiContext?: AIContext;
 }
 
+/**
+ * The eight schools of magic in D&D 5e.
+ * Source: PHB 2024
+ */
+export enum SpellSchoolEnum {
+  Abjuration = "Abjuration",
+  Conjuration = "Conjuration",
+  Divination = "Divination",
+  Enchantment = "Enchantment",
+  Evocation = "Evocation",
+  Illusion = "Illusion",
+  Necromancy = "Necromancy",
+  Transmutation = "Transmutation",
+}
+
 /** The eight schools of magic in D&D 5e. */
 export type SpellSchool =
   | "Abjuration"
@@ -52,7 +67,55 @@ export type SpellSchool =
   | "Evocation"
   | "Illusion"
   | "Necromancy"
-  | "Transmutation";
+  | "Transmutation"
+  | SpellSchoolEnum;
+
+export interface SpellSchoolTraits {
+  /** A brief description of what the school encompasses. */
+  description: string;
+  /** Thematic keywords associated with the school. */
+  themes: string[];
+}
+
+/**
+ * Standard traits associated with each school of magic.
+ */
+export const SpellSchoolDefinitions: Record<SpellSchoolEnum, SpellSchoolTraits> = {
+  [SpellSchoolEnum.Abjuration]: {
+    description: "Spells that block, banish, or protect.",
+    themes: ["Protection", "Warding", "Banishing", "Negation"],
+  },
+  [SpellSchoolEnum.Conjuration]: {
+    description: "Spells that transport objects, creatures, or energy.",
+    themes: ["Summoning", "Teleportation", "Creation", "Transportation"],
+  },
+  [SpellSchoolEnum.Divination]: {
+    description: "Spells that reveal information or provide foresight.",
+    themes: ["Knowledge", "Scrying", "Prophecy", "Detection"],
+  },
+  [SpellSchoolEnum.Enchantment]: {
+    description: "Spells that affect the minds of others.",
+    themes: ["Mind Control", "Emotion", "Influence", "Charm"],
+  },
+  [SpellSchoolEnum.Evocation]: {
+    description: "Spells that manipulate magical energy to produce a desired effect.",
+    themes: ["Energy", "Damage", "Elements", "Destruction", "Healing"],
+  },
+  [SpellSchoolEnum.Illusion]: {
+    description: "Spells that deceive the senses or minds of others.",
+    themes: ["Deception", "Phantasm", "Sensory", "Trickery"],
+  },
+  [SpellSchoolEnum.Necromancy]: {
+    description: "Spells that manipulate the energies of life and death.",
+    themes: ["Death", "Life", "Undeath", "Soul"],
+  },
+  [SpellSchoolEnum.Transmutation]: {
+    description: "Spells that change the properties of a creature, object, or environment.",
+    themes: ["Transformation", "Alteration", "Shapechange", "Buff"],
+  },
+};
+
+// TODO(Taxonomist): Refactor codebase to use SpellSchool enum strictly instead of string literals
 
 /** The rarity of a spell. */
 export type SpellRarity = "common" | "uncommon" | "rare" | "very_rare" | "legendary";
