@@ -190,6 +190,10 @@ export interface GameState {
 
   legacy?: PlayerLegacy;
   strongholds?: Record<string, Stronghold>;
+  strongholdModal?: {
+    isOpen: boolean;
+    activeStrongholdId: string | null;
+  };
 
   underdark: UnderdarkState;
 

@@ -161,6 +161,12 @@ export type AppAction =
   | { type: 'ADD_LEGACY_MONUMENT'; payload: { name: string; description: string; locationId: string; cost: number } }
   | { type: 'REGISTER_HEIR'; payload: { name: string; relation: string; age: number; heirClass?: string } }
   | { type: 'FOUND_STRONGHOLD'; payload: { name: string; type: StrongholdType; locationId: string } }
+  // Stronghold Management Actions
+  | { type: 'OPEN_STRONGHOLD_MODAL'; payload: { strongholdId: string } }
+  | { type: 'CLOSE_STRONGHOLD_MODAL' }
+  | { type: 'UPGRADE_STRONGHOLD'; payload: { strongholdId: string; upgradeId: string } }
+  | { type: 'HIRE_STRONGHOLD_STAFF'; payload: { strongholdId: string; name: string; role: string } }
+  | { type: 'START_STRONGHOLD_MISSION'; payload: { strongholdId: string; staffId: string; type: string } }
   // Dialogue Actions
   | { type: 'START_DIALOGUE_SESSION'; payload: { npcId: string } }
   | { type: 'UPDATE_DIALOGUE_SESSION'; payload: { session: DialogueSession } }

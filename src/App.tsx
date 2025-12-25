@@ -319,9 +319,11 @@ const App: React.FC = () => {
   const handleOpenGlossary = useCallback((initialTermId?: string) => {
     if (initialTermId) {
       dispatch({ type: 'SET_GLOSSARY_TERM_FOR_MODAL', payload: initialTermId });
+      processAction({ type: 'TOGGLE_GLOSSARY_VISIBILITY', label: 'Toggle Glossary', payload: { initialTermId } });
+    } else {
+      dispatch({ type: 'SET_GLOSSARY_TERM_FOR_MODAL', payload: termId });
     }
-    processAction({ type: 'TOGGLE_GLOSSARY_VISIBILITY', label: 'Toggle Glossary', payload: { initialTermId } });
-  }, [dispatch, processAction]);
+  }, [dispatch, processAction, gameState.isGlossaryVisible]);
 
 
   const handleExitCharacterCreatorToMainMenu = useCallback(() => {
@@ -625,6 +627,11 @@ const App: React.FC = () => {
     // Determine settlement characteristics for culturally appropriate generation
     const settlementInfo = determineSettlementInfo(currentLocationData, gameState);
 
+    // Check for stronghold at this location
+    const ownedStronghold = gameState.strongholds
+      ? Object.values(gameState.strongholds).find(s => s.locationId === currentLocationData.id)
+      : undefined;
+
     mainContent = (
       <ErrorBoundary fallbackMessage="An error occurred in the Village Scene.">
         <TownCanvas
@@ -655,6 +662,7 @@ const App: React.FC = () => {
             dispatch({ type: 'EXIT_TOWN' });
             dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.PLAYING });
           }}
+          ownedStrongholdId={ownedStronghold?.id}
         />
       </ErrorBoundary>
     );

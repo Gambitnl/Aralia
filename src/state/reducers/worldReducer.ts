@@ -8,6 +8,7 @@ import { processWorldEvents } from '../../systems/world/WorldEventManager';
 import { UnderdarkMechanics } from '../../systems/underdark/UnderdarkMechanics';
 import { getGameDay } from '../../utils/timeUtils';
 import { ritualReducer } from './ritualReducer';
+import { processDailyUpkeep } from '../../services/strongholdService';
 
 export function worldReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
@@ -55,28 +56,15 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       let currentMessages = state.messages;
 
       // RITUALIST: Delegate ritual advancement to ritualReducer
-      // We pass the new time to the ritualReducer via state, but ritualReducer mostly cares about minutes passed
-      // which it can calculate from payload if we pass the action, OR we just let it handle ADVANCE_TIME directly.
-      // Since worldReducer is handling ADVANCE_TIME, we can call ritualReducer with the same action.
       const ritualUpdates = ritualReducer({ ...state, gameTime: newTime }, action);
       if (ritualUpdates.activeRitual) {
           partialUpdate.activeRitual = ritualUpdates.activeRitual;
       }
       if (ritualUpdates.messages) {
-          // If ritualReducer added messages, append them.
-          // Note: ritualReducer.ts returns the *new full list* of messages based on state.messages.
-          // So we should use that list, but we also have other updates pending (Underdark).
-          // We need to be careful about merging message arrays.
-
-          // Strategy: Calculate ritual messages diff or just trust the latest list if we chain updates.
-          // Simpler: Let's extract the *new* messages from ritualReducer if possible, or just use its result as the base
-          // for the next step.
           currentMessages = ritualUpdates.messages;
       }
 
-      // Process Underdark Mechanics (Light/Sanity)
-      // We pass the potentially modified state so it has the latest time, but other state properties (like Underdark)
-      // are taken from 'state' and updated in the returned object.
+      // Process Underdark Mechanics
       const { underdark: newUnderdark, messages: underdarkMessages } = UnderdarkMechanics.processTime(state, action.payload.seconds);
 
       partialUpdate.underdark = newUnderdark;
@@ -86,17 +74,50 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       }
 
       if (daysPassed > 0) {
-          // Note: processWorldEvents expects the full state, so we ideally merge our partial updates first
-          // But since processWorldEvents mostly cares about factions/history, passing state with just updated time is OK for now.
+          // 1. Process World Events (Factions, Rumors)
           const { state: newState, logs } = processWorldEvents({ ...state, gameTime: newTime }, daysPassed);
 
-          // Merge world event changes
+          let updatedStrongholds = state.strongholds || {};
+          const strongholdLogs: string[] = [];
+
+          // 2. Process Stronghold Upkeep
+          if (state.strongholds) {
+              Object.values(state.strongholds).forEach(stronghold => {
+                  const { updatedStronghold, summary } = processDailyUpkeep(stronghold);
+                  updatedStrongholds = {
+                      ...updatedStrongholds,
+                      [stronghold.id]: updatedStronghold
+                  };
+
+                  // Add summary logs
+                  if (summary.goldChange !== 0) strongholdLogs.push(`${stronghold.name}: Gold change ${summary.goldChange > 0 ? '+' : ''}${summary.goldChange}`);
+                  summary.threatEvents.forEach(e => strongholdLogs.push(`${stronghold.name}: ${e}`));
+                  summary.missionEvents.forEach(e => strongholdLogs.push(`${stronghold.name}: ${e}`));
+                  summary.staffEvents.forEach(e => strongholdLogs.push(`${stronghold.name}: ${e}`));
+                  summary.alerts.forEach(e => strongholdLogs.push(`${stronghold.name}: ${e}`));
+              });
+          }
+
+          // Merge all updates
           partialUpdate = {
               ...partialUpdate,
               factions: newState.factions,
               playerFactionStandings: newState.playerFactionStandings,
-              messages: [...currentMessages, ...logs] // Append logs to whatever we already had
+              strongholds: updatedStrongholds,
+              messages: [
+                  ...currentMessages,
+                  ...logs,
+                  ...strongholdLogs.map(text => ({
+                      id: crypto.randomUUID(),
+                      text,
+                      type: 'system' as const,
+                      timestamp: newTime.getTime()
+                  }))
+              ]
           };
+      } else {
+        // Just update messages if no day passed
+        partialUpdate.messages = currentMessages;
       }
 
       return partialUpdate;

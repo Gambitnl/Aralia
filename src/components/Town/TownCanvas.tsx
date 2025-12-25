@@ -61,6 +61,8 @@ interface TownCanvasProps {
     entryDirection?: 'north' | 'east' | 'south' | 'west' | null;
     onPlayerMove?: (direction: TownDirection) => void;
     onExitTown?: () => void;
+    // Stronghold support
+    ownedStrongholdId?: string;
 }
 
 // Animation constants
@@ -114,6 +116,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     entryDirection,
     onPlayerMove,
     onExitTown,
+    ownedStrongholdId
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     // We attach a non-passive wheel listener directly to the viewport element so
@@ -730,6 +733,12 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                                 });
                             }
                         }}
+                        strongholdId={ownedStrongholdId}
+                        onManageStronghold={(id) => onAction({
+                            type: 'OPEN_STRONGHOLD_MODAL',
+                            label: 'Manage Stronghold',
+                            payload: { strongholdId: id }
+                        })}
                     />
                 </div>
             )}

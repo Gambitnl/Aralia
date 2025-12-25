@@ -41,6 +41,7 @@ const TempleModal = lazy(() => import('../TempleModal'));
 // REVIEW: Verify that DialogueInterface is indeed a named export. If it is the default export, this lazy loading pattern .then(module => ({ default: module.DialogueInterface })) will fail. (Consistency check with Glossary import at line 35).
 const DialogueInterface = lazy(() => import('../Dialogue/DialogueInterface').then(module => ({ default: module.DialogueInterface })));
 const ThievesGuildInterface = lazy(() => import('../Crime/ThievesGuild/ThievesGuildInterface'));
+const StrongholdModal = lazy(() => import('../Stronghold/StrongholdModal').then(module => ({ default: module.StrongholdModal })));
 
 interface GameModalsProps {
     gameState: GameState;
@@ -103,6 +104,10 @@ const GameModals: React.FC<GameModalsProps> = ({
         }
         return "...";
     };
+
+    const activeStronghold = gameState.strongholdModal?.activeStrongholdId && gameState.strongholds
+        ? gameState.strongholds[gameState.strongholdModal.activeStrongholdId]
+        : null;
 
     return (
         <AnimatePresence>
@@ -402,6 +407,22 @@ const GameModals: React.FC<GameModalsProps> = ({
                     <ErrorBoundary fallbackMessage="Error in Thieves Guild Interface.">
                         <ThievesGuildInterface
                             onClose={() => dispatch({ type: 'TOGGLE_THIEVES_GUILD' })}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Stronghold Interface */}
+            {gameState.strongholdModal?.isOpen && activeStronghold && (
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Stronghold Interface.">
+                        <StrongholdModal
+                            isOpen={true}
+                            stronghold={activeStronghold}
+                            onClose={() => dispatch({ type: 'CLOSE_STRONGHOLD_MODAL' })}
+                            onUpgrade={(upgradeId) => dispatch({ type: 'UPGRADE_STRONGHOLD', payload: { strongholdId: activeStronghold.id, upgradeId } })}
+                            onHire={(role, name) => dispatch({ type: 'HIRE_STRONGHOLD_STAFF', payload: { strongholdId: activeStronghold.id, role, name } })}
+                            onMissionStart={(staffId, type) => dispatch({ type: 'START_STRONGHOLD_MISSION', payload: { strongholdId: activeStronghold.id, staffId, type } })}
                         />
                     </ErrorBoundary>
                 </Suspense>

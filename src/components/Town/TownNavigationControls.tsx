@@ -11,7 +11,7 @@ import { TownDirection } from '../../types/town';
 import {
     ArrowUp, ArrowDown, ArrowLeft, ArrowRight,
     ArrowUpLeft, ArrowUpRight, ArrowDownLeft, ArrowDownRight,
-    DoorOpen
+    DoorOpen, Castle
 } from 'lucide-react';
 
 interface TownNavigationControlsProps {
@@ -29,6 +29,10 @@ interface TownNavigationControlsProps {
     adjacentBuildings?: Array<{ id: string; name: string; type: string }>;
     /** Called when a building is interacted with */
     onBuildingInteract?: (buildingId: string) => void;
+    /** Available Stronghold to manage in this town */
+    strongholdId?: string;
+    /** Called when Stronghold management is requested */
+    onManageStronghold?: (id: string) => void;
 }
 
 /**
@@ -96,6 +100,8 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
     tileDescription,
     adjacentBuildings = [],
     onBuildingInteract,
+    strongholdId,
+    onManageStronghold
 }) => {
     // Keyboard handler
     useEffect(() => {
@@ -265,6 +271,21 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
                             </button>
                         ))}
                     </div>
+                </div>
+            )}
+
+             {/* Stronghold Management */}
+             {strongholdId && (
+                <div className="w-full border-t border-gray-700 pt-3 mt-1">
+                    <button
+                        className="w-full flex items-center justify-between px-3 py-2 bg-amber-900/30 hover:bg-amber-900/50 rounded-lg text-sm text-amber-200 transition-colors border border-amber-800 hover:border-amber-500"
+                        onClick={() => onManageStronghold?.(strongholdId)}
+                        aria-label="Manage Stronghold"
+                    >
+                        <span className="font-bold flex items-center gap-2">
+                            <Castle size={16} /> Manage Stronghold
+                        </span>
+                    </button>
                 </div>
             )}
 
