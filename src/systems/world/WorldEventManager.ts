@@ -484,6 +484,7 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
       const roll = rng.next();
       let result: WorldEventResult;
 
+      // TODO(Worldsmith): Use HistoryService to generate WorldHistoryEvents for major outcomes (Wars, Political Shifts) and include them in the result.
       if (roll < 0.4) {
           result = handleFactionSkirmish(currentState, rng);
       } else if (roll < 0.6) {
