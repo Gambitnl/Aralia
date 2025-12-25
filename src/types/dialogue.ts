@@ -84,6 +84,15 @@ export interface NPCKnowledgeProfile {
  * Represents the state of a dialogue session.
  * Used by the dialogueReducer to track active conversations.
  */
+export interface ProcessTopicResult {
+  status: 'success' | 'failure' | 'neutral';
+  responsePrompt: string;
+  unlocks: string[];
+  dispositionChange?: number;
+  xpReward?: number;
+  lockTopic?: boolean;
+}
+
 export interface DialogueSession {
   npcId: string;
   /** Topics currently available to choose from */

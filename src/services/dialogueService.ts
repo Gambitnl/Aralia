@@ -5,7 +5,8 @@
 
 import {
   ConversationTopic,
-  DialogueSession
+  DialogueSession,
+  ProcessTopicResult
 } from '../types/dialogue';
 import { GameState, QuestStatus, Item, NPC } from '../types/index';
 import { rollDice } from '../utils/combatUtils';
@@ -191,15 +192,6 @@ export function getAvailableTopics(
 
     return true;
   });
-}
-
-export interface ProcessTopicResult {
-  status: 'success' | 'failure' | 'neutral';
-  responsePrompt: string;
-  unlocks: string[];
-  dispositionChange?: number;
-  xpReward?: number;
-  lockTopic?: boolean;
 }
 
 /**
