@@ -214,7 +214,7 @@ const RaceDetailModal: React.FC<RaceDetailModalProps> = ({ race, onSelect, onClo
                   </button>
               )}
                <div className="p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
-                <h3 className="text-xl font-semibold text-sky-300 mb-2">Racial Stats</h3>
+                <h3 className="text-xl font-semibold text-sky-300 mb-2">Ancestral Traits</h3>
                 <ul className="space-y-1.5 text-sm">
                   {race.baseTraits.type && <li><strong>Type:</strong> <span className="text-sky-400">{race.baseTraits.type}</span></li>}
                   {race.baseTraits.size && <li><strong>Size:</strong> {race.baseTraits.size}</li>}

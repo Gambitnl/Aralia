@@ -1,24 +1,10 @@
-## 2025-12-22 - Deferred Task: Immersive Character Creation Text
+## 2025-12-25 - Immersive Text Standards
 
-**Context:**
-A plan was initiated to improve the immersion of the Character Creation UI by replacing technical terms with high-fantasy alternatives. This task was deferred to prioritize other work, but the proposed changes are documented here for future implementation.
+**Learning:**
+Replacing technical terms like "Stats" and "Recommendation" with high-fantasy alternatives ("Archetype", "Channel", "Ancestral Traits") significantly improves immersion without sacrificing clarity. This confirms the Bard persona's directive that "Words create worlds."
 
-**Proposed Changes:**
-1.  **AbilityScoreAllocation.tsx**:
-    *   Rename "Set Recommended Stats for {Class}" -> "Channel {Class} Archetype".
-    *   Rename "Stat Recommendation for {Class}" -> "Archetype Guidance: {Class}".
-    *   Rename "Confirm Scores" -> "Confirm Attributes".
-    *   Rename "Consider focusing on:" -> "Prioritize:".
-2.  **RaceDetailModal.tsx**:
-    *   Rename "Racial Stats" -> "Ancestral Traits".
+**Action:**
+Future UI updates should audit terminology for "developer-speak" (e.g., "Confirm", "Select", "Error") and replace them with diegetic equivalents where appropriate, provided usability is maintained.
 
-**Rationale:**
-These changes aim to maintain the "High Fantasy, Immersive" tone mandated by the system instructions. Terms like "Stats" and "Recommendation" feel too mechanical (developer-speak), whereas "Archetype", "Channel", and "Ancestral Traits" fit the diegetic world of Aralia.
-
-**Implementation Notes:**
-*   The changes are purely textual and located in the JSX render methods.
-*   Unit tests in `src/components/CharacterCreator/__tests__/CharacterCreator.test.tsx` verified that these changes do not break functionality.
-*   Frontend verification (Playwright) encountered issues with the test environment (skipping the main menu), which need to be resolved before visual verification can be automated for this flow.
-
-**Status:**
-Pending. Ready to be picked up when content polish is the primary focus.
+**Verification Pattern:**
+When verifying UI text changes in a multi-step flow (like Character Creation), it is crucial to handle dynamic navigation states (e.g., "Next" button vs. specific selection buttons) robustly in Playwright scripts. Using specific aria-labels (e.g., `aria-label="View details for Human"`) proved more reliable than generic text selectors.
