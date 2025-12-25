@@ -5,9 +5,9 @@
  * @file src/utils/combatUtils.ts
  * Utility functions for the combat system.
  */
-import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect } from '../types/combat';
+import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect, ActiveCondition } from '../types/combat';
 import { PlayerCharacter, Monster, Item } from '../types';
-import { Spell, DamageType } from '../types/spells'; // Explicit import to avoid conflicts
+import { Spell, DamageType, ConditionName } from '../types/spells'; // Explicit import to avoid conflicts
 import { CLASSES_DATA } from '../data/classes';
 import { MONSTERS_DATA } from '../data/monsters';
 import { createAbilityFromSpell } from './spellAbilityFactory';
@@ -372,6 +372,47 @@ export function getStatusEffectIcon(effect: StatusEffect): string {
     default:
       return '◼️';
   }
+}
+
+/**
+ * Checks if a character is mechanically capable of taking a Reaction.
+ * Evaluates HP and incapacitating conditions (Paralyzed, Stunned, Unconscious, etc.).
+ *
+ * @param character The combat character to check.
+ * @returns True if the character can take a reaction, false otherwise.
+ */
+export function canTakeReaction(character: CombatCharacter): boolean {
+  // 1. Must be alive and conscious
+  if (character.currentHP <= 0) return false;
+
+  // 2. Check for Incapacitating Conditions
+  // Conditions that prevent actions/reactions:
+  // Incapacitated, Paralyzed, Petrified, Stunned, Unconscious.
+  const incapacitatingConditions: Set<string> = new Set([
+    'Incapacitated',
+    'Paralyzed',
+    'Petrified',
+    'Stunned',
+    'Unconscious',
+    'Sleep' // Often used as a shorthand for Unconscious in legacy data
+  ]);
+
+  // Check legacy StatusEffects
+  if (character.statusEffects.some(effect =>
+    incapacitatingConditions.has(effect.name) ||
+    incapacitatingConditions.has(effect.id)
+  )) {
+    return false;
+  }
+
+  // Check modern ActiveConditions
+  if (character.conditions && character.conditions.some(cond =>
+    incapacitatingConditions.has(cond.name)
+  )) {
+    return false;
+  }
+
+  return true;
 }
 
 /**
