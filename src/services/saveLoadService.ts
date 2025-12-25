@@ -90,6 +90,24 @@ export interface SaveLoadResult {
 type NotifyFn = (params: { message: string; type: NotificationType }) => void;
 
 /**
+ * Validates that the loaded object has the minimum required structure of a GameState.
+ * Prevents "Cannot read property of undefined" crashes in the app layer.
+ */
+function validateGameState(state: any): boolean {
+  if (!state || typeof state !== 'object') return false;
+
+  // Critical fields required for the app to boot
+  const requiredFields = ['party', 'currentLocationId', 'phase'];
+  const missing = requiredFields.filter(field => state[field] === undefined);
+
+  if (missing.length > 0) {
+    logger.error("Save validation failed: missing critical fields", { missing });
+    return false;
+  }
+  return true;
+}
+
+/**
  * Saves the current game state to Local Storage.
  * @param {GameState} gameState - The current game state to save.
  * @param {string} [slotName=DEFAULT_SAVE_SLOT] - The name of the save slot.
@@ -225,6 +243,13 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
       });
       const failure = { success: false, message: `Save file incompatible (v${loadedState.saveVersion}). Expected v${SAVE_GAME_VERSION}.` } as const;
       notify?.({ message: failure.message, type: 'warning' });
+      return failure;
+    }
+
+    // Structural validation to prevent runtime crashes
+    if (!validateGameState(loadedState)) {
+      const failure = { success: false, message: "Save data corrupted (invalid structure)." } as const;
+      notify?.({ message: failure.message, type: 'error' });
       return failure;
     }
     

@@ -185,6 +185,29 @@ describe('SaveLoadService', () => {
              expect(result.message).toContain("integrity check failed");
              expect(mockNotify).toHaveBeenCalledWith({ message: expect.stringContaining("integrity check failed"), type: 'error' });
         });
+
+        it('should validate structural integrity even if checksum is missing', async () => {
+            // Manually craft a payload with missing critical fields (party)
+            const dangerousPayload = {
+                version: '0.1.0',
+                slotId: 'aralia_rpg_slot_danger',
+                // No checksum
+                state: {
+                    gold: 999,
+                    saveTimestamp: Date.now()
+                    // Missing 'party', 'currentLocationId', etc.
+                }
+            };
+
+            const key = SaveLoadService.getSlotStorageKey('danger');
+            localStorage.setItem(key, JSON.stringify(dangerousPayload));
+
+            const result = await SaveLoadService.loadGame('danger', mockNotify);
+
+            expect(result.success).toBe(false);
+            expect(result.message).toContain("invalid structure");
+            expect(mockNotify).toHaveBeenCalledWith({ message: expect.stringContaining("invalid structure"), type: 'error' });
+        });
     });
 
     describe('getSaveSlots', () => {
