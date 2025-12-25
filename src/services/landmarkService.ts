@@ -128,7 +128,10 @@ export function generateLandmark(
   const consequences: DiscoveryConsequence[] = [];
 
   state.consequenceTypes.forEach(cType => {
-      if (rng() < 0.6) { // Not every consequence happens
+      // For risky states (riskLevel >= 5), increase chance of consequence
+      const chance = state.riskLevel >= 5 ? 0.8 : 0.6;
+
+      if (rng() < chance) {
           if (cType === 'map_reveal') {
               const radius = 1 + Math.floor(rng() * 2);
               consequences.push({
@@ -145,17 +148,21 @@ export function generateLandmark(
                   value: 5,
                   description: 'Mapping this location impresses the Explorers Guild.'
               });
-          } else if (cType === 'buff') {
-              // Placeholder for buff system
-              // We haven't fully implemented the reducer for buffs, but we can log it.
-              // Or use 'health' reward instead if buffs are hard.
-              // But handleMovement ignores 'buff' type in consequences currently (Wait, did I add it? No, I added gold/xp to REWARDS/EFFECTS, not Consequences)
-              // Actually DiscoveryConsequence uses 'buff', but applyDiscoveryConsequences in handleMovement.ts ignores it.
-              // I should update handleMovement.ts to handle 'buff' if I want it.
-              // For now, let's skip adding it to avoid "nothing happens" bugs, unless I fixed it.
-              // I did NOT fix applyDiscoveryConsequences for buffs yet.
-              // So I will map 'buff' to a direct health heal for now or skip.
-              // Let's skip.
+          } else if (cType === 'damage') {
+              const damageAmount = 2 + Math.floor(rng() * state.riskLevel);
+              consequences.push({
+                  type: 'damage',
+                  value: damageAmount,
+                  description: `A trap triggers or the structure collapses! You take ${damageAmount} damage.`
+              });
+          } else if (cType === 'debuff') {
+              const duration = 2 + Math.floor(rng() * 4);
+              consequences.push({
+                  type: 'debuff',
+                  targetId: 'haunted_chill',
+                  duration: duration,
+                  description: `A supernatural chill clings to you for ${duration} hours.`
+              });
           }
       }
   });
