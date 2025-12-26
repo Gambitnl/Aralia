@@ -11,28 +11,28 @@ import { SpellIconSpec, VisualAsset } from '../../types/visuals';
  * Colors chosen to be distinct and thematic.
  */
 export const SCHOOL_COLORS: Record<SpellSchool, string> = {
-  Abjuration: '#3b82f6',   // Blue (Protection)
-  Conjuration: '#f59e0b',  // Amber (Summoning/Creation)
-  Divination: '#8b5cf6',   // Violet (Knowledge/Insight)
-  Enchantment: '#ec4899',  // Pink (Mind/Charm)
-  Evocation: '#ef4444',    // Red (Destruction/Energy)
-  Illusion: '#a855f7',     // Purple (Deceit/Phantom)
-  Necromancy: '#10b981',   // Green/Black (Life/Death - using Green for toxicity/fel)
-  Transmutation: '#22c55e', // Green (Change/Alteration)
+  [SpellSchool.Abjuration]: '#3b82f6',   // Blue (Protection)
+  [SpellSchool.Conjuration]: '#f59e0b',  // Amber (Summoning/Creation)
+  [SpellSchool.Divination]: '#8b5cf6',   // Violet (Knowledge/Insight)
+  [SpellSchool.Enchantment]: '#ec4899',  // Pink (Mind/Charm)
+  [SpellSchool.Evocation]: '#ef4444',    // Red (Destruction/Energy)
+  [SpellSchool.Illusion]: '#a855f7',     // Purple (Deceit/Phantom)
+  [SpellSchool.Necromancy]: '#10b981',   // Green/Black (Life/Death - using Green for toxicity/fel)
+  [SpellSchool.Transmutation]: '#22c55e', // Green (Change/Alteration)
 };
 
 /**
  * Fallback emojis for spell schools when no specific icon is present.
  */
 export const SCHOOL_ICONS: Record<SpellSchool, string> = {
-  Abjuration: '🛡️',
-  Conjuration: '🌀',
-  Divination: '👁️',
-  Enchantment: '😵',
-  Evocation: '🔥',
-  Illusion: '🎭',
-  Necromancy: '💀',
-  Transmutation: '⚗️',
+  [SpellSchool.Abjuration]: '🛡️',
+  [SpellSchool.Conjuration]: '🌀',
+  [SpellSchool.Divination]: '👁️',
+  [SpellSchool.Enchantment]: '😵',
+  [SpellSchool.Evocation]: '🔥',
+  [SpellSchool.Illusion]: '🎭',
+  [SpellSchool.Necromancy]: '💀',
+  [SpellSchool.Transmutation]: '⚗️',
 };
 
 /**

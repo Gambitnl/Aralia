@@ -39,6 +39,7 @@ const ClassNameEnum = z.enum(CLASS_NAMES as [string, ...string[]]);
 
 const SpellRarity = z.enum(["common", "uncommon", "rare", "very_rare", "legendary"]);
 
+// Use the SpellSchool enum values for validation
 const SpellSchool = z.enum([
   "Abjuration", "Conjuration", "Divination", "Enchantment",
   "Evocation", "Illusion", "Necromancy", "Transmutation"
