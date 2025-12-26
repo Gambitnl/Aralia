@@ -7,7 +7,7 @@
  */
 import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect } from '../types/combat';
 import { PlayerCharacter, Monster, Item } from '../types';
-import { Spell, DamageType } from '../types/spells'; // Explicit import to avoid conflicts
+import { Spell, DamageType, ConditionName } from '../types/spells'; // Explicit import to avoid conflicts
 import { CLASSES_DATA } from '../data/classes';
 import { MONSTERS_DATA } from '../data/monsters';
 import { createAbilityFromSpell } from './spellAbilityFactory';
@@ -21,6 +21,47 @@ import { bresenhamLine } from './lineOfSight';
 export { createAbilityFromSpell, generateId };
 
 // TODO(Mechanist): Wire up physicsUtils (fall damage, jumping) into movement logic.
+
+/**
+ * Checks if a character can take a reaction.
+ * Verifies HP, reaction resource availability, and incapacitating conditions.
+ *
+ * @param character The character to check.
+ * @returns True if the character can take a reaction.
+ */
+export function canTakeReaction(character: CombatCharacter): boolean {
+  // 1. Must be alive and conscious
+  if (character.currentHP <= 0) return false;
+
+  // 2. Must have reaction available in action economy
+  if (character.actionEconomy.reaction.used) return false;
+
+  // 3. Must not be incapacitated
+  // Conditions that prevent reactions: Incapacitated, Paralyzed, Petrified, Stunned, Unconscious
+  // Note: Sleep (Unconscious) and Hypnotic Pattern (Incapacitated) are covered here.
+  const incapacitatedConditions: string[] = ['Incapacitated', 'Paralyzed', 'Petrified', 'Stunned', 'Unconscious'];
+
+  // Check legacy statusEffects
+  const hasIncapacitatingEffect = character.statusEffects.some(effect => {
+    const name = effect.name || effect.id; // Fallback
+    return incapacitatedConditions.some(cond =>
+      name.toLowerCase() === cond.toLowerCase() ||
+      effect.id.toLowerCase().includes(cond.toLowerCase())
+    );
+  });
+
+  if (hasIncapacitatingEffect) return false;
+
+  // Check new conditions array (if populated)
+  if (character.conditions) {
+    const hasIncapacitatingCondition = character.conditions.some(cond =>
+      incapacitatedConditions.includes(cond.name as string)
+    );
+    if (hasIncapacitatingCondition) return false;
+  }
+
+  return true;
+}
 
 /**
  * Calculates cover bonus for a target from a specific origin.
