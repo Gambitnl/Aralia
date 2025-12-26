@@ -10,3 +10,7 @@
 ## 2025-10-26 - Faction Standing Prerequisite Handling
 **Learning:** `playerFactionStandings` in `GameState` is sparse; players may not have an entry for every faction. Prerequisite checks must default to neutral (0) or handle undefined explicitly to prevent runtime errors when checking standing against unknown factions.
 **Action:** Always default missing faction standing to 0 in prerequisite logic unless 'unknown' is a specific fail state.
+
+## 2025-10-26 - Dialogue Side Effect Centralization
+**Learning:** Dialogue side effects (XP, Unlocks, Disposition) were fragmented. Encapsulating them in a `useDialogueController` hook simplifies the UI (`DialogueInterface`) and ensures consistent state updates across different dialogue access points.
+**Action:** Use `useDialogueController` to handle `ProcessTopicResult` instead of manual dispatching in components.
