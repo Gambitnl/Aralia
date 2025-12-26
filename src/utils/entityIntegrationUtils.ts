@@ -24,7 +24,8 @@ export async function resolveAndRegisterEntities(
   gameState: GameState,
   dispatch: Dispatch<AppAction>,
   addGeminiLog: AddGeminiLogFn
-): Promise<void> {
+): Promise<{ createdNpcIds: string[] }> {
+  const createdNpcIds: string[] = [];
   try {
     const entitiesToResolve = EntityResolverService.resolveEntitiesInText(text, gameState);
 
@@ -52,6 +53,7 @@ export async function resolveAndRegisterEntities(
                     type: 'REGISTER_DYNAMIC_ENTITY',
                     payload: { entityType: 'npc', entity: result.entity as NPC }
                 });
+                createdNpcIds.push(result.entity.id);
                 break;
         }
 
@@ -67,4 +69,5 @@ export async function resolveAndRegisterEntities(
     // We swallow the error to prevent blocking the main game flow,
     // but we log it.
   }
+  return { createdNpcIds };
 }
