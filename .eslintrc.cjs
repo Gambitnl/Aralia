@@ -68,6 +68,8 @@ module.exports = {
     'react-hooks/set-state-in-effect': 'warn',
     'react-hooks/static-components': 'warn',
     'react-hooks/immutability': 'warn',
+    // Disable strict React Compiler checks as we are not using it
+    'react-hooks/preserve-manual-memoization': 'off',
     'jsx-a11y/no-autofocus': 'warn',
     'jsx-a11y/label-has-associated-control': 'warn',
     'jsx-a11y/click-events-have-key-events': 'warn',
