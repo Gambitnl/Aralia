@@ -1,8 +1,7 @@
 
+import React from 'react';
 import { CombatLogEntry } from '../../types/combat';
 import { AppAction } from '../../state/actionTypes';
-import { DEITIES } from '../../data/deities';
-import { logger } from '../../utils/logger';
 
 /**
  * Adapter to translate Combat Log events into Religion System triggers.
