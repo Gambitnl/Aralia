@@ -1,7 +1,7 @@
-# Planeshifter's Journal
+## 2024-05-24 - Feywild Time Warp Implementation
 
-## 2024-05-23 - Initial Planar Survey
+**Learning:** When implementing planar time mechanics, converting to a base unit (minutes) simplifies the math significantly compared to handling complex duration objects. The DMG variant rules for Feywild time can be effectively modeled using `rollDice` and a switch-case structure for different outcome buckets (compression, normal, dilation, jump).
 
-**Learning:** The planar system currently consists of isolated mechanic classes (`FeywildMechanics`, `ShadowfellMechanics`, `InfernalMechanics`) and a `PortalSystem`. There is no centralized `Plane` interface or registry to define plane-specific properties like time flow, magic alterations, or emotional valence in a data-driven way.
+**Action:** For future planar implementations (e.g., Astral Timelessness), consider creating a shared `PlanarTimeService` if more planes need time manipulation, but keep the specific logic (like the d20 table) inside the specific plane's mechanics class (e.g., `FeywildMechanics`).
 
-**Action:** I need to formalize the `Plane` interface and create a registry of planes to support the "make planes distinct" directive. This will allow the `PortalSystem` and other systems to query plane properties dynamically rather than hardcoding checks.
+**Testing Note:** Mocking `savingThrowUtils` directly is cleaner than mocking the underlying `rollDice` when testing mechanics that involve saving throws, as it isolates the mechanic logic from the dice roll sequence dependencies.
