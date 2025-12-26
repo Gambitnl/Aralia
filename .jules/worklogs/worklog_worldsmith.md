@@ -24,3 +24,8 @@
 5.  **Modal Manager:** Add the rendering logic to `src/components/layout/GameModals.tsx`.
 6.  **Action Handler:** Register the handler in `src/hooks/actions/actionHandlers.ts` AND update the `isUiToggle` whitelist in `src/hooks/useGameActions.ts`.
 7.  **Verification:** Verify specifically that `onAction({ type: 'TOGGLE_NEWS' })` successfully triggers the reducer.
+
+## 2024-05-22 - Weather-Driven World Events
+**Learning:** Linking environmental state (Weather) to simulation logic creates a significantly more "alive" feeling than purely random events.
+**Action:** Implemented weather-based probability modifiers for Faction Skirmishes (suppressed by storms) and Market Shifts (influenced by drought/storms).
+**Insight:** Weighted random selection with dynamic weights (based on state) is a powerful pattern for RPG world simulation.
