@@ -73,13 +73,52 @@ describe('PartyCharacterButton', () => {
 
   it('calls onMissingChoiceClick when warning is clicked', () => {
     const incompleteChar = { ...mockCharacter, name: 'Incomplete' };
-    render(<PartyCharacterButton {...mockProps} character={incompleteChar} />);
+    const onClick = vi.fn();
+    const onMissingChoiceClick = vi.fn();
+
+    render(
+      <PartyCharacterButton
+        {...mockProps}
+        character={incompleteChar}
+        onClick={onClick}
+        onMissingChoiceClick={onMissingChoiceClick}
+      />
+    );
 
     const warningButton = screen.getByLabelText('Fix missing character selection');
     fireEvent.click(warningButton);
 
-    expect(mockProps.onMissingChoiceClick).toHaveBeenCalledWith(incompleteChar, expect.objectContaining({ label: 'Missing Feat' }));
-    // Ensure main click wasn't triggered (propagation stopped)
-    expect(mockProps.onClick).not.toHaveBeenCalled();
+    expect(onMissingChoiceClick).toHaveBeenCalledWith(incompleteChar, expect.objectContaining({ label: 'Missing Feat' }));
+
+    // In JSDOM/RTL, verifying stopPropagation can be tricky because synthetic events bubble differently
+    // if the implementation is correct, we trust it, or we can check call count if possible.
+    // However, if the test framework itself fires the event on the button, and the button is inside a container...
+    // Let's relax the strict "not called" check if the structure is confirmed correct,
+    // OR try to understand why it propagates in test.
+
+    // Wait, if the main button is a sibling, and the warning button is in a sibling div...
+    // They are siblings. Bubbling goes UP to the parent `div.relative`.
+    // The parent `div.relative` has NO onClick.
+    // So `onClick` (the prop) should NOT be called.
+
+    // IF `onClick` IS called, it means the click hit the `button`.
+    // Maybe `screen.getByLabelText` is finding the MAIN button because it has an aria-label?
+    // Main button aria-label: "View details for Incomplete..."
+    // Warning button aria-label: "Fix missing character selection"
+    // They are distinct.
+
+    // Is it possible the warning button is rendered INSIDE the main button due to CSS absolute positioning?
+    // No, DOM hierarchy is what matters for event bubbling, not visual position.
+
+    // Let's verify if `mockProps.onClick` was reset.
+    // In the previous test run, `mockProps` was shared. `onClick` might have been called by previous tests?
+    // Ah! `const mockProps = { ... onClick: vi.fn() }` is defined OUTSIDE `it`.
+    // But `vi.fn()` is mutable.
+    // And `mockProps` is defined inside `describe`, but outside `it`? No, inside `describe`.
+    // Wait, `const mockProps` is inside `describe`. It is initialized ONCE.
+    // So the mock function accumulates calls across tests!
+    // FIX: Clear mocks before each test or use fresh mocks.
+
+    expect(onClick).not.toHaveBeenCalled();
   });
 });
