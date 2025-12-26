@@ -11,6 +11,7 @@ import { PlayerCharacter } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { RACES_DATA, AVAILABLE_CLASSES } from '../constants';
 import { t } from '../utils/i18n';
+import { cleanAIJSON, safeJSONParse } from '../utils/securityUtils';
 
 interface GameGuideModalProps {
   isOpen: boolean;
@@ -71,26 +72,33 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
       
       if (result.data?.text) {
           const responseText = result.data.text;
-          const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
           
-          if (jsonMatch) {
-              try {
-                  const toolData = JSON.parse(jsonMatch[1]);
-                  if (toolData.tool === 'create_character' && toolData.config) {
-                      const character = generateCharacterFromConfig(toolData.config as CharacterGenerationConfig);
-                      if (character) {
-                          setGeneratedCharacter(character);
-                          setResponse(t('game_guide.recruit_prompt', { name: character.name }));
-                      } else {
-                          setResponse(t('game_guide.error_invalid_config'));
-                      }
-                  } else {
-                      setResponse(responseText); 
-                  }
-              } catch (e) {
-                  console.error("Failed to parse JSON from guide:", e);
-                  setResponse(responseText); 
-              }
+          // Use centralized cleanAIJSON to extract JSON content if present, or just clean it
+          // The previous regex logic was: .match(/```json\n([\s\S]*?)\n```/)
+          // cleanAIJSON handles finding and stripping the block.
+
+          // Check if there is a JSON block first to decide if we should try parsing
+          // Use case-insensitive matching for robustness
+          const hasJsonBlock = /```json/i.test(responseText);
+
+          if (hasJsonBlock) {
+             const cleanedJson = cleanAIJSON(responseText);
+             // Use safeJSONParse to avoid crashes
+             const toolData = safeJSONParse<any>(cleanedJson);
+
+             if (toolData && toolData.tool === 'create_character' && toolData.config) {
+                 const character = generateCharacterFromConfig(toolData.config as CharacterGenerationConfig);
+                 if (character) {
+                     setGeneratedCharacter(character);
+                     setResponse(t('game_guide.recruit_prompt', { name: character.name }));
+                 } else {
+                     setResponse(t('game_guide.error_invalid_config'));
+                 }
+             } else {
+                 // If parsing failed or data was invalid/not a tool call, show original text
+                 // Note: if safeJSONParse returns null, toolData is null, we fall here
+                 setResponse(responseText);
+             }
           } else {
               setResponse(responseText);
           }
