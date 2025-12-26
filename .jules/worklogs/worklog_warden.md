@@ -25,3 +25,7 @@ This journal tracks CRITICAL error handling learnings, patterns, and strategies.
 1.  Verify array integrity (`Array.isArray()`) before iterating, even if TypeScript types say it's an array.
 2.  Use explicit fallbacks for critical calculations (e.g., `spellcastingStat` lookup) to prevent `undefined` -> `NaN` cascades.
 3.  Sanitize inputs to parsing functions (e.g., check `diceString` validity) before processing.
+
+## 2024-05-25 - Core Loop Service Hardening
+**Learning:** Central services like `TravelService` that are invoked during the main game loop (e.g., player movement) are single points of failure. Blindly casting inputs (e.g., `travelers as PlayerCharacter[]`) and passing them to calculation systems causes immediate crashes if the state is malformed (e.g., corrupted save, partial test data).
+**Action:** Wrap critical public service methods in a top-level `try-catch` block that returns a safe "fallback result" (e.g., 0 distance, 0 time) instead of allowing the exception to propagate and white-screen the application. Validate complex array inputs (filter for valid objects) before processing.
