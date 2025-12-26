@@ -21,6 +21,7 @@ import { applyXpAndHandleLevelUps, createPlayerCharacterFromTemp } from '../util
 import { createEnemyFromMonster } from '../utils/combatUtils';
 import { logger } from '../utils/logger';
 import { INITIAL_TRADE_ROUTES } from '../data/tradeRoutes';
+import { createEmptyHistory } from '../utils/historyUtils';
 
 // Import slice reducers
 import { uiReducer } from './reducers/uiReducer';
@@ -174,6 +175,8 @@ export const initialGameState: GameState = {
         localHeat: {},
         knownCrimes: [],
     },
+
+    worldHistory: createEmptyHistory(),
 
     // Town Exploration
     townState: null,

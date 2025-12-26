@@ -141,6 +141,9 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
   let newState = { ...state };
   const newFactions = { ...newState.factions };
 
+  // TODO(Recorder): Convert this Skirmish event into a persistent WorldHistoryEvent using ADD_WORLD_HISTORY_EVENT action or by updating state directly here.
+  // Currently, it only creates ephemeral rumors and logs.
+
   // Update Faction Power
   const powerChange = 2 + Math.floor(rng.next() * 3); // 2-4 power swing
 
