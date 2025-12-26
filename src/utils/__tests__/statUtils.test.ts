@@ -1,6 +1,6 @@
 
 import { describe, it, expect } from 'vitest';
-import { calculateArmorClass, calculateFinalAbilityScores } from '../statUtils';
+import { calculateArmorClass, calculateFinalAbilityScores, calculatePassiveScore } from '../statUtils';
 import { createMockPlayerCharacter } from '../factories';
 import { ActiveEffect } from '@/types/combat';
 import { Item } from '@/types';
@@ -329,6 +329,32 @@ describe('statUtils', () => {
 
             // 20 is greater than 19, so it should remain 20.
             expect(result.Strength).toBe(20);
+        });
+    });
+
+    describe('calculatePassiveScore', () => {
+        it('calculates base passive score correctly (10 + mod)', () => {
+            // Wisdom 10 (+0) -> 10 + 0 = 10
+            expect(calculatePassiveScore(0)).toBe(10);
+            // Wisdom 14 (+2) -> 10 + 2 = 12
+            expect(calculatePassiveScore(2)).toBe(12);
+            // Wisdom 8 (-1) -> 10 - 1 = 9
+            expect(calculatePassiveScore(-1)).toBe(9);
+        });
+
+        it('adds proficiency bonus correctly', () => {
+            // Wis +2, Prof +2 -> 10 + 2 + 2 = 14
+            expect(calculatePassiveScore(2, 2)).toBe(14);
+        });
+
+        it('handles advantage (+5)', () => {
+            // Wis +2, Prof +2, Advantage -> 14 + 5 = 19
+            expect(calculatePassiveScore(2, 2, 'advantage')).toBe(19);
+        });
+
+        it('handles disadvantage (-5)', () => {
+            // Wis +2, Prof +2, Disadvantage -> 14 - 5 = 9
+            expect(calculatePassiveScore(2, 2, 'disadvantage')).toBe(9);
         });
     });
 });
