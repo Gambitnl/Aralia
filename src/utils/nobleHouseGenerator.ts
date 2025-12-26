@@ -10,7 +10,7 @@ import { FactionRank } from '../types/factions';
 import { NobleHouse, NobleMember, NobleRole } from '../types/noble';
 import { Secret } from '../types/identity';
 import { SeededRandom } from './seededRandom';
-import { generateSecret } from './secretGenerator';
+import { SecretGenerator } from '../systems/intrigue/SecretGenerator';
 
 // -----------------------------------------------------------------------------
 // Data Tables
@@ -215,6 +215,7 @@ function generateMember(rng: SeededRandom, familyName: string, role: NobleRole, 
 
 export function generateNobleHouse(options: NobleHouseGenerationOptions): NobleHouse {
   const rng = new SeededRandom(options.seed);
+  const secretGen = new SecretGenerator(options.seed);
 
   const { fullName, familyName } = generateNobleHouseName(rng);
   const motto = generateMotto(rng);
@@ -255,28 +256,24 @@ export function generateNobleHouse(options: NobleHouseGenerationOptions): NobleH
 
   // 50% chance of a major house secret
   if (rng.next() > 0.5) {
-      houseSecrets.push(generateSecret({
-          seed: options.seed + 100,
-          subjectId: houseId,
-          subjectName: fullName,
-          category: rng.pick(['political', 'financial', 'military'])
-      }));
+      // Mock faction for secret generation (since we are creating it)
+      const mockFaction: any = { id: houseId, name: fullName };
+      const secret = secretGen.generateFactionSecret(mockFaction, []);
+      secret.tags.push('political');
+      houseSecrets.push(secret);
   }
 
   // Generate Personal Secrets
   members.forEach((member, idx) => {
       // 30% chance of a personal secret
       if (rng.next() > 0.7) {
-          const secret = generateSecret({
-              seed: options.seed + 200 + idx,
-              subjectId: member.id,
-              subjectName: `${member.firstName} ${member.lastName}`,
-              category: 'personal'
-          });
+          const secret = secretGen.generateMemberSecret(member.id, `${member.firstName} ${member.lastName}`);
           member.personalSecretIds.push(secret.id);
           houseSecrets.push(secret);
       }
   });
+
+  const power = Math.floor(rng.next() * 100);
 
   return {
     id: houseId,
@@ -294,6 +291,10 @@ export function generateNobleHouse(options: NobleHouseGenerationOptions): NobleH
     hates: Array.from(hates),
     services: ['patronage', 'political_favor'],
     relationships: {},
+
+    // Faction Base Props
+    power: power,
+    assets: [], // Default empty assets
 
     // NobleHouse specific
     wealth: Math.floor(wealthLevel * 10) + 1,

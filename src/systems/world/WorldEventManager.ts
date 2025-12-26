@@ -14,6 +14,8 @@ import { processDailyRoutes } from '../economy/TradeRouteManager';
 import { FactionManager } from './FactionManager';
 import { generateNobleIntrigue } from './NobleIntrigueManager';
 import { checkQuestDeadlines } from '../quests/QuestManager';
+import { SecretGenerator } from '../intrigue/SecretGenerator';
+import { Secret } from '../../types/identity';
 
 export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD' | 'NOBLE_INTRIGUE';
 
@@ -194,6 +196,23 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
 
   // Add rumor
   newState.activeRumors = [...(newState.activeRumors || []), rumor];
+
+  // Intriguer Add: Generate a Secret from this conflict?
+  // 20% chance the skirmish reveals a secret about the Loser (their weakness) or Winner (their brutality/cheating)
+  if (rng.next() < 0.2) {
+      const secretGen = new SecretGenerator(rng.next() * 1000);
+      // Secret about the Loser being weak/corrupt, or the Winner using dark magic?
+      // For simplicity, let's just generate a faction secret about the loser.
+      // We pass 'others' as just the winner to create conflict-specific secrets.
+      const secret = secretGen.generateFactionSecret(loser, [winner]);
+
+      // Store it in the world state?
+      // Currently, Secrets are player-centric resources.
+      // We can add it to a global "available secrets" pool or just add it to the player's potential knowledge.
+      // But for now, let's just assume it's 'out there' and add it to the loser's held secrets if we had that.
+      // Actually, let's just log it for now or add it to a 'worldSecrets' if we had one.
+      // Since we don't have a global secret pool yet, we'll skip persisting it unless the player is involved.
+  }
 
   // Apply Player Reputation ripple
   const winnerStanding = state.playerFactionStandings[winnerId]?.publicStanding || 0;
