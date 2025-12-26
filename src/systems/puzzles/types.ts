@@ -34,13 +34,16 @@ export interface TrapEffect {
   saveType?: AbilityScoreName;
 }
 
-export type TriggerCondition = 'touch' | 'proximity' | 'interaction' | 'timer';
+export type TriggerCondition = 'touch' | 'proximity' | 'interaction' | 'timer' | 'magic' | 'glyph';
+
+export type TrapType = 'mechanical' | 'magical';
 
 export interface Trap {
   id: string;
   name: string;
-  detectionDC: number;  // Perception/Investigation
-  disarmDC: number;  // Thieves' tools
+  type?: TrapType; // Defaults to 'mechanical' if undefined
+  detectionDC: number;  // Perception/Investigation (Mech) or Arcana (Magic)
+  disarmDC: number;  // Thieves' tools (Mech) or Arcana (Magic)
   triggerCondition: TriggerCondition;
   effect: TrapEffect;
   resetable: boolean;
