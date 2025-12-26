@@ -1,67 +1,116 @@
 
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { FeywildMechanics } from '../FeywildMechanics';
+import * as combatUtils from '../../../utils/combatUtils';
+import * as savingThrowUtils from '../../../utils/savingThrowUtils'; // Import the module to spy on
 import { createMockPlayerCharacter } from '../../../utils/factories';
-import * as savingThrowUtils from '../../../utils/savingThrowUtils';
+
+// Mock logger
+vi.mock('../../../utils/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
+// We don't mock the whole module because we want types, but we spy on the exported function.
+// Since savingThrowUtils is a module of functions, we can spy on the import if we import * as.
+// However, if FeywildMechanics imports { rollSavingThrow }, direct spying might be tricky depending on bundler.
+// Vitest supports spying on imports.
+
+vi.mock('../../../utils/savingThrowUtils', () => ({
+  rollSavingThrow: vi.fn(),
+  calculateSavingThrowBonus: vi.fn().mockReturnValue(0) // Mock dependency if needed
+}));
 
 describe('FeywildMechanics', () => {
 
-    afterEach(() => {
-        vi.restoreAllMocks();
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('checkMemoryLoss', () => {
+    it('should result in memory loss on failed save', () => {
+      // Mock save failure
+      vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({ success: false, total: 5, rolls: [5] });
+
+      const char = createMockPlayerCharacter({
+          class: { name: 'Fighter', id: 'fighter', hitDie: 'd10', savingThrowProficiencies: [] },
+          race: { name: 'Human', id: 'human', speed: 30, size: 'Medium' }
+      });
+      char.abilityScores.Wisdom = 10;
+
+      const result = FeywildMechanics.checkMemoryLoss(char);
+      expect(result.lostMemory).toBe(true);
+      expect(result.message).toContain('slipping away');
     });
 
-    it('should fail memory check on low roll', () => {
-        const char = createMockPlayerCharacter({
-            name: 'Human Fighter',
-            race: { name: 'Human', id: 'human', description: '', traits: [], speed: 30, size: 'Medium' }
-        });
+    it('should result in retained memory on success', () => {
+       // Mock save success
+       vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({ success: true, total: 16, rolls: [16] });
 
-        // Mock saving throw to fail (Total 10 < DC 15)
-        vi.spyOn(savingThrowUtils, 'rollSavingThrow').mockReturnValue({
-            success: false,
-            total: 10,
-            rolls: [10],
-            modifiers: {}
-        });
+       const char = createMockPlayerCharacter();
+       char.abilityScores.Wisdom = 10;
 
-        const result = FeywildMechanics.checkMemoryLoss(char);
-        expect(result.lostMemory).toBe(true);
-        expect(result.message).toContain('slipping away');
+       const result = FeywildMechanics.checkMemoryLoss(char);
+       expect(result.lostMemory).toBe(false);
+       expect(result.message).toContain('retains their memories');
     });
 
-    it('should succeed memory check on high roll', () => {
-        const char = createMockPlayerCharacter({
-            name: 'Human Fighter',
-            race: { name: 'Human', id: 'human', description: '', traits: [], speed: 30, size: 'Medium' }
-        });
+    it('should apply advantage for Elves (Native)', () => {
+        // Mock sequence: Fail then Success
+        vi.mocked(savingThrowUtils.rollSavingThrow)
+          .mockReturnValueOnce({ success: false, total: 5, rolls: [5] })
+          .mockReturnValueOnce({ success: true, total: 20, rolls: [20] });
 
-        // Mock saving throw to succeed (Total 18 >= DC 15)
-        vi.spyOn(savingThrowUtils, 'rollSavingThrow').mockReturnValue({
-            success: true,
-            total: 18,
-            rolls: [18],
-            modifiers: {}
+        const char = createMockPlayerCharacter({
+            race: { name: 'High Elf', id: 'elf', speed: 30, size: 'Medium' }
         });
+        char.abilityScores.Wisdom = 10;
 
         const result = FeywildMechanics.checkMemoryLoss(char);
+
+        expect(savingThrowUtils.rollSavingThrow).toHaveBeenCalledTimes(2);
         expect(result.lostMemory).toBe(false);
-        expect(result.message).toContain('retains their memories');
+    });
+  });
+
+  describe('calculateTimeWarp', () => {
+    const ONE_DAY_MINUTES = 1440;
+
+    // For calculateTimeWarp, it calls rollDice directly from combatUtils.
+    // We need to spy on combatUtils for this part.
+    // Since we didn't mock the whole combatUtils module, we can spy on it.
+
+    it('should compress time on roll 1-10', () => {
+        vi.spyOn(combatUtils, 'rollDice').mockReturnValue(5);
+        const result = FeywildMechanics.calculateTimeWarp(ONE_DAY_MINUTES);
+        expect(result.warpedMinutes).toBe(1);
     });
 
-    it('should give advantage to elves (natives)', () => {
-        const elf = createMockPlayerCharacter({
-             name: 'Elf Ranger',
-             race: { name: 'Elf', id: 'elf', description: '', traits: [], speed: 30, size: 'Medium' }
-        });
-
-        // Mock first roll fail, second roll success
-        const rollSpy = vi.spyOn(savingThrowUtils, 'rollSavingThrow')
-            .mockReturnValueOnce({ success: false, total: 5, rolls: [5], modifiers: {} }) // First roll
-            .mockReturnValueOnce({ success: true, total: 16, rolls: [16], modifiers: {} }); // Second roll (advantage)
-
-        const result = FeywildMechanics.checkMemoryLoss(elf);
-
-        expect(rollSpy).toHaveBeenCalledTimes(2); // Should roll twice due to native advantage
-        expect(result.lostMemory).toBe(false); // Should pass eventually
+    it('should be normal time on roll 11-15', () => {
+        vi.spyOn(combatUtils, 'rollDice').mockReturnValue(13);
+        const result = FeywildMechanics.calculateTimeWarp(ONE_DAY_MINUTES);
+        expect(result.warpedMinutes).toBe(ONE_DAY_MINUTES);
     });
+
+    it('should dilate time (weeks) on roll 16-17', () => {
+        vi.spyOn(combatUtils, 'rollDice').mockReturnValue(16);
+        const result = FeywildMechanics.calculateTimeWarp(ONE_DAY_MINUTES);
+        expect(result.warpedMinutes).toBe(ONE_DAY_MINUTES * 7);
+    });
+
+    it('should dilate time (months) on roll 18-19', () => {
+        vi.spyOn(combatUtils, 'rollDice').mockReturnValue(18);
+        const result = FeywildMechanics.calculateTimeWarp(ONE_DAY_MINUTES);
+        expect(result.warpedMinutes).toBe(ONE_DAY_MINUTES * 30);
+    });
+
+    it('should jump time (years) on roll 20', () => {
+        vi.spyOn(combatUtils, 'rollDice').mockReturnValue(20);
+        const result = FeywildMechanics.calculateTimeWarp(ONE_DAY_MINUTES);
+        expect(result.warpedMinutes).toBe(ONE_DAY_MINUTES * 365);
+    });
+  });
 });

@@ -25,6 +25,7 @@ export enum StateTag {
   Electrified = 'electrified',
   Cold = 'cold', // Represents extreme cold or chilling effects
   Smoke = 'smoke', // Represents smoke, steam, or fog that obscures vision
+  Webbed = 'webbed', // Represents being trapped in sticky webs
 }
 
 /**
@@ -52,10 +53,14 @@ export const StateInteractions: Record<string, StateTag | null> = {
   // Smoke interactions
   'cold+smoke': StateTag.Wet,       // Condensation (Smoke/Steam cools to Water)
 
+  // Webbed interactions
+  'burning+webbed': StateTag.Burning, // Fire burns away webs (and ignites target)
+
   // Electrified interactions
   // (Placeholder for future: wet+electrified -> AoE damage)
   // TODO(Simulator): Implement vision obscurement mechanics for the Smoke state.
   // TODO(Simulator): The current system only supports state transformation.
   // To implement wet+electrified -> AoE damage, we need to expand interaction results to include side-effects.
   // TODO(Simulator): Implement 'Wind' state or mechanic to disperse 'Smoke' and 'Poisoned' clouds.
+  // TODO(Simulator): Implement 'Acid' state to dissolve 'Webbed' and neutralize 'Oiled'.
 };

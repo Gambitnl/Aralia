@@ -122,7 +122,11 @@ const PassTimeModal: React.FC<PassTimeModalProps> = ({ isOpen, onClose, onConfir
                     {formatGameTimeForModal(newTimePreview)}
                 </span>
             </div>
+<<<<<<< HEAD
 
+=======
+
+>>>>>>> origin/master
             {totalSecondsToAdvance > 0 && (
                 <div className="mt-2 text-xs italic text-gray-300 border-t border-gray-700 pt-2">
                     <p>{calendarDescription}</p>

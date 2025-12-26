@@ -108,10 +108,17 @@ const CompassPane: React.FC<CompassPaneProps> = ({
       />
       <div className="flex flex-col gap-2">
         {/* Time Widget */}
+<<<<<<< HEAD
         <TimeWidget
           gameTime={gameTime}
           onPassTimeClick={() => setIsPassTimeModalOpen(true)}
           disabled={disabled}
+=======
+        <TimeWidget
+          gameTime={gameTime}
+          onPassTimeClick={() => setIsPassTimeModalOpen(true)}
+          disabled={disabled}
+>>>>>>> origin/master
         />
 
         <div className="bg-gray-800 p-4 rounded-lg shadow-xl border border-gray-700 flex-shrink-0">
