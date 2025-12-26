@@ -23,6 +23,7 @@ export interface TimeWarpResult {
 
 export class FeywildMechanics {
   static MEMORY_LOSS_DC = 15;
+  static MINUTES_IN_DAY = 1440;
 
   /**
    * Checks if a character loses their memory upon leaving the Feywild.
@@ -108,14 +109,12 @@ export class FeywildMechanics {
       let warpedMinutes = durationMinutes;
       let description = '';
 
-      const MINUTES_IN_DAY = 1440;
-
       if (roll <= 10) {
           // Time Compression: Days become Minutes.
           // Ratio: 1 Day (1440 mins) -> 1 Minute.
           // Factor: 1/1440.
           // Example: Spent 1440 mins (1 day) -> Returns to find only 1 minute passed.
-          warpedMinutes = Math.max(1, Math.floor(durationMinutes / MINUTES_IN_DAY));
+          warpedMinutes = Math.max(1, Math.floor(durationMinutes / this.MINUTES_IN_DAY));
           description = 'Time flowed strangely fast while you were gone. What felt like days was mere minutes in the material world.';
       } else if (roll <= 15) {
           // Normal Time
