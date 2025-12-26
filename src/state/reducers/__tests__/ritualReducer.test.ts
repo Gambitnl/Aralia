@@ -3,10 +3,11 @@ import { describe, it, expect } from 'vitest';
 import { ritualReducer } from '../ritualReducer';
 import { GameState } from '../../../types';
 import { RitualState } from '../../../types/rituals';
+import { SpellSchool } from '../../../types/spells';
 
 const mockRitual: RitualState = {
   id: 'ritual-123',
-  spell: { name: 'Test Spell', id: 'spell-1', level: 1, castingTime: { unit: 'minutes', value: 10 }, effects: [], school: 'abjuration', description: '', components: { v: true, s: true, m: false }, ritual: true, range: 30, duration: { type: 'instant' } },
+  spell: { name: 'Test Spell', id: 'spell-1', level: 1, castingTime: { unit: 'minutes', value: 10 }, effects: [], school: SpellSchool.Abjuration, description: '', components: { v: true, s: true, m: false }, ritual: true, range: 30, duration: { type: 'instant' } },
   casterId: 'caster-1',
   startTime: 0,
   durationMinutes: 20,
