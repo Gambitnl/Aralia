@@ -6,6 +6,8 @@
  * Core definitions for the naval system: ships, crew, and maritime mechanics.
  */
 
+import { SeededRandom } from '../utils/seededRandom';
+
 // ============================================================================
 // SHIP DEFINITIONS
 // ============================================================================
@@ -159,8 +161,6 @@ export interface VoyageLogEntry {
   type: 'Info' | 'Warning' | 'Combat' | 'Discovery' | 'Fluff';
 }
 
-import { SeededRandom } from '../utils/seededRandom';
-
 export interface VoyageEvent {
   id: string;
   name: string;
@@ -172,5 +172,6 @@ export interface VoyageEvent {
       log: string;
       type: VoyageLogEntry['type'];
       distanceModifier?: number; // Additive modifier to daily travel (can be negative)
+      weatherChange?: string; // New weather state if applicable
   };
 }

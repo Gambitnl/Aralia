@@ -43,7 +43,8 @@ export const VOYAGE_EVENTS: VoyageEvent[] = [
             return {
                 log: 'Caught in the doldrums. Zero progress today. The crew grows restless in the heat.',
                 type: 'Warning',
-                distanceModifier: -baseDistance // Negate exactly the base movement
+                distanceModifier: -baseDistance, // Negate exactly the base movement
+                weatherChange: 'Calm'
             };
         }
     },
@@ -63,7 +64,8 @@ export const VOYAGE_EVENTS: VoyageEvent[] = [
             return {
                 log: `A violent gale batters the ship! Took ${damage} hull damage.`,
                 type: 'Warning',
-                distanceModifier: -20 // Slowed down
+                distanceModifier: -20, // Slowed down
+                weatherChange: 'Storm'
             };
         }
     },
@@ -78,7 +80,8 @@ export const VOYAGE_EVENTS: VoyageEvent[] = [
             return {
                 log: 'Fair winds fill the sails! Made excellent progress today.',
                 type: 'Info',
-                distanceModifier: bonusDist
+                distanceModifier: bonusDist,
+                weatherChange: 'Clear'
             };
         }
     },
@@ -93,7 +96,8 @@ export const VOYAGE_EVENTS: VoyageEvent[] = [
             return {
                 log: 'Navigating through soup. Speed reduced to avoid collision.',
                 type: 'Warning',
-                distanceModifier: -30
+                distanceModifier: -30,
+                weatherChange: 'Fog'
             };
         }
     },

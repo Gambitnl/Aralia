@@ -184,4 +184,17 @@ describe('VoyageManager', () => {
             expect(result.log).toContain('Caught in the doldrums');
         }
     });
+
+    it('should change weather state on storm', () => {
+        const storm = VOYAGE_EVENTS.find(e => e.id === 'storm_gale');
+        expect(storm).toBeDefined();
+
+        if (storm) {
+             const voyage = VoyageManager.startVoyage(mockShip, 500);
+             const rng = new SeededRandom(123);
+             const result = storm.effect(voyage, mockShip, rng);
+
+             expect(result.weatherChange).toBe('Storm');
+        }
+    });
 });

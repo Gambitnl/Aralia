@@ -89,12 +89,15 @@ export class VoyageManager {
                  if (result.distanceModifier) {
                      actualDistance += result.distanceModifier;
                  }
+
+                 // Apply weather change if event dictates it
+                 if (result.weatherChange) {
+                     currentState.currentWeather = result.weatherChange;
+                 }
             }
         }
 
         // Ensure we don't go backwards excessively unless explicitly intended.
-        // If actualDistance is negative, it means we are pushed back.
-        // But we must check against distanceTraveled (can't go negative total distance).
         let newDistanceTraveled = currentState.distanceTraveled + actualDistance;
         if (newDistanceTraveled < 0) {
              actualDistance = -currentState.distanceTraveled; // Clamp movement to 0 total
@@ -164,7 +167,7 @@ export class VoyageManager {
 
         // 5. Finalize Log
         if (!dailyLog) {
-            dailyLog = `Day ${day}: Sailed ${Math.round(actualDistance)} miles. Calm seas.`;
+            dailyLog = `Day ${day}: Sailed ${Math.round(actualDistance)} miles. ${currentState.currentWeather} seas.`;
         } else if (!dailyLog.startsWith('Day')) {
             dailyLog = `Day ${day}: ${dailyLog} (Sailed ${Math.round(actualDistance)} miles)`;
         }
@@ -194,6 +197,7 @@ export class VoyageManager {
                 food: foodConsumedTotal,
                 water: waterConsumedTotal
             },
+            currentWeather: currentState.currentWeather, // Ensure updated weather persists
             log: [
                 ...currentState.log,
                 {
