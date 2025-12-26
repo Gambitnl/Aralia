@@ -1,5 +1,11 @@
-# Shadowbroker's Worklog
+# Shadowbroker Worklog
 
-## 2024-05-23 - Smuggling & Black Market Design **Learning:** The current criminal systems lack a cohesive "Contraband Economy". We have fences for stolen goods, but no mechanics for illegal goods that *aren't* stolen (contraband) or the risk of moving them. **Action:** Implementing a Smuggling System that tracks risk per route and a Black Market System that drives demand for specific contraband types.
+## 2024-05-22 - Heist Roles & Action System
+**Learning:** Heists without roles are just glorified skill checks. By adding `HeistRole` (Leader, Infiltrator, Muscle, Face, Lookout, Driver), we force the player to build a team.
+**Action:** Implemented `HeistRole` and `performHeistAction`. Future implementations should include specific `HeistAction` cards for the UI (e.g., "Use Grappling Hook" is an Infiltrator action that reduces noise).
 
-## 2024-05-25 - Heist State Architecture **Learning:** Implementing Heists requires a distinct `activeHeist` state in the global GameState to persist progress across turns and save/loads. Redux actions must be pure; RNG (success/failure) for heist actions should be resolved before dispatching to the reducer. **Action:** Added `activeHeist` to GameState and implemented pure reducer handlers for Heist phases and actions.
+**Learning:** Deterministic Alert Scaling
+**Action:** Actions now have explicit `noise` (alert on success) and `risk` (alert on failure). This allows for strategy: "Do we use the loud explosive (high noise, low risk) or the quiet lockpick (low noise, high risk)?".
+
+**Learning:** Mitigation Mechanics
+**Action:** The `Lookout` role now actively reduces alert generation during the heist loop. This makes non-active roles feel impactful.
