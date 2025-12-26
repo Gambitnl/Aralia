@@ -145,6 +145,7 @@ export interface VoyageState {
   distanceTraveled: number; // Miles
   distanceToDestination: number; // Miles
   currentWeather: string; // e.g., 'Calm', 'Storm', 'Fog'
+  seed: number; // Seed for deterministic event generation
   suppliesConsumed: {
     food: number;
     water: number;
@@ -158,6 +159,8 @@ export interface VoyageLogEntry {
   type: 'Info' | 'Warning' | 'Combat' | 'Discovery' | 'Fluff';
 }
 
+import { SeededRandom } from '../utils/seededRandom';
+
 export interface VoyageEvent {
   id: string;
   name: string;
@@ -165,5 +168,9 @@ export interface VoyageEvent {
   type: 'Weather' | 'Encounter' | 'Discovery' | 'Crew' | 'Fluff';
   probability: number; // 0-1
   conditions?: (state: VoyageState) => boolean;
-  effect: (state: VoyageState, ship: Ship) => { log: string; type: VoyageLogEntry['type'] };
+  effect: (state: VoyageState, ship: Ship, rng: SeededRandom) => {
+      log: string;
+      type: VoyageLogEntry['type'];
+      distanceModifier?: number; // Additive modifier to daily travel (can be negative)
+  };
 }
