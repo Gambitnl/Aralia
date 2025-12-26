@@ -3,11 +3,11 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import PartyPane from '../PartyPane';
-import { PlayerCharacter } from '../../types';
-import { RACES_DATA, AVAILABLE_CLASSES } from '../../constants';
+import { PlayerCharacter } from '../../../types';
+import { RACES_DATA, AVAILABLE_CLASSES } from '../../../constants';
 
 // Mock Tooltip as it might use portal or other things
-vi.mock('../Tooltip', () => ({
+vi.mock('../../Tooltip', () => ({
   default: ({ content, children }: { content?: React.ReactNode; children?: React.ReactNode }) => (
     <div data-testid="tooltip" data-content={content}>{children}</div>
   )
@@ -31,8 +31,14 @@ describe('PartyPane', () => {
     proficiencyBonus: 2,
     skills: {},
     savingThrows: {},
-    isCaster: false
-  };
+    isCaster: false,
+    statusEffects: [],
+    abilities: [],
+    finalAbilityScores: {
+      strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10
+    },
+    transportMode: 'foot'
+  } as unknown as PlayerCharacter;
 
   const mockProps = {
     party: [mockCharacter],
