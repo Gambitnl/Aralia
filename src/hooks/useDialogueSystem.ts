@@ -12,7 +12,7 @@
  */
 
 import { useCallback } from 'react';
-import { GameState, Action } from '../types';
+import { GameState } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { ProcessTopicResult } from '../services/dialogueService';
 import * as GeminiService from '../services/geminiService';
