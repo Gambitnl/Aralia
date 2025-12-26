@@ -25,6 +25,7 @@
  */
 
 import { Position } from '../types/combat';
+import { compassToMathAngle, degreesToRadians, normalizeAngle, getAngleBetweenPositions } from './geometry';
 
 export type AoEShape = "Sphere" | "Cone" | "Cube" | "Line" | "Cylinder";
 
@@ -174,21 +175,7 @@ function getConeAoE(origin: Position, direction: number, length: number): Positi
             // Exclude origin tile
             if (distance < 0.1) continue;
 
-            // Calculate angle from origin to target tile using Math.atan2
-            // atan2 returns angle in radians relative to +x axis (East)
-            // Range: -PI to +PI
-            const angleRad = Math.atan2(dy, dx);
-            const angleDeg = angleRad * (180 / Math.PI);
-
-            // Convert Math Angle to Compass Angle
-            // Math: 0=E, 90=S, 180=W, -90=N
-            // Compass: 90=E, 180=S, 270=W, 0=N
-            // Formula: Compass = Math + 90
-            let gridAngle = angleDeg + 90;
-
-            // Normalize to 0-360
-            if (gridAngle < 0) gridAngle += 360;
-            if (gridAngle >= 360) gridAngle -= 360;
+            const gridAngle = getAngleBetweenPositions(origin, { x, y });
 
             // Check if tile angle is within cone width relative to direction
             let diff = Math.abs(gridAngle - direction);
@@ -307,8 +294,8 @@ function projectPoint(origin: Position, directionDegrees: number, distanceFeet: 
     // Compass: 0=N, 90=E
     // Math (screen coords): -90=N, 0=E
     // Formula: Math = Compass - 90
-    const mathAngleDeg = directionDegrees - 90;
-    const radians = mathAngleDeg * (Math.PI / 180);
+    const mathAngleDeg = compassToMathAngle(directionDegrees);
+    const radians = degreesToRadians(mathAngleDeg);
 
     // Calculate normalized direction vector
     const dx = Math.cos(radians);

@@ -6,6 +6,7 @@
 
 import { Position, AreaOfEffect, CombatCharacter } from '../types/combat';
 import { AoEShape, AoEParams } from './aoeCalculations';
+import { getAngleBetweenPositions, facingToDegrees as geometryFacingToDegrees } from './geometry';
 
 /**
  * Maps legacy or varying shape strings to the standard AoEShape type.
@@ -35,20 +36,9 @@ export const mapShapeToStandard = (shape: string): AoEShape => {
  * 
  * @param facing - The direction string (e.g., 'north', 'southeast').
  * @returns The angle in degrees.
+ * @deprecated Use `src/utils/geometry.ts` instead.
  */
-export const facingToDegrees = (facing: string): number => {
-    switch (facing) {
-        case 'north': return 0;      // -Y
-        case 'northeast': return 45;
-        case 'east': return 90;      // +X
-        case 'southeast': return 135;
-        case 'south': return 180;    // +Y
-        case 'southwest': return 225;
-        case 'west': return 270;     // -X
-        case 'northwest': return 315;
-        default: return 0;
-    }
-};
+export const facingToDegrees = geometryFacingToDegrees;
 
 /**
  * Calculates the dynamic parameters for an Area of Effect based on caster position and target.
@@ -77,23 +67,8 @@ export const resolveAoEParams = (
 
             // If caster and target are different, calculate angle.
             if (center.x !== origin.x || center.y !== origin.y) {
-                const dx = center.x - origin.x;
-                const dy = center.y - origin.y;
-
-                // Math.atan2(y, x) gives angle from +X axis (East) in radians.
-                // Range: -PI to +PI. 
-                // 0 = East, 90 = South, 180 = West, -90 = North.
-                // TODO: REFACTOR: This angle calculation logic duplicates `aoeCalculations.ts` and `combatUtils.ts`.
-                // Extract a shared `getAngleBetweenPositions(posA, posB)` helper in `src/utils/geometry.ts`.
-                const angleRad = Math.atan2(dy, dx);
-                const angleDeg = angleRad * (180 / Math.PI);
-
-                // Convert standard math angle to our Compass system (0=North, 90=East)
-                // Math: 0(E) -> 90.  
-                // Math: -90(N) -> 0. 
-                // Math: 90(S) -> 180.
-                // Formula: direction = angle + 90
-                direction = angleDeg + 90;
+                // Use shared geometry util
+                direction = getAngleBetweenPositions(origin, center);
             } else if (caster.facing) {
                 // Fallback: If clicked on self, use caster's current facing.
                 direction = facingToDegrees(caster.facing);
