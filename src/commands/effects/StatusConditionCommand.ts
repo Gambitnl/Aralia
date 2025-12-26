@@ -102,14 +102,24 @@ export class StatusConditionCommand extends BaseEffectCommand {
     const statusEffects = [...existing];
     const matchIndex = statusEffects.findIndex(effect => effect.name === name);
 
+    // MECHANIST: Check if the effect source provided a specific mechanical effect
+    // e.g. Slasher Speed Reduction (-10ft)
+    let mechanicalEffect: StatusEffect['effect'] = { type: 'condition' };
+
+    // We check if the input command had specific data in the effect definition.
+    // StatusConditionCommand's 'effect' property is the SpellEffect input.
+    if (isStatusConditionEffect(this.effect) && this.effect.statusCondition.effect) {
+         // Pass through the mechanical effect if defined in the statusCondition object
+         // The Slasher logic in DamageCommand injected `effect: { ... }` into the statusCondition object.
+         mechanicalEffect = this.effect.statusCondition.effect as StatusEffect['effect'];
+    }
+
     const appliedStatus: StatusEffect = {
       id: matchIndex >= 0 ? statusEffects[matchIndex].id : generateId(),
       name,
       type: 'debuff',
       duration,
-      effect: {
-        type: 'condition'
-      },
+      effect: mechanicalEffect,
       icon: this.getIconForCondition(name)
     };
 

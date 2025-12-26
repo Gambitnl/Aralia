@@ -479,6 +479,16 @@ export interface StatusCondition {
   duration: EffectDuration;
   level?: number;
   escapeCheck?: EscapeCheck;
+  /**
+   * Optional mechanical effect associated with this status.
+   * Allows encapsulating numeric modifiers (e.g. Speed -10) directly within the condition object.
+   * This structure mirrors the `effect` property of `StatusEffect` in `combat.ts`.
+   */
+  effect?: {
+    type: 'stat_modifier' | 'damage_per_turn' | 'heal_per_turn' | 'skip_turn' | 'condition';
+    value?: number;
+    stat?: string; // Using string to avoid circular dependency with CharacterStats keys
+  };
 }
 
 /** Defines how long an effect-specific condition lasts. */

@@ -536,6 +536,7 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     spellbook: player.spellbook,
     spellSlots: player.spellSlots,
     savingThrowProficiencies: player.savingThrowProficiencies,
+    feats: player.featChoices?.map(f => f.featId) || [], // Map player feats to combat character
     resistances: player.race.resistance as unknown as import('../types').DamageType[], // Cast because Race uses string[], CombatCharacter uses DamageType[]
   };
 

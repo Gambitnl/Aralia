@@ -89,6 +89,12 @@ export interface CombatCharacter {
   spellSlots?: SpellSlots;
   concentratingOn?: ConcentrationState;
 
+  /**
+   * List of feats the character possesses (e.g., "Slasher", "Sentinel").
+   * Used for conditional logic in commands (e.g., Slasher slows on hit).
+   */
+  feats?: string[];
+
   /** Elemental states (Wet, Frozen, etc.) affecting the character */
   stateTags?: StateTag[];
 
