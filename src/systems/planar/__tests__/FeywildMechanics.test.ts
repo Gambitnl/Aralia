@@ -1,12 +1,11 @@
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { FeywildMechanics, TimeWarpResult } from '../FeywildMechanics';
-import * as combatUtils from '../../utils/combatUtils';
-import { PlayerCharacter, GameState } from '../../types/index';
-import { createMockPlayerCharacter, createMockGameState } from '../../utils/factories';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { FeywildMechanics } from '../FeywildMechanics';
+import * as combatUtils from '../../../utils/combatUtils';
+import { createMockPlayerCharacter } from '../../../utils/factories';
 
-// Mock logger to avoid clutter
-vi.mock('../../utils/logger', () => ({
+// Mock logger
+vi.mock('../../../utils/logger', () => ({
   logger: {
     info: vi.fn(),
     warn: vi.fn(),
@@ -14,38 +13,72 @@ vi.mock('../../utils/logger', () => ({
   },
 }));
 
+// Mock combatUtils
+// We use a factory to ensure we return a Spy for rollDice and a custom implementation for createPlayerCombatCharacter
+vi.mock('../../../utils/combatUtils', async (importOriginal) => {
+    const actual = await importOriginal<typeof combatUtils>();
+    return {
+        ...actual,
+        rollDice: vi.fn(),
+        createPlayerCombatCharacter: vi.fn((pc) => {
+            // Return a valid CombatCharacter structure
+            return {
+                ...pc, // Copy ID, name, etc.
+                stats: pc.attributes || { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 },
+                savingThrowProficiencies: pc.class?.savingThrowProficiencies || [],
+                proficiencyBonus: 2,
+                level: 1,
+                hp: 10,
+                maxHp: 10,
+                ac: 10,
+                initiativeBonus: 0,
+                speed: 30,
+                conditions: [],
+                resistances: [],
+                vulnerabilities: [],
+                immunities: [],
+                abilities: [],
+                statusEffects: [],
+                finalAbilityScores: pc.attributes || { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 },
+                classIdentifier: pc.class?.id || 'fighter',
+                raceIdentifier: pc.race?.id || 'human',
+                alignment: 'Neutral'
+            };
+        })
+    };
+});
+
 describe('FeywildMechanics', () => {
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   describe('checkMemoryLoss', () => {
     it('should result in memory loss on failed save', () => {
       // Mock save to fail (roll 1)
-      vi.spyOn(combatUtils, 'rollDice').mockReturnValue(1);
-      // Note: rollSavingThrow calls rollDice internally.
-      // However, createMockPlayerCharacter might return decent stats, so 1 + mods might still be low.
+      vi.mocked(combatUtils.rollDice).mockReturnValue(1);
 
       const char = createMockPlayerCharacter({
           class: { name: 'Fighter', id: 'fighter', hitDie: 'd10', savingThrowProficiencies: [] },
           race: { name: 'Human', id: 'human', speed: 30, size: 'Medium' }
       });
-      // Ensure wisdom mod is low for test reliability
-      char.attributes.wisdom = 10; // Mod 0
-
-      // We need to mock savingThrowUtils or just mock rollDice if we know the internal logic.
-      // Better: Mock rollSavingThrow from savingThrowUtils if exported.
-      // But FeywildMechanics imports it.
-      // Let's rely on rollDice mock since savingThrowUtils uses it.
+      // Ensure attributes exist
+      char.attributes = { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 };
 
       const result = FeywildMechanics.checkMemoryLoss(char);
+
+      // Verify result
       expect(result.lostMemory).toBe(true);
       expect(result.message).toContain('slipping away');
     });
 
     it('should result in retained memory on success', () => {
        // Mock save to succeed (roll 20)
-       vi.spyOn(combatUtils, 'rollDice').mockReturnValue(20);
+       vi.mocked(combatUtils.rollDice).mockReturnValue(20);
 
        const char = createMockPlayerCharacter();
-       char.attributes.wisdom = 10;
+       char.attributes = { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 };
 
        const result = FeywildMechanics.checkMemoryLoss(char);
        expect(result.lostMemory).toBe(false);
@@ -54,17 +87,17 @@ describe('FeywildMechanics', () => {
 
     it('should apply advantage for Elves (Native)', () => {
         // Mock sequence: First roll fail (1), Second roll success (20)
-        const rollSpy = vi.spyOn(combatUtils, 'rollDice').mockReturnValueOnce(1).mockReturnValueOnce(20);
+        vi.mocked(combatUtils.rollDice).mockReturnValueOnce(1).mockReturnValueOnce(20);
 
         const char = createMockPlayerCharacter({
             race: { name: 'High Elf', id: 'elf', speed: 30, size: 'Medium' }
         });
-        char.attributes.wisdom = 10;
+        char.attributes = { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 };
 
         const result = FeywildMechanics.checkMemoryLoss(char);
 
         // Should have rolled twice
-        expect(rollSpy).toHaveBeenCalledTimes(2);
+        expect(combatUtils.rollDice).toHaveBeenCalledTimes(2);
         expect(result.lostMemory).toBe(false);
     });
   });
@@ -73,7 +106,7 @@ describe('FeywildMechanics', () => {
     const ONE_DAY_MINUTES = 1440;
 
     it('should compress time on roll 1-10', () => {
-        vi.spyOn(combatUtils, 'rollDice').mockReturnValue(5);
+        vi.mocked(combatUtils.rollDice).mockReturnValue(5);
         const result = FeywildMechanics.calculateTimeWarp(ONE_DAY_MINUTES);
 
         // 1440 mins / 1440 = 1 min
@@ -82,7 +115,7 @@ describe('FeywildMechanics', () => {
     });
 
     it('should be normal time on roll 11-15', () => {
-        vi.spyOn(combatUtils, 'rollDice').mockReturnValue(13);
+        vi.mocked(combatUtils.rollDice).mockReturnValue(13);
         const result = FeywildMechanics.calculateTimeWarp(ONE_DAY_MINUTES);
 
         expect(result.warpedMinutes).toBe(ONE_DAY_MINUTES);
@@ -90,7 +123,7 @@ describe('FeywildMechanics', () => {
     });
 
     it('should dilate time (weeks) on roll 16-17', () => {
-        vi.spyOn(combatUtils, 'rollDice').mockReturnValue(16);
+        vi.mocked(combatUtils.rollDice).mockReturnValue(16);
         const result = FeywildMechanics.calculateTimeWarp(ONE_DAY_MINUTES);
 
         // 1 day -> 1 week (7 days)
@@ -99,7 +132,7 @@ describe('FeywildMechanics', () => {
     });
 
     it('should dilate time (months) on roll 18-19', () => {
-        vi.spyOn(combatUtils, 'rollDice').mockReturnValue(18);
+        vi.mocked(combatUtils.rollDice).mockReturnValue(18);
         const result = FeywildMechanics.calculateTimeWarp(ONE_DAY_MINUTES);
 
         // 1 day -> 1 month (30 days)
@@ -108,7 +141,7 @@ describe('FeywildMechanics', () => {
     });
 
     it('should jump time (years) on roll 20', () => {
-        vi.spyOn(combatUtils, 'rollDice').mockReturnValue(20);
+        vi.mocked(combatUtils.rollDice).mockReturnValue(20);
         const result = FeywildMechanics.calculateTimeWarp(ONE_DAY_MINUTES);
 
         // 1 day -> 1 year (365 days)
