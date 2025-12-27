@@ -27,6 +27,7 @@ export enum StateTag {
   Smoke = 'smoke', // Represents smoke, steam, or fog that obscures vision
   Webbed = 'webbed', // Represents being trapped in sticky webs
   Wind = 'wind', // Represents strong air currents or buffeting winds
+  Acid = 'acid', // Represents corrosive substances
 }
 
 /**
@@ -58,12 +59,12 @@ export const StateInteractions: Record<string, StateTag | null> = {
   // Webbed interactions
   'burning+webbed': StateTag.Burning, // Fire burns away webs (and ignites target)
 
+  // Acid interactions
+  'acid+webbed': null,              // Acid dissolves webs
+  'acid+oiled': null,               // Acid neutralizes/breaks down oil
+
   // Electrified interactions
   // (Placeholder for future: wet+electrified -> AoE damage)
-  // TODO(Simulator): Implement vision obscurement mechanics for the Smoke state.
-  // TODO(Simulator): The current system only supports state transformation.
-  // To implement wet+electrified -> AoE damage, we need to expand interaction results to include side-effects.
-  // TODO(Simulator): Implement 'Wind' state or mechanic to disperse 'Smoke' and 'Poisoned' clouds.
-  // TODO(Simulator): Implement 'Acid' state to dissolve 'Webbed' and neutralize 'Oiled'.
-  // TODO(Simulator): Implement 'Wind' state mechanics affecting projectile accuracy or movement speed.
+
+  // TODO(Simulator): Expand interaction system to support side-effects (e.g., wet+electrified dealing damage) and applied mechanics (e.g., smoke obscuring vision).
 };
