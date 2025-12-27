@@ -9,6 +9,7 @@
  * - A descriptive string
  * - A 'delay' effect (in hours)
  * - A 'weight' for probability (default 1)
+ * - Optional skill checks for interactive resolution
  */
 
 import { BiomeEventMap } from '../types/exploration';
@@ -26,6 +27,12 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
       description: 'A sudden storm forces you to seek shelter for a few hours.',
       effect: { type: 'delay', amount: 2, description: '2 hour delay' },
       weight: 1,
+      skillCheck: {
+        check: { skill: 'survival', dc: 12 },
+        successEffect: { type: 'delay', amount: 0, description: 'You found a dry cave and waited it out comfortably.' },
+        successDescription: 'You spot a dry cave just before the rain hits! (Survival Success)',
+        failureDescription: 'You fail to find shelter in time and are soaked. (Survival Fail)'
+      }
     },
     {
       id: 'wandering_trader',
@@ -35,8 +42,15 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
     {
       id: 'found_coins',
       description: 'You spot a small pouch dropped by a previous traveler.',
-      effect: { type: 'item_gain', amount: 5, itemId: 'gold_piece', description: 'Found 5 Gold' },
+      effect: { type: 'gold_gain', amount: 5, description: 'Found 5 Gold' },
       weight: 1,
+      skillCheck: {
+        check: { skill: 'investigation', dc: 13 },
+        successEffect: { type: 'gold_gain', amount: 15, description: 'Found 15 Gold' },
+        successDescription: 'You notice the pouch has a hidden compartment with more coins! (Investigation Success)',
+        failureEffect: { type: 'gold_gain', amount: 5, description: 'Found 5 Gold' }, // Default behavior
+        failureDescription: 'You check the pouch but find nothing else.'
+      }
     }
   ],
   plains: [
@@ -54,7 +68,13 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
         id: 'herb_patch',
         description: 'You spot a patch of medicinal herbs swaying in the breeze.',
         effect: { type: 'item_gain', amount: 2, itemId: 'wild_herbs', description: 'Harvested Wild Herbs x2' },
-        weight: 2
+        weight: 2,
+        skillCheck: {
+            check: { skill: 'nature', dc: 14 },
+            successEffect: { type: 'item_gain', amount: 4, itemId: 'wild_herbs', description: 'Harvested Wild Herbs x4' },
+            successDescription: 'You recognize the rare variants in the center of the patch. (Nature Success)',
+            failureDescription: 'You harvest what you can identify.'
+        }
     },
     {
         id: 'berry_bushes',
@@ -69,18 +89,36 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
       description: 'A massive fallen tree blocks the path.',
       effect: { type: 'delay', amount: 1, description: '1 hour delay' },
       weight: 2,
+      skillCheck: {
+        check: { skill: 'athletics', dc: 13 },
+        successEffect: { type: 'delay', amount: 0, description: 'No delay' },
+        successDescription: 'You easily vault over the blockage, keeping your pace. (Athletics Success)',
+        failureDescription: 'It takes time to scramble over the tangled branches.'
+      }
     },
     {
       id: 'mysterious_lights',
       description: 'Strange lights dance in the trees, leading you astray.',
       effect: { type: 'delay', amount: 3, description: '3 hour delay' },
       weight: 1,
+      skillCheck: {
+        check: { skill: 'arcana', dc: 14 },
+        successEffect: { type: 'xp_gain', amount: 25, description: 'Gained 25 XP' },
+        successDescription: 'You recognize them as harmless will-o\'-wisps and observe them for study. (Arcana Success)',
+        failureDescription: 'You follow them in circles for hours. (Arcana Fail)'
+      }
     },
     {
       id: 'thorny_thicket',
       description: 'You are forced to push through a dense wall of thorns, scratching everyone.',
       effect: { type: 'health_change', amount: -2, description: 'Took 2 damage' },
       weight: 1,
+      skillCheck: {
+        check: { skill: 'survival', dc: 12 },
+        successEffect: { type: 'delay', amount: 1, description: '1 hour delay' }, // Trade damage for small delay
+        successDescription: 'You find a game trail that bypasses the worst of it, though it takes a bit longer. (Survival Success)',
+        failureDescription: 'You have no choice but to force your way through.'
+      }
     },
     {
       id: 'healing_spring',
@@ -101,6 +139,12 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
       description: 'A rockslide blocks the pass.',
       effect: { type: 'delay', amount: 4, description: '4 hour delay' },
       weight: 2,
+      skillCheck: {
+          check: { skill: 'athletics', dc: 15 },
+          successEffect: { type: 'delay', amount: 1, description: '1 hour delay' },
+          successDescription: 'Your team manages to clear enough debris to squeeze through quickly. (Athletics Success)',
+          failureDescription: 'You have to backtrack and find a way around.'
+      }
     },
     {
       id: 'high_winds',
@@ -113,6 +157,12 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
       description: 'Loose rocks tumble down the cliff face!',
       effect: { type: 'health_change', amount: -5, description: 'Took 5 damage' },
       weight: 1,
+      skillCheck: {
+          check: { skill: 'perception', dc: 14 },
+          successEffect: { type: 'delay', amount: 0, description: 'Dodged!' },
+          successDescription: 'You spot the tumbling rocks in time and shout a warning! (Perception Success)',
+          failureDescription: 'The rocks catch you by surprise.'
+      }
     },
     {
       id: 'iron_vein',
@@ -139,12 +189,24 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
       description: 'The cart gets stuck in deep mud.',
       effect: { type: 'delay', amount: 3, description: '3 hour delay' },
       weight: 1,
+      skillCheck: {
+          check: { skill: 'animal_handling', dc: 13 },
+          successEffect: { type: 'delay', amount: 1, description: '1 hour delay' },
+          successDescription: 'You calm the beasts and guide them firmly to firmer ground. (Animal Handling Success)',
+          failureDescription: 'It takes hours of digging to free the wheels.'
+      }
     },
     {
       id: 'leech_infested_waters',
       description: 'You have to wade through leech-infested waters.',
       effect: { type: 'health_change', amount: -3, description: 'Took 3 damage' },
       weight: 1,
+      skillCheck: {
+          check: { skill: 'medicine', dc: 12 },
+          successEffect: { type: 'health_change', amount: -1, description: 'Took 1 damage' },
+          successDescription: 'You carefully remove the leeches before they do serious harm. (Medicine Success)',
+          failureDescription: 'They latch on tight.'
+      }
     },
     {
       id: 'venomous_remains',
@@ -159,12 +221,24 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
       description: 'A blinding sandstorm forces you to halt.',
       effect: { type: 'delay', amount: 6, description: '6 hour delay' },
       weight: 1,
+      skillCheck: {
+          check: { skill: 'survival', dc: 15 },
+          successEffect: { type: 'delay', amount: 2, description: '2 hour delay' },
+          successDescription: 'You quickly construct a makeshift shelter against a dune. (Survival Success)',
+          failureDescription: 'You are forced to huddle and wait it out, buried in sand.'
+      }
     },
     {
       id: 'heat_exhaustion',
       description: 'The intense heat forces frequent rest breaks.',
       effect: { type: 'delay', amount: 2, description: '2 hour delay' },
       weight: 2,
+      skillCheck: {
+        check: { skill: 'nature', dc: 12 },
+        successEffect: { type: 'delay', amount: 1, description: '1 hour delay' },
+        successDescription: 'You know which plants contain cooling sap to apply to your skin. (Nature Success)',
+        failureDescription: 'The heat is relentless.'
+      }
     },
     {
       id: 'sun_scorch',
@@ -196,13 +270,25 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
         id: 'faerzress_pocket',
         description: 'You stumble into a pocket of Faerzress (magical radiation). Visions of alien cities flood your mind.',
         effect: { type: 'delay', amount: 2, description: '2 hour delay, Wisdom save required (flavor)' },
-        weight: 1
+        weight: 1,
+        skillCheck: {
+            check: { skill: 'arcana', dc: 15 },
+            successEffect: { type: 'xp_gain', amount: 50, description: 'Gained 50 XP' },
+            successDescription: 'You channel the chaotic magic, gaining insight into the weave. (Arcana Success)',
+            failureDescription: 'The visions leave you disoriented and lost.'
+        }
     },
     {
         id: 'drow_patrol',
         description: 'You spot the purple glow of Drow faerie fire in the distance. You hide in a crevice for hours until they pass.',
         effect: { type: 'delay', amount: 6, description: '6 hour delay' },
-        weight: 1
+        weight: 1,
+        skillCheck: {
+            check: { skill: 'stealth', dc: 14 },
+            successEffect: { type: 'delay', amount: 2, description: '2 hour delay' },
+            successDescription: 'You slip past them like a shadow, moving while they are distracted. (Stealth Success)',
+            failureDescription: 'You are forced to wait, barely breathing, until they are long gone.'
+        }
     },
     {
         id: 'bioluminescent_spores',
@@ -215,6 +301,12 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
         description: 'A Hook Horror drops from the ceiling!',
         effect: { type: 'health_change', amount: -8, description: 'Took 8 damage' },
         weight: 0.5,
+        skillCheck: {
+            check: { skill: 'perception', dc: 16 },
+            successEffect: { type: 'health_change', amount: 0, description: 'Dodged!' },
+            successDescription: 'You hear the scraping of claws above and dive away just in time! (Perception Success)',
+            failureDescription: 'It lands on you before you can react.'
+        }
     },
     {
         id: 'mithral_vein',
