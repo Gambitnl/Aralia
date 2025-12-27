@@ -8,8 +8,7 @@ For a complete index of all documentation, please see the [README Index](./docs/
 
 ### Prerequisites
 *   **Node.js**: (Version 22+ recommended). [Download here](https://nodejs.org/).
-*   **pnpm**: This project uses `pnpm` for dependency management. (Pre-installed in the Jules environment).
-    *   If running locally: `npm install -g pnpm`
+*   **npm**: This project uses `npm` for dependency management.
 *   **Python**: Version 3.12+ (Required for some utility scripts).
 
 ### Jules Environment Configuration
@@ -18,9 +17,9 @@ To configure this repository in the Jules IDE:
 2.  Select **Configuration**.
 3.  In the **Initial Setup** script, add:
     ```bash
-    pnpm install
+    npm install
     # Optional: Validate environment
-    pnpm run typecheck
+    npm run typecheck
     ```
 4.  Click **Run and Snapshot**.
 
@@ -28,7 +27,7 @@ To configure this repository in the Jules IDE:
 
 1.  **Install dependencies**:
     ```bash
-    pnpm install
+    npm install
     ```
 
 2.  **Configure environment variables**:
@@ -41,7 +40,7 @@ To configure this repository in the Jules IDE:
 
 3.  **Run the development server**:
     ```bash
-    pnpm run dev
+    npm run dev
     ```
 
 ## 2. Core Features
@@ -127,14 +126,14 @@ The project follows a component-based architecture with a clear separation of co
 
 | Command | Description |
 |---------|-------------|
-| `pnpm run dev` | Start the Vite development server |
-| `pnpm run build` | Build for production |
-| `pnpm run preview` | Preview the production build locally |
-| `pnpm run validate` | Validate game data files (spells, items, etc.) against schemas |
-| `pnpm run test` | Run unit tests with Vitest |
-| `pnpm run test:types` | Run type definition tests |
-| `pnpm run typecheck` | Run TypeScript type checking without emitting |
-| `pnpm run lint` | Run ESLint on source and script files |
+| `npm run dev` | Start the Vite development server |
+| `npm run build` | Build for production |
+| `npm run preview` | Preview the production build locally |
+| `npm run validate` | Validate game data files (spells, items, etc.) against schemas |
+| `npm run test` | Run unit tests with Vitest |
+| `npm run test:types` | Run type definition tests |
+| `npm run typecheck` | Run TypeScript type checking without emitting |
+| `npm run lint` | Run ESLint on source and script files |
 
 ## 6. Key Development Practices
 
