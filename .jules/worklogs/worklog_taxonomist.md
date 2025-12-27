@@ -15,3 +15,7 @@
 ## 2024-05-24 - SpellSchool Taxonomy
 **Learning:** The `SpellSchool` type was just a string union, preventing us from attaching thematic descriptions or standardizing UI colors/icons centrally. By converting it to a String Enum, we maintained backward compatibility with JSON data (which stores schools as strings) while enabling a centralized `SpellSchoolTraits` system.
 **Action:** Use `SpellSchoolDefinitions` to drive UI tooltips and filter logic instead of hardcoding school descriptions in components.
+
+## 2025-05-02 - Alignment Taxonomy
+**Learning:** `Alignment` was a simple string union, lacking the structure to define relationships (axes) or descriptions. By converting it to an Enum and adding `AlignmentTraits`, we can now systematically determine if an alignment is "Lawful" or "Evil" without string parsing, enabling alignment-based mechanics (e.g., *Protection from Evil and Good*) to function robustly.
+**Action:** Future systems needing moral/ethical checks should inspect the `AlignmentDefinitions` traits rather than checking for substrings like "Lawful".

@@ -7,10 +7,87 @@
 import { AbilityScoreName } from './index';
 import { MechanicalEffect } from './effects';
 
-export type Alignment =
-  | 'Lawful Good' | 'Neutral Good' | 'Chaotic Good'
-  | 'Lawful Neutral' | 'True Neutral' | 'Chaotic Neutral'
-  | 'Lawful Evil' | 'Neutral Evil' | 'Chaotic Evil';
+/**
+ * Alignment represents the moral and ethical stance of a creature or deity.
+ * Source: PHB 2024
+ */
+export enum Alignment {
+  LawfulGood = 'Lawful Good',
+  NeutralGood = 'Neutral Good',
+  ChaoticGood = 'Chaotic Good',
+  LawfulNeutral = 'Lawful Neutral',
+  TrueNeutral = 'True Neutral',
+  ChaoticNeutral = 'Chaotic Neutral',
+  LawfulEvil = 'Lawful Evil',
+  NeutralEvil = 'Neutral Evil',
+  ChaoticEvil = 'Chaotic Evil',
+  Unaligned = 'Unaligned',
+}
+
+export type AlignmentEthicalAxis = 'Lawful' | 'Neutral' | 'Chaotic';
+export type AlignmentMoralAxis = 'Good' | 'Neutral' | 'Evil';
+
+export interface AlignmentTraits {
+  ethical: AlignmentEthicalAxis;
+  moral: AlignmentMoralAxis;
+  description: string;
+}
+
+/**
+ * Standard traits associated with each alignment.
+ */
+export const AlignmentDefinitions: Record<Alignment, AlignmentTraits> = {
+  [Alignment.LawfulGood]: {
+    ethical: 'Lawful',
+    moral: 'Good',
+    description: 'Creatures that can be counted on to do the right thing as expected by society.',
+  },
+  [Alignment.NeutralGood]: {
+    ethical: 'Neutral',
+    moral: 'Good',
+    description: 'Folk who do the best they can to help others according to their needs.',
+  },
+  [Alignment.ChaoticGood]: {
+    ethical: 'Chaotic',
+    moral: 'Good',
+    description: 'Creatures that act as their conscience directs, with little regard for what others expect.',
+  },
+  [Alignment.LawfulNeutral]: {
+    ethical: 'Lawful',
+    moral: 'Neutral',
+    description: 'Individuals who act in accordance with law, tradition, or personal codes.',
+  },
+  [Alignment.TrueNeutral]: {
+    ethical: 'Neutral',
+    moral: 'Neutral',
+    description: 'Those who prefer to steer clear of moral questions and don\'t take sides.',
+  },
+  [Alignment.ChaoticNeutral]: {
+    ethical: 'Chaotic',
+    moral: 'Neutral',
+    description: 'Creatures that follow their whims, holding their personal freedom above all else.',
+  },
+  [Alignment.LawfulEvil]: {
+    ethical: 'Lawful',
+    moral: 'Evil',
+    description: 'Creatures that methodically take what they want, within the limits of a code of tradition, loyalty, or order.',
+  },
+  [Alignment.NeutralEvil]: {
+    ethical: 'Neutral',
+    moral: 'Evil',
+    description: 'Those who do whatever they can get away with, without compassion or qualms.',
+  },
+  [Alignment.ChaoticEvil]: {
+    ethical: 'Chaotic',
+    moral: 'Evil',
+    description: 'Creatures that act with arbitrary violence, spurred by their greed, hatred, or bloodlust.',
+  },
+  [Alignment.Unaligned]: {
+    ethical: 'Neutral',
+    moral: 'Neutral',
+    description: 'Creatures that lack the capacity for rational moral or ethical judgment.',
+  },
+};
 
 export type Domain = 'Life' | 'Light' | 'Nature' | 'Tempest' | 'Trickery' | 'War' | 'Death' | 'Knowledge' | 'Arcana' | 'Forge' | 'Grave' | 'Order' | 'Peace' | 'Twilight' | 'Freedom';
 
@@ -116,3 +193,5 @@ export interface DeityAction {
     domain?: string;
     favorChange: number;
 }
+
+// TODO(Taxonomist): Update codebase to use Alignment enum instead of string literals

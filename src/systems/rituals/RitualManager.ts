@@ -142,3 +142,13 @@ export function checkRitualInterrupt(
 
   return { interrupted: false, ritualBroken: false };
 }
+
+// Export as a Namespace for compatibility with Reducer
+export const RitualManager = {
+  startRitual,
+  advanceRitual,
+  isRitualComplete,
+  checkRitualInterrupt,
+  checkInterruption: checkRitualInterrupt, // Alias for legacy/reducer
+  getBacklashOnFailure: (ritual: RitualState) => [] // Placeholder
+};
