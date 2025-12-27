@@ -25,6 +25,7 @@ When implementing anything:
 3. **Don't leave TODOs in your own work.** If you know something needs to be done, do it now.
 4. **Don't underestimate scope.** If a feature needs 500 lines, write 500 lines. Don't cram it into 50.
 5. **Don't optimize for "small PRs".** Optimize for *complete* PRs.
+   - **Hard cap:** Keep each PR to **10 files or fewer**. If work exceeds 10 files, split into multiple PRs or ask Core/Herald to approve an exception.
 
 **Anti-patterns to avoid:**
 ```typescript
@@ -77,7 +78,7 @@ Many persona missions say "implement ONE feature" or "fix ONE issue." This is ab
 - Leave out edge cases
 - Stub parts you don't feel like writing
 
-A "ONE feature" that properly implements faction reputation with all edge cases, tests, documentation, and integration points might be 800 lines across 12 files. That's correct. A "ONE feature" that's 30 lines of placeholder code is wrong.
+A "ONE feature" that properly implements faction reputation with all edge cases, tests, documentation, and integration points might be 800 lines across 12 files. That's correct — but **must be split into multiple PRs** to respect the 10-file cap. A "ONE feature" that's 30 lines of placeholder code is wrong.
 
 ---
 

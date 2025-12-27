@@ -179,7 +179,9 @@ Each persona should consult their relevant architecture docs in `docs/architectu
 ## 📡 Agent Uplink Protocol
 
 > [!IMPORTANT]
-> **You are working in isolation.** Each Jules agent runs in its own cloned environment. You cannot see what other agents are doing, and they cannot see your work. The only shared state is GitHub (main branch) and the uplink channel.
+> **You are working in isolation.** Each Jules agent runs in its own cloned environment. You cannot see what other agents are doing, and they cannot see your work. The only shared state is GitHub (main branch). **Jules cannot initiate interaction with Herald or Gemini during initial task execution**—wait for the orchestrator to provide follow-up or review feedback.
+>
+> **After PR creation:** Feedback will arrive via PR comments. If a `/gemini review` trigger comment appears, Jules may ignore it for the purposes of acting on the PR feedback; only follow explicit review/modify instructions in the PR comment thread.
 
 ### Primary Channel: ntfy.sh
 - Topic: https://ntfy.sh/ag-ops-v3 (or as defined by Herald)
