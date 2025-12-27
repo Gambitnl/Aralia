@@ -5,14 +5,13 @@
 
 import {
   ConversationTopic,
-  DialogueSession
+  DialogueSession,
+  TopicCost
 } from '../types/dialogue';
 import { GameState, QuestStatus, Item, NPC } from '../types/index';
 import { rollDice } from '../utils/combatUtils';
 import { INITIAL_TOPICS } from '../data/dialogue/topics';
 
-// In a real implementation, this would likely load from a data file
-// TODO(Dialogist): Consider async loading if topic list grows too large.
 const TOPIC_REGISTRY: Record<string, ConversationTopic> = {};
 
 // Initialize registry with default topics
@@ -103,6 +102,35 @@ export function checkTopicPrerequisites(
     }
 
     return prereq.negate ? !met : met;
+  });
+}
+
+/**
+ * Checks if the player can afford the costs associated with a topic.
+ */
+export function canAffordTopic(
+  topic: ConversationTopic,
+  gameState: GameState
+): boolean {
+  if (!topic.costs || topic.costs.length === 0) {
+    return true;
+  }
+
+  return topic.costs.every(cost => {
+    if (cost.type === 'gold') {
+      return gameState.gold >= cost.value;
+    }
+
+    if (cost.type === 'item' && cost.targetId) {
+      const totalQuantity = gameState.inventory.reduce((sum, item: Item & { count?: number; quantity?: number }) => {
+        if (item.id !== cost.targetId) return sum;
+        const stackSize = item.count || item.quantity || 1;
+        return sum + stackSize;
+      }, 0);
+      return totalQuantity >= cost.value;
+    }
+
+    return false;
   });
 }
 
@@ -200,6 +228,7 @@ export interface ProcessTopicResult {
   dispositionChange?: number;
   xpReward?: number;
   lockTopic?: boolean;
+  deductions?: TopicCost[];
 }
 
 /**
@@ -223,6 +252,16 @@ export function processTopicSelection(
     throw new Error(`Topic ${topicId} not found`);
   }
 
+  // Verify costs first
+  if (!canAffordTopic(topic, gameState)) {
+    return {
+      status: 'failure',
+      responsePrompt: "You cannot afford to do that.",
+      unlocks: [],
+      lockTopic: false
+    };
+  }
+
   session.discussedTopicIds.push(topicId);
 
   // Calculate Dynamic DC based on Willingness
@@ -240,6 +279,9 @@ export function processTopicSelection(
       dcModifier = -mod;
   }
 
+  // Prepare deductions (if any)
+  const deductions = topic.costs;
+
   // Handle Skill Check
   if (topic.skillCheck) {
     const roll = rollDice('1d20');
@@ -252,7 +294,8 @@ export function processTopicSelection(
         status: 'success',
         responsePrompt: topic.playerPrompt,
         unlocks: [...(topic.unlocksTopics || []), ...topic.skillCheck.successUnlocks],
-        xpReward: topic.skillCheck.xpReward
+        xpReward: topic.skillCheck.xpReward,
+        deductions
       };
     } else {
       // Failure
@@ -262,18 +305,32 @@ export function processTopicSelection(
         responsePrompt: consequence?.response || topic.playerPrompt, // Fallback to standard prompt if no specific failure text
         unlocks: [], // Usually failure doesn't unlock, or unlocks different things
         dispositionChange: consequence?.dispositionChange,
-        lockTopic: consequence?.lockTopic
+        lockTopic: consequence?.lockTopic,
+        // Typically you don't pay if you fail a skill check? Or do you?
+        // E.g. "Bribe Guard" -> Roll Persuasion.
+        // If fail: Guard takes money and says no? Or Guard refuses money?
+        // In D&D, a failed bribe usually means they don't take it and get mad, or take it and arrest you.
+        // For simplicity, let's assume costs are paid ONLY on success for 'trade', but 'bribe' is tricky.
+        // If it's a Transaction (Trade), you pay and get.
+        // If it's a Bribe (Persuasion), the cost is usually part of the attempt.
+        // Let's assume you PAY regardless if the topic is "selected" and it has a cost.
+        // But if it's a 'failure', maybe we handle it differently?
+        // Let's default to: Deductions happen if 'deductions' is returned.
+        // For now, I'll return deductions on failure too, assuming "You tried".
+        // BUT, if it's a Shop transaction, failure shouldn't happen via dice usually.
+        // If it's a Bribe, failure implies loss of gold.
+        deductions
       };
     }
   }
 
   // Standard (Neutral) Outcome
   const unlocks = topic.unlocksTopics || [];
-  // TODO(Bard): Use `responsePrompt` to generate full flavor text via Gemini, integrating `npc.knowledgeProfile.customResponse` if available.
   return {
     status: 'neutral',
     responsePrompt: topic.playerPrompt,
-    unlocks
+    unlocks,
+    deductions
   };
 }
 

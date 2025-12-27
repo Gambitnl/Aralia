@@ -10,5 +10,15 @@
 ## 2025-10-26 - Faction Standing Prerequisite Handling
 **Learning:** `playerFactionStandings` in `GameState` is sparse; players may not have an entry for every faction. Prerequisite checks must default to neutral (0) or handle undefined explicitly to prevent runtime errors when checking standing against unknown factions.
 **Action:** Always default missing faction standing to 0 in prerequisite logic unless 'unknown' is a specific fail state.
-## 2025-10-26 - Dialogue Side-Effects\n**Learning:** The previous dialogue system relied on a purely local component state for outcomes. By introducing a 'Controller Hook' (useDialogueSystem), we can map service-level results (ProcessTopicResult) to global Redux actions (GRANT_EXPERIENCE, UPDATE_NPC_DISPOSITION) cleanly.\n**Action:** When designing interactive systems, always separate the View (Component), the Logic (Service), and the Controller (Hook) that connects Logic to Global State.
-## 2025-10-26 - Hook Pattern for Side Effects\n**Learning:** Using a custom hook (e.g. useDialogueSystem) to encapsulate complex logic and side-effects (like Gemini API calls and Redux dispatches) keeps UI components clean and testable.\n**Action:** Adopt this pattern for other complex systems like Quest Management or Trading.
+
+## 2025-10-26 - Dialogue Side-Effects
+**Learning:** The previous dialogue system relied on a purely local component state for outcomes. By introducing a 'Controller Hook' (useDialogueSystem), we can map service-level results (ProcessTopicResult) to global Redux actions (GRANT_EXPERIENCE, UPDATE_NPC_DISPOSITION) cleanly.
+**Action:** When designing interactive systems, always separate the View (Component), the Logic (Service), and the Controller (Hook) that connects Logic to Global State.
+
+## 2025-10-26 - Hook Pattern for Side Effects
+**Learning:** Using a custom hook (e.g. useDialogueSystem) to encapsulate complex logic and side-effects (like Gemini API calls and Redux dispatches) keeps UI components clean and testable.
+**Action:** Adopt this pattern for other complex systems like Quest Management or Trading.
+
+## 2025-10-26 - Transactional Dialogue
+**Learning:** Simply having `min_gold` as a prerequisite does not consume the resource. To implement bribes and trading, a separate `costs` array and `deductions` result field are needed to signal the reducer to remove items/gold.
+**Action:** Use `TopicCost` structure for any topic that requires consumption of resources, and ensure the reducer handles the `deductions` field in `ProcessTopicResult`.
