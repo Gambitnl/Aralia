@@ -2,6 +2,7 @@ import React from 'react';
 import { PlayerCharacter, AbilityScoreName } from '../../types';
 import Tooltip from '../Tooltip';
 import { getAbilityModifierValue, getAbilityModifierString, getCharacterRaceDisplayString } from '../../utils/characterUtils';
+import { calculatePassiveScore } from '../../utils/statUtils';
 import { FEATS_DATA } from '../../data/feats/featsData';
 import { useCharacterProficiencies } from '../../hooks/useCharacterProficiencies';
 
@@ -13,13 +14,26 @@ interface CharacterOverviewProps {
 const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character, onOpenSkillDetails }) => {
   const proficiencies = useCharacterProficiencies(character);
 
+  // Calculate Passive Scores
+  const profBonus = character.proficiencyBonus || 2;
+  const wisdomMod = getAbilityModifierValue(character.finalAbilityScores.Wisdom);
+  const intelligenceMod = getAbilityModifierValue(character.finalAbilityScores.Intelligence);
+
+  const hasPerception = character.skills.some(s => s.id === 'perception');
+  const hasInsight = character.skills.some(s => s.id === 'insight');
+  const hasInvestigation = character.skills.some(s => s.id === 'investigation');
+
+  const passivePerception = calculatePassiveScore(wisdomMod, hasPerception ? profBonus : 0);
+  const passiveInsight = calculatePassiveScore(wisdomMod, hasInsight ? profBonus : 0);
+  const passiveInvestigation = calculatePassiveScore(intelligenceMod, hasInvestigation ? profBonus : 0);
+
   const spellcastingAbilityName = character.spellcastingAbility
     ? (character.spellcastingAbility.charAt(0).toUpperCase() + character.spellcastingAbility.slice(1)) as AbilityScoreName
     : null;
 
   const spellcastingScore: number = spellcastingAbilityName ? (character.finalAbilityScores[spellcastingAbilityName] as number) : 0;
   const spellcastingModifier = getAbilityModifierValue(spellcastingScore);
-  const profBonus = character.proficiencyBonus || 2;
+  // profBonus already declared above
 
   const spellSaveDc = 8 + profBonus + spellcastingModifier;
   const spellAttackModifier = profBonus + spellcastingModifier;
@@ -51,6 +65,18 @@ const CharacterOverview: React.FC<CharacterOverviewProps> = ({ character, onOpen
                     <p className="text-sm">Speed: <span className="font-semibold">{character.speed}ft</span></p>
                     <p className="text-sm">Prof. Bonus: <span className="font-semibold text-amber-300">+{profBonus}</span></p>
                     {character.darkvisionRange > 0 && <p className="text-sm col-span-2">Darkvision: {character.darkvisionRange}ft</p>}
+                </div>
+            </div>
+
+            {/* Senses (Passive Scores) */}
+            <div className="p-3 bg-gray-700/50 rounded-md border border-gray-600/60">
+                <h4 className="text-lg font-semibold text-sky-300 mb-1.5 flex items-center gap-2">
+                    <span className="text-sm">👁️</span> Senses
+                </h4>
+                <div className="grid grid-cols-1 gap-1 text-sm">
+                    <p>Passive Perception: <span className="font-semibold text-white">{passivePerception}</span></p>
+                    <p>Passive Insight: <span className="font-semibold text-white">{passiveInsight}</span></p>
+                    <p>Passive Investigation: <span className="font-semibold text-white">{passiveInvestigation}</span></p>
                 </div>
             </div>
 

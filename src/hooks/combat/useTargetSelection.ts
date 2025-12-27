@@ -1,16 +1,21 @@
 import { useMemo } from 'react';
-import { BattleMapData, CombatCharacter } from '../../types/combat';
-import { AbilitySystem } from '../useAbilitySystem';
+import { BattleMapData, CombatCharacter, Ability } from '../../types/combat';
 
 interface UseTargetSelectionProps {
-    abilitySystem: AbilitySystem;
+    selectedAbility: Ability | null;
+    targetingMode: boolean;
+    isValidTarget: (ability: Ability, caster: CombatCharacter, position: { x: number; y: number }) => boolean;
+    aoePreview?: { affectedTiles: { x: number; y: number }[] } | null;
     currentCharacter?: CombatCharacter;
     mapData: BattleMapData | null;
     characters: CombatCharacter[];
 }
 
 export function useTargetSelection({
-    abilitySystem,
+    selectedAbility,
+    targetingMode,
+    isValidTarget,
+    aoePreview,
     currentCharacter,
     mapData,
     characters
@@ -18,21 +23,21 @@ export function useTargetSelection({
     // 1. AoE Set: Validates if a tile is in the AoE preview
     const aoeSet = useMemo(() => {
         const set = new Set<string>();
-        if (abilitySystem?.aoePreview?.affectedTiles) {
-            abilitySystem.aoePreview.affectedTiles.forEach((p: { x: number; y: number }) => {
+        if (aoePreview?.affectedTiles) {
+            aoePreview.affectedTiles.forEach((p: { x: number; y: number }) => {
                 set.add(`${p.x}-${p.y}`);
             });
         }
         return set;
-    }, [abilitySystem?.aoePreview]); // eslint-disable-line react-hooks/preserve-manual-memoization
+    }, [aoePreview]);
 
     // 2. Valid Target Set: Validates if a tile is a valid target for the selected ability
     // This is the most expensive check (LoS), so memoization here is critical.
     const validTargetSet = useMemo(() => {
         const set = new Set<string>();
-        if (abilitySystem?.targetingMode && abilitySystem?.selectedAbility && currentCharacter && mapData) {
+        if (targetingMode && selectedAbility && currentCharacter && mapData) {
             // Optimization: Only check tiles within range of caster
-            const range = abilitySystem.selectedAbility.range;
+            const range = selectedAbility.range;
             const casterX = currentCharacter.position.x;
             const casterY = currentCharacter.position.y;
 
@@ -44,7 +49,7 @@ export function useTargetSelection({
 
             for (let x = minX; x <= maxX; x++) {
                 for (let y = minY; y <= maxY; y++) {
-                    if (abilitySystem.isValidTarget(abilitySystem.selectedAbility, currentCharacter, { x, y })) {
+                    if (isValidTarget(selectedAbility, currentCharacter, { x, y })) {
                         set.add(`${x}-${y}`);
                     }
                 }
@@ -52,12 +57,13 @@ export function useTargetSelection({
         }
         return set;
     }, [
-        abilitySystem?.targetingMode,
-        abilitySystem?.selectedAbility,
+        targetingMode,
+        selectedAbility,
         currentCharacter,
         mapData,
-        characters // Re-calc if any character moves (blocking)
-    ]); // eslint-disable-line react-hooks/preserve-manual-memoization
+        characters, // Re-calc if any character moves (blocking)
+        isValidTarget // Now a stable dependency from useTargetValidator
+    ]);
 
     return {
         aoeSet,

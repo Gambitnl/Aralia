@@ -24,6 +24,7 @@ const baseEconomy = {
     freeActions: 0
 };
 
+// TODO: Supply a strongly typed class enum or `CharacterClass` instead of casting `'Wizard' as any` once those helpers are available.
 const makeCharacter = (id: string, position: Position): CombatCharacter => ({
     id,
     name: id,
@@ -61,6 +62,7 @@ const makeState = (characters: CombatCharacter[]): CombatState => ({
     activeLightSources: []
 });
 
+// TODO: Replace the `{} as any` gameState with a minimal typed mock so the `CommandContext` shape is satisfied without masking lint rules.
 const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): CommandContext => ({
     spellId: 'light',
     spellName: 'Light',

@@ -1,4 +1,8 @@
-# Recorder's Worklog
+# Recorder Worklog
+
+### 2025-12-25 - Recorder Kickoff
+**Learning:** Initialized Recorder persona. Uplink tools are missing in this environment, falling back to local file work.
+**Action:** Initialized `HistoryService.ts` (Service for creating standardized history events) and its tests.
 
 ## 2024-05-23 - Structured Memory System
 **Learning:** Implemented a structured `NPCMemory` system with `Interaction` (ID, significance, witnesses) and `Fact` (confidence, source).
@@ -38,3 +42,12 @@
 
 **5. Testing**
 - Unit tests in `src/utils/__tests__/provenanceUtils.test.ts` to verify immutable updates and history generation.
+### 2025-12-26 - Recorder Initialization
+**Learning:** Initialized Recorder persona. Read directives and protocols.
+**Action:** Proceeding with memory gap discovery.
+### 2025-12-26 - World History Framework
+**Learning:** The World History system was defined in types but completely disconnected from the state and event loop.
+**Action:** Initialized `worldHistory` in `GameState`, added `ADD_WORLD_HISTORY_EVENT` action and reducer, and flagged the `WorldEventManager` for integration.
+### 2025-12-26 - Recorder Implementation
+**Learning:** Initialized the "World History Framework" in state.
+**Action:** Created `ADD_WORLD_HISTORY_EVENT` and integrated it into the world reducer. The next step is to hook it up to the event manager.

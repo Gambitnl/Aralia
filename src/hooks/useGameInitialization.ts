@@ -6,7 +6,8 @@
 import React, { useCallback } from 'react';
 import { GameState, GamePhase, PlayerCharacter, MapData, Location, Item, StartGameSuccessPayload } from '../types';
 import { AppAction } from '../state/actionTypes';
-import { STARTING_LOCATION_ID, LOCATIONS, BIOMES, DUMMY_PARTY_FOR_DEV, initialInventoryForDummyCharacter } from '../constants';
+import { STARTING_LOCATION_ID, LOCATIONS, BIOMES } from '../constants';
+import { getDummyParty, initialInventoryForDummyCharacter } from '../data/dev/dummyCharacter';
 import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import { generateMap } from '../services/mapService';
 import * as SaveLoadService from '../services/saveLoadService';
@@ -42,8 +43,9 @@ export function useGameInitialization({
     dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Generating adventurous names..." } });
 
     const newWorldSeed = new SeededRandom(Date.now()).next() * 1000000;
-    const baseFighter = DUMMY_PARTY_FOR_DEV.find(c => c.class.id === 'fighter');
-    const baseCleric = DUMMY_PARTY_FOR_DEV.find(c => c.class.id === 'cleric');
+    const dummyParty = getDummyParty();
+    const baseFighter = dummyParty.find(c => c.class.id === 'fighter');
+    const baseCleric = dummyParty.find(c => c.class.id === 'cleric');
 
     if (!baseFighter || !baseCleric) {
         dispatch({ type: 'SET_ERROR', payload: "Dummy character data is missing." });
@@ -63,7 +65,7 @@ export function useGameInitialization({
         const fighterName = fighterNameResult.data?.name || "Valerius";
         const clericName = clericNameResult.data?.name || "Helga Stonebraid";
         
-        const generatedParty = DUMMY_PARTY_FOR_DEV.map(p => {
+        const generatedParty = dummyParty.map(p => {
             if (p.class.id === 'fighter') return { ...p, name: fighterName };
             if (p.class.id === 'cleric') return { ...p, name: clericName };
             return p;

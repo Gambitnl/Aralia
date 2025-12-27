@@ -8,12 +8,14 @@
 
 import { GameState, GameMessage, WorldRumor, MarketEvent, EconomyState } from '../../types';
 import { modifyFactionRelationship } from '../../utils/factionUtils';
-import { getGameDay, addGameTime } from '../../utils/timeUtils';
+import { getGameDay } from '../../utils/timeUtils';
 import { SeededRandom } from '../../utils/seededRandom';
 import { processDailyRoutes } from '../economy/TradeRouteManager';
 import { FactionManager } from './FactionManager';
 import { generateNobleIntrigue } from './NobleIntrigueManager';
 import { checkQuestDeadlines } from '../quests/QuestManager';
+import { SecretGenerator } from '../intrigue/SecretGenerator';
+import { Secret } from '../../types/identity';
 
 export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD' | 'NOBLE_INTRIGUE';
 
@@ -23,7 +25,7 @@ export interface WorldEventResult {
 }
 
 // Probability of an event occurring per day (0.0 to 1.0)
-const DAILY_EVENT_CHANCE = 0.2; // Increased from 0.1 for more liveliness
+const DAILY_EVENT_CHANCE = 0.2;
 
 /**
  * Handles Faction Skirmish events.
@@ -31,6 +33,17 @@ const DAILY_EVENT_CHANCE = 0.2; // Increased from 0.1 for more liveliness
  * Relationships ripple outward.
  */
 const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventResult => {
+  // Weather Check: Armies don't march in storms
+  if (state.weather) {
+     const p = state.weather.precipitation;
+     if (p === 'storm' || p === 'blizzard') {
+         // 90% chance to cancel event due to weather
+         if (rng.next() > 0.1) {
+             return { state, logs: [] };
+         }
+     }
+  }
+
   const factionIds = Object.keys(state.factions);
   if (factionIds.length < 2) return { state, logs: [] };
 
@@ -130,6 +143,9 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
   let newState = { ...state };
   const newFactions = { ...newState.factions };
 
+  // TODO(Recorder): Convert this Skirmish event into a persistent WorldHistoryEvent using ADD_WORLD_HISTORY_EVENT action or by updating state directly here.
+  // Currently, it only creates ephemeral rumors and logs.
+
   // Update Faction Power
   const powerChange = 2 + Math.floor(rng.next() * 3); // 2-4 power swing
 
@@ -181,6 +197,23 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
   // Add rumor
   newState.activeRumors = [...(newState.activeRumors || []), rumor];
 
+  // Intriguer Add: Generate a Secret from this conflict?
+  // 20% chance the skirmish reveals a secret about the Loser (their weakness) or Winner (their brutality/cheating)
+  if (rng.next() < 0.2) {
+      const secretGen = new SecretGenerator(rng.next() * 1000);
+      // Secret about the Loser being weak/corrupt, or the Winner using dark magic?
+      // For simplicity, let's just generate a faction secret about the loser.
+      // We pass 'others' as just the winner to create conflict-specific secrets.
+      const secret = secretGen.generateFactionSecret(loser, [winner]);
+
+      // Store it in the world state?
+      // Currently, Secrets are player-centric resources.
+      // We can add it to a global "available secrets" pool or just add it to the player's potential knowledge.
+      // But for now, let's just assume it's 'out there' and add it to the loser's held secrets if we had that.
+      // Actually, let's just log it for now or add it to a 'worldSecrets' if we had one.
+      // Since we don't have a global secret pool yet, we'll skip persisting it unless the player is involved.
+  }
+
   // Apply Player Reputation ripple
   const winnerStanding = state.playerFactionStandings[winnerId]?.publicStanding || 0;
 
@@ -209,7 +242,7 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
  */
 const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResult => {
     // Define potential market events with actual gameplay effects
-    const events: Array<{ text: string; event: MarketEvent }> = [
+    let events: Array<{ text: string; event: MarketEvent, weight?: number }> = [
         {
             text: "A surplus of iron from the mines has lowered weapon prices.",
             event: {
@@ -219,7 +252,8 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 affectedTags: ['weapon', 'armor'],
                 effect: 'surplus',
                 duration: 5
-            }
+            },
+            weight: 1
         },
         {
             text: "Drought in the farmlands has driven up food costs.",
@@ -230,7 +264,8 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 affectedTags: ['consumable', 'food'],
                 effect: 'scarcity',
                 duration: 7
-            }
+            },
+            weight: 1
         },
         {
             text: "A sunken merchant ship has made silk a rare luxury.",
@@ -241,7 +276,8 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 affectedTags: ['valuable', 'cloth'],
                 effect: 'scarcity',
                 duration: 10
-            }
+            },
+            weight: 1
         },
         {
             text: "A new trade route has opened, flooding the market with exotic spices.",
@@ -252,11 +288,59 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 affectedTags: ['valuable', 'spice'],
                 effect: 'surplus',
                 duration: 5
-            }
+            },
+            weight: 1
         }
     ];
 
-    const selection = events[Math.floor(rng.next() * events.length)];
+    // Modify weights based on weather
+    if (state.weather) {
+        const p = state.weather.precipitation;
+        const t = state.weather.temperature;
+
+        if (t === 'extreme_heat' || t === 'hot') {
+            // Drought makes food scarce
+            const foodEvent = events.find(e => e.event.id === 'scarcity_food');
+            if (foodEvent) foodEvent.weight = 5;
+        }
+
+        if (p === 'storm' || p === 'blizzard') {
+            // Storms sink ships
+            const luxEvent = events.find(e => e.event.id === 'scarcity_luxury');
+            if (luxEvent) luxEvent.weight = 5;
+        }
+
+        if (p === 'none' && t === 'temperate') {
+             // Good weather -> Surplus Food
+             events.push({
+                 text: "Excellent weather has resulted in a bumper harvest.",
+                 event: {
+                    id: 'surplus_food',
+                    name: 'Bumper Harvest',
+                    description: 'Food is plentiful and cheap.',
+                    affectedTags: ['consumable', 'food'],
+                    effect: 'surplus',
+                    duration: 7
+                 },
+                 weight: 4
+             });
+        }
+    }
+
+    // Weighted selection
+    const totalWeight = events.reduce((sum, e) => sum + (e.weight || 1), 0);
+    let roll = rng.next() * totalWeight;
+    let selection = events[0];
+
+    for (const event of events) {
+        const w = event.weight || 1;
+        if (roll < w) {
+            selection = event;
+            break;
+        }
+        roll -= w;
+    }
+
     const timestamp = state.gameTime || new Date();
     const gameDay = getGameDay(timestamp);
 
@@ -484,6 +568,7 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
       const roll = rng.next();
       let result: WorldEventResult;
 
+      // TODO(Worldsmith): Use HistoryService to generate WorldHistoryEvents for major outcomes (Wars, Political Shifts) and include them in the result.
       if (roll < 0.4) {
           result = handleFactionSkirmish(currentState, rng);
       } else if (roll < 0.6) {

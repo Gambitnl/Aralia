@@ -19,7 +19,7 @@ const DUMMY_FIGHTER_CLASS_ID = 'fighter';
 const DUMMY_CLERIC_RACE_ID = 'dwarf';
 const DUMMY_CLERIC_CLASS_ID = 'cleric';
 
-const DUMMY_PARTY_FOR_DEV: PlayerCharacter[] = [];
+let MEMOIZED_DUMMY_PARTY: PlayerCharacter[] | null = null;
 
 export function getDummyInitialInventory(allItems: Record<string, Item>): Item[] {
     return [
@@ -95,20 +95,18 @@ export function getDummyInitialInventory(allItems: Record<string, Item>): Item[]
 export const initialInventoryForDummyCharacter = getDummyInitialInventory({ ...WEAPONS_DATA, ...ITEMS });
 
 /**
- * Initializes dummy characters using the provided data.
- * This function is pure(ish) - it returns a new array of characters based on inputs.
+ * Lazily initializes and returns the dummy party data.
  */
-export function initializeDummyCharacterData(
-    allRaces: Record<string, Race>,
-    allClasses: Record<string, CharClass>,
-    allSkills: Record<string, Skill>
-): PlayerCharacter[] {
+export function getDummyParty(): PlayerCharacter[] {
+    if (MEMOIZED_DUMMY_PARTY) {
+        return MEMOIZED_DUMMY_PARTY;
+    }
+
     // --- Create Fighter ---
-    const dummyFighterRace = allRaces[DUMMY_FIGHTER_RACE_ID];
-    const dummyFighterClass = allClasses[DUMMY_FIGHTER_CLASS_ID];
+    const dummyFighterRace = ALL_RACES_DATA[DUMMY_FIGHTER_RACE_ID];
+    const dummyFighterClass = CLASSES_DATA[DUMMY_FIGHTER_CLASS_ID];
 
     if (!dummyFighterRace || !dummyFighterClass) {
-        // console.error("Failed to initialize dummy fighter: Race or Class data missing.")
         return [];
     }
 
@@ -116,7 +114,7 @@ export function initializeDummyCharacterData(
         Strength: 15, Dexterity: 13, Constitution: 14, Intelligence: 8, Wisdom: 12, Charisma: 10,
     };
     const DUMMY_FIGHTER_FINAL_SCORES = calculateFixedRacialBonuses(DUMMY_FIGHTER_BASE_SCORES, dummyFighterRace);
-    const DUMMY_FIGHTER_SKILLS: Skill[] = [allSkills['athletics'], allSkills['intimidation'], allSkills['perception']].filter(Boolean) as Skill[];
+    const DUMMY_FIGHTER_SKILLS: Skill[] = [SKILLS_DATA['athletics'], SKILLS_DATA['intimidation'], SKILLS_DATA['perception']].filter(Boolean) as Skill[];
     const DUMMY_FIGHTER_FIGHTING_STYLE = dummyFighterClass.fightingStyles?.find((style) => style.id === 'defense');
     const DUMMY_FIGHTER_MAX_HP = dummyFighterClass.hitDie + getAbilityModifierValue(DUMMY_FIGHTER_FINAL_SCORES.Constitution);
     const DUMMY_FIGHTER_LIMITED_USES: LimitedUses = {
@@ -131,7 +129,8 @@ export function initializeDummyCharacterData(
         race: dummyFighterRace, class: dummyFighterClass,
         abilityScores: DUMMY_FIGHTER_BASE_SCORES, finalAbilityScores: DUMMY_FIGHTER_FINAL_SCORES,
         skills: DUMMY_FIGHTER_SKILLS, hp: DUMMY_FIGHTER_MAX_HP, maxHp: DUMMY_FIGHTER_MAX_HP,
-        armorClass: 10, speed: 30, darkvisionRange: 0,
+        armorClass: 10,
+        speed: 30, darkvisionRange: 0,
         transportMode: 'foot',
         racialSelections: {
             human: { skillIds: ['perception'] } // Human's "Skillful" trait selection
@@ -142,12 +141,12 @@ export function initializeDummyCharacterData(
     tempFighter.armorClass = calculateArmorClass(tempFighter);
 
     // --- Create Cleric ---
-    const dummyClericRace = allRaces[DUMMY_CLERIC_RACE_ID];
-    const dummyClericClass = allClasses[DUMMY_CLERIC_CLASS_ID];
+    const dummyClericRace = ALL_RACES_DATA[DUMMY_CLERIC_RACE_ID];
+    const dummyClericClass = CLASSES_DATA[DUMMY_CLERIC_CLASS_ID];
 
     if (!dummyClericRace || !dummyClericClass) {
-        // console.error("Failed to initialize dummy cleric: Race or Class data missing.")
-        return [tempFighter]; // Return at least the fighter
+        MEMOIZED_DUMMY_PARTY = [tempFighter];
+        return MEMOIZED_DUMMY_PARTY;
     }
 
     const DUMMY_CLERIC_BASE_SCORES: AbilityScores = {
@@ -155,7 +154,7 @@ export function initializeDummyCharacterData(
     };
     const DUMMY_CLERIC_FINAL_SCORES = calculateFixedRacialBonuses(DUMMY_CLERIC_BASE_SCORES, dummyClericRace);
     const DUMMY_CLERIC_MAX_HP = dummyClericClass.hitDie + getAbilityModifierValue(DUMMY_CLERIC_FINAL_SCORES.Constitution) + 1; // +1 for Dwarven Toughness
-    const DUMMY_CLERIC_SKILLS: Skill[] = [allSkills['medicine'], allSkills['religion']].filter(Boolean) as Skill[];
+    const DUMMY_CLERIC_SKILLS: Skill[] = [SKILLS_DATA['medicine'], SKILLS_DATA['religion']].filter(Boolean) as Skill[];
     const clericSpellList = dummyClericClass.spellcasting?.spellList || [];
     const DUMMY_CLERIC_SPELLBOOK: SpellbookData = {
         cantrips: ['sacred-flame', 'light', 'guidance', 'thaumaturgy'], // Using kebab-case
@@ -188,26 +187,8 @@ export function initializeDummyCharacterData(
     };
     tempCleric.armorClass = calculateArmorClass(tempCleric);
 
-    return [tempFighter, tempCleric];
+    MEMOIZED_DUMMY_PARTY = [tempFighter, tempCleric];
+    return MEMOIZED_DUMMY_PARTY;
 }
-
-// Internal function to populate the global DUMMY_PARTY_FOR_DEV using imports
-// This keeps the side effect contained here, but allows the exported function
-// to remain pure and testable with mocks.
-function initializeInternal() {
-    const initializedDummyParty = initializeDummyCharacterData(ALL_RACES_DATA, CLASSES_DATA, SKILLS_DATA);
-    DUMMY_PARTY_FOR_DEV.push(...initializedDummyParty);
-}
-
-// Perform initialization immediately
-initializeInternal();
-
 
 export const USE_DUMMY_CHARACTER_FOR_DEV = FEATURES.ENABLE_DEV_TOOLS;
-
-export { DUMMY_PARTY_FOR_DEV };
-
-export function setInitializedDummyCharacter(party: PlayerCharacter[]) {
-    DUMMY_PARTY_FOR_DEV.length = 0; // Clear existing array
-    DUMMY_PARTY_FOR_DEV.push(...party); // Push new characters
-}

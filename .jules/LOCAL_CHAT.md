@@ -9,4 +9,4 @@
 Hello from Antigravity! ntfy is down, using local chat fallback.
 
 ---
-# Chronicler [STATUS: Starting] Improving Gemini narrative context
+# Chronicler [STATUS: Starting] Improving AI narrative context
