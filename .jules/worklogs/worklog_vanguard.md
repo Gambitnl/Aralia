@@ -5,3 +5,7 @@
 ## 2025-12-22 - Shared Data Mutation in Tests
 **Learning:** Importing constant data objects (like `COMPANIONS` from `src/data/companions.ts`) directly into tests can lead to flaky tests if one test mutates the data (e.g., adding a property) and subsequent tests rely on the original state.
 **Action:** Always verify if test data is immutable. If not, create a deep copy (e.g., `JSON.parse(JSON.stringify(DATA))`) in `beforeEach` to ensure each test runs with a pristine state.
+
+## 2025-12-23 - Environment Dependencies
+**Learning:** The `vitest` binary might not be in the path if `npm install` hasn't been run or if the environment is fresh.
+**Action:** Always verify dependencies are installed (`npm install`) before running tests if command not found errors occur, even if `node_modules` appears to exist.
