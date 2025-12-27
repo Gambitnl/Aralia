@@ -36,3 +36,24 @@ export interface Skill {
   name: string;
   ability: AbilityScoreName;
 }
+
+export interface CharacterSenses {
+  darkvision: number; // Radius in feet (0 if none)
+  blindsight: number;
+  tremorsense: number;
+  truesight: number;
+}
+
+export interface CharacterStats {
+  strength: number;
+  dexterity: number;
+  constitution: number;
+  intelligence: number;
+  wisdom: number;
+  charisma: number;
+  baseInitiative: number;
+  speed: number; // in feet
+  cr: string;
+  size?: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Gargantuan';
+  senses?: CharacterSenses;
+}

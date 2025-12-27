@@ -5,7 +5,7 @@
  * This structure prevents logic duplication and `any` types in domain-specific interfaces.
  */
 
-import { AbilityScoreName } from './core';
+import { AbilityScoreName, CharacterStats } from './core';
 import { DamageType, ConditionName, SavingThrowAbility, TargetConditionFilter } from './spells';
 
 /**
@@ -89,4 +89,21 @@ export interface ActiveEffect {
   description?: string;
   savingThrows?: SavingThrowAbility[];  // For advantage_on_saves
   attackerFilter?: TargetConditionFilter; // Strict typing replacing 'any'
+}
+
+/**
+ * Represents a persistent status effect on a character (buff, debuff, DoT, HoT).
+ * Originally defined in combat.ts, moved here to avoid circular dependencies with character.ts.
+ */
+export interface StatusEffect {
+  id: string;
+  name: string;
+  type: 'buff' | 'debuff' | 'dot' | 'hot'; // damage/heal over time
+  duration: number; // in turns
+  effect: {
+    type: 'stat_modifier' | 'damage_per_turn' | 'heal_per_turn' | 'skip_turn' | 'condition';
+    value?: number;
+    stat?: keyof CharacterStats;
+  };
+  icon?: string;
 }
