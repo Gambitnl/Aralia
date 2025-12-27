@@ -7,8 +7,7 @@
  * It now also includes a conditional "Skip Character Creator" button for development.
  */
 import React, { useEffect, useMemo, useState } from 'react';
-import LoadGameModal from './LoadGameModal';
-import SaveSlotSelector from './SaveSlotSelector';
+import { LoadGameModal, SaveSlotSelector } from './SaveLoad';
 import { deleteSaveGame, getSaveSlots, SaveSlotSummary } from '../services/saveLoadService';
 import { VersionDisplay } from './VersionDisplay';
 import { canUseDevTools } from '../utils/permissions';

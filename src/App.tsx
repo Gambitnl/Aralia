@@ -62,7 +62,7 @@ const BattleMapDemo = lazy(() => import('./components/BattleMap/BattleMapDemo'))
 const CombatView = lazy(() => import('./components/Combat').then(module => ({ default: module.CombatView })));
 const CharacterCreator = lazy(() => import('./components/CharacterCreator/CharacterCreator'));
 const GameLayout = lazy(() => import('./components/layout/GameLayout'));
-const LoadGameTransition = lazy(() => import('./components/LoadGameTransition'));
+const LoadGameTransition = lazy(() => import('./components/SaveLoad').then(module => ({ default: module.LoadGameTransition })));
 const NotFound = lazy(() => import('./components/NotFound'));
 
 
