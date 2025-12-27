@@ -86,7 +86,7 @@
       "condition": {
         "type": "save",
         "saveType": "Wisdom",
-        "saveEffect": "half",
+        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],
