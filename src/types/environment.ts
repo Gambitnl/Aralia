@@ -28,6 +28,9 @@ export interface WeatherState {
   temperature: Temperature;
   wind: WindCondition;
   visibility: VisibilityLevel;
+  // Base values before time-of-day modifications (prevents drift)
+  baseTemperature?: Temperature;
+  baseVisibility?: VisibilityLevel;
 }
 
 // --- Terrain System ---

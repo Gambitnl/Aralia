@@ -6,6 +6,7 @@
  */
 
 import { WeatherState, Precipitation, WindSpeed, Temperature, VisibilityLevel } from '../../types/environment';
+import { TimeOfDay } from '../../utils/timeUtils';
 
 /**
  * Defines the probability distribution for weather in a specific climate.
@@ -180,56 +181,116 @@ function weightedRandom<T extends string>(probabilities: Record<T, number>): T {
 }
 
 /**
+ * Shifts the temperature index based on time of day and biome modifiers.
+ */
+function adjustTemperatureForTime(baseTemp: Temperature, timeOfDay: TimeOfDay, biomeId: string): Temperature {
+    const temps: Temperature[] = ['freezing', 'cold', 'temperate', 'hot', 'extreme_heat'];
+    const idx = temps.indexOf(baseTemp);
+
+    let newIdx = idx;
+
+    // Night makes it colder
+    if (timeOfDay === TimeOfDay.Night) {
+        newIdx = Math.max(0, idx - 1);
+    }
+    // Desert days are hotter
+    else if (biomeId.includes('desert') && timeOfDay === TimeOfDay.Day) {
+        newIdx = Math.min(temps.length - 1, idx + 1);
+    }
+
+    return temps[newIdx];
+}
+
+/**
+ * Determines the base visibility from weather conditions.
+ */
+function calculateBaseVisibility(precipitation: Precipitation, windSpeed: WindSpeed, biomeId: string): VisibilityLevel {
+    if (precipitation === 'heavy_rain' || precipitation === 'snow') {
+        return 'lightly_obscured';
+    } else if (precipitation === 'storm' || precipitation === 'blizzard') {
+        return 'heavily_obscured';
+    } else if (windSpeed === 'gale' && (biomeId.includes('desert'))) {
+        return 'heavily_obscured'; // Sandstorm
+    }
+    return 'clear';
+}
+
+/**
+ * Adjusts visibility based on Time of Day and precipitation.
+ */
+function adjustVisibilityForTime(baseVisibility: VisibilityLevel, timeOfDay: TimeOfDay): VisibilityLevel {
+    // Night is always heavy darkness
+    if (timeOfDay === TimeOfDay.Night) {
+        return 'heavily_obscured';
+    }
+
+    // Dawn/Dusk is dim light (lightly obscured), unless already heavy (e.g. storm)
+    if ((timeOfDay === TimeOfDay.Dawn || timeOfDay === TimeOfDay.Dusk)) {
+        if (baseVisibility === 'clear') {
+            return 'lightly_obscured';
+        }
+    }
+
+    return baseVisibility;
+}
+
+
+/**
  * Updates the weather state based on the current biome's climate.
  * Should be called at the start of a new round or significant time interval.
  *
  * @param currentWeather The current weather state.
  * @param biomeId The ID of the current biome.
+ * @param timeOfDay The current time of day (optional, defaults to Day if unknown)
  * @returns The new WeatherState (may be same as current).
  */
-export function updateWeather(currentWeather: WeatherState, biomeId: string): WeatherState {
+export function updateWeather(currentWeather: WeatherState, biomeId: string, timeOfDay: TimeOfDay = TimeOfDay.Day): WeatherState {
     const climate = getClimateForBiome(biomeId);
 
-    // Simple Markov-like transition:
-    // 80% chance to stay same, 20% chance to reroll based on climate weights.
-    // This prevents chaotic weather flipping every round.
-    if (Math.random() > 0.2) {
-        return currentWeather;
+    // Determines if we are keeping the current "base" weather pattern
+    const keepBaseWeather = Math.random() > 0.2;
+
+    let basePrecipitation = currentWeather.precipitation;
+    let baseTemp = currentWeather.baseTemperature || currentWeather.temperature; // Fallback for migration
+    let baseWind = currentWeather.wind;
+    let baseVisibility: VisibilityLevel;
+
+    if (!keepBaseWeather) {
+        // Generate NEW base weather
+        basePrecipitation = weightedRandom(climate.precipitationChances);
+        baseTemp = weightedRandom(climate.temperatureChances);
+        const newWindSpeed = weightedRandom(climate.windChances);
+        baseWind = {
+            direction: currentWeather.wind.direction,
+            speed: newWindSpeed
+        };
+
+        baseVisibility = calculateBaseVisibility(basePrecipitation, newWindSpeed, biomeId);
+    } else {
+        // Keep existing base
+        // If baseVisibility is missing (migration), calculate it from CURRENT precip/wind
+        // This fixes the bug where "Storm" (implied heavy obscured) migrated to "Clear" base.
+        baseVisibility = currentWeather.baseVisibility || calculateBaseVisibility(basePrecipitation, baseWind.speed, biomeId);
     }
 
-    const newPrecipitation = weightedRandom(climate.precipitationChances);
-    const newTemperature = weightedRandom(climate.temperatureChances);
-    const newWindSpeed = weightedRandom(climate.windChances);
-
-    // Determine visibility based on precipitation
-    let newVisibility: VisibilityLevel = 'clear';
-    if (newPrecipitation === 'heavy_rain' || newPrecipitation === 'snow') {
-        newVisibility = 'lightly_obscured';
-    } else if (newPrecipitation === 'storm' || newPrecipitation === 'blizzard') {
-        newVisibility = 'heavily_obscured';
-    } else if (newWindSpeed === 'gale' && (biomeId.includes('desert'))) {
-        newVisibility = 'heavily_obscured'; // Sandstorm
-    }
+    // Now apply Time of Day modifiers to the BASE values
+    const effectiveTemp = adjustTemperatureForTime(baseTemp, timeOfDay, biomeId);
+    const effectiveVisibility = adjustVisibilityForTime(baseVisibility, timeOfDay);
 
     return {
-        precipitation: newPrecipitation,
-        temperature: newTemperature,
-        wind: {
-            direction: currentWeather.wind.direction, // Keep direction for now, or randomize
-            speed: newWindSpeed
-        },
-        visibility: newVisibility
+        precipitation: basePrecipitation,
+        temperature: effectiveTemp,
+        wind: baseWind,
+        visibility: effectiveVisibility,
+        baseTemperature: baseTemp,
+        baseVisibility: baseVisibility
     };
 }
 
-// TODO(Ecologist): Integrate this system into useTurnManager.ts or the main Game Loop.
-// Example usage in useTurnManager.ts:
-// import { updateWeather } from '../../systems/environment/WeatherSystem';
-// ...
+// TODO(Ecologist): Integrate this system into useTurnManager.ts to update environment on round start.
+// Example:
 // if (isNewRound) {
-//    const newWeather = updateWeather(currentWeather, currentBiomeId);
-//    if (newWeather !== currentWeather) {
-//        updateEnvironmentState(newWeather);
-//        log("Weather changed to " + newWeather.precipitation);
-//    }
+//    const timeOfDay = getTimeOfDay(currentState.time);
+//    const newWeather = updateWeather(currentWeather, currentBiomeId, timeOfDay);
+//    if (newWeather !== currentWeather) updateEnvironmentState(newWeather);
 // }

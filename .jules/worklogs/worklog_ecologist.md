@@ -16,4 +16,6 @@
     - **Night:** Force `visibility: 'heavily_obscured'` (Darkness).
     - **Dusk/Dawn:** Force `visibility: 'lightly_obscured'` if weather is clear.
     - **Priority:** Storms/Blizzards (Heavily Obscured) override Dusk/Dawn.
-**Status:** Design validated via unit tests, but implementation reverted to prioritize other tasks.
+**Status:** IMPLEMENTED.
+
+## 2025-05-23 - Implemented Time-Aware Weather **Learning:** When modifying state based on transient factors like Time of Day (e.g. temperature shift), one must be careful not to persist the *shifted* state as the new *base* state, or else the system drifts (e.g. getting colder every night forever). **Action:** The implementation re-calculates shifts from the *generated* base state rather than applying delta to the previous state's output.
