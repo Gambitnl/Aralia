@@ -17,7 +17,7 @@ import { INITIAL_QUESTS } from '../../data/quests';
 import { generateTravelEvent } from '../../services/travelEventService';
 import { getSeasonalEffects } from '../../systems/time/SeasonalSystem';
 import { getTimeModifiers } from '../../utils/timeUtils';
-import { DiscoveryConsequence } from '../../types/exploration';
+import { DiscoveryConsequence, TravelEvent, TravelEventEffect } from '../../types/exploration';
 import { BanterManager } from '../../systems/companions/BanterManager';
 import { BanterDisplayService } from '../../services/BanterDisplayService';
 import { resolveAndRegisterEntities } from '../../utils/entityIntegrationUtils';
@@ -314,31 +314,77 @@ export async function handleMovement({
       // TODO(Navigator): Use `calculateForcedMarchStatus` from `src/systems/travel/TravelCalculations.ts` to check if the party has traveled > 8 hours and apply exhaustion risks.
       const travelEvent = generateTravelEvent(targetBiome.id, undefined, { worldSeed: gameState.worldSeed, x: targetWorldMapX, y: targetWorldMapY });
       if (travelEvent) {
-        addMessage(travelEvent.description, 'system');
+        let finalEffect = travelEvent.effect;
+        let finalDescription = travelEvent.description;
 
-        if (travelEvent.effect) {
-          switch (travelEvent.effect.type) {
+        // --- SKILL CHECK RESOLUTION ---
+        if (travelEvent.skillCheck) {
+          const { check, successEffect, successDescription, failureEffect, failureDescription } = travelEvent.skillCheck;
+
+          const hasSkill = playerCharacter.skills.some(s => s.id === check.skill || s.name.toLowerCase() === check.skill.toLowerCase());
+
+          const d20 = Math.floor(Math.random() * 20) + 1;
+          const pb = playerCharacter.proficiencyBonus || 2;
+
+          const skillToAbility: Record<string, string> = {
+            'athletics': 'strength',
+            'acrobatics': 'dexterity', 'sleight_of_hand': 'dexterity', 'stealth': 'dexterity',
+            'arcana': 'intelligence', 'history': 'intelligence', 'investigation': 'intelligence', 'nature': 'intelligence', 'religion': 'intelligence',
+            'animal_handling': 'wisdom', 'insight': 'wisdom', 'medicine': 'wisdom', 'perception': 'wisdom', 'survival': 'wisdom',
+            'deception': 'charisma', 'intimidation': 'charisma', 'performance': 'charisma', 'persuasion': 'charisma'
+          };
+
+          const abilityName = skillToAbility[check.skill] || 'wisdom';
+          const score = (playerCharacter.abilityScores as any)[abilityName] || 10;
+          const mod = Math.floor((score - 10) / 2);
+
+          const totalBonus = mod + (hasSkill ? pb : 0);
+          const totalRoll = d20 + totalBonus;
+
+          const passed = totalRoll >= check.dc;
+
+          addMessage(`[Skill Check] ${check.skill.charAt(0).toUpperCase() + check.skill.slice(1)}: Rolled ${totalRoll} (DC ${check.dc}) - ${passed ? 'Success' : 'Failure'}`, 'system');
+
+          if (passed) {
+             finalDescription = `${travelEvent.description} ${successDescription}`;
+             if (successEffect) {
+               finalEffect = successEffect;
+             }
+          } else {
+             finalDescription = `${travelEvent.description} ${failureDescription || ''}`;
+             if (failureEffect) {
+               finalEffect = failureEffect;
+             }
+          }
+        }
+
+        addMessage(finalDescription, 'system');
+
+        if (finalEffect) {
+          switch (finalEffect.type) {
             case 'delay':
-              timeToAdvanceSeconds += (travelEvent.effect.amount * 60);
-              addMessage(`(Travel delayed by ${travelEvent.effect.amount} minutes)`, 'system');
+              // Amount is usually hours.
+              const delaySeconds = finalEffect.amount * 3600;
+              timeToAdvanceSeconds += delaySeconds;
+              addMessage(`(Travel delayed by ${finalEffect.amount} hours)`, 'system');
               break;
 
             case 'health_change':
               dispatch({
                 type: 'MODIFY_PARTY_HEALTH',
-                payload: { amount: travelEvent.effect.amount }
+                payload: { amount: finalEffect.amount }
               });
-              const hpChangeText = travelEvent.effect.amount > 0 ? 'healed' : 'damaged';
-              addMessage(`Party ${hpChangeText} by ${Math.abs(travelEvent.effect.amount)} HP.`, 'system');
+              const hpChangeText = finalEffect.amount > 0 ? 'healed' : 'damaged';
+              addMessage(`Party ${hpChangeText} by ${Math.abs(finalEffect.amount)} HP.`, 'system');
               break;
 
             case 'item_gain':
-              if (travelEvent.effect.itemId) {
+              if (finalEffect.itemId) {
                 dispatch({
                   type: 'ADD_ITEM',
-                  payload: { itemId: travelEvent.effect.itemId, count: travelEvent.effect.amount }
+                  payload: { itemId: finalEffect.itemId, count: finalEffect.amount }
                 });
-                const itemGainMsg = travelEvent.effect.description || `You found ${travelEvent.effect.amount} item(s).`;
+                const itemGainMsg = finalEffect.description || `You found ${finalEffect.amount} item(s).`;
                 addMessage(itemGainMsg, 'system');
               }
               break;
@@ -346,36 +392,34 @@ export async function handleMovement({
             case 'gold_gain':
               dispatch({
                 type: 'MODIFY_GOLD',
-                payload: { amount: travelEvent.effect.amount }
+                payload: { amount: finalEffect.amount }
               });
-              addMessage(travelEvent.effect.description || `You found ${travelEvent.effect.amount} gold pieces.`, 'system');
+              addMessage(finalEffect.description || `You found ${finalEffect.amount} gold pieces.`, 'system');
               break;
 
             case 'xp_gain':
               dispatch({
                 type: 'GRANT_EXPERIENCE',
-                payload: { amount: travelEvent.effect.amount }
+                payload: { amount: finalEffect.amount }
               });
-              addMessage(travelEvent.effect.description || `Party gained ${travelEvent.effect.amount} XP.`, 'system');
+              addMessage(finalEffect.description || `Party gained ${finalEffect.amount} XP.`, 'system');
               break;
 
             case 'discovery':
-              if (travelEvent.effect.data) {
-                // Log the discovery in the game state (UI log/journal)
+              if (finalEffect.data) {
                 const discoveryLocation: Location = {
-                  id: travelEvent.effect.data.id,
-                  name: travelEvent.effect.data.name,
-                  baseDescription: travelEvent.effect.data.description,
+                  id: finalEffect.data.id,
+                  name: finalEffect.data.name,
+                  baseDescription: finalEffect.data.description,
                   biomeId: targetBiome.id,
                   mapCoordinates: { x: targetWorldMapX, y: targetWorldMapY },
                   exits: {},
                 };
                 logDiscovery(discoveryLocation);
-                addMessage(`Map updated: ${travelEvent.effect.data.name} recorded.`, 'system');
+                addMessage(`Map updated: ${finalEffect.data.name} recorded.`, 'system');
 
-                // Process Rewards
-                if (travelEvent.effect.data.rewards) {
-                   travelEvent.effect.data.rewards.forEach(reward => {
+                if (finalEffect.data.rewards) {
+                   finalEffect.data.rewards.forEach(reward => {
                      switch (reward.type) {
                         case 'item':
                           if (reward.resourceId) {
@@ -400,10 +444,9 @@ export async function handleMovement({
                    });
                 }
 
-                // Process Consequences
-                if (travelEvent.effect.data.consequences && newMapDataForDispatch) {
+                if (finalEffect.data.consequences && newMapDataForDispatch) {
                    applyDiscoveryConsequences(
-                       travelEvent.effect.data.consequences,
+                       finalEffect.data.consequences,
                        dispatch,
                        addMessage,
                        newMapDataForDispatch,

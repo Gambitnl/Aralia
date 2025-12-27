@@ -44,7 +44,7 @@ export interface Discovery {
  * Supports delays, health changes, item gains, and discoveries.
  */
 export interface TravelEventEffect {
-  type: 'delay' | 'health_change' | 'item_gain' | 'discovery' | 'buff';
+  type: 'delay' | 'health_change' | 'item_gain' | 'discovery' | 'buff' | 'gold_gain' | 'xp_gain';
   /**
    * The numerical value of the effect:
    * - delay: hours
@@ -59,6 +59,34 @@ export interface TravelEventEffect {
 }
 
 /**
+ * Definition for a skill check requirement.
+ */
+export interface SkillCheck {
+  skill: string; // e.g., 'survival', 'athletics', 'perception'
+  dc: number;
+}
+
+/**
+ * A branch of a travel event that executes if a skill check is passed (or failed).
+ */
+export interface TravelEventBranch {
+  check: SkillCheck;
+  /**
+   * Effect applied if the check passes.
+   * If not provided, it falls back to the default effect or simply avoids the default negative effect.
+   */
+  successEffect?: TravelEventEffect;
+  successDescription: string;
+
+  /**
+   * Effect applied if the check fails.
+   * If not provided, it typically falls back to the default effect of the parent event.
+   */
+  failureEffect?: TravelEventEffect;
+  failureDescription?: string;
+}
+
+/**
  * A single travel event that can occur during world map movement.
  * Events display flavor text and can optionally affect gameplay (e.g., delays).
  */
@@ -67,6 +95,14 @@ export interface TravelEvent {
   description: string;
   effect?: TravelEventEffect;
   weight?: number; // Higher weight = more likely to occur (default: 1)
+
+  /**
+   * Optional skill check that can modify the outcome.
+   * If present, the system will check the party leader's skill.
+   * If passed, the 'successEffect' is used instead of the default 'effect'.
+   * If failed, 'failureEffect' (or default 'effect') is used.
+   */
+  skillCheck?: TravelEventBranch;
 }
 
 /**
