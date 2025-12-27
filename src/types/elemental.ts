@@ -26,6 +26,7 @@ export enum StateTag {
   Cold = 'cold', // Represents extreme cold or chilling effects
   Smoke = 'smoke', // Represents smoke, steam, or fog that obscures vision
   Webbed = 'webbed', // Represents being trapped in sticky webs
+  Wind = 'wind', // Represents strong air currents or buffeting winds
 }
 
 /**
@@ -52,6 +53,7 @@ export const StateInteractions: Record<string, StateTag | null> = {
 
   // Smoke interactions
   'cold+smoke': StateTag.Wet,       // Condensation (Smoke/Steam cools to Water)
+  'smoke+wind': null,               // Wind disperses smoke/fog/steam
 
   // Webbed interactions
   'burning+webbed': StateTag.Burning, // Fire burns away webs (and ignites target)
@@ -63,4 +65,5 @@ export const StateInteractions: Record<string, StateTag | null> = {
   // To implement wet+electrified -> AoE damage, we need to expand interaction results to include side-effects.
   // TODO(Simulator): Implement 'Wind' state or mechanic to disperse 'Smoke' and 'Poisoned' clouds.
   // TODO(Simulator): Implement 'Acid' state to dissolve 'Webbed' and neutralize 'Oiled'.
+  // TODO(Simulator): Implement 'Wind' state mechanics affecting projectile accuracy or movement speed.
 };
