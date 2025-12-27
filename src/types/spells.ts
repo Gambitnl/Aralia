@@ -4,6 +4,8 @@
  * for the component-based spell system.
  */
 
+import type { SpellVisualSpec } from './visuals';
+
 //==============================================================================
 // Core Spell Structure
 //==============================================================================
@@ -36,6 +38,9 @@ export interface Spell {
   // --- System Components ---
   targeting: SpellTargeting;
   effects: SpellEffect[];
+
+  // --- Visual Representation ---
+  visual?: SpellVisualSpec;
 
   // --- AI & Advanced Systems ---
   // --- AI & Advanced Systems ---
