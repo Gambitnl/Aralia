@@ -142,3 +142,12 @@ export function checkRitualInterrupt(
 
   return { interrupted: false, ritualBroken: false };
 }
+
+/**
+ * Returns potential backlash effects if a ritual fails catastrophically.
+ */
+export function getBacklashOnFailure(ritual: RitualState): { description: string }[] {
+    // Placeholder logic for wild magic or ritual backlash
+    // Could depend on spell level, ritual type, etc.
+    return [];
+}
