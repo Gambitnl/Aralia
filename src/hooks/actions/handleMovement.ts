@@ -20,6 +20,7 @@ import { getTimeModifiers } from '../../utils/timeUtils';
 import { DiscoveryConsequence } from '../../types/exploration';
 import { BanterManager } from '../../systems/companions/BanterManager';
 import { BanterDisplayService } from '../../services/BanterDisplayService';
+import { resolveAndRegisterEntities } from '../../utils/entityIntegrationUtils';
 
 interface HandleMovementProps {
   action: Action;
@@ -465,6 +466,12 @@ export async function handleMovement({
 
     if (result.data?.text) {
       newDescription = result.data.text;
+
+      // Linker Coherence Check: Ensure any mentioned entities exist
+      await resolveAndRegisterEntities(newDescription, gameState, dispatch, addGeminiLog);
+
+      // TODO(Linker): Enhance entity generation for wilderness travel by creating specific entity types (e.g. Landmarks, Ruins) based on the current biome and adding them to the submap.
+
     } else if (result.error) {
       addMessage("There was an issue describing your new surroundings.", 'system');
       console.error("Gemini Error during movement description:", result.error);

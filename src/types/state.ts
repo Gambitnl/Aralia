@@ -14,6 +14,7 @@ import { WorldHistory } from './history';
 import { PlayerLegacy } from './legacy';
 import { Stronghold } from './stronghold';
 import { Notification } from './ui';
+import { PlayerIdentityState } from './identity';
 
 // -----------------------------------------------------------------------------
 // Notoriety State
@@ -186,7 +187,7 @@ export interface GameState {
 
   dynamicLocations: Record<string, Location>;
   dynamicNPCs?: Record<string, NPC>;
-  playerIdentity?: import('./identity').PlayerIdentityState;
+  playerIdentity?: PlayerIdentityState;
 
   legacy?: PlayerLegacy;
   strongholds?: Record<string, Stronghold>;

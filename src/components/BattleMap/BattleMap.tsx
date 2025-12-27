@@ -75,7 +75,10 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
   // Memoize sets to reduce O(N) lookups in render loop and prevent re-calcs on mouse move
 
   const { aoeSet, validTargetSet } = useTargetSelection({
-    abilitySystem,
+    selectedAbility: abilitySystem.selectedAbility,
+    targetingMode: abilitySystem.targetingMode,
+    isValidTarget: abilitySystem.isValidTarget,
+    aoePreview: abilitySystem.aoePreview,
     currentCharacter,
     mapData,
     characters

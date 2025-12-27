@@ -440,9 +440,16 @@ export interface CombatLogData {
   damageAmount?: number;
   damageType?: string;
   healAmount?: number;
+  heal?: number; // Legacy, kept for compatibility if needed
   statusEffectName?: string;
   abilityName?: string;
   rollResult?: number;
+  // Religion/Trigger Extensions
+  isDeath?: boolean;
+  targetTags?: string[]; // e.g. ['Undead', 'Humanoid', 'Elf']
+  spellSchool?: string;
+  spellName?: string;
+  source?: string; // Explicitly adding source to interface
   // Allow for flexibility while we transition from 'any'
   [key: string]: string | number | boolean | undefined | object;
 }

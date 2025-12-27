@@ -34,6 +34,7 @@ spellFiles.forEach(file => {
 
         // Path should be relative to public root, starting with /
         // file is relative to spellsDir (e.g. "level-0/acid-splash.json" or "acid-splash.json")
+        // TODO: Add detection for orphaned/duplicate spell files (e.g. key collision check) to ensure data hygiene.
         const webPath = `/data/spells/${file.replace(/\\/g, '/')}`;
 
         manifest[spell.id] = {

@@ -16,6 +16,7 @@ import { NPCS } from '../../constants';
 import { canUseDevTools } from '../../utils/permissions';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import * as GeminiService from '../../services/geminiService';
+import { useDialogueSystem } from '../../hooks/useDialogueSystem';
 
 import ErrorBoundary from '../ErrorBoundary';
 
@@ -34,10 +35,11 @@ const DiscoveryLogPane = lazy(() => import('../DiscoveryLogPane'));
 // Glossary exports a named component from its index barrel
 const Glossary = lazy(() => import('../Glossary').then(module => ({ default: module.Glossary })));
 const EncounterModal = lazy(() => import('../EncounterModal'));
-const MerchantModal = lazy(() => import('../MerchantModal'));
+const MerchantModal = lazy(() => import('../Trade/MerchantModal'));
 const GameGuideModal = lazy(() => import('../GameGuideModal'));
 const MissingChoiceModal = lazy(() => import('../MissingChoiceModal'));
 const TempleModal = lazy(() => import('../TempleModal'));
+// REVIEW: Verify that DialogueInterface is indeed a named export. If it is the default export, this lazy loading pattern .then(module => ({ default: module.DialogueInterface })) will fail. (Consistency check with Glossary import at line 35).
 const DialogueInterface = lazy(() => import('../Dialogue/DialogueInterface').then(module => ({ default: module.DialogueInterface })));
 const ThievesGuildInterface = lazy(() => import('../Crime/ThievesGuild/ThievesGuildInterface'));
 
@@ -91,17 +93,7 @@ const GameModals: React.FC<GameModalsProps> = ({
     handleOpenCharacterSheet,
 }) => {
 
-    const handleGenerateDialogueResponse = async (prompt: string): Promise<string> => {
-        const npc = gameState.activeDialogueSession ? NPCS[gameState.activeDialogueSession.npcId] : null;
-        if (!npc) return "...";
-        const systemPrompt = npc.initialPersonalityPrompt;
-        const result = await GeminiService.generateNPCResponse(systemPrompt, prompt, gameState.devModelOverride);
-        if (result.data?.text) {
-            dispatch({ type: 'SET_LAST_NPC_INTERACTION', payload: { npcId: npc.id, response: result.data.text } });
-            return result.data.text;
-        }
-        return "...";
-    };
+    const { generateResponse, handleTopicOutcome } = useDialogueSystem(gameState, dispatch);
 
     return (
         <AnimatePresence>
@@ -325,6 +317,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                             playerGold={gameState.gold}
                             onClose={() => dispatch({ type: 'CLOSE_MERCHANT' })}
                             onAction={onAction}
+                            regionId={currentLocation.regionId}
                         />
                     </ErrorBoundary>
                 </Suspense>
@@ -387,8 +380,10 @@ const GameModals: React.FC<GameModalsProps> = ({
                             playerCharacter={gameState.party[0]}
                             onClose={() => dispatch({ type: 'END_DIALOGUE_SESSION' })}
                             onUpdateSession={(newSession) => dispatch({ type: 'UPDATE_DIALOGUE_SESSION', payload: { session: newSession } })}
+                            // TODO: Verify if DialogueInterface relies on this callback. If state updates are required during dialogue (e.g. relationship changes), this empty implementation needs to be connected to the dispatch function.
                             onUpdateGameState={(updates) => { /* TODO: Implement partial updates if needed */ }}
-                            onGenerateResponse={handleGenerateDialogueResponse}
+                            onTopicOutcome={handleTopicOutcome}
+                            onGenerateResponse={generateResponse}
                         />
                     </ErrorBoundary>
                 </Suspense>
