@@ -13,6 +13,9 @@ import { GameState, QuestStatus, Quest } from '../../types';
 import { AppAction } from '../actionTypes';
 import { ITEMS } from '../../constants';
 
+// TODO(Schemer): Migrate questReducer to use the new `src/types/quests.ts` structure (QuestDefinition, QuestStage, QuestObjectiveType).
+// Currently, it relies on the legacy flat `objectives` array from `src/types/world.ts`.
+
 type NotificationTuple = Pick<GameState, 'notifications'>;
 
 /**
