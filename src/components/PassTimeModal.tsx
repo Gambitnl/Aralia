@@ -1,11 +1,11 @@
-
 /**
  * @file PassTimeModal.tsx
  * A modal component for granularly passing time in the game.
  */
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, MotionProps } from 'framer-motion';
-import { formatGameTime, getGameDay, addGameTime } from '@/utils/timeUtils';
+import { formatGameTime, getGameDay, addGameTime, getTimeModifiers } from '@/utils/timeUtils';
+import { getCalendarDescription } from '@/systems/time/CalendarSystem';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 
 interface TimeInputState {
@@ -82,6 +82,9 @@ const PassTimeModal: React.FC<PassTimeModalProps> = ({ isOpen, onClose, onConfir
     }
   };
   
+  const timeModifiers = useMemo(() => getTimeModifiers(newTimePreview), [newTimePreview]);
+  const calendarDescription = useMemo(() => getCalendarDescription(newTimePreview), [newTimePreview]);
+
   useEffect(() => {
     if (!isOpen) {
         setTime({ minutes: 0, hours: 0, days: 0, weeks: 0, months: 0, years: 0 });
@@ -108,9 +111,24 @@ const PassTimeModal: React.FC<PassTimeModalProps> = ({ isOpen, onClose, onConfir
         onKeyDown={handleKeyDown}
       >
         <h2 id="pass-time-title" className="text-2xl font-bold text-amber-400 font-cinzel text-center mb-4">Pass Time</h2>
-        <div className="text-center mb-4 p-2 bg-gray-900/50 rounded">
-            <p className="text-sm text-gray-400">Current Time:</p>
-            <p className="text-md font-semibold text-sky-300">{formatGameTimeForModal(currentTime)}</p>
+        <div className="text-center mb-4 p-2 bg-gray-900/50 rounded flex flex-col gap-2">
+            <div className="flex justify-between text-sm text-gray-400">
+                <span>Current:</span>
+                <span className="text-sky-300 font-semibold">{formatGameTimeForModal(currentTime)}</span>
+            </div>
+             <div className="flex justify-between text-sm text-gray-400">
+                <span>Result:</span>
+                <span className={`font-semibold ${totalSecondsToAdvance > 0 ? 'text-green-300' : 'text-gray-500'}`}>
+                    {formatGameTimeForModal(newTimePreview)}
+                </span>
+            </div>
+
+            {totalSecondsToAdvance > 0 && (
+                <div className="mt-2 text-xs italic text-gray-300 border-t border-gray-700 pt-2">
+                    <p>{calendarDescription}</p>
+                    <p className="mt-1 text-amber-200/80">{timeModifiers.description}</p>
+                </div>
+            )}
         </div>
         
         <div className="grid grid-cols-2 gap-4">
@@ -129,13 +147,6 @@ const PassTimeModal: React.FC<PassTimeModalProps> = ({ isOpen, onClose, onConfir
                 </div>
             ))}
         </div>
-        
-        {totalSecondsToAdvance > 0 && (
-            <div className="text-center mt-4 p-2 bg-gray-900/50 rounded">
-                <p className="text-sm text-gray-400">New Time will be:</p>
-                <p className="text-md font-semibold text-amber-300">{formatGameTimeForModal(newTimePreview)}</p>
-            </div>
-        )}
 
         <div className="flex gap-4 mt-6">
             <button onClick={onClose} className="w-1/2 bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg shadow">Cancel</button>

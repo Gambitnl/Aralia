@@ -4,9 +4,22 @@ import TownNavigationControls from '../TownNavigationControls';
 import { TownDirection } from '../../../types/town';
 import { vi } from 'vitest';
 
+// Mock framer-motion since it's used for animations
+vi.mock('framer-motion', () => ({
+    motion: {
+        div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+        button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+    },
+    useReducedMotion: () => false,
+}));
+
 describe('TownNavigationControls', () => {
     const mockOnMove = vi.fn();
     const mockOnExit = vi.fn();
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
 
     it('renders directional buttons with accessible labels', () => {
         render(

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { aiSpellArbitrator, ArbitrationRequest } from '../AISpellArbitrator';
-import { Spell } from '@/types/spells';
+import { Spell, SpellSchool } from '@/types/spells';
 import { CombatCharacter, CombatState } from '@/types/combat';
 import { GameState } from '@/types';
 
@@ -16,7 +16,7 @@ describe('AISpellArbitrator', () => {
     id: 'test-spell',
     name: 'Test Spell',
     level: 1,
-    school: 'Evocation',
+    school: SpellSchool.Evocation,
     classes: ['Wizard'],
     description: 'A test spell',
     castingTime: { value: 1, unit: 'action' },

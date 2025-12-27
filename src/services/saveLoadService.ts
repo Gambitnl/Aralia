@@ -9,6 +9,7 @@
  */
 import { GameState, GamePhase, NotificationType } from '../types';
 import { SafeStorage, SafeSession } from '../utils/storageUtils';
+import { safeJSONParse } from '../utils/securityUtils';
 import { logger } from '../utils/logger';
 import { simpleHash } from '../utils/hashUtils';
 
@@ -218,8 +219,15 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
       return result;
     }
 
-    const parsedData = JSON.parse(serializedState);
-    const loadedState: GameState = (parsedData as StoredSavePayload).state || parsedData;
+    const parsedData = safeJSONParse<StoredSavePayload | GameState>(serializedState);
+    if (!parsedData) {
+      logger.error("Failed to parse save game data", { slotId: storageKey });
+      const failure = { success: false, message: "Save data corrupted (unreadable)." } as const;
+      notify?.({ message: failure.message, type: 'error' });
+      return failure;
+    }
+
+    const loadedState: GameState = (parsedData as StoredSavePayload).state || (parsedData as GameState);
     const storedChecksum = (parsedData as StoredSavePayload).checksum;
 
     if (storedChecksum) {
@@ -331,8 +339,10 @@ export function getLatestSaveTimestamp(slotName: string = DEFAULT_SAVE_SLOT): nu
     const serializedState = SafeStorage.getItem(resolveSlotKey(slotName));
     if (!serializedState) return null;
 
-    const parsedData = JSON.parse(serializedState);
-    const legacyState: Partial<GameState> = (parsedData as StoredSavePayload).state || parsedData;
+    const parsedData = safeJSONParse<StoredSavePayload | GameState>(serializedState);
+    if (!parsedData) return null;
+
+    const legacyState: Partial<GameState> = (parsedData as StoredSavePayload).state || (parsedData as GameState);
     return legacyState.saveTimestamp || null;
   } catch (error) {
     logger.error("Error retrieving save timestamp", { error });
@@ -536,7 +546,7 @@ function persistSlotIndex(next: SaveSlotSummary[]) {
 function getSessionCache(): SaveSlotSummary[] | null {
   try {
     const cached = SafeSession.getItem(SESSION_CACHE_KEY);
-    return cached ? JSON.parse(cached) : null;
+    return safeJSONParse<SaveSlotSummary[]>(cached || '');
   } catch (error) {
     logger.warn("Failed to read from session storage, cache ignored", { error });
     return null;
@@ -545,7 +555,7 @@ function getSessionCache(): SaveSlotSummary[] | null {
 
 function buildSlotIndex(): SaveSlotSummary[] {
   const storedIndex = SafeStorage.getItem(SLOT_INDEX_KEY);
-  const parsedIndex: SaveSlotSummary[] = storedIndex ? JSON.parse(storedIndex) : [];
+  const parsedIndex: SaveSlotSummary[] = safeJSONParse<SaveSlotSummary[]>(storedIndex || '') || [];
   return mergeWithLegacySaves(parsedIndex).sort((a, b) => b.lastSaved - a.lastSaved);
 }
 
@@ -566,7 +576,9 @@ function mergeWithLegacySaves(index: SaveSlotSummary[]): SaveSlotSummary[] {
     try {
       const raw = SafeStorage.getItem(key);
       if (!raw) continue;
-      const parsed = JSON.parse(raw) as StoredSavePayload | GameState;
+      const parsed = safeJSONParse<StoredSavePayload | GameState>(raw);
+      if (!parsed) continue;
+
       const state = (parsed as StoredSavePayload).state || (parsed as GameState);
       const preview = (parsed as StoredSavePayload).preview || extractPreview(state as GameState);
       const fallbackTimestamp = (state as GameState).saveTimestamp || Date.now();
