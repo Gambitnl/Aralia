@@ -1,5 +1,9 @@
 import { RegionalEconomy } from '../../types/economy';
 
+/**
+ * Central registry of regional economic zones.
+ * These are used by `economyUtils` to calculate local pricing modifiers.
+ */
 export const REGIONAL_ECONOMIES: Record<string, RegionalEconomy> = {
   'region_capital': {
     id: 'region_capital',

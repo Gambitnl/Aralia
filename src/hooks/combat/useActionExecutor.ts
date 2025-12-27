@@ -449,6 +449,10 @@ export const useActionExecutor = ({
     });
 
     if (action.type === 'ability' && action.abilityId) {
+      // TODO(Ritualist): Check if ability has ritual tag or long casting time.
+      // If so, do not execute immediately. Instead, call startRitual() and assign to updatedCharacter.currentRitual.
+      // See src/systems/rituals/RitualManager.ts
+
       const ability = characters.find(c => c.id === action.characterId)?.abilities.find(a => a.id === action.abilityId);
 
       combatEvents.emit({

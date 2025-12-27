@@ -10,7 +10,10 @@ import type { Item } from './items';
 import type { Spell, DamageType, SavingThrowAbility, ConditionName, EffectDuration, SpellEffect } from './spells'; // Import Spell
 import { StateTag } from './elemental';
 import { Plane } from './planes';
+import { ActiveEffect } from './effects';
+import { RitualState } from './ritual';
 
+export { ActiveEffect };
 export type { SpellSlots };
 
 // --- NEW COMBAT SYSTEM TYPES ---
@@ -88,6 +91,7 @@ export interface CombatCharacter {
   spellbook?: SpellbookData;
   spellSlots?: SpellSlots;
   concentratingOn?: ConcentrationState;
+  currentRitual?: RitualState;
 
   /**
    * List of feats the character possesses (e.g., "Slasher", "Sentinel").
@@ -118,21 +122,6 @@ export interface CombatCharacter {
   riders?: ActiveRider[];   // Active damage riders (smites, hex, etc)
   damagedThisTurn?: boolean; // Track if character took damage this turn (for concentration/repeat saves)
   savePenaltyRiders?: SavePenaltyRider[]; // Save penalties from Mind Sliver etc.
-}
-
-export interface ActiveEffect {
-  type: 'ac_bonus' | 'advantage_on_saves' | 'disadvantage_on_attacks' | 'set_base_ac' | 'ac_minimum' | 'other';
-  name: string;
-  value?: number;  // For numeric effects like AC bonus
-  duration: {
-    type: 'rounds' | 'until_condition' | 'permanent' | 'minutes' | 'hours' | 'special';
-    value?: number;
-  };
-  appliedTurn: number;
-  source: string;  // Spell ID or effect name
-  description?: string;
-  savingThrows?: SavingThrowAbility[];  // For advantage_on_saves
-  attackerFilter?: any; // TargetConditionFilter
 }
 
 export type AbilityType = 'attack' | 'spell' | 'skill' | 'movement' | 'utility';
@@ -444,9 +433,16 @@ export interface CombatLogData {
   damageAmount?: number;
   damageType?: string;
   healAmount?: number;
+  heal?: number; // Legacy, kept for compatibility if needed
   statusEffectName?: string;
   abilityName?: string;
   rollResult?: number;
+  // Religion/Trigger Extensions
+  isDeath?: boolean;
+  targetTags?: string[]; // e.g. ['Undead', 'Humanoid', 'Elf']
+  spellSchool?: string;
+  spellName?: string;
+  source?: string; // Explicitly adding source to interface
   // Allow for flexibility while we transition from 'any'
   [key: string]: string | number | boolean | undefined | object;
 }

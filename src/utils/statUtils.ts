@@ -1,5 +1,5 @@
 import { AbilityScores, Race, PlayerCharacter, Item, EquipmentSlotType } from '../types';
-import { ActiveEffect } from '../types/combat';
+import { ActiveEffect } from '../types/effects';
 
 /**
  * Calculates the D&D ability score modifier as a number.
@@ -266,4 +266,3 @@ export const calculatePassiveScore = (
   return score;
 };
 
-// TODO(Mechanist): Wire up `calculatePassiveScore` to `CharacterSheet` to display Passive Perception/Investigation.
