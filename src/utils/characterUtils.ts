@@ -699,7 +699,11 @@ export const performLevelUp = (
   // Retroactively apply new Con modifier and per-level bonuses to existing levels.
   const previousConMod = getAbilityModifierValue(character.finalAbilityScores.Constitution);
   const retroactiveConAdjustment = (conMod - previousConMod) * previousLevel;
-  const retroactiveFeatAdjustment = hpBonusPerLevel * previousLevel;
+
+  // Retroactively apply feat bonuses ONLY if they are new.
+  // Existing feats (present in character.feats) have already contributed to maxHp in previous levels.
+  const previousHpBonusPerLevel = getHpBonusPerLevelFromFeats(character.feats || []);
+  const retroactiveFeatAdjustment = (hpBonusPerLevel - previousHpBonusPerLevel) * previousLevel;
 
   updatedCharacter.maxHp = (character.maxHp || 0) + hpGainThisLevel + retroactiveConAdjustment + retroactiveFeatAdjustment;
   updatedCharacter.hp = Math.min(updatedCharacter.maxHp, (character.hp || 0) + hpGainThisLevel + retroactiveConAdjustment + retroactiveFeatAdjustment);
