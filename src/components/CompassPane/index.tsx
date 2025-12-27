@@ -8,12 +8,12 @@
  */
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Action, Location, MapData } from '../types';
-import { BIOMES } from '../constants'; // To get biome details like color
-import { DIRECTION_VECTORS, SUBMAP_DIMENSIONS } from '../config/mapConfig';
-import { TimeWidget } from './ui/TimeWidget';
-import Tooltip from './Tooltip'; // Import Tooltip
-import PassTimeModal from './PassTimeModal'; // Import the new modal
+import { Action, Location, MapData } from '../../types';
+import { BIOMES } from '../../constants'; // To get biome details like color
+import { DIRECTION_VECTORS, SUBMAP_DIMENSIONS } from '../../config/mapConfig';
+import { TimeWidget } from '../ui/TimeWidget';
+import Tooltip from '../Tooltip'; // Import Tooltip
+import PassTimeModal from '../PassTimeModal'; // Import the new modal
 
 interface CompassPaneProps {
   currentLocation: Location;

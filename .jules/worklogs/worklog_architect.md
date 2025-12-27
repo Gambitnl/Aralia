@@ -13,3 +13,14 @@
 5. Ensure `MissingChoice` type is exported from `src/types`.
 6. Update tests to reflect the new structure.
 (Note: This refactor was prototyped but reverted to ensure a clean slate.)
+
+## 2025-02-17 - Decoupling Constants (TODO) **Learning:** `src/constants.ts` acts as a "God Object" by re-exporting massive data sets (`LOCATIONS`, `NPCS`, `COMPANIONS`, `ITEMS`). Importing *any* constant from it pulls the entire world data into the bundle. This causes massive bundle bloat and circular dependency risks. **Action:** Refactor consumers to import directly from data sources (`src/data/world/locations`, `src/data/items`, etc.) instead of the aggregator.
+**Target Files to Refactor:**
+- `src/state/appState.ts`
+- `src/hooks/useGameActions.ts`
+- `src/hooks/useGameInitialization.ts`
+- `src/hooks/actions/*.ts` (handlers)
+- `src/utils/actionUtils.ts`
+- `src/utils/contextUtils.ts`
+- `src/services/characterGenerator.ts`
+- `src/components/MapTile.tsx`

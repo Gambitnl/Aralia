@@ -38,6 +38,12 @@ export interface RitualState {
 
   /** Config for the ritual */
   config: RitualConfig;
+
+  /** If true, the ritual was interrupted and failed */
+  interrupted?: boolean;
+
+  /** The reason for the interruption */
+  interruptionReason?: string;
 }
 
 /**
