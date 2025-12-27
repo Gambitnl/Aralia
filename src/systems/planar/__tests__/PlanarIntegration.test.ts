@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { SpellCommandFactory } from '../../../commands/factory/SpellCommandFactory';
 import { DamageCommand } from '../../../commands/effects/DamageCommand';
-import { Spell, SpellEffect } from '../../../types/spells';
+import { Spell, SpellEffect, SpellSchool } from '../../../types/spells';
 import { CombatCharacter, CombatState } from '../../../types/combat';
 import { GameState } from '../../../types';
 import { PLANES } from '../../../data/planes';
@@ -16,7 +16,7 @@ describe('Planar Mechanics Integration', () => {
     id: 'fireball',
     name: 'Fireball',
     level: 3,
-    school: 'Evocation',
+    school: SpellSchool.Evocation,
     castingTime: { unit: 'action', value: 1 },
     range: { type: 'ranged', distance: 150 },
     duration: { type: 'instantaneous' },

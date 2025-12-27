@@ -5,8 +5,10 @@
  * - UI/Selection state now delegated to `useTargeting`.
  * - Geometric logic delegated to `targetingUtils`.
  * - Remains the "Orchestrator" connecting UI events to Action execution.
+ * - [Steward] Memoized return object. Event handlers stabilized via Refs.
+ *   Getters (isValidTarget) remain reactive to props for render correctness.
  */
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef, useEffect, useMemo } from 'react';
 import {
   CombatCharacter,
   Ability,
@@ -19,19 +21,15 @@ import {
   GameState
 } from '../types';
 import {
-  Spell,
-  isDamageEffect,
-  isStatusConditionEffect,
-  isDefensiveEffect
+  Spell
 } from '../types/spells';
 import { SpellCommandFactory, AbilityCommandFactory, CommandExecutor } from '../commands'; // Import Command System
 import { BreakConcentrationCommand } from '../commands/effects/ConcentrationCommands'; // Import Break Concentration
-import { getDistance, calculateDamage, generateId, rollDamage } from '../utils/combatUtils';
+import { getDistance, generateId } from '../utils/combatUtils';
 import { hasLineOfSight } from '../utils/lineOfSight';
 import { calculateAffectedTiles } from '../utils/aoeCalculations';
 import { useTargeting } from './combat/useTargeting'; // New Hook
 import { resolveAoEParams } from '../utils/targetingUtils';
-import { AttackRiderSystem, AttackContext } from '../systems/combat/AttackRiderSystem';
 import { Plane } from '../types/planes';
 import { useTargetValidator } from './combat/useTargetValidator';
 
@@ -90,9 +88,23 @@ export const useAbilitySystem = ({
 
   const [pendingReaction, setPendingReaction] = useState<PendingReaction | null>(null);
 
-  // --- Command Pattern Execution Logic ---
-  // TODO(Ritualist): Integrate RitualManager here to handle ritual casting (10+ min duration) instead of immediate execution.
-  // Also integrate RitualManager.validateRequirements() to check for ritual constraints (Time, Location) before starting.
+  // --- Refs for Stability (Actions Only) ---
+  // We use Refs to access the latest props inside event handlers (actions)
+  // to prevent them from causing re-renders.
+  const charactersRef = useRef(characters);
+  const mapDataRef = useRef(mapData);
+  const reactiveTriggersRef = useRef(reactiveTriggers);
+  const currentPlaneRef = useRef(currentPlane);
+
+  // Sync refs with props
+  useEffect(() => {
+    charactersRef.current = characters;
+    mapDataRef.current = mapData;
+    reactiveTriggersRef.current = reactiveTriggers;
+    currentPlaneRef.current = currentPlane;
+  }, [characters, mapData, reactiveTriggers, currentPlane]);
+
+  // --- Command Pattern Execution Logic (Actions - Stable) ---
   const executeSpell = useCallback(
     async function executeSpellImpl(
       spell: Spell,
@@ -101,6 +113,12 @@ export const useAbilitySystem = ({
       castAtLevel: number,
       playerInput?: string
     ) {
+      // Access latest data from refs
+      const currentCharacters = charactersRef.current;
+      const currentTriggers = reactiveTriggersRef.current;
+      const currentMapData = mapDataRef.current;
+      const activePlane = currentPlaneRef.current;
+
       // 0. Check for AI Input Requirements
       if (spell.arbitrationType === 'ai_dm' && spell.aiContext?.playerInputRequired && !playerInput) {
         if (onRequestInput) {
@@ -117,7 +135,7 @@ export const useAbilitySystem = ({
       // 1. Construct temporary CombatState
       const currentState: CombatState = {
         isActive: true,
-        characters: characters,
+        characters: currentCharacters,
         turnState: {
           currentTurn: 0,
           turnOrder: [],
@@ -131,12 +149,13 @@ export const useAbilitySystem = ({
         validTargets: [],
         validMoves: [],
         combatLog: [], // Start empty to capture new entries
-        reactiveTriggers: reactiveTriggers || [], // Pass current triggers
+        reactiveTriggers: currentTriggers || [], // Pass current triggers
         activeLightSources: [],
-        currentPlane: currentPlane
+        currentPlane: activePlane,
+        mapData: currentMapData // Add mapData to context if needed by commands
       };
 
-      const mockGameState = {} as unknown as GameState; // Using unknown as GameState for global state mock as it's too large to mock here fully
+      const mockGameState = {} as unknown as GameState;
 
       try {
         // Asynchronously generate the chain of effect commands
@@ -147,7 +166,7 @@ export const useAbilitySystem = ({
           castAtLevel,
           mockGameState,
           playerInput,
-          currentPlane
+          activePlane
         );
 
         // 3. Execute
@@ -176,9 +195,7 @@ export const useAbilitySystem = ({
 
           // 7. Propagate Map Changes
           if (onMapUpdate && result.finalState.mapData) {
-            // Simple check if mapData was modified. In TerrainCommand, we clone mapData if we modify it.
-            // If the reference changed, we update.
-            if (result.finalState.mapData !== mapData) {
+            if (result.finalState.mapData !== mapDataRef.current) {
               onMapUpdate(result.finalState.mapData);
             }
           }
@@ -209,23 +226,24 @@ export const useAbilitySystem = ({
         }
       }
     },
-    [characters, onCharacterUpdate, onLogEntry, onRequestInput, reactiveTriggers, onReactiveTriggerUpdate, currentPlane, mapData, onMapUpdate]
+    [onCharacterUpdate, onLogEntry, onRequestInput, onReactiveTriggerUpdate, onMapUpdate]
   );
 
 
   // Legacy applyAbilityEffects removed - Logic moved to WeaponAttackCommand in AbilityCommandFactory
 
-
-
-
-
   // Refactored async wrapper for executeAbility to support internal await
+  // ACTION: Uses refs for stability
   const executeAbilityInternal = useCallback(async (
     ability: Ability,
     caster: CombatCharacter,
     targetPosition: Position,
     targetCharacterIds: string[]
   ) => {
+    // Access latest data from refs
+    const currentCharacters = charactersRef.current;
+    const currentTriggers = reactiveTriggersRef.current;
+    const activePlane = currentPlaneRef.current;
 
     // --- Path A: Spell System (Command Pattern) ---
     if (ability.spell) {
@@ -237,7 +255,7 @@ export const useAbilitySystem = ({
       }
 
       const targets = targetCharacterIds
-        .map(id => characters.find(c => c.id === id))
+        .map(id => currentCharacters.find(c => c.id === id))
         .filter((c): c is CombatCharacter => !!c);
 
       executeSpell(ability.spell, caster, targets, ability.spell.level);
@@ -250,7 +268,7 @@ export const useAbilitySystem = ({
     // Construct State
     const currentState: CombatState = {
       isActive: true,
-      characters: characters,
+      characters: currentCharacters,
       turnState: {
         currentTurn: 0,
         turnOrder: [],
@@ -264,17 +282,18 @@ export const useAbilitySystem = ({
       validTargets: [],
       validMoves: [],
       combatLog: [],
-      reactiveTriggers: reactiveTriggers || [],
+      reactiveTriggers: currentTriggers || [],
       activeLightSources: [],
-      currentPlane
+      currentPlane: activePlane,
+      mapData: mapDataRef.current
     };
 
     const mockGameState = {} as unknown as GameState;
 
     // Use Factory
     const targets = targetCharacterIds
-        .map(id => characters.find(c => c.id === id))
-        .filter((c): c is CombatCharacter => !!c);
+      .map(id => currentCharacters.find(c => c.id === id))
+      .filter((c): c is CombatCharacter => !!c);
 
     const commands = AbilityCommandFactory.createCommands(ability, caster, targets, mockGameState);
 
@@ -326,7 +345,7 @@ export const useAbilitySystem = ({
     }
 
     cancelTargeting();
-  }, [onExecuteAction, characters, onCharacterUpdate, cancelTargeting, executeSpell, onLogEntry, onAbilityEffect, currentPlane]);
+  }, [onExecuteAction, onCharacterUpdate, cancelTargeting, executeSpell, onLogEntry, onAbilityEffect]); // Refs are stable, omitted
 
   const executeAbility = useCallback((...args: Parameters<typeof executeAbilityInternal>) => {
     return executeAbilityInternal(...args);
@@ -350,9 +369,11 @@ export const useAbilitySystem = ({
 
   /**
    * Confirms selection of a target tile.
-   * Resolves AoE targets if applicable, then executes.
+   * ACTION: Stabilized via Refs.
    */
   const selectTarget = useCallback((targetPosition: Position, caster: CombatCharacter) => {
+    // Note: selectedAbility is from hook state (props/reactive), not ref.
+    // This is fine as selectTarget is re-created if selectedAbility changes (which is rare during targeting).
     if (!selectedAbility) return;
 
     let targetCharacterIds: string[] = [];
@@ -363,7 +384,7 @@ export const useAbilitySystem = ({
       if (params) {
         const affectedTiles = calculateAffectedTiles(params);
 
-        targetCharacterIds = characters
+        targetCharacterIds = charactersRef.current
           .filter(char => affectedTiles.some(tile =>
             tile.x === char.position.x && tile.y === char.position.y
           ))
@@ -371,27 +392,32 @@ export const useAbilitySystem = ({
       }
     } else {
       // Single Target
-      const targetCharacter = getCharacterAtPosition(targetPosition);
+      // Use ref-based search for action phase
+      const targetCharacter = charactersRef.current.find(char =>
+        char.position.x === targetPosition.x && char.position.y === targetPosition.y
+      );
       if (targetCharacter) {
         targetCharacterIds = [targetCharacter.id];
       }
     }
 
     executeAbility(selectedAbility, caster, targetPosition, targetCharacterIds);
-  }, [selectedAbility, characters, getCharacterAtPosition, executeAbility]);
+  }, [selectedAbility, executeAbility]);
 
 
   /**
    * Allows a character to voluntarily stop concentrating on a spell.
-   * Uses Command Pattern to ensure proper cleanup/logging.
+   * ACTION: Stabilized via Refs.
    */
   const dropConcentration = useCallback((character: CombatCharacter) => {
-    // TODO: include reactiveTriggers in deps or refresh inside to avoid stale trigger cleanup when dropping concentration.
     if (!character.concentratingOn) return;
+
+    const currentCharacters = charactersRef.current;
+    const currentTriggers = reactiveTriggersRef.current;
 
     const currentState: CombatState = {
       isActive: true,
-      characters: characters,
+      characters: currentCharacters,
       turnState: {
         currentTurn: 0,
         turnOrder: [],
@@ -405,7 +431,7 @@ export const useAbilitySystem = ({
       validTargets: [],
       validMoves: [],
       combatLog: [],
-      reactiveTriggers: reactiveTriggers || [],
+      reactiveTriggers: currentTriggers || [],
       activeLightSources: []
     };
 
@@ -431,11 +457,16 @@ export const useAbilitySystem = ({
         result.finalState.combatLog.forEach(entry => onLogEntry(entry));
       }
     }
-  }, [characters, onCharacterUpdate, onLogEntry, reactiveTriggers]);
+  }, [onCharacterUpdate, onLogEntry]);
 
 
   // Expose API
-  return {
+  // Memoize the return object.
+  // Dependencies:
+  // - Reactive state (targetingMode, selectedAbility, etc.)
+  // - Reactive getters (isValidTarget, getValidTargets) - change with Map/Chars
+  // - Stable actions (executeSpell, etc.) - rarely change
+  return useMemo(() => ({
     selectedAbility,
     targetingMode,
     aoePreview,
@@ -450,7 +481,21 @@ export const useAbilitySystem = ({
 
     dropConcentration,
     pendingReaction,
-  };
+  }), [
+    selectedAbility,
+    targetingMode,
+    aoePreview,
+    getValidTargets, // Reactive (Changes with map/chars)
+    startTargeting, // Stable
+    selectTarget, // Semi-stable (depends on selectedAbility)
+    cancelTargeting, // Stable
+    previewAoE, // Stable
+    isValidTarget, // Reactive (Changes with map/chars)
+    executeSpell, // Stable
+    executeAbility, // Stable
+    dropConcentration, // Stable
+    pendingReaction // Reactive
+  ]);
 };
 
 export type AbilitySystem = ReturnType<typeof useAbilitySystem>;

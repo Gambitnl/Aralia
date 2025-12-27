@@ -369,7 +369,9 @@ export function processAreaEndTurnTriggers(
 export function convertSpellEffectToProcessed(effect: SpellEffect): ProcessedEffect[] {
     const processed: ProcessedEffect[] = [];
 
-    // TODO: Include source metadata (spellId, casterId, optional saveDC) on ProcessedEffect to avoid downstream guesswork in handlers.
+    // TODO: Include source metadata (spellId, casterId, optional saveDC) on ProcessedEffect 
+    // to avoid downstream guesswork in handlers. Currently, handlers must re-lookup the 
+    // caster to calculate spell DC, which is fragile if the caster has left combat.
     switch (effect.type) {
         case 'DAMAGE':
             processed.push({
