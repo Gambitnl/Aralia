@@ -28,6 +28,7 @@ import { useGameInitialization } from './hooks/useGameInitialization';
 import { useHistorySync } from './hooks/useHistorySync';
 import { useCompanionCommentary } from './hooks/useCompanionCommentary';
 import { useCompanionBanter } from './hooks/useCompanionBanter';
+import { useMissingChoice } from './hooks/useMissingChoice';
 import { determineSettlementInfo } from './utils/settlementGeneration';
 import { t } from './utils/i18n';
 
@@ -84,13 +85,6 @@ const App: React.FC = () => {
   // Companion Banter
   useCompanionBanter(gameState, dispatch);
 
-  // State for Missing Choice Modal
-  const [missingChoiceModal, setMissingChoiceModal] = useState<{
-    isOpen: boolean;
-    character: PlayerCharacter | null;
-    missingChoice: MissingChoice | null;
-  }>({ isOpen: false, character: null, missingChoice: null });
-
   const addMessage = useCallback(
     (text: string, sender: 'system' | 'player' | 'npc' = 'system') => {
       const newMessage: GameMessage = {
@@ -103,6 +97,14 @@ const App: React.FC = () => {
     },
     [],
   );
+
+  // State for Missing Choice Modal
+  const {
+    missingChoiceModal,
+    setMissingChoiceModal,
+    handleFixMissingChoice,
+    handleConfirmMissingChoice
+  } = useMissingChoice(dispatch, addMessage);
 
   const { playPcmAudio, cleanupAudioContext } = useAudio(addMessage);
 
@@ -469,31 +471,6 @@ const App: React.FC = () => {
       dispatch({ type: 'SET_GLOSSARY_TERM_FOR_MODAL', payload: termId });
     }
   }, [dispatch, processAction, gameState.isGlossaryVisible]);
-
-
-  // Handler for missing choice selection
-  const handleFixMissingChoice = useCallback((character: PlayerCharacter, missing: MissingChoice) => {
-    setMissingChoiceModal({
-      isOpen: true,
-      character,
-      missingChoice: missing
-    });
-  }, []);
-
-  const handleConfirmMissingChoice = useCallback((choiceId: string, extraData?: any) => {
-    if (missingChoiceModal.character && missingChoiceModal.missingChoice) {
-      dispatch({
-        type: 'UPDATE_CHARACTER_CHOICE',
-        payload: {
-          characterId: missingChoiceModal.character.id!,
-          choiceType: missingChoiceModal.missingChoice.id, // e.g., 'dragonborn_ancestry' or 'missing_racial_spell'
-          choiceId: choiceId, // e.g., 'Red' or 'druidcraft'
-          secondaryValue: extraData, // Pass extra data like isCantrip
-        }
-      });
-      addMessage(`Updated ${missingChoiceModal.character.name}: Selected ${choiceId}.`, 'system');
-    }
-  }, [missingChoiceModal, dispatch, addMessage]);
 
 
   // --- Main Content Rendering Logic ---
