@@ -142,3 +142,11 @@ export function checkRitualInterrupt(
 
   return { interrupted: false, ritualBroken: false };
 }
+
+export const RitualManager = {
+  startRitual,
+  advanceRitual,
+  isRitualComplete,
+  checkInterruption: checkRitualInterrupt,
+  getBacklashOnFailure: (ritual: any) => []
+};
