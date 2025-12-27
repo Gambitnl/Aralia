@@ -6,7 +6,7 @@
 
 import { useMemo } from 'react';
 import { CombatState, CombatCharacter, LightLevel, BattleMapData } from '../../types/combat';
-import { VisibilitySystem } from '../../systems/visibility';
+import { VisibilitySystem, VisibilityTier } from '../../systems/visibility';
 
 interface UseVisibilityProps {
   combatState: CombatState;
@@ -41,7 +41,10 @@ export const useVisibility = ({ combatState, activeCharacterId, viewerId }: UseV
         return fullMap;
     }
 
-    return VisibilitySystem.calculateLightLevels(mapData, activeLightSources, ambient);
+    // Pass only expected arguments. VisibilitySystem doesn't accept 'ambient' string yet in my implementation.
+    // My implementation signature is: calculateLightLevels(mapData, lightSources)
+    // The previous code passed 'ambient'. I need to fix this call.
+    return VisibilitySystem.calculateLightLevels(mapData, activeLightSources);
   }, [mapData, activeLightSources]);
 
   // 2. Calculate Visible Tiles for the Viewer
@@ -61,7 +64,20 @@ export const useVisibility = ({ combatState, activeCharacterId, viewerId }: UseV
     const observer = characters.find(c => c.id === observerId);
     if (!observer) return new Set<string>();
 
-    return VisibilitySystem.getVisibleTiles(observer, mapData, lightLevels);
+    // UPDATE: getVisibleTiles -> calculateVisibility
+    // AND: Return type changed from Set to Map<string, VisibilityTier>.
+    // Consumers expect Set<string> (of visible IDs).
+    const visibilityMap = VisibilitySystem.calculateVisibility(observer, mapData, lightLevels);
+
+    // Filter the map to return a Set of keys where value is NOT 'hidden'
+    const visibleSet = new Set<string>();
+    visibilityMap.forEach((tier, tileId) => {
+      if (tier !== 'hidden') {
+        visibleSet.add(tileId);
+      }
+    });
+
+    return visibleSet;
   }, [mapData, lightLevels, characters, activeCharacterId, viewerId]);
 
   // Helpers
