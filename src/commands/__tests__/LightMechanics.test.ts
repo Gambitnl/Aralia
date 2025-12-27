@@ -1,8 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import { UtilityCommand } from '../effects/UtilityCommand';
+import { createMockCombatState } from '../../utils/factories';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState, Position } from '@/types/combat';
 import type { UtilityEffect } from '@/types/spells';
+import type { Class } from '@/types/character';
+
+const mockWizardClass: Class = {
+    id: 'wizard',
+    name: 'Wizard',
+    description: 'A wizard',
+    hitDie: 6,
+    primaryAbility: ['Intelligence'],
+    savingThrowProficiencies: ['Intelligence', 'Wisdom'],
+    skillProficienciesAvailable: [],
+    numberOfSkillProficiencies: 2,
+    armorProficiencies: [],
+    weaponProficiencies: [],
+    features: []
+};
 
 const baseStats = {
     strength: 10,
@@ -24,12 +40,11 @@ const baseEconomy = {
     freeActions: 0
 };
 
-// TODO: Supply a strongly typed class enum or `CharacterClass` instead of casting `'Wizard' as any` once those helpers are available.
 const makeCharacter = (id: string, position: Position): CombatCharacter => ({
     id,
     name: id,
     level: 2,
-    class: 'Wizard' as any,
+    class: mockWizardClass,
     position,
     stats: { ...baseStats },
     abilities: [],
@@ -62,14 +77,13 @@ const makeState = (characters: CombatCharacter[]): CombatState => ({
     activeLightSources: []
 });
 
-// TODO: Replace the `{} as any` gameState with a minimal typed mock so the `CommandContext` shape is satisfied without masking lint rules.
 const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): CommandContext => ({
     spellId: 'light',
     spellName: 'Light',
     castAtLevel: 0,
     caster,
     targets,
-    gameState: {} as any
+    gameState: createMockCombatState({ characters: [caster, ...targets] })
 });
 
 describe('LightMechanics', () => {
