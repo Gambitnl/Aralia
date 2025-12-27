@@ -13,7 +13,7 @@ interface DialogueInterfaceProps {
     playerCharacter: PlayerCharacter;
     onClose: () => void;
     onUpdateSession: (newSession: DialogueSession) => void;
-    onUpdateGameState: (updates: Partial<GameState>) => void; // Or dispatch
+    onTopicOutcome?: (result: ProcessTopicResult) => void;
     onGenerateResponse: (prompt: string) => Promise<string>;
 }
 
@@ -25,6 +25,7 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
     playerCharacter,
     onClose,
     onUpdateSession,
+    onTopicOutcome,
     onGenerateResponse
 }) => {
     const modalRef = useRef<HTMLDivElement>(null);
@@ -66,10 +67,10 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
         };
         onUpdateSession(newSession);
 
-        // 3. Update Global State (Disposition, Unlocks)
-        // This is tricky without a reducer dispatch, but we have onUpdateGameState callback
-        // This part requires the parent to handle the heavy lifting of state mutations usually.
-        // For this component, we'll focus on the DISPLAY and RESPONSE generation.
+        // 3. Update Global State (Disposition, Unlocks) via callback
+        if (onTopicOutcome) {
+            onTopicOutcome(result);
+        }
 
         // 4. Generate AI Response
         const response = await onGenerateResponse(result.responsePrompt);

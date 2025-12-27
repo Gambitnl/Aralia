@@ -27,6 +27,7 @@ export const GlossaryProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // TODO: Add specific check for empty/malformed JSON content to provide clearer error messages than generic fetch failures.
     const fetchAndProcessIndex = async (filePath: string): Promise<GlossaryEntry[]> => {
       try {
         // Use fetchWithTimeout for resilience
@@ -37,6 +38,7 @@ export const GlossaryProvider: React.FC<{ children: ReactNode }> = ({ children }
           const promises = data.index_files.map((nestedPath: string) =>
             fetchAndProcessIndex(assetUrl(nestedPath))
           );
+          // TODO: Switch to Promise.allSettled to allow partial glossary loading if one index file fails.
           const results = await Promise.all(promises);
           return results.flat(); // Flatten the array of arrays of entries
         }
@@ -55,13 +57,14 @@ export const GlossaryProvider: React.FC<{ children: ReactNode }> = ({ children }
       }
     };
 
+    // TODO: Implement lazy loading or pagination for glossary entries to prevent startup performance impact.
     const fetchAllData = async () => {
       try {
         const allEntries = await fetchAndProcessIndex(assetUrl('data/glossary/index/main.json'));
-        
+
         // We operate on the final flat list from all sources.
         const finalUniqueEntries = [...new Map(allEntries.map(item => [item.id, item])).values()];
-        
+
         setEntries(finalUniqueEntries);
         setError(null);
 
@@ -81,7 +84,7 @@ export const GlossaryProvider: React.FC<{ children: ReactNode }> = ({ children }
   }
 
   if (error) {
-     return <ErrorOverlay message={error} />;
+    return <ErrorOverlay message={error} />;
   }
 
   return (

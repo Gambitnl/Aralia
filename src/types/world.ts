@@ -31,6 +31,7 @@ export interface Location {
   biomeId: string;
   gossipLinks?: string[];
   planeId?: string; // Optional, defaults to 'material'
+  regionId?: string; // Links to REGIONAL_ECONOMIES
 }
 
 export interface TTSVoiceOption {
