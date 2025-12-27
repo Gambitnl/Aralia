@@ -13,7 +13,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { ai, isAiEnabled } from './aiClient'; // Import the shared AI client
 import { withRetry } from '../utils/networkUtils';
 import { logger } from '../utils/logger';
-import { Action, PlayerCharacter, InspectSubmapTilePayload, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState, ItemType, VillageActionContext, ItemRarity } from "../types";
+import { Action, PlayerCharacter, InspectSubmapTilePayload, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState, ItemType, VillageActionContext, ItemRarity, NPCMemory } from "../types";
+import { formatMemoryForAI } from '../utils/memoryUtils';
 import { SeededRandom } from '../utils/seededRandom';
 import { SUBMAP_ICON_MEANINGS } from '../data/glossaryData';
 import { CLASSES_DATA } from '../data/classes';
@@ -532,10 +533,18 @@ ${playerContext}
 export async function generateNPCResponse(
   personalityPrompt: string,
   fullPrompt: string,
-  devModelOverride: string | null = null
+  devModelOverride: string | null = null,
+  memory?: NPCMemory
 ): Promise<StandardizedResult<GeminiTextData>> {
   const adaptiveModel = chooseModelForComplexity(COMPLEX_MODEL, null);
-  return await generateText(fullPrompt, personalityPrompt, false, 'generateNPCResponse', devModelOverride, adaptiveModel);
+
+  let finalPrompt = fullPrompt;
+  if (memory) {
+    const memoryContext = formatMemoryForAI(memory);
+    finalPrompt = `${memoryContext}\n\n${fullPrompt}`;
+  }
+
+  return await generateText(finalPrompt, personalityPrompt, false, 'generateNPCResponse', devModelOverride, adaptiveModel);
 }
 
 function validateNarrativeResponse(text: string): string {
