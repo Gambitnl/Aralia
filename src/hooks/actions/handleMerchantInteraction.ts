@@ -16,6 +16,7 @@ interface HandleMerchantInteractionProps {
   dispatch: React.Dispatch<AppAction>;
   addMessage: AddMessageFn;
   addGeminiLog: AddGeminiLogFn;
+  generalActionContext: string;
 }
 
 export async function handleOpenDynamicMerchant({
@@ -24,6 +25,7 @@ export async function handleOpenDynamicMerchant({
   dispatch,
   addMessage,
   addGeminiLog,
+  generalActionContext,
 }: HandleMerchantInteractionProps): Promise<void> {
   const { merchantType, villageContext, buildingId, seedKey } = action.payload || {};
   if (!merchantType) {
@@ -53,6 +55,7 @@ export async function handleOpenDynamicMerchant({
   const inventoryResult = await GeminiService.generateMerchantInventory(
     contextForPrompt,
     merchantType,
+    generalActionContext, // Pass the global context (Time, Weather, Player)
     gameState.devModelOverride,
     resolvedSeedKey
   );

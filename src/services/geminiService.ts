@@ -1001,22 +1001,40 @@ export async function generateSituationAnalysis(
 export async function generateMerchantInventory(
   villageContext: VillageActionContext | undefined,
   shopType: string,
+  generalActionContext: string,
   devModelOverride: string | null = null,
   seedKey?: string
 ): Promise<StandardizedResult<GeminiInventoryData>> {
   const templateString = Object.entries(ItemTemplates).map(([key, tmpl]) => `${key}: ${JSON.stringify(tmpl)}`).join('\n\n');
-  // Spell out the village context so Gemini receives the culture/biome cues
-  // alongside the building description. This keeps inventories consistent with
-  // the generated settlement instead of relying on a generic fallback.
-  const contextDescription = villageContext
-    ? `A ${shopType} near ${villageContext.buildingType} at (${villageContext.worldX}, ${villageContext.worldY}) in biome ${villageContext.biomeId}. Personality prompt: ${villageContext.integrationPrompt}. Cultural signature: ${villageContext.culturalSignature}. Hooks: ${(villageContext.encounterHooks || []).join(' | ')}. Location detail: ${villageContext.description}`
-    : `A ${shopType} with no specific village context; default to a frontier trading post vibe.`;
-  const systemInstruction = `You are a Game Master generating a shop inventory.
-    Context: ${contextDescription}.
-    Return a JSON object with keys: "inventory" (array of items using provided schemas) and "economy" (scarcity/surplus data).
-    ITEM SCHEMAS: ${templateString}`;
 
-  const prompt = `Generate inventory for ${shopType}.`;
+  // Chronicler Update: Use generalActionContext to bring in World/Season/Time context
+  // This allows the merchant to react to "It is Winter" or "It is Night" or "War News".
+
+  // Spell out the village context so Gemini receives the culture/biome cues
+  const settlementContext = villageContext
+    ? `Settlement: ${villageContext.buildingType} at (${villageContext.worldX}, ${villageContext.worldY}) in biome ${villageContext.biomeId}. Culture: ${villageContext.culturalSignature}.`
+    : `Settlement: A generic frontier trading post.`;
+
+  const systemInstruction = `You are a Game Master generating a shop inventory for a ${shopType}.
+    Your goal is to stock the shop with items that reflect the current world state (season, weather, events).
+
+    ## WORLD CONTEXT
+    ${generalActionContext}
+
+    ## LOCAL CONTEXT
+    ${settlementContext}
+
+    ## REQUIREMENTS
+    - Return a JSON object with keys: "inventory" (array of items) and "economy" (scarcity/surplus lists).
+    - Items must follow the provided schemas exactly.
+    - If it is Winter/Cold, stock warm gear.
+    - If there is war news, stock weapons/supplies or mark them as scarce.
+    - If it is Night, stock light sources.
+
+    ## ITEM SCHEMAS
+    ${templateString}`;
+
+  const prompt = `Generate inventory for a ${shopType}. Make it feel alive and reactive to the world context.`;
 
   const result = await generateText(prompt, systemInstruction, true, 'generateMerchantInventory', devModelOverride);
 

@@ -57,13 +57,15 @@ describe('geminiService', () => {
   });
 
   describe('generateMerchantInventory', () => {
+    const mockContext = "World is at peace.";
+
     it('should return fallback inventory when JSON parsing fails', async () => {
       const mockGenerateContent = ai.models.generateContent as any;
       mockGenerateContent.mockResolvedValue({
         text: 'This is not JSON',
       });
 
-      const result = await geminiService.generateMerchantInventory(undefined, 'General Store');
+      const result = await geminiService.generateMerchantInventory(undefined, 'General Store', mockContext);
 
       expect(result.data).not.toBeNull();
       expect(result.data?.inventory.length).toBeGreaterThan(0);
@@ -76,8 +78,8 @@ describe('geminiService', () => {
         text: 'This is not JSON',
       });
 
-      const a = await geminiService.generateMerchantInventory(undefined, 'HOUSE_SMALL', null, 'seed-a');
-      const b = await geminiService.generateMerchantInventory(undefined, 'HOUSE_SMALL', null, 'seed-b');
+      const a = await geminiService.generateMerchantInventory(undefined, 'HOUSE_SMALL', mockContext, null, 'seed-a');
+      const b = await geminiService.generateMerchantInventory(undefined, 'HOUSE_SMALL', mockContext, null, 'seed-b');
 
       const namesA = (a.data?.inventory ?? []).map(i => i.name);
       const namesB = (b.data?.inventory ?? []).map(i => i.name);

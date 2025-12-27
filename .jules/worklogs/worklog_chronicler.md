@@ -9,3 +9,6 @@
 ### 2025-12-22 - Unified Inspection Context
 **Learning:** Specific prompts like 'Inspect Tile' often lack the broader atmospheric context (weather, time, location vibe) available to general actions. This leads to dry, disconnected descriptions.
 **Action:** Always inject the full `generalActionContext` (or a subset of it) into specific, localized prompts to ground them in the current world state. Use a '## INSPECTION TARGET' header to distinguish the specific focus from the general context.
+## 2025-12-23 - World Context in Static Generators
+**Learning:** Static generators (like Merchant Inventory) often run in isolation, missing critical world state (Weather, War, Time).
+**Action:** Propagate the `generalActionContext` string into these generators. Even if the generator is 'static' (inventory), the world state provides crucial flavor (winter clothes in winter, torches at night).
