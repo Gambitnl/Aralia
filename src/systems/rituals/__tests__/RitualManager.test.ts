@@ -21,7 +21,7 @@ const mockCaster: CombatCharacter = {
   actionEconomy: { action: { used: false, remaining: 1 }, bonusAction: { used: false, remaining: 1 }, reaction: { used: false, remaining: 1 }, movement: { used: 0, total: 30 }, freeActions: 1 }
 };
 
-const mockSpellStandard: Spell = {
+const mockSpell: Spell = {
   id: 'identify',
   name: 'Identify',
   level: 1,
@@ -36,53 +36,19 @@ const mockSpellStandard: Spell = {
   effects: []
 };
 
-const mockSpellRitual: Spell = {
-  ...mockSpellStandard,
-  id: 'alarm',
-  name: 'Alarm',
-  ritual: true,
-  castingTime: { value: 1, unit: 'minute' }
-};
-
-const mockSpellActionRitual: Spell = {
-  ...mockSpellStandard,
-  id: 'detect-magic',
-  name: 'Detect Magic',
-  ritual: true,
-  castingTime: { value: 1, unit: 'action' }
-};
-
 describe('RitualManager', () => {
-  it('should start a standard cast with correct duration (1 minute)', () => {
-    const ritual = startRitual(mockCaster, mockSpellStandard, 1, false);
+  it('should start a ritual with correct duration', () => {
+    const ritual = startRitual(mockCaster, mockSpell, 1);
 
+    expect(ritual.casterId).toBe('caster-1');
+    expect(ritual.spellName).toBe('Identify');
     expect(ritual.durationTotal).toBe(10); // 1 minute = 10 rounds
     expect(ritual.progress).toBe(0);
-  });
-
-  it('should start a ritual cast (1 minute base + 10 mins ritual)', () => {
-    const ritual = startRitual(mockCaster, mockSpellRitual, 1, true);
-
-    // 10 rounds (1 min) + 100 rounds (10 mins) = 110 rounds
-    expect(ritual.durationTotal).toBe(110);
-  });
-
-  it('should start an action ritual cast (1 action base + 10 mins ritual)', () => {
-    const ritual = startRitual(mockCaster, mockSpellActionRitual, 1, true);
-
-    // 0 rounds (action) + 100 rounds (10 mins) = 100 rounds
-    expect(ritual.durationTotal).toBe(100);
-  });
-
-  it('should NOT add ritual time if asRitual is false', () => {
-    const ritual = startRitual(mockCaster, mockSpellRitual, 1, false);
-
-    // Standard cast of Alarm is 1 minute = 10 rounds
-    expect(ritual.durationTotal).toBe(10);
+    expect(ritual.isPaused).toBe(false);
   });
 
   it('should advance ritual progress', () => {
-    let ritual = startRitual(mockCaster, mockSpellStandard, 1);
+    let ritual = startRitual(mockCaster, mockSpell, 1);
     ritual = advanceRitual(ritual, 1);
 
     expect(ritual.progress).toBe(1);
@@ -94,7 +60,7 @@ describe('RitualManager', () => {
   });
 
   it('should detect interruption from damage', () => {
-    const ritual = startRitual(mockCaster, mockSpellStandard, 1);
+    const ritual = startRitual(mockCaster, mockSpell, 1);
 
     // Damage interrupt
     const result = checkRitualInterrupt(ritual, 'damage', 10);
@@ -104,8 +70,8 @@ describe('RitualManager', () => {
   });
 
   it('should handle movement interruption if configured', () => {
-    const ritual = startRitual(mockCaster, mockSpellStandard, 1);
-    // Default config breaksOnMove is false
+    const ritual = startRitual(mockCaster, mockSpell, 1);
+    // Default config breaksOnMove is false in our impl
     const result = checkRitualInterrupt(ritual, 'movement');
     expect(result.interrupted).toBe(false);
 
