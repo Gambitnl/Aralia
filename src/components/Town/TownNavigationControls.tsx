@@ -1,5 +1,5 @@
 /**
- * @file src/components/TownNavigationControls.tsx
+ * @file src/components/Town/TownNavigationControls.tsx
  * 8-directional compass-style navigation controls for town exploration.
  * 
  * Provides buttons for moving in all 8 directions plus a center action button.
@@ -13,6 +13,7 @@ import {
     ArrowUpLeft, ArrowUpRight, ArrowDownLeft, ArrowDownRight,
     DoorOpen, Castle
 } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
 
 interface TownNavigationControlsProps {
     /** Called when a direction is pressed */
@@ -92,6 +93,13 @@ const KEY_TO_DIRECTION: Record<string, TownDirection> = {
     'C': 'southeast',
 };
 
+// Grid layout for the 3x3 control pad
+const CONTROL_GRID: (TownDirection | 'EXIT')[] = [
+    'northwest', 'north', 'northeast',
+    'west', 'EXIT', 'east',
+    'southwest', 'south', 'southeast'
+];
+
 const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
     onMove,
     onExit,
@@ -103,6 +111,8 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
     strongholdId,
     onManageStronghold
 }) => {
+    const shouldReduceMotion = useReducedMotion();
+
     // Keyboard handler
     useEffect(() => {
         if (disabled) return;
@@ -139,9 +149,9 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
 
     const isBlocked = (dir: TownDirection) => blockedDirections.includes(dir);
 
-    // Button styling
+    // Button styling generator
     const getButtonClass = (direction: TownDirection) => {
-        const base = 'w-10 h-10 flex items-center justify-center rounded-lg transition-all duration-150 border focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500';
+        const base = 'w-10 h-10 flex items-center justify-center rounded-lg border focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 shadow-sm';
         const isCorner = ['northwest', 'northeast', 'southwest', 'southeast'].includes(direction);
 
         if (disabled) {
@@ -152,126 +162,122 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
             return `${base} bg-gray-800/50 border-gray-700/50 text-gray-600 cursor-not-allowed`;
         }
 
-        return `${base} bg-gray-700 border-gray-600 text-gray-200 hover:bg-amber-600 hover:border-amber-500 hover:text-white active:scale-95 cursor-pointer ${isCorner ? 'opacity-80' : ''}`;
+        return `${base} bg-gray-700 border-gray-600 text-gray-200 hover:bg-amber-600 hover:border-amber-500 hover:text-white cursor-pointer ${isCorner ? 'opacity-80' : ''}`;
     };
 
+    // Animation variants
+    const containerVariants = {
+        hidden: { opacity: 0, scale: 0.95 },
+        visible: {
+            opacity: 1,
+            scale: 1,
+            transition: {
+                staggerChildren: 0.05,
+                delayChildren: 0.1
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 10 },
+        visible: { opacity: 1, y: 0 }
+    };
+
+    const buttonTapScale = shouldReduceMotion ? 1 : 0.92;
+
     return (
-        <div className="flex flex-col items-center gap-4 p-4 bg-gray-900/90 rounded-xl border border-gray-700 backdrop-blur-sm">
+        <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="flex flex-col items-center gap-4 p-4 bg-gray-900/95 rounded-xl border border-gray-700 backdrop-blur-md shadow-xl"
+        >
             {/* Tile Description */}
             {tileDescription && (
-                <div className="text-center text-sm text-gray-300 max-w-[200px] leading-tight" role="status" aria-live="polite">
+                <motion.div
+                    variants={itemVariants}
+                    className="text-center text-sm text-gray-300 max-w-[200px] leading-tight font-medium"
+                    role="status"
+                    aria-live="polite"
+                >
                     {tileDescription}
-                </div>
+                </motion.div>
             )}
 
             {/* 3x3 Compass Grid */}
-            <div className="grid grid-cols-3 gap-1" role="group" aria-label="Town Navigation Controls">
-                {/* Row 1: NW, N, NE */}
-                <button
-                    className={getButtonClass('northwest')}
-                    onClick={() => handleDirectionClick('northwest')}
-                    disabled={disabled || isBlocked('northwest')}
-                    title="Move Northwest (Q)"
-                    aria-label={DIRECTION_LABELS.northwest}
-                >
-                    {DIRECTION_ICONS.northwest}
-                </button>
-                <button
-                    className={getButtonClass('north')}
-                    onClick={() => handleDirectionClick('north')}
-                    disabled={disabled || isBlocked('north')}
-                    title="Move North (W / ↑)"
-                    aria-label={DIRECTION_LABELS.north}
-                >
-                    {DIRECTION_ICONS.north}
-                </button>
-                <button
-                    className={getButtonClass('northeast')}
-                    onClick={() => handleDirectionClick('northeast')}
-                    disabled={disabled || isBlocked('northeast')}
-                    title="Move Northeast (E)"
-                    aria-label={DIRECTION_LABELS.northeast}
-                >
-                    {DIRECTION_ICONS.northeast}
-                </button>
+            <div className="grid grid-cols-3 gap-1.5" role="group" aria-label="Town Navigation Controls">
+                {CONTROL_GRID.map((item) => {
+                    if (item === 'EXIT') {
+                        return (
+                            <motion.button
+                                key="exit"
+                                variants={itemVariants}
+                                whileTap={{ scale: buttonTapScale }}
+                                className="w-10 h-10 flex items-center justify-center rounded-lg bg-amber-600 border border-amber-500 text-white hover:bg-amber-500 shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                                onClick={onExit}
+                                disabled={disabled}
+                                title="Leave Town (Escape)"
+                                aria-label="Leave Town"
+                            >
+                                <DoorOpen size={20} aria-hidden="true" />
+                            </motion.button>
+                        );
+                    }
 
-                {/* Row 2: W, CENTER, E */}
-                <button
-                    className={getButtonClass('west')}
-                    onClick={() => handleDirectionClick('west')}
-                    disabled={disabled || isBlocked('west')}
-                    title="Move West (A / ←)"
-                    aria-label={DIRECTION_LABELS.west}
-                >
-                    {DIRECTION_ICONS.west}
-                </button>
-                <button
-                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-amber-600 border border-amber-500 text-white hover:bg-amber-500 active:scale-95 transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                    onClick={onExit}
-                    disabled={disabled}
-                    title="Leave Town (Escape)"
-                    aria-label="Leave Town"
-                >
-                    <DoorOpen size={20} aria-hidden="true" />
-                </button>
-                <button
-                    className={getButtonClass('east')}
-                    onClick={() => handleDirectionClick('east')}
-                    disabled={disabled || isBlocked('east')}
-                    title="Move East (D / →)"
-                    aria-label={DIRECTION_LABELS.east}
-                >
-                    {DIRECTION_ICONS.east}
-                </button>
+                    const direction = item as TownDirection;
+                    const shortcuts = {
+                        north: '(W / ↑)',
+                        south: '(S / ↓)',
+                        east: '(D / →)',
+                        west: '(A / ←)',
+                        northeast: '(E)',
+                        northwest: '(Q)',
+                        southeast: '(C)',
+                        southwest: '(Z)',
+                    };
 
-                {/* Row 3: SW, S, SE */}
-                <button
-                    className={getButtonClass('southwest')}
-                    onClick={() => handleDirectionClick('southwest')}
-                    disabled={disabled || isBlocked('southwest')}
-                    title="Move Southwest (Z)"
-                    aria-label={DIRECTION_LABELS.southwest}
-                >
-                    {DIRECTION_ICONS.southwest}
-                </button>
-                <button
-                    className={getButtonClass('south')}
-                    onClick={() => handleDirectionClick('south')}
-                    disabled={disabled || isBlocked('south')}
-                    title="Move South (S / ↓)"
-                    aria-label={DIRECTION_LABELS.south}
-                >
-                    {DIRECTION_ICONS.south}
-                </button>
-                <button
-                    className={getButtonClass('southeast')}
-                    onClick={() => handleDirectionClick('southeast')}
-                    disabled={disabled || isBlocked('southeast')}
-                    title="Move Southeast (C)"
-                    aria-label={DIRECTION_LABELS.southeast}
-                >
-                    {DIRECTION_ICONS.southeast}
-                </button>
+                    return (
+                        <motion.button
+                            key={direction}
+                            variants={itemVariants}
+                            whileTap={!disabled && !isBlocked(direction) ? { scale: buttonTapScale } : undefined}
+                            className={getButtonClass(direction)}
+                            onClick={() => handleDirectionClick(direction)}
+                            disabled={disabled || isBlocked(direction)}
+                            title={`${DIRECTION_LABELS[direction]} ${shortcuts[direction] || ''}`}
+                            aria-label={DIRECTION_LABELS[direction]}
+                        >
+                            {DIRECTION_ICONS[direction]}
+                        </motion.button>
+                    );
+                })}
             </div>
 
             {/* Adjacent Buildings */}
             {adjacentBuildings.length > 0 && (
-                <div className="w-full border-t border-gray-700 pt-3 mt-1" role="region" aria-label="Nearby Buildings">
-                    <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">Nearby</div>
-                    <div className="flex flex-col gap-1">
+                <motion.div
+                    variants={itemVariants}
+                    className="w-full border-t border-gray-700 pt-3 mt-1"
+                    role="region"
+                    aria-label="Nearby Buildings"
+                >
+                    <div className="text-xs text-gray-500 uppercase tracking-wide mb-2 font-semibold">Nearby</div>
+                    <div className="flex flex-col gap-2">
                         {adjacentBuildings.map((building) => (
-                            <button
+                            <motion.button
                                 key={building.id}
-                                className="w-full text-left px-3 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm text-gray-200 transition-colors border border-gray-700 hover:border-amber-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                                whileHover={shouldReduceMotion ? {} : { scale: 1.02, x: 2 }}
+                                whileTap={{ scale: buttonTapScale }}
+                                className="w-full text-left px-3 py-2 bg-gray-800 hover:bg-gray-750 rounded-lg text-sm text-gray-200 transition-colors border border-gray-700 hover:border-amber-500/50 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                                 onClick={() => onBuildingInteract?.(building.id)}
                                 aria-label={`Enter ${building.name} (${building.type})`}
                             >
-                                <span className="font-medium">{building.name}</span>
-                                <span className="text-xs text-gray-500 ml-2" aria-hidden="true">({building.type})</span>
-                            </button>
+                                <span className="font-medium text-amber-100/90">{building.name}</span>
+                                <span className="text-xs text-gray-500 ml-2 block" aria-hidden="true">{building.type}</span>
+                            </motion.button>
                         ))}
                     </div>
-                </div>
+                </motion.div>
             )}
 
              {/* Stronghold Management */}
@@ -290,11 +296,11 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
             )}
 
             {/* Keyboard Hints */}
-            <div className="text-xs text-gray-500 flex gap-3" aria-hidden="true">
+            <motion.div variants={itemVariants} className="text-[10px] text-gray-500 flex gap-3 opacity-70" aria-hidden="true">
                 <span>WASD to move</span>
                 <span>ESC to exit</span>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };
 

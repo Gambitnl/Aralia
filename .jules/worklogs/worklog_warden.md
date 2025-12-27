@@ -25,3 +25,7 @@ This journal tracks CRITICAL error handling learnings, patterns, and strategies.
 1.  Verify array integrity (`Array.isArray()`) before iterating, even if TypeScript types say it's an array.
 2.  Use explicit fallbacks for critical calculations (e.g., `spellcastingStat` lookup) to prevent `undefined` -> `NaN` cascades.
 3.  Sanitize inputs to parsing functions (e.g., check `diceString` validity) before processing.
+
+## 2025-05-24 - Factory Fallback Pattern
+**Learning:** When data conversion factories fail (e.g. `createAbilityFromSpell`), throwing an error often crashes the entire React component tree or game loop.
+**Action:** Wrap the factory logic in a `try-catch` block that logs the error and returns a "Safe Object" (e.g. a "Fizzled Spell" ability with a distinctive icon like 🚫). This allows the game to continue running and visualizes the data corruption to the user/developer without a hard crash.

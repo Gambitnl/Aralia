@@ -6,6 +6,7 @@ import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, Temp
 import { RitualState, RitualEvent } from '../types/rituals';
 import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload } from './payloads/identityPayloads';
 import { DialogueSession } from '../types/dialogue';
+import { WorldHistoryEvent } from '../types/history';
 
 export type AppAction =
   | { type: 'SET_GAME_PHASE'; payload: GamePhase }
@@ -104,6 +105,7 @@ export type AppAction =
   | { type: 'ADD_LOCATION_RESIDUE'; payload: AddLocationResiduePayload }
   | { type: 'REMOVE_LOCATION_RESIDUE'; payload: RemoveLocationResiduePayload }
   | { type: 'REGISTER_DYNAMIC_ENTITY'; payload: { entityType: 'location', entity: Location } | { entityType: 'faction', entity: Faction } | { entityType: 'npc', entity: NPC } }
+  | { type: 'ADD_WORLD_HISTORY_EVENT'; payload: { event: WorldHistoryEvent } }
   // Gemini Intelligence Action
   | { type: 'ANALYZE_SITUATION' }
   // Dynamic Actions

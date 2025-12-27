@@ -4,6 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import AbilityButton from '../AbilityButton';
 import { Ability } from '../../../types/combat';
+import { SpellSchool } from '@/types/spells';
 
 describe('AbilityButton', () => {
     const mockOnSelect = vi.fn();
@@ -21,7 +22,7 @@ describe('AbilityButton', () => {
             id: 'fireball',
             name: 'Fireball',
             level: 3,
-            school: 'Evocation',
+            school: SpellSchool.Evocation,
             classes: ['Wizard'],
             description: 'Explosion',
             castingTime: { value: 1, unit: 'action' },

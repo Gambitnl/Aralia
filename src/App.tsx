@@ -41,9 +41,9 @@ import {
   LOCATIONS,
   ITEMS,
   NPCS,
-  DUMMY_PARTY_FOR_DEV,
   BIOMES,
 } from './constants';
+import { getDummyParty } from './data/dev/dummyCharacter';
 import { SUBMAP_DIMENSIONS } from './config/mapConfig';
 import { canUseDevTools } from './utils/permissions';
 import { validateEnv } from './config/env';
@@ -238,7 +238,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (
       canUseDevTools() &&
-      DUMMY_PARTY_FOR_DEV.length > 0 &&
+      getDummyParty().length > 0 &&
       gameState.phase === GamePhase.PLAYING &&
       gameState.party.length > 0 &&
       gameState.messages.length === 0 &&

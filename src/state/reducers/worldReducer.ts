@@ -8,7 +8,11 @@ import { processWorldEvents } from '../../systems/world/WorldEventManager';
 import { UnderdarkMechanics } from '../../systems/underdark/UnderdarkMechanics';
 import { getGameDay } from '../../utils/timeUtils';
 import { ritualReducer } from './ritualReducer';
+<<<<<<< HEAD
+import { addHistoryEvent, createEmptyHistory } from '../../utils/historyUtils';
+=======
 import { processDailyUpkeep } from '../../services/strongholdService';
+>>>>>>> 3a500b4 (Save local changes before rebase)
 
 export function worldReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
@@ -177,6 +181,14 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         };
       }
       return {};
+    }
+
+    case 'ADD_WORLD_HISTORY_EVENT': {
+      const currentHistory = state.worldHistory || createEmptyHistory();
+      const updatedHistory = addHistoryEvent(currentHistory, action.payload.event);
+      return {
+        worldHistory: updatedHistory
+      };
     }
 
     default:

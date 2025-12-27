@@ -478,16 +478,21 @@ export async function generateLocationDescription(
   context: string,
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
-  const systemInstruction = "Describe a new location in a high fantasy RPG. Response MUST be EXTREMELY BRIEF: 1-2 sentences MAX. Give ONLY key sights, sounds, or atmosphere. No fluff.";
+  // Chronicler Refactor: Improved instruction for richer atmosphere while maintaining brevity
+  const systemInstruction = "You are the Narrator for Aralia, a high fantasy RPG. Your goal is to ground the player in the scene with evocative, sensory-rich descriptions. Maintain a 'High Fantasy, Immersive, Gritty' tone. Keep descriptions concise (2-3 sentences) but atmospheric.";
 
-  // Structured prompt for better narrative consistency
+  // Structured prompt for better narrative consistency and context integration
   const prompt = `## NARRATIVE TASK
-Describe the location "${locationName}" as the player arrives. Focus on atmosphere, key features, and sensory details (sound/smell).
+Describe the location "${locationName}" as the player arrives.
 
+## CONTEXT
 ${context}
 
-## OUTPUT
-Provide an EXTREMELY BRIEF description (1-2 sentences MAX). No fluff.`;
+## NARRATIVE GUIDELINES
+- Tone: High Fantasy, Immersive, Gritty.
+- Show, Don't Tell: Use sensory details (smell of rain, sound of distant bells, chill in the air) rather than generic labels.
+- Integration: If the Context mentions weather or time, weave it into the description.
+- Brevity: Limit response to 2-3 evocative sentences. Avoid flowery filler.`;
 
   return await generateText(prompt, systemInstruction, false, 'generateLocationDescription', devModelOverride, FAST_MODEL);
 }
@@ -500,19 +505,26 @@ export async function generateWildernessLocationDescription(
   worldMapTileTooltip?: string | null,
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
-  const systemInstruction = "You are a concise storyteller describing a wilderness location in a fantasy RPG. Response MUST be 2-3 sentences. Focus on immediate sensory details. No long descriptions.";
+  // Chronicler Refactor: Improved instruction for richer wilderness immersion
+  const systemInstruction = "You are the Narrator for Aralia, a high fantasy RPG. Describe the wilderness with 'High Fantasy, Immersive, Gritty' tone. Focus on the immediate environment and sensory details. Keep it concise (2-3 sentences).";
 
   // Structured prompt for better narrative consistency
   const prompt = `## NARRATIVE TASK
 Describe the wilderness area the player has moved into.
-Biome: ${biomeName}
-Coordinates: World(${worldMapCoords.x},${worldMapCoords.y}) Sub(${subMapCoords.x},${subMapCoords.y})
-Broader Region: ${worldMapTileTooltip || 'None'}
 
+## LOCATION DATA
+- Biome: ${biomeName}
+- Coordinates: World(${worldMapCoords.x},${worldMapCoords.y}) Sub(${subMapCoords.x},${subMapCoords.y})
+- Broader Region: ${worldMapTileTooltip || 'None'}
+
+## CONTEXT
 ${playerContext}
 
-## OUTPUT
-Provide a brief, 2-3 sentence description focusing on immediate sensory details (weather, terrain, wildlife sounds).`;
+## NARRATIVE GUIDELINES
+- Tone: High Fantasy, Immersive, Gritty.
+- Focus: Immediate sensory details (weather, terrain texture, wildlife sounds).
+- Immersion: Make the wilderness feel alive and indifferent to the player.
+- Brevity: 2-3 sentences max.`;
 
   return await generateText(prompt, systemInstruction, false, 'generateWildernessLocationDescription', devModelOverride, FAST_MODEL);
 }
