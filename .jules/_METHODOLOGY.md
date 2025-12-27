@@ -25,7 +25,7 @@ When implementing anything:
 3. **Don't leave TODOs in your own work.** If you know something needs to be done, do it now.
 4. **Don't underestimate scope.** If a feature needs 500 lines, write 500 lines. Don't cram it into 50.
 5. **Don't optimize for "small PRs".** Optimize for *complete* PRs.
-   - **Hard cap:** Keep each PR to **10 files or fewer**. If work exceeds 10 files, split into multiple PRs or ask Core/Herald to approve an exception.
+   - **Hard cap:** Keep each PR to **10 files or fewer**. If work exceeds 10 files, split into multiple PRs or ask the Coordinator to approve an exception.
 
 **Anti-patterns to avoid:**
 ```typescript
@@ -146,7 +146,7 @@ For each file you touched:
 - `src/path/to/another.ts` - [brief purpose]
 ```
 
-The Core persona (run by maintainer) will consolidate these into the architecture documentation between runs.
+The Coordinator (run by maintainer) will consolidate these into the architecture documentation between runs.
 
 ### When Modifying Shared Files
 
@@ -214,7 +214,7 @@ cat /etc/timezone && date
 **Result:** [what happened - worked, permission denied, command not found, etc.]
 ```
 
-This helps the Core persona (maintainer) understand what's possible in your environment and collectively troubleshoot date discovery for future batches.
+This helps the Coordinator (maintainer) understand what's possible in your environment and collectively troubleshoot date discovery for future batches.
 
 ### Entry Format
 ```markdown
@@ -254,7 +254,7 @@ After completing your task, if you noticed:
 -->
 ```
 
-These are HTML comments so they won't render, but the Core persona can find and aggregate them.
+These are HTML comments so they won't render, but the Coordinator can find and aggregate them.
 
 **Rules:**
 - ONLY append suggestions - never modify your persona content directly

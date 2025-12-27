@@ -45,7 +45,7 @@ npm run lint     # Should pass - clean code
 | Acceptable | 50-200 | Should have clear reason |
 | Split it | > 200 | Break into smaller PRs |
 
-**File count cap:** 10 files max per PR. If you exceed 10 files, split into multiple PRs or request an exception from Core/Herald.
+**File count cap:** 10 files max per PR. If you exceed 10 files, split into multiple PRs or request a Coordinator exception.
 
 **Exceptions:**
 - Pure renames/moves can be larger
