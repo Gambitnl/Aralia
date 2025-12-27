@@ -11,7 +11,7 @@
  */
 
 import { CombatCharacter, Position, BattleMapData } from '../../../types/combat';
-import { getDistance } from '../../../utils/combatUtils';
+import { getDistance, canTakeReaction } from '../../../utils/combatUtils';
 import { hasLineOfSight } from '../../../utils/lineOfSight';
 
 export interface OpportunityAttackResult {
@@ -56,12 +56,8 @@ export class OpportunityAttackSystem {
       // Skip allies (assuming simplistic team check)
       if (attacker.team === mover.team) continue;
 
-      // Skip incapacitated/dead attackers
-      if (attacker.currentHP <= 0) continue;
-      // TODO: Check conditions like Paralyzed, Stunned, Unconscious
-
-      // Skip if no reaction
-      if (attacker.actionEconomy.reaction.used) continue;
+      // Check if attacker can physically take a reaction (Alive, Conscious, Not Incapacitated/Stunned/Paralyzed)
+      if (!canTakeReaction(attacker)) continue;
 
       // Check Visibility (Line of Sight)
       if (mapData) {

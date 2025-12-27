@@ -29,3 +29,7 @@ This journal tracks CRITICAL error handling learnings, patterns, and strategies.
 ## 2024-05-25 - Core Loop Service Hardening
 **Learning:** Central services like `TravelService` that are invoked during the main game loop (e.g., player movement) are single points of failure. Blindly casting inputs (e.g., `travelers as PlayerCharacter[]`) and passing them to calculation systems causes immediate crashes if the state is malformed (e.g., corrupted save, partial test data).
 **Action:** Wrap critical public service methods in a top-level `try-catch` block that returns a safe "fallback result" (e.g., 0 distance, 0 time) instead of allowing the exception to propagate and white-screen the application. Validate complex array inputs (filter for valid objects) before processing.
+
+## 2025-05-24 - Factory Fallback Pattern
+**Learning:** When data conversion factories fail (e.g. `createAbilityFromSpell`), throwing an error often crashes the entire React component tree or game loop.
+**Action:** Wrap the factory logic in a `try-catch` block that logs the error and returns a "Safe Object" (e.g. a "Fizzled Spell" ability with a distinctive icon like 🚫). This allows the game to continue running and visualizes the data corruption to the user/developer without a hard crash.

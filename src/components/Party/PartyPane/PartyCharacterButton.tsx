@@ -1,14 +1,8 @@
 
-/**
- * @file PartyPane.tsx
- * This component displays the player's party members' core stats.
- * It shows a button for each member, which opens their detailed character sheet on click.
- * It now includes a warning indicator if a character has missing required choices.
- */
 import React, { useMemo } from 'react';
-import { PlayerCharacter, MissingChoice } from '../../types';
-import Tooltip from '../Tooltip';
-import { validateCharacterChoices } from '../../utils/characterValidation';
+import { PlayerCharacter, MissingChoice } from '../../../types';
+import Tooltip from '../../Tooltip';
+import { validateCharacterChoices } from '../../../utils/characterValidation';
 
 interface PartyCharacterButtonProps {
   character: PlayerCharacter;
@@ -74,10 +68,18 @@ const PartyCharacterButton: React.FC<PartyCharacterButtonProps> = ({ character, 
         
         {/* Warning Icon Overlay */}
         {hasMissingChoices && (
-            <div className="absolute -top-1 -right-1 z-10">
+            <div
+                className="absolute -top-1 -right-1 z-10"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+            >
                 <Tooltip content={`Missing Selection: ${missingChoices[0].label}. Click to fix.`}>
                     <button 
-                        onClick={(e) => { e.stopPropagation(); onMissingChoiceClick(character, missingChoices[0]); }}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onMissingChoiceClick(character, missingChoices[0]);
+                        }}
                         className="bg-red-900 text-yellow-400 rounded-full p-1 border-2 border-yellow-500 shadow-lg animate-pulse hover:scale-110 transition-transform"
                         aria-label="Fix missing character selection"
                     >
@@ -92,30 +94,4 @@ const PartyCharacterButton: React.FC<PartyCharacterButtonProps> = ({ character, 
   );
 };
 
-interface PartyPaneProps {
-  party: PlayerCharacter[];
-  onViewCharacterSheet: (character: PlayerCharacter) => void;
-  onFixMissingChoice: (character: PlayerCharacter, missing: MissingChoice) => void;
-}
-
-const PartyPane: React.FC<PartyPaneProps> = ({ party, onViewCharacterSheet, onFixMissingChoice }) => {
-  return (
-    <div className="w-full bg-gray-800 p-4 rounded-lg shadow-xl border border-gray-700">
-      <div className="border-b-2 border-amber-500 pb-2 mb-4">
-        <h2 className="text-2xl font-bold text-amber-400 font-cinzel text-center tracking-wide">Party</h2>
-      </div>
-      <div className="space-y-3">
-        {party.map(member => (
-            <PartyCharacterButton 
-                key={member.id || member.name} 
-                character={member} 
-                onClick={() => onViewCharacterSheet(member)} 
-                onMissingChoiceClick={onFixMissingChoice}
-            />
-        ))}
-      </div>
-    </div>
-  );
-};
-
-export default PartyPane;
+export default PartyCharacterButton;
