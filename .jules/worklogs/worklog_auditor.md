@@ -23,3 +23,9 @@
 **Learning:** Spells that offer a choice (e.g., *Blindness/Deafness*) often force invalid data into required fields (e.g., `statusCondition.name: "Blinded/Deafened"`) because the schema lacks a "Choice" structure. This passes loose JSON validation but fails strict Type checks or runtime lookups.
 
 **Action:** Created `GAP-CHOICE-SPELLS.md`. In the interim, always default to the primary effect (e.g., "Blinded") and use `arbitrationType: "player_choice"` to signal the UI/AI to intervene, rather than corrupting the data field with invalid values.
+
+## 2024-05-26 - "Save Half" on Cantrips (Copy-Paste Error)
+
+**Learning:** An audit of Level 0 spells revealed that 30% of saving-throw cantrips (specifically *Thunderclap*, *Toll the Dead*, *Word of Radiance*) incorrectly used `saveEffect: "half"`. This is likely due to copy-pasting from leveled AoE spells like *Burning Hands*. Cantrips in 5e are strictly "all or nothing".
+
+**Action:** Created `scripts/audits/cantrip_save_audit.ts` to strictly enforce `saveEffect: "none"` (or "negates_condition") for all Level 0 spells. This semantic check should be integrated into the main `spellValidator.ts` pipeline.
