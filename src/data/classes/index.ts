@@ -16,82 +16,83 @@ const FIGHTING_STYLES_DATA: Record<string, FightingStyle> = {
 };
 
 const BARD_SPELL_LIST = [
-    // Cantrips
-    'blade-ward', 'dancing-lights', 'friends', 'light', 'mage-hand', 'mending', 'message', 'minor-illusion', 'prestidigitation', 'starry-wisp', 'thunderclap', 'true-strike', 'vicious-mockery',
-    // Level 1
-    'animal-friendship', 'bane', 'charm-person', 'color-spray', 'command', 'comprehend-languages', 'cure-wounds', 'detect-magic', 'disguise-self', 'dissonant-whispers', 'faerie-fire', 'feather-fall', 'healing-word', 'heroism', 'identify', 'illusory-script', 'longstrider', 'silent-image', 'sleep', 'speak-with-animals', 'tashas-hideous-laughter', 'thunderwave', 'unseen-servant',
-    // Level 3
-    'nondetection',
+  // Cantrips
+  'blade-ward', 'dancing-lights', 'friends', 'light', 'mage-hand', 'mending', 'message', 'minor-illusion', 'prestidigitation', 'starry-wisp', 'thunderclap', 'true-strike', 'vicious-mockery',
+  // Level 1
+  'animal-friendship', 'bane', 'charm-person', 'color-spray', 'command', 'comprehend-languages', 'cure-wounds', 'detect-magic', 'disguise-self', 'dissonant-whispers', 'faerie-fire', 'feather-fall', 'healing-word', 'heroism', 'identify', 'illusory-script', 'longstrider', 'silent-image', 'sleep', 'speak-with-animals', 'tashas-hideous-laughter', 'thunderwave', 'unseen-servant',
+  // Level 3
+  'nondetection',
 ];
 const CLERIC_SPELL_LIST = [
-    // Cantrips (Level 0)
-    'guidance', 'light', 'mending', 'resistance', 'sacred-flame', 'spare-the-dying', 'thaumaturgy', 'toll-the-dead', 'word-of-radiance',
-    // Level 1
-    'bane', 'bless', 'command', 'create-or-destroy-water', 'cure-wounds', 'detect-evil-and-good', 'detect-magic', 'detect-poison-and-disease', 'guiding-bolt', 'healing-word', 'inflict-wounds', 'protection-from-evil-and-good', 'purify-food-and-drink', 'sanctuary', 'shield-of-faith',
-    // Level 3
-    'nondetection',
+  // Cantrips (Level 0)
+  'guidance', 'light', 'mending', 'resistance', 'sacred-flame', 'spare-the-dying', 'thaumaturgy', 'toll-the-dead', 'word-of-radiance',
+  // Level 1
+  'bane', 'bless', 'command', 'create-or-destroy-water', 'cure-wounds', 'detect-evil-and-good', 'detect-magic', 'detect-poison-and-disease', 'guiding-bolt', 'healing-word', 'inflict-wounds', 'protection-from-evil-and-good', 'purify-food-and-drink', 'sanctuary', 'shield-of-faith',
+  // Level 3
+  'nondetection',
 ];
+// TODO: Automate generation of these spell lists from spell JSON 'classes' fields to prevent sync drift.
 const DRUID_SPELL_LIST = [
-    // Cantrips
-    'druidcraft', 'elementalism', 'frostbite', 'guidance', 'magic-stone', 'mending', 'message', 'poison-spray', 'produce-flame', 'resistance', 'shape-water', 'shillelagh', 'spare-the-dying', 'starry-wisp', 'thorn-whip', 'thunderclap',
-    // Level 1
-    'animal-friendship', 'charm-person', 'create-or-destroy-water', 'cure-wounds', 'detect-magic', 'detect-poison-and-disease', 'entangle', 'faerie-fire', 'fog-cloud', 'goodberry', 'healing-word', 'ice-knife', 'jump', 'longstrider', 'protection-from-evil-and-good', 'purify-food-and-drink', 'speak-with-animals', 'thunderwave'
+  // Cantrips
+  'druidcraft', 'elementalism', 'frostbite', 'guidance', 'magic-stone', 'mending', 'message', 'poison-spray', 'produce-flame', 'resistance', 'shape-water', 'shillelagh', 'spare-the-dying', 'starry-wisp', 'thorn-whip', 'thunderclap',
+  // Level 1
+  'animal-friendship', 'charm-person', 'create-or-destroy-water', 'cure-wounds', 'detect-magic', 'detect-poison-and-disease', 'entangle', 'faerie-fire', 'fog-cloud', 'goodberry', 'healing-word', 'ice-knife', 'jump', 'longstrider', 'protection-from-evil-and-good', 'purify-food-and-drink', 'speak-with-animals', 'thunderwave'
 ];
 const PALADIN_SPELL_LIST = [
-    // Level 1
-    'bless', 'command', 'cure-wounds', 'detect-evil-and-good', 'detect-magic', 'divine-favor', 'heroism', 'protection-from-evil-and-good', 'shield-of-faith', 'speak-with-animals',
-    // Level 3
-    'nondetection',
+  // Level 1
+  'bless', 'command', 'cure-wounds', 'detect-evil-and-good', 'detect-magic', 'divine-favor', 'heroism', 'protection-from-evil-and-good', 'shield-of-faith', 'speak-with-animals',
+  // Level 3
+  'nondetection',
 ];
 const RANGER_SPELL_LIST = [
-    // Level 1
-    'alarm', 'animal-friendship', 'cure-wounds', 'detect-magic', 'detect-poison-and-disease', 'ensnaring-strike', 'entangle', 'fog-cloud', 'goodberry', 'hail-of-thorns', 'hunters-mark', 'jump', 'longstrider', 'speak-with-animals',
-    // Level 3
-    'nondetection',
+  // Level 1
+  'alarm', 'animal-friendship', 'cure-wounds', 'detect-magic', 'detect-poison-and-disease', 'ensnaring-strike', 'entangle', 'fog-cloud', 'goodberry', 'hail-of-thorns', 'hunters-mark', 'jump', 'longstrider', 'speak-with-animals',
+  // Level 3
+  'nondetection',
 ];
 const SORCERER_SPELL_LIST = [
-    // Cantrips
-    'acid-splash', 'elementalism', 'fire-bolt', 'friends', 'frostbite', 'light', 'mage-hand', 'mending', 'message', 'poison-spray', 'prestidigitation', 'ray-of-frost', 'shape-water', 'shocking-grasp', 'sword-burst', 'thunderclap',
-    // Level 1
-    'burning-hands', 'charm-person', 'color-spray', 'detect-magic', 'disguise-self', 'expeditious-retreat', 'false-life', 'feather-fall', 'fog-cloud', 'jump', 'mage-armor', 'magic-missile', 'shield', 'sleep', 'thunderwave',
-    // Level 2
-    'levitate'
+  // Cantrips
+  'acid-splash', 'elementalism', 'fire-bolt', 'friends', 'frostbite', 'light', 'mage-hand', 'mending', 'message', 'poison-spray', 'prestidigitation', 'ray-of-frost', 'shape-water', 'shocking-grasp', 'sword-burst', 'thunderclap',
+  // Level 1
+  'burning-hands', 'charm-person', 'color-spray', 'detect-magic', 'disguise-self', 'expeditious-retreat', 'false-life', 'feather-fall', 'fog-cloud', 'jump', 'mage-armor', 'magic-missile', 'shield', 'sleep', 'thunderwave',
+  // Level 2
+  'levitate'
 ];
 const WARLOCK_SPELL_LIST = [
-    // Cantrips
-    'blade-ward', 'chill-touch', 'eldritch-blast', 'friends', 'frostbite', 'mage-hand', 'magic-stone', 'mind-sliver', 'minor-illusion', 'poison-spray', 'prestidigitation', 'sword-burst', 'thunderclap', 'toll-the-dead', 'true-strike',
-    // Level 1
-    'armor-of-agathys', 'arms-of-hadar', 'bane', 'charm-person', 'comprehend-languages', 'detect-magic', 'expeditious-retreat', 'hellish-rebuke', 'hex', 'illusory-script', 'protection-from-evil-and-good', 'speak-with-animals', 'tashas-hideous-laughter', 'unseen-servant', 'witch-bolt',
-    // Level 3
-    'nondetection',
+  // Cantrips
+  'blade-ward', 'chill-touch', 'eldritch-blast', 'friends', 'frostbite', 'mage-hand', 'magic-stone', 'mind-sliver', 'minor-illusion', 'poison-spray', 'prestidigitation', 'sword-burst', 'thunderclap', 'toll-the-dead', 'true-strike',
+  // Level 1
+  'armor-of-agathys', 'arms-of-hadar', 'bane', 'charm-person', 'comprehend-languages', 'detect-magic', 'expeditious-retreat', 'hellish-rebuke', 'hex', 'illusory-script', 'protection-from-evil-and-good', 'speak-with-animals', 'tashas-hideous-laughter', 'unseen-servant', 'witch-bolt',
+  // Level 3
+  'nondetection',
 ];
 const WIZARD_SPELL_LIST = [
-    // Cantrips
-    'acid-splash', 'chill-touch', 'dancing-lights', 'elementalism', 'fire-bolt', 'friends', 'frostbite', 'light', 'mage-hand',
-    'mending', 'message', 'minor-illusion', 'poison-spray', 'prestidigitation', 
-    'ray-of-frost', 'shape-water', 'shocking-grasp', 'sword-burst', 'thunderclap', 'true-strike', 'toll-the-dead',
-    // Level 1
-    'alarm', 'burning-hands', 'charm-person', 'color-spray', 'comprehend-languages', 
-    'detect-magic', 'disguise-self', 'expeditious-retreat', 'false-life', 
-    'feather-fall', 'find-familiar', 'fog-cloud', 'grease', 'identify', 
-    'illusory-script', 'jump', 'longstrider', 'mage-armor', 'magic-missile', 
-    'protection-from-evil-and-good', 'shield', 'silent-image', 'sleep', 'thunderwave', 
-    'unseen-servant',
-    // Level 2
-    'levitate',
-    // Level 3
-    'nondetection',
+  // Cantrips
+  'acid-splash', 'chill-touch', 'dancing-lights', 'elementalism', 'fire-bolt', 'friends', 'frostbite', 'light', 'mage-hand',
+  'mending', 'message', 'minor-illusion', 'poison-spray', 'prestidigitation',
+  'ray-of-frost', 'shape-water', 'shocking-grasp', 'sword-burst', 'thunderclap', 'true-strike', 'toll-the-dead',
+  // Level 1
+  'alarm', 'burning-hands', 'charm-person', 'color-spray', 'comprehend-languages',
+  'detect-magic', 'disguise-self', 'expeditious-retreat', 'false-life',
+  'feather-fall', 'find-familiar', 'fog-cloud', 'grease', 'identify',
+  'illusory-script', 'jump', 'longstrider', 'mage-armor', 'magic-missile',
+  'protection-from-evil-and-good', 'shield', 'silent-image', 'sleep', 'thunderwave',
+  'unseen-servant',
+  // Level 2
+  'levitate',
+  // Level 3
+  'nondetection',
 ];
 const ARTIFICER_SPELL_LIST = [
-    'acid-splash', 'dancing-lights', 'fire-bolt', 'frostbite', 'guidance', 'light', 'mage-hand',
-    'magic-stone', 'mending', 'message', 'poison-spray', 'prestidigitation', 'ray-of-frost',
-    'resistance', 'shocking-grasp', 'spare-the-dying', 'sword-burst', 'thorn-whip', 'thunderclap', 'alarm',
-    'cure-wounds', 'detect-magic', 'disguise-self', 'expeditious-retreat', 'faerie-fire',
-    'false-life', 'feather-fall', 'grease', 'identify', 'jump', 'longstrider',
-    'sanctuary', 'snare', 'tashas-caustic-brew', 'catapult', 'absorb-elements',
-    'purify-food-and-drink',
-    // Level 2
-    'levitate'
+  'acid-splash', 'dancing-lights', 'fire-bolt', 'frostbite', 'guidance', 'light', 'mage-hand',
+  'magic-stone', 'mending', 'message', 'poison-spray', 'prestidigitation', 'ray-of-frost',
+  'resistance', 'shocking-grasp', 'spare-the-dying', 'sword-burst', 'thorn-whip', 'thunderclap', 'alarm',
+  'cure-wounds', 'detect-magic', 'disguise-self', 'expeditious-retreat', 'faerie-fire',
+  'false-life', 'feather-fall', 'grease', 'identify', 'jump', 'longstrider',
+  'sanctuary', 'snare', 'tashas-caustic-brew', 'catapult', 'absorb-elements',
+  'purify-food-and-drink',
+  // Level 2
+  'levitate'
 ];
 
 
@@ -103,7 +104,7 @@ export const CLASSES_DATA: Record<string, CharClass> = {
     numberOfSkillProficiencies: 2,
     armorProficiencies: ['All armor', 'Shields'], weaponProficiencies: ['Simple weapons', 'Martial weapons'],
     features: [
-        { id: 'second_wind', name: 'Second Wind', description: 'Regain hit points as a bonus action.', levelAvailable: 1 },
+      { id: 'second_wind', name: 'Second Wind', description: 'Regain hit points as a bonus action.', levelAvailable: 1 },
     ],
     weaponMasterySlots: 3,
     fightingStyles: Object.values(FIGHTING_STYLES_DATA).filter(s => s.id !== 'druidic_warrior'), // Exclude Druidic Warrior for Fighter
@@ -111,15 +112,15 @@ export const CLASSES_DATA: Record<string, CharClass> = {
     statRecommendationDetails: "Prioritize Strength (for heavy weapons/armor) OR Dexterity (for finesse/ranged weapons). Constitution is vital for hit points. Choose based on your intended combat style and selected Fighting Style.",
     recommendedPointBuyPriorities: ['Strength', 'Constitution', 'Dexterity', 'Wisdom', 'Charisma', 'Intelligence'], // Example, could vary based on common fighter builds
   },
-   'barbarian': {
+  'barbarian': {
     id: 'barbarian', name: 'Barbarian', description: 'A fierce warrior who can enter a battle rage.',
     hitDie: 12, primaryAbility: ['Strength'], savingThrowProficiencies: ['Strength', 'Constitution'],
     skillProficienciesAvailable: ['animal_handling', 'athletics', 'intimidation', 'nature', 'perception', 'survival'],
     numberOfSkillProficiencies: 2,
     armorProficiencies: ['Light armor', 'Medium armor', 'Shields'], weaponProficiencies: ['Simple weapons', 'Martial weapons'],
     features: [
-        {id: 'rage', name: 'Rage', description: 'Enter a rage as a bonus action.', levelAvailable: 1},
-        {id: 'unarmored_defense_barbarian', name: 'Unarmored Defense', description: 'While not wearing armor, your AC equals 10 + your Dexterity modifier + your Constitution modifier.', levelAvailable: 1}
+      { id: 'rage', name: 'Rage', description: 'Enter a rage as a bonus action.', levelAvailable: 1 },
+      { id: 'unarmored_defense_barbarian', name: 'Unarmored Defense', description: 'While not wearing armor, your AC equals 10 + your Dexterity modifier + your Constitution modifier.', levelAvailable: 1 }
     ],
     weaponMasterySlots: 2,
     statRecommendationFocus: ['Strength', 'Constitution'],
@@ -162,8 +163,8 @@ export const CLASSES_DATA: Record<string, CharClass> = {
     armorProficiencies: ['Light armor', 'Medium armor', 'Shields'], weaponProficiencies: ['Simple weapons'],
     features: [{ id: 'druidic', name: 'Druidic', description: 'You know the secret language of druids and can leave hidden messages.', levelAvailable: 1 }],
     primalOrders: [
-        { id: 'Magician', name: 'Magician', description: 'You know one extra cantrip from the Druid spell list.' },
-        { id: 'Warden', name: 'Warden', description: 'You gain proficiency with Martial weapons and training with Medium armor.' }
+      { id: 'Magician', name: 'Magician', description: 'You know one extra cantrip from the Druid spell list.' },
+      { id: 'Warden', name: 'Warden', description: 'You gain proficiency with Martial weapons and training with Medium armor.' }
     ],
     spellcasting: { ability: 'Wisdom', knownCantrips: 2, knownSpellsL1: 4, spellList: DRUID_SPELL_LIST },
     statRecommendationFocus: ['Wisdom', 'Constitution', 'Dexterity'],
@@ -179,8 +180,8 @@ export const CLASSES_DATA: Record<string, CharClass> = {
     weaponProficiencies: ['Simple weapons', 'Martial weapons'],
     weaponMasterySlots: 2,
     features: [
-        { id: 'favored_enemy_feature', name: 'Favored Enemy', description: 'You have significant experience studying, tracking, hunting, and even talking to a certain type of enemy.', levelAvailable: 1},
-        { id: 'deft_explorer_feature', name: 'Deft Explorer', description: 'You are an unsurpassed explorer and survivor.', levelAvailable: 1},
+      { id: 'favored_enemy_feature', name: 'Favored Enemy', description: 'You have significant experience studying, tracking, hunting, and even talking to a certain type of enemy.', levelAvailable: 1 },
+      { id: 'deft_explorer_feature', name: 'Deft Explorer', description: 'You are an unsurpassed explorer and survivor.', levelAvailable: 1 },
     ],
     spellcasting: { ability: 'Wisdom', knownCantrips: 0, knownSpellsL1: 2, spellList: RANGER_SPELL_LIST },
     statRecommendationFocus: ['Dexterity', 'Wisdom', 'Constitution'],
@@ -232,13 +233,13 @@ export const CLASSES_DATA: Record<string, CharClass> = {
     hitDie: 6, primaryAbility: ['Charisma'], savingThrowProficiencies: ['Constitution', 'Charisma'],
     skillProficienciesAvailable: ['arcana', 'deception', 'insight', 'intimidation', 'persuasion', 'religion'],
     numberOfSkillProficiencies: 2,
-    armorProficiencies: [], 
+    armorProficiencies: [],
     weaponProficiencies: ['Daggers', 'Darts', 'Slings', 'Quarterstaffs', 'Light crossbows'],
     features: [
       { id: 'innate_sorcery', name: 'Innate Sorcery', description: 'Unleash your innate magic for 1 minute, gaining bonuses to spell save DC and attack rolls.', levelAvailable: 1 }
     ],
-    spellcasting: { 
-      ability: 'Charisma', 
+    spellcasting: {
+      ability: 'Charisma',
       knownCantrips: 4,
       knownSpellsL1: 2,
       spellList: SORCERER_SPELL_LIST,
@@ -279,14 +280,14 @@ export const CLASSES_DATA: Record<string, CharClass> = {
     numberOfSkillProficiencies: 2,
     armorProficiencies: ['Light armor', 'Medium armor', 'Shields'], weaponProficiencies: ['Simple weapons'],
     features: [
-        { id: 'magical_tinkering', name: 'Magical Tinkering', description: 'You learn how to invest a spark of magic into mundane objects.', levelAvailable: 1 },
-        { id: 'artificer_tool_proficiencies', name: "Tool Proficiencies", description: "You gain proficiency with thieves' tools, tinker's tools, and one type of artisan's tools of your choice.", levelAvailable: 1 },
+      { id: 'magical_tinkering', name: 'Magical Tinkering', description: 'You learn how to invest a spark of magic into mundane objects.', levelAvailable: 1 },
+      { id: 'artificer_tool_proficiencies', name: "Tool Proficiencies", description: "You gain proficiency with thieves' tools, tinker's tools, and one type of artisan's tools of your choice.", levelAvailable: 1 },
     ],
-    spellcasting: { 
-        ability: 'Intelligence', 
-        knownCantrips: 2,
-        knownSpellsL1: 0, // Artificers select prepared spells, not known spells. This is handled dynamically.
-        spellList: ARTIFICER_SPELL_LIST
+    spellcasting: {
+      ability: 'Intelligence',
+      knownCantrips: 2,
+      knownSpellsL1: 0, // Artificers select prepared spells, not known spells. This is handled dynamically.
+      spellList: ARTIFICER_SPELL_LIST
     },
     statRecommendationFocus: ['Intelligence', 'Constitution', 'Dexterity'],
     statRecommendationDetails: "Intelligence is your spellcasting and infusion ability. Constitution is important for concentration and hit points. Dexterity can improve your Armor Class.",
@@ -295,7 +296,7 @@ export const CLASSES_DATA: Record<string, CharClass> = {
 };
 
 export const AVAILABLE_CLASSES: SelectableClass[] = Object.values(CLASSES_DATA).map(c => ({
-    id: c.id,
-    name: c.name,
-    description: c.description
+  id: c.id,
+  name: c.name,
+  description: c.description
 }));

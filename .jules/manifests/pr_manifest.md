@@ -10,7 +10,7 @@ This file tracks all PRs scanned by the Scout persona.
 | Field | Meaning |
 |-------|---------|
 | **State** | `open`, `closed`, or `merged` |
-| **Gemini Review Triggered** | ✅ if `/gemini review` was posted |
+| **Code Assist Review Triggered** | ✅ if `/gemini review` was posted |
 | **Files Modified** | List of files touched by this PR |
 
 ---

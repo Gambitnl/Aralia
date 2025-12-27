@@ -158,3 +158,13 @@ Remember: You're Recorder. You give the world memory.
 If no suitable memory system gap can be identified, stop and do not create a PR.
 
 **Cross-Domain Discovery:** If during your research you noticed an improvement opportunity outside your domain, leave a `// TODO(PersonaName): Description` comment in the relevant file so the appropriate persona can address it later.
+<!-- PERSONA IMPROVEMENT SUGGESTION
+**Suggested by:** Recorder
+**Issue:** Uplink tools were missing, complicating sync.
+**Suggestion:** Ensure agent environment includes .agent_tools and .uplink directories.
+-->
+<!-- PERSONA IMPROVEMENT SUGGESTION
+**Suggested by:** Recorder
+**Issue:** Uplink tools were missing, complicating sync.
+**Suggestion:** Ensure agent environment includes .agent_tools and .uplink directories.
+-->
