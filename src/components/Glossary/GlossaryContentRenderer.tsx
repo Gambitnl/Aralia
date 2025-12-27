@@ -93,6 +93,14 @@ export const expandGlossaryShorthand = (content: string, validTermIds?: Set<stri
   return result;
 };
 
+// Security Hardening: Ensure external links are secure against tabnabbing
+// Register hook once at module level to avoid duplicate hooks on re-renders
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
+    node.setAttribute('rel', 'noopener noreferrer');
+  }
+});
+
 export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = ({ markdownContent, onNavigate }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const glossaryIndex = useContext(GlossaryContext);
@@ -110,7 +118,7 @@ export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = (
     const preppedMarkdown = expandedContent.replace(/^---$/gm, '<hr />');
     
     const rawHtml = marked.parse(preppedMarkdown, { gfm: true, breaks: true, async: false }) as string;
-    const safeHtml = DOMPurify.sanitize(rawHtml);
+    const safeHtml = DOMPurify.sanitize(rawHtml, { ADD_ATTR: ['target'] });
 
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = safeHtml;
@@ -157,7 +165,9 @@ export const GlossaryContentRenderer: React.FC<GlossaryContentRendererProps> = (
         }
     });
 
-    return DOMPurify.sanitize(finalContainer.innerHTML);
+    // Re-sanitize final output to ensure no DOM manipulation introduced vulnerabilities
+    // Pass same config to ensure target attributes are preserved if safe
+    return DOMPurify.sanitize(finalContainer.innerHTML, { ADD_ATTR: ['target'] });
   }, [markdownContent, validTermIds]);
 
   useEffect(() => {

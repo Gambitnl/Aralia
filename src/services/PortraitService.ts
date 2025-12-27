@@ -6,6 +6,8 @@
  * to request image generation from the agent.
  */
 
+import { safeJSONParse } from '../utils/securityUtils';
+
 export interface PortraitRequest {
     name: string;
     description: string;
@@ -48,8 +50,8 @@ export async function pollForPortrait(characterName: string): Promise<string | n
         if (reply) {
             const jsonMatch = reply.message.match(/\{.*\}/);
             if (jsonMatch) {
-                const data = JSON.parse(jsonMatch[0]);
-                return data.url;
+                const data = safeJSONParse<{ url: string }>(jsonMatch[0]);
+                return data ? data.url : null;
             }
         }
     } catch (error) {
