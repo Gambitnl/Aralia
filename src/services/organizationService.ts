@@ -158,6 +158,11 @@ export const purchaseOrgUpgrade = (org: Organization, upgradeId: string): Organi
     const upgrade = ORG_UPGRADE_CATALOG[upgradeId];
     if (!upgrade) throw new Error(`Upgrade ${upgradeId} not found.`);
 
+    // Check type requirements
+    if (upgrade.typeRequirements && !upgrade.typeRequirements.includes(org.type)) {
+        throw new Error(`Organization type '${org.type}' cannot purchase this upgrade.`);
+    }
+
     // Check costs
     if ((upgrade.cost.gold || 0) > org.resources.gold) throw new Error("Not enough gold.");
     if ((upgrade.cost.influence || 0) > org.resources.influence) throw new Error("Not enough influence.");

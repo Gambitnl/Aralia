@@ -16,6 +16,7 @@ describe('Organization Service', () => {
         const org = createOrganization('Thieves Guild', 'guild', 'player-1');
         expect(org.name).toBe('Thieves Guild');
         expect(org.resources.gold).toBe(500);
+        expect(org.resources.secrets).toBe(0); // Check secrets
         expect(org.upgrades).toEqual([]);
     });
 
@@ -43,6 +44,15 @@ describe('Organization Service', () => {
 
         // Try purchasing Trade Routes without Guild Hall
         expect(() => purchaseOrgUpgrade(org, 'trade_routes')).toThrow("Prerequisites not met");
+    });
+
+    it('should fail if type requirements not met', () => {
+        let org = createOrganization('Knights', 'order', 'player-1');
+        org.resources.gold = 5000;
+        org.resources.influence = 50;
+
+        // Try purchasing Guild Hall (requires guild/company/syndicate)
+        expect(() => purchaseOrgUpgrade(org, 'guild_hall')).toThrow("cannot purchase this upgrade");
     });
 
     it('should apply upgrade bonuses to daily update', () => {
@@ -96,27 +106,45 @@ describe('Organization Service', () => {
         Math.random = originalRandom;
     });
 
-    it('should calculate mission success with bonuses', () => {
-        let org = createOrganization('Warriors', 'order', 'player-1');
+    describe('startMission', () => {
+        it('should calculate mission success with bonuses', () => {
+            let org = createOrganization('Warriors', 'order', 'player-1');
 
-        // Add Training Grounds (+2 Combat Mission Bonus)
-        org.resources.gold = 5000;
-        org.resources.influence = 50;
-        org = purchaseOrgUpgrade(org, 'training_grounds');
+            // Add Training Grounds (+2 Combat Mission Bonus)
+            org.resources.gold = 5000;
+            org.resources.influence = 50;
+            org = purchaseOrgUpgrade(org, 'training_grounds');
 
-        // Recruit member
-        org = recruitMember(org, 'Soldier', 'Fighter', 1);
+            // Recruit member
+            org = recruitMember(org, 'Soldier', 'Fighter', 1);
 
-        // Start mission
-        org = startMission(org, 'Fight Goblins', 10, [org.members[0].id], { gold: 100 });
+            // Start mission
+            org = startMission(org, 'Fight Goblins', 10, [org.members[0].id], { gold: 100 });
 
-        // Force mission completion
-        org.missions[0].daysRemaining = 0;
+            // Force mission completion
+            org.missions[0].daysRemaining = 0;
 
-        // Process update
-        const { summary } = processDailyOrgUpdate(org);
+            // Process update
+            const { summary } = processDailyOrgUpdate(org);
 
-        // We can't guarantee success due to dice rolls, but we can verify execution
-        expect(summary.length).toBeGreaterThan(0);
+            // We can't guarantee success due to dice rolls, but we can verify execution
+            expect(summary.length).toBeGreaterThan(0);
+        });
+
+        it('should fail if member is already on a mission', () => {
+            let org = createOrganization('Explorers', 'company', 'player-1');
+            org.resources.gold = 5000;
+            org = recruitMember(org, 'Scout', 'Rogue', 1);
+
+            const memberId = org.members[0].id;
+
+            // Start first mission
+            org = startMission(org, 'Mission 1', 10, [memberId], {});
+
+            // Try to start second mission with same member
+            expect(() => {
+                startMission(org, 'Mission 2', 10, [memberId], {});
+            }).toThrow('already on a mission');
+        });
     });
 });
