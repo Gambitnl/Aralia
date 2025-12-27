@@ -3,8 +3,20 @@
  * Type definitions for the crafting system.
  */
 
-export type CraftingStationType = 'forge' | 'alchemy_bench' | 'workbench' | 'campfire' | 'loom' | 'tannery' | 'disassembler' | 'enchanters_table';
+export type CraftingStationType =
+  | 'forge'
+  | 'alchemy_bench'
+  | 'workbench'
+  | 'campfire'
+  | 'kitchen'
+  | 'loom'
+  | 'tannery'
+  | 'disassembler'
+  | 'enchanters_table';
+
 export type CraftingQuality = 'poor' | 'standard' | 'superior' | 'masterwork';
+
+export type RecipeType = 'craft' | 'salvage' | 'enchant' | 'refine' | 'cooking';
 
 export interface MaterialRequirement {
   itemId: string;
@@ -42,7 +54,7 @@ export interface Recipe {
   name: string;
   description: string;
   /** Defaults to 'craft' if undefined. */
-  recipeType?: 'craft' | 'salvage' | 'enchant' | 'refine';
+  recipeType?: RecipeType;
   station: CraftingStationType;
   inputs: MaterialRequirement[];
   outputs: CraftingOutput[];
