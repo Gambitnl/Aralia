@@ -4,7 +4,7 @@
  */
 import { GameState } from '../../types';
 import { AppAction } from '../actionTypes';
-import { RitualManager } from '../../systems/rituals/RitualManager';
+import * as RitualManager from '../../systems/rituals/RitualManager';
 import { generateId } from '../../utils/combatUtils';
 
 export function ritualReducer(state: GameState, action: AppAction): Partial<GameState> {
@@ -77,7 +77,23 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
     case 'INTERRUPT_RITUAL': {
       if (!state.activeRitual) return {};
 
-      const interruptResult = RitualManager.checkInterruption(state.activeRitual, action.payload.event);
+      // checkInterruption -> checkRitualInterrupt (Corrected function name)
+      // Also, checkRitualInterrupt signature: (ritual, eventType, value?, conditionName?)
+      // action.payload.event is likely an object like { type: 'damage', value: 10 }
+      // We need to unpack it or change usage.
+      // Looking at RitualManager.ts: checkRitualInterrupt(ritual, eventType, value, conditionName)
+
+      const payload = action.payload as any; // Temporary cast to handle dynamic payload
+      const eventType = payload.event?.type || 'unknown';
+      const eventValue = payload.event?.value;
+      const eventCondition = payload.event?.condition;
+
+      const interruptResult = RitualManager.checkRitualInterrupt(
+          state.activeRitual,
+          eventType,
+          eventValue,
+          eventCondition
+      );
 
       if (interruptResult.interrupted) {
          const updatedRitual = {
@@ -86,10 +102,11 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
              interruptionReason: interruptResult.reason || 'External disturbance'
          };
 
-         const backlashEffects = RitualManager.getBacklashOnFailure(updatedRitual);
-         const backlashMessage = backlashEffects.length > 0
-            ? `Backlash: ${backlashEffects.map(b => b.description).join(' ')}`
-            : 'The magic dissipates harmlessly.';
+         // getBacklashOnFailure does not exist in RitualManager.ts.
+         // We will remove it for now and assume no backlash until implemented.
+         // TODO(RitualSystem): Restore backlash mechanics once getBacklashOnFailure is implemented.
+         const backlashEffects: any[] = [];
+         const backlashMessage = 'The magic dissipates harmlessly.';
 
          return {
              activeRitual: updatedRitual,

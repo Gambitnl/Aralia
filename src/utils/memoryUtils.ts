@@ -83,6 +83,48 @@ export const getRelevantMemories = (
 };
 
 /**
+ * Formats NPC memory into a context string for the AI.
+ * Includes disposition, recent/relevant interactions, and known facts.
+ *
+ * @param memory The NPC's memory object.
+ * @param contextKeywords Optional keywords to fetch specific relevant memories.
+ */
+export const formatMemoryForAI = (memory: NPCMemory, contextKeywords: string[] = []): string => {
+  let contextString = `Disposition towards player: ${memory.attitude} (Range: -100 to 100).`;
+
+  // 1. Relevant Interactions
+  const relevantInteractions = getRelevantMemories(memory, contextKeywords, 5);
+  if (relevantInteractions.length > 0) {
+    const interactionSummaries = relevantInteractions.map(i =>
+      `[${i.type.toUpperCase()}] "${i.summary}" (Sentiment: ${i.attitudeChange > 0 ? 'Positive' : 'Negative'})`
+    );
+    contextString += `\nPast Interactions:\n- ${interactionSummaries.join('\n- ')}`;
+  } else {
+    contextString += `\nPast Interactions: None relevant.`;
+  }
+
+  // 2. Known Facts (Sort by significance and recency)
+  const sortedFacts = [...memory.knownFacts]
+    .sort((a, b) => b.significance - a.significance || b.dateLearned - a.dateLearned)
+    .slice(0, 5);
+
+  if (sortedFacts.length > 0) {
+    const factStrings = sortedFacts.map(fact => {
+       const sourceText = fact.source === 'gossip'
+          ? `(Heard Rumor)`
+          : `(Witnessed)`;
+       // Use dynamic access for 'text' if it exists at runtime (legacy support), otherwise fallback to id.
+       const description = (fact as any).text || fact.id;
+       return `${sourceText}: "${description}"`;
+    });
+
+    contextString += `\nKnown Facts:\n- ${factStrings.join('\n- ')}`;
+  }
+
+  return contextString;
+};
+
+/**
  * Processes memory decay based on time passed.
  * Removes low-significance memories that are too old.
  *

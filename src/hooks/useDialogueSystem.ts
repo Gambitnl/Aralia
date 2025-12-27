@@ -37,10 +37,14 @@ export const useDialogueSystem = (
         const systemPrompt = npc.initialPersonalityPrompt;
 
         try {
+            // Retrieve NPC memory for context
+            const memory = gameState.npcMemory[npc.id];
+
             const result = await GeminiService.generateNPCResponse(
                 systemPrompt,
                 prompt,
-                gameState.devModelOverride
+                gameState.devModelOverride,
+                memory
             );
 
             if (result.data?.text) {

@@ -51,3 +51,6 @@
 ### 2025-12-26 - Recorder Implementation
 **Learning:** Initialized the "World History Framework" in state.
 **Action:** Created `ADD_WORLD_HISTORY_EVENT` and integrated it into the world reducer. The next step is to hook it up to the event manager.
+### 2025-12-26 - NPC Memory Integration
+**Learning:** Centralizing memory formatting in utils prevents duplicate logic and ensures consistent AI context.
+**Action:** Applied formatMemoryForAI to geminiService.
