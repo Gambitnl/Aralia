@@ -25,6 +25,40 @@ export const TERRAIN_TRAVEL_MODIFIERS: Record<TravelTerrain, number> = {
   difficult: 0.5, // 5e: Difficult terrain costs 2ft for every 1ft (half speed)
 };
 
+export type TravelMethod = 'walking' | 'mounted' | 'vehicle';
+
+export interface TravelVehicle {
+  id: string;
+  name: string;
+  speed: number; // Base speed in ft/round (or equivalent for vehicles)
+  capacityWeight: number; // Carrying capacity in lbs
+  type: 'land' | 'water' | 'air';
+}
+
+/**
+ * Standard D&D 5e mounts and vehicles.
+ * Speed: ft/round (divide by 10 for MPH).
+ * Rowboat (1.5 mph) -> 15 ft/round.
+ * Keelboat (3 mph) -> 30 ft/round.
+ * Galley (4 mph) -> 40 ft/round.
+ * Warship (2.5 mph) -> 25 ft/round.
+ */
+export const STANDARD_VEHICLES: Record<string, TravelVehicle> = {
+  riding_horse: { id: 'riding_horse', name: 'Riding Horse', speed: 60, capacityWeight: 480, type: 'land' },
+  warhorse: { id: 'warhorse', name: 'Warhorse', speed: 60, capacityWeight: 540, type: 'land' },
+  cart: { id: 'cart', name: 'Cart', speed: 0, capacityWeight: 0, type: 'land' }, // Speed limited by puller
+  wagon: { id: 'wagon', name: 'Wagon', speed: 0, capacityWeight: 0, type: 'land' }, // Speed limited by puller
+  rowboat: { id: 'rowboat', name: 'Rowboat', speed: 15, capacityWeight: 0, type: 'water' },
+  keelboat: { id: 'keelboat', name: 'Keelboat', speed: 30, capacityWeight: 3000, type: 'water' }, // Approx capacity
+  galley: { id: 'galley', name: 'Galley', speed: 40, capacityWeight: 100000, type: 'water' },
+  warship: { id: 'warship', name: 'Warship', speed: 25, capacityWeight: 50000, type: 'water' },
+};
+
+export interface TransportOption {
+  method: TravelMethod;
+  vehicle?: TravelVehicle; // Required if method is 'mounted' or 'vehicle' (unless vehicle speed is 0/dependent)
+}
+
 export interface TravelParameters {
   origin: { x: number; y: number };
   destination: { x: number; y: number };
@@ -45,6 +79,7 @@ export interface GroupTravelParameters {
   pace: TravelPace;
   /** Terrain type for the journey (defaults to 'open') */
   terrain?: TravelTerrain;
+  transport?: TransportOption;
 }
 
 export interface TravelResult {

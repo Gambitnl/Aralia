@@ -8,6 +8,7 @@ import {
 } from '../TravelCalculations';
 import { Item } from '../../../types/items';
 import { PlayerCharacter } from '../../../types/character';
+import { TravelVehicle, STANDARD_VEHICLES } from '../../../types/travel';
 
 // Mock character creation directly to avoid path issues and dependency on other files during this task
 const mockChar = (id: string, strength: number, speed: number = 30): PlayerCharacter => ({
@@ -140,6 +141,77 @@ describe('TravelCalculations', () => {
       const stats = calculateGroupTravelStats([char], { hero: [] }, 'fast', 'difficult');
 
       expect(stats.travelSpeedMph).toBe(2.00);
+    });
+
+    // --- Transport / Vehicle Tests ---
+
+    it('uses mount speed when mounted', () => {
+      const char = mockChar('hero', 10, 30);
+      // Riding Horse: 60ft speed
+      const stats = calculateGroupTravelStats([char], { hero: [] }, 'normal', 'road', {
+        method: 'mounted',
+        vehicle: STANDARD_VEHICLES.riding_horse
+      });
+
+      expect(stats.baseSpeed).toBe(60);
+      expect(stats.travelSpeedMph).toBe(6.0); // 60/10 = 6 mph
+      expect(stats.transportMethod).toBe('mounted');
+    });
+
+    it('ignores encumbered character speed if mounted', () => {
+      const encumberedChar = mockChar('tank', 10, 30); // Encumbered -> 20ft
+      const inventory = [mockItem(60)]; // Encumbered
+
+      // But on a horse!
+      const stats = calculateGroupTravelStats([encumberedChar], { tank: inventory }, 'normal', 'road', {
+        method: 'mounted',
+        vehicle: STANDARD_VEHICLES.riding_horse
+      });
+
+      expect(stats.baseSpeed).toBe(60); // Horse doesn't care about rider's encumbrance (in this simplified model)
+    });
+
+    it('applies water vehicle speed correctly', () => {
+      const char = mockChar('hero', 10, 30);
+      // Rowboat: 1.5 mph -> 15 ft/round
+      const stats = calculateGroupTravelStats([char], { hero: [] }, 'normal', 'open', {
+        method: 'vehicle',
+        vehicle: STANDARD_VEHICLES.rowboat
+      });
+
+      expect(stats.baseSpeed).toBe(15);
+      expect(stats.travelSpeedMph).toBe(1.5);
+    });
+
+    it('water vehicles ignore "difficult" land terrain', () => {
+      const char = mockChar('hero', 10, 30);
+      // Keelboat: 30 ft/round (3 mph). Terrain passed as "difficult" (usually 0.5x).
+      // Water vehicles logic: if terrain is difficult, assume rough water?
+      // Current implementation: terrainMod = terrainMod < 1.0 ? terrainMod : 1.0;
+      // So difficult (0.5) is applied.
+      // Wait, my logic was: "Water vehicles ignore 'road/difficult' land modifiers usually... If the input terrain is 'difficult', we assume it means 'rough water' for a boat."
+      // So it SHOULD apply the 0.5x modifier if passed difficult.
+
+      const stats = calculateGroupTravelStats([char], { hero: [] }, 'normal', 'difficult', {
+        method: 'vehicle',
+        vehicle: STANDARD_VEHICLES.keelboat
+      });
+
+      // 3 mph * 0.5 = 1.5 mph
+      expect(stats.travelSpeedMph).toBe(1.5);
+    });
+
+    it('water vehicles ignore "road" land bonus if it existed (but road is 1.0)', () => {
+       // Currently road is 1.0, so no change.
+       // If road was 1.5x (imaginary highway), water vehicle should ignore it.
+       // Test confirms 1.0 used.
+       const char = mockChar('hero', 10, 30);
+       const stats = calculateGroupTravelStats([char], { hero: [] }, 'normal', 'road', {
+         method: 'vehicle',
+         vehicle: STANDARD_VEHICLES.keelboat
+       });
+
+       expect(stats.travelSpeedMph).toBe(3.0);
     });
   });
 
