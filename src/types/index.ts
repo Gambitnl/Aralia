@@ -32,5 +32,6 @@ export * from './village';
 export * from './elemental';
 export * from './stronghold';
 export * from './loot'; // Export LootTable types
+export * from './identity'; // Export Identity/Secret types
 
 export type { CombatCharacter, CharacterStats, Position, CombatState };

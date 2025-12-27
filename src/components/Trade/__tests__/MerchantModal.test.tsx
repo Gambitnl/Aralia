@@ -3,10 +3,10 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect } from 'vitest';
 import MerchantModal from '../MerchantModal';
-import { Item, EconomyState } from '../../types';
+import { Item, EconomyState } from '../../../types';
 
 // Mock dependencies
-vi.mock('../../state/GameContext', () => ({
+vi.mock('../../../state/GameContext', () => ({
   useGameState: () => ({
     state: {
       economy: {
@@ -19,7 +19,7 @@ vi.mock('../../state/GameContext', () => ({
   })
 }));
 
-vi.mock('../../hooks/useFocusTrap', () => ({
+vi.mock('../../../hooks/useFocusTrap', () => ({
   useFocusTrap: () => ({ current: document.createElement('div') })
 }));
 

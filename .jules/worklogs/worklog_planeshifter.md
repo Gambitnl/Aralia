@@ -1,7 +1,7 @@
-# Planeshifter's Journal
+## 2024-05-24 - Feywild Time Warp
 
-## 2024-05-23 - Initial Planar Survey
+**Learning:** Time in the Feywild is not just "slower" or "faster" but narratively treacherous. The DMG variant rule (Days -> Minutes or Days -> Years) provides extreme stakes. I implemented a `calculateTimeWarp` function that handles this conversion.
 
-**Learning:** The planar system currently consists of isolated mechanic classes (`FeywildMechanics`, `ShadowfellMechanics`, `InfernalMechanics`) and a `PortalSystem`. There is no centralized `Plane` interface or registry to define plane-specific properties like time flow, magic alterations, or emotional valence in a data-driven way.
+**Key Insight:** Using `rollDice('1d20')` to determine the outcome allows for consistent testing via mocking, rather than `Math.random()`. The result needs to be communicated clearly to the player via a message string.
 
-**Action:** I need to formalize the `Plane` interface and create a registry of planes to support the "make planes distinct" directive. This will allow the `PortalSystem` and other systems to query plane properties dynamically rather than hardcoding checks.
+**Action:** Future planar features should similarly isolate the "randomness" into a single roll logic that returns a descriptive object (`TimeWarpResult`), allowing the UI to just display the message without needing to know the math.

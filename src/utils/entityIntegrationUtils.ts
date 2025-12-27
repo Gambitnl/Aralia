@@ -11,6 +11,7 @@ import { EntityResolverService } from '../services/EntityResolverService';
 import { AddGeminiLogFn } from '../hooks/actions/actionHandlerTypes';
 
 /**
+ * Service Integration:
  * Scans the provided text for entity references, ensures they exist (creating stubs if needed),
  * and dispatches actions to register any newly created entities into the game state.
  *

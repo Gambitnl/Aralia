@@ -88,12 +88,44 @@ export enum HeistPhase {
   Cooldown = 'Cooldown'
 }
 
+export enum HeistRole {
+  Leader = 'Leader',
+  Infiltrator = 'Infiltrator', // Locks, Traps
+  Muscle = 'Muscle',           // Guards, Intimidation
+  Face = 'Face',               // Distraction, Social
+  Lookout = 'Lookout',         // Alert reduction
+  Driver = 'Driver'            // Getaway speed
+}
+
+export interface HeistCrewMember {
+  characterId: string;
+  role: HeistRole;
+}
+
+export enum HeistActionType {
+  PickLock = 'PickLock',
+  DisableTrap = 'DisableTrap',
+  KnockoutGuard = 'KnockoutGuard',
+  Distract = 'Distract',
+  Hack = 'Hack',
+  SecureLoot = 'SecureLoot'
+}
+
+export interface HeistAction {
+  type: HeistActionType;
+  difficulty: number;
+  requiredRole?: HeistRole; // If performed by this role, huge bonus
+  risk: number; // Alert generated on fail
+  noise: number; // Alert generated on success (some actions are loud)
+  description: string;
+}
+
 export interface HeistPlan {
   id: string;
   targetLocationId: string;
   phase: HeistPhase;
   leaderId: string;
-  crew: string[]; // Character IDs
+  crew: HeistCrewMember[]; // Character IDs with Roles
   entryPoint?: string; // Location Exit ID
   escapeRoute?: string;
   collectedIntel: HeistIntel[];
@@ -101,6 +133,7 @@ export interface HeistPlan {
   alertLevel: number; // 0-100 during the heist
   turnsElapsed: number;
   guildJobId?: string; // Linked guild job if applicable
+  maxAlertLevel: number; // Threshold for automatic failure/alarm
 }
 
 export interface BlackMarketListing {

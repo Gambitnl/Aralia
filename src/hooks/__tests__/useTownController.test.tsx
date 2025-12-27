@@ -35,6 +35,7 @@ describe('useTownController', () => {
 
     // NOTE: The test is timing out likely because waitFor logic inside fake timers is tricky in this env.
     // We will verify the hook without using fake timers, assuming the 50ms delay is acceptable for a real timer.
+    // TODO: Consider switching to fake timers or a deterministic utility so this 2s wait doesn’t make the hook test brittle or slow.
 
     it('should initialize and generate map', async () => {
         const { result } = renderHook(() => useTownController({

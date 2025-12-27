@@ -69,7 +69,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node $CLAUDE_PROJECT_DIR/.claude/hooks/file-backup-hook.js",
+            "command": "node .claude/hooks/file-backup-hook.js",
             "timeout": 10
           }
         ]
@@ -81,7 +81,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node $CLAUDE_PROJECT_DIR/.claude/hooks/session-cleanup-hook.js"
+            "command": "node .claude/hooks/session-cleanup-hook.js"
           }
         ]
       }

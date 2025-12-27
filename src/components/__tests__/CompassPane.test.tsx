@@ -4,17 +4,56 @@ import { describe, it, expect, vi } from 'vitest';
 import CompassPane from '../CompassPane';
 import { Location } from '../../types';
 
+// Define enums for the mock
+enum Season {
+  Spring = 'Spring',
+  Summer = 'Summer',
+  Autumn = 'Autumn',
+  Winter = 'Winter',
+}
+
+enum TimeOfDay {
+  Dawn = 'Dawn',
+  Day = 'Day',
+  Dusk = 'Dusk',
+  Night = 'Night',
+}
+
 // Mock dependencies
 vi.mock('@/utils/timeUtils', () => ({
   formatGameTime: vi.fn(() => '12:00 PM'),
   getGameDay: vi.fn(() => 1),
   getSeason: vi.fn(() => 'Winter'),
   getGameEpoch: vi.fn(() => new Date(Date.UTC(351, 0, 1))),
-  addGameTime: vi.fn((date) => date), // Mock addGameTime to return same date
+  addGameTime: vi.fn((date) => date),
+  getTimeOfDay: vi.fn(() => 'Day'),
+  getTimeModifiers: vi.fn(() => ({
+    travelCostMultiplier: 1.0,
+    visionModifier: 1.0,
+    description: 'The sun is high.',
+  })),
+  Season: {
+    Spring: 'Spring',
+    Summer: 'Summer',
+    Autumn: 'Autumn',
+    Winter: 'Winter',
+  },
+  TimeOfDay: {
+    Dawn: 'Dawn',
+    Day: 'Day',
+    Dusk: 'Dusk',
+    Night: 'Night',
+  }
 }));
 
 vi.mock('@/systems/time/CalendarSystem', () => ({
   getCalendarDescription: vi.fn(() => 'It is Deepwinter, 351 (Winter). Moon: Waxing Crescent.'),
+  getMoonPhase: vi.fn(() => 'Waxing Crescent'),
+  getHoliday: vi.fn(() => null),
+  getMonthName: vi.fn(() => 'Deepwinter'),
+  MoonPhase: {
+    WaxingCrescent: 'Waxing Crescent'
+  }
 }));
 
 describe('CompassPane', () => {
@@ -38,8 +77,11 @@ describe('CompassPane', () => {
     gameTime: new Date(Date.UTC(351, 0, 1, 12, 0, 0)),
   };
 
-  it('renders time with season', () => {
+  it('renders time widget components', () => {
     render(<CompassPane {...defaultProps} />);
-    expect(screen.getByText(/Day 1 \(Winter\)/)).toBeInTheDocument();
+    // Check for month and day from TimeWidget
+    expect(screen.getByText(/1 Deepwinter/)).toBeInTheDocument();
+    // Check for atmospheric description
+    expect(screen.getByText(/The sun is high/)).toBeInTheDocument();
   });
 });

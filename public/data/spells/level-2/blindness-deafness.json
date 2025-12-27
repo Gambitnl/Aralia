@@ -100,7 +100,7 @@
         "saveModifiers": []
       },
       "statusCondition": {
-        "name": "Blinded/Deafened",
+        "name": "Blinded",
         "duration": {
           "type": "minutes",
           "value": 1
@@ -117,18 +117,18 @@
           "actionCost": "action"
         }
       },
-      "description": "On a failed save, target is either blinded or deafened (your choice) for the duration; repeat Con save at end of each turn to end.",
+      "description": "On a failed save, target is either Blinded (default) or Deafened (player choice) for the duration. Repeats Con save at end of each turn.",
       "scaling": {
         "type": "slot_level",
-        "bonusPerLevel": "",
+        "bonusPerLevel": "+1 target",
         "customFormula": ""
       }
     }
   ],
-  "arbitrationType": "mechanical",
+  "arbitrationType": "player_choice",
   "aiContext": {
-    "prompt": "",
-    "playerInputRequired": false
+    "prompt": "Ask the player if they want to inflict Blindness or Deafness.",
+    "playerInputRequired": true
   },
   "description": "You can Clone a foe's eyes or ears. Choose one creature that you can see within range to make a Constitution saving throw. If it fails, the target is either Blinded or Deafened (your choice) for the duration. At the end of each of its turns, the target can make a Constitution saving throw. On a success, the spell ends.",
   "higherLevels": "When you cast this spell using a spell slot of 3rd level or higher, you can target one additional creature for each slot level above 2nd.",

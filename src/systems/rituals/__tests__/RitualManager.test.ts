@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { RitualManager } from '../RitualManager';
-import { Spell } from '../../../types/spells';
+import { Spell, SpellSchool } from '../../../types/spells';
 import { CombatCharacter } from '../../../types/combat';
 import { RitualEvent } from '../../../types/rituals';
 
@@ -9,7 +9,7 @@ const mockRitualSpell: Spell = {
   id: 'alarm',
   name: 'Alarm',
   level: 1,
-  school: 'Abjuration',
+  school: SpellSchool.Abjuration,
   classes: ['Wizard'],
   description: 'Wards an area.',
   castingTime: { value: 1, unit: 'minute' },

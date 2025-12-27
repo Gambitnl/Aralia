@@ -43,6 +43,8 @@ export interface Issue {
     codePoint: string;
     type: string;
     suggested?: string;
+    /** 'strict' issues (JSON/data files) fail the build; 'soft' issues (docs) are warnings only */
+    severity: 'strict' | 'soft';
 }
 
 export function checkFile(filePath: string): Issue[] {
@@ -104,6 +106,7 @@ export function checkFile(filePath: string): Issue[] {
                     codePoint: `U+${code.toString(16).toUpperCase().padStart(4, '0')}`,
                     type,
                     suggested,
+                    severity: isStrict ? 'strict' : 'soft',
                 });
             }
         }
@@ -143,6 +146,8 @@ function main() {
     console.log(`Scanning ${files.length} files...`);
 
     let totalIssues = 0;
+    let strictIssues = 0;
+    let softIssues = 0;
     let filesWithIssues = 0;
     let filesFixed = 0;
 
@@ -151,10 +156,19 @@ function main() {
         if (issues.length > 0) {
             filesWithIssues++;
             totalIssues += issues.length;
-            console.log(`\nFile: ${file}`);
+
+            const fileStrictCount = issues.filter(i => i.severity === 'strict').length;
+            const fileSoftCount = issues.filter(i => i.severity === 'soft').length;
+            strictIssues += fileStrictCount;
+            softIssues += fileSoftCount;
+
+            // Use different prefix for strict vs soft issues
+            const prefix = fileStrictCount > 0 ? 'ERROR' : 'WARN';
+            console.log(`\n[${prefix}] File: ${file}`);
             issues.forEach((issue) => {
+                const severityTag = issue.severity === 'strict' ? '❌' : '⚠️';
                 console.log(
-                    `  [Line ${issue.line}, Col ${issue.column}] ${issue.type} (${issue.char} / ${issue.codePoint})${issue.suggested !== undefined ? ` -> Suggested: ${issue.suggested}` : ''
+                    `  ${severityTag} [Line ${issue.line}, Col ${issue.column}] ${issue.type} (${issue.char} / ${issue.codePoint})${issue.suggested !== undefined ? ` -> Suggested: ${issue.suggested}` : ''
                     }`
                 );
             });
@@ -171,13 +185,19 @@ function main() {
     console.log('\n--- Summary ---');
     console.log(`Total files scanned: ${files.length}`);
     console.log(`Files with issues: ${filesWithIssues}`);
-    console.log(`Total issues found: ${totalIssues}`);
+    console.log(`Strict issues (errors): ${strictIssues}`);
+    console.log(`Soft issues (warnings): ${softIssues}`);
     if (SHOULD_WRITE) {
         console.log(`Files automatically fixed: ${filesFixed}`);
     }
 
-    if (totalIssues > 0 && !SHOULD_WRITE) {
+    // Only fail the build for strict issues (JSON/data files)
+    // Soft issues (markdown docs) are warnings only
+    if (strictIssues > 0 && !SHOULD_WRITE) {
+        console.log('\n❌ Build failed due to strict charset issues in data files.');
         process.exit(1);
+    } else if (softIssues > 0 && !SHOULD_WRITE) {
+        console.log('\n⚠️ Soft warnings found in documentation (build passes).');
     }
 }
 

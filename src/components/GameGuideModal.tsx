@@ -11,6 +11,7 @@ import { PlayerCharacter } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { RACES_DATA, AVAILABLE_CLASSES } from '../constants';
 import { t } from '../utils/i18n';
+import { safeJSONParse } from '../utils/securityUtils';
 
 interface GameGuideModalProps {
   isOpen: boolean;
@@ -74,21 +75,17 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
           const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
           
           if (jsonMatch) {
-              try {
-                  const toolData = JSON.parse(jsonMatch[1]);
-                  if (toolData.tool === 'create_character' && toolData.config) {
-                      const character = generateCharacterFromConfig(toolData.config as CharacterGenerationConfig);
-                      if (character) {
-                          setGeneratedCharacter(character);
-                          setResponse(t('game_guide.recruit_prompt', { name: character.name }));
-                      } else {
-                          setResponse(t('game_guide.error_invalid_config'));
-                      }
+              const toolData = safeJSONParse<{ tool: string; config?: CharacterGenerationConfig }>(jsonMatch[1]);
+
+              if (toolData && toolData.tool === 'create_character' && toolData.config) {
+                  const character = generateCharacterFromConfig(toolData.config as CharacterGenerationConfig);
+                  if (character) {
+                      setGeneratedCharacter(character);
+                      setResponse(t('game_guide.recruit_prompt', { name: character.name }));
                   } else {
-                      setResponse(responseText); 
+                      setResponse(t('game_guide.error_invalid_config'));
                   }
-              } catch (e) {
-                  console.error("Failed to parse JSON from guide:", e);
+              } else {
                   setResponse(responseText); 
               }
           } else {

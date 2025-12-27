@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { HeistManager } from '../HeistManager';
-import { HeistPhase, HeistIntel, CrimeType } from '../../../types/crime';
+import { HeistPhase, HeistIntel, HeistRole, HeistAction, HeistActionType } from '../../../types/crime';
 import { Location } from '../../../types';
 
 describe('HeistManager', () => {
@@ -20,7 +20,9 @@ describe('HeistManager', () => {
 
         expect(plan.targetLocationId).toBe('bank_1');
         expect(plan.phase).toBe(HeistPhase.Recon);
-        expect(plan.crew).toContain('player_1');
+        expect(plan.crew).toHaveLength(1);
+        expect(plan.crew[0].characterId).toBe('player_1');
+        expect(plan.crew[0].role).toBe(HeistRole.Leader);
     });
 
     it('should add intel to the plan', () => {
@@ -38,20 +40,103 @@ describe('HeistManager', () => {
         expect(plan.collectedIntel[0].id).toBe('intel_1');
     });
 
-    it('should increase action success chance with intel', () => {
+    it('should assign and update crew roles', () => {
         let plan = HeistManager.startPlanning(mockLocation, 'player_1');
-        const baseSuccess = HeistManager.calculateActionSuccessChance(plan, 30);
 
-        // Add intel
-        plan = HeistManager.addIntel(plan, {
-            id: 'i1', locationId: 'l1', type: 'Trap', description: 'd', accuracy: 1
-        });
+        // Assign new member
+        plan = HeistManager.assignCrew(plan, 'player_2', HeistRole.Infiltrator);
+        expect(plan.crew).toHaveLength(2);
+        expect(plan.crew.find(c => c.characterId === 'player_2')?.role).toBe(HeistRole.Infiltrator);
 
-        const boostedSuccess = HeistManager.calculateActionSuccessChance(plan, 30);
+        // Update existing member
+        plan = HeistManager.assignCrew(plan, 'player_2', HeistRole.Face);
+        expect(plan.crew).toHaveLength(2);
+        expect(plan.crew.find(c => c.characterId === 'player_2')?.role).toBe(HeistRole.Face);
+    });
 
-        // 50 base - 30 diff = 20
-        // +10 from intel = 30
-        expect(boostedSuccess).toBeGreaterThan(baseSuccess);
-        expect(boostedSuccess).toBe(30);
+    it('should calculate success chance with roles', () => {
+        let plan = HeistManager.startPlanning(mockLocation, 'leader');
+        plan = HeistManager.assignCrew(plan, 'rogue', HeistRole.Infiltrator);
+
+        const action: HeistAction = {
+            type: HeistActionType.PickLock,
+            difficulty: 30,
+            requiredRole: HeistRole.Infiltrator,
+            risk: 10,
+            noise: 5,
+            description: 'Pick the lock'
+        };
+
+        // Case 1: Wrong Role (Leader attempting specialist action)
+        const chanceWrongRole = HeistManager.calculateActionSuccessChance(plan, action, HeistRole.Leader);
+
+        // Case 2: Correct Role
+        const chanceRightRole = HeistManager.calculateActionSuccessChance(plan, action, HeistRole.Infiltrator);
+
+        expect(chanceRightRole).toBeGreaterThan(chanceWrongRole);
+        expect(chanceRightRole).toBe(50 + 25 - 30); // Base 50 + Role 25 - Diff 30 = 45
+    });
+
+    it('should perform heist action successfully', () => {
+        let plan = HeistManager.startPlanning(mockLocation, 'rogue');
+        plan = HeistManager.assignCrew(plan, 'rogue', HeistRole.Infiltrator);
+
+        const action: HeistAction = {
+            type: HeistActionType.PickLock,
+            difficulty: 10,
+            requiredRole: HeistRole.Infiltrator,
+            risk: 20,
+            noise: 5,
+            description: 'Pick lock'
+        };
+
+        // Force success with roll 0
+        const result = HeistManager.performHeistAction(plan, action, 'rogue', 0);
+
+        expect(result.success).toBe(true);
+        expect(result.alertGenerated).toBe(5); // Noise
+        expect(result.updatedPlan.alertLevel).toBe(5);
+        expect(result.message).toContain('Success');
+    });
+
+    it('should perform heist action with failure', () => {
+        let plan = HeistManager.startPlanning(mockLocation, 'rogue');
+        plan = HeistManager.assignCrew(plan, 'rogue', HeistRole.Infiltrator);
+
+        const action: HeistAction = {
+            type: HeistActionType.PickLock,
+            difficulty: 10,
+            requiredRole: HeistRole.Infiltrator,
+            risk: 20,
+            noise: 5,
+            description: 'Pick lock'
+        };
+
+        // Force failure with roll 100
+        const result = HeistManager.performHeistAction(plan, action, 'rogue', 100);
+
+        expect(result.success).toBe(false);
+        expect(result.alertGenerated).toBe(20); // Risk
+        expect(result.updatedPlan.alertLevel).toBe(20);
+        expect(result.message).toContain('Failure');
+    });
+
+    it('should reduce alert gain if Lookout is present', () => {
+        let plan = HeistManager.startPlanning(mockLocation, 'leader');
+        plan = HeistManager.assignCrew(plan, 'lookout', HeistRole.Lookout);
+
+        const action: HeistAction = {
+            type: HeistActionType.KnockoutGuard,
+            difficulty: 10,
+            risk: 20, // Fail risk
+            noise: 0,
+            description: 'Knockout'
+        };
+
+        // Force failure
+        const result = HeistManager.performHeistAction(plan, action, 'leader', 100);
+
+        // Alert should be Risk 20 - 5 (Lookout bonus) = 15
+        expect(result.alertGenerated).toBe(15);
     });
 });

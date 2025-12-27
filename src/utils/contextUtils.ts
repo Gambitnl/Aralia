@@ -180,6 +180,8 @@ export function generateGeneralActionContext({
 
   // --- ACTIVE QUESTS ---
   // Enriched Quest Context: Includes descriptions and current objectives
+  // TODO: Add defensive fallbacks for `gameState.questLog` and `gameState.messages` so
+  // this generator keeps working even when a minimal game state arrives (e.g., tests or resets).
   const activeQuests = (gameState.questLog ?? [])
     .filter(q => q.status === 'Active');
 

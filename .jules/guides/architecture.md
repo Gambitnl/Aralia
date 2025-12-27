@@ -88,7 +88,7 @@ State is managed via `useReducer` in `App.tsx` and passed down via context.
 | Add components | In `src/components/` |
 | Add hooks | In `src/hooks/` |
 | Add utilities | In `src/utils/` |
-| Extend Gemini integration | Via `geminiService.ts` |
+| Extend AI integration | Via `geminiService.ts` |
 
 ---
 
@@ -146,7 +146,7 @@ interface SaveSlot {
 
 ## AI Integration
 
-### Gemini Service
+### AI Service
 ```typescript
 // src/services/geminiService.ts
 import { GoogleGenerativeAI } from '@google/genai';

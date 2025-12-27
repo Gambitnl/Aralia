@@ -87,14 +87,14 @@ export function filterSpellsForRequirement(
  * Maps spell schools to thematic emoji icons.
  */
 const SCHOOL_ICONS: Record<SpellSchool, string> = {
-  Abjuration: '\u{1F6E1}\u{FE0F}',   // Shield
-  Conjuration: '\u{2728}',            // Sparkles
-  Divination: '\u{1F441}\u{FE0F}',   // Eye
-  Enchantment: '\u{1F4AB}',           // Dizzy
-  Evocation: '\u{1F525}',             // Fire
-  Illusion: '\u{1F3AD}',              // Masks
-  Necromancy: '\u{1F480}',            // Skull
-  Transmutation: '\u{1F504}',         // Cycle
+  [SpellSchool.Abjuration]: '\u{1F6E1}\u{FE0F}',   // Shield
+  [SpellSchool.Conjuration]: '\u{2728}',            // Sparkles
+  [SpellSchool.Divination]: '\u{1F441}\u{FE0F}',   // Eye
+  [SpellSchool.Enchantment]: '\u{1F4AB}',           // Dizzy
+  [SpellSchool.Evocation]: '\u{1F525}',             // Fire
+  [SpellSchool.Illusion]: '\u{1F3AD}',              // Masks
+  [SpellSchool.Necromancy]: '\u{1F480}',            // Skull
+  [SpellSchool.Transmutation]: '\u{1F504}',         // Cycle
 };
 
 /**
@@ -108,14 +108,14 @@ export function getSchoolIcon(school: SpellSchool | string): string {
  * Maps spell schools to Tailwind text color classes.
  */
 const SCHOOL_TEXT_COLORS: Record<SpellSchool, string> = {
-  Abjuration: 'text-blue-400',
-  Conjuration: 'text-yellow-400',
-  Divination: 'text-purple-400',
-  Enchantment: 'text-pink-400',
-  Evocation: 'text-orange-400',
-  Illusion: 'text-indigo-400',
-  Necromancy: 'text-emerald-400',
-  Transmutation: 'text-teal-400',
+  [SpellSchool.Abjuration]: 'text-blue-400',
+  [SpellSchool.Conjuration]: 'text-yellow-400',
+  [SpellSchool.Divination]: 'text-purple-400',
+  [SpellSchool.Enchantment]: 'text-pink-400',
+  [SpellSchool.Evocation]: 'text-orange-400',
+  [SpellSchool.Illusion]: 'text-indigo-400',
+  [SpellSchool.Necromancy]: 'text-emerald-400',
+  [SpellSchool.Transmutation]: 'text-teal-400',
 };
 
 /**
@@ -129,14 +129,14 @@ export function getSchoolColorClass(school: SpellSchool | string): string {
  * Maps spell schools to Tailwind background + border classes for badges.
  */
 const SCHOOL_BG_CLASSES: Record<SpellSchool, string> = {
-  Abjuration: 'bg-blue-900/50 border-blue-700',
-  Conjuration: 'bg-yellow-900/50 border-yellow-700',
-  Divination: 'bg-purple-900/50 border-purple-700',
-  Enchantment: 'bg-pink-900/50 border-pink-700',
-  Evocation: 'bg-orange-900/50 border-orange-700',
-  Illusion: 'bg-indigo-900/50 border-indigo-700',
-  Necromancy: 'bg-emerald-900/50 border-emerald-700',
-  Transmutation: 'bg-teal-900/50 border-teal-700',
+  [SpellSchool.Abjuration]: 'bg-blue-900/50 border-blue-700',
+  [SpellSchool.Conjuration]: 'bg-yellow-900/50 border-yellow-700',
+  [SpellSchool.Divination]: 'bg-purple-900/50 border-purple-700',
+  [SpellSchool.Enchantment]: 'bg-pink-900/50 border-pink-700',
+  [SpellSchool.Evocation]: 'bg-orange-900/50 border-orange-700',
+  [SpellSchool.Illusion]: 'bg-indigo-900/50 border-indigo-700',
+  [SpellSchool.Necromancy]: 'bg-emerald-900/50 border-emerald-700',
+  [SpellSchool.Transmutation]: 'bg-teal-900/50 border-teal-700',
 };
 
 /**

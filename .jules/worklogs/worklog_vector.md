@@ -10,4 +10,8 @@ This journal records critical learnings about game logic, edge cases, and 5e rul
 
 ## 2024-05-25 - Resistance/Vulnerability Interaction **Learning:** Resistance and Vulnerability in 5e cancel each other out *before* applying math (XGtE p.77). Applying them sequentially (`floor(x/2)*2`) introduces rounding errors for odd numbers (e.g., 25 becomes 24). **Action:** Always check for cancelling conditions explicitly before applying integer division operations.
 
+<<<<<<< HEAD
+## 2025-02-18 - Thick Line AoE Logic **Learning:** D&D 5e "Lines" have width (usually 5ft), but code often implements them as 1-tile rays. A "Distance from Segment" algorithm (Capsule shape) is a robust way to support variable widths (e.g. 10ft wide beams) on a grid without complex polygon math. **Action:** Implemented `getLineAoE` using Euclidean distance from segment. Note: Loop bounds must be explicitly floored/ceiled (`Math.floor(min)`) to handle floating-point target coordinates derived from trigonometry, otherwise loops can behave unpredictably.
+=======
 ## 2025-02-17 - Concentration Check Logic **Learning:** Concentration checks are strictly Constitution saving throws and must inherit all saving throw mechanics, including Proficiency Bonuses (e.g., Sorcerers, Resilient feat). The previous implementation merely added Constitution modifiers, incorrectly penalizing proficient characters. **Action:** Refactored `checkConcentration` to delegate to the centralized `rollSavingThrow` utility, ensuring proficiency, global save modifiers (like Bless), and centralized RNG are applied correctly.
+>>>>>>> 140670d (Temp commit before rebase)

@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
 import { ConcentrationTracker } from '../ConcentrationTracker'
-import { DiceRoller } from '../DiceRoller'
+// DiceRoller is no longer used directly by ConcentrationTracker, but savingThrowUtils uses combatUtils which uses Math.random
+// We need to mock combatUtils to control the roll
+import * as combatUtils from '@/utils/combatUtils'
 import type { CombatCharacter, CombatState, Spell, ConcentrationState } from '@/types'
 
 const mockCharacter: CombatCharacter = {
@@ -37,7 +39,9 @@ describe('ConcentrationTracker', () => {
     it('should calculate DC based on damage (half damage)', () => {
         // Damage 30 -> DC 15
         // Roll 10 -> Total 12 (10 + 2) -> Fail
-        vi.spyOn(DiceRoller, 'rollD20').mockReturnValue(10)
+
+        // Mock rollDice to return 10
+        vi.spyOn(combatUtils, 'rollDice').mockReturnValue(10)
 
         const result = ConcentrationTracker.rollConcentrationSave(mockCharacter, 30)
 
@@ -49,11 +53,34 @@ describe('ConcentrationTracker', () => {
     it('should use minimum DC of 10', () => {
         // Damage 4 -> Half is 2, but min DC is 10
         // Roll 10 -> Total 12 -> Success
-        vi.spyOn(DiceRoller, 'rollD20').mockReturnValue(10)
+        vi.spyOn(combatUtils, 'rollDice').mockReturnValue(10)
 
         const result = ConcentrationTracker.rollConcentrationSave(mockCharacter, 4)
 
         expect(result.dc).toBe(10)
+        expect(result.success).toBe(true)
+        vi.restoreAllMocks()
+    })
+
+    it('should include proficiency bonus if proficient in Constitution', () => {
+        // Character proficient in Constitution saves (+3 PB at lvl 5 implied by system, but here we just check mod logic)
+        // We'll mock a character with specific level and proficiency
+        const proficientChar = {
+            ...mockCharacter,
+            level: 5, // PB is +3
+            savingThrowProficiencies: ['Constitution']
+        } as unknown as CombatCharacter
+
+        // Roll 10
+        // Con 14 (+2)
+        // PB (+3)
+        // Total = 15
+        vi.spyOn(combatUtils, 'rollDice').mockReturnValue(10)
+
+        const result = ConcentrationTracker.rollConcentrationSave(proficientChar, 4)
+
+        // DC 10. Total 15. Success.
+        expect(result.roll).toBe(15)
         expect(result.success).toBe(true)
         vi.restoreAllMocks()
     })
@@ -104,16 +131,10 @@ describe('ConcentrationTracker', () => {
           const charWithConcentration = { ...mockCharacter, concentratingOn: existingConcentration }
           const stateWithConcentration = { ...mockGameState, characters: [charWithConcentration] }
 
-          // Spy on breakConcentration to ensure it's called
-          // Note: Since breakConcentration is static, spying on it might be tricky depending on how it's called internally.
-          // Ideally we check the side effects.
-
           const newState = ConcentrationTracker.startConcentration(charWithConcentration, mockSpell, stateWithConcentration)
           const updatedChar = newState.characters.find(c => c.id === mockCharacter.id)
 
           expect(updatedChar?.concentratingOn?.spellId).toBe(mockSpell.id)
-          // We can't easily verify breakConcentration was called unless we check side effects like removed status effects.
-          // But for now, ensuring the new concentration replaced the old one is good.
       })
   })
 
@@ -124,7 +145,7 @@ describe('ConcentrationTracker', () => {
               spellName: 'Old Spell',
               spellLevel: 1,
               startedTurn: 0,
-              effectIds: [], // We'll test effect removal separately if we decide to implement it now
+              effectIds: [],
               canDropAsFreeAction: true
           }
           const charWithConcentration = { ...mockCharacter, concentratingOn: existingConcentration }

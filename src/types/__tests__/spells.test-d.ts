@@ -1,4 +1,5 @@
 import { expectType, expectError } from 'tsd';
+import { SpellSchool } from '../spells';
 import type { Spell, SpellEffect, DamageEffect, DamageData, HealingEffect, StatusConditionEffect, ConditionName } from '../spells';
 
 // A mock function to get a generic spell effect
@@ -32,7 +33,7 @@ describe('Spell System Type-Level Tests', () => {
         id: 'fireball',
         name: 'Fireball',
         level: 3,
-        school: 'Evocation',
+        school: SpellSchool.Evocation,
         classes: ['Sorcerer', 'Wizard'],
         castingTime: { value: 1, unit: 'action' },
         range: { type: 'ranged', distance: 150 },

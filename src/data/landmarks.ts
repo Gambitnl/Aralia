@@ -10,7 +10,7 @@ export interface LandmarkRewardTemplate {
 }
 
 export interface LandmarkConsequenceTemplate {
-  type: 'buff' | 'map_reveal' | 'reputation';
+  type: 'buff' | 'map_reveal' | 'reputation' | 'damage' | 'debuff';
   targetId?: string;
   duration?: number;
   value?: number;
@@ -175,10 +175,11 @@ export const LANDMARK_TEMPLATES: LandmarkTemplate[] = [
   },
   {
     id: 'cursed_ruin',
-    nameTemplate: ['Blighted Tower', 'Shadowed Altar', 'Withered Grove'],
+    nameTemplate: ['Blighted Tower', 'Shadowed Altar', 'Withered Grove', 'Haunted Cairn'],
     descriptionTemplate: [
       'The stones here are cold to the touch, and shadows seem to cling to them.',
       'Vegetation withers in a perfect circle around a cracked obsidian altar.',
+      'A pervasive chill seeps into your bones as you approach the ruins.',
     ],
     biomes: ['swamp', 'underdark', 'forest'],
     weight: 1,
@@ -190,6 +191,53 @@ export const LANDMARK_TEMPLATES: LandmarkTemplate[] = [
         descriptionTemplate: 'You risk the curse to loot {amount} gold from the altar.',
       }
     ],
-    possibleConsequences: [] // Removed buff until supported
+    possibleConsequences: [
+      {
+        type: 'damage',
+        value: 5,
+        chance: 0.6,
+        descriptionTemplate: 'As you touch the treasure, necrotic energy lashes out! Took 5 damage.',
+      },
+      {
+        type: 'debuff',
+        targetId: 'cursed_presence',
+        duration: 4,
+        chance: 0.3,
+        descriptionTemplate: 'A dark presence latches onto you. You feel watched (Debuff: Cursed Presence for 4 hours).',
+      }
+    ]
+  },
+  {
+    id: 'bandit_stash',
+    nameTemplate: ['Hidden Cache', 'Smuggler\'s Den', 'Hollowed Tree Trunk'],
+    descriptionTemplate: [
+      'You spot a disturbed patch of earth that looks recently dug.',
+      'A hollow tree trunk has been stuffed with oilcloth-wrapped bundles.',
+    ],
+    biomes: ['forest', 'hills', 'plains'],
+    weight: 1,
+    possibleRewards: [
+      {
+        type: 'gold',
+        amountRange: [10, 40],
+        chance: 1.0,
+        descriptionTemplate: 'You find a stash of {amount} stolen gold.',
+      },
+      {
+        type: 'item',
+        resourceId: 'dagger',
+        amountRange: [1, 1],
+        chance: 0.3,
+        descriptionTemplate: 'A balanced throwing dagger was hidden with the gold.',
+      }
+    ],
+    possibleConsequences: [
+      {
+        type: 'damage',
+        value: 3,
+        chance: 0.4,
+        descriptionTemplate: 'It was trapped! A needle springs out. Took 3 damage.',
+      }
+    ]
   }
 ];

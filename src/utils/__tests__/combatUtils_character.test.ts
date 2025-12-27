@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { createPlayerCombatCharacter } from '../combatUtils';
 import { PlayerCharacter, Item } from '../../types';
-import { Spell } from '../../types/spells';
+import { Spell, SpellSchool } from '../../types/spells';
 import { createMockPlayerCharacter, createMockSpell } from '../factories';
 
 // Mocks
@@ -11,7 +11,7 @@ const mockAllSpells: Record<string, Spell> = {
     id: 'fireball',
     name: 'Fireball',
     level: 3,
-    school: 'Evocation',
+    school: SpellSchool.Evocation,
     castingTime: { value: 1, unit: 'action' },
     range: { type: 'ranged', distance: 150 },
     effects: [{

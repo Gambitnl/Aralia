@@ -79,7 +79,7 @@ src/features/Town/
     - In `src/components/Town/TownCanvas.tsx`:
       Update relative imports to step up one level (e.g., `../services/` -> `../../services/`).
 4.  **Verify**:
-    - Run `pnpm build` to catch module resolution errors.
+    - Run `npm run build` to catch module resolution errors.
     - Check for circular dependencies (unlikely here, but good practice).
 
 ## 4. Open Questions / Legacy Check

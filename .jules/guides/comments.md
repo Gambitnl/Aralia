@@ -34,7 +34,7 @@ Code should be self-documenting through clear naming and structure. Comments fil
 // 5e PHB p.205: Fireball ignores cover for damage calculation
 const damage = rollDamage(8, 6);
 
-// Gemini sometimes returns incomplete JSON when rate-limited
+// AI providers sometimes return incomplete JSON when rate-limited
 // Retry logic handles this gracefully
 const response = await fetchWithRetry(prompt);
 ```

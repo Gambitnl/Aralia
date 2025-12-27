@@ -1,103 +1,107 @@
 
-import { describe, it, expect, vi, afterEach } from 'vitest';
-import { VoyageManager } from '../voyage/VoyageManager';
-import { Ship, VoyageState } from '../../../types/naval';
-import { v4 as uuidv4 } from 'uuid';
+import { describe, it, expect } from 'vitest';
+import { VoyageManager } from '../VoyageManager';
+import { Ship } from '../../../types/naval';
+import { CrewManager } from '../CrewManager';
 
 describe('VoyageManager', () => {
-    const mockShip: Ship = {
-        id: uuidv4(),
-        name: 'The Rusty Tub',
+    // Mock Ship
+    const createMockShip = (): Ship => ({
+        id: 'ship-1',
+        name: 'The Sea Spray',
         type: 'Sloop',
         size: 'Small',
-        description: 'A test ship',
+        description: 'A fast sloop.',
         stats: {
-            speed: 30, // 30ft/round ~ 3mph ~ 72 miles/day
-            maneuverability: 0,
+            speed: 40, // 40ft/round -> 4 mph -> 96 miles/day
+            maneuverability: 2,
             hullPoints: 100,
             maxHullPoints: 100,
-            armorClass: 12,
-            cargoCapacity: 10,
+            armorClass: 14,
+            cargoCapacity: 50,
             crewMin: 5,
-            crewMax: 10
+            crewMax: 20
         },
-        crew: {
-            members: Array(5).fill({ id: '1', name: 'Sailor', role: 'Sailor', morale: 80, dailyWage: 1, traits: [] }),
-            averageMorale: 80,
-            unrest: 0,
-            quality: 'Average'
-        },
-        cargo: {
-            items: [],
-            totalWeight: 0,
-            capacityUsed: 0,
-            supplies: {
-                food: 100,
-                water: 100
-            }
-        },
+        crew: CrewManager.recruitCrew({
+            id: 'mock',
+            name: 'Mock',
+            type: 'Sloop',
+            size: 'Small',
+            description: '',
+            stats: {} as any,
+            crew: { members: [], averageMorale: 80, unrest: 0, quality: 'Average' },
+            cargo: {} as any,
+            modifications: [],
+            weapons: [],
+            flags: {}
+        }, 'Captain', 1).crew,
+        cargo: { items: [], totalWeight: 0, capacityUsed: 0, supplies: { food: 100, water: 200 } },
         modifications: [],
         weapons: [],
         flags: {}
-    };
-
-    afterEach(() => {
-        vi.restoreAllMocks();
     });
 
-    it('starts a voyage correctly', () => {
-        const voyage = VoyageManager.startVoyage(mockShip, 500);
+    it('should initialize a voyage correctly', () => {
+        const ship = createMockShip();
+        const voyage = VoyageManager.startVoyage(ship, 500);
         expect(voyage.status).toBe('Sailing');
-        expect(voyage.distanceToDestination).toBe(500);
         expect(voyage.daysAtSea).toBe(0);
+        expect(voyage.distanceToDestination).toBe(500);
     });
 
-    it('consumes supplies daily', () => {
-        // Mock random to pick smooth sailing (index 0)
-        vi.spyOn(Math, 'random').mockReturnValue(0.0);
+    it('should advance the day and move the ship', () => {
+        const ship = createMockShip();
+        let voyage = VoyageManager.startVoyage(ship, 500);
+        const result = VoyageManager.advanceDay(voyage, ship, 1000);
 
-        const voyage = VoyageManager.startVoyage(mockShip, 500);
-        const result = VoyageManager.advanceDay(voyage, mockShip);
+        voyage = result.newState;
 
-        // 5 crew members = 5 food, 5 water
-        expect(result.ship.cargo.supplies.food).toBe(95);
-        expect(result.ship.cargo.supplies.water).toBe(95);
-        expect(result.state.suppliesConsumed.food).toBe(5);
+        expect(voyage.daysAtSea).toBe(1);
+        // Speed 40 -> 96 miles/day.
+        expect(voyage.distanceTraveled).toBeGreaterThanOrEqual(96);
+        expect(voyage.log.length).toBeGreaterThan(1); // Init log + Day 1 log
     });
 
-    it('handles starvation when food runs out', () => {
-        // Mock random to pick smooth sailing (index 0) to avoid interference
-        vi.spyOn(Math, 'random').mockReturnValue(0.0);
+    it('should consume supplies from ship cargo', () => {
+        const ship = createMockShip();
+        let voyage = VoyageManager.startVoyage(ship, 500);
+        const crewCount = ship.crew.members.length;
+        const initialFood = ship.cargo.supplies.food;
+        const initialWater = ship.cargo.supplies.water;
 
-        const poorShip = { ...mockShip, cargo: { ...mockShip.cargo, supplies: { food: 0, water: 100 } } };
-        // Deep copy crew to avoid mutation of mock
-        poorShip.crew = JSON.parse(JSON.stringify(mockShip.crew));
+        const result = VoyageManager.advanceDay(voyage, ship, 1000);
+        const updatedShip = result.updatedShip;
 
-        const voyage = VoyageManager.startVoyage(poorShip, 500);
-        const result = VoyageManager.advanceDay(voyage, poorShip);
-
-        expect(result.state.log.some(l => l.event.includes('Out of food'))).toBe(true);
-        // Morale should drop (starts at 80, -10 = 70)
-        // Note: modifyCrewMorale is a static method on CrewManager.
-        // We are checking the result ship state.
-        expect(result.ship.crew.members[0].morale).toBe(70);
+        // 1 food per person, 2 water per person
+        expect(updatedShip.cargo.supplies.food).toBe(initialFood - crewCount);
+        expect(updatedShip.cargo.supplies.water).toBe(initialWater - (crewCount * 2));
     });
 
-    it('arrives at destination', () => {
-        // Mock random to pick smooth sailing (index 0)
-        vi.spyOn(Math, 'random').mockReturnValue(0.0);
+    it('should handle starvation when supplies run out', () => {
+        const ship = createMockShip();
+        // Set low supplies
+        ship.cargo.supplies.food = 0;
+        ship.cargo.supplies.water = 0;
 
-        // High speed ship to arrive in 1 day
-        const fastShip = { ...mockShip, stats: { ...mockShip.stats, speed: 500 } }; // Very fast
-        const voyage = VoyageManager.startVoyage(fastShip, 10);
+        let voyage = VoyageManager.startVoyage(ship, 500);
+        const result = VoyageManager.advanceDay(voyage, ship, 1000);
+        const updatedShip = result.updatedShip;
 
-        const currentState = voyage;
-        const currentShip = fastShip;
+        // Check logs for warning
+        const lastLog = result.newState.log[result.newState.log.length - 1];
+        expect(lastLog.event).toContain('suffering from starvation');
+        expect(lastLog.type).toBe('Warning');
 
-        // Let's manually set distance to 0 to test the check logic.
-        currentState.distanceToDestination = 0;
-        const result = VoyageManager.advanceDay(currentState, currentShip);
+        // Check morale hit
+        expect(updatedShip.crew.averageMorale).toBeLessThan(80); // Started at 80
+    });
 
-        expect(result.state.status).toBe('Docked');
+    it('should finish voyage when distance is reached', () => {
+        const ship = createMockShip();
+        let voyage = VoyageManager.startVoyage(ship, 50); // Short trip
+        const result = VoyageManager.advanceDay(voyage, ship, 1000);
+
+        expect(result.newState.status).toBe('Docked');
+        expect(result.newState.log[result.newState.log.length - 1].event).toContain('Land ho');
     });
 });

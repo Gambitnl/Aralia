@@ -34,13 +34,16 @@ export interface TrapEffect {
   saveType?: AbilityScoreName;
 }
 
-export type TriggerCondition = 'touch' | 'proximity' | 'interaction' | 'timer';
+export type TriggerCondition = 'touch' | 'proximity' | 'interaction' | 'timer' | 'magic' | 'glyph';
+
+export type TrapType = 'mechanical' | 'magical';
 
 export interface Trap {
   id: string;
   name: string;
-  detectionDC: number;  // Perception/Investigation
-  disarmDC: number;  // Thieves' tools
+  type?: TrapType; // Defaults to 'mechanical' if undefined
+  detectionDC: number;  // Perception/Investigation (Mech) or Arcana (Magic)
+  disarmDC: number;  // Thieves' tools (Mech) or Arcana (Magic)
   triggerCondition: TriggerCondition;
   effect: TrapEffect;
   resetable: boolean;
@@ -216,4 +219,47 @@ export interface SecretDoorResult {
   state: SecretDoorState;
   message: string;
   xpAward?: number; // Discovery XP
+}
+
+// --- MECHANISM SYSTEM ---
+
+export type MechanismType = 'lever' | 'winch' | 'wheel' | 'button' | 'valve' | 'console';
+export type MechanismState = 'active' | 'inactive' | 'locked' | 'jammed' | 'broken';
+
+export interface Mechanism {
+  id: string;
+  name: string;
+  type: MechanismType;
+  description: string;
+
+  // Operation Requirements
+  requiresCheck: boolean;
+  checkAbility?: AbilityScoreName; // e.g. 'Strength' for a heavy winch
+  checkDC?: number;
+
+  // Tool requirement
+  requiredToolId?: string; // e.g. 'crowbar' or 'wrench'
+
+  // Current State
+  state: MechanismState;
+
+  // Continuous values (optional)
+  currentValue?: number; // 0-100 (e.g., valve openness)
+  targetValue?: number;  // Value needed to trigger effect
+
+  // Outcomes
+  linkedEventId?: string; // ID of the event triggered when operated
+  linkedMechanismIds?: string[]; // Chain reactions
+
+  // Audio/Visual hints
+  noiseLevel?: 'silent' | 'quiet' | 'loud' | 'deafening';
+}
+
+export interface MechanismOperationResult {
+  success: boolean;
+  newState: MechanismState;
+  message: string;
+  triggeredEventId?: string;
+  noiseLevel?: 'silent' | 'quiet' | 'loud' | 'deafening';
+  damageTaken?: number; // e.g., operating a hot valve
 }

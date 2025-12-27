@@ -4,6 +4,7 @@ import {
   isDamageEffect,
   isHealingEffect,
   isStatusConditionEffect,
+  SpellSchool,
 } from '../spells';
 import type { Spell, DamageEffect, HealingEffect, StatusConditionEffect, SpellEffect } from '../spells';
 
@@ -12,7 +13,7 @@ const validSpell: Spell = {
   id: 'fireball',
   name: 'Fireball',
   level: 3,
-  school: 'Evocation',
+  school: SpellSchool.Evocation,
   classes: ['Sorcerer', 'Wizard'],
   castingTime: { value: 1, unit: 'action' },
   range: { type: 'ranged', distance: 150 },

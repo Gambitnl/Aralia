@@ -35,7 +35,7 @@ try {
 }
 
 // ✅ GOOD: Retry logic for transient failures
-async function callGemini(prompt: string, retries = 3): Promise<string> {
+async function callAI(prompt: string, retries = 3): Promise<string> {
   for (let i = 0; i < retries; i++) {
     try {
       return await gemini.generate(prompt);

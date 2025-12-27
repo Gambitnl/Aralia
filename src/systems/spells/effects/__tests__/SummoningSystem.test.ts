@@ -3,7 +3,7 @@ import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { useSummons } from '../../../../hooks/combat/useSummons';
 import { CombatCharacter } from '../../../../types/combat';
-import { Spell } from '../../../../types/spells';
+import { Spell, SpellSchool } from '../../../../types/spells';
 
 // Mock dependencies
 const mockCaster: CombatCharacter = {
@@ -40,7 +40,7 @@ const mockSpell: Spell = {
     id: 'find-familiar',
     name: 'Find Familiar',
     level: 1,
-    school: 'Conjuration',
+    school: SpellSchool.Conjuration,
     classes: ['Wizard'],
     castingTime: { value: 1, unit: 'hour' },
     range: { type: 'touch' },

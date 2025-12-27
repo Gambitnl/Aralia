@@ -6,13 +6,13 @@
  */
 import React, { useMemo } from 'react';
 import { motion, MotionProps } from 'framer-motion';
-import { Item, Action, EconomyState } from '../types';
-import Tooltip from './Tooltip';
-import { useGameState } from '../state/GameContext';
-import { calculatePrice } from '../utils/economyUtils';
-import { formatGpAsCoins } from '../utils/coinPurseUtils';
-import CoinPurseDisplay from './ui/CoinPurseDisplay';
-import { useFocusTrap } from '../hooks/useFocusTrap';
+import { Item, Action, EconomyState } from '../../types';
+import Tooltip from '../Tooltip';
+import { useGameState } from '../../state/GameContext';
+import { calculatePrice } from '../../utils/economyUtils';
+import { formatGpAsCoins } from '../../utils/coinPurseUtils';
+import CoinPurseDisplay from '../ui/CoinPurseDisplay';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface MerchantModalProps {
     isOpen: boolean;

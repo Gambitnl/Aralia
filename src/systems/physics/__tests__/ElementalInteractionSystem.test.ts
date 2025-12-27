@@ -126,5 +126,18 @@ describe('ElementalInteractionSystem', () => {
             expect(result.finalState).toBe(StateTag.Wet);
             expect(result.interaction).toContain('smoke + cold -> wet');
         });
+
+        it('should handle Smoke + Wind -> Neutral (Dispersal)', () => {
+            const current = [StateTag.Smoke];
+            const { newStates, result } = applyStateToTags(current, StateTag.Wind);
+
+            // Smoke + Wind -> null (cancellation/dispersal)
+            expect(newStates).not.toContain(StateTag.Smoke);
+            expect(newStates).not.toContain(StateTag.Wind);
+            expect(newStates).toHaveLength(0);
+
+            expect(result.finalState).toBeUndefined();
+            expect(result.interaction).toContain('Neutralized');
+        });
     });
 });

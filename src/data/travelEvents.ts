@@ -1,3 +1,4 @@
+
 /**
  * @file src/data/travelEvents.ts
  *
@@ -50,9 +51,15 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
         weight: 1
     },
     {
+        id: 'herb_patch',
+        description: 'You spot a patch of medicinal herbs swaying in the breeze.',
+        effect: { type: 'item_gain', amount: 2, itemId: 'wild_herbs', description: 'Harvested Wild Herbs x2' },
+        weight: 2
+    },
+    {
         id: 'berry_bushes',
         description: 'You find a thicket of ripe berry bushes.',
-        effect: { type: 'item_gain', amount: 2, itemId: 'healing_potion', description: 'Found herbal ingredients (Potions)' }, // Simulating finding components/potions
+        effect: { type: 'item_gain', amount: 1, itemId: 'healing_potion', description: 'Found herbal ingredients (Potions)' }, // Simulating finding components/potions
         weight: 1
     }
   ],
@@ -80,6 +87,12 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
       description: 'You discover a crystal-clear spring that invigorates your spirit.',
       effect: { type: 'health_change', amount: 5, description: 'Healed 5 HP' },
       weight: 1,
+    },
+    {
+      id: 'rare_fungi',
+      description: 'A patch of bioluminescent fungi grows on a rotting stump.',
+      effect: { type: 'item_gain', amount: 1, itemId: 'glowing_moss', description: 'Harvested Glowing Moss' },
+      weight: 1
     }
   ],
   mountain: [
@@ -100,6 +113,18 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
       description: 'Loose rocks tumble down the cliff face!',
       effect: { type: 'health_change', amount: -5, description: 'Took 5 damage' },
       weight: 1,
+    },
+    {
+      id: 'iron_vein',
+      description: 'A surface vein of iron ore is exposed near the path.',
+      effect: { type: 'item_gain', amount: 2, itemId: 'iron_ore', description: 'Mined Iron Ore x2' },
+      weight: 1
+    },
+    {
+      id: 'exposed_silver',
+      description: 'Gleaming silver catches your eye in a ravine wall.',
+      effect: { type: 'item_gain', amount: 1, itemId: 'silver_ore', description: 'Mined Silver Ore' },
+      weight: 0.5
     }
   ],
   swamp: [
@@ -120,6 +145,12 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
       description: 'You have to wade through leech-infested waters.',
       effect: { type: 'health_change', amount: -3, description: 'Took 3 damage' },
       weight: 1,
+    },
+    {
+      id: 'venomous_remains',
+      description: 'You find the remains of a venomous beast.',
+      effect: { type: 'item_gain', amount: 1, itemId: 'monster_venom', description: 'Harvested Monster Venom' },
+      weight: 1
     }
   ],
   desert: [
@@ -146,6 +177,12 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
       description: 'You stumble upon a hidden oasis.',
       effect: { type: 'health_change', amount: 10, description: 'Healed 10 HP' },
       weight: 0.5,
+    },
+    {
+      id: 'rare_bloom',
+      description: 'A vibrant desert flower blooms in the shadow of a dune.',
+      effect: { type: 'item_gain', amount: 1, itemId: 'desert_flower', description: 'Harvested Desert Flower' },
+      weight: 1
     }
   ],
   underdark: [
@@ -178,6 +215,12 @@ export const TRAVEL_EVENTS: BiomeEventMap = {
         description: 'A Hook Horror drops from the ceiling!',
         effect: { type: 'health_change', amount: -8, description: 'Took 8 damage' },
         weight: 0.5,
+    },
+    {
+        id: 'mithral_vein',
+        description: 'A rare vein of mithral sparkles in the torchlight.',
+        effect: { type: 'item_gain', amount: 1, itemId: 'silver_ore', description: 'Mined Silver Ore (Mithral substitute)' },
+        weight: 0.2
     }
   ]
 };

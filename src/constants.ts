@@ -52,19 +52,10 @@ import { LOCATIONS, STARTING_LOCATION_ID } from './data/world/locations';
 import { NPCS } from './data/world/npcs';
 import { COMPANIONS } from './data/companions';
 import { TTS_VOICE_OPTIONS } from './data/settings/ttsOptions';
-import { USE_DUMMY_CHARACTER_FOR_DEV, initializeDummyCharacterData, getDummyInitialInventory, setInitializedDummyCharacter } from './data/dev/dummyCharacter';
 
 
 // Define RACES_DATA using the imported ALL_RACES_DATA
 const RACES_DATA = ALL_RACES_DATA;
-
-// Initialize DUMMY_PARTY_FOR_DEV after all its dependencies (RACES_DATA, etc.) are defined.
-const initializedDummyParty = initializeDummyCharacterData(RACES_DATA, CLASSES_DATA, SKILLS_DATA);
-setInitializedDummyCharacter(initializedDummyParty);
-export const initialInventoryForDummyCharacter = getDummyInitialInventory({ ...WEAPONS_DATA, ...ITEMS });
-// Now DUMMY_PARTY_FOR_DEV is populated in dummyCharacter.ts and can be re-exported.
-export { DUMMY_PARTY_FOR_DEV } from './data/dev/dummyCharacter';
-
 
 const {
   dragonbornAncestries: DRAGONBORN_ANCESTRIES,
@@ -90,7 +81,6 @@ export {
   NPCS, // Re-export from new location
   COMPANIONS, // Re-export from new location
   TTS_VOICE_OPTIONS, // Re-export from new location
-  USE_DUMMY_CHARACTER_FOR_DEV, // Re-export from new location
   XP_THRESHOLDS_BY_LEVEL, // Re-export from new dndData
   XP_BY_CR, // Re-export from new dndData
   MONSTERS_DATA, // Re-export from new monsterData

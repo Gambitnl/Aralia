@@ -18,9 +18,9 @@ Before you venture forth, take a moment to understand the terrain:
 
 1.  **Install dependencies**:
     ```bash
-    pnpm install
+    npm install
     ```
-    *Tip: We use `pnpm` exclusively to manage dependencies.*
+    *Tip: We use `npm` exclusively to manage dependencies.*
 
 2.  **Environment Setup**:
     *   Copy `.env.example` to `.env`.
@@ -29,7 +29,7 @@ Before you venture forth, take a moment to understand the terrain:
 
 3.  **Start the Server**:
     ```bash
-    pnpm run dev
+    npm run dev
     ```
 
 ## 🧪 Testing Your Gear
@@ -38,19 +38,19 @@ We prefer to catch bugs before they reach the dungeon.
 
 *   **Run Unit Tests**:
     ```bash
-    pnpm test
+    npm test
     ```
     *This runs Vitest on all `.test.tsx` and `.test.ts` files.*
 
 *   **Type Checking**:
     ```bash
-    pnpm run typecheck
+    npm run typecheck
     ```
     *Ensures TypeScript is happy.*
 
 *   **Linting**:
     ```bash
-    pnpm run lint
+    npm run lint
     ```
     *Checks for code style and potential errors.*
 

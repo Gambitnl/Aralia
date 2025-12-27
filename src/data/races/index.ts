@@ -30,6 +30,7 @@ import { GOBLIN_DATA } from './goblin';
 import { HALFLING_DATA } from './halfling';
 import { HUMAN_DATA } from './human';
 import { ORC_DATA } from './orc';
+import { TABAXI_DATA } from './tabaxi';
 import { WATER_GENASI_DATA } from './water_genasi';
 
 /**
@@ -63,6 +64,7 @@ export const ALL_RACES_DATA: Record<string, Race> = Object.freeze({
   aarakocra: AARAKOCRA_DATA,
   centaur: CENTAUR_DATA,
   goblin: GOBLIN_DATA,
+  tabaxi: TABAXI_DATA,
 });
 
 /**

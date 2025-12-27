@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PlayerCharacter, TempPartyMember } from '../../types';
 import { PartyManager } from '../EncounterGenerator/PartyManager';
-import { DUMMY_PARTY_FOR_DEV } from '../../constants';
+import { getDummyParty } from '../../data/dev/dummyCharacter';
 
 interface PartyEditorModalProps {
   isOpen: boolean;
@@ -21,7 +21,7 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
   useEffect(() => {
     if (isOpen) {
       // Initialize with a simple representation of the current party
-      const initialTempParty = (initialParty.length > 0 ? initialParty : DUMMY_PARTY_FOR_DEV).map((p, index) => ({
+      const initialTempParty = (initialParty.length > 0 ? initialParty : getDummyParty()).map((p, index) => ({
         id: p.id || crypto.randomUUID(),
         level: p.level || 1,
         classId: p.class?.id || 'fighter',

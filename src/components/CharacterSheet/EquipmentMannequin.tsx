@@ -26,6 +26,7 @@ import HandsIcon from '../../assets/icons/HandsIcon';
 import DynamicMannequinSlotIcon from './DynamicMannequinSlotIcon';
 import { isWeaponProficient, isWeaponMartial } from '../../utils/weaponUtils';
 import { getCharacterMaxArmorProficiency, getArmorCategoryHierarchy, getAbilityModifierValue } from '../../utils/characterUtils';
+import { resolveItemVisual } from '../../utils/visualUtils';
 
 interface EquipmentMannequinProps {
   character: PlayerCharacter;
@@ -75,6 +76,28 @@ const MannequinSilhouette = () => (
     />
   </svg>
 );
+
+const EquippedItemVisual: React.FC<{ item: Item }> = ({ item }) => {
+  const [imgError, setImgError] = React.useState(false);
+  const visual = resolveItemVisual(item);
+
+  if (visual.src && !imgError) {
+    return (
+      <img
+        src={visual.src}
+        alt={visual.label}
+        className="w-10 h-10 object-contain drop-shadow-md"
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+
+  return (
+    <span className="text-3xl filter drop-shadow-lg">
+      {visual.fallbackContent}
+    </span>
+  );
+};
 
 const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSlotClick, activeFilterSlot, onAutoEquip }) => {
   const characterMaxProficiencyLevel = getCharacterMaxArmorProficiency(character);
@@ -222,16 +245,8 @@ const EquipmentMannequin: React.FC<EquipmentMannequinProps> = ({ character, onSl
                 >
                   {/* Inner content container */}
                   <div className="w-full h-full p-2 flex flex-col items-center justify-center overflow-hidden">
-                    {/* TODO(Materializer): Refactor to use `resolveItemVisual(equippedItem)` from src/utils/visualUtils.ts to handle images vs emojis properly. */}
-                    {equippedItem?.icon ? (
-                      // Check if it's a complex SVG string or a character/emoji
-                      equippedItem.icon.startsWith('data:image/svg+xml') || equippedItem.icon.includes('<svg') || equippedItem.icon.endsWith('.svg') ? (
-                        <img src={equippedItem.icon} alt={equippedItem.name} className="w-10 h-10 object-contain drop-shadow-md" onError={(e) => (e.currentTarget.style.display = 'none')} />
-                      ) : (
-                        <span className="text-3xl filter drop-shadow-lg">{equippedItem.icon}</span>
-                      )
-                    ) : equippedItem?.name ? (
-                      <span className="text-xs font-bold text-center break-words w-full leading-tight text-amber-100">{equippedItem.name}</span>
+                    {equippedItem ? (
+                      <EquippedItemVisual item={equippedItem} />
                     ) : (
                       <div className={`w-10 h-10 opacity-40 ${iconColor}`}>
                         <DynamicMannequinSlotIcon

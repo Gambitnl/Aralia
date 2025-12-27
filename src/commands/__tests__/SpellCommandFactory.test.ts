@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { SpellCommandFactory } from '../factory/SpellCommandFactory'
 import { DamageCommand } from '../effects/DamageCommand'
-import type { DamageEffect, Spell } from '@/types/spells'
+import { DamageEffect, Spell, SpellSchool } from '@/types/spells'
 import type { CombatCharacter } from '@/types/combat'
 import { createMockGameState } from '@/utils/factories'
 
@@ -15,7 +15,7 @@ const createMockSpell = (id: string, overrides: Partial<Spell> = {}): Spell => (
   id,
   name: id,
   level: 1,
-  school: 'Evocation',
+  school: SpellSchool.Evocation,
   classes: ['Wizard'],
   castingTime: { value: 1, unit: 'action' },
   range: { type: 'ranged', distance: 60 },

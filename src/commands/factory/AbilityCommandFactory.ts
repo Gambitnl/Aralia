@@ -5,7 +5,7 @@ import { DamageCommand } from '../effects/DamageCommand';
 import { HealingCommand } from '../effects/HealingCommand';
 import { StatusConditionCommand } from '../effects/StatusConditionCommand';
 import { AbilityEffectMapper } from './AbilityEffectMapper';
-import { rollDice, generateId, calculateDamage } from '@/utils/combatUtils';
+import { rollDice, generateId, calculateDamage, calculateCover, resolveAttack } from '@/utils/combatUtils';
 import { isDamageEffect, isStatusConditionEffect } from '@/types/spells';
 import { SpellCommandFactory } from './SpellCommandFactory';
 import { AttackRiderSystem, AttackContext } from '@/systems/combat/AttackRiderSystem';
@@ -79,18 +79,28 @@ export class WeaponAttackCommand implements SpellCommand {
       // Proficiency
       const pb = Math.ceil((this.caster.level || 1) / 4) + 1;
       const proficiencyBonus = this.ability.isProficient ? pb : 0;
+      const modifiers = abilityMod + proficiencyBonus;
 
-      const attackRoll = d20 + abilityMod + proficiencyBonus;
-      const ac = currentTarget.armorClass || 10;
-      const isHit = attackRoll >= ac || d20 === 20; // Nat 20 always hits
-      const isCritical = d20 === 20;
+      // Calculate Cover
+      const coverBonus = state.mapData
+        ? calculateCover(this.caster.position, currentTarget.position, state.mapData)
+        : 0;
+      const coverText = coverBonus > 0 ? ` (Cover +${coverBonus})` : '';
+
+      // Determine Target AC
+      const baseAC = currentTarget.armorClass || 10;
+      const targetAC = baseAC + coverBonus;
+
+      // Resolve Attack
+      const { isHit, isCritical, isAutoMiss } = resolveAttack(d20, modifiers, targetAC);
+      const attackRoll = d20 + modifiers;
 
       // Log Attack Roll
       newState.combatLog.push({
         id: generateId(),
         timestamp: Date.now(),
         type: 'action',
-        message: `${this.caster.name} attacks ${currentTarget.name}. ${rollStr} + ${abilityMod} + ${proficiencyBonus} = ${attackRoll} vs AC ${ac}. ${isHit ? (isCritical ? "CRITICAL HIT!" : "HIT!") : "MISS."}`,
+        message: `${this.caster.name} attacks ${currentTarget.name}${coverText}. ${rollStr} + ${modifiers} = ${attackRoll} vs AC ${targetAC}. ${isHit ? (isCritical ? "CRITICAL HIT!" : "HIT!") : (isAutoMiss ? "CRITICAL MISS!" : "MISS.")}`,
         characterId: this.caster.id,
         targetIds: [currentTarget.id]
       });

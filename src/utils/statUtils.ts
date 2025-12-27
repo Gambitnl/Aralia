@@ -266,4 +266,3 @@ export const calculatePassiveScore = (
   return score;
 };
 
-// TODO(Mechanist): Wire up `calculatePassiveScore` to `CharacterSheet` to display Passive Perception/Investigation.

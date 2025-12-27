@@ -39,6 +39,29 @@ export const createSeededRandom = (worldSeed: number, parentWorldMapCoords: { x:
 
 
 // --- Feature Placement ---
+
+/**
+ * Deterministically places features (trees, rocks, ruins) on the submap based on the seed.
+ *
+ * WHY:
+ * We use a "seeded random" approach where every feature's position and size is derived
+ * from the world seed and coordinates. This ensures that if a player leaves and returns
+ * to the same tile, the submap looks exactly the same without needing to store it in a database.
+ *
+ * HOW:
+ * 1. Iterates through the config for the biome (e.g. "Forest" has "Trees").
+ * 2. Uses a hash function to decide how many of that feature to place.
+ * 3. Uses the hash to determine X, Y, and Size for each instance.
+ * 4. Checks for collisions with the Main Path (so trees don't block the road).
+ *
+ * @param parentWorldMapCoords - The coordinates of the parent World Map tile (the "macro" location).
+ * @param currentWorldBiomeId - The biome ID (e.g., 'forest', 'desert') to determine which features to spawn.
+ * @param submapDimensions - The size of the submap grid (rows/cols).
+ * @param seededFeaturesConfig - The biome-specific configuration defining what features can spawn.
+ * @param hashFn - The deterministic hash function seeded for this specific submap.
+ * @param mainPathCoords - A set of "x,y" strings representing tiles occupied by the main road/path.
+ * @returns An array of placed feature instances with their positions and sizes.
+ */
 const getActiveSeededFeatures = (
     parentWorldMapCoords: { x: number, y: number },
     currentWorldBiomeId: string,
@@ -110,6 +133,28 @@ const getActiveSeededFeatures = (
 };
 
 // --- Path Generation ---
+
+/**
+ * Generates the "Main Path" or road that cuts through the submap.
+ *
+ * WHY:
+ * To make navigation easier and the world feel inhabited, we procedurally generate
+ * paths that connect across submap boundaries.
+ *
+ * HOW:
+ * - Path Existence: Determined by a probability chance (hash % 100 < chance).
+ * - Orientation: Randomly Vertical or Horizontal based on seed.
+ * - Wobble: The path doesn't go straight; it "wobbles" left/right or up/down
+ *   using Perlin-like noise (via the hash function) to look organic.
+ * - Starting Location Override: If this is the "Starting Location" (e.g., first town),
+ *   we force a path to exist and ensure it connects to the center.
+ *
+ * @param parentWorldMapCoords - The macro coordinates.
+ * @param currentWorldBiomeId - The biome ID (affects path probability, e.g., low in swamps).
+ * @param submapDimensions - Size of the grid.
+ * @param hashFn - The deterministic hash function.
+ * @returns An object containing `mainPathCoords` (the path itself) and `pathAdjacencyCoords` (tiles next to the path).
+ */
 const getPathDetails = (
     parentWorldMapCoords: { x: number, y: number },
     currentWorldBiomeId: string,
@@ -232,7 +277,23 @@ interface SubmapTileInfo {
 
 /**
  * Calculates the deterministic terrain type and properties of a single submap tile.
- * This is the core logic shared between the renderer and action handlers.
+ *
+ * WHY:
+ * This is the "God Function" for the submap system. It is used by:
+ * 1. The Renderer (to know which sprite to draw: grass, road, water).
+ * 2. The Physics/Movement system (to know if a tile is walkable).
+ * 3. The Interaction system (to know if you are standing on a 'village_area').
+ *
+ * It must be stateless and purely functional so it returns the exact same result
+ * for the same seed/coordinates every time, allowing us to "generate" the map
+ * on the fly without storing millions of tiles in the DB.
+ *
+ * @param worldSeed - The global seed for the entire game world.
+ * @param parentWorldMapCoords - The X/Y of the world map tile we are inside.
+ * @param currentWorldBiomeId - The biome of the world map tile.
+ * @param submapDimensions - The size of the local grid.
+ * @param targetSubmapCoords - The specific X/Y of the tile we are querying.
+ * @returns Object containing the terrain type (string) and collision flag (boolean).
  */
 export function getSubmapTileInfo(
     worldSeed: number,

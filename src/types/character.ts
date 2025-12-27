@@ -1,6 +1,7 @@
 import type { SpellSchool } from './spells';
 import type { AbilityScoreName, AbilityScores, Skill } from './core';
 import type { EquipmentSlotType, Item } from './items';
+import type { RaceVisualSpec } from './visuals';
 
 // -----------------------------------------------------------------------------
 // Racial data
@@ -119,7 +120,10 @@ export interface Race {
   gnomeSubraces?: GnomeSubrace[];
   giantAncestryChoices?: GiantAncestryBenefit[];
   fiendishLegacies?: FiendishLegacy[];
+  /** @deprecated Use visual.illustrationPath instead */
   imageUrl?: string;
+  visual?: RaceVisualSpec;
+  // TODO(Materializer): Migrate `imageUrl` to `visual.illustrationPath` in all src/data/races/*.ts files.
   racialSpellChoice?: {
     traitName: string;
     traitDescription: string;

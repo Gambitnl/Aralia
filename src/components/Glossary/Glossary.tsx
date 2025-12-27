@@ -6,6 +6,7 @@ import { findGlossaryEntryAndPath } from '../../utils/glossaryUtils';
 import { useSpellGateChecks } from '../../hooks/useSpellGateChecks';
 import SpellCardTemplate, { SpellData } from './SpellCardTemplate';
 import { SafeStorage } from '../../utils/storageUtils';
+import { safeJSONParse } from '../../utils/securityUtils';
 import { fetchWithTimeout } from '../../utils/networkUtils';
 import { assetUrl } from '../../config/env';
 import { getCategoryIcon, highlightSearchTerm, Breadcrumb, getCategoryColor } from './glossaryUIUtils';
@@ -45,11 +46,9 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
   const [modalSize, setModalSize] = useState(() => {
     const saved = SafeStorage.getItem('glossary-modal-size');
     if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
+      const parsed = safeJSONParse<{ width?: number; height?: number }>(saved);
+      if (parsed) {
         return { width: parsed.width || 1024, height: parsed.height || 835 };
-      } catch {
-        return { width: 1024, height: 835 };
       }
     }
     return { width: 1024, height: 835 };

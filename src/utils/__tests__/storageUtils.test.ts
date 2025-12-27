@@ -26,6 +26,7 @@ describe('SafeStorage', () => {
 
       expect(SafeStorage.getItem('test-key')).toBeNull();
       expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Error reading'), expect.any(Error));
+      // TODO: Restore `consoleWarnSpy` (and similar spied console methods) after each error scenario so subsequent tests run without the mock.
     });
   });
 
@@ -59,6 +60,7 @@ describe('SafeStorage', () => {
 
       expect(() => SafeStorage.removeItem('test-key')).not.toThrow();
       expect(consoleWarnSpy).toHaveBeenCalled();
+      // TODO: Restore `consoleWarnSpy` here as well so later specs do not inherit the mock.
     });
   });
 

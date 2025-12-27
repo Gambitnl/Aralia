@@ -1,14 +1,23 @@
 
 import { PlayerCharacter, GameState } from '../../types/index';
 import { rollSavingThrow } from '../../utils/savingThrowUtils';
-import { createPlayerCombatCharacter } from '../../utils/combatUtils'; // Using standard factory
+import { createPlayerCombatCharacter, rollDice } from '../../utils/combatUtils'; // Using standard factory
 import { logger } from '../../utils/logger';
 import { generateId } from '../../utils/idGenerator';
+import { formatDuration } from '../../utils/timeUtils';
 
 export interface MemoryLossResult {
   lostMemory: boolean;
   saveRoll: number;
   dc: number;
+  message: string;
+}
+
+export interface TimeWarpResult {
+  originalMinutes: number;
+  warpedMinutes: number;
+  roll: number;
+  description: string;
   message: string;
 }
 
@@ -87,5 +96,67 @@ export class FeywildMechanics {
 
       // In a more persistent system, we would add a 'status' or 'condition' to the character here.
       // For now, the notification serves as the immediate feedback.
+  }
+
+  /**
+   * Calculates the time warp effect when leaving the Feywild.
+   * Based on DMG 5e Variant Rule + Creative License.
+   * @param durationMinutes The actual time spent in the Feywild (in minutes).
+   */
+  static calculateTimeWarp(durationMinutes: number): TimeWarpResult {
+      const roll = rollDice('1d20');
+      let warpedMinutes = durationMinutes;
+      let description = '';
+
+      // Conversion constants
+      const MINUTES_IN_DAY = 1440;
+      const MINUTES_IN_WEEK = 10080;
+      const MINUTES_IN_MONTH = 43200; // Approx 30 days
+      const MINUTES_IN_YEAR = 525600;
+
+      if (roll <= 10) {
+          // Time Compression: Days become Minutes.
+          // Ratio: 1 Day (1440 mins) -> 1 Minute.
+          // Factor: 1/1440.
+          // Example: Spent 1440 mins (1 day) -> Returns to find only 1 minute passed.
+          warpedMinutes = Math.max(1, Math.floor(durationMinutes / MINUTES_IN_DAY));
+          description = 'Time flowed strangely fast while you were gone. What felt like days was mere minutes in the material world.';
+      } else if (roll <= 15) {
+          // Normal Time
+          warpedMinutes = durationMinutes;
+          description = 'Time flowed normally.';
+      } else if (roll <= 17) {
+          // Time Dilation (Minor): Days become Weeks.
+          // Ratio: 1 Day -> 1 Week (7 days).
+          // Factor: 7.
+          warpedMinutes = durationMinutes * 7;
+          description = 'Time slipped away. For every day you spent there, a week has passed here.';
+      } else if (roll <= 19) {
+          // Time Dilation (Major): Days become Months.
+          // Ratio: 1 Day -> 1 Month (30 days).
+          // Factor: 30.
+          warpedMinutes = durationMinutes * 30;
+          description = 'The seasons have turned without you. Days became months.';
+      } else {
+          // Roll 20: Time Jump. Days become Years.
+          // Ratio: 1 Day -> 1 Year.
+          // Factor: 365.
+          warpedMinutes = durationMinutes * 365;
+          description = 'The world has aged. Years have passed in the blink of an eye.';
+      }
+
+      // Format for message
+      const originalStr = formatDuration(durationMinutes * 60);
+      const warpedStr = formatDuration(warpedMinutes * 60);
+
+      const message = `Feywild Time Warp (Roll ${roll}): You spent ${originalStr}, but ${warpedStr} have passed on the Material Plane.`;
+
+      return {
+          originalMinutes: durationMinutes,
+          warpedMinutes: warpedMinutes,
+          roll: roll,
+          description: description,
+          message: message
+      };
   }
 }

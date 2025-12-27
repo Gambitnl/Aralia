@@ -142,7 +142,7 @@ Log gaps in `docs/tasks/spell-system-overhaul/gaps/LEVEL-{N}-GAPS.md`.
 
 ---
 
-<!-- TODO: Swap validation steps to the current pnpm pipeline and mirror the manifest/validation sequence used in cantrip batches. -->
+<!-- TODO: Swap validation steps to the current npm pipeline and mirror the manifest/validation sequence used in cantrip batches. -->
 ## VALIDATION
 
 ```bash

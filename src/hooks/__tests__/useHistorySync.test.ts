@@ -9,14 +9,17 @@ vi.mock('../../constants', () => ({
     LOCATIONS: {
         'loc_1': { id: 'loc_1', dynamicNpcConfig: null }
     },
-    USE_DUMMY_CHARACTER_FOR_DEV: false,
-    DUMMY_PARTY_FOR_DEV: [],
     STARTING_LOCATION_ID: 'loc_1',
     ITEMS: {},
-    initialInventoryForDummyCharacter: [],
     CLASSES_DATA: {},
     NPCS: {},
     COMPANIONS: {},
+}));
+
+vi.mock('../../data/dev/dummyCharacter', () => ({
+    getDummyParty: () => [],
+    USE_DUMMY_CHARACTER_FOR_DEV: false,
+    initialInventoryForDummyCharacter: [],
 }));
 
 vi.mock('../../utils/locationUtils');

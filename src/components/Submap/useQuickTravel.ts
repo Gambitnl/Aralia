@@ -36,6 +36,9 @@ export const usePathfindingGrid = ({
   playerCharacter,
   gameTime,
 }: PathfindingGridOptions): Map<string, SubmapPathNode> => {
+  // TODO: Destructure `submapDimensions` into `rows`/`cols` before including it in dependencies;
+  // recreating the object upstream currently forces the entire pathfinding grid to rebuild even
+  // when the numeric values are unchanged.
   return useMemo(() => {
     const grid = new Map<string, SubmapPathNode>();
     for (let r = 0; r < submapDimensions.rows; r++) {
@@ -140,6 +143,8 @@ export const useQuickTravelData = ({
 
     const pathCoords = new Set(pathNodes.map((p) => p.id));
     const orderedPath = pathNodes.map((p) => p.coordinates);
+    // TODO: Guard start/end equality before subtracting `startNode.movementCost` so we don't report
+    // negative travel times when the pathfinder returns an empty result.
     const travelTime = pathNodes.reduce((acc, node) => acc + node.movementCost, 0) - (startNode.movementCost || 0);
 
     return { path: pathCoords, orderedPath, time: travelTime, isBlocked: false };

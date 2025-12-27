@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SpellCommandFactory } from '../SpellCommandFactory';
-import { DamageEffect, Spell, SpellEffect } from '@/types/spells';
+import { DamageEffect, Spell, SpellEffect, SpellSchool } from '@/types/spells';
 import { CombatCharacter } from '@/types/combat';
 import { DamageCommand } from '@/commands/effects/DamageCommand';
 import { NarrativeCommand } from '@/commands/effects/NarrativeCommand';
@@ -41,7 +41,7 @@ describe('SpellCommandFactory - AI Integration', () => {
     id: 'wish',
     name: 'Wish',
     level: 9,
-    school: 'Conjuration',
+    school: SpellSchool.Conjuration,
     classes: ['Wizard'],
     description: 'A wish spell',
     castingTime: { value: 1, unit: 'action' },

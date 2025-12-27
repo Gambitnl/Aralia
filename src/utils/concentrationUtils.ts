@@ -11,6 +11,13 @@ export function calculateConcentrationDC(damageDealt: number): number {
 
 /**
  * Rolls a Constitution saving throw for the character.
+<<<<<<< HEAD
+ * Uses the centralized saving throw logic to respect proficiency, bonuses, and centralized RNG.
+ */
+export function rollConcentrationSave(character: CombatCharacter): number {
+    // Constitution saving throw
+    const result = rollSavingThrow(character, 'Constitution', 0); // DC 0 as we just want the total
+=======
  * @deprecated Use checkConcentration which uses rollSavingThrow internally.
  * This is kept for backward compatibility but now delegates to the standard saving throw logic.
  */
@@ -18,6 +25,7 @@ export function rollConcentrationSave(character: CombatCharacter): number {
     // Delegate to the robust saving throw logic
     // This ensures proficiency is included if applicable
     const result = rollSavingThrow(character, 'Constitution', 10); // DC doesn't matter for getting the total
+>>>>>>> 140670d (Temp commit before rebase)
     return result.total;
 }
 
@@ -33,8 +41,11 @@ export function checkConcentration(
     damageDealt: number
 ): { success: boolean; dc: number; roll: number } {
     const dc = calculateConcentrationDC(damageDealt)
+<<<<<<< HEAD
+=======
 
     // Use the standard saving throw utility to ensure proficiency and modifiers are handled correctly
+>>>>>>> 140670d (Temp commit before rebase)
     const result = rollSavingThrow(character, 'Constitution', dc)
 
     return {

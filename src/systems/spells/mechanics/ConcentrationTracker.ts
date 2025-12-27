@@ -1,6 +1,6 @@
 import type { Spell } from '@/types/spells'
 import type { CombatCharacter, CombatState, ConcentrationState } from '@/types'
-import { DiceRoller } from './DiceRoller'
+import { rollSavingThrow } from '@/utils/savingThrowUtils'
 
 /**
  * Tracks concentration on spells
@@ -136,16 +136,14 @@ export class ConcentrationTracker {
     damage: number
   ): { success: boolean; dc: number; roll: number } {
     const dc = Math.max(10, Math.floor(damage / 2))
-    const roll = DiceRoller.rollD20()
 
-    // Constitution save
-    const constitutionMod = Math.floor(((character.stats.constitution ?? 10) - 10) / 2)
-    const total = roll + constitutionMod
+    // Delegate to centralized saving throw utility to ensure proficiency and bonuses are applied correctly
+    const result = rollSavingThrow(character, 'Constitution', dc)
 
     return {
-      success: total >= dc,
+      success: result.success,
       dc,
-      roll
+      roll: result.total
     }
   }
 }

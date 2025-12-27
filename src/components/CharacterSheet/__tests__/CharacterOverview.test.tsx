@@ -56,7 +56,7 @@ describe('CharacterOverview', () => {
         Wisdom: 10,
         Charisma: 10,
       },
-      proficiencyBonus: 2,
+      proficiencyBonus: 3,
     });
 
     render(
@@ -68,7 +68,7 @@ describe('CharacterOverview', () => {
 
     expect(screen.getByText('Spellcasting')).toBeDefined();
     expect(screen.getByText('Intelligence')).toBeDefined();
-    // Save DC: 8 + 2 (prof) + 3 (mod) = 13
-    expect(screen.getByText('13')).toBeDefined();
+    // Save DC: 8 + 3 (prof) + 3 (mod) = 14
+    expect(screen.getByText('14')).toBeDefined();
   });
 });
