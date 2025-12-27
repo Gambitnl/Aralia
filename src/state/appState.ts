@@ -7,7 +7,8 @@
 import { GameState, GamePhase, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, SuspicionLevel, KnownFact, QuestStatus, UnderdarkState } from '../types';
 import { AppAction } from './actionTypes';
 import { DEFAULT_WEATHER } from '../systems/environment/EnvironmentSystem';
-import { STARTING_LOCATION_ID, DUMMY_PARTY_FOR_DEV, LOCATIONS, ITEMS, initialInventoryForDummyCharacter, CLASSES_DATA, NPCS , COMPANIONS } from '../constants';
+import { STARTING_LOCATION_ID, LOCATIONS, ITEMS, CLASSES_DATA, NPCS , COMPANIONS } from '../constants';
+import { getDummyParty, initialInventoryForDummyCharacter } from '../data/dev/dummyCharacter';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../data/factions';
 import { getAllFactions } from '../utils/factionUtils';
 import { DEITIES } from '../data/deities';
@@ -20,6 +21,7 @@ import { applyXpAndHandleLevelUps, createPlayerCharacterFromTemp } from '../util
 import { createEnemyFromMonster } from '../utils/combatUtils';
 import { logger } from '../utils/logger';
 import { INITIAL_TRADE_ROUTES } from '../data/tradeRoutes';
+import { createEmptyHistory } from '../utils/historyUtils';
 
 // Import slice reducers
 import { uiReducer } from './reducers/uiReducer';
@@ -59,16 +61,16 @@ const INITIAL_UNDERDARK_STATE: UnderdarkState = {
 };
 
 export const initialGameState: GameState = {
-    phase: canUseDevTools() && DUMMY_PARTY_FOR_DEV && DUMMY_PARTY_FOR_DEV.length > 0 && !SaveLoadService.hasSaveGame() ? GamePhase.PLAYING : GamePhase.MAIN_MENU,
-    party: canUseDevTools() && !SaveLoadService.hasSaveGame() ? DUMMY_PARTY_FOR_DEV : [],
-    tempParty: canUseDevTools() && !SaveLoadService.hasSaveGame() ? DUMMY_PARTY_FOR_DEV.map(p => ({ id: p.id || crypto.randomUUID(), level: p.level || 1, classId: p.class.id })) : null,
+    phase: canUseDevTools() && getDummyParty() && getDummyParty().length > 0 && !SaveLoadService.hasSaveGame() ? GamePhase.PLAYING : GamePhase.MAIN_MENU,
+    party: canUseDevTools() && !SaveLoadService.hasSaveGame() ? getDummyParty() : [],
+    tempParty: canUseDevTools() && !SaveLoadService.hasSaveGame() ? getDummyParty().map(p => ({ id: p.id || crypto.randomUUID(), level: p.level || 1, classId: p.class.id })) : null,
     inventory: canUseDevTools() && !SaveLoadService.hasSaveGame() ? [...initialInventoryForDummyCharacter] : [],
     gold: 10, // Default starting gold
     currentLocationId: STARTING_LOCATION_ID,
     subMapCoordinates: canUseDevTools() && !SaveLoadService.hasSaveGame() ? { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) } : null,
     messages: [],
-    isLoading: canUseDevTools() && !!DUMMY_PARTY_FOR_DEV && DUMMY_PARTY_FOR_DEV.length > 0 && !SaveLoadService.hasSaveGame(),
-    loadingMessage: canUseDevTools() && !!DUMMY_PARTY_FOR_DEV && DUMMY_PARTY_FOR_DEV.length > 0 && !SaveLoadService.hasSaveGame() ? "Aralia is weaving fate..." : null,
+    isLoading: canUseDevTools() && !!getDummyParty() && getDummyParty().length > 0 && !SaveLoadService.hasSaveGame(),
+    loadingMessage: canUseDevTools() && !!getDummyParty() && getDummyParty().length > 0 && !SaveLoadService.hasSaveGame() ? "Aralia is weaving fate..." : null,
     isImageLoading: false,
     error: null,
     worldSeed: Date.now(), // Default seed, will be overwritten on new game
@@ -173,6 +175,8 @@ export const initialGameState: GameState = {
         localHeat: {},
         knownCrimes: [],
     },
+
+    worldHistory: createEmptyHistory(),
 
     // Town Exploration
     townState: null,

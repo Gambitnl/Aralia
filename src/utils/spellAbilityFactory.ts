@@ -14,6 +14,7 @@
 import { Spell, AbilityScoreName, PlayerCharacter } from '../types';
 import { Ability, AbilityCost, AbilityEffect, AreaOfEffect, TargetingType, ActionCostType } from '../types/combat';
 import { getAbilityModifierValue } from './characterUtils';
+import { logger } from './logger';
 
 // TODO(FEATURES): Expand spell-to-ability translation coverage (conditions, multi-step effects, unique spell riders) so more spells execute without bespoke handlers (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 // NOTE: UTILITY effects with custom fields (savePenalty, light sources, terrain manipulation) are not yet handled in the effects loop below.
@@ -31,6 +32,10 @@ import { getAbilityModifierValue } from './characterUtils';
  * @returns 'area' for shapes, 'self' for buffs, or 'single_ally'/'single_enemy' otherwise.
  */
 const inferTargeting = (spell: Spell): TargetingType => {
+    if (!spell.description) {
+         return 'single_enemy'; // Default fallback
+    }
+
     const desc = spell.description.toLowerCase();
     let range = '';
 
@@ -49,7 +54,7 @@ const inferTargeting = (spell: Spell): TargetingType => {
     }
 
     // Heals usually target allies
-    if (spell.tags && (spell.tags.includes('HEALING') || spell.tags.includes('BUFF'))) {
+    if (spell.tags && Array.isArray(spell.tags) && (spell.tags.includes('HEALING') || spell.tags.includes('BUFF'))) {
         return 'single_ally';
     }
 
@@ -66,11 +71,12 @@ const inferTargeting = (spell: Spell): TargetingType => {
  * @returns The shape and size in tiles, or undefined if no AoE detected.
  */
 const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
-    const desc = spell.description.toLowerCase();
+    const desc = spell.description ? spell.description.toLowerCase() : '';
 
     // Check JSON effects first if they exist
     if (Array.isArray(spell.effects)) {
-        const aoeEffect = spell.effects.find(e => e.areaOfEffect);
+        // Safe find with null check
+        const aoeEffect = spell.effects.find(e => e && typeof e === 'object' && e.areaOfEffect);
         if (aoeEffect && aoeEffect.areaOfEffect) {
             // Map JSON AoE shape to Combat AoE shape
             const shapeMap: Record<string, 'circle' | 'cone' | 'line' | 'square'> = {
@@ -110,7 +116,7 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
         // The other branch's early return would have skipped this critical functionality.
         const result: AreaOfEffect = {
             shape: shapeMap[spell.areaOfEffect.shape] || 'circle',
-            size: spell.areaOfEffect.size / 5, // Convert feet to tiles (5ft = 1 tile)
+            size: (spell.areaOfEffect.size || 0) / 5, // Convert feet to tiles (5ft = 1 tile)
         };
 
         // Pass through extended semantics for downstream handlers
@@ -137,7 +143,7 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
  * Parses damage or healing dice (e.g., "1d8") into a raw number average for preview.
  */
 const calculateAverageDamage = (diceString: string, modifier: number = 0): number => {
-    if (!diceString) return 0;
+    if (!diceString || typeof diceString !== 'string') return 0;
     const match = diceString.match(/(\d+)d(\d+)/);
     if (!match) return 0;
     const numDice = parseInt(match[1]);
@@ -154,6 +160,8 @@ const calculateAverageDamage = (diceString: string, modifier: number = 0): numbe
  */
 const inferEffectsFromDescription = (description: string, modifier: number): AbilityEffect[] => {
     const effects: AbilityEffect[] = [];
+    if (!description) return effects;
+
     const lowerDesc = description.toLowerCase();
 
     // 1. Damage Detection
@@ -205,127 +213,169 @@ const inferEffectsFromDescription = (description: string, modifier: number): Abi
  * Converts cost, range, and effects into a format the BattleMap can execute.
  */
 export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): Ability {
-    let spellcastingStat = caster.spellcastingAbility
-        ? (caster.spellcastingAbility.charAt(0).toUpperCase() + caster.spellcastingAbility.slice(1)) as AbilityScoreName
-        : 'Intelligence'; // Default fallback
-
-    // Safe access to ability modifier
-    let statScore = caster.finalAbilityScores[spellcastingStat];
-    if (statScore === undefined) {
-        // Fallback if the preferred stat isn't present
-        spellcastingStat = 'Intelligence';
-        statScore = caster.finalAbilityScores[spellcastingStat] || 10;
+    // 0. Defensive Checks
+    if (!spell) {
+        logger.error("createAbilityFromSpell called with null/undefined spell");
+        return {
+            id: 'error-null-spell',
+            name: 'Fizzled Spell (Null)',
+            description: 'The weave falters due to missing spell data.',
+            type: 'spell',
+            icon: '🚫',
+            cost: { type: 'action', spellSlotLevel: 1 },
+            range: 0,
+            targeting: 'single_enemy',
+            areaOfEffect: undefined,
+            effects: []
+        };
     }
 
-    const modifier = getAbilityModifierValue(statScore);
+    // If caster is missing, provide a safe fallback or minimal dummy
+    // But we need strict access to properties, so we'll wrap in try-catch.
 
-    // 1. Determine Cost
-    let costType = 'action';
-    const castingTime = spell.castingTime;
-    if (castingTime && typeof castingTime === 'object' && 'unit' in castingTime) {
-        costType = castingTime.unit.toLowerCase().includes('bonus') ? 'bonus' :
-            castingTime.unit.toLowerCase().includes('reaction') ? 'reaction' : 'action';
-    } else if (typeof castingTime === 'string') {
-        costType = castingTime.toLowerCase().includes('bonus') ? 'bonus' :
-            castingTime.toLowerCase().includes('reaction') ? 'reaction' : 'action';
-    }
+    try {
+        let spellcastingStat: AbilityScoreName = 'Intelligence';
 
-    const cost: AbilityCost = {
-        type: costType as ActionCostType,
-        spellSlotLevel: spell.level
-    };
-
-    // 2. Determine Range
-    let rangeTiles = 1;
-    const spellRange = spell.range;
-    if (spellRange && typeof spellRange === 'object' && 'type' in spellRange) {
-        if (spellRange.type === 'Feet' && spellRange.distance) {
-            rangeTiles = Math.floor(spellRange.distance / 5);
-        } else if (spellRange.type === 'Touch') {
-            rangeTiles = 1;
-        } else if (spellRange.type === 'Self') {
-            rangeTiles = 0;
+        if (caster && caster.spellcastingAbility) {
+            spellcastingStat = (caster.spellcastingAbility.charAt(0).toUpperCase() + caster.spellcastingAbility.slice(1)) as AbilityScoreName;
         }
-    } else if (typeof spellRange === 'string') {
-        const r = spellRange.toLowerCase();
-        if (r.includes('touch')) {
-            rangeTiles = 1;
-        } else if (r.includes('self')) {
-            rangeTiles = 0;
-        } else {
-            const match = r.match(/(\d+)/);
-            if (match) rangeTiles = Math.floor(parseInt(match[1]) / 5);
+
+        // Safe access to ability modifier
+        let statScore = 10;
+        if (caster && caster.finalAbilityScores) {
+            statScore = caster.finalAbilityScores[spellcastingStat] ?? 10;
         }
-    }
 
-    // 3. Determine Effects
-    let effects: AbilityEffect[] = [];
+        const modifier = getAbilityModifierValue(statScore);
 
-    // Safety check: verify effects is an array before iterating
-    if (Array.isArray(spell.effects) && spell.effects.length > 0) {
-        // Use structured data if available (Gold Standard)
-        spell.effects.forEach(jsonEffect => {
-            if (jsonEffect.type === 'DAMAGE' && jsonEffect.damage) {
-                const avgDmg = calculateAverageDamage(jsonEffect.damage.dice);
-                // Note: If spell has explicit saveRequired, combat engine handles roll.
-                // Ability definition doesn't strictly enforce save logic yet, 
-                // but damage type is passed.
-                effects.push({
-                    type: 'damage',
-                    value: avgDmg,
-                    damageType: jsonEffect.damage.type.toLowerCase() as AbilityEffect['damageType']
-                });
-            } else if (jsonEffect.type === 'HEALING') {
-                // HealingEffect has a properly typed healing.dice field
-                const healAmount = jsonEffect.healing?.dice
-                    ? calculateAverageDamage(jsonEffect.healing.dice, modifier)
-                    : 0;
+        // 1. Determine Cost
+        let costType = 'action';
+        const castingTime = spell.castingTime;
+        if (castingTime && typeof castingTime === 'object' && 'unit' in castingTime) {
+            costType = castingTime.unit.toLowerCase().includes('bonus') ? 'bonus' :
+                castingTime.unit.toLowerCase().includes('reaction') ? 'reaction' : 'action';
+        } else if (typeof castingTime === 'string') {
+            costType = castingTime.toLowerCase().includes('bonus') ? 'bonus' :
+                castingTime.toLowerCase().includes('reaction') ? 'reaction' : 'action';
+        }
 
-                effects.push({
-                    type: 'heal',
-                    value: healAmount
-                });
-            } else if (jsonEffect.type === 'DEFENSIVE') {
-                effects.push({
-                    type: 'status',
-                    statusEffect: {
-                        id: `spell_${spell.id}_buff`,
-                        name: spell.name,
-                        type: 'buff',
-                        duration: (typeof spell.duration === 'object' && spell.duration?.concentration) ? 10 : 100, // Approximation
-                        // Simple visual effect. In real app, this would hook into actual stat modifiers.
-                        // For now, we use a placeholder stat modifier to allow the UI to show it.
-                        effect: { type: 'stat_modifier', value: 1 }
-                    }
-                });
-            } else if (jsonEffect.type === 'STATUS_CONDITION') {
-                effects.push({
-                    type: 'status',
-                    statusEffect: {
-                        id: `spell_${spell.id}_debuff`,
-                        name: spell.name,
-                        type: 'debuff',
-                        duration: 10,
-                        effect: { type: 'stat_modifier', value: -1 }
-                    }
-                });
+        const cost: AbilityCost = {
+            type: costType as ActionCostType,
+            spellSlotLevel: spell.level
+        };
+
+        // 2. Determine Range
+        let rangeTiles = 1;
+        const spellRange = spell.range;
+        if (spellRange && typeof spellRange === 'object' && 'type' in spellRange) {
+            if (spellRange.type === 'Feet' && spellRange.distance) {
+                rangeTiles = Math.floor(spellRange.distance / 5);
+            } else if (spellRange.type === 'Touch') {
+                rangeTiles = 1;
+            } else if (spellRange.type === 'Self') {
+                rangeTiles = 0;
             }
-        });
-    } else {
-        // Fallback: Parse description (Silver Standard)
-        effects = inferEffectsFromDescription(spell.description, modifier);
-    }
+        } else if (typeof spellRange === 'string') {
+            const r = spellRange.toLowerCase();
+            if (r.includes('touch')) {
+                rangeTiles = 1;
+            } else if (r.includes('self')) {
+                rangeTiles = 0;
+            } else {
+                const match = r.match(/(\d+)/);
+                if (match) rangeTiles = Math.floor(parseInt(match[1]) / 5);
+            }
+        }
 
-    return {
-        id: spell.id,
-        name: spell.name,
-        description: spell.description,
-        type: 'spell',
-        icon: '✨', // Default icon
-        cost,
-        range: rangeTiles,
-        targeting: inferTargeting(spell),
-        areaOfEffect: inferAoE(spell),
-        effects: effects,
-    };
+        // 3. Determine Effects
+        let effects: AbilityEffect[] = [];
+
+        // Safety check: verify effects is an array before iterating
+        if (Array.isArray(spell.effects) && spell.effects.length > 0) {
+            // Use structured data if available (Gold Standard)
+            spell.effects.forEach(jsonEffect => {
+                if (!jsonEffect || typeof jsonEffect !== 'object') return; // Skip malformed effects
+
+                if (jsonEffect.type === 'DAMAGE' && jsonEffect.damage) {
+                    const avgDmg = calculateAverageDamage(jsonEffect.damage.dice);
+                    // Note: If spell has explicit saveRequired, combat engine handles roll.
+                    // Ability definition doesn't strictly enforce save logic yet,
+                    // but damage type is passed.
+                    effects.push({
+                        type: 'damage',
+                        value: avgDmg,
+                        damageType: jsonEffect.damage.type ? (jsonEffect.damage.type.toLowerCase() as AbilityEffect['damageType']) : 'force'
+                    });
+                } else if (jsonEffect.type === 'HEALING') {
+                    // HealingEffect has a properly typed healing.dice field
+                    const healAmount = jsonEffect.healing?.dice
+                        ? calculateAverageDamage(jsonEffect.healing.dice, modifier)
+                        : 0;
+
+                    effects.push({
+                        type: 'heal',
+                        value: healAmount
+                    });
+                } else if (jsonEffect.type === 'DEFENSIVE') {
+                    effects.push({
+                        type: 'status',
+                        statusEffect: {
+                            id: `spell_${spell.id}_buff`,
+                            name: spell.name,
+                            type: 'buff',
+                            duration: (typeof spell.duration === 'object' && spell.duration?.concentration) ? 10 : 100, // Approximation
+                            // Simple visual effect. In real app, this would hook into actual stat modifiers.
+                            // For now, we use a placeholder stat modifier to allow the UI to show it.
+                            effect: { type: 'stat_modifier', value: 1 }
+                        }
+                    });
+                } else if (jsonEffect.type === 'STATUS_CONDITION') {
+                    effects.push({
+                        type: 'status',
+                        statusEffect: {
+                            id: `spell_${spell.id}_debuff`,
+                            name: spell.name,
+                            type: 'debuff',
+                            duration: 10,
+                            effect: { type: 'stat_modifier', value: -1 }
+                        }
+                    });
+                }
+            });
+        } else {
+            // Fallback: Parse description (Silver Standard)
+            // Use safe fallback if description is missing
+            const desc = spell.description || "";
+            effects = inferEffectsFromDescription(desc, modifier);
+        }
+
+        return {
+            id: spell.id || 'unknown-spell-id',
+            name: spell.name || 'Unknown Spell',
+            description: spell.description || '',
+            type: 'spell',
+            icon: '✨', // Default icon
+            cost,
+            range: rangeTiles,
+            targeting: inferTargeting(spell),
+            areaOfEffect: inferAoE(spell),
+            effects: effects,
+        };
+
+    } catch (error) {
+        logger.error(`Failed to create ability from spell: ${spell.name || 'Unknown'}`, { error });
+        // Return a safe "broken" ability that won't crash the game
+        return {
+            id: spell.id || 'error-spell',
+            name: `${spell.name || 'Unknown'} (Fizzled)`,
+            description: 'The weave falters. (Data Error)',
+            type: 'spell',
+            icon: '🚫',
+            cost: { type: 'action', spellSlotLevel: 1 },
+            range: 0,
+            targeting: 'single_enemy',
+            areaOfEffect: undefined,
+            effects: []
+        };
+    }
 }

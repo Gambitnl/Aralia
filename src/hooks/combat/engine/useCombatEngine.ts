@@ -156,22 +156,13 @@ export const useCombatEngine = ({
 
         addDamageNumber(finalAmount, updatedCharacter.position, 'damage');
 
-        // Check for death
-        const isDeath = updatedCharacter.currentHP === 0 && character.currentHP > 0;
-
         onLogEntry({
             id: generateId(),
             timestamp: Date.now(),
             type: 'damage',
-            message: `${character.name} takes ${amount} ${damageType || ''} damage from ${source}${isDeath ? ' and is defeated!' : ''}`,
+            message: `${character.name} takes ${amount} ${damageType || ''} damage from ${source}`,
             characterId: character.id,
-            data: {
-                damage: amount,
-                damageType,
-                source,
-                isDeath,
-                targetTags: character.creatureTypes
-            }
+            data: { damage: amount, damageType, source }
         });
 
         updatedCharacter = processRepeatSaves(updatedCharacter, 'on_damage');
@@ -267,11 +258,7 @@ export const useCombatEngine = ({
                         type: 'heal',
                         message: `${character.name} heals ${heal} HP from ${effect.name}`,
                         characterId: character.id,
-                        data: {
-                            heal: heal, // Legacy support
-                            healAmount: heal,
-                            source: effect.name
-                        }
+                        data: { heal: heal, source: effect.name }
                     });
                     break;
             }

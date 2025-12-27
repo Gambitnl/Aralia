@@ -21,13 +21,8 @@ import Minimap from '../Minimap';
 import { CompanionReaction } from '../ui/CompanionReaction';
 import { COMPANIONS } from '../../constants';
 
+// TODO: Remove these comments. App.tsx is now correctly passing companions={gameState.companions}, so this context note is outdated and the fallback logic is active.
 // We need to access the full companion state if possible, but GameLayout receives specific props.
-// However, the reaction component needs the current state of companions (for names/avatars).
-// Ideally, GameLayout should receive `companions` prop.
-// For now, let's use the constant as a fallback but we really want dynamic data.
-// Since we are inside App.tsx which has gameState, let's assume we can pass it down or use it.
-// Actually, looking at App.tsx, GameLayout doesn't receive `companions` prop yet.
-// I will just use the constant for now as the Reviewer suggested passing it from gameState but I need to update the interface.
 
 interface GameLayoutProps {
     /** The current location data object, including name, description, and biome. */
@@ -59,6 +54,7 @@ interface GameLayoutProps {
     /** Central handler for dispatching user actions (movement, interaction, etc.). */
     onAction: (action: Action) => void;
     /** Current state of companions. */
+    // TODO: Replace any with the specific Companion type (imported from ../../types or ../../constants) to ensure type safety for the companions prop.
     companions?: Record<string, any>; // Using any to avoid importing the type if not strictly needed, or import Companion
 }
 

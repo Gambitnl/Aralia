@@ -21,10 +21,10 @@ export interface DiscoveryReward {
 }
 
 export interface DiscoveryConsequence {
-  type: 'buff' | 'map_reveal' | 'reputation';
+  type: 'buff' | 'map_reveal' | 'reputation' | 'damage' | 'debuff';
   targetId?: string; // factionId or buffId (e.g., 'blessing_of_vitality')
-  duration?: number; // hours (for buffs)
-  value?: number; // reputation amount or radius (for map_reveal)
+  duration?: number; // hours (for buffs/debuffs)
+  value?: number; // reputation amount, radius (for map_reveal), or damage amount
   description: string;
 }
 

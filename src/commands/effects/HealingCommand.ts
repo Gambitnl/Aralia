@@ -61,12 +61,7 @@ export class HealingCommand extends BaseEffectCommand {
           type: 'heal',
           message: `${target.name} is healed for ${actualHealing} HP (${target.currentHP} → ${newHP})`,
           characterId: target.id,
-          data: {
-            value: actualHealing, // Legacy support
-            healAmount: actualHealing,
-            spellName: this.context.spellName,
-            spellSchool: this.context.spellSchool
-          }
+          data: { value: actualHealing }
         })
       }
     }

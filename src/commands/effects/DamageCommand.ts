@@ -123,22 +123,12 @@ export class DamageCommand extends BaseEffectCommand {
         logMessage = `${caster.name} ${verb} ${target.name} for ${finalDamage} ${damageType} damage`;
       }
 
-      // Determine death state
-      const isDeath = newHP === 0 && target.currentHP > 0;
-
       currentState = this.addLogEntry(currentState, {
         type: 'damage',
-        message: logMessage + (isDeath ? ' and is defeated!' : ''),
+        message: logMessage,
         characterId: target.id,
         targetIds: [target.id],
-        data: {
-          value: finalDamage,
-          type: this.effect.damage.type,
-          spellName: this.context.spellName,
-          spellSchool: this.context.spellSchool,
-          isDeath,
-          targetTags: target.creatureTypes
-        }
+        data: { value: finalDamage, type: this.effect.damage.type }
       });
 
       // 4. Check Concentration
