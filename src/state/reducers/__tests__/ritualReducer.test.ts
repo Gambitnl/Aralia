@@ -2,23 +2,29 @@
 import { describe, it, expect } from 'vitest';
 import { ritualReducer } from '../ritualReducer';
 import { GameState } from '../../../types';
-import { RitualState } from '../../../types/rituals';
-import { SpellSchool } from '../../../types/spells';
+import { RitualState } from '../../../types/ritual';
+import * as RitualManager from '../../../systems/rituals/RitualManager';
 
+// Mock the Singular RitualState
 const mockRitual: RitualState = {
   id: 'ritual-123',
-  spell: { name: 'Test Spell', id: 'spell-1', level: 1, castingTime: { unit: 'minutes', value: 10 }, effects: [], school: SpellSchool.Abjuration, description: '', components: { v: true, s: true, m: false }, ritual: true, range: 30, duration: { type: 'instant' } },
+  spellId: 'spell-1',
+  spellName: 'Test Spell',
   casterId: 'caster-1',
   startTime: 0,
-  durationMinutes: 20,
-  progressMinutes: 0,
+  durationTotal: 20,
+  durationUnit: 'minutes',
+  progress: 0,
   participantIds: [],
-  participationBonus: 0,
-  isComplete: false,
-  interrupted: false,
+  isPaused: false,
   interruptConditions: [],
-  materialsConsumed: false,
-  consumptionThreshold: 0.5
+  config: {
+      breaksOnDamage: true,
+      breaksOnMove: false,
+      requiresConcentration: true,
+      allowCooperation: false,
+      consumptionTiming: 'end'
+  }
 };
 
 const mockState: Partial<GameState> = {
@@ -41,19 +47,19 @@ describe('ritualReducer', () => {
     const action = { type: 'ADVANCE_RITUAL', payload: { minutes: 10 } };
     const result = ritualReducer(stateWithRitual as GameState, action as any);
 
-    expect(result.activeRitual?.progressMinutes).toBe(10);
-    expect(result.activeRitual?.isComplete).toBe(false);
-    expect(result.messages).toHaveLength(0); // No messages yet
+    expect(result.activeRitual?.progress).toBe(10);
+    expect(RitualManager.isRitualComplete(result.activeRitual as RitualState)).toBe(false);
+    expect(result.messages).toHaveLength(0);
   });
 
   it('should complete ritual via ADVANCE_RITUAL', () => {
-    const almostDoneRitual = { ...mockRitual, progressMinutes: 15 };
+    const almostDoneRitual = { ...mockRitual, progress: 15 };
     const stateWithRitual = { ...mockState, activeRitual: almostDoneRitual };
     const action = { type: 'ADVANCE_RITUAL', payload: { minutes: 10 } };
     const result = ritualReducer(stateWithRitual as GameState, action as any);
 
-    expect(result.activeRitual?.progressMinutes).toBe(25); // Cap usually handled by manager logic but simple addition here
-    expect(result.activeRitual?.isComplete).toBe(true);
+    expect(result.activeRitual?.progress).toBe(20); // Clamped to durationTotal (20)
+    expect(RitualManager.isRitualComplete(result.activeRitual as RitualState)).toBe(true);
     expect(result.messages).toHaveLength(1);
     expect(result.messages![0].text).toContain('The ritual is complete!');
   });
@@ -64,13 +70,13 @@ describe('ritualReducer', () => {
     const action = { type: 'ADVANCE_TIME', payload: { seconds: 600 } };
     const result = ritualReducer(stateWithRitual as GameState, action as any);
 
-    expect(result.activeRitual?.progressMinutes).toBe(10);
+    expect(result.activeRitual?.progress).toBe(10);
   });
 
   it('should handle INTERRUPT_RITUAL', () => {
     const interruptibleRitual = {
         ...mockRitual,
-        interruptConditions: [{ type: 'damage', threshold: 0 }]
+        interruptConditions: [{ type: 'damage', threshold: 0 } as any]
     };
 
     const action = {
@@ -80,12 +86,12 @@ describe('ritualReducer', () => {
 
     const result = ritualReducer({ ...mockState, activeRitual: interruptibleRitual } as GameState, action as any);
 
-    expect(result.activeRitual?.interrupted).toBe(true);
+    expect(result.activeRitual?.isPaused).toBe(true);
     expect(result.messages![0].text).toContain('Ritual Interrupted!');
   });
 
   it('should handle COMPLETE_RITUAL', () => {
-      const completedRitual = { ...mockRitual, isComplete: true };
+      const completedRitual = { ...mockRitual, progress: 20 };
       const action = { type: 'COMPLETE_RITUAL', payload: {} };
       const result = ritualReducer({ ...mockState, activeRitual: completedRitual } as GameState, action as any);
       expect(result.activeRitual).toBeNull();
