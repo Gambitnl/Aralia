@@ -3,6 +3,7 @@
  * A dedicated component for displaying a single ability button in the palette.
  */
 import React, { useMemo } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Ability } from '../../types/combat';
 import Tooltip from '../Tooltip';
 import { getSpellVisual } from '../../utils/visuals/spellVisuals';
@@ -14,6 +15,7 @@ interface AbilityButtonProps {
 }
 
 const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisabled }) => {
+    const shouldReduceMotion = useReducedMotion();
     const isOnCooldown = (ability.currentCooldown || 0) > 0;
     const costText = ability.cost.type.charAt(0).toUpperCase() + ability.cost.type.slice(1);
 
@@ -71,13 +73,16 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
 
     return (
         <Tooltip content={<pre className="text-xs whitespace-pre-wrap">{tooltipContent.trim()}</pre>}>
-            <button
+            <motion.button
                 onClick={onSelect}
                 disabled={isDisabled}
                 aria-label={accessibleLabel}
                 aria-disabled={isDisabled}
                 style={customStyle}
-                className={`relative w-16 h-16 rounded-lg flex flex-col items-center justify-center p-1 text-white border-2 transition-all outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800
+                whileHover={isDisabled ? undefined : { scale: shouldReduceMotion ? 1 : 1.05 }}
+                whileTap={isDisabled ? undefined : { scale: shouldReduceMotion ? 1 : 0.95 }}
+                transition={{ duration: 0.1 }}
+                className={`relative w-16 h-16 rounded-lg flex flex-col items-center justify-center p-1 text-white border-2 outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800
                     ${isDisabled ? 'bg-gray-600/50 border-gray-500 cursor-not-allowed opacity-60' : 'bg-sky-700 hover:bg-sky-600 border-sky-500 cursor-pointer'}
                 `}
             >
@@ -99,7 +104,7 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({ ability, onSelect, isDisa
                         {ability.currentCooldown}
                     </div>
                 )}
-            </button>
+            </motion.button>
         </Tooltip>
     );
 };
