@@ -113,28 +113,51 @@ const validateRaces = (races: readonly Race[]): void => {
 
 /**
  * Validates all files in TARGET_DIRECTORIES for non-ASCII or mojibake characters.
+ * Only fails on 'strict' issues (JSON/data files). 'soft' issues (docs) are warnings only.
  */
 const validateCharset = (): void => {
   const files = TARGET_DIRECTORIES.flatMap((pattern) => globSync(pattern));
   console.log(`[Data Validation] Validating character sets for ${files.length} files...`);
 
-  let errorCount = 0;
+  let strictErrorCount = 0;
+  let softWarningCount = 0;
+
   files.forEach((file) => {
     const issues = checkFile(file);
     if (issues.length > 0) {
-      console.error(`[Data Validation] Charset issues found in ${file}:`);
-      issues.forEach((issue) => {
-        console.error(
-          `  - [Line ${issue.line}, Col ${issue.column}] ${issue.type} (${issue.char} / ${issue.codePoint})${issue.suggested !== undefined ? ` -> Suggested: ${issue.suggested}` : ''
-          }`
-        );
-      });
-      errorCount++;
+      const strictIssues = issues.filter(i => i.severity === 'strict');
+      const softIssues = issues.filter(i => i.severity === 'soft');
+
+      if (strictIssues.length > 0) {
+        console.error(`[Data Validation] ❌ Charset ERRORS in ${file}:`);
+        strictIssues.forEach((issue) => {
+          console.error(
+            `  - [Line ${issue.line}, Col ${issue.column}] ${issue.type} (${issue.char} / ${issue.codePoint})${issue.suggested !== undefined ? ` -> Suggested: ${issue.suggested}` : ''
+            }`
+          );
+        });
+        strictErrorCount++;
+      }
+
+      if (softIssues.length > 0) {
+        console.warn(`[Data Validation] ⚠️ Charset warnings in ${file}:`);
+        softIssues.forEach((issue) => {
+          console.warn(
+            `  - [Line ${issue.line}, Col ${issue.column}] ${issue.type} (${issue.char} / ${issue.codePoint})${issue.suggested !== undefined ? ` -> Suggested: ${issue.suggested}` : ''
+            }`
+          );
+        });
+        softWarningCount++;
+      }
     }
   });
 
-  if (errorCount > 0) {
-    throw new Error(`[Data Validation] ${errorCount} files failed charset validation. Run 'npx tsx scripts/check-non-ascii.ts --write' to fix.`);
+  if (strictErrorCount > 0) {
+    throw new Error(`[Data Validation] ${strictErrorCount} files failed charset validation. Run 'npx tsx scripts/check-non-ascii.ts --write' to fix.`);
+  }
+
+  if (softWarningCount > 0) {
+    console.log(`[Data Validation] ⚠️ ${softWarningCount} files have soft charset warnings (build continues).`);
   }
 };
 

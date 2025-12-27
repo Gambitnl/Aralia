@@ -66,7 +66,7 @@ export function resolveItemVisual(item: Item): VisualAsset {
   }
 
   // 2. Try to use legacy icon if it looks like a path
-  if (item.icon && (item.icon.startsWith('/') || item.icon.startsWith('http'))) {
+  if (item.icon && (item.icon.startsWith('/') || item.icon.startsWith('http') || item.icon.startsWith('data:'))) {
     return {
       src: item.icon,
       fallbackContent: '📦',

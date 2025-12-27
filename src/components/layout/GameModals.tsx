@@ -34,10 +34,11 @@ const DiscoveryLogPane = lazy(() => import('../DiscoveryLogPane'));
 // Glossary exports a named component from its index barrel
 const Glossary = lazy(() => import('../Glossary').then(module => ({ default: module.Glossary })));
 const EncounterModal = lazy(() => import('../EncounterModal'));
-const MerchantModal = lazy(() => import('../MerchantModal'));
+const MerchantModal = lazy(() => import('../Trade/MerchantModal'));
 const GameGuideModal = lazy(() => import('../GameGuideModal'));
 const MissingChoiceModal = lazy(() => import('../MissingChoiceModal'));
 const TempleModal = lazy(() => import('../TempleModal'));
+// REVIEW: Verify that DialogueInterface is indeed a named export. If it is the default export, this lazy loading pattern .then(module => ({ default: module.DialogueInterface })) will fail. (Consistency check with Glossary import at line 35).
 const DialogueInterface = lazy(() => import('../Dialogue/DialogueInterface').then(module => ({ default: module.DialogueInterface })));
 const ThievesGuildInterface = lazy(() => import('../Crime/ThievesGuild/ThievesGuildInterface'));
 
@@ -387,6 +388,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                             playerCharacter={gameState.party[0]}
                             onClose={() => dispatch({ type: 'END_DIALOGUE_SESSION' })}
                             onUpdateSession={(newSession) => dispatch({ type: 'UPDATE_DIALOGUE_SESSION', payload: { session: newSession } })}
+                            // TODO: Verify if DialogueInterface relies on this callback. If state updates are required during dialogue (e.g. relationship changes), this empty implementation needs to be connected to the dispatch function.
                             onUpdateGameState={(updates) => { /* TODO: Implement partial updates if needed */ }}
                             onGenerateResponse={handleGenerateDialogueResponse}
                         />

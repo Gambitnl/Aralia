@@ -1,4 +1,5 @@
 import { Feat } from '../../types';
+import { SpellSchool } from '../../types/spells';
 
 /**
  * Central feat catalogue. These entries intentionally focus on the
@@ -251,7 +252,7 @@ export const FEATS_DATA: Feat[] = [
           { spellId: 'misty-step', castingMethod: 'once_per_long_rest' },
         ],
         spellChoices: [
-          { count: 1, level: 1, schools: ['Divination', 'Enchantment'], description: 'Choose 1 Divination or Enchantment spell' },
+          { count: 1, level: 1, schools: [SpellSchool.Divination, SpellSchool.Enchantment], description: 'Choose 1 Divination or Enchantment spell' },
         ],
       },
     },
@@ -425,7 +426,7 @@ export const FEATS_DATA: Feat[] = [
           { spellId: 'invisibility', castingMethod: 'once_per_long_rest' },
         ],
         spellChoices: [
-          { count: 1, level: 1, schools: ['Illusion', 'Necromancy'], description: 'Choose 1 Illusion or Necromancy spell' },
+          { count: 1, level: 1, schools: [SpellSchool.Illusion, SpellSchool.Necromancy], description: 'Choose 1 Illusion or Necromancy spell' },
         ],
       },
     },

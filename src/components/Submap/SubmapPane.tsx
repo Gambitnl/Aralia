@@ -238,6 +238,9 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
     }, [simpleHash, visualsConfig, pathDetails, activeSeededFeatures, caGrid, wfcGrid]);
 
     // Pathfinding grid feeds quick travel previews and path overlays; split out for clarity.
+    // TODO: Share the visuals computed below with the quick-travel grid instead of re-running
+    // `getTileVisuals` twice (once for the render grid, once for pathfinding). Memoizing a single
+    // visuals map would cut this work roughly in half.
     const pathfindingGrid = usePathfindingGrid({
         submapDimensions,
         getTileVisuals,
@@ -277,6 +280,9 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
         submapDimensions,
     });
 
+    // TODO: Consolidate the quick-travel/inspect gating logic into a shared helper so the rules
+    // used here stay in sync with the props passed to each tile (e.g., `isDisabled` checks below).
+    // Small drift can otherwise cause UI buttons to misreport whether a tile should accept input.
     // Tile click handler coordinates the two sub-modes (inspect vs quick travel) before dispatching actions.
     const handleTileClickForInspection = useCallback((tileX: number, tileY: number, effectiveTerrain: string, featureConfig: SeededFeatureConfig | null) => {
         if (disabled) return;

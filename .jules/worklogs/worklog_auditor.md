@@ -17,3 +17,9 @@
 **Learning:** A systematic audit of Level 1 spells revealed that text-based targeting constraints (e.g., "no effect on Undead") are consistently missing from the `targeting.filter` JSON objects. This forces the engine to rely on unstable text parsing or the honor system.
 
 **Action:** Created `src/systems/spells/validation/TargetingPresets.ts` to provide standardized, reusable filter configurations. Future audits should map these text constraints to these strict constants.
+
+## 2024-05-25 - Invalid Enums in Modal Spells
+
+**Learning:** Spells that offer a choice (e.g., *Blindness/Deafness*) often force invalid data into required fields (e.g., `statusCondition.name: "Blinded/Deafened"`) because the schema lacks a "Choice" structure. This passes loose JSON validation but fails strict Type checks or runtime lookups.
+
+**Action:** Created `GAP-CHOICE-SPELLS.md`. In the interim, always default to the primary effect (e.g., "Blinded") and use `arbitrationType: "player_choice"` to signal the UI/AI to intervene, rather than corrupting the data field with invalid values.

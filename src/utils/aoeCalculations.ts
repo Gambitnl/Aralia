@@ -25,6 +25,7 @@
  */
 
 import { Position } from '../types/combat';
+import { compassToMathAngle, degreesToRadians, normalizeAngle, getAngleBetweenPositions } from './geometry';
 
 export type AoEShape = "Sphere" | "Cone" | "Cube" | "Line" | "Cylinder";
 
@@ -73,6 +74,7 @@ const TILE_SIZE = 5; // feet
  * });
  */
 export function calculateAffectedTiles(params: AoEParams): Position[] {
+    // TODO: Future: Support gridless (Euclidean) AoE for non-tile maps by returning a polygon instead of tile list.
     switch (params.shape) {
         case 'Sphere':
         case 'Cylinder': // 2D projection of Cylinder is a Circle/Sphere
@@ -138,9 +140,6 @@ function getSphereAoE(origin: Position, radius: number): Position[] {
  * The implementation uses a derived constant to represent this angle mathematically,
  * with a small epsilon to account for floating-point precision when checking boundaries.
  *
- * TODO: Note that `src/systems/spells/targeting/gridAlgorithms/cone.ts` contains a similar implementation.
- * Consider future refactoring to consolidate these logic paths into a single source of truth.
- *
  * @param origin - The starting point of the cone
  * @param direction - Compass direction in degrees (0=N, 90=E)
  * @param length - Length of the cone in feet
@@ -176,21 +175,7 @@ function getConeAoE(origin: Position, direction: number, length: number): Positi
             // Exclude origin tile
             if (distance < 0.1) continue;
 
-            // Calculate angle from origin to target tile using Math.atan2
-            // atan2 returns angle in radians relative to +x axis (East)
-            // Range: -PI to +PI
-            const angleRad = Math.atan2(dy, dx);
-            const angleDeg = angleRad * (180 / Math.PI);
-
-            // Convert Math Angle to Compass Angle
-            // Math: 0=E, 90=S, 180=W, -90=N
-            // Compass: 90=E, 180=S, 270=W, 0=N
-            // Formula: Compass = Math + 90
-            let gridAngle = angleDeg + 90;
-
-            // Normalize to 0-360
-            if (gridAngle < 0) gridAngle += 360;
-            if (gridAngle >= 360) gridAngle -= 360;
+            const gridAngle = getAngleBetweenPositions(origin, { x, y });
 
             // Check if tile angle is within cone width relative to direction
             let diff = Math.abs(gridAngle - direction);
@@ -224,37 +209,75 @@ function getCubeAoE(origin: Position, size: number): Position[] {
 }
 
 /**
- * Calculates tiles along a Line using Linear Interpolation.
+ * Calculates tiles along a Line using a distance-from-segment check.
  *
- * NOTE: This function currently produces a single-tile-wide line (standard Bresenham-style ray),
- * effectively ignoring the `width` parameter.
+ * Supports arbitrary widths (e.g., 5ft, 10ft, 15ft). The line acts as a
+ * capsule (rounded ends) or rotated rectangle depending on interpretation,
+ * but here we use Euclidean distance from the center segment (Capsule-like)
+ * which aligns well with standard grid coverage rules: if the tile center
+ * is within Radius of the segment, it's covered.
  *
  * @param origin - The starting position of the line
  * @param target - The ending position of the line
- * @param _width - The width of the line in feet. Kept for interface compatibility with standard 5e line shapes
- *                (usually 5ft wide), but currently unused in calculation as we default to a ray.
- * @returns Array of affected grid positions representing the line's path
+ * @param width - The width of the line in feet. Default 5.
+ * @returns Array of affected grid positions
  */
-function getLineAoE(origin: Position, target: Position, _width: number): Position[] {
-    const dx = target.x - origin.x;
-    const dy = target.y - origin.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    const steps = Math.ceil(distance);
+function getLineAoE(origin: Position, target: Position, width: number): Position[] {
     const affected: Position[] = [];
-    const visited = new Set<string>();
+    const radius = width / 2;
+    // Small epsilon to handle floating point errors on exact boundaries (e.g., 5ft dist for 10ft width)
+    const EPSILON = 0.001;
+    const effectiveRadius = radius + EPSILON;
 
-    for (let i = 0; i <= steps; i++) {
-        const t = steps === 0 ? 0 : i / steps;
-        const curX = Math.round(origin.x + t * dx);
-        const curY = Math.round(origin.y + t * dy);
+    // Convert radius to tiles for bounding box
+    const radiusInTiles = Math.ceil(radius / TILE_SIZE);
 
-        const key = `${curX},${curY}`;
-        if (!visited.has(key)) {
-            visited.add(key);
-            affected.push({ x: curX, y: curY });
+    // Determine bounding box
+    const minX = Math.floor(Math.min(origin.x, target.x) - radiusInTiles);
+    const maxX = Math.ceil(Math.max(origin.x, target.x) + radiusInTiles);
+    const minY = Math.floor(Math.min(origin.y, target.y) - radiusInTiles);
+    const maxY = Math.ceil(Math.max(origin.y, target.y) + radiusInTiles);
+
+    for (let x = minX; x <= maxX; x++) {
+        for (let y = minY; y <= maxY; y++) {
+            const distance = pointLineSegmentDistance(
+                x, y,
+                origin.x, origin.y,
+                target.x, target.y
+            );
+
+            // Distance is in tiles. Convert to feet for comparison.
+            const distanceFeet = distance * TILE_SIZE;
+
+            if (distanceFeet <= effectiveRadius) {
+                affected.push({ x, y });
+            }
         }
     }
     return affected;
+}
+
+/**
+ * Calculates the shortest distance from a point to a line segment.
+ * @param px - Point x
+ * @param py - Point y
+ * @param x1 - Segment start x
+ * @param y1 - Segment start y
+ * @param x2 - Segment end x
+ * @param y2 - Segment end y
+ * @returns Distance in same units as inputs (tiles)
+ */
+function pointLineSegmentDistance(px: number, py: number, x1: number, y1: number, x2: number, y2: number): number {
+    const l2 = (x2 - x1) ** 2 + (y2 - y1) ** 2;
+    if (l2 === 0) return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2); // Segment is a point
+
+    let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
+    t = Math.max(0, Math.min(1, t)); // Clamp t to segment
+
+    const projectionX = x1 + t * (x2 - x1);
+    const projectionY = y1 + t * (y2 - y1);
+
+    return Math.sqrt((px - projectionX) ** 2 + (py - projectionY) ** 2);
 }
 
 /**
@@ -271,8 +294,8 @@ function projectPoint(origin: Position, directionDegrees: number, distanceFeet: 
     // Compass: 0=N, 90=E
     // Math (screen coords): -90=N, 0=E
     // Formula: Math = Compass - 90
-    const mathAngleDeg = directionDegrees - 90;
-    const radians = mathAngleDeg * (Math.PI / 180);
+    const mathAngleDeg = compassToMathAngle(directionDegrees);
+    const radians = degreesToRadians(mathAngleDeg);
 
     // Calculate normalized direction vector
     const dx = Math.cos(radians);
