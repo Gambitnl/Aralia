@@ -5,6 +5,7 @@
  */
 import { Item, Monster } from '../types';
 import { ITEMS, WEAPONS_DATA } from '../constants';
+import { logger } from '../utils/logger';
 
 interface LootResult {
   gold: number;
@@ -12,43 +13,82 @@ interface LootResult {
 }
 
 export function generateLoot(monsters: Monster[]): LootResult {
-  let totalGold = 0;
-  const droppedItems: Item[] = [];
+  const defaultResult: LootResult = { gold: 0, items: [] };
 
-  monsters.forEach(monster => {
-    // 1. Gold generation based on CR (simplified)
-    // CR 1/4 = ~1g, CR 1 = ~10g
-    const baseGold = monster.cr === '1/4' || monster.cr === '1/8' ? 1 : 
-                     monster.cr === '1/2' ? 5 : 
-                     parseInt(monster.cr) * 10;
-    
-    // Random variance +/- 50%
-    const variance = (Math.random() * 1.0) + 0.5; 
-    totalGold += Math.floor(baseGold * variance);
+  try {
+    let totalGold = 0;
+    const droppedItems: Item[] = [];
 
-    // 2. Item Drops
-    // 15% chance for an item per monster
-    if (Math.random() < 0.15) {
-      const tags = monster.description.toLowerCase();
-      
-      // Logic to pick items based on monster tags
-      if (tags.includes('goblin') || tags.includes('orc')) {
-         // Humanoids drop weapons or potions
-         const weaponKeys = Object.keys(WEAPONS_DATA);
-         const randomWeapon = WEAPONS_DATA[weaponKeys[Math.floor(Math.random() * weaponKeys.length)]];
-         droppedItems.push(randomWeapon);
-      } else if (tags.includes('beast') || tags.includes('wolf') || tags.includes('spider')) {
-         // Beasts might drop "trophies" (using generic items for now)
-         // Future: Add specific crafting materials
-      } else {
-         // Fallback: Healing Potion
-         droppedItems.push(ITEMS['healing_potion']);
-      }
+    if (!Array.isArray(monsters)) {
+      logger.warn("generateLoot received invalid monsters array", { monsters });
+      return defaultResult;
     }
-  });
 
-  return {
-    gold: totalGold,
-    items: droppedItems
-  };
+    monsters.forEach(monster => {
+      if (!monster) return;
+
+      // 1. Gold generation based on CR
+      let baseGold = 0;
+      try {
+        if (monster.cr === '1/4' || monster.cr === '1/8') {
+          baseGold = 1;
+        } else if (monster.cr === '1/2') {
+          baseGold = 5;
+        } else {
+          // Parse integer, fallback to 0 if invalid (e.g. "Unknown" or "-")
+          const parsedCr = parseInt(monster.cr, 10);
+          baseGold = isNaN(parsedCr) ? 0 : parsedCr * 10;
+        }
+      } catch (e) {
+        logger.warn("Error parsing monster CR for gold", { cr: monster.cr, id: monster.id });
+        baseGold = 0;
+      }
+      
+      // Random variance +/- 50%
+      const variance = (Math.random() * 1.0) + 0.5;
+      totalGold += Math.floor(baseGold * variance);
+
+      // 2. Item Drops
+      // 15% chance for an item per monster
+      try {
+        if (Math.random() < 0.15) {
+          // Safely handle missing/undefined description
+          const tags = (monster.description || "").toLowerCase();
+
+          // Logic to pick items based on monster tags
+          if (tags.includes('goblin') || tags.includes('orc')) {
+             // Humanoids drop weapons or potions
+             // Validate WEAPONS_DATA exists before keys access
+             if (WEAPONS_DATA) {
+               const weaponKeys = Object.keys(WEAPONS_DATA);
+               if (weaponKeys.length > 0) {
+                 const randomKey = weaponKeys[Math.floor(Math.random() * weaponKeys.length)];
+                 const randomWeapon = WEAPONS_DATA[randomKey];
+                 if (randomWeapon) droppedItems.push(randomWeapon);
+               }
+             }
+          } else if (tags.includes('beast') || tags.includes('wolf') || tags.includes('spider')) {
+             // Beasts might drop "trophies" (using generic items for now)
+             // Future: Add specific crafting materials
+          } else {
+             // Fallback: Healing Potion
+             if (ITEMS && ITEMS['healing_potion']) {
+               droppedItems.push(ITEMS['healing_potion']);
+             }
+          }
+        }
+      } catch (itemError) {
+        logger.warn("Error generating item drop for monster", { id: monster.id, error: itemError });
+      }
+    });
+
+    return {
+      gold: Math.max(0, totalGold), // Ensure non-negative
+      items: droppedItems
+    };
+
+  } catch (error) {
+    logger.error("Critical failure in generateLoot", { error });
+    return defaultResult;
+  }
 }
