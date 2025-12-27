@@ -4,7 +4,7 @@
  */
 import { GameState } from '../../types';
 import { AppAction } from '../actionTypes';
-import { RitualManager } from '../../systems/rituals/RitualManager';
+import * as RitualManager from '../../systems/rituals/RitualManager';
 import { generateId } from '../../utils/combatUtils';
 
 export function ritualReducer(state: GameState, action: AppAction): Partial<GameState> {

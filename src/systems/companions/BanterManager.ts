@@ -7,8 +7,19 @@
  */
 
 import { GameState } from '../../types';
-import { BanterDefinition, BanterLine } from '../../types/companions';
+import { BanterDefinition, RelationshipLevel, Companion } from '../../types/companions';
 import { BANTER_DEFINITIONS } from '../../data/banter';
+
+const LEVEL_WEIGHTS: Record<RelationshipLevel, number> = {
+  enemy: -2,
+  rival: -1,
+  stranger: 0,
+  acquaintance: 1,
+  friend: 2,
+  close: 3,
+  devoted: 4,
+  romance: 4 // Treat romance as equivalent to devoted for hierarchy checks
+};
 
 export class BanterManager {
   /**
@@ -28,6 +39,7 @@ export class BanterManager {
       }
 
       // 2. Check Participants
+      // Ensure all participants are in the party
       const allPresent = banter.participants.every(id => gameState.companions && gameState.companions[id]);
       if (!allPresent) return false;
 
@@ -36,7 +48,28 @@ export class BanterManager {
         return false;
       }
 
-      // 4. Check Chance (Increased frequency: default 30% if not specified)
+      // 4. Check Relationships
+      if (banter.conditions?.minRelationship && gameState.companions) {
+        for (const [charId, requiredLevel] of Object.entries(banter.conditions.minRelationship)) {
+          // Identify who we are checking relationship FOR.
+          // In most cases, it's the companion's relationship with the PLAYER.
+          // If the key is 'player', we check player's relationship? No, the key is the Companion ID.
+          // Example: { 'kaelen_thorne': 'friend' } means Kaelen must be at least Friend with Player.
+
+          const companion = gameState.companions[charId];
+          if (!companion) return false; // Should be caught by participants check, but safety first
+
+          const playerRel = companion.relationships['player'];
+          if (!playerRel) return false;
+
+          const currentWeight = LEVEL_WEIGHTS[playerRel.level];
+          const requiredWeight = LEVEL_WEIGHTS[requiredLevel];
+
+          if (currentWeight < requiredWeight) return false;
+        }
+      }
+
+      // 5. Check Chance (Increased frequency: default 30% if not specified)
       const chance = banter.conditions?.chance ?? 0.3;
       if (Math.random() > chance) {
         return false;
@@ -50,6 +83,4 @@ export class BanterManager {
     // Pick one randomly
     return validBanters[Math.floor(Math.random() * validBanters.length)];
   }
-
-  // Removed static markBanterUsed in favor of dispatching UPDATE_BANTER_COOLDOWN action
 }
