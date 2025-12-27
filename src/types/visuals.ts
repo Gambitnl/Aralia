@@ -48,6 +48,66 @@ export interface SpellIconSpec {
 }
 
 /**
+ * Defines the visual effect of casting a spell or using an ability.
+ * Supports particle systems, projectiles, and impact effects.
+ */
+export interface SpellEffectVisualSpec {
+  /**
+   * The animation triggered on the caster during preparation/casting.
+   * e.g., "glow_hands", "rune_circle_ground", "energy_gather"
+   */
+  castingAnimation?: 'none' | 'glow_hands' | 'raise_arms' | 'channel_sky' | 'push_forward' | 'stomp' | 'shout';
+
+  /**
+   * The visual form of the spell travel.
+   */
+  projectile?: {
+    type: 'arrow' | 'bolt' | 'beam' | 'orb' | 'lobbed_projectile' | 'instant_line' | 'cone_wave';
+    speed: 'slow' | 'medium' | 'fast' | 'instant';
+    color: string;
+    /** Trail effect behind the projectile */
+    trailEffect?: 'smoke' | 'sparkle' | 'glow' | 'fire' | 'ice';
+  };
+
+  /**
+   * The visual effect at the target location or impact point.
+   */
+  impact?: {
+    type: 'explosion' | 'shatter' | 'splash' | 'flash' | 'implosion' | 'rising_pillar' | 'ground_crack';
+    size: 'small' | 'medium' | 'large' | 'massive'; // Relative to grid
+    color: string;
+    sound?: string; // ID of the sound asset
+    duration: number; // Duration of the lingering effect in ms
+  };
+
+  /**
+   * For Area of Effect spells, how the area is visualized.
+   */
+  area?: {
+    /** How the tiles are highlighted */
+    style: 'outline' | 'solid_fill' | 'grid_pattern' | 'pulsing';
+    /** Color of the area highlight (often translucent) */
+    color: string;
+    /** Border color of the area */
+    borderColor: string;
+    /** Texture/pattern overlay (e.g., "web", "ice", "fire_ground") */
+    texture?: string;
+  };
+}
+
+/**
+ * Composite visual specification for a Spell.
+ * Combines static icon data with dynamic effect data.
+ */
+export interface SpellVisualSpec {
+  /** Static icon representation for UI. */
+  icon: SpellIconSpec;
+
+  /** Dynamic visual effects for casting/impact. */
+  animation?: SpellEffectVisualSpec;
+}
+
+/**
  * Defines the visual requirements for an Item.
  */
 export interface ItemVisualSpec {
@@ -459,3 +519,4 @@ export function getFactionVisual(type: FactionType, customSpec?: Partial<Faction
 }
 
 // TODO(Materializer): Refactor `CharacterToken.tsx` and `InitiativeTracker.tsx` to use `getClassVisual` instead of hardcoded `getClassIcon` switch statements.
+// TODO(Illusionist): Implement a `SpellVisualRenderer` component that uses `SpellEffectVisualSpec` to render particles and animations.
