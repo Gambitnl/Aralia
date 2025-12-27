@@ -330,3 +330,38 @@ export function getCombinedLightLevel(
 
   return hasDim ? 'dim' : 'darkness';
 }
+
+/**
+ * Calculates penalties for Exhaustion levels based on D&D 2024 Rules.
+ * Rules:
+ * - Levels 1-6.
+ * - d20 Tests (Checks, Attacks, Saves): -2 per level.
+ * - Speed: -5 feet per level.
+ * - Level 6: Death.
+ *
+ * @param level - The current exhaustion level (0-6).
+ * @returns Object with penalties and status.
+ */
+export function calculateExhaustionEffects(level: number): {
+  d20Penalty: number;
+  speedPenalty: number;
+  isDead: boolean;
+} {
+  // Clamp level to valid minimum
+  const validLevel = Math.max(0, level);
+
+  // Level 6 means death
+  if (validLevel >= 6) {
+    return {
+      d20Penalty: 0, // Irrelevant if dead
+      speedPenalty: 0, // Irrelevant if dead
+      isDead: true,
+    };
+  }
+
+  return {
+    d20Penalty: validLevel * 2,
+    speedPenalty: validLevel * 5,
+    isDead: false,
+  };
+}

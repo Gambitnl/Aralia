@@ -30,6 +30,7 @@ import { bresenhamLine } from './lineOfSight';
 export { createAbilityFromSpell, generateId };
 
 // TODO(Mechanist): Wire up physicsUtils (fall damage, jumping) into movement logic.
+// TODO(Mechanist): Wire up `calculateExhaustionEffects` from `physicsUtils.ts` to `createPlayerCombatCharacter` (apply speed/d20 penalties).
 
 /**
  * Checks if a character can take a reaction.
