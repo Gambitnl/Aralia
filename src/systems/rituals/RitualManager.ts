@@ -142,12 +142,3 @@ export function checkRitualInterrupt(
 
   return { interrupted: false, ritualBroken: false };
 }
-
-/**
- * Calculates backlash effects when a ritual fails catastrophically.
- * (Placeholder for future implementation)
- */
-export function getBacklashOnFailure(ritual: RitualState): any[] {
-  // Simple placeholder: no backlash for now
-  return [];
-}
