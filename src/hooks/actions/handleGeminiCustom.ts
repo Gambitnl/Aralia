@@ -161,7 +161,7 @@ export async function handleGeminiCustom({
         // --- Linker Coherence Check ---
         await resolveAndRegisterEntities(outcomeResult.data.text, gameState, dispatch, addGeminiLog);
 
-        // TODO(Linker): Enhance entity creation by linking new NPCs to the current location (e.g. location.npcIds.push(newNpc.id)) and establishing relationships.
+        // TODO(Linker): Enhance entity creation by establishing relationships between the new NPC and existing context (factions, other NPCs).
         // -----------------------------
 
     } else {
