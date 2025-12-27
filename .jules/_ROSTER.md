@@ -9,12 +9,12 @@
 
 | Order | Persona | Emoji | Timing | Primary Focus |
 |-------|---------|-------|--------|---------------|
-| 1 | **Herald** | 🚀 | Before Jules | Initialize batch uplink, push to GitHub |
+| 1 | **Initializer** | 🚀 | Before Jules | Initialize batch, push to GitHub |
 | 2 | *Jules (45)* | ⚙️ | Parallel | Execute persona tasks, create PRs |
 | 3 | **Scout** | 🔍 | After Jules | Coordinate PRs, trigger Code Assist, resolve conflicts |
-| 4 | **Core** | 🏛️ | After Scout | Consolidate worklogs, resolve conflicts, merge |
+| 4 | **Coordinator** | 🏛️ | After Scout | Consolidate worklogs, resolve conflicts, merge |
 
-> See [_00_herald.md](personas/_00_herald.md), [_00_scout.md](personas/_00_scout.md), [00_core.md](personas/00_core.md) for full protocols.
+> See your persona file for full protocols.
 
 ---
 
@@ -54,7 +54,7 @@
 | Persona | Emoji | Domain | Primary Focus |
 |---------|-------|--------|---------------|
 | **Worldsmith** | 🌍 | World Simulation | Factions, reputation, events, consequences |
-| **Chronicler** | 📖 | AI Narrative | Gemini prompts, story generation, consistency |
+| **Chronicler** | 📖 | AI Narrative | AI prompts, story generation, consistency |
 | **Intriguer** | 🗡️ | Politics/Identity | Noble houses, spies, secrets, disguises |
 | **Warlord** | ⚔️ | Combat/War | D&D 5e combat, armies, sieges, tactics |
 | **Mythkeeper** | 🏛️ | D&D Lore | Races, classes, deities, planes, monsters |
@@ -176,33 +176,13 @@ Each persona should consult their relevant architecture docs in `docs/architectu
 
 ---
 
-## 📡 Agent Uplink Protocol
-
-> [!IMPORTANT]
-> **You are working in isolation.** Each Jules agent runs in its own cloned environment. You cannot see what other agents are doing, and they cannot see your work. The only shared state is GitHub (main branch) and the uplink channel.
-
-### Primary Channel: ntfy.sh
-- Topic: https://ntfy.sh/ag-ops-v3 (or as defined by Herald)
-- Tools: `.uplink/uplink.py`
-
-### Fallback Channel: Local Chat
-If ntfy is down or quota is reached, use the local file-based chat:
-- File: `.uplink/data/LOCAL_CHAT.json` (View at http://localhost:8000)
-- Directive: See `.jules/prompts/local_chat_directive.md`
-- Usage: `python .uplink/local_chat.py --send "#YourName Your message here"`
-- Note: Check the `.jules/manifests/ag_ops_topics.md` for current status.
-
-
-
----
-
 ## ⛔ Files You Must NEVER Commit
 
 > [!CAUTION]
 > The following files cause massive merge conflicts in batch runs. **Do not commit them.**
 
 ### Forbidden Files
-- `package-lock.json` — Dependencies are managed by Core
+- `package-lock.json` — Dependencies are managed by the coordinator
 - `tsconfig.tsbuildinfo` — Build cache, not source code
 - `dist/` — Build output, regenerated on deploy
 
@@ -224,13 +204,13 @@ git commit --amend --no-edit
 
 ### Current Batch Topic
 
-**Uplink URL:** `https://ntfy.sh/BATCH_TOPIC_PLACEHOLDER`
+**Batch URL:** `https://ntfy.sh/BATCH_TOPIC_PLACEHOLDER`
 
-> The Core persona updates this URL before each batch run. If you see `BATCH_TOPIC_PLACEHOLDER`, the batch has not been initialized yet.
+> The coordinator updates this URL before each batch run. If you see `BATCH_TOPIC_PLACEHOLDER`, the batch has not been initialized yet.
 
 ### Why This Matters
 
-With 45 agents running in parallel, multiple agents may attempt to work on overlapping files or duplicate functionality. The uplink lets you:
+With 45 agents running in parallel, multiple agents may attempt to work on overlapping files or duplicate functionality. Coordination checklist:
 1. **Announce** what you're working on
 2. **Check** what others have claimed
 3. **Coordinate** when decisions affect multiple domains
@@ -238,7 +218,7 @@ With 45 agents running in parallel, multiple agents may attempt to work on overl
 
 ### Message Protocol
 
-Use the uplink script at `.agent_tools/uplink.py`:
+Use GitHub comments on issues/PRs to coordinate.
 
 ```bash
 # Read existing messages FIRST (required before starting work)
@@ -269,14 +249,14 @@ python .agent_tools/uplink.py --message "DONE: <YourPersona> — <summary of cha
 *   **READ `_METHODOLOGY.md`**: Follow the strict development process and timeline.
 
 ### 2. SYNC (The Collective)
-*   **Check the Uplink** — Run `python .agent_tools/local_chat.py --read` to see recent coordination.
+*   **Check open PRs** — Review open PRs and issues to avoid overlap.
 *   **Announce Start** — Post your intent: `#YourName [STATUS: Starting] My Task description`.
 *   **Prevent Overlap** — Do not work on files or systems already claimed in the chat.
 
 ### 3. ACCOUNTABILITY (The Audit Gate)
 *   **UNTRACKED FILES**: Every PR must verify if modified files are listed in `docs/architecture/domains/`. If NOT found, they MUST be logged under a `### UNTRACKED FILES` header in your worklog.
 *   **PERSONA EVOLUTION**: Append an `<!-- PERSONA IMPROVEMENT SUGGESTION -->` comment to your persona file if you encounter friction.
-*   **NO ECHO**: Do not repeat the messages of others in your Uplink replies. Keep communication situational and concise.
+*   **NO ECHO**: Do not repeat other comments verbatim; keep communication concise and relevant.
 
 ### 4. KNOWLEDGE (The Guidelines)
 *   **STUDY THE GUIDES**: Usage of `guides/` is **REQUIRED**. If a guide says "X", you must do "X".

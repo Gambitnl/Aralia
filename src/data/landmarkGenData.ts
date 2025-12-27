@@ -25,7 +25,7 @@ export interface LandmarkState {
   id: string;
   nameSuffix: string; // e.g., "of the Dead", "in Ruins", "of Light"
   descriptionModifier: string; // "It is overgrown with vines.", "Shadows cling to it."
-  consequenceTypes: ('buff' | 'map_reveal' | 'reputation')[];
+  consequenceTypes: ('buff' | 'map_reveal' | 'reputation' | 'damage' | 'debuff')[];
   riskLevel: number; // 0-10, higher means more rewards but more danger (traps/encounters in future)
 }
 
@@ -132,7 +132,7 @@ export const LANDMARK_STATES: LandmarkState[] = [
     id: 'haunted',
     nameSuffix: 'Haunted',
     descriptionModifier: 'A cold wind blows, and you hear faint whispers.',
-    consequenceTypes: ['reputation'], // e.g. "Cleansing" it
+    consequenceTypes: ['reputation', 'debuff', 'damage'], // Risk: Curse or Damage
     riskLevel: 5,
   },
   {
@@ -146,7 +146,7 @@ export const LANDMARK_STATES: LandmarkState[] = [
     id: 'looted',
     nameSuffix: 'Desecrated',
     descriptionModifier: 'It has been ransacked recently.',
-    consequenceTypes: [],
+    consequenceTypes: ['damage'], // Risk: Leftover traps
     riskLevel: 2,
   },
   {
@@ -155,5 +155,12 @@ export const LANDMARK_STATES: LandmarkState[] = [
     descriptionModifier: 'It looks as if it was built yesterday.',
     consequenceTypes: ['map_reveal', 'reputation'],
     riskLevel: 3,
+  },
+  {
+    id: 'cursed',
+    nameSuffix: 'Cursed',
+    descriptionModifier: 'An unnatural miasma clings to the area.',
+    consequenceTypes: ['debuff', 'damage'],
+    riskLevel: 7,
   }
 ];

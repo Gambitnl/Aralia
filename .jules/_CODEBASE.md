@@ -23,7 +23,7 @@ Technical standards for all personas. Start here, dive into guides as needed.
 | Bundler | Vite |
 | Package Manager | npm (**DO NOT use pnpm**) |
 | Styling | Tailwind CSS |
-| AI | Google Gemini (`@google/genai`) |
+| AI | AI service (`@google/genai`) |
 | State | React hooks + context |
 
 ---
@@ -34,7 +34,7 @@ Technical standards for all personas. Start here, dive into guides as needed.
 src/
 ├── components/     # React components
 ├── hooks/          # Custom React hooks
-├── services/       # External integrations (Gemini, storage)
+├── services/       # External integrations (AI, storage)
 ├── state/          # Reducers, initial state
 ├── types/          # TypeScript interfaces
 ├── utils/          # Pure utility functions

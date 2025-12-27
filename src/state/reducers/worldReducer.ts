@@ -38,9 +38,9 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         lastInteractedNpcId: null,
         lastNpcResponse: null,
       };
-      
+
     case 'SET_GEMINI_ACTIONS':
-        return { geminiGeneratedActions: action.payload };
+      return { geminiGeneratedActions: action.payload };
 
     case 'ADVANCE_TIME': {
       const oldTime = state.gameTime;
@@ -61,18 +61,18 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       // Since worldReducer is handling ADVANCE_TIME, we can call ritualReducer with the same action.
       const ritualUpdates = ritualReducer({ ...state, gameTime: newTime }, action);
       if (ritualUpdates.activeRitual) {
-          partialUpdate.activeRitual = ritualUpdates.activeRitual;
+        partialUpdate.activeRitual = ritualUpdates.activeRitual;
       }
       if (ritualUpdates.messages) {
-          // If ritualReducer added messages, append them.
-          // Note: ritualReducer.ts returns the *new full list* of messages based on state.messages.
-          // So we should use that list, but we also have other updates pending (Underdark).
-          // We need to be careful about merging message arrays.
+        // If ritualReducer added messages, append them.
+        // Note: ritualReducer.ts returns the *new full list* of messages based on state.messages.
+        // So we should use that list, but we also have other updates pending (Underdark).
+        // We need to be careful about merging message arrays.
 
-          // Strategy: Calculate ritual messages diff or just trust the latest list if we chain updates.
-          // Simpler: Let's extract the *new* messages from ritualReducer if possible, or just use its result as the base
-          // for the next step.
-          currentMessages = ritualUpdates.messages;
+        // Strategy: Calculate ritual messages diff or just trust the latest list if we chain updates.
+        // Simpler: Let's extract the *new* messages from ritualReducer if possible, or just use its result as the base
+        // for the next step.
+        currentMessages = ritualUpdates.messages;
       }
 
       // Process Underdark Mechanics (Light/Sanity)
@@ -82,27 +82,27 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
 
       partialUpdate.underdark = newUnderdark;
       if (underdarkMessages.length > 0) {
-          currentMessages = [...currentMessages, ...underdarkMessages];
-          partialUpdate.messages = currentMessages;
+        currentMessages = [...currentMessages, ...underdarkMessages];
+        partialUpdate.messages = currentMessages;
       }
 
       if (daysPassed > 0) {
-          // Note: processWorldEvents expects the full state, so we ideally merge our partial updates first
-          // But since processWorldEvents mostly cares about factions/history, passing state with just updated time is OK for now.
-          const { state: newState, logs } = processWorldEvents({ ...state, gameTime: newTime }, daysPassed);
+        // Note: processWorldEvents expects the full state, so we ideally merge our partial updates first
+        // But since processWorldEvents mostly cares about factions/history, passing state with just updated time is OK for now.
+        const { state: newState, logs } = processWorldEvents({ ...state, gameTime: newTime }, daysPassed);
 
-          // Merge world event changes
-          partialUpdate = {
-              ...partialUpdate,
-              factions: newState.factions,
-              playerFactionStandings: newState.playerFactionStandings,
-              messages: [...currentMessages, ...logs] // Append logs to whatever we already had
-          };
+        // Merge world event changes
+        partialUpdate = {
+          ...partialUpdate,
+          factions: newState.factions,
+          playerFactionStandings: newState.playerFactionStandings,
+          messages: [...currentMessages, ...logs] // Append logs to whatever we already had
+        };
       }
 
       return partialUpdate;
     }
-    
+
     case 'ADD_MET_NPC': {
       const { npcId } = action.payload;
       if (state.metNpcIds.includes(npcId)) {
@@ -112,7 +112,7 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         metNpcIds: [...state.metNpcIds, npcId],
       };
     }
-    
+
     case 'ADD_LOCATION_RESIDUE': {
       const { locationId, residue } = action.payload;
       return {
@@ -122,7 +122,7 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
         },
       };
     }
-    
+
     case 'REMOVE_LOCATION_RESIDUE': {
       const { locationId } = action.payload;
       const newResidues = { ...state.locationResidues };
@@ -159,10 +159,12 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       return {};
     }
 
-    case 'RECORD_HISTORY_EVENT': {
+    case 'ADD_WORLD_HISTORY_EVENT': {
       const currentHistory = state.worldHistory || createEmptyHistory();
-      const newHistory = addHistoryEvent(currentHistory, action.payload.event);
-      return { worldHistory: newHistory };
+      const updatedHistory = addHistoryEvent(currentHistory, action.payload.event);
+      return {
+        worldHistory: updatedHistory
+      };
     }
 
     default:

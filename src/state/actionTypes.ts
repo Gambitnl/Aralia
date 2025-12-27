@@ -105,7 +105,7 @@ export type AppAction =
   | { type: 'ADD_LOCATION_RESIDUE'; payload: AddLocationResiduePayload }
   | { type: 'REMOVE_LOCATION_RESIDUE'; payload: RemoveLocationResiduePayload }
   | { type: 'REGISTER_DYNAMIC_ENTITY'; payload: { entityType: 'location', entity: Location } | { entityType: 'faction', entity: Faction } | { entityType: 'npc', entity: NPC } }
-  | { type: 'RECORD_HISTORY_EVENT'; payload: { event: WorldHistoryEvent } }
+  | { type: 'ADD_WORLD_HISTORY_EVENT'; payload: { event: WorldHistoryEvent } }
   // Gemini Intelligence Action
   | { type: 'ANALYZE_SITUATION' }
   // Dynamic Actions
