@@ -10,6 +10,7 @@ import { PlayerCharacter, Item } from '../../types';
 import { BattleMapData, CombatCharacter, CombatLogEntry } from '../../types/combat';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTurnManager } from '../../hooks/combat/useTurnManager';
+import { useCombatLog } from '../../hooks/combat/useCombatLog';
 import { useAbilitySystem } from '../../hooks/useAbilitySystem';
 import { generateBattleSetup } from '../../hooks/useBattleMapGeneration';
 import { useSummons } from '../../hooks/combat/useSummons';
@@ -25,6 +26,8 @@ import { createPlayerCombatCharacter } from '../../utils/combatUtils';
 import SpellContext from '../../context/SpellContext';
 import { generateLoot } from '../../services/lootService';
 import { motion } from 'framer-motion';
+import { useGameState } from '../../state/GameContext';
+import { CombatReligionAdapter } from '../../systems/religion/CombatReligionAdapter';
 
 import AISpellInputModal from '../BattleMap/AISpellInputModal';
 import { Spell } from '../../types/spells';
@@ -46,8 +49,12 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   // Ensure we have spell data (guaranteed by SpellProvider, but type safety check)
   if (!allSpells) throw new Error("CombatView must be used within a SpellProvider");
 
+  // Hook into Global State for Religion
+  // Note: GameProvider must be above CombatView in tree (usually is in App)
+  const { dispatch } = useGameState();
+
   const [seed] = useState(() => Date.now()); // Generate map once
-  const [combatLog, setCombatLog] = useState<CombatLogEntry[]>([]);
+  const { logs: combatLog, addLogEntry: baseLogEntry } = useCombatLog();
 
   // Initialize map and characters directly from props (Lazy Initialization)
   // This avoids a double-render and "Preparing..." flash that occurred with useEffect
@@ -84,12 +91,12 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
     setCharacters(prev => prev.map(c => c.id === updatedChar.id ? updatedChar : c));
   }, []);
 
+  // Wrapper that logs entries AND processes religion triggers
   const handleLogEntry = useCallback((entry: CombatLogEntry) => {
-    // TODO: PERFORMANCE: Implement log virtualization or truncation. Currently, 'combatLog' grows indefinitely, which will degrade performance in long encounters due to React rendering of the list.
-    // TODO: Cap and virtualize combatLog length (Reason: long fights will append thousands of entries and bloat memory/UI diffing; Expectation: keep only the most recent N turns while streaming older logs to a history panel).
-    setCombatLog(prev => [...prev, entry]);
-  }, []);
-
+    baseLogEntry(entry);
+    // Process Religion Triggers (from CombatReligionAdapter)
+    CombatReligionAdapter.processLogEntry(entry, dispatch);
+  }, [baseLogEntry, dispatch]);
   const turnManager = useTurnManager({
     characters,
     mapData,

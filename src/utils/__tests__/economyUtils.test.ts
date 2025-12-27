@@ -1,6 +1,26 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { calculatePrice, parseCost } from '../economyUtils';
 import type { EconomyState, Item } from '../../types';
+
+// Mock the regional data to ensure tests are robust and independent of live data changes
+vi.mock('../../data/economy/regions', () => ({
+  REGIONAL_ECONOMIES: {
+    'region_coast': {
+      id: 'region_coast',
+      name: 'Coastal Cities',
+      exports: ['fish', 'salt'],
+      imports: ['iron', 'wood'],
+      wealthLevel: 50
+    },
+    'region_mountains': {
+      id: 'region_mountains',
+      name: 'Iron Peaks',
+      exports: ['iron', 'stone'],
+      imports: ['food', 'cloth'],
+      wealthLevel: 50
+    }
+  }
+}));
 
 describe('economyUtils', () => {
   describe('parseCost', () => {
@@ -61,6 +81,62 @@ describe('economyUtils', () => {
 
       // 0.01 * 0.5 = 0.005, but we enforce a minimum of 0.01 (1 CP).
       expect(calculatePrice(torch, economy, 'sell').finalPrice).toBe(0.01);
+    });
+
+    it('applies regional export discounts (Surplus logic)', () => {
+      // Mock region_coast exports 'Fish' (case-insensitive match on name part or type)
+      // If we buy Fish in region_coast, it should be cheaper
+      const fishItem: Item = {
+        id: 'fish',
+        name: 'Fresh Fish',
+        description: 'Tasty.',
+        type: 'food',
+        costInGp: 10,
+        weight: 1
+      };
+
+      const result = calculatePrice(fishItem, economy, 'buy', 'region_coast');
+      // Base multiplier 1.0
+      // Export modifier -0.2
+      // Final multiplier 0.8
+      // Price 10 * 0.8 = 8
+      expect(result.multiplier).toBeCloseTo(0.8);
+      expect(result.finalPrice).toBe(8);
+    });
+
+    it('applies regional import markups (Scarcity logic)', () => {
+      // Mock region_mountains imports 'Food'
+      // If we buy Food in region_mountains, it should be more expensive
+      const foodItem: Item = {
+        id: 'food',
+        name: 'Imported Grain',
+        description: 'Grain.',
+        type: 'food',
+        costInGp: 10,
+        weight: 1
+      };
+
+      const result = calculatePrice(foodItem, economy, 'buy', 'region_mountains');
+      // Base multiplier 1.0
+      // Import modifier +0.2
+      // Final multiplier 1.2
+      // Price 10 * 1.2 = 12
+      expect(result.multiplier).toBeCloseTo(1.2);
+      expect(result.finalPrice).toBe(12);
+    });
+
+    it('ignores invalid regions gracefully', () => {
+      const item: Item = {
+        id: 'generic',
+        name: 'Generic',
+        description: 'Generic item.',
+        type: 'misc',
+        costInGp: 10,
+        weight: 1
+      };
+      const result = calculatePrice(item, economy, 'buy', 'invalid_region_id');
+      expect(result.multiplier).toBe(1.0);
+      expect(result.finalPrice).toBe(10);
     });
   });
 });

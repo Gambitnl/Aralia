@@ -7,6 +7,7 @@
  */
 
 import { Item, EconomyState } from '../types';
+import { REGIONAL_ECONOMIES } from '../data/economy/regions';
 
 /**
  * Parses a cost string like "10 GP" into a gold value.
@@ -59,12 +60,14 @@ export interface PriceCalculationResult {
  * @param item The item to price.
  * @param economy The current global economy state.
  * @param transactionType 'buy' (player buying from merchant) or 'sell' (player selling to merchant).
+ * @param regionId Optional region ID to apply local import/export modifiers.
  * @returns Detailed calculation result including final price and modifiers.
  */
 export const calculatePrice = (
   item: Item,
   economy: EconomyState | undefined,
-  transactionType: 'buy' | 'sell'
+  transactionType: 'buy' | 'sell',
+  regionId?: string
 ): PriceCalculationResult => {
   // Prefer numeric `costInGp` because it's unambiguous and already normalized.
   // Fall back to parsing the `cost` string (supports "cp/sp/ep/gp/pp").
@@ -101,7 +104,7 @@ export const calculatePrice = (
   let multiplier = transactionType === 'buy' ? economy.buyMultiplier : economy.sellMultiplier;
 
   // Apply market factors
-  const itemTags = [item.type, ...(item.name.toLowerCase().split(' '))];
+  const itemTags = [item.type, ...(item.name.toLowerCase().split(' '))].map(t => t.toLowerCase());
 
   // Scarcity increases price (Demand > Supply)
   const isScarce = economy.marketFactors.scarcity.some(tag =>
@@ -112,6 +115,31 @@ export const calculatePrice = (
   const isSurplus = economy.marketFactors.surplus.some(tag =>
     itemTags.some(it => it.includes(tag.toLowerCase()))
   );
+
+  // Regional Modifiers
+  if (regionId) {
+    const region = REGIONAL_ECONOMIES[regionId];
+    if (region) {
+      // EXPORTS are locally abundant -> CHEAPER (Surplus logic)
+      const isExport = region.exports.some(tag =>
+        itemTags.some(it => it === tag.toLowerCase())
+      );
+
+      // IMPORTS are locally scarce -> EXPENSIVE (Scarcity logic)
+      const isImport = region.imports.some(tag =>
+        itemTags.some(it => it === tag.toLowerCase())
+      );
+
+      if (transactionType === 'buy') {
+        if (isExport) multiplier -= 0.2; // Local goods are cheap
+        if (isImport) multiplier += 0.2; // Imported goods are expensive
+      } else {
+        // Selling to merchant
+        if (isExport) multiplier -= 0.1; // They have plenty, pay less
+        if (isImport) multiplier += 0.1; // They need it, pay more
+      }
+    }
+  }
 
   // Logic from MerchantModal:
   if (transactionType === 'buy') {

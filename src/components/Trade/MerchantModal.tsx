@@ -6,13 +6,13 @@
  */
 import React, { useMemo } from 'react';
 import { motion, MotionProps } from 'framer-motion';
-import { Item, Action, EconomyState } from '../types';
-import Tooltip from './Tooltip';
-import { useGameState } from '../state/GameContext';
-import { calculatePrice } from '../utils/economyUtils';
-import { formatGpAsCoins } from '../utils/coinPurseUtils';
-import CoinPurseDisplay from './ui/CoinPurseDisplay';
-import { useFocusTrap } from '../hooks/useFocusTrap';
+import { Item, Action, EconomyState } from '../../types';
+import Tooltip from '../Tooltip';
+import { useGameState } from '../../state/GameContext';
+import { calculatePrice } from '../../utils/economyUtils';
+import { formatGpAsCoins } from '../../utils/coinPurseUtils';
+import CoinPurseDisplay from '../ui/CoinPurseDisplay';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface MerchantModalProps {
     isOpen: boolean;
@@ -23,6 +23,7 @@ interface MerchantModalProps {
     onClose: () => void;
     onAction: (action: Action) => void;
     economy?: EconomyState; // Keep prop for backward compatibility or testing overrides
+    regionId?: string; // Optional region to apply import/export modifiers
 }
 
 const overlayMotion: MotionProps = {
@@ -46,6 +47,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
     onClose,
     onAction,
     economy: propEconomy,
+    regionId,
 }) => {
     const { state } = useGameState();
     // Use prop economy if provided (for tests), otherwise fall back to global state economy
@@ -62,14 +64,14 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
     }, [playerInventory]);
 
     const handleBuy = (item: Item) => {
-        const { finalPrice } = calculatePrice(item, economy, 'buy');
+        const { finalPrice } = calculatePrice(item, economy, 'buy', regionId);
         if (finalPrice > 0 && playerGold >= finalPrice) {
             onAction({ type: 'BUY_ITEM', label: `Buy ${item.name}`, payload: { item, cost: finalPrice } });
         }
     };
 
     const handleSell = (item: Item) => {
-        const { finalPrice } = calculatePrice(item, economy, 'sell');
+        const { finalPrice } = calculatePrice(item, economy, 'sell', regionId);
         if (finalPrice > 0) {
             onAction({ type: 'SELL_ITEM', label: `Sell ${item.name}`, payload: { itemId: item.id, value: finalPrice } });
         }
@@ -135,7 +137,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                         <h3 className="text-lg font-bold text-sky-300 mb-3 sticky top-0">For Sale</h3>
                         <div className="flex-grow overflow-y-auto scrollable-content space-y-2 pr-2">
                             {merchantInventory.map((item, idx) => {
-                                const { finalPrice, isModified, multiplier } = calculatePrice(item, economy, 'buy');
+                                const { finalPrice, isModified, multiplier } = calculatePrice(item, economy, 'buy', regionId);
                                 const canAfford = playerGold >= finalPrice;
                                 return (
                                     <div key={`${item.id}-${idx}`} className="bg-gray-700 p-3 rounded-lg flex justify-between items-center shadow-sm">
@@ -177,7 +179,7 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                         <h3 className="text-lg font-bold text-amber-300 mb-3 sticky top-0">Your Inventory</h3>
                         <div className="flex-grow overflow-y-auto scrollable-content space-y-2 pr-2">
                             {sellableItems.map((item, idx) => {
-                                const { finalPrice, isModified, multiplier } = calculatePrice(item, economy, 'sell');
+                                const { finalPrice, isModified, multiplier } = calculatePrice(item, economy, 'sell', regionId);
                                 const canSell = finalPrice > 0;
                                 return (
                                     <div key={`${item.id}-${idx}`} className="bg-gray-700/50 p-3 rounded-lg flex justify-between items-center border border-gray-600/50">
