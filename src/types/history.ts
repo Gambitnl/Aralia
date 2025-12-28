@@ -75,3 +75,4 @@ export interface WorldHistory {
 
 // TODO(Chronicler): Implement the event recording logic in WorldEventManager or a dedicated HistoryService.
 // This should listen for major changes (e.g., Faction Skirmish results) and convert them into WorldHistoryEvents.
+// [Recorder Update]: NPC Memory system has been integrated into GeminiService. World History recording is the next major missing system.
