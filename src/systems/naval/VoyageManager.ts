@@ -46,7 +46,7 @@ export class VoyageManager {
         // Clone ship to avoid mutating input directly
         let currentShip = JSON.parse(JSON.stringify(ship)) as Ship;
 
-        if (state.distanceTraveled >= state.distanceToDestination) {
+        if (state.distanceToDestination <= 0) {
             // Already arrived, just return
              return { newState: state, updatedShip: currentShip, remainingFunds: availableFunds };
         }
@@ -134,7 +134,7 @@ export class VoyageManager {
             dailyLog = `Day ${day}: ${dailyLog} (Sailed ${Math.round(actualDistance)} miles)`;
         }
 
-        if (state.distanceTraveled >= state.distanceToDestination) {
+        if (state.distanceToDestination <= 0) {
             dailyLog += ' Land ho! Destination reached.';
             state.status = 'Docked';
         }

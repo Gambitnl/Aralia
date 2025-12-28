@@ -7,11 +7,18 @@
  * - Encumbrance: Variant encumbrance rules affecting speed.
  * - Group Speed: Limited by the slowest member.
  * - Terrain: Difficult terrain halves speed.
+ * - Transport: Mounts and Vehicles override base walking speed.
  */
 
 import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
-import { TravelPace, TravelTerrain, PACE_MODIFIERS, TERRAIN_TRAVEL_MODIFIERS } from '../../types/travel';
+import {
+  TravelPace,
+  TravelTerrain,
+  PACE_MODIFIERS,
+  TERRAIN_TRAVEL_MODIFIERS,
+  TransportOption
+} from '../../types/travel';
 
 // --- Types ---
 
@@ -34,6 +41,7 @@ export interface TravelGroupStats {
   terrain: TravelTerrain;
   terrainModifier: number;
   dailyDistanceMiles: number; // Assuming 8 hours
+  transportMethod: string;
 }
 
 export interface ForcedMarchStatus {
@@ -136,18 +144,20 @@ export function calculateEncumbrance(
 
 /**
  * Calculates the effective travel speed for a group.
- * The group moves at the speed of its slowest member.
+ * The group moves at the speed of its slowest member unless using a vehicle/mount.
  *
  * @param characters List of characters in the travel group
  * @param inventories Map of character ID to their specific inventory items
  * @param pace Selected travel pace
  * @param terrain Terrain type (affects speed multiplier)
+ * @param transport Optional transport method (mounts, vehicles)
  */
 export function calculateGroupTravelStats(
   characters: PlayerCharacter[],
   inventories: Record<string, Item[]>,
   pace: TravelPace = 'normal',
-  terrain: TravelTerrain = 'open'
+  terrain: TravelTerrain = 'open',
+  transport: TransportOption = { method: 'walking' }
 ): TravelGroupStats {
   if (characters.length === 0) {
     return {
@@ -158,39 +168,71 @@ export function calculateGroupTravelStats(
       terrain,
       terrainModifier: TERRAIN_TRAVEL_MODIFIERS[terrain],
       dailyDistanceMiles: 0,
+      transportMethod: transport.method,
     };
   }
 
-  // Find slowest member
   let minSpeed = Infinity;
   let slowestId = characters[0].id || 'unknown';
 
-  for (const char of characters) {
-    const charInventory = inventories[char.id || ''] || [];
-    const encumbrance = calculateEncumbrance(char, charInventory);
+  // 1. Determine Base Speed
+  if (transport.method === 'walking') {
+    // Normal Walking: Limited by slowest member and encumbrance
+    for (const char of characters) {
+      const charInventory = inventories[char.id || ''] || [];
+      const encumbrance = calculateEncumbrance(char, charInventory);
 
-    // Base speed usually 30. Apply encumbrance penalty.
-    // Ensure speed doesn't drop below 0.
-    const effectiveSpeed = Math.max(0, (char.speed || 30) - encumbrance.speedDrop);
+      // Base speed usually 30. Apply encumbrance penalty.
+      const effectiveSpeed = Math.max(0, (char.speed || 30) - encumbrance.speedDrop);
 
-    if (effectiveSpeed < minSpeed) {
-      minSpeed = effectiveSpeed;
-      slowestId = char.id || 'unknown';
+      if (effectiveSpeed < minSpeed) {
+        minSpeed = effectiveSpeed;
+        slowestId = char.id || 'unknown';
+      }
+    }
+  } else if (transport.method === 'mounted' || transport.method === 'vehicle') {
+    // Mounted/Vehicle: Speed determined by the vehicle/mount
+    // Note: If using a cart/wagon, logic would typically check the puller's capacity.
+    // Here we simplify: if a specific vehicle is provided, use its speed.
+    // If vehicle speed is 0 (like a cart/wagon), we default back to walking speed logic (assuming beasts move at normal pace).
+
+    if (transport.vehicle && transport.vehicle.speed > 0) {
+      minSpeed = transport.vehicle.speed;
+      slowestId = transport.vehicle.name; // Attributed to vehicle
+    } else {
+      // Fallback for carts/wagons without defined puller speed -> assume standard beast speed (often 40-60, but heavily encumbered puller = slow).
+      // For simplicity in this iteration, we treat carts/wagons as walking speed (limited by group/beast) unless explicit puller stats are added.
+      // If no vehicle provided but method is vehicle, default to 30.
+      minSpeed = 30;
+      slowestId = 'vehicle_puller';
     }
   }
 
-  // Convert Speed (ft/round) to MPH
+  // 2. Convert Speed (ft/round) to MPH
   // D&D Rule: Speed / 10 = MPH (roughly)
   // 30 ft => 3 mph
   const baseMph = minSpeed / 10;
 
-  // Apply Pace Modifier
+  // 3. Apply Pace Modifier
   // @ts-ignore - Backward compatibility for types if speedMultiplier was used
   const paceMod = PACE_MODIFIERS[pace].speedModifier || PACE_MODIFIERS[pace].speedMultiplier;
 
-  // Apply Terrain Modifier
-  const terrainMod = TERRAIN_TRAVEL_MODIFIERS[terrain];
+  // 4. Apply Terrain Modifier
+  // Water vehicles (rowboat, keelboat) generally ignore land terrain penalties but might have water equivalents.
+  // For now, if vehicle type is 'water', we ignore terrain modifiers (or assume terrain provided IS water terrain).
+  // If vehicle type is 'land' or 'walking', we apply terrain mod.
 
+  let terrainMod = TERRAIN_TRAVEL_MODIFIERS[terrain];
+
+  if (transport.vehicle?.type === 'water') {
+    // Water vehicles ignore "road/difficult" land modifiers usually, unless the terrain IS "rough water".
+    // If the input terrain is 'difficult', we assume it means 'rough water' for a boat.
+    // If input is 'road', it doesn't make sense for a boat, so we treat as open water (1.0).
+    // Simplifying: Apply modifier if it's < 1.0 (difficult), otherwise 1.0.
+    terrainMod = terrainMod < 1.0 ? terrainMod : 1.0;
+  }
+
+  // 5. Final Calculation
   const travelSpeedMph = baseMph * paceMod * terrainMod;
 
   // Calculate Daily Distance (8 hours travel)
@@ -204,6 +246,7 @@ export function calculateGroupTravelStats(
     terrain,
     terrainModifier: terrainMod,
     dailyDistanceMiles: Number(dailyDistanceMiles.toFixed(2)),
+    transportMethod: transport.method,
   };
 }
 

@@ -4,16 +4,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import MainMenu from '../MainMenu';
 
 // Mock child components
-vi.mock('../LoadGameModal', () => ({
-    default: ({ onClose }: { onClose: () => void }) => (
+vi.mock('../SaveLoad', () => ({
+    LoadGameModal: ({ onClose }: { onClose: () => void }) => (
         <div role="dialog" aria-label="Resume Journey Modal">
             <button onClick={onClose}>Close</button>
         </div>
     ),
-}));
-
-vi.mock('../SaveSlotSelector', () => ({
-    default: ({ onClose }: { onClose: () => void }) => (
+    SaveSlotSelector: ({ onClose }: { onClose: () => void }) => (
         <div role="dialog" aria-label="Chronicle Journey Selector">
             <button onClick={onClose}>Close</button>
         </div>
