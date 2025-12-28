@@ -7,7 +7,7 @@
  *
  * It handles:
  * 1. Generating AI responses.
- * 2. Processing side effects of dialogue choices (XP, Reputation, Unlocks).
+ * 2. Processing side effects of dialogue choices (XP, Reputation, Unlocks, Costs).
  * 3. Managing the dialogue session lifecycle.
  */
 
@@ -94,7 +94,32 @@ export const useDialogueSystem = (
             });
         }
 
-        // 3. Handle Topic Unlocks (Global Discovery)
+        // 3. Process Costs (Deductions)
+        if (result.deductions && result.deductions.length > 0) {
+            result.deductions.forEach(cost => {
+                if (cost.type === 'gold') {
+                    dispatch({
+                        type: 'MODIFY_GOLD',
+                        payload: { amount: -cost.value }
+                    });
+                    dispatch({
+                        type: 'ADD_NOTIFICATION',
+                        payload: { type: 'info', message: `Paid ${cost.value} Gold` }
+                    });
+                } else if (cost.type === 'item' && cost.targetId) {
+                    dispatch({
+                        type: 'REMOVE_ITEM',
+                        payload: { itemId: cost.targetId, count: cost.value }
+                    });
+                     dispatch({
+                        type: 'ADD_NOTIFICATION',
+                        payload: { type: 'info', message: `Removed item(s)` }
+                    });
+                }
+            });
+        }
+
+        // 4. Handle Topic Unlocks (Global Discovery)
         if (result.unlocks && result.unlocks.length > 0) {
             result.unlocks.forEach(topicId => {
                 // We use the Discovery Log to track "Unlocked Topics" globally if they are significant
@@ -109,7 +134,7 @@ export const useDialogueSystem = (
             });
         }
 
-        // 4. Handle Lock Topic (if the NPC refuses to speak on it again)
+        // 5. Handle Lock Topic (if the NPC refuses to speak on it again)
         if (result.lockTopic) {
             // This would require a mechanism to permanently ban a topic ID for an NPC
             // Currently not supported in the simple reducer, but could be added to NPC Memory.

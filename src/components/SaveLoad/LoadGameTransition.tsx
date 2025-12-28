@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { motion, MotionProps } from 'framer-motion';
-import { PlayerCharacter } from '../types';
+import { PlayerCharacter } from '../../types';
 
 interface LoadGameTransitionProps {
   character: PlayerCharacter; // The character from the loaded save

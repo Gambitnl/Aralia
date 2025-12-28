@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
-import { AUTO_SAVE_SLOT_KEY, SaveSlotSummary, getSlotStorageKey } from '../services/saveLoadService';
-import { ConfirmationModal } from './ui/ConfirmationModal';
+import { AUTO_SAVE_SLOT_KEY, SaveSlotSummary, getSlotStorageKey } from '../../services/saveLoadService';
+import { ConfirmationModal } from '../ui/ConfirmationModal';
 
 interface SaveSlotSelectorProps {
   slots: SaveSlotSummary[];
@@ -90,7 +90,7 @@ const SaveSlotSelector: React.FC<SaveSlotSelectorProps> = ({
     // causing the heavy 'axe-core' dependency to remain in production bundles. Do not revert.
     if (import.meta.env.DEV && rootRef.current) {
       const node = rootRef.current;
-      import('../utils/testUtils').then(({ runAxe }) => {
+      import('../../utils/testUtils').then(({ runAxe }) => {
         runAxe(node);
       });
     }

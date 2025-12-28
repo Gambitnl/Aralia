@@ -10,13 +10,16 @@ import { generateId } from '../../utils/combatUtils';
 export function ritualReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
     case 'START_RITUAL': {
+      // payload matches RitualState structure from RitualManager
+      const ritual = action.payload;
       return {
-        activeRitual: action.payload,
+        activeRitual: ritual,
         messages: [
           ...state.messages,
           {
             id: generateId(),
-            text: `A ritual to cast ${action.payload.spell.name} has begun. (Duration: ${action.payload.durationMinutes} minutes)`,
+            // Fixed: use spellName instead of spell.name to match Singular RitualState
+            text: `A ritual to cast ${ritual.spellName} has begun. (Duration: ${ritual.durationTotal} ${ritual.durationUnit})`,
             sender: 'system',
             timestamp: state.gameTime,
           }
@@ -26,20 +29,23 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
 
     case 'ADVANCE_TIME': {
       // This reducer handles the implicit advancement of rituals via time
-      if (!state.activeRitual || state.activeRitual.isComplete || state.activeRitual.interrupted) {
+      if (!state.activeRitual || RitualManager.isRitualComplete(state.activeRitual) || state.activeRitual.isPaused) {
         return {};
       }
 
       const minutesPassed = action.payload.seconds / 60;
+      // Advance ritual returns a new state object
       const updatedRitual = RitualManager.advanceRitual(state.activeRitual, minutesPassed);
 
       let messages = state.messages;
+      const wasComplete = RitualManager.isRitualComplete(state.activeRitual);
+      const isNowComplete = RitualManager.isRitualComplete(updatedRitual);
 
       // Check for completion transition
-      if (updatedRitual.isComplete && !state.activeRitual.isComplete) {
+      if (isNowComplete && !wasComplete) {
         messages = [...state.messages, {
           id: generateId(),
-          text: `Ritual Complete: ${updatedRitual.spell.name} is ready to be unleashed.`,
+          text: `Ritual Complete: ${updatedRitual.spellName} is ready to be unleashed.`,
           sender: 'system',
           timestamp: state.gameTime, // Note: gameTime in state is technically old time before ADVANCE_TIME completes, but acceptable here
           metadata: { type: 'ritual_complete', ritualId: updatedRitual.id }
@@ -58,11 +64,13 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
       const updatedRitual = RitualManager.advanceRitual(state.activeRitual, action.payload.minutes);
 
       let messages = state.messages;
+      const wasComplete = RitualManager.isRitualComplete(state.activeRitual);
+      const isNowComplete = RitualManager.isRitualComplete(updatedRitual);
 
-      if (updatedRitual.isComplete && !state.activeRitual.isComplete) {
+      if (isNowComplete && !wasComplete) {
         messages = [...state.messages, {
           id: generateId(),
-          text: `The ritual is complete! The magic of ${updatedRitual.spell.name} takes hold.`,
+          text: `The ritual is complete! The magic of ${updatedRitual.spellName} takes hold.`,
           sender: 'system',
           timestamp: state.gameTime
         }];
@@ -77,24 +85,26 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
     case 'INTERRUPT_RITUAL': {
       if (!state.activeRitual) return {};
 
-      // NOTE: checkInterruption maps to checkRitualInterrupt in the manager exports
-      const interruptResult = RitualManager.checkRitualInterrupt(state.activeRitual, action.payload.event);
+      const event = action.payload.event;
+      // Fixed: Unpack the event object to match checkRitualInterrupt signature (ritual, type, value, name)
+      // Note: event might be 'damage' | 'movement' etc as string in some contexts, but payload implies object based on test.
+      // We assume event is { type, value, conditionName? }
+      const interruptResult = RitualManager.checkRitualInterrupt(
+          state.activeRitual,
+          event.type,
+          event.value,
+          event.conditionName
+      );
 
       if (interruptResult.interrupted) {
          const updatedRitual = {
              ...state.activeRitual,
-             interrupted: true,
+             isPaused: true,
              interruptionReason: interruptResult.reason || 'External disturbance'
          };
 
          // Mock backlash function since it's not exported by RitualManager yet
-         // The original code called RitualManager.getBacklashOnFailure which didn't exist in the file I saw.
-         // I will assume it returns empty array for now to fix the build, or check if I need to implement it.
-         // Wait, the previous failure said "RitualManager is not exported".
-         // The RitualManager.ts I saw earlier did NOT have getBacklashOnFailure.
-         // So calling it here will fail at runtime or compile time if types are checked strictly.
-         // I will assume for now that I should just return empty array or handle it gracefully.
-         const backlashEffects: any[] = []; // RitualManager.getBacklashOnFailure(updatedRitual);
+         const backlashEffects: any[] = [];
 
          const backlashMessage = backlashEffects.length > 0
             ? `Backlash: ${backlashEffects.map((b: any) => b.description).join(' ')}`

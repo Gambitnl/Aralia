@@ -89,7 +89,7 @@
       "condition": {
         "type": "save",
         "saveType": "Constitution",
-        "saveEffect": "half",
+        "saveEffect": "none",
         "targetFilter": {
           "creatureTypes": [],
           "excludeCreatureTypes": [],

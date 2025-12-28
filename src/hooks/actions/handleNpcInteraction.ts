@@ -69,30 +69,8 @@ export async function handleTalk({
 
     // For now, let's keep the initial "Greeting" generation to seed the conversation window with text.
 
-    // 2. Construct Memory Context string
-    let memoryContextString = `Disposition towards player: ${memory.disposition}.`;
-    
-    const recentFacts = [...memory.knownFacts].sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
-    
-    if (recentFacts.length > 0) {
-      const factStrings = recentFacts.map(fact => 
-          fact.source === 'gossip'
-              ? `(Heard from ${NPCS[fact.sourceNpcId!]?.name || 'a traveler'}): "${fact.text}"`
-              : `(Witnessed Directly): "${fact.text}"`
-      );
-      memoryContextString += ` Recent memories: [${factStrings.join(', ')}]`;
-    } else {
-      memoryContextString += " No specific memories of this player.";
-    }
-
-    // Add active goals to the context string.
-    const activeGoals = memory.goals?.filter(g => g.status === GoalStatus.Active);
-    if (activeGoals && activeGoals.length > 0) {
-        memoryContextString += ` Active Goals: ["${activeGoals.map(g => g.description).join('", "')}"]`;
-    }
-
-
-    // 3. Construct the full prompt
+    // 2. Construct the full prompt
+    // We no longer manually build the memory string here; we pass the memory object to geminiService.
     const isFollowUp = npc.id === gameState.lastInteractedNpcId;
     let fullPrompt: string;
     if (isFollowUp) {
@@ -100,13 +78,21 @@ export async function handleTalk({
     } else {
       fullPrompt = `Player (${playerContext}) approaches and wants to talk. General context: ${generalActionContext}.`;
     }
-    fullPrompt = `Relevant Memories & Feelings about this player: ${memoryContextString}\n\n${fullPrompt}\n\nYour EXTREMELY BRIEF response (1-2 sentences MAX):`;
 
-    // 4. Call the refactored geminiService function
+    // Add active goals to the prompt since memoryUtils doesn't handle goals yet
+    const activeGoals = memory.goals?.filter(g => g.status === GoalStatus.Active);
+    if (activeGoals && activeGoals.length > 0) {
+        fullPrompt += `\nMy Current Goals: ["${activeGoals.map(g => g.description).join('", "')}"]`;
+    }
+
+    fullPrompt += `\n\nYour EXTREMELY BRIEF response (1-2 sentences MAX):`;
+
+    // 3. Call the refactored geminiService function
     const npcResponseResult = await GeminiService.generateNPCResponse(
       npc.initialPersonalityPrompt,
       fullPrompt,
-      gameState.devModelOverride
+      gameState.devModelOverride,
+      memory
     );
     
     const promptSent = npcResponseResult.data?.promptSent || npcResponseResult.metadata?.promptSent || 'Unknown prompt';
