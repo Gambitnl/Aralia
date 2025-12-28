@@ -8,7 +8,7 @@ export const ItemSchema = z.object({
   id: z.string().optional(), // AI might not generate IDs, we can generate them
   name: z.string(),
   description: z.string(),
-  cost: z.number().optional().default(0),
+  cost: z.union([z.string(), z.number()]).optional().default("0 GP"),
   weight: z.number().optional().default(0),
   rarity: z.enum(['common', 'uncommon', 'rare', 'very_rare', 'legendary']).optional().default('common'),
   type: z.string().optional().default('misc'),
@@ -45,8 +45,8 @@ export const CustomActionSchema = z.object({
   check: z.string().optional(),
   targetNpcId: z.string().optional(),
   eventResidue: z.object({
-      text: z.string(),
-      discoveryDc: z.number(),
+    text: z.string(),
+    discoveryDc: z.number(),
   }).optional(),
   isEgregious: z.boolean().optional(),
 });
