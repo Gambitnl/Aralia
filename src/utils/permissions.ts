@@ -6,8 +6,6 @@
  * This allows for more granular control over features and roles in the future.
  */
 
-import { USE_DUMMY_CHARACTER_FOR_DEV } from '../constants';
-
 export const PERMISSIONS = {
   ACCESS_DEV_TOOLS: 'ACCESS_DEV_TOOLS',
   SKIP_CHARACTER_CREATION: 'SKIP_CHARACTER_CREATION',
