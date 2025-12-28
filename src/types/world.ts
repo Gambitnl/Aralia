@@ -200,56 +200,8 @@ export interface VillageActionContext {
   encounterHooks: string[];
 }
 
-export enum QuestStatus {
-  Active = 'Active',
-  Completed = 'Completed',
-  Failed = 'Failed'
-}
-
-export interface QuestObjective {
-  id: string;
-  description: string;
-  isCompleted: boolean;
-}
-
-export interface QuestReward {
-  gold?: number;
-  xp?: number;
-  items?: string[]; // Item IDs
-}
-
-export interface Quest {
-  id: string;
-  title: string;
-  description: string;
-  giverId: string; // NPC ID
-  status: QuestStatus;
-  objectives: QuestObjective[];
-  rewards?: QuestReward;
-  dateStarted: number;
-  dateCompleted?: number;
-  /** Optional world-region hint for UI grouping */
-  regionHint?: string;
-  /** Narrative tag such as "Main", "Side", "Guild" for filtering */
-  questType?: 'Main' | 'Side' | 'Guild' | 'Dynamic';
-
-  /** Game day timestamp by which the quest must be completed */
-  deadline?: number;
-
-  /** Consequence logic for missing the deadline */
-  deadlineConsequence?: {
-    action: 'fail_quest' | 'fail_with_note' | 'log_only';
-    message: string; // "The merchant has left town."
-  };
-
-  /** Internal notes or system comments appended to the quest (e.g. failure reasons) */
-  notes?: string;
-}
-
-export interface QuestTemplate extends Omit<Quest, 'status' | 'objectives' | 'dateStarted' | 'dateCompleted'> {
-  objectives: Array<Omit<QuestObjective, 'isCompleted'>>;
-  repeatable?: boolean;
-}
+// Note: QuestStatus, QuestObjective, QuestReward, Quest types are now defined in quests.ts
+// Import them from there if needed in this file
 
 export interface Monster {
   name: string;
