@@ -24,6 +24,14 @@ export interface TopicPrerequisite {
   negate?: boolean;
 }
 
+export interface TopicCost {
+  type: 'gold' | 'item';
+  /** The ID of the item to remove (ignored for gold) */
+  targetId?: string;
+  /** The amount of gold or number of items to remove */
+  value: number;
+}
+
 export interface FailureResult {
   /** Text to display on failure */
   response: string;
@@ -53,6 +61,8 @@ export interface ConversationTopic {
   playerPrompt: string;
   /** Requirements to see/select this topic */
   prerequisites?: TopicPrerequisite[];
+  /** Costs to select this topic (e.g. bribes, trading items) */
+  costs?: TopicCost[];
   /** IDs of topics this topic unlocks immediately when discussed */
   unlocksTopics?: string[];
   /** Optional skill check required to succeed in this topic */
@@ -77,9 +87,6 @@ export interface NPCKnowledgeProfile {
   baseOpenness: number;
 }
 
-/**
- * Represents the state of a dialogue session.
- */
 /**
  * Represents the state of a dialogue session.
  * Used by the dialogueReducer to track active conversations.
