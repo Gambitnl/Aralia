@@ -37,7 +37,7 @@ vi.mock('../CharacterCreator/CharacterCreator', () => ({ default: () => <div>Cha
 vi.mock('../Combat/CombatView', () => ({ default: () => <div>Combat View</div> }));
 vi.mock('../TownCanvas', () => ({ default: () => <div>Town Canvas</div> }));
 vi.mock('../BattleMapDemo', () => ({ default: () => <div>Battle Map</div> }));
-vi.mock('../LoadGameTransition', () => ({ default: () => <div>Load Game</div> }));
+vi.mock('../SaveLoad', () => ({ LoadGameTransition: () => <div>Load Game</div> }));
 vi.mock('../NotFound', () => ({ default: () => <div>Not Found</div> }));
 vi.mock('../../components/ui/LoadingSpinner', () => ({ LoadingSpinner: () => <div>Loading...</div> }));
 vi.mock('../../components/NotificationSystem', () => ({ NotificationSystem: () => <div>Notifications</div> }));

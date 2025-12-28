@@ -33,5 +33,7 @@ export * from './elemental';
 export * from './stronghold';
 export * from './loot'; // Export LootTable types
 export * from './identity'; // Export Identity/Secret types
+export * from './quests'; // Export new robust Quest types
+export * from './questEnums'; // Export Quest enums
 
 export type { CombatCharacter, CharacterStats, Position, CombatState };

@@ -159,6 +159,17 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       return {};
     }
 
+    case 'ADD_NPC_TO_CURRENT_LOCATION': {
+      const { npcId } = action.payload;
+      const currentList = state.currentLocationActiveDynamicNpcIds || [];
+      if (currentList.includes(npcId)) {
+        return {};
+      }
+      return {
+        currentLocationActiveDynamicNpcIds: [...currentList, npcId]
+      };
+    }
+
     case 'ADD_WORLD_HISTORY_EVENT': {
       const currentHistory = state.worldHistory || createEmptyHistory();
       const updatedHistory = addHistoryEvent(currentHistory, action.payload.event);

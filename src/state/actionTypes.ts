@@ -75,6 +75,7 @@ export type AppAction =
   | { type: 'ADD_GENERATED_CHARACTER'; payload: PlayerCharacter }
   // Resource Management Actions
   | { type: 'ADD_ITEM'; payload: { itemId: string; count?: number } }
+  | { type: 'REMOVE_ITEM'; payload: { itemId: string; count?: number } }
   | { type: 'MODIFY_GOLD'; payload: { amount: number } }
   | { type: 'GRANT_EXPERIENCE'; payload: { amount: number } }
   | { type: 'MODIFY_PARTY_HEALTH'; payload: { amount: number; characterIds?: string[] } }
@@ -105,6 +106,7 @@ export type AppAction =
   | { type: 'ADD_LOCATION_RESIDUE'; payload: AddLocationResiduePayload }
   | { type: 'REMOVE_LOCATION_RESIDUE'; payload: RemoveLocationResiduePayload }
   | { type: 'REGISTER_DYNAMIC_ENTITY'; payload: { entityType: 'location', entity: Location } | { entityType: 'faction', entity: Faction } | { entityType: 'npc', entity: NPC } }
+  | { type: 'ADD_NPC_TO_CURRENT_LOCATION'; payload: { npcId: string } }
   | { type: 'ADD_WORLD_HISTORY_EVENT'; payload: { event: WorldHistoryEvent } }
   // Gemini Intelligence Action
   | { type: 'ANALYZE_SITUATION' }

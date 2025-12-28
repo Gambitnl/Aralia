@@ -200,11 +200,8 @@ export interface VillageActionContext {
   encounterHooks: string[];
 }
 
-export enum QuestStatus {
-  Active = 'Active',
-  Completed = 'Completed',
-  Failed = 'Failed'
-}
+import { QuestStatus } from './questEnums';
+export { QuestStatus };
 
 export interface QuestObjective {
   id: string;

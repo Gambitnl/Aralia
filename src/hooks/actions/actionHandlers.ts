@@ -277,7 +277,7 @@ export function buildActionHandlers({
       dispatch({ type: 'SELL_ITEM', payload: action.payload as { itemId: string; value: number } });
     },
     OPEN_DYNAMIC_MERCHANT: async (action) => {
-      await handleOpenDynamicMerchant({ action, gameState, dispatch, addMessage, addGeminiLog });
+      await handleOpenDynamicMerchant({ action, gameState, dispatch, addMessage, addGeminiLog, generalActionContext });
     },
 
     // Legacy custom actions remain inline because they depend on local constants.

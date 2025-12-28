@@ -53,6 +53,57 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             };
         }
 
+        case 'REMOVE_ITEM': {
+            const { itemId, count = 1 } = action.payload;
+            let remaining = count;
+            const newInventory = [...state.inventory];
+
+            // First pass: look for stacked items (item.count > 1)
+            for (let i = 0; i < newInventory.length; i++) {
+                if (remaining <= 0) break;
+                if (newInventory[i].id === itemId) {
+                    const item = newInventory[i];
+                    // Check for count/quantity property
+                    const stackSize = (item as any).count || (item as any).quantity || 1;
+
+                    if (stackSize > 1) {
+                        // It's a stack
+                        if (stackSize > remaining) {
+                            // Partial stack removal
+                            // We need to clone the item to avoid mutation of state directly (though we already cloned the array)
+                            // But items are objects, so we need to clone the specific item
+                            newInventory[i] = { ...item, count: stackSize - remaining } as any; // Assuming 'count' is the standard property
+                            remaining = 0;
+                        } else {
+                            // Consume entire stack
+                            remaining -= stackSize;
+                            // Mark for removal (we'll filter later or splice carefully)
+                            // Since we are iterating forward, splicing changes indices.
+                            // Let's just set it to null or a placeholder and filter later
+                            newInventory[i] = null as any;
+                        }
+                    } else {
+                         // Single item
+                         remaining--;
+                         newInventory[i] = null as any;
+                    }
+                }
+            }
+
+            // If we still need to remove items and we found some single items that we marked as null, we are good.
+            // But what if we didn't find enough?
+             if (remaining > 0) {
+                 console.warn(`REMOVE_ITEM: Could not find enough of item ${itemId} to remove. Requested: ${count}, Found: ${count - remaining}`);
+            }
+
+            // Filter out the nulls (removed items)
+            const finalInventory = newInventory.filter(item => item !== null);
+
+            return {
+                inventory: finalInventory
+            };
+        }
+
         case 'MODIFY_GOLD': {
             const { amount } = action.payload;
             // Round to nearest copper to avoid floating point issues
