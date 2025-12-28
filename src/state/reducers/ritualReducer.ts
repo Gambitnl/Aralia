@@ -4,7 +4,7 @@
  */
 import { GameState } from '../../types';
 import { AppAction } from '../actionTypes';
-import * as RitualManager from '../../systems/rituals/RitualManager';
+import { RitualManager } from '../../systems/rituals/RitualManager';
 import { generateId } from '../../utils/combatUtils';
 
 export function ritualReducer(state: GameState, action: AppAction): Partial<GameState> {
@@ -31,22 +31,17 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
       }
 
       const minutesPassed = action.payload.seconds / 60;
-      // Convert minutes to rounds (assuming 1 minute = 10 rounds)
-      const roundsPassed = minutesPassed * 10;
-      const updatedRitual = RitualManager.advanceRitual(state.activeRitual, roundsPassed);
+      const updatedRitual = RitualManager.advanceRitual(state.activeRitual, minutesPassed);
 
       let messages = state.messages;
 
       // Check for completion transition
-      const isComplete = RitualManager.isRitualComplete(updatedRitual);
-      const wasComplete = state.activeRitual.progress >= state.activeRitual.durationTotal;
-
-      if (isComplete && !wasComplete) {
+      if (updatedRitual.isComplete && !state.activeRitual.isComplete) {
         messages = [...state.messages, {
           id: generateId(),
-          text: `Ritual Complete: ${updatedRitual.spellName} is ready to be unleashed.`,
+          text: `Ritual Complete: ${updatedRitual.spell.name} is ready to be unleashed.`,
           sender: 'system',
-          timestamp: state.gameTime,
+          timestamp: state.gameTime, // Note: gameTime in state is technically old time before ADVANCE_TIME completes, but acceptable here
           metadata: { type: 'ritual_complete', ritualId: updatedRitual.id }
         }];
       }
@@ -60,17 +55,14 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
     case 'ADVANCE_RITUAL': {
       if (!state.activeRitual) return {};
 
-      const rounds = action.payload.minutes * 10;
-      const updatedRitual = RitualManager.advanceRitual(state.activeRitual, rounds);
+      const updatedRitual = RitualManager.advanceRitual(state.activeRitual, action.payload.minutes);
 
       let messages = state.messages;
-      const isComplete = RitualManager.isRitualComplete(updatedRitual);
-      const wasComplete = state.activeRitual.progress >= state.activeRitual.durationTotal;
 
-      if (isComplete && !wasComplete) {
+      if (updatedRitual.isComplete && !state.activeRitual.isComplete) {
         messages = [...state.messages, {
           id: generateId(),
-          text: `The ritual is complete! The magic of ${updatedRitual.spellName} takes hold.`,
+          text: `The ritual is complete! The magic of ${updatedRitual.spell.name} takes hold.`,
           sender: 'system',
           timestamp: state.gameTime
         }];
@@ -85,14 +77,7 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
     case 'INTERRUPT_RITUAL': {
       if (!state.activeRitual) return {};
 
-      const event = action.payload.event;
-
-      const interruptResult = RitualManager.checkRitualInterrupt(
-          state.activeRitual,
-          event.type,
-          event.value,
-          event.conditionName
-      );
+      const interruptResult = RitualManager.checkInterruption(state.activeRitual, action.payload.event);
 
       if (interruptResult.interrupted) {
          const updatedRitual = {
@@ -101,8 +86,10 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
              interruptionReason: interruptResult.reason || 'External disturbance'
          };
 
-         // Backlash logic pending implementation in RitualManager
-         const backlashMessage = 'The magic dissipates harmlessly.';
+         const backlashEffects = RitualManager.getBacklashOnFailure(updatedRitual);
+         const backlashMessage = backlashEffects.length > 0
+            ? `Backlash: ${backlashEffects.map(b => b.description).join(' ')}`
+            : 'The magic dissipates harmlessly.';
 
          return {
              activeRitual: updatedRitual,
@@ -113,7 +100,7 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
                      text: `Ritual Interrupted! ${interruptResult.reason}. ${backlashMessage}`,
                      sender: 'system',
                      timestamp: state.gameTime,
-                     metadata: { type: 'ritual_interruption' }
+                     metadata: { type: 'ritual_interruption', backlash: backlashEffects }
                  }
              ]
          };
