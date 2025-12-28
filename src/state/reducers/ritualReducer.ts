@@ -4,7 +4,7 @@
  */
 import { GameState } from '../../types';
 import { AppAction } from '../actionTypes';
-import * as RitualManager from '../../systems/rituals/RitualManager';
+import { RitualManager } from '../../systems/rituals/RitualManager';
 import { generateId } from '../../utils/combatUtils';
 
 export function ritualReducer(state: GameState, action: AppAction): Partial<GameState> {
@@ -77,12 +77,7 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
     case 'INTERRUPT_RITUAL': {
       if (!state.activeRitual) return {};
 
-      const interruptResult = RitualManager.checkRitualInterrupt(
-        state.activeRitual,
-        action.payload.event.type,
-        action.payload.event.value,
-        action.payload.event.conditionName
-      );
+      const interruptResult = RitualManager.checkInterruption(state.activeRitual, action.payload.event);
 
       if (interruptResult.interrupted) {
          const updatedRitual = {
@@ -91,9 +86,10 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
              interruptionReason: interruptResult.reason || 'External disturbance'
          };
 
-         // Backlash logic is not yet exported by RitualManager, so we use a safe default here
-         const backlashEffects: any[] = [];
-         const backlashMessage = 'The magic dissipates harmlessly.';
+         const backlashEffects = RitualManager.getBacklashOnFailure(updatedRitual);
+         const backlashMessage = backlashEffects.length > 0
+            ? `Backlash: ${backlashEffects.map(b => b.description).join(' ')}`
+            : 'The magic dissipates harmlessly.';
 
          return {
              activeRitual: updatedRitual,
