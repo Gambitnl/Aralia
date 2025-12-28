@@ -57,7 +57,9 @@
       "Bash(git reset:*)",
       "Bash(timeout 30 npx:*)",
       "Bash(python:*)",
-      "Bash(rev:*)"
+      "Bash(rev:*)",
+      "Bash(findstr:*)",
+      "Bash(tasklist:*)"
     ],
     "deny": [],
     "ask": []
