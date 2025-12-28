@@ -4,16 +4,16 @@
  * This file contains all combat-related TypeScript type definitions and interfaces
  * used throughout the Aralia RPG application's battle map feature.
  */
-import type { AbilityScoreName } from './core';
+import type { AbilityScoreName, CharacterStats } from './core';
 import type { Class, SpellbookData, SpellSlots } from './character';
 import type { Item } from './items';
 import type { Spell, DamageType, SavingThrowAbility, ConditionName, EffectDuration, SpellEffect } from './spells'; // Import Spell
 import { StateTag } from './elemental';
 import { Plane } from './planes';
-import { ActiveEffect } from './effects';
+import { ActiveEffect, StatusEffect } from './effects';
 import { RitualState } from './ritual';
 
-export { ActiveEffect };
+export { ActiveEffect, StatusEffect };
 export type { SpellSlots };
 
 // --- NEW COMBAT SYSTEM TYPES ---
@@ -24,27 +24,6 @@ export interface Position {
 }
 
 export type LightLevel = 'bright' | 'dim' | 'darkness' | 'magical_darkness';
-
-export interface CharacterSenses {
-  darkvision: number; // Radius in feet (0 if none)
-  blindsight: number;
-  tremorsense: number;
-  truesight: number;
-}
-
-export interface CharacterStats {
-  strength: number;
-  dexterity: number;
-  constitution: number;
-  intelligence: number;
-  wisdom: number;
-  charisma: number;
-  baseInitiative: number;
-  speed: number; // in feet
-  cr: string;
-  size?: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Gargantuan';
-  senses?: CharacterSenses;
-}
 
 export interface ActionEconomyState {
   action: { used: boolean; remaining: number };
@@ -144,19 +123,6 @@ export interface AreaOfEffect {
   shape: 'circle' | 'cone' | 'line' | 'square';
   size: number; // radius for circle, length for line/cone, side for square
   angle?: number; // for cone abilities
-}
-
-export interface StatusEffect {
-  id: string;
-  name: string;
-  type: 'buff' | 'debuff' | 'dot' | 'hot'; // damage/heal over time
-  duration: number; // in turns
-  effect: {
-    type: 'stat_modifier' | 'damage_per_turn' | 'heal_per_turn' | 'skip_turn' | 'condition';
-    value?: number;
-    stat?: keyof CharacterStats;
-  };
-  icon?: string;
 }
 
 export interface AbilityEffect {

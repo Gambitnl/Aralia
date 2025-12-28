@@ -1,5 +1,5 @@
 import type { SpellSchool } from './spells';
-import type { ActiveEffect } from './effects';
+import type { ActiveEffect, StatusEffect } from './effects';
 import type { AbilityScoreName, AbilityScores, Skill } from './core';
 import type { EquipmentSlotType, Item } from './items';
 import type { RaceVisualSpec } from './visuals';
@@ -382,7 +382,7 @@ export interface PlayerCharacter {
   spellbook?: SpellbookData;
   limitedUses?: LimitedUses;
   activeEffects?: ActiveEffect[]; // For temporary spell effects (e.g. Shield, Mage Armor)
-  statusEffects: import('./combat').StatusEffect[]; // Required for status effects
+  statusEffects: StatusEffect[]; // Required for status effects
   selectedFightingStyle?: FightingStyle;
   selectedDivineOrder?: 'Protector' | 'Thaumaturge';
   selectedDruidOrder?: 'Magician' | 'Warden';
