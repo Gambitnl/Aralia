@@ -4,7 +4,7 @@
  * "Time is part of the magic."
  */
 
-import { CombatCharacter } from '../../types/combat';
+import { CombatCharacter, CombatAction } from '../../types/combat';
 import { RitualState, RitualConfig, InterruptResult, InterruptCondition } from '../../types/ritual';
 import { Spell } from '../../types/spells';
 
@@ -142,12 +142,3 @@ export function checkRitualInterrupt(
 
   return { interrupted: false, ritualBroken: false };
 }
-
-// Export as a namespace object for backward compatibility with 'RitualManager.function' calls
-export const RitualManager = {
-  startRitual,
-  advanceRitual,
-  isRitualComplete,
-  checkInterruption: checkRitualInterrupt, // Mapped to match usage in reducer
-  getBacklashOnFailure: (ritual: RitualState) => [] // Placeholder mock
-};
