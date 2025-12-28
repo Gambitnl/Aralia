@@ -4,7 +4,7 @@
  */
 import { GameState } from '../../types';
 import { AppAction } from '../actionTypes';
-import * as RitualManager from '../../systems/rituals/RitualManager';
+import { RitualManager } from '../../systems/rituals/RitualManager';
 import { generateId } from '../../utils/combatUtils';
 
 export function ritualReducer(state: GameState, action: AppAction): Partial<GameState> {
@@ -26,7 +26,7 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
 
     case 'ADVANCE_TIME': {
       // This reducer handles the implicit advancement of rituals via time
-      if (!state.activeRitual || RitualManager.isRitualComplete(state.activeRitual) || state.activeRitual.interrupted) {
+      if (!state.activeRitual || state.activeRitual.isComplete || state.activeRitual.interrupted) {
         return {};
       }
 
@@ -36,10 +36,7 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
       let messages = state.messages;
 
       // Check for completion transition
-      const wasComplete = RitualManager.isRitualComplete(state.activeRitual);
-      const isNowComplete = RitualManager.isRitualComplete(updatedRitual);
-
-      if (isNowComplete && !wasComplete) {
+      if (updatedRitual.isComplete && !state.activeRitual.isComplete) {
         messages = [...state.messages, {
           id: generateId(),
           text: `Ritual Complete: ${updatedRitual.spell.name} is ready to be unleashed.`,
@@ -62,10 +59,7 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
 
       let messages = state.messages;
 
-      const wasComplete = RitualManager.isRitualComplete(state.activeRitual);
-      const isNowComplete = RitualManager.isRitualComplete(updatedRitual);
-
-      if (isNowComplete && !wasComplete) {
+      if (updatedRitual.isComplete && !state.activeRitual.isComplete) {
         messages = [...state.messages, {
           id: generateId(),
           text: `The ritual is complete! The magic of ${updatedRitual.spell.name} takes hold.`,
@@ -83,9 +77,7 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
     case 'INTERRUPT_RITUAL': {
       if (!state.activeRitual) return {};
 
-      // Deconstruct event payload safely
-      const { type, value, conditionName } = action.payload.event || {};
-      const interruptResult = RitualManager.checkRitualInterrupt(state.activeRitual, type, value, conditionName);
+      const interruptResult = RitualManager.checkInterruption(state.activeRitual, action.payload.event);
 
       if (interruptResult.interrupted) {
          const updatedRitual = {
@@ -94,8 +86,7 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
              interruptionReason: interruptResult.reason || 'External disturbance'
          };
 
-         // Backlash not yet implemented in Manager
-         const backlashEffects: any[] = []; // RitualManager.getBacklashOnFailure(updatedRitual);
+         const backlashEffects = RitualManager.getBacklashOnFailure(updatedRitual);
          const backlashMessage = backlashEffects.length > 0
             ? `Backlash: ${backlashEffects.map(b => b.description).join(' ')}`
             : 'The magic dissipates harmlessly.';
