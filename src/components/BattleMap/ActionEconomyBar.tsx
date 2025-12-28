@@ -3,6 +3,7 @@
  * A component to display the character's current action economy status.
  */
 import React from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { CombatCharacter, CombatAction, AbilityCost } from '../../types/combat';
 import Tooltip from '../Tooltip';
 import { generateId } from '../../utils/combatUtils';
@@ -13,6 +14,7 @@ interface ActionEconomyBarProps {
 }
 
 const ActionEconomyBar: React.FC<ActionEconomyBarProps> = ({ character, onExecuteAction }) => {
+  const shouldReduceMotion = useReducedMotion();
   const { actionEconomy, concentratingOn } = character;
 
   const movementPercentage = (actionEconomy.movement.total > 0)
@@ -76,13 +78,15 @@ const ActionEconomyBar: React.FC<ActionEconomyBarProps> = ({ character, onExecut
       {/* Sustain Button */}
       {showSustainButton && (
         <div className="pt-2 border-t border-gray-600">
-          <button
+          <motion.button
             onClick={handleSustain}
+            whileHover={shouldReduceMotion ? undefined : { scale: 1.05 }}
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.95 }}
             className="w-full text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white py-1 px-2 rounded shadow flex items-center justify-center gap-1"
           >
             <span>🔄 Sustain {concentratingOn.spellName}</span>
             <span className="opacity-75">({sustainCostLabel})</span>
-          </button>
+          </motion.button>
         </div>
       )}
 
@@ -92,10 +96,12 @@ const ActionEconomyBar: React.FC<ActionEconomyBarProps> = ({ character, onExecut
           <div>
             <span className="text-xs font-bold text-green-400 text-center block mb-1">Movement</span>
             <div className="w-full bg-gray-600 rounded-full h-4 shadow-inner overflow-hidden relative border border-gray-500">
-              <div
-                className="bg-green-500 h-full rounded-full transition-all duration-300 ease-out"
-                style={{ width: `${movementPercentage}%` }}
-              ></div>
+              <motion.div
+                className="bg-green-500 h-full rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${movementPercentage}%` }}
+                transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.5, ease: "easeOut" }}
+              ></motion.div>
               <div className="absolute inset-0 flex items-center justify-center">
                 <p className="text-[10px] font-medium text-white drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)]">
                   {actionEconomy.movement.total - actionEconomy.movement.used} / {actionEconomy.movement.total}
