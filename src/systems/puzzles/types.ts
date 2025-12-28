@@ -263,3 +263,53 @@ export interface MechanismOperationResult {
   noiseLevel?: 'silent' | 'quiet' | 'loud' | 'deafening';
   damageTaken?: number; // e.g., operating a hot valve
 }
+
+// --- SKILL CHALLENGE SYSTEM ---
+
+export interface ChallengeSkill {
+  skillName: AbilityScoreName | string; // e.g. 'Athletics', 'Arcana'
+  description: string; // "Climb the crumbling wall"
+  dcModifier?: number; // e.g. -2 (Easier) or +5 (Harder) relative to baseDC
+  maxUses?: number; // Can only use this approach X times
+  uses: number;
+}
+
+export type ChallengeStatus = 'active' | 'success' | 'failure';
+
+export interface SkillChallenge {
+  id: string;
+  name: string;
+  description: string;
+
+  // Goal
+  requiredSuccesses: number;
+  maxFailures: number;
+
+  // Mechanics
+  baseDC: number;
+  availableSkills: ChallengeSkill[]; // Specific approaches allowed
+  allowCreativeSkills: boolean; // If true, GM/System can accept other skills at hard DC
+
+  // State
+  currentSuccesses: number;
+  currentFailures: number;
+  status: ChallengeStatus;
+  log: string[]; // History of actions taken
+
+  // Outcomes
+  onSuccess: {
+    message: string;
+    rewards?: { xp?: number; items?: string[] };
+  };
+  onFailure: {
+    message: string;
+    consequence?: { damage?: DiceRoll; condition?: StatusCondition };
+  };
+}
+
+export interface SkillChallengeResult {
+  success: boolean; // Did the individual roll succeed?
+  challengeStatus: ChallengeStatus; // Did the whole challenge end?
+  message: string;
+  challengeState: SkillChallenge;
+}
