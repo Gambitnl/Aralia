@@ -66,7 +66,11 @@ export const useCompanionBanter = (
       if (Math.random() < 0.1) {
         const banter = BanterManager.selectBanter(gameState);
         if (banter) {
-          BanterManager.markBanterUsed(banter.id);
+          // Update cooldown in state via dispatch instead of static method
+          dispatch({
+            type: 'UPDATE_BANTER_COOLDOWN',
+            payload: { banterId: banter.id, timestamp: Date.now() }
+          });
           activeBanterRef.current = { definition: banter, lineIndex: 0 };
           playNextLine();
         }
