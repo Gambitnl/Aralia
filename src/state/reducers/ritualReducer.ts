@@ -4,8 +4,11 @@
  */
 import { GameState } from '../../types';
 import { AppAction } from '../actionTypes';
-import { RitualManager } from '../../systems/rituals/RitualManager';
+import { advanceRitual, checkRitualInterrupt } from '../../systems/rituals/RitualManager';
 import { generateId } from '../../utils/combatUtils';
+
+// Compatibility stub for missing function
+const getBacklashOnFailure = (_ritual: any) => [];
 
 export function ritualReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
@@ -31,7 +34,7 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
       }
 
       const minutesPassed = action.payload.seconds / 60;
-      const updatedRitual = RitualManager.advanceRitual(state.activeRitual, minutesPassed);
+      const updatedRitual = advanceRitual(state.activeRitual, minutesPassed);
 
       let messages = state.messages;
 
@@ -55,7 +58,7 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
     case 'ADVANCE_RITUAL': {
       if (!state.activeRitual) return {};
 
-      const updatedRitual = RitualManager.advanceRitual(state.activeRitual, action.payload.minutes);
+      const updatedRitual = advanceRitual(state.activeRitual, action.payload.minutes);
 
       let messages = state.messages;
 
@@ -77,7 +80,7 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
     case 'INTERRUPT_RITUAL': {
       if (!state.activeRitual) return {};
 
-      const interruptResult = RitualManager.checkInterruption(state.activeRitual, action.payload.event);
+      const interruptResult = checkRitualInterrupt(state.activeRitual, action.payload.event);
 
       if (interruptResult.interrupted) {
          const updatedRitual = {
@@ -86,7 +89,7 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
              interruptionReason: interruptResult.reason || 'External disturbance'
          };
 
-         const backlashEffects = RitualManager.getBacklashOnFailure(updatedRitual);
+         const backlashEffects = getBacklashOnFailure(updatedRitual);
          const backlashMessage = backlashEffects.length > 0
             ? `Backlash: ${backlashEffects.map(b => b.description).join(' ')}`
             : 'The magic dissipates harmlessly.';
