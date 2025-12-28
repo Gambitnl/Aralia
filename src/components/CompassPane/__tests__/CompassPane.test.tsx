@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import CompassPane from '../CompassPane';
-import { Location } from '../../types';
+import CompassPane from '../index';
+import { Location } from '../../../types';
 
 // Define enums for the mock
 enum Season {
