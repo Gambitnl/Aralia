@@ -67,9 +67,7 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
         });
 
         // Log specific event for intrigue system hook (optional, handled by BUY_ITEM logs generally)
-        if (rumor.type === 'secret' && rumor.payload) {
-             console.log("Learned secret:", rumor.payload);
-        }
+        // [Sentinel] Removed console.log that exposed secret payload
 
         // TODO(Intriguer): If type is 'lead', trigger a QUEST_START or add a map marker here via custom action.
     };
