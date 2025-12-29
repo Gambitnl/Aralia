@@ -1,0 +1,118 @@
+# Continuous Integration for Aralia
+# Runs on every PR to master - blocks merge if checks fail
+
+name: 🔒 CI
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  # Job 1: Check for forbidden files (fast, runs first)
+  poison-check:
+    name: 🚫 Poison File Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for diff
+
+      - name: Check for forbidden files
+        run: |
+          echo "🔍 Checking for forbidden files in PR..."
+          
+          # List of poison files that cause merge conflicts
+          POISON_FILES=(
+            "package-lock.json"
+            "pnpm-lock.yaml"
+            "tsconfig.tsbuildinfo"
+          )
+          
+          FOUND=""
+          
+          for file in "${POISON_FILES[@]}"; do
+            if git diff --name-only origin/master...HEAD | grep -q "^$file$"; then
+              echo "❌ FOUND: $file"
+              FOUND="$FOUND $file"
+            fi
+          done
+          
+          if [ -n "$FOUND" ]; then
+            echo ""
+            echo "════════════════════════════════════════════════════════════"
+            echo "⛔ PR contains POISON FILES:$FOUND"
+            echo "════════════════════════════════════════════════════════════"
+            echo ""
+            echo "These files cause merge conflicts in batch runs."
+            echo ""
+            echo "To fix, run these commands:"
+            echo "  git checkout origin/master --$FOUND"
+            echo "  git add ."
+            echo "  git commit --amend --no-edit"
+            echo "  git push --force"
+            echo ""
+            echo "See .jules/_ROSTER.md for details."
+            exit 1
+          fi
+          
+          echo "✅ No poison files detected"
+
+  # Job 2: Build check (verifies TypeScript compiles)
+  build:
+    name: 🔨 Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Type check
+        run: npx tsc --noEmit
+      
+      - name: Build
+        run: npm run build
+
+  # Job 3: Lint check (code style)
+  lint:
+    name: 🎨 Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run ESLint
+        run: npm run lint
+
+  # Job 4: Tests (can be slow, runs in parallel)
+  test:
+    name: 🧪 Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests
+        run: npm test -- --run
