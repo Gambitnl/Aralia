@@ -161,3 +161,19 @@ For spell implementation status by level, see the **[`docs/spells/`](./docs/spel
 
 ### Adding Glossary Entries
 Please follow the detailed guide: **[`docs/guides/GLOSSARY_ENTRY_DESIGN_GUIDE.md`](./docs/guides/GLOSSARY_ENTRY_DESIGN_GUIDE.md)**
+
+## 8. GitHub Automation
+
+This repository uses GitHub Actions for CI/CD and AI-assisted development:
+
+| Workflow | Description |
+|----------|-------------|
+| 🔒 CI | Runs build, lint, and tests on every PR |
+| 🔧 Auto-Fix | Invokes Jules AI to automatically fix CI failures |
+| 🔍 Scout | Detects file conflicts between open PRs |
+| 🚀 Deploy | Deploys to GitHub Pages on push to master |
+
+For complete workflow documentation, see **[`.github/README.md`](./.github/README.md)**.
+
+For Jules persona development, see **[`.jules/_ROSTER.md`](./.jules/_ROSTER.md)**.
+
