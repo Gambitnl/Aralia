@@ -10,12 +10,14 @@ export interface TravelPaceEffect {
   stealthAdvantage: boolean;
   /** Modifier to passive perception scores (e.g. -5 for fast pace) */
   perceptionModifier: number;
+  /** Bonus/Penalty to Navigation checks (e.g. +5 for slow, -5 for fast) */
+  navigationModifier: number;
 }
 
 export const PACE_MODIFIERS: Record<TravelPace, TravelPaceEffect> = {
-  slow: { speedModifier: 0.67, stealthAdvantage: true, perceptionModifier: 0 }, // 5e: Able to use stealth
-  normal: { speedModifier: 1.0, stealthAdvantage: false, perceptionModifier: 0 },
-  fast: { speedModifier: 1.33, stealthAdvantage: false, perceptionModifier: -5 },
+  slow: { speedModifier: 0.67, stealthAdvantage: true, perceptionModifier: 0, navigationModifier: 5 }, // 5e: Slow pace grants +5 to navigation/tracking
+  normal: { speedModifier: 1.0, stealthAdvantage: false, perceptionModifier: 0, navigationModifier: 0 },
+  fast: { speedModifier: 1.33, stealthAdvantage: false, perceptionModifier: -5, navigationModifier: -5 }, // 5e: Fast pace imposes -5 to passive perception (and often navigation)
 };
 
 export const TERRAIN_TRAVEL_MODIFIERS: Record<TravelTerrain, number> = {
@@ -93,4 +95,19 @@ export interface TravelResult {
   usedTerrain: TravelTerrain;
   /** Number of random encounter checks required */
   encounterChecks: number;
+}
+
+export type TravelDirection = 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW';
+
+export interface NavigationResult {
+  /** Whether the navigation check was successful */
+  success: boolean;
+  /** The DC used for the check */
+  dc: number;
+  /** The roll result (d20 + mods) */
+  roll: number;
+  /** If lost, the direction the party actually moves */
+  driftDirection: TravelDirection | null;
+  /** Time spent confused or correcting course (hours) if failed */
+  timePenaltyHours: number;
 }
