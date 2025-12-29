@@ -34,5 +34,6 @@ export * from './stronghold';
 export * from './loot'; // Export LootTable types
 export * from './identity'; // Export Identity/Secret types
 export * from './quests'; // Export new robust Quest types
+export * from './prophecy'; // Export Prophecy types
 
 export type { CombatCharacter, CharacterStats, Position, CombatState };
