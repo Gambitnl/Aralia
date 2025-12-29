@@ -1,10 +1,7 @@
 
 import {
-  Temple,
   TempleService,
-  TempleServiceRequirement,
   GameState,
-  DivineFavor,
   AppAction
 } from '../../types';
 import { canAffordService, getDivineStanding } from '../../utils/religionUtils';
@@ -30,22 +27,24 @@ export class TempleSystem {
     gameState: GameState,
     deityId: string
   ): { allowed: boolean; reason?: string } {
-    // 1. Check Gold
-    if (gameState.gold < (service.costGp || 0)) {
-      return { allowed: false, reason: 'Insufficient gold.' };
-    }
 
-    // 2. Check Favor
+    // 1. Check Gold & Favor (using utility)
     const currentFavor = gameState.divineFavor[deityId]?.favor || 0;
-    const minFavor = service.minFavor || 0;
-    if (currentFavor < minFavor) {
-      return {
-        allowed: false,
-        reason: `Requires '${getDivineStanding(minFavor)}' standing with deity (${minFavor} favor).`
-      };
+    const affordability = canAffordService(service, gameState.gold, currentFavor);
+
+    if (!affordability.allowed) {
+        // Enhance the reason if it's about favor
+        if (affordability.reason?.includes('favor')) {
+             const minFavor = service.minFavor || 0;
+             return {
+                 allowed: false,
+                 reason: `Requires '${getDivineStanding(minFavor)}' standing with deity (${minFavor} favor).`
+             };
+        }
+        return affordability;
     }
 
-    // 3. Check Complex Requirements (Items, Quests)
+    // 2. Check Complex Requirements (Items, Quests)
     if (service.requirement) {
        // Item cost check
        if (service.requirement.itemCost) {
@@ -88,11 +87,19 @@ export class TempleSystem {
     // 3. Log/Notify
     logger.info(`Temple Service Performed: ${service.name} (${service.id})`, { deityId, cost: service.costGp });
 
+    // Handle effect logging safely
+    let effectLogString: string;
+    if (typeof service.effect === 'string') {
+        effectLogString = service.effect;
+    } else {
+        effectLogString = JSON.stringify(service.effect);
+    }
+
     return {
       success: true,
       message: effectResult.message,
       costDeducted: service.costGp,
-      effectApplied: service.effect as string
+      effectApplied: effectLogString
     };
   }
 
