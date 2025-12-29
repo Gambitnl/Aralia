@@ -183,14 +183,16 @@ Each persona should consult their relevant architecture docs in `docs/architectu
 
 ### Forbidden Files
 - `package-lock.json` — Dependencies are managed by the coordinator
+- `pnpm-lock.yaml` — Alternative lockfile, also forbidden
 - `tsconfig.tsbuildinfo` — Build cache, not source code
+- `tsconfig.node.tsbuildinfo` — Node build cache, not source code
 - `dist/` — Build output, regenerated on deploy
 
 ### Before Your Final Push
 
 Run this command to unstage any forbidden files:
 ```bash
-git checkout HEAD -- package-lock.json tsconfig.tsbuildinfo
+git checkout HEAD -- package-lock.json pnpm-lock.yaml tsconfig.tsbuildinfo tsconfig.node.tsbuildinfo
 git reset HEAD -- dist/
 ```
 
