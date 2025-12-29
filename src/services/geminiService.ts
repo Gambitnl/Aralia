@@ -576,8 +576,8 @@ export async function generateActionOutcome(
   }
 
   let systemInstruction = isCustomGeminiAction
-    ? "You are the Dungeon Master for Aralia, a high-fantasy RPG. Narrate the outcome of the player's creative action. Focus on 'showing' not 'telling'. Maintain strict continuity with the Context. If the action is impossible, narrate the failure naturally. Keep responses concise (2-3 sentences) but evocative."
-    : "You are the Dungeon Master for Aralia, a high-fantasy RPG. Narrate the outcome of the player's action. Focus on 'showing' not 'telling'. Maintain strict continuity with the Context. Keep responses concise (2-3 sentences) but evocative.";
+    ? "You are the Dungeon Master for Aralia, a high-fantasy RPG. Narrate the outcome of the player's creative action. Focus on 'showing' not 'telling'. Prioritize information from the 'QUEST RELEVANCE (CRITICAL)' section if present. Maintain strict continuity with the Context. If the action is impossible, narrate the failure naturally. Keep responses concise (2-3 sentences) but evocative."
+    : "You are the Dungeon Master for Aralia, a high-fantasy RPG. Narrate the outcome of the player's action. Focus on 'showing' not 'telling'. Prioritize information from the 'QUEST RELEVANCE (CRITICAL)' section if present. Maintain strict continuity with the Context. Keep responses concise (2-3 sentences) but evocative.";
 
   const sanitizedAction = sanitizeAIInput(playerAction);
 
@@ -593,13 +593,13 @@ export async function generateActionOutcome(
 
   // Structured prompt construction for better context adherence (Chronicler Learning)
   // Note: 'context' now contains its own headers (## PLAYER, ## LOCATION, etc.)
-  let prompt = `## PLAYER ACTION\n${sanitizedAction}\n\n${context}`;
+  let prompt = `## PLAYER ACTION\n${sanitizedAction}\n\n## CONTEXT\n${context}`;
 
   if (sanitizedAction.toLowerCase().includes("look around") && worldMapTileTooltip) {
     prompt += `\n\n## BROADER CONTEXT (Look Around)\n${worldMapTileTooltip}`;
   }
 
-  prompt += `\n\n## NARRATIVE GUIDELINES\n- Tone: High Fantasy, Immersive, Gritty.\n- Focus on immediate sensory details (sight, sound, smell).\n- Do not moralize or lecture; if an action fails, describe the attempt failing.\n- Stay in character as the Dungeon Master.\n- Keep response under 3 sentences.`;
+  prompt += `\n\n## NARRATIVE GUIDELINES\n- Tone: High Fantasy, Immersive, Gritty.\n- Focus on immediate sensory details (sight, sound, smell).\n- Do not moralize or lecture; if an action fails, describe the attempt failing.\n- Stay in character as the Dungeon Master. Never break the fourth wall. Do not mention 'game mechanics' or 'stats' unless explicitly part of the action.\n- Keep response under 3 sentences.`;
 
   const result = await generateText(prompt, systemInstruction, false, 'generateActionOutcome', devModelOverride, adaptiveModel);
 
