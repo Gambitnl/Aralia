@@ -18,8 +18,9 @@ vi.mock('../../constants', () => ({
 
 vi.mock('../../data/dev/dummyCharacter', () => ({
     getDummyParty: () => [],
+    getDummyInitialInventory: () => [],
     USE_DUMMY_CHARACTER_FOR_DEV: false,
-    initialInventoryForDummyCharacter: [],
+    initialInventoryForDummyCharacter: [], // Legacy compat if needed by other tests, but unused here
 }));
 
 vi.mock('../../utils/locationUtils');

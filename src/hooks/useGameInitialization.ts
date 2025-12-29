@@ -7,7 +7,7 @@ import React, { useCallback } from 'react';
 import { GameState, GamePhase, PlayerCharacter, MapData, Location, Item, StartGameSuccessPayload } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { STARTING_LOCATION_ID, LOCATIONS, BIOMES } from '../constants';
-import { getDummyParty, initialInventoryForDummyCharacter } from '../data/dev/dummyCharacter';
+import { getDummyParty } from '../data/dev/dummyCharacter';
 import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import { generateMap } from '../services/mapService';
 import * as SaveLoadService from '../services/saveLoadService';

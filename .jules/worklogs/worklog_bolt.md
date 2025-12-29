@@ -19,3 +19,7 @@
 
 **Benefit:** Significant reduction in initial bundle parse time and circular dependency risks.
 **Status:** Deferred. Future "Bolt" or "Architect" agents should execute this in smaller chunks.
+
+## 2024-05-23 - Lazy Dummy Data
+**Learning:** The `dummyCharacter.ts` file was executing expensive object creation logic (iterating through all items) immediately upon import. This contributed to initial load time even for production users who don't use the dummy character.
+**Action:** Refactored `getDummyInitialInventory` and `getDummyParty` to be lazy getters with memoization. Important: When using memoization for test/dev helpers, ensure parameters (like mock data injection) bypass the global cache to prevent test pollution.

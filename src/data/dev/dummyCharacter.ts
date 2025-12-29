@@ -20,79 +20,97 @@ const DUMMY_CLERIC_RACE_ID = 'dwarf';
 const DUMMY_CLERIC_CLASS_ID = 'cleric';
 
 let MEMOIZED_DUMMY_PARTY: PlayerCharacter[] | null = null;
+let MEMOIZED_DUMMY_INVENTORY: Item[] | null = null;
 
-export function getDummyInitialInventory(allItems: Record<string, Item>): Item[] {
-    return [
-        // Torso armor
-        allItems['padded_armor'], allItems['leather_armor'], allItems['studded_leather_armor'],
-        allItems['hide_armor'], allItems['chain_shirt'], allItems['scale_mail'], allItems['breastplate'], allItems['half_plate_armor'],
-        allItems['ring_mail'], allItems['chain_mail'], allItems['splint_armor'], allItems['plate_armor'],
-        // Shield
-        allItems['shield_std'],
-        // === ALL WEAPONS WITH MASTERIES ===
-        // Simple Melee Weapons (10 weapons)
-        allItems['club'],           // Mastery: Slow
-        allItems['dagger'],         // Mastery: Nick
-        allItems['greatclub'],      // Mastery: Push
-        allItems['handaxe'],        // Mastery: Vex
-        allItems['javelin'],        // Mastery: Slow
-        allItems['light_hammer'],   // Mastery: Nick
-        allItems['mace'],           // Mastery: Sap
-        allItems['quarterstaff'],   // Mastery: Topple
-        allItems['sickle'],         // Mastery: Nick
-        allItems['spear'],          // Mastery: Sap
-        // Simple Ranged Weapons (4 weapons)
-        allItems['dart'],           // Mastery: Vex
-        allItems['light_crossbow'], // Mastery: Slow
-        allItems['shortbow'],       // Mastery: Vex
-        allItems['sling'],          // Mastery: Slow
-        // Martial Melee Weapons (18 weapons)
-        allItems['battleaxe'],      // Mastery: Topple
-        allItems['flail'],          // Mastery: Sap
-        allItems['glaive'],         // Mastery: Graze
-        allItems['greataxe'],       // Mastery: Cleave
-        allItems['greatsword'],     // Mastery: Graze
-        allItems['halberd'],        // Mastery: Cleave
-        allItems['lance'],          // Mastery: Topple
-        allItems['longsword'],      // Mastery: Sap
-        allItems['maul'],           // Mastery: Topple
-        allItems['morningstar'],    // Mastery: Sap
-        allItems['pike'],           // Mastery: Push
-        allItems['rapier'],         // Mastery: Vex
-        allItems['scimitar'],       // Mastery: Nick
-        allItems['shortsword'],     // Mastery: Vex
-        allItems['trident'],        // Mastery: Topple
-        allItems['warhammer'],      // Mastery: Push
-        allItems['war_pick'],       // Mastery: Sap
-        allItems['whip'],           // Mastery: Slow
-        // Martial Ranged Weapons (4 weapons)
-        allItems['blowgun'],        // Mastery: Vex
-        allItems['longbow'],        // Mastery: Slow
-        allItems['hand_crossbow'],  // Mastery: Vex
-        allItems['heavy_crossbow'], // Mastery: Push
-        // Legacy weapon
-        allItems['rusty_sword'],    // Mastery: Nick
-        // Head armor
-        allItems['leather_cap'], allItems['chainmail_coif'], allItems['steel_helmet'],
-        // Hands armor
-        allItems['leather_gloves'], allItems['chainmail_gauntlets'], allItems['plate_gauntlets'],
-        // Legs armor
-        allItems['cloth_pants'], allItems['leather_greaves'], allItems['plate_greaves'],
-        // Feet armor
-        allItems['soft_boots'], allItems['studded_boots'], allItems['steel_boots'],
-        // Wrists armor
-        allItems['leather_bracers'], allItems['reinforced_bracers'],
-        // Accessories
-        allItems['silver_necklace'], allItems['amulet_of_health'],
-        allItems['travelers_cloak'], allItems['cloak_of_protection'],
-        allItems['leather_belt'], allItems['belt_of_giant_strength'],
-        allItems['silver_ring'], allItems['gold_ring'], allItems['ring_of_protection'],
-        // Consumables
-        allItems['healing_potion'],
-    ].filter(Boolean) as Item[];
+export function getDummyInitialInventory(allItems?: Record<string, Item>): Item[] {
+    // If custom items are provided, do not use the cache as the inputs differ.
+    // Also do not populate the global cache with custom results.
+    if (allItems) {
+        return createDummyInventory(allItems);
+    }
+
+    if (MEMOIZED_DUMMY_INVENTORY) {
+        return MEMOIZED_DUMMY_INVENTORY;
+    }
+
+    // Default case: use global data and cache it
+    const items = { ...WEAPONS_DATA, ...ITEMS };
+    MEMOIZED_DUMMY_INVENTORY = createDummyInventory(items);
+
+    return MEMOIZED_DUMMY_INVENTORY;
 }
 
-export const initialInventoryForDummyCharacter = getDummyInitialInventory({ ...WEAPONS_DATA, ...ITEMS });
+// Helper to contain the filter logic
+function createDummyInventory(items: Record<string, Item>): Item[] {
+    return [
+        // Torso armor
+        items['padded_armor'], items['leather_armor'], items['studded_leather_armor'],
+        items['hide_armor'], items['chain_shirt'], items['scale_mail'], items['breastplate'], items['half_plate_armor'],
+        items['ring_mail'], items['chain_mail'], items['splint_armor'], items['plate_armor'],
+        // Shield
+        items['shield_std'],
+        // === ALL WEAPONS WITH MASTERIES ===
+        // Simple Melee Weapons (10 weapons)
+        items['club'],           // Mastery: Slow
+        items['dagger'],         // Mastery: Nick
+        items['greatclub'],      // Mastery: Push
+        items['handaxe'],        // Mastery: Vex
+        items['javelin'],        // Mastery: Slow
+        items['light_hammer'],   // Mastery: Nick
+        items['mace'],           // Mastery: Sap
+        items['quarterstaff'],   // Mastery: Topple
+        items['sickle'],         // Mastery: Nick
+        items['spear'],          // Mastery: Sap
+        // Simple Ranged Weapons (4 weapons)
+        items['dart'],           // Mastery: Vex
+        items['light_crossbow'], // Mastery: Slow
+        items['shortbow'],       // Mastery: Vex
+        items['sling'],          // Mastery: Slow
+        // Martial Melee Weapons (18 weapons)
+        items['battleaxe'],      // Mastery: Topple
+        items['flail'],          // Mastery: Sap
+        items['glaive'],         // Mastery: Graze
+        items['greataxe'],       // Mastery: Cleave
+        items['greatsword'],     // Mastery: Graze
+        items['halberd'],        // Mastery: Cleave
+        items['lance'],          // Mastery: Topple
+        items['longsword'],      // Mastery: Sap
+        items['maul'],           // Mastery: Topple
+        items['morningstar'],    // Mastery: Sap
+        items['pike'],           // Mastery: Push
+        items['rapier'],         // Mastery: Vex
+        items['scimitar'],       // Mastery: Nick
+        items['shortsword'],     // Mastery: Vex
+        items['trident'],        // Mastery: Topple
+        items['warhammer'],      // Mastery: Push
+        items['war_pick'],       // Mastery: Sap
+        items['whip'],           // Mastery: Slow
+        // Martial Ranged Weapons (4 weapons)
+        items['blowgun'],        // Mastery: Vex
+        items['longbow'],        // Mastery: Slow
+        items['hand_crossbow'],  // Mastery: Vex
+        items['heavy_crossbow'], // Mastery: Push
+        // Legacy weapon
+        items['rusty_sword'],    // Mastery: Nick
+        // Head armor
+        items['leather_cap'], items['chainmail_coif'], items['steel_helmet'],
+        // Hands armor
+        items['leather_gloves'], items['chainmail_gauntlets'], items['plate_gauntlets'],
+        // Legs armor
+        items['cloth_pants'], items['leather_greaves'], items['plate_greaves'],
+        // Feet armor
+        items['soft_boots'], items['studded_boots'], items['steel_boots'],
+        // Wrists armor
+        items['leather_bracers'], items['reinforced_bracers'],
+        // Accessories
+        items['silver_necklace'], items['amulet_of_health'],
+        items['travelers_cloak'], items['cloak_of_protection'],
+        items['leather_belt'], items['belt_of_giant_strength'],
+        items['silver_ring'], items['gold_ring'], items['ring_of_protection'],
+        // Consumables
+        items['healing_potion'],
+    ].filter(Boolean) as Item[];
+}
 
 /**
  * Lazily initializes and returns the dummy party data.

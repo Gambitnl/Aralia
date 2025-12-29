@@ -142,3 +142,11 @@ export function checkRitualInterrupt(
 
   return { interrupted: false, ritualBroken: false };
 }
+
+/**
+ * Calculates backlash effects when a ritual is interrupted/failed.
+ */
+export function getBacklashOnFailure(ritual: RitualState): { description: string }[] {
+  // TODO: Implement actual backlash mechanics based on spell level/school
+  return [];
+}

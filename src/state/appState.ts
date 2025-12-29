@@ -8,7 +8,7 @@ import { GameState, GamePhase, PlayerCharacter, Item, MapData, TempPartyMember, 
 import { AppAction } from './actionTypes';
 import { DEFAULT_WEATHER } from '../systems/environment/EnvironmentSystem';
 import { STARTING_LOCATION_ID, LOCATIONS, ITEMS, CLASSES_DATA, NPCS , COMPANIONS } from '../constants';
-import { getDummyParty, initialInventoryForDummyCharacter } from '../data/dev/dummyCharacter';
+import { getDummyParty, getDummyInitialInventory } from '../data/dev/dummyCharacter';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../data/factions';
 import { getAllFactions } from '../utils/factionUtils';
 import { DEITIES } from '../data/deities';
@@ -64,7 +64,7 @@ export const initialGameState: GameState = {
     phase: canUseDevTools() && getDummyParty() && getDummyParty().length > 0 && !SaveLoadService.hasSaveGame() ? GamePhase.PLAYING : GamePhase.MAIN_MENU,
     party: canUseDevTools() && !SaveLoadService.hasSaveGame() ? getDummyParty() : [],
     tempParty: canUseDevTools() && !SaveLoadService.hasSaveGame() ? getDummyParty().map(p => ({ id: p.id || crypto.randomUUID(), level: p.level || 1, classId: p.class.id })) : null,
-    inventory: canUseDevTools() && !SaveLoadService.hasSaveGame() ? [...initialInventoryForDummyCharacter] : [],
+    inventory: canUseDevTools() && !SaveLoadService.hasSaveGame() ? [...getDummyInitialInventory()] : [],
     gold: 10, // Default starting gold
     currentLocationId: STARTING_LOCATION_ID,
     subMapCoordinates: canUseDevTools() && !SaveLoadService.hasSaveGame() ? { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) } : null,
@@ -352,7 +352,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 worldSeed: worldSeed,
                 party: generatedParty,
                 tempParty: generatedParty.map(p => ({ id: p.id || crypto.randomUUID(), level: p.level || 1, classId: p.class.id })),
-                inventory: [...initialInventoryForDummyCharacter],
+                inventory: [...getDummyInitialInventory()],
                 gold: 100, // Dummy gets some spending money
                 currentLocationId: STARTING_LOCATION_ID,
                 subMapCoordinates: { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) },
@@ -520,7 +520,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 mapData: action.payload.mapData,
                 isSubmapVisible: false,
                 dynamicLocationItemIds: action.payload.dynamicLocationItemIds,
-                inventory: [...initialInventoryForDummyCharacter],
+                inventory: [...getDummyInitialInventory()],
                 gold: 100,
                 currentLocationActiveDynamicNpcIds: action.payload.initialActiveDynamicNpcIds,
                 gameTime: createInitialGameTime(),
