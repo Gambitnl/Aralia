@@ -61,9 +61,20 @@ export const useDialogueSystem = (
      * Handles the side effects of a topic selection.
      * Maps the `ProcessTopicResult` from the service to Redux actions.
      */
-    const handleTopicOutcome = useCallback((result: ProcessTopicResult) => {
+    const handleTopicOutcome = useCallback((result: ProcessTopicResult, topicId: string) => {
         const session = gameState.activeDialogueSession;
         if (!session) return;
+
+        // 0. Persist Topic Memory
+        // Ensure this topic is remembered in the NPC's long-term memory
+        dispatch({
+            type: 'DISCUSS_TOPIC',
+            payload: {
+                topicId,
+                npcId: session.npcId,
+                date: gameState.gameTime // Use current game time
+            }
+        });
 
         // 1. Grant Experience
         if (result.xpReward && result.xpReward > 0) {

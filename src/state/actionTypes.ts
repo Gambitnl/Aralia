@@ -167,6 +167,7 @@ export type AppAction =
   // Dialogue Actions
   | { type: 'START_DIALOGUE_SESSION'; payload: { npcId: string } }
   | { type: 'UPDATE_DIALOGUE_SESSION'; payload: { session: DialogueSession } }
+  | { type: 'DISCUSS_TOPIC'; payload: { topicId: string; npcId: string; date: number } }
   | { type: 'END_DIALOGUE_SESSION' }
   // Ritual Actions
   | { type: 'START_RITUAL'; payload: RitualState }
