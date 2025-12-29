@@ -10,10 +10,88 @@ import type { Item } from './items';
 import type { Spell, DamageType, SavingThrowAbility, ConditionName, EffectDuration, SpellEffect } from './spells'; // Import Spell
 import { StateTag } from './elemental';
 import { Plane } from './planes';
-import { ActiveEffect, StatusEffect } from './effects';
 import { RitualState } from './ritual';
 
-export { ActiveEffect, StatusEffect };
+// --- EFFECTS REFAC (IN PLACE) ---
+
+/**
+ * Filter criteria for selecting targets for an effect.
+ * Strictly typed to avoid 'any'.
+ */
+export interface TargetConditionFilter {
+  conditions?: ConditionName[];
+  creatureTypes?: string[];
+  hpStatus?: 'full' | 'bloodied' | 'unconscious';
+  stats?: Partial<CharacterStats>;
+  alignment?: string[]; // e.g., ['Evil', 'Chaotic']
+}
+
+/**
+ * Represents a status effect applied to a character.
+ */
+export interface StatusEffect {
+  id: string;
+  name: ConditionName | string;
+  type: 'buff' | 'debuff' | 'neutral';
+  description: string;
+  duration: number; // in rounds
+  source?: string; // Ability or spell name
+  icon?: string;
+  // Mechanical effects
+  modifiers?: {
+    stat?: AbilityScoreName;
+    value?: number;
+    skill?: string;
+    attackBonus?: number;
+    acBonus?: number;
+    movementSpeed?: number;
+    advantage?: ('attack' | 'save' | 'check')[];
+    disadvantage?: ('attack' | 'save' | 'check')[];
+    resistance?: DamageType[];
+    vulnerability?: DamageType[];
+    immunity?: DamageType[];
+  };
+  // Visual effects
+  visualEffect?: string;
+}
+
+/**
+ * Represents an active, ongoing effect on a character (e.g., from a spell like Shield of Faith or Mage Armor).
+ * These are distinct from Conditions (Prone, Stunned) as they often carry specific mechanics or durations.
+ */
+export interface ActiveEffect {
+  id: string;
+  spellId: string;
+  casterId: string;
+  sourceName: string;
+  type: "buff" | "debuff" | "utility";
+  duration: EffectDuration;
+  startTime: number; // Round number
+  /**
+   * Mechanical impacts of this effect.
+   * Can be used to modify AC, saving throws, etc.
+   */
+  mechanics?: {
+    acBonus?: number;
+    savingThrowBonus?: number;
+    damageResistance?: DamageType[];
+    damageImmunity?: DamageType[];
+    damageVulnerability?: DamageType[];
+    attackBonus?: number;
+    damageBonus?: {
+      amount: number;
+      type: DamageType;
+    };
+    // Defensive reaction triggers (e.g. Shield spell)
+    triggerCondition?: "on_hit" | "on_damaged" | "on_save";
+    /**
+     * Filter to determine if the effect applies against a specific attacker.
+     * Replaces 'any' with strict typing.
+     */
+    attackerFilter?: TargetConditionFilter;
+  };
+}
+
 export type { SpellSlots };
 
 // --- NEW COMBAT SYSTEM TYPES ---
