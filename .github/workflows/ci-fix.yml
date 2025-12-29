@@ -1,0 +1,55 @@
+# Auto-Fix CI Failures with Jules
+# 
+# When CI fails on a PR, this workflow automatically invokes Jules
+# to analyze the failure and push a fix to the same branch.
+
+name: 🔧 Auto-Fix CI Failures
+
+on:
+  workflow_run:
+    workflows: ["🔒 CI"]  # Triggers when CI workflow completes
+    types: [completed]
+
+jobs:
+  fix-failure:
+    name: Invoke Jules to Fix
+    # Only run when CI fails (not on success)
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    
+    steps:
+      - name: Invoke Jules to fix failure
+        uses: google-labs-code/jules-invoke@v1
+        with:
+          prompt: |
+            The CI workflow "${{ github.event.workflow_run.name }}" has **failed**.
+
+            **Failed Run:** ${{ github.event.workflow_run.html_url }}
+            **Branch:** ${{ github.event.workflow_run.head_branch }}
+            **Commit:** ${{ github.event.workflow_run.head_sha }}
+
+            Please:
+            1. Analyze the failure from the workflow run logs
+            2. Identify the root cause (build error, lint error, test failure, or poison file)
+            3. Implement a fix
+            4. Ensure the fix passes CI
+
+            **CRITICAL RULES - DO NOT VIOLATE:**
+            - ❌ NEVER commit `package-lock.json`
+            - ❌ NEVER commit `pnpm-lock.yaml`
+            - ❌ NEVER commit `tsconfig.tsbuildinfo`
+            - ❌ NEVER commit `tsconfig.node.tsbuildinfo`
+            
+            If any of these files are in your changes, run:
+            ```bash
+            git checkout origin/master -- package-lock.json tsconfig.tsbuildinfo tsconfig.node.tsbuildinfo
+            ```
+
+            Sign your code changes with `// [FIXER]` comments.
+          
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          starting_branch: ${{ github.event.workflow_run.head_branch }}
+          include_last_commit: true
