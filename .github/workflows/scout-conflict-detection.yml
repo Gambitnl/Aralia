@@ -1,0 +1,231 @@
+# Proactive Conflict Detection (Scout Automation)
+# 
+# This workflow analyzes all open PRs to find file overlaps BEFORE merging.
+# It posts intelligent comments with the conflicting code and resolution instructions.
+# Jules agents see these comments and can resolve proactively.
+
+name: 🔍 Scout - Conflict Detection
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'  # Every 4 hours
+  workflow_dispatch:  # Manual trigger
+  push:
+    branches: [master]  # Also run after merges
+
+jobs:
+  detect-overlaps:
+    name: Analyze PR Overlaps
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    
+    steps:
+      - name: Detect File Overlaps and Post Comments
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            
+            console.log('🔍 Starting proactive conflict detection...');
+            
+            // 1. Get all open PRs
+            const { data: prs } = await github.rest.pulls.list({
+              owner, repo,
+              state: 'open',
+              per_page: 100
+            });
+            
+            console.log(`Found ${prs.length} open PRs`);
+            
+            if (prs.length < 2) {
+              console.log('Less than 2 PRs open, nothing to compare.');
+              return;
+            }
+            
+            // 2. For each PR, get changed files with patches
+            const prData = {};
+            for (const pr of prs) {
+              const { data: files } = await github.rest.pulls.listFiles({
+                owner, repo,
+                pull_number: pr.number,
+                per_page: 100
+              });
+              
+              prData[pr.number] = {
+                title: pr.title,
+                branch: pr.head.ref,
+                files: files.map(f => ({
+                  filename: f.filename,
+                  patch: f.patch || '',
+                  additions: f.additions,
+                  deletions: f.deletions
+                }))
+              };
+            }
+            
+            // 3. Extract persona from PR title or branch name
+            function extractPersona(title, branch) {
+              // Try to find persona in title: "[RITUALIST]" or "Ritualist:"
+              const titleMatch = title.match(/\[([A-Z]+)\]|^([A-Za-z]+):/);
+              if (titleMatch) return (titleMatch[1] || titleMatch[2]).toUpperCase();
+              
+              // Try to find in branch: ritualist/fix-something
+              const branchMatch = branch.match(/^([a-z]+)\//);
+              if (branchMatch) return branchMatch[1].toUpperCase();
+              
+              return 'UNKNOWN';
+            }
+            
+            // 4. Extract persona from patch content
+            function extractPersonaFromPatch(patch) {
+              const match = patch.match(/\/\/\s*\[([A-Z]+)\]/);
+              return match ? match[1] : null;
+            }
+            
+            // 5. Parse line ranges from patch
+            function getLineRanges(patch) {
+              if (!patch) return [];
+              const ranges = [];
+              const regex = /@@ -(\d+),?(\d*) \+(\d+),?(\d*) @@/g;
+              let match;
+              while ((match = regex.exec(patch)) !== null) {
+                ranges.push({
+                  oldStart: parseInt(match[1]),
+                  oldCount: parseInt(match[2]) || 1,
+                  newStart: parseInt(match[3]),
+                  newCount: parseInt(match[4]) || 1
+                });
+              }
+              return ranges;
+            }
+            
+            // 6. Check if two line ranges overlap
+            function rangesOverlap(ranges1, ranges2) {
+              for (const r1 of ranges1) {
+                for (const r2 of ranges2) {
+                  const r1End = r1.newStart + r1.newCount;
+                  const r2End = r2.newStart + r2.newCount;
+                  if (r1.newStart < r2End && r2.newStart < r1End) {
+                    return {
+                      overlapping: true,
+                      lines: `${Math.max(r1.newStart, r2.newStart)}-${Math.min(r1End, r2End)}`
+                    };
+                  }
+                }
+              }
+              return { overlapping: false };
+            }
+            
+            // 7. Find all conflicts
+            const conflicts = [];
+            const prNumbers = Object.keys(prData);
+            
+            for (let i = 0; i < prNumbers.length; i++) {
+              for (let j = i + 1; j < prNumbers.length; j++) {
+                const pr1Num = prNumbers[i];
+                const pr2Num = prNumbers[j];
+                const pr1 = prData[pr1Num];
+                const pr2 = prData[pr2Num];
+                
+                // Find files that both PRs modify
+                for (const file1 of pr1.files) {
+                  const file2 = pr2.files.find(f => f.filename === file1.filename);
+                  if (!file2) continue;
+                  
+                  // Check for line-level overlap
+                  const ranges1 = getLineRanges(file1.patch);
+                  const ranges2 = getLineRanges(file2.patch);
+                  const overlap = rangesOverlap(ranges1, ranges2);
+                  
+                  if (overlap.overlapping) {
+                    conflicts.push({
+                      file: file1.filename,
+                      pr1: {
+                        number: parseInt(pr1Num),
+                        title: pr1.title,
+                        persona: extractPersona(pr1.title, pr1.branch) || extractPersonaFromPatch(file1.patch),
+                        patch: file1.patch
+                      },
+                      pr2: {
+                        number: parseInt(pr2Num),
+                        title: pr2.title,
+                        persona: extractPersona(pr2.title, pr2.branch) || extractPersonaFromPatch(file2.patch),
+                        patch: file2.patch
+                      },
+                      overlapLines: overlap.lines
+                    });
+                  }
+                }
+              }
+            }
+            
+            console.log(`Found ${conflicts.length} potential conflicts`);
+            
+            // 8. Post comments on conflicting PRs
+            for (const conflict of conflicts) {
+              // Lower PR number has priority (was created first)
+              const keeper = conflict.pr1.number < conflict.pr2.number ? conflict.pr1 : conflict.pr2;
+              const yielder = conflict.pr1.number < conflict.pr2.number ? conflict.pr2 : conflict.pr1;
+              
+              // Truncate patch if too long
+              const keeperPatch = keeper.patch.length > 500 
+                ? keeper.patch.substring(0, 500) + '\n... (truncated)'
+                : keeper.patch;
+              
+              const comment = `⚠️ **Potential Conflict Detected by Scout**
+
+            Your PR modifies \`${conflict.file}\` at lines that overlap with **PR #${keeper.number}** (${keeper.persona || 'unknown persona'}).
+
+            **Priority PR (${keeper.persona || 'keeper'}) - PR #${keeper.number}:**
+            \`\`\`diff
+            ${keeperPatch}
+            \`\`\`
+
+            **Recommended Actions:**
+            1. ❌ Revert your changes to \`${conflict.file}\`:
+               \`\`\`bash
+               git checkout origin/master -- ${conflict.file}
+               \`\`\`
+
+            2. 📝 Document your intent in your worklog (\`.jules/worklogs/worklog_${(yielder.persona || 'persona').toLowerCase()}.md\`):
+               \`\`\`markdown
+               ## ${new Date().toISOString().split('T')[0]} - Deferred: [Your Intent]
+               
+               **Conflict with:** ${keeper.persona || 'PR #' + keeper.number}
+               **File:** ${conflict.file}
+               **Deferred to:** Next batch after PR #${keeper.number} merges
+               \`\`\`
+
+            3. ✅ Push reverted changes
+
+            _This is an automated message from Scout. See \`.jules/guides/deferred-work.md\` for more info._`;
+
+              // Check if we already posted a similar comment
+              const { data: comments } = await github.rest.issues.listComments({
+                owner, repo,
+                issue_number: yielder.number
+              });
+              
+              const alreadyPosted = comments.some(c => 
+                c.body.includes('Potential Conflict Detected by Scout') &&
+                c.body.includes(conflict.file) &&
+                c.body.includes(`PR #${keeper.number}`)
+              );
+              
+              if (!alreadyPosted) {
+                await github.rest.issues.createComment({
+                  owner, repo,
+                  issue_number: yielder.number,
+                  body: comment
+                });
+                console.log(`Posted conflict warning on PR #${yielder.number} about ${conflict.file}`);
+              } else {
+                console.log(`Skipped PR #${yielder.number} - already notified about ${conflict.file}`);
+              }
+            }
+            
+            console.log('✅ Scout conflict detection complete!');

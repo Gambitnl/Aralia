@@ -290,7 +290,10 @@ python .agent_tools/uplink.py --message "DONE: <YourPersona> — <summary of cha
 - [testing.md](guides/testing.md) - When and how to test
 - [todos.md](guides/todos.md) - TODO system, persona routing
 - [comments.md](guides/comments.md) - Code comment standards
+- [code-signatures.md](guides/code-signatures.md) - **REQUIRED:** Sign your code for conflict detection
+- [deferred-work.md](guides/deferred-work.md) - How to document deferred work from conflicts
 - [refactoring.md](guides/refactoring.md) - Safe refactoring
 - [deprecation.md](guides/deprecation.md) - Deprecation workflow
 - [pr-workflow.md](guides/pr-workflow.md) - PR guidelines
 - [feature-discovery.md](guides/feature-discovery.md) - Finding work
+
