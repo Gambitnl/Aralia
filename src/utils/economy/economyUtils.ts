@@ -7,7 +7,7 @@
  */
 
 import { Item, EconomyState } from '../types';
-import { REGIONAL_ECONOMIES } from '../data/economy/regions';
+import { REGIONAL_ECONOMIES } from '../../data/economy/regions';
 
 /**
  * Parses a cost string like "10 GP" into a gold value.
