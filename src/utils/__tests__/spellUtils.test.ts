@@ -2,7 +2,6 @@
 import { describe, it, expect } from 'vitest';
 import { getCharacterSpells } from '../spellUtils';
 import { PlayerCharacter, Spell } from '../../types';
-import { RACES_DATA, TIEFLING_LEGACIES } from '../../constants';
 
 // Mock dependencies
 // We can't easily mock the constants import directly in Vitest ESM without complex setup,
