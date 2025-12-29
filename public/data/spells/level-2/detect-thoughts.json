@@ -59,7 +59,10 @@
     },
     "filter": {
       "creatureTypes": [],
-      "excludeCreatureTypes": [],
+      "excludeCreatureTypes": [
+        "Construct",
+        "Undead"
+      ],
       "sizes": [],
       "alignments": [],
       "hasCondition": [],
