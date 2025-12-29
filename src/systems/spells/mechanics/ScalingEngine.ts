@@ -1,11 +1,48 @@
 import type { ScalingFormula } from '@/types/spells'
 
 /**
- * Handles spell upscaling calculations
+ * [SCRIBE] Handles spell upscaling calculations for D&D 5e
  *
- * D&D 5e spells scale in two ways:
- * 1. Slot level: Casting at higher spell slot (e.g., Fireball at 4th level)
- * 2. Character level: Cantrips scale with character level
+ * ## D&D 5e Spell Scaling Mechanics
+ *
+ * Spells in 5e scale damage/effects in two distinct ways:
+ *
+ * ### 1. Slot-Level Scaling (Leveled Spells)
+ * When casting a spell using a higher-level spell slot than required:
+ * - Base damage is calculated at the spell's minimum level
+ * - Bonus damage is added per slot level above minimum
+ *
+ * **Example: Fireball (3rd-level)**
+ * - Base: 8d6 fire damage
+ * - At 4th level: 8d6 + 1d6 = 9d6
+ * - At 5th level: 8d6 + 2d6 = 10d6
+ * - Formula: `baseDice + (bonusPerLevel × (castLevel - baseLevel))`
+ *
+ * ### 2. Character-Level Scaling (Cantrips)
+ * Cantrips scale with the caster's total character level, NOT class level.
+ * Multiclass characters use their total level for cantrip scaling.
+ *
+ * **Standard Cantrip Scaling Tiers:**
+ * | Caster Level | Dice Multiplier |
+ * |--------------|-----------------|
+ * | 1-4          | 1x (base)       |
+ * | 5-10         | 2x              |
+ * | 11-16        | 3x              |
+ * | 17+          | 4x              |
+ *
+ * **Example: Fire Bolt**
+ * - Level 1: 1d10
+ * - Level 5: 2d10
+ * - Level 11: 3d10
+ * - Level 17: 4d10
+ *
+ * ### Implementation Notes
+ *
+ * This engine supports both scaling types and prefers explicit tier definitions
+ * (via `scalingTiers` in spell data) over calculated values for accuracy.
+ *
+ * @see {@link ScalingFormula} for the spell data structure
+ * @see PHB p.201 for official scaling rules
  */
 export class ScalingEngine {
   /**
