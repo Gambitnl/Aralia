@@ -24,7 +24,6 @@ import { canUseDevTools } from '../../utils/permissions';
 import { logger } from '../../utils/logger';
 import { createPlayerCombatCharacter } from '../../utils/combatUtils';
 import SpellContext from '../../context/SpellContext';
-import { generateLoot } from '../../services/lootService';
 import { motion } from 'framer-motion';
 import { useGameState } from '../../state/GameContext';
 import { CombatReligionAdapter } from '../../systems/religion/CombatReligionAdapter';
@@ -33,6 +32,7 @@ import AISpellInputModal from '../BattleMap/AISpellInputModal';
 import { Spell } from '../../types/spells';
 import { ReactionPrompt } from './ReactionPrompt';
 import { Plane } from '../../types/planes';
+import { useCombatOutcome } from '../../hooks/combat/useCombatOutcome';
 
 interface CombatViewProps {
   party: PlayerCharacter[];
@@ -74,9 +74,11 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [sheetCharacter, setSheetCharacter] = useState<PlayerCharacter | null>(null);
 
-  // Battle State
-  const [battleState, setBattleState] = useState<'active' | 'victory' | 'defeat'>('active');
-  const [rewards, setRewards] = useState<{ gold: number; items: Item[]; xp: number } | null>(null);
+  // Battle State managed by hook
+  const { battleState, rewards, forceOutcome } = useCombatOutcome({
+    characters,
+    initialEnemies: enemies // Pass the initial enemies prop to compare against
+  });
 
   // Auto-Battle State
   const [autoCharacters, setAutoCharacters] = useState<Set<string>>(new Set());
@@ -181,29 +183,6 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   // We can pass `autoCharacters` to `useTurnManager` and it will react if we put it in dependencies.
   // Let's check `useTurnManager.ts` again.
 
-  // Check for win/loss conditions
-  useEffect(() => {
-    if (characters.length === 0 || battleState !== 'active') return;
-
-    const players = characters.filter(c => c.team === 'player');
-    const activeEnemies = characters.filter(c => c.team === 'enemy' && c.currentHP > 0);
-    const activePlayers = players.filter(c => c.currentHP > 0);
-
-    if (activeEnemies.length === 0 && enemies.length > 0) {
-      setBattleState('victory');
-      // Generate Rewards
-      const originalMonsters = enemies.map(e => ({ name: e.name, cr: e.stats.cr, quantity: 1, description: e.name }));
-      const loot = generateLoot(originalMonsters);
-      const xp = enemies.length * 50;
-
-      setRewards({ gold: loot.gold, items: loot.items, xp });
-
-    } else if (activePlayers.length === 0 && players.length > 0) {
-      setBattleState('defeat');
-    }
-  }, [characters, enemies, battleState]);
-
-
   const handleCharacterSelect = (charId: string) => {
     setSelectedCharacterId(charId);
   }
@@ -299,7 +278,7 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
         <h1 className="text-3xl font-bold text-red-500 font-cinzel">Combat Encounter</h1>
         {/* TODO: Wrap debug buttons with process.env.NODE_ENV check to hide in production builds (e.g., {import.meta.env.DEV && <button>...}) */}
         <button
-          onClick={() => setBattleState('victory')} // Debug escape hatch
+          onClick={() => forceOutcome('victory')} // Debug escape hatch
           className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg shadow text-sm"
         >
           Debug: Auto-Win
