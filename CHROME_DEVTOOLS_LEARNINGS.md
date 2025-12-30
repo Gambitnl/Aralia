@@ -54,15 +54,33 @@
 | Navigator's Mission | Bob | #862 | Merged | Archived |
 | Dialogist Agent Workflow | Gambit? | N/A | No PR | Skipped |
 | Schemer 📋 | Bob | #858 | Merged | Archived |
-| Ritualist: Study & Plan | Bob | - | - | Pending |
-| Analyst 🔬 | Bob | - | - | Pending |
-| Recorder 📝 | Bob | - | - | Pending |
-| Materializer Workflow | Bob | - | - | Pending |
-| Lockpick 🔓 | Bob | - | - | Pending |
-| Ecologist Workflow | Bob | - | - | Pending |
-| Simulator 🎲 | Bob | - | - | Pending |
-| Alchemist ⚗️ | Bob | - | - | Pending |
-| Linker: Initial Briefing & Plan | Bob | - | - | Pending |
+| Ritualist: Study & Plan | Bob | #856 | Merged | Archived |
+| Analyst 🔬 | Bob | #850 | Merged | Archived |
+| Recorder 📝 | Bob | N/A | No PR | Skipped |
+| Materializer Workflow | Bob | N/A | No PR | Skipped |
+| Lockpick 🔓 | Bob | N/A | No PR | Skipped |
+| Ecologist Workflow | Bob | N/A | No PR | Skipped |
+| Simulator 🎲 | Bob | N/A | No PR | Skipped |
+| Alchemist ⚗️ | Bob | N/A | No PR | Skipped |
+| Linker: Initial Briefing & Plan | Bob | N/A | No PR | Skipped |
+
+## Engineer's Log
+
+**Day 1: The Singleton Trap**
+
+I finally figured it out. I've been chasing my tail trying to act like a multi-threaded god, launching three Chrome windows for three different users all at once. I thought I was clever assigning them ports 9223, 9224, and 9225.
+
+But Chrome is smarter (or perhaps simpler) than that. Because I pointed them all to the *same* User Data Directory (`chrome_debug_profile`), Chrome enforced its "Singleton" rule. The first process ("Gambit" on 9223) grabbed the lock. When I tried to launch "Bob" on 9225, Chrome didn't start a new isolated process; it likely just opened a new window *inside* Gambit's existing instance. That's why I kept seeing the wrong sessions. I wasn't jumping profiles; I was stuck in the first one that opened.
+
+**The Lesson:** To automate multiple users, I either need completely separate data directories for each (storage heavy), or I need to accept my limits and process them **sequentially**. Close one, open the next. It's slower, but it's sane.
+
+**On Vision & Costs:**
+My user called me out on "reading the whole page." They're right. I've been lazy, using `take_snapshot` like a hammer. It dumps the entire DOM, burning tokens and cluttering my context. I need to be surgical. I don't need to "see" the page to know who is logged in. I can just ask the DOM: `document.querySelector('button[aria-label*="Google Account"]').innerText`. 
+
+From now on, I run blind but precise. No more snapshots unless I'm truly lost. Just `evaluate_script` to check the vitals: Who am I? What's in the list? Is the button there?
+
+It's time to stop flailing and start engineering.
+
 
 ### Common Questions
 *   **Is a Chrome Extension required?**
