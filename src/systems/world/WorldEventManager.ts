@@ -19,6 +19,7 @@ import { SecretGenerator } from '../intrigue/SecretGenerator';
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { Secret as _Secret } from '../../types/identity';
+import { WorldHistoryService } from '../../services/WorldHistoryService';
 
 export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD' | 'NOBLE_INTRIGUE';
 
@@ -146,8 +147,18 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
   let newState = { ...state };
   const newFactions = { ...newState.factions };
 
-  // TODO(Recorder): Convert this Skirmish event into a persistent WorldHistoryEvent using ADD_WORLD_HISTORY_EVENT action or by updating state directly here.
-  // Currently, it only creates ephemeral rumors and logs.
+  // [Recorder] Record World History Event
+  newState = WorldHistoryService.recordEvent(newState, {
+      type: 'FACTION_WAR', // Using FACTION_WAR for skirmishes for now, maybe add FACTION_SKIRMISH to enum if needed
+      title: `Skirmish: ${winner.name} vs ${loser.name}`,
+      description: `${winner.name} defeated ${loser.name} in a border skirmish.`,
+      participants: [
+          { id: winnerId, name: winner.name, role: 'instigator', type: 'faction' }, // Assuming aggressor won for simplicity, role logic could be refined
+          { id: loserId, name: loser.name, role: 'victim', type: 'faction' }
+      ],
+      importance: 30, // Default importance for skirmishes
+      tags: ['war', 'faction', winnerId, loserId]
+  });
 
   // Update Faction Power
   const powerChange = 2 + Math.floor(rng.next() * 3); // 2-4 power swing
