@@ -1,8 +1,7 @@
 
 import { BaseEffectCommand } from '../base/BaseEffectCommand';
-import { CombatState, CombatCharacter, ActiveEffect } from '../../types/combat';
+import { CombatState, ActiveEffect } from '../../types/combat';
 import { Spell } from '../../types/spells';
-import { logger } from '../../utils/logger';
 
 export class DefensiveCommand extends BaseEffectCommand {
   constructor(

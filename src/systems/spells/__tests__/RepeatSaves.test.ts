@@ -11,7 +11,8 @@ vi.mock('../../../utils/savingThrowUtils', () => ({
 }));
 
 vi.mock('../../../utils/combatUtils', () => ({
-    createDamageNumber: vi.fn((val) => ({ id: 'dmg-1', duration: 1000 })),
+    // TODO(lint-intent): 'val' is unused in this test; use it in the assertion path or remove it.
+    createDamageNumber: vi.fn((_val) => ({ id: 'dmg-1', duration: 1000 })),
     generateId: vi.fn(() => 'id_123'),
     getActionMessage: vi.fn(),
     rollDice: vi.fn(() => 5)
@@ -30,8 +31,10 @@ vi.mock('../../../hooks/combat/useCombatAI', () => ({
 
 describe('TurnManager Repeat Saves', () => {
     let character: CombatCharacter;
-    let mockOnCharacterUpdate: any;
-    let mockOnLogEntry: any;
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    let mockOnCharacterUpdate: unknown;
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    let mockOnLogEntry: unknown;
 
     beforeEach(() => {
         mockOnCharacterUpdate = vi.fn();
@@ -78,7 +81,8 @@ describe('TurnManager Repeat Saves', () => {
         character.statusEffects = [effect];
 
         // Mock successful save BEFORE rendering hook
-        (rollSavingThrow as any).mockReturnValue({ success: true, total: 16 });
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        (rollSavingThrow as unknown).mockReturnValue({ success: true, total: 16 });
 
         const { result } = renderHook(() => useTurnManager({
             characters: [character],
@@ -136,7 +140,8 @@ describe('TurnManager Repeat Saves', () => {
         });
 
         // Mock failed save
-        (rollSavingThrow as any).mockReturnValue({ success: false, total: 10 });
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        (rollSavingThrow as unknown).mockReturnValue({ success: false, total: 10 });
 
         act(() => {
             result.current.endTurn();

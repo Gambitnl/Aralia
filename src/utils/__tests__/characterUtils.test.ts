@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { canEquipItem, performLevelUp, applyFeatToCharacter } from '../characterUtils';
 import { createMockPlayerCharacter, createMockItem } from '../factories';
-import { Item, ArmorCategory, Feat } from '../../types';
-import { FEATS_DATA } from '../../data/feats/featsData';
+// TODO(lint-intent): 'ArmorCategory' is unused in this test; use it in the assertion path or remove it.
+import { Item, ArmorCategory as _ArmorCategory, Feat } from '../../types';
+// TODO(lint-intent): 'FEATS_DATA' is unused in this test; use it in the assertion path or remove it.
+import { FEATS_DATA as _FEATS_DATA } from '../../data/feats/featsData';
 
 describe('characterUtils', () => {
   describe('canEquipItem', () => {

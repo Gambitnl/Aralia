@@ -35,9 +35,17 @@ const OrgMembersList: React.FC<OrgMembersListProps> = ({ organization, onRecruit
         <form onSubmit={handleRecruitSubmit} className="bg-gray-700 p-4 rounded mb-4 border border-gray-600">
             <h4 className="text-lg text-white mb-2">Recruit New Member</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                {/*
+                  TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+                  TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+                  TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+                */}
                 <div>
-                    <label className="block text-xs text-gray-400 mb-1">Name</label>
+                    
+                    
+                    <label htmlFor="org-recruit-name" className="block text-xs text-gray-400 mb-1">Name</label>
                     <input
+                        id="org-recruit-name"
                         type="text"
                         value={recruitName}
                         onChange={(e) => setRecruitName(e.target.value)}
@@ -45,9 +53,17 @@ const OrgMembersList: React.FC<OrgMembersListProps> = ({ organization, onRecruit
                         placeholder="Character Name"
                     />
                 </div>
+                {/*
+                  TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+                  TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+                  TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+                */}
                 <div>
-                    <label className="block text-xs text-gray-400 mb-1">Class</label>
+                    
+                    
+                    <label htmlFor="org-recruit-class" className="block text-xs text-gray-400 mb-1">Class</label>
                     <select
+                        id="org-recruit-class"
                         value={recruitClass}
                         onChange={(e) => setRecruitClass(e.target.value)}
                         className="w-full bg-gray-900 border border-gray-600 text-white rounded px-2 py-1"

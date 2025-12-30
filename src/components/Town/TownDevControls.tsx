@@ -35,13 +35,25 @@ export const TownDevControls: React.FC<TownDevControlsProps> = ({
     handleDownload
 }) => {
     return (
+        /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+        TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+        TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+        */
         <div className="flex flex-wrap items-center gap-4 bg-gray-800 p-4 rounded-xl shadow-xl border border-gray-700 w-full xl:w-auto">
 
             {/* Seed Control */}
+            {/*
+              TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+              TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+              TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+            */}
             <div className="flex flex-col">
-                <label className="text-xs text-gray-500 font-mono uppercase mb-1">Seed</label>
+                
+                
+                <label htmlFor="town-seed-input" className="text-xs text-gray-500 font-mono uppercase mb-1">Seed</label>
                 <div className="flex gap-2">
                     <input
+                        id="town-seed-input"
                         type="number"
                         value={seed}
                         onChange={(e) => setSeed(parseInt(e.target.value) || 0)}
@@ -56,9 +68,17 @@ export const TownDevControls: React.FC<TownDevControlsProps> = ({
             <div className="h-8 w-px bg-gray-600 mx-1 hidden md:block"></div>
 
             {/* Biome Control */}
+            {/*
+              TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+              TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+              TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+            */}
             <div className="flex flex-col">
-                <label className="text-xs text-gray-500 font-mono uppercase mb-1 flex items-center gap-1"><TreeDeciduous size={10} /> Biome</label>
+                
+                
+                <label htmlFor="town-biome-select" className="text-xs text-gray-500 font-mono uppercase mb-1 flex items-center gap-1"><TreeDeciduous size={10} /> Biome</label>
                 <select
+                    id="town-biome-select"
                     value={biome}
                     onChange={(e) => setBiome(e.target.value as BiomeType)}
                     className="bg-gray-900 border border-gray-700 text-white text-sm rounded px-2 py-1 focus:outline-none focus:border-blue-500 max-w-[150px]"
@@ -70,9 +90,17 @@ export const TownDevControls: React.FC<TownDevControlsProps> = ({
             </div>
 
             {/* Density Control */}
+            {/*
+              TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+              TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+              TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+            */}
             <div className="flex flex-col">
-                <label className="text-xs text-gray-500 font-mono uppercase mb-1 flex items-center gap-1"><Home size={10} /> Density</label>
+                
+                
+                <label htmlFor="town-density-select" className="text-xs text-gray-500 font-mono uppercase mb-1 flex items-center gap-1"><Home size={10} /> Density</label>
                 <select
+                    id="town-density-select"
                     value={density}
                     onChange={(e) => setDensity(e.target.value as TownDensity)}
                     className="bg-gray-900 border border-gray-700 text-white text-sm rounded px-2 py-1 focus:outline-none focus:border-blue-500"
@@ -89,7 +117,9 @@ export const TownDevControls: React.FC<TownDevControlsProps> = ({
 
             {/* Connections Control */}
             <div className="flex flex-col">
-                <label className="text-xs text-gray-500 font-mono uppercase mb-1 flex items-center gap-1"><Compass size={10} /> Exits</label>
+                
+                
+                <span className="text-xs text-gray-500 font-mono uppercase mb-1 flex items-center gap-1"><Compass size={10} /> Exits</span>
                 <div className="flex gap-1">
                     {['north', 'south', 'east', 'west'].map((dir) => (
                         <button

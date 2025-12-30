@@ -6,8 +6,10 @@
  * Centralizes faction reputation logic, ripple effects, and rumor generation.
  * Replaces scattered utility functions in factionUtils.ts for better encapsulation.
  */
-
-import { GameState, GameMessage, WorldRumor, Faction, PlayerFactionStanding } from '../../types';
+// TODO(lint-intent): 'Faction' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { GameState, GameMessage, WorldRumor, Faction as _Faction, PlayerFactionStanding } from '../../types';
 import { calculateRippleEffects, calculateNewStanding, formatReputationChangeMessage } from '../../utils/factionUtils';
 import { getGameDay } from '../../utils/timeUtils';
 

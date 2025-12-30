@@ -30,7 +30,8 @@ const createMockCharacter = (overrides: Partial<PlayerCharacter> = {}): PlayerCh
   transportMode: 'foot',
   equippedItems: {},
   ...overrides
-} as any);
+// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+} as unknown);
 
 describe('Pressure Plate System', () => {
   const plate: PressurePlate = {

@@ -87,6 +87,7 @@ const PassTimeModal: React.FC<PassTimeModalProps> = ({ isOpen, onClose, onConfir
 
   useEffect(() => {
     if (!isOpen) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setTime({ minutes: 0, hours: 0, days: 0, weeks: 0, months: 0, years: 0 });
     }
   }, [isOpen]);

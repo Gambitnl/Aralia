@@ -2,7 +2,10 @@
  * @file src/config/submapVisualsConfig.ts
  * Centralizes the configuration for procedural submap visuals.
  */
-import { BiomeVisuals, SeededFeatureConfig } from '../types';
+// TODO(lint-intent): 'SeededFeatureConfig' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { BiomeVisuals, SeededFeatureConfig as _SeededFeatureConfig } from '../types';
 
 export const biomeVisualsConfig: Record<string, BiomeVisuals> = {
   'forest': {

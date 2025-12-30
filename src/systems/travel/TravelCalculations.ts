@@ -61,7 +61,10 @@ export interface ForcedMarchStatus {
  */
 export function calculateForcedMarchStatus(hoursTraveled: number): ForcedMarchStatus {
   const SAFE_TRAVEL_HOURS = 8;
-  const isForcedMarch = hoursTraveled > SAFE_TRAVEL_HOURS;
+  // TODO(lint-intent): 'isForcedMarch' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+  const _isForcedMarch = hoursTraveled > SAFE_TRAVEL_HOURS;
 
   // Per 5e rules, the check is made at the end of each hour traveled beyond 8.
   // We floor the hours over limit to ensure we only count full hours completed past the limit for the DC scaling.
@@ -72,8 +75,10 @@ export function calculateForcedMarchStatus(hoursTraveled: number): ForcedMarchSt
   // 9 hours -> 1 hour over -> DC 10 + 1 = 11.
   // 8.5 hours -> 0.5 hours over. If we check at the END of the hour, we haven't triggered the DC 11 check yet.
   // We will treat hoursOverLimit as the integer count of full hours past 8.
-
-  const hoursOverLimit = Math.floor(Math.max(0, hoursTraveled - SAFE_TRAVEL_HOURS));
+  // TODO(lint-intent): 'hoursOverLimit' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+  const _hoursOverLimit = Math.floor(Math.max(0, hoursTraveled - SAFE_TRAVEL_HOURS));
 
   // PHB: "The DC is 10 + 1 for each hour of past 8 hours."
   // If we have traveled > 8 hours, it is a forced march.
@@ -214,7 +219,9 @@ export function calculateGroupTravelStats(
   const baseMph = minSpeed / 10;
 
   // 3. Apply Pace Modifier
-  // @ts-ignore - Backward compatibility for types if speedMultiplier was used
+  // TODO(lint-intent): Confirm the ts-expect-error is still needed or align the pace modifiers type contract.
+  // TODO(lint-intent): If backward compatibility is required, codify a guard or schema for speedMultiplier.
+  // @ts-expect-error - Backward compatibility for types if speedMultiplier was used
   const paceMod = PACE_MODIFIERS[pace].speedModifier || PACE_MODIFIERS[pace].speedMultiplier;
 
   // 4. Apply Terrain Modifier

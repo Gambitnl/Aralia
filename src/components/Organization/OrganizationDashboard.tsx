@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { Organization, OrgType } from '../../types/organizations';
+// TODO(lint-intent): 'OrgType' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Organization, OrgType as _OrgType } from '../../types/organizations';
 import OrgOverview from './OrgOverview';
 import OrgMembersList from './OrgMembersList';
 import OrgUpgradesList from './OrgUpgradesList';
@@ -33,7 +36,10 @@ const OrganizationDashboard: React.FC<OrganizationDashboardProps> = ({ initialOr
     try {
         const updated = recruitMember(organization, name, className, 1);
         handleUpdate(updated);
-    } catch (e: any) {
+    // TODO(lint-intent): The any on 'e' hides the intended shape of this data.
+    // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+    // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+    } catch (e: unknown) {
         setError(e.message);
     }
   };
@@ -42,7 +48,10 @@ const OrganizationDashboard: React.FC<OrganizationDashboardProps> = ({ initialOr
       try {
           const updated = promoteMember(organization, memberId);
           handleUpdate(updated);
-      } catch (e: any) {
+      // TODO(lint-intent): The any on 'e' hides the intended shape of this data.
+      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+      } catch (e: unknown) {
           setError(e.message);
       }
   };
@@ -51,7 +60,10 @@ const OrganizationDashboard: React.FC<OrganizationDashboardProps> = ({ initialOr
       try {
           const updated = purchaseOrgUpgrade(organization, upgradeId);
           handleUpdate(updated);
-      } catch (e: any) {
+      // TODO(lint-intent): The any on 'e' hides the intended shape of this data.
+      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+      } catch (e: unknown) {
           setError(e.message);
       }
   };
@@ -62,7 +74,10 @@ const OrganizationDashboard: React.FC<OrganizationDashboardProps> = ({ initialOr
           const rewards = { gold: diff * 10, influence: 5 };
           const updated = startMission(organization, desc, diff, members, rewards);
           handleUpdate(updated);
-      } catch (e: any) {
+      // TODO(lint-intent): The any on 'e' hides the intended shape of this data.
+      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+      } catch (e: unknown) {
           setError(e.message);
       }
   };

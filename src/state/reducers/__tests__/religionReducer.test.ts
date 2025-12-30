@@ -1,7 +1,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { religionReducer } from '../religionReducer';
-import { GameState, DivineFavor } from '../../../types';
+// TODO(lint-intent): 'DivineFavor' is unused in this test; use it in the assertion path or remove it.
+import { GameState, DivineFavor as _DivineFavor } from '../../../types';
 import { AppAction } from '../../actionTypes';
 
 describe('religionReducer', () => {

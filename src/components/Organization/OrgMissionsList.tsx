@@ -48,9 +48,17 @@ const OrgMissionsList: React.FC<OrgMissionsListProps> = ({ organization, onStart
         <form onSubmit={handleStart} className="bg-gray-700 p-4 rounded mb-4 border border-gray-600">
             <h4 className="text-lg text-white mb-2">Plan Operation</h4>
 
+            {/*
+              TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+              TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+              TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+            */}
             <div className="mb-3">
-                <label className="block text-xs text-gray-400 mb-1">Objective</label>
+                
+                
+                <label htmlFor="org-mission-objective" className="block text-xs text-gray-400 mb-1">Objective</label>
                 <input
+                    id="org-mission-objective"
                     type="text"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -60,8 +68,9 @@ const OrgMissionsList: React.FC<OrgMissionsListProps> = ({ organization, onStart
             </div>
 
             <div className="mb-3">
-                 <label className="block text-xs text-gray-400 mb-1">Difficulty (DC: {difficulty})</label>
+                 <label htmlFor="org-mission-difficulty" className="block text-xs text-gray-400 mb-1">Difficulty (DC: {difficulty})</label>
                  <input
+                    id="org-mission-difficulty"
                     type="range"
                     min="10"
                     max="30"
@@ -76,9 +85,23 @@ const OrgMissionsList: React.FC<OrgMissionsListProps> = ({ organization, onStart
                 <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto bg-gray-900 p-2 rounded">
                     {availableMembers.length === 0 && <span className="text-xs text-gray-500">No agents available.</span>}
                     {availableMembers.map(m => (
+                        
+                        
+                        /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+                        TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+                        TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+                        */
                         <div
                             key={m.id}
                             onClick={() => toggleMember(m.id)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    toggleMember(m.id);
+                                }
+                            }}
                             className={`text-xs p-1 cursor-pointer rounded border ${selectedMembers.includes(m.id) ? 'bg-blue-900 border-blue-500 text-white' : 'border-transparent text-gray-400 hover:bg-gray-800'}`}
                         >
                             {m.name} (Lvl {m.level})

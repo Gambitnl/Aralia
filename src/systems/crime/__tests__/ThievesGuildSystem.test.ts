@@ -66,14 +66,17 @@ describe('ThievesGuildSystem', () => {
             rewardGold: 100,
             rewardReputation: 10,
             status: 'Active'
-        } as any; // Cast as any to avoid full mock
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        } as unknown; // Cast as any to avoid full mock
 
         it('should fail if location does not match', () => {
             const plan: HeistPlan = {
                 targetLocationId: 'loc_wrong',
-                lootSecured: [{ id: 'item_1', value: 50 } as any],
+                // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+                lootSecured: [{ id: 'item_1', value: 50 } as unknown],
                 alertLevel: 0
-            } as any;
+            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+            } as unknown;
 
             const result = ThievesGuildSystem.completeJob(mockJob, plan);
             expect(result.success).toBe(false);
@@ -85,7 +88,8 @@ describe('ThievesGuildSystem', () => {
                 targetLocationId: 'loc_market',
                 lootSecured: [],
                 alertLevel: 0
-            } as any;
+            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+            } as unknown;
 
             const result = ThievesGuildSystem.completeJob(mockJob, plan);
             expect(result.success).toBe(false);
@@ -95,9 +99,11 @@ describe('ThievesGuildSystem', () => {
         it('should succeed with loot and reduce reward based on alert', () => {
             const plan: HeistPlan = {
                 targetLocationId: 'loc_market',
-                lootSecured: [{ id: 'item_1', value: 50 } as any],
+                // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+                lootSecured: [{ id: 'item_1', value: 50 } as unknown],
                 alertLevel: 20 // Should trigger penalty
-            } as any;
+            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+            } as unknown;
 
             const result = ThievesGuildSystem.completeJob(mockJob, plan);
             expect(result.success).toBe(true);

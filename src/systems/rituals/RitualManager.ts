@@ -15,7 +15,10 @@ import {
   RequirementValidationResult
 } from '../../types/rituals';
 import { Spell } from '../../types/spells';
-import { TimeOfDay, getTimeOfDay } from '../../utils/timeUtils';
+// TODO(lint-intent): 'TimeOfDay' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { TimeOfDay as _TimeOfDay, getTimeOfDay } from '../../utils/timeUtils';
 
 /**
  * Creates a new RitualState for a caster and spell.
@@ -95,7 +98,10 @@ export function canStartRitual(
   // If spell has no specific requirements property (yet), we assume it's valid.
   // In a real implementation, we'd check `spell.ritualRequirements`.
   // Since `Spell` type might not have `ritualRequirements` yet, this is future-proofing.
-  const requirements: RitualRequirement[] = (spell as any).ritualRequirements || [];
+  // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  const requirements: RitualRequirement[] = (spell as unknown).ritualRequirements || [];
 
   if (requirements.length === 0) {
     return { valid: true };
@@ -175,7 +181,10 @@ export function checkRitualInterrupt(
 /**
  * Returns potential backlash effects if a ritual fails catastrophically.
  */
-export function getBacklashOnFailure(ritual: RitualState): { description: string }[] {
+// TODO(lint-intent): 'ritual' is an unused parameter, which suggests a planned input for this flow.
+// TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+// TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+export function getBacklashOnFailure(_ritual: RitualState): { description: string }[] {
     // Placeholder logic for wild magic or ritual backlash
     // Could depend on spell level, ritual type, etc.
     // TODO(Ritualist): Implement full RitualBacklash evaluation based on ritual.backlash definitions

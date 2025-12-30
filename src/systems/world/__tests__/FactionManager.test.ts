@@ -1,7 +1,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { FactionManager } from '../FactionManager';
-import { GameState, Faction } from '../../../types';
+// TODO(lint-intent): 'Faction' is unused in this test; use it in the assertion path or remove it.
+import { GameState, Faction as _Faction } from '../../../types';
 import { FACTIONS } from '../../../data/factions';
 
 const mockState: GameState = {

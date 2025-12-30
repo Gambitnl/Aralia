@@ -70,8 +70,10 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   // Single source of truth for map and characters
   const [mapData, setMapData] = useState<BattleMapData | null>(initialState.mapData);
   const [characters, setCharacters] = useState<CombatCharacter[]>(initialState.positionedCharacters);
-
-  const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
+  // TODO(lint-intent): 'selectedCharacterId' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+  const [_selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [sheetCharacter, setSheetCharacter] = useState<PlayerCharacter | null>(null);
 
   // Battle State managed by hook
@@ -118,7 +120,10 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   }, [characters, turnManager]);
 
   // Handle Summoning Integration
-  const { addSummon, removeSummon, summonedEntities } = useSummons({
+  // TODO(lint-intent): 'addSummon' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+  const { addSummon: _addSummon, removeSummon: _removeSummon, summonedEntities: _summonedEntities } = useSummons({
     onSummonAdded: (summon) => {
       setCharacters(prev => [...prev, summon]);
       turnManager.joinCombat(summon, { initiative: summon.initiative }); // Use preset initiative if available (e.g. shared)

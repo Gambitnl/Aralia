@@ -74,10 +74,12 @@ describe('AstralMechanics', () => {
         party: [],
         inventory: [],
         gameTime: new Date(),
-        currentLocation: { id: 'test', name: 'test', type: 'city' } as any,
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        currentLocation: { id: 'test', name: 'test', type: 'city' } as unknown,
         quests: [],
         activeContracts: []
-      } as any;
+      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      } as unknown;
 
       const result: PsychicWindResult = {
         encountered: true,
@@ -95,7 +97,8 @@ describe('AstralMechanics', () => {
     });
 
     it('should do nothing if no encounter occurred', () => {
-       const mockState: GameState = { notifications: [] } as any;
+       // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+       const mockState: GameState = { notifications: [] } as unknown;
        const result: PsychicWindResult = {
         encountered: false,
         roll: 10,

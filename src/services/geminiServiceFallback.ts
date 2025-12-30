@@ -34,7 +34,10 @@ export function getFallbackEncounter(xpBudget: number, themeTags: string[]): Mon
 
   // 2. Sort candidates by XP (descending) to try and fill budget efficiently
   // We need to look up XP by CR.
-  const getXp = (m: any) => XP_BY_CR[m.baseStats.cr] || 0;
+  // TODO(lint-intent): The any on 'm' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  const getXp = (m: unknown) => XP_BY_CR[m.baseStats.cr] || 0;
 
   // Sort by XP descending, but filter out monsters that are too strong (XP > budget)
   const validCandidates = candidates

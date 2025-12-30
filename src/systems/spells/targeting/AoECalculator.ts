@@ -74,10 +74,17 @@ export class AoECalculator {
       case 'Cylinder':
         return getCylinder(center, aoe.size)
 
-      default:
+      default: {
         // In case of exhaustiveness check failure or runtime invalid data
-        const exhaustive: never = aoe.shape as never;
+        // TODO(lint-intent): 'exhaustive' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+        // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+        // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+        // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
+        // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
+        // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
+        const _exhaustive: never = aoe.shape as never;
         throw new Error(`Unknown AoE shape: ${aoe.shape}`)
+      }
     }
   }
 

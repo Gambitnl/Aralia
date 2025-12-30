@@ -15,7 +15,10 @@ import {
   NPCMemory,
   MemoryInteractionType,
   GameDate,
-  MemoryImportance
+  // TODO(lint-intent): 'MemoryImportance' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+  MemoryImportance as _MemoryImportance
 } from '../../types/memory';
 
 /**
@@ -85,7 +88,10 @@ export class MemorySystem {
 
     // Check if fact is already known
     const existingFactIndex = memory.knownFacts.findIndex(f => f.id === fact.id);
-    let updatedFacts = [...memory.knownFacts];
+    // TODO(lint-intent): This binding never reassigns, so the intended mutability is unclear.
+    // TODO(lint-intent): If it should stay stable, switch to const and treat it as immutable.
+    // TODO(lint-intent): If mutation was intended, add the missing update logic to reflect that intent.
+    const updatedFacts = [...memory.knownFacts];
 
     const newFact: Fact = {
       id: fact.id,

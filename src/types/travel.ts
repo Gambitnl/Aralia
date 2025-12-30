@@ -76,8 +76,14 @@ export interface TravelParameters {
 export interface GroupTravelParameters {
   origin: { x: number; y: number };
   destination: { x: number; y: number };
-  travelers: any[]; // Avoid circular dependency on PlayerCharacter, cast in service
-  inventories: Record<string, any[]>; // Avoid circular dependency on Item
+  // TODO(lint-intent): The any on 'travelers' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  travelers: unknown[]; // Avoid circular dependency on PlayerCharacter, cast in service
+  // TODO(lint-intent): The any on this value hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  inventories: Record<string, unknown[]>; // Avoid circular dependency on Item
   pace: TravelPace;
   /** Terrain type for the journey (defaults to 'open') */
   terrain?: TravelTerrain;

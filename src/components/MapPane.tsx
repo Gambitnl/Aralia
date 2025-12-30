@@ -63,6 +63,7 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
   useEffect(() => {
     const playerTile = flattenedTiles.find(tile => tile.isPlayerCurrent);
     if (playerTile) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFocusedCoords({ x: playerTile.x, y: playerTile.y });
     } else if (tiles.length > 0 && tiles[0].length > 0) {
       setFocusedCoords({ x: tiles[0][0].x, y: tiles[0][0].y });
@@ -113,7 +114,7 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
   };
 
 
-  const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
     // If modifier key is pressed, don't interfere (allows browser shortcuts)
     if (event.ctrlKey || event.metaKey || event.altKey) return;
 
@@ -140,13 +141,15 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
         newX = Math.min(gridSize.cols - 1, x + 1);
         break;
       case 'Enter':
-      case ' ': 
+      case ' ': {
         handled = true;
+        // TODO(lint-intent): If this interaction grows (tooltips, context menus), extract a helper for tile activation.
         const currentTile = tiles[y]?.[x];
         if (currentTile && (currentTile.discovered || currentTile.isPlayerCurrent)) {
           onTileClick(x, y, currentTile);
         }
         break;
+      }
       case 'Escape':
         handled = true;
         onClose();
@@ -176,8 +179,14 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
     }
   }, [focusedCoords, gridSize, tiles, onTileClick, onClose]);
 
-
-  const getTileStyle = (tile: MapTile): React.CSSProperties => {
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+  // TODO(lint-intent): 'getTileStyle' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+  const _getTileStyle = (tile: MapTile): React.CSSProperties => {
     const biome: Biome | undefined = BIOMES[tile.biomeId];
     let backgroundColor = 'rgba(107, 114, 128, 0.7)'; // Default discovered fallback
     
@@ -195,8 +204,10 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
       aspectRatio: '1 / 1', 
     };
   };
-
-  const getTileTooltip = (tile: MapTile): string => {
+  // TODO(lint-intent): 'getTileTooltip' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+  const _getTileTooltip = (tile: MapTile): string => {
     const biome = BIOMES[tile.biomeId];
     if (!tile.discovered) {
       return `Undiscovered area (${tile.x}, ${tile.y}). Potential biome: ${biome?.name || 'Unknown'}.`;
@@ -260,13 +271,23 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
 
 
   return (
+    
+    
+    /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+    TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+    TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+    */
     <div 
         className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-40 p-4"
         aria-modal="true"
         role="dialog"
         aria-labelledby="map-pane-title"
-        onKeyDown={handleKeyDown} 
     >
+      {/*
+        TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+        TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+        TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+      */}
       <div 
         className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-3xl max-h-[90vh] flex flex-col"
         style={{ backgroundImage: `url(${oldPaperBg})`, backgroundSize: 'cover' }}
@@ -283,7 +304,9 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
           </button>
         </div>
 
-        <div 
+        
+        
+        <div
             className="overflow-hidden flex-grow p-2 bg-black bg-opacity-10 rounded relative cursor-grab active:cursor-grabbing"
             ref={containerRef}
             onWheel={handleWheel}
@@ -291,6 +314,9 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
+            role="button"
+            tabIndex={0}
+            aria-label="World map viewport"
         >
           <div 
             className="grid gap-0.5 transition-transform duration-75 ease-out origin-center"

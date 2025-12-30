@@ -101,8 +101,14 @@ export const CompanionCard: React.FC<CompanionCardProps> = ({ companion, playerI
                    </span>
                ))}
                {personality.quirks.slice(0, 1).map(quirk => (
+                   
+                   
+                   /* TODO(lint-intent): This text includes raw quotes/special characters that were likely meant as prose.
+                   TODO(lint-intent): Decide whether to escape them, move text to a copy/localization layer, or pre-format it.
+                   TODO(lint-intent): If the text is dynamic, consider formatting/escaping before render to preserve intent.
+                   */
                    <span key={quirk} className="px-2 py-0.5 bg-gray-900 text-gray-400 text-xs rounded-full border border-gray-800 italic">
-                       "{quirk}"
+                       &quot;{quirk}&quot;
                    </span>
                ))}
            </div>

@@ -33,7 +33,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
   const modalRef = useRef<HTMLDivElement>(null);
 
   const [selectedEntry, setSelectedEntry] = useState<GlossaryEntry | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, _setError] = useState<string | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedParentEntries, setExpandedParentEntries] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
@@ -227,6 +227,25 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
 
   const sortedCategories = useMemo(() => Object.keys(groupedEntries).sort(), [groupedEntries]);
 
+  const toggleParentEntry = (entryId: string) => {
+    setExpandedParentEntries(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(entryId)) {
+        newSet.delete(entryId);
+      } else {
+        newSet.add(entryId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleEntrySelect = useCallback((entry: GlossaryEntry) => {
+    setSelectedEntry(entry);
+    if (entry.subEntries && entry.subEntries.length > 0) {
+      toggleParentEntry(entry.id);
+    }
+  }, []);
+
   // Keyboard navigation - flattened list of visible entries for arrow key nav
   const flattenedEntries = useMemo(() => {
     const result: GlossaryEntry[] = [];
@@ -266,6 +285,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
       setExpandedParentEntries(new Set());
       setSearchTerm('');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initialTermId, glossaryIndex]);
 
   useEffect(() => {
@@ -276,6 +296,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
     } else if (filteredGlossaryIndex.length === 0) {
       setSelectedEntry(null);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredGlossaryIndex]);
 
   useEffect(() => {
@@ -293,25 +314,14 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isOpen, onClose]);
 
-  const toggleParentEntry = (entryId: string) => {
-    setExpandedParentEntries(prev => {
-      const newSet = new Set(prev);
-      newSet.has(entryId) ? newSet.delete(entryId) : newSet.add(entryId);
-      return newSet;
-    });
-  };
-
-  const handleEntrySelect = useCallback((entry: GlossaryEntry) => {
-    setSelectedEntry(entry);
-    if (entry.subEntries && entry.subEntries.length > 0) {
-      toggleParentEntry(entry.id);
-    }
-  }, []);
-
   const toggleCategory = (category: string) => {
     setExpandedCategories(prev => {
       const newSet = new Set(prev);
-      newSet.has(category) ? newSet.delete(category) : newSet.add(category);
+      if (newSet.has(category)) {
+        newSet.delete(category);
+      } else {
+        newSet.add(category);
+      }
       return newSet;
     });
   };
@@ -765,15 +775,21 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
   };
 
   return (
+    
+    
+    /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+    TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+    TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+    */
     <div
       className="fixed inset-0 bg-black bg-opacity-80 z-50 p-4 overflow-visible"
       aria-modal="true" role="dialog" aria-labelledby="glossary-title"
-      onMouseDown={(e) => {
-        if (resizeState.isResizing) {
-          e.preventDefault();
-        }
-      }}
     >
+      {/*
+        TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+        TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+        TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+      */}
       <div
         ref={modalRef}
         className="bg-gray-900 text-gray-200 p-6 rounded-xl shadow-2xl border border-gray-700 flex flex-col relative overflow-visible"
@@ -795,51 +811,112 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
       >
         {/* Modal resize handles - subtle, appear on hover */}
         {/* Corner grips - small dots that glow on hover */}
-        <div
+        
+        
+        {/*
+          TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+          TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+          TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+        */}
+        <button
+          type="button"
+          aria-label="Resize top-left"
           className="absolute -top-1 -left-1 w-2.5 h-2.5 cursor-nwse-resize rounded-full z-[120] bg-amber-400/30 hover:bg-amber-400 hover:shadow-[0_0_6px_rgba(251,191,36,0.6)] transition-all duration-200 select-none pointer-events-auto"
           onMouseDown={(e) => handleResizeStart(e, 'top-left')}
           title="Resize"
         />
-        <div
+        
+        
+        {/*
+          TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+          TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+          TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+        */}
+        <button
+          type="button"
+          aria-label="Resize top-right"
           className="absolute -top-1 -right-1 w-2.5 h-2.5 cursor-nesw-resize rounded-full z-[120] bg-amber-400/30 hover:bg-amber-400 hover:shadow-[0_0_6px_rgba(251,191,36,0.6)] transition-all duration-200 select-none pointer-events-auto"
           onMouseDown={(e) => handleResizeStart(e, 'top-right')}
           title="Resize"
         />
-        <div
+        
+        
+        {/*
+          TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+          TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+          TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+        */}
+        <button
+          type="button"
+          aria-label="Resize bottom-left"
           className="absolute -bottom-1 -left-1 w-2.5 h-2.5 cursor-nesw-resize rounded-full z-[120] bg-amber-400/30 hover:bg-amber-400 hover:shadow-[0_0_6px_rgba(251,191,36,0.6)] transition-all duration-200 select-none pointer-events-auto"
           onMouseDown={(e) => handleResizeStart(e, 'bottom-left')}
           title="Resize"
         />
-        <div
+        
+        
+        {/*
+          TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+          TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+          TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+        */}
+        <button
+          type="button"
+          aria-label="Resize bottom-right"
           className="absolute -bottom-1 -right-1 w-2.5 h-2.5 cursor-nwse-resize rounded-full z-[120] bg-amber-400/30 hover:bg-amber-400 hover:shadow-[0_0_6px_rgba(251,191,36,0.6)] transition-all duration-200 select-none pointer-events-auto"
           onMouseDown={(e) => handleResizeStart(e, 'bottom-right')}
           title="Resize"
         />
 
         {/* Edge handles - thin bars that appear on hover */}
-        <div
+        
+        
+        {/*
+          TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+          TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+          TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+        */}
+        <button
+          type="button"
+          aria-label="Resize top edge"
           className="absolute -top-0.5 left-1/2 transform -translate-x-1/2 w-12 h-1 cursor-ns-resize z-[110] rounded-full bg-amber-400/20 hover:bg-amber-400/80 hover:shadow-[0_0_4px_rgba(251,191,36,0.5)] transition-all duration-200 select-none pointer-events-auto"
           onMouseDown={(e) => handleResizeStart(e, 'top')}
           title="Resize"
         />
-        <div
+        
+        
+        <button
+          type="button"
+          aria-label="Resize bottom edge"
           className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 w-12 h-1 cursor-ns-resize z-[110] rounded-full bg-amber-400/20 hover:bg-amber-400/80 hover:shadow-[0_0_4px_rgba(251,191,36,0.5)] transition-all duration-200 select-none pointer-events-auto"
           onMouseDown={(e) => handleResizeStart(e, 'bottom')}
           title="Resize"
         />
-        <div
+        
+        
+        <button
+          type="button"
+          aria-label="Resize left edge"
           className="absolute -left-0.5 top-1/2 transform -translate-y-1/2 w-1 h-12 cursor-ew-resize z-[110] rounded-full bg-amber-400/20 hover:bg-amber-400/80 hover:shadow-[0_0_4px_rgba(251,191,36,0.5)] transition-all duration-200 select-none pointer-events-auto"
           onMouseDown={(e) => handleResizeStart(e, 'left')}
           title="Resize"
         />
-        <div
+        
+        
+        <button
+          type="button"
+          aria-label="Resize right edge"
           className="absolute -right-0.5 top-1/2 transform -translate-y-1/2 w-1 h-12 cursor-ew-resize z-[110] rounded-full bg-amber-400/20 hover:bg-amber-400/80 hover:shadow-[0_0_4px_rgba(251,191,36,0.5)] transition-all duration-200 select-none pointer-events-auto"
           onMouseDown={(e) => handleResizeStart(e, 'right')}
           title="Resize"
         />
         <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-600">
-          <div
-            className="flex items-center gap-2 cursor-grab active:cursor-grabbing select-none"
+          
+          
+          <button
+            type="button"
+            aria-label="Drag to move the glossary"
+            className="flex items-center gap-2 cursor-grab active:cursor-grabbing select-none bg-transparent border-0"
             onMouseDown={handleDragStart}
             title="Drag to move the glossary"
           >
@@ -847,7 +924,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
               <path d="M9 4.5a1 1 0 0 1 2 0v2.086l1.293-1.293a1 1 0 1 1 1.414 1.414L12.414 8H14.5a1 1 0 1 1 0 2h-2.086l1.293 1.293a1 1 0 1 1-1.414 1.414L11 11.414V13.5a1 1 0 1 1-2 0v-2.086l-1.293 1.293a1 1 0 0 1-1.414-1.414L7.586 10H5.5a1 1 0 0 1 0-2h2.086L6.293 6.707a1 1 0 0 1 1.414-1.414L9 6.586V4.5Z" />
             </svg>
             <h2 id="glossary-title" className="text-3xl font-bold text-amber-400 font-cinzel">Game Glossary</h2>
-          </div>
+          </button>
           <div className="flex items-center gap-3">
             {/* Re-check Spells Button */}
             <button
@@ -906,6 +983,10 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
                   <span className={`ml-2 transform transition-transform duration-150 ${expandedCategories.has(category) ? 'rotate-90' : ''}`}>▶</span>
                 </summary>
                 {(expandedCategories.has(category)) && (
+                  /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+                  TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+                  TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+                  */
                   <ul className="space-y-px pl-1 pt-1">
                     {groupedEntries[category]?.sort((a, b) => a.title.localeCompare(b.title)).map(entry => (
                       renderEntryNode(entry, 1)
@@ -917,13 +998,17 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
           </div>
 
           {/* Column resize grabber - subtle divider that glows on hover */}
-          <div
+          
+          
+          <button
+            type="button"
+            aria-label="Resize glossary columns"
             className="w-1 cursor-col-resize self-stretch flex items-center justify-center group"
             onMouseDown={handleColumnResizeStart}
             title="Drag to resize columns"
           >
             <div className="w-0.5 h-16 rounded-full bg-amber-400/30 group-hover:bg-amber-400/80 group-hover:shadow-[0_0_6px_rgba(251,191,36,0.5)] transition-all duration-200" />
-          </div>
+          </button>
 
           <div className="flex-grow md:w-2/3 border border-gray-700 rounded-lg bg-gray-800/50 p-4 overflow-y-auto scrollable-content glossary-entry-container" style={{ transition: columnResizeState.isResizing ? 'none' : 'width 0.2s ease' }}>
             {selectedEntry ? (

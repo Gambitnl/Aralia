@@ -30,16 +30,25 @@ export type AppAction =
   | { type: 'SET_LAST_NPC_INTERACTION'; payload: { npcId: string | null; response: string | null } }
   | { type: 'RESET_NPC_INTERACTION_CONTEXT' }
   | { type: 'ADVANCE_TIME'; payload: { seconds: number } }
-  | { type: 'INSPECT_SUBMAP_TILE'; payload: any }
+  // TODO(lint-intent): The any on 'payload' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  | { type: 'INSPECT_SUBMAP_TILE'; payload: unknown }
   | { type: 'TOGGLE_DEV_MENU' }
   | { type: 'TOGGLE_PARTY_EDITOR_MODAL' }
   | { type: 'TOGGLE_PARTY_OVERLAY' }
   | { type: 'TOGGLE_GEMINI_LOG_VIEWER' }
   | { type: 'TOGGLE_NPC_TEST_MODAL' }
   | { type: 'TOGGLE_NOBLE_HOUSE_LIST' }
-  | { type: 'UPDATE_INSPECTED_TILE_DESCRIPTION'; payload: any }
+  // TODO(lint-intent): The any on 'payload' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  | { type: 'UPDATE_INSPECTED_TILE_DESCRIPTION'; payload: unknown }
   // Discovery Journal Actions
-  | { type: 'ADD_DISCOVERY_ENTRY'; payload: any }
+  // TODO(lint-intent): The any on 'payload' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  | { type: 'ADD_DISCOVERY_ENTRY'; payload: unknown }
   | { type: 'MARK_DISCOVERY_READ'; payload: { entryId: string } }
   | { type: 'MARK_ALL_DISCOVERIES_READ' }
   | { type: 'TOGGLE_DISCOVERY_LOG_VISIBILITY' }
@@ -49,10 +58,22 @@ export type AppAction =
   | { type: 'UPDATE_QUEST_IN_DISCOVERY_LOG'; payload: { questId: string; newStatus: string; newContent?: string } }
   | { type: 'CLEAR_DISCOVERY_LOG' }
   // Item Interaction Actions
-  | { type: 'EQUIP_ITEM'; payload: any }
-  | { type: 'UNEQUIP_ITEM'; payload: any }
-  | { type: 'USE_ITEM'; payload: any }
-  | { type: 'DROP_ITEM'; payload: any }
+  // TODO(lint-intent): The any on 'payload' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  | { type: 'EQUIP_ITEM'; payload: unknown }
+  // TODO(lint-intent): The any on 'payload' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  | { type: 'UNEQUIP_ITEM'; payload: unknown }
+  // TODO(lint-intent): The any on 'payload' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  | { type: 'USE_ITEM'; payload: unknown }
+  // TODO(lint-intent): The any on 'payload' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  | { type: 'DROP_ITEM'; payload: unknown }
   | { type: 'AUTO_EQUIP'; payload: { characterId: string } }
   // Merchant Actions
   | { type: 'OPEN_MERCHANT'; payload: { merchantName: string; inventory: Item[]; economy?: EconomyState } }
@@ -63,11 +84,17 @@ export type AppAction =
   | { type: 'CLOSE_TEMPLE' }
   // Encounter Actions
   | { type: 'GENERATE_ENCOUNTER'; }
-  | { type: 'SHOW_ENCOUNTER_MODAL'; payload: { encounterData: any } }
+  // TODO(lint-intent): The any on 'encounterData' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  | { type: 'SHOW_ENCOUNTER_MODAL'; payload: { encounterData: unknown } }
   | { type: 'HIDE_ENCOUNTER_MODAL'; }
   // Battle Map Actions
   | { type: 'SETUP_BATTLE_MAP_DEMO' }
-  | { type: 'START_BATTLE_MAP_ENCOUNTER'; payload: any }
+  // TODO(lint-intent): The any on 'payload' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  | { type: 'START_BATTLE_MAP_ENCOUNTER'; payload: unknown }
   | { type: 'END_BATTLE'; payload?: { rewards?: { gold: number; items: Item[]; xp: number } } }
   // Party Editor
   | { type: 'TOGGLE_PARTY_EDITOR_MODAL' }
@@ -115,7 +142,10 @@ export type AppAction =
   // Game Guide
   | { type: 'TOGGLE_GAME_GUIDE' }
   // Character Update Actions
-  | { type: 'UPDATE_CHARACTER_CHOICE'; payload: { characterId: string; choiceType: string; choiceId: string; secondaryValue?: any } }
+  // TODO(lint-intent): The any on this value hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  | { type: 'UPDATE_CHARACTER_CHOICE'; payload: { characterId: string; choiceType: string; choiceId: string; secondaryValue?: unknown } }
   // Quest Actions
   | { type: 'ACCEPT_QUEST'; payload: Quest }
   | { type: 'UPDATE_QUEST_OBJECTIVE'; payload: { questId: string; objectiveId: string; isCompleted: boolean } }
@@ -173,4 +203,7 @@ export type AppAction =
   | { type: 'START_RITUAL'; payload: RitualState }
   | { type: 'ADVANCE_RITUAL'; payload: { minutes: number } }
   | { type: 'INTERRUPT_RITUAL'; payload: { event: RitualEvent } }
-  | { type: 'COMPLETE_RITUAL'; payload: { result?: any } };
+  // TODO(lint-intent): The any on this value hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  | { type: 'COMPLETE_RITUAL'; payload: { result?: unknown } };

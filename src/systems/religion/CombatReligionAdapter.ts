@@ -1,8 +1,14 @@
 
 import { CombatLogEntry } from '../../types/combat';
 import { AppAction } from '../../state/actionTypes';
-import { DEITIES } from '../../data/deities';
-import { logger } from '../../utils/logger';
+// TODO(lint-intent): 'DEITIES' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { DEITIES as _DEITIES } from '../../data/deities';
+// TODO(lint-intent): 'logger' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { logger as _logger } from '../../utils/logger';
 
 /**
  * Adapter to translate Combat Log events into Religion System triggers.

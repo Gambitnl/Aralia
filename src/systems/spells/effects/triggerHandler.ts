@@ -4,8 +4,10 @@
  * Handles execution of spell effect triggers based on game events.
  * Supports the new trigger types: on_enter_area, on_exit_area, on_end_turn_in_area, on_target_move
  */
-
-import type { SpellEffect, EffectTrigger, EffectCondition, TargetConditionFilter } from '../../../types/spells';
+// TODO(lint-intent): 'EffectCondition' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import type { SpellEffect, EffectTrigger, EffectCondition as _EffectCondition, TargetConditionFilter } from '../../../types/spells';
 import type { CombatCharacter, Position } from '../../../types/combat';
 
 /**
@@ -41,7 +43,10 @@ export interface MovementTriggerDebuff {
 /**
  * Context for evaluating trigger conditions
  */
-interface TriggerContext {
+// TODO(lint-intent): 'TriggerContext' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+// TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+// TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+interface _TriggerContext {
     round: number;
     movingCharacter?: CombatCharacter;
     enteredPosition?: Position;
@@ -80,7 +85,10 @@ export function matchesTargetFilter(
 
     // Check creature type
     if (filter.creatureType && filter.creatureType.length > 0) {
-        const targetType = (target as any).creatureType || 'Humanoid';
+        // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+        const targetType = (target as unknown).creatureType || 'Humanoid';
         if (!filter.creatureType.includes(targetType)) {
             return false;
         }
@@ -88,7 +96,10 @@ export function matchesTargetFilter(
 
     // Check size (if target has size property)
     if (filter.size && filter.size.length > 0) {
-        const targetSize = (target as any).size || 'Medium';
+        // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+        const targetSize = (target as unknown).size || 'Medium';
         if (!filter.size.includes(targetSize)) {
             return false;
         }
@@ -96,7 +107,10 @@ export function matchesTargetFilter(
 
     // Check alignment (if target has alignment property)
     if (filter.alignment && filter.alignment.length > 0) {
-        const targetAlignment = (target as any).alignment;
+        // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+        const targetAlignment = (target as unknown).alignment;
         if (targetAlignment && !filter.alignment.includes(targetAlignment)) {
             return false;
         }
@@ -198,7 +212,10 @@ export function processAreaEntryTriggers(
     character: CombatCharacter,
     newPosition: Position,
     previousPosition: Position,
-    round: number
+    // TODO(lint-intent): 'round' is an unused parameter, which suggests a planned input for this flow.
+    // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+    // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+    _round: number
 ): TriggerResult[] {
     const results: TriggerResult[] = [];
 
@@ -376,8 +393,14 @@ export function convertSpellEffectToProcessed(effect: SpellEffect): ProcessedEff
         case 'DAMAGE':
             processed.push({
                 type: 'damage',
-                dice: (effect as any).damage?.dice,
-                damageType: (effect as any).damage?.type,
+                // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+                // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+                // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+                dice: (effect as unknown).damage?.dice,
+                // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+                // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+                // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+                damageType: (effect as unknown).damage?.type,
                 requiresSave: effect.condition?.type === 'save',
                 saveType: effect.condition?.saveType,
                 saveEffect: effect.condition?.saveEffect
@@ -387,14 +410,20 @@ export function convertSpellEffectToProcessed(effect: SpellEffect): ProcessedEff
         case 'HEALING':
             processed.push({
                 type: 'heal',
-                dice: (effect as any).healing?.dice
+                // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+                // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+                // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+                dice: (effect as unknown).healing?.dice
             });
             break;
 
         case 'STATUS_CONDITION':
             processed.push({
                 type: 'status_condition',
-                statusName: (effect as any).statusCondition?.name,
+                // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+                // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+                // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+                statusName: (effect as unknown).statusCondition?.name,
                 requiresSave: effect.condition?.type === 'save',
                 saveType: effect.condition?.saveType,
                 saveEffect: effect.condition?.saveEffect

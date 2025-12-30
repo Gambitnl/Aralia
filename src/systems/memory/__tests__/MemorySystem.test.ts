@@ -19,7 +19,8 @@ describe('MemorySystem', () => {
     isQuestGiver: false,
     isEssential: false,
     memory: MemorySystem.createEmptyMemory(1000),
-    stats: {} as any, // Minimal mock
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    stats: {} as unknown, // Minimal mock
     currentHp: 10,
     maxHp: 10,
     armorClass: 10,

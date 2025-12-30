@@ -13,7 +13,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { ai, isAiEnabled } from './aiClient'; // Import the shared AI client
 import { withRetry } from '../utils/networkUtils';
 import { logger } from '../utils/logger';
-import { Action, PlayerCharacter, InspectSubmapTilePayload, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState, ItemType, VillageActionContext, ItemRarity, NPCMemory } from "../types";
+// TODO(lint-intent): 'PlayerCharacter' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Action, PlayerCharacter as _PlayerCharacter, InspectSubmapTilePayload, Monster, GroundingChunk, TempPartyMember, GoalStatus, GoalUpdatePayload, Item, EconomyState, ItemType, VillageActionContext, ItemRarity, NPCMemory } from "../types";
 import { formatMemoryForAI } from '../utils/memoryUtils';
 import { SeededRandom } from '../utils/seededRandom';
 import { SUBMAP_ICON_MEANINGS } from '../data/glossaryData';

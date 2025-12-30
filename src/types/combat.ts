@@ -7,7 +7,10 @@
 import type { AbilityScoreName, CharacterStats } from './core';
 import type { Class, SpellbookData, SpellSlots } from './character';
 import type { Item } from './items';
-import type { Spell, DamageType, SavingThrowAbility, ConditionName, EffectDuration, SpellEffect } from './spells'; // Import Spell
+// TODO(lint-intent): 'SavingThrowAbility' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import type { Spell, DamageType, SavingThrowAbility as _SavingThrowAbility, ConditionName, EffectDuration, SpellEffect } from './spells'; // Import Spell
 import { StateTag } from './elemental';
 import { Plane } from './planes';
 import { RitualState } from './ritual';

@@ -37,7 +37,10 @@ export class TavernGossipSystem {
         // 1. Cheap Gossip (World Rumors)
         // Check active world rumors first
         const activeRumors = state.activeRumors || [];
-        const unknownRumors = activeRumors.filter(r =>
+        // TODO(lint-intent): 'r' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        const unknownRumors = activeRumors.filter(_r =>
             // Filter logic could go here, e.g., haven't heard it yet
             // For now, just pick random ones from the world state
             true

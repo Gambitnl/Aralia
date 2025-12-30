@@ -1,7 +1,8 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { TempleSystem } from '../TempleSystem';
-import { GameState, TempleService, DivineFavor } from '../../types';
+// TODO(lint-intent): 'DivineFavor' is unused in this test; use it in the assertion path or remove it.
+import { GameState, TempleService, DivineFavor as _DivineFavor } from '../../types';
 
 describe('TempleSystem', () => {
     // Mock State

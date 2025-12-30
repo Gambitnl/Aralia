@@ -1,8 +1,11 @@
-
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { loadGame, saveGame, getSaveSlots } from '../saveLoadService';
-import { SafeStorage } from '../../utils/storageUtils';
-import { GameState } from '../../types';
+// TODO(lint-intent): 'afterEach' is unused in this test; use it in the assertion path or remove it.
+import { describe, it, expect, vi, beforeEach, afterEach as _afterEach } from 'vitest';
+// TODO(lint-intent): 'saveGame' is unused in this test; use it in the assertion path or remove it.
+import { loadGame, saveGame as _saveGame, getSaveSlots } from '../saveLoadService';
+// TODO(lint-intent): 'SafeStorage' is unused in this test; use it in the assertion path or remove it.
+import { SafeStorage as _SafeStorage } from '../../utils/storageUtils';
+// TODO(lint-intent): 'GameState' is unused in this test; use it in the assertion path or remove it.
+import { GameState as _GameState } from '../../types';
 
 // Mock storage
 const mockStorage: Record<string, string> = {};

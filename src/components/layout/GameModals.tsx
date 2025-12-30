@@ -15,7 +15,10 @@ import { SUBMAP_DIMENSIONS } from '../../config/mapConfig';
 import { NPCS } from '../../constants';
 import { canUseDevTools } from '../../utils/permissions';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
-import * as GeminiService from '../../services/geminiService';
+// TODO(lint-intent): 'GeminiService' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import * as _GeminiService from '../../services/geminiService';
 import { useDialogueSystem } from '../../hooks/useDialogueSystem';
 
 import ErrorBoundary from '../ErrorBoundary';
@@ -78,7 +81,10 @@ const GameModals: React.FC<GameModalsProps> = ({
     currentLocation,
     npcsInLocation,
     itemsInLocation,
-    isUIInteractive,
+    // TODO(lint-intent): 'isUIInteractive' is an unused parameter, which suggests a planned input for this flow.
+    // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+    // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+    isUIInteractive: _isUIInteractive,
     submapPaneDisabled,
     missingChoiceModal,
     onCloseMissingChoice,
@@ -381,7 +387,13 @@ const GameModals: React.FC<GameModalsProps> = ({
                             onClose={() => dispatch({ type: 'END_DIALOGUE_SESSION' })}
                             onUpdateSession={(newSession) => dispatch({ type: 'UPDATE_DIALOGUE_SESSION', payload: { session: newSession } })}
                             // TODO: Verify if DialogueInterface relies on this callback. If state updates are required during dialogue (e.g. relationship changes), this empty implementation needs to be connected to the dispatch function.
-                            onUpdateGameState={(updates) => { /* TODO: Implement partial updates if needed */ }}
+                            
+                            /* TODO(lint-intent): 'updates' is an unused parameter, which suggests a planned input for this flow.
+                            TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+                            TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+                            */
+                            
+                            onUpdateGameState={(_updates) => { /* TODO: Implement partial updates if needed */ }}
                             onTopicOutcome={handleTopicOutcome}
                             onGenerateResponse={generateResponse}
                         />

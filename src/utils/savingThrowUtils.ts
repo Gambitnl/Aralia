@@ -78,8 +78,14 @@ export function rollSavingThrow(
 
     // Add proficiency if applicable
     // Check if class or character has proficiency in this save
-    const classHasProficiency = target.class?.savingThrowProficiencies?.includes(ability.slice(0, 3) as any) || target.class?.savingThrowProficiencies?.includes(ability);
-    const charHasProficiency = target.savingThrowProficiencies?.includes(ability.slice(0, 3) as any) || target.savingThrowProficiencies?.includes(ability);
+    // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+    // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+    // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+    const classHasProficiency = target.class?.savingThrowProficiencies?.includes(ability.slice(0, 3) as unknown) || target.class?.savingThrowProficiencies?.includes(ability);
+    // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+    // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+    // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+    const charHasProficiency = target.savingThrowProficiencies?.includes(ability.slice(0, 3) as unknown) || target.savingThrowProficiencies?.includes(ability);
 
     // Note: SavingThrowAbility is "Strength", "Dexterity", etc.
     // Class.savingThrowProficiencies and target.savingThrowProficiencies are AbilityScoreName ("Strength", etc.)

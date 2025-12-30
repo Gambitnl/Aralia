@@ -59,7 +59,8 @@ describe('useHistorySync', () => {
 
         // Try to delete first to handle JSDOM constraints
         try {
-            delete (window as any).location;
+            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+            delete (window as unknown).location;
         } catch {
             // Ignore error if location can't be deleted
         }
@@ -238,7 +239,8 @@ describe('useHistorySync', () => {
 
     it('should dispatch MOVE_PLAYER on initial mount if coords present in URL', () => {
         mockLocation.search = '?phase=playing&x=5&y=5&loc=loc_1';
-        gameState.party = [{ id: 'p1', name: 'Test', class: { name: 'Fighter' } } as any];
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        gameState.party = [{ id: 'p1', name: 'Test', class: { name: 'Fighter' } } as unknown];
 
         renderHook(() => useHistorySync(gameState, dispatch));
 

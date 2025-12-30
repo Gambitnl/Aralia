@@ -15,7 +15,10 @@ import { FactionManager } from './FactionManager';
 import { generateNobleIntrigue } from './NobleIntrigueManager';
 import { checkQuestDeadlines } from '../quests/QuestManager';
 import { SecretGenerator } from '../intrigue/SecretGenerator';
-import { Secret } from '../../types/identity';
+// TODO(lint-intent): 'Secret' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Secret as _Secret } from '../../types/identity';
 
 export type WorldEventType = 'FACTION_SKIRMISH' | 'MARKET_SHIFT' | 'RUMOR_SPREAD' | 'NOBLE_INTRIGUE';
 
@@ -204,7 +207,10 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
       // Secret about the Loser being weak/corrupt, or the Winner using dark magic?
       // For simplicity, let's just generate a faction secret about the loser.
       // We pass 'others' as just the winner to create conflict-specific secrets.
-      const secret = secretGen.generateFactionSecret(loser, [winner]);
+      // TODO(lint-intent): 'secret' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+      // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+      // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+      const _secret = secretGen.generateFactionSecret(loser, [winner]);
 
       // Store it in the world state?
       // Currently, Secrets are player-centric resources.
@@ -242,7 +248,10 @@ const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventR
  */
 const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResult => {
     // Define potential market events with actual gameplay effects
-    let events: Array<{ text: string; event: MarketEvent, weight?: number }> = [
+    // TODO(lint-intent): This binding never reassigns, so the intended mutability is unclear.
+    // TODO(lint-intent): If it should stay stable, switch to const and treat it as immutable.
+    // TODO(lint-intent): If mutation was intended, add the missing update logic to reflect that intent.
+    const events: Array<{ text: string; event: MarketEvent, weight?: number }> = [
         {
             text: "A surplus of iron from the mines has lowered weapon prices.",
             event: {

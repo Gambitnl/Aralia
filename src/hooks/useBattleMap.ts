@@ -3,7 +3,7 @@
  * Custom hook to manage the state and logic of a procedural battle map.
  * Refactored to use useGridMovement for pathfinding state.
  */
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { BattleMapData, BattleMapTile, CombatCharacter, CharacterPosition, AbilityCost } from '../types/combat';
 import { useTurnManager } from './combat/useTurnManager';
 import { useAbilitySystem } from './useAbilitySystem';
@@ -29,6 +29,24 @@ export function useBattleMap(
 ): UseBattleMapReturn {
   const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
   const [actionMode, setActionMode] = useState<'move' | 'ability' | null>(null);
+  const currentCharacterId = turnManager.turnState.currentCharacterId;
+  const currentCharacter = useMemo(
+    () => characters.find(c => c.id === currentCharacterId) || null,
+    [characters, currentCharacterId]
+  );
+  const resolvedSelectedCharacterId =
+    selectedCharacterId && selectedCharacterId === currentCharacterId
+      ? selectedCharacterId
+      : currentCharacter?.team === 'player'
+        ? currentCharacterId ?? null
+        : null;
+  const resolvedActionMode =
+    selectedCharacterId && selectedCharacterId === currentCharacterId
+      ? actionMode
+      : currentCharacter?.team === 'player'
+        ? 'move'
+        : null;
+  // TODO(lint-intent): If turn-based selection should persist across turns, store selections keyed by turn id.
 
   // Derived state: Map of character IDs to their positions
   const characterPositions = useMemo(() => {
@@ -41,8 +59,8 @@ export function useBattleMap(
 
   // Derived state: Selected Character Object
   const selectedCharacter = useMemo(() =>
-    characters.find(c => c.id === selectedCharacterId) || null
-    , [characters, selectedCharacterId]);
+    characters.find(c => c.id === resolvedSelectedCharacterId) || null
+    , [characters, resolvedSelectedCharacterId]);
 
   const {
     validMoves,
@@ -50,29 +68,6 @@ export function useBattleMap(
     calculatePath,
     clearMovementState
   } = useGridMovement({ mapData, characterPositions, selectedCharacter });
-
-  // Auto-select the current player character when their turn starts
-  useEffect(() => {
-    const currentId = turnManager.turnState.currentCharacterId;
-    if (!currentId) {
-      setSelectedCharacterId(null);
-      setActionMode(null);
-      return;
-    }
-
-    const currentCharacter = characters.find(c => c.id === currentId);
-    if (!currentCharacter) return;
-
-    // Only auto-select player characters (AI handles enemy turns separately)
-    if (currentCharacter.team === 'player') {
-      setSelectedCharacterId(currentId);
-      setActionMode('move');
-    } else {
-      // Clear selection during enemy turns
-      setSelectedCharacterId(null);
-      setActionMode(null);
-    }
-  }, [turnManager.turnState.currentCharacterId, characters]);
 
   const selectCharacter = useCallback((character: CombatCharacter) => {
     if (character.team !== 'player') return; // Prevent selecting enemy characters
@@ -98,19 +93,19 @@ export function useBattleMap(
   }, [abilitySystem, selectCharacter, turnManager]);
 
   const handleTileClick = useCallback((tile: BattleMapTile) => {
-    if (!selectedCharacterId || !mapData) return;
+    if (!resolvedSelectedCharacterId || !mapData) return;
 
-    const character = characters.find(c => c.id === selectedCharacterId);
+    const character = characters.find(c => c.id === resolvedSelectedCharacterId);
     if (!character) return;
 
-    if (actionMode === 'ability' && abilitySystem.targetingMode) {
+    if (resolvedActionMode === 'ability' && abilitySystem.targetingMode) {
       if (abilitySystem.selectedAbility && abilitySystem.isValidTarget(abilitySystem.selectedAbility, character, tile.coordinates)) {
         abilitySystem.selectTarget(tile.coordinates, character);
       } else {
         abilitySystem.cancelTargeting();
       }
-    } else if (actionMode === 'move' && validMoves.has(tile.id)) {
-      const startPos = characterPositions.get(selectedCharacterId)?.coordinates;
+    } else if (resolvedActionMode === 'move' && validMoves.has(tile.id)) {
+      const startPos = characterPositions.get(resolvedSelectedCharacterId)?.coordinates;
       const startTile = startPos ? mapData.tiles.get(`${startPos.x}-${startPos.y}`) : null;
 
       if (startTile) {
@@ -124,7 +119,7 @@ export function useBattleMap(
 
         if (turnManager.executeAction({
           id: Math.random().toString(),
-          characterId: selectedCharacterId,
+          characterId: resolvedSelectedCharacterId,
           type: 'move',
           cost: moveActionCost,
           targetPosition: tile.coordinates,
@@ -134,14 +129,14 @@ export function useBattleMap(
         }
       }
     }
-  }, [selectedCharacterId, mapData, characters, actionMode, validMoves, abilitySystem, turnManager, characterPositions, calculatePath, clearMovementState]);
+  }, [resolvedSelectedCharacterId, mapData, characters, resolvedActionMode, validMoves, abilitySystem, turnManager, characterPositions, calculatePath, clearMovementState]);
 
   return {
     characterPositions,
-    selectedCharacterId,
+    selectedCharacterId: resolvedSelectedCharacterId,
     validMoves,
     activePath,
-    actionMode,
+    actionMode: resolvedActionMode,
     setActionMode,
     handleTileClick,
     handleCharacterClick,

@@ -1,7 +1,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { createPlayerCombatCharacter } from '../combatUtils';
-import { PlayerCharacter, Item } from '../../types';
+// TODO(lint-intent): 'PlayerCharacter' is unused in this test; use it in the assertion path or remove it.
+import { PlayerCharacter as _PlayerCharacter, Item } from '../../types';
 import { Spell, SpellSchool } from '../../types/spells';
 import { createMockPlayerCharacter, createMockSpell } from '../factories';
 

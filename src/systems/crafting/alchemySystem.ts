@@ -3,8 +3,10 @@
  * Experimental alchemy system allowing property-based ingredient mixing.
  * ALCHEMIST PHILOSOPHY: Creation should cost resources. Failure teaches.
  */
-
-import { Item, ItemType } from '../../types/items';
+// TODO(lint-intent): 'ItemType' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Item, ItemType as _ItemType } from '../../types/items';
 import { Crafter } from './craftingSystem';
 import { CraftingResult } from './types';
 

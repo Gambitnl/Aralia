@@ -249,7 +249,10 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       selectedDruidOrder: currentState.selectedDruidOrder || undefined,
       selectedWarlockPatron: currentState.selectedWarlockPatron || undefined,
       racialSelections: currentState.racialSelections,
-      featChoices: currentState.featChoices as any,
+      // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+      featChoices: currentState.featChoices as unknown,
       visuals: {
         gender: currentState.visuals.gender === 'Male' ? 'Male' : 'Female',
         skinColor: currentState.visuals.skinColor,

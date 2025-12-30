@@ -3,7 +3,7 @@
  * Manages the combat state (Victory/Defeat) and reward generation.
  * Extracts logic previously in CombatView to improve testability and separation of concerns.
  */
-import { useState, useEffect } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { CombatCharacter } from '../../types/combat';
 import { Item, Monster } from '../../types';
 import { generateLoot } from '../../services/lootService';
@@ -22,62 +22,64 @@ interface UseCombatOutcomeProps {
 }
 
 export const useCombatOutcome = ({ characters, initialEnemies }: UseCombatOutcomeProps) => {
-  const [battleState, setBattleState] = useState<BattleOutcome>('active');
-  const [rewards, setRewards] = useState<CombatRewards | null>(null);
+  const [forcedOutcome, setForcedOutcome] = useState<BattleOutcome | null>(null);
+  const [forcedRewards, setForcedRewards] = useState<CombatRewards | null>(null);
 
-  useEffect(() => {
-    // If battle is already over or no characters loaded yet, do nothing
-    if (battleState !== 'active' || characters.length === 0) return;
+  const players = characters.filter(c => c.team === 'player');
+  const activeEnemies = characters.filter(c => c.team === 'enemy' && c.currentHP > 0);
+  const activePlayers = players.filter(c => c.currentHP > 0);
 
-    const players = characters.filter(c => c.team === 'player');
-    const activeEnemies = characters.filter(c => c.team === 'enemy' && c.currentHP > 0);
-    const activePlayers = players.filter(c => c.currentHP > 0);
+  let computedOutcome: BattleOutcome = 'active';
+  if (activeEnemies.length === 0 && initialEnemies.length > 0) {
+    computedOutcome = 'victory';
+  } else if (activePlayers.length === 0 && players.length > 0) {
+    computedOutcome = 'defeat';
+  }
 
-    // Victory Condition: No active enemies left, but there were enemies to begin with
-    if (activeEnemies.length === 0 && initialEnemies.length > 0) {
-      setBattleState('victory');
+  const battleState = forcedOutcome ?? computedOutcome;
+  const buildRewards = useCallback((): CombatRewards => {
+    // We map CombatCharacter back to a partial Monster structure for loot generation
+    const originalMonsters: Monster[] = initialEnemies.map(e => ({
+      id: e.id, // Add required id
+      name: e.name,
+      cr: (e.level || 0).toString(), // CombatCharacter uses 'level' for CR/Level. Safe fallback.
+      stats: e.stats,
+      description: e.name, // Use name as description fallback for tags
+      alignment: e.alignment || 'Unaligned',
+      type: (e.creatureTypes?.[0] || 'Unknown'),
+      ac: e.baseAC || 10,
+      hp: e.maxHP,
+      actions: [], // Not needed for loot
+      xp: 0 // Will be calculated
+    }));
 
-      // Generate Rewards
-      // We map CombatCharacter back to a partial Monster structure for loot generation
-      const originalMonsters: Monster[] = initialEnemies.map(e => ({
-        id: e.id, // Add required id
-        name: e.name,
-        cr: (e.level || 0).toString(), // CombatCharacter uses 'level' for CR/Level. Safe fallback.
-        stats: e.stats,
-        description: e.name, // Use name as description fallback for tags
-        alignment: e.alignment || 'Unaligned',
-        type: (e.creatureTypes?.[0] || 'Unknown'),
-        ac: e.baseAC || 10,
-        hp: e.maxHP,
-        actions: [], // Not needed for loot
-        xp: 0 // Will be calculated
-      }));
+    const loot = generateLoot(originalMonsters);
+    // Simple XP calculation: 50 * enemy count
+    // TODO(Economist): Implement real XP calculation based on CR
+    const xp = initialEnemies.length * 50;
 
-      const loot = generateLoot(originalMonsters);
-      // Simple XP calculation: 50 * enemy count
-      // TODO(Economist): Implement real XP calculation based on CR
-      const xp = initialEnemies.length * 50;
+    return {
+      gold: loot.gold,
+      items: loot.items,
+      xp
+    };
+  }, [initialEnemies]);
 
-      setRewards({
-        gold: loot.gold,
-        items: loot.items,
-        xp
-      });
-
-    }
-    // Defeat Condition: No active players left, but there were players to begin with
-    else if (activePlayers.length === 0 && players.length > 0) {
-      setBattleState('defeat');
-    }
-
-  }, [characters, initialEnemies, battleState]);
+  const rewards = useMemo(() => {
+    if (battleState !== 'victory') return null;
+    if (forcedOutcome === 'victory' && forcedRewards) return forcedRewards;
+    return buildRewards();
+  }, [battleState, forcedOutcome, forcedRewards, buildRewards]);
 
   // Debug/Manual override helper
   const forceOutcome = (outcome: BattleOutcome) => {
-    setBattleState(outcome);
-    if (outcome === 'victory' && !rewards) {
-       // Generate dummy rewards if forced
-       setRewards({ gold: 100, items: [], xp: 100 });
+    setForcedOutcome(outcome);
+    if (outcome === 'victory' && !forcedRewards) {
+      // Generate dummy rewards if forced
+      setForcedRewards({ gold: 100, items: [], xp: 100 });
+    }
+    if (outcome !== 'victory') {
+      setForcedRewards(null);
     }
   };
 

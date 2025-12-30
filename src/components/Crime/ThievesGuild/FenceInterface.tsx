@@ -77,8 +77,15 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
                         <h2 className="text-xl font-bold text-amber-500 flex items-center gap-2">
                             <span>🕵️</span> {service.name}
                         </h2>
+                        
+                        
+                        {/*
+                          TODO(lint-intent): This text includes raw quotes/special characters that were likely meant as prose.
+                          TODO(lint-intent): Decide whether to escape them, move text to a copy/localization layer, or pre-format it.
+                          TODO(lint-intent): If the text is dynamic, consider formatting/escaping before render to preserve intent.
+                        */}
                         <p className="text-xs text-gray-400">
-                            "I buy anything. No questions asked." (Cut: {Math.round((1 - payoutRatio) * 100)}%)
+                            &quot;I buy anything. No questions asked.&quot; (Cut: {Math.round((1 - payoutRatio) * 100)}%)
                         </p>
                     </div>
                     <button onClick={onClose} className="text-gray-400 hover:text-white text-2xl">&times;</button>
@@ -114,9 +121,23 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
                                 <p className="text-gray-600 text-center text-sm mt-4">Inventory is empty.</p>
                             ) : (
                                 inventory.map(item => (
+                                    
+                                    
+                                    /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+                                    TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+                                    TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+                                    */
                                     <div
                                         key={item.id}
                                         onClick={() => setSelectedItem(item)}
+                                        role="button"
+                                        tabIndex={0}
+                                        onKeyDown={(event) => {
+                                            if (event.key === 'Enter' || event.key === ' ') {
+                                                event.preventDefault();
+                                                setSelectedItem(item);
+                                            }
+                                        }}
                                         className={`p-2 rounded cursor-pointer flex justify-between items-center text-sm border ${selectedItem?.id === item.id ? 'bg-amber-900/20 border-amber-600' : 'bg-gray-800 border-gray-700 hover:border-gray-500'}`}
                                     >
                                         <span className={item.rarity === ItemRarity.Legendary ? 'text-orange-400' : item.rarity === ItemRarity.Rare ? 'text-blue-400' : 'text-gray-300'}>

@@ -1,5 +1,5 @@
-
-import { describe, it, expect, vi } from 'vitest';
+// TODO(lint-intent): 'vi' is unused in this test; use it in the assertion path or remove it.
+import { describe, it, expect, vi as _vi } from 'vitest';
 import { generateLandmark } from '../landmarkService';
 
 describe('landmarkService', () => {

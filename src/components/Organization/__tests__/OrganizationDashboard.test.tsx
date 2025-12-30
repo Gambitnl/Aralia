@@ -9,7 +9,8 @@ import { Organization } from '../../../types/organizations';
 vi.mock('../../../services/organizationService', async () => {
     const actual = await vi.importActual('../../../services/organizationService');
     return {
-        ...actual as any,
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        ...actual as unknown,
         recruitMember: vi.fn((org, name, cls) => ({
             ...org,
             members: [...org.members, { id: 'new-mem', name, class: cls, rank: 'initiate', level: 1, loyalty: 50 }],
@@ -95,7 +96,8 @@ describe('OrganizationDashboard', () => {
          fireEvent.change(nameInput, { target: { value: 'Expensive Recruit' } });
 
          // Mock the implementation for this test to throw
-         (recruitMember as any).mockImplementationOnce(() => { throw new Error('Not enough gold'); });
+         // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+         (recruitMember as unknown).mockImplementationOnce(() => { throw new Error('Not enough gold'); });
 
          fireEvent.click(screen.getByText(/Confirm/i));
 

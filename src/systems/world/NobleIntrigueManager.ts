@@ -146,9 +146,12 @@ const resolveIntrigue = (
       virality = 0.8;
       break;
 
-    case 'SCANDAL_EXPOSURE':
+    case 'SCANDAL_EXPOSURE': {
       // Target loses power, Relations Worsen significantly
       updateRelation(newFactions, initiator.id, target.id, -25);
+      // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
+      // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
+      // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
       const powerLoss = 5 + Math.floor(rng.next() * 5);
       newFactions[target.id] = {
           ...newFactions[target.id],
@@ -159,10 +162,14 @@ const resolveIntrigue = (
       rumorText = `Scandal rocks ${target.name}! Agents of ${initiator.name} uncovered evidence of ${action.context}.`;
       virality = 1.0; // Scandals spread fast
       break;
+    }
 
-    case 'POWER_PLAY':
+    case 'POWER_PLAY': {
       // Initiator gains power, Target loses power, Relations Worsen
       updateRelation(newFactions, initiator.id, target.id, -10);
+      // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
+      // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
+      // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
       const powerShift = 3 + Math.floor(rng.next() * 3);
 
       newFactions[initiator.id] = {
@@ -178,6 +185,7 @@ const resolveIntrigue = (
       rumorText = `${initiator.name} tightens their grip, forcing ${target.name} to concede territory.`;
       virality = 0.7;
       break;
+    }
   }
 
   newState.factions = newFactions;

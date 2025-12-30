@@ -9,7 +9,10 @@ import * as PIXI from 'pixi.js';
 import {
     TILE_SIZE,
     getBiomePalette,
-    simpleHash,
+    // TODO(lint-intent): 'simpleHash' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    simpleHash as _simpleHash,
     createOffscreenCanvas,
     adjustBrightness,
     rgbToHexString,
@@ -250,7 +253,10 @@ export class SubmapDoodadPainter {
     private drawDeciduousTree(
         ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
         leafColor: RGB,
-        variation: number
+        // TODO(lint-intent): 'variation' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        _variation: number
     ): void {
         const cx = TILE_SIZE / 2;
 
@@ -283,7 +289,10 @@ export class SubmapDoodadPainter {
     private drawConiferTree(
         ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
         leafColor: RGB,
-        variation: number
+        // TODO(lint-intent): 'variation' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        _variation: number
     ): void {
         const cx = TILE_SIZE / 2;
 
@@ -323,7 +332,10 @@ export class SubmapDoodadPainter {
 
     private drawPalmTree(
         ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-        variation: number
+        // TODO(lint-intent): 'variation' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        _variation: number
     ): void {
         const cx = TILE_SIZE / 2;
 
@@ -339,8 +351,10 @@ export class SubmapDoodadPainter {
         ctx.strokeStyle = '#15803d';
         ctx.lineWidth = 2;
         const frondAngles = [-0.8, -0.4, 0, 0.4, 0.8];
-
-        frondAngles.forEach((angle, i) => {
+        // TODO(lint-intent): 'i' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        frondAngles.forEach((angle, _i) => {
             ctx.beginPath();
             const startX = cx - 2;
             const startY = TILE_SIZE - 24;
@@ -360,7 +374,10 @@ export class SubmapDoodadPainter {
 
     private drawWillowTree(
         ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-        variation: number
+        // TODO(lint-intent): 'variation' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        _variation: number
     ): void {
         const cx = TILE_SIZE / 2;
 
@@ -388,7 +405,10 @@ export class SubmapDoodadPainter {
 
     private drawDeadTree(
         ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-        variation: number
+        // TODO(lint-intent): 'variation' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        _variation: number
     ): void {
         const cx = TILE_SIZE / 2;
 
@@ -413,7 +433,10 @@ export class SubmapDoodadPainter {
 
     private drawCherryTree(
         ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-        variation: number
+        // TODO(lint-intent): 'variation' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        _variation: number
     ): void {
         const cx = TILE_SIZE / 2;
 
@@ -442,7 +465,10 @@ export class SubmapDoodadPainter {
 
     private drawMushroomTree(
         ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-        variation: number
+        // TODO(lint-intent): 'variation' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        _variation: number
     ): void {
         const cx = TILE_SIZE / 2;
 
@@ -471,7 +497,10 @@ export class SubmapDoodadPainter {
     private drawBush(
         ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
         color: RGB,
-        variation: number
+        // TODO(lint-intent): 'variation' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        _variation: number
     ): void {
         const cx = TILE_SIZE / 2;
         const dark = rgbToHexString(adjustBrightness(color, 0.8));
@@ -491,7 +520,10 @@ export class SubmapDoodadPainter {
 
     private drawFloweringBush(
         ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-        variation: number
+        // TODO(lint-intent): 'variation' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        _variation: number
     ): void {
         const cx = TILE_SIZE / 2;
 
@@ -516,10 +548,16 @@ export class SubmapDoodadPainter {
     private drawRockSmall(
         ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
         color: RGB,
-        variation: number
+        // TODO(lint-intent): 'variation' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        _variation: number
     ): void {
         const cx = TILE_SIZE / 2;
-        const dark = rgbToHexString(adjustBrightness(color, 0.7));
+        // TODO(lint-intent): 'dark' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+        // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+        // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+        const _dark = rgbToHexString(adjustBrightness(color, 0.7));
         const light = rgbToHexString(adjustBrightness(color, 1.2));
 
         ctx.fillStyle = rgbToHexString(color);
@@ -544,7 +582,10 @@ export class SubmapDoodadPainter {
     private drawRockLarge(
         ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
         color: RGB,
-        variation: number
+        // TODO(lint-intent): 'variation' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        _variation: number
     ): void {
         const cx = TILE_SIZE / 2;
 
@@ -609,7 +650,10 @@ export class SubmapDoodadPainter {
 
     private drawFlowerCluster(
         ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-        variation: number
+        // TODO(lint-intent): 'variation' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        _variation: number
     ): void {
         for (let i = 0; i < 3; i++) {
             const ox = (i - 1) * 6 + TILE_SIZE / 2;
@@ -681,7 +725,10 @@ export class SubmapDoodadPainter {
 
     private drawReeds(
         ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-        variation: number
+        // TODO(lint-intent): 'variation' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        _variation: number
     ): void {
         const cx = TILE_SIZE / 2;
 
@@ -707,7 +754,10 @@ export class SubmapDoodadPainter {
 
     private drawCactus(
         ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-        variation: number
+        // TODO(lint-intent): 'variation' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        _variation: number
     ): void {
         const cx = TILE_SIZE / 2;
 

@@ -23,7 +23,8 @@ describe('useTargetSelection', () => {
     });
 
     // Mock primitives
-    const mockSelectedAbility: any = {
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    const mockSelectedAbility: unknown = {
         id: 'ability-1',
         range: 1,
     };

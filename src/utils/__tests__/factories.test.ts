@@ -59,7 +59,8 @@ describe('Mimic Factories', () => {
             hasCondition: [],
             isNativeToPlane: false
           }
-        } as any // Cast to any to avoid strict typing needed for the test if the factory typing is strict
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        } as unknown // Cast to any to avoid strict typing needed for the test if the factory typing is strict
       });
 
       expect(spell.targeting.type).toBe("area");

@@ -1,8 +1,10 @@
 
 import { describe, it, expect } from 'vitest';
-import { checkNavigation, TERRAIN_NAVIGATION_DCS } from '../TravelNavigation';
+// TODO(lint-intent): 'TERRAIN_NAVIGATION_DCS' is unused in this test; use it in the assertion path or remove it.
+import { checkNavigation, TERRAIN_NAVIGATION_DCS as _TERRAIN_NAVIGATION_DCS } from '../TravelNavigation';
 import { SeededRandom } from '../../../utils/seededRandom';
-import { TravelPace, TravelTerrain } from '../../../types/travel';
+// TODO(lint-intent): 'TravelPace' is unused in this test; use it in the assertion path or remove it.
+import { TravelPace as _TravelPace, TravelTerrain as _TravelTerrain } from '../../../types/travel';
 
 describe('TravelNavigation', () => {
   const rng = new SeededRandom(12345); // Fixed seed for drift

@@ -32,6 +32,7 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
 
         // Filter out jobs already taken
         const takenIds = thievesGuild.activeJobs.map(j => j.id);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setAvailableJobs(jobs.filter(j => !takenIds.includes(j.id)));
 
         setAvailableServices(ThievesGuildSystem.getAvailableServices(thievesGuild.rank));

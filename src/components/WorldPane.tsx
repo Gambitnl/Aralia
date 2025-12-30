@@ -80,12 +80,19 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
             key={`${part}-${index}-tooltip`}
             content={tooltipKeywords[matchedKeyword]}
           >
-            <span 
-              className="text-sky-400 underline decoration-sky-500/70 decoration-dotted cursor-help"
-              tabIndex={0} // Make it focusable
+            
+            
+            {/*
+              TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+              TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+              TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+            */}
+            <button
+              type="button"
+              className="text-sky-400 underline decoration-sky-500/70 decoration-dotted cursor-help bg-transparent border-0 p-0"
             >
               {part}
-            </span>
+            </button>
           </Tooltip>
         );
       }

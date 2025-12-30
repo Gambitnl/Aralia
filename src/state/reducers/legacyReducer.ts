@@ -5,8 +5,14 @@
 
 import { GameState } from '../../types/index';
 import { AppAction } from '../actionTypes';
-import { PlayerLegacy } from '../../types/legacy';
-import { Stronghold } from '../../types/stronghold';
+// TODO(lint-intent): 'PlayerLegacy' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { PlayerLegacy as _PlayerLegacy } from '../../types/legacy';
+// TODO(lint-intent): 'Stronghold' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Stronghold as _Stronghold } from '../../types/stronghold';
 import { grantTitle, recordMonument, registerHeir, initializeLegacy } from '../../services/legacyService';
 import { createStronghold } from '../../services/strongholdService';
 

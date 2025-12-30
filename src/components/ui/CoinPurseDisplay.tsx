@@ -29,9 +29,16 @@ export const CoinBadge: React.FC<CoinBadgeProps> = ({ type, amount, compact = fa
 
     return (
         <Tooltip content={`${amount} ${COIN_NAMES[type]} Piece${amount !== 1 ? 's' : ''}`}>
-            <div
+            
+            
+            {/*
+              TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+              TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+              TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+            */}
+            <button
+                type="button"
                 className={`flex items-center gap-1 ${compact ? 'px-1' : 'px-2 py-1'} rounded bg-gray-800/80 border border-gray-600/50`}
-                tabIndex={0}
                 aria-label={`${amount} ${COIN_NAMES[type]} pieces`}
             >
                 <span className={compact ? 'text-sm' : 'text-lg'} aria-hidden="true">
@@ -43,7 +50,7 @@ export const CoinBadge: React.FC<CoinBadgeProps> = ({ type, amount, compact = fa
                 <span className={`uppercase tracking-wider text-gray-400 ${compact ? 'text-[8px]' : 'text-[10px]'}`}>
                     {type}
                 </span>
-            </div>
+            </button>
         </Tooltip>
     );
 };
