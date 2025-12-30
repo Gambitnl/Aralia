@@ -29,3 +29,8 @@
 **Learning:** Linking environmental state (Weather) to simulation logic creates a significantly more "alive" feeling than purely random events.
 **Action:** Implemented weather-based probability modifiers for Faction Skirmishes (suppressed by storms) and Market Shifts (influenced by drought/storms).
 **Insight:** Weighted random selection with dynamic weights (based on state) is a powerful pattern for RPG world simulation.
+
+## 2025-12-30 - Living Economy System
+**Learning:** World simulation systems must properly account for elapsed time when updating state durations.
+**Action:** Fixed `WorldEventManager.ts` to decrement active event durations by `daysPassed` instead of a static 1. This ensures that when players sleep or travel (passing multiple days), economy events expire correctly.
+**Insight:** Always verify time-based logic against variable time steps (dt) rather than assuming single-step updates.

@@ -1,174 +1,113 @@
 /**
- * Copyright (c) 2024 Aralia RPG
- * Licensed under the MIT License
- *
- * @file src/utils/economyUtils.ts
- * Utility functions for the dynamic economy system.
+ * @file src/utils/economy/economyUtils.ts
+ * Utility functions for the living economy system.
+ * Handles dynamic price calculations based on market factors (scarcity, surplus).
  */
 
-import { Item, EconomyState } from '../types';
-import { REGIONAL_ECONOMIES } from '../../data/economy/regions';
+import { EconomyState, Item } from '../../types';
 
-/**
- * Parses a cost string like "10 GP" into a gold value.
- */
-export const parseCost = (costStr: string | undefined): number => {
-  if (!costStr) return 0;
-
-  // Remove commas
-  const cleanCost = costStr.replace(/,/g, '');
-
-  const pp = cleanCost.match(/(\d+(?:\.\d+)?)\s*PP/i);
-  if (pp) return parseFloat(pp[1]) * 10;
-
-  const gp = cleanCost.match(/(\d+(?:\.\d+)?)\s*GP/i);
-  if (gp) return parseFloat(gp[1]);
-
-  const sp = cleanCost.match(/(\d+(?:\.\d+)?)\s*SP/i);
-  if (sp) return parseFloat(sp[1]) * 0.1;
-
-  const cp = cleanCost.match(/(\d+(?:\.\d+)?)\s*CP/i);
-  if (cp) return parseFloat(cp[1]) * 0.01;
-
-  return 0;
-};
-
-/**
- * Aralia currently displays prices in "GP" (gold pieces), but many item sources
- * (Gemini + fallbacks) include CP/SP/EP prices. If we round to whole GP, cheap
- * items like torches/rations collapse to 0 and become impossible to buy (the
- * merchant UI intentionally blocks purchases with a 0 price).
- *
- * To keep the UI consistent while supporting low-value items, we round to the
- * nearest copper piece (1 CP = 0.01 GP) and apply transaction-friendly rounding:
- * - Buying: round UP to the nearest CP so items never become free.
- * - Selling: round DOWN to the nearest CP so we don't overpay due to rounding.
- */
-const roundGpToCopperCeil = (gp: number): number => Math.ceil(gp * 100) / 100;
-const roundGpToCopperFloor = (gp: number): number => Math.floor(gp * 100) / 100;
-
-export interface PriceCalculationResult {
-  finalPrice: number;
-  basePrice: number;
-  multiplier: number;
-  isModified: boolean;
+export interface PriceResult {
+    basePrice: number;
+    finalPrice: number;
+    multiplier: number;
+    isModified: boolean;
+    factors: string[]; // Explains why (e.g., ["High Demand", "Local Import"])
 }
 
 /**
- * Calculates the dynamic price of an item based on the current economy state.
+ * Calculates the buy or sell price of an item based on the current economy state.
  *
- * @param item The item to price.
- * @param economy The current global economy state.
- * @param transactionType 'buy' (player buying from merchant) or 'sell' (player selling to merchant).
- * @param regionId Optional region ID to apply local import/export modifiers.
- * @returns Detailed calculation result including final price and modifiers.
+ * @param item - The item to price.
+ * @param economy - The current economy state.
+ * @param transactionType - 'buy' (player buying from merchant) or 'sell' (player selling to merchant).
+ * @param regionId - (Optional) Region ID to apply local import/export modifiers (future use).
+ * @returns detailed PriceResult object.
  */
 export const calculatePrice = (
-  item: Item,
-  economy: EconomyState | undefined,
-  transactionType: 'buy' | 'sell',
-  regionId?: string
-): PriceCalculationResult => {
-  // Prefer numeric `costInGp` because it's unambiguous and already normalized.
-  // Fall back to parsing the `cost` string (supports "cp/sp/ep/gp/pp").
-  let baseValue = typeof item.costInGp === 'number' ? item.costInGp : 0;
-  if (baseValue <= 0 && item.cost) {
-    baseValue = parseCost(item.cost);
-  }
+    item: Item,
+    economy: EconomyState,
+    transactionType: 'buy' | 'sell',
+    _regionId?: string
+): PriceResult => {
+    // 1. Determine Base Price
+    // Prefer costInGp, fallback to parsing cost string, fallback to 0
+    let basePrice = 0;
+    if (typeof item.costInGp === 'number') {
+        basePrice = item.costInGp;
+    } else if (item.cost) {
+        // Updated parser for "10 gp", "5 sp", "50 pp" etc.
+        const match = item.cost.match(/(\d+)\s*(pp|gp|sp|cp)/i);
+        if (match) {
+            const amount = parseInt(match[1], 10);
+            const unit = match[2].toLowerCase();
+            if (unit === 'pp') basePrice = amount * 10;
+            else if (unit === 'gp') basePrice = amount;
+            else if (unit === 'sp') basePrice = amount / 10;
+            else if (unit === 'cp') basePrice = amount / 100;
+        }
+    }
 
-  if (!baseValue || baseValue <= 0) {
-    // Still allow selling for minimum 1cp even if item has no explicit value
-    const minSellPrice = transactionType === 'sell' ? 0.01 : 0;
-    return { finalPrice: minSellPrice, basePrice: 0, multiplier: 1, isModified: false };
-  }
+    if (basePrice <= 0) {
+        return { basePrice: 0, finalPrice: 0, multiplier: 1, isModified: false, factors: [] };
+    }
 
-  // Default multipliers if economy is missing (fallback/legacy)
-  if (!economy) {
-    const multiplier = transactionType === 'buy' ? 1.0 : 0.5;
-    const rawPrice = baseValue * multiplier;
-    const finalPrice = transactionType === 'buy'
-      ? roundGpToCopperCeil(rawPrice)
-      : roundGpToCopperFloor(rawPrice);
+    let multiplier = 1.0;
+    const factors: string[] = [];
 
-    // Ensure minimum sell price of 1cp
-    const minPrice = transactionType === 'sell' ? 0.01 : 0;
+    // 2. Apply Transaction Type Multiplier (Base Economy)
+    if (transactionType === 'sell') {
+        // Selling to merchant usually yields 50% value
+        multiplier *= (economy.sellMultiplier || 0.5);
+    } else {
+        // Buying from merchant usually costs 100% value
+        multiplier *= (economy.buyMultiplier || 1.0);
+    }
+
+    // 3. Apply Market Factors (Scarcity / Surplus)
+    // We check if the item's tags or type match any active market factors.
+    // Item should have tags like ['weapon', 'metal'] or type 'Weapon'.
+    // We normalize to lowercase for comparison.
+
+    const itemTags: string[] = [];
+    if (item.type) itemTags.push(item.type.toLowerCase());
+    if (item.tags) item.tags.forEach(t => itemTags.push(t.toLowerCase()));
+
+    // Helper to check match (including partial matches for robustness)
+    const matchesFactor = (factorList: string[]): boolean => {
+        return factorList.some(factor => {
+            const f = factor.toLowerCase();
+            return itemTags.some(t => t.includes(f) || f.includes(t));
+        });
+    };
+
+    // Check Scarcity (Prices go UP)
+    const isScarce = matchesFactor(economy.marketFactors.scarcity);
+    if (isScarce) {
+        multiplier *= 1.5; // +50% price
+        factors.push('Scarcity');
+    }
+
+    // Check Surplus (Prices go DOWN)
+    const isSurplus = matchesFactor(economy.marketFactors.surplus);
+    if (isSurplus) {
+        multiplier *= 0.5; // -50% price
+        factors.push('Surplus');
+    }
+
+    // 4. Calculate Final Price
+    let finalPrice = basePrice * multiplier;
+
+    // Rounding rules:
+    // - Always round to 2 decimal places (cp precision)
+    // - For selling, floor to avoid fractional gp exploits?
+    // Let's keep it simple: round to nearest 0.01
+    finalPrice = Math.round(finalPrice * 100) / 100;
 
     return {
-      finalPrice: Math.max(minPrice, finalPrice),
-      basePrice: baseValue,
-      multiplier,
-      isModified: false
+        basePrice,
+        finalPrice,
+        multiplier,
+        isModified: Math.abs(multiplier - (transactionType === 'sell' ? economy.sellMultiplier : economy.buyMultiplier)) > 0.01,
+        factors
     };
-  }
-
-  let multiplier = transactionType === 'buy' ? economy.buyMultiplier : economy.sellMultiplier;
-
-  // Apply market factors
-  const itemTags = [item.type, ...(item.name.toLowerCase().split(' '))].map(t => t.toLowerCase());
-
-  // Scarcity increases price (Demand > Supply)
-  const isScarce = economy.marketFactors.scarcity.some(tag =>
-    itemTags.some(it => it.includes(tag.toLowerCase()))
-  );
-
-  // Surplus decreases price (Supply > Demand)
-  const isSurplus = economy.marketFactors.surplus.some(tag =>
-    itemTags.some(it => it.includes(tag.toLowerCase()))
-  );
-
-  // Regional Modifiers
-  if (regionId) {
-    const region = REGIONAL_ECONOMIES[regionId];
-    if (region) {
-      // EXPORTS are locally abundant -> CHEAPER (Surplus logic)
-      const isExport = region.exports.some(tag =>
-        itemTags.some(it => it === tag.toLowerCase())
-      );
-
-      // IMPORTS are locally scarce -> EXPENSIVE (Scarcity logic)
-      const isImport = region.imports.some(tag =>
-        itemTags.some(it => it === tag.toLowerCase())
-      );
-
-      if (transactionType === 'buy') {
-        if (isExport) multiplier -= 0.2; // Local goods are cheap
-        if (isImport) multiplier += 0.2; // Imported goods are expensive
-      } else {
-        // Selling to merchant
-        if (isExport) multiplier -= 0.1; // They have plenty, pay less
-        if (isImport) multiplier += 0.1; // They need it, pay more
-      }
-    }
-  }
-
-  // Logic from MerchantModal:
-  if (transactionType === 'buy') {
-    if (isScarce) multiplier += 0.5; // Expensive
-    if (isSurplus) multiplier -= 0.3; // Cheap
-  } else {
-    if (isScarce) multiplier += 0.3; // They pay more
-    if (isSurplus) multiplier -= 0.2; // They pay less
-  }
-
-  // Clamp multiplier
-  multiplier = Math.max(0.1, multiplier);
-
-  const rawPrice = baseValue * multiplier;
-  const finalPrice = transactionType === 'buy'
-    ? roundGpToCopperCeil(rawPrice)
-    : roundGpToCopperFloor(rawPrice);
-
-  const standardMultiplier = transactionType === 'buy' ? 1.0 : 0.5;
-  // Consider modified if significantly different from standard
-  const isModified = Math.abs(multiplier - standardMultiplier) > 0.05;
-
-  // Ensure minimum sell price of 1cp (0.01 GP) so all items are sellable
-  const minPrice = transactionType === 'sell' ? 0.01 : 0;
-
-  return {
-    finalPrice: Math.max(minPrice, finalPrice),
-    basePrice: baseValue,
-    multiplier,
-    isModified
-  };
 };

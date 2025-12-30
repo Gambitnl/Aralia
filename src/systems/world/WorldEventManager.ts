@@ -529,7 +529,7 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
   if (currentState.economy && currentState.economy.activeEvents) {
      let eventsChanged = false;
      const newActiveEvents = currentState.economy.activeEvents
-        .map(e => ({...e, duration: e.duration - 1}))
+        .map(e => ({...e, duration: e.duration - daysPassed}))
         .filter(e => e.duration > 0);
 
      if (newActiveEvents.length !== currentState.economy.activeEvents.length) {
