@@ -1,59 +1,134 @@
 
-import { BaseEffectCommand } from '../base/BaseEffectCommand';
-import { CombatState, ActiveEffect } from '../../types/combat';
-import { Spell } from '../../types/spells';
+import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand';
+import { CombatState, ActiveEffect, CombatCharacter } from '../../types/combat';
+import { DefensiveEffect } from '../../types/spells';
+import { getAbilityModifier } from '../../utils/characterUtils';
+import { v4 as uuidv4 } from 'uuid';
 
-export class DefensiveCommand extends BaseEffectCommand {
+/**
+ * Handles defensive buffs like AC bonuses, Temporary HP, and base AC setting (Mage Armor).
+ */
+export class DefensiveCommand implements SpellCommand {
+  readonly id: string;
+  readonly description: string;
+  readonly metadata: CommandMetadata;
+
   constructor(
-    spell: Spell,
-    casterId: string,
-    targetIds: string[],
-    private duration: number,
-    private acBonus: number,
-    private reactionTrigger?: "on_hit" | "on_damaged"
+    private effect: DefensiveEffect,
+    private context: CommandContext
   ) {
-    super(spell, casterId, targetIds);
+    this.id = uuidv4();
+    this.description = `Applies ${effect.defenseType} (${effect.value})`;
+    this.metadata = {
+      spellId: context.spellId,
+      spellName: context.spellName,
+      casterId: context.caster.id,
+      casterName: context.caster.name,
+      targetIds: context.targets.map(t => t.id),
+      effectType: 'DEFENSIVE',
+      timestamp: Date.now()
+    };
   }
 
   execute(state: CombatState): CombatState {
-    const newState = { ...state };
+    const newState = {
+      ...state,
+      characters: [...state.characters] // Deep copy the characters array to allow safe mutation
+    };
 
-    // Defensive spells are almost always self-targeting (Shield, Mage Armor)
-    // but we support target arrays for flexibility (Shield of Faith)
-    this.targetIds.forEach(targetId => {
-      const targetIndex = newState.characters.findIndex(c => c.id === targetId);
+    // Iterate over targets safely
+    this.context.targets.forEach(target => {
+      const targetIndex = newState.characters.findIndex(c => c.id === target.id);
       if (targetIndex === -1) return;
 
-      const target = newState.characters[targetIndex];
+      const currentCharacter = newState.characters[targetIndex];
+      let updatedCharacter = { ...currentCharacter };
+      let logMessage = '';
 
-      // Create the active effect object
-      const effect: ActiveEffect = {
-        id: `effect-${this.spell.id}-${Date.now()}`,
-        spellId: this.spell.id,
-        casterId: this.casterId,
-        sourceName: this.spell.name,
-        type: 'buff', // Defensive spells are buffs
-        duration: { type: 'rounds', value: this.duration },
-        startTime: newState.turnState.currentTurn,
-        mechanics: {
-          acBonus: this.acBonus,
-          triggerCondition: this.reactionTrigger
+      switch (this.effect.defenseType) {
+        case 'ac_bonus': {
+          // Apply AC Bonus as an active effect
+          const activeEffect = this.createActiveEffect(
+            updatedCharacter.id,
+            this.effect.defenseType,
+            this.effect.value,
+            state.turnState.currentTurn
+          );
+          updatedCharacter.activeEffects = [...(updatedCharacter.activeEffects || []), activeEffect];
+
+          // Mechanically update AC (simplified, real system might re-calc from effects)
+          updatedCharacter.armorClass = (updatedCharacter.armorClass || 10) + this.effect.value;
+          logMessage = `${this.context.spellName} increases AC by ${this.effect.value}`;
+          break;
         }
-      };
 
-      // Add to character's active effects
-      const activeEffects = target.activeEffects || [];
-      newState.characters[targetIndex] = {
-        ...target,
-        activeEffects: [...activeEffects, effect],
-        // Immediate AC update is handled by Derived Stats, but we can set a flag or
-        // let the UI/Combat system recalculate AC based on activeEffects.
-        // For optimization, we might update a cached value here if needed.
-      };
+        case 'set_base_ac': {
+          // Set Base AC (e.g. Mage Armor: 13 + Dex)
+          // Calculation: Base Value + Dex Modifier
+          const dexMod = getAbilityModifier(updatedCharacter.stats.dexterity);
+          const newAC = this.effect.value + dexMod;
 
-      this.logEffectApplication(newState, targetId, `${this.spell.name} increases AC by ${this.acBonus}`);
+          const activeEffect = this.createActiveEffect(
+            updatedCharacter.id,
+            this.effect.defenseType,
+            this.effect.value,
+            state.turnState.currentTurn
+          );
+          updatedCharacter.activeEffects = [...(updatedCharacter.activeEffects || []), activeEffect];
+          updatedCharacter.armorClass = newAC;
+
+          logMessage = `${this.context.spellName} sets base AC to ${newAC}`;
+          break;
+        }
+
+        case 'temporary_hp': {
+          // Temporary HP rules: Do not stack. Keep the higher value.
+          const currentTemp = updatedCharacter.tempHP || 0;
+          const newTemp = this.effect.value;
+
+          if (newTemp > currentTemp) {
+            updatedCharacter.tempHP = newTemp;
+            logMessage = `${this.context.spellName} grants ${newTemp} temporary HP`;
+          } else {
+            logMessage = `${this.context.spellName} grants ${newTemp} temporary HP (overlapped)`;
+          }
+          break;
+        }
+      }
+
+      // Update character in state
+      newState.characters[targetIndex] = updatedCharacter;
+
+      // Add log entry
+      if (logMessage) {
+        newState.combatLog = [
+          ...newState.combatLog,
+          {
+            id: uuidv4(),
+            timestamp: Date.now(),
+            message: logMessage,
+            type: 'info',
+            sourceId: this.context.caster.id
+          }
+        ];
+      }
     });
 
     return newState;
+  }
+
+  private createActiveEffect(targetId: string, type: string, value: number, currentTurn: number): ActiveEffect {
+    return {
+      id: `effect-${this.context.spellId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      spellId: this.context.spellId,
+      casterId: this.context.caster.id,
+      sourceName: this.context.spellName,
+      type: type, // 'ac_bonus' or 'set_base_ac'
+      duration: this.effect.duration || { type: 'rounds', value: 1 },
+      startTime: currentTurn,
+      mechanics: {
+        acBonus: type === 'ac_bonus' ? value : undefined,
+      }
+    };
   }
 }
