@@ -11,7 +11,3 @@
 ## 2024-05-24 - Passive Scores
 **Learning:** The codebase lacked a centralized calculation for Passive Perception/Investigation (10 + Mod + Prof + Adv/Dis).
 **Action:** Implemented `calculatePassiveScore` in `src/utils/statUtils.ts` to standardize this math, ensuring Advantage/Disadvantage (+/-5) is handled correctly per PHB 2024.
-
-## 2025-12-30 - Object Damage Rules
-**Learning:** D&D 5e has specific rules for damaging objects (DMG p. 247) involving Damage Thresholds, which differ from standard DR. Also, the order of operations for Resistance/Vulnerability (Resistance then Vulnerability) is strictly defined (PHB p. 197).
-**Action:** Implemented `calculateObjectDamage` in `physicsUtils.ts` enforcing this order and threshold logic to standardize object interactions.
