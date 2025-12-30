@@ -6,12 +6,8 @@
  * Manages the simulation of trade routes and their impact on the global economy.
  */
 
-import { GameState, GameMessage, TradeRoute, EconomyState, MarketEvent } from '../../types';
+import { GameState, GameMessage, TradeRoute, EconomyState, MarketEvent, MarketEventType } from '../../types';
 import { SeededRandom } from '../../utils/seededRandom';
-// TODO(lint-intent): 'getGameDay' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { getGameDay as _getGameDay } from '../../utils/timeUtils';
 import { INITIAL_TRADE_ROUTES } from '../../data/tradeRoutes';
 
 export interface TradeRouteUpdateResult {
@@ -51,7 +47,7 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
   const logs: GameMessage[] = [];
   const currentRoutes = economy.tradeRoutes || [];
   const newRoutes: TradeRoute[] = [];
-  const timestamp = state.gameTime || new Date();
+  const timestamp = state.gameTime || new Date().getTime();
 
   // Iterate through routes and simulate changes
   for (const route of currentRoutes) {
@@ -138,46 +134,70 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
   // Generate Market Events from Routes
   const routeEventPrefix = 'route_event_';
 
-  const activeEvents = (economy.activeEvents || []).filter(e => !e.id.startsWith(routeEventPrefix));
-  const newEvents: MarketEvent[] = [...activeEvents];
+  // Filter out old route events to regenerate them based on current status
+  const existingEvents = (economy.marketEvents || []).filter(e => !e.id.startsWith(routeEventPrefix));
+  const newEvents: MarketEvent[] = [...existingEvents];
 
   newRoutes.forEach(route => {
     if (route.status === 'blocked') {
-      newEvents.push({
-        id: `${routeEventPrefix}${route.id}_scarcity`,
-        name: `${route.name} Blockade`,
-        description: `Trade route blocked: ${route.name}`,
-        affectedTags: route.goods,
-        effect: 'scarcity',
-        duration: 1 // Managed by the route system, refreshed daily
+      // Create separate shortage events for each good category
+      route.goods.forEach(good => {
+        const eventId = `${routeEventPrefix}${route.id}_${good}_scarcity`;
+        // Check if event already exists to preserve start time, or create new
+        const existing = economy.marketEvents?.find(e => e.id === eventId);
+
+        newEvents.push({
+          id: eventId,
+          type: MarketEventType.SHORTAGE,
+          name: `${route.name} Blockade: ${good}`,
+          description: `Trade route blocked: ${route.name} causing shortage of ${good}`,
+          startTime: existing ? existing.startTime : timestamp,
+          duration: 1, // Managed by the route system, refreshed daily
+          intensity: 0.5 + (route.riskLevel * 0.5) // Higher risk routes cause worse shortages
+        });
       });
     } else if (route.status === 'booming') {
-      newEvents.push({
-        id: `${routeEventPrefix}${route.id}_surplus`,
-        name: `${route.name} Boom`,
-        description: `High trade volume: ${route.name}`,
-        affectedTags: route.goods,
-        effect: 'surplus',
-        duration: 1
+      route.goods.forEach(good => {
+        const eventId = `${routeEventPrefix}${route.id}_${good}_surplus`;
+        const existing = economy.marketEvents?.find(e => e.id === eventId);
+
+        newEvents.push({
+          id: eventId,
+          type: MarketEventType.SURPLUS,
+          name: `${route.name} Boom: ${good}`,
+          description: `High trade volume on ${route.name} bringing surplus of ${good}`,
+          startTime: existing ? existing.startTime : timestamp,
+          duration: 1,
+          intensity: 0.3 + (route.profitability * 0.3) // Higher profit routes cause bigger surpluses
+        });
       });
     }
   });
 
-  // Rebuild Market Factors
+  // Rebuild Market Factors (Legacy Support)
   const newScarcity = new Set<string>();
   const newSurplus = new Set<string>();
 
   newEvents.forEach(e => {
-      if (e.effect === 'scarcity') {
-          e.affectedTags.forEach(tag => newScarcity.add(tag));
-      } else {
-          e.affectedTags.forEach(tag => newSurplus.add(tag));
+    // Extract goods/tags from name or description as we don't have affectedTags in MarketEvent
+    // This is a bit heuristic, but matches how we constructed the events above
+    const parts = e.name?.split(': ');
+    const tag = parts && parts.length > 1 ? parts[1] : null;
+
+    if (tag) {
+      if (e.type === MarketEventType.SHORTAGE) {
+        newScarcity.add(tag);
+      } else if (e.type === MarketEventType.SURPLUS) {
+        newSurplus.add(tag);
       }
+    }
   });
 
   const newEconomy: EconomyState = {
     ...economy,
     tradeRoutes: newRoutes,
+    marketEvents: newEvents,
+    // Keep activeEvents synced for now (legacy)
     activeEvents: newEvents,
     marketFactors: {
       scarcity: Array.from(newScarcity),

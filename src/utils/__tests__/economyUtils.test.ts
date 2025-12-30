@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { calculatePrice, parseCost } from '../economy/economyUtils';
-import type { EconomyState, Item } from '../../types';
+import { EconomyState, Item, MarketEventType } from '../../types';
 
 // Mock the regional data to ensure tests are robust and independent of live data changes
 vi.mock('../../data/economy/regions', () => ({
@@ -34,9 +34,14 @@ describe('economyUtils', () => {
 
   describe('calculatePrice', () => {
     const economy: EconomyState = {
+      marketEvents: [],
+      tradeRoutes: [],
       marketFactors: { scarcity: [], surplus: [] },
-      buyMultiplier: 1,
+      activeEvents: [],
+      buyMultiplier: 1.0,
       sellMultiplier: 0.5,
+      globalInflation: 0,
+      regionalWealth: {}
     };
 
     it('does not collapse cheap CP items to 0 when buying', () => {
@@ -138,6 +143,61 @@ describe('economyUtils', () => {
       expect(result.multiplier).toBe(1.0);
       expect(result.finalPrice).toBe(10);
     });
+
+    it('applies dynamic pricing from MarketEvents (SHORTAGE)', () => {
+      const item: Item = {
+        id: 'iron',
+        name: 'Iron Ingot',
+        description: 'Metal.',
+        type: 'material',
+        costInGp: 10,
+        weight: 1
+      };
+
+      const eventEconomy: EconomyState = {
+        ...economy,
+        marketEvents: [{
+          id: 'evt_1',
+          type: MarketEventType.SHORTAGE,
+          name: 'Shortage of Iron',
+          startTime: 0,
+          duration: 1,
+          intensity: 0.8 // Severe shortage
+        }]
+      };
+
+      const result = calculatePrice(item, eventEconomy, 'buy');
+      // Base 1.0 + 0.8 = 1.8 multiplier
+      expect(result.multiplier).toBeCloseTo(1.8);
+      expect(result.finalPrice).toBe(18);
+    });
+
+    it('applies dynamic pricing from MarketEvents (SURPLUS)', () => {
+      const item: Item = {
+        id: 'wood',
+        name: 'Wood Plank',
+        description: 'Wood.',
+        type: 'material',
+        costInGp: 10,
+        weight: 1
+      };
+
+      const eventEconomy: EconomyState = {
+        ...economy,
+        marketEvents: [{
+          id: 'evt_2',
+          type: MarketEventType.SURPLUS,
+          name: 'Boom: Wood',
+          startTime: 0,
+          duration: 1,
+          intensity: 0.5
+        }]
+      };
+
+      const result = calculatePrice(item, eventEconomy, 'buy');
+      // Base 1.0 - 0.5 = 0.5 multiplier
+      expect(result.multiplier).toBeCloseTo(0.5);
+      expect(result.finalPrice).toBe(5);
+    });
   });
 });
-

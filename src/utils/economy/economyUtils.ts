@@ -2,11 +2,11 @@
  * Copyright (c) 2024 Aralia RPG
  * Licensed under the MIT License
  *
- * @file src/utils/economyUtils.ts
+ * @file src/utils/economy/economyUtils.ts
  * Utility functions for the dynamic economy system.
  */
 
-import { Item, EconomyState } from '../types';
+import { Item, EconomyState, MarketEventType } from '../../types';
 import { REGIONAL_ECONOMIES } from '../../data/economy/regions';
 
 /**
@@ -106,15 +106,50 @@ export const calculatePrice = (
   // Apply market factors
   const itemTags = [item.type, ...(item.name.toLowerCase().split(' '))].map(t => t.toLowerCase());
 
-  // Scarcity increases price (Demand > Supply)
-  const isScarce = economy.marketFactors.scarcity.some(tag =>
-    itemTags.some(it => it.includes(tag.toLowerCase()))
-  );
+  // 1. Check MarketEvents (Primary System)
+  if (economy.marketEvents && economy.marketEvents.length > 0) {
+    economy.marketEvents.forEach(event => {
+      // Determine if event applies to this item
+      // Note: MarketEvent doesn't have `affectedTags` in the type, so we parse `name` or look for matching logic
+      // In TradeRouteManager, we stored tag in name like "Boom: Grain"
+      // This is a bit weak, but better than nothing until we fully migrate tags into MarketEvent proper
+      const applies = itemTags.some(tag => event.name?.toLowerCase().includes(tag));
 
-  // Surplus decreases price (Supply > Demand)
-  const isSurplus = economy.marketFactors.surplus.some(tag =>
-    itemTags.some(it => it.includes(tag.toLowerCase()))
-  );
+      if (applies) {
+        if (event.type === MarketEventType.SHORTAGE) {
+          // Shortage = Higher Price
+          // Buy: +Intensity, Sell: +Intensity * 0.5 (Merchants pay more for scarce items)
+          const mod = event.intensity || 0.5;
+          multiplier += transactionType === 'buy' ? mod : mod * 0.5;
+        } else if (event.type === MarketEventType.SURPLUS) {
+          // Surplus = Lower Price
+          // Buy: -Intensity, Sell: -Intensity * 0.8 (Merchants pay way less for common items)
+          const mod = event.intensity || 0.3;
+          multiplier -= transactionType === 'buy' ? mod : mod * 0.8;
+        }
+      }
+    });
+  } else {
+    // 2. Fallback to Legacy MarketFactors (If no events found)
+    // Scarcity increases price (Demand > Supply)
+    const isScarce = economy.marketFactors.scarcity.some(tag =>
+      itemTags.some(it => it.includes(tag.toLowerCase()))
+    );
+
+    // Surplus decreases price (Supply > Demand)
+    const isSurplus = economy.marketFactors.surplus.some(tag =>
+      itemTags.some(it => it.includes(tag.toLowerCase()))
+    );
+
+    // Logic from MerchantModal (preserved):
+    if (transactionType === 'buy') {
+      if (isScarce) multiplier += 0.5; // Expensive
+      if (isSurplus) multiplier -= 0.3; // Cheap
+    } else {
+      if (isScarce) multiplier += 0.3; // They pay more
+      if (isSurplus) multiplier -= 0.2; // They pay less
+    }
+  }
 
   // Regional Modifiers
   if (regionId) {
@@ -139,15 +174,6 @@ export const calculatePrice = (
         if (isImport) multiplier += 0.1; // They need it, pay more
       }
     }
-  }
-
-  // Logic from MerchantModal:
-  if (transactionType === 'buy') {
-    if (isScarce) multiplier += 0.5; // Expensive
-    if (isSurplus) multiplier -= 0.3; // Cheap
-  } else {
-    if (isScarce) multiplier += 0.3; // They pay more
-    if (isSurplus) multiplier -= 0.2; // They pay less
   }
 
   // Clamp multiplier
