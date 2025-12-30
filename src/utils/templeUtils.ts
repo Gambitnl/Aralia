@@ -23,11 +23,22 @@ export const generateVillageTemple = (
     const deityId = selectDeityForVillage(personality, rng);
     const deity = DEITIES.find(d => d.id === deityId) || DEITIES[0];
 
+    // Temples generated this way are usually sub-locations or conceptual
+    // Since Temple extends Location, we must provide Location properties.
+    // However, if this is used as a 'building' within a village, the locationId might be the village ID.
+    // The previous code had `locationId: villageId`, suggesting it's not a standalone Location on the map.
+    // But to satisfy the type, we treat it as a Location.
+
     return {
         id: `temple_${villageId}_${deityId}`,
+        type: 'temple',
         deityId: deity.id,
         name: `Temple of ${deity.name}`,
-        locationId: villageId,
+        // Location properties
+        baseDescription: `A sanctuary dedicated to ${deity.name}. ${deity.description}`,
+        exits: {}, // No exits, it's a building
+        biomeId: personality.biomeStyle,
+        mapCoordinates: { x: 0, y: 0 }, // Placeholder, usually not used for sub-locations
         services: generateServicesForDeity(deityId)
     };
 };
@@ -55,10 +66,7 @@ const selectDeityForVillage = (
     if (personality.primaryIndustry === 'fishing') candidates.push('melora');
 
     // Filter by Alignment/Culture
-    if (personality.culture === 'martial') candidates.push('kord', 'bane'); // Bane not in list? Check DEITIES.
-    // Wait, I only have the list from src/data/deities/index.ts.
-    // Available: bahamut, moradin, pelor, raven_queen, lolth, corellon, gruumsh, tiamat, asmodeus, vecna, melora, erathis, ioun, kord, sehanine, avandra, zehir, torog.
-
+    if (personality.culture === 'martial') candidates.push('kord');
     if (personality.culture === 'stoic') candidates.push('moradin', 'erathis', 'raven_queen');
     if (personality.culture === 'festive') candidates.push('avandra', 'sehanine', 'corellon');
 
@@ -87,7 +95,7 @@ const generateServicesForDeity = (_deityId: string): TempleService[] => {
             name: 'Small Donation',
             description: 'A modest offering to show respect.',
             costGp: 5,
-            mechanicalEffect: 'grant_favor_small',
+            effect: 'grant_favor_small',
             minFavor: -100
         },
         {
@@ -95,7 +103,7 @@ const generateServicesForDeity = (_deityId: string): TempleService[] => {
             name: 'Divine Healing',
             description: 'Restore vitality and mend wounds.',
             costGp: 25,
-            mechanicalEffect: 'restore_hp_full',
+            effect: 'restore_hp_full',
             minFavor: -10
         },
         {
@@ -103,7 +111,7 @@ const generateServicesForDeity = (_deityId: string): TempleService[] => {
             name: 'Purify Body',
             description: 'Cure diseases and remove poisons.',
             costGp: 50,
-            mechanicalEffect: 'remove_condition_poisoned', // Simplified for now
+            effect: 'remove_condition_poisoned', // Simplified for now
             minFavor: 0
         },
         {
@@ -111,7 +119,7 @@ const generateServicesForDeity = (_deityId: string): TempleService[] => {
             name: 'Remove Curse',
             description: 'Lift a curse or hex.',
             costGp: 100,
-            mechanicalEffect: 'remove_curse',
+            effect: 'remove_curse',
             minFavor: 10
         },
         {
@@ -119,7 +127,7 @@ const generateServicesForDeity = (_deityId: string): TempleService[] => {
             name: 'Major Donation',
             description: 'A significant offering to the faith.',
             costGp: 100,
-            mechanicalEffect: 'grant_favor_large',
+            effect: 'grant_favor_large',
             minFavor: -100
         }
     ];

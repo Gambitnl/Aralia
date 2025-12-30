@@ -202,10 +202,21 @@ export const initialGameState: GameState = {
     companions: COMPANIONS,
 
     // Religion System
-    divineFavor: DEITIES.reduce((acc, deity) => {
-        acc[deity.id] = { deityId: deity.id, favor: 0, history: [] };
-        return acc;
-    }, {} as GameState['divineFavor']),
+    religion: {
+        knownDeities: [],
+        favor: DEITIES.reduce((acc, deity) => {
+            acc[deity.id] = {
+                deityId: deity.id,
+                value: 0,
+                status: 'neutral',
+                history: [],
+                blessings: [],
+                transgressions: []
+            };
+            return acc;
+        }, {} as Record<string, import('../types').DivineFavor>)
+    },
+    // divineFavor: Deprecated, removed from init
     temples: TEMPLES.reduce((acc, temple) => {
         acc[temple.id] = temple;
         return acc;

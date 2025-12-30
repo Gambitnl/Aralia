@@ -1,79 +1,81 @@
-export interface Deity {
-    id: string;
-    name: string;
-    titles: string[];
-    alignment: string;
-    domains: string[];
-    symbol: string;
-    description: string;
-    commandments: string[];
-    favoredWeapon: string;
+import { Location } from './world';
 
-    // New mechanical hooks
-    approves: DeityReaction[];
-    forbids: DeityReaction[];
-    relationships: DeityRelationship[];
-}
-
-export interface DeityReaction {
-    trigger: string; // The specific action key, e.g., 'HEAL_ALLY', 'SLAY_UNDEAD'
-    description: string; // "Heal an innocent"
-    favorChange: number; // e.g., +2, -5
+export interface DeityAction {
+  trigger?: string; // Optional because sometimes it's just a description
+  description: string;
+  favorChange: number;
 }
 
 export interface DeityRelationship {
-    targetDeityId: string;
-    type: 'ally' | 'enemy' | 'neutral' | 'rival';
+  targetDeityId: string;
+  type: 'ally' | 'enemy' | 'rival' | 'neutral';
+}
+
+export interface Deity {
+  id: string;
+  name: string;
+  titles: string[];
+  alignment: string;
+  domains: string[];
+  symbol: string;
+  description: string;
+  commandments: string[];
+  favoredWeapon: string;
+  approves: DeityAction[];
+  forbids: DeityAction[];
+  relationships: DeityRelationship[];
 }
 
 export interface DivineFavor {
-    deityId: string;
-    favor: number; // -100 to 100
-    history: FavorEvent[];
-    blessings: Blessing[];
-    transgressions: Transgression[];
-}
-
-export interface FavorEvent {
+  deityId: string;
+  value: number; // -100 to 100
+  status: 'exalted' | 'favored' | 'neutral' | 'disfavored' | 'anathema';
+  lastPrayerTime?: number;
+  // History is essential for the UI
+  history: {
     timestamp: number;
     reason: string;
     change: number;
+  }[];
+  // Track active blessings
+  blessings: Blessing[];
+  // Track transgressions
+  transgressions: Transgression[];
 }
 
-export interface Blessing {
-    id: string;
-    name: string;
-    description: string;
-    effectType: 'buff' | 'utility' | 'divine_intervention';
-    durationHours?: number; // Infinite if undefined
-}
-
-export interface Transgression {
-    id: string;
-    description: string;
-    severity: 'minor' | 'major' | 'unforgivable';
-    penanceRequired: string; // Description of how to atone
-}
-
-export interface DeityAction {
-    description: string;
-    favorChange: number;
-}
-
-export interface Temple {
-    id: string;
-    deityId: string;
-    name: string;
-    locationId: string; // References a Location
-    services: TempleService[];
+export interface Temple extends Location {
+  type: 'temple';
+  deityId: string;
+  services: (string | TempleService)[]; // Can be ID or object
 }
 
 export interface TempleService {
-    id: string;
-    name: string;
-    description: string;
-    costGp: number;
-    minFavor?: number; // Minimum favor required to access
-    mechanicalEffect?: string; // e.g., 'restore_hp_full', 'remove_curse'
-    effect?: string; // Backwards compatibility alias for mechanicalEffect
+  id: string;
+  name: string;
+  description: string;
+  costGp: number;
+  minFavor?: number;
+  effect: string; // e.g. "restore_hp_full", "grant_blessing_X"
+}
+
+export interface Blessing {
+  id: string;
+  name: string;
+  description: string;
+  effectType: 'stat_boost' | 'ability' | 'passive' | 'buff';
+  effectValue?: any;
+  durationHours?: number;
+}
+
+export interface Transgression {
+  id: string;
+  description: string;
+  severity: 'minor' | 'major' | 'unforgivable';
+  favorPenalty: number;
+  timestamp: number;
+}
+
+export interface ReligionState {
+  knownDeities: string[]; // IDs of deities discovered
+  favor: Record<string, DivineFavor>; // Map deityId to favor tracking
 }

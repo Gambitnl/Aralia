@@ -12,9 +12,10 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
 
             if (!deity) return {};
 
-            const existingFavor = state.divineFavor[deityId] || {
+            const existingFavor = state.religion.favor[deityId] || {
                 deityId: deityId,
-                favor: 0,
+                value: 0,
+                status: 'neutral',
                 history: [],
                 blessings: [],
                 transgressions: []
@@ -40,9 +41,12 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             const newFavor = calculateFavorChange(existingFavor, prayerAction);
 
             return {
-                divineFavor: {
-                    ...state.divineFavor,
-                    [deityId]: newFavor
+                religion: {
+                    ...state.religion,
+                    favor: {
+                        ...state.religion.favor,
+                        [deityId]: newFavor
+                    }
                 },
                 gold: offering ? state.gold - offering : state.gold,
                 messages: [
@@ -59,13 +63,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
 
         case 'TRIGGER_DEITY_ACTION': {
             const { trigger } = action.payload;
-            // TODO(lint-intent): The any on this value hides the intended shape of this data.
-            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-            const updates: Record<string, unknown> = {};
-            // TODO(lint-intent): The any on 'messages' hides the intended shape of this data.
-            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+            const updates: Record<string, import('../../types').DivineFavor> = {};
             const messages: unknown[] = [];
             const timestamp = Date.now();
 
@@ -73,9 +71,10 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             DEITIES.forEach(deity => {
                 const deityAction = evaluateAction(deity.id, trigger);
                 if (deityAction) {
-                    const existingFavor = state.divineFavor[deity.id] || {
+                    const existingFavor = state.religion.favor[deity.id] || {
                         deityId: deity.id,
-                        favor: 0,
+                        value: 0,
+                        status: 'neutral',
                         history: [],
                         blessings: [],
                         transgressions: []
@@ -85,7 +84,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     updates[deity.id] = newFavor;
 
                     // Only notify if user has existing relationship or change is significant
-                    if (existingFavor.favor !== 0 || Math.abs(deityAction.favorChange) >= 5) {
+                    if (existingFavor.value !== 0 || Math.abs(deityAction.favorChange) >= 5) {
                         const changeText = deityAction.favorChange > 0 ? 'gains favor' : 'loses favor';
                         messages.push({
                             id: timestamp + Math.random(),
@@ -102,9 +101,12 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             }
 
             return {
-                divineFavor: {
-                    ...state.divineFavor,
-                    ...updates
+                religion: {
+                    ...state.religion,
+                    favor: {
+                        ...state.religion.favor,
+                        ...updates
+                    }
                 },
                 messages: [
                     ...state.messages,
@@ -114,9 +116,6 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
         }
 
         case 'USE_TEMPLE_SERVICE': {
-            // TODO(lint-intent): 'templeId' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-            // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-            // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
             const { templeId: _templeId, deityId, cost, effect } = action.payload;
 
             // Deduct gold
@@ -127,7 +126,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             const timestamp = Date.now();
 
             let party = [...state.party];
-            const favorUpdates = { ...state.divineFavor };
+            const favorUpdates = { ...state.religion.favor };
 
             // Apply Effects
             if (effect === 'restore_hp_full') {
@@ -176,7 +175,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     timestamp: new Date(timestamp)
                 });
             } else if (effect === 'grant_favor_small' && deityId) {
-                 const existing = favorUpdates[deityId] || { deityId, favor: 0, history: [], blessings: [], transgressions: [] };
+                 const existing = favorUpdates[deityId] || { deityId, value: 0, status: 'neutral', history: [], blessings: [], transgressions: [] };
                  favorUpdates[deityId] = calculateFavorChange(existing, { description: 'Temple Donation', favorChange: 5 });
                  messages.push({
                     id: timestamp,
@@ -185,7 +184,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     timestamp: new Date(timestamp)
                 });
             } else if (effect === 'grant_favor_large' && deityId) {
-                 const existing = favorUpdates[deityId] || { deityId, favor: 0, history: [], blessings: [], transgressions: [] };
+                 const existing = favorUpdates[deityId] || { deityId, value: 0, status: 'neutral', history: [], blessings: [], transgressions: [] };
                  favorUpdates[deityId] = calculateFavorChange(existing, { description: 'Major Temple Donation', favorChange: 15 });
                  messages.push({
                     id: timestamp,
@@ -213,7 +212,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     }));
 
                     // 2. Add Blessing to Favor Record
-                    const existing = favorUpdates[deityId] || { deityId, favor: 0, history: [], blessings: [], transgressions: [] };
+                    const existing = favorUpdates[deityId] || { deityId, value: 0, status: 'neutral', history: [], blessings: [], transgressions: [] };
                     const blessingRecord = {
                         id: blessingId,
                         name: name,
@@ -237,7 +236,10 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                 gold: newGold,
                 party,
                 messages,
-                divineFavor: favorUpdates
+                religion: {
+                    ...state.religion,
+                    favor: favorUpdates
+                }
             };
         }
 

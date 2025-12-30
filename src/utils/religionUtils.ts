@@ -6,7 +6,7 @@ import {
     Temple,
     TempleService,
     Blessing
-} from '../types';
+} from '../types/deity';
 import { DEITIES } from '../data/deities';
 // TODO(lint-intent): 'BLESSING_EFFECTS' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
@@ -22,13 +22,21 @@ export const calculateFavorChange = (
     currentFavor: DivineFavor,
     action: DeityAction
 ): DivineFavor => {
-    let newFavorValue = currentFavor.favor + action.favorChange;
+    let newFavorValue = currentFavor.value + action.favorChange;
     // Clamp between -100 and 100
     newFavorValue = Math.max(-100, Math.min(100, newFavorValue));
 
+    // Determine new status
+    let newStatus: DivineFavor['status'] = 'neutral';
+    if (newFavorValue >= 80) newStatus = 'exalted';
+    else if (newFavorValue >= 25) newStatus = 'favored';
+    else if (newFavorValue <= -80) newStatus = 'anathema';
+    else if (newFavorValue <= -25) newStatus = 'disfavored';
+
     return {
         ...currentFavor,
-        favor: newFavorValue,
+        value: newFavorValue,
+        status: newStatus,
         history: [
             ...currentFavor.history,
             {
