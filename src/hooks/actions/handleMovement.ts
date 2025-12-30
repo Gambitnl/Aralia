@@ -22,7 +22,6 @@ import { getTimeModifiers } from '../../utils/timeUtils';
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { DiscoveryConsequence, TravelEvent as _TravelEvent, TravelEventEffect as _TravelEventEffect } from '../../types/exploration';
 import { BanterManager } from '../../systems/companions/BanterManager';
-import { BanterDisplayService } from '../../services/BanterDisplayService';
 import { resolveAndRegisterEntities } from '../../utils/entityIntegrationUtils';
 
 interface HandleMovementProps {
@@ -576,6 +575,7 @@ export async function handleMovement({
       type: 'UPDATE_BANTER_COOLDOWN',
       payload: { banterId: banter.id, timestamp: Date.now() }
     });
+    const { BanterDisplayService } = await import('../../services/BanterDisplayService');
     BanterDisplayService.queueBanter(banter.lines, addMessage, gameState.companions);
   }
 }
