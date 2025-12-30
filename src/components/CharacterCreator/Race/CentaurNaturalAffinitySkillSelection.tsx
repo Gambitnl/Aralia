@@ -5,7 +5,7 @@
  */
 import React, { useState } from 'react';
 import { Skill } from '../../../types';
-import { SKILLS_DATA } from '../../../constants';
+import { SKILLS_DATA } from '../../../data/skills';
 
 interface CentaurNaturalAffinitySkillSelectionProps {
   onSkillSelect: (skillId: string) => void;

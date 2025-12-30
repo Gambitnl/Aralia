@@ -8,7 +8,8 @@ import { GameState, Action, SuspicionLevel, GoalStatus, KnownFact } from '../../
 import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn, GetCurrentLocationFn, GetCurrentNPCsFn } from './actionHandlerTypes';
-import { NPCS, SKILLS_DATA } from '../../constants';
+import { NPCS } from '../../constants';
+import { SKILLS_DATA } from '../../data/skills';
 import { getAbilityModifierValue } from '../../utils/characterUtils';
 import { assessPlausibility } from '../../utils/socialUtils';
 import { handleImmediateGossip } from './handleWorldEvents';
