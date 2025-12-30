@@ -36,6 +36,20 @@ export interface MovementConfig {
 }
 
 /**
+ * Configuration options for calculating object damage.
+ */
+export interface ObjectDamageOptions {
+  /** Damage threshold below which the object takes 0 damage. Default 0. */
+  threshold?: number;
+  /** List of damage types the object is immune to. Default ['poison', 'psychic']. */
+  immunities?: string[];
+  /** List of damage types the object is resistant to (half damage). */
+  resistances?: string[];
+  /** List of damage types the object is vulnerable to (double damage). */
+  vulnerabilities?: string[];
+}
+
+/**
  * Gets the Armor Class (AC) of an object based on its material.
  * D&D 5e DMG pg 246.
  *
@@ -363,5 +377,72 @@ export function calculateExhaustionEffects(level: number): {
     d20Penalty: validLevel * 2,
     speedPenalty: validLevel * 5,
     isDead: false,
+  };
+}
+
+/**
+ * Calculates damage dealt to an object based on resistances, immunities, and damage threshold.
+ * D&D 5e DMG p. 247 "Damage Threshold":
+ * "An object with a damage threshold has immunity to all damage unless it takes an amount of damage
+ * from a single attack or effect equal to or greater than its damage threshold, in which case it takes damage as normal."
+ *
+ * Order of operations (PHB p. 197):
+ * 1. Resistance (Halve damage)
+ * 2. Vulnerability (Double damage)
+ *
+ * @param damageAmount - Raw incoming damage.
+ * @param damageType - Type of damage (e.g., 'fire', 'slashing').
+ * @param options - Configuration options (threshold, immunities, etc).
+ * @returns The final damage amount and a descriptive message.
+ */
+export function calculateObjectDamage(
+  damageAmount: number,
+  damageType: string,
+  options: ObjectDamageOptions = {}
+): { finalDamage: number; message: string } {
+  // Destructure with defaults
+  const {
+    threshold = 0,
+    immunities = ['poison', 'psychic'],
+    resistances = [],
+    vulnerabilities = [],
+  } = options;
+
+  // [Mechanist] Defensive coding: Prevent negative damage input
+  const rawDamage = Math.max(0, damageAmount);
+
+  // 1. Check Immunities
+  if (immunities.includes(damageType)) {
+    return {
+      finalDamage: 0,
+      message: `The object is immune to ${damageType} damage.`,
+    };
+  }
+
+  // 2. Apply Resistance (PHB p. 197: "Resistance and then vulnerability")
+  let calculatedDamage = rawDamage;
+
+  if (resistances.includes(damageType)) {
+    calculatedDamage = Math.floor(calculatedDamage / 2);
+  }
+
+  // 3. Apply Vulnerability
+  if (vulnerabilities.includes(damageType)) {
+    calculatedDamage *= 2;
+  }
+
+  // 4. Check Damage Threshold (DMG p. 247)
+  // "An object with a damage threshold has immunity to all damage unless it takes an amount of damage... equal to or greater than its damage threshold."
+  if (calculatedDamage < threshold) {
+    return {
+      finalDamage: 0,
+      message: `The damage (${calculatedDamage}) was superficial; it did not breach the object's damage threshold of ${threshold}.`,
+    };
+  }
+
+  // 5. Return Final Damage
+  return {
+    finalDamage: calculatedDamage,
+    message: `The object takes ${calculatedDamage} ${damageType} damage.`,
   };
 }

@@ -34,6 +34,7 @@ export { createAbilityFromSpell, generateId };
 
 // TODO(Mechanist): Wire up physicsUtils (fall damage, jumping) into movement logic.
 // TODO(Mechanist): Wire up `calculateExhaustionEffects` from `physicsUtils.ts` to `createPlayerCombatCharacter` (apply speed/d20 penalties).
+// TODO(Mechanist): Wire up `calculateObjectDamage` from `physicsUtils.ts` into targeting system to allow attacking doors/walls (DMG p. 247).
 
 /**
  * Checks if a character can take a reaction.
