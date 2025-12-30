@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { TargetResolver } from '../TargetResolver'
 // TODO(lint-intent): 'Position' is unused in this test; use it in the assertion path or remove it.
 import type { SpellTargeting, BattleMapTile , CombatCharacter, CombatState, Position as _Position } from '@/types'
-
+import { VisibilitySystem } from '../../visibility' // Mock or import for tests
 
 // Mock Character
 const createMockChar = (id: string, team: 'player' | 'enemy', x: number, y: number): CombatCharacter => ({
@@ -14,7 +14,10 @@ const createMockChar = (id: string, team: 'player' | 'enemy', x: number, y: numb
   // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
   class: {} as unknown,
   // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  stats: {} as unknown,
+  stats: {
+    // Add default senses for visibility checks
+    senses: { darkvision: 0, blindsight: 0, tremorsense: 0, truesight: 0 }
+  } as unknown,
   abilities: [],
   currentHP: 10,
   maxHP: 10,
@@ -43,7 +46,7 @@ describe('TargetResolver', () => {
   let enemyFar: CombatCharacter
   let mockGameState: CombatState
   // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  let mockMapData: unknown
+  let mockMapData: any // Use 'any' or proper type to allow mutable manipulation in tests
 
   beforeEach(() => {
     caster = createMockChar('hero', 'player', 10, 10)
@@ -54,7 +57,7 @@ describe('TargetResolver', () => {
     mockMapData = {
       dimensions: { width: 30, height: 30 },
       tiles: new Map<string, BattleMapTile>(),
-      theme: 'forest' as const,
+      theme: 'forest', // Forest defaults to 'bright' ambient light (in theory, but depends on VisibilitySystem implementation)
       seed: 123
     }
 
@@ -80,6 +83,28 @@ describe('TargetResolver', () => {
       reactiveTriggers: [],
       activeLightSources: []
     }
+
+    // IMPORTANT: VisibilitySystem defaults to 'darkness' for tiles if ambient logic isn't explicit in calculateLightLevels.
+    // However, my implementation of calculateLightLevels sets everything to 'darkness' initially.
+    // To make legacy tests pass where light didn't matter, we must ensure characters can see.
+    // Or we must update the tests to respect lighting.
+
+    // Fix: We can assume standard tests happen in "Bright" conditions for backward compatibility OR
+    // we explicitly add a global light source or give the caster Darkvision.
+    // Let's give the caster super darkvision for these regression tests to isolate Logic checks (range, team) from Visibility checks.
+    caster.stats.senses = { darkvision: 1000, blindsight: 0, tremorsense: 0, truesight: 0 };
+
+    // OR: Add a light source covering the whole map.
+    mockGameState.activeLightSources = [{
+      id: 'sun',
+      sourceSpellId: 'sun',
+      casterId: 'god',
+      brightRadius: 1000,
+      dimRadius: 0,
+      attachedTo: 'point',
+      position: { x: 15, y: 15 },
+      createdTurn: 0
+    }];
   })
 
   describe('isValidTarget', () => {
