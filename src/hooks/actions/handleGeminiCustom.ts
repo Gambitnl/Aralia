@@ -97,6 +97,8 @@ export async function handleGeminiCustom({
     if (outcomeResult.data) {
         if (outcomeResult.data.text) {
             addMessage(outcomeResult.data.text, "system");
+            // [Linker] Ensure entities mentioned in social outcomes exist
+            await resolveAndRegisterEntities(outcomeResult.data.text, gameState, dispatch, addGeminiLog);
         }
         dispatch({ type: 'UPDATE_NPC_DISPOSITION', payload: { npcId: npc.id, amount: outcomeResult.data.dispositionChange } });
         
