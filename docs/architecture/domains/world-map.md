@@ -20,6 +20,21 @@ The World Map provides region-level navigation showing the broader geography of 
 - **World Overview**: `WorldPane.tsx` - Summary panel
 - **Minimap**: `Minimap.tsx` - Navigation minimap
 
+## Navigation Mechanics
+
+### Zoom Implementation
+Zooming is handled via CSS transformations on the main grid container within `MapPane.tsx`.
+- **State**: Managed via local `scale` (0.5x to 3.0x) and `offset` (x/y pan) state.
+- **Controls**:
+  - **Mouse Wheel**: +/- 0.1 scale increments.
+  - **Keyboard**: `+`/`-` keys for 0.1 scale increments.
+  - **UI Buttons**: On-screen controls for 0.2 scale increments.
+- **Rendering**: The grid applies `transform: translate(x, y) scale(z)`. Child `MapTile` components do not handle zoom logic directly.
+
+### Panning
+- **Mouse Drag**: Standard click-and-drag updates the `offset` state.
+- **Keyboard Navigation**: Arrow keys move the focused cursor (selection), but do not natively pan the view unless the focused element scrolls into view (browser behavior).
+
 ## File Ownership
 
 | Path | Type | Description |
@@ -61,5 +76,5 @@ The World Map provides region-level navigation showing the broader geography of 
 ## Open Questions / TODOs
 
 - [ ] Document region discovery mechanics
-- [ ] Clarify zoom level implementation
+- [x] Clarify zoom level implementation
 - [ ] Map relationship between world data and biomes
