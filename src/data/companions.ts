@@ -170,6 +170,37 @@ const KAELEN_REACTIONS: CompanionReactionRule[] = [
       "That'll fetch a nice price."
     ],
     chance: 0.5
+  },
+  // CRIME TRIGGERS
+  {
+    triggerType: 'crime_committed',
+    triggerTags: ['theft', 'burglary'],
+    approvalChange: 2,
+    dialoguePool: [
+      "Nice sleight of hand.",
+      "Five finger discount?",
+      "Just don't get caught."
+    ]
+  },
+  {
+    triggerType: 'crime_committed',
+    triggerTags: ['murder', 'severe'],
+    approvalChange: -2,
+    dialoguePool: [
+      "Woah, easy there Chief.",
+      "That was... excessive.",
+      "I'm all for profit, but that's just messy."
+    ]
+  },
+  {
+    triggerType: 'crime_committed',
+    triggerTags: ['witnessed'],
+    approvalChange: -1,
+    dialoguePool: [
+      "Great. Now we have heat.",
+      "You were supposed to be subtle!",
+      "Run now, explain later!"
+    ]
   }
 ];
 
@@ -299,6 +330,27 @@ const ELARA_REACTIONS: CompanionReactionRule[] = [
       "We prevailed, thank the gods."
     ],
     chance: 0.4
+  },
+  // CRIME TRIGGERS
+  {
+    triggerType: 'crime_committed',
+    triggerTags: ['theft', 'burglary'],
+    approvalChange: -3,
+    dialoguePool: [
+      "Thou shalt not steal.",
+      "Return that at once!",
+      "This is beneath us."
+    ]
+  },
+  {
+    triggerType: 'crime_committed',
+    triggerTags: ['murder', 'assault', 'severe'],
+    approvalChange: -10,
+    dialoguePool: [
+      "By the Light... what have you done?!",
+      "I cannot walk with a murderer.",
+      "You have blood on your hands."
+    ]
   }
 ];
 
