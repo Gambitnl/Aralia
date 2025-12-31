@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ResistanceCalculator } from '../ResistanceCalculator'
+import { ResistanceCalculator } from '../resistanceUtils'
 import type { CombatCharacter } from '@/types'
 
 describe('ResistanceCalculator', () => {

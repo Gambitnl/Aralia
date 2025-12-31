@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ResistanceCalculator } from '../ResistanceCalculator';
+import { ResistanceCalculator } from '../../../../utils/combat/resistanceUtils';
 import { CombatCharacter } from '@/types/combat';
 import { DamageType } from '@/types/spells';
 

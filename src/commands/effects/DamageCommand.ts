@@ -5,7 +5,7 @@ import { checkConcentration } from '../../utils/concentrationUtils';
 import { calculateSpellDC, rollSavingThrow, calculateSaveDamage } from '../../utils/savingThrowUtils';
 import { rollDamage as rollDamageUtil } from '../../utils/combatUtils';
 import { BreakConcentrationCommand } from './ConcentrationCommands'
-import { ResistanceCalculator } from '../../systems/spells/mechanics/ResistanceCalculator';
+import { ResistanceCalculator } from '../../utils/combat/resistanceUtils';
 import { getPlanarSpellModifier } from '../../utils/planarUtils';
 import { StatusConditionCommand } from './StatusConditionCommand';
 
