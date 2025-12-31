@@ -37,10 +37,22 @@ vi.mock('../../data/backgrounds', () => ({
   }
 }));
 
+// Mock Classes
+vi.mock('../../data/classes', () => ({
+  CLASSES_DATA: {
+    'fighter': {
+      id: 'fighter',
+      name: 'Fighter',
+      description: 'A master of martial combat.'
+    }
+  }
+}));
+
 
 describe('contextUtils', () => {
   const mockPlayer: PlayerCharacter = {
     name: 'Hero',
+    age: 30,
     race: { name: 'Human', id: 'human', description: '', traits: [] },
     class: { name: 'Fighter', id: 'fighter', description: '', hitDie: 10, primaryAbility: [], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] },
     hp: 10,
@@ -145,13 +157,17 @@ describe('contextUtils', () => {
 
     // Player Basics
     expect(context).toContain('## PLAYER');
-    expect(context).toContain('Name: Hero (Human Fighter)');
-    expect(context).toContain('HP: 10/20');
+    expect(context).toContain('Name: Hero | HP: 10/20');
+    expect(context).toContain('Age: 30');
+    expect(context).toContain('Race: Human');
+    expect(context).toContain('Class: Fighter');
+    expect(context).toContain('Class Flavor: A master of martial combat.');
 
     // Character Details
     expect(context).toContain('## CHARACTER DETAILS');
     expect(context).toContain('Background: Soldier');
     expect(context).toContain('Archetype: You served in the army.');
+    expect(context).toContain('Background Feature: "Rank" - You have a rank.');
     expect(context).toContain('Appearance: A scarred veteran.');
 
     // Location
@@ -169,6 +185,23 @@ describe('contextUtils', () => {
     // History
     expect(context).toContain('## RECENT HISTORY');
     expect(context).toContain('[Narrator]: Welcome to the game');
+  });
+
+  it('generates fallback implicit appearance if visualDescription is missing', () => {
+    const fallbackPlayer = {
+        ...mockPlayer,
+        visualDescription: undefined,
+        visuals: { gender: 'Female', skinColor: 0 }
+    } as PlayerCharacter;
+
+    const context = generateGeneralActionContext({
+      gameState: mockGameState,
+      playerCharacter: fallbackPlayer,
+      currentLocation: mockLocation,
+      npcsInLocation: []
+    });
+
+    expect(context).toContain('Appearance: A Female Human.');
   });
 
   it('handles empty history and quests gracefully', () => {
