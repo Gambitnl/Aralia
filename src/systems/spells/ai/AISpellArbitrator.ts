@@ -5,6 +5,7 @@ import { generateText } from '../../../services/geminiService'
 import { Position } from '../../../types/map'
 import { MaterialTagService } from './MaterialTagService'
 import { sanitizeAIInput, detectSuspiciousInput, cleanAIJSON, safeJSONParse } from '../../../utils/securityUtils'
+import { logger } from '../../../utils/logger'
 
 export interface ArbitrationRequest {
     spell: Spell
@@ -111,7 +112,7 @@ class AISpellArbitrator {
             )
 
             if (result.error || !result.data) {
-                console.error('AI validation failed:', result.error)
+                logger.error('AI validation failed', { error: result.error })
                 return {
                     allowed: false,
                     reason: 'AI validation service unavailable'
@@ -134,7 +135,7 @@ class AISpellArbitrator {
                 narrativeOutcome: responseData.flavorText
             }
         } catch (error) {
-            console.error('AI validation failed:', error)
+            logger.error('AI validation failed', { error })
             return {
                 allowed: false,
                 reason: 'AI validation service unavailable'
@@ -214,7 +215,7 @@ class AISpellArbitrator {
                 mechanicalEffects: responseData.mechanicalEffects
             }
         } catch (error) {
-            console.error('AI DM adjudication failed:', error)
+            logger.error('AI DM adjudication failed', { error })
             return {
                 allowed: false,
                 reason: 'AI DM service unavailable'
