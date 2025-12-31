@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { canEquipItem, performLevelUp, applyFeatToCharacter } from '../characterUtils';
-import { createMockPlayerCharacter, createMockItem } from '../factories';
-import { Item, ArmorCategory, Feat } from '../../types';
-import { FEATS_DATA } from '../../data/feats/featsData';
+import { canEquipItem, performLevelUp, applyFeatToCharacter } from '../index';
+import { createMockPlayerCharacter, createMockItem } from '../../factories';
+import { Item, ArmorCategory, Feat } from '../../../types';
+import { FEATS_DATA } from '../../../data/feats/featsData';
 
 describe('characterUtils', () => {
   describe('canEquipItem', () => {
