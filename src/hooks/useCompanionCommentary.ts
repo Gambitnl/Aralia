@@ -29,6 +29,7 @@ export const useCompanionCommentary = (
   const prevLocationRef = useRef(gameState.currentLocationId);
   const prevMessagesLengthRef = useRef(gameState.messages.length);
   const prevGoldRef = useRef(gameState.gold);
+  const prevKnownCrimesRef = useRef(gameState.notoriety.knownCrimes.length);
 
   // Helper to check cooldowns
   const isOnCooldown = useCallback((companionId: string, triggerType: string, cooldownMinutes: number = 1): boolean => {
@@ -162,5 +163,31 @@ export const useCompanionCommentary = (
       });
     }
   }, [gameState.messages, gameState.gold, evaluateReaction]);
+
+  // 3. Crimes
+  useEffect(() => {
+    // Handle case where notoriety might be undefined (e.g. init)
+    if (!gameState.notoriety?.knownCrimes) return;
+
+    // Reset ref if knownCrimes shrunk (e.g. load game or clear history)
+    if (gameState.notoriety.knownCrimes.length < prevKnownCrimesRef.current) {
+        prevKnownCrimesRef.current = gameState.notoriety.knownCrimes.length;
+        return;
+    }
+
+    if (gameState.notoriety.knownCrimes.length > prevKnownCrimesRef.current) {
+      const newCrimes = gameState.notoriety.knownCrimes.slice(prevKnownCrimesRef.current);
+      prevKnownCrimesRef.current = gameState.notoriety.knownCrimes.length;
+
+      newCrimes.forEach(crime => {
+        // Tag based on crime type (e.g., 'theft', 'assault', 'murder')
+        const tags = [crime.type.toLowerCase()];
+        if (crime.severity > 50) tags.push('severe');
+        if (crime.witnessed) tags.push('witnessed');
+
+        evaluateReaction('crime_committed', tags);
+      });
+    }
+  }, [gameState.notoriety?.knownCrimes, evaluateReaction]);
 
 };

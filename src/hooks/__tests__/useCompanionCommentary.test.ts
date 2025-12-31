@@ -3,7 +3,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useCompanionCommentary } from '../useCompanionCommentary';
 import { GameState } from '../../types';
 import { COMPANIONS } from '../../data/companions';
-import { CompanionReactionRule } from '../../types/companions';
+import { CompanionReactionRule, Companion } from '../../types/companions';
 
 describe('useCompanionCommentary', () => {
   let mockDispatch: any;
@@ -28,7 +28,13 @@ describe('useCompanionCommentary', () => {
       companions: mockCompanions,
       currentLocationId: 'loc_1',
       messages: [],
-      gold: 0
+      gold: 0,
+      notoriety: {
+        globalHeat: 0,
+        localHeat: {},
+        knownCrimes: [],
+        bounties: []
+      }
     } as unknown as GameState;
     vi.useFakeTimers();
   });
@@ -56,8 +62,9 @@ describe('useCompanionCommentary', () => {
       vi.runAllTimers();
     });
 
+    // Wait for microtasks
     await act(async () => {
-      vi.runAllTimers();
+        await Promise.resolve();
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
@@ -68,7 +75,7 @@ describe('useCompanionCommentary', () => {
     }));
   });
 
-  it('should respect cooldowns', async () => {
+  it('should respect cooldowns for loot reactions', async () => {
     vi.spyOn(Math, 'random').mockReturnValue(0);
 
     const { rerender } = renderHook(({ state }) => useCompanionCommentary(state, mockDispatch), {
@@ -87,8 +94,9 @@ describe('useCompanionCommentary', () => {
       vi.runAllTimers();
     });
 
-    await act(async () => {
-      vi.runAllTimers();
+     // Wait for microtasks
+     await act(async () => {
+        await Promise.resolve();
     });
 
     expect(mockDispatch).toHaveBeenCalledTimes(1);
@@ -111,11 +119,84 @@ describe('useCompanionCommentary', () => {
       vi.runAllTimers();
     });
 
-    await act(async () => {
-      vi.runAllTimers();
+     // Wait for microtasks
+     await act(async () => {
+        await Promise.resolve();
     });
 
     // Should be blocked by cooldown
     expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  // --- NEW CRIME TESTS ---
+
+  it('should trigger reaction when a crime is committed', async () => {
+      const mockCompanion: Companion = {
+          id: 'test_comp',
+          identity: { id: 'test_comp', name: 'TestComp', race: 'Human', class: 'Fighter', background: 'Soldier' },
+          personality: { openness: 50, conscientiousness: 50, extraversion: 50, agreeableness: 50, neuroticism: 50, values: [], fears: [], quirks: [] },
+          goals: [],
+          relationships: { player: { targetId: 'player', level: 'acquaintance', approval: 0, history: [], unlocks: [] } },
+          loyalty: 50,
+          approvalHistory: [],
+          reactionRules: [
+              {
+                  triggerType: 'crime_committed',
+                  triggerTags: ['theft'],
+                  approvalChange: 5,
+                  dialoguePool: ['Nice theft!'],
+                  chance: 1
+              }
+          ]
+      };
+
+      const testState = {
+          ...mockState,
+          companions: { test_comp: mockCompanion }
+      };
+
+      const { rerender } = renderHook(
+          ({ state }) => useCompanionCommentary(state as GameState, mockDispatch),
+          { initialProps: { state: testState } }
+      );
+
+      // Simulate crime committed
+      const updatedState = {
+          ...testState,
+          notoriety: {
+              ...testState.notoriety!,
+              knownCrimes: [
+                  {
+                      id: 'crime_1',
+                      type: 'Theft',
+                      severity: 10,
+                      locationId: 'loc_1',
+                      timestamp: Date.now(),
+                      witnessed: false
+                  }
+              ]
+          }
+      };
+
+      await act(async () => {
+        rerender({ state: updatedState });
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
+          type: 'ADD_COMPANION_REACTION',
+          payload: expect.objectContaining({
+              companionId: 'test_comp',
+              reaction: 'Nice theft!'
+          })
+      }));
+
+      expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
+          type: 'UPDATE_COMPANION_APPROVAL',
+          payload: expect.objectContaining({
+              companionId: 'test_comp',
+              change: 5,
+              reason: 'Reaction to crime_committed'
+          })
+      }));
   });
 });

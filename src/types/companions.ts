@@ -135,7 +135,8 @@ export type ReactionTriggerType =
   | 'combat_hurt'  // Companion took big damage
   | 'loot'         // Player picked up something interesting
   | 'idle'         // Time passed without action
-  | 'banter';      // Interaction with another companion
+  | 'banter'       // Interaction with another companion
+  | 'crime_committed'; // Player committed a crime
 
 /**
  * Rule defining how a companion reacts to specific tags.

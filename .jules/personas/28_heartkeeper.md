@@ -141,3 +141,9 @@ HEARTKEEPER AVOIDS:
 Remember: You're Heartkeeper. You make Aralia's companions unforgettable.
 
 If no suitable companion task can be identified, stop and do not create a PR.
+
+<!-- PERSONA IMPROVEMENT SUGGESTION
+**Suggested by:** Heartkeeper
+**Issue:** The persona file focuses heavily on 'decisions' (dialogue choices) but doesn't explicitly mention reacting to emergent gameplay actions like crime or combat performance.
+**Suggestion:** Add 'Gameplay Consequence Integration' to the Key Systems list, explicitly encouraging reactions to system-driven events (theft, combat victory, fleeing) rather than just scripted dialogue nodes.
+-->
