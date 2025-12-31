@@ -14,7 +14,7 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
       // Create a starter ship if none exist
       if (state.naval.playerShips.length > 0) return state;
 
-      const starterShip = createShip('Sloop', 'The Drunken Seagull');
+      const starterShip = createShip('The Drunken Seagull', 'Sloop');
 
       return {
         ...state,
@@ -31,8 +31,10 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
       if (!shipId) return state;
 
       const { destinationId, distance } = action.payload;
+      const ship = state.naval.playerShips.find(s => s.id === shipId);
+      if (!ship) return state;
 
-      const newVoyage = VoyageManager.startVoyage(shipId, destinationId, distance);
+      const newVoyage = VoyageManager.startVoyage(ship, distance);
 
       return {
         ...state,
@@ -50,7 +52,7 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
       if (!ship) return state;
 
       // Calculate logic for a day at sea
-      const updatedVoyage = VoyageManager.advanceDay(state.naval.currentVoyage, ship);
+      const { newState: updatedVoyage, updatedShip } = VoyageManager.advanceDay(state.naval.currentVoyage, ship);
 
       // Check for arrival
       if (updatedVoyage.distanceTraveled >= updatedVoyage.distanceToDestination) {
@@ -67,6 +69,7 @@ export const navalReducer = (state: GameState, action: AppAction): GameState => 
         naval: {
           ...state.naval,
           currentVoyage: updatedVoyage,
+          playerShips: state.naval.playerShips.map(s => s.id === updatedShip.id ? updatedShip : s)
         },
       };
     }

@@ -14,7 +14,7 @@ import { ActionButton } from './ActionButton';
 import { useActionGeneration } from './useActionGeneration';
 import { SystemMenu } from './SystemMenu';
 import { ShipPane } from '../Naval/ShipPane';
-import { useGameState } from '../../state/GameContext';
+import { useOptionalGameState } from '../../state/GameContext';
 
 interface ActionPaneProps {
   currentLocation: Location;
@@ -49,7 +49,8 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   const [isOracleInputVisible, setIsOracleInputVisible] = useState(false);
   const [oracleQuery, setOracleQuery] = useState('');
 
-  const { state } = useGameState();
+  const gameContext = useOptionalGameState();
+  const shipState = gameContext?.state?.ship;
   const [showShipPane, setShowShipPane] = useState(false);
 
   const { generalActions } = useActionGeneration({
@@ -159,9 +160,9 @@ const ActionPane: React.FC<ActionPaneProps> = ({
 
       {/* Naval Pane Modal */}
       <AnimatePresence>
-        {showShipPane && state.ship && (
+        {showShipPane && shipState && (
           <ShipPane
-            ship={state.ship}
+            ship={shipState}
             onClose={() => setShowShipPane(false)}
           />
         )}

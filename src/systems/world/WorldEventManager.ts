@@ -380,10 +380,13 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
     const newSurplus = new Set<string>();
 
     newActiveEvents.forEach(e => {
-        if (e.effect === 'scarcity') {
-            e.affectedTags.forEach(tag => newScarcity.add(tag));
+        if (!Array.isArray((e as any).affectedTags)) {
+            return;
+        }
+        if ((e as any).effect === 'scarcity') {
+            (e as any).affectedTags.forEach((tag: string) => newScarcity.add(tag));
         } else {
-            e.affectedTags.forEach(tag => newSurplus.add(tag));
+            (e as any).affectedTags.forEach((tag: string) => newSurplus.add(tag));
         }
     });
 
@@ -505,7 +508,18 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
   }
 
   const rng = new SeededRandom(state.worldSeed + getGameDay(state.gameTime));
-  let currentState = state; // Start with reference, only clone on change
+  const safeEconomy = {
+      marketEvents: state.economy?.marketEvents ?? [],
+      tradeRoutes: state.economy?.tradeRoutes ?? [],
+      globalInflation: state.economy?.globalInflation ?? 0,
+      regionalWealth: state.economy?.regionalWealth ?? {},
+      marketFactors: state.economy?.marketFactors ?? { scarcity: [], surplus: [] },
+      buyMultiplier: state.economy?.buyMultiplier ?? 1,
+      sellMultiplier: state.economy?.sellMultiplier ?? 1,
+      activeEvents: (state.economy?.activeEvents as any) ?? []
+  } as EconomyState;
+
+  let currentState = { ...state, economy: safeEconomy }; // Start with reference, only clone on change
   let allLogs: GameMessage[] = [];
 
   // 0. Propagate Rumors (Daily Step)

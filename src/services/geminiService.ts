@@ -1,8 +1,9 @@
 import { FAST_MODEL } from '../config/geminiConfig';
+export { generateText } from './gemini/core';
 import { generateText } from './gemini/core';
 import { GeminiHarvestData, GeminiInventoryData, GeminiTextData, StandardizedResult } from './gemini/types';
 import { generateCharacterName, generateCustomActions, generateEncounter, generateOracleResponse, generateSocialCheckOutcome, generateTileInspectionDetails } from './gemini/encounters';
-import { generateGuideResponse, generateHarvestLoot, generateMerchantInventory } from './gemini/items';
+import { generateGuideResponse as implGenerateGuideResponse, generateHarvestLoot as implGenerateHarvestLoot, generateMerchantInventory as implGenerateMerchantInventory } from './gemini/items';
 import { GoalStatus, NPCMemory, EconomyState } from '../types';
 
 export async function generateLocationDescription(
@@ -103,31 +104,57 @@ export const generateEncounter = generateEncounterFacade;
 export const generateCustomActions = generateCustomActionsFacade;
 export const generateSocialCheckOutcome = generateSocialCheckOutcomeFacade;
 
-export async function generateMerchantInventoryFacade(
+export async function rephraseFactForGossip(
+  fact: string,
+  npcName: string,
+  npcPersonality: string,
+  devModelOverride: string | null = null
+): Promise<StandardizedResult<GeminiTextData>> {
+  const systemInstruction = "You turn plain facts into conversational gossip from the perspective of the named NPC. Keep it to 1-2 sentences, in their voice.";
+  const prompt = `NPC: ${npcName}
+Personality: ${npcPersonality}
+Fact to rephrase: ${fact}
+
+Rephrase this as gossip spoken by ${npcName} in 1-2 sentences.`;
+  return generateText(prompt, systemInstruction, false, 'rephraseFactForGossip', devModelOverride, FAST_MODEL);
+}
+
+export async function generateSituationAnalysis(
+  context: string,
+  devModelOverride: string | null = null
+): Promise<StandardizedResult<GeminiTextData>> {
+  const systemInstruction = "You are a DM hint system. In 1-2 sentences, suggest what the player could consider doing next based on context. Be concise, no spoilers.";
+  const prompt = `Context: ${context}
+
+Provide a brief situational analysis and one suggested next action.`;
+  return generateText(prompt, systemInstruction, false, 'generateSituationAnalysis', devModelOverride, FAST_MODEL);
+}
+
+export async function generateMerchantInventory(
   shopType: string,
   context: string,
   economyState: EconomyState,
   devModelOverride: string | null = null,
   seedKey?: string
 ): Promise<StandardizedResult<GeminiInventoryData>> {
-  return generateMerchantInventory(shopType, context, economyState, devModelOverride, seedKey);
+  return implGenerateMerchantInventory(shopType, context, economyState, devModelOverride, seedKey);
 }
 
-export async function generateHarvestLootFacade(
+export async function generateHarvestLoot(
   locationName: string,
   actionDescription: string,
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiHarvestData>> {
-  return generateHarvestLoot(locationName, actionDescription, devModelOverride);
+  return implGenerateHarvestLoot(locationName, actionDescription, devModelOverride);
 }
 
-export async function generateGuideResponseFacade(
+export async function generateGuideResponse(
   memory: NPCMemory,
   goalStatus: GoalStatus,
   playerContext: string,
   devModelOverride: string | null = null
 ): Promise<StandardizedResult<GeminiTextData>> {
-  return generateGuideResponse(memory, goalStatus, playerContext, devModelOverride);
+  return implGenerateGuideResponse(memory, goalStatus, playerContext, devModelOverride);
 }
 
 // Internal facades

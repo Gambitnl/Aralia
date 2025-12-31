@@ -118,6 +118,15 @@ export function processRefiningBatch(crafter: Crafter, request: BatchRefineReque
     // 1. Validation: Use canCraft to check requirements (materials)
     // NOTE: canCraft only checks materials currently. If it checked tools/stations, this would respect it.
     if (!canCraft(virtualCrafter, recipe)) {
+      failures++;
+      results.push({
+        success: false,
+        quality: 'poor',
+        outputs: [],
+        consumedMaterials: [],
+        materialsLost: false,
+        message: `Failed to refine batch item ${i + 1}/${batchSize} (insufficient materials)`
+      });
       break;
     }
 

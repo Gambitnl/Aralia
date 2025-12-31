@@ -7,3 +7,13 @@ export { FullEntryDisplay } from './FullEntryDisplay';
 export { GlossaryContentRenderer } from './GlossaryContentRenderer';
 export { default as SpellCardTemplate } from './SpellCardTemplate';
 export type { SpellData } from './SpellCardTemplate';
+
+// Modular sub-components (extracted from Glossary.tsx)
+export { GlossaryHeader } from './GlossaryHeader';
+export { GlossarySidebar } from './GlossarySidebar';
+export { GlossaryEntryPanel } from './GlossaryEntryPanel';
+export { GlossaryFooter } from './GlossaryFooter';
+export { GlossaryResizeHandles } from './GlossaryResizeHandles';
+
+// Hooks
+export * from './hooks';

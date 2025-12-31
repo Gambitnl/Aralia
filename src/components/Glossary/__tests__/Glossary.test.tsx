@@ -112,10 +112,10 @@ describe('Glossary', () => {
       ...mockGateHookReturn,
       results: {
         'spell-entry': {
-        status: 'fail',
-        reasons: ['Spell JSON not found'],
-        level: 3,
-        checklist: { manifestPathOk: true, spellJsonExists: false, spellJsonValid: false, knownGap: false },
+          status: 'fail',
+          reasons: ['Spell JSON not found'],
+          level: 3,
+          checklist: { manifestPathOk: true, spellJsonExists: false, spellJsonValid: false, noKnownGaps: true },
         },
       },
     };
@@ -129,7 +129,7 @@ describe('Glossary', () => {
     expect(screen.getByText(/Spell JSON not found/)).toBeInTheDocument();
 
     // Allow the mocked fetch promise to resolve and state to update
-    await waitFor(() => {});
+    await waitFor(() => { });
   });
 
   it('navigates to see-also targets and expands nested parents', () => {
@@ -147,10 +147,10 @@ describe('Glossary', () => {
       ...mockGateHookReturn,
       results: {
         'spell-entry': {
-        status: 'gap',
-        reasons: ['Known schema gap'],
-        level: 1,
-        checklist: { manifestPathOk: true, spellJsonExists: true, spellJsonValid: true, knownGap: true },
+          status: 'gap',
+          reasons: ['Known schema gap'],
+          level: 1,
+          checklist: { manifestPathOk: true, spellJsonExists: true, spellJsonValid: true, noKnownGaps: false },
         },
       },
     };
@@ -162,6 +162,6 @@ describe('Glossary', () => {
     expect(screen.getByText(/Marked as a gap/)).toBeInTheDocument();
 
     // Allow the mocked fetch promise to resolve and state to update
-    await waitFor(() => {});
+    await waitFor(() => { });
   });
 });

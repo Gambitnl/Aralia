@@ -2,7 +2,7 @@
 import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand';
 import { CombatState, ActiveEffect } from '../../types/combat';
 import { DefensiveEffect } from '../../types/spells';
-import { getAbilityModifier } from '../../utils/characterUtils';
+import { getAbilityModifierValue } from '../../utils/characterUtils';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -65,7 +65,7 @@ export class DefensiveCommand implements SpellCommand {
         case 'set_base_ac': {
           // Set Base AC (e.g. Mage Armor: 13 + Dex)
           // Calculation: Base Value + Dex Modifier
-          const dexMod = getAbilityModifier(updatedCharacter.stats.dexterity);
+          const dexMod = getAbilityModifierValue(updatedCharacter.stats.dexterity);  
           const newAC = this.effect.value + dexMod;
 
           const activeEffect = this.createActiveEffect(

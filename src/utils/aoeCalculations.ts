@@ -231,6 +231,20 @@ function getLineAoE(origin: Position, target: Position, width: number): Position
     // Small epsilon to handle floating point errors on exact boundaries (e.g., 5ft dist for 10ft width)
     const EPSILON = 0.001;
     const effectiveRadius = radius + EPSILON;
+    const tilesWide = width / TILE_SIZE;
+    const hasEvenTileWidth = Number.isInteger(tilesWide) && (tilesWide % 2 === 0);
+
+    // For even widths (10ft, 20ft, ...), shift the line center by half a tile
+    // along the perpendicular so the covered rows/columns stay symmetric and
+    // we don't over-count a middle tile on each side.
+    const dx = target.x - origin.x;
+    const dy = target.y - origin.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    const perpUnit = length === 0 ? { x: 0, y: 0 } : { x: -(dy / length), y: dx / length };
+    const halfTileOffset = hasEvenTileWidth ? 0.5 : 0;
+    const offsetVec = { x: perpUnit.x * halfTileOffset, y: perpUnit.y * halfTileOffset };
+    const shiftedOrigin = { x: origin.x + offsetVec.x, y: origin.y + offsetVec.y };
+    const shiftedTarget = { x: target.x + offsetVec.x, y: target.y + offsetVec.y };
 
     // Convert radius to tiles for bounding box
     const radiusInTiles = Math.ceil(radius / TILE_SIZE);
@@ -245,8 +259,8 @@ function getLineAoE(origin: Position, target: Position, width: number): Position
         for (let y = minY; y <= maxY; y++) {
             const distance = pointLineSegmentDistance(
                 x, y,
-                origin.x, origin.y,
-                target.x, target.y
+                shiftedOrigin.x, shiftedOrigin.y,
+                shiftedTarget.x, shiftedTarget.y
             );
 
             // Distance is in tiles. Convert to feet for comparison.

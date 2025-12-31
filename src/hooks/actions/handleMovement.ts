@@ -144,6 +144,151 @@ export async function handleMovement({
   let descriptionGenerationFn: (() => Promise<GeminiService.StandardizedResult<GeminiService.GeminiTextData>>) | null = null;
   let geminiFunctionName = '';
   let baseDescriptionForFallback = "You arrive at the new location.";
+  let travelEvent = null as ReturnType<typeof generateTravelEvent> | null;
+  let travelEffect = null as ReturnType<typeof generateTravelEvent>['effect'] | null;
+  let travelDescription: string | null = null;
+  let travelEventHandled = false;
+
+  const processTravelEvent = (
+    event: ReturnType<typeof generateTravelEvent>,
+    biomeForContext: typeof BIOMES[keyof typeof BIOMES] | undefined,
+    worldX: number,
+    worldY: number
+  ) => {
+    let finalEffect = event.effect;
+    let finalDescription = event.description;
+
+    if (event.skillCheck) {
+      const { check, successEffect, successDescription, failureEffect, failureDescription } = event.skillCheck;
+
+      const hasSkill = playerCharacter.skills.some(s => s.id === check.skill || s.name.toLowerCase() === check.skill.toLowerCase());
+      const d20 = Math.floor(Math.random() * 20) + 1;
+      const pb = playerCharacter.proficiencyBonus || 2;
+
+      const skillToAbility: Record<string, string> = {
+        'athletics': 'strength',
+        'acrobatics': 'dexterity', 'sleight_of_hand': 'dexterity', 'stealth': 'dexterity',
+        'arcana': 'intelligence', 'history': 'intelligence', 'investigation': 'intelligence', 'nature': 'intelligence', 'religion': 'intelligence',
+        'animal_handling': 'wisdom', 'insight': 'wisdom', 'medicine': 'wisdom', 'perception': 'wisdom', 'survival': 'wisdom',
+        'deception': 'charisma', 'intimidation': 'charisma', 'performance': 'charisma', 'persuasion': 'charisma'
+      };
+
+      const abilityName = skillToAbility[check.skill] || 'wisdom';
+      const score = (playerCharacter.abilityScores as unknown)[abilityName] || 10;
+      const mod = Math.floor((score - 10) / 2);
+
+      const totalBonus = mod + (hasSkill ? pb : 0);
+      const totalRoll = d20 + totalBonus;
+      const passed = totalRoll >= check.dc;
+
+      addMessage(`[Skill Check] ${check.skill.charAt(0).toUpperCase() + check.skill.slice(1)}: Rolled ${totalRoll} (DC ${check.dc}) - ${passed ? 'Success' : 'Failure'}`, 'system');
+
+      if (passed) {
+         finalDescription = `${event.description} ${successDescription}`;
+         if (successEffect) finalEffect = successEffect;
+      } else {
+         finalDescription = `${event.description} ${failureDescription || ''}`;
+         if (failureEffect) finalEffect = failureEffect;
+      }
+    }
+
+    addMessage(finalDescription, 'system');
+
+    if (finalEffect) {
+      switch (finalEffect.type) {
+        case 'delay': {
+          const delaySeconds = finalEffect.amount * 3600;
+          timeToAdvanceSeconds += delaySeconds;
+          addMessage(`(Travel delayed by ${finalEffect.amount} hours)`, 'system');
+          break;
+        }
+        case 'health_change': {
+          dispatch({
+            type: 'MODIFY_PARTY_HEALTH',
+            payload: { amount: finalEffect.amount }
+          });
+          const hpChangeText = finalEffect.amount > 0 ? 'healed' : 'damaged';
+          addMessage(`Party ${hpChangeText} by ${Math.abs(finalEffect.amount)} HP.`, 'system');
+          break;
+        }
+        case 'item_gain':
+          if (finalEffect.itemId) {
+            dispatch({ type: 'ADD_ITEM', payload: { itemId: finalEffect.itemId, count: finalEffect.amount } });
+            const itemGainMsg = finalEffect.description || `You found ${finalEffect.amount} item(s).`;
+            addMessage(itemGainMsg, 'system');
+          }
+          break;
+        case 'gold_gain':
+          dispatch({
+            type: 'MODIFY_GOLD',
+            payload: { amount: finalEffect.amount }
+          });
+          addMessage(finalEffect.description || `You found ${finalEffect.amount} gold pieces.`, 'system');
+          break;
+        case 'xp_gain':
+          dispatch({
+            type: 'GRANT_EXPERIENCE',
+            payload: { amount: finalEffect.amount }
+          });
+          addMessage(finalEffect.description || `Party gained ${finalEffect.amount} XP.`, 'system');
+          break;
+        case 'discovery':
+          if (finalEffect.data) {
+            const discoveryLocation: Location = {
+              id: finalEffect.data.id,
+              name: finalEffect.data.name,
+              baseDescription: finalEffect.data.description,
+              biomeId: biomeForContext?.id || currentLoc.biomeId,
+              mapCoordinates: { x: worldX, y: worldY },
+              exits: {},
+            };
+            logDiscovery(discoveryLocation);
+            addMessage(`Map updated: ${finalEffect.data.name} recorded.`, 'system');
+
+            if (finalEffect.data.rewards) {
+               finalEffect.data.rewards.forEach(reward => {
+                 switch (reward.type) {
+                    case 'item':
+                      if (reward.resourceId) {
+                        dispatch({ type: 'ADD_ITEM', payload: { itemId: reward.resourceId, count: reward.amount } });
+                        addMessage(`Gained ${reward.amount}x ${reward.description || 'Items'}`, 'system');
+                      }
+                      break;
+                    case 'gold':
+                      dispatch({ type: 'MODIFY_GOLD', payload: { amount: reward.amount } });
+                      addMessage(`Gained ${reward.amount} Gold`, 'system');
+                      break;
+                    case 'xp':
+                      dispatch({ type: 'GRANT_EXPERIENCE', payload: { amount: reward.amount } });
+                      addMessage(`Party gained ${reward.amount} XP`, 'system');
+                      break;
+                    case 'health': {
+                      dispatch({ type: 'MODIFY_PARTY_HEALTH', payload: { amount: reward.amount } });
+                      const hpText = reward.amount > 0 ? 'Healed' : 'Took damage';
+                      addMessage(`${hpText} ${Math.abs(reward.amount)} HP`, 'system');
+                      break;
+                    }
+                 }
+               });
+            }
+
+            if (finalEffect.data.consequences && newMapDataForDispatch) {
+               applyDiscoveryConsequences(
+                   finalEffect.data.consequences,
+                   dispatch,
+                   addMessage,
+                   newMapDataForDispatch,
+                   worldX,
+                   worldY
+               );
+            }
+          }
+          break;
+        default:
+          break;
+      }
+    }
+  };
 
   if (!DIRECTION_VECTORS[directionKey]) { // Moving to a named exit (or teleporting)
     // Handle named exits or direct teleports
@@ -263,6 +408,11 @@ export async function handleMovement({
       const tooltip = currentWorldTile ? getTileTooltipText(currentWorldTile) : null;
       geminiFunctionName = 'generateWildernessLocationDescription';
       descriptionGenerationFn = () => GeminiService.generateWildernessLocationDescription(biome?.name || 'Unknown Biome', { x: currentWorldX, y: currentWorldY }, newSubMapCoordinates, playerContext, tooltip, gameState.devModelOverride);
+      travelEvent = generateTravelEvent(biome?.id || currentLoc.biomeId, undefined, { worldSeed: gameState.worldSeed, x: currentWorldX, y: currentWorldY });
+      if (travelEvent) {
+        travelEffect = travelEvent.effect;
+        travelDescription = travelEvent.description;
+      }
     } else {
       const targetWorldMapX = currentWorldX + dx;
       const targetWorldMapY = currentWorldY + dy;
@@ -314,161 +464,12 @@ export async function handleMovement({
       }
 
       // TODO(Navigator): Use `calculateForcedMarchStatus` from `src/systems/travel/TravelCalculations.ts` to check if the party has traveled > 8 hours and apply exhaustion risks.
-      const travelEvent = generateTravelEvent(targetBiome.id, undefined, { worldSeed: gameState.worldSeed, x: targetWorldMapX, y: targetWorldMapY });
+      travelEvent = generateTravelEvent(targetBiome.id, undefined, { worldSeed: gameState.worldSeed, x: targetWorldMapX, y: targetWorldMapY });
       if (travelEvent) {
-        let finalEffect = travelEvent.effect;
-        let finalDescription = travelEvent.description;
-
-        // --- SKILL CHECK RESOLUTION ---
-        if (travelEvent.skillCheck) {
-          const { check, successEffect, successDescription, failureEffect, failureDescription } = travelEvent.skillCheck;
-
-          const hasSkill = playerCharacter.skills.some(s => s.id === check.skill || s.name.toLowerCase() === check.skill.toLowerCase());
-
-          const d20 = Math.floor(Math.random() * 20) + 1;
-          const pb = playerCharacter.proficiencyBonus || 2;
-
-          const skillToAbility: Record<string, string> = {
-            'athletics': 'strength',
-            'acrobatics': 'dexterity', 'sleight_of_hand': 'dexterity', 'stealth': 'dexterity',
-            'arcana': 'intelligence', 'history': 'intelligence', 'investigation': 'intelligence', 'nature': 'intelligence', 'religion': 'intelligence',
-            'animal_handling': 'wisdom', 'insight': 'wisdom', 'medicine': 'wisdom', 'perception': 'wisdom', 'survival': 'wisdom',
-            'deception': 'charisma', 'intimidation': 'charisma', 'performance': 'charisma', 'persuasion': 'charisma'
-          };
-
-          const abilityName = skillToAbility[check.skill] || 'wisdom';
-          // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-          // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-          // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-          const score = (playerCharacter.abilityScores as unknown)[abilityName] || 10;
-          const mod = Math.floor((score - 10) / 2);
-
-          const totalBonus = mod + (hasSkill ? pb : 0);
-          const totalRoll = d20 + totalBonus;
-
-          const passed = totalRoll >= check.dc;
-
-          addMessage(`[Skill Check] ${check.skill.charAt(0).toUpperCase() + check.skill.slice(1)}: Rolled ${totalRoll} (DC ${check.dc}) - ${passed ? 'Success' : 'Failure'}`, 'system');
-
-          if (passed) {
-             finalDescription = `${travelEvent.description} ${successDescription}`;
-             if (successEffect) {
-               finalEffect = successEffect;
-             }
-          } else {
-             finalDescription = `${travelEvent.description} ${failureDescription || ''}`;
-             if (failureEffect) {
-               finalEffect = failureEffect;
-             }
-          }
-        }
-
-        addMessage(finalDescription, 'system');
-
-        if (finalEffect) {
-          switch (finalEffect.type) {
-            case 'delay': {
-              // Amount is usually hours.
-              // TODO(lint-intent): If travel effects grow, extract a helper for delay messaging and timing.
-              const delaySeconds = finalEffect.amount * 3600;
-              timeToAdvanceSeconds += delaySeconds;
-              addMessage(`(Travel delayed by ${finalEffect.amount} hours)`, 'system');
-              break;
-            }
-
-            case 'health_change': {
-              dispatch({
-                type: 'MODIFY_PARTY_HEALTH',
-                payload: { amount: finalEffect.amount }
-              });
-              // TODO(lint-intent): If more health-effect variants appear, centralize the messaging logic.
-              const hpChangeText = finalEffect.amount > 0 ? 'healed' : 'damaged';
-              addMessage(`Party ${hpChangeText} by ${Math.abs(finalEffect.amount)} HP.`, 'system');
-              break;
-            }
-
-            case 'item_gain':
-              if (finalEffect.itemId) {
-                dispatch({
-                  type: 'ADD_ITEM',
-                  payload: { itemId: finalEffect.itemId, count: finalEffect.amount }
-                });
-                const itemGainMsg = finalEffect.description || `You found ${finalEffect.amount} item(s).`;
-                addMessage(itemGainMsg, 'system');
-              }
-              break;
-
-            case 'gold_gain':
-              dispatch({
-                type: 'MODIFY_GOLD',
-                payload: { amount: finalEffect.amount }
-              });
-              addMessage(finalEffect.description || `You found ${finalEffect.amount} gold pieces.`, 'system');
-              break;
-
-            case 'xp_gain':
-              dispatch({
-                type: 'GRANT_EXPERIENCE',
-                payload: { amount: finalEffect.amount }
-              });
-              addMessage(finalEffect.description || `Party gained ${finalEffect.amount} XP.`, 'system');
-              break;
-
-            case 'discovery':
-              if (finalEffect.data) {
-                const discoveryLocation: Location = {
-                  id: finalEffect.data.id,
-                  name: finalEffect.data.name,
-                  baseDescription: finalEffect.data.description,
-                  biomeId: targetBiome.id,
-                  mapCoordinates: { x: targetWorldMapX, y: targetWorldMapY },
-                  exits: {},
-                };
-                logDiscovery(discoveryLocation);
-                addMessage(`Map updated: ${finalEffect.data.name} recorded.`, 'system');
-
-                if (finalEffect.data.rewards) {
-                   finalEffect.data.rewards.forEach(reward => {
-                     switch (reward.type) {
-                        case 'item':
-                          if (reward.resourceId) {
-                            dispatch({ type: 'ADD_ITEM', payload: { itemId: reward.resourceId, count: reward.amount } });
-                            addMessage(`Gained ${reward.amount}x ${reward.description || 'Items'}`, 'system');
-                          }
-                          break;
-                        case 'gold':
-                          dispatch({ type: 'MODIFY_GOLD', payload: { amount: reward.amount } });
-                          addMessage(`Gained ${reward.amount} Gold`, 'system');
-                          break;
-                        case 'xp':
-                          dispatch({ type: 'GRANT_EXPERIENCE', payload: { amount: reward.amount } });
-                          addMessage(`Party gained ${reward.amount} XP`, 'system');
-                          break;
-                        case 'health': {
-                          dispatch({ type: 'MODIFY_PARTY_HEALTH', payload: { amount: reward.amount } });
-                          // TODO(lint-intent): Consider extracting reward-to-message formatting for health rewards.
-                          const hpText = reward.amount > 0 ? 'Healed' : 'Took damage';
-                          addMessage(`${hpText} ${Math.abs(reward.amount)} HP`, 'system');
-                          break;
-                        }
-                     }
-                   });
-                }
-
-                if (finalEffect.data.consequences && newMapDataForDispatch) {
-                   applyDiscoveryConsequences(
-                       finalEffect.data.consequences,
-                       dispatch,
-                       addMessage,
-                       newMapDataForDispatch,
-                       targetWorldMapX,
-                       targetWorldMapY
-                   );
-                }
-              }
-              break;
-          }
-        }
+        travelEffect = travelEvent.effect;
+        travelDescription = travelEvent.description;
+        processTravelEvent(travelEvent, targetBiome, targetWorldMapX, targetWorldMapY);
+        travelEventHandled = true;
       }
 
       // Mark the entered tile as discovered (and adjacent if it's a new named location, but we are in procedural wilderness)
@@ -501,6 +502,12 @@ export async function handleMovement({
         descriptionGenerationFn = () => GeminiService.generateWildernessLocationDescription(targetBiome?.name || 'Unknown Biome', { x: targetWorldMapX, y: targetWorldMapY }, newSubMapCoordinates, playerContext, getTileTooltipText(targetWorldTile), gameState.devModelOverride);
       }
     }
+  }
+
+  if (travelEvent && !travelEventHandled) {
+    const biomeForEvent = BIOMES[currentLoc.biomeId];
+    processTravelEvent(travelEvent, biomeForEvent, currentWorldX, currentWorldY);
+    travelEventHandled = true;
   }
 
   let newDescription = baseDescriptionForFallback;

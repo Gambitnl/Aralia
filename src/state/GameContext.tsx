@@ -28,7 +28,10 @@ export const GameProvider: React.FC<{ state: GameState, dispatch: React.Dispatch
 export const useGameState = () => {
     const context = useContext(GameContext);
     if (!context) {
-        throw new Error('useGameState must be used within a GameProvider');
+        throw new Error('useGameState must be used within a GameProvider');     
     }
     return context;
 };
+
+// Optional accessor for callers (e.g., tests) that can operate without a mounted provider.
+export const useOptionalGameState = () => useContext(GameContext);

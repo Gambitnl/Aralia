@@ -13,9 +13,9 @@ import { EconomyState, GoalStatus, Item, ItemType, NPCMemory } from "../../types
  * Returns a basic inventory based on the shop type to be used as a fallback
  * when the AI fails to generate a valid inventory.
  */
-function getFallbackInventory(shopType: string, seedKey?: string): Item[] {
+function getFallbackInventory(shopType: string | undefined, seedKey?: string): Item[] {
   const defaults: Item[] = [];
-  const type = shopType.toLowerCase();
+  const type = (shopType || 'general').toLowerCase();
 
   // Helper to create a basic item since ItemTemplates are schema definitions, not objects
   const createItem = (name: string, description: string, cost: string, costInGp: number, type: ItemType): Item => ({
@@ -147,7 +147,8 @@ Economy State: ${JSON.stringify(economyState)}`;
         rawResponse: result.data.rawResponse,
         rateLimitHit: result.data.rateLimitHit
       },
-      error: null
+      error: "Failed to parse inventory JSON",
+      metadata: result.metadata
     };
   }
 }
@@ -201,7 +202,7 @@ Return a concise loot list.`;
         rawResponse: result.data.rawResponse,
         rateLimitHit: result.data.rateLimitHit
       },
-      error: "Failed to parse harvest loot JSON.",
+      error: "Failed to parse harvest JSON",
       metadata: result.metadata
     };
   }

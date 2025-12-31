@@ -9,11 +9,11 @@ import { HUMAN_DATA } from './human';
 import { ELF_DATA } from './elf';
 import { DWARF_DATA } from './dwarf';
 import { HALFLING_DATA } from './halfling';
-import { DRAGONBORN_DATA } from './dragonborn';
+import { DRAGONBORN_DATA, DRAGONBORN_ANCESTRIES_DATA } from './dragonborn';
 import { GNOME_DATA } from './gnome';
-import { TIEFLING_DATA } from './tiefling';
+import { TIEFLING_DATA, FIENDISH_LEGACIES_DATA } from './tiefling';
 import { ORC_DATA } from './orc';
-import { GOLIATH_DATA } from './goliath';
+import { GOLIATH_DATA, GIANT_ANCESTRY_BENEFITS_DATA } from './goliath';
 import { AASIMAR_DATA } from './aasimar';
 import { FIRBOLG_DATA } from './firbolg';
 import { GOBLIN_DATA } from './goblin';
@@ -70,9 +70,9 @@ export const ALL_RACES_DATA: Record<string, Race> = {
 // Bundled exports for subraces/legacies that need to be accessed by constants.ts
 // This prevents circular dependencies or missing exports
 export const RACE_DATA_BUNDLE = {
-  dragonbornAncestries: DRAGONBORN_DATA.dragonbornAncestries,
-  goliathGiantAncestries: GOLIATH_DATA.goliathGiantAncestries,
-  tieflingLegacies: TIEFLING_DATA.tieflingLegacies,
+  dragonbornAncestries: DRAGONBORN_ANCESTRIES_DATA,
+  goliathGiantAncestries: GIANT_ANCESTRY_BENEFITS_DATA,
+  tieflingLegacies: FIENDISH_LEGACIES_DATA,
 };
 
 // Array for iteration (e.g., character creator list)

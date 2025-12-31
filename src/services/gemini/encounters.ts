@@ -4,7 +4,7 @@ import { getFallbackEncounter } from "../geminiServiceFallback";
 import { CLASSES_DATA } from "../../data/classes";
 import { sanitizeAIInput, cleanAIJSON, safeJSONParse, redactSensitiveData } from "../../utils/securityUtils";
 import { logger } from "../../utils/logger";
-import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, COMPLEX_MODEL } from "../../config/geminiConfig";
+import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, COMPLEX_MODEL, FAST_MODEL } from "../../config/geminiConfig";
 import { MonsterSchema, CustomActionSchema, SocialOutcomeSchema } from "../geminiSchemas";
 import { chooseModelForComplexity, generateText } from "./core";
 import { ExtendedGenerationConfig, GeminiCustomActionData, GeminiEncounterData, GeminiMetadata, GeminiSocialCheckData, GeminiTextData, StandardizedResult } from "./types";
@@ -288,7 +288,8 @@ export async function generateCustomActions(
       rateLimitHit: result.data.rateLimitHit,
       actions
     },
-    error: null
+    error: actions === fallbackActions ? "Failed to parse custom actions JSON" : null,
+    metadata: result.metadata
   };
 }
 
@@ -304,7 +305,8 @@ export async function generateSocialCheckOutcome(
   3) A memory fact the NPC records (1 sentence).
   4) An optional goal update (if relevant).`;
 
-  const npcContext = npcMemory ? `NPC Memory: ${npcMemory.facts.join('; ')}` : "NPC Memory: (none)";
+  const npcFacts = npcMemory?.facts ?? [];
+  const npcContext = npcFacts.length ? `NPC Memory: ${npcFacts.join('; ')}` : "NPC Memory: (none)";
   const villageContextStr = villageContext ? `Village Context: ${JSON.stringify(villageContext)}` : "Village Context: (none)";
 
   const prompt = `Player Action: ${playerAction}
@@ -315,8 +317,17 @@ ${villageContextStr}`;
 
   if (result.error || !result.data) {
     return {
-      data: null,
-      error: result.error,
+      data: {
+        text: result.data?.text ?? "",
+        promptSent: result.metadata?.promptSent ?? "",
+        rawResponse: result.metadata?.rawResponse ?? "",
+        rateLimitHit: result.metadata?.rateLimitHit,
+        outcomeText: "The NPC remains noncommittal until more context is provided.",
+        dispositionChange: 0,
+        memoryFactText: "Outcome could not be determined.",
+        goalUpdate: null
+      },
+      error: result.error ?? "Failed to parse social outcome JSON.",
       metadata: result.metadata
     };
   }
@@ -343,7 +354,16 @@ ${villageContextStr}`;
   } catch (error) {
     logger.error("Failed to parse social outcome JSON.", { error: redactSensitiveData(error), response: result.data.text });
     return {
-      data: null,
+      data: {
+        text: result.data.text,
+        promptSent: result.data.promptSent,
+        rawResponse: result.data.rawResponse,
+        rateLimitHit: result.data.rateLimitHit,
+        outcomeText: "The NPC responds ambiguously, leaving room to follow up.",
+        dispositionChange: 0,
+        memoryFactText: "The exchange was inconclusive.",
+        goalUpdate: null
+      },
       error: "Failed to parse social outcome JSON.",
       metadata: result.metadata
     };

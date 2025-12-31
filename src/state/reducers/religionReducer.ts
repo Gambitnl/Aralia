@@ -5,6 +5,14 @@ import { calculateFavorChange, getDeity, evaluateAction, grantBlessing, resolveB
 import { DEITIES } from '../../data/deities';
 
 export function religionReducer(state: GameState, action: AppAction): Partial<GameState> {
+    const religionState = state.religion ?? {
+        divineFavor: state.divineFavor ?? {},
+        temples: state.temples ?? {},
+        discoveredDeities: [],
+        knownDeities: [],
+        activeBlessings: [],
+    };
+
     switch (action.type) {
         case 'PRAY': {
             const { deityId, offering } = action.payload as { deityId: string, offering?: number };
@@ -13,7 +21,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             if (!deity) return {};
 
             // Adapting to ReligionState from src/types/religion.ts
-            const existingFavor = state.religion.divineFavor[deityId] || {
+            const existingFavor = religionState.divineFavor[deityId] || {
                 score: 0,
                 rank: 'Neutral',
                 consecutiveDaysPrayed: 0,
@@ -43,11 +51,15 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
 
             return {
                 religion: {
-                    ...state.religion,
+                    ...religionState,
                     divineFavor: {
-                        ...state.religion.divineFavor,
+                        ...religionState.divineFavor,
                         [deityId]: newFavor
                     }
+                },
+                divineFavor: {
+                    ...state.divineFavor,
+                    [deityId]: newFavor
                 },
                 gold: offering ? state.gold - offering : state.gold,
                 messages: [
@@ -72,7 +84,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             DEITIES.forEach(deity => {
                 const deityAction = evaluateAction(deity.id, trigger);
                 if (deityAction) {
-                    const existingFavor = state.religion.divineFavor[deity.id] || {
+                    const existingFavor = religionState.divineFavor[deity.id] || {
                         score: 0,
                         rank: 'Neutral',
                         consecutiveDaysPrayed: 0,
@@ -102,11 +114,15 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
 
             return {
                 religion: {
-                    ...state.religion,
+                    ...religionState,
                     divineFavor: {
-                        ...state.religion.divineFavor,
+                        ...religionState.divineFavor,
                         ...updates
                     }
+                },
+                divineFavor: {
+                    ...state.divineFavor,
+                    ...updates
                 },
                 messages: [
                     ...state.messages,
@@ -126,7 +142,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             const timestamp = Date.now();
 
             let party = [...state.party];
-            const favorUpdates = { ...state.religion.divineFavor };
+            const favorUpdates = { ...religionState.divineFavor };
 
             // Apply Effects
             if (effect === 'restore_hp_full') {
@@ -236,8 +252,12 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                 party,
                 messages,
                 religion: {
-                    ...state.religion,
+                    ...religionState,
                     divineFavor: favorUpdates
+                },
+                divineFavor: {
+                    ...state.divineFavor,
+                    ...favorUpdates
                 }
             };
         }

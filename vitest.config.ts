@@ -10,10 +10,20 @@ export default defineConfig({
         environment: 'jsdom',
         setupFiles: './src/test/setup.ts',
         css: true,
+        reporters: [
+            'default',
+            ['json', { outputFile: 'vitest-results.json' }],
+        ],
         alias: {
             '@': path.resolve(__dirname, 'src'),
         },
-        exclude: ['**/node_modules/**', '**/dist/**', '**/verification/**', '**/*.spec.ts'],
+        exclude: [
+            '**/node_modules/**',
+            '**/dist/**',
+            '**/verification/**',
+            '**/*.spec.ts',
+            '**/.claude/**',
+        ],
     },
     resolve: {
         alias: {

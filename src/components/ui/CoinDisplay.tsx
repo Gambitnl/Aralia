@@ -22,6 +22,7 @@ const CoinDisplay: React.FC<CoinDisplayProps> = ({ label, amount, color, icon, t
       type="button"
       className={`flex flex-col items-center justify-center p-2 rounded bg-gray-800 border border-gray-600 min-w-[3.5rem] focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent cursor-help`}
       aria-label={`${amount} ${tooltip}`}
+      tabIndex={0}
     >
       <span className="text-lg filter drop-shadow-md" aria-hidden="true">{icon}</span>
       <span className={`text-xs font-bold ${color}`} aria-hidden="true">{amount}</span>

@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import GlossaryDisplay from '../GlossaryDisplay';
-import { GlossaryDisplayItem } from '../../types';
+import { GlossaryDisplayItem } from '../../../types';
 
 describe('GlossaryDisplay', () => {
   const items: GlossaryDisplayItem[] = [
