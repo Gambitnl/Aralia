@@ -614,6 +614,8 @@ export async function generateActionOutcome(
   // is handled by the caller (e.g., handleGeminiCustom.ts, handleObservation.ts)
   // to keep this service function pure and free of side effects like 'dispatch'.
 
+  // TODO(Linker): In the future, pass EntityResolverService metadata to the prompt context to prevent AI from inventing entities that conflict with existing ones, or to explicitly request new entities when needed.
+
   return result;
 }
 
