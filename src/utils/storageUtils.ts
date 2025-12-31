@@ -32,6 +32,21 @@ export const SafeStorage = {
   },
 
   /**
+   * Writes an item to localStorage safely, catching any errors.
+   * Returns true if successful, false otherwise.
+   * Use this when you don't need to differentiate between quota errors and other failures.
+   */
+  trySetItem(key: string, value: string): boolean {
+    try {
+      localStorage.setItem(key, value);
+      return true;
+    } catch (error) {
+      console.warn(`SafeStorage: Error writing ${key}`, error);
+      return false;
+    }
+  },
+
+  /**
    * Safely removes an item from localStorage.
    * Swallows errors as failure to remove usually implies storage is already broken or inaccessible.
    */
@@ -84,6 +99,20 @@ export const SafeSession = {
    */
   setItem(key: string, value: string): void {
     sessionStorage.setItem(key, value);
+  },
+
+  /**
+   * Writes an item to sessionStorage safely, catching any errors.
+   * Returns true if successful, false otherwise.
+   */
+  trySetItem(key: string, value: string): boolean {
+    try {
+      sessionStorage.setItem(key, value);
+      return true;
+    } catch (error) {
+      console.warn(`SafeSession: Error writing ${key}`, error);
+      return false;
+    }
   },
 
   /**

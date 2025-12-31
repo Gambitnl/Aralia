@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   createMockSpell,
   createMockItem,
@@ -80,6 +80,30 @@ describe('Mimic Factories', () => {
         // console.error(JSON.stringify(result.error, null, 2));
       }
       expect(result.success).toBe(true);
+    });
+
+    it('should return a safe fallback spell if an error occurs during creation', () => {
+       // Mock safeUuid (internal helper) or uuidv4 to throw
+       // Since safeUuid is internal, we can mock uuid from 'uuid' module which is imported
+       vi.mock('uuid', () => ({
+         v4: () => { throw new Error('UUID Generation Failed'); }
+       }));
+
+       // Re-import to apply mock? Vitest mocks are hoisted but we need to reset modules if we want to change behavior mid-suite.
+       // However, `safeUuid` catches the error.
+       // If `safeUuid` works, then `createMockSpell` continues.
+       // To force `createMockSpell` to fail, we need something else to throw inside it,
+       // like checking if overrides spread throws (getter)
+
+       const badOverride = {
+         get name() { throw new Error('Explosive Getter'); return 'Boom'; }
+       };
+
+       // @ts-ignore
+       const spell = createMockSpell(badOverride);
+
+       expect(spell.id).toBe('error-spell');
+       expect(spell.name).toBe('Error Spell');
     });
   });
 

@@ -35,123 +35,181 @@ import { CommandContext } from '@/commands/base/SpellCommand';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
+ * [Warden] Hardened factories against failures in uuid generation or time utilities.
+ * Also ensures that returned objects are valid even if overrides are malformed.
+ */
+
+// Helper to safely generate a UUID, falling back to random string if it fails
+const safeUuid = (): string => {
+  try {
+    return uuidv4();
+  } catch (e) {
+    console.error("Warden: uuidv4 failed, using fallback", e);
+    return `fallback-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+};
+
+/**
  * Creates a mock Spell object with sensible defaults.
  * @param overrides Partial<Spell> to override default values.
  * @returns A complete Spell object.
  */
 export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
-  const defaultDamageEffect: DamageEffect = {
-    type: "DAMAGE",
-    trigger: { type: "immediate" },
-    condition: { type: "hit" },
-    damage: { dice: "1d8", type: DamageType.Fire },
-    description: "Deals 1d8 fire damage."
-  };
+  try {
+    const defaultDamageEffect: DamageEffect = {
+      type: "DAMAGE",
+      trigger: { type: "immediate" },
+      condition: { type: "hit" },
+      damage: { dice: "1d8", type: DamageType.Fire },
+      description: "Deals 1d8 fire damage."
+    };
 
-  return {
-    id: `spell-${uuidv4()}`,
-    name: "Mock Spell",
-    aliases: [],
-    level: 1,
-    school: "Evocation" as SpellSchool,
-    classes: ["Wizard"],
-    description: "A mock spell for testing.",
-    source: "PHB",
-    legacy: false,
-    ritual: false,
-    rarity: "common" as SpellRarity,
-    attackType: "ranged" as SpellAttackType,
+    return {
+      id: `spell-${safeUuid()}`,
+      name: "Mock Spell",
+      aliases: [],
+      level: 1,
+      school: "Evocation" as SpellSchool,
+      classes: ["Wizard"],
+      description: "A mock spell for testing.",
+      source: "PHB",
+      legacy: false,
+      ritual: false,
+      rarity: "common" as SpellRarity,
+      attackType: "ranged" as SpellAttackType,
 
-    castingTime: {
-      value: 1,
-      unit: "action",
-      combatCost: {
-        type: "action",
-        condition: ""
+      castingTime: {
+        value: 1,
+        unit: "action",
+        combatCost: {
+          type: "action",
+          condition: ""
+        },
+        explorationCost: {
+          value: 0,
+          unit: "minute"
+        }
       },
-      explorationCost: {
+
+      range: {
+        type: "ranged",
+        distance: 60
+      },
+
+      components: {
+        verbal: true,
+        somatic: true,
+        material: false,
+        materialDescription: "",
+        materialCost: 0,
+        isConsumed: false
+      },
+
+      duration: {
+        type: "instantaneous",
         value: 0,
-        unit: "minute"
-      }
-    },
-
-    range: {
-      type: "ranged",
-      distance: 60
-    },
-
-    components: {
-      verbal: true,
-      somatic: true,
-      material: false,
-      materialDescription: "",
-      materialCost: 0,
-      isConsumed: false
-    },
-
-    duration: {
-      type: "instantaneous",
-      value: 0,
-      unit: "round",
-      concentration: false
-    },
-
-    targeting: {
-      type: "single",
-      range: 60,
-      maxTargets: 1,
-      validTargets: ["creatures"],
-      lineOfSight: true,
-      areaOfEffect: {
-        shape: "Sphere",
-        size: 0,
-        height: 0
+        unit: "round",
+        concentration: false
       },
-      filter: {
-        creatureTypes: [],
-        excludeCreatureTypes: [],
-        sizes: [],
-        alignments: [],
-        hasCondition: [],
-        isNativeToPlane: false
-      }
-    },
 
-    effects: [defaultDamageEffect],
+      targeting: {
+        type: "single",
+        range: 60,
+        maxTargets: 1,
+        validTargets: ["creatures"],
+        lineOfSight: true,
+        areaOfEffect: {
+          shape: "Sphere",
+          size: 0,
+          height: 0
+        },
+        filter: {
+          creatureTypes: [],
+          excludeCreatureTypes: [],
+          sizes: [],
+          alignments: [],
+          hasCondition: [],
+          isNativeToPlane: false
+        }
+      },
 
-    arbitrationType: "mechanical",
-    aiContext: {
-      prompt: "",
-      playerInputRequired: false
-    },
-    higherLevels: "",
-    tags: [],
+      effects: [defaultDamageEffect],
 
-    ...overrides
-  };
+      arbitrationType: "mechanical",
+      aiContext: {
+        prompt: "",
+        playerInputRequired: false
+      },
+      higherLevels: "",
+      tags: [],
+
+      ...overrides
+    };
+  } catch (error) {
+    console.error("Warden: createMockSpell failed", error);
+    // Return a bare-minimum safe object to prevent downstream crashes
+    return {
+      id: "error-spell",
+      name: "Error Spell",
+      level: 0,
+      school: "Universal" as SpellSchool,
+      classes: [],
+      description: "Failed to create spell.",
+      source: "System",
+      legacy: false,
+      ritual: false,
+      rarity: "common",
+      attackType: "ranged",
+      castingTime: { value: 1, unit: "action" },
+      range: { type: "ranged", distance: 0 },
+      components: { verbal: false, somatic: false, material: false },
+      duration: { type: "instantaneous" },
+      targeting: { type: "self" },
+      effects: [],
+      arbitrationType: "mechanical",
+      aiContext: { prompt: "", playerInputRequired: false }
+    } as Spell;
+  }
 }
 
 /**
  * Creates a mock Faction object.
  */
 export function createMockFaction(overrides: Partial<Faction> = {}): Faction {
-  return {
-    id: `faction-${uuidv4()}`,
-    name: "Mock Faction",
-    description: "A generic mock faction.",
-    type: "NOBLE_HOUSE",
-    colors: { primary: "#000000", secondary: "#ffffff" },
-    ranks: [],
-    allies: [],
-    enemies: [],
-    rivals: [],
-    relationships: {},
-    values: [],
-    hates: [],
-    power: 50,
-    assets: [],
-    ...overrides
-  };
+  try {
+    return {
+      id: `faction-${safeUuid()}`,
+      name: "Mock Faction",
+      description: "A generic mock faction.",
+      type: "NOBLE_HOUSE",
+      colors: { primary: "#000000", secondary: "#ffffff" },
+      ranks: [],
+      allies: [],
+      enemies: [],
+      rivals: [],
+      relationships: {},
+      values: [],
+      hates: [],
+      power: 50,
+      assets: [],
+      ...overrides
+    };
+  } catch (error) {
+    console.error("Warden: createMockFaction failed", error);
+    return {
+      id: "error-faction",
+      name: "Error Faction",
+      description: "Failed to create faction.",
+      type: "NOBLE_HOUSE",
+      colors: { primary: "#000", secondary: "#fff" },
+      ranks: [],
+      relationships: {},
+      values: [],
+      hates: [],
+      power: 0,
+      assets: []
+    } as Faction;
+  }
 }
 
 /**
@@ -160,81 +218,117 @@ export function createMockFaction(overrides: Partial<Faction> = {}): Faction {
  * @returns A complete CommandContext object.
  */
 export function createMockCommandContext(overrides: Partial<CommandContext> = {}): CommandContext {
-  // Use existing factories for complex sub-objects to ensure validity
-  const caster = createMockCombatCharacter({
-    id: `caster-${uuidv4()}`,
-    name: 'Mock Caster'
-  });
+  try {
+    // Use existing factories for complex sub-objects to ensure validity
+    const caster = createMockCombatCharacter({
+      id: `caster-${safeUuid()}`,
+      name: 'Mock Caster'
+    });
 
-  const target = createMockCombatCharacter({
-    id: `target-${uuidv4()}`,
-    name: 'Mock Target'
-  });
+    const target = createMockCombatCharacter({
+      id: `target-${safeUuid()}`,
+      name: 'Mock Target'
+    });
 
-  return {
-    spellId: `spell-${uuidv4()}`,
-    spellName: 'Mock Spell',
-    castAtLevel: 1,
-    caster,
-    targets: [target],
-    gameState: createMockGameState(),
-    // Optional fields remain undefined unless overridden
-    ...overrides
-  };
+    return {
+      spellId: `spell-${safeUuid()}`,
+      spellName: 'Mock Spell',
+      castAtLevel: 1,
+      caster,
+      targets: [target],
+      gameState: createMockGameState(),
+      // Optional fields remain undefined unless overridden
+      ...overrides
+    };
+  } catch (error) {
+    console.error("Warden: createMockCommandContext failed", error);
+    // Minimal fallback
+    return {
+      spellId: 'error-context',
+      spellName: 'Error Context',
+      castAtLevel: 1,
+      caster: createMockCombatCharacter({ id: 'fallback-caster' }),
+      targets: [],
+      gameState: createMockGameState()
+    };
+  }
 }
 
 /**
  * Creates a mock PlayerCharacter object with sensible defaults.
  */
 export function createMockPlayerCharacter(overrides: Partial<PlayerCharacter> = {}): PlayerCharacter {
-  const mockRace: Race = {
-    id: 'human',
-    name: 'Human',
-    description: 'Versatile and adaptable.',
-    traits: []
-  };
+  try {
+    const mockRace: Race = {
+      id: 'human',
+      name: 'Human',
+      description: 'Versatile and adaptable.',
+      traits: []
+    };
 
-  const mockClass: Class = {
-    id: 'fighter',
-    name: 'Fighter',
-    description: 'A master of martial combat.',
-    hitDie: 10,
-    primaryAbility: ['Strength', 'Constitution'],
-    savingThrowProficiencies: ['Strength', 'Constitution'],
-    skillProficienciesAvailable: [],
-    numberOfSkillProficiencies: 2,
-    armorProficiencies: [],
-    weaponProficiencies: [],
-    features: []
-  };
+    const mockClass: Class = {
+      id: 'fighter',
+      name: 'Fighter',
+      description: 'A master of martial combat.',
+      hitDie: 10,
+      primaryAbility: ['Strength', 'Constitution'],
+      savingThrowProficiencies: ['Strength', 'Constitution'],
+      skillProficienciesAvailable: [],
+      numberOfSkillProficiencies: 2,
+      armorProficiencies: [],
+      weaponProficiencies: [],
+      features: []
+    };
 
-  const mockAbilities: AbilityScores = {
-    Strength: 10,
-    Dexterity: 10,
-    Constitution: 10,
-    Intelligence: 10,
-    Wisdom: 10,
-    Charisma: 10
-  };
+    const mockAbilities: AbilityScores = {
+      Strength: 10,
+      Dexterity: 10,
+      Constitution: 10,
+      Intelligence: 10,
+      Wisdom: 10,
+      Charisma: 10
+    };
 
-  return {
-    id: `char-${uuidv4()}`,
-    name: "Mock Hero",
-    race: mockRace,
-    class: mockClass,
-    abilityScores: mockAbilities,
-    finalAbilityScores: mockAbilities,
-    skills: [],
-    hp: 10,
-    maxHp: 10,
-    armorClass: 10,
-    speed: 30,
-    darkvisionRange: 0,
-    transportMode: 'foot' as TransportMode,
-    equippedItems: {},
-    statusEffects: [], // Initialize statusEffects
-    ...overrides
-  };
+    return {
+      id: `char-${safeUuid()}`,
+      name: "Mock Hero",
+      race: mockRace,
+      class: mockClass,
+      abilityScores: mockAbilities,
+      finalAbilityScores: mockAbilities,
+      skills: [],
+      hp: 10,
+      maxHp: 10,
+      armorClass: 10,
+      speed: 30,
+      darkvisionRange: 0,
+      transportMode: 'foot' as TransportMode,
+      equippedItems: {},
+      statusEffects: [], // Initialize statusEffects
+      ...overrides
+    };
+  } catch (error) {
+    console.error("Warden: createMockPlayerCharacter failed", error);
+    // Return minimal safe object
+    return {
+      id: "error-char",
+      name: "Error Hero",
+      race: { id: "human", name: "Human", description: "", traits: [] },
+      class: {
+        id: "fighter", name: "Fighter", description: "", hitDie: 10,
+        primaryAbility: [], savingThrowProficiencies: [],
+        skillProficienciesAvailable: [], numberOfSkillProficiencies: 0,
+        armorProficiencies: [], weaponProficiencies: [], features: []
+      },
+      abilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+      finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+      skills: [],
+      hp: 1, maxHp: 1, armorClass: 10, speed: 30, darkvisionRange: 0,
+      transportMode: 'foot' as TransportMode,
+      equippedItems: {},
+      statusEffects: []
+    } as PlayerCharacter;
+  }
 }
 
 /**
@@ -243,190 +337,278 @@ export function createMockPlayerCharacter(overrides: Partial<PlayerCharacter> = 
  * @returns A complete GameState object.
  */
 export function createMockGameState(overrides: Partial<GameState> = {}): GameState {
-  return {
-    phase: GamePhase.PLAYING,
-    party: [],
-    tempParty: null,
-    inventory: [],
-    gold: 100,
-    currentLocationId: "village-center",
-    subMapCoordinates: { x: 0, y: 0 },
-    messages: [],
-    isLoading: false,
-    loadingMessage: null,
-    isImageLoading: false,
-    error: null,
-    worldSeed: 12345,
-    mapData: null,
-    isMapVisible: true,
-    isSubmapVisible: true,
-    isPartyOverlayVisible: true,
-    isNpcTestModalVisible: false,
-    isLogbookVisible: false,
-    isGameGuideVisible: false,
-    dynamicLocationItemIds: {},
-    currentLocationActiveDynamicNpcIds: null,
-    geminiGeneratedActions: [],
-    characterSheetModal: {
-      isOpen: false,
-      character: null
-    },
-    gameTime: getGameEpoch(),
-
-    isDevMenuVisible: false,
-    isPartyEditorVisible: false,
-    isGeminiLogViewerVisible: false,
-    geminiInteractionLog: [],
-    hasNewRateLimitError: false,
-    devModelOverride: null,
-
-    isEncounterModalVisible: false,
-    generatedEncounter: null,
-    encounterSources: null,
-    encounterError: null,
-
-    currentEnemies: null,
-
-    lastInteractedNpcId: null,
-    lastNpcResponse: null,
-
-    inspectedTileDescriptions: {},
-
-    discoveryLog: [],
-    unreadDiscoveryCount: 0,
-    isDiscoveryLogVisible: false,
-    isGlossaryVisible: false,
-
-    npcMemory: {},
-
-    locationResidues: {},
-
-    metNpcIds: [],
-
-    merchantModal: {
-      isOpen: false,
-      merchantName: "",
-      merchantInventory: [],
-    },
-
-    fences: {},
-
-    // Intriguer: Faction System
-    factions: {},
-    playerFactionStandings: {},
-    companions: {},
-
-    // Templar: Religion System
-    divineFavor: {},
-    temples: {},
-
-    // Shadowbroker: Crime System
-    notoriety: {
-      globalHeat: 0,
-      localHeat: {},
-      knownCrimes: [],
-      bounties: []
-    },
-
-    // Economy System
-    economy: {
-      marketFactors: {
-        scarcity: [],
-        surplus: []
+  try {
+    return {
+      phase: GamePhase.PLAYING,
+      party: [],
+      tempParty: null,
+      inventory: [],
+      gold: 100,
+      currentLocationId: "village-center",
+      subMapCoordinates: { x: 0, y: 0 },
+      messages: [],
+      isLoading: false,
+      loadingMessage: null,
+      isImageLoading: false,
+      error: null,
+      worldSeed: 12345,
+      mapData: null,
+      isMapVisible: true,
+      isSubmapVisible: true,
+      isPartyOverlayVisible: true,
+      isNpcTestModalVisible: false,
+      isLogbookVisible: false,
+      isGameGuideVisible: false,
+      dynamicLocationItemIds: {},
+      currentLocationActiveDynamicNpcIds: null,
+      geminiGeneratedActions: [],
+      characterSheetModal: {
+        isOpen: false,
+        character: null
       },
-      buyMultiplier: 1.0,
-      sellMultiplier: 0.5,
-      activeEvents: []
-    },
+      gameTime: getGameEpoch(), // This can fail if timeUtils is broken
 
-    questLog: [],
-    notifications: [],
+      isDevMenuVisible: false,
+      isPartyEditorVisible: false,
+      isGeminiLogViewerVisible: false,
+      geminiInteractionLog: [],
+      hasNewRateLimitError: false,
+      devModelOverride: null,
 
-    underdark: {
-      currentDepth: 0,
-      lightLevel: 'bright',
-      activeLightSources: [],
-      faerzressLevel: 0,
-      wildMagicChance: 0,
-      sanity: {
-        current: 100,
-        max: 100,
-        madnessLevel: 0
-      }
-    },
+      isEncounterModalVisible: false,
+      generatedEncounter: null,
+      encounterSources: null,
+      encounterError: null,
 
-    isQuestLogVisible: false,
+      currentEnemies: null,
 
-    townState: null,
-    townEntryDirection: null,
+      lastInteractedNpcId: null,
+      lastNpcResponse: null,
 
-    ...overrides
-  };
+      inspectedTileDescriptions: {},
+
+      discoveryLog: [],
+      unreadDiscoveryCount: 0,
+      isDiscoveryLogVisible: false,
+      isGlossaryVisible: false,
+
+      npcMemory: {},
+
+      locationResidues: {},
+
+      metNpcIds: [],
+
+      merchantModal: {
+        isOpen: false,
+        merchantName: "",
+        merchantInventory: [],
+      },
+
+      fences: {},
+
+      // Intriguer: Faction System
+      factions: {},
+      playerFactionStandings: {},
+      companions: {},
+
+      // Templar: Religion System
+      divineFavor: {},
+      temples: {},
+
+      // Shadowbroker: Crime System
+      notoriety: {
+        globalHeat: 0,
+        localHeat: {},
+        knownCrimes: [],
+        bounties: []
+      },
+
+      // Economy System
+      economy: {
+        marketFactors: {
+          scarcity: [],
+          surplus: []
+        },
+        buyMultiplier: 1.0,
+        sellMultiplier: 0.5,
+        activeEvents: []
+      },
+
+      questLog: [],
+      notifications: [],
+
+      underdark: {
+        currentDepth: 0,
+        lightLevel: 'bright',
+        activeLightSources: [],
+        faerzressLevel: 0,
+        wildMagicChance: 0,
+        sanity: {
+          current: 100,
+          max: 100,
+          madnessLevel: 0
+        }
+      },
+
+      isQuestLogVisible: false,
+
+      townState: null,
+      townEntryDirection: null,
+
+      ...overrides
+    };
+  } catch (error) {
+    console.error("Warden: createMockGameState failed", error);
+    // Extreme fallback - manually construct Date if timeUtils failed
+    return {
+      phase: GamePhase.GAME_OVER, // Safer phase to land in on error
+      party: [],
+      tempParty: null,
+      inventory: [],
+      gold: 0,
+      currentLocationId: "error",
+      subMapCoordinates: { x: 0, y: 0 },
+      messages: [],
+      isLoading: false,
+      loadingMessage: "System Error",
+      isImageLoading: false,
+      error: "Critical Factory Error",
+      worldSeed: 0,
+      mapData: null,
+      isMapVisible: false,
+      isSubmapVisible: false,
+      isPartyOverlayVisible: false,
+      isNpcTestModalVisible: false,
+      isLogbookVisible: false,
+      isGameGuideVisible: false,
+      dynamicLocationItemIds: {},
+      currentLocationActiveDynamicNpcIds: null,
+      geminiGeneratedActions: [],
+      characterSheetModal: { isOpen: false, character: null },
+      gameTime: new Date(),
+      isDevMenuVisible: true, // Allow dev menu to potentially fix
+      isPartyEditorVisible: false,
+      isGeminiLogViewerVisible: false,
+      geminiInteractionLog: [],
+      hasNewRateLimitError: false,
+      devModelOverride: null,
+      isEncounterModalVisible: false,
+      generatedEncounter: null,
+      encounterSources: null,
+      encounterError: null,
+      currentEnemies: null,
+      lastInteractedNpcId: null,
+      lastNpcResponse: null,
+      inspectedTileDescriptions: {},
+      discoveryLog: [],
+      unreadDiscoveryCount: 0,
+      isDiscoveryLogVisible: false,
+      isGlossaryVisible: false,
+      npcMemory: {},
+      locationResidues: {},
+      metNpcIds: [],
+      merchantModal: { isOpen: false, merchantName: "", merchantInventory: [] },
+      fences: {},
+      factions: {},
+      playerFactionStandings: {},
+      companions: {},
+      divineFavor: {},
+      temples: {},
+      notoriety: { globalHeat: 0, localHeat: {}, knownCrimes: [], bounties: [] },
+      economy: { marketFactors: { scarcity: [], surplus: [] }, buyMultiplier: 1, sellMultiplier: 0.5, activeEvents: [] },
+      questLog: [],
+      notifications: [],
+      underdark: { currentDepth: 0, lightLevel: 'dim', activeLightSources: [], faerzressLevel: 0, wildMagicChance: 0, sanity: { current: 100, max: 100, madnessLevel: 0 } },
+      isQuestLogVisible: false,
+      townState: null,
+      townEntryDirection: null
+    };
+  }
 }
 
 /**
  * Creates a mock CombatCharacter object with sensible defaults.
  */
 export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = {}): CombatCharacter {
-  const mockClass: Class = {
-    id: "wizard",
-    name: "Wizard",
-    description: "A scholar who can wield magic.",
-    hitDie: 6,
-    primaryAbility: ["Intelligence"],
-    savingThrowProficiencies: ["Intelligence", "Wisdom"],
-    skillProficienciesAvailable: [],
-    numberOfSkillProficiencies: 2,
-    armorProficiencies: [],
-    weaponProficiencies: [],
-    features: []
-  };
+  try {
+    const mockClass: Class = {
+      id: "wizard",
+      name: "Wizard",
+      description: "A scholar who can wield magic.",
+      hitDie: 6,
+      primaryAbility: ["Intelligence"],
+      savingThrowProficiencies: ["Intelligence", "Wisdom"],
+      skillProficienciesAvailable: [],
+      numberOfSkillProficiencies: 2,
+      armorProficiencies: [],
+      weaponProficiencies: [],
+      features: []
+    };
 
-  const defaults: CombatCharacter = {
-    id: `combat-char-${uuidv4()}`,
-    name: "Mock Combatant",
-    level: 1,
-    team: 'player',
-    currentHP: 10,
-    maxHP: 10,
-    initiative: 10,
-    position: { x: 0, y: 0 },
-    stats: {
-      strength: 10,
-      dexterity: 10,
-      constitution: 10,
-      intelligence: 10,
-      wisdom: 10,
-      charisma: 10,
-      baseInitiative: 0,
-      speed: 30,
-      cr: "1/4"
-    },
-    abilities: [],
-    statusEffects: [],
-    actionEconomy: {
-      action: { used: false, remaining: 1 },
-      bonusAction: { used: false, remaining: 1 },
-      reaction: { used: false, remaining: 1 },
-      movement: { used: 0, total: 30 },
-      freeActions: 1
-    },
-    class: mockClass,
-    // Add missing fields that are commonly needed
-    concentratingOn: undefined,
-    conditions: [],
-    activeEffects: [],
-    riders: [],
-    savePenaltyRiders: [],
-    additionalSavingThrowProficiencies: [],
-    resistances: [],
-    immunities: [],
-    vulnerabilities: [],
-    damageDealt: [],
-    healingDone: []
-  };
+    const defaults: CombatCharacter = {
+      id: `combat-char-${safeUuid()}`,
+      name: "Mock Combatant",
+      level: 1,
+      team: 'player',
+      currentHP: 10,
+      maxHP: 10,
+      initiative: 10,
+      position: { x: 0, y: 0 },
+      stats: {
+        strength: 10,
+        dexterity: 10,
+        constitution: 10,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 10,
+        baseInitiative: 0,
+        speed: 30,
+        cr: "1/4"
+      },
+      abilities: [],
+      statusEffects: [],
+      actionEconomy: {
+        action: { used: false, remaining: 1 },
+        bonusAction: { used: false, remaining: 1 },
+        reaction: { used: false, remaining: 1 },
+        movement: { used: 0, total: 30 },
+        freeActions: 1
+      },
+      class: mockClass,
+      // Add missing fields that are commonly needed
+      concentratingOn: undefined,
+      conditions: [],
+      activeEffects: [],
+      riders: [],
+      savePenaltyRiders: [],
+      additionalSavingThrowProficiencies: [],
+      resistances: [],
+      immunities: [],
+      vulnerabilities: [],
+      damageDealt: [],
+      healingDone: []
+    };
 
-  return { ...defaults, ...overrides };
+    return { ...defaults, ...overrides };
+  } catch (error) {
+    console.error("Warden: createMockCombatCharacter failed", error);
+    return {
+      id: 'error-combat-char',
+      name: 'Error Combatant',
+      level: 1, team: 'enemy', currentHP: 1, maxHP: 1,
+      initiative: 0, position: { x: 0, y: 0 },
+      stats: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, baseInitiative: 0, speed: 0, cr: "0" },
+      abilities: [], statusEffects: [],
+      actionEconomy: {
+        action: { used: true, remaining: 0 },
+        bonusAction: { used: true, remaining: 0 },
+        reaction: { used: true, remaining: 0 },
+        movement: { used: 0, total: 0 },
+        freeActions: 0
+      },
+      conditions: [], activeEffects: [], riders: [], savePenaltyRiders: [], additionalSavingThrowProficiencies: [], resistances: [], immunities: [], vulnerabilities: [], damageDealt: [], healingDone: []
+    } as CombatCharacter;
+  }
 }
 
 /**
@@ -435,101 +617,138 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
  * @returns A complete CombatState object.
  */
 export function createMockCombatState(overrides: Partial<CombatState> = {}): CombatState {
-  const defaultTurnState: TurnState = {
-    currentTurn: 0,
-    turnOrder: [],
-    currentCharacterId: null,
-    phase: 'planning',
-    actionsThisTurn: []
-  };
+  try {
+    const defaultTurnState: TurnState = {
+      currentTurn: 0,
+      turnOrder: [],
+      currentCharacterId: null,
+      phase: 'planning',
+      actionsThisTurn: []
+    };
 
-  return {
-    isActive: true,
-    characters: [],
-    turnState: defaultTurnState,
-    selectedCharacterId: null,
-    selectedAbilityId: null,
-    actionMode: 'select',
-    validTargets: [],
-    validMoves: [],
-    combatLog: [],
-    reactiveTriggers: [],
-    activeLightSources: [],
-    mapData: {
-      dimensions: { width: 20, height: 20 },
-      tiles: new Map(),
-      theme: 'forest',
-      seed: 12345
-    },
-    ...overrides
-  };
+    return {
+      isActive: true,
+      characters: [],
+      turnState: defaultTurnState,
+      selectedCharacterId: null,
+      selectedAbilityId: null,
+      actionMode: 'select',
+      validTargets: [],
+      validMoves: [],
+      combatLog: [],
+      reactiveTriggers: [],
+      activeLightSources: [],
+      mapData: {
+        dimensions: { width: 20, height: 20 },
+        tiles: new Map(),
+        theme: 'forest',
+        seed: 12345
+      },
+      ...overrides
+    };
+  } catch (error) {
+    console.error("Warden: createMockCombatState failed", error);
+    return {
+      isActive: false,
+      characters: [],
+      turnState: { currentTurn: 0, turnOrder: [], currentCharacterId: null, phase: 'planning', actionsThisTurn: [] },
+      selectedCharacterId: null, selectedAbilityId: null, actionMode: 'select',
+      validTargets: [], validMoves: [], combatLog: [], reactiveTriggers: [], activeLightSources: [],
+      mapData: { dimensions: { width: 1, height: 1 }, tiles: new Map(), theme: 'forest', seed: 0 }
+    };
+  }
 }
 
 /**
  * Creates a mock Item object.
  */
 export function createMockItem(overrides: Partial<Item> = {}): Item {
-  return {
-    id: `item-${uuidv4()}`,
-    name: "Mock Item",
-    type: ItemType.Treasure, // Default to a valid enum
-    description: "A generic mock item.",
-    ...overrides
-  };
+  try {
+    return {
+      id: `item-${safeUuid()}`,
+      name: "Mock Item",
+      type: ItemType.Treasure, // Default to a valid enum
+      description: "A generic mock item.",
+      ...overrides
+    };
+  } catch (error) {
+    console.error("Warden: createMockItem failed", error);
+    return { id: 'error-item', name: 'Error Item', type: ItemType.Treasure, description: 'Error' } as Item;
+  }
 }
 
 /**
  * Creates a mock Quest object.
  */
 export function createMockQuest(overrides: Partial<Quest> = {}): Quest {
-  return {
-    id: `quest-${uuidv4()}`,
-    title: "Mock Quest",
-    description: "A quest to test the quest system.",
-    status: QuestStatus.Active,
-    objectives: [],
-    giverId: "npc-1",
-    dateStarted: 0,
-    ...overrides
-  };
+  try {
+    return {
+      id: `quest-${safeUuid()}`,
+      title: "Mock Quest",
+      description: "A quest to test the quest system.",
+      status: QuestStatus.Active,
+      objectives: [],
+      giverId: "npc-1",
+      dateStarted: 0,
+      ...overrides
+    };
+  } catch (error) {
+    console.error("Warden: createMockQuest failed", error);
+    return { id: 'error-quest', title: 'Error Quest', description: 'Error', status: QuestStatus.Active, objectives: [], giverId: '', dateStarted: 0 } as Quest;
+  }
 }
 
 /**
  * Creates a mock Monster object.
  */
 export function createMockMonster(overrides: Partial<Monster> = {}): Monster {
-  // @ts-expect-error - Partial implementation for tests
-  return {
-    id: `monster-${uuidv4()}`,
-    name: "Mock Monster",
-    type: "beast",
-    cr: "1",
-    hp: 20,
-    ac: 12,
-    stats: {
-      strength: 14,
-      dexterity: 12,
-      constitution: 12,
-      intelligence: 6,
-      wisdom: 10,
-      charisma: 6
-    },
-    actions: [],
-    quantity: 1,
-    description: "A scary monster",
-    ...overrides
-  };
+  try {
+    // @ts-expect-error - Partial implementation for tests
+    return {
+      id: `monster-${safeUuid()}`,
+      name: "Mock Monster",
+      type: "beast",
+      cr: "1",
+      hp: 20,
+      ac: 12,
+      stats: {
+        strength: 14,
+        dexterity: 12,
+        constitution: 12,
+        intelligence: 6,
+        wisdom: 10,
+        charisma: 6
+      },
+      actions: [],
+      quantity: 1,
+      description: "A scary monster",
+      ...overrides
+    };
+  } catch (error) {
+    console.error("Warden: createMockMonster failed", error);
+    // @ts-expect-error - Partial implementation for fallback
+    return {
+      id: 'error-monster', name: 'Error Monster', type: 'beast', cr: "0", hp: 1, ac: 10,
+      stats: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 },
+      actions: [], quantity: 1, description: "Error"
+    };
+  }
 }
 
 /**
  * Creates a mock GameMessage object.
  */
 export function createMockGameMessage(overrides: Partial<GameMessage> = {}): GameMessage {
-  return {
-    id: 123,
-    text: "This is a mock message.",
-    timestamp: new Date(),
-    sender: "system",
-    ...overrides
-  };
+  try {
+    return {
+      id: 123,
+      text: "This is a mock message.",
+      timestamp: new Date(),
+      sender: "system",
+      ...overrides
+    };
+  } catch (error) {
+    console.error("Warden: createMockGameMessage failed", error);
+    return { id: 0, text: "Error creating message", timestamp: new Date(), sender: "system" };
+  }
 }

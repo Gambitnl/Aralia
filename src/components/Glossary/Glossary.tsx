@@ -534,11 +534,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
       const finalSize = modalSize;
       setResizeState(prev => ({ ...prev, isResizing: false, handle: null }));
       // Save only on mouse up to avoid layout thrashing/lag
-      try {
-        SafeStorage.setItem('glossary-modal-size', JSON.stringify(finalSize));
-      } catch (e) {
-        console.warn('Failed to save glossary size:', e);
-      }
+      SafeStorage.trySetItem('glossary-modal-size', JSON.stringify(finalSize));
     };
 
     document.addEventListener('mousemove', handleMouseMove);
