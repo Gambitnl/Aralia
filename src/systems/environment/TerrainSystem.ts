@@ -8,12 +8,15 @@ import { TerrainRule, CoverType, WeatherState } from '../../types/environment';
 import { BattleMapTerrain } from '../../types/combat';
 import { NATURAL_HAZARDS } from './hazards';
 
+// Extended type to support legacy/richer terrain types locally without polluting global enum
+export type ExtendedTerrain = BattleMapTerrain | 'dirt' | 'road' | 'forest' | 'dense_forest' | 'rocky_terrain' | 'boulder_field' | 'dunes' | 'snow' | 'shallow_water' | 'ice';
+
 /**
  * Registry of terrain rules.
- * Maps the BattleMapTerrain keys to mechanical properties.
+ * Maps BattleMapTerrain and extended keys to mechanical properties.
  */
-export const TERRAIN_RULES: Record<BattleMapTerrain, TerrainRule> = {
-  // Base Terrain
+export const TERRAIN_RULES: Record<ExtendedTerrain, TerrainRule> = {
+  // Base Terrain (Enum)
   grass: {
     id: 'grass',
     name: 'Grassland',
@@ -21,6 +24,57 @@ export const TERRAIN_RULES: Record<BattleMapTerrain, TerrainRule> = {
     cover: 'none',
     stealthAdvantage: false
   },
+  floor: {
+    id: 'floor',
+    name: 'Stone Floor',
+    movementCost: 1,
+    cover: 'none',
+    stealthAdvantage: false
+  },
+  rock: {
+    id: 'rock',
+    name: 'Rocky Ground',
+    movementCost: 1,
+    cover: 'none',
+    stealthAdvantage: false
+  },
+  sand: {
+    id: 'sand',
+    name: 'Sand',
+    movementCost: 2,
+    cover: 'none',
+    stealthAdvantage: false
+  },
+  mud: {
+    id: 'mud',
+    name: 'Deep Mud',
+    movementCost: 3,
+    cover: 'none',
+    stealthAdvantage: false
+  },
+  difficult: {
+    id: 'difficult',
+    name: 'Difficult Terrain',
+    movementCost: 2,
+    cover: 'none',
+    stealthAdvantage: false
+  },
+  water: {
+    id: 'water',
+    name: 'Deep Water',
+    movementCost: 2,
+    cover: 'three_quarters',
+    stealthAdvantage: true
+  },
+  wall: {
+    id: 'wall',
+    name: 'Wall',
+    movementCost: 999,
+    cover: 'total',
+    stealthAdvantage: true
+  },
+
+  // Extended / Legacy Types (Restored)
   dirt: {
     id: 'dirt',
     name: 'Packed Dirt',
@@ -35,32 +89,23 @@ export const TERRAIN_RULES: Record<BattleMapTerrain, TerrainRule> = {
     cover: 'none',
     stealthAdvantage: false
   },
-  floor: {
-    id: 'floor',
-    name: 'Stone Floor',
-    movementCost: 1,
+  forest: {
+    id: 'forest',
+    name: 'Forest Floor',
+    movementCost: 2,
     cover: 'none',
-    stealthAdvantage: false
+    stealthAdvantage: true
   },
-
-  // Difficult / Natural
   dense_forest: {
     id: 'dense_forest',
     name: 'Dense Forest',
     movementCost: 2,
-    cover: 'half', // Trees provide some natural cover
+    cover: 'half',
     stealthAdvantage: true
-  },
-  rock: {
-    id: 'rock',
-    name: 'Rocky Ground',
-    movementCost: 1,
-    cover: 'none',
-    stealthAdvantage: false
   },
   rocky_terrain: {
     id: 'rocky_terrain',
-    name: 'Rough Terrain',
+    name: 'Rocky Ground',
     movementCost: 2,
     cover: 'none',
     stealthAdvantage: false
@@ -71,13 +116,6 @@ export const TERRAIN_RULES: Record<BattleMapTerrain, TerrainRule> = {
     movementCost: 2,
     cover: 'half',
     stealthAdvantage: true
-  },
-  sand: {
-    id: 'sand',
-    name: 'Sand',
-    movementCost: 2,
-    cover: 'none',
-    stealthAdvantage: false
   },
   dunes: {
     id: 'dunes',
@@ -93,33 +131,10 @@ export const TERRAIN_RULES: Record<BattleMapTerrain, TerrainRule> = {
     cover: 'none',
     stealthAdvantage: false
   },
-  difficult: {
-    id: 'difficult',
-    name: 'Difficult Terrain',
-    movementCost: 2,
-    cover: 'none',
-    stealthAdvantage: false
-  },
-
-  // Aquatic / Special
   shallow_water: {
     id: 'shallow_water',
     name: 'Shallow Water',
     movementCost: 2,
-    cover: 'none',
-    stealthAdvantage: false
-  },
-  water: {
-    id: 'water',
-    name: 'Deep Water',
-    movementCost: 2,
-    cover: 'three_quarters', // Submerged
-    stealthAdvantage: true
-  },
-  mud: {
-    id: 'mud',
-    name: 'Thick Mud',
-    movementCost: 3, // Very difficult
     cover: 'none',
     stealthAdvantage: false
   },
@@ -128,14 +143,8 @@ export const TERRAIN_RULES: Record<BattleMapTerrain, TerrainRule> = {
     name: 'Slippery Ice',
     movementCost: 1,
     cover: 'none',
-    stealthAdvantage: false
-  },
-  wall: {
-    id: 'wall',
-    name: 'Wall',
-    movementCost: 999,
-    cover: 'total',
-    stealthAdvantage: true
+    stealthAdvantage: false,
+    hazards: [NATURAL_HAZARDS['slippery_ice']]
   }
 };
 
@@ -143,8 +152,8 @@ export const TERRAIN_RULES: Record<BattleMapTerrain, TerrainRule> = {
  * Gets the movement cost for a specific terrain type.
  * Defaults to 1 if unknown.
  */
-export function getTerrainMovementCost(terrainId: BattleMapTerrain): number {
-  const rule = TERRAIN_RULES[terrainId];
+export function getTerrainMovementCost(terrainId: string): number {
+  const rule = TERRAIN_RULES[terrainId as ExtendedTerrain];
   return rule ? rule.movementCost : 1;
 }
 
@@ -153,16 +162,16 @@ export function getTerrainMovementCost(terrainId: BattleMapTerrain): number {
  * Note: This is ground cover (e.g. waist-high water, tall grass),
  * distinct from Objects (walls, trees).
  */
-export function getTerrainCover(terrainId: BattleMapTerrain): CoverType {
-  const rule = TERRAIN_RULES[terrainId];
+export function getTerrainCover(terrainId: string): CoverType {
+  const rule = TERRAIN_RULES[terrainId as ExtendedTerrain];
   return rule ? rule.cover : 'none';
 }
 
 /**
  * Determines if a terrain type grants advantage on Stealth checks.
  */
-export function terrainGrantsStealth(terrainId: BattleMapTerrain): boolean {
-  const rule = TERRAIN_RULES[terrainId];
+export function terrainGrantsStealth(terrainId: string): boolean {
+  const rule = TERRAIN_RULES[terrainId as ExtendedTerrain];
   return rule ? rule.stealthAdvantage : false;
 }
 
@@ -172,10 +181,10 @@ export function terrainGrantsStealth(terrainId: BattleMapTerrain): boolean {
  * E.g., Heavy rain turns dirt into mud; Freezing turns water into ice.
  */
 export function getEffectiveTerrain(
-  baseTerrain: BattleMapTerrain,
+  baseTerrain: string,
   weather: WeatherState
 ): TerrainRule {
-  const baseRule = TERRAIN_RULES[baseTerrain];
+  const baseRule = TERRAIN_RULES[baseTerrain as ExtendedTerrain];
   if (!baseRule) return TERRAIN_RULES['grass']; // Fallback
 
   // Copy rule to modify
@@ -183,18 +192,16 @@ export function getEffectiveTerrain(
 
   // 1. Mud Mechanics (Rain + Earth)
   if (
-    (baseTerrain === 'dirt' || baseTerrain === 'grass') &&
+    (baseTerrain === 'dirt' || baseTerrain === 'grass' || baseTerrain === 'road' || baseTerrain === 'forest' || baseTerrain === 'sand') &&
     (weather.precipitation === 'heavy_rain' || weather.precipitation === 'storm')
   ) {
-    // Dirt becomes Mud
-    if (baseTerrain === 'dirt') {
+    // Dirt/Road/Sand becomes Mud
+    if (baseTerrain === 'dirt' || baseTerrain === 'road' || baseTerrain === 'sand') {
       return TERRAIN_RULES['mud'];
     }
-    // Grass gets muddy (Cost 1 -> 2)
-    if (baseTerrain === 'grass') {
-      effectiveRule.movementCost = 2;
-      effectiveRule.name = 'Muddy Grass';
-    }
+    // Grass/Forest gets muddy (Cost +1)
+    effectiveRule.movementCost = Math.min(3, effectiveRule.movementCost + 1);
+    effectiveRule.name = `Muddy ${baseRule.name}`;
   }
 
   // 2. Ice Mechanics (Freezing + Water/Wet)
@@ -205,14 +212,16 @@ export function getEffectiveTerrain(
     }
     // Wet surfaces become slippery
     if (weather.precipitation === 'light_rain' || weather.precipitation === 'heavy_rain') {
-       effectiveRule.hazards?.push(NATURAL_HAZARDS['slippery_ice']);
-       effectiveRule.name = `Frozen ${effectiveRule.name}`;
+        if (!effectiveRule.hazards?.some(h => h.id === 'slippery_ice')) {
+            effectiveRule.hazards?.push(NATURAL_HAZARDS['slippery_ice']);
+            effectiveRule.name = `Frozen ${effectiveRule.name}`;
+        }
     }
   }
 
   // 3. Snow Mechanics (Snow + Open Ground)
   if ((weather.precipitation === 'snow' || weather.precipitation === 'blizzard') &&
-      (baseTerrain === 'grass' || baseTerrain === 'dirt' || baseTerrain === 'road')) {
+      (baseTerrain === 'grass' || baseTerrain === 'dirt' || baseTerrain === 'road' || baseTerrain === 'rock')) {
       // Accumulating snow increases difficulty
       effectiveRule.movementCost = Math.max(effectiveRule.movementCost, 2);
       effectiveRule.name = `Snow-covered ${baseRule.name}`;
