@@ -15,7 +15,8 @@ import {
   LimitedUses,
   Item,
 } from '../../../types';
-import { SKILLS_DATA, WEAPONS_DATA, RACES_DATA, TIEFLING_LEGACIES } from '../../../constants';
+import { WEAPONS_DATA, RACES_DATA, TIEFLING_LEGACIES } from '../../../constants';
+import { SKILLS_DATA } from '../../../data/skills';
 import { BACKGROUNDS } from '../../../data/backgrounds';
 import { CharacterCreationState } from '../state/characterCreatorState';
 import { getAbilityModifierValue, applyAllFeats } from '../../../utils/characterUtils';

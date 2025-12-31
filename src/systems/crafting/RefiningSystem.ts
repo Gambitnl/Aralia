@@ -4,11 +4,25 @@
  * Focuses on batch processing and efficiency.
  * ALCHEMIST PHILOSOPHY: Creation should cost resources. Time is an ingredient.
  */
-import { Crafter, attemptCraft } from './craftingSystem';
-import { Recipe, CraftingResult } from './types';
+import { Crafter, canCraft } from './craftingSystem';
+import { Recipe, CraftingResult, CraftingQuality } from './types';
+
+// Extend the base Recipe type for Refining-specific properties
+export interface RefiningRecipe extends Recipe {
+  recipeType: 'refine';
+  /**
+   * Defines how efficient the refining process can be.
+   * e.g., "For every 5 points above DC, gain 10% more output".
+   */
+  yieldBonus?: {
+    thresholdStep: number; // e.g., 5
+    bonusPercent: number; // e.g., 0.1 (10%)
+    maxBonus?: number;    // e.g., 0.5 (50% max bonus)
+  };
+}
 
 export interface BatchRefineRequest {
-  recipe: Recipe;
+  recipe: RefiningRecipe;
   batchSize: number;
 }
 
@@ -20,6 +34,7 @@ export interface BatchRefineResult {
     successes: number;
     failures: number;
     totalOutput: Record<string, number>; // itemId -> quantity
+    bonusYield: Record<string, number>; // How much was "free" due to skill
   };
 }
 
@@ -34,85 +49,136 @@ export function calculateBatchTime(baseTime: number, batchSize: number): number 
 }
 
 /**
+ * Internal helper to calculate yield multiplier based on skill roll.
+ */
+function calculateYieldMultiplier(roll: number, dc: number, bonus?: RefiningRecipe['yieldBonus']): number {
+  if (!bonus || roll <= dc) return 1.0;
+
+  if (bonus.thresholdStep <= 0) {
+    // Prevent division by zero or infinite loops if data is malformed
+    return 1.0;
+  }
+
+  const margin = roll - dc;
+  const steps = Math.floor(margin / bonus.thresholdStep);
+  if (steps <= 0) return 1.0;
+
+  let rawBonus = steps * bonus.bonusPercent;
+  if (bonus.maxBonus) {
+    rawBonus = Math.min(rawBonus, bonus.maxBonus);
+  }
+
+  return 1.0 + rawBonus;
+}
+
+/**
  * Attempts to refine a batch of materials.
  * NOTE: This function does NOT mutate the actual crafter object's inventory permanently.
  * It simulates the batch and returns the result. The caller (Game Loop/Reducer) must apply the changes.
- * However, to ensure the loop logic works (checking materials for the 2nd item),
- * we track a local 'virtual' inventory state.
  */
 export function processRefiningBatch(crafter: Crafter, request: BatchRefineRequest): BatchRefineResult {
   const { recipe, batchSize } = request;
   const results: CraftingResult[] = [];
   const totalOutput: Record<string, number> = {};
+  const bonusYield: Record<string, number> = {};
+
   let successes = 0;
   let failures = 0;
   let totalExperience = 0;
 
-  // Optimize lookups with a Map (O(1) vs O(N))
-  // We need to keep the original array structure for the virtualCrafter interface,
-  // but we can use the map for quick updates and then sync back if needed,
-  // OR just assume the virtualCrafter.inventory references the objects we modify.
-  // BUT: Crafter.inventory is an array.
-
-  // Strategy: Clone the array deep enough to modify quantities.
+  // Clone inventory to track usage across the batch
   const virtualInventory = crafter.inventory.map(i => ({ ...i }));
-
-  // Create a Map for O(1) access to these same objects
   const inventoryMap = new Map<string, { itemId: string; quantity: number }>();
   virtualInventory.forEach(item => inventoryMap.set(item.itemId, item));
 
-  // Create a proxy crafter that uses the virtual inventory
+  // Create a proxy crafter
   const virtualCrafter: Crafter = {
     ...crafter,
     inventory: virtualInventory,
-    rollSkill: crafter.rollSkill // Reuse the actual roller logic
+    rollSkill: crafter.rollSkill
   };
 
-  // Process each item in the batch
+  // Pre-calculate the skill roll for the ENTIRE batch?
+  // We use one roll to determine efficiency and success for the batch action.
+  const skillName = recipe.skillCheck?.skill || 'Strength'; // Fallback
+  const dc = recipe.skillCheck?.dc || 10;
+  const roll = virtualCrafter.rollSkill(skillName);
+  const yieldMultiplier = calculateYieldMultiplier(roll, dc, recipe.yieldBonus);
+
+  // Check success once for the whole batch logic base
+  const batchSuccess = roll >= dc;
+
+  // Quality determination
+  let quality: CraftingQuality = 'standard';
+  if (roll >= dc + 10) quality = 'superior';
+  if (!batchSuccess) quality = 'poor';
+
+  // Process quantity
   for (let i = 0; i < batchSize; i++) {
-    const result = attemptCraft(virtualCrafter, recipe);
+    // 1. Validation: Use canCraft to check requirements (materials)
+    // NOTE: canCraft only checks materials currently. If it checked tools/stations, this would respect it.
+    if (!canCraft(virtualCrafter, recipe)) {
+      break;
+    }
 
-    // Add result unconditionally first (simplifies flow)
-    results.push(result);
-
-    // If successful or materials lost, update virtual inventory
-    if (result.success || result.materialsLost) {
-      result.consumedMaterials.forEach(consumed => {
-        const item = inventoryMap.get(consumed.itemId);
-        if (item) {
-          item.quantity -= consumed.quantity;
+    // 2. Consume Materials
+    const consumedThisStep: { itemId: string; quantity: number }[] = [];
+    recipe.inputs.forEach(input => {
+      if (input.consumed) {
+        const invItem = inventoryMap.get(input.itemId);
+        if (invItem) {
+          invItem.quantity -= input.quantity;
+          consumedThisStep.push({ itemId: input.itemId, quantity: input.quantity });
         }
+      }
+    });
+
+    // 3. Produce Output
+    const outputsThisStep: { itemId: string; quantity: number }[] = [];
+
+    if (batchSuccess) {
+      successes++;
+
+      recipe.outputs.forEach(out => {
+        // Apply Yield Multiplier
+        const baseQty = out.quantity;
+        const totalQty = Math.floor(baseQty * yieldMultiplier);
+        const bonusQty = totalQty - baseQty;
+
+        outputsThisStep.push({ itemId: out.itemId, quantity: totalQty });
+
+        // Track stats
+        totalOutput[out.itemId] = (totalOutput[out.itemId] || 0) + totalQty;
+        bonusYield[out.itemId] = (bonusYield[out.itemId] || 0) + bonusQty;
       });
-    }
 
-    if (result.success) {
-        successes++;
-
-        // Track outputs
-        result.outputs.forEach(out => {
-            totalOutput[out.itemId] = (totalOutput[out.itemId] || 0) + out.quantity;
-        });
-
-        // XP Calculation
-        totalExperience += (result.experienceGained || (recipe.timeMinutes * 2));
-
+      totalExperience += (recipe.timeMinutes * 2); // Restore original XP formula
     } else {
-        failures++;
-        // Stop on critical resource failure
-        if (result.message === 'Insufficient materials.') {
-            break;
-        }
+      failures++;
+      // On failure, materials are lost (consumed above), no output produced.
     }
+
+    results.push({
+      success: batchSuccess,
+      quality,
+      outputs: outputsThisStep,
+      consumedMaterials: consumedThisStep,
+      materialsLost: !batchSuccess,
+      message: batchSuccess
+        ? `Refined batch item ${i+1}/${batchSize}`
+        : `Failed to refine batch item ${i+1}/${batchSize}`
+    });
   }
 
   return {
     results,
-    totalTimeSpent: calculateBatchTime(recipe.timeMinutes, results.length),
+    totalTimeSpent: calculateBatchTime(recipe.timeMinutes, successes + failures),
     totalExperience,
     summary: {
       successes,
       failures,
-      totalOutput
+      totalOutput,
+      bonusYield
     }
   };
 }

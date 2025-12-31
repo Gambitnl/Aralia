@@ -3,7 +3,7 @@
  * Manages validation logic for targeting abilities.
  * Decoupled from the main AbilitySystem to provide stable references and reduce re-renders.
  */
-import { useCallback } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { CombatCharacter, Ability, Position, BattleMapData } from '../../types/combat';
 import { getDistance } from '../../utils/combatUtils';
 import { hasLineOfSight } from '../../utils/lineOfSight';
@@ -15,15 +15,28 @@ interface UseTargetValidatorProps {
 
 export function useTargetValidator({ characters, mapData }: UseTargetValidatorProps) {
 
+    // [Steward] Optimization: Use Ref to hold latest characters without triggering re-creation of callbacks.
+    // We update this ref on every render so it's available for callbacks immediately.
+    const charactersRef = useRef(characters);
+    charactersRef.current = characters;
+
+    // [Steward] Create a topology hash that only changes when character positions/teams change.
+    // This allows us to stabilize isValidTarget against irrelevant updates like HP changes.
+    const characterTopology = useMemo(() => {
+        return characters.map(c => `${c.id}:${c.position.x},${c.position.y}:${c.team}`).join('|');
+    }, [characters]);
+
     // Helper: Find character at exact grid position
+    // ACTION: Updated dependency to characterTopology
     const getCharacterAtPosition = useCallback((position: Position): CombatCharacter | null => {
-        return characters.find(char =>
+        return charactersRef.current.find(char =>
             char.position.x === position.x && char.position.y === position.y
         ) || null;
-    }, [characters]);
+    }, [characterTopology]);
 
     /**
      * Validates if a target position is legal for the given ability.
+     * ACTION: Updated dependency to characterTopology
      */
     const isValidTarget = useCallback((
         ability: Ability,
