@@ -7,3 +7,9 @@
 ## 2025-12-31 - Crime Consequence Integration
 **Learning:** The Notoriety system was tracking crimes effectively, but companions were largely oblivious to these actions unless they were presented as dialogue choices. This created a dissonance where the player could murder a guard in gameplay, but Elara (who hates violence) wouldn't react.
 **Action:** I implemented a `crime_committed` trigger in `useCompanionCommentary.ts` that listens to changes in the Notoriety state. I then updated `src/data/companions.ts` with specific reaction rules: Kaelen now cheers for theft but warns against getting caught, while Elara expresses horror at violence and theft. This bridges gameplay actions with relationship consequences.
+
+<!-- PERSONA IMPROVEMENT SUGGESTION
+**Suggested by:** Heartkeeper
+**Issue:** The persona file focuses heavily on 'decisions' (dialogue choices) but doesn't explicitly mention reacting to emergent gameplay actions like crime or combat performance.
+**Suggestion:** Add 'Gameplay Consequence Integration' to the Key Systems list, explicitly encouraging reactions to system-driven events (theft, combat victory, fleeing) rather than just scripted dialogue nodes.
+-->
