@@ -37,3 +37,7 @@ export const TABAXI_DATA: Race = {
 2.  Update `src/data/races/index.ts` to export `TABAXI_DATA`.
 3.  Verify integration with Character Creator UI (ensure traits display correctly).
 4.  (Future) Implement mechanical hooks for `Feline Agility` (requires a status effect or movement tracker reset trigger).
+
+## 2025-12-30 - Implemented Kenku Race
+**Learning:** During implementation of the Kenku race, I confirmed that `scripts/check-non-ascii.ts` has a variable declaration issue (`_totalIssues`) that can cause build failures when strict linting is enabled, even if the script logic is sound.
+**Action:** Implemented the Kenku race following MPMotM standards and reverted incidental changes to the validation script to maintain scope. Verified data integrity using `validate-data.ts`.

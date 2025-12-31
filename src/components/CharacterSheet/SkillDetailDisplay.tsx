@@ -6,7 +6,7 @@
  */
 import React, { useEffect, useRef } from 'react';
 import { PlayerCharacter, Skill as SkillType } from '../../types';
-import { SKILLS_DATA } from '../../constants';
+import { SKILLS_DATA } from '../../data/skills';
 import { getAbilityModifierValue } from '../../utils/characterUtils';
 import Tooltip from '../Tooltip'; 
 // Inline glossary tooltips live under the Glossary folder
