@@ -187,41 +187,44 @@ export const useCombatEngine = ({
 
         const tileKey = `${tilePos.x}-${tilePos.y}`;
         const tile = mapData.tiles.get(tileKey);
-        if (!tile || !tile.environmentalEffect) return character;
+        // [Ecologist] Updated to support multiple environmental effects
+        if (!tile || !tile.environmentalEffects || tile.environmentalEffects.length === 0) return character;
 
         let updatedChar = { ...character };
-        const env = tile.environmentalEffect;
-
-        if (env.effect.effect.type === 'damage_per_turn') {
-            const damage = env.effect.effect.value || 0;
-            if (damage > 0) {
-                updatedChar = handleDamage(updatedChar, damage, env.effect.name, env.type === 'fire' ? 'fire' : 'physical');
-            } else {
-                onLogEntry({
-                    id: generateId(),
-                    timestamp: Date.now(),
-                    type: 'status',
-                    message: `${character.name} enters ${env.effect.name}.`,
-                    characterId: character.id
-                });
+        // [Ecologist] Iterate through all effects on the tile
+        const envs = tile.environmentalEffects;
+        envs.forEach(env => {
+            if (env.effect.effect.type === 'damage_per_turn') {
+                const damage = env.effect.effect.value || 0;
+                if (damage > 0) {
+                    updatedChar = handleDamage(updatedChar, damage, env.effect.name, env.type === 'fire' ? 'fire' : 'physical');
+                } else {
+                    onLogEntry({
+                        id: generateId(),
+                        timestamp: Date.now(),
+                        type: 'status',
+                        message: `${character.name} enters ${env.effect.name}.`,
+                        characterId: character.id
+                    });
+                }
+            } else if (env.effect.effect.type === 'condition') {
+                const hasCondition = updatedChar.statusEffects.some(s => s.name === env.effect.name);
+                if (!hasCondition) {
+                    updatedChar.statusEffects = [...updatedChar.statusEffects, {
+                        ...env.effect,
+                        id: generateId(),
+                        duration: 1
+                    }];
+                    onLogEntry({
+                        id: generateId(),
+                        timestamp: Date.now(),
+                        type: 'status',
+                        message: `${character.name} is affected by ${env.effect.name}.`,
+                        characterId: character.id
+                    });
+                }
             }
-        } else if (env.effect.effect.type === 'condition') {
-            const hasCondition = updatedChar.statusEffects.some(s => s.name === env.effect.name);
-            if (!hasCondition) {
-                updatedChar.statusEffects = [...updatedChar.statusEffects, {
-                    ...env.effect,
-                    id: generateId(),
-                    duration: 1
-                }];
-                onLogEntry({
-                    id: generateId(),
-                    timestamp: Date.now(),
-                    type: 'status',
-                    message: `${character.name} is affected by ${env.effect.name}.`,
-                    characterId: character.id
-                });
-            }
-        }
+        });
 
         return updatedChar;
     }, [mapData, handleDamage, onLogEntry]);
@@ -320,23 +323,30 @@ export const useCombatEngine = ({
             const newTiles = new Map(mapData.tiles);
 
             for (const [key, tile] of newTiles) {
-                if (tile.environmentalEffect) {
-                    const newDuration = tile.environmentalEffect.duration - 1;
+                // [Ecologist] Handle array of environmental effects
+                if (tile.environmentalEffects && tile.environmentalEffects.length > 0) {
+                    const activeEffects = tile.environmentalEffects.map(env => ({
+                        ...env,
+                        duration: env.duration - 1
+                    })).filter(env => env.duration > 0);
 
-                    if (newDuration <= 0) {
-                        const newTile = { ...tile };
-                        newTile.environmentalEffect = undefined;
-                        if (tile.environmentalEffect.type === 'difficult_terrain') {
-                            newTile.movementCost = 1; // Assuming default 1
+                    const hadEffects = tile.environmentalEffects.length > 0;
+                    const hasEffects = activeEffects.length > 0;
+
+                    if (hadEffects !== hasEffects || activeEffects.some((e, i) => e.duration !== tile.environmentalEffects![i].duration)) {
+                        const newTile = { ...tile, environmentalEffects: activeEffects };
+
+                        // Check if difficult terrain was removed
+                        const hadDifficultTerrain = tile.environmentalEffects.some(e => e.type === 'difficult_terrain');
+                        const hasDifficultTerrain = activeEffects.some(e => e.type === 'difficult_terrain');
+
+                        if (hadDifficultTerrain && !hasDifficultTerrain) {
+                             // Reset movement cost if difficult terrain is gone
+                             // Note: In a full system, we should recalculate based on base terrain + remaining effects
+                             // For now, we assume base terrain cost is 1 if it was only difficult due to the effect
+                            newTile.movementCost = 1;
                         }
-                        newTiles.set(key, newTile);
-                        mapModified = true;
-                    } else {
-                        const newTile = { ...tile };
-                        newTile.environmentalEffect = {
-                            ...tile.environmentalEffect,
-                            duration: newDuration
-                        };
+
                         newTiles.set(key, newTile);
                         mapModified = true;
                     }

@@ -276,7 +276,25 @@ export interface LightSource {
 }
 
 // Battle Map Types
-export type BattleMapTerrain = 'grass' | 'rock' | 'water' | 'difficult' | 'wall' | 'floor' | 'sand' | 'mud';
+export type BattleMapTerrain =
+  | 'grass'
+  | 'rock'
+  | 'water'
+  | 'difficult'
+  | 'wall'
+  | 'floor'
+  | 'sand'
+  | 'mud'
+  | 'dense_forest'
+  | 'road'
+  | 'dirt'
+  | 'rocky_terrain'
+  | 'boulder_field'
+  | 'dunes'
+  | 'snow'
+  | 'shallow_water'
+  | 'ice';
+
 export type BattleMapDecoration = 'tree' | 'boulder' | 'stalagmite' | 'pillar' | 'cactus' | 'mangrove' | null;
 
 export interface EnvironmentalEffect {
@@ -299,6 +317,7 @@ export interface BattleMapTile {
   decoration: BattleMapDecoration;
   effects: string[]; // IDs of active effects
   providesCover?: boolean;
+  // [Ecologist] Changed to array to support multiple simultaneous effects (e.g. difficult terrain + fire)
   environmentalEffects?: EnvironmentalEffect[];
 }
 

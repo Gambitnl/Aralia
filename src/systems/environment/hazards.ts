@@ -47,7 +47,7 @@ export const NATURAL_HAZARDS: Record<string, EnvironmentalHazard> = {
     effectType: 'damage',
     damage: {
       dice: '1d10',
-      type: 'slashing'
+      type: DamageType.Slashing
     }
   },
   lava: {
@@ -58,7 +58,7 @@ export const NATURAL_HAZARDS: Record<string, EnvironmentalHazard> = {
     effectType: 'damage',
     damage: {
       dice: '6d10',
-      type: 'fire'
+      type: DamageType.Fire
     }
   },
   quicksand: {

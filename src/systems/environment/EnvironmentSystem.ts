@@ -1,89 +1,32 @@
-
 /**
  * @file src/systems/environment/EnvironmentSystem.ts
  * Implements logic for environmental effects, including weather modifiers on spells
  * and terrain movement costs.
+ *
+ * NOTE: Terrain logic has been consolidated into TerrainSystem.ts
  */
 
 import {
   WeatherState,
-  TerrainRule,
   SpellModifier,
-  Precipitation,
-  WindSpeed,
   EnvironmentalHazard
 } from '../../types/environment';
-import { Spell, DamageType } from '../../types/spells';
+import { Spell } from '../../types/spells';
 import { BattleMapTerrain } from '../../types/combat';
 import { NATURAL_HAZARDS } from './hazards';
+// Import terrain logic from the consolidated system
+import {
+  TERRAIN_RULES,
+  getTerrainMovementCost as getCost,
+  getTerrainCover as getCover,
+  getEffectiveTerrain
+} from './TerrainSystem';
 
 export { NATURAL_HAZARDS };
 export * from './hazards';
-
-/**
- * Standard movement costs for base terrain types.
- */
-export const TERRAIN_RULES: Record<BattleMapTerrain, TerrainRule> = {
-  grass: {
-    id: 'grass',
-    name: 'Grass',
-    movementCost: 1,
-    cover: 'none',
-    stealthAdvantage: false
-  },
-  rock: {
-    id: 'rock',
-    name: 'Rocky Ground',
-    movementCost: 1, // Uneven but solid
-    cover: 'none',
-    stealthAdvantage: false
-  },
-  water: {
-    id: 'water',
-    name: 'Deep Water',
-    movementCost: 2, // Swimming is difficult terrain usually
-    cover: 'three_quarters', // Submerged
-    stealthAdvantage: true,
-    // Example: Water could have 'Strong Current' in specific maps,
-    // but base water is just difficult.
-    // We can leave this optional or add a low-level hazard if needed.
-  },
-  difficult: {
-    id: 'difficult',
-    name: 'Difficult Terrain',
-    movementCost: 2,
-    cover: 'none',
-    stealthAdvantage: false
-  },
-  wall: {
-    id: 'wall',
-    name: 'Wall',
-    movementCost: 999, // Impassable
-    cover: 'total',
-    stealthAdvantage: true
-  },
-  floor: {
-    id: 'floor',
-    name: 'Stone Floor',
-    movementCost: 1,
-    cover: 'none',
-    stealthAdvantage: false
-  },
-  sand: {
-    id: 'sand',
-    name: 'Deep Sand',
-    movementCost: 2,
-    cover: 'none',
-    stealthAdvantage: false
-  },
-  mud: {
-    id: 'mud',
-    name: 'Thick Mud',
-    movementCost: 2,
-    cover: 'none',
-    stealthAdvantage: false
-  }
-};
+// Re-export specific terrain logic if needed by legacy consumers,
+// though direct import from TerrainSystem is preferred.
+export { TERRAIN_RULES, getEffectiveTerrain };
 
 /**
  * Calculates how weather conditions affect a specific spell.
@@ -152,16 +95,18 @@ export function getWeatherModifiers(
 
 /**
  * Gets the movement cost for a specific terrain type.
+ * Delegates to TerrainSystem.
  */
 export function getTerrainMovementCost(terrain: BattleMapTerrain): number {
-  return TERRAIN_RULES[terrain]?.movementCost ?? 1;
+  return getCost(terrain);
 }
 
 /**
  * Determines cover provided by a terrain type.
+ * Delegates to TerrainSystem.
  */
 export function getTerrainCover(terrain: BattleMapTerrain): string {
-  return TERRAIN_RULES[terrain]?.cover ?? 'none';
+  return getCover(terrain);
 }
 
 /**
