@@ -62,6 +62,7 @@ export const StateInteractions: Record<string, StateTag | null> = {
   // Acid interactions
   'acid+webbed': null,              // Acid dissolves webs
   'acid+oiled': null,               // Acid neutralizes/breaks down oil
+  'acid+wet': StateTag.Wet,         // [Simulator] Water washes away acid, leaving the target wet (dilution)
 
   // Electrified interactions
   // (Placeholder for future: wet+electrified -> AoE damage)

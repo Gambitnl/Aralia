@@ -139,5 +139,17 @@ describe('ElementalInteractionSystem', () => {
             expect(result.finalState).toBeUndefined();
             expect(result.interaction).toContain('Neutralized');
         });
+
+        it('should handle Acid + Wet -> Wet (Dilution)', () => {
+            const current = [StateTag.Acid];
+            const { newStates, result } = applyStateToTags(current, StateTag.Wet);
+
+            // Acid + Wet -> Wet
+            expect(newStates).toContain(StateTag.Wet);
+            expect(newStates).not.toContain(StateTag.Acid);
+
+            expect(result.finalState).toBe(StateTag.Wet);
+            expect(result.interaction).toContain('acid + wet -> wet');
+        });
     });
 });
