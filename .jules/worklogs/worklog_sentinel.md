@@ -1,6 +1,25 @@
-## 2024-05-24 - Centralized Logging Security **Learning:** Production code was using `console.log` directly in `ReactiveEffectCommand`, potentially exposing sensitive event data or cluttering production consoles. **Action:** Enforce the use of the `src/utils/logger.ts` utility for all logging. This ensures logs are leveled (debug/info/warn/error), timestamped, and can be globally suppressed or routed in production environments. Any temporary debugging logs in UI components must be guarded by `canUseDevTools()`.
-## 2024-05-25 - Standardized AI JSON Parsing **Learning:** AI responses often contain Markdown code blocks, leading to repetitive regex stripping across the codebase before parsing. This was centralized into a `cleanAIJSON` utility. **Action:** Always use `cleanAIJSON` and `safeJSONParse` from `src/utils/securityUtils.ts` when handling JSON responses from LLMs to prevent crashes and reduce code duplication.
-## 2024-05-26 - Defensive Parsing & Sanitization **Learning:** `JSON.parse` is a critical crash vector when handling external data (AI or localStorage). `dangerouslySetInnerHTML` is vulnerable to Reverse Tabnabbing. **Action:** Always use `safeJSONParse` for external data. Hardening `DOMPurify` with `afterSanitizeAttributes` hook prevents tabnabbing by enforcing `rel="noopener noreferrer"` on `target="_blank"` links. Move hooks to module scope to prevent leaks.
-## 2025-12-29 - Secure Logging Practices
-**Learning:** Production code in `RumorMill.tsx` was logging sensitive game secrets (rumor payloads) to the console, violating security principles.
-**Action:** Audit all new components for `console.log` usage, especially those handling game secrets or user PII, and remove them or use secure logging channels.
+﻿# Sentinel's Journal
+
+> **Instructions**: Before adding an entry, run `date` in terminal to get today's date.
+> Only record CRITICAL learnings - patterns worth reusing, not routine work.
+
+## Entry Templates
+
+### Learning Entry
+```
+## YYYY-MM-DD - [Title]
+**Learning:** [What insight did you gain?]
+**Action:** [How to apply this next time]
+```
+
+### Future TODO
+```
+## TODO: [Brief Title]
+**Context:** [Why is this needed?]
+**Plan:** [Steps to implement]
+**Status:** Pending
+```
+
+---
+
+<!-- Add new entries below this line -->

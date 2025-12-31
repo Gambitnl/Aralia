@@ -1,6 +1,25 @@
-## 2024-05-23 - NPC Visual Spec Gap **Learning:** Found that `NPC` type lacked structured visual data (unlike `PlayerCharacter`), relying on implied visuals from text. Defined `NPCVisualSpec` to bridge this, enabling both static assets and AI generation prompts. **Action:** Always check core entity types for explicit visual contracts; if missing, define a spec that supports both manual paths and generative prompts.
-## 2024-05-23 - Visual Spec Integration **Learning:** Integrated `NPCVisualSpec` directly into the `NPC` interface to allow fallback resolution in the visual pipeline. This decouples visual data from game logic and enables seamless fallbacks. **Action:** Ensure all entity types (Items, Spells, etc.) have an optional `visual` property that links to their respective spec.
-## 2024-05-23 - Class Visual System **Learning:** Found duplicated hardcoded switch statements for class icons in multiple components. Created a centralized `ClassVisualSpec` and registry in `src/types/visuals.ts` to standardize icons, colors, and descriptions. **Action:** Prefer central registries for entity visuals (classes, races, schools) over component-level logic to ensure consistency and ease of updates.
-## 2025-12-23 - Race Visual Spec Gap **Learning:** Found that `Race` type relied on a legacy `imageUrl` string. Defined `RaceVisualSpec` to standardize asset definitions and enable AI generation. **Action:** Always look for scalar visual properties (like strings) that should be structured specs.
-## 2025-05-23 - Spell Visual Specs **Learning:** Spells lacked a visual specification beyond icons. Designed `SpellEffectVisualSpec` to define projectiles, impacts, and casting animations. **Action:** Ensure all new effect systems include a visual property.
-## 2025-12-31 - Map Visual Bridging **Learning:** BattleMap tiles and decorations relied on disjointed types and implicit rendering rules. Created `TerrainVisualSpec` and `DecorationVisualSpec` registries to act as a contract between the data model (`BattleMapTerrain`) and the renderer. **Action:** When systems bridge data (logic) and visuals (React/Canvas), introduce an explicit "Visual Spec" middleware type to contain the rendering rules.
+﻿# Materializer's Journal
+
+> **Instructions**: Before adding an entry, run `date` in terminal to get today's date.
+> Only record CRITICAL learnings - patterns worth reusing, not routine work.
+
+## Entry Templates
+
+### Learning Entry
+```
+## YYYY-MM-DD - [Title]
+**Learning:** [What insight did you gain?]
+**Action:** [How to apply this next time]
+```
+
+### Future TODO
+```
+## TODO: [Brief Title]
+**Context:** [Why is this needed?]
+**Plan:** [Steps to implement]
+**Status:** Pending
+```
+
+---
+
+<!-- Add new entries below this line -->

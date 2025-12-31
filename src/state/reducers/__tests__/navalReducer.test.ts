@@ -3,7 +3,6 @@ import { describe, it, expect } from 'vitest';
 import { navalReducer } from '../navalReducer';
 import { initialGameState } from '../../initialState';
 import { AppAction } from '../../actionTypes';
-import { Ship } from '../../../types/naval';
 
 describe('navalReducer', () => {
   it('should initialize the fleet', () => {

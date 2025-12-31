@@ -1,3 +1,25 @@
-## 2025-12-30 - Mocking Data Modules
-**Learning:** When unit testing logic that depends on large external data files (like `FEATS_DATA`), mocking the data module allows for precise control over test scenarios (e.g., creating a specific feat for testing retroactive HP) without relying on the actual data content, which might change. This isolates the logic test from data changes.
-**Action:** Use `vi.mock('../../path/to/data', () => ({ DATA: [...] }))` to provide minimal, focused test data for unit logic tests.
+﻿# Vanguard's Journal
+
+> **Instructions**: Before adding an entry, run `date` in terminal to get today's date.
+> Only record CRITICAL learnings - patterns worth reusing, not routine work.
+
+## Entry Templates
+
+### Learning Entry
+```
+## YYYY-MM-DD - [Title]
+**Learning:** [What insight did you gain?]
+**Action:** [How to apply this next time]
+```
+
+### Future TODO
+```
+## TODO: [Brief Title]
+**Context:** [Why is this needed?]
+**Plan:** [Steps to implement]
+**Status:** Pending
+```
+
+---
+
+<!-- Add new entries below this line -->

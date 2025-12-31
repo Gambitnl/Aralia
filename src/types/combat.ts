@@ -15,6 +15,8 @@ import { StateTag } from './elemental';
 import { Plane } from './planes';
 import { RitualState } from './ritual';
 
+export type { CharacterStats };
+
 // --- EFFECTS REFAC (IN PLACE) ---
 
 /**

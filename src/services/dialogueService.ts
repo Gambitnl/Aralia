@@ -8,7 +8,7 @@ import {
   DialogueSession,
   TopicCost
 } from '../types/dialogue';
-import { GameState, QuestStatus, Item, NPC, WorldRumor, Location } from '../types/index';
+import { GameState, QuestStatus, Item, NPC, WorldRumor } from '../types/index';
 import { rollDice } from '../utils/combatUtils';
 import { INITIAL_TOPICS } from '../data/dialogue/topics';
 import { getGameDay } from '../utils/timeUtils';
@@ -214,7 +214,7 @@ export function getDynamicRumorTopics(
   // 2. Check current location (e.g., they are a static NPC in the town we are in)
   // Default to current location if we can't be sure, as dialogue usually happens face-to-face.
 
-  let npcLocationId: string | undefined = gameState.currentLocationId;
+  const npcLocationId: string | undefined = gameState.currentLocationId;
   const currentGameDay = getGameDay(gameState.gameTime);
 
   const relevantRumors = gameState.activeRumors.filter(rumor => {

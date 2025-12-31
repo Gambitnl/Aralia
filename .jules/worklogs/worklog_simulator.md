@@ -1,3 +1,25 @@
-## 2024-05-24 - Elemental Cancellation **Learning:** Simple neutralization rules (like Fire + Cold = null) are surprisingly effective at preventing nonsensical states (e.g. "Burning Ice") without requiring complex new states or status conditions. **Action:** Prefer null/cancellation over creating new "Mixed" states when elements are diametrically opposed.
-## 2024-05-24 - State Lifecycles **Learning:** Defining removal conditions (like Fire burning away Poison, or Water washing it off) turns static debuffs into dynamic puzzles, giving players agency over their status effects. **Action:** Ensure every negative state has a counter-element interaction.
-## 2025-02-18 - Chemical Interactions **Learning:** Chemical states like 'Acid' function similarly to elemental ones but primarily act as negators (dissolving webs, neutralizing oil) rather than transforming into new states. **Action:** Use `null` interactions for chemical neutralization.
+﻿# Simulator's Journal
+
+> **Instructions**: Before adding an entry, run `date` in terminal to get today's date.
+> Only record CRITICAL learnings - patterns worth reusing, not routine work.
+
+## Entry Templates
+
+### Learning Entry
+```
+## YYYY-MM-DD - [Title]
+**Learning:** [What insight did you gain?]
+**Action:** [How to apply this next time]
+```
+
+### Future TODO
+```
+## TODO: [Brief Title]
+**Context:** [Why is this needed?]
+**Plan:** [Steps to implement]
+**Status:** Pending
+```
+
+---
+
+<!-- Add new entries below this line -->

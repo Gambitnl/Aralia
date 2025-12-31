@@ -1,17 +1,25 @@
-## 2024-05-24 - Feywild Time Warp
+﻿# Planeshifter's Journal
 
-**Learning:** Time in the Feywild is not just "slower" or "faster" but narratively treacherous. The DMG variant rule (Days -> Minutes or Days -> Years) provides extreme stakes. I implemented a `calculateTimeWarp` function that handles this conversion.
+> **Instructions**: Before adding an entry, run `date` in terminal to get today's date.
+> Only record CRITICAL learnings - patterns worth reusing, not routine work.
 
-**Key Insight:** Using `rollDice('1d20')` to determine the outcome allows for consistent testing via mocking, rather than `Math.random()`. The result needs to be communicated clearly to the player via a message string.
+## Entry Templates
 
-**Action:** Future planar features should similarly isolate the "randomness" into a single roll logic that returns a descriptive object (`TimeWarpResult`), allowing the UI to just display the message without needing to know the math.
+### Learning Entry
+```
+## YYYY-MM-DD - [Title]
+**Learning:** [What insight did you gain?]
+**Action:** [How to apply this next time]
+```
 
-## 2025-12-29 - Astral Mechanics Implementation
+### Future TODO
+```
+## TODO: [Brief Title]
+**Context:** [Why is this needed?]
+**Plan:** [Steps to implement]
+**Status:** Pending
+```
 
-**Learning:** When implementing planar environmental hazards like "Psychic Wind", it is crucial to decouple the mechanical outcome (Psychic Damage, Displacement) from the narrative description, so systems like `AstralMechanics.checkForPsychicWind` can return a structured result object. This allows the Game Loop to decide *how* to apply the effect (notification, direct damage, teleportation) without the physics engine being tightly coupled to the UI.
+---
 
-**Action:** Ensure all future Planar Hazard systems return a `PlanarHazardResult` type object rather than mutating state directly or returning simple strings.
-
-### UNTRACKED FILES
-- `src/systems/planar/AbyssalMechanics.ts` - Mechanics for Abyssal Corruption (DC 15 Charisma save, random flaws).
-- `src/systems/planar/__tests__/AbyssalMechanics.test.ts` - Unit tests for Abyssal Corruption mechanics.
+<!-- Add new entries below this line -->

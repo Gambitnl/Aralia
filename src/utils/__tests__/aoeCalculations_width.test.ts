@@ -1,14 +1,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { calculateAffectedTiles } from '../aoeCalculations';
-import { Position } from '../../types/combat';
 
 describe('AoE Calculations - Line Width', () => {
-    // Helper to count unique x or y coordinates to determine width
-    const getWidthAtDistance = (tiles: Position[], distance: number, axis: 'x' | 'y') => {
-        return tiles.filter(t => t[axis === 'y' ? 'x' : 'y'] === distance).length;
-    };
-
     it('generates a 1-tile wide line for 5ft width (East)', () => {
         const origin = { x: 0, y: 0 };
         const tiles = calculateAffectedTiles({

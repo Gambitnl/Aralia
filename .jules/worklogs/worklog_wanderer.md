@@ -1,3 +1,25 @@
-## 2024-05-24 - Meaningful Discoveries
-**Learning:** Players ignore procedural content if it lacks mechanical weight. Adding tangible rewards (gold, items, health) to discovery events transforms them from "flavor text" to "gameplay moments".
-**Action:** Ensure all future procedural generation systems (dungeons, NPC encounters) include a "consequence" layer (reward or risk) beyond just description.
+﻿# Wanderer's Journal
+
+> **Instructions**: Before adding an entry, run `date` in terminal to get today's date.
+> Only record CRITICAL learnings - patterns worth reusing, not routine work.
+
+## Entry Templates
+
+### Learning Entry
+```
+## YYYY-MM-DD - [Title]
+**Learning:** [What insight did you gain?]
+**Action:** [How to apply this next time]
+```
+
+### Future TODO
+```
+## TODO: [Brief Title]
+**Context:** [Why is this needed?]
+**Plan:** [Steps to implement]
+**Status:** Pending
+```
+
+---
+
+<!-- Add new entries below this line -->

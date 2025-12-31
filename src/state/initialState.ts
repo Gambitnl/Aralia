@@ -3,9 +3,9 @@
  * Defines the initial state for the application.
  */
 
-import { GameState, GamePhase, MapData, SuspicionLevel, KnownFact, UnderdarkState, MerchantModalState, GameMessage, Action, EncounterSource, EnemyCombatant, TempPartyMember, DynamicLocation } from '../types';
+import { GameState, GamePhase, SuspicionLevel, UnderdarkState } from '../types';
 import { DEFAULT_WEATHER } from '../systems/environment/EnvironmentSystem';
-import { STARTING_LOCATION_ID, LOCATIONS, ITEMS as _ITEMS, CLASSES_DATA as _CLASSES_DATA, NPCS, COMPANIONS } from '../constants';
+import { STARTING_LOCATION_ID, ITEMS as _ITEMS, CLASSES_DATA as _CLASSES_DATA, NPCS, COMPANIONS } from '../constants';
 import { getDummyParty, initialInventoryForDummyCharacter } from '../data/dev/dummyCharacter';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../data/factions';
 import { DEITIES } from '../data/deities';

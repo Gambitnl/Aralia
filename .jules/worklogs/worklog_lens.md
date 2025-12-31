@@ -1,5 +1,25 @@
-## 2024-05-24 - BattleMap Component Organization **Learning:** Component-specific files (`Overlay`, `Demo`) were found at the root `components/` level instead of within their specific feature directory (`components/BattleMap/`). This clutters the root and separates related logic. **Action:** Enforce grouping feature-specific sub-components into their respective feature directories.
+﻿# Lens's Journal
 
-## 2025-05-20 - Component Directory Standardization **Learning:** High-level feature components (Party, CharacterSheet, Debug Tools) were scattered in the root `components/` directory. Grouping them into dedicated directories (`src/components/Party/`, `src/components/debug/`, `src/components/CharacterSheet/`) significantly improves discoverability and declutters the root namespace. **Action:** When creating new features, always start with a dedicated directory in `src/components/` rather than adding flat files.
+> **Instructions**: Before adding an entry, run `date` in terminal to get today's date.
+> Only record CRITICAL learnings - patterns worth reusing, not routine work.
 
-## 2025-05-24 - Feature Grouping (Trade) **Learning:** `MerchantModal.tsx` was isolated in the root `components/` folder, separating it from related concepts. Moving it to `src/components/Trade/` establishes a clear domain for future trade-related features (e.g., bartering, currency exchange). **Action:** Audit root `components/` for orphans that belong to existing or new feature domains.
+## Entry Templates
+
+### Learning Entry
+```
+## YYYY-MM-DD - [Title]
+**Learning:** [What insight did you gain?]
+**Action:** [How to apply this next time]
+```
+
+### Future TODO
+```
+## TODO: [Brief Title]
+**Context:** [Why is this needed?]
+**Plan:** [Steps to implement]
+**Status:** Pending
+```
+
+---
+
+<!-- Add new entries below this line -->

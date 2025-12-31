@@ -16,6 +16,11 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 .idea
+.cursor/
+
+# AI Agent local configs
+.agent_tools/
+.claude/
 .DS_Store
 *.suo
 *.ntvs*
@@ -42,3 +47,22 @@ public/assets/images/
 sideprojects/basic-chat/
 scripts/monitor.err
 CHROME_DEVTOOLS_LEARNINGS.md
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# Vite generated types
+vite.config.d.ts
+
+# Test outputs and artifacts
+test-results/
+test_output.log
+verification/
+
+# Temp files
+*_temp.json
+server_log.txt
+spell_gate_report.txt
+
+# Lock file (using npm, not pnpm)
+pnpm-lock.yaml

@@ -1,9 +1,8 @@
 // [Captain] New component to visualize the player's ship state
 import React, { useState } from 'react';
-import { Ship, CrewMember } from '../../types/naval';
+import { Ship } from '../../types/naval';
 import { motion } from 'framer-motion';
 import { X, Anchor, Users, Package } from 'lucide-react';
-import { Button } from '../ui/Button';
 
 interface ShipPaneProps {
   ship: Ship;
@@ -93,7 +92,7 @@ export const ShipPane: React.FC<ShipPaneProps> = ({ ship, onClose }) => {
 
               <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
                 <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Description</h3>
-                <p className="text-gray-300 italic">"{ship.description}"</p>
+                <p className="text-gray-300 italic">&quot;{ship.description}&quot;</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -1,5 +1,25 @@
-## 2024-05-22 - Salvage System Implementation **Learning:** Adding a `recipeType` discriminator ('craft' | 'salvage') to the shared `Recipe` interface allowed for seamless integration of the new Salvage System without breaking existing crafting logic. This proves that extending existing data structures is often better than creating parallel ones for related systems. **Action:** When designing future systems (e.g., Refining), first check if they can be modeled as a subtype of an existing system (Recipe) before creating new root entities.
+﻿# Alchemist's Journal
 
-## 2024-05-22 - Failure Philosophy **Learning:** Implementing the "Failure teaches" philosophy (destroying the item on failed salvage) creates meaningful stakes. A simple boolean `materialsLost` flag in the result object is sufficient to drive UI feedback, avoiding complex error handling flows. **Action:** Ensure all future "transformation" systems (Enchanting, Refining) include a "critical failure" state that consumes resources to maintain economic balance.
+> **Instructions**: Before adding an entry, run `date` in terminal to get today's date.
+> Only record CRITICAL learnings - patterns worth reusing, not routine work.
 
-## 2025-02-18 - Refining System Implementation **Learning:** When implementing bulk processing (Refining), standard single-item simulation loops can be inefficient and risky if they mutate state directly. Using a "Virtual Inventory" (a temporary clone of the resource state) allows for accurate batch simulation (handling resource exhaustion mid-batch) without committing changes until the entire process is verified. **Action:** Use the "Virtual State" pattern for any future systems that require previewing or batch-processing multiple dependent actions (like mass-purchasing or automated combat turns).
+## Entry Templates
+
+### Learning Entry
+```
+## YYYY-MM-DD - [Title]
+**Learning:** [What insight did you gain?]
+**Action:** [How to apply this next time]
+```
+
+### Future TODO
+```
+## TODO: [Brief Title]
+**Context:** [Why is this needed?]
+**Plan:** [Steps to implement]
+**Status:** Pending
+```
+
+---
+
+<!-- Add new entries below this line -->

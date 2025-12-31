@@ -1,15 +1,25 @@
-## 2025-12-29 - Gap Analysis: NPC Memory for Spell Consequences
+﻿# Analyst's Journal
 
-**Learning:** I discovered that while `NPC` and `NPCMemory` types exist, there was no active system to record memories. Specifically, spells like `Charm Person` have post-effect consequences ("Creature knows it was charmed") that had no mechanical way to be tracked.
+> **Instructions**: Before adding an entry, run `date` in terminal to get today's date.
+> Only record CRITICAL learnings - patterns worth reusing, not routine work.
 
-**Action:** Created `MemorySystem` (stateless service) and added `'magical_manipulation'` to `MemoryInteractionType`.
+## Entry Templates
 
-**Future:** This system needs to be wired into `SpellSystem` or `StatusConditionCommand` to automatically trigger when specific conditions (like Charmed) expire.
+### Learning Entry
+```
+## YYYY-MM-DD - [Title]
+**Learning:** [What insight did you gain?]
+**Action:** [How to apply this next time]
+```
 
-## 2025-12-30 - Gap Analysis: Planar Interaction Rules
+### Future TODO
+```
+## TODO: [Brief Title]
+**Context:** [Why is this needed?]
+**Plan:** [Steps to implement]
+**Status:** Pending
+```
 
-**Learning:** Spells like *Blink* and *Etherealness* require characters to exist on different planes simultaneously during combat. The existing `CombatState` had a map-wide `currentPlane`, but individual characters lacked a "phase" state to determine if they were on the Material or Ethereal plane relative to each other.
+---
 
-**Action:** Implemented `planarPhase` and `planarVision` properties on `ActiveEffect` mechanics. Created `src/utils/planarTargeting.ts` to centralize `canInteract` and `canSeeTarget` logic, enforcing 5e rules (Ethereal sees Material but cannot interact; Material cannot see Ethereal).
-
-**Future:** The *Blink* spell still needs a turn-end trigger system to handle the d20 roll automatically. Currently, the system only handles the state *if* the effect is applied.
+<!-- Add new entries below this line -->

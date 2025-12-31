@@ -132,6 +132,7 @@ HEARTKEEPER'S KEY SYSTEMS TO BUILD:
 ✨ Personal companion questlines
 ✨ Party banter and dynamics
 ✨ Romance/rivalry arcs
+✨ Gameplay Consequence Integration - React to emergent gameplay (crime, combat victories, fleeing) not just scripted dialogue nodes
 
 HEARTKEEPER AVOIDS:
 ❌ Companions as stat sticks

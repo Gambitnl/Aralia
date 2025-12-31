@@ -1,5 +1,5 @@
 
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
 test('Verify standard terminology for Hit Points and Armor Class', async ({ page }) => {
   // 1. Navigate to the app (using the dev tool skip if possible, but we need to see the main menu or character creator)
@@ -60,8 +60,6 @@ test('Verify standard terminology for Hit Points and Armor Class', async ({ page
   // 6. Verify BattleMap Tokens (if in combat or map view)
   // Quick Start might put us in a map.
   // If there are tokens, hover over one to see the tooltip.
-  const token = page.locator('.character-token').first(); // Hypothetical class, using generic selector might be harder.
-  // `CharacterToken` has `aria-label={`Select ${character.name}`}`.
   const tokenButton = page.locator('div[aria-label*="Select "]').first();
 
   if (await tokenButton.count() > 0) {

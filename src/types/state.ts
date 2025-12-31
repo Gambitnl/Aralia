@@ -122,7 +122,7 @@ export interface GameState {
 
   isDevMenuVisible: boolean;
   isPartyEditorVisible: boolean;
-  isGeminiLogviewerVisible: boolean;
+  isGeminiLogViewerVisible: boolean;
   geminiInteractionLog: GeminiLogEntry[];
   hasNewRateLimitError: boolean;
   devModelOverride: string | null;
@@ -187,13 +187,16 @@ export interface GameState {
   religion: ReligionState;
 
   // Deprecated: Moving to religion.favor and religion.knownDeities
-  // divineFavor: Record<string, DivineFavor>;
+  divineFavor: Record<string, DivineFavor>;
 
   temples: Record<string, Temple>;
 
   fences: Record<string, Fence>;
   thievesGuild?: GuildMembership;
   activeHeist?: HeistPlan | null;
+  // TODO(lint-intent): 'activeContracts' uses 'unknown[]' because the contract shape isn't fully defined/exported yet.
+  // TODO(lint-intent): Replace with 'Contract[]' once the contract type is available in a shared module.
+  activeContracts?: unknown[];
 
   dynamicLocations: Record<string, Location>;
   dynamicNPCs?: Record<string, NPC>;
@@ -207,6 +210,7 @@ export interface GameState {
   environment: import('./environment').WeatherState;
 
   isThievesGuildVisible: boolean;
+  isNavalDashboardVisible: boolean;
 
   activeRitual?: RitualState | null;
 

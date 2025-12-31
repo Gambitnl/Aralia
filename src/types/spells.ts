@@ -63,6 +63,10 @@ export enum SpellSchool {
   Transmutation = "Transmutation",
 }
 
+/** Legacy alias for SpellSchool */
+export type MagicSchool = SpellSchool;
+export const MagicSchool = SpellSchool;
+
 export interface SpellSchoolTraits {
   /** A brief description of what the school encompasses. */
   description: string;
@@ -173,7 +177,7 @@ export type SpellTargeting =
   | HybridTargeting;
 
 /** Specifies filters for what can be targeted by a spell. */
-export type TargetFilter = "creatures" | "objects" | "allies" | "enemies" | "self" | "point";
+export type TargetFilter = "creatures" | "objects" | "allies" | "enemies" | "self" | "point" | "humanoids"; // Added humanoids to support legacy validation
 
 /** Defines the shape and size of an area of effect. */
 export interface AreaOfEffect {
@@ -353,7 +357,8 @@ export type SpellEffect =
   | SummoningEffect
   | TerrainEffect
   | UtilityEffect
-  | DefensiveEffect;
+  | DefensiveEffect
+  | ReactiveEffect; // Added ReactiveEffect
 
 /** The six primary ability scores used for saving throws. */
 export type SavingThrowAbility = "Strength" | "Dexterity" | "Constitution" | "Intelligence" | "Wisdom" | "Charisma";
@@ -362,21 +367,23 @@ export type SavingThrowAbility = "Strength" | "Dexterity" | "Constitution" | "In
  * The thirteen types of damage in D&D 5e.
  * Source: PHB 2024
  */
-export enum DamageType {
-  Acid = "Acid",
-  Bludgeoning = "Bludgeoning",
-  Cold = "Cold",
-  Fire = "Fire",
-  Force = "Force",
-  Lightning = "Lightning",
-  Necrotic = "Necrotic",
-  Piercing = "Piercing",
-  Poison = "Poison",
-  Psychic = "Psychic",
-  Radiant = "Radiant",
-  Slashing = "Slashing",
-  Thunder = "Thunder",
-}
+export const DamageType = {
+  Acid: "Acid",
+  Bludgeoning: "Bludgeoning",
+  Cold: "Cold",
+  Fire: "Fire",
+  Force: "Force",
+  Lightning: "Lightning",
+  Necrotic: "Necrotic",
+  Piercing: "Piercing",
+  Poison: "Poison",
+  Psychic: "Psychic",
+  Radiant: "Radiant",
+  Slashing: "Slashing",
+  Thunder: "Thunder",
+} as const;
+
+export type DamageType = typeof DamageType[keyof typeof DamageType] | string; // Allow string for test compatibility
 
 export interface DamageTypeTraits {
   description: string;

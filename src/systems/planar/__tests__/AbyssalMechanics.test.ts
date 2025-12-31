@@ -18,6 +18,8 @@ vi.mock('../../../utils/logger', () => ({
   },
 }));
 
+const rollSavingThrowMock = rollSavingThrow as unknown as { mockReturnValue: (value: unknown) => void };
+
 // Helper to create a mock character
 const createMockCharacter = (id: string, name: string): PlayerCharacter => ({
   id,
@@ -64,7 +66,7 @@ describe('AbyssalMechanics', () => {
   describe('checkCorruption', () => {
     it('should return no corruption on successful save', () => {
       // Arrange
-      (rollSavingThrow as any).mockReturnValue({ success: true, total: 20 });
+      rollSavingThrowMock.mockReturnValue({ success: true, total: 20 });
 
       // Act
       const result = AbyssalMechanics.checkCorruption(mockCharacter);
@@ -77,7 +79,7 @@ describe('AbyssalMechanics', () => {
 
     it('should return corruption on failed save', () => {
       // Arrange
-      (rollSavingThrow as any).mockReturnValue({ success: false, total: 5 });
+      rollSavingThrowMock.mockReturnValue({ success: false, total: 5 });
 
       // Act
       const result = AbyssalMechanics.checkCorruption(mockCharacter);

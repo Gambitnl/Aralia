@@ -1,14 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { processDailyRoutes, initializeTradeRoutes } from '../TradeRouteManager';
-import { GameState, TradeRoute, EconomyState } from '../../types';
+import { GameState, TradeRoute } from '../../types';
 import { SeededRandom } from '../../../utils/seededRandom';
 
 describe('TradeRouteManager', () => {
   let mockState: GameState;
-  let mockRng: SeededRandom;
 
   beforeEach(() => {
-    mockRng = new SeededRandom('test-seed');
     mockState = {
       gameTime: new Date().getTime(),
       economy: {

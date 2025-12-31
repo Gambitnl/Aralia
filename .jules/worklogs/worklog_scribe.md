@@ -1,6 +1,25 @@
-# Scribe Worklog
+﻿# Scribe's Journal
 
-## 2025-12-30 - Standardizing Core Utility Docs
+> **Instructions**: Before adding an entry, run `date` in terminal to get today's date.
+> Only record CRITICAL learnings - patterns worth reusing, not routine work.
 
-**Learning:** Core utilities like `logger.ts` often lack JSDoc because they seem "obvious" to the original author, but this hides critical behaviors (like automatic redaction) from new consumers.
-**Action:** When auditing core utilities, prioritize documenting "hidden" behaviors (side effects, security measures) over obvious parameter types.
+## Entry Templates
+
+### Learning Entry
+```
+## YYYY-MM-DD - [Title]
+**Learning:** [What insight did you gain?]
+**Action:** [How to apply this next time]
+```
+
+### Future TODO
+```
+## TODO: [Brief Title]
+**Context:** [Why is this needed?]
+**Plan:** [Steps to implement]
+**Status:** Pending
+```
+
+---
+
+<!-- Add new entries below this line -->

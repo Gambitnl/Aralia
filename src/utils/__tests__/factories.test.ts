@@ -99,8 +99,8 @@ describe('Mimic Factories', () => {
          get name() { throw new Error('Explosive Getter'); return 'Boom'; }
        };
 
-       // @ts-ignore
-       const spell = createMockSpell(badOverride);
+        // @ts-expect-error Intentional: simulate a throwing getter to exercise fallback path
+        const spell = createMockSpell(badOverride);
 
        expect(spell.id).toBe('error-spell');
        expect(spell.name).toBe('Error Spell');

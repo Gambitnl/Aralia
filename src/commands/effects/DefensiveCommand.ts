@@ -1,6 +1,6 @@
 
 import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand';
-import { CombatState, ActiveEffect, CombatCharacter } from '../../types/combat';
+import { CombatState, ActiveEffect } from '../../types/combat';
 import { DefensiveEffect } from '../../types/spells';
 import { getAbilityModifier } from '../../utils/characterUtils';
 import { v4 as uuidv4 } from 'uuid';
@@ -42,7 +42,7 @@ export class DefensiveCommand implements SpellCommand {
       if (targetIndex === -1) return;
 
       const currentCharacter = newState.characters[targetIndex];
-      let updatedCharacter = { ...currentCharacter };
+      const updatedCharacter = { ...currentCharacter };
       let logMessage = '';
 
       switch (this.effect.defenseType) {

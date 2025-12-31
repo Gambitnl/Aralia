@@ -1,6 +1,25 @@
-## 2024-05-24 - Time Widget Implementation
-**Learning:** Adding a dedicated `TimeWidget` significantly improves the player's awareness of the game state (Season, Time of Day). Integrating it directly into the `CompassPane` ensures it's always visible during navigation.
-**Action:** In future, consider adding "Urgency" indicators directly to this widget when quests have deadlines.
+﻿# Timekeeper's Journal
 
-### UNTRACKED FILES
-- `src/components/ui/TimeWidget.tsx` (New UI component)
+> **Instructions**: Before adding an entry, run `date` in terminal to get today's date.
+> Only record CRITICAL learnings - patterns worth reusing, not routine work.
+
+## Entry Templates
+
+### Learning Entry
+```
+## YYYY-MM-DD - [Title]
+**Learning:** [What insight did you gain?]
+**Action:** [How to apply this next time]
+```
+
+### Future TODO
+```
+## TODO: [Brief Title]
+**Context:** [Why is this needed?]
+**Plan:** [Steps to implement]
+**Status:** Pending
+```
+
+---
+
+<!-- Add new entries below this line -->

@@ -144,11 +144,8 @@ function fixFile(filePath: string): boolean {
 function main() {
     const files = TARGET_DIRECTORIES.flatMap((pattern) => globSync(pattern));
     console.log(`Scanning ${files.length} files...`);
-    // TODO(lint-intent): 'totalIssues' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-    // const _totalIssues = 0;
-    let totalIssues = 0;
+    // TODO(lint-intent): 'totalIssues' was intended for telemetry but currently unused; prefixing underscores to preserve intent without surfacing lint.
+    let _totalIssues = 0;
     let strictIssues = 0;
     let softIssues = 0;
     let filesWithIssues = 0;
@@ -158,7 +155,7 @@ function main() {
         const issues = checkFile(file);
         if (issues.length > 0) {
             filesWithIssues++;
-            totalIssues += issues.length;
+            _totalIssues += issues.length;
 
             const fileStrictCount = issues.filter(i => i.severity === 'strict').length;
             const fileSoftCount = issues.filter(i => i.severity === 'soft').length;
