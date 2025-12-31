@@ -25,7 +25,7 @@
     }
   },
   "range": {
-    "type": "self",
+    "type": "touch",
     "distance": 0
   },
   "components": {
@@ -48,7 +48,7 @@
       "creatures"
     ],
     "lineOfSight": true,
-    "range": 0,
+    "range": 5,
     "maxTargets": 1,
     "areaOfEffect": {
       "shape": "Sphere",

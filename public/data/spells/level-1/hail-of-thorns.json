@@ -43,9 +43,9 @@
     "unit": "round"
   },
   "targeting": {
-    "type": "area",
+    "type": "self",
     "validTargets": [
-      "creatures"
+      "self"
     ],
     "lineOfSight": false,
     "areaOfEffect": {

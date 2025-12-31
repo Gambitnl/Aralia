@@ -43,11 +43,11 @@
     "concentration": true
   },
   "targeting": {
-    "type": "single",
+    "type": "self",
     "validTargets": [
-      "creatures"
+      "self"
     ],
-    "lineOfSight": true,
+    "lineOfSight": false,
     "range": 0,
     "maxTargets": 1,
     "areaOfEffect": {

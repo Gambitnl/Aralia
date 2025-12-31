@@ -46,14 +46,8 @@ export const attemptCraft = (
       message: `Missing materials: ${missing.join(', ')}`
     };
   }
-  // TODO(lint-intent): 'success' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-  const _success = true;
-  // TODO(lint-intent): '_quality' is declared but unused, suggesting an unfinished craft-quality path.
-  // TODO(lint-intent): If quality should affect outputs, thread it into item creation or result messaging.
-  // TODO(lint-intent): Otherwise drop it to keep the crafting result minimal.
-  const _quality: CraftResult['quality'] = 'common';
+
+  let _quality: CraftResult['quality'] = 'common';
   let isCrit = false;
 
   // 2. Skill Check
@@ -78,10 +72,7 @@ export const attemptCraft = (
     // Check for Critical Success (Beat DC by 10 or more)
     if (total >= recipe.skillCheck.difficultyClass + 10) {
       isCrit = true;
-      // TODO(lint-intent): 'quality' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-      // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-      // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-      _quality = 'rare'; // Or boost based on recipe.outputs
+      _quality = 'rare'; // Boost quality on crit
     }
   }
 
@@ -103,7 +94,7 @@ export const attemptCraft = (
 
   return {
     success: true,
-    quality: isCrit ? 'rare' : 'common', // Simplification for MVP
+    quality: _quality, // Use the calculated quality
     itemsCreated: createdItems,
     materialsConsumed: consumedItems,
     experienceGained: recipe.timeMinutes * 10, // Placeholder XP formula
