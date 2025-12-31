@@ -33,3 +33,11 @@ This journal tracks CRITICAL error handling learnings, patterns, and strategies.
 ## 2025-05-24 - Factory Fallback Pattern
 **Learning:** When data conversion factories fail (e.g. `createAbilityFromSpell`), throwing an error often crashes the entire React component tree or game loop.
 **Action:** Wrap the factory logic in a `try-catch` block that logs the error and returns a "Safe Object" (e.g. a "Fizzled Spell" ability with a distinctive icon like 🚫). This allows the game to continue running and visualizes the data corruption to the user/developer without a hard crash.
+
+## 2025-12-30 - SafeStorage API Pattern
+**Learning:** When consumers need to persist data (e.g. UI settings) but don't require strict transaction integrity, forcing them to wrap `setItem` in `try-catch` leads to verbose boilerplate or neglected error handling.
+**Action:** Introduced `trySetItem` in `SafeStorage` that returns `boolean` (success/failure) instead of throwing. This promotes "fire and forget" usage for non-critical data while still allowing consumers to detect failure if they care (e.g. logging warnings), reducing the risk of `QuotaExceededError` crashes in UI components.
+
+## 2025-12-30 - Defensive Factory Construction
+**Learning:** Even mock factories (like `createMockSpell`) can crash tests or the dev environment if external dependencies (like `uuidv4`) fail or if `overrides` contain getters that throw.
+**Action:** Wrapped all factory functions in `src/utils/factories.ts` with a top-level `try-catch` block. If any step fails, they now log the error and return a "Minimal Viable Object" (with IDs like `error-spell` or `error-char`) to keep the runtime alive. This ensures that a single bad data point doesn't bring down the entire test suite or application.

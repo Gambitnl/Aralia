@@ -6,12 +6,14 @@ import { z } from 'zod';
 // Mock the SafeStorage utility
 const mockGetItem = vi.fn();
 const mockSetItem = vi.fn();
+const mockTrySetItem = vi.fn();
 const mockRemoveItem = vi.fn();
 
 vi.mock('../../utils/storageUtils', () => ({
   SafeStorage: {
     getItem: (key: string) => mockGetItem(key),
     setItem: (key: string, value: string) => mockSetItem(key, value),
+    trySetItem: (key: string, value: string) => mockTrySetItem(key, value),
     removeItem: (key: string) => mockRemoveItem(key),
   },
 }));
@@ -19,6 +21,8 @@ vi.mock('../../utils/storageUtils', () => ({
 describe('useLocalStorage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default mock behavior
+    mockTrySetItem.mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -60,7 +64,8 @@ describe('useLocalStorage', () => {
     });
 
     expect(result.current[0]).toBe('new-value');
-    expect(mockSetItem).toHaveBeenCalledWith('test-key', JSON.stringify('new-value'));
+    // useLocalStorage now uses trySetItem
+    expect(mockTrySetItem).toHaveBeenCalledWith('test-key', JSON.stringify('new-value'));
   });
 
   it('should support functional updates', () => {
@@ -72,13 +77,15 @@ describe('useLocalStorage', () => {
     });
 
     expect(result.current[0]).toBe(2);
-    expect(mockSetItem).toHaveBeenCalledWith('test-key', JSON.stringify(2));
+    expect(mockTrySetItem).toHaveBeenCalledWith('test-key', JSON.stringify(2));
   });
 
   it('should handle storage write errors gracefully', () => {
     mockGetItem.mockReturnValue(null);
-    mockSetItem.mockImplementation(() => { throw new Error('QuotaExceeded'); });
-    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    // mockTrySetItem returning false simulates a failure (it does not throw)
+    mockTrySetItem.mockReturnValue(false);
+
+    // We expect the hook to call onError if trySetItem returns false
     const onError = vi.fn();
 
     const { result } = renderHook(() => useLocalStorage('test-key', 'initial', { onError }));
@@ -89,7 +96,6 @@ describe('useLocalStorage', () => {
 
     // State should still update even if storage fails
     expect(result.current[0]).toBe('new-value');
-    expect(consoleSpy).toHaveBeenCalled();
     expect(onError).toHaveBeenCalledWith(expect.any(Error));
   });
 

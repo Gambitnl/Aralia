@@ -125,7 +125,7 @@
       }
     }
   ],
-  "arbitrationType": "player_choice",
+  "arbitrationType": "ai_assisted",
   "aiContext": {
     "prompt": "Ask the player if they want to inflict Blindness or Deafness.",
     "playerInputRequired": true

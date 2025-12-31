@@ -73,12 +73,11 @@ export function useLocalStorage<T>(
       setStoredValue(valueToStore);
 
       // Save to local storage
-      // Note: SafeStorage.setItem throws on error (like quota exceeded) so we catch it here
-      try {
-        SafeStorage.setItem(key, JSON.stringify(valueToStore));
-      } catch (writeError) {
-         console.warn(`Error writing to localStorage key "${key}":`, writeError);
-         if (onError) onError(writeError);
+      // [Warden] Use trySetItem to safely handle QuotaExceededError and similar issues
+      const success = SafeStorage.trySetItem(key, JSON.stringify(valueToStore));
+      if (!success) {
+         // Even though we logged internal warning in trySetItem, we notify the consumer if needed
+         if (onError) onError(new Error("Failed to persist to localStorage"));
       }
     } catch (error) {
       console.warn(`Error setting value for key "${key}":`, error);

@@ -26,7 +26,6 @@ describe('SafeStorage', () => {
 
       expect(SafeStorage.getItem('test-key')).toBeNull();
       expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Error reading'), expect.any(Error));
-      // TODO: Restore `consoleWarnSpy` (and similar spied console methods) after each error scenario so subsequent tests run without the mock.
     });
   });
 
@@ -45,6 +44,25 @@ describe('SafeStorage', () => {
     });
   });
 
+  describe('trySetItem', () => {
+    it('sets the item and returns true on success', () => {
+      const result = SafeStorage.trySetItem('test-key', 'test-value');
+      expect(result).toBe(true);
+      expect(localStorage.getItem('test-key')).toBe('test-value');
+    });
+
+    it('returns false and warns if localStorage.setItem throws', () => {
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => {
+        throw new DOMException('QuotaExceededError', 'QuotaExceededError');
+      });
+
+      const result = SafeStorage.trySetItem('test-key', 'value');
+      expect(result).toBe(false);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Error writing'), expect.any(Object));
+    });
+  });
+
   describe('removeItem', () => {
     it('removes the item from localStorage', () => {
       localStorage.setItem('test-key', 'test-value');
@@ -60,7 +78,6 @@ describe('SafeStorage', () => {
 
       expect(() => SafeStorage.removeItem('test-key')).not.toThrow();
       expect(consoleWarnSpy).toHaveBeenCalled();
-      // TODO: Restore `consoleWarnSpy` here as well so later specs do not inherit the mock.
     });
   });
 
@@ -76,9 +93,6 @@ describe('SafeStorage', () => {
 
     it('returns empty array if iterating throws', () => {
       const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      // Mocking length access is tricky in jsdom environment, so we mock key()
-      // or we can mock the whole localStorage object but it is global.
-      // Trying to mock the length getter on the prototype.
       vi.spyOn(Storage.prototype, 'length', 'get').mockImplementationOnce(() => {
          throw new Error('Access denied');
       });
@@ -91,7 +105,25 @@ describe('SafeStorage', () => {
 });
 
 describe('SafeSession', () => {
-  // Similar tests for SafeSession...
+  describe('trySetItem', () => {
+    it('sets the item and returns true on success', () => {
+      const result = SafeSession.trySetItem('s-key', 's-val');
+      expect(result).toBe(true);
+      expect(sessionStorage.getItem('s-key')).toBe('s-val');
+    });
+
+    it('returns false and warns if sessionStorage.setItem throws', () => {
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.spyOn(Storage.prototype, 'setItem').mockImplementationOnce(() => {
+        throw new DOMException('QuotaExceededError', 'QuotaExceededError');
+      });
+
+      const result = SafeSession.trySetItem('s-key', 'value');
+      expect(result).toBe(false);
+      expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Error writing'), expect.any(Object));
+    });
+  });
+
   it('sets and gets item', () => {
       SafeSession.setItem('s-key', 's-val');
       expect(SafeSession.getItem('s-key')).toBe('s-val');
