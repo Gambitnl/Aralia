@@ -45,6 +45,7 @@ const TempleModal = lazy(() => import('../TempleModal'));
 // REVIEW: Verify that DialogueInterface is indeed a named export. If it is the default export, this lazy loading pattern .then(module => ({ default: module.DialogueInterface })) will fail. (Consistency check with Glossary import at line 35).
 const DialogueInterface = lazy(() => import('../Dialogue/DialogueInterface').then(module => ({ default: module.DialogueInterface })));
 const ThievesGuildInterface = lazy(() => import('../Crime/ThievesGuild/ThievesGuildInterface'));
+const CaptainDashboard = lazy(() => import('../Naval/CaptainDashboard').then(module => ({ default: module.CaptainDashboard })));
 
 interface GameModalsProps {
     gameState: GameState;
@@ -408,6 +409,15 @@ const GameModals: React.FC<GameModalsProps> = ({
                         <ThievesGuildInterface
                             onClose={() => dispatch({ type: 'TOGGLE_THIEVES_GUILD' })}
                         />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Naval Dashboard */}
+            {gameState.isNavalDashboardVisible && (
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Captain's Dashboard.">
+                        <CaptainDashboard />
                     </ErrorBoundary>
                 </Suspense>
             )}

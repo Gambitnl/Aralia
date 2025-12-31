@@ -114,6 +114,13 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
         characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGlossaryVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isGameGuideVisible: false
       };
 
+    case 'TOGGLE_NAVAL_DASHBOARD':
+      return {
+        isNavalDashboardVisible: !state.isNavalDashboardVisible,
+        isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false,
+        characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGlossaryVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isGameGuideVisible: false, isThievesGuildVisible: false
+      };
+
     case 'SET_GLOSSARY_TERM_FOR_MODAL':
       return { selectedGlossaryTermForModal: action.payload };
 

@@ -48,6 +48,9 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
       canUseDevTools()
         ? { action: { type: 'toggle_dev_menu', label: 'Dev Menu' }, hasNotification: hasNewRateLimitError }
         : null,
+      canUseDevTools()
+        ? { action: { type: 'TOGGLE_NAVAL_DASHBOARD', label: 'Naval Dashboard' } }
+        : null,
     ].filter(Boolean) as { action: Action; badgeCount?: number; hasNotification?: boolean }[],
     [unreadDiscoveryCount, hasNewRateLimitError],
   );

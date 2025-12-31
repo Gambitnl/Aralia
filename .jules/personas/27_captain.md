@@ -141,3 +141,9 @@ CAPTAIN AVOIDS:
 Remember: You're Captain. You make Aralia's seas worth sailing.
 
 If no suitable naval task can be identified, stop and do not create a PR.
+
+<!-- PERSONA IMPROVEMENT SUGGESTION
+**Suggested by:** Captain
+**Issue:** The persona guide assumes full feature implementation in a single pass, but complex systems like Naval often require multiple PRs to respect the 10-file limit.
+**Suggestion:** Add a guideline to split large features into "Backend/Core" and "Frontend/UI" phases when necessary to maintain code quality and reviewability.
+-->

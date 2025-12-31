@@ -7,6 +7,7 @@ import { RitualState, RitualEvent } from '../types/rituals';
 import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload } from './payloads/identityPayloads';
 import { DialogueSession } from '../types/dialogue';
 import { WorldHistoryEvent } from '../types/history';
+import { CrewRole } from '../types/naval';
 
 export type AppAction =
   | { type: 'SET_GAME_PHASE'; payload: GamePhase }
@@ -206,4 +207,12 @@ export type AppAction =
   // TODO(lint-intent): The any on this value hides the intended shape of this data.
   // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
   // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-  | { type: 'COMPLETE_RITUAL'; payload: { result?: unknown } };
+  | { type: 'COMPLETE_RITUAL'; payload: { result?: unknown } }
+  // Naval Actions
+  | { type: 'NAVAL_INITIALIZE_FLEET' }
+  | { type: 'NAVAL_START_VOYAGE'; payload: { destinationId: string; distance: number } }
+  | { type: 'NAVAL_ADVANCE_VOYAGE' }
+  | { type: 'NAVAL_RECRUIT_CREW'; payload: { role: CrewRole } }
+  | { type: 'NAVAL_REPAIR_SHIP'; payload: { amount: number; cost: number } }
+  | { type: 'NAVAL_SET_ACTIVE_SHIP'; payload: { shipId: string } }
+  | { type: 'TOGGLE_NAVAL_DASHBOARD' };

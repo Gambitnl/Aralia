@@ -140,6 +140,7 @@ export type VoyageStatus = 'Docked' | 'Sailing' | 'Lost' | 'Combat' | 'Storm';
 
 export interface VoyageState {
   shipId: string;
+  destinationId?: string; // Optional for now
   status: VoyageStatus;
   daysAtSea: number;
   distanceTraveled: number; // Miles
@@ -166,4 +167,15 @@ export interface VoyageEvent {
   probability: number; // 0-1
   conditions?: (state: VoyageState) => boolean;
   effect: (state: VoyageState, ship: Ship) => { log: string; type: VoyageLogEntry['type'] };
+}
+
+// ============================================================================
+// STATE DEFINITIONS
+// ============================================================================
+
+export interface NavalState {
+  playerShips: Ship[];
+  activeShipId: string | null;
+  currentVoyage: VoyageState | null;
+  knownPorts: string[];
 }

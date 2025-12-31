@@ -36,5 +36,7 @@ export * from './loot'; // Export LootTable types
 export * from './identity'; // Export Identity/Secret types
 export * from './quests'; // Export new robust Quest types
 export * from './prophecy'; // Export Prophecy types
+export * from './naval'; // Export Naval types
+export * from './navalCombat'; // Export Naval Combat types
 
 export type { CombatCharacter, CharacterStats, Position, CombatState };
