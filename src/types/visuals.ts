@@ -518,5 +518,86 @@ export function getFactionVisual(type: FactionType, customSpec?: Partial<Faction
   };
 }
 
+/**
+ * Defines the visual requirements for a Location (e.g., Town, Dungeon, Landmark).
+ * Standardizes illustrations, icons, and atmospheric settings.
+ */
+export interface LocationVisualSpec {
+  /**
+   * Path to a scenic illustration of the location.
+   * e.g., "assets/images/locations/ironhold.jpg"
+   */
+  illustrationPath?: string;
+
+  /**
+   * Prompt for AI generation of the illustration.
+   * e.g., "A sprawling dwarven fortress carved into a snowy mountain, oil painting style"
+   */
+  illustrationPrompt?: string;
+
+  /**
+   * Icon for the map/minimap.
+   * e.g., "🏰" or a path to an SVG.
+   */
+  icon?: string;
+
+  /**
+   * Primary ambient color (hex).
+   * Used for UI backdrops or lighting overlays.
+   */
+  ambientColor?: string;
+
+  /**
+   * Visual style/mood.
+   * e.g., "gloomy", "majestic", "bustling"
+   */
+  mood?: string;
+
+  /**
+   * Fallback icon if no specific one is provided.
+   */
+  fallbackIcon?: string;
+}
+
+/**
+ * Resolves the visual specification for a location.
+ * @param customSpec Any custom visual data available.
+ * @param type Optional type string to determine defaults (e.g. "town", "dungeon").
+ */
+export function getLocationVisual(customSpec?: Partial<LocationVisualSpec>, type?: string): LocationVisualSpec {
+  // Simple defaults based on type if provided
+  let defaultIcon = '📍';
+  let defaultColor = '#9CA3AF'; // gray-400
+
+  if (type) {
+    const t = type.toLowerCase();
+    if (t.includes('town') || t.includes('city') || t.includes('village')) {
+      defaultIcon = '🏘️';
+      defaultColor = '#D97706'; // amber-600
+    } else if (t.includes('dungeon') || t.includes('cave') || t.includes('crypt')) {
+      defaultIcon = '💀';
+      defaultColor = '#374151'; // gray-700
+    } else if (t.includes('forest') || t.includes('woods')) {
+      defaultIcon = '🌲';
+      defaultColor = '#059669'; // emerald-600
+    } else if (t.includes('mountain')) {
+      defaultIcon = '⛰️';
+      defaultColor = '#6B7280'; // gray-500
+    } else if (t.includes('castle') || t.includes('fort')) {
+      defaultIcon = '🏰';
+      defaultColor = '#4B5563'; // gray-600
+    }
+  }
+
+  return {
+    illustrationPath: customSpec?.illustrationPath,
+    illustrationPrompt: customSpec?.illustrationPrompt,
+    icon: customSpec?.icon || defaultIcon,
+    ambientColor: customSpec?.ambientColor || defaultColor,
+    mood: customSpec?.mood || 'neutral',
+    fallbackIcon: customSpec?.fallbackIcon || defaultIcon
+  };
+}
+
 // TODO(Materializer): Refactor `CharacterToken.tsx` and `InitiativeTracker.tsx` to use `getClassVisual` instead of hardcoded `getClassIcon` switch statements.
 // TODO(Illusionist): Implement a `SpellVisualRenderer` component that uses `SpellEffectVisualSpec` to render particles and animations.

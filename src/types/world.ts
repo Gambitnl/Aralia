@@ -1,4 +1,4 @@
-import type { NPCVisualSpec } from './visuals';
+import type { NPCVisualSpec, LocationVisualSpec } from './visuals';
 import type { NPCKnowledgeProfile } from './dialogue';
 
 // -----------------------------------------------------------------------------
@@ -32,6 +32,7 @@ export interface Location {
   gossipLinks?: string[];
   planeId?: string; // Optional, defaults to 'material'
   regionId?: string; // Links to REGIONAL_ECONOMIES
+  visual?: LocationVisualSpec;
 }
 
 export interface TTSVoiceOption {
@@ -167,6 +168,8 @@ export interface PointOfInterest {
   category: 'settlement' | 'landmark' | 'ruin' | 'cave' | 'wilderness';
   /** Optional link back to a formal Location entry. */
   locationId?: string;
+  /** Visual spec for map presentation (illustration, advanced icons). */
+  visual?: LocationVisualSpec;
 }
 
 export interface MapMarker {
