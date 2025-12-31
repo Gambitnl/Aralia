@@ -16,7 +16,7 @@ export * from './character';
 export * from './spells';
 export * from './conditions';
 export * from './creatures';
-export * from './deity';
+export * from './religion';
 export * from './factions';
 export * from './companions';
 export * from './memory';

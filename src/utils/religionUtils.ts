@@ -5,8 +5,9 @@ import {
     DeityAction,
     Temple,
     TempleService,
-    Blessing
-} from '../types';
+    Blessing,
+    FavorRank
+} from '../types/religion';
 import { DEITIES } from '../data/deities';
 // TODO(lint-intent): 'BLESSING_EFFECTS' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
@@ -22,13 +23,28 @@ export const calculateFavorChange = (
     currentFavor: DivineFavor,
     action: DeityAction
 ): DivineFavor => {
-    let newFavorValue = currentFavor.favor + action.favorChange;
+    let newFavorValue = currentFavor.score + action.favorChange;
     // Clamp between -100 and 100
     newFavorValue = Math.max(-100, Math.min(100, newFavorValue));
 
+    // Determine new status/rank
+    let newRank: FavorRank = 'Neutral';
+    if (newFavorValue >= 90) newRank = 'Chosen';
+    else if (newFavorValue >= 50) newRank = 'Champion'; // Or Devotee? Using my new logic.
+    // Wait, master religion.ts has: Heretic, Shunned, Neutral, Initiate, Devotee, Champion, Chosen.
+    // Let's map standard values.
+    else if (newFavorValue >= 25) newRank = 'Devotee';
+    else if (newFavorValue >= 10) newRank = 'Initiate';
+    else if (newFavorValue <= -90) newRank = 'Heretic';
+    else if (newFavorValue <= -50) newRank = 'Shunned';
+
+    // Note: This logic assumes thresholds.
+    // Ideally these thresholds should be constants in religion.ts but I'll hardcode for now to match my previous intent.
+
     return {
         ...currentFavor,
-        favor: newFavorValue,
+        score: newFavorValue,
+        rank: newRank,
         history: [
             ...currentFavor.history,
             {
@@ -82,6 +98,7 @@ export const evaluateAction = (
     const approval = deity.approves.find(d => d.trigger === actionTrigger);
     if (approval) {
         return {
+            id: 'approval_' + actionTrigger,
             description: approval.description,
             favorChange: approval.favorChange
         };
@@ -91,6 +108,7 @@ export const evaluateAction = (
     const forbiddance = deity.forbids.find(d => d.trigger === actionTrigger);
     if (forbiddance) {
         return {
+             id: 'forbiddance_' + actionTrigger,
             description: forbiddance.description,
             favorChange: forbiddance.favorChange
         };
@@ -103,13 +121,15 @@ export const evaluateAction = (
  * Returns the player's standing with a deity as a descriptive string.
  */
 export const getDivineStanding = (favor: number): string => {
+    // Map to FavorRank string if needed, or just return Rank from DivineFavor object
     if (favor >= 90) return 'Chosen';
-    if (favor >= 50) return 'Devout';
-    if (favor >= 10) return 'Follower';
+    if (favor >= 50) return 'Champion';
+    if (favor >= 25) return 'Devotee';
+    if (favor >= 10) return 'Initiate';
     if (favor > -10) return 'Neutral';
-    if (favor > -50) return 'Unfavored';
+    if (favor > -50) return 'Unfavored'; // Not in Rank enum?
     if (favor > -90) return 'Shunned';
-    return 'Enemy of the Faith';
+    return 'Heretic';
 };
 
 

@@ -8,9 +8,14 @@ import { AppAction } from '../../actionTypes';
 describe('religionReducer', () => {
     // Helper to create a minimal valid state
     const createInitialState = (): GameState => ({
-        divineFavor: {},
+        religion: {
+            discoveredDeities: [],
+            divineFavor: {},
+            activeBlessings: []
+        },
         gold: 100,
         messages: [],
+        party: [],
         // ... include other required fields as minimal stubs if necessary
         // Typescript partial matching might be needed if state is huge, but let's try casting
     } as unknown as GameState);
@@ -23,11 +28,22 @@ describe('religionReducer', () => {
         };
 
         const result = religionReducer(state, action);
-        // The reducer returns partial state, merge it
-        const newState = { ...state, ...result };
+        // Merge strategy for test
+        const newState = {
+            ...state,
+            ...result,
+            religion: {
+                ...state.religion,
+                ...result.religion,
+                divineFavor: {
+                    ...state.religion.divineFavor,
+                    ...(result.religion?.divineFavor || {})
+                }
+            }
+        };
 
-        expect(newState.divineFavor['pelor']).toBeDefined();
-        expect(newState.divineFavor['pelor'].favor).toBe(1); // Default prayer boost
+        expect(newState.religion.divineFavor['pelor']).toBeDefined();
+        expect(newState.religion.divineFavor['pelor'].score).toBe(1); // Default prayer boost
         expect(newState.messages).toHaveLength(1);
         expect(newState.messages[0].text).toContain('You pray to Pelor');
     });
@@ -40,10 +56,21 @@ describe('religionReducer', () => {
         };
 
         const result = religionReducer(state, action);
-        const newState = { ...state, ...result };
+        const newState = {
+            ...state,
+            ...result,
+            religion: {
+                ...state.religion,
+                ...result.religion,
+                divineFavor: {
+                    ...state.religion.divineFavor,
+                    ...(result.religion?.divineFavor || {})
+                }
+            }
+        };
 
         expect(newState.gold).toBe(80); // 100 - 20
-        expect(newState.divineFavor['pelor'].favor).toBe(3); // 1 (base) + 2 (20/10)
+        expect(newState.religion.divineFavor['pelor'].score).toBe(3); // 1 (base) + 2 (20/10)
     });
 
     it('should handle TRIGGER_DEITY_ACTION for approval', () => {
@@ -55,13 +82,22 @@ describe('religionReducer', () => {
         };
 
         const result = religionReducer(state, action);
-        const newState = { ...state, ...result };
+        const newState = {
+            ...state,
+            ...result,
+            religion: {
+                ...state.religion,
+                ...result.religion,
+                divineFavor: {
+                    ...state.religion.divineFavor,
+                    ...(result.religion?.divineFavor || {})
+                }
+            }
+        };
 
-        expect(newState.divineFavor['bahamut']).toBeDefined();
-        expect(newState.divineFavor['bahamut'].favor).toBe(2);
-        // Should not generate message for small change on neutral unless specific logic (here < 5 is silent for Neutral)
-        // Wait, logic says: if (existingFavor.rank !== 'Neutral' || Math.abs(change) >= 5)
-        // Rank starts Neutral. Change is 2. So no message.
+        expect(newState.religion.divineFavor['bahamut']).toBeDefined();
+        expect(newState.religion.divineFavor['bahamut'].score).toBe(2);
+        // Change is 2, threshold 5. No message.
         expect(newState.messages).toHaveLength(0);
     });
 
@@ -74,10 +110,21 @@ describe('religionReducer', () => {
         };
 
         const result = religionReducer(state, action);
-        const newState = { ...state, ...result };
+        const newState = {
+            ...state,
+            ...result,
+            religion: {
+                ...state.religion,
+                ...result.religion,
+                divineFavor: {
+                    ...state.religion.divineFavor,
+                    ...(result.religion?.divineFavor || {})
+                }
+            }
+        };
 
-        expect(newState.divineFavor['bahamut']).toBeDefined();
-        expect(newState.divineFavor['bahamut'].favor).toBe(-10);
+        expect(newState.religion.divineFavor['bahamut']).toBeDefined();
+        expect(newState.religion.divineFavor['bahamut'].score).toBe(-10);
         // Change is >= 5, so message should appear
         expect(newState.messages).toHaveLength(1);
         expect(newState.messages[0].text).toContain('Bahamut loses favor');
@@ -96,9 +143,20 @@ describe('religionReducer', () => {
         };
 
         const result = religionReducer(state, action);
-        const newState = { ...state, ...result };
+        const newState = {
+            ...state,
+            ...result,
+            religion: {
+                ...state.religion,
+                ...result.religion,
+                divineFavor: {
+                    ...state.religion.divineFavor,
+                    ...(result.religion?.divineFavor || {})
+                }
+            }
+        };
 
-        expect(newState.divineFavor['pelor'].favor).toBe(1);
-        expect(newState.divineFavor['raven_queen'].favor).toBe(3);
+        expect(newState.religion.divineFavor['pelor'].score).toBe(1);
+        expect(newState.religion.divineFavor['raven_queen'].score).toBe(3);
     });
 });

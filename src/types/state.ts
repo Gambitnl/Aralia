@@ -3,7 +3,7 @@ import { Item } from './items';
 import { PlayerCharacter, TempPartyMember } from './character';
 import { Faction, PlayerFactionStanding } from './factions';
 import { Companion } from './companions';
-import { DivineFavor, Temple } from './deity';
+import { DivineFavor, Temple, ReligionState } from './deity';
 import { Fence, GuildMembership, HeistPlan, Crime, Bounty } from './crime';
 import { UnderdarkState } from './underdark';
 import { EconomyState } from './economy';
@@ -184,7 +184,11 @@ export interface GameState {
   playerFactionStandings: Record<string, PlayerFactionStanding>;
   companions: Record<string, Companion>;
 
-  divineFavor: Record<string, DivineFavor>;
+  religion: ReligionState;
+
+  // Deprecated: Moving to religion.favor and religion.knownDeities
+  // divineFavor: Record<string, DivineFavor>;
+
   temples: Record<string, Temple>;
 
   fences: Record<string, Fence>;
