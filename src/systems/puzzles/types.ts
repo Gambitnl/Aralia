@@ -98,7 +98,19 @@ export interface TrapDisarmResult {
 
 // --- PUZZLE SYSTEM ---
 
-export type PuzzleType = 'sequence' | 'combination' | 'riddle' | 'item_placement';
+export type PuzzleType = 'sequence' | 'combination' | 'riddle' | 'item_placement' | 'cipher';
+
+export type CipherMethod = 'shift' | 'substitution';
+
+export interface CipherData {
+  encryptedText: string;
+  decryptedText: string;
+  method: CipherMethod;
+  shiftAmount?: number; // For shift ciphers
+  substitutionMap?: Record<string, string>; // For substitution ciphers (A->X)
+  language?: string; // e.g. 'Elvish', 'Draconic' - requires language proficiency to attempt?
+  revealedIndices: number[]; // Indices of characters the player has successfully decoded
+}
 
 export interface PuzzleResult {
   success: boolean;
@@ -129,6 +141,8 @@ export interface Puzzle {
   acceptedAnswers?: string[];
   // Item Placement: List of required Item IDs
   requiredItems?: string[];
+  // Cipher: Specific data
+  cipherData?: CipherData;
 
   // State
   isSolved: boolean;

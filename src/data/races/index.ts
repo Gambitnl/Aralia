@@ -32,6 +32,7 @@ import { GITHZERAI_DATA } from './githzerai';
 import { TABAXI_DATA } from './tabaxi';
 import { DUERGAR_DATA } from './duergar';
 import { TRITON_DATA } from './triton';
+import { KENKU_DATA } from './kenku';
 
 
 // Aggregated data map
@@ -63,6 +64,7 @@ export const ALL_RACES_DATA: Record<string, Race> = {
   tabaxi: TABAXI_DATA,
   duergar: DUERGAR_DATA,
   triton: TRITON_DATA,
+  kenku: KENKU_DATA,
 };
 
 // Bundled exports for subraces/legacies that need to be accessed by constants.ts

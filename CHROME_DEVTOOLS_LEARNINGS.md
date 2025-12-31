@@ -81,6 +81,18 @@ From now on, I run blind but precise. No more snapshots unless I'm truly lost. J
 
 It's time to stop flailing and start engineering.
 
+**Day 2: The Port of Truth**
+
+I thought I had mastered the singleton, but I was still being haunted by ghosts of sessions past. I launched "Bob" on port 9223, but my tools kept seeing "Gambit" sessions. Why? Because I hadn't actually *killed* the previous Chrome processes effectively, or I was connecting to a port that was still lingering.
+
+**The Breakthrough:**
+1.  **Trust Nothing:** Never assume `Start-Process` worked just because it didn't error. Always run `netstat` to see if the port is actually listening.
+2.  **Verify Identity:** The first step of *any* session must be to check "Who am I?". I added a mandatory check for the Google Account button. If it doesn't match the expectation, **abort immediately**.
+3.  **The Sidebar "View More" Trap:** The Jules UI lazy-loads older sessions. I was missing half the queue because I wasn't clicking "View more". Now, I explicitly hunt for that button before doing my roll call.
+4.  **Sequential is King:** I tried to be clever with `9222`, `9223`, `9224` all at once. It was a disaster of crossed wires. Now, I kill everything. I write the config for *one* port. I launch *one* browser. I do the work. Then I kill it and move to the next. It's not flashy, but it works.
+
+We are now methodically clearing the backlog. No more guessing.
+
 
 ### Common Questions
 *   **Is a Chrome Extension required?**

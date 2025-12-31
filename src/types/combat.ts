@@ -92,6 +92,10 @@ export interface ActiveEffect {
      * Replaces 'any' with strict typing.
      */
     attackerFilter?: TargetConditionFilter;
+
+    // Planar Mechanics
+    planarPhase?: string; // The ID of the plane the character is shifted to (e.g., 'ethereal')
+    planarVision?: string[]; // IDs of planes the character can see into while in this state
   };
 }
 

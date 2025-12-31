@@ -111,7 +111,6 @@ import { ALL_RACES_DATA, RACE_DATA_BUNDLE } from './data/races/index.ts';
 import { BIOMES } from './data/biomes';
 import { ITEMS, WEAPONS_DATA } from './data/items';
 import { MASTERY_DATA } from './data/masteryData';
-import { SKILLS_DATA } from './data/skills';
 import { CLASSES_DATA, AVAILABLE_CLASSES } from './data/classes';
 import { XP_THRESHOLDS_BY_LEVEL, XP_BY_CR, ABILITY_SCORE_NAMES, RELEVANT_SPELLCASTING_ABILITIES } from './data/dndData';
 import { MONSTERS_DATA } from './data/monsters';
@@ -134,7 +133,6 @@ const {
 
 // Re-export data imported from specialized modules
 export {
-  SKILLS_DATA,
   RACES_DATA,
   DRAGONBORN_ANCESTRIES,
   GIANT_ANCESTRIES,
