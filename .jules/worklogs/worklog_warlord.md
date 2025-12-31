@@ -20,3 +20,6 @@ This journal tracks deep insights into the combat system, 5e rules compliance, a
 - Option B: Create a separate 'Interaction' pane.
 **Chosen:** Option A (Update `ActionEconomyBar.tsx`)
 **Rationale:** Keeps all resource tracking centralized in one visual component. Used the 🖐️ icon to represent interaction. Added unit tests to verify visibility logic.
+
+### Inventory of Potential Improvements
+- **AI Testing Strategy:** Combat AI logic should be tested with local mocks to decouple it from global factories, ensuring test stability. This pattern was successfully applied in `src/utils/combat/__tests__/combatAI.test.ts`.
