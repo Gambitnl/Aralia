@@ -178,6 +178,7 @@ export interface GeminiHarvestData extends GeminiMetadata {
 interface ExtendedGenerationConfig extends GenerationConfig {
     systemInstruction?: string | { parts: { text: string }[] } | { role: string, parts: { text: string }[] };
     tools?: Tool[];
+    thinkingConfig?: { thinkingBudget: number };
 }
 
 // --- Helper Functions ---
@@ -337,6 +338,8 @@ export async function generateText(
       const useThinking = thinkingBudget && (model.includes('gemini-2.5') || model.includes('gemini-3'));
 
       // Use ExtendedGenerationConfig to allow systemInstruction
+      // [Oracle] Use ExtendedGenerationConfig to allow systemInstruction and thinkingConfig.
+      // We explicitly define all properties to avoid implicit any or missing type errors.
       const config: ExtendedGenerationConfig = {
         systemInstruction: systemInstruction || defaultSystemInstruction,
         temperature: useThinking ? undefined : 0.7,
@@ -345,7 +348,7 @@ export async function generateText(
         responseMimeType: expectJson ? "application/json" : undefined,
       };
 
-      if (useThinking) {
+      if (useThinking && thinkingBudget) {
         config.thinkingConfig = { thinkingBudget };
       }
 
@@ -356,7 +359,10 @@ export async function generateText(
 
       // Execute request with retry logic
       const response: GenerateContentResponse = await withRetry(async () => {
-        // Cast config to any or GenerationConfig (with ignore) because the official type lacks systemInstruction
+        // [Oracle] Cast to unknown first is necessary because the SDK's GenerationConfig type
+        // is missing 'systemInstruction' and 'thinkingConfig', but the runtime supports them.
+        // By typing 'config' as ExtendedGenerationConfig above, we ensure local type safety
+        // before the unavoidable cast for the SDK call.
         return await Promise.race([
           ai.models.generateContent({
             model: model,
