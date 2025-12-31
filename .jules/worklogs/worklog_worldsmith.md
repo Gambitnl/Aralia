@@ -29,3 +29,10 @@
 **Learning:** Linking environmental state (Weather) to simulation logic creates a significantly more "alive" feeling than purely random events.
 **Action:** Implemented weather-based probability modifiers for Faction Skirmishes (suppressed by storms) and Market Shifts (influenced by drought/storms).
 **Insight:** Weighted random selection with dynamic weights (based on state) is a powerful pattern for RPG world simulation.
+
+## 2025-12-29 - Map Zoom Documentation
+**Context:** Documenting the existing map zoom implementation as part of domain knowledge consolidation.
+**Action:** Analyzed `MapPane.tsx` and updated `docs/architecture/domains/world-map.md` with details on:
+- CSS transform-based zoom logic (`scale` state).
+- Interaction methods (Wheel, Keyboard, UI Buttons).
+- Panning implementation using offset state.
