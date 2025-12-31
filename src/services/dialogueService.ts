@@ -8,9 +8,10 @@ import {
   DialogueSession,
   TopicCost
 } from '../types/dialogue';
-import { GameState, QuestStatus, Item, NPC } from '../types/index';
+import { GameState, QuestStatus, Item, NPC, WorldRumor, Location } from '../types/index';
 import { rollDice } from '../utils/combatUtils';
 import { INITIAL_TOPICS } from '../data/dialogue/topics';
+import { getGameDay } from '../utils/timeUtils';
 
 const TOPIC_REGISTRY: Record<string, ConversationTopic> = {};
 
@@ -184,6 +185,68 @@ export function canNPCDiscuss(
   return false;
 }
 
+function convertRumorToTopic(rumor: WorldRumor): ConversationTopic {
+  return {
+    id: `rumor_${rumor.id}`,
+    label: `Hear anything about ${rumor.text.substring(0, 20)}...?`, // Shorten for label
+    category: 'rumor',
+    playerPrompt: `I heard whispers about ${rumor.text}. What do you know?`,
+    responsePrompt: rumor.text, // The NPC confirms the rumor by repeating it or elaborating (future AI hook)
+    isGlobal: false, // It's generated specifically for this context
+    isOneTime: false,
+  };
+}
+
+/**
+ * Generates dynamic topics based on active rumors in the game state.
+ * NPCs will gossip about things relevant to their faction or location.
+ */
+export function getDynamicRumorTopics(
+  gameState: GameState,
+  npc: NPC
+): ConversationTopic[] {
+  if (!gameState.activeRumors || gameState.activeRumors.length === 0) {
+    return [];
+  }
+
+  // Determine NPC Location Context
+  // 1. Check dynamic lists (e.g., they are a wandering NPC in the current location)
+  // 2. Check current location (e.g., they are a static NPC in the town we are in)
+  // Default to current location if we can't be sure, as dialogue usually happens face-to-face.
+
+  let npcLocationId: string | undefined = gameState.currentLocationId;
+  const currentGameDay = getGameDay(gameState.gameTime);
+
+  const relevantRumors = gameState.activeRumors.filter(rumor => {
+    // 0. Expiration Check
+    // If expiration timestamp (in game days) is less than current game day, it's old news.
+    // Note: If timestamps are different units, this logic fails.
+    // WorldRumor defines: `timestamp: number; // Game day timestamp`
+    if (rumor.expiration && rumor.expiration <= currentGameDay) {
+        return false;
+    }
+
+    // 1. Faction relevance
+    if (npc.faction && (rumor.sourceFactionId === npc.faction || rumor.targetFactionId === npc.faction)) {
+      return true;
+    }
+
+    // 2. Location relevance
+    if (npcLocationId && rumor.locationId === npcLocationId) {
+        return true;
+    }
+
+    // 3. High virality / Global rumors (no region/location restriction)
+    if (!rumor.region && !rumor.locationId && (rumor.virality || 0) > 0.5) {
+        return true;
+    }
+
+    return false;
+  });
+
+  return relevantRumors.map(convertRumorToTopic);
+}
+
 /**
  * Filters the list of all potential topics to find valid ones for the current context.
  */
@@ -193,13 +256,20 @@ export function getAvailableTopics(
   session: DialogueSession,
   npc?: NPC // Added NPC parameter for knowledge checks
 ): ConversationTopic[] {
-  const allTopics = Object.values(TOPIC_REGISTRY);
+  // Start with static registry topics
+  const availableTopics = Object.values(TOPIC_REGISTRY);
+
+  // Merge dynamic topics WITHOUT polluting registry
+  if (npc) {
+      const rumorTopics = getDynamicRumorTopics(gameState, npc);
+      availableTopics.push(...rumorTopics);
+  }
 
   // Get current disposition
   const memory = gameState.npcMemory[npcId];
   const disposition = memory ? memory.disposition : 0;
 
-  return allTopics.filter(topic => {
+  return availableTopics.filter(topic => {
     // 1. One-time check
     if (topic.isOneTime && session.discussedTopicIds.includes(topic.id)) {
       return false;
@@ -212,6 +282,11 @@ export function getAvailableTopics(
 
     // 3. NPC Knowledge check (Can the NPC answer?)
     if (npc) {
+        // Special case for dynamic rumors: If we generated it for this NPC, they can discuss it!
+        if (topic.id.startsWith('rumor_')) {
+            return true;
+        }
+
         if (!canNPCDiscuss(topic, npc, disposition)) {
             return false;
         }
@@ -247,7 +322,18 @@ export function processTopicSelection(
   skillModifier: number = 0,
   npc?: NPC // Added NPC for dynamic DC adjustments
 ): ProcessTopicResult {
-  const topic = TOPIC_REGISTRY[topicId];
+  let topic = TOPIC_REGISTRY[topicId];
+
+  // Dynamic Topic Lookup (if not in registry)
+  if (!topic && topicId.startsWith('rumor_')) {
+      // Try to find the rumor in active rumors
+      const rumorId = topicId.replace('rumor_', '');
+      const rumor = gameState.activeRumors?.find(r => r.id === rumorId);
+      if (rumor) {
+          topic = convertRumorToTopic(rumor);
+      }
+  }
+
   if (!topic) {
     throw new Error(`Topic ${topicId} not found`);
   }
@@ -328,7 +414,7 @@ export function processTopicSelection(
   const unlocks = topic.unlocksTopics || [];
   return {
     status: 'neutral',
-    responsePrompt: topic.playerPrompt,
+    responsePrompt: topic.responsePrompt || topic.playerPrompt,
     unlocks,
     deductions
   };

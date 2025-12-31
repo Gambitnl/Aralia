@@ -21,6 +21,14 @@ const TRAIT_DESPAIR: PlanarTrait = {
   type: 'environmental'
 };
 
+const TRAIT_ABYSSAL_CORRUPTION: PlanarTrait = {
+  id: 'abyssal_corruption',
+  name: 'Abyssal Corruption',
+  description: 'The chaotic evil influence of the Abyss warps the mind and soul.',
+  type: 'environmental',
+  mechanics: 'Long Rest requires DC 15 Charisma save. Failure grants a corruption flaw (Treachery, Bloodlust, etc.).'
+};
+
 const TRAIT_INFERNAL_HIERARCHY: PlanarTrait = {
   id: 'infernal_hierarchy',
   name: 'Infernal Hierarchy',
@@ -237,14 +245,36 @@ export const ELEMENTAL_WATER: Plane = {
 export const ABYSS: Plane = {
   id: 'abyss',
   name: 'The Abyss',
-  description: 'A chaotic evil plane of infinite layers.',
-  traits: [],
-  natives: ['Demon'],
-  hazards: [],
+  description: 'A chaotic evil plane of infinite layers, home to demons and the ultimate expression of destruction.',
+  traits: [TRAIT_ABYSSAL_CORRUPTION],
+  natives: ['Demon', 'Manes', 'Dretch'],
+  hazards: [
+    {
+      name: 'Vile Miasma',
+      description: 'The air itself is toxic and foul.',
+      saveDC: 10,
+      damage: '1d6 poison',
+      effect: 'Poisoned condition'
+    }
+  ],
   emotionalValence: 'negative',
   timeFlow: 'erratic',
-  atmosphereDescription: 'The air is filled with the stench of chaos and tastes of copper.',
-  alignment: 'Chaotic Evil'
+  atmosphereDescription: 'The air is filled with the stench of rot, blood, and ozone. The sky is a swirling vortex of madness.',
+  alignment: 'Chaotic Evil',
+  effects: {
+    affectsRest: {
+      shortRestAllowed: true,
+      longRestAllowed: true,
+      effects: ['Corruption check required after Long Rest.']
+    },
+    affectsMagic: [
+      {
+        school: 'Divination',
+        effect: 'impeded',
+        description: 'Divination spells return lies or maddening visions unless a DC 15 Wis check is passed.'
+      }
+    ]
+  }
 };
 
 export const MECHANUS: Plane = {

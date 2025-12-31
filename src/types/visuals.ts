@@ -11,6 +11,7 @@ import { SpellSchool, DamageType } from './spells';
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { Race as _Race } from './character';
 import { FactionType } from './factions';
+import { BattleMapTerrain, BattleMapDecoration } from './combat';
 
 /**
  * Standard sizes for icons in the UI.
@@ -269,6 +270,51 @@ export interface FactionVisualSpec {
 }
 
 /**
+ * Defines the visual requirements for Battle Map Terrain.
+ * Used by the map renderer to display tiles.
+ */
+export interface TerrainVisualSpec {
+  /** The terrain ID matching BattleMapTerrain types. */
+  id: BattleMapTerrain;
+
+  /** Hex color for simple rendering or minimaps. */
+  color: string;
+
+  /** Path to the primary texture asset. */
+  texturePath?: string;
+
+  /** Fallback ASCII/Emoji symbol for text-based or low-res display. */
+  symbol: string;
+
+  /** Optional array of texture variant paths to break repetition. */
+  variants?: string[];
+
+  /** How edges should be handled (e.g., blending). */
+  edgeHandling?: 'smooth' | 'hard' | 'border';
+}
+
+/**
+ * Defines the visual requirements for Battle Map Decorations.
+ * Used by the map renderer to display objects like trees and rocks.
+ */
+export interface DecorationVisualSpec {
+  /** The decoration ID matching BattleMapDecoration types. */
+  id: BattleMapDecoration;
+
+  /** Path to the sprite or model asset. */
+  modelPath?: string;
+
+  /** Fallback emoji or icon. */
+  icon: string;
+
+  /** Visual scale multiplier (default 1.0). */
+  scale?: number;
+
+  /** Base tint color. */
+  color?: string;
+}
+
+/**
  * Result of resolving a visual request.
  * Contains everything a UI component needs to render the entity.
  */
@@ -521,5 +567,67 @@ export function getFactionVisual(type: FactionType, customSpec?: Partial<Faction
   };
 }
 
-// TODO(Materializer): Refactor `CharacterToken.tsx` and `InitiativeTracker.tsx` to use `getClassVisual` instead of hardcoded `getClassIcon` switch statements.
+/**
+ * Registry of standard visuals for terrain types.
+ */
+export const TERRAIN_VISUALS: Record<BattleMapTerrain, TerrainVisualSpec> = {
+  grass: { id: 'grass', color: '#10B981', symbol: '🌱', edgeHandling: 'smooth' }, // emerald-500
+  rock: { id: 'rock', color: '#6B7280', symbol: '🪨', edgeHandling: 'hard' }, // gray-500
+  water: { id: 'water', color: '#3B82F6', symbol: '💧', edgeHandling: 'smooth' }, // blue-500
+  difficult: { id: 'difficult', color: '#D97706', symbol: '⚠️', edgeHandling: 'border' }, // amber-600
+  wall: { id: 'wall', color: '#1F2937', symbol: '🧱', edgeHandling: 'hard' }, // gray-800
+  floor: { id: 'floor', color: '#D1D5DB', symbol: '⬜', edgeHandling: 'hard' }, // gray-300
+  sand: { id: 'sand', color: '#FCD34D', symbol: '🏜️', edgeHandling: 'smooth' }, // amber-300
+  mud: { id: 'mud', color: '#78350F', symbol: '💩', edgeHandling: 'smooth' }, // amber-900
+};
+
+/**
+ * Registry of standard visuals for decorations.
+ */
+export const DECORATION_VISUALS: Record<string, DecorationVisualSpec> = {
+  tree: { id: 'tree', icon: '🌲', color: '#065F46', scale: 1.5 }, // emerald-800
+  boulder: { id: 'boulder', icon: '🪨', color: '#4B5563', scale: 1.0 }, // gray-600
+  stalagmite: { id: 'stalagmite', icon: '🏔️', color: '#374151', scale: 0.8 }, // gray-700
+  pillar: { id: 'pillar', icon: '🏛️', color: '#9CA3AF', scale: 1.2 }, // gray-400
+  cactus: { id: 'cactus', icon: '🌵', color: '#047857', scale: 1.0 }, // emerald-700
+  mangrove: { id: 'mangrove', icon: '🌳', color: '#064E3B', scale: 1.3 }, // emerald-900
+};
+
+/**
+ * Default visual for unknown terrain.
+ */
+export const DEFAULT_TERRAIN_VISUAL: TerrainVisualSpec = {
+  id: 'floor',
+  color: '#D1D5DB',
+  symbol: '⬜',
+  edgeHandling: 'hard'
+};
+
+/**
+ * Default visual for unknown decorations.
+ */
+export const DEFAULT_DECORATION_VISUAL: DecorationVisualSpec = {
+  id: 'boulder', // Fallback to a generic obstacle
+  icon: '❓',
+  color: '#9CA3AF'
+};
+
+/**
+ * Retrieves the visual specification for a given terrain ID.
+ * @param terrainId The ID of the terrain.
+ */
+export function getTerrainVisual(terrainId: BattleMapTerrain): TerrainVisualSpec {
+  return TERRAIN_VISUALS[terrainId] || DEFAULT_TERRAIN_VISUAL;
+}
+
+/**
+ * Retrieves the visual specification for a given decoration ID.
+ * @param decorationId The ID of the decoration.
+ */
+export function getDecorationVisual(decorationId: BattleMapDecoration): DecorationVisualSpec {
+  if (!decorationId) return DEFAULT_DECORATION_VISUAL;
+  return DECORATION_VISUALS[decorationId] || DEFAULT_DECORATION_VISUAL;
+}
+
+// TODO(Materializer): Refactor `BattleMapTile` component to use `getTerrainVisual` and `getDecorationVisual` for consistent rendering across the app.
 // TODO(Illusionist): Implement a `SpellVisualRenderer` component that uses `SpellEffectVisualSpec` to render particles and animations.
