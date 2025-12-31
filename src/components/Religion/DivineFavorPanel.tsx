@@ -41,19 +41,19 @@ const FavorBar = ({ favor }: { favor: number }) => {
 
 export const DivineFavorPanel: React.FC<DivineFavorPanelProps> = ({ isOpen, onClose }) => {
   const { state } = useGameState();
-  const knownDeityIds = state.religion?.knownDeities || [];
+  const knownDeityIds = state.religion?.discoveredDeities || [];
 
   // Also include any deities we have non-zero favor with, even if not explicitly "known"
-  const activeFavorIds = Object.keys(state.religion?.favor || {});
+  const activeFavorIds = Object.keys(state.religion?.divineFavor || {});
   const allDisplayIds = Array.from(new Set([...knownDeityIds, ...activeFavorIds]));
 
   const displayDeities = allDisplayIds
     .map(id => {
       const def = DEITIES.find(d => d.id === id);
-      const favor = state.religion?.favor[id];
+      const favor = state.religion?.divineFavor[id];
       return { def, favor };
     })
-    .filter((item): item is { def: import('../../types/deity').Deity, favor: import('../../types/deity').DivineFavor | undefined } => item.def !== undefined);
+    .filter((item): item is { def: import('../../types/religion').Deity, favor: import('../../types/religion').DivineFavor | undefined } => item.def !== undefined);
 
   if (!isOpen) return null;
 
@@ -89,34 +89,37 @@ export const DivineFavorPanel: React.FC<DivineFavorPanelProps> = ({ isOpen, onCl
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {displayDeities.map(({ def, favor }) => {
-                const favorVal = favor?.value || 0;
-                const status = favor?.status || 'neutral';
+                const favorVal = favor?.score || 0;
+                const status = favor?.rank || 'Neutral';
 
                 return (
                   <div key={def.id} className="bg-gray-800/40 border border-gray-700 rounded-lg p-5 hover:border-gray-600 transition-colors">
                     <div className="flex justify-between items-start mb-3">
                       <div>
                         <h3 className="text-lg font-bold text-gray-200">{def.name}</h3>
-                        <p className="text-xs text-gray-400 uppercase tracking-wider">{def.alignment} • {def.domains.join(', ')}</p>
+                        <p className="text-xs text-gray-400 uppercase tracking-wider">
+                           {/* Enum values are strings like "Lawful Good", need to be careful with access if using Enum directly */}
+                           {def.alignment} • {def.domains.join(', ')}
+                        </p>
                       </div>
                       <div className="text-right">
                         <span className={`text-sm font-semibold px-2 py-0.5 rounded
-                          ${status === 'exalted' ? 'bg-yellow-900/50 text-yellow-200 border border-yellow-700' :
-                            status === 'favored' ? 'bg-blue-900/50 text-blue-200 border border-blue-700' :
-                            status === 'disfavored' ? 'bg-orange-900/50 text-orange-200 border border-orange-700' :
-                            status === 'anathema' ? 'bg-red-900/50 text-red-200 border border-red-700' :
+                          ${status === 'Chosen' ? 'bg-yellow-900/50 text-yellow-200 border border-yellow-700' :
+                            status === 'Champion' || status === 'Devotee' ? 'bg-blue-900/50 text-blue-200 border border-blue-700' :
+                            status === 'Shunned' ? 'bg-orange-900/50 text-orange-200 border border-orange-700' :
+                            status === 'Heretic' ? 'bg-red-900/50 text-red-200 border border-red-700' :
                             'bg-gray-700 text-gray-300'
                           }`}>
-                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                          {status}
                         </span>
                       </div>
                     </div>
 
                     <div className="mb-4">
                       <div className="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>Anathema (-100)</span>
+                        <span>Heretic (-100)</span>
                         <span>Neutral (0)</span>
-                        <span>Exalted (100)</span>
+                        <span>Chosen (100)</span>
                       </div>
                       <FavorBar favor={favorVal} />
                       <div className="text-center text-xs text-gray-400 mt-1">

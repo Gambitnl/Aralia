@@ -5,7 +5,8 @@
  */
 
 import { DEITIES } from '../data/deities';
-import { Temple, TempleService, VillagePersonality } from '../types';
+import { Temple, TempleService } from '../types/religion';
+import { VillagePersonality } from '../types';
 import { createSeededRandom } from './seededRandom';
 
 /**
@@ -23,22 +24,12 @@ export const generateVillageTemple = (
     const deityId = selectDeityForVillage(personality, rng);
     const deity = DEITIES.find(d => d.id === deityId) || DEITIES[0];
 
-    // Temples generated this way are usually sub-locations or conceptual
-    // Since Temple extends Location, we must provide Location properties.
-    // However, if this is used as a 'building' within a village, the locationId might be the village ID.
-    // The previous code had `locationId: villageId`, suggesting it's not a standalone Location on the map.
-    // But to satisfy the type, we treat it as a Location.
-
     return {
         id: `temple_${villageId}_${deityId}`,
-        type: 'temple',
         deityId: deity.id,
         name: `Temple of ${deity.name}`,
-        // Location properties
-        baseDescription: `A sanctuary dedicated to ${deity.name}. ${deity.description}`,
-        exits: {}, // No exits, it's a building
-        biomeId: personality.biomeStyle,
-        mapCoordinates: { x: 0, y: 0 }, // Placeholder, usually not used for sub-locations
+        description: `A sanctuary dedicated to ${deity.name}. ${deity.description}`,
+        locationId: villageId, // Now allowed by Temple in religion.ts? Let's verify.
         services: generateServicesForDeity(deityId)
     };
 };

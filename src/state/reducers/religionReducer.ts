@@ -12,13 +12,13 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
 
             if (!deity) return {};
 
-            const existingFavor = state.religion.favor[deityId] || {
-                deityId: deityId,
-                value: 0,
-                status: 'neutral',
+            // Adapting to ReligionState from src/types/religion.ts
+            const existingFavor = state.religion.divineFavor[deityId] || {
+                score: 0,
+                rank: 'Neutral',
+                consecutiveDaysPrayed: 0,
                 history: [],
-                blessings: [],
-                transgressions: []
+                blessings: []
             };
 
             // Simple logic: Praying gives +1 favor. Offering gold gives +1 per 10gp (capped).
@@ -34,6 +34,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             }
 
             const prayerAction: DeityAction = {
+                id: 'pray',
                 description,
                 favorChange: favorBoost
             };
@@ -43,8 +44,8 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             return {
                 religion: {
                     ...state.religion,
-                    favor: {
-                        ...state.religion.favor,
+                    divineFavor: {
+                        ...state.religion.divineFavor,
                         [deityId]: newFavor
                     }
                 },
@@ -71,20 +72,19 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             DEITIES.forEach(deity => {
                 const deityAction = evaluateAction(deity.id, trigger);
                 if (deityAction) {
-                    const existingFavor = state.religion.favor[deity.id] || {
-                        deityId: deity.id,
-                        value: 0,
-                        status: 'neutral',
+                    const existingFavor = state.religion.divineFavor[deity.id] || {
+                        score: 0,
+                        rank: 'Neutral',
+                        consecutiveDaysPrayed: 0,
                         history: [],
-                        blessings: [],
-                        transgressions: []
+                        blessings: []
                     };
 
                     const newFavor = calculateFavorChange(existingFavor, deityAction);
                     updates[deity.id] = newFavor;
 
                     // Only notify if user has existing relationship or change is significant
-                    if (existingFavor.value !== 0 || Math.abs(deityAction.favorChange) >= 5) {
+                    if (existingFavor.score !== 0 || Math.abs(deityAction.favorChange) >= 5) {
                         const changeText = deityAction.favorChange > 0 ? 'gains favor' : 'loses favor';
                         messages.push({
                             id: timestamp + Math.random(),
@@ -103,8 +103,8 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             return {
                 religion: {
                     ...state.religion,
-                    favor: {
-                        ...state.religion.favor,
+                    divineFavor: {
+                        ...state.religion.divineFavor,
                         ...updates
                     }
                 },
@@ -126,7 +126,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             const timestamp = Date.now();
 
             let party = [...state.party];
-            const favorUpdates = { ...state.religion.favor };
+            const favorUpdates = { ...state.religion.divineFavor };
 
             // Apply Effects
             if (effect === 'restore_hp_full') {
@@ -175,8 +175,8 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     timestamp: new Date(timestamp)
                 });
             } else if (effect === 'grant_favor_small' && deityId) {
-                 const existing = favorUpdates[deityId] || { deityId, value: 0, status: 'neutral', history: [], blessings: [], transgressions: [] };
-                 favorUpdates[deityId] = calculateFavorChange(existing, { description: 'Temple Donation', favorChange: 5 });
+                 const existing = favorUpdates[deityId] || { score: 0, rank: 'Neutral', consecutiveDaysPrayed: 0, history: [], blessings: [] };
+                 favorUpdates[deityId] = calculateFavorChange(existing, { id: 'donate_small', description: 'Temple Donation', favorChange: 5 });
                  messages.push({
                     id: timestamp,
                     text: 'You feel a sense of approval from the deity.',
@@ -184,8 +184,8 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     timestamp: new Date(timestamp)
                 });
             } else if (effect === 'grant_favor_large' && deityId) {
-                 const existing = favorUpdates[deityId] || { deityId, value: 0, status: 'neutral', history: [], blessings: [], transgressions: [] };
-                 favorUpdates[deityId] = calculateFavorChange(existing, { description: 'Major Temple Donation', favorChange: 15 });
+                 const existing = favorUpdates[deityId] || { score: 0, rank: 'Neutral', consecutiveDaysPrayed: 0, history: [], blessings: [] };
+                 favorUpdates[deityId] = calculateFavorChange(existing, { id: 'donate_large', description: 'Major Temple Donation', favorChange: 15 });
                  messages.push({
                     id: timestamp,
                     text: 'The very air hums with divine gratitude.',
@@ -212,13 +212,12 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     }));
 
                     // 2. Add Blessing to Favor Record
-                    const existing = favorUpdates[deityId] || { deityId, value: 0, status: 'neutral', history: [], blessings: [], transgressions: [] };
+                    const existing = favorUpdates[deityId] || { score: 0, rank: 'Neutral', consecutiveDaysPrayed: 0, history: [], blessings: [] };
                     const blessingRecord = {
                         id: blessingId,
                         name: name,
                         description: description,
-                        effectType: 'buff' as const,
-                        durationHours: statusEffect.duration ? statusEffect.duration / 600 : undefined // approx
+                        effect: statusEffect
                     };
 
                     favorUpdates[deityId] = grantBlessing(existing, blessingRecord);
@@ -238,7 +237,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                 messages,
                 religion: {
                     ...state.religion,
-                    favor: favorUpdates
+                    divineFavor: favorUpdates
                 }
             };
         }
