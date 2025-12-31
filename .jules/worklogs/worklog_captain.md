@@ -61,3 +61,7 @@
 ## 5. Verification
 - [ ] **Unit Tests**: Test `navalReducer` for state mutations (voyage progress, gold deduction).
 - [ ] **Visual Check**: Verify Dashboard renders correctly and updates on "Advance Day".
+
+### 2025-12-31 - Core Naval System Implementation
+**Learning:** When implementing complex systems like Naval features, splitting the work into Core Logic vs. UI Integration is essential to maintain PR size limits and ensure testability before UI wiring.
+**Action:** Implemented the Naval backend (Reducer, Logic, Types, State Integration) in a focused PR, deferring the UI (Dashboard, Menu) to a subsequent task. This ensures the foundation is solid and tested via unit tests before adding frontend complexity.
