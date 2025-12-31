@@ -2,8 +2,9 @@
  * @file src/systems/naval/NavalLogic.ts
  * Consolidated logic for the Naval system: Voyage management, Crew generation, and Ship creation.
  */
-import { Ship, ShipStats, Crew, VoyageState, VoyageLogEntry, CrewMember, CrewRole } from '../../types/naval';
+import { Ship, ShipStats, Crew, VoyageState, VoyageLogEntry, CrewMember, CrewRole, ShipType } from '../../types/naval';
 import { v4 as uuidv4 } from 'uuid';
+import { SHIP_TEMPLATES } from '../../data/ships';
 
 // ============================================================================
 // VOYAGE MANAGER
@@ -85,17 +86,13 @@ export class CrewManager {
 // NAVAL UTILS (FACTORIES)
 // ============================================================================
 
-export const createShip = (type: string, name: string): Ship => {
+export const createShip = (type: ShipType, name: string): Ship => {
+    // If template exists, use it. Otherwise fallback to basic default (safeguard).
+    const template = SHIP_TEMPLATES[type] || SHIP_TEMPLATES['Sloop'];
+
     // Basic defaults
     const stats: ShipStats = {
-        speed: 48, // miles per day (~2 mph)
-        maneuverability: 0,
-        hullPoints: 100,
-        maxHullPoints: 100,
-        armorClass: 15,
-        cargoCapacity: 50,
-        crewMin: 5,
-        crewMax: 20
+        ...template.baseStats
     };
 
     const crew: Crew = {
@@ -108,9 +105,9 @@ export const createShip = (type: string, name: string): Ship => {
     return {
         id: uuidv4(),
         name,
-        type: type as any,
-        size: 'Medium',
-        description: 'A fine vessel.',
+        type: type,
+        size: template.size,
+        description: template.description,
         stats,
         crew,
         cargo: { items: [], totalWeight: 0, capacityUsed: 0, supplies: { food: 100, water: 100 } },
