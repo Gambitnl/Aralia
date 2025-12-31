@@ -10,6 +10,7 @@ import * as GeminiService from '../../services/geminiService';
 import { synthesizeSpeech } from '../../services/ttsService';
 import { AddMessageFn, AddGeminiLogFn, PlayPcmAudioFn } from './actionHandlerTypes';
 import { NPCS } from '../../constants';
+import { resolveAndRegisterEntities } from '../../utils/entityIntegrationUtils';
 
 interface HandleTalkProps {
   action: Action;
@@ -107,6 +108,10 @@ export async function handleTalk({
     if (npcResponseResult.data?.text) {
       const responseText = npcResponseResult.data.text;
       addMessage(`${npc.name}: "${responseText}"`, 'npc');
+
+      // [Linker] Ensure entities mentioned by NPC exist
+      await resolveAndRegisterEntities(responseText, gameState, dispatch, addGeminiLog);
+
       dispatch({ type: 'SET_LAST_NPC_INTERACTION', payload: { npcId: npc.id, response: responseText } });
       
       dispatch({ type: 'UPDATE_NPC_INTERACTION_TIMESTAMP', payload: { npcId: npc.id, timestamp: gameState.gameTime.getTime() } });
