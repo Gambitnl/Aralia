@@ -26,11 +26,12 @@ import { createAbilityFromSpell } from './spellAbilityFactory';
 import { isWeaponProficient } from './weaponUtils';
 import { generateId } from './idGenerator';
 import { getAbilityModifierValue } from './statUtils';
+import { ResistanceCalculator } from './combat/resistanceUtils';
 
 import { bresenhamLine } from './lineOfSight';
 
 // Re-export for consumers
-export { createAbilityFromSpell, generateId };
+export { createAbilityFromSpell, generateId, ResistanceCalculator };
 
 // TODO(Mechanist): Wire up physicsUtils (fall damage, jumping) into movement logic.
 // TODO(Mechanist): Wire up `calculateExhaustionEffects` from `physicsUtils.ts` to `createPlayerCombatCharacter` (apply speed/d20 penalties).
@@ -369,33 +370,12 @@ export function calculateDamage(
 ): number {
   if (!damageType || baseDamage <= 0) return Math.max(0, baseDamage);
 
-  // 1. Immunity
-  if (target.immunities?.includes(damageType as DamageType)) {
-    return 0;
-  }
-
-  let finalDamage = baseDamage;
-  const isResistant = target.resistances?.includes(damageType as DamageType);
-  const isVulnerable = target.vulnerabilities?.includes(damageType as DamageType);
-
-  // XGtE Rule: Resistance and Vulnerability cancel each other out.
-  // We check this explicitly to avoid rounding errors (e.g. floor(25/2)*2 = 24 instead of 25).
-  if (isResistant && isVulnerable) {
-    return Math.max(0, finalDamage);
-  }
-
-  // 2. Resistance (PHB p.197: Resistance applied before Vulnerability)
-  if (isResistant) {
-    // TODO(Feats): Check if caster has Elemental Adept (ignores resistance)
-    finalDamage = Math.floor(finalDamage / 2);
-  }
-
-  // 3. Vulnerability
-  if (isVulnerable) {
-    finalDamage *= 2;
-  }
-
-  return Math.max(0, finalDamage);
+  return ResistanceCalculator.applyResistances(
+    baseDamage,
+    damageType as DamageType,
+    target,
+    caster
+  );
 }
 
 /**

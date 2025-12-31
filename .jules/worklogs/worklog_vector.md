@@ -1,6 +1,6 @@
 # Vector's Journal - Critical Logic Learnings
 
-This journal records critical learnings about game logic, edge cases, and 5e rule implementations.
+This journal records critical logic learnings about game logic, edge cases, and 5e rule implementations.
 
 ## 2024-05-23 - Saving Throw Modifier Sign Logic **Learning:** The `rollSavingThrow` utility previously assumed all dice modifiers were penalties and subtracted them. This prevented implementing bonuses like Bless (+1d4) without using counter-intuitive double negatives. **Action:** Refactored `rollSavingThrow` to always ADD modifiers, and updated `SavePenaltySystem` to explicitly provide negative dice strings (e.g., "-1d4") for penalties. Future modifiers must explicitly carry their sign in the dice string.
 
@@ -17,3 +17,7 @@ This journal records critical learnings about game logic, edge cases, and 5e rul
 ## 2025-02-18 - Retroactive HP Calculation Logic
 **Learning:** When calculating retroactive HP bonuses (e.g., from Con increase or feats like 'Tough'), one must differentiate between *newly acquired* bonuses and *existing* bonuses. Simply multiplying the current total bonus by the previous level count results in double-counting for bonuses the character already possessed.
 **Action:** Use the delta logic: `retroactiveAdjustment = (currentBonus - previousBonus) * previousLevel`. This ensures only the *increase* is applied retroactively.
+
+## 2025-12-31 - Centralizing Damage Logic
+**Learning:** Found split damage calculation logic (one in utils, one in systems). This violates SSOT. Legacy `featChoices` structure (Record vs Array) required conditional handling to prevent regressions during migration.
+**Action:** Created `ResistanceCalculator` utility in `src/utils/combat/` to unify logic. When refactoring core math, always check for legacy data structures in `CombatCharacter` transient types.
