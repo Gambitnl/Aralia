@@ -2,6 +2,7 @@ import type { SpellTargeting, TargetFilter , CombatCharacter, CombatState, Posit
 
 import { hasLineOfSight } from '../../../utils/lineOfSight'
 import { TargetValidationUtils } from './TargetValidationUtils'
+import { canInteract, canSeeTarget } from '../../../utils/planarTargeting'
 
 /**
  * Resolves valid targets based on spell targeting rules
@@ -45,9 +46,19 @@ export class TargetResolver {
       const distance = this.getDistance(caster.position, target.position)
       if (distance > targeting.range) return false
 
-      // Check line of sight
-      if (targeting.lineOfSight && !this.hasLineOfSight(caster.position, target.position, gameState)) {
+      // Check planar interaction (e.g. Blink / Etherealness)
+      if (!canInteract(caster, target, gameState)) {
         return false
+      }
+
+      // Check line of sight (now including planar visibility)
+      if (targeting.lineOfSight) {
+        if (!canSeeTarget(caster, target, gameState)) {
+          return false
+        }
+        if (!this.hasLineOfSight(caster.position, target.position, gameState)) {
+          return false
+        }
       }
 
       // Check detailed target filter (e.g. creature type constraints)

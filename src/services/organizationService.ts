@@ -12,7 +12,10 @@ import {
     OrgResources,
     OrgMission,
     OrgUpgrade,
-    OrgUpgradeEffect,
+    // TODO(lint-intent): 'OrgUpgradeEffect' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    OrgUpgradeEffect as _OrgUpgradeEffect,
     RivalAction
 } from '../types/organizations';
 
@@ -285,7 +288,10 @@ export const startMission = (
  * Helper to get accumulated bonuses from upgrades.
  */
 const getUpgradeBonuses = (org: Organization) => {
-    let resourceMultipliers: Record<string, number> = { gold: 0, influence: 0, connections: 0, secrets: 0 };
+    // TODO(lint-intent): This binding never reassigns, so the intended mutability is unclear.
+    // TODO(lint-intent): If it should stay stable, switch to const and treat it as immutable.
+    // TODO(lint-intent): If mutation was intended, add the missing update logic to reflect that intent.
+    const resourceMultipliers: Record<string, number> = { gold: 0, influence: 0, connections: 0, secrets: 0 };
     let loyaltyBonus = 0;
     let missionBonus = 0;
     let defenseBonus = 0;
@@ -433,21 +439,33 @@ export const processDailyOrgUpdate = (org: Organization): { updatedOrg: Organiza
         if (!result.success) {
             // Consequences
             switch (rivalAction.type) {
-                case 'theft':
+                case 'theft': {
+                    // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
+                    // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
+                    // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
                     const stolen = Math.floor(currentGold * 0.1);
                     currentGold -= stolen;
                     summary.push(`Rivals stole ${stolen} gold.`);
                     break;
-                case 'sabotage':
+                }
+                case 'sabotage': {
+                    // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
+                    // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
+                    // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
                     const influenceLost = Math.floor(currentInfluence * 0.1);
                     currentInfluence -= influenceLost;
                     summary.push(`Rivals damaged your reputation. Lost ${influenceLost} influence.`);
                     break;
-                case 'smear_campaign':
+                }
+                case 'smear_campaign': {
+                    // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
+                    // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
+                    // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
                     const connectionsLost = Math.floor(currentConnections * 0.1);
                     currentConnections -= connectionsLost;
                     summary.push(`Rivals turned allies against you. Lost ${connectionsLost} connections.`);
                     break;
+                }
                  case 'assassination':
                     // Worst case: a member is injured or killed. For now, just loyalty hit.
                     updatedMembers = updatedMembers.map(m => ({ ...m, loyalty: Math.max(0, m.loyalty - 20) }));

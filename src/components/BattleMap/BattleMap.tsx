@@ -2,8 +2,8 @@
  * @file BattleMap.tsx
  * The primary component for rendering the procedural battle map grid, tiles, and character tokens.
  */
-import React, { useMemo, useRef, useCallback } from 'react';
-import { BattleMapData, CombatCharacter } from '../../types/combat';
+import React, { useMemo, useCallback } from 'react';
+import { BattleMapData, CombatCharacter, BattleMapTile as BattleMapTileData } from '../../types/combat';
 import { useBattleMap } from '../../hooks/useBattleMap';
 import { useTargetSelection } from '../../hooks/combat/useTargetSelection';
 import type { useTurnManager } from '../../hooks/combat/useTurnManager';
@@ -44,25 +44,14 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
     handleCharacterClick,
   } = battleMapState;
 
-  const gridRef = useRef<HTMLDivElement>(null);
-
   // Live AoE preview when hovering tiles while targeting
-  const handleGridMouseMove = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      if (!abilitySystem?.previewAoE || !abilitySystem.targetingMode || !mapData) return;
-      const rect = gridRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      const x = Math.floor((event.clientX - rect.left) / TILE_SIZE_PX);
-      const y = Math.floor((event.clientY - rect.top) / TILE_SIZE_PX);
-      if (x < 0 || y < 0 || x >= mapData.dimensions.width || y >= mapData.dimensions.height) return;
-
-      const caster = characters.find(c => c.id === turnState.currentCharacterId);
-      if (caster) {
-        abilitySystem.previewAoE({ x, y }, caster);
-      }
-    },
-    [abilitySystem, characters, mapData, turnState.currentCharacterId]
-  );
+  const handleTileHover = useCallback((tile: BattleMapTileData) => {
+    if (!abilitySystem?.previewAoE || !abilitySystem.targetingMode || !mapData) return;
+    const caster = characters.find(c => c.id === turnState.currentCharacterId);
+    if (caster) {
+      abilitySystem.previewAoE(tile.coordinates, caster);
+    }
+  }, [abilitySystem, characters, mapData, turnState.currentCharacterId]);
 
   const tileArray = useMemo(() => {
     if (!mapData) return [];
@@ -120,11 +109,18 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
         </div>
       )}
 
+      {/*
+        TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+        TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+        TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+      */}
       <div className="battle-map-container bg-gray-800 p-2 rounded-lg shadow-lg"
           style={{
               width: `${mapData.dimensions.width * TILE_SIZE_PX + 2}px`,
               height: `${mapData.dimensions.height * TILE_SIZE_PX + 2}px`,
           }}>
+
+
         <div
           className="battle-map-grid"
           style={{
@@ -134,8 +130,6 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
             position: 'relative',
             border: '1px solid #4A5568',
           }}
-          ref={gridRef}
-          onMouseMove={handleGridMouseMove}
         >
           {tileArray.map(tile => {
             // Optimised lookups using Sets (O(1)) instead of Array searches/Calculations (O(N))
@@ -153,6 +147,7 @@ const BattleMap: React.FC<BattleMapProps> = ({ mapData, characters, combatState 
                 isTargetable={isTargetable}
                 isAoePreview={isAoePreview}
                 onTileClick={handleTileClick}
+                onTileHover={handleTileHover}
               />
             )
           })}

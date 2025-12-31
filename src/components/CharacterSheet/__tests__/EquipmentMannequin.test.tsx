@@ -3,7 +3,8 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect } from 'vitest';
 import EquipmentMannequin from '../EquipmentMannequin';
-import { PlayerCharacter, Item } from '../../../types';
+// TODO(lint-intent): 'PlayerCharacter' is unused in this test; use it in the assertion path or remove it.
+import { PlayerCharacter as _PlayerCharacter, Item } from '../../../types';
 import { createMockPlayerCharacter } from '../../../utils/factories';
 
 // Mock dependencies

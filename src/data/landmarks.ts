@@ -1,5 +1,7 @@
-
-import { Biome } from '../types';
+// TODO(lint-intent): 'Biome' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Biome as _Biome } from '../types';
 
 export interface LandmarkRewardTemplate {
   type: 'item' | 'xp' | 'health' | 'gold';

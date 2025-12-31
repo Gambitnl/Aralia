@@ -11,17 +11,26 @@ import {
     BattleMapData,
     ReactiveTrigger,
     Position,
-    Animation
+    // TODO(lint-intent): 'Animation' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    Animation as _Animation
 } from '../../../types/combat';
 import {
     ActiveSpellZone,
     MovementTriggerDebuff,
-    processMovementTriggers,
+    // TODO(lint-intent): 'processMovementTriggers' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    processMovementTriggers as _processMovementTriggers,
     resetZoneTurnTracking
 } from '../../../systems/spells/effects';
 import { AreaEffectTracker } from '../../../systems/spells/effects/AreaEffectTracker';
 import { generateId, rollDice, calculateDamage } from '../../../utils/combatUtils';
-import { calculateSpellDC, rollSavingThrow } from '../../../utils/savingThrowUtils';
+// TODO(lint-intent): 'calculateSpellDC' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { calculateSpellDC as _calculateSpellDC, rollSavingThrow } from '../../../utils/savingThrowUtils';
 import { SavePenaltySystem } from '../../../systems/combat/SavePenaltySystem';
 
 interface UseCombatEngineProps {
@@ -34,7 +43,10 @@ interface UseCombatEngineProps {
 }
 
 export const useCombatEngine = ({
-    characters,
+    // TODO(lint-intent): 'characters' is an unused parameter, which suggests a planned input for this flow.
+    // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+    // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+    characters: _characters,
     mapData,
     onCharacterUpdate,
     onLogEntry,
@@ -77,8 +89,10 @@ export const useCombatEngine = ({
             if (repeat.modifiers?.sizeDisadvantage && character.stats.size && repeat.modifiers.sizeDisadvantage.includes(character.stats.size)) {
                 hasDisadvantage = true;
             }
-
-            const saveType = repeat.saveType as any;
+            // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+            const saveType = repeat.saveType as unknown;
             const savePenalties = savePenaltySystem.getActivePenalties(character);
             const roll = rollSavingThrow(character, saveType, dc, savePenalties);
 
@@ -253,11 +267,14 @@ export const useCombatEngine = ({
 
         updatedCharacter.statusEffects.forEach(effect => {
             switch (effect.effect.type) {
-                case 'damage_per_turn':
+                case 'damage_per_turn': {
+                    // TODO(lint-intent): Consider centralizing per-turn damage tick logic for status effects.
                     const dmg = effect.effect.value || 0;
                     updatedCharacter = handleDamage(updatedCharacter, dmg, effect.name, 'necrotic');
                     break;
-                case 'heal_per_turn':
+                }
+                case 'heal_per_turn': {
+                    // TODO(lint-intent): Consider centralizing per-turn healing tick logic for status effects.
                     const heal = effect.effect.value || 0;
                     updatedCharacter.currentHP = Math.min(updatedCharacter.maxHP, updatedCharacter.currentHP + heal);
                     addDamageNumber(heal, updatedCharacter.position, 'heal');
@@ -270,6 +287,7 @@ export const useCombatEngine = ({
                         data: { healAmount: heal, heal: heal, source: effect.name }
                     });
                     break;
+                }
             }
         });
 

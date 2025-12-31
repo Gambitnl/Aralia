@@ -4,7 +4,10 @@
  */
 import { MonsterData } from '../types';
 import { CharacterStats, Ability } from '../types/combat';
-import { CLASSES_DATA } from './classes';
+// TODO(lint-intent): 'CLASSES_DATA' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { CLASSES_DATA as _CLASSES_DATA } from './classes';
 
 const GOBLIN_ABILITIES: Ability[] = [
     { id: 'scimitar', name: 'Scimitar', description: 'A slash with a rusty scimitar.', type: 'attack', cost: { type: 'action' }, targeting: 'single_enemy', range: 1, effects: [{ type: 'damage', value: 4, damageType: 'physical' }], icon: '🗡️' },

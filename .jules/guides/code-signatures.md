@@ -9,7 +9,7 @@
 ### For Single Lines or Small Changes
 
 ```typescript
-// [PERSONA_NAME] Brief description of what this does
+// [PersonaName] Brief description of what this does
 export const myNewFeature = true;
 ```
 
@@ -17,7 +17,7 @@ export const myNewFeature = true;
 
 ```typescript
 /**
- * @persona PERSONA_NAME
+ * @persona PersonaName
  * @intent What you're trying to accomplish
  */
 export function myFunction() {
@@ -28,10 +28,10 @@ export function myFunction() {
 ### For Type Definitions
 
 ```typescript
-// [PERSONA_NAME] Added for ritual interruption support
+// [Ritualist] Added for ritual interruption support
 export interface RitualState {
-  interrupted: boolean;    // [RITUALIST]
-  interruptedAt?: number;  // [RITUALIST]
+  interrupted: boolean;    // [Ritualist]
+  interruptedAt?: number;  // [Ritualist]
 }
 ```
 
@@ -41,12 +41,12 @@ export interface RitualState {
 
 | Persona | Signature |
 |---------|-----------|
-| Ritualist | `// [RITUALIST]` |
-| Warlord | `// [WARLORD]` |
-| Oracle | `// [ORACLE]` |
-| Chronicler | `// [CHRONICLER]` |
+| Ritualist | `// [Ritualist]` |
+| Warlord | `// [Warlord]` |
+| Oracle | `// [Oracle]` |
+| Chronicler | `// [Chronicler]` |
 
-Use your persona name in **UPPERCASE** inside square brackets.
+Use your persona name in **Title case** inside square brackets.
 
 ---
 
@@ -87,8 +87,8 @@ If your code conflicts with another persona's:
 
 Before pushing your PR:
 
-- [ ] Every new function has a `@persona` JSDoc tag or `// [NAME]` comment
-- [ ] Every modified line in shared files has a trailing `// [NAME]` comment
+- [ ] Every new function has a `@persona` JSDoc tag or `// [PersonaName]` comment
+- [ ] Every modified line in shared files has a trailing `// [PersonaName]` comment
 - [ ] Complex changes have a block comment explaining intent
 
 ---
@@ -103,6 +103,6 @@ export const feature = true;
 
 ✅ **Do this instead:**
 ```typescript
-// [WARLORD] Added combat pause feature for tactical retreats
+// [Warlord] Added combat pause feature for tactical retreats
 export const feature = true;
 ```

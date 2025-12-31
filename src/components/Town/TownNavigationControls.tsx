@@ -264,7 +264,7 @@ const TownNavigationControls: React.FC<TownNavigationControlsProps> = ({
                                 whileTap={{ scale: buttonTapScale }}
                                 className="w-full text-left px-3 py-2 bg-gray-800 hover:bg-gray-750 rounded-lg text-sm text-gray-200 transition-colors border border-gray-700 hover:border-amber-500/50 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                                 onClick={() => onBuildingInteract?.(building.id)}
-                                aria-label={`Enter ${building.name} (${building.type})`}
+                                aria-label={`Enter ${building.name}`}
                             >
                                 <span className="font-medium text-amber-100/90">{building.name}</span>
                                 <span className="text-xs text-gray-500 ml-2 block" aria-hidden="true">{building.type}</span>

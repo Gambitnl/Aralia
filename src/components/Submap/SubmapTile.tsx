@@ -40,7 +40,9 @@ interface SubmapTileProps {
   onClick: (x: number, y: number, terrain: string, feature: SeededFeatureConfig | null) => void;
   isDisabled: boolean;
 }
-
+// TODO(lint-intent): Give this component a displayName so tooling reflects its intended role.
+// TODO(lint-intent): If this is a test-only helper, name it to improve snapshot/debug clarity.
+// TODO(lint-intent): If the component is temporary, consider removing it once the test stabilizes.
 const SubmapTile: React.FC<SubmapTileProps> = React.memo(({
   r,
   c,
@@ -110,7 +112,13 @@ const SubmapTile: React.FC<SubmapTileProps> = React.memo(({
   }
 
   return (
+    /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+    TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+    TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+    */
     <Tooltip content={tooltipContent}>
+
+
       <div
         role="gridcell"
         aria-label={`Tile at ${c},${r}. ${typeof tooltipContent === 'string' ? tooltipContent : 'Visual detail.'}`}
@@ -119,6 +127,12 @@ const SubmapTile: React.FC<SubmapTileProps> = React.memo(({
         style={{ ...visuals.style, zIndex: visuals.zIndex, userSelect: 'none' }}
         onMouseEnter={handleMouseEnter}
         onClick={handleClick}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            handleClick();
+          }
+        }}
         tabIndex={isHighlightedForInspection ? 0 : -1}
       >
         <span className="pointer-events-none" style={{ textShadow: '0 0 2px black, 0 0 2px black, 0 0 1px black' }}>
@@ -157,7 +171,9 @@ const SubmapTile: React.FC<SubmapTileProps> = React.memo(({
         prev.isQuickTravelBlocked === next.isQuickTravelBlocked &&
         prev.isDisabled === next.isDisabled
         // Callbacks (onClick, onMouseEnter) are assumed stable via useCallback in parent
-    );
+  );
 });
+
+SubmapTile.displayName = 'SubmapTile';
 
 export default SubmapTile;

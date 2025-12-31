@@ -8,7 +8,7 @@ import { GameState, Action, VillageActionContext } from '../../types';
 import { AppAction } from '../../state/actionTypes';
 import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
-import { calculatePrice } from '../../utils/economyUtils';
+import { calculatePrice } from '../../utils/economy/economyUtils';
 
 interface HandleMerchantInteractionProps {
   action: Action;

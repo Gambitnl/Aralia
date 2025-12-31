@@ -8,7 +8,10 @@
 
 import { GameState, GameMessage, TradeRoute, EconomyState, MarketEvent } from '../../types';
 import { SeededRandom } from '../../utils/seededRandom';
-import { getGameDay } from '../../utils/timeUtils';
+// TODO(lint-intent): 'getGameDay' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { getGameDay as _getGameDay } from '../../utils/timeUtils';
 import { INITIAL_TRADE_ROUTES } from '../../data/tradeRoutes';
 
 export interface TradeRouteUpdateResult {

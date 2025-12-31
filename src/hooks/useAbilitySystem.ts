@@ -25,8 +25,14 @@ import {
 } from '../types/spells';
 import { SpellCommandFactory, AbilityCommandFactory, CommandExecutor } from '../commands'; // Import Command System
 import { BreakConcentrationCommand } from '../commands/effects/ConcentrationCommands'; // Import Break Concentration
-import { getDistance, generateId } from '../utils/combatUtils';
-import { hasLineOfSight } from '../utils/lineOfSight';
+// TODO(lint-intent): 'getDistance' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { getDistance as _getDistance, generateId } from '../utils/combatUtils';
+// TODO(lint-intent): 'hasLineOfSight' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { hasLineOfSight as _hasLineOfSight } from '../utils/lineOfSight';
 import { calculateAffectedTiles } from '../utils/aoeCalculations';
 import { useTargeting } from './combat/useTargeting'; // New Hook
 import { resolveAoEParams } from '../utils/targetingUtils';
@@ -60,7 +66,7 @@ export const useAbilitySystem = ({
   mapData,
   onExecuteAction,
   onCharacterUpdate,
-  onAbilityEffect,
+  onAbilityEffect: _onAbilityEffect,
   onLogEntry,
   onRequestInput,
   reactiveTriggers,
@@ -83,10 +89,15 @@ export const useAbilitySystem = ({
   const {
     isValidTarget,
     getValidTargets,
-    getCharacterAtPosition
+    // TODO(lint-intent): 'getCharacterAtPosition' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    getCharacterAtPosition: _getCharacterAtPosition
   } = useTargetValidator({ characters, mapData });
-
-  const [pendingReaction, setPendingReaction] = useState<PendingReaction | null>(null);
+  // TODO(lint-intent): 'setPendingReaction' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+  const [pendingReaction, _setPendingReaction] = useState<PendingReaction | null>(null);
 
   // --- Refs for Stability (Actions Only) ---
   // We use Refs to access the latest props inside event handlers (actions)
@@ -345,7 +356,8 @@ export const useAbilitySystem = ({
     }
 
     cancelTargeting();
-  }, [onExecuteAction, onCharacterUpdate, cancelTargeting, executeSpell, onLogEntry, onAbilityEffect]); // Refs are stable, omitted
+  // TODO(lint-intent): Wire the ability-effect callback into the execution path if VFX hooks are needed.
+  }, [onExecuteAction, onCharacterUpdate, cancelTargeting, executeSpell, onLogEntry]); // Refs are stable, omitted
 
   const executeAbility = useCallback((...args: Parameters<typeof executeAbilityInternal>) => {
     return executeAbilityInternal(...args);

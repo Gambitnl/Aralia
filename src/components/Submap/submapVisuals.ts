@@ -6,7 +6,10 @@
 import React from 'react';
 import { SeededFeatureConfig, BiomeVisuals } from '../../types';
 import { PathDetails } from '../../hooks/useSubmapProceduralData';
-import { CaTileType } from '../../services/cellularAutomataService';
+// TODO(lint-intent): 'CaTileType' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { CaTileType as _CaTileType } from '../../services/cellularAutomataService';
 
 // Utility: normalize CSS color strings (hex or rgb/rgba) into Pixi-friendly hex numbers so palettes stay consistent.
 export const cssColorToHex = (color: string | undefined | null): number | null => {

@@ -4,16 +4,28 @@ import {
   registerTopic,
   checkTopicPrerequisites,
   processTopicSelection,
-  getAvailableTopics
+  getAvailableTopics,
+  getDynamicRumorTopics,
+  getTopic
 } from '../dialogueService';
 import { ConversationTopic, DialogueSession, NPCKnowledgeProfile } from '../../types/dialogue';
-import { GameState, SuspicionLevel, Item, NPC } from '../../types/index';
+import { GameState, SuspicionLevel, Item, NPC, WorldRumor } from '../../types/index';
 import * as combatUtils from '../../utils/combatUtils';
+import * as timeUtils from '../../utils/timeUtils';
 
 // Mock rollDice
 vi.mock('../../utils/combatUtils', () => ({
   rollDice: vi.fn()
 }));
+
+// Mock time utils for expiration check
+vi.mock('../../utils/timeUtils', async () => {
+    const actual = await vi.importActual('../../utils/timeUtils');
+    return {
+        ...actual,
+        getGameDay: vi.fn()
+    };
+});
 
 // Mocks
 const mockTopic: ConversationTopic = {
@@ -64,13 +76,42 @@ const mockGlobalTopic: ConversationTopic = {
 };
 
 // Helper to create mock items
-const createMockItem = (id: string, extraProps: any = {}): Item => ({
+const createMockItem = (id: string, extraProps: unknown = {}): Item => ({
   id,
   name: id,
   description: 'test item',
   type: 'treasure',
   ...extraProps
 });
+
+const mockRumor: WorldRumor = {
+    id: 'rumor_war',
+    text: 'War is coming to the North.',
+    type: 'skirmish',
+    timestamp: 100,
+    expiration: 200,
+    sourceFactionId: 'faction_a',
+    virality: 0.8
+};
+
+const mockLocalRumor: WorldRumor = {
+    id: 'rumor_local_theft',
+    text: 'A theft in the market.',
+    type: 'misc',
+    timestamp: 100,
+    expiration: 200,
+    locationId: 'loc_1',
+    virality: 0.2 // Low virality, but local
+};
+
+const mockExpiredRumor: WorldRumor = {
+    id: 'rumor_old_news',
+    text: 'Old news.',
+    type: 'misc',
+    timestamp: 50,
+    expiration: 90, // Expired if current day is 100
+    virality: 0.9 // High virality shouldn't save it
+};
 
 const mockGameState = {
   npcMemory: {
@@ -89,7 +130,11 @@ const mockGameState = {
   ],
   gold: 150, // Meets min_gold requirement
   questLog: [],
-  discoveryLog: []
+  discoveryLog: [],
+  activeRumors: [mockRumor, mockLocalRumor, mockExpiredRumor],
+  currentLocationActiveDynamicNpcIds: [],
+  currentLocationId: 'loc_1',
+  gameTime: new Date()
 } as unknown as GameState;
 
 const mockSession: DialogueSession = {
@@ -100,13 +145,14 @@ const mockSession: DialogueSession = {
 };
 
 // Helper to create an NPC with a specific knowledge profile
-const createMockNPC = (id: string, knowledgeProfile?: NPCKnowledgeProfile): NPC => ({
+const createMockNPC = (id: string, knowledgeProfile?: NPCKnowledgeProfile, faction?: string): NPC => ({
   id,
   name: 'Test NPC',
   baseDescription: 'A test NPC',
   initialPersonalityPrompt: 'Friendly',
   role: 'civilian',
-  knowledgeProfile
+  knowledgeProfile,
+  faction
 });
 
 describe('Dialogue Service', () => {
@@ -116,6 +162,7 @@ describe('Dialogue Service', () => {
     registerTopic(mockSkillTopic);
     registerTopic(mockGlobalTopic);
     vi.clearAllMocks();
+    vi.mocked(timeUtils.getGameDay).mockReturnValue(100); // Current day 100
   });
 
   describe('checkTopicPrerequisites', () => {
@@ -183,8 +230,12 @@ describe('Dialogue Service', () => {
       const dumbNPC = createMockNPC('npc_dumb');
       const topics = getAvailableTopics(mockGameState, 'npc_dumb', mockSession, dumbNPC);
 
-      // Should ONLY contain Global topics
+      // Should ONLY contain Global topics (and high virality rumors if applicable)
+      // mockRumor has virality 0.8, so it is high enough to be global if not faction bound?
+      // Our logic: virality > 0.5 AND no region/location -> Global.
+      // So 'rumor_war' should appear.
       expect(topics.map(t => t.id)).toContain('test_topic_weather');
+      expect(topics.map(t => t.id)).toContain('rumor_rumor_war');
       expect(topics.map(t => t.id)).not.toContain('test_topic_ruins');
     });
 
@@ -213,6 +264,68 @@ describe('Dialogue Service', () => {
 
       const topics = getAvailableTopics(mockGameState, 'npc_forget', mockSession, forgetfulNPC);
       expect(topics.map(t => t.id)).not.toContain('test_topic_ruins');
+    });
+  });
+
+  describe('Dynamic Rumors', () => {
+    it('should generate topics for faction-relevant rumors', () => {
+      const factionNPC = createMockNPC('npc_faction', undefined, 'faction_a');
+      const topics = getDynamicRumorTopics(mockGameState, factionNPC);
+
+      expect(topics.some(t => t.id === 'rumor_rumor_war')).toBe(true);
+    });
+
+    it('should generate topics for high virality rumors even if no faction match', () => {
+       const neutralNPC = createMockNPC('npc_neutral');
+       // mockRumor has virality 0.8
+       const topics = getDynamicRumorTopics(mockGameState, neutralNPC);
+       expect(topics.some(t => t.id === 'rumor_rumor_war')).toBe(true);
+    });
+
+    it('should generate topics for LOCAL rumors (Static NPC context)', () => {
+        // NPC is not in dynamic list, so we assume they are in currentLocationId ('loc_1')
+        // mockLocalRumor is at 'loc_1'
+        const staticLocalNPC = createMockNPC('npc_local');
+        const topics = getDynamicRumorTopics(mockGameState, staticLocalNPC);
+
+        expect(topics.some(t => t.id === 'rumor_rumor_local_theft')).toBe(true);
+    });
+
+    it('should NOT generate topics for low virality rumors with no connection', () => {
+        const secretRumor: WorldRumor = { ...mockRumor, id: 'secret', virality: 0.1, sourceFactionId: 'other' };
+        // Clean state with only the secret rumor
+        const state = { ...mockGameState, activeRumors: [secretRumor] } as unknown as GameState;
+
+        const neutralNPC = createMockNPC('npc_neutral');
+        const topics = getDynamicRumorTopics(state, neutralNPC);
+        expect(topics.length).toBe(0);
+    });
+
+    it('should NOT generate topics for EXPIRED rumors', () => {
+        // mockExpiredRumor has expiration 90, current day is 100
+        const neutralNPC = createMockNPC('npc_neutral');
+        const topics = getDynamicRumorTopics(mockGameState, neutralNPC);
+
+        expect(topics.some(t => t.id === 'rumor_rumor_old_news')).toBe(false);
+    });
+
+    it('should NOT pollute the global registry', () => {
+        const factionNPC = createMockNPC('npc_faction', undefined, 'faction_a');
+
+        // Before calling, ensure rumor topic isn't in registry
+        expect(getTopic('rumor_rumor_war')).toBeUndefined();
+
+        // Call getAvailableTopics (which calls getDynamicRumorTopics)
+        getAvailableTopics(mockGameState, 'npc_faction', mockSession, factionNPC);
+
+        // After calling, registry should STILL be undefined for the rumor
+        expect(getTopic('rumor_rumor_war')).toBeUndefined();
+    });
+
+    it('should verify processTopicSelection works with dynamic rumors despite not being in registry', () => {
+         const result = processTopicSelection('rumor_rumor_war', mockGameState, mockSession);
+         expect(result.status).toBe('neutral');
+         expect(result.responsePrompt).toContain('War is coming');
     });
   });
 
