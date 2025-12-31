@@ -257,14 +257,20 @@ export function generateNobleHouse(options: NobleHouseGenerationOptions): NobleH
   // 50% chance of a major house secret
   if (rng.next() > 0.5) {
       // Mock faction for secret generation (since we are creating it)
-      const mockFaction: any = { id: houseId, name: fullName };
+      // TODO(lint-intent): The any on 'mockFaction' hides the intended shape of this data.
+      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+      const mockFaction: unknown = { id: houseId, name: fullName };
       const secret = secretGen.generateFactionSecret(mockFaction, []);
       secret.tags.push('political');
       houseSecrets.push(secret);
   }
 
   // Generate Personal Secrets
-  members.forEach((member, idx) => {
+  // TODO(lint-intent): 'idx' is an unused parameter, which suggests a planned input for this flow.
+  // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+  // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+  members.forEach((member, _idx) => {
       // 30% chance of a personal secret
       if (rng.next() > 0.7) {
           const secret = secretGen.generateMemberSecret(member.id, `${member.firstName} ${member.lastName}`);

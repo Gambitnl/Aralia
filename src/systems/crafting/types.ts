@@ -16,7 +16,7 @@ export type CraftingStationType =
 
 export type CraftingQuality = 'poor' | 'standard' | 'superior' | 'masterwork';
 
-export type RecipeType = 'craft' | 'salvage' | 'enchant' | 'refine' | 'cooking';
+export type RecipeType = 'craft' | 'salvage' | 'enchant' | 'refine' | 'cooking' | 'scribing';
 
 export interface MaterialRequirement {
   itemId: string;

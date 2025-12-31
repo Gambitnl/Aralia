@@ -10,12 +10,14 @@ export interface TravelPaceEffect {
   stealthAdvantage: boolean;
   /** Modifier to passive perception scores (e.g. -5 for fast pace) */
   perceptionModifier: number;
+  /** Bonus/Penalty to Navigation checks (e.g. +5 for slow, -5 for fast) */
+  navigationModifier: number;
 }
 
 export const PACE_MODIFIERS: Record<TravelPace, TravelPaceEffect> = {
-  slow: { speedModifier: 0.67, stealthAdvantage: true, perceptionModifier: 0 }, // 5e: Able to use stealth
-  normal: { speedModifier: 1.0, stealthAdvantage: false, perceptionModifier: 0 },
-  fast: { speedModifier: 1.33, stealthAdvantage: false, perceptionModifier: -5 },
+  slow: { speedModifier: 0.67, stealthAdvantage: true, perceptionModifier: 0, navigationModifier: 5 }, // 5e: Slow pace grants +5 to navigation/tracking
+  normal: { speedModifier: 1.0, stealthAdvantage: false, perceptionModifier: 0, navigationModifier: 0 },
+  fast: { speedModifier: 1.33, stealthAdvantage: false, perceptionModifier: -5, navigationModifier: -5 }, // 5e: Fast pace imposes -5 to passive perception (and often navigation)
 };
 
 export const TERRAIN_TRAVEL_MODIFIERS: Record<TravelTerrain, number> = {
@@ -74,8 +76,14 @@ export interface TravelParameters {
 export interface GroupTravelParameters {
   origin: { x: number; y: number };
   destination: { x: number; y: number };
-  travelers: any[]; // Avoid circular dependency on PlayerCharacter, cast in service
-  inventories: Record<string, any[]>; // Avoid circular dependency on Item
+  // TODO(lint-intent): The any on 'travelers' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  travelers: unknown[]; // Avoid circular dependency on PlayerCharacter, cast in service
+  // TODO(lint-intent): The any on this value hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  inventories: Record<string, unknown[]>; // Avoid circular dependency on Item
   pace: TravelPace;
   /** Terrain type for the journey (defaults to 'open') */
   terrain?: TravelTerrain;
@@ -93,4 +101,19 @@ export interface TravelResult {
   usedTerrain: TravelTerrain;
   /** Number of random encounter checks required */
   encounterChecks: number;
+}
+
+export type TravelDirection = 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW';
+
+export interface NavigationResult {
+  /** Whether the navigation check was successful */
+  success: boolean;
+  /** The DC used for the check */
+  dc: number;
+  /** The roll result (d20 + mods) */
+  roll: number;
+  /** If lost, the direction the party actually moves */
+  driftDirection: TravelDirection | null;
+  /** Time spent confused or correcting course (hours) if failed */
+  timePenaltyHours: number;
 }

@@ -4,7 +4,7 @@
  * It allows browsing, filtering, and searching of discovered entries.
  */
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { GameState, DiscoveryEntry, DiscoveryType, DiscoveryFlag, DiscoverySource, NPC, KnownFact } from '../types';
+import { GameState, DiscoveryEntry, DiscoveryType, NPC, KnownFact } from '../types';
 import { formatGameDate, formatGameDateTime } from '@/utils/timeUtils';
 import Tooltip from './Tooltip';
 
@@ -38,28 +38,6 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
   const firstFocusableElementRef = useRef<HTMLButtonElement>(null);
   const listContainerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      firstFocusableElementRef.current?.focus();
-      // If opening and an entry was previously selected, try to re-select it or select first
-      if (selectedEntry && !entries.find(e => e.id === selectedEntry.id)) {
-         setSelectedEntry(filteredAndSortedEntries.length > 0 ? filteredAndSortedEntries[0] : null);
-      } else if (!selectedEntry && filteredAndSortedEntries.length > 0) {
-         setSelectedEntry(filteredAndSortedEntries[0]);
-         if(filteredAndSortedEntries[0] && !filteredAndSortedEntries[0].isRead) {
-           onMarkRead(filteredAndSortedEntries[0].id);
-         }
-      }
-    }
-  }, [isOpen]);
-
-  const handleEntrySelect = (entry: DiscoveryEntry) => {
-    setSelectedEntry(entry);
-    if (!entry.isRead) {
-      onMarkRead(entry.id);
-    }
-  };
-  
   const filteredAndSortedEntries = useMemo(() => {
     let processedEntries = [...entries];
 
@@ -95,6 +73,29 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
     }
     return processedEntries;
   }, [entries, filterType, searchTerm, sortOrder]);
+
+  useEffect(() => {
+    if (isOpen) {
+      firstFocusableElementRef.current?.focus();
+      // If opening and an entry was previously selected, try to re-select it or select first
+      if (selectedEntry && !entries.find(e => e.id === selectedEntry.id)) {
+         setSelectedEntry(filteredAndSortedEntries.length > 0 ? filteredAndSortedEntries[0] : null);
+      } else if (!selectedEntry && filteredAndSortedEntries.length > 0) {
+         setSelectedEntry(filteredAndSortedEntries[0]);
+         if(filteredAndSortedEntries[0] && !filteredAndSortedEntries[0].isRead) {
+           onMarkRead(filteredAndSortedEntries[0].id);
+         }
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  const handleEntrySelect = (entry: DiscoveryEntry) => {
+    setSelectedEntry(entry);
+    if (!entry.isRead) {
+      onMarkRead(entry.id);
+    }
+  };
 
   useEffect(() => {
     // If no entry is selected or the selected one is no longer in the filtered list, select the first one.
@@ -295,7 +296,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
                         <ul className="list-disc list-inside space-y-2 text-sm text-gray-300">
                         {consequences.map(({ npc, fact }) => (
                             <li key={fact.id}>
-                            <strong>{npc.name}</strong> learned that: <em>"{fact.text}"</em>
+                            <strong>{npc.name}</strong> learned that: <em>&quot;{fact.text}&quot;</em>
                             <span className="text-xs text-gray-500 ml-2">
                                 ({fact.source === 'gossip' ? `Heard from ${allNpcs[fact.sourceNpcId!]?.name || 'a traveler'}` : 'Learned directly'})
                             </span>

@@ -49,7 +49,14 @@ const NobleHouseList: React.FC<NobleHouseListProps> = ({ worldSeed, onClose }) =
                 <div className="w-8 h-8 rounded-full border-2" style={{ backgroundColor: house.colors.primary, borderColor: house.colors.secondary }} />
                 </div>
 
-                <p className="text-amber-200 italic font-serif text-lg">"{house.motto}"</p>
+
+
+                {/*
+                  TODO(lint-intent): This text includes raw quotes/special characters that were likely meant as prose.
+                  TODO(lint-intent): Decide whether to escape them, move text to a copy/localization layer, or pre-format it.
+                  TODO(lint-intent): If the text is dynamic, consider formatting/escaping before render to preserve intent.
+                */}
+                <p className="text-amber-200 italic font-serif text-lg">&quot;{house.motto}&quot;</p>
 
                 <p className="text-gray-300 text-sm">{house.description}</p>
 

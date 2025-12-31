@@ -30,7 +30,8 @@ const makeCharacter = (position: Position): CombatCharacter => ({
     id: 'target',
     name: 'Target',
     level: 1,
-    class: 'Wizard' as any,
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    class: 'Wizard' as unknown,
     position,
     stats: { ...baseStats },
     abilities: [],
@@ -77,7 +78,8 @@ describe('AreaEffectTracker', () => {
             trigger: { type: 'on_enter_area' },
             condition: { type: 'always' },
             damage: { dice: '1d6', type: 'Fire' }
-        } as any
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        } as unknown
 
         const tracker = new AreaEffectTracker([makeZone([effect])])
         const character = makeCharacter({ x: 0, y: 0 })
@@ -96,7 +98,8 @@ describe('AreaEffectTracker', () => {
             trigger: { type: 'on_enter_area', frequency: 'first_per_turn' },
             condition: { type: 'always' },
             damage: { dice: '1d6', type: 'Fire' }
-        } as any
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        } as unknown
 
         const zone = makeZone([effect])
         const tracker = new AreaEffectTracker([zone])
@@ -137,7 +140,8 @@ describe('AreaEffectTracker', () => {
             trigger: { type: 'on_exit_area' },
             condition: { type: 'always' },
             damage: { dice: '1d6', type: 'Fire' }
-        } as any
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        } as unknown
 
         const tracker = new AreaEffectTracker([makeZone([effect])])
         const character = makeCharacter({ x: 0, y: 0 })
@@ -156,7 +160,8 @@ describe('AreaEffectTracker', () => {
             trigger: { type: 'on_end_turn_in_area' },
             condition: { type: 'always' },
             damage: { dice: '1d6', type: 'Fire' }
-        } as any
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        } as unknown
 
         const tracker = new AreaEffectTracker([makeZone([effect])])
         const character = makeCharacter({ x: 0, y: 0 })

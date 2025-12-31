@@ -7,12 +7,15 @@ import {
     getAvailableUpgrades,
     purchaseUpgrade,
     calculateDefense,
-    generateThreat,
+    // TODO(lint-intent): 'generateThreat' is unused in this test; use it in the assertion path or remove it.
+    generateThreat as _generateThreat,
     resolveThreat,
     startMission,
-    UPGRADE_CATALOG
+    // TODO(lint-intent): 'UPGRADE_CATALOG' is unused in this test; use it in the assertion path or remove it.
+    UPGRADE_CATALOG as _UPGRADE_CATALOG
 } from '../strongholdService';
-import { Stronghold, ActiveThreat } from '../../types/stronghold';
+// TODO(lint-intent): 'Stronghold' is unused in this test; use it in the assertion path or remove it.
+import { Stronghold as _Stronghold, ActiveThreat } from '../../types/stronghold';
 
 describe('StrongholdService', () => {
     it('should create a stronghold with default resources and empty upgrades', () => {

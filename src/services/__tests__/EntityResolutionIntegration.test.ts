@@ -27,14 +27,17 @@ describe('Linker Gap Verification: Entity Resolution Integration', () => {
     vi.clearAllMocks();
 
     // Setup default mock behaviors
-    (EntityResolverService.resolveEntitiesInText as any).mockReturnValue([]);
-    (EntityResolverService.ensureEntityExists as any).mockResolvedValue({ created: false, entity: null });
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    (EntityResolverService.resolveEntitiesInText as unknown).mockReturnValue([]);
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    (EntityResolverService.ensureEntityExists as unknown).mockResolvedValue({ created: false, entity: null });
   });
 
   it('verifies that handleGeminiCustom NOW resolves entities from AI text', async () => {
     // 1. Mock AI output mentioning a new location
     const aiText = "You travel to the city of Silverdale.";
-    (GeminiService.generateActionOutcome as any).mockResolvedValue({
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    (GeminiService.generateActionOutcome as unknown).mockResolvedValue({
       data: { text: aiText },
       error: null
     });
@@ -42,9 +45,10 @@ describe('Linker Gap Verification: Entity Resolution Integration', () => {
     // 2. Mock Entity Resolver to find it
     const mockReference = { type: 'location', normalizedName: 'Silverdale', exists: false };
     const mockCreationResult = { entity: { id: 'silverdale', name: 'Silverdale' }, created: true, type: 'location' };
-
-    (EntityResolverService.resolveEntitiesInText as any).mockReturnValue([mockReference]);
-    (EntityResolverService.ensureEntityExists as any).mockResolvedValue(mockCreationResult);
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    (EntityResolverService.resolveEntitiesInText as unknown).mockReturnValue([mockReference]);
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    (EntityResolverService.ensureEntityExists as unknown).mockResolvedValue(mockCreationResult);
 
     // 3. Execute the action
     await handleGeminiCustom({

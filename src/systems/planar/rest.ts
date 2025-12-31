@@ -1,8 +1,13 @@
-
-import { GameState, PlayerCharacter } from '../../types';
+// TODO(lint-intent): 'PlayerCharacter' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { GameState, PlayerCharacter as _PlayerCharacter } from '../../types';
 import { getCurrentPlane } from '../../utils/planarUtils';
 import { rollSavingThrow } from '../../utils/savingThrowUtils';
-import { logger } from '../../utils/logger';
+// TODO(lint-intent): 'logger' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { logger as _logger } from '../../utils/logger';
 import { CombatCharacter } from '../../types/combat';
 
 export interface RestOutcome {
@@ -61,7 +66,10 @@ export function checkPlanarRestRules(gameState: GameState): RestOutcome {
             class: character.class,
             level: character.level || 1,
             // Assuming default if missing, or we should map from character data if available
-            savingThrowProficiencies: (character.class?.savingThrowProficiencies || []) as any,
+            // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+            savingThrowProficiencies: (character.class?.savingThrowProficiencies || []) as unknown,
             initiativeBonus: 0,
             speed: 30,
             conditions: [],

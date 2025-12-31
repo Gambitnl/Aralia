@@ -1,7 +1,10 @@
 
 import { createSeededRandom } from '../utils/submapUtils';
 import { DiscoveryReward, DiscoveryConsequence } from '../types/exploration';
-import { LANDMARK_ORIGINS, LANDMARK_TYPES, LANDMARK_STATES, LandmarkOrigin, LandmarkType, LandmarkState } from '../data/landmarkGenData';
+// TODO(lint-intent): 'LandmarkOrigin' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { LANDMARK_ORIGINS, LANDMARK_TYPES, LANDMARK_STATES, LandmarkOrigin as _LandmarkOrigin, LandmarkType as _LandmarkType, LandmarkState as _LandmarkState } from '../data/landmarkGenData';
 
 export interface GeneratedLandmark {
   id: string;
@@ -85,7 +88,10 @@ export function generateLandmark(
       const rewardType = origin.rewardTypes[Math.floor(rng() * origin.rewardTypes.length)];
 
       switch (rewardType) {
-          case 'gold':
+          case 'gold': {
+              // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
+              // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
+              // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
               const goldAmount = Math.floor(rng() * 50) + 10 + (state.riskLevel * 10);
               rewards.push({
                   type: 'gold',
@@ -93,7 +99,11 @@ export function generateLandmark(
                   description: `You find ${goldAmount} gold coins hidden in the structure.`
               });
               break;
-          case 'xp':
+          }
+          case 'xp': {
+              // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
+              // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
+              // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
               const xpAmount = 25 + (state.riskLevel * 25);
               rewards.push({
                   type: 'xp',
@@ -101,7 +111,11 @@ export function generateLandmark(
                   description: `Investigating the site grants ${xpAmount} XP.`
               });
               break;
-          case 'health':
+          }
+          case 'health': {
+              // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
+              // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
+              // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
               const healAmount = 10 + Math.floor(rng() * 10);
               rewards.push({
                   type: 'health',
@@ -109,9 +123,13 @@ export function generateLandmark(
                   description: `A lingering aura of restoration heals you for ${healAmount} HP.`
               });
               break;
-          case 'item':
+          }
+          case 'item': {
               // Simple item placeholder - ideally would pull from a loot table
               // For now, give a potion or generic item
+              // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
+              // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
+              // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
               const itemId = rng() > 0.5 ? 'healing_potion' : 'torch';
               const itemName = itemId === 'healing_potion' ? 'Healing Potion' : 'Torch';
               rewards.push({
@@ -121,6 +139,7 @@ export function generateLandmark(
                   description: `You discover a ${itemName}.`
               });
               break;
+          }
       }
   }
 

@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as SaveLoadService from '../saveLoadService';
-import { GameState, GamePhase, NotificationType } from '../../types';
-import { simpleHash } from '../../utils/hashUtils';
+// TODO(lint-intent): 'NotificationType' is unused in this test; use it in the assertion path or remove it.
+import { GameState, GamePhase, NotificationType as _NotificationType } from '../../types';
+// TODO(lint-intent): 'simpleHash' is unused in this test; use it in the assertion path or remove it.
+import { simpleHash as _simpleHash } from '../../utils/hashUtils';
 
 // Mock NotificationSystem callback
 const mockNotify = vi.fn();
@@ -9,7 +11,8 @@ const mockNotify = vi.fn();
 // Sample GameState for testing
 const mockGameState: GameState = {
     phase: GamePhase.PLAYING,
-    party: [{ id: 'char1', name: 'Hero', level: 5 } as any],
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    party: [{ id: 'char1', name: 'Hero', level: 5 } as unknown],
     tempParty: null,
     inventory: [],
     gold: 100,
@@ -195,7 +198,8 @@ describe('SaveLoadService', () => {
 
         it('should retrieve multiple slots sorted by date', async () => {
              // Save slot 1
-             const state1 = { ...mockGameState, saveTimestamp: 1000 };
+             // TODO(lint-intent): 'state1' is unused in this test; use it in the assertion path or remove it.
+             const _state1 = { ...mockGameState, saveTimestamp: 1000 };
              // Use mock timers to ensure distinct timestamps if needed,
              // but here we are setting saveTimestamp manually in the state object passed to internal logic?
              // Actually saveGame overwrites saveTimestamp with Date.now().

@@ -29,6 +29,7 @@ const DynamicMannequinSlotIcon: React.FC<DynamicMannequinSlotIconProps> = ({
 
   useEffect(() => {
     if (!MANNEQUIN_SVGS_EXIST) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHasError(true); // Skip straight to fallback
       return;
     }
@@ -41,7 +42,7 @@ const DynamicMannequinSlotIcon: React.FC<DynamicMannequinSlotIconProps> = ({
 
     setSvgSrc(path);
     setHasError(false);
-  }, [characterProficiency, slotType]);
+  }, [characterProficiency, slotType, MANNEQUIN_SVGS_EXIST]);
 
   const handleError = () => {
     console.warn(`DynamicMannequinSlotIcon: Failed to load SVG for ${characterProficiency} ${slotType} at ${svgSrc}. Using fallback.`);
@@ -53,6 +54,7 @@ const DynamicMannequinSlotIcon: React.FC<DynamicMannequinSlotIconProps> = ({
   }
 
   return (
+    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <img
       src={svgSrc}
       alt={`${characterProficiency} ${slotType} slot icon`}

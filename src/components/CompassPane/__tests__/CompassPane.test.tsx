@@ -5,14 +5,15 @@ import CompassPane from '../index';
 import { Location } from '../../../types';
 
 // Define enums for the mock
-enum Season {
+// TODO(lint-intent): 'Season' is unused in this test; use it in the assertion path or remove it.
+enum _Season {
   Spring = 'Spring',
   Summer = 'Summer',
   Autumn = 'Autumn',
   Winter = 'Winter',
 }
-
-enum TimeOfDay {
+// TODO(lint-intent): 'TimeOfDay' is unused in this test; use it in the assertion path or remove it.
+enum _TimeOfDay {
   Dawn = 'Dawn',
   Day = 'Day',
   Dusk = 'Dusk',

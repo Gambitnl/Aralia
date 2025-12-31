@@ -5,7 +5,7 @@
  */
 import React, { useState } from 'react';
 import { AbilityScores } from '../../../types'; // Path relative to src/components/CharacterCreator/Human/
-import { SKILLS_DATA } from '../../../constants'; // Path relative to src/components/CharacterCreator/Human/
+import { SKILLS_DATA } from '../../../data/skills';
 
 interface HumanSkillSelectionProps {
   abilityScores: AbilityScores; // For displaying modifiers

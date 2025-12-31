@@ -59,8 +59,14 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
 
         case 'TRIGGER_DEITY_ACTION': {
             const { trigger } = action.payload;
-            const updates: Record<string, any> = {};
-            const messages: any[] = [];
+            // TODO(lint-intent): The any on this value hides the intended shape of this data.
+            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+            const updates: Record<string, unknown> = {};
+            // TODO(lint-intent): The any on 'messages' hides the intended shape of this data.
+            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+            const messages: unknown[] = [];
             const timestamp = Date.now();
 
             // Iterate over all deities to see if they care about this action
@@ -108,7 +114,10 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
         }
 
         case 'USE_TEMPLE_SERVICE': {
-            const { templeId, deityId, cost, effect } = action.payload;
+            // TODO(lint-intent): 'templeId' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+            // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+            // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+            const { templeId: _templeId, deityId, cost, effect } = action.payload;
 
             // Deduct gold
             if (state.gold < cost) return {}; // Should be checked by UI but safety first

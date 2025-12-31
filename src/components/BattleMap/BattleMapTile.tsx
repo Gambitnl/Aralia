@@ -12,9 +12,10 @@ interface BattleMapTileProps {
   isTargetable: boolean;
   isAoePreview: boolean;
   onTileClick: (tile: BattleMapTileData) => void;
+  onTileHover?: (tile: BattleMapTileData) => void;
 }
 
-const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidMove, isInPath, isTargetable, isAoePreview, onTileClick }) => {
+const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidMove, isInPath, isTargetable, isAoePreview, onTileClick, onTileHover }) => {
   const getTerrainColor = (terrain: string) => {
     switch (terrain) {
       case 'grass': return 'bg-green-800';
@@ -68,6 +69,7 @@ const BattleMapTile: React.FC<BattleMapTileProps> = React.memo(({ tile, isValidM
     <div
       className={`${tileBaseClasses} ${terrainColor} relative transition-colors duration-150`}
       onClick={handleActivate}
+      onMouseEnter={() => onTileHover?.(tile)}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();

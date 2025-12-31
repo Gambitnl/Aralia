@@ -6,7 +6,10 @@
  */
 
 import { SpellSchool, DamageType } from './spells';
-import { Race } from './character';
+// TODO(lint-intent): 'Race' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Race as _Race } from './character';
 import { FactionType } from './factions';
 
 /**

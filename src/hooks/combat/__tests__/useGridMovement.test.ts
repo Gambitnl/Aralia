@@ -6,7 +6,8 @@ import { vi, describe, it, expect } from 'vitest';
 
 // Mock pathfinding
 vi.mock('../../../utils/pathfinding', () => ({
-  findPath: vi.fn((start, end, mapData) => {
+  // TODO(lint-intent): 'mapData' is unused in this test; use it in the assertion path or remove it.
+  findPath: vi.fn((start, end, _mapData) => {
     // Simple mock path: just start and end
     return [start, end];
   })
@@ -40,14 +41,16 @@ describe('useGridMovement', () => {
         freeActions: 1
     },
     position: { x: 0, y: 0 },
-    stats: { speed: 30 } as any,
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    stats: { speed: 30 } as unknown,
     abilities: [],
     team: 'player',
     currentHP: 10,
     maxHP: 10,
     initiative: 10,
     statusEffects: [],
-    class: { name: 'Fighter' } as any
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    class: { name: 'Fighter' } as unknown
   };
 
   it('should initialize with empty state when no character selected', () => {
@@ -102,7 +105,8 @@ describe('useGridMovement', () => {
   });
 
   it('should clear state (only active path, as validMoves is derived)', () => {
-    const { result, rerender } = renderHook((props) => useGridMovement(props), {
+    // TODO(lint-intent): 'rerender' is unused in this test; use it in the assertion path or remove it.
+    const { result, rerender: _rerender } = renderHook((props) => useGridMovement(props), {
         initialProps: {
             mapData: mockMapData,
             characterPositions: mockCharacterPositions,

@@ -1,5 +1,5 @@
-
-import { renderHook, act, waitFor } from '@testing-library/react';
+// TODO(lint-intent): 'waitFor' is unused in this test; use it in the assertion path or remove it.
+import { renderHook, act, waitFor as _waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAbilitySystem } from '../useAbilitySystem';
 import { CombatCharacter, Ability } from '../../types/combat';
@@ -55,7 +55,8 @@ const shieldSpell: Spell = {
         condition: { type: 'always' },
         reactionTrigger: { event: 'when_hit' }
     }]
-} as any;
+// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+} as unknown;
 
 const attacker: CombatCharacter = {
     id: 'attacker',
@@ -69,7 +70,8 @@ const attacker: CombatCharacter = {
     actionEconomy: { reaction: { remaining: 1, used: false }, action: {}, bonusAction: {}, movement: {} },
     statusEffects: [],
     level: 1
-} as any;
+// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+} as unknown;
 
 const defender: CombatCharacter = {
     id: 'defender',
@@ -80,11 +82,13 @@ const defender: CombatCharacter = {
     maxHP: 10,
     armorClass: 10, // Low AC to ensure hit
     stats: { dexterity: 10 },
-    abilities: [{ id: 'shield-ab', spell: shieldSpell, type: 'spell' } as any],
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    abilities: [{ id: 'shield-ab', spell: shieldSpell, type: 'spell' } as unknown],
     actionEconomy: { reaction: { remaining: 1, used: false }, action: {}, bonusAction: {}, movement: {} },
     statusEffects: [],
     level: 1
-} as any;
+// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+} as unknown;
 
 const swordItem: Item = {
     id: 'sword',
@@ -109,7 +113,8 @@ const basicAttack: Ability = {
     cost: { type: 'action' },
     isProficient: true,
     weapon: swordItem
-} as any;
+// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+} as unknown;
 
 describe('useAbilitySystem - Reactions', () => {
     const mockExecuteAction = vi.fn(() => true);
@@ -149,7 +154,8 @@ describe('useAbilitySystem - Reactions', () => {
     it('should execute command via AbilityCommandFactory', async () => {
          const { result } = renderHook(() => useAbilitySystem({
             characters: [attacker, defender],
-            mapData: { tiles: new Map([['0-0', {}], ['1-0', {}]]), dimensions: { width: 10, height: 10 } } as any,
+            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+            mapData: { tiles: new Map([['0-0', {}], ['1-0', {}]]), dimensions: { width: 10, height: 10 } } as unknown,
             onExecuteAction: mockExecuteAction,
             onCharacterUpdate: mockCharacterUpdate,
             onLogEntry: mockLogEntry,
@@ -157,7 +163,8 @@ describe('useAbilitySystem - Reactions', () => {
         }));
 
         await act(async () => {
-            (result.current.executeAbility as any)(
+            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+            (result.current.executeAbility as unknown)(
                 basicAttack,
                 attacker,
                 defender.position,

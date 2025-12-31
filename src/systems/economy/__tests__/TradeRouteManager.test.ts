@@ -1,7 +1,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { processDailyRoutes } from '../TradeRouteManager';
-import { GameState, TradeRoute } from '../../../types';
+// TODO(lint-intent): 'TradeRoute' is unused in this test; use it in the assertion path or remove it.
+import { GameState, TradeRoute as _TradeRoute } from '../../../types';
 import { SeededRandom } from '../../../utils/seededRandom';
 
 describe('TradeRouteManager', () => {
@@ -49,7 +50,8 @@ describe('TradeRouteManager', () => {
         // Wait, max risk is 1.0. So check is roll < 0.1.
 
         // Let's force RNG to be low
-        const rng = new SeededRandom(1);
+        // TODO(lint-intent): 'rng' is unused in this test; use it in the assertion path or remove it.
+        const _rng = new SeededRandom(1);
         // We need to find a seed or mock rng.
         // Or just trust the logic: roll < 0.1
 

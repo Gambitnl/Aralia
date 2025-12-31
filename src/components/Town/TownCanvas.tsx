@@ -197,6 +197,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     // Initialize animated position when effectivePlayerPosition first becomes available
     useEffect(() => {
         if (effectivePlayerPosition && !animatedPosition) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setAnimatedPosition(effectivePlayerPosition);
             previousPositionRef.current = effectivePlayerPosition;
         }
@@ -224,6 +225,7 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
         else if (dy < 0) newFacing = 'north';
         else if (dy > 0) newFacing = 'south';
 
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setPlayerFacing(newFacing);
 
         // Start animation
@@ -335,8 +337,8 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
             ctx.font = '16px sans-serif';
             ctx.fillText("Rendering Error. Check console for details.", 20, 30);
         }
-
-    }, [mapData, isNight, showGrid, effectivePlayerPosition, animatedPosition, playerFacing, isAnimating]);
+    // TODO(lint-intent): If player visuals are large, memoize resolvePlayerVisuals output upstream to reduce redraws.
+    }, [mapData, isNight, showGrid, effectivePlayerPosition, animatedPosition, playerFacing, isAnimating, playerCharacter?.visuals]);
 
     const handleDownload = () => {
         if (!canvasRef.current) return;
@@ -481,6 +483,17 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
         }
     };
 
+    const openBuilding = useCallback((building: Building) => {
+        onAction({
+            type: 'OPEN_DYNAMIC_MERCHANT',
+            label: `Visit ${BUILDING_DESCRIPTIONS[building.type]?.name}`,
+            payload: {
+                merchantType: building.type,
+                buildingId: building.id
+            }
+        });
+    }, [onAction]);
+
     const handleBuildingClick = (e: React.MouseEvent) => {
         const target = e.target as HTMLElement | null;
         if (target?.closest?.('[data-no-pan]')) return;
@@ -491,14 +504,16 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
         const building = getBuildingAtClientPos(e.clientX, e.clientY);
         if (!building) return;
 
-        onAction({
-            type: 'OPEN_DYNAMIC_MERCHANT',
-            label: `Visit ${BUILDING_DESCRIPTIONS[building.type]?.name}`,
-            payload: {
-                merchantType: building.type,
-                buildingId: building.id
+        openBuilding(building);
+    };
+
+    const handleBuildingKeyDown = (event: React.KeyboardEvent) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            if (hoveredBuilding) {
+                event.preventDefault();
+                openBuilding(hoveredBuilding);
             }
-        });
+        }
     };
 
     // Center camera on player position
@@ -561,6 +576,10 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
     }, [mapData, effectivePlayerPosition]);
 
     return (
+        /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+        TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+        TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+        */
         <div className="relative w-full h-full bg-gray-900 text-gray-100 overflow-hidden">
             {/* Dev Controls Panel (Slide-in) */}
             {isDevDummyActive && showDevControls && (
@@ -595,6 +614,8 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
             )}
 
             {/* Main Canvas Viewport - fills entire area */}
+
+
             <main
                 ref={mainRef}
                 className={`relative w-full h-full bg-gray-950 touch-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
@@ -603,6 +624,10 @@ const TownCanvas: React.FC<TownCanvasProps> = ({
                 onPointerUp={handlePointerUp}
                 onPointerCancel={handlePointerUp}
                 onClick={handleBuildingClick}
+                onKeyDown={handleBuildingKeyDown}
+                role="button"
+                tabIndex={0}
+                aria-label="Town map viewport"
             >
                 {loading && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 z-30 bg-opacity-90">

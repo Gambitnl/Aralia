@@ -4,7 +4,8 @@ import {
     calculateFavorChange,
     getDivineStanding,
     canAffordService,
-    getDeity,
+    // TODO(lint-intent): 'getDeity' is unused in this test; use it in the assertion path or remove it.
+    getDeity as _getDeity,
     evaluateAction,
     grantBlessing
 } from '../religionUtils';

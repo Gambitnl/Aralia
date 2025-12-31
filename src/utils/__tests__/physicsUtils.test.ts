@@ -23,7 +23,8 @@ describe('physicsUtils', () => {
     });
 
     it('handles fallback', () => {
-      // @ts-ignore
+      // TODO(lint-intent): Confirm the ts-expect-error is still needed or fix the type at the source.
+      // @ts-expect-error - invalid material coverage
       expect(getObjectAC('plastic')).toBe(10);
     });
   });

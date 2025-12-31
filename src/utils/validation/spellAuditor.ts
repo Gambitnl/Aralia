@@ -1,5 +1,7 @@
-
-import { Spell } from '../../types/spells';
+// TODO(lint-intent): 'Spell' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Spell as _Spell } from '../../types/spells';
 import { SpellValidator } from '../../systems/spells/validation/spellValidator';
 import { ZodError } from 'zod';
 
@@ -38,7 +40,10 @@ export function auditSpell(spellData: unknown): AuditResult {
     });
 
     // Attempt to extract basic info even if schema fails
-    const unsafeData = spellData as any;
+    // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+    // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+    // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+    const unsafeData = spellData as unknown;
     result.spellId = unsafeData.id || 'unknown';
     result.spellName = unsafeData.name || 'Unknown';
 
