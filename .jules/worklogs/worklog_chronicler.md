@@ -12,3 +12,10 @@
 ## 2025-12-23 - World Context in Static Generators
 **Learning:** Static generators (like Merchant Inventory) often run in isolation, missing critical world state (Weather, War, Time).
 **Action:** Propagate the `generalActionContext` string into these generators. Even if the generator is 'static' (inventory), the world state provides crucial flavor (winter clothes in winter, torches at night).
+## 2025-12-29 - Improved Action Outcome Prompt
+**Context:** The AI narrative response for player actions was generic and occasionally broke character or missed critical context.
+**Options considered:**
+- Option A: Just update the System Instruction.
+- Option B: Update both System Instruction and Prompt Structure to be explicit about 'QUEST RELEVANCE'.
+**Chosen:** Option B.
+**Rationale:** The context generator already provides 'QUEST RELEVANCE (CRITICAL)', but the AI wasn't explicitly told to look for it. Adding this instruction directly connects the data pipeline to the narrative output. Also strengthened the anti-hallucination guidelines.

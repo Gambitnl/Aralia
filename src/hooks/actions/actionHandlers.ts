@@ -136,10 +136,16 @@ export function buildActionHandlers({
     },
 
     // Observation and situational analysis (handleObservation.ts).
-    look_around: async (action) => {
+    // TODO(lint-intent): 'action' is an unused parameter, which suggests a planned input for this flow.
+    // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+    // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+    look_around: async (_action) => {
       await handleLookAround({ gameState, dispatch, addMessage, addGeminiLog, generalActionContext, getTileTooltipText });
     },
-    ANALYZE_SITUATION: async (action) => {
+    // TODO(lint-intent): 'action' is an unused parameter, which suggests a planned input for this flow.
+    // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+    // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+    ANALYZE_SITUATION: async (_action) => {
       await handleAnalyzeSituation({ gameState, dispatch, addMessage, addGeminiLog, generalActionContext });
     },
     inspect_submap_tile: async (action) => {

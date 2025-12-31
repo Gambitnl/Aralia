@@ -4,7 +4,7 @@
  * It uses React Portals to render the tooltip into document.body, allowing it to escape parent clipping.
  * Position is calculated dynamically using JavaScript to stay within viewport bounds.
  */
-import React, { useState, useRef, useEffect, useCallback, ReactElement, HTMLAttributes } from 'react';
+import React, { useState, useRef, useEffect, useCallback, ReactElement, HTMLAttributes, useId } from 'react';
 import ReactDOM from 'react-dom';
 
 interface TooltipProps {
@@ -24,8 +24,7 @@ const Tooltip: React.FC<TooltipProps> = ({
   const ARROW_HEIGHT = 0; 
   const TOOLTIP_MARGIN = 8;
 
-  const tooltipIdRef = useRef(`tooltip-${Math.random().toString(36).substr(2, 9)}`);
-  const tooltipId = tooltipIdRef.current;
+  const tooltipId = useId();
 
   // TODO(QOL): Exercise extreme edge/corner placements and refine margin/flip rules if any clipping persists (see docs/QOL_TODO.md; if this block is moved/refactored/modularized, update the QOL_TODO entry path).
   const calculateAndSetPosition = useCallback(() => {
@@ -150,6 +149,7 @@ const Tooltip: React.FC<TooltipProps> = ({
   };
 
   // Type of children now ensures it can accept these props, so 'as any' is removed.
+  // eslint-disable-next-line react-hooks/refs
   const triggerElement = React.cloneElement(children, propsForClonedElement);
 
   return (

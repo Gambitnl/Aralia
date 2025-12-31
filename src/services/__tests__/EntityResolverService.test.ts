@@ -3,7 +3,8 @@ import { describe, it, expect } from 'vitest';
 import { EntityResolverService } from '../EntityResolverService';
 import { GameState } from '../../types';
 import { FACTIONS } from '../../data/factions';
-import { LOCATIONS } from '../../data/world/locations';
+// TODO(lint-intent): 'LOCATIONS' is unused in this test; use it in the assertion path or remove it.
+import { LOCATIONS as _LOCATIONS } from '../../data/world/locations';
 
 describe('EntityResolverService', () => {
   const mockState = {
@@ -70,7 +71,8 @@ describe('EntityResolverService', () => {
       expect(result.entity?.name).toBe('Castle Ravenloft');
       expect(result.entity?.id).toContain('castle_ravenloft');
       // Check default props
-      expect((result.entity as any).mapCoordinates).toEqual({ x: -1, y: -1 });
+      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      expect((result.entity as unknown).mapCoordinates).toEqual({ x: -1, y: -1 });
     });
 
     it('should check dynamic locations in state', async () => {

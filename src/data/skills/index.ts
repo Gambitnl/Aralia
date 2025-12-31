@@ -2,7 +2,10 @@
  * @file src/data/skills/index.ts
  * Defines all skill data for the Aralia RPG.
  */
-import { Skill, AbilityScoreName } from '../../types';
+// TODO(lint-intent): 'AbilityScoreName' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Skill, AbilityScoreName as _AbilityScoreName } from '../../types';
 
 export const SKILLS_DATA: Record<string, Skill> = {
   'acrobatics': { id: 'acrobatics', name: 'Acrobatics', ability: 'Dexterity' },

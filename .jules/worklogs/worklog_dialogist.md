@@ -22,3 +22,11 @@
 ## 2025-10-26 - Transactional Dialogue
 **Learning:** Simply having `min_gold` as a prerequisite does not consume the resource. To implement bribes and trading, a separate `costs` array and `deductions` result field are needed to signal the reducer to remove items/gold.
 **Action:** Use `TopicCost` structure for any topic that requires consumption of resources, and ensure the reducer handles the `deductions` field in `ProcessTopicResult`.
+
+## 2025-12-29 - Dialogue Persistence Gap
+**Learning:** The dialogue system previously tracked discussed topics only in the transient , losing this state when the session ended. NPC Memory had a  field but it was unused.
+**Action:** Implemented  action to update both session and NPC memory simultaneously, ensuring long-term persistence of conversations.
+
+## 2025-12-29 - Dialogue Persistence Gap
+**Learning:** The dialogue system previously tracked discussed topics only in the transient DialogueSession, losing this state when the session ended. NPC Memory had a discussedTopics field but it was unused.
+**Action:** Implemented DISCUSS_TOPIC action to update both session and NPC memory simultaneously, ensuring long-term persistence of conversations.

@@ -1,6 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
-import { getWeatherModifiers, getTerrainMovementCost, TERRAIN_RULES } from '../EnvironmentSystem';
+// TODO(lint-intent): 'TERRAIN_RULES' is unused in this test; use it in the assertion path or remove it.
+import { getWeatherModifiers, getTerrainMovementCost, TERRAIN_RULES as _TERRAIN_RULES } from '../EnvironmentSystem';
 import { WeatherState } from '../../types/environment';
 import { Spell } from '../../types/spells';
 

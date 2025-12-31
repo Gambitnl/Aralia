@@ -4,8 +4,10 @@ import { handleMovement } from '../handleMovement';
 import { generateTravelEvent } from '../../../services/travelEventService';
 import { TravelEvent } from '../../../types/exploration';
 import { GameState, PlayerCharacter } from '../../../types';
-import { DIRECTION_VECTORS } from '../../../config/mapConfig';
-import { LOCATIONS } from '../../../constants';
+// TODO(lint-intent): 'DIRECTION_VECTORS' is unused in this test; use it in the assertion path or remove it.
+import { DIRECTION_VECTORS as _DIRECTION_VECTORS } from '../../../config/mapConfig';
+// TODO(lint-intent): 'LOCATIONS' is unused in this test; use it in the assertion path or remove it.
+import { LOCATIONS as _LOCATIONS } from '../../../constants';
 
 // Mock dependencies
 vi.mock('../../../services/travelEventService');
@@ -33,7 +35,8 @@ const mockPlayer: PlayerCharacter = {
   finalAbilityScores: { strength: 14, dexterity: 12, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 },
   skills: [{ id: 'athletics', name: 'Athletics', bonus: 4 }], // Proficient in Athletics
   transportMode: 'foot'
-} as any;
+// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+} as unknown;
 
 // Use a simplified map setup to ensure valid movement
 const mockGameState: GameState = {
@@ -56,7 +59,8 @@ const mockGameState: GameState = {
   activeRumors: [],
   factions: {},
   currentLocationActiveDynamicNpcIds: []
-} as any;
+// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+} as unknown;
 
 describe('handleMovement - Skill Check Events', () => {
   beforeEach(() => {
@@ -78,8 +82,8 @@ describe('handleMovement - Skill Check Events', () => {
       },
       effect: { type: 'delay', amount: 1, description: 'Default Delay' }
     };
-
-    (generateTravelEvent as any).mockReturnValue(skillEvent);
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    (generateTravelEvent as unknown).mockReturnValue(skillEvent);
 
     await handleMovement({
       action: { type: 'MOVE', targetId: 'North', label: 'Move North' }, // Use 'North' (capitalized) to match DIRECTION_VECTORS keys
@@ -113,8 +117,8 @@ describe('handleMovement - Skill Check Events', () => {
       },
       effect: { type: 'delay', amount: 1 } // Fallback
     };
-
-    (generateTravelEvent as any).mockReturnValue(skillEvent);
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    (generateTravelEvent as unknown).mockReturnValue(skillEvent);
 
     await handleMovement({
       action: { type: 'MOVE', targetId: 'North', label: 'Move North' }, // Use 'North'

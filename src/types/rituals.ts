@@ -1,78 +1,112 @@
 /**
  * @file src/types/rituals.ts
  * Defines the state and mechanics for long-duration ritual casting.
+ * "Time is part of the magic."
  */
-
-import { Spell, Components, SavingThrowAbility } from './spells';
-import { CombatCharacter } from './combat';
+// TODO(lint-intent): 'Spell' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Spell as _Spell, SavingThrowAbility } from './spells';
 
 /**
- * Tracks an ongoing ritual being cast.
- * Rituals generally take the spell's casting time + 10 minutes.
+ * Represents the current state of a ritual being cast.
+ * Attached to a character (e.g., character.currentRitual).
  */
 export interface RitualState {
-  id: string; // Unique ID for this specific ritual instance
-  spell: Spell;
+  id: string;
+  spellId: string;
+  spellName: string;
   casterId: string;
 
-  // Timing
-  startTime: number; // Gametime timestamp
-  durationMinutes: number; // Total duration required (Casting Time + 10m)
-  progressMinutes: number; // Current progress in minutes
+  /** When the ritual started (game time or round number) */
+  startTime: number;
 
-  // Participation
-  participantIds: string[]; // IDs of characters helping
-  participationBonus: number; // Bonus to interruption saves from participants
+  /** Total duration required in rounds (for combat) or minutes (for narrative) */
+  durationTotal: number;
+  durationUnit: 'rounds' | 'minutes' | 'hours';
 
-  // State
-  isComplete: boolean;
-  interrupted: boolean;
-  interruptionReason?: string;
+  /** Current progress (same unit as durationTotal) */
+  progress: number;
 
-  // Conditions that can break the ritual
+  /** If true, the ritual is paused but not broken */
+  isPaused: boolean;
+
+  /** Participants helping with the ritual (for group casting) */
+  participantIds: string[];
+
+  /** Conditions that will break the ritual */
   interruptConditions: InterruptCondition[];
 
-  // Material Tracking
-  materialsConsumed: boolean;
-  consumptionThreshold: number; // 0.0 to 1.0, progress point where materials are consumed
+  /** Config for the ritual */
+  config: RitualConfig;
 
-  // Consequences for failure
+  /** If true, the ritual was interrupted and failed */
+  interrupted?: boolean;
+
+  /** The reason for the interruption */
+  interruptionReason?: string;
+
+  // --- Extended State ---
+
+  /** Have materials been consumed yet? */
+  materialsConsumed?: boolean;
+
+  /** Consequences for failure */
   backlash?: RitualBacklash[];
 }
 
 /**
- * Defines a condition that might interrupt a ritual.
+ * Static configuration for a ritual, derived from the Spell definition.
  */
-export interface InterruptCondition {
-  type: 'damage' | 'movement' | 'noise' | 'distraction' | 'incapacitated';
-  threshold?: number; // e.g., damage amount > 0, moved > 5 feet
-  saveToResist?: {
-    ability: SavingThrowAbility;
-    dcCalculation: 'damage_taken' | 'fixed';
-    fixedDC?: number;
-  };
+export interface RitualConfig {
+  /** Does taking damage trigger a concentration check? */
+  breaksOnDamage: boolean;
+
+  /** Does moving break the ritual? */
+  breaksOnMove: boolean;
+
+  /** Can the caster take other actions (e.g., bonus actions) without breaking? */
+  requiresConcentration: boolean;
+
+  /** Can others join to speed it up? */
+  allowCooperation: boolean;
+
+  /** Materials consumed per turn/minute vs at end */
+  consumptionTiming: 'start' | 'end' | 'continuous';
+
+  /** Progress point (0.0 - 1.0) where materials are consumed. Default 1.0 (end) or 0.0 (start) */
+  consumptionThreshold?: number;
 }
 
 /**
- * The result of checking for an interruption.
+ * Condition that can interrupt a ritual.
+ */
+export interface InterruptCondition {
+  type: 'damage' | 'movement' | 'silence' | 'incapacitated' | 'action' | 'noise' | 'distraction';
+
+  /** Minimum damage/movement to trigger check */
+  threshold?: number;
+
+  /** If set, caster can save to maintain ritual */
+  saveType?: SavingThrowAbility;
+
+  /** Fixed DC or calculated? */
+  dcCalculation?: 'damage_half' | 'fixed_10' | 'custom' | 'damage_taken';
+
+  /** Fixed DC value if calculation is fixed */
+  fixedDC?: number;
+}
+
+/**
+ * Result of checking a ritual interrupt event.
  */
 export interface InterruptResult {
   interrupted: boolean;
+  ritualBroken: boolean;
   reason?: string;
-  canSave: boolean;
+  saveRequired?: boolean;
+  saveType?: string;
   saveDC?: number;
-  saveAbility?: SavingThrowAbility;
-}
-
-/**
- * Event that might trigger an interruption.
- */
-export interface RitualEvent {
-  // Added 'incapacitated', 'noise', 'distraction' to match InterruptCondition types
-  type: 'damage' | 'movement' | 'action' | 'status_change' | 'incapacitated' | 'noise' | 'distraction';
-  targetId: string; // Who did this happen to?
-  value?: number; // Amount of damage, distance moved, etc.
-  tags?: string[]; // e.g., ["loud", "shove"]
 }
 
 // -----------------------------------------------------------------------------
@@ -92,12 +126,20 @@ export interface RitualRequirement {
  * Context provided to validate ritual requirements.
  */
 export interface RitualContext {
-  currentTime?: number; // Gametime
-  isDaytime?: boolean;
+  currentTime?: Date; // Game time as Date object
   locationId?: string;
   locationType?: 'indoors' | 'outdoors' | 'underground';
   biomeId?: string;
   weather?: string; // 'clear', 'rain', 'storm'
+  participantCount?: number;
+}
+
+/**
+ * Result of a requirement validation.
+ */
+export interface RequirementValidationResult {
+  valid: boolean;
+  failureReason?: string;
 }
 
 // -----------------------------------------------------------------------------

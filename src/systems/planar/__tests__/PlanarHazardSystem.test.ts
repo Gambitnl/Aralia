@@ -1,9 +1,11 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { PlanarHazardSystem, HazardOutcome } from '../PlanarHazardSystem';
+// TODO(lint-intent): 'HazardOutcome' is unused in this test; use it in the assertion path or remove it.
+import { PlanarHazardSystem, HazardOutcome as _HazardOutcome } from '../PlanarHazardSystem';
 import { GameState, PlayerCharacter, Location } from '../../../types';
 import { getCurrentPlane } from '../../../utils/planarUtils';
-import { createPlayerCombatCharacter } from '../../../utils/combatUtils';
+// TODO(lint-intent): 'createPlayerCombatCharacter' is unused in this test; use it in the assertion path or remove it.
+import { createPlayerCombatCharacter as _createPlayerCombatCharacter } from '../../../utils/combatUtils';
 import { rollSavingThrow } from '../../../utils/savingThrowUtils';
 
 // Mock dependencies
@@ -44,13 +46,16 @@ describe('PlanarHazardSystem', () => {
     name: 'Hero',
     hp: 20,
     maxHp: 20,
-    race: { id: 'human', name: 'Human' } as any,
-    class: { id: 'fighter', name: 'Fighter' } as any,
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    race: { id: 'human', name: 'Human' } as unknown,
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    class: { id: 'fighter', name: 'Fighter' } as unknown,
     level: 1,
     finalAbilityScores: {
       Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10
     }
-  } as any;
+  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+  } as unknown;
 
   beforeEach(() => {
     mockGameState = {
@@ -60,7 +65,8 @@ describe('PlanarHazardSystem', () => {
       inventory: [],
       quests: [],
       notifications: []
-    } as any;
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    } as unknown;
 
     vi.clearAllMocks();
   });
@@ -72,7 +78,8 @@ describe('PlanarHazardSystem', () => {
       hazards: [],
       traits: [],
       effects: {},
-    } as any);
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    } as unknown);
 
     const result = PlanarHazardSystem.processPeriodicHazards(mockGameState, 10);
     expect(result.events).toHaveLength(0);
@@ -86,7 +93,8 @@ describe('PlanarHazardSystem', () => {
       hazards: [],
       traits: [],
       effects: { psychicDamagePerMinute: 2 },
-    } as any);
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    } as unknown);
 
     const result = PlanarHazardSystem.processPeriodicHazards(mockGameState, 5); // 5 minutes
 
@@ -109,10 +117,12 @@ describe('PlanarHazardSystem', () => {
       }],
       traits: [],
       effects: {},
-    } as any);
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    } as unknown);
 
     // Mock failed save
-    vi.mocked(rollSavingThrow).mockReturnValue({ success: false, total: 10 } as any);
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    vi.mocked(rollSavingThrow).mockReturnValue({ success: false, total: 10 } as unknown);
 
     const result = PlanarHazardSystem.processPeriodicHazards(mockGameState, 1);
 
@@ -136,10 +146,12 @@ describe('PlanarHazardSystem', () => {
       }],
       traits: [],
       effects: {},
-    } as any);
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    } as unknown);
 
     // Mock successful save
-    vi.mocked(rollSavingThrow).mockReturnValue({ success: true, total: 20 } as any);
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    vi.mocked(rollSavingThrow).mockReturnValue({ success: true, total: 20 } as unknown);
 
     const result = PlanarHazardSystem.processPeriodicHazards(mockGameState, 1);
 

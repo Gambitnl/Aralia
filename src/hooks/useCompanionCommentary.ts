@@ -130,6 +130,7 @@ export const useCompanionCommentary = (
   useEffect(() => {
     if (gameState.currentLocationId !== prevLocationRef.current) {
       prevLocationRef.current = gameState.currentLocationId;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       evaluateReaction('location'); // Tag could be biome or region derived from location
     }
   }, [gameState.currentLocationId, evaluateReaction]); // Re-run when location changes
@@ -144,6 +145,7 @@ export const useCompanionCommentary = (
       // Or if Gold amount increased significantly
       const goldDiff = gameState.gold - prevGoldRef.current;
       if (goldDiff > 50) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         evaluateReaction('loot', ['gold']);
       }
       prevGoldRef.current = gameState.gold;

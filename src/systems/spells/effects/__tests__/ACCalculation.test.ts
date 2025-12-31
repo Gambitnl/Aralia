@@ -1,8 +1,10 @@
 import { calculateArmorClass } from "../../../../utils/statUtils";
 import { PlayerCharacter, Item } from "../../../../types";
 import { ActiveEffect } from "../../../../types/combat";
-import { createMockCharacter } from "../../../../commands/__tests__/testUtils"; // Assuming this exists or I'll stub it
-import { createMockItem } from "../../../../data/item_templates"; // Assuming usage
+// TODO(lint-intent): 'createMockCharacter' is unused in this test; use it in the assertion path or remove it.
+import { createMockCharacter as _createMockCharacter } from "../../../../commands/__tests__/testUtils"; // Assuming this exists or I'll stub it
+// TODO(lint-intent): 'createMockItem' is unused in this test; use it in the assertion path or remove it.
+import { createMockItem as _createMockItem } from "../../../../data/item_templates"; // Assuming usage
 
 // Simple mock if needed
 const mockCharacterWithDex = (dexScore: number): PlayerCharacter => {
@@ -25,7 +27,8 @@ const mockCharacterWithDex = (dexScore: number): PlayerCharacter => {
         proficiencyBonus: 2,
         darkvisionRange: 0,
         transportMode: "foot"
-    } as any as PlayerCharacter;
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    } as unknown as PlayerCharacter;
 };
 
 const mockLeatherArmor: Item = {

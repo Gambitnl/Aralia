@@ -68,4 +68,5 @@ export const StateInteractions: Record<string, StateTag | null> = {
   // (Placeholder for future: wet+electrified -> AoE damage)
 
   // TODO(Simulator): Expand interaction system to support side-effects (e.g., wet+electrified dealing damage) and applied mechanics (e.g., smoke obscuring vision).
+  // TODO(Simulator): Implement 'spread' mechanic for wet+electrified interaction in ElementalInteractionSystem or a dedicated EffectSystem.
 };

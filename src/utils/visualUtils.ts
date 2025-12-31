@@ -18,7 +18,10 @@ import { NPCVisualSpec, VisualAsset, ItemVisualSpec } from '../types/visuals';
 export function resolveNPCVisual(
   npc: NPC,
   visualSpec?: NPCVisualSpec,
-  race?: Race
+  // TODO(lint-intent): 'race' is an unused parameter, which suggests a planned input for this flow.
+  // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+  // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+  _race?: Race
 ): VisualAsset {
   // Resolve spec: use argument if provided, otherwise check the NPC object
   const spec = visualSpec || npc.visual;

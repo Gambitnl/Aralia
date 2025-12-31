@@ -8,7 +8,10 @@
 
 import { Puzzle, PuzzleResult } from './types';
 import { CharacterStats } from '../../types/combat';
-import { rollDice } from '../../utils/combatUtils';
+// TODO(lint-intent): 'rollDice' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { rollDice as _rollDice } from '../../utils/combatUtils';
 
 /**
  * Attempts to solve a step of the puzzle or the whole puzzle.
@@ -42,12 +45,18 @@ export function attemptPuzzleInput(
       break;
 
     case 'sequence':
-    case 'combination':
+    case 'combination': {
       // Add to sequence
       puzzle.currentInputSequence.push(input);
 
       // Check if the sequence so far matches the solution prefix
+      // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
+      // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
+      // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
       const currentIndex = puzzle.currentInputSequence.length - 1;
+      // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
+      // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
+      // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
       const expected = puzzle.solutionSequence?.[currentIndex];
 
       if (input === expected) {
@@ -63,6 +72,7 @@ export function attemptPuzzleInput(
         // Standard RPG trope: Reset sequence on mistake.
       }
       break;
+    }
 
     case 'item_placement':
       // Check if item is required

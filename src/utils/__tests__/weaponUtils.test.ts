@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { isWeaponMartial, isWeaponProficient } from '../weaponUtils';
 import { createMockPlayerCharacter, createMockItem } from '../factories';
-import { Item } from '@/types/items';
+// TODO(lint-intent): 'Item' is unused in this test; use it in the assertion path or remove it.
+import { Item as _Item } from '@/types/items';
 
 describe('weaponUtils', () => {
     describe('isWeaponMartial', () => {
@@ -38,9 +39,11 @@ describe('weaponUtils', () => {
         });
 
         it('should return false for null inputs', () => {
-            // @ts-ignore
+            // TODO(lint-intent): Confirm the ts-expect-error is still needed or fix the type at the source.
+            // @ts-expect-error - null input for coverage
             expect(isWeaponMartial(null)).toBe(false);
-            // @ts-ignore
+            // TODO(lint-intent): Confirm the ts-expect-error is still needed or fix the type at the source.
+            // @ts-expect-error - undefined input for coverage
             expect(isWeaponMartial(undefined)).toBe(false);
         });
 
@@ -143,10 +146,11 @@ describe('weaponUtils', () => {
         it('should return false for null character or weapon', () => {
             const character = createMockPlayerCharacter();
             const weapon = createMockItem({ type: 'weapon' });
-
-            // @ts-ignore
+            // TODO(lint-intent): Confirm the ts-expect-error is still needed or fix the type at the source.
+            // @ts-expect-error - null character coverage
             expect(isWeaponProficient(null, weapon)).toBe(false);
-            // @ts-ignore
+            // TODO(lint-intent): Confirm the ts-expect-error is still needed or fix the type at the source.
+            // @ts-expect-error - null weapon coverage
             expect(isWeaponProficient(character, null)).toBe(false);
         });
 
@@ -176,7 +180,8 @@ describe('weaponUtils', () => {
 
         it('should handle missing class data gracefully', () => {
              const character = createMockPlayerCharacter();
-             // @ts-ignore - simulating data corruption
+             // TODO(lint-intent): Confirm the ts-expect-error is still needed or fix the type at the source.
+             // @ts-expect-error - simulating data corruption
              character.class = undefined;
              const weapon = createMockItem({ type: 'weapon' });
              expect(isWeaponProficient(character, weapon)).toBe(false);

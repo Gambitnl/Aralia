@@ -34,28 +34,32 @@ const MissingChoiceModal: React.FC<MissingChoiceModalProps> = ({
   missingChoice, 
   onConfirm 
 }) => {
-  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  const [selectedOption, setSelectedOption] = useState<{
+    choiceId: string;
+    optionId: string;
+  } | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (isOpen && missingChoice) {
-        // If there's only one option (like adding a specific missing spell), auto-select it
-        // but don't auto-confirm, let the user review.
-        if (missingChoice.options.length === 1) {
-            setSelectedOptionId(missingChoice.options[0].id);
-        } else {
-            setSelectedOptionId(null);
-        }
-        closeButtonRef.current?.focus();
+    if (isOpen) {
+      closeButtonRef.current?.focus();
     }
-  }, [isOpen, missingChoice]);
+  }, [isOpen]);
 
   if (!isOpen || !missingChoice) return null;
 
+  // TODO(lint-intent): If selection should persist per missing choice, store it in a map keyed by missingChoice.id.
+  const selectedOptionId = selectedOption?.choiceId === missingChoice.id ? selectedOption.optionId : null;
+  const autoSelectedId =
+    missingChoice.options.length === 1
+      ? missingChoice.options[0].id
+      : null;
+  const resolvedSelectedOptionId = selectedOptionId ?? autoSelectedId;
+
   const handleConfirm = () => {
-    if (selectedOptionId) {
-        const selectedOption = missingChoice.options.find(o => o.id === selectedOptionId);
-        onConfirm(selectedOptionId, selectedOption);
+    if (resolvedSelectedOptionId) {
+        const selectedOption = missingChoice.options.find(o => o.id === resolvedSelectedOptionId);
+        onConfirm(resolvedSelectedOptionId, selectedOption);
         onClose();
     }
   };
@@ -89,10 +93,10 @@ const MissingChoiceModal: React.FC<MissingChoiceModalProps> = ({
                 {missingChoice.options.map(option => (
                     <button
                         key={option.id}
-                        onClick={() => setSelectedOptionId(option.id)}
+                        onClick={() => setSelectedOption({ choiceId: missingChoice.id, optionId: option.id })}
                         className={`w-full text-left p-3 rounded-lg border transition-all ${
-                            selectedOptionId === option.id 
-                            ? 'bg-amber-600/30 border-amber-500 ring-1 ring-amber-500' 
+                            resolvedSelectedOptionId === option.id
+                            ? 'bg-amber-600/30 border-amber-500 ring-1 ring-amber-500'
                             : 'bg-gray-700/50 border-gray-600 hover:bg-gray-700'
                         }`}
                     >
@@ -105,9 +109,9 @@ const MissingChoiceModal: React.FC<MissingChoiceModalProps> = ({
 
         <div className="p-4 border-t border-gray-700 bg-gray-900/50 flex justify-end gap-3">
             <button onClick={onClose} className="px-4 py-2 text-gray-400 hover:text-white">Cancel</button>
-            <button 
+            <button
                 onClick={handleConfirm}
-                disabled={!selectedOptionId}
+                disabled={!resolvedSelectedOptionId}
                 className="px-6 py-2 bg-amber-600 hover:bg-amber-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg shadow"
             >
                 Confirm

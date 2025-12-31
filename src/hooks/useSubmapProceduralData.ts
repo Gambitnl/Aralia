@@ -290,7 +290,8 @@ export function useSubmapProceduralData({
     });
 
     return features;
-  }, [seededFeaturesConfig, submapDimensions, simpleHash, pathDetails, caGrid, currentWorldBiomeId, parentWorldMapCoords]);
+  // TODO(lint-intent): If seeded features should react to parent biome shifts, thread that through the config or hash.
+  }, [seededFeaturesConfig, submapDimensions, simpleHash, pathDetails, caGrid]);
 
   return { simpleHash, activeSeededFeatures, pathDetails, caGrid, wfcGrid, biomeBlendContext };
 }

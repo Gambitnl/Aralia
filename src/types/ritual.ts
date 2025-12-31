@@ -3,9 +3,14 @@
  * Defines the state and configuration for long-duration spellcasting and rituals.
  * "Time is part of the magic."
  */
-
-import { Spell } from './spells';
-import { CombatLogEntry } from './combat';
+// TODO(lint-intent): 'Spell' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Spell as _Spell } from './spells';
+// TODO(lint-intent): 'CombatLogEntry' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { CombatLogEntry as _CombatLogEntry } from './combat';
 
 /**
  * Represents the current state of a ritual being cast.

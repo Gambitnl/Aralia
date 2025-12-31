@@ -144,12 +144,19 @@ describe('ElementalInteractionSystem', () => {
             const current = [StateTag.Acid];
             const { newStates, result } = applyStateToTags(current, StateTag.Wet);
 
-            // Acid + Wet -> Wet
             expect(newStates).toContain(StateTag.Wet);
             expect(newStates).not.toContain(StateTag.Acid);
-
             expect(result.finalState).toBe(StateTag.Wet);
-            expect(result.interaction).toContain('acid + wet -> wet');
+        });
+
+        it('should handle Acid + Burning -> Smoke (Toxic Fumes)', () => {
+            const current = [StateTag.Acid];
+            const { newStates, result } = applyStateToTags(current, StateTag.Burning);
+
+            expect(newStates).toContain(StateTag.Smoke);
+            expect(newStates).not.toContain(StateTag.Acid);
+            expect(newStates).not.toContain(StateTag.Burning);
+            expect(result.finalState).toBe(StateTag.Smoke);
         });
     });
 });

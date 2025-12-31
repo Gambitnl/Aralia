@@ -3,8 +3,10 @@
  * Provides logic for complex target allocation strategies, such as the HP pool mechanics
  * used by "Sleep" and "Color Spray".
  */
-
-import { TargetAllocation, Spell, ScalingFormula } from '../../../types/spells';
+// TODO(lint-intent): 'Spell' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { TargetAllocation, Spell as _Spell, ScalingFormula } from '../../../types/spells';
 import { CombatCharacter } from '../../../types/combat';
 import { rollDice } from '../../../utils/combatUtils';
 

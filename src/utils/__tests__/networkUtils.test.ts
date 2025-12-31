@@ -13,7 +13,8 @@ describe('fetchWithTimeout', () => {
   });
 
   it('should return data on success', async () => {
-    (global.fetch as any).mockResolvedValue({
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    (global.fetch as unknown).mockResolvedValue({
       ok: true,
       json: async () => ({ data: 'test' }),
     });

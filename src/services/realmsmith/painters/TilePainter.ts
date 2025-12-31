@@ -83,9 +83,12 @@ export class TilePainter {
         const h = TILE_SIZE;
         const w = TILE_SIZE;
 
-        let hasWallBelow = false;
+        let _hasWallBelow = false;
         if (gy < grid[0].length - 1 && grid[gx][gy + 1].type === TileType.WALL) {
-            hasWallBelow = true;
+            // TODO(lint-intent): '_hasWallBelow' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+            // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+            // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+            _hasWallBelow = true;
         }
 
         this.ctx.fillStyle = '#57534e'; // Stone 600
@@ -113,8 +116,10 @@ export class TilePainter {
             this.ctx.fillRect(x + 20, y - 4, 10, 4); // Merlon 2
         }
     }
-
-    private drawFarm(x: number, y: number, tile: Tile) {
+    // TODO(lint-intent): 'tile' is an unused parameter, which suggests a planned input for this flow.
+    // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+    // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+    private drawFarm(x: number, y: number, _tile: Tile) {
         this.ctx.fillStyle = '#3f2e21';
         this.ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
 
@@ -207,8 +212,10 @@ export class TilePainter {
         this.ctx.fillStyle = '#cbd5e1';
         if (tile.variation > 0.7) this.ctx.fillRect(x + 5, y + 5, 2, 2);
     }
-
-    private drawIce(x: number, y: number, tile: Tile) {
+    // TODO(lint-intent): 'tile' is an unused parameter, which suggests a planned input for this flow.
+    // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+    // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+    private drawIce(x: number, y: number, _tile: Tile) {
         this.ctx.fillStyle = '#cffafe'; // Cyan 100
         this.ctx.fillRect(x, y, TILE_SIZE + 1, TILE_SIZE + 1);
         this.ctx.strokeStyle = '#22d3ee'; // Cyan 400
@@ -233,8 +240,10 @@ export class TilePainter {
         this.ctx.fillStyle = '#292524'; // Stone 800
         if (tile.variation > 0.4) this.ctx.fillRect(x + 4, y + 20, 5, 5);
     }
-
-    private drawCrystalFloor(x: number, y: number, tile: Tile) {
+    // TODO(lint-intent): 'tile' is an unused parameter, which suggests a planned input for this flow.
+    // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+    // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+    private drawCrystalFloor(x: number, y: number, _tile: Tile) {
         this.ctx.fillStyle = '#ecfeff'; // Cyan 50
         this.ctx.fillRect(x, y, TILE_SIZE + 1, TILE_SIZE + 1);
         this.ctx.fillStyle = '#a5f3fc';
@@ -259,8 +268,10 @@ export class TilePainter {
             }
         }
     }
-
-    private drawDirtRoad(x: number, y: number, tile: Tile) {
+    // TODO(lint-intent): 'tile' is an unused parameter, which suggests a planned input for this flow.
+    // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+    // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+    private drawDirtRoad(x: number, y: number, _tile: Tile) {
         this.ctx.fillStyle = '#78350f';
         this.ctx.fillRect(x, y, TILE_SIZE + 1, TILE_SIZE + 1);
 
@@ -272,8 +283,10 @@ export class TilePainter {
         if ((x * 3 + y) % 4 === 0) this.ctx.fillRect(x + 5, y + 20, 4, 4);
         this.ctx.globalAlpha = 1.0;
     }
-
-    private drawDock(x: number, y: number, tile: Tile) {
+    // TODO(lint-intent): 'tile' is an unused parameter, which suggests a planned input for this flow.
+    // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+    // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+    private drawDock(x: number, y: number, _tile: Tile) {
         this.ctx.fillStyle = '#5D4037';
         this.ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
         this.ctx.fillStyle = '#3E2723';
