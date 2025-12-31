@@ -6,6 +6,10 @@
  * This service module centralizes the initialization of the GoogleGenAI client.
  * It ensures the API key is present and exports a single, shared AI client instance
  * for use by other services (geminiService, ttsService).
+ *
+ * Pattern: Singleton Proxy
+ * We use a Proxy pattern to allow safe exports even when the client isn't initialized.
+ * This prevents runtime crashes during static analysis or module loading if the API key is missing.
  */
 import { GoogleGenAI } from "@google/genai";
 import { ENV } from "../config/env";
@@ -48,6 +52,13 @@ export const getAiClient = (): GoogleGenAI => {
  * The shared GoogleGenAI client instance.
  * Protected by a Proxy to throw descriptive errors if accessed when uninitialized,
  * preventing 'Cannot read properties of null' runtime crashes.
+ *
+ * @example
+ * // If initialized:
+ * await ai.models.generateContent(...)
+ *
+ * // If NOT initialized:
+ * // Throws: "Gemini API Client accessed but not initialized..."
  */
 export const ai = new Proxy({} as GoogleGenAI, {
   get: (target, prop) => {
