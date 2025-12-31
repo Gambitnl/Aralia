@@ -3,7 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { evaluateCombatTurn } from '../combatAI';
 import {
   createMockCombatCharacter,
-  createMockSpell
+  // TODO(lint-intent): 'createMockSpell' is unused in this test; use it in the assertion path or remove it.
+  createMockSpell as _createMockSpell
 } from '../../factories';
 import {
   BattleMapData,

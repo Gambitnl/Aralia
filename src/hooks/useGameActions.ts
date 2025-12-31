@@ -131,11 +131,17 @@ export function useGameActions({
         if (handler) {
           await handler(action);
         } else {
-          addMessage(`Action type ${(action as any).type} not recognized.`, 'system');
+          // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+          // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+          // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+          addMessage(`Action type ${(action as unknown).type} not recognized.`, 'system');
           dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
           dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
         }
-      } catch (err: any) {
+      // TODO(lint-intent): The any on 'err' hides the intended shape of this data.
+      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+      } catch (err: unknown) {
         addMessage(`Error processing action: ${err.message}`, 'system');
         dispatch({ type: 'SET_ERROR', payload: err.message });
         dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });

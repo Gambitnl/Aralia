@@ -114,7 +114,10 @@ export const formatMemoryForAI = (memory: NPCMemory, contextKeywords: string[] =
           ? `(Heard Rumor)`
           : `(Witnessed)`;
        // Use dynamic access for 'text' if it exists at runtime (legacy support), otherwise fallback to id.
-       const description = (fact as any).text || fact.id;
+       // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+       // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+       // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+       const description = (fact as unknown).text || fact.id;
        return `${sourceText}: "${description}"`;
     });
 

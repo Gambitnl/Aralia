@@ -4,10 +4,16 @@
  * Custom hook for managing game initialization, new game setup, and loading games.
  */
 import React, { useCallback } from 'react';
-import { GameState, GamePhase, PlayerCharacter, MapData, Location, Item, StartGameSuccessPayload } from '../types';
+// TODO(lint-intent): 'GameState' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { GameState as _GameState, GamePhase, PlayerCharacter, MapData, Location as _Location, Item, StartGameSuccessPayload } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { STARTING_LOCATION_ID, LOCATIONS, BIOMES } from '../constants';
-import { getDummyParty, initialInventoryForDummyCharacter } from '../data/dev/dummyCharacter';
+// TODO(lint-intent): 'initialInventoryForDummyCharacter' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { getDummyParty, initialInventoryForDummyCharacter as _initialInventoryForDummyCharacter } from '../data/dev/dummyCharacter';
 import { MAP_GRID_SIZE, SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import { generateMap } from '../services/mapService';
 import * as SaveLoadService from '../services/saveLoadService';

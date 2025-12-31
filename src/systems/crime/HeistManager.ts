@@ -6,7 +6,10 @@ import {
     HeistRole,
     HeistAction,
     HeistCrewMember,
-    StolenItem
+    // TODO(lint-intent): 'StolenItem' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    StolenItem as _StolenItem
 } from '../../types/crime';
 import { Location } from '../../types';
 
@@ -65,8 +68,10 @@ export class HeistManager {
      */
     static assignCrew(plan: HeistPlan, characterId: string, role: HeistRole): HeistPlan {
         const existingMemberIndex = plan.crew.findIndex(c => c.characterId === characterId);
-
-        let newCrew = [...plan.crew];
+        // TODO(lint-intent): This binding never reassigns, so the intended mutability is unclear.
+        // TODO(lint-intent): If it should stay stable, switch to const and treat it as immutable.
+        // TODO(lint-intent): If mutation was intended, add the missing update logic to reflect that intent.
+        const newCrew = [...plan.crew];
         if (existingMemberIndex >= 0) {
             newCrew[existingMemberIndex] = { characterId, role };
         } else {

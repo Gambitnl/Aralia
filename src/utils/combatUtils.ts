@@ -16,7 +16,7 @@
  */
 import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect } from '../types/combat';
 import { PlayerCharacter, Monster, Item } from '../types';
-import { Spell, DamageType, ConditionName } from '../types/spells'; // Explicit import to avoid conflicts
+import { Spell, DamageType, ConditionName } from '../types/spells';
 import { CLASSES_DATA } from '../data/classes';
 import { MONSTERS_DATA } from '../data/monsters';
 import { createAbilityFromSpell } from './spellAbilityFactory';
@@ -49,7 +49,7 @@ export function canTakeReaction(character: CombatCharacter): boolean {
   // 3. Must not be incapacitated
   // Conditions that prevent reactions: Incapacitated, Paralyzed, Petrified, Stunned, Unconscious
   // Note: Sleep (Unconscious) and Hypnotic Pattern (Incapacitated) are covered here.
-  const incapacitatedConditions: string[] = ['Incapacitated', 'Paralyzed', 'Petrified', 'Stunned', 'Unconscious'];
+  const incapacitatedConditions: ConditionName[] = ['Incapacitated', 'Paralyzed', 'Petrified', 'Stunned', 'Unconscious'];
 
   // Check legacy statusEffects
   const hasIncapacitatingEffect = character.statusEffects.some(effect => {
@@ -65,7 +65,7 @@ export function canTakeReaction(character: CombatCharacter): boolean {
   // Check new conditions array (if populated)
   if (character.conditions) {
     const hasIncapacitatingCondition = character.conditions.some(cond =>
-      incapacitatedConditions.includes(cond.name as string)
+      incapacitatedConditions.includes(cond.name)
     );
     if (hasIncapacitatingCondition) return false;
   }

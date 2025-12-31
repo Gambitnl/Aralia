@@ -64,7 +64,8 @@ const mockGlobalTopic: ConversationTopic = {
 };
 
 // Helper to create mock items
-const createMockItem = (id: string, extraProps: any = {}): Item => ({
+// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+const createMockItem = (id: string, extraProps: unknown = {}): Item => ({
   id,
   name: id,
   description: 'test item',

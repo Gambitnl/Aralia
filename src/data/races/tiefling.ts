@@ -3,7 +3,10 @@
  * Defines the data for the Tiefling race in the Aralia RPG, based on Player's Handbook pg. 197.
  * This includes their ID, name, description, traits, and Fiendish Legacy choices.
  */
-import { Race, FiendishLegacy, FiendishLegacyType } from '../../types'; // Path relative to src/data/races/
+// TODO(lint-intent): 'FiendishLegacyType' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Race, FiendishLegacy, FiendishLegacyType as _FiendishLegacyType } from '../../types'; // Path relative to src/data/races/
 
 export const FIENDISH_LEGACIES_DATA: FiendishLegacy[] = [
   {

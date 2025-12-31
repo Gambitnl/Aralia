@@ -19,7 +19,9 @@ function auditAllSpells() {
         const fullPath = path.join(SPELL_ROOT, f);
         return fs.statSync(fullPath).isDirectory() && f.startsWith('level-');
     });
-  } catch (_error) {
+  // TODO(lint-intent): If we need richer diagnostics here, capture the error and log its message/stack.
+  // TODO(lint-intent): Consider adding structured output for the audit failure once we expand this script.
+  } catch {
       console.error(`Could not read spell root: ${SPELL_ROOT}`);
       process.exit(1);
   }

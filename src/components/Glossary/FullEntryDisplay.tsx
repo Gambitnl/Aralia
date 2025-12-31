@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GlossaryEntry } from '../../types';
 import { GlossaryContentRenderer } from './GlossaryContentRenderer';
 import { fetchWithTimeout } from '../../utils/networkUtils';
@@ -21,22 +21,29 @@ interface FullEntryDisplayProps {
 }
 
 export const FullEntryDisplay: React.FC<FullEntryDisplayProps> = ({ entry, onNavigate }) => {
-  const [markdownContent, setMarkdownContent] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [fetchState, setFetchState] = useState<{
+    filePath: string | null;
+    markdownContent: string | null;
+    error: string | null;
+  }>({
+    filePath: null,
+    markdownContent: null,
+    error: null
+  });
 
   const filePath = entry?.filePath;
+  const markdownContent = filePath === fetchState.filePath ? fetchState.markdownContent : null;
+  const error = !filePath
+    ? "No file path provided for glossary entry."
+    : filePath === fetchState.filePath
+      ? fetchState.error
+      : null;
+  const loading = Boolean(filePath && filePath !== fetchState.filePath);
+  // TODO(lint-intent): If glossary content needs caching across entries, promote this fetch state to a keyed cache.
 
   useEffect(() => {
-    if (!filePath) {
-      setLoading(false);
-      setError("No file path provided for glossary entry.");
-      setMarkdownContent(null);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    setMarkdownContent(null);
+    if (!filePath) return;
+    let cancelled = false;
 
     const fullPath = assetUrl(filePath);
     const isJsonEntry = filePath.toLowerCase().endsWith('.json');
@@ -47,6 +54,7 @@ export const FullEntryDisplay: React.FC<FullEntryDisplayProps> = ({ entry, onNav
 
     fetchPromise
       .then((data) => {
+        if (cancelled) return;
         if (isJsonEntry) {
           const json = data as GlossaryEntryFileJson;
           const nextMarkdown =
@@ -55,18 +63,22 @@ export const FullEntryDisplay: React.FC<FullEntryDisplayProps> = ({ entry, onNav
               : typeof json.content === 'string'
                 ? json.content
                 : '';
-          setMarkdownContent(nextMarkdown);
+          setFetchState({ filePath, markdownContent: nextMarkdown, error: null });
           return;
         }
 
         const text = data as string;
-        setMarkdownContent(stripYamlFrontmatter(text));
+        setFetchState({ filePath, markdownContent: stripYamlFrontmatter(text), error: null });
       })
       .catch(err => {
+        if (cancelled) return;
         console.error(`Error fetching ${filePath}:`, err);
-        setError(err.message);
-      })
-      .finally(() => setLoading(false));
+        setFetchState({ filePath, markdownContent: null, error: err.message });
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [filePath]);
 
   if (loading) return <p className="text-gray-400 italic">Loading full entry...</p>;

@@ -1,11 +1,20 @@
 
 import {
-    Bounty,
+    // TODO(lint-intent): 'Bounty' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    Bounty as _Bounty,
     HeatLevel,
-    CrimeType
+    // TODO(lint-intent): 'CrimeType' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    CrimeType as _CrimeType
 } from '../../types/crime';
 import { GameState, NotorietyState } from '../../types';
-import { CombatCharacter, CharacterStats, ActionEconomyState, Position, AbilityScoreName, Class } from '../../types/combat';
+// TODO(lint-intent): 'Position' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { CombatCharacter, CharacterStats, ActionEconomyState, Position as _Position, AbilityScoreName as _AbilityScoreName, Class } from '../../types/combat';
 import { SeededRandom } from '../../utils/seededRandom';
 import { HunterProfile, HunterTier, AmbushEvent } from '../../types/crime';
 

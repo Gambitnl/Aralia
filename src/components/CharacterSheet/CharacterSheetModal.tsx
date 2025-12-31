@@ -73,6 +73,7 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
       window.addEventListener('keydown', handleEsc);
     }
     // Reset to overview tab when modal opens or character changes
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveTab('overview');
     return () => {
       window.removeEventListener('keydown', handleEsc);

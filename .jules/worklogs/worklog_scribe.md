@@ -1,5 +1,6 @@
-# Scribe's Journal
+# Scribe Worklog
 
-## 2024-05-23 - Undocumented Command Classes
-**Learning:** Complex Command classes (like `ReactiveEffectCommand`) often lack file-level and class-level JSDoc, making it hard to understand their role in the Command/Event architecture, specifically the distinction between immediate execution and listener registration.
-**Action:** When adding or reviewing Command classes, always explain *when* they execute (immediate vs delayed) and *what* external systems they interact with (e.g. Event Emitters, SustainSystem) in the class-level TSDoc.
+## 2025-12-30 - Standardizing Core Utility Docs
+
+**Learning:** Core utilities like `logger.ts` often lack JSDoc because they seem "obvious" to the original author, but this hides critical behaviors (like automatic redaction) from new consumers.
+**Action:** When auditing core utilities, prioritize documenting "hidden" behaviors (side effects, security measures) over obvious parameter types.

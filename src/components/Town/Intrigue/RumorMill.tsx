@@ -6,14 +6,22 @@
  * UI component for the "Rumor Mill" - the intrigue interface within Taverns.
  * Allows players to buy gossip, secrets, and leads.
  */
-
-import React, { useState, useMemo } from 'react';
+// TODO(lint-intent): 'useState' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import React, { useState as _useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GameState, Action, Item } from '../../../types';
+// TODO(lint-intent): 'GameState' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { GameState as _GameState, Action, Item } from '../../../types';
 import { TavernGossipSystem, PurchaseableRumor } from '../../../systems/intrigue/TavernGossipSystem';
 import { useGameState } from '../../../state/GameContext';
 import { formatGpAsCoins } from '../../../utils/coinPurseUtils';
-import { Secret } from '../../../types/identity';
+// TODO(lint-intent): 'Secret' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Secret as _Secret } from '../../../types/identity';
 
 interface RumorMillProps {
     merchantName: string;
@@ -25,10 +33,8 @@ interface RumorMillProps {
 export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, playerInventory, onAction }) => {
     const { state } = useGameState();
 
-    // Generate rumors once on mount (or when day changes, theoretically)
-    const availableRumors = useMemo(() => {
-        return TavernGossipSystem.getAvailableRumors(state, merchantName);
-    }, [state.gameTime, merchantName, state.worldSeed]);
+  // TODO(lint-intent): If rumor availability becomes expensive, move this lookup into a memoized selector.
+  const availableRumors = TavernGossipSystem.getAvailableRumors(state, merchantName);
 
     // Track purchased rumors by checking inventory for the unique items we create
     // This ensures persistence across modal closes.
@@ -67,9 +73,7 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
         });
 
         // Log specific event for intrigue system hook (optional, handled by BUY_ITEM logs generally)
-        if (rumor.type === 'secret' && rumor.payload) {
-             console.log("Learned secret:", rumor.payload);
-        }
+        // [Sentinel] Removed console.log that exposed secret payload
 
         // TODO(Intriguer): If type is 'lead', trigger a QUEST_START or add a map marker here via custom action.
     };
@@ -78,7 +82,14 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
         <div className="flex flex-col h-full bg-gray-900/50 p-4 rounded-lg">
             <div className="mb-4 text-center">
                 <h3 className="text-xl font-cinzel text-amber-500">The Rumor Mill</h3>
-                <p className="text-sm text-gray-400 italic">"Information is the only currency that matters..."</p>
+
+
+                {/*
+                  TODO(lint-intent): This text includes raw quotes/special characters that were likely meant as prose.
+                  TODO(lint-intent): Decide whether to escape them, move text to a copy/localization layer, or pre-format it.
+                  TODO(lint-intent): If the text is dynamic, consider formatting/escaping before render to preserve intent.
+                */}
+                <p className="text-sm text-gray-400 italic">&quot;Information is the only currency that matters...&quot;</p>
             </div>
 
             <div className="flex-grow overflow-y-auto space-y-3">
@@ -101,12 +112,18 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
 
                                     <AnimatePresence mode="wait">
                                         {isPurchased ? (
+
+
+                                            /* TODO(lint-intent): This text includes raw quotes/special characters that were likely meant as prose.
+                                            TODO(lint-intent): Decide whether to escape them, move text to a copy/localization layer, or pre-format it.
+                                            TODO(lint-intent): If the text is dynamic, consider formatting/escaping before render to preserve intent.
+                                            */
                                             <motion.p
                                                 initial={{ opacity: 0 }}
                                                 animate={{ opacity: 1 }}
                                                 className="mt-2 text-sm text-white italic font-serif"
                                             >
-                                                "{rumor.content}"
+                                                &quot;{rumor.content}&quot;
                                             </motion.p>
                                         ) : (
                                             <p className="text-sm text-gray-400">{rumor.title}</p>
@@ -138,8 +155,14 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
                 })}
 
                 {availableRumors.length === 0 && (
+
+
+                    /* TODO(lint-intent): This text includes raw quotes/special characters that were likely meant as prose.
+                    TODO(lint-intent): Decide whether to escape them, move text to a copy/localization layer, or pre-format it.
+                    TODO(lint-intent): If the text is dynamic, consider formatting/escaping before render to preserve intent.
+                    */
                     <p className="text-center text-gray-500 mt-10">
-                        "Quiet night. Nobody's talking."
+                        &quot;Quiet night. Nobody&apos;s talking.&quot;
                     </p>
                 )}
             </div>

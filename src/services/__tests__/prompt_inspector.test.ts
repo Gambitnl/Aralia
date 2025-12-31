@@ -1,8 +1,9 @@
-
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+// TODO(lint-intent): 'beforeEach' is unused in this test; use it in the assertion path or remove it.
+import { describe, it, expect, vi, beforeEach as _beforeEach } from 'vitest';
 import * as geminiService from '../geminiService';
 import { ai } from '../aiClient';
-import { GameState, PlayerCharacter, Location, NPC } from '../../types';
+// TODO(lint-intent): 'NPC' is unused in this test; use it in the assertion path or remove it.
+import { GameState, PlayerCharacter, Location, NPC as _NPC } from '../../types';
 import * as contextUtils from '../../utils/contextUtils';
 
 // Mock the AI client
@@ -30,11 +31,14 @@ describe('Prompt Inspection', () => {
   const mockPlayer: PlayerCharacter = {
     id: 'p1',
     name: 'Kaelen',
-    race: { name: 'Human' } as any,
-    class: { name: 'Fighter' } as any,
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    race: { name: 'Human' } as unknown,
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    class: { name: 'Fighter' } as unknown,
     hp: 10,
     maxHp: 10,
-    attributes: {} as any,
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    attributes: {} as unknown,
     inventory: [],
     conditions: [],
   };
@@ -70,7 +74,8 @@ describe('Prompt Inspection', () => {
       { id: 'm2', sender: 'player', text: 'I look around.', timestamp: new Date(2000) },
       { id: 'm3', sender: 'npc', text: 'What do you want?', timestamp: new Date(3000) },
     ]
-  } as any;
+  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+  } as unknown;
 
   it('inspects generateActionOutcome prompt', async () => {
     const context = contextUtils.generateGeneralActionContext({
@@ -83,8 +88,8 @@ describe('Prompt Inspection', () => {
     const playerAction = 'I listen closely to the patrons.';
 
     await geminiService.generateActionOutcome(playerAction, context);
-
-    const generateContentMock = ai.models.generateContent as any;
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    const generateContentMock = ai.models.generateContent as unknown;
     const callArgs = generateContentMock.mock.calls[0][0];
 
     console.log('\n--- SYSTEM INSTRUCTION ---\n');

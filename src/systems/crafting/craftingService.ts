@@ -47,8 +47,7 @@ export const attemptCraft = (
     };
   }
 
-  const success = true;
-  let quality: CraftResult['quality'] = 'common';
+  let _quality: CraftResult['quality'] = 'common';
   let isCrit = false;
 
   // 2. Skill Check
@@ -73,7 +72,7 @@ export const attemptCraft = (
     // Check for Critical Success (Beat DC by 10 or more)
     if (total >= recipe.skillCheck.difficultyClass + 10) {
       isCrit = true;
-      quality = 'rare'; // Or boost based on recipe.outputs
+      _quality = 'rare'; // Boost quality on crit
     }
   }
 
@@ -95,7 +94,7 @@ export const attemptCraft = (
 
   return {
     success: true,
-    quality: isCrit ? 'rare' : 'common', // Simplification for MVP
+    quality: _quality, // Use the calculated quality
     itemsCreated: createdItems,
     materialsConsumed: consumedItems,
     experienceGained: recipe.timeMinutes * 10, // Placeholder XP formula

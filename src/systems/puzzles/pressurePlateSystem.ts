@@ -9,7 +9,10 @@
 import { PlayerCharacter } from '../../types/character';
 import { rollDice } from '../../utils/combatUtils';
 import { getAbilityModifierValue } from '../../utils/statUtils';
-import { PressurePlate, PressurePlateResult, PressurePlateJamResult, SizeCategory, Trap, TrapEffect } from './types';
+// TODO(lint-intent): 'TrapEffect' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { PressurePlate, PressurePlateResult, PressurePlateJamResult, SizeCategory, Trap, TrapEffect as _TrapEffect } from './types';
 import { hasTool, hasToolProficiency } from './lockSystem';
 
 const SIZE_VALUES: Record<SizeCategory, number> = {
@@ -126,7 +129,10 @@ export function detectPressurePlate(
 export function jamPressurePlate(
   character: PlayerCharacter,
   plate: PressurePlate,
-  inventory: any[] // Item[]
+  // TODO(lint-intent): The any on 'inventory' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  inventory: unknown[] // Item[]
 ): PressurePlateJamResult {
   if (plate.isJammed) {
       return { success: true, triggered: false, message: 'It is already jammed.' };

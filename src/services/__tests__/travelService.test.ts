@@ -9,14 +9,17 @@ import { Item } from '../../types/items';
 const mockChar = (id: string, speed: number = 30): PlayerCharacter => ({
   id,
   name: `Char_${id}`,
-  finalAbilityScores: { strength: 10 } as any,
+  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+  finalAbilityScores: { strength: 10 } as unknown,
   speed,
-} as any);
+// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+} as unknown);
 
 const mockItem = (weight: number): Item => ({
   id: 'item',
   weight,
-} as any);
+// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+} as unknown);
 
 describe('TravelService', () => {
   describe('calculateTravel', () => {

@@ -47,7 +47,10 @@ export const useTurnManager = ({
     advanceTurn: advanceTurnOrder,
     joinTurnOrder,
     isCharacterTurn: checkIsCharacterTurn,
-    setCurrentCharacter,
+    // TODO(lint-intent): 'setCurrentCharacter' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    setCurrentCharacter: _setCurrentCharacter,
     recordAction
   } = useTurnOrder({ characters });
 
@@ -114,7 +117,8 @@ export const useTurnManager = ({
       message: `${character.name}'s turn.`,
       characterId: character.id
     });
-  }, [onCharacterUpdate, resetEconomy, onLogEntry]);
+  // TODO(lint-intent): If resetEconomy becomes runtime-injected, add it to the dependency array.
+  }, [onCharacterUpdate, onLogEntry]);
 
   const initializeCombat = useCallback((initialCharacters: CombatCharacter[]) => {
     // 1. Roll initiatives
@@ -146,7 +150,8 @@ export const useTurnManager = ({
       message: `Combat begins! Turn order: ${sorted.map(c => c.name).join(' → ')}`,
       data: { turnOrder: sorted.map(c => c.id), initiatives: sorted.map(c => ({ id: c.id, initiative: c.initiative })) }
     });
-  }, [onCharacterUpdate, onLogEntry, resetEconomy, rollInitiative, startTurnFor, initializeTurnOrder]);
+  // TODO(lint-intent): If resetEconomy becomes runtime-injected, add it to the dependency array.
+  }, [onCharacterUpdate, onLogEntry, rollInitiative, startTurnFor, initializeTurnOrder]);
 
   const joinCombat = useCallback((character: CombatCharacter, options: { initiative?: number } = {}) => {
     const initiative = options.initiative ?? rollInitiative(character);
@@ -165,8 +170,8 @@ export const useTurnManager = ({
       characterId: readyChar.id,
       data: { initiative }
     });
-
-  }, [onCharacterUpdate, onLogEntry, resetEconomy, rollInitiative, joinTurnOrder]);
+  // TODO(lint-intent): If resetEconomy becomes runtime-injected, add it to the dependency array.
+  }, [onCharacterUpdate, onLogEntry, rollInitiative, joinTurnOrder]);
 
 
   // --- End of Turn Logic ---

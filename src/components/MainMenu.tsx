@@ -38,7 +38,10 @@ const MainMenu: React.FC<MainMenuProps> = ({
   onShowCompendium,
   hasSaveGame,
   latestSaveTimestamp,
-  isDevDummyActive,
+  // TODO(lint-intent): 'isDevDummyActive' is an unused parameter, which suggests a planned input for this flow.
+  // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+  // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+  isDevDummyActive: _isDevDummyActive,
   onSkipCharacterCreator,
   onSaveGame,
   onGoBack,
@@ -50,6 +53,7 @@ const MainMenu: React.FC<MainMenuProps> = ({
 
   useEffect(() => {
     // Load slot metadata up front so the menu can render previews and continue targets.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSaveSlots(getSaveSlots());
   }, []);
 

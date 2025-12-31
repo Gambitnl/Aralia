@@ -7,7 +7,8 @@ import { CLASSES_DATA } from '@/constants'
 
 // Mock dependencies
 vi.mock('@/constants', async (importOriginal) => {
-    const actual = await importOriginal() as any
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    const actual = await importOriginal() as unknown
     return {
         ...actual,
         MONSTERS_DATA: {
@@ -46,13 +47,15 @@ describe('SummoningCommand', () => {
         caster: mockCaster,
         targets: [],
         spellLevel: 1,
-        gameState: {} as any
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        gameState: {} as unknown
     }
 
     const initialState: CombatState = {
         isActive: true,
         characters: [mockCaster],
-        turnState: {} as any,
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        turnState: {} as unknown,
         selectedCharacterId: null,
         selectedAbilityId: null,
         actionMode: 'select',
@@ -127,7 +130,8 @@ describe('SummoningCommand', () => {
 
     describe('SummoningCommand - Boundary Checks', () => {
         // Reuse mockCaster and helper functions adjusted for the existing describe block context if needed
-        const createMockContext = (mapData: any): CommandContext => ({
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        const createMockContext = (mapData: unknown): CommandContext => ({
             spellId: 'spell-1',
             spellName: 'Summon Spell',
             castAtLevel: 1,
@@ -135,13 +139,15 @@ describe('SummoningCommand', () => {
             targets: [],
             gameState: {
                 mapData: mapData
-            } as any
+            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+            } as unknown
         })
-
-        const createMockState = (characters: CombatCharacter[] = [mockCaster], mapData?: any): CombatState => ({
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        const createMockState = (characters: CombatCharacter[] = [mockCaster], mapData?: unknown): CombatState => ({
             isActive: true,
             characters,
-            turnState: {} as any,
+            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+            turnState: {} as unknown,
             selectedCharacterId: null,
             selectedAbilityId: null,
             actionMode: 'select',

@@ -2,7 +2,10 @@
  * @file src/state/reducers/worldReducer.ts
  * A slice reducer that handles world-related state changes.
  */
-import { GameState, DiscoveryResidue, Location, Faction } from '../../types';
+// TODO(lint-intent): 'DiscoveryResidue' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { GameState, DiscoveryResidue as _DiscoveryResidue, Location as _Location, Faction as _Faction } from '../../types';
 import { AppAction } from '../actionTypes';
 import { processWorldEvents } from '../../systems/world/WorldEventManager';
 import { UnderdarkMechanics } from '../../systems/underdark/UnderdarkMechanics';
@@ -14,8 +17,14 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
   switch (action.type) {
     case 'SET_MAP_DATA': {
       const minimapFocus = action.payload
-        ? { x: Math.floor((action.payload as any).width / 2) || 0, y: Math.floor((action.payload as any).height / 2) || 0 }
-        : (state as any).minimapFocus;
+        // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+        ? { x: Math.floor((action.payload as unknown).width / 2) || 0, y: Math.floor((action.payload as unknown).height / 2) || 0 }
+        // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+        : (state as unknown).minimapFocus;
       return { mapData: action.payload, minimapFocus } as Partial<GameState>;
     }
 

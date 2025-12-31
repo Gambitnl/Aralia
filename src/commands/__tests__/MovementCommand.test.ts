@@ -145,7 +145,7 @@ describe('MovementCommand', () => {
 
     // Check logs to confirm it failed to teleport or teleported 0 distance
     // The current implementation might allow it to teleport to (10, 10) if it ignores the missing distance
-    const log = result.combatLog.at(-1)
+    const _log = result.combatLog.at(-1)
 
     // If it moved, this test demonstrates the bug
     if (updated?.position.x === 10) {

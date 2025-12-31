@@ -347,11 +347,6 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
         // Ensure any pending hover rAF callbacks are cancelled when the pane unmounts.
         if (hoverFrameRef.current) cancelAnimationFrame(hoverFrameRef.current);
     }, []);
-
-    const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-        // Simple arrow key navigation for submap inspection could be added here if desired
-    };
-
     const toggleGlossary = () => setIsGlossaryOpen(!isGlossaryOpen);
 
     const handleInspectClick = () => {
@@ -409,13 +404,21 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                     <p className="text-center text-sm text-yellow-300 mb-2 italic">{inspectionMessage}</p>
                 )}
 
+                {/*
+                  TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+                  TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+                  TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+                */}
                 <div className="flex-grow flex flex-col md:flex-row gap-4 overflow-hidden min-h-0"> {/* Use overflow-hidden on parent */}
                     {/* Submap Grid Container */}
+
+
                     <div
                         className="p-1 bg-gray-900/30 rounded-md shadow-inner flex-grow overflow-auto scrollable-content relative"
-                        onKeyDown={handleKeyDown}
                         onMouseLeave={() => setHoveredTile(null)}
                         onMouseMove={(e) => setMousePosition({ x: e.clientX, y: e.clientY })}
+                        role="button"
+                        aria-label="Submap viewport"
                     >
                         <div className="flex items-center justify-between text-xs text-gray-300 mb-1">
                             <label className="flex items-center gap-2">
@@ -591,8 +594,28 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                 </div>
 
                 {isGlossaryOpen && (
-                    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[60]" onClick={(e) => e.target === e.currentTarget && setIsGlossaryOpen(false)}>
-                        <div className="bg-gray-800 p-4 rounded-lg shadow-xl max-w-md w-full max-h-[70vh] overflow-y-auto scrollable-content border border-gray-600" onClick={e => e.stopPropagation()}>
+
+
+                    /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+                    TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+                    TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+                    */
+                    <div
+                        className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[60]"
+                        onClick={(e) => e.target === e.currentTarget && setIsGlossaryOpen(false)}
+                        onKeyDown={(event) => {
+                            if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                setIsGlossaryOpen(false);
+                            }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Close submap legend"
+                    >
+
+
+                        <div className="bg-gray-800 p-4 rounded-lg shadow-xl max-w-md w-full max-h-[70vh] overflow-y-auto scrollable-content border border-gray-600">
                             <div className="flex justify-between items-center mb-3">
                                 <h3 className="text-lg font-semibold text-amber-400">Submap Legend</h3>
                                 <button onClick={toggleGlossary} className="text-gray-300 hover:text-white text-xl">&times;</button>

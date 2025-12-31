@@ -34,7 +34,10 @@ export class CompanionReactionSystem {
     for (const rule of matchingRules) {
       // Check requirements if present
       if (rule.requirements) {
-        const relationship = companion.relationships['player']; // Assume player is target for now
+        // TODO(lint-intent): 'relationship' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+        // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+        // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+        const _relationship = companion.relationships['player']; // Assume player is target for now
         // Skip if requirements not met (omitted for MVP simplicity, but placeholding logic)
         // if (rule.requirements.minRelationship && ...) continue;
       }

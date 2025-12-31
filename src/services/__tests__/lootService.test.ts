@@ -75,7 +75,8 @@ describe('generateLoot', () => {
   });
 
   it('handles null/undefined in array safely', () => {
-    // @ts-ignore
+    // TODO(lint-intent): Confirm the ts-expect-error is still needed or fix the type at the source.
+    // @ts-expect-error - nullish entries coverage
     const result = generateLoot([null, undefined]);
     expect(result.gold).toBe(0);
     expect(result.items).toHaveLength(0);

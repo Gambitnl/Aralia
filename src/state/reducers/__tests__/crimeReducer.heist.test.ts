@@ -36,7 +36,8 @@ describe('crimeReducer - Heist Logic', () => {
         const stateWithHeist = crimeReducer(initialState, {
             type: 'START_HEIST_PLANNING',
             payload: { targetLocationId: 'loc_1', leaderId: 'p1' }
-        } as any);
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        } as unknown);
 
         const intel = {
             id: 'intel_1',
@@ -64,7 +65,8 @@ describe('crimeReducer - Heist Logic', () => {
         currentState = { ...currentState, ...crimeReducer(currentState, {
             type: 'START_HEIST_PLANNING',
             payload: { targetLocationId: 'loc_1', leaderId: 'p1' }
-        } as any) };
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        } as unknown) };
 
         expect(currentState.activeHeist?.phase).toBe(HeistPhase.Recon);
 
@@ -80,7 +82,8 @@ describe('crimeReducer - Heist Logic', () => {
         currentState = { ...currentState, ...crimeReducer(currentState, {
             type: 'START_HEIST_PLANNING',
             payload: { targetLocationId: 'loc_1', leaderId: 'p1' }
-        } as any) };
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        } as unknown) };
 
         // Pass success/failure explicitly in payload
         const action = {
@@ -106,7 +109,8 @@ describe('crimeReducer - Heist Logic', () => {
         currentState = { ...currentState, ...crimeReducer(currentState, {
             type: 'START_HEIST_PLANNING',
             payload: { targetLocationId: 'loc_1', leaderId: 'p1' }
-        } as any) };
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        } as unknown) };
 
         expect(currentState.activeHeist).toBeDefined();
 

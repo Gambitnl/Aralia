@@ -4,17 +4,20 @@ import {
   calculateEncumbrance,
   calculateGroupTravelStats,
   calculateForcedMarchStatus,
-  PACE_MODIFIERS
+  // TODO(lint-intent): 'PACE_MODIFIERS' is unused in this test; use it in the assertion path or remove it.
+  PACE_MODIFIERS as _PACE_MODIFIERS
 } from '../TravelCalculations';
 import { Item } from '../../../types/items';
 import { PlayerCharacter } from '../../../types/character';
-import { TravelVehicle, STANDARD_VEHICLES } from '../../../types/travel';
+// TODO(lint-intent): 'TravelVehicle' is unused in this test; use it in the assertion path or remove it.
+import { TravelVehicle as _TravelVehicle, STANDARD_VEHICLES } from '../../../types/travel';
 
 // Mock character creation directly to avoid path issues and dependency on other files during this task
 const mockChar = (id: string, strength: number, speed: number = 30): PlayerCharacter => ({
   id,
   name: `Char_${id}`,
-  finalAbilityScores: { strength, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 } as any,
+  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+  finalAbilityScores: { strength, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 } as unknown,
   abilityScores: { strength, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 },
   speed,
   race: { id: 'human', name: 'Human', description: '', traits: [] },

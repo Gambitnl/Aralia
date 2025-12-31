@@ -28,9 +28,11 @@ describe('VoyageManager', () => {
             type: 'Sloop',
             size: 'Small',
             description: '',
-            stats: {} as any,
+            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+            stats: {} as unknown,
             crew: { members: [], averageMorale: 80, unrest: 0, quality: 'Average' },
-            cargo: {} as any,
+            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+            cargo: {} as unknown,
             modifications: [],
             weapons: [],
             flags: {}
@@ -64,7 +66,8 @@ describe('VoyageManager', () => {
 
     it('should consume supplies from ship cargo', () => {
         const ship = createMockShip();
-        let voyage = VoyageManager.startVoyage(ship, 500);
+        // TODO(lint-intent): Resolve this prefer-const warning with a small, intent-preserving change.
+        const voyage = VoyageManager.startVoyage(ship, 500);
         const crewCount = ship.crew.members.length;
         const initialFood = ship.cargo.supplies.food;
         const initialWater = ship.cargo.supplies.water;
@@ -82,8 +85,8 @@ describe('VoyageManager', () => {
         // Set low supplies
         ship.cargo.supplies.food = 0;
         ship.cargo.supplies.water = 0;
-
-        let voyage = VoyageManager.startVoyage(ship, 500);
+        // TODO(lint-intent): Resolve this prefer-const warning with a small, intent-preserving change.
+        const voyage = VoyageManager.startVoyage(ship, 500);
         const result = VoyageManager.advanceDay(voyage, ship, 1000);
         const updatedShip = result.updatedShip;
 
@@ -98,7 +101,8 @@ describe('VoyageManager', () => {
 
     it('should finish voyage when distance is reached', () => {
         const ship = createMockShip();
-        let voyage = VoyageManager.startVoyage(ship, 50); // Short trip
+        // TODO(lint-intent): Resolve this prefer-const warning with a small, intent-preserving change.
+        const voyage = VoyageManager.startVoyage(ship, 50); // Short trip
         const result = VoyageManager.advanceDay(voyage, ship, 1000);
 
         expect(result.newState.status).toBe('Docked');

@@ -14,7 +14,10 @@ import { getSphere } from './sphere'
 export function getCylinder(
   center: Position,
   radius: number,
-  height: number = Infinity
+  // TODO(lint-intent): 'height' is an unused parameter, which suggests a planned input for this flow.
+  // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+  // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+  _height: number = Infinity
 ): Position[] {
   // In 2D grid combat, cylinder = sphere
   // Height is ignored (all combat on same plane)

@@ -65,6 +65,7 @@ const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, n
   useEffect(() => {
     if (isOpen) {
       if ((!selectedNpcId || !metNpcIds.includes(selectedNpcId)) && metNpcs.length > 0) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedNpcId(metNpcs[0].id);
       }
       closeButtonRef.current?.focus();
@@ -110,7 +111,7 @@ const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, n
           {/* Left Pane: NPC List */}
           <div className="md:w-1/3 border border-gray-700 rounded-lg bg-gray-800/50 p-2 overflow-y-auto scrollable-content flex-shrink-0">
             {metNpcs.length === 0 ? (
-                <p className="text-gray-500 italic text-center py-4">You haven't spoken to anyone yet.</p>
+                <p className="text-gray-500 italic text-center py-4">You haven&apos;t spoken to anyone yet.</p>
             ) : (
                 <ul className="space-y-1">
                 {metNpcs.map(npc => (
@@ -164,7 +165,7 @@ const DossierPane: React.FC<DossierPaneProps> = ({ isOpen, onClose, metNpcIds, n
                             <li key={fact.id} className="pl-2">
                                 {fact.source === 'gossip' ? (
                                     <span className="italic text-gray-400">
-                                        (Heard from {allNpcs[fact.sourceNpcId!]?.name || 'a traveler'}): "{fact.text}"
+                                        (Heard from {allNpcs[fact.sourceNpcId!]?.name || 'a traveler'}): &quot;{fact.text}&quot;
                                     </span>
                                 ) : (
                                     <span>{fact.text}</span>

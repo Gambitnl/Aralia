@@ -21,7 +21,10 @@ interface DevMenuProps {
 
 const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewRateLimitError, currentModelOverride, onModelChange }) => {
   const firstFocusableElementRef = useRef<HTMLButtonElement>(null);
-  const { dispatch, state } = useGameState();
+  // TODO(lint-intent): 'state' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+  const { dispatch, state: _state } = useGameState();
 
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
@@ -58,7 +61,10 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
           biomeStyle: 'temperate',
           governingBody: 'council',
       };
-      const temple = generateVillageTemple('dev_test', testPersonality, 12345);
+      // TODO(lint-intent): 'temple' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+      // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+      // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+      const _temple = generateVillageTemple('dev_test', testPersonality, 12345);
 
       const villageContext: VillageActionContext & { personality?: VillagePersonality } = {
           worldX: 0,

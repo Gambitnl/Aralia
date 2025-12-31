@@ -10,8 +10,10 @@ describe('useTurnOrder', () => {
         name: 'Hero',
         initiative: 10,
         currentHP: 10,
-        stats: { baseInitiative: 0 } as any,
-        actionEconomy: {} as any,
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        stats: { baseInitiative: 0 } as unknown,
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        actionEconomy: {} as unknown,
     } as CombatCharacter;
 
     const mockCharacter2: CombatCharacter = {
@@ -19,8 +21,10 @@ describe('useTurnOrder', () => {
         name: 'Goblin',
         initiative: 5,
         currentHP: 10,
-        stats: { baseInitiative: 0 } as any,
-        actionEconomy: {} as any,
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        stats: { baseInitiative: 0 } as unknown,
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        actionEconomy: {} as unknown,
     } as CombatCharacter;
 
     const characters = [mockCharacter1, mockCharacter2];

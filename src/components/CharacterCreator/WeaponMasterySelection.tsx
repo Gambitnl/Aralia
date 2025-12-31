@@ -7,7 +7,6 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { motion, MotionProps } from 'framer-motion';
 import { Class as CharClass, Item } from '../../types';
 import { WEAPONS_DATA, MASTERY_DATA } from '../../constants';
-import Tooltip from '../Tooltip';
 
 interface WeaponMasterySelectionProps {
   charClass: CharClass;
@@ -21,6 +20,43 @@ const containerMotion: MotionProps = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: -20 },
+};
+
+const WeaponMasteryInfoPanel: React.FC<{
+  activeInfo: { type: 'weapon' | 'mastery'; id: string } | null;
+}> = ({ activeInfo }) => {
+  if (!activeInfo) {
+    return <div className="p-4 text-gray-400 italic">Hover over an item for details.</div>;
+  }
+  if (activeInfo.type === 'weapon') {
+    const weapon = WEAPONS_DATA[activeInfo.id];
+    if (!weapon) return null;
+    const mastery = weapon.mastery ? MASTERY_DATA[weapon.mastery] : null;
+    return (
+      <div className="p-4 space-y-2">
+        <h4 className="text-lg font-bold text-amber-300">{weapon.name}</h4>
+        <p className="text-sm text-gray-300">Damage: {weapon.damageDice} {weapon.damageType}</p>
+        <p className="text-sm text-gray-300">Properties: {weapon.properties?.join(', ') || 'None'}</p>
+        {mastery && (
+          <div className="mt-2 pt-2 border-t border-gray-600">
+            <h5 className="font-semibold text-sky-300">Mastery: {mastery.name}</h5>
+            <p className="text-xs text-gray-400">{mastery.description}</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+  if (activeInfo.type === 'mastery') {
+    const mastery = MASTERY_DATA[activeInfo.id];
+    if (!mastery) return null;
+    return (
+      <div className="p-4 space-y-2">
+        <h4 className="text-lg font-bold text-amber-300">{mastery.name}</h4>
+        <p className="text-sm text-gray-300">{mastery.description}</p>
+      </div>
+    );
+  }
+  return null;
 };
 
 const WeaponMasterySelection: React.FC<WeaponMasterySelectionProps> = ({
@@ -111,48 +147,14 @@ const WeaponMasterySelection: React.FC<WeaponMasterySelectionProps> = ({
     }
   };
 
-  const InfoPanel = () => {
-    if (!activeInfo) {
-      return <div className="p-4 text-gray-400 italic">Hover over an item for details.</div>;
-    }
-    if (activeInfo.type === 'weapon') {
-      const weapon = WEAPONS_DATA[activeInfo.id];
-      if (!weapon) return null;
-      const mastery = weapon.mastery ? MASTERY_DATA[weapon.mastery] : null;
-      return (
-        <div className="p-4 space-y-2">
-          <h4 className="text-lg font-bold text-amber-300">{weapon.name}</h4>
-          <p className="text-sm text-gray-300">Damage: {weapon.damageDice} {weapon.damageType}</p>
-          <p className="text-sm text-gray-300">Properties: {weapon.properties?.join(', ') || 'None'}</p>
-          {mastery && (
-            <div className="mt-2 pt-2 border-t border-gray-600">
-              <h5 className="font-semibold text-sky-300">Mastery: {mastery.name}</h5>
-              <p className="text-xs text-gray-400">{mastery.description}</p>
-            </div>
-          )}
-        </div>
-      );
-    }
-    if (activeInfo.type === 'mastery') {
-      const mastery = MASTERY_DATA[activeInfo.id];
-      if (!mastery) return null;
-      return (
-        <div className="p-4 space-y-2">
-          <h4 className="text-lg font-bold text-amber-300">{mastery.name}</h4>
-          <p className="text-sm text-gray-300">{mastery.description}</p>
-        </div>
-      );
-    }
-    return null;
-  };
-
   const renderWeaponList = (weapons: Item[]) => (
     weapons.map(weapon => {
       const isSelected = selectedWeaponIds.has(weapon.id);
       const isDisabled = !isSelected && selectedWeaponIds.size >= selectionLimit;
       return (
         <li key={weapon.id}>
-          <label 
+          {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
+          <label
             onMouseEnter={() => setActiveInfo({ type: 'weapon', id: weapon.id })}
             className={`flex items-center p-2 rounded-md transition-colors ${
               isSelected ? 'bg-sky-600 cursor-pointer' : (isDisabled ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-gray-700 hover:bg-gray-600 cursor-pointer')
@@ -238,7 +240,7 @@ const WeaponMasterySelection: React.FC<WeaponMasterySelectionProps> = ({
         </div>
         {/* Right Panel: Info */}
         <div className="bg-gray-900/50 p-3 rounded-lg">
-          <InfoPanel />
+          <WeaponMasteryInfoPanel activeInfo={activeInfo} />
         </div>
       </div>
       

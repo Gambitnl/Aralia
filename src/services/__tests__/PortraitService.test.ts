@@ -14,8 +14,8 @@ describe('PortraitService', () => {
         const mockResponse = [
             { agent: 'Gemini', message: '#portrait_ready { "name": "Hero", "url": "http://example.com/img.png" }' }
         ];
-
-        (global.fetch as any).mockResolvedValue({
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        (global.fetch as unknown).mockResolvedValue({
             json: async () => mockResponse
         });
 
@@ -27,8 +27,8 @@ describe('PortraitService', () => {
         const mockResponse = [
             { agent: 'Gemini', message: '#portrait_ready { "name": "Hero", "url": "http:// ... BROKEN JSON ... ' }
         ];
-
-        (global.fetch as any).mockResolvedValue({
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        (global.fetch as unknown).mockResolvedValue({
             json: async () => mockResponse
         });
 
