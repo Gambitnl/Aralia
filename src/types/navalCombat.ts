@@ -5,8 +5,10 @@
  * @file src/types/navalCombat.ts
  * Types for the naval combat system, including state, maneuvers, and resolution.
  */
-
-import { Ship, CrewRole, ShipStats } from './naval';
+// TODO(lint-intent): 'ShipStats' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Ship, CrewRole, ShipStats as _ShipStats } from './naval';
 
 export type WindDirection = 'North' | 'South' | 'East' | 'West' | 'NorthEast' | 'NorthWest' | 'SouthEast' | 'SouthWest';
 export type RelativeWind = 'Headwind' | 'Tailwind' | 'Crosswind';

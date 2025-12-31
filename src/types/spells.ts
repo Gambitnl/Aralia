@@ -382,6 +382,9 @@ export interface DamageTypeTraits {
   description: string;
 }
 
+// TODO(Taxonomist): Refactor codebase to use ConditionType enum from ./conditions.ts strictly instead of ConditionName union.
+// This requires updating all references in combat logic, effect processing, and UI components.
+
 /**
  * Standard traits associated with each damage type.
  */

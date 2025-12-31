@@ -13,7 +13,10 @@ import { RitualState } from './rituals';
 import { WorldHistory } from './history';
 import { PlayerLegacy } from './legacy';
 import { Stronghold } from './stronghold';
-import { Notification } from './ui';
+// TODO(lint-intent): 'Notification' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Notification as _Notification } from './ui';
 import { PlayerIdentityState } from './identity';
 
 // -----------------------------------------------------------------------------
@@ -172,7 +175,10 @@ export interface GameState {
 
   questLog: Quest[];
   isQuestLogVisible: boolean;
-  notifications: any[]; // Temporary until UI types are split
+  // TODO(lint-intent): The any on 'notifications' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  notifications: unknown[]; // Temporary until UI types are split
 
   factions: Record<string, Faction>;
   playerFactionStandings: Record<string, PlayerFactionStanding>;

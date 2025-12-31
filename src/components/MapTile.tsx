@@ -8,7 +8,6 @@ interface MapTileProps {
   markers?: MapMarker[];
   onClick: (x: number, y: number, tile: MapTileType) => void;
 }
-
 const MapTile: React.FC<MapTileProps> = React.memo(({ tile, isFocused, markers, onClick }) => {
   const biome = BIOMES[tile.biomeId];
   const isClickable = tile.discovered || tile.isPlayerCurrent;
@@ -29,7 +28,8 @@ const MapTile: React.FC<MapTileProps> = React.memo(({ tile, isFocused, markers, 
       border: tile.isPlayerCurrent ? '2px solid #FBBF24' : '1px solid rgba(75, 85, 99, 0.5)',
       aspectRatio: '1 / 1',
     };
-  }, [tile.discovered, tile.isPlayerCurrent, tile.biomeId, biome]);
+  // TODO(lint-intent): If biome data becomes dynamic, include a version key so memoization stays accurate.
+  }, [tile.discovered, tile.isPlayerCurrent, biome]);
 
   const tooltipText = useMemo(() => {
     if (!tile.discovered) {
@@ -104,5 +104,7 @@ const MapTile: React.FC<MapTileProps> = React.memo(({ tile, isFocused, markers, 
     </button>
   );
 });
+
+MapTile.displayName = 'MapTile';
 
 export default MapTile;

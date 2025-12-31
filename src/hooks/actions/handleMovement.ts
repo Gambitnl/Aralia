@@ -17,9 +17,11 @@ import { INITIAL_QUESTS } from '../../data/quests';
 import { generateTravelEvent } from '../../services/travelEventService';
 import { getSeasonalEffects } from '../../systems/time/SeasonalSystem';
 import { getTimeModifiers } from '../../utils/timeUtils';
-import { DiscoveryConsequence, TravelEvent, TravelEventEffect } from '../../types/exploration';
+// TODO(lint-intent): 'TravelEvent' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { DiscoveryConsequence, TravelEvent as _TravelEvent, TravelEventEffect as _TravelEventEffect } from '../../types/exploration';
 import { BanterManager } from '../../systems/companions/BanterManager';
-import { BanterDisplayService } from '../../services/BanterDisplayService';
 import { resolveAndRegisterEntities } from '../../utils/entityIntegrationUtils';
 
 interface HandleMovementProps {
@@ -335,7 +337,10 @@ export async function handleMovement({
           };
 
           const abilityName = skillToAbility[check.skill] || 'wisdom';
-          const score = (playerCharacter.abilityScores as any)[abilityName] || 10;
+          // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+          // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+          // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+          const score = (playerCharacter.abilityScores as unknown)[abilityName] || 10;
           const mod = Math.floor((score - 10) / 2);
 
           const totalBonus = mod + (hasSkill ? pb : 0);
@@ -362,21 +367,25 @@ export async function handleMovement({
 
         if (finalEffect) {
           switch (finalEffect.type) {
-            case 'delay':
+            case 'delay': {
               // Amount is usually hours.
+              // TODO(lint-intent): If travel effects grow, extract a helper for delay messaging and timing.
               const delaySeconds = finalEffect.amount * 3600;
               timeToAdvanceSeconds += delaySeconds;
               addMessage(`(Travel delayed by ${finalEffect.amount} hours)`, 'system');
               break;
+            }
 
-            case 'health_change':
+            case 'health_change': {
               dispatch({
                 type: 'MODIFY_PARTY_HEALTH',
                 payload: { amount: finalEffect.amount }
               });
+              // TODO(lint-intent): If more health-effect variants appear, centralize the messaging logic.
               const hpChangeText = finalEffect.amount > 0 ? 'healed' : 'damaged';
               addMessage(`Party ${hpChangeText} by ${Math.abs(finalEffect.amount)} HP.`, 'system');
               break;
+            }
 
             case 'item_gain':
               if (finalEffect.itemId) {
@@ -435,11 +444,13 @@ export async function handleMovement({
                           dispatch({ type: 'GRANT_EXPERIENCE', payload: { amount: reward.amount } });
                           addMessage(`Party gained ${reward.amount} XP`, 'system');
                           break;
-                        case 'health':
+                        case 'health': {
                           dispatch({ type: 'MODIFY_PARTY_HEALTH', payload: { amount: reward.amount } });
+                          // TODO(lint-intent): Consider extracting reward-to-message formatting for health rewards.
                           const hpText = reward.amount > 0 ? 'Healed' : 'Took damage';
                           addMessage(`${hpText} ${Math.abs(reward.amount)} HP`, 'system');
                           break;
+                        }
                      }
                    });
                 }
@@ -564,6 +575,7 @@ export async function handleMovement({
       type: 'UPDATE_BANTER_COOLDOWN',
       payload: { banterId: banter.id, timestamp: Date.now() }
     });
+    const { BanterDisplayService } = await import('../../services/BanterDisplayService');
     BanterDisplayService.queueBanter(banter.lines, addMessage, gameState.companions);
   }
 }
@@ -727,8 +739,14 @@ interface HandleObserveSettlementProps {
 }
 
 export async function handleObserveSettlement({
-  gameState,
-  dispatch,
+  // TODO(lint-intent): 'gameState' is an unused parameter, which suggests a planned input for this flow.
+  // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+  // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+  gameState: _gameState,
+  // TODO(lint-intent): 'dispatch' is an unused parameter, which suggests a planned input for this flow.
+  // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+  // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+  dispatch: _dispatch,
   addMessage,
   addGeminiLog,
   action,

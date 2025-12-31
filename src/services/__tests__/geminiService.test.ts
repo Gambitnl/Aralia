@@ -60,7 +60,8 @@ describe('geminiService', () => {
     const mockContext = "World is at peace.";
 
     it('should return fallback inventory when JSON parsing fails', async () => {
-      const mockGenerateContent = ai.models.generateContent as any;
+      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      const mockGenerateContent = ai.models.generateContent as unknown;
       mockGenerateContent.mockResolvedValue({
         text: 'This is not JSON',
       });
@@ -73,7 +74,8 @@ describe('geminiService', () => {
     });
 
     it('varies fallback inventory when a seed key is provided', async () => {
-      const mockGenerateContent = ai.models.generateContent as any;
+      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      const mockGenerateContent = ai.models.generateContent as unknown;
       mockGenerateContent.mockResolvedValue({
         text: 'This is not JSON',
       });
@@ -92,7 +94,8 @@ describe('geminiService', () => {
 
   describe('generateSocialCheckOutcome', () => {
     it('should return fallback outcome when JSON parsing fails', async () => {
-      const mockGenerateContent = ai.models.generateContent as any;
+      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      const mockGenerateContent = ai.models.generateContent as unknown;
       mockGenerateContent.mockResolvedValue({
         text: 'Invalid JSON',
       });
@@ -108,7 +111,8 @@ describe('geminiService', () => {
 
     describe('generateCustomActions', () => {
     it('should return fallback actions when JSON parsing fails', async () => {
-      const mockGenerateContent = ai.models.generateContent as any;
+      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      const mockGenerateContent = ai.models.generateContent as unknown;
       mockGenerateContent.mockResolvedValue({
         text: 'Invalid JSON',
       });
@@ -124,7 +128,8 @@ describe('geminiService', () => {
 
     describe('generateHarvestLoot', () => {
     it('should return empty/fallback loot when JSON parsing fails', async () => {
-      const mockGenerateContent = ai.models.generateContent as any;
+      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      const mockGenerateContent = ai.models.generateContent as unknown;
       mockGenerateContent.mockResolvedValue({
         text: 'Invalid JSON',
       });
@@ -153,7 +158,8 @@ describe('geminiService', () => {
   describe('Timeout Handling', () => {
     it('should time out if the API call takes too long', async () => {
         vi.useFakeTimers();
-        const mockGenerateContent = ai.models.generateContent as any;
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        const mockGenerateContent = ai.models.generateContent as unknown;
 
         // Mock implementation that never resolves (hangs)
         mockGenerateContent.mockImplementation(() => new Promise(() => {}));

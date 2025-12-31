@@ -6,8 +6,10 @@ import { COMPANIONS } from '../../data/companions';
 import { CompanionReactionRule } from '../../types/companions';
 
 describe('useCompanionCommentary', () => {
-  let mockDispatch: any;
-  let mockState: any;
+  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+  let mockDispatch: unknown;
+  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+  let mockState: unknown;
 
   beforeEach(() => {
     mockDispatch = vi.fn();

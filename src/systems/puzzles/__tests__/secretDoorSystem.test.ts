@@ -19,8 +19,8 @@ import * as combatUtils from '../../../utils/combatUtils';
 vi.mock('../../../utils/combatUtils', () => ({
   rollDice: vi.fn()
 }));
-
-const mockCharacter: any = {
+// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+const mockCharacter: unknown = {
   id: 'char-1',
   name: 'Test Rogue',
   stats: {

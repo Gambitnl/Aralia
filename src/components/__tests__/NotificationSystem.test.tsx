@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+// TODO(lint-intent): 'act' is unused in this test; use it in the assertion path or remove it.
+import { render, screen, act as _act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NotificationSystem } from '../NotificationSystem';
 import { Notification } from '../../types';

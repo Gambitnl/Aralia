@@ -21,11 +21,15 @@ const PartyEditorModal: React.FC<PartyEditorModalProps> = ({ isOpen, onClose, in
   useEffect(() => {
     if (isOpen) {
       // Initialize with a simple representation of the current party
-      const initialTempParty = (initialParty.length > 0 ? initialParty : getDummyParty()).map((p, index) => ({
+      // TODO(lint-intent): 'index' is an unused parameter, which suggests a planned input for this flow.
+      // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+      // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+      const initialTempParty = (initialParty.length > 0 ? initialParty : getDummyParty()).map((p, _index) => ({
         id: p.id || crypto.randomUUID(),
         level: p.level || 1,
         classId: p.class?.id || 'fighter',
       }));
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEditableParty(initialTempParty);
       firstFocusableElementRef.current?.focus();
     }

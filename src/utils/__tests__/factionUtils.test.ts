@@ -3,7 +3,8 @@ import { describe, it, expect } from 'vitest';
 import { calculateRippleEffects, applyReputationChange, calculateNewStanding, getReputationTier, formatReputationChangeMessage } from '../factionUtils';
 import { FACTIONS } from '../../data/factions';
 import { GameState } from '../../types';
-import { PlayerFactionStanding } from '../../types/factions';
+// TODO(lint-intent): 'PlayerFactionStanding' is unused in this test; use it in the assertion path or remove it.
+import { PlayerFactionStanding as _PlayerFactionStanding } from '../../types/factions';
 
 // Mock GameState for testing
 const mockGameState: GameState = {

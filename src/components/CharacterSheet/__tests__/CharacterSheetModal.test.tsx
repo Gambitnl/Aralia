@@ -4,13 +4,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import CharacterSheetModal from '../CharacterSheetModal';
 import { Item, PlayerCharacter } from '../../../types';
 
-vi.mock('framer-motion', () => ({
-  motion: {
-    div: React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<'div'>>((props, ref) => (
-      <div ref={ref} {...props} />
-    )),
-  },
-}));
+vi.mock('framer-motion', () => {
+  const MotionDiv = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<'div'>>((props, ref) => (
+    <div ref={ref} {...props} />
+  ));
+  MotionDiv.displayName = 'MotionDiv';
+  return {
+    motion: {
+      div: MotionDiv,
+    },
+  };
+});
 
 vi.mock('../EquipmentMannequin', () => ({
   default: () => <div data-testid="equipment-mannequin">EquipmentMannequin</div>,

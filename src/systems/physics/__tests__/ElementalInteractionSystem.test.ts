@@ -139,5 +139,24 @@ describe('ElementalInteractionSystem', () => {
             expect(result.finalState).toBeUndefined();
             expect(result.interaction).toContain('Neutralized');
         });
+
+        it('should handle Acid + Wet -> Wet (Dilution)', () => {
+            const current = [StateTag.Acid];
+            const { newStates, result } = applyStateToTags(current, StateTag.Wet);
+
+            expect(newStates).toContain(StateTag.Wet);
+            expect(newStates).not.toContain(StateTag.Acid);
+            expect(result.finalState).toBe(StateTag.Wet);
+        });
+
+        it('should handle Acid + Burning -> Smoke (Toxic Fumes)', () => {
+            const current = [StateTag.Acid];
+            const { newStates, result } = applyStateToTags(current, StateTag.Burning);
+
+            expect(newStates).toContain(StateTag.Smoke);
+            expect(newStates).not.toContain(StateTag.Acid);
+            expect(newStates).not.toContain(StateTag.Burning);
+            expect(result.finalState).toBe(StateTag.Smoke);
+        });
     });
 });

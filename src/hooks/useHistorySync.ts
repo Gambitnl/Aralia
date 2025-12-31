@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { GamePhase, GameState } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { LOCATIONS } from '../constants';
@@ -16,7 +16,7 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
   const isInitialMount = useRef(true);
 
   // Guard Logic Helper
-  const safeNavigate = (targetPhase: GamePhase) => {
+  const safeNavigate = useCallback((targetPhase: GamePhase) => {
     const protectedPhases = [GamePhase.PLAYING, GamePhase.COMBAT, GamePhase.VILLAGE_VIEW, GamePhase.BATTLE_MAP_DEMO];
     if (protectedPhases.includes(targetPhase) && gameState.party.length === 0) {
       console.warn(`[Ranger] Blocked nav to ${GamePhase[targetPhase]} - no party.`);
@@ -37,10 +37,10 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
       return;
     }
     if (targetPhase !== gameState.phase) dispatch({ type: 'SET_GAME_PHASE', payload: targetPhase });
-  };
+  }, [dispatch, gameState.party.length, gameState.phase]);
 
   // Helper to sync state params
-  const syncParams = (params: URLSearchParams, phase: GamePhase) => {
+  const syncParams = useCallback((params: URLSearchParams, phase: GamePhase) => {
       params.set('phase', getPhaseSlug(phase));
       if (phase === GamePhase.PLAYING || phase === GamePhase.VILLAGE_VIEW) {
         if (gameState.subMapCoordinates) {
@@ -51,7 +51,7 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
       } else {
         ['x', 'y', 'loc'].forEach(k => params.delete(k));
       }
-  };
+  }, [gameState.subMapCoordinates, gameState.currentLocationId]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -85,7 +85,10 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
     }
 
     // State -> URL Sync (User Action)
-    const stateSlug = getPhaseSlug(gameState.phase);
+    // TODO(lint-intent): 'stateSlug' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    const _stateSlug = getPhaseSlug(gameState.phase);
     const shouldUpdatePhase = getPhaseFromSlug(params.get('phase')) !== gameState.phase;
 
     syncParams(params, gameState.phase);
@@ -98,8 +101,16 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
     if (currentSearch !== params.toString()) {
         window.history[method]({ phase: gameState.phase }, '', `${window.location.pathname}?${params.toString()}`);
     }
-
-  }, [gameState.phase, gameState.currentLocationId, gameState.subMapCoordinates]);
+  // TODO(lint-intent): If history sync needs to ignore some transitions, add an explicit guard for those phases.
+  }, [
+    dispatch,
+    gameState.phase,
+    gameState.currentLocationId,
+    gameState.subMapCoordinates,
+    gameState.party.length,
+    safeNavigate,
+    syncParams
+  ]);
 
   // PopState (Back/Forward) Listener
   useEffect(() => {
@@ -123,5 +134,6 @@ export const useHistorySync = (gameState: GameState, dispatch: React.Dispatch<Ap
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [dispatch, gameState.party.length, gameState.phase]);
+  // TODO(lint-intent): If popstate should ignore deep links in some phases, add a guard for those phases.
+  }, [dispatch, gameState.party.length, safeNavigate]);
 };

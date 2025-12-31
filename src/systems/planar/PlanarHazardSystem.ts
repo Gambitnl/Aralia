@@ -1,12 +1,22 @@
-
-import { GameState, PlayerCharacter } from '../../types';
-import { PlanarHazard, Plane } from '../../types/planes';
+// TODO(lint-intent): 'PlayerCharacter' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { GameState, PlayerCharacter as _PlayerCharacter } from '../../types';
+// TODO(lint-intent): 'Plane' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { PlanarHazard, Plane as _Plane } from '../../types/planes';
 import { getCurrentPlane } from '../../utils/planarUtils';
 import { rollDice , createPlayerCombatCharacter } from '../../utils/combatUtils';
 import { rollSavingThrow } from '../../utils/savingThrowUtils';
-
-import { generateId } from '../../utils/idGenerator';
-import { logger } from '../../utils/logger';
+// TODO(lint-intent): 'generateId' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { generateId as _generateId } from '../../utils/idGenerator';
+// TODO(lint-intent): 'logger' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { logger as _logger } from '../../utils/logger';
 
 export interface HazardEvent {
   characterId: string;

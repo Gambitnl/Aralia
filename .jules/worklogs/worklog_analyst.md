@@ -1,5 +1,15 @@
-## 2024-05-21 - HP Pool Allocation Gap **Learning:** Spells like Sleep and Color Spray use a "resource pool allocation" targeting logic that doesn't exist in the current `AreaTargeting` system. They require rolling dice to determine a pool, sorting targets by a property (HP), and iteratively applying effects until the pool is exhausted. **Action:** Introduced `TargetAllocation` interface to `src/types/spells.ts` and created `TargetAllocator` service to handle this logic. Future complex targeting (like Chain Lightning's "nearest" logic) should follow this pattern.
+## 2025-12-29 - Gap Analysis: NPC Memory for Spell Consequences
 
-## 2024-10-24 - Object Targeting Gap **Learning:** The current targeting system (`TargetResolver`) is strictly `CombatCharacter`-based. Spells like *Animate Dead* or *Catapult* that target items/objects cannot be implemented without extending `validTargets` to support `Item` validation and introducing an `ObjectTargeting` service. **Action:** Created `ObjectTargeting` framework to allow validating `Item` targets against filters like `objectType: "corpse"`. Future spells targeting items should use `ObjectTargeting.isValidObjectTarget` instead of shoehorning items into `CombatCharacter` types.
+**Learning:** I discovered that while `NPC` and `NPCMemory` types exist, there was no active system to record memories. Specifically, spells like `Charm Person` have post-effect consequences ("Creature knows it was charmed") that had no mechanical way to be tracked.
 
-## 2024-06-18 - Creature Type Taxonomy Gap **Learning:** Spells frequently interact with creature types (e.g., *Hold Person* targeting only Humanoids, *Protection from Evil and Good* excluding specific types), but the codebase relied on brittle string comparisons and disparate logic. **Action:** Created `CreatureTaxonomy` system to centralize normalization, whitelist/blacklist validation, and trait lookups, ensuring consistent and type-safe creature interactions across spells and features.
+**Action:** Created `MemorySystem` (stateless service) and added `'magical_manipulation'` to `MemoryInteractionType`.
+
+**Future:** This system needs to be wired into `SpellSystem` or `StatusConditionCommand` to automatically trigger when specific conditions (like Charmed) expire.
+
+## 2025-12-30 - Gap Analysis: Planar Interaction Rules
+
+**Learning:** Spells like *Blink* and *Etherealness* require characters to exist on different planes simultaneously during combat. The existing `CombatState` had a map-wide `currentPlane`, but individual characters lacked a "phase" state to determine if they were on the Material or Ethereal plane relative to each other.
+
+**Action:** Implemented `planarPhase` and `planarVision` properties on `ActiveEffect` mechanics. Created `src/utils/planarTargeting.ts` to centralize `canInteract` and `canSeeTarget` logic, enforcing 5e rules (Ethereal sees Material but cannot interact; Material cannot see Ethereal).
+
+**Future:** The *Blink* spell still needs a turn-end trigger system to handle the d20 roll automatically. Currently, the system only handles the state *if* the effect is applied.

@@ -1,7 +1,8 @@
-
-import { describe, it, expect, vi } from 'vitest';
+// TODO(lint-intent): 'vi' is unused in this test; use it in the assertion path or remove it.
+import { describe, it, expect, vi as _vi } from 'vitest';
 import { characterReducer } from '../characterReducer';
-import { GameState, PlayerCharacter } from '../../types';
+// TODO(lint-intent): 'PlayerCharacter' is unused in this test; use it in the assertion path or remove it.
+import { GameState, PlayerCharacter as _PlayerCharacter } from '../../types';
 import { createMockPlayerCharacter } from '../../../utils/factories';
 
 describe('characterReducer', () => {

@@ -2,7 +2,8 @@
 import { describe, it, expect } from 'vitest';
 import { PortalSystem } from '../PortalSystem';
 import { Portal } from '../../../types/planes';
-import { GameState, GamePhase } from '../../../types/index';
+// TODO(lint-intent): 'GamePhase' is unused in this test; use it in the assertion path or remove it.
+import { GameState, GamePhase as _GamePhase } from '../../../types/index';
 import { createMockGameState } from '../../../utils/factories';
 
 describe('PortalSystem', () => {

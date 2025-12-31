@@ -7,8 +7,14 @@
  */
 
 // Logic for companion approval and relationship progression
-import { Companion, RelationshipLevel, ApprovalEvent, RelationshipEvent, RelationshipUnlock } from '../../types/companions';
-import { GameState } from '../../types';
+// TODO(lint-intent): 'RelationshipEvent' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Companion, RelationshipLevel, ApprovalEvent, RelationshipEvent as _RelationshipEvent, RelationshipUnlock } from '../../types/companions';
+// TODO(lint-intent): 'GameState' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { GameState as _GameState } from '../../types';
 
 export class RelationshipManager {
   private static readonly APPROVAL_THRESHOLDS: Record<RelationshipLevel, [number, number]> = {

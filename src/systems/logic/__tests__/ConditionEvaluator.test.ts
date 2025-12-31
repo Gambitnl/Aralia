@@ -5,7 +5,8 @@ import { Condition } from '../../../types/logic';
 import { CombatCharacter } from '../../../types/combat';
 
 // Mock character factory
-const createMockCharacter = (id: string, hp: number, statusEffects: any[] = []): CombatCharacter => ({
+// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+const createMockCharacter = (id: string, hp: number, statusEffects: unknown[] = []): CombatCharacter => ({
   id,
   name: 'Mock',
   hp,
@@ -15,7 +16,8 @@ const createMockCharacter = (id: string, hp: number, statusEffects: any[] = []):
   statusEffects,
   conditions: [], // Add required conditions property
   // ... minimal required fields
-} as any as CombatCharacter);
+// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+} as unknown as CombatCharacter);
 
 describe('ConditionEvaluator', () => {
   const hero = createMockCharacter('hero', 50);

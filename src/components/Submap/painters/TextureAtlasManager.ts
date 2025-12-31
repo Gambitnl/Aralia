@@ -321,8 +321,14 @@ export class TextureAtlasManager {
         ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
 
         // Packed earth pattern (cobblestone-like)
-        const stoneColor = rgbToHexString(adjustBrightness(pathColor, 1.1));
-        const gapColor = rgbToHexString(adjustBrightness(pathColor, 0.8));
+        // TODO(lint-intent): 'stoneColor' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+        // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+        // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+        const _stoneColor = rgbToHexString(adjustBrightness(pathColor, 1.1));
+        // TODO(lint-intent): 'gapColor' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+        // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+        // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+        const _gapColor = rgbToHexString(adjustBrightness(pathColor, 0.8));
 
         // Draw cobblestone pattern
         for (let row = 0; row < 4; row++) {
@@ -549,7 +555,10 @@ export class TextureAtlasManager {
 
     private drawDungeonFloor(
         ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-        variation: number
+        // TODO(lint-intent): 'variation' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        _variation: number
     ): void {
         // Stone tile pattern
         ctx.fillStyle = '#525252';
@@ -610,7 +619,10 @@ export class TextureAtlasManager {
 
     private drawDefault(
         ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-        variation: number
+        // TODO(lint-intent): 'variation' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        _variation: number
     ): void {
         ctx.fillStyle = '#374151';
         ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE);

@@ -6,7 +6,8 @@ import type { Spell, SpellEffect, DamageEffect, DamageData, HealingEffect, Statu
 declare function getSpellEffect(): SpellEffect;
 
 // A mock function to get a specific damage effect
-declare function getDamageEffect(): DamageEffect;
+// TODO(lint-intent): 'getDamageEffect' is unused in this test; use it in the assertion path or remove it.
+declare function _getDamageEffect(): DamageEffect;
 
 describe('Spell System Type-Level Tests', () => {
   it('should correctly narrow discriminated unions', () => {
@@ -49,16 +50,18 @@ describe('Spell System Type-Level Tests', () => {
         description: 'A bright streak flashes from your pointing finger...',
     };
     expectType<Spell>(validSpell);
-
-    // @ts-expect-error
-    const invalidSpell: Spell = { id: 'missing_fields' };
+    // TODO(lint-intent): Confirm the ts-expect-error is still needed or tighten the Spell type for invalid fixtures.
+    // @ts-expect-error - invalid spell shape for type coverage
+    // TODO(lint-intent): 'invalidSpell' is unused in this test; use it in the assertion path or remove it.
+    const _invalidSpell: Spell = { id: 'missing_fields' };
   });
 
   it('should ensure damage type is a valid DamageType', () => {
     const validDamage: DamageData = { dice: '1d6', type: 'Fire' };
     expectType<DamageData>(validDamage);
-
-    // @ts-expect-error
-    const invalidDamage: DamageData = { dice: '1d6', type: 'NotARealType' };
+    // TODO(lint-intent): Confirm the ts-expect-error is still needed or tighten the DamageData type for invalid fixtures.
+    // @ts-expect-error - invalid damage type for coverage
+    // TODO(lint-intent): 'invalidDamage' is unused in this test; use it in the assertion path or remove it.
+    const _invalidDamage: DamageData = { dice: '1d6', type: 'NotARealType' };
   });
 });

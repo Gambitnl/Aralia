@@ -68,10 +68,14 @@ const PartyCharacterButton: React.FC<PartyCharacterButtonProps> = ({ character, 
         
         {/* Warning Icon Overlay */}
         {hasMissingChoices && (
+
+
+            /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+            TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+            TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+            */
             <div
                 className="absolute -top-1 -right-1 z-10"
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={(e) => e.stopPropagation()}
             >
                 <Tooltip content={`Missing Selection: ${missingChoices[0].label}. Click to fix.`}>
                     <button 

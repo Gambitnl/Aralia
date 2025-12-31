@@ -520,6 +520,7 @@ export const useActionExecutor = ({
     }
 
     return true;
+  // TODO(lint-intent): If map data can churn frequently, wrap executeAction with a map snapshot to reduce recalculations.
   }, [
     characters,
     turnState,
@@ -537,7 +538,8 @@ export const useActionExecutor = ({
     spellZones,
     movementDebuffs,
     reactiveTriggers,
-    setMovementDebuffs
+    setMovementDebuffs,
+    mapData
   ]);
 
   return { executeAction };

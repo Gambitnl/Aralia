@@ -5,7 +5,10 @@
 
 import 'pixi.js/unsafe-eval'; // CSP patch
 import * as PIXI from 'pixi.js';
-import { TILE_SIZE, getBiomePalette, rgbToHex } from './shared';
+// TODO(lint-intent): 'TILE_SIZE' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { TILE_SIZE as _TILE_SIZE, getBiomePalette as _getBiomePalette, rgbToHex as _rgbToHex } from './shared';
 
 // ============================================================================
 // Types

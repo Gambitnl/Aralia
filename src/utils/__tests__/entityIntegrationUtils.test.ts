@@ -2,7 +2,8 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { resolveAndRegisterEntities } from '../entityIntegrationUtils';
 import { EntityResolverService } from '../../services/EntityResolverService';
-import { GameState, Location, Faction, NPC } from '../../types';
+// TODO(lint-intent): 'Faction' is unused in this test; use it in the assertion path or remove it.
+import { GameState, Location, Faction as _Faction, NPC as _NPC } from '../../types';
 
 vi.mock('../../services/EntityResolverService');
 

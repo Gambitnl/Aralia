@@ -5,9 +5,14 @@
  * This module defines the structure for branching, multi-stage quests with
  * diverse objective types, prerequisites, and failure conditions.
  */
-
-import type { Item } from './items';
-import type { NPC } from './world';
+// TODO(lint-intent): 'Item' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import type { Item as _Item } from './items';
+// TODO(lint-intent): 'NPC' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import type { NPC as _NPC } from './world';
 
 /**
  * The high-level category of a quest, used for UI filtering and prioritization.

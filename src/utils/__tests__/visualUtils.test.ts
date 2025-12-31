@@ -2,7 +2,8 @@
 import { describe, it, expect } from 'vitest';
 import { resolveNPCVisual, resolveItemVisual } from '../visualUtils';
 import { NPC, Item } from '../../types';
-import { NPCVisualSpec, ItemVisualSpec } from '../../types/visuals';
+// TODO(lint-intent): 'ItemVisualSpec' is unused in this test; use it in the assertion path or remove it.
+import { NPCVisualSpec, ItemVisualSpec as _ItemVisualSpec } from '../../types/visuals';
 
 describe('resolveNPCVisual', () => {
   const mockNPC: NPC = {

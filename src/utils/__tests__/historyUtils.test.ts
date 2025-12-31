@@ -6,7 +6,8 @@ import {
     getRelevantHistory,
     findEventsByParticipant
 } from '../historyUtils';
-import { WorldHistory, WorldHistoryEvent } from '../../types/history';
+// TODO(lint-intent): 'WorldHistory' is unused in this test; use it in the assertion path or remove it.
+import { WorldHistory as _WorldHistory, WorldHistoryEvent } from '../../types/history';
 
 describe('historyUtils', () => {
     const mockEvent: WorldHistoryEvent = {

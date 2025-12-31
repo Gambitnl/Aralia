@@ -1,8 +1,31 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { canEquipItem, performLevelUp, applyFeatToCharacter } from '../characterUtils';
 import { createMockPlayerCharacter, createMockItem } from '../factories';
-import { Item, ArmorCategory, Feat } from '../../types';
-import { FEATS_DATA } from '../../data/feats/featsData';
+// TODO(lint-intent): 'ArmorCategory' is unused in this test; use it in the assertion path or remove it.
+import { Item, ArmorCategory as _ArmorCategory, Feat } from '../../types';
+// The module is mocked below, so we don't import the real data for use, but we might import types if needed.
+
+// Mock the feats data to control what performLevelUp sees
+vi.mock('../../data/feats/featsData', () => ({
+  FEATS_DATA: [
+    {
+      id: 'tough',
+      name: 'Tough',
+      description: 'HP boost',
+      benefits: {
+        hpMaxIncreasePerLevel: 2
+      }
+    },
+    {
+        id: 'resilient',
+        name: 'Resilient',
+        benefits: {
+            selectableAbilityScores: ['Strength', 'Constitution'],
+            savingThrowLinkedToAbility: true
+        }
+    }
+  ]
+}));
 
 describe('characterUtils', () => {
   describe('canEquipItem', () => {
@@ -300,6 +323,53 @@ describe('characterUtils', () => {
       // Total New Max: 28 + 9 + 3 = 40
       expect(leveled.maxHp).toBe(40);
     });
+
+    it('should retroactive apply feat HP bonus (e.g. Tough)', () => {
+      // Level 3 character (Fighter), CON 10 (0 mod)
+      // Hit die avg 6. Level 1 (10) + Level 2 (6) + Level 3 (6) = 22 HP
+      const character = createMockPlayerCharacter({
+        level: 3,
+        xp: 2700,
+        maxHp: 22,
+        class: {
+          id: 'fighter',
+          name: 'Fighter',
+          hitDie: 10,
+          primaryAbility: ['Strength'],
+          savingThrowProficiencies: ['Strength', 'Constitution'],
+          skillProficienciesAvailable: [],
+          numberOfSkillProficiencies: 2,
+          armorProficiencies: [],
+          weaponProficiencies: [],
+          features: [],
+          description: 'Fighter'
+        },
+        abilityScores: {
+            Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10
+        },
+        finalAbilityScores: {
+            Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10
+        },
+        feats: [] // No prior feats
+      });
+
+      // Choose "Tough" feat (ID: 'tough') which gives +2 HP per level
+      // Mocked above to have benefits.hpMaxIncreasePerLevel: 2
+      const leveled = performLevelUp(character, {
+        featId: 'tough'
+      });
+
+      expect(leveled.level).toBe(4);
+      expect(leveled.feats).toContain('tough');
+
+      // Calculation:
+      // Old Max HP: 22
+      // Level 4 gain: 6 (avg) + 0 (con) + 2 (feat per level) = 8
+      // Retroactive Feat: (2 - 0) * 3 previous levels = 6
+      // Total: 22 + 8 + 6 = 36
+      // Verification: 4 levels * (6 + 2) + level 1 bonus (4) = 32 + 4 = 36. Correct.
+      expect(leveled.maxHp).toBe(36);
+    });
   });
 
   describe('applyFeatToCharacter', () => {
@@ -340,6 +410,25 @@ describe('characterUtils', () => {
         });
 
         expect(result.abilityScores.Constitution).toBe(11);
+    });
+
+    it('should warn if selectable ability score is required but missing', () => {
+        const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const character = createMockPlayerCharacter();
+        const feat: Feat = {
+            id: 'resilient',
+            name: 'Resilient',
+            description: '...',
+            benefits: {
+                selectableAbilityScores: ['Strength']
+            }
+        };
+
+        // No selection provided
+        applyFeatToCharacter(character, feat);
+
+        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('requires an ability score selection'));
+        consoleSpy.mockRestore();
     });
 
     it('should apply speed bonus', () => {

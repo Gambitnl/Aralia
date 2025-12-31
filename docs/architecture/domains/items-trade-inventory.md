@@ -9,6 +9,7 @@ This domain manages the item system including inventory management, equipment, m
 | File | Role |
 |------|------|
 | `src/components/MerchantModal.tsx` | Trading interface |
+| `src/components/Organization/OrganizationDashboard.tsx` | Organization management |
 | `src/types/items.ts` | Item type definitions |
 | `src/data/items/` | Item data definitions |
 
@@ -16,6 +17,7 @@ This domain manages the item system including inventory management, equipment, m
 
 - **Inventory Display**: `InventoryList.tsx` - Item list and management
 - **Merchant Interface**: `MerchantModal.tsx` - Buy/sell transactions
+- **Organization UI**: `src/components/Organization/` - Guild/Order management
 - **Item Data**: `src/data/items/`, `item_templates/` - Item definitions
 - **Economy**: `src/systems/economy/` - Economic mechanics
 - **Loot Service**: `lootService.ts` - Loot generation
@@ -25,6 +27,7 @@ This domain manages the item system including inventory management, equipment, m
 | Path | Type | Description |
 |------|------|-------------|
 | `src/components/MerchantModal.tsx` | Component | Merchant interface |
+| `src/components/Organization/*.tsx` | Component | Organization management UI |
 | `src/data/items/**/*.ts` | Directory | Item definitions |
 | `src/data/item_templates/**/*.ts` | Directory | Item templates |
 | `src/data/tradeRoutes.ts` | Data | Trade route definitions |
@@ -68,6 +71,7 @@ This domain manages the item system including inventory management, equipment, m
 
 | Test File | Description |
 |-----------|-------------|
+| `src/components/Organization/__tests__/OrganizationDashboard.test.tsx` | Organization dashboard tests |
 | `src/systems/economy/__tests__/TradeRouteManager.test.ts` | Trade route manager tests |
 | `src/systems/economy/__tests__/TradeRouteSystem.test.ts` | Trade route system tests |
 | `src/utils/__tests__/coinPurseUtils.test.ts` | Coin purse utility tests |

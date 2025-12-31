@@ -176,45 +176,25 @@ Example: `.jules/worklogs/worklog_analyst.md`
 
 **NEVER delete or overwrite your worklog file. ONLY append to it.**
 
-```bash
-# ❌ FORBIDDEN: Overwriting the file
-echo "new content" > worklog_persona.md
+- ❌ FORBIDDEN: Replacing the entire file contents
+- ✅ CORRECT: Adding new entries at the end of the file
 
-# ✅ CORRECT: Appending to the file
-echo "new content" >> worklog_persona.md
-```
+If your worklog doesn't exist, create it. If it exists, append new entries at the end using whatever method your environment supports.
 
-If your worklog doesn't exist, create it. If it exists, append new entries at the end.
+### Date Discovery (Required)
 
-### Date Discovery (Best Effort)
+**Before starting work, you MUST determine the current date.**
 
-**Reference Date:** As of this methodology update, the actual date is **December 2025** (Amsterdam timezone).
+Your training data has a knowledge cutoff, so any date you "know" is likely outdated. Use one of these methods to get the actual current date:
 
-If you believe you know the date, you're likely using your training cutoff. Try these commands to discover the real date:
+1. **Run the `date` command** in your environment
+2. **Fetch from a time service:**
+   - https://www.timeanddate.com/worldclock/timezone/utc
+   - https://time.is/
 
-```bash
-# Try these to get the current date/time
-date
-Get-Date
-timedatectl
-cat /etc/timezone && date
-```
+Once you have the current date, use it in all your worklog entries, TODO comments, and any other timestamped content.
 
-**If date discovery works:** Use that date in your entries.
-
-**If date discovery fails:** That's okay! Instead:
-1. Omit the date from your entry, OR
-2. Use "BATCH-UNKNOWN" as a placeholder
-
-**Log your date discovery attempt:**
-
-```markdown
-### DATE DISCOVERY ATTEMPT
-**Method tried:** [command you ran]
-**Result:** [what happened - worked, permission denied, command not found, etc.]
-```
-
-This helps the Coordinator (maintainer) understand what's possible in your environment and collectively troubleshoot date discovery for future batches.
+**Format:** `YYYY-MM-DD` (e.g., `2025-12-29`)
 
 ### Entry Format
 ```markdown
@@ -327,53 +307,6 @@ When you encounter a TODO/FIXME/HACK/XXX without a date:
 ```
 
 This is a **passive duty** - do it whenever you're already editing a file and notice an undated marker. Don't create PRs just for date tagging.
-
----
-
-## Cross-Cutting: Visitation Tracking (Upkeep Personas Only)
-
-**Applies to:** Scribe, Hunter, Gardener, Sentinel (audit/upkeep personas)
-
-**Does NOT apply to:** Oracle, Vanguard, Bolt, Steward, Vector, etc. (code modification personas)
-
-Upkeep personas should leave a visitation marker at the end of files they've audited:
-
-```typescript
-// @visited Scribe 2025-12-16
-```
-
-### Purpose
-- Lets the persona skip already-visited files on subsequent runs
-- Focus effort on unvisited areas of the codebase
-- Prevents redundant audits of the same files
-
-### Rules
-1. **Check today's date first** - verify before adding marker
-2. **Add marker at file end** - after all code, before any existing markers
-3. **One line per persona** - each persona tracks separately
-4. **Update on revisit** - if you do revisit, update your date
-
-```typescript
-// End of file
-// @visited Scribe 2025-12-16
-// @visited Hunter 2025-12-14
-// @visited Gardener 2025-12-10
-```
-
-### Finding Unvisited Files
-
-```bash
-# Files Scribe hasn't visited
-find src -name "*.ts" -o -name "*.tsx" | xargs grep -L "@visited Scribe"
-
-# Files not visited by any upkeep persona
-find src -name "*.ts" -o -name "*.tsx" | xargs grep -L "@visited"
-```
-
-### When to Revisit
-- File was significantly modified since last visit (check git blame)
-- 3+ months since last visit
-- Specifically requested
 
 ---
 

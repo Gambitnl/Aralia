@@ -16,7 +16,7 @@ import {
   Race,
   RacialSelectionData,
 } from '../../types'; // Path relative to src/components/CharacterCreator/
-import { SKILLS_DATA } from '../../constants'; // Path relative to src/components/CharacterCreator/
+import { SKILLS_DATA } from '../../data/skills';
 import Tooltip from '../Tooltip'; // Import Tooltip component
 
 interface SkillSelectionProps {

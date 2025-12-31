@@ -13,7 +13,10 @@ import { RelationshipManager } from '../../systems/companions/RelationshipManage
 export function companionReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
     case 'UPDATE_COMPANION_APPROVAL': {
-      const { companionId, change, reason, source } = action.payload;
+      // TODO(lint-intent): 'source' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+      // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+      // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+      const { companionId, change, reason, source: _source } = action.payload;
       const companion = state.companions[companionId];
 
       if (!companion) {

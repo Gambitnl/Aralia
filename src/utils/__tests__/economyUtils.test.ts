@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { calculatePrice, parseCost } from '../economyUtils';
+import { calculatePrice, parseCost } from '../economy/economyUtils';
 import type { EconomyState, Item } from '../../types';
 
 // Mock the regional data to ensure tests are robust and independent of live data changes

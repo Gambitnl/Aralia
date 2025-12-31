@@ -25,7 +25,10 @@
  */
 
 import { Position } from '../types/combat';
-import { compassToMathAngle, degreesToRadians, normalizeAngle, getAngleBetweenPositions } from './geometry';
+// TODO(lint-intent): 'normalizeAngle' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { compassToMathAngle, degreesToRadians, normalizeAngle as _normalizeAngle, getAngleBetweenPositions } from './geometry';
 
 export type AoEShape = "Sphere" | "Cone" | "Cube" | "Line" | "Cylinder";
 

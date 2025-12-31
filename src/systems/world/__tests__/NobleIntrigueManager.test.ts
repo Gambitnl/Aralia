@@ -17,8 +17,10 @@ const createMockRng = (values: number[]) => {
             index++;
             return val;
         },
-        pick: (arr: any[]) => arr[0], // Simplified pick
-        nextInt: (min: number, max: number) => min
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        pick: (arr: unknown[]) => arr[0], // Simplified pick
+        // TODO(lint-intent): 'max' is unused in this test; use it in the assertion path or remove it.
+        nextInt: (min: number, _max: number) => min
     } as unknown as SeededRandom;
 };
 
@@ -54,7 +56,8 @@ describe('NobleIntrigueManager', () => {
     // We override pick in the mock to just return house_a (if it's the first key)
     // Actually, generateNobleIntrigue calls rng.pick(factionIds).
     // Let's force pick to return house_a
-    rng.pick = <T>(arr: T[]): T => {
+    // TODO(lint-intent): 'arr' is unused in this test; use it in the assertion path or remove it.
+    rng.pick = <T>(_arr: T[]): T => {
         // Assume arr of strings for factionIds
         return 'house_a' as unknown as T;
     };
@@ -96,7 +99,8 @@ describe('NobleIntrigueManager', () => {
     });
 
     const rng = createMockRng([0.1]);
-    rng.pick = <T>(arr: T[]): T => 'house_a' as unknown as T;
+    // TODO(lint-intent): 'arr' is unused in this test; use it in the assertion path or remove it.
+    rng.pick = <T>(_arr: T[]): T => 'house_a' as unknown as T;
 
     const result = generateNobleIntrigue(state, rng);
 
@@ -176,7 +180,8 @@ describe('NobleIntrigueManager', () => {
     // Let's try passing 0.9 to `next()` used for selection.
 
     const rng = createMockRng([0.9, 0.5, 0.5]);
-    rng.pick = <T>(arr: T[]): T => 'house_a' as unknown as T;
+    // TODO(lint-intent): 'arr' is unused in this test; use it in the assertion path or remove it.
+    rng.pick = <T>(_arr: T[]): T => 'house_a' as unknown as T;
 
     const result = generateNobleIntrigue(state, rng);
 
@@ -230,7 +235,8 @@ describe('NobleIntrigueManager', () => {
 
     // Only Power Play should be available (no shared values, no hates defined)
     const rng = createMockRng([0.1]);
-    rng.pick = <T>(arr: T[]): T => 'house_a' as unknown as T;
+    // TODO(lint-intent): 'arr' is unused in this test; use it in the assertion path or remove it.
+    rng.pick = <T>(_arr: T[]): T => 'house_a' as unknown as T;
 
     const result = generateNobleIntrigue(state, rng);
 

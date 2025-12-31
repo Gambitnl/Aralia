@@ -7,7 +7,10 @@
  */
 
 import { GameState } from '../../types';
-import { BanterDefinition, RelationshipLevel, Companion } from '../../types/companions';
+// TODO(lint-intent): 'Companion' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { BanterDefinition, RelationshipLevel, Companion as _Companion } from '../../types/companions';
 import { BANTER_DEFINITIONS } from '../../data/banter';
 
 const LEVEL_WEIGHTS: Record<RelationshipLevel, number> = {

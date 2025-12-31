@@ -2,12 +2,11 @@
  * @file SpellbookOverlay.tsx
  * A component for displaying a character's spellbook as a full-screen overlay.
  */
-import React, { useState, useEffect, useContext, useMemo } from 'react';
-import { PlayerCharacter, Spell, Action, AbilityScoreName, LimitedUseAbility, ResourceVial } from '../../types';
+import React, { useState, useEffect, useContext } from 'react';
+import { PlayerCharacter, Spell, Action, LimitedUseAbility, ResourceVial } from '../../types';
 import SpellContext from '../../context/SpellContext';
 import { CLASSES_DATA } from '../../constants';
 import Tooltip from '../Tooltip';
-import { getAbilityModifierValue } from '../../utils/characterUtils';
 // Spell info modal is housed under the Glossary folder
 import SingleGlossaryEntryModal from '../Glossary/SingleGlossaryEntryModal';
 
@@ -201,6 +200,7 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCurrentPageIndex(0);
       setShowAllPossibleSpells(false);
     }
@@ -210,9 +210,21 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
     return null;
   }
   
-  const classSpellList = CLASSES_DATA[character.class.id]?.spellcasting?.spellList ?? [];
   const maxSpellLevelCharCanCast = Math.max(0, ...Object.keys(character.spellSlots ?? {}).map(k => parseInt(k.replace('level_',''))));
   const pages = Array.from({ length: maxSpellLevelCharCanCast + 1 }, (_, i) => i);
+
+  const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  };
+
+  const handleOverlayKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onClose();
+    }
+  };
 
   const handlePageTurn = (direction: 'next' | 'prev') => {
     setCurrentPageIndex(prev => {
@@ -225,8 +237,14 @@ const SpellbookOverlay: React.FC<SpellbookOverlayProps> = ({ isOpen, character, 
 
   return (
     <>
-      <div className="spellbook-overlay" onClick={onClose}>
-        <div className="spellbook-container" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="spellbook-overlay"
+        role="button"
+        tabIndex={0}
+        onClick={handleOverlayClick}
+        onKeyDown={handleOverlayKeyDown}
+      >
+        <div className="spellbook-container">
           <LeftPage 
             character={character} 
             onAction={onAction}

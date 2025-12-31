@@ -8,12 +8,14 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { worldReducer } from '../worldReducer';
-import { GameState } from '../../../types';
+// TODO(lint-intent): 'GameState' is unused in this test; use it in the assertion path or remove it.
+import { GameState as _GameState } from '../../../types';
 import { createMockGameState } from '../../../utils/factories';
 
 // Mock WorldEventManager to avoid RNG and check integration
 vi.mock('../../../systems/world/WorldEventManager', () => ({
-    processWorldEvents: vi.fn((state, daysPassed) => ({
+    // TODO(lint-intent): 'daysPassed' is unused in this test; use it in the assertion path or remove it.
+    processWorldEvents: vi.fn((state, _daysPassed) => ({
         state: { ...state, mockChange: true }, // Simple change to verify it was called
         logs: [{ id: 1, text: 'Mock World Event', sender: 'system', timestamp: new Date() }]
     }))

@@ -1,9 +1,11 @@
 
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+// TODO(lint-intent): 'fireEvent' is unused in this test; use it in the assertion path or remove it.
+import { render, screen, fireEvent as _fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import EncounterModal from '../EncounterModal';
-import { t } from '../../utils/i18n';
+// TODO(lint-intent): 't' is unused in this test; use it in the assertion path or remove it.
+import { t as _t } from '../../utils/i18n';
 
 // Mock i18n
 vi.mock('../../utils/i18n', () => ({

@@ -2,7 +2,10 @@
  * @file src/state/reducers/npcReducer.ts
  * A slice reducer that handles NPC memory state changes.
  */
-import { GameState, SuspicionLevel, GoalStatus, KnownFact } from '../../types';
+// TODO(lint-intent): 'SuspicionLevel' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { GameState, SuspicionLevel as _SuspicionLevel, GoalStatus as _GoalStatus, KnownFact as _KnownFact } from '../../types';
 import { AppAction } from '../actionTypes';
 
 export function npcReducer(state: GameState, action: AppAction): Partial<GameState> {
@@ -146,6 +149,42 @@ export function npcReducer(state: GameState, action: AppAction): Partial<GameSta
       return { npcMemory: action.payload };
     }
 
+    // Handles recording a discussed topic in both the active session and NPC memory
+    case 'DISCUSS_TOPIC': {
+      const { topicId, npcId, date } = action.payload;
+      const currentMemory = state.npcMemory[npcId];
+
+      // Update Active Session if it exists and matches the NPC
+      const activeSession = state.activeDialogueSession;
+      let newActiveSession = activeSession;
+
+      if (activeSession && activeSession.npcId === npcId && !activeSession.discussedTopicIds.includes(topicId)) {
+          newActiveSession = {
+              ...activeSession,
+              discussedTopicIds: [...activeSession.discussedTopicIds, topicId]
+          };
+      }
+
+      // Update NPC Memory if it exists
+      let newNpcMemory = state.npcMemory;
+      if (currentMemory) {
+          newNpcMemory = {
+              ...state.npcMemory,
+              [npcId]: {
+                  ...currentMemory,
+                  discussedTopics: {
+                      ...(currentMemory.discussedTopics || {}),
+                      [topicId]: date
+                  }
+              }
+          };
+      }
+
+      return {
+          activeDialogueSession: newActiveSession,
+          npcMemory: newNpcMemory
+      };
+    }
 
     default:
       return {};

@@ -7,7 +7,9 @@ import { BiomeType } from '../../types/realmsmith';
 vi.mock('../../services/RealmSmithTownGenerator', () => {
     return {
         TownGenerator: class {
-            constructor(options: any) {}
+            // TODO(lint-intent): 'options' is unused in this test; use it in the assertion path or remove it.
+            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+            constructor(_options: unknown) {}
             generate() {
                 return {
                     width: 10,

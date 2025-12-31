@@ -98,7 +98,10 @@ export function attemptSkillChallenge(
 
   // 2. Determine DC and Validity
   let dc = challenge.baseDC;
-  let skillDef = challenge.availableSkills.find(s => s.skillName === skillName);
+  // TODO(lint-intent): This binding never reassigns, so the intended mutability is unclear.
+  // TODO(lint-intent): If it should stay stable, switch to const and treat it as immutable.
+  // TODO(lint-intent): If mutation was intended, add the missing update logic to reflect that intent.
+  const skillDef = challenge.availableSkills.find(s => s.skillName === skillName);
 
   if (!skillDef) {
     if (challenge.allowCreativeSkills) {

@@ -79,15 +79,26 @@ const MannequinSilhouette = () => (
 
 const EquippedItemVisual: React.FC<{ item: Item }> = ({ item }) => {
   const [imgError, setImgError] = React.useState(false);
+  const imgRef = React.useRef<HTMLImageElement>(null);
   const visual = resolveItemVisual(item);
 
+  React.useEffect(() => {
+    const img = imgRef.current;
+    if (!img || !visual.src || imgError) return;
+    const handleError = () => setImgError(true);
+    img.addEventListener('error', handleError);
+    return () => img.removeEventListener('error', handleError);
+  }, [visual.src, imgError]);
+
+  // TODO(lint-intent): If this image needs interactive affordances, wrap it in a semantic control.
+  // TODO(lint-intent): If it stays decorative, keep the fallback logic here and move styling to a shared helper.
   if (visual.src && !imgError) {
     return (
       <img
+        ref={imgRef}
         src={visual.src}
         alt={visual.label}
         className="w-10 h-10 object-contain drop-shadow-md"
-        onError={() => setImgError(true)}
       />
     );
   }

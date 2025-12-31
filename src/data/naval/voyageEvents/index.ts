@@ -5,8 +5,10 @@
  * @file src/data/naval/voyageEvents/index.ts
  * Definitions for dynamic events that can occur during a sea voyage.
  */
-
-import { VoyageEvent, VoyageState, Ship } from '../../../types/naval';
+// TODO(lint-intent): 'VoyageState' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { VoyageEvent, VoyageState as _VoyageState, Ship as _Ship } from '../../../types/naval';
 import { CrewManager } from '../../../systems/naval/CrewManager';
 import { rollDice } from '../../../utils/combatUtils';
 
@@ -64,7 +66,10 @@ export const VOYAGE_EVENTS: VoyageEvent[] = [
         description: 'Visibility reduced to near zero.',
         type: 'Weather',
         probability: 0.1,
-        effect: (state, ship) => {
+        // TODO(lint-intent): 'ship' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        effect: (state, _ship) => {
             state.currentWeather = 'Fog';
             // Fog slows progress (adds to remaining distance effectively, or just we travel less)
             // But since VoyageManager calculates travel separately, let's say we got lost.
@@ -216,7 +221,10 @@ export const VOYAGE_EVENTS: VoyageEvent[] = [
         type: 'Fluff',
         probability: 0.05,
         conditions: (state) => state.currentWeather === 'Storm',
-        effect: (state, ship) => {
+        // TODO(lint-intent): 'state' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        effect: (_state, _ship) => {
             return {
                 log: `St. Elmo's Fire dances on the mast tips. A hauntingly beautiful sight in the storm.`,
                 type: 'Fluff'

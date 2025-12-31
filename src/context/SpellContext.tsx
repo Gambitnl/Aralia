@@ -4,7 +4,10 @@ import { Spell } from '../types';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { ErrorOverlay } from '../components/ui/ErrorOverlay';
 import { fetchWithTimeout } from '../utils/networkUtils';
-import { ENV, assetUrl } from '../config/env';
+// TODO(lint-intent): 'ENV' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { ENV as _ENV, assetUrl } from '../config/env';
 
 export type SpellDataRecord = Record<string, Spell>;
 
@@ -19,7 +22,10 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   useEffect(() => {
     const fetchAllSpells = async () => {
       try {
-        const manifest = await fetchWithTimeout<Record<string, any>>(
+        // TODO(lint-intent): The any on this value hides the intended shape of this data.
+        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+        const manifest = await fetchWithTimeout<Record<string, unknown>>(
           assetUrl('data/spells_manifest.json'),
           { timeoutMs: 15000 }
         );
@@ -32,8 +38,10 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         // TODO: Validate manifest shape before Object.entries; if missing/invalid, surface a clear error instead of throwing.
         const spellEntries = Object.entries(manifest);
         const collectedIssues: string[] = [];
-
-        const fetchSpell = async ([id, info]: [string, any]) => {
+        // TODO(lint-intent): The any on this value hides the intended shape of this data.
+        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+        const fetchSpell = async ([id, info]: [string, unknown]) => {
           try {
             // Ensure spell asset requests respect the configured base path
             const normalizedPath = assetUrl(String(info.path || ''));

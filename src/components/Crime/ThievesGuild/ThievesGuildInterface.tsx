@@ -4,6 +4,7 @@ import { useGameState } from '../../../state/GameContext';
 import { ThievesGuildSystem } from '../../../systems/crime/ThievesGuildSystem';
 import { GuildJob, GuildService } from '../../../types/crime';
 import { LOCATIONS } from '../../../constants';
+import FenceInterface from './FenceInterface';
 
 const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const { state, dispatch } = useGameState();
@@ -11,6 +12,7 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
     const [availableJobs, setAvailableJobs] = useState<GuildJob[]>([]);
     const [activeTab, setActiveTab] = useState<'jobs' | 'active' | 'services'>('jobs');
     const [availableServices, setAvailableServices] = useState<GuildService[]>([]);
+    const [activeService, setActiveService] = useState<GuildService | null>(null);
 
     useEffect(() => {
         // Use stored available jobs if they exist for this "session" or day, otherwise generate
@@ -30,12 +32,18 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
 
         // Filter out jobs already taken
         const takenIds = thievesGuild.activeJobs.map(j => j.id);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setAvailableJobs(jobs.filter(j => !takenIds.includes(j.id)));
 
         setAvailableServices(ThievesGuildSystem.getAvailableServices(thievesGuild.rank));
     }, [thievesGuild.rank, state.gameTime, thievesGuild.activeJobs, thievesGuild.guildId, state.worldSeed, thievesGuild.availableJobs, dispatch]);
 
     const handleUseService = (service: GuildService) => {
+        if (service.type === 'Fence') {
+            setActiveService(service);
+            return;
+        }
+
         dispatch({
             type: 'USE_GUILD_SERVICE',
             payload: {
@@ -66,6 +74,13 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
     const handleAbandonJob = (job: GuildJob) => {
         dispatch({ type: 'ABANDON_GUILD_JOB', payload: { jobId: job.id } });
     };
+
+    if (activeService) {
+        if (activeService.type === 'Fence') {
+            return <FenceInterface service={activeService} onClose={() => setActiveService(null)} />;
+        }
+        // Future services (Forgery, etc) could go here
+    }
 
     if (thievesGuild.rank === 0) {
         return (

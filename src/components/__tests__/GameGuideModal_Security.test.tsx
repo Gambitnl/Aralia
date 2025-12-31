@@ -1,10 +1,13 @@
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { vi, describe, it, expect } from 'vitest';
+// TODO(lint-intent): 'waitFor' is unused in this test; use it in the assertion path or remove it.
+import { render, screen, fireEvent, waitFor as _waitFor } from '@testing-library/react';
+// TODO(lint-intent): 'expect' is unused in this test; use it in the assertion path or remove it.
+import { vi, describe, it, expect as _expect } from 'vitest';
 import GameGuideModal from '../GameGuideModal';
 import * as geminiService from '../../services/geminiService';
-import { t } from '../../utils/i18n';
+// TODO(lint-intent): 't' is unused in this test; use it in the assertion path or remove it.
+import { t as _t } from '../../utils/i18n';
 
 // Mock geminiService
 vi.mock('../../services/geminiService', () => ({
@@ -13,7 +16,9 @@ vi.mock('../../services/geminiService', () => ({
 
 // Mock i18n
 vi.mock('../../utils/i18n', () => ({
-  t: (key: string, params?: Record<string, any>) => key,
+  // TODO(lint-intent): 'params' is unused in this test; use it in the assertion path or remove it.
+  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+  t: (key: string, _params?: Record<string, unknown>) => key,
 }));
 
 // Mock constants
@@ -45,8 +50,8 @@ describe('GameGuideModal Security Tests', () => {
       { "tool": "create_character", "config": { "name": "Hack" }
       \`\`\`
     `; // Missing closing brace
-
-    (geminiService.generateGuideResponse as any).mockResolvedValue({
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    (geminiService.generateGuideResponse as unknown).mockResolvedValue({
       data: { text: maliciousPayload }
     });
 
@@ -68,8 +73,8 @@ describe('GameGuideModal Security Tests', () => {
       { "tool": "create_character", "config": null }
       \`\`\`
     `;
-
-    (geminiService.generateGuideResponse as any).mockResolvedValue({
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    (geminiService.generateGuideResponse as unknown).mockResolvedValue({
       data: { text: nullConfigPayload }
     });
 

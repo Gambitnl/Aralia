@@ -13,7 +13,7 @@ interface DialogueInterfaceProps {
     playerCharacter: PlayerCharacter;
     onClose: () => void;
     onUpdateSession: (newSession: DialogueSession) => void;
-    onTopicOutcome?: (result: ProcessTopicResult) => void;
+    onTopicOutcome?: (result: ProcessTopicResult, topicId: string) => void;
     onGenerateResponse: (prompt: string) => Promise<string>;
 }
 
@@ -65,11 +65,14 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
             discussedTopicIds: [...session.discussedTopicIds, topic.id],
             availableTopicIds: session.availableTopicIds // This usually comes from re-running getAvailableTopics
         };
+        // We defer session update slightly because onTopicOutcome might dispatch the persistence action which updates both.
+        // However, standard flow suggests UI updates optimistically or waits.
+        // For now, we call onUpdateSession to keep local state in sync if the parent relies on it immediately.
         onUpdateSession(newSession);
 
         // 3. Update Global State (Disposition, Unlocks) via callback
         if (onTopicOutcome) {
-            onTopicOutcome(result);
+            onTopicOutcome(result, topic.id);
         }
 
         // 4. Generate AI Response

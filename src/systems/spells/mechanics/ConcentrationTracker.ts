@@ -20,7 +20,10 @@ export class ConcentrationTracker {
    */
   static isConcentrating(
     character: CombatCharacter,
-    gameState: CombatState
+    // TODO(lint-intent): 'gameState' is an unused parameter, which suggests a planned input for this flow.
+    // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+    // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+    _gameState: CombatState
   ): boolean {
     return !!character.concentratingOn
   }

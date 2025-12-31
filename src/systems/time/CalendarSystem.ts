@@ -5,8 +5,10 @@
  * @file src/systems/time/CalendarSystem.ts
  * Manages the game calendar, holidays, and moon phases.
  */
-
-import { Season, getSeason, getGameDay, getGameEpoch } from '../../utils/timeUtils';
+// TODO(lint-intent): 'getGameEpoch' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Season, getSeason, getGameDay, getGameEpoch as _getGameEpoch } from '../../utils/timeUtils';
 
 export interface GameDate {
   day: number;

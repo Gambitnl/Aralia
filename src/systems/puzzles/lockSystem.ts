@@ -18,7 +18,10 @@ import { getAbilityModifierValue } from '../../utils/statUtils';
  * @param toolId The ID of the tool (e.g., 'thieves-tools').
  * @returns boolean True if proficient.
  */
-export function hasToolProficiency(character: PlayerCharacter, toolId: string): boolean {
+// TODO(lint-intent): 'toolId' is an unused parameter, which suggests a planned input for this flow.
+// TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+// TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+export function hasToolProficiency(character: PlayerCharacter, _toolId: string): boolean {
   // Logic simplified for MVP: Rogue class implies proficiency with Thieves' Tools.
   // Future iteration should check the character's explicit proficiency list.
   const isRogue = character.classes.some(c => c.name === 'Rogue');

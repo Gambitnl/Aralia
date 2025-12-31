@@ -532,7 +532,10 @@ export const generateVillageLayout = ({
   // Residential districts radiate outward, size based on population / wealth
   const houseBudget = personality.population === 'large' ? 22 : personality.population === 'medium' ? 16 : 10;
   const wealthBias = personality.wealth === 'rich' ? 0.7 : personality.wealth === 'comfortable' ? 0.5 : 0.3;
-  const houseTypes: VillageTileType[] = getHouseTypesForPersonality(personality);
+  // TODO(lint-intent): 'houseTypes' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+  const _houseTypes: VillageTileType[] = getHouseTypesForPersonality(personality);
 
   for (let i = 0; i < houseBudget; i++) {
     const typeRoll = rng();

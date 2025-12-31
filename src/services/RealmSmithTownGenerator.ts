@@ -1,6 +1,9 @@
 
 import { RNG, NoiseGenerator } from '../utils/realmsmithRng';
-import { Tile, TileType, TownMap, Building, BuildingType, DoodadType, TownOptions, BiomeType, TownDensity, RoofStyle, WallTexture } from '../types/realmsmith';
+// TODO(lint-intent): 'BuildingType' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Tile, TileType, TownMap, Building, BuildingType as _BuildingType, DoodadType as _DoodadType, TownOptions, BiomeType as _BiomeType, TownDensity as _TownDensity, RoofStyle as _RoofStyle, WallTexture as _WallTexture } from '../types/realmsmith';
 import { BIOME_DATA, BiomeConfig } from '../data/realmsmithBiomes';
 import { WIDTH, HEIGHT } from '../constants/realmsmith';
 import { TerrainGenerator } from './TerrainGenerator';

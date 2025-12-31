@@ -38,6 +38,14 @@ export function dialogueReducer(state: GameState, action: AppAction): Partial<Ga
             };
         }
 
+        // NOTE: 'DISCUSS_TOPIC' is handled in npcReducer to update both session and memory.
+        // We rely on rootReducer to combine them or appState to delegate.
+        // However, if we need it here to ensure specific session logic, we can add it.
+        // But since npcReducer handles the session update part too, we don't need it here
+        // as long as the root reducer applies updates from all reducers.
+        // In this codebase, it seems reducers return Partial<GameState> and are merged.
+        // So having it in npcReducer is sufficient.
+
         default:
             return {};
     }

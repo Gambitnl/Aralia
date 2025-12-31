@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { TargetResolver } from '../TargetResolver'
-import type { SpellTargeting, BattleMapTile , CombatCharacter, CombatState, Position } from '@/types'
+// TODO(lint-intent): 'Position' is unused in this test; use it in the assertion path or remove it.
+import type { SpellTargeting, BattleMapTile , CombatCharacter, CombatState, Position as _Position } from '@/types'
 
 
 // Mock Character
@@ -10,14 +11,17 @@ const createMockChar = (id: string, team: 'player' | 'enemy', x: number, y: numb
   team,
   position: { x, y },
   // Stub other required fields
-  class: {} as any,
-  stats: {} as any,
+  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+  class: {} as unknown,
+  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+  stats: {} as unknown,
   abilities: [],
   currentHP: 10,
   maxHP: 10,
   initiative: 10,
   statusEffects: [],
-  actionEconomy: {} as any
+  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+  actionEconomy: {} as unknown
 })
 
 const createMockTile = (x: number, y: number, blocksLoS: boolean = false): BattleMapTile => ({
@@ -38,7 +42,8 @@ describe('TargetResolver', () => {
   let enemyClose: CombatCharacter
   let enemyFar: CombatCharacter
   let mockGameState: CombatState
-  let mockMapData: any
+  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+  let mockMapData: unknown
 
   beforeEach(() => {
     caster = createMockChar('hero', 'player', 10, 10)
@@ -63,7 +68,8 @@ describe('TargetResolver', () => {
     mockGameState = {
       characters: [caster, ally, enemyClose, enemyFar],
       isActive: true,
-      turnState: {} as any,
+      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      turnState: {} as unknown,
       selectedCharacterId: null,
       selectedAbilityId: null,
       actionMode: 'select',

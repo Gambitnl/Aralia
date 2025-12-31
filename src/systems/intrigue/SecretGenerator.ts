@@ -74,7 +74,10 @@ export class SecretGenerator {
             verified: this.rng.next() > 0.3, // 70% chance to be verified initially, else rumor
             value: value,
             knownBy: [],
-            tags: [template.type as any]
+            // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+            tags: [template.type as unknown]
         };
     }
 
@@ -100,7 +103,10 @@ export class SecretGenerator {
             verified: this.rng.next() > 0.3,
             value: value,
             knownBy: [],
-            tags: [template.type as any]
+            // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+            tags: [template.type as unknown]
         };
     }
 

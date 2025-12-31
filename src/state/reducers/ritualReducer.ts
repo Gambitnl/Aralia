@@ -104,10 +104,16 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
          };
 
          // const backlashEffects = RitualManager.getBacklashOnFailure(updatedRitual);
-         const backlashEffects: any[] = [];
+         // TODO(lint-intent): The any on 'backlashEffects' hides the intended shape of this data.
+         // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+         // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+         const backlashEffects: unknown[] = [];
 
          const backlashMessage = backlashEffects.length > 0
-            ? `Backlash: ${backlashEffects.map((b: any) => b.description).join(' ')}`
+            // TODO(lint-intent): The any on 'b' hides the intended shape of this data.
+            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+            ? `Backlash: ${backlashEffects.map((b: unknown) => b.description).join(' ')}`
             : 'The magic dissipates harmlessly.';
 
          return {

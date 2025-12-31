@@ -28,16 +28,23 @@ export class PortalSystem {
 
   private static checkSingleRequirement(req: PortalRequirement, gameState: GameState): { met: boolean; reason?: string } {
     switch (req.type) {
-      case 'item':
+      case 'item': {
         // Check inventory
+        // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
+        // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
+        // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
         const hasItem = gameState.inventory.some(item => item.name === req.value || item.id === req.value);
         if (!hasItem) return { met: false, reason: `Requires ${req.value}` };
         return { met: true };
+      }
 
-      case 'time':
+      case 'time': {
         if (!gameState.gameTime) {
              return { met: false, reason: "Time is undefined." };
         }
+        // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
+        // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
+        // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
         const timeOfDay = getTimeOfDay(gameState.gameTime);
 
         if (req.value === 'Night') {
@@ -51,6 +58,7 @@ export class PortalSystem {
 
         // Fail closed for unsupported time conditions (e.g. "Full Moon" not yet implemented)
         return { met: false, reason: `Time condition '${req.value}' not currently met.` };
+      }
 
       case 'condition':
         if (req.value === 'Bloodied') {

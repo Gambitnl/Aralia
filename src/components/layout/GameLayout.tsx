@@ -55,7 +55,10 @@ interface GameLayoutProps {
     onAction: (action: Action) => void;
     /** Current state of companions. */
     // TODO: Replace any with the specific Companion type (imported from ../../types or ../../constants) to ensure type safety for the companions prop.
-    companions?: Record<string, any>; // Using any to avoid importing the type if not strictly needed, or import Companion
+    // TODO(lint-intent): The any on this value hides the intended shape of this data.
+    // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+    // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+    companions?: Record<string, unknown>; // Using any to avoid importing the type if not strictly needed, or import Companion
 }
 
 /**

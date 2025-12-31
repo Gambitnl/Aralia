@@ -5,11 +5,14 @@ import {
     processSuccession,
     retireCharacter,
     grantTitle,
-    calculateLegacyScore
+    // TODO(lint-intent): 'calculateLegacyScore' is unused in this test; use it in the assertion path or remove it.
+    calculateLegacyScore as _calculateLegacyScore
 } from '../legacyService';
-import { PlayerLegacy } from '../../types/legacy';
+// TODO(lint-intent): 'PlayerLegacy' is unused in this test; use it in the assertion path or remove it.
+import { PlayerLegacy as _PlayerLegacy } from '../../types/legacy';
 import { Stronghold } from '../../types/stronghold';
-import { Organization } from '../../types/organizations';
+// TODO(lint-intent): 'Organization' is unused in this test; use it in the assertion path or remove it.
+import { Organization as _Organization } from '../../types/organizations';
 
 // Mock Data
 const MOCK_STRONGHOLD: Stronghold = {

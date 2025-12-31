@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { getSeasonalEffects, getForagingDC, SeasonalEffect, SEASONAL_CONFIG } from '../SeasonalSystem';
+// TODO(lint-intent): 'SeasonalEffect' is unused in this test; use it in the assertion path or remove it.
+import { getSeasonalEffects, getForagingDC, SeasonalEffect as _SeasonalEffect, SEASONAL_CONFIG as _SEASONAL_CONFIG } from '../SeasonalSystem';
 import { Season } from '../../../utils/timeUtils';
 
 describe('SeasonalSystem', () => {

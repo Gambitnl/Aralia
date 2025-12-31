@@ -6,7 +6,8 @@
  * the UI wizard, while ensuring all derived stats (HP, AC, Speed, etc.) are calculated correctly.
  */
 import { PlayerCharacter, AbilityScores, SpellbookData, SpellSlots, LimitedUses, Item, Skill, EquipmentSlotType } from '../types';
-import { RACES_DATA as ALL_RACES_DATA, CLASSES_DATA, SKILLS_DATA, WEAPONS_DATA, ITEMS } from '../constants';
+import { RACES_DATA as ALL_RACES_DATA, CLASSES_DATA, WEAPONS_DATA, ITEMS } from '../constants';
+import { SKILLS_DATA } from '../data/skills';
 import { getAbilityModifierValue, calculateArmorClass } from '../utils/characterUtils';
 
 export interface CharacterGenerationConfig {

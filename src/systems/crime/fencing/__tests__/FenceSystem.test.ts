@@ -1,9 +1,12 @@
 
 import { describe, it, expect } from 'vitest';
 import { FenceSystem } from '../FenceSystem';
-import { Fence, StolenItem, CrimeType } from '../../../../types/crime';
-import { PlayerCharacter } from '../../../../types/character';
-import { GameState } from '../../../../types';
+// TODO(lint-intent): 'CrimeType' is unused in this test; use it in the assertion path or remove it.
+import { Fence, StolenItem, CrimeType as _CrimeType } from '../../../../types/crime';
+// TODO(lint-intent): 'PlayerCharacter' is unused in this test; use it in the assertion path or remove it.
+import { PlayerCharacter as _PlayerCharacter } from '../../../../types/character';
+// TODO(lint-intent): 'GameState' is unused in this test; use it in the assertion path or remove it.
+import { GameState as _GameState } from '../../../../types';
 import { createMockPlayerCharacter, createMockGameState } from '../../../../utils/factories';
 
 describe('FenceSystem', () => {
@@ -43,8 +46,8 @@ describe('FenceSystem', () => {
     description: 'A shiny cup',
     isEquipped: false
   };
-
-  const mockGameState = createMockGameState();
+  // TODO(lint-intent): 'mockGameState' is unused in this test; use it in the assertion path or remove it.
+  const _mockGameState = createMockGameState();
 
   it('generates a valid fence', () => {
     const fence = FenceSystem.generateFence('loc-1', 'Test Location');

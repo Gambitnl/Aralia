@@ -56,7 +56,10 @@ export function logReducer(state: GameState, action: AppAction): Partial<GameSta
     case 'CLEAR_DISCOVERY_LOG':
         return { discoveryLog: [], unreadDiscoveryCount: 0 };
 
-    case 'UPDATE_QUEST_IN_DISCOVERY_LOG':
+    case 'UPDATE_QUEST_IN_DISCOVERY_LOG': {
+        // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
+        // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
+        // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
         const unreadIncrement = state.discoveryLog.some(entry => entry.isQuestRelated && entry.questId === action.payload.questId && !entry.isRead) ? 0 : 1;
         return {
             discoveryLog: state.discoveryLog.map(entry => {
@@ -72,6 +75,7 @@ export function logReducer(state: GameState, action: AppAction): Partial<GameSta
             }),
             unreadDiscoveryCount: state.unreadDiscoveryCount + unreadIncrement,
         };
+    }
 
     default:
       return {};

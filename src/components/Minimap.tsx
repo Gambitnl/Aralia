@@ -19,7 +19,10 @@ const VIEWPORT_TILES = 15; // Number of tiles to show in width/height
 const Minimap: React.FC<MinimapProps> = ({
   mapData,
   currentLocationCoords,
-  submapCoords,
+  // TODO(lint-intent): 'submapCoords' is an unused parameter, which suggests a planned input for this flow.
+  // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+  // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+  submapCoords: _submapCoords,
   visible,
   toggleMap
 }) => {
@@ -123,9 +126,23 @@ const Minimap: React.FC<MinimapProps> = ({
   if (!visible || !mapData) return null;
 
   return (
+
+
+    /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
+    TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
+    TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
+    */
     <div
       className="absolute top-4 right-4 z-30 shadow-lg rounded-lg overflow-hidden border-2 border-amber-700 bg-black cursor-pointer hover:opacity-90 transition-opacity"
       onClick={toggleMap}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          toggleMap();
+        }
+      }}
+      role="button"
+      tabIndex={0}
       title="Click to open World Map"
     >
       <canvas

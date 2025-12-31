@@ -18,8 +18,8 @@ const BLUE_LEAF: Item = {
   description: 'A reactive leaf',
   type: ItemType.CraftingMaterial
 };
-
-const DUST_GLOW: Item = {
+// TODO(lint-intent): 'DUST_GLOW' is unused in this test; use it in the assertion path or remove it.
+const _DUST_GLOW: Item = {
   id: 'dust_glow',
   name: 'Glow Dust',
   description: 'Glowing dust',

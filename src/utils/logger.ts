@@ -1,3 +1,4 @@
+// [Scribe] Added TSDoc for better developer experience.
 import { redactSensitiveData } from './securityUtils';
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
@@ -6,6 +7,19 @@ interface LogContext {
   [key: string]: unknown;
 }
 
+/**
+ * A centralized logger utility that wraps console methods and provides automatic redaction of sensitive data.
+ *
+ * Use this logger instead of `console.log` directly to ensure:
+ * 1. Consistent formatting with timestamps.
+ * 2. Automatic redaction of secrets (e.g., API keys, passwords) in the context object.
+ * 3. Type-safe logging levels.
+ *
+ * @example
+ * import { logger } from '@/utils/logger';
+ *
+ * logger.info('Player saved game', { playerId: '123', saveData: data });
+ */
 class Logger {
   private log(level: LogLevel, message: string, context?: LogContext) {
     const timestamp = new Date().toISOString();
@@ -51,18 +65,42 @@ class Logger {
     }
   }
 
+  /**
+   * Logs a debug message. Use for detailed information useful during development.
+   *
+   * @param message - The message to log.
+   * @param context - Optional context object. Any sensitive keys will be redacted.
+   */
   debug(message: string, context?: LogContext) {
     this.log('debug', message, context);
   }
 
+  /**
+   * Logs an informational message. Use for general application flow events.
+   *
+   * @param message - The message to log.
+   * @param context - Optional context object. Any sensitive keys will be redacted.
+   */
   info(message: string, context?: LogContext) {
     this.log('info', message, context);
   }
 
+  /**
+   * Logs a warning message. Use for unexpected situations that aren't fatal errors.
+   *
+   * @param message - The message to log.
+   * @param context - Optional context object. Any sensitive keys will be redacted.
+   */
   warn(message: string, context?: LogContext) {
     this.log('warn', message, context);
   }
 
+  /**
+   * Logs an error message. Use for critical failures or exceptions.
+   *
+   * @param message - The message to log.
+   * @param context - Optional context object. Any sensitive keys will be redacted.
+   */
   error(message: string, context?: LogContext) {
     this.log('error', message, context);
   }

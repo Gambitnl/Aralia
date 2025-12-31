@@ -39,7 +39,9 @@ export function generateLoot(monsters: Monster[]): LootResult {
           const parsedCr = parseInt(monster.cr, 10);
           baseGold = isNaN(parsedCr) ? 0 : parsedCr * 10;
         }
-      } catch (e) {
+      // TODO(lint-intent): Capture and log the parsing error if we need richer loot diagnostics.
+      // TODO(lint-intent): Consider validating CR upstream to avoid runtime fallbacks here.
+      } catch {
         logger.warn("Error parsing monster CR for gold", { cr: monster.cr, id: monster.id });
         baseGold = 0;
       }

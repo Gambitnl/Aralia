@@ -43,7 +43,8 @@ function main() {
 
       // effects
       if (Array.isArray(json.effects)) {
-        json.effects.forEach((e: any, idx: number) => {
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        json.effects.forEach((e: unknown, idx: number) => {
           for (const key of requiredEffectFields) {
             if (!(key in e)) issues.push(`effects[${idx}] missing ${key}`)
           }
@@ -58,7 +59,8 @@ function main() {
       if (issues.length > 0) {
         results.push({ file, issues })
       }
-    } catch (err: any) {
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    } catch (err: unknown) {
       results.push({ file, issues: [`failed to parse JSON: ${err.message}`] })
     }
   }

@@ -5,9 +5,14 @@
  * @file src/systems/puzzles/types.ts
  * Defines types for Locks, Traps, Puzzles, and Pressure Plates.
  */
-
-import { CharacterStats } from '../../types/combat';
-import { Item } from '../../types/items';
+// TODO(lint-intent): 'CharacterStats' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { CharacterStats as _CharacterStats } from '../../types/combat';
+// TODO(lint-intent): 'Item' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Item as _Item } from '../../types/items';
 import { AbilityScoreName } from '../../types/core';
 
 export type DamageType =

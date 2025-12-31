@@ -12,3 +12,7 @@
 2.  **Fix Dependencies:** Ensure all ESLint plugins (react, typescript-eslint, imports) are compatible with v9 and Flat Config.
 3.  **Enable Dead Code Rules:** explicit rules for `no-unused-vars` and `unused-imports` to automate gardening.
 4.  **Verify:** Run `npm run lint` to ensure it passes or correctly flags issues.
+
+## 2025-12-30 - Refactoring DefensiveCommand & Crafting Service
+**Learning:** `const newState = { ...state }` only performs a shallow copy. If you intend to modify nested arrays (like `newState.characters[i] = ...`), you MUST explicitly copy that array first (`newState.characters = [...state.characters]`) to avoid mutating the original state object.
+**Action:** Always check specifically for nested array mutations in Command Pattern `execute` methods.

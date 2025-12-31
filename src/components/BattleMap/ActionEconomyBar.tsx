@@ -73,6 +73,12 @@ const ActionEconomyBar: React.FC<ActionEconomyBarProps> = ({ character, onExecut
             <span className={`text-xs font-bold ${actionEconomy.reaction.used ? 'text-gray-500 line-through' : 'text-blue-400'}`}>Reaction</span>
           </div>
         </Tooltip>
+        <Tooltip content="Free Object Interaction">
+          <div className={`p-1 flex flex-col items-center transition-opacity ${actionEconomy.freeActions <= 0 ? 'opacity-40' : 'opacity-100'}`}>
+            <span className="text-2xl" role="img" aria-label="Free Object Interaction">🖐️</span>
+            <span className={`text-xs font-bold ${actionEconomy.freeActions <= 0 ? 'text-gray-500 line-through' : 'text-green-400'}`}>Free</span>
+          </div>
+        </Tooltip>
       </div>
 
       {/* Sustain Button */}

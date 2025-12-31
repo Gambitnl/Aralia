@@ -91,12 +91,16 @@ export class UnderdarkFactionSystem {
         };
 
         switch (mechanic.type) {
-            case 'psionic_static':
+            case 'psionic_static': {
                 // Drains sanity faster
                 // Intensity 1-10. Each point adds 0.1 drain/hour
+                // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
+                // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
+                // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
                 const drainAmount = (mechanic.intensity * 0.1) * (minutesPassed / 60);
                 newState.sanity.current = Math.max(0, newState.sanity.current - drainAmount);
                 break;
+            }
 
             case 'radiation':
                 // Increases Faerzress level temporarily or permanently

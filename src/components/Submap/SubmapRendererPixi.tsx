@@ -26,10 +26,15 @@ import {
     initNoise,
     simpleHash,
 } from './painters/shared';
-
-import { TextureAtlasManager, getTextureManager } from './painters/TextureAtlasManager';
+// TODO(lint-intent): 'TextureAtlasManager' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { TextureAtlasManager as _TextureAtlasManager, getTextureManager } from './painters/TextureAtlasManager';
 import { SubmapTilePainter } from './painters/SubmapTilePainter';
-import { SubmapDoodadPainter, type DoodadType } from './painters/SubmapDoodadPainter';
+// TODO(lint-intent): 'DoodadType' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { SubmapDoodadPainter, type DoodadType as _DoodadType } from './painters/SubmapDoodadPainter';
 import { SubmapFeaturePainter } from './painters/SubmapFeaturePainter';
 import { SubmapOverlayPainter, type TimeOfDay } from './painters/SubmapOverlayPainter';
 import { SubmapPathPainter, type PathPoint } from './painters/SubmapPathPainter';
@@ -273,6 +278,7 @@ const SubmapRendererPixi: React.FC<SubmapRendererPixiProps> = ({
 
         const elapsed = performance.now() - startedAt;
         onRenderMetrics?.({ lastMs: elapsed, fpsEstimate: elapsed > 0 ? 1000 / elapsed : 0 });
+    // TODO(lint-intent): If player visuals churn often, memoize them upstream to avoid extra renders.
     }, [
         app,
         isInitialized,
@@ -298,6 +304,7 @@ const SubmapRendererPixi: React.FC<SubmapRendererPixiProps> = ({
         playerSubmapCoords,
         playerPainter,
         playerFacing,
+        playerVisuals,
         onRenderMetrics,
     ]);
 

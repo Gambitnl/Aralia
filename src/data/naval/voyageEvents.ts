@@ -5,8 +5,10 @@
  * @file src/data/naval/voyageEvents.ts
  * Definitions for random events that can occur during sea voyages.
  */
-
-import { VoyageEvent, VoyageState, Ship } from '../../types/naval';
+// TODO(lint-intent): 'Ship' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { VoyageEvent, VoyageState, Ship as _Ship } from '../../types/naval';
 import { CrewManager } from '../../systems/naval/CrewManager';
 import { rollDamage, rollDice } from '../../utils/combatUtils';
 
@@ -72,7 +74,10 @@ export const VOYAGE_EVENTS: VoyageEvent[] = [
         description: 'Visibility drops to near zero. Sounds are muffled and strange shapes loom in the mist.',
         type: 'Weather',
         probability: 0.08,
-        effect: (state, ship) => {
+        // TODO(lint-intent): 'ship' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        effect: (state, _ship) => {
             // Risk of running aground or hitting debris if near coast, but for now just slower speed
             state.distanceTraveled -= 10;
             return {
@@ -257,7 +262,10 @@ export const VOYAGE_EVENTS: VoyageEvent[] = [
         description: 'Crates and barrels from a wreck bob in the water.',
         type: 'Discovery',
         probability: 0.05,
-        effect: (state, ship) => {
+        // TODO(lint-intent): 'state' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        effect: (_state, _ship) => {
             // Simple loot
             const goldFound = rollDice('5d10');
             // We don't have a direct 'ship gold' prop easily accessible in Ship interface (it's usually on player),

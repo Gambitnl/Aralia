@@ -10,7 +10,7 @@ import { motion, MotionProps } from 'framer-motion';
 import { Item, Action, EconomyState } from '../../types';
 import Tooltip from '../Tooltip';
 import { useGameState } from '../../state/GameContext';
-import { calculatePrice } from '../../utils/economyUtils';
+import { calculatePrice } from '../../utils/economy/economyUtils';
 import { formatGpAsCoins } from '../../utils/coinPurseUtils';
 import CoinPurseDisplay from '../ui/CoinPurseDisplay';
 import { useFocusTrap } from '../../hooks/useFocusTrap';

@@ -11,14 +11,14 @@
  */
 
 // React hooks - useReducer for complex state management, useCallback for memoized functions,
-// useEffect for side effects, useState for local component state
-import React, { useReducer, useCallback, useEffect, useState, lazy, Suspense } from 'react';
+// useEffect for side effects
+import React, { useReducer, useCallback, useEffect, lazy, Suspense } from 'react';
 // Framer Motion - provides animation components like AnimatePresence for smooth UI transitions
 import { AnimatePresence } from 'framer-motion';
 
 // Core TypeScript types/interfaces used throughout the application
 // These define the structure of locations, messages, NPCs, items, characters, game phases, etc.
-import { Location, GameMessage, NPC, MapTile, Item, PlayerCharacter, GamePhase, MissingChoice } from './types';
+import { Location, GameMessage, NPC, MapTile, Item, PlayerCharacter, GamePhase } from './types';
 // State management - appReducer handles all state updates via actions, initialGameState provides defaults
 import { appReducer, initialGameState } from './state/appState';
 // Custom hooks - encapsulate reusable logic for audio, game actions, and initialization
@@ -573,7 +573,10 @@ const App: React.FC = () => {
   } else if (gameState.phase === GamePhase.COMBAT) {
     // Render the full Combat View
     const combatBiome = (currentLocationData.biomeId && ['forest', 'cave', 'dungeon', 'desert', 'swamp'].includes(currentLocationData.biomeId))
-      ? (currentLocationData.biomeId as any)
+      // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+      ? (currentLocationData.biomeId as unknown)
       : 'forest';
 
     mainContent = (

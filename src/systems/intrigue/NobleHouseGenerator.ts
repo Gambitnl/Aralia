@@ -78,8 +78,10 @@ function generateNoble(
     personalSecretIds: []
   };
 }
-
-export const generateNobleHouse = (kingdomId: string = 'default', seed: number = Date.now()): NobleHouse => {
+// TODO(lint-intent): 'kingdomId' is an unused parameter, which suggests a planned input for this flow.
+// TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+// TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+export const generateNobleHouse = (_kingdomId: string = 'default', seed: number = Date.now()): NobleHouse => {
   const rng = new SeededRandom(seed);
   const secretGen = new SecretGenerator(seed);
 

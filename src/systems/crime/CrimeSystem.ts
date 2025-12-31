@@ -4,9 +4,15 @@ import {
     CrimeType,
     Bounty,
     HeatLevel,
-    StolenItem
+    // TODO(lint-intent): 'StolenItem' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    StolenItem as _StolenItem
 } from '../../types/crime';
-import { GameState, NotorietyState } from '../../types';
+// TODO(lint-intent): 'GameState' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { GameState as _GameState, NotorietyState } from '../../types';
 
 export class CrimeSystem {
 

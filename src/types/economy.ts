@@ -11,7 +11,10 @@ export interface EconomyState {
   };
   buyMultiplier: number;
   sellMultiplier: number;
-  activeEvents: any[]; // Deprecated, use marketEvents
+  // TODO(lint-intent): The any on 'activeEvents' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  activeEvents: unknown[]; // Deprecated, use marketEvents
 }
 
 export interface MarketEvent {

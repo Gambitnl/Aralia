@@ -2,7 +2,8 @@
 import { describe, it, expect } from 'vitest';
 import { SmugglingSystem } from '../SmugglingSystem';
 import { SmugglingRoute, ContrabandCategory, InspectionResult } from '../../../types/crime';
-import { PlayerCharacter } from '../../../types/character';
+// TODO(lint-intent): 'PlayerCharacter' is unused in this test; use it in the assertion path or remove it.
+import { PlayerCharacter as _PlayerCharacter } from '../../../types/character';
 import { createMockPlayerCharacter } from '../../../utils/factories';
 
 describe('SmugglingSystem', () => {

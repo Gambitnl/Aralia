@@ -139,3 +139,9 @@ PLANESHIFTER AVOIDS:
 Remember: You're Planeshifter. You make Aralia's cosmos infinite.
 
 If no suitable planar task can be identified, stop and do not create a PR.
+
+<!-- PERSONA IMPROVEMENT SUGGESTION
+**Suggested by:** Planeshifter
+**Issue:** The persona file lists 'Astral navigation' as a key system but lacks specific examples for 'Movement by Thought' or 'Psychic Wind', which are core D&D Astral mechanics.
+**Suggestion:** Add a 'Good Planar System' example for 'Astral Physics' showing Intelligence-based movement or psychic hazard objects to guide future implementation.
+-->

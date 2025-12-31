@@ -8,7 +8,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { processWorldEvents } from '../WorldEventManager';
-import { GameState, GamePhase } from '../../../types';
+// TODO(lint-intent): 'GamePhase' is unused in this test; use it in the assertion path or remove it.
+import { GameState, GamePhase as _GamePhase } from '../../../types';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../../../data/factions';
 import { createMockGameState } from '../../../utils/factories';
 import { getGameDay } from '../../../utils/timeUtils';
@@ -55,7 +56,8 @@ describe('WorldEventManager', () => {
             // Check if any faction power changed from default
             // Default power is mostly static in FACTIONS constant but we modified it
             const factions = Object.values(currentState.factions);
-            const changed = factions.some(f => f.power !== 50 && f.power !== 80 && f.power !== 60 && f.power !== 75 && f.power !== 85 && f.power !== 70);
+            // TODO(lint-intent): 'changed' is unused in this test; use it in the assertion path or remove it.
+            const _changed = factions.some(f => f.power !== 50 && f.power !== 80 && f.power !== 60 && f.power !== 75 && f.power !== 85 && f.power !== 70);
             // Note: My power values in FACTIONS are 80, 60, 75, 85, 70, 50.
             // If a skirmish happens, power changes by +/- 2 to 4.
             // So checking strict inequality to initial values is complex if I don't know who fought.

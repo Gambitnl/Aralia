@@ -1,14 +1,17 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import TownNavigationControls from '../TownNavigationControls';
-import { TownDirection } from '../../../types/town';
+// TODO(lint-intent): 'TownDirection' is unused in this test; use it in the assertion path or remove it.
+import { TownDirection as _TownDirection } from '../../../types/town';
 import { vi } from 'vitest';
 
 // Mock framer-motion since it's used for animations
 vi.mock('framer-motion', () => ({
     motion: {
-        div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-        button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        div: ({ children, ...props }: unknown) => <div {...props}>{children}</div>,
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        button: ({ children, ...props }: unknown) => <button {...props}>{children}</button>,
     },
     useReducedMotion: () => false,
 }));

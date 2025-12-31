@@ -58,7 +58,8 @@ describe('Crafting System', () => {
 
   describe('checkMaterials', () => {
     it('should return true when all materials are present', () => {
-      const inventory: any[] = [
+      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      const inventory: unknown[] = [
         { ...mockIronBar, quantity: 5 },
         { ...mockWood, quantity: 2 }
       ];
@@ -69,7 +70,8 @@ describe('Crafting System', () => {
     });
 
     it('should return false when materials are missing', () => {
-      const inventory: any[] = [
+      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      const inventory: unknown[] = [
         { ...mockIronBar, quantity: 1 }, // Need 2
         { ...mockWood, quantity: 2 }
       ];
@@ -82,7 +84,8 @@ describe('Crafting System', () => {
 
   describe('attemptCraft', () => {
     it('should fail if materials are missing', () => {
-      const inventory: any[] = [];
+      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      const inventory: unknown[] = [];
       const result = attemptCraft(mockCrafter, mockRecipe, inventory);
 
       expect(result.success).toBe(false);
@@ -90,7 +93,8 @@ describe('Crafting System', () => {
     });
 
     it('should succeed on good roll', () => {
-      const inventory: any[] = [
+      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      const inventory: unknown[] = [
         { ...mockIronBar, quantity: 2 },
         { ...mockWood, quantity: 1 }
       ];
@@ -106,7 +110,8 @@ describe('Crafting System', () => {
     });
 
     it('should fail on bad roll', () => {
-      const inventory: any[] = [
+      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      const inventory: unknown[] = [
         { ...mockIronBar, quantity: 2 },
         { ...mockWood, quantity: 1 }
       ];
@@ -123,7 +128,8 @@ describe('Crafting System', () => {
     });
 
     it('should crit on high roll', () => {
-      const inventory: any[] = [
+      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+      const inventory: unknown[] = [
         { ...mockIronBar, quantity: 2 },
         { ...mockWood, quantity: 1 }
       ];

@@ -11,7 +11,8 @@ import {
     addGameTime,
     formatDuration,
     formatGameDate,
-    formatGameDateTime,
+    // TODO(lint-intent): 'formatGameDateTime' is unused in this test; use it in the assertion path or remove it.
+    formatGameDateTime as _formatGameDateTime,
     GAME_EPOCH_YEAR,
     GAME_EPOCH_MONTH,
     GAME_EPOCH_DAY,
@@ -22,7 +23,8 @@ import {
 
 describe('timeUtils', () => {
     describe('Existing Utilities', () => {
-        const epoch = getGameEpoch();
+        // TODO(lint-intent): 'epoch' is unused in this test; use it in the assertion path or remove it.
+        const _epoch = getGameEpoch();
 
         it('should return the correct epoch date', () => {
             const date = getGameEpoch();

@@ -90,12 +90,12 @@ function add(a: number, b: number): number {
 
 ---
 
-## JSDoc for Public APIs
+## JSDoc for All Functions
 
-Use JSDoc for exported functions, especially:
-- Utility functions used across modules
-- Hook return values and parameters
-- Complex type definitions
+Use JSDoc for all functions you create or modify:
+- Document purpose, parameters, and return values
+- Include examples for complex logic
+- Reference D&D rules or external sources where relevant
 
 ```typescript
 /**

@@ -2,11 +2,17 @@
 import {
   InfernalContract,
   ContractType,
-  ContractStatus,
+  // TODO(lint-intent): 'ContractStatus' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+  ContractStatus as _ContractStatus,
   ContractClause,
   ContractGenerationParams
 } from '../../types/infernal';
-import { GameState, PlayerCharacter } from '../../types/index';
+// TODO(lint-intent): 'PlayerCharacter' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { GameState, PlayerCharacter as _PlayerCharacter } from '../../types/index';
 import { generateId } from '../../utils/idGenerator';
 import { logger } from '../../utils/logger';
 
@@ -130,8 +136,10 @@ export class InfernalMechanics {
           logger.info(`Applying penalty: ${penalty.description}`);
       }
   }
-
-  private static generateClauses(type: ContractType, tier: string): ContractClause[] {
+  // TODO(lint-intent): 'tier' is an unused parameter, which suggests a planned input for this flow.
+  // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+  // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+  private static generateClauses(type: ContractType, _tier: string): ContractClause[] {
       const clauses: ContractClause[] = [];
 
       // Example logic for generating clauses based on type/tier
@@ -160,14 +168,21 @@ export class InfernalMechanics {
 
       return clauses;
   }
-
-  private static applyImmediateClauses(contract: InfernalContract, gameState: GameState): void {
+  // TODO(lint-intent): 'gameState' is an unused parameter, which suggests a planned input for this flow.
+  // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+  // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+  private static applyImmediateClauses(contract: InfernalContract, _gameState: GameState): void {
       // Placeholder for applying immediate benefits (e.g. giving items, gold, stats)
-      const boons = contract.clauses.filter(c => c.type === 'boon');
+      // TODO(lint-intent): 'boons' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+      // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+      // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+      const _boons = contract.clauses.filter(c => c.type === 'boon');
       // Implementation depends on the specific boon mechanics
   }
-
-  private static detectBreach(contract: InfernalContract, gameState: GameState): string | null {
+  // TODO(lint-intent): 'contract' is an unused parameter, which suggests a planned input for this flow.
+  // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+  // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+  private static detectBreach(_contract: InfernalContract, _gameState: GameState): string | null {
       // Logic to detect if conditions are violated
       // e.g. "Don't kill innocents" -> check notoriety
 

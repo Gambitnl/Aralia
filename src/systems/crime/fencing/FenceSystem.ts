@@ -1,7 +1,10 @@
 
 import { StolenItem, Fence } from '../../../types/crime';
 import { PlayerCharacter } from '../../../types/character';
-import { GameState } from '../../../types';
+// TODO(lint-intent): 'GameState' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { GameState as _GameState } from '../../../types';
 
 export interface FenceTransactionResult {
   success: boolean;
@@ -14,7 +17,10 @@ export class FenceSystem {
   /**
    * Generates a fence NPC for a given location.
    */
-  static generateFence(locationId: string, locationName: string): Fence {
+  // TODO(lint-intent): 'locationName' is an unused parameter, which suggests a planned input for this flow.
+  // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+  // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+  static generateFence(locationId: string, _locationName: string): Fence {
     const acceptedCategories = this.getRandomCategories();
     // Cut is between 20% and 50%
     const cut = 0.2 + (Math.random() * 0.3);

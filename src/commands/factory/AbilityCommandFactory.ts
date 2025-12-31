@@ -5,7 +5,7 @@ import { DamageCommand } from '../effects/DamageCommand';
 import { HealingCommand } from '../effects/HealingCommand';
 import { StatusConditionCommand } from '../effects/StatusConditionCommand';
 import { AbilityEffectMapper } from './AbilityEffectMapper';
-import { rollDice, generateId, calculateDamage, calculateCover, resolveAttack } from '@/utils/combatUtils';
+import { rollDice, generateId, calculateCover, resolveAttack } from '@/utils/combatUtils';
 import { isDamageEffect, isStatusConditionEffect } from '@/types/spells';
 import { SpellCommandFactory } from './SpellCommandFactory';
 import { AttackRiderSystem, AttackContext } from '@/systems/combat/AttackRiderSystem';
@@ -17,7 +17,10 @@ import { AttackRiderSystem, AttackContext } from '@/systems/combat/AttackRiderSy
 export class WeaponAttackCommand implements SpellCommand {
   public readonly id = generateId();
   public readonly description: string;
-  public readonly metadata: any;
+  // TODO(lint-intent): The any on 'metadata' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  public readonly metadata: unknown;
 
   private ability: Ability;
   private caster: CombatCharacter;

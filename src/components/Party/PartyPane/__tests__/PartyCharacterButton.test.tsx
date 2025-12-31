@@ -3,7 +3,8 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import PartyCharacterButton from '../PartyCharacterButton';
-import { PlayerCharacter, MissingChoice } from '../../../../types';
+// TODO(lint-intent): 'MissingChoice' is unused in this test; use it in the assertion path or remove it.
+import { PlayerCharacter, MissingChoice as _MissingChoice } from '../../../../types';
 
 // Mock validation
 vi.mock('../../../../utils/characterValidation', () => ({

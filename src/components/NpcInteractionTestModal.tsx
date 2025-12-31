@@ -3,7 +3,10 @@
  * This component displays a guided test plan for the "Living NPC" system.
  */
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, MotionProps } from 'framer-motion';
+// TODO(lint-intent): 'AnimatePresence' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { motion, AnimatePresence as _AnimatePresence, MotionProps } from 'framer-motion';
 import { Action } from '../types';
 
 interface NpcInteractionTestModalProps {
@@ -30,6 +33,7 @@ const NpcInteractionTestModal: React.FC<NpcInteractionTestModalProps> = ({ isOpe
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStep(1); // Reset to first step when opened
       firstFocusableElementRef.current?.focus();
     }

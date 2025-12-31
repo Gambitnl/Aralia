@@ -6,7 +6,8 @@ import { GlossaryContentRenderer } from '../Glossary/GlossaryContentRenderer';
 describe('GlossaryContentRenderer Security', () => {
   it('sanitizes malicious HTML content', () => {
     // Malicious markdown that produces an img tag with an onerror handler
-    const maliciousMarkdown = '![Malicious](x " onerror=alert(1)")';
+    // TODO(lint-intent): 'maliciousMarkdown' is unused in this test; use it in the assertion path or remove it.
+    const _maliciousMarkdown = '![Malicious](x " onerror=alert(1)")';
     // Or direct HTML injection if marked allows it (which it often does by default)
     const directHtmlInjection = '<img src=x onerror=alert(1) />';
 

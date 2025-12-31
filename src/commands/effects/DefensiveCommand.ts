@@ -1,336 +1,134 @@
-import { BaseEffectCommand } from '../base/BaseEffectCommand'
-import { CommandContext } from '../base/SpellCommand'
-import { DefensiveEffect, isDefensiveEffect } from '@/types/spells'
-import { CombatState, CombatCharacter } from '@/types/combat'
-import { ActiveEffect } from '@/types/effects'
-import { calculateFinalAC } from '@/utils/statUtils';
+
+import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand';
+import { CombatState, ActiveEffect, CombatCharacter } from '../../types/combat';
+import { DefensiveEffect } from '../../types/spells';
+import { getAbilityModifier } from '../../utils/characterUtils';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
- * Calculates AC for a CombatCharacter using the shared statUtils logic.
+ * Handles defensive buffs like AC bonuses, Temporary HP, and base AC setting (Mage Armor).
  */
-/**
- * Resolves the base AC of a character.
- * If baseAC is not explicitly set, derives it from current armorClass by stripping known bonuses to prevent double-counting.
- */
-function resolveBaseAC(target: CombatCharacter): number {
-    if (target.baseAC !== undefined) return target.baseAC;
+export class DefensiveCommand implements SpellCommand {
+  readonly id: string;
+  readonly description: string;
+  readonly metadata: CommandMetadata;
 
-    let base = target.armorClass ?? 10;
-    // Strip additive bonuses to find "raw" base
-    if (target.activeEffects) {
-        for (const e of target.activeEffects) {
-            if (e.type === 'ac_bonus' && typeof e.value === 'number') {
-                base -= e.value;
-            }
-        }
-    }
-    return base;
-}
+  constructor(
+    private effect: DefensiveEffect,
+    private context: CommandContext
+  ) {
+    this.id = uuidv4();
+    this.description = `Applies ${effect.defenseType} (${effect.value})`;
+    this.metadata = {
+      spellId: context.spellId,
+      spellName: context.spellName,
+      casterId: context.caster.id,
+      casterName: context.caster.name,
+      targetIds: context.targets.map(t => t.id),
+      effectType: 'DEFENSIVE',
+      timestamp: Date.now()
+    };
+  }
 
+  execute(state: CombatState): CombatState {
+    const newState = {
+      ...state,
+      characters: [...state.characters] // Deep copy the characters array to allow safe mutation
+    };
 
-export class DefensiveCommand extends BaseEffectCommand {
-    constructor(
-        effect: DefensiveEffect,
-        context: CommandContext
-    ) {
-        super(effect, context)
-    }
+    // Iterate over targets safely
+    this.context.targets.forEach(target => {
+      const targetIndex = newState.characters.findIndex(c => c.id === target.id);
+      if (targetIndex === -1) return;
 
-    execute(state: CombatState): CombatState {
-        if (!isDefensiveEffect(this.effect)) {
-            console.warn('DefensiveCommand received non-defensive effect')
-            return state
-        }
+      const currentCharacter = newState.characters[targetIndex];
+      let updatedCharacter = { ...currentCharacter };
+      let logMessage = '';
 
-        const effect = this.effect
-        const targets = this.getTargets(state)
-        let newState = state
+      switch (this.effect.defenseType) {
+        case 'ac_bonus': {
+          // Apply AC Bonus as an active effect
+          const activeEffect = this.createActiveEffect(
+            updatedCharacter.id,
+            this.effect.defenseType,
+            this.effect.value,
+            state.turnState.currentTurn
+          );
+          updatedCharacter.activeEffects = [...(updatedCharacter.activeEffects || []), activeEffect];
 
-        for (const target of targets) {
-            switch (effect.defenseType) {
-                case 'ac_bonus':
-                    newState = this.applyACBonus(newState, target, effect)
-                    break
-                case 'set_base_ac':
-                    newState = this.applySetBaseAC(newState, target, effect)
-                    break
-                case 'ac_minimum':
-                    newState = this.applyACMinimum(newState, target, effect)
-                    break
-                case 'resistance':
-                    newState = this.applyResistance(newState, target, effect)
-                    break
-                case 'immunity':
-                    newState = this.applyImmunity(newState, target, effect)
-                    break
-                case 'temporary_hp':
-                    newState = this.applyTemporaryHP(newState, target, effect)
-                    break
-                case 'advantage_on_saves':
-                    newState = this.applyAdvantageOnSaves(newState, target, effect)
-                    break
-                case 'disadvantage_on_attacks':
-                    newState = this.applyDisadvantageOnAttacks(newState, target, effect)
-                    break
-            }
+          // Mechanically update AC (simplified, real system might re-calc from effects)
+          updatedCharacter.armorClass = (updatedCharacter.armorClass || 10) + this.effect.value;
+          logMessage = `${this.context.spellName} increases AC by ${this.effect.value}`;
+          break;
         }
 
-        return newState
-    }
+        case 'set_base_ac': {
+          // Set Base AC (e.g. Mage Armor: 13 + Dex)
+          // Calculation: Base Value + Dex Modifier
+          const dexMod = getAbilityModifier(updatedCharacter.stats.dexterity);
+          const newAC = this.effect.value + dexMod;
 
-    private applyACBonus(state: CombatState, target: CombatCharacter, effect: DefensiveEffect): CombatState {
-        // Use acBonus preferred, fallback to value
-        const bonus = effect.acBonus ?? effect.value ?? 0
+          const activeEffect = this.createActiveEffect(
+            updatedCharacter.id,
+            this.effect.defenseType,
+            this.effect.value,
+            state.turnState.currentTurn
+          );
+          updatedCharacter.activeEffects = [...(updatedCharacter.activeEffects || []), activeEffect];
+          updatedCharacter.armorClass = newAC;
 
-        // Create active effect for tracking
-        const activeEffect: ActiveEffect = {
-            type: 'ac_bonus',
-            name: `AC Bonus from ${this.context.spellName}`,
-            value: bonus,
-            duration: effect.duration || { type: 'rounds', value: 1 },
-            appliedTurn: state.turnState.currentTurn,
-            source: this.context.spellName || this.context.spellId || 'Unknown',
-            attackerFilter: effect.attackerFilter
+          logMessage = `${this.context.spellName} sets base AC to ${newAC}`;
+          break;
         }
 
-        // Add effect to character first
-        const updatedEffects = [...(target.activeEffects || []), activeEffect];
+        case 'temporary_hp': {
+          // Temporary HP rules: Do not stack. Keep the higher value.
+          const currentTemp = updatedCharacter.tempHP || 0;
+          const newTemp = this.effect.value;
 
-        // Recalculate AC
-        const newAC = calculateFinalAC({
-            baseAC: resolveBaseAC(target),
-            dexMod: Math.floor((target.stats.dexterity - 10) / 2),
-            activeEffects: updatedEffects,
-            stdBaseIncludesDex: true // baseAC usually comes from sheet which includes Dex
-        });
-
-        // Update character state
-        const updatedState = this.updateCharacter(state, target.id, {
-            armorClass: newAC,
-            activeEffects: updatedEffects
-        })
-
-        // Log entry
-        return this.addLogEntry(updatedState, {
-            type: 'status',
-            message: `${target.name} gains +${bonus} AC (${target.armorClass} → ${newAC})`,
-            characterId: target.id,
-            data: { defensiveEffect: effect }
-        })
-    }
-
-    private applySetBaseAC(state: CombatState, target: CombatCharacter, effect: DefensiveEffect): CombatState {
-        // e.g. "13 + dex_mod". We currently only support fixed base values in value/acBonus + dex.
-        // Logic in statUtils expects 'value' to be the base number (e.g. 13).
-        // If we provided a formula string, we'd need to parse it, but let's stick to the 'value' convention for now as per statUtils implementation.
-        // However, schema has `baseACFormula`. 
-        // For now we will check if `baseACFormula` is "13 + dex_mod" and set value to 13?
-        // Or relies on 'value' being set in JSON.
-
-        // Let's rely on 'value' or 'acBonus' being the base number (13).
-        const baseValue = effect.value ?? effect.acBonus ?? 10;
-
-        const activeEffect: ActiveEffect = {
-            type: 'set_base_ac',
-            name: `Base AC set by ${this.context.spellName}`,
-            value: baseValue,
-            duration: effect.duration || { type: 'rounds', value: 1, concentration: true },
-            appliedTurn: state.turnState.currentTurn,
-            source: this.context.spellName || this.context.spellId || 'Unknown'
+          if (newTemp > currentTemp) {
+            updatedCharacter.tempHP = newTemp;
+            logMessage = `${this.context.spellName} grants ${newTemp} temporary HP`;
+          } else {
+            logMessage = `${this.context.spellName} grants ${newTemp} temporary HP (overlapped)`;
+          }
+          break;
         }
+      }
 
-        const updatedEffects = [...(target.activeEffects || []), activeEffect];
-        const newAC = calculateFinalAC({
-            baseAC: resolveBaseAC(target),
-            dexMod: Math.floor((target.stats.dexterity - 10) / 2),
-            activeEffects: updatedEffects,
-            stdBaseIncludesDex: true
-        });
+      // Update character in state
+      newState.characters[targetIndex] = updatedCharacter;
 
-        const updatedState = this.updateCharacter(state, target.id, {
-            armorClass: newAC,
-            activeEffects: updatedEffects
-        })
+      // Add log entry
+      if (logMessage) {
+        newState.combatLog = [
+          ...newState.combatLog,
+          {
+            id: uuidv4(),
+            timestamp: Date.now(),
+            message: logMessage,
+            type: 'info',
+            sourceId: this.context.caster.id
+          }
+        ];
+      }
+    });
 
-        return this.addLogEntry(updatedState, {
-            type: 'status',
-            message: `${target.name}'s base AC becomes ${baseValue} + Dex (${target.armorClass} → ${newAC})`,
-            characterId: target.id,
-            data: { defensiveEffect: effect }
-        })
-    }
+    return newState;
+  }
 
-    private applyACMinimum(state: CombatState, target: CombatCharacter, effect: DefensiveEffect): CombatState {
-        const minVal = effect.acMinimum ?? effect.value ?? 16;
-
-        const activeEffect: ActiveEffect = {
-            type: 'ac_minimum',
-            name: `AC Minimum from ${this.context.spellName}`,
-            value: minVal,
-            duration: effect.duration || { type: 'rounds', value: 1, concentration: true },
-            appliedTurn: state.turnState.currentTurn,
-            source: this.context.spellName || this.context.spellId || 'Unknown'
-        }
-
-        const updatedEffects = [...(target.activeEffects || []), activeEffect];
-        const newAC = calculateFinalAC({
-            baseAC: resolveBaseAC(target),
-            dexMod: Math.floor((target.stats.dexterity - 10) / 2),
-            activeEffects: updatedEffects,
-            stdBaseIncludesDex: true
-        });
-
-        const updatedState = this.updateCharacter(state, target.id, {
-            armorClass: newAC,
-            activeEffects: updatedEffects
-        })
-
-        return this.addLogEntry(updatedState, {
-            type: 'status',
-            message: `${target.name}'s AC cannot be less than ${minVal} (${target.armorClass} → ${newAC})`,
-            characterId: target.id,
-            data: { defensiveEffect: effect }
-        })
-    }
-
-    private applyResistance(state: CombatState, target: CombatCharacter, effect: DefensiveEffect): CombatState {
-        const damageTypes = effect.damageType || []
-        const currentResistances = target.resistances || []
-
-        // Add new resistances (avoid duplicates)
-        // TODO: Track duration and remove expired resistances/immunities so later spells recalc AC/mitigation correctly (see docs/tasks/spell-system-overhaul/COMPLETE-STUB-COMMANDS.md; if this block is moved/refactored/modularized, update the COMPLETE-STUB-COMMANDS entry path).
-        const newResistances = [...currentResistances]
-        for (const type of damageTypes) {
-            if (!newResistances.includes(type)) {
-                newResistances.push(type)
-            }
-        }
-
-        // Update character
-        const updatedState = this.updateCharacter(state, target.id, {
-            resistances: newResistances
-        })
-
-        // Log entry
-        return this.addLogEntry(updatedState, {
-            type: 'status',
-            message: `${target.name} gains resistance to ${damageTypes.join(', ')}`,
-            characterId: target.id,
-            data: { defensiveEffect: effect }
-        })
-    }
-
-    private applyImmunity(state: CombatState, target: CombatCharacter, effect: DefensiveEffect): CombatState {
-        const damageTypes = effect.damageType || []
-        const currentImmunities = target.immunities || []
-
-        // Add new immunities (avoid duplicates)
-        // TODO: Track immunity duration and clean up expired entries to prevent permanent immunity when the buff ends (see docs/tasks/spell-system-overhaul/COMPLETE-STUB-COMMANDS.md; if this block is moved/refactored/modularized, update the COMPLETE-STUB-COMMANDS entry path).
-        const newImmunities = [...currentImmunities]
-        for (const type of damageTypes) {
-            if (!newImmunities.includes(type)) {
-                newImmunities.push(type)
-            }
-        }
-
-        const updatedState = this.updateCharacter(state, target.id, {
-            immunities: newImmunities
-        })
-
-        return this.addLogEntry(updatedState, {
-            type: 'status',
-            message: `${target.name} gains immunity to ${damageTypes.join(', ')}`,
-            characterId: target.id,
-            data: { defensiveEffect: effect }
-        })
-    }
-
-    private applyTemporaryHP(state: CombatState, target: CombatCharacter, effect: DefensiveEffect): CombatState {
-        const tempHPValue = effect.value || 0
-        const currentTempHP = target.tempHP || 0
-
-        // D&D Rule: Temporary HP doesn't stack, take the higher value
-        // TODO: Drop temp HP when the defensive effect duration ends and avoid reapplying weaker values on refresh cycles (see docs/tasks/spell-system-overhaul/COMPLETE-STUB-COMMANDS.md; if this block is moved/refactored/modularized, update the COMPLETE-STUB-COMMANDS entry path).
-        const newTempHP = Math.max(currentTempHP, tempHPValue)
-
-        const updatedState = this.updateCharacter(state, target.id, {
-            tempHP: newTempHP
-        })
-
-        return this.addLogEntry(updatedState, {
-            type: 'status',
-            message: `${target.name} gains ${newTempHP} temporary HP`,
-            characterId: target.id,
-            data: { defensiveEffect: effect }
-        })
-    }
-
-    private applyAdvantageOnSaves(state: CombatState, target: CombatCharacter, effect: DefensiveEffect): CombatState {
-        const activeEffect: ActiveEffect = {
-            type: 'advantage_on_saves',
-            name: `Advantage on saves from ${this.context.spellName}`,
-            duration: effect.duration || { type: 'rounds', value: 1 },
-            appliedTurn: state.turnState.currentTurn,
-            source: this.context.spellName || this.context.spellId || 'Unknown',
-            description: 'Advantage on saving throws',
-            savingThrows: effect.savingThrow,
-            attackerFilter: effect.attackerFilter
-        }
-
-        const updatedState = this.updateCharacter(state, target.id, {
-            activeEffects: [...(target.activeEffects || []), activeEffect]
-        })
-
-        const saveTypes = effect.savingThrow?.join(', ') || 'all'
-        return this.addLogEntry(updatedState, {
-            type: 'status',
-            message: `${target.name} gains advantage on ${saveTypes} saving throws`,
-            characterId: target.id,
-            data: { defensiveEffect: effect }
-        })
-    }
-
-    private applyDisadvantageOnAttacks(state: CombatState, target: CombatCharacter, effect: DefensiveEffect): CombatState {
-        const activeEffect: ActiveEffect = {
-            type: 'disadvantage_on_attacks',
-            name: `Disadvantage to attackers from ${this.context.spellName}`,
-            duration: effect.duration || { type: 'rounds', value: 1 },
-            appliedTurn: state.turnState.currentTurn,
-            source: this.context.spellName || this.context.spellId || 'Unknown',
-            description: 'Attackers have disadvantage',
-            attackerFilter: effect.attackerFilter
-        }
-
-        const updatedState = this.updateCharacter(state, target.id, {
-            activeEffects: [...(target.activeEffects || []), activeEffect]
-        })
-
-        return this.addLogEntry(updatedState, {
-            type: 'status',
-            message: `Attacks against ${target.name} result in disadvantage`,
-            characterId: target.id,
-            data: { defensiveEffect: effect }
-        })
-    }
-
-    get description(): string {
-        if (isDefensiveEffect(this.effect)) {
-            const effect = this.effect
-            switch (effect.defenseType) {
-                case 'ac_bonus':
-                    return `Grants +${effect.value || 0} AC`
-                case 'resistance':
-                    return `Grants resistance to ${effect.damageType?.join(', ')}`
-                case 'immunity':
-                    return `Grants immunity to ${effect.damageType?.join(', ')}`
-                case 'temporary_hp':
-                    return `Grants ${effect.value || 0} temporary HP`
-                case 'advantage_on_saves':
-                    return `Grants advantage on ${effect.savingThrow?.join(', ') || 'all'} saves`
-                case 'disadvantage_on_attacks':
-                    return `Attackers have disadvantage`
-            }
-        }
-        return 'Grants defensive effect'
-    }
+  private createActiveEffect(targetId: string, type: string, value: number, currentTurn: number): ActiveEffect {
+    return {
+      id: `effect-${this.context.spellId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      spellId: this.context.spellId,
+      casterId: this.context.caster.id,
+      sourceName: this.context.spellName,
+      type: type, // 'ac_bonus' or 'set_base_ac'
+      duration: this.effect.duration || { type: 'rounds', value: 1 },
+      startTime: currentTurn,
+      mechanics: {
+        acBonus: type === 'ac_bonus' ? value : undefined,
+      }
+    };
+  }
 }

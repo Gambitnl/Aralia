@@ -9,7 +9,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BanterManager } from '../BanterManager';
 import { GameState } from '../../../types';
-import { BANTER_DEFINITIONS } from '../../../data/banter';
+// TODO(lint-intent): 'BANTER_DEFINITIONS' is unused in this test; use it in the assertion path or remove it.
+import { BANTER_DEFINITIONS as _BANTER_DEFINITIONS } from '../../../data/banter';
 import { Companion } from '../../../types/companions';
 
 // Mock dependencies
@@ -77,8 +78,8 @@ describe('BanterManager', () => {
 
       // Instead, we rely on the fact that test_banter_1 is valid.
       // Let's change location to 'town' so BOTH are valid.
-
-      const townState = { ...mockGameState, currentLocationId: 'town' };
+      // TODO(lint-intent): 'townState' is unused in this test; use it in the assertion path or remove it.
+      const _townState = { ...mockGameState, currentLocationId: 'town' };
       // Now both are valid.
       // But we want to test failure.
 

@@ -11,8 +11,8 @@ const allSpells = files.map(f => {
 
 // Flatten object to dot notation
 const flattenObj = (obj, prefix = '') => {
-    let result = {};
-    for (let key in obj) {
+    const result = {};
+    for (const key in obj) {
         const fullKey = prefix ? prefix + '.' + key : key;
         if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
             Object.assign(result, flattenObj(obj[key], fullKey));

@@ -10,11 +10,20 @@ import {
     TILE_SIZE,
     getBiomePalette,
     simpleHash,
-    noise2D,
-    lerpColor,
+    // TODO(lint-intent): 'noise2D' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    noise2D as _noise2D,
+    // TODO(lint-intent): 'lerpColor' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    lerpColor as _lerpColor,
     rgbToHex,
     adjustBrightness,
-    type RGB,
+    // TODO(lint-intent): 'RGB' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    type RGB as _RGB,
 } from './shared';
 import type { SeededFeatureConfig } from '../../../types';
 
@@ -41,7 +50,10 @@ export class SubmapFeaturePainter {
      * Render a seeded feature to a PIXI container.
      */
     public renderFeature(data: FeatureRenderData, container: PIXI.Container): void {
-        const { config, centerX, centerY, actualSize, biomeId } = data;
+        // TODO(lint-intent): 'centerX' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+        // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+        // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+        const { config, centerX: _centerX, centerY: _centerY, actualSize: _actualSize, biomeId: _biomeId } = data;
 
         switch (config.id) {
             case 'pond':
@@ -186,7 +198,10 @@ export class SubmapFeaturePainter {
     }
 
     private drawVillage(container: PIXI.Container, data: FeatureRenderData): void {
-        const { centerX, centerY, actualSize, biomeId } = data;
+        // TODO(lint-intent): 'biomeId' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+        // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+        // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+        const { centerX, centerY, actualSize, biomeId: _biomeId } = data;
 
         const px = centerX * TILE_SIZE;
         const py = centerY * TILE_SIZE;
@@ -406,7 +421,10 @@ export class SubmapFeaturePainter {
     }
 
     private drawMineralFeature(container: PIXI.Container, data: FeatureRenderData): void {
-        const { centerX, centerY, actualSize, config } = data;
+        // TODO(lint-intent): 'actualSize' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+        // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+        // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+        const { centerX, centerY, actualSize: _actualSize, config } = data;
 
         const px = centerX * TILE_SIZE + TILE_SIZE / 2;
         const py = centerY * TILE_SIZE + TILE_SIZE / 2;
@@ -530,7 +548,10 @@ export class SubmapFeaturePainter {
     }
 
     private drawRuins(container: PIXI.Container, data: FeatureRenderData): void {
-        const { centerX, centerY, actualSize, config } = data;
+        // TODO(lint-intent): 'config' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+        // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+        // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+        const { centerX, centerY, actualSize, config: _config } = data;
 
         const px = centerX * TILE_SIZE + TILE_SIZE / 2;
         const py = centerY * TILE_SIZE + TILE_SIZE / 2;

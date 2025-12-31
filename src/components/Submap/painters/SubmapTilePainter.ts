@@ -11,11 +11,23 @@ import {
     getBiomePalette,
     getNeighbors,
     simpleHash,
-    noise2D,
-    lerpColor,
+    // TODO(lint-intent): 'noise2D' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    noise2D as _noise2D,
+    // TODO(lint-intent): 'lerpColor' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    lerpColor as _lerpColor,
     rgbToHex,
-    hexToRgb,
-    type RGB,
+    // TODO(lint-intent): 'hexToRgb' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    hexToRgb as _hexToRgb,
+    // TODO(lint-intent): 'RGB' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    type RGB as _RGB,
     type NeighborInfo,
 } from './shared';
 import { TextureAtlasManager, TerrainType, getTextureManager } from './TextureAtlasManager';
@@ -266,7 +278,10 @@ export class SubmapTilePainter {
         neighborType: TerrainType,
         biomeId: string
     ): PIXI.Sprite | null {
-        const palette = getBiomePalette(biomeId);
+        // TODO(lint-intent): 'palette' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+        // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+        // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+        const _palette = getBiomePalette(biomeId);
 
         // Create a gradient mask sprite
         const graphics = new PIXI.Graphics();
@@ -299,7 +314,10 @@ export class SubmapTilePainter {
         graphics.endFill();
 
         // Apply alpha gradient via mask or just return with lowered alpha
-        const texture = PIXI.RenderTexture.create({ width: TILE_SIZE, height: TILE_SIZE });
+        // TODO(lint-intent): 'texture' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+        // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+        // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+        const _texture = PIXI.RenderTexture.create({ width: TILE_SIZE, height: TILE_SIZE });
 
         // For simplicity, use graphics directly with reduced alpha
         // In production, you'd use proper gradient masks

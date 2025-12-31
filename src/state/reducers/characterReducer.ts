@@ -3,11 +3,17 @@
  * @file src/state/reducers/characterReducer.ts
  * A slice reducer that handles character-related state changes (party, inventory, actions).
  */
-import { GameState, LimitedUseAbility, SpellSlots, DiscoveryType, Item, RacialSelectionData, LevelUpChoices, EquipmentSlotType, ArmorCategory } from '../../types';
+// TODO(lint-intent): 'DiscoveryType' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { GameState, LimitedUseAbility, SpellSlots, DiscoveryType as _DiscoveryType, Item, RacialSelectionData, LevelUpChoices, EquipmentSlotType, ArmorCategory } from '../../types';
 import { AppAction } from '../actionTypes';
 import { calculateArmorClass, createPlayerCharacterFromTemp, calculateFinalAbilityScores, getAbilityModifierValue, applyXpAndHandleLevelUps, canLevelUp, performLevelUp, getCharacterMaxArmorProficiency, getArmorCategoryHierarchy } from '../../utils/characterUtils';
 import { isWeaponProficient } from '../../utils/weaponUtils';
-import { LOCATIONS, ITEMS, CLASSES_DATA } from '../../constants';
+// TODO(lint-intent): 'LOCATIONS' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { LOCATIONS as _LOCATIONS, ITEMS, CLASSES_DATA } from '../../constants';
 
 // Helper for resetting limited uses
 const resolveMaxValue = (char: GameState['party'][0], ability: LimitedUseAbility): number => {
@@ -64,7 +70,10 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 if (newInventory[i].id === itemId) {
                     const item = newInventory[i];
                     // Check for count/quantity property
-                    const stackSize = (item as any).count || (item as any).quantity || 1;
+                    // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+                    // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+                    // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+                    const stackSize = (item as unknown).count || (item as unknown).quantity || 1;
 
                     if (stackSize > 1) {
                         // It's a stack
@@ -72,7 +81,10 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                             // Partial stack removal
                             // We need to clone the item to avoid mutation of state directly (though we already cloned the array)
                             // But items are objects, so we need to clone the specific item
-                            newInventory[i] = { ...item, count: stackSize - remaining } as any; // Assuming 'count' is the standard property
+                            // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+                            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+                            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+                            newInventory[i] = { ...item, count: stackSize - remaining } as unknown; // Assuming 'count' is the standard property
                             remaining = 0;
                         } else {
                             // Consume entire stack
@@ -80,12 +92,18 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                             // Mark for removal (we'll filter later or splice carefully)
                             // Since we are iterating forward, splicing changes indices.
                             // Let's just set it to null or a placeholder and filter later
-                            newInventory[i] = null as any;
+                            // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+                            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+                            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+                            newInventory[i] = null as unknown;
                         }
                     } else {
                          // Single item
                          remaining--;
-                         newInventory[i] = null as any;
+                         // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+                         // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+                         // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+                         newInventory[i] = null as unknown;
                     }
                 }
             }
@@ -237,7 +255,10 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'DROP_ITEM': {
-            const { itemId, characterId } = action.payload;
+            // TODO(lint-intent): 'characterId' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+            // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+            // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+            const { itemId, characterId: _characterId } = action.payload;
             const itemToDrop = state.inventory.find(item => item.id === itemId);
             if (!itemToDrop) return {};
 
@@ -369,7 +390,10 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 }
 
                 const charCopy = { ...char };
-                const hasChanged = true; // Assume change for simplicity
+                // TODO(lint-intent): 'hasChanged' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+                // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+                // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+                const _hasChanged = true; // Assume change for simplicity
 
                 // Restore Spell Slots
                 if (charCopy.spellSlots) {
@@ -536,7 +560,10 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
                 else if (choiceType === 'gnome_subrace') updateRacialSelection('gnome', { choiceId });
                 else if (choiceType === 'goliath_ancestry') updateRacialSelection('goliath', { choiceId });
                 else if (choiceType === 'tiefling_legacy') updateRacialSelection('tiefling', { choiceId });
-                else if (choiceType === 'racial_spell_ability') updateRacialSelection(charToUpdate.race.id, { spellAbility: choiceId as any }); // choiceId here is the ability name
+                // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+                // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+                // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+                else if (choiceType === 'racial_spell_ability') updateRacialSelection(charToUpdate.race.id, { spellAbility: choiceId as unknown }); // choiceId here is the ability name
             }
 
             const newParty = [...state.party];

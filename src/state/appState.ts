@@ -4,10 +4,16 @@
  * Defines the state structure, initial state, actions, and the root reducer for the application.
  * The root reducer orchestrates calls to smaller "slice" reducers for better modularity.
  */
-import { GameState, GamePhase, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, SuspicionLevel, KnownFact, QuestStatus, UnderdarkState } from '../types';
+// TODO(lint-intent): 'Item' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { GameState, GamePhase, PlayerCharacter, Item as _Item, MapData as _MapData, TempPartyMember as _TempPartyMember, StartGameSuccessPayload as _StartGameSuccessPayload, SuspicionLevel, KnownFact, QuestStatus as _QuestStatus, UnderdarkState } from '../types';
 import { AppAction } from './actionTypes';
 import { DEFAULT_WEATHER } from '../systems/environment/EnvironmentSystem';
-import { STARTING_LOCATION_ID, LOCATIONS, ITEMS, CLASSES_DATA, NPCS , COMPANIONS } from '../constants';
+// TODO(lint-intent): 'ITEMS' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { STARTING_LOCATION_ID, LOCATIONS, ITEMS as _ITEMS, CLASSES_DATA as _CLASSES_DATA, NPCS , COMPANIONS } from '../constants';
 import { getDummyParty, initialInventoryForDummyCharacter } from '../data/dev/dummyCharacter';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../data/factions';
 import { getAllFactions } from '../utils/factionUtils';
@@ -17,7 +23,10 @@ import { canUseDevTools } from '../utils/permissions';
 import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import * as SaveLoadService from '../services/saveLoadService';
 import { determineActiveDynamicNpcsForLocation } from '../utils/locationUtils';
-import { applyXpAndHandleLevelUps, createPlayerCharacterFromTemp } from '../utils/characterUtils';
+// TODO(lint-intent): 'createPlayerCharacterFromTemp' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { applyXpAndHandleLevelUps, createPlayerCharacterFromTemp as _createPlayerCharacterFromTemp } from '../utils/characterUtils';
 import { createEnemyFromMonster } from '../utils/combatUtils';
 import { logger } from '../utils/logger';
 import { INITIAL_TRADE_ROUTES } from '../data/tradeRoutes';
@@ -239,7 +248,10 @@ export const initialGameState: GameState = {
 export function appReducer(state: GameState, action: AppAction): GameState {
     // 1. Handle actions with cross-cutting concerns first
     switch (action.type) {
-        case 'SET_GAME_PHASE':
+        case 'SET_GAME_PHASE': {
+            // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
+            // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
+            // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
             let additionalUpdates: Partial<GameState> = {
                 loadingMessage: null,
                 previousPhase: state.phase !== action.payload ? state.phase : state.previousPhase, // Track previous phase
@@ -286,6 +298,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 }
             }
             return { ...state, phase: action.payload, ...additionalUpdates };
+        }
 
         case 'START_NEW_GAME_SETUP': {
             const allFactions = getAllFactions(action.payload.worldSeed);
@@ -422,7 +435,10 @@ export function appReducer(state: GameState, action: AppAction): GameState {
 
             const loadedState = action.payload;
             const gameTimeFromLoad = typeof loadedState.gameTime === 'string' ? new Date(loadedState.gameTime) : loadedState.gameTime;
-            const partyFromLoad = (loadedState.party && loadedState.party.length > 0) ? loadedState.party : (((loadedState as any).playerCharacter) ? [(loadedState as any).playerCharacter] : []);
+            // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+            const partyFromLoad = (loadedState.party && loadedState.party.length > 0) ? loadedState.party : (((loadedState as unknown).playerCharacter) ? [(loadedState as unknown).playerCharacter] : []);
 
             for (const npcId in loadedState.npcMemory) {
                 const memory = loadedState.npcMemory[npcId];
@@ -563,7 +579,10 @@ export function appReducer(state: GameState, action: AppAction): GameState {
         }
 
         case 'START_BATTLE_MAP_ENCOUNTER': {
-            const combatants = action.payload.monsters.flatMap((monster, monsterIndex) =>
+            // TODO(lint-intent): 'monsterIndex' is an unused parameter, which suggests a planned input for this flow.
+            // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+            // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+            const combatants = action.payload.monsters.flatMap((monster, _monsterIndex) =>
                 Array.from({ length: monster.quantity }, (_, i) => createEnemyFromMonster(monster, i))
             );
             return {

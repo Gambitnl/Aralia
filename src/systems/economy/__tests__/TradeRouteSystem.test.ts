@@ -50,7 +50,8 @@ describe('TradeRouteSystem', () => {
     };
 
     const profitNormal = TradeRouteSystem.calculateProfitability(mockRoute, []);
-    const profitWar = TradeRouteSystem.calculateProfitability(mockRoute, [warEvent as any]);
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    const profitWar = TradeRouteSystem.calculateProfitability(mockRoute, [warEvent as unknown]);
 
     expect(profitWar).toBeGreaterThan(profitNormal);
   });
@@ -69,7 +70,8 @@ describe('TradeRouteSystem', () => {
     };
 
     const riskNormal = TradeRouteSystem.calculateRisk(mockRoute, []);
-    const riskBandits = TradeRouteSystem.calculateRisk(mockRoute, [banditEvent as any]);
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    const riskBandits = TradeRouteSystem.calculateRisk(mockRoute, [banditEvent as unknown]);
 
     expect(riskBandits).toBeGreaterThan(riskNormal);
   });

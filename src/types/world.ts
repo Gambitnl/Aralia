@@ -1,4 +1,4 @@
-import type { NPCVisualSpec } from './visuals';
+import type { NPCVisualSpec, LocationVisualSpec } from './visuals';
 import type { NPCKnowledgeProfile } from './dialogue';
 
 // -----------------------------------------------------------------------------
@@ -32,6 +32,7 @@ export interface Location {
   gossipLinks?: string[];
   planeId?: string; // Optional, defaults to 'material'
   regionId?: string; // Links to REGIONAL_ECONOMIES
+  visual?: LocationVisualSpec;
 }
 
 export interface TTSVoiceOption {
@@ -167,6 +168,8 @@ export interface PointOfInterest {
   category: 'settlement' | 'landmark' | 'ruin' | 'cave' | 'wilderness';
   /** Optional link back to a formal Location entry. */
   locationId?: string;
+  /** Visual spec for map presentation (illustration, advanced icons). */
+  visual?: LocationVisualSpec;
 }
 
 export interface MapMarker {
@@ -220,6 +223,9 @@ export interface GameMessage {
   metadata?: {
     companionId?: string;
     reactionType?: string;
-    [key: string]: any;
+    // TODO(lint-intent): The any on this value hides the intended shape of this data.
+    // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+    // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+    [key: string]: unknown;
   };
 }

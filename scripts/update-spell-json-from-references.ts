@@ -268,8 +268,10 @@ const effectDurationFromSpellDuration = (vars: ReferenceVars) => {
   if (unit === 'day') return { type: 'minutes' as const, value: value * 24 * 60 };
   return { type: 'special' as const };
 };
-
-const shouldRegenerateEffects = (spell: any) => {
+// TODO(lint-intent): The any on 'spell' hides the intended shape of this data.
+// TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+// TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+const shouldRegenerateEffects = (spell: unknown) => {
   if (spell?.legacy === true) return true;
   const tags: unknown = spell?.tags;
   if (Array.isArray(tags) && tags.includes('legacy')) return true;
@@ -289,8 +291,10 @@ const buildEffectsFromReference = (vars: ReferenceVars) => {
   const attackRoll = isNilish(vars['Attack Roll']) ? undefined : normalizeWhitespace(vars['Attack Roll']).toLowerCase();
 
   const baseTrigger = { type: 'immediate' as const };
-
-  const effects: any[] = [];
+  // TODO(lint-intent): The any on 'effects' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  const effects: unknown[] = [];
 
   const makeCondition = () => {
     if (saveType) {
@@ -320,7 +324,10 @@ const buildEffectsFromReference = (vars: ReferenceVars) => {
 
     if (dice && damageType) {
       const scalingBonus = parseHigherLevelScalingBonus(vars['Higher Levels']);
-      const primary: any = {
+      // TODO(lint-intent): The any on 'primary' hides the intended shape of this data.
+      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+      const primary: unknown = {
         type: 'DAMAGE',
         trigger: baseTrigger,
         condition: makeCondition(),
@@ -429,8 +436,10 @@ const parseReferenceTitle = (markdown: string) => {
   }
   return undefined;
 };
-
-const updateSpellFromReference = (spell: any, vars: ReferenceVars) => {
+// TODO(lint-intent): The any on 'spell' hides the intended shape of this data.
+// TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+// TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+const updateSpellFromReference = (spell: unknown, vars: ReferenceVars) => {
   // Identity + metadata
   if (!isNilish(vars['School'])) spell.school = toTitleCase(vars['School']);
   if (!isNilish(vars['Source'])) spell.source = vars['Source'];
@@ -595,7 +604,10 @@ const updateSpellFromReference = (spell: any, vars: ReferenceVars) => {
   const status = isNilish(vars['Status']) ? undefined : normalizeWhitespace(vars['Status']).toLowerCase();
   if (status === 'complete') {
     spell.legacy = false;
-    if (Array.isArray(spell.tags)) spell.tags = spell.tags.filter((t: any) => t !== 'legacy');
+    // TODO(lint-intent): The any on 't' hides the intended shape of this data.
+    // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+    // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+    if (Array.isArray(spell.tags)) spell.tags = spell.tags.filter((t: unknown) => t !== 'legacy');
   }
 
   // Effects (conservative: only regenerate when clearly still legacy/placeholder)
@@ -627,8 +639,10 @@ const main = async () => {
       const refMd = fs.readFileSync(path.join(refDir, fileName), 'utf8');
       const title = parseReferenceTitle(refMd);
       const vars = parseReferenceVars(refMd);
-
-      let spell: any;
+      // TODO(lint-intent): The any on 'spell' hides the intended shape of this data.
+      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+      let spell: unknown;
       if (fs.existsSync(spellPath)) {
         const spellRaw = fs.readFileSync(spellPath, 'utf8');
         spell = JSON.parse(spellRaw);

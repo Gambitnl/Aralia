@@ -227,8 +227,10 @@ export class BuildingPainter {
 
         this.drawRoofTexture(x, y, w, h, style);
     }
-
-    private drawTowerRoof(x: number, y: number, w: number, h: number, color: string, style: RoofStyle) {
+    // TODO(lint-intent): 'style' is an unused parameter, which suggests a planned input for this flow.
+    // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+    // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+    private drawTowerRoof(x: number, y: number, w: number, h: number, color: string, _style: RoofStyle) {
         const cx = x + w / 2;
         const cy = y + h / 2;
         const r = Math.min(w, h) / 2;

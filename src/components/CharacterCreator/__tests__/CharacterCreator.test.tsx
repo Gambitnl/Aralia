@@ -4,8 +4,10 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import CharacterCreator from '../CharacterCreator';
 import SpellContext from '../../../context/SpellContext';
-import { RACES_DATA } from '../../../constants';
-import { initialCharacterCreatorState, CreationStep } from '../state/characterCreatorState';
+// TODO(lint-intent): 'RACES_DATA' is unused in this test; use it in the assertion path or remove it.
+import { RACES_DATA as _RACES_DATA } from '../../../constants';
+// TODO(lint-intent): 'initialCharacterCreatorState' is unused in this test; use it in the assertion path or remove it.
+import { initialCharacterCreatorState as _initialCharacterCreatorState, CreationStep as _CreationStep } from '../state/characterCreatorState';
 
 // Mocks
 const mockOnCharacterCreate = vi.fn();

@@ -2,7 +2,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as GeminiService from '../geminiService';
 import { ai } from '../aiClient';
-import { getFallbackEncounter } from '../geminiServiceFallback';
+// TODO(lint-intent): 'getFallbackEncounter' is unused in this test; use it in the assertion path or remove it.
+import { getFallbackEncounter as _getFallbackEncounter } from '../geminiServiceFallback';
 import { MONSTERS_DATA } from '../../constants';
 
 // Mock the AI client
@@ -36,9 +37,10 @@ describe('GeminiService - generateEncounter Fallback', () => {
 
   it('should use fallback encounter when AI generation fails', async () => {
     // Mock AI failure
-    (ai.models.generateContent as any).mockRejectedValue(new Error('AI Service Down'));
-
-    const result = await GeminiService.generateEncounter(xpBudget, themeTags, mockParty as any);
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    (ai.models.generateContent as unknown).mockRejectedValue(new Error('AI Service Down'));
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    const result = await GeminiService.generateEncounter(xpBudget, themeTags, mockParty as unknown);
 
     // Verify fallback mechanism was used
     expect(result.error).toBeNull();
@@ -66,11 +68,12 @@ describe('GeminiService - generateEncounter Fallback', () => {
 
   it('should use fallback encounter when AI returns malformed JSON', async () => {
     // Mock AI returning bad JSON
-    (ai.models.generateContent as any).mockResolvedValue({
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    (ai.models.generateContent as unknown).mockResolvedValue({
       text: 'This is not JSON',
     });
-
-    const result = await GeminiService.generateEncounter(xpBudget, themeTags, mockParty as any);
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    const result = await GeminiService.generateEncounter(xpBudget, themeTags, mockParty as unknown);
 
     expect(result.error).toBeNull();
     expect(result.data?.encounter).toBeDefined();

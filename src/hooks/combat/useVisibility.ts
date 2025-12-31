@@ -5,8 +5,14 @@
  */
 
 import { useMemo } from 'react';
-import { CombatState, CombatCharacter, LightLevel, BattleMapData } from '../../types/combat';
-import { VisibilitySystem, VisibilityTier } from '../../systems/visibility';
+// TODO(lint-intent): 'CombatCharacter' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { CombatState, CombatCharacter as _CombatCharacter, LightLevel, BattleMapData as _BattleMapData } from '../../types/combat';
+// TODO(lint-intent): 'VisibilityTier' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { VisibilitySystem, VisibilityTier as _VisibilityTier } from '../../systems/visibility';
 
 interface UseVisibilityProps {
   combatState: CombatState;

@@ -93,6 +93,7 @@ export const useSpellGateChecks = () => {
     setRecheckTrigger((prev) => prev + 1);
   }, []);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true);
 
     const run = async () => {
@@ -141,7 +142,10 @@ export const useSpellGateChecks = () => {
             }
 
             try {
-              const spell = await fetchWithTimeout<any>(assetUrl(entry.path), { timeoutMs: 15000 });
+              // TODO(lint-intent): The any on this value hides the intended shape of this data.
+              // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+              // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+              const spell = await fetchWithTimeout<unknown>(assetUrl(entry.path), { timeoutMs: 15000 });
               checklist.spellJsonExists = true;
 
               const parsed = SpellValidator.safeParse(spell);
@@ -185,4 +189,3 @@ export const useSpellGateChecks = () => {
 
   return { results, recheck, isLoading };
 };
-

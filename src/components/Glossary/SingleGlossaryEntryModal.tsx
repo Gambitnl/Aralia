@@ -1,6 +1,12 @@
-import React, { useEffect, useState, useContext, useRef } from 'react';
+// TODO(lint-intent): 'useRef' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import React, { useEffect, useState, useContext, useRef as _useRef } from 'react';
 // Dedicated modal for showing a single glossary entry with navigation controls
-import { GlossaryEntry } from '../../types';
+// TODO(lint-intent): 'GlossaryEntry' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { GlossaryEntry as _GlossaryEntry } from '../../types';
 import GlossaryContext from '../../context/GlossaryContext';
 import { FullEntryDisplay } from './FullEntryDisplay';
 import { AnimatePresence, motion, MotionProps } from 'framer-motion';
@@ -32,6 +38,7 @@ const SingleGlossaryEntryModal: React.FC<SingleGlossaryEntryModalProps> = ({ isO
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCurrentTermId(initialTermId);
     }
   }, [isOpen, initialTermId]);

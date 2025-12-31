@@ -62,23 +62,32 @@ const GlossaryTooltip: React.FC<CustomGlossaryTooltipProps> = ({ children, termI
   });
 
 
+  const isClickable = Boolean(onNavigateToGlossary && entry && !error);
+
   return (
     <Tooltip 
       content={
-        <div 
-          onClick={onNavigateToGlossary && entry && !error ? handleTooltipClick : undefined} 
-          onKeyDown={(e) => { if (onNavigateToGlossary && entry && !error && (e.key === 'Enter' || e.key === ' ')) handleTooltipClick(e);}}
-          className={onNavigateToGlossary && entry && !error ? 'cursor-pointer hover:bg-gray-600/50 p-1 -m-1 rounded focus:outline-none focus:ring-1 focus:ring-sky-400' : 'p-1 -m-1'}
-          role={onNavigateToGlossary && entry && !error ? "button" : undefined}
-          tabIndex={onNavigateToGlossary && entry && !error ? 0 : undefined}
-          aria-label={onNavigateToGlossary && entry && !error ? `View full details for ${entry.title} in glossary` : undefined}
-          id={`tooltip-for-${termId}`}
-        >
-          <p className="text-xs whitespace-pre-wrap">{finalDisplayContent}</p>
-          {onNavigateToGlossary && entry && !error && (
+        isClickable ? (
+          <button
+            type="button"
+            onClick={handleTooltipClick}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                handleTooltipClick(e);
+              }
+            }}
+            className="cursor-pointer hover:bg-gray-600/50 p-1 -m-1 rounded focus:outline-none focus:ring-1 focus:ring-sky-400"
+            aria-label={`View full details for ${entry?.title ?? 'glossary entry'} in glossary`}
+            id={`tooltip-for-${termId}`}
+          >
+            <p className="text-xs whitespace-pre-wrap">{finalDisplayContent}</p>
             <span className="block text-center text-[10px] text-sky-400 mt-1">(Click for full entry)</span>
-          )}
-        </div>
+          </button>
+        ) : (
+          <div className="p-1 -m-1" id={`tooltip-for-${termId}`}>
+            <p className="text-xs whitespace-pre-wrap">{finalDisplayContent}</p>
+          </div>
+        )
       }
     >
       {triggerElement}

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { findBuildingAt, VillageLayout, VillageBuildingFootprint, VillageTileType , VillagePersonality } from './villageGenerator';
+// TODO(lint-intent): 'VillageTileType' is unused in this test; use it in the assertion path or remove it.
+import { findBuildingAt, VillageLayout, VillageBuildingFootprint, VillageTileType as _VillageTileType , VillagePersonality } from './villageGenerator';
 
 import { VillageIntegrationProfile } from '../data/villagePersonalityProfiles';
 

@@ -4,9 +4,21 @@
  * "Time is part of the magic."
  */
 
-import { CombatCharacter, CombatAction } from '../../types/combat';
-import { RitualState, RitualConfig, InterruptResult, InterruptCondition } from '../../types/ritual';
+import { CombatCharacter } from '../../types/combat';
+import {
+  RitualState,
+  RitualConfig,
+  InterruptResult,
+  InterruptCondition,
+  RitualRequirement,
+  RitualContext,
+  RequirementValidationResult
+} from '../../types/rituals';
 import { Spell } from '../../types/spells';
+// TODO(lint-intent): 'TimeOfDay' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { TimeOfDay as _TimeOfDay, getTimeOfDay } from '../../utils/timeUtils';
 
 /**
  * Creates a new RitualState for a caster and spell.
@@ -73,6 +85,29 @@ export function startRitual(
     interruptConditions,
     config
   };
+}
+
+/**
+ * Checks if a ritual can be started given the current context.
+ * Wraps validateRitualRequirements for easy consumption.
+ */
+export function canStartRitual(
+  spell: Spell,
+  context: RitualContext
+): RequirementValidationResult {
+  // If spell has no specific requirements property (yet), we assume it's valid.
+  // In a real implementation, we'd check `spell.ritualRequirements`.
+  // Since `Spell` type might not have `ritualRequirements` yet, this is future-proofing.
+  // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  const requirements: RitualRequirement[] = (spell as unknown).ritualRequirements || [];
+
+  if (requirements.length === 0) {
+    return { valid: true };
+  }
+
+  return validateRitualRequirements(requirements, context);
 }
 
 /**
@@ -146,8 +181,103 @@ export function checkRitualInterrupt(
 /**
  * Returns potential backlash effects if a ritual fails catastrophically.
  */
-export function getBacklashOnFailure(ritual: RitualState): { description: string }[] {
+// TODO(lint-intent): 'ritual' is an unused parameter, which suggests a planned input for this flow.
+// TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+// TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+export function getBacklashOnFailure(_ritual: RitualState): { description: string }[] {
     // Placeholder logic for wild magic or ritual backlash
     // Could depend on spell level, ritual type, etc.
+    // TODO(Ritualist): Implement full RitualBacklash evaluation based on ritual.backlash definitions
     return [];
+}
+
+/**
+ * Validates environmental and circumstantial requirements for a ritual.
+ * @param requirements List of conditions to check
+ * @param context Current context (time, location, etc.)
+ */
+export function validateRitualRequirements(
+  requirements: RitualRequirement[],
+  context: RitualContext
+): RequirementValidationResult {
+  for (const req of requirements) {
+    switch (req.type) {
+      case 'time_of_day': {
+        if (!context.currentTime) {
+          // If time isn't provided but required, strict validation fails,
+          // but loosely we might skip. Let's fail safe.
+          return { valid: false, failureReason: 'Current time not known' };
+        }
+
+        const currentTOD = getTimeOfDay(context.currentTime);
+        const requiredTOD = req.value;
+
+        // Support array of allowed times or single string
+        const allowedTimes = Array.isArray(requiredTOD) ? requiredTOD : [requiredTOD];
+
+        // Normalize strings to match Enum values if needed (TimeOfDay keys are strings)
+        if (!allowedTimes.includes(currentTOD)) {
+          return {
+            valid: false,
+            failureReason: req.description || `Ritual must be performed during: ${allowedTimes.join(', ')}`
+          };
+        }
+        break;
+      }
+
+      case 'location': {
+        const currentLocation = context.locationType || 'unknown';
+        const allowedLocations = Array.isArray(req.value) ? req.value : [req.value];
+
+        if (!allowedLocations.includes(currentLocation)) {
+             return {
+            valid: false,
+            failureReason: req.description || `Incorrect location type. Requires: ${allowedLocations.join(', ')}`
+          };
+        }
+        break;
+      }
+
+      case 'biome': {
+         const currentBiome = context.biomeId;
+         const requiredBiomes = Array.isArray(req.value) ? req.value : [req.value];
+
+         if (!currentBiome || !requiredBiomes.includes(currentBiome)) {
+            return {
+              valid: false,
+              failureReason: req.description || `Wrong environment. Requires: ${requiredBiomes.join(', ')}`
+            };
+         }
+         break;
+      }
+
+      case 'weather': {
+        const currentWeather = context.weather;
+        const requiredWeather = Array.isArray(req.value) ? req.value : [req.value];
+
+        if (!currentWeather || !requiredWeather.includes(currentWeather)) {
+           return {
+              valid: false,
+              failureReason: req.description || `Weather unsuitable. Requires: ${requiredWeather.join(', ')}`
+            };
+        }
+        break;
+      }
+
+      case 'participants_count': {
+        const count = context.participantCount || 0;
+        const minRequired = Number(req.value);
+
+        if (count < minRequired) {
+           return {
+              valid: false,
+              failureReason: req.description || `Not enough participants. Requires: ${minRequired}`
+            };
+        }
+        break;
+      }
+    }
+  }
+
+  return { valid: true };
 }

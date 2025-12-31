@@ -5,20 +5,24 @@ import { GameState, Item } from '../../../types';
 import { AppAction } from '../../actionTypes';
 
 // Mock ITEMS manually
-const ITEMS = {
+// TODO(lint-intent): 'ITEMS' is unused in this test; use it in the assertion path or remove it.
+const _ITEMS = {
     'torch': { id: 'torch', name: 'Torch' } as Item
 };
 
 // We need a minimal GameState
 const mockState: GameState = {
     party: [
-        { id: 'c1', name: 'Char1', hp: 10, maxHp: 20 } as any,
-        { id: 'c2', name: 'Char2', hp: 5, maxHp: 20 } as any,
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        { id: 'c1', name: 'Char1', hp: 10, maxHp: 20 } as unknown,
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        { id: 'c2', name: 'Char2', hp: 5, maxHp: 20 } as unknown,
     ],
     inventory: [],
     gold: 0,
     // ... other fields irrelevant for this test
-} as any;
+// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+} as unknown;
 
 describe('Character Reducer - New Exploration Actions', () => {
     it('should add item to inventory', () => {

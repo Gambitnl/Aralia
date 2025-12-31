@@ -47,8 +47,14 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
       return { isMapVisible: !state.isMapVisible, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false } };
 
     case 'TOGGLE_MINIMAP_VISIBILITY': {
-      const nextVisibility = !(state as any).isMinimapVisible;
-      return { ...(state as any), isMinimapVisible: nextVisibility } as Partial<GameState>;
+      // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+      const nextVisibility = !(state as unknown).isMinimapVisible;
+      // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+      return { ...(state as unknown), isMinimapVisible: nextVisibility } as Partial<GameState>;
     }
 
     case 'TOGGLE_SUBMAP_VISIBILITY':

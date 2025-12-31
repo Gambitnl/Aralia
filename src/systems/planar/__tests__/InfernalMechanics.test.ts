@@ -2,7 +2,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { InfernalMechanics } from '../InfernalMechanics';
 import { createMockGameState } from '../../../utils/factories';
-import { ContractGenerationParams, InfernalContract } from '../../../types/infernal';
+// TODO(lint-intent): 'InfernalContract' is unused in this test; use it in the assertion path or remove it.
+import { ContractGenerationParams, InfernalContract as _InfernalContract } from '../../../types/infernal';
 
 describe('InfernalMechanics', () => {
   let gameState = createMockGameState();

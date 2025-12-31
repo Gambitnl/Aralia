@@ -45,7 +45,8 @@ describe('savingThrowUtils', () => {
         level: 5,
         class: {
             id: 'wizard', name: 'Wizard', spellcasting: { ability: 'Intelligence' }
-        } as any,
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        } as unknown,
         stats: {
           strength: 10, dexterity: 10, constitution: 10,
           intelligence: 18, // +4 Mod
@@ -60,7 +61,8 @@ describe('savingThrowUtils', () => {
     it('defaults to Intelligence if class has no spellcasting ability', () => {
       const fighter = createMockCombatCharacter({
         level: 1,
-        class: { id: 'fighter', name: 'Fighter' } as any, // No spellcasting prop
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        class: { id: 'fighter', name: 'Fighter' } as unknown, // No spellcasting prop
         stats: {
             strength: 16, dexterity: 10, constitution: 10,
             intelligence: 10, // +0 Mod

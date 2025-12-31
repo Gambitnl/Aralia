@@ -25,7 +25,9 @@ function getAllSpells(): Spell[] {
         const content = fs.readFileSync(path.join(dir, file), 'utf-8');
         const spell = JSON.parse(content) as Spell;
         spells.push(spell);
-      } catch (e) {
+      // TODO(lint-intent): Capture parse errors if we want detailed diagnostics in the audit output.
+      // TODO(lint-intent): Consider adding error context (file contents hash, schema version) when expanding the report.
+      } catch {
         console.error(`Failed to parse ${file}`);
       }
     }

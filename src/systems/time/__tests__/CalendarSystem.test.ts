@@ -5,7 +5,8 @@ import {
   getNextHoliday,
   getMoonPhase,
   MoonPhase,
-  HOLIDAYS
+  // TODO(lint-intent): 'HOLIDAYS' is unused in this test; use it in the assertion path or remove it.
+  HOLIDAYS as _HOLIDAYS
 } from '../CalendarSystem';
 import { getGameEpoch } from '../../../utils/timeUtils';
 

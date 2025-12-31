@@ -28,7 +28,8 @@ const makeCharacter = (id: string, position: Position): CombatCharacter => ({
   id,
   name: id,
   level: 5,
-  class: 'Wizard' as any,
+  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+  class: 'Wizard' as unknown,
   position,
   stats: { ...baseStats },
   abilities: [],
@@ -70,7 +71,8 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
   castAtLevel: 1,
   caster,
   targets,
-  gameState: {} as any
+  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+  gameState: {} as unknown
 });
 
 describe('DefensiveCommand', () => {

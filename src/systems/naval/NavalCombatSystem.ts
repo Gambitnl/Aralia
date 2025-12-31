@@ -5,12 +5,17 @@
  * @file src/systems/naval/NavalCombatSystem.ts
  * System for managing naval combat state, turns, and maneuver resolution.
  */
-
-import { Ship, ShipStats } from '../../types/naval';
+// TODO(lint-intent): 'ShipStats' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Ship, ShipStats as _ShipStats } from '../../types/naval';
 import {
     NavalCombatState,
     CombatShipState,
-    NavalManeuver,
+    // TODO(lint-intent): 'NavalManeuver' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    NavalManeuver as _NavalManeuver,
     NavalCombatResult,
     WindDirection,
     CombatRange,
@@ -220,11 +225,15 @@ export class NavalCombatSystem {
                 }
                 break;
 
-            case 'REPAIR':
+            case 'REPAIR': {
+                // TODO(lint-intent): This switch case declares new bindings, implying scoped multi-step logic.
+                // TODO(lint-intent): Wrap the case in braces or extract a helper to keep scope and intent clear.
+                // TODO(lint-intent): If shared state is intended, lift the declarations outside the switch.
                 const heal = rollDamage('2d10', false) + 10;
                 attacker.currentHullPoints = Math.min(attacker.ship.stats.maxHullPoints, attacker.currentHullPoints + heal);
                 result.details += ` Repaired ${heal} HP.`;
                 break;
+            }
 
             case 'BOARDING_PARTY':
                 if (targetId) {

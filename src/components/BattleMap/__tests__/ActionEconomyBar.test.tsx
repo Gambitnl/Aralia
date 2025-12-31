@@ -11,26 +11,23 @@ describe('ActionEconomyBar', () => {
     const mockCharacter: CombatCharacter = {
         id: 'char1',
         name: 'Hero',
-        type: 'player',
+        level: 1,
         team: 'player',
-        hp: 10,
-        maxHp: 10,
-        ac: 15,
-        speed: 30,
-        position: { x: 0, y: 0, z: 0 },
-        initiative: 10,
-        actionEconomy: {
-            action: { used: false, total: 1 },
-            bonusAction: { used: false, total: 1 },
-            reaction: { used: false, total: 1 },
-            movement: { used: 0, total: 30 }
-        },
+        currentHP: 10,
+        maxHP: 10,
+        stats: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, speed: 30 },
         abilities: [],
-        conditions: [],
-        resistances: {},
-        stats: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 },
-        isDead: false,
-        visual: { color: 'red', model: 'warrior' }
+        position: { x: 0, y: 0 },
+        initiative: 10,
+        statusEffects: [],
+        actionEconomy: {
+            action: { used: false, remaining: 1 },
+            bonusAction: { used: false, remaining: 1 },
+            reaction: { used: false, remaining: 1 },
+            movement: { used: 0, total: 30 },
+            freeActions: 1
+        },
+        class: { id: 'fighter', name: 'Fighter', hitDie: 'd10', primaryAbility: 'strength', proficiencyBonuses: [], features: [] }
     };
 
     it('renders indicators for action, bonus, and reaction', () => {
@@ -39,6 +36,28 @@ describe('ActionEconomyBar', () => {
         expect(screen.getByLabelText('Action')).toBeInTheDocument();
         expect(screen.getByLabelText('Bonus Action')).toBeInTheDocument();
         expect(screen.getByLabelText('Reaction')).toBeInTheDocument();
+    });
+
+    it('renders indicator for free interaction', () => {
+        render(<ActionEconomyBar character={mockCharacter} onExecuteAction={mockOnExecuteAction} />);
+        expect(screen.getByLabelText('Free Object Interaction')).toBeInTheDocument();
+    });
+
+    it('shows free interaction as used when freeActions <= 0', () => {
+        const usedFreeChar = {
+            ...mockCharacter,
+            actionEconomy: {
+                ...mockCharacter.actionEconomy,
+                freeActions: 0
+            }
+        };
+        render(<ActionEconomyBar character={usedFreeChar} onExecuteAction={mockOnExecuteAction} />);
+
+        const freeInteraction = screen.getByLabelText('Free Object Interaction');
+        // The container holding the emoji is what we're looking for.
+        // In the implementation, we'll check if the parent div has the used styling.
+        // We can check for "opacity-40" or "line-through" on the text if we implement it that way.
+        expect(freeInteraction.closest('div')).toHaveClass('opacity-40');
     });
 
     it('shows movement bar correctly', () => {
@@ -60,11 +79,12 @@ describe('ActionEconomyBar', () => {
             concentratingOn: {
                 spellId: 'spell1',
                 spellName: 'Bless',
-                level: 1,
-                sourceId: 'char1',
-                startTime: 0,
+                spellLevel: 1,
+                startedTurn: 0,
+                effectIds: [],
+                canDropAsFreeAction: true,
                 sustainedThisTurn: false,
-                sustainCost: { actionType: 'action' }
+                sustainCost: { actionType: 'action', optional: false }
             }
         };
 
@@ -87,11 +107,12 @@ describe('ActionEconomyBar', () => {
             concentratingOn: {
                 spellId: 'spell1',
                 spellName: 'Bless',
-                level: 1,
-                sourceId: 'char1',
-                startTime: 0,
+                spellLevel: 1,
+                startedTurn: 0,
+                effectIds: [],
+                canDropAsFreeAction: true,
                 sustainedThisTurn: true, // Already sustained
-                sustainCost: { actionType: 'action' }
+                sustainCost: { actionType: 'action', optional: false }
             }
         };
 

@@ -2,7 +2,8 @@
 import { describe, it, expect } from 'vitest';
 import { getPlanarSpellModifier, canActivatePortal, getCurrentPlane } from '../planarUtils';
 import { PLANES } from '../../data/planes';
-import { MagicSchool } from '../../types/spells';
+// TODO(lint-intent): 'MagicSchool' is unused in this test; use it in the assertion path or remove it.
+import { MagicSchool as _MagicSchool } from '../../types/spells';
 import { GameState, GamePhase, Location, Portal } from '../../types';
 
 describe('Planar Utils', () => {

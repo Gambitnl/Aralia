@@ -12,7 +12,10 @@ function auditLevel1Saves() {
   console.log('🔍 Auditing Level 1 Spells for saveEffect usage...');
 
   const files = fs.readdirSync(SPELLS_DIR).filter(f => f.endsWith('.json'));
-  const damageSpells: any[] = [];
+  // TODO(lint-intent): The any on 'damageSpells' hides the intended shape of this data.
+  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+  const damageSpells: unknown[] = [];
 
   files.forEach(file => {
     const filePath = path.join(SPELLS_DIR, file);
@@ -21,7 +24,10 @@ function auditLevel1Saves() {
       const spell = JSON.parse(content);
 
       if (spell.effects) {
-        spell.effects.forEach((effect: any, index: number) => {
+        // TODO(lint-intent): The any on 'effect' hides the intended shape of this data.
+        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+        spell.effects.forEach((effect: unknown, index: number) => {
           if (effect.type === 'DAMAGE' && effect.condition && effect.condition.type === 'save') {
             damageSpells.push({
               file,
@@ -34,8 +40,10 @@ function auditLevel1Saves() {
           }
         });
       }
-
-    } catch (e: any) {
+    // TODO(lint-intent): The any on 'e' hides the intended shape of this data.
+    // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+    // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+    } catch (e: unknown) {
       console.error(`Error parsing ${file}: ${e.message}`);
     }
   });

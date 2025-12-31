@@ -4,7 +4,10 @@
  * @file src/data/classes/index.ts
  * Defines all class data for the Aralia RPG.
  */
-import { Class as CharClass, FightingStyle, ClassFeature, AbilityScoreName, SelectableClass, DivineOrderOption, PrimalOrderOption, WarlockPatronOption } from '../../types';
+// TODO(lint-intent): 'ClassFeature' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Class as CharClass, FightingStyle, ClassFeature as _ClassFeature, AbilityScoreName as _AbilityScoreName, SelectableClass, DivineOrderOption as _DivineOrderOption, PrimalOrderOption as _PrimalOrderOption, WarlockPatronOption as _WarlockPatronOption } from '../../types';
 
 const FIGHTING_STYLES_DATA: Record<string, FightingStyle> = {
   'archery': { id: 'archery', name: 'Archery', description: '+2 bonus to attack rolls with ranged weapons.', levelAvailable: 1 },

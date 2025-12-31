@@ -15,7 +15,8 @@ import {
   LimitedUses,
   Item,
 } from '../../../types';
-import { SKILLS_DATA, WEAPONS_DATA, RACES_DATA, TIEFLING_LEGACIES } from '../../../constants';
+import { WEAPONS_DATA, RACES_DATA, TIEFLING_LEGACIES } from '../../../constants';
+import { SKILLS_DATA } from '../../../data/skills';
 import { BACKGROUNDS } from '../../../data/backgrounds';
 import { CharacterCreationState } from '../state/characterCreatorState';
 import { getAbilityModifierValue, applyAllFeats } from '../../../utils/characterUtils';
@@ -310,8 +311,10 @@ function calculateCharacterSpeed(race: Race, lineageId?: string): number {
   }
   return speed;
 }
-
-function calculateCharacterDarkvision(race: Race, lineageId?: string, subraceId?: string): number {
+// TODO(lint-intent): 'subraceId' is an unused parameter, which suggests a planned input for this flow.
+// TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+// TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+function calculateCharacterDarkvision(race: Race, lineageId?: string, _subraceId?: string): number {
   let range = 0;
   const dvTrait = race.traits.find(t => t.toLowerCase().includes('darkvision'));
   if (dvTrait) {

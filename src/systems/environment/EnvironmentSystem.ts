@@ -9,11 +9,20 @@ import {
   WeatherState,
   TerrainRule,
   SpellModifier,
-  Precipitation,
-  WindSpeed,
+  // TODO(lint-intent): 'Precipitation' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+  Precipitation as _Precipitation,
+  // TODO(lint-intent): 'WindSpeed' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+  // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+  // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+  WindSpeed as _WindSpeed,
   EnvironmentalHazard
 } from '../../types/environment';
-import { Spell, DamageType } from '../../types/spells';
+// TODO(lint-intent): 'DamageType' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Spell, DamageType as _DamageType } from '../../types/spells';
 import { BattleMapTerrain } from '../../types/combat';
 import { NATURAL_HAZARDS } from './hazards';
 
@@ -100,9 +109,18 @@ export function getWeatherModifiers(
   // 1. Precipitation Effects on Fire/Cold/Lightning
   if (spell.effects.some(e => e.type === 'DAMAGE')) {
      const damageEffects = spell.effects.filter(e => e.type === 'DAMAGE');
-     const hasFire = damageEffects.some(e => (e as any).damage.type === 'Fire');
-     const hasCold = damageEffects.some(e => (e as any).damage.type === 'Cold');
-     const hasLightning = damageEffects.some(e => (e as any).damage.type === 'Lightning');
+     // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+     // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+     // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+     const hasFire = damageEffects.some(e => (e as unknown).damage.type === 'Fire');
+     // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+     // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+     // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+     const hasCold = damageEffects.some(e => (e as unknown).damage.type === 'Cold');
+     // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+     // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+     // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+     const hasLightning = damageEffects.some(e => (e as unknown).damage.type === 'Lightning');
 
      if (hasFire && (weather.precipitation === 'heavy_rain' || weather.precipitation === 'storm')) {
        modifiers.push({

@@ -61,9 +61,20 @@ export const useDialogueSystem = (
      * Handles the side effects of a topic selection.
      * Maps the `ProcessTopicResult` from the service to Redux actions.
      */
-    const handleTopicOutcome = useCallback((result: ProcessTopicResult) => {
+    const handleTopicOutcome = useCallback((result: ProcessTopicResult, topicId: string) => {
         const session = gameState.activeDialogueSession;
         if (!session) return;
+
+        // 0. Persist Topic Memory
+        // Ensure this topic is remembered in the NPC's long-term memory
+        dispatch({
+            type: 'DISCUSS_TOPIC',
+            payload: {
+                topicId,
+                npcId: session.npcId,
+                date: gameState.gameTime // Use current game time
+            }
+        });
 
         // 1. Grant Experience
         if (result.xpReward && result.xpReward > 0) {
@@ -121,7 +132,7 @@ export const useDialogueSystem = (
 
         // 4. Handle Topic Unlocks (Global Discovery)
         if (result.unlocks && result.unlocks.length > 0) {
-            result.unlocks.forEach(topicId => {
+            result.unlocks.forEach(_topicId => {
                 // We use the Discovery Log to track "Unlocked Topics" globally if they are significant
                 // For now, we assume simple topic chaining is handled by the Session state (discussedTopicIds),
                 // but if a topic unlocks a GLOBAL fact or quest, we should log it.
@@ -140,7 +151,7 @@ export const useDialogueSystem = (
             // Currently not supported in the simple reducer, but could be added to NPC Memory.
         }
 
-    }, [gameState.activeDialogueSession, dispatch]);
+    }, [gameState.activeDialogueSession, gameState.gameTime, dispatch]);
 
     return {
         generateResponse,

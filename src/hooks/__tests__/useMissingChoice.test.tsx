@@ -2,7 +2,8 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { useMissingChoice } from '../useMissingChoice';
-import { PlayerCharacter, MissingChoice, AppAction } from '../../types';
+// TODO(lint-intent): 'AppAction' is unused in this test; use it in the assertion path or remove it.
+import { PlayerCharacter, MissingChoice, AppAction as _AppAction } from '../../types';
 
 describe('useMissingChoice', () => {
   const mockDispatch = vi.fn();

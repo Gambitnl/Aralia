@@ -16,7 +16,10 @@
  */
 import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect } from '../types/combat';
 import { PlayerCharacter, Monster, Item } from '../types';
-import { Spell, DamageType, ConditionName } from '../types/spells'; // Explicit import to avoid conflicts
+// TODO(lint-intent): 'ConditionName' is imported but unused; it hints at a helper/type the module was meant to use.
+// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
+// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
+import { Spell, DamageType, ConditionName as _ConditionName } from '../types/spells'; // Explicit import to avoid conflicts
 import { CLASSES_DATA } from '../data/classes';
 import { MONSTERS_DATA } from '../data/monsters';
 import { createAbilityFromSpell } from './spellAbilityFactory';

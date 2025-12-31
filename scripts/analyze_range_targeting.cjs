@@ -12,7 +12,7 @@ files.forEach(f => {
     const targetRange = d.targeting?.range;
     const targets = d.targeting?.validTargets || [];
 
-    let issues = [];
+    const issues = [];
 
     // Self range but targets enemies/creatures at distance
     if (rangeType === 'self' && targets.includes('enemies') && targetRange > 0) {

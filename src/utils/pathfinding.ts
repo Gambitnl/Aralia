@@ -5,6 +5,7 @@
  */
 import { BattleMapTile, BattleMapData } from '../types/combat';
 import { calculateMovementCost } from './movementUtils';
+import { applyMovementCostModifiers, MovementConfig } from './physicsUtils';
 
 interface PathNode {
   tile: BattleMapTile;
@@ -31,10 +32,16 @@ export function heuristic(a: BattleMapTile, b: BattleMapTile): number {
  * @param startTile - The starting tile.
  * @param endTile - The destination tile.
  * @param mapData - The complete battle map data containing all tiles.
+ * @param movementConfig - Optional configuration for movement physics (climbing, swimming, etc.).
  * @returns An array of tiles representing the path from start to end (inclusive of start).
  *          Returns an empty array if no path is found.
  */
-export function findPath(startTile: BattleMapTile, endTile: BattleMapTile, mapData: BattleMapData): BattleMapTile[] {
+export function findPath(
+  startTile: BattleMapTile,
+  endTile: BattleMapTile,
+  mapData: BattleMapData,
+  movementConfig: Partial<MovementConfig> = {}
+): BattleMapTile[] {
   const openSet: PathNode[] = [];
 
   // Stores lowest G score for a tile AND diagonal parity
@@ -100,12 +107,20 @@ export function findPath(startTile: BattleMapTile, endTile: BattleMapTile, mapDa
         const neighborTile = mapData.tiles.get(neighborId);
         if (!neighborTile || neighborTile.blocksMovement) continue;
         
-        // Calculate cost
+        // Calculate base cost (5 or 10 depending on diagonal parity)
         const { cost: baseStepCost, isDiagonal } = calculateMovementCost(dx, dy, currentNode.diagonalCount);
 
-        // TODO(Mechanist): Replace this simple multiplier with `applyMovementCostModifiers` from `physicsUtils.ts` to support stacking penalties (climbing/crawling) and speed offsets.
-        const terrainMultiplier = neighborTile.movementCost || 1;
-        const stepCost = baseStepCost * terrainMultiplier;
+        // Determine physics modifiers for this specific step
+        const stepConfig: MovementConfig = {
+          ...movementConfig,
+          isDifficultTerrain: (neighborTile.movementCost || 1) > 1,
+          // We assume crawling/climbing/swimming state persists from the passed config
+          // unless specific tile logic overrides it (future TODO)
+        };
+
+        // Apply physics-based cost modifiers (additive stacking)
+        // [Mechanist] Replaced simple multiplication with centralized physics calculation
+        const stepCost = applyMovementCostModifiers(baseStepCost, stepConfig);
 
         const gScore = currentNode.g + stepCost;
         const newDiagonalCount = isDiagonal ? currentNode.diagonalCount + 1 : currentNode.diagonalCount;

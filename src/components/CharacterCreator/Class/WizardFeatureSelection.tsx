@@ -45,7 +45,7 @@ const WizardFeatureSelection: React.FC<WizardFeatureSelectionProps> = ({
    * @param {number} limit - The maximum number of spells allowed for this type.
    * @param {string} type - A string descriptor for logging ('cantrip' or 'spell L1').
    */
-  const toggleSelection = (id: string, currentSelection: Set<string>, setSelection: React.Dispatch<React.SetStateAction<Set<string>>>, limit: number, type: string) => {
+  const toggleSelection = (id: string, currentSelection: Set<string>, setSelection: React.Dispatch<React.SetStateAction<Set<string>>>, limit: number, _type: string) => {
     const newSelection = new Set(currentSelection);
     if (newSelection.has(id)) {
       newSelection.delete(id);

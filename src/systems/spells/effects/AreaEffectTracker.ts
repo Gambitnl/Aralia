@@ -126,7 +126,10 @@ export class AreaEffectTracker {
         character: CombatCharacter,
         newPosition: Position,
         previousPosition: Position,
-        currentRound: number
+        // TODO(lint-intent): 'currentRound' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        _currentRound: number
     ): TriggerResult[] {
         const results: TriggerResult[] = [];
 
@@ -228,7 +231,10 @@ export class AreaEffectTracker {
      */
     public processEndTurn(
         character: CombatCharacter,
-        currentRound: number
+        // TODO(lint-intent): 'currentRound' is an unused parameter, which suggests a planned input for this flow.
+        // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
+        // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
+        _currentRound: number
     ): TriggerResult[] {
         const results: TriggerResult[] = [];
 

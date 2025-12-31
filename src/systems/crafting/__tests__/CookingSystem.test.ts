@@ -3,7 +3,8 @@
  * Tests for the CookingSystem and dynamic recipe resolution.
  */
 import { describe, it, expect, vi } from 'vitest';
-import { attemptCooking, CookingRecipe, resolveCookingRecipe, INGREDIENT_TAGS } from '../CookingSystem';
+// TODO(lint-intent): 'INGREDIENT_TAGS' is unused in this test; use it in the assertion path or remove it.
+import { attemptCooking, CookingRecipe, resolveCookingRecipe, INGREDIENT_TAGS as _INGREDIENT_TAGS } from '../CookingSystem';
 import { Crafter } from '../craftingSystem';
 
 // Mock Crafter Helper

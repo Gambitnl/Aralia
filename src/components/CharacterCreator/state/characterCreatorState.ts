@@ -3,7 +3,6 @@
  * Defines the state structure, initial state, actions, and reducer for the CharacterCreator component.
  */
 import {
-  PlayerCharacter,
   Race,
   Class as CharClass,
   AbilityScores,
@@ -11,7 +10,6 @@ import {
   Spell,
   FightingStyle,
   AbilityScoreName,
-  DraconicAncestryInfo,
   ElvenLineageType,
   GnomeSubraceType,
   GiantAncestryType,
@@ -20,9 +18,6 @@ import {
   RacialSelectionData,
 } from '../../../types';
 import { CharacterVisualConfig } from '../../../services/CharacterAssetService';
-import {
-  RACES_DATA,
-} from '../../../constants';
 import { FEATS_DATA } from '../../../data/feats/featsData';
 import { calculateFixedRacialBonuses, evaluateFeatPrerequisites } from '../../../utils/characterUtils';
 
@@ -183,18 +178,6 @@ function determineNextStepAfterRace(race: Race): CreationStep {
   if (race.id === 'changeling') return CreationStep.ChangelingInstincts;
   // Races without sub-selections go directly to age
   return CreationStep.AgeSelection;
-}
-
-function determineNextStepAfterAge(age: number, race: Race): CreationStep {
-  return CreationStep.BackgroundSelection;
-}
-
-/**
- * After background selection, proceed to class selection.
- * (Race-specific steps now happen earlier, right after race selection)
- */
-function determineNextStepAfterBackground(race: Race): CreationStep {
-  return CreationStep.Visuals;
 }
 
 const getResetStateForNewRace = (): Partial<CharacterCreationState> => {

@@ -2,7 +2,8 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, vi } from 'vitest';
 import SkillSelection from './SkillSelection';
-import { Skill, AbilityScores, Class, Race, RacialSelectionData } from '../../types';
+// TODO(lint-intent): 'Skill' is unused in this test; use it in the assertion path or remove it.
+import { Skill as _Skill, AbilityScores, Class, Race, RacialSelectionData } from '../../types';
 
 // Mock Tooltip since it might use complex logic or context
 vi.mock('../Tooltip', () => ({

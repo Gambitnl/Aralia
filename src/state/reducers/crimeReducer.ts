@@ -17,7 +17,10 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             // HeistManager.startPlanning currently only uses the ID from the location object.
             // We pass a minimal object to avoid needing to look up the full Location entity here.
             // TODO: If startPlanning needs more location data later, fetch it from state.dynamicLocations or similar.
-            const targetLocation = { id: targetLocationId } as any;
+            // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
+            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+            const targetLocation = { id: targetLocationId } as unknown;
             let plan = HeistManager.startPlanning(targetLocation, leaderId);
 
             if (guildJobId) {

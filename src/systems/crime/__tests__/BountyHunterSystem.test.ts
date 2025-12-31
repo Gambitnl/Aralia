@@ -1,7 +1,8 @@
-
-import { describe, it, expect, vi } from 'vitest';
+// TODO(lint-intent): 'vi' is unused in this test; use it in the assertion path or remove it.
+import { describe, it, expect, vi as _vi } from 'vitest';
 import { BountyHunterSystem } from '../BountyHunterSystem';
-import { NotorietyState, GameState, HeatLevel } from '../../../types';
+// TODO(lint-intent): 'GameState' is unused in this test; use it in the assertion path or remove it.
+import { NotorietyState, GameState as _GameState, HeatLevel as _HeatLevel } from '../../../types';
 import { Bounty, HunterTier } from '../../../types/crime';
 import { createMockGameState } from '../../../utils/factories';
 

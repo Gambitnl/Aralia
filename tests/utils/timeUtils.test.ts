@@ -1,6 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
-import { getGameEpoch, formatGameTime, formatGameDate, formatGameDateTime, GAME_EPOCH_YEAR } from '../../src/utils/timeUtils';
+// TODO(lint-intent): 'formatGameDateTime' is unused in this test; use it in the assertion path or remove it.
+import { getGameEpoch, formatGameTime, formatGameDate, formatGameDateTime as _formatGameDateTime, GAME_EPOCH_YEAR as _GAME_EPOCH_YEAR } from '../../src/utils/timeUtils';
 
 describe('timeUtils', () => {
   it('getGameEpoch should return a UTC date', () => {

@@ -79,7 +79,8 @@ describe('SpellValidator Material Components', () => {
         // materialCost is required by schema, but if it is missing at runtime (or from JSON), Zod catches it
         // However, the schema says materialCost: z.number().
         // If we omit it, it's undefined.
-        materialCost: undefined as any,
+        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+        materialCost: undefined as unknown,
         isConsumed: false,
       },
     };

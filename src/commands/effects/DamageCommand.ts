@@ -108,7 +108,7 @@ export class DamageCommand extends BaseEffectCommand {
 
       // --- SLASHER FEAT LOGIC ---
       if (caster.feats?.includes('slasher') && this.effect.damage.type.toLowerCase() === 'slashing') {
-        const hasHit = finalDamage > 0; // Assuming hit implies damage for Slasher trigger (rule says "hit a creature")
+        const _hasHit = finalDamage > 0; // Assuming hit implies damage for Slasher trigger (rule says "hit a creature")
         // But DamageCommand runs AFTER hit confirmation.
         // Rule 1: Reduce Speed by 10ft (Once per turn)
         // We need to check if we've already applied it this turn.
@@ -160,7 +160,7 @@ export class DamageCommand extends BaseEffectCommand {
 
         // Rule 2: Critical Hit -> Disadvantage
         if (isCritical) {
-             const slasherCrit: StatusEffect = {
+             const _slasherCrit: StatusEffect = {
                 id: `slasher_crit_${target.id}_${currentState.turnState.currentTurn}`,
                 name: 'Slasher Grievous Wound',
                 type: 'debuff',

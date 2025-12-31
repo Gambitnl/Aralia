@@ -25,7 +25,8 @@ const mockCaster: CombatCharacter = {
     statusEffects: [],
     conditions: [],
     level: 5,
-    class: 'Wizard' as any,
+    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+    class: 'Wizard' as unknown,
     initiative: 12,
     actionEconomy: {
         action: { used: false, remaining: 1 },
