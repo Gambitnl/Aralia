@@ -9,6 +9,7 @@ import { getSubmapTileInfo } from './submapUtils';
 import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
 import { getTimeModifiers, formatGameTime } from './timeUtils';
 import { BACKGROUNDS } from '../data/backgrounds';
+import { CLASSES_DATA } from '../data/classes';
 
 interface ContextGenerationParams {
   gameState: GameState;
@@ -37,7 +38,19 @@ export function generateGeneralActionContext({
       ? conditionsList.join(', ')
       : 'None';
 
-    parts.push(`## PLAYER\nName: ${playerCharacter.name} (${playerCharacter.race.name} ${playerCharacter.class.name}) | HP: ${playerCharacter.hp}/${playerCharacter.maxHp} | Conditions: ${conditions}`);
+    let playerHeader = `## PLAYER\nName: ${playerCharacter.name} | HP: ${playerCharacter.hp}/${playerCharacter.maxHp} | Conditions: ${conditions}`;
+
+    // Add Age if available
+    if (playerCharacter.age) {
+        playerHeader += ` | Age: ${playerCharacter.age}`;
+    }
+
+    // Add detailed Race/Class string
+    const classData = CLASSES_DATA[playerCharacter.class.id];
+    const classFlavor = classData ? `\nClass Flavor: ${classData.description}` : '';
+    playerHeader += `\nRace: ${playerCharacter.race.name}\nClass: ${playerCharacter.class.name}${classFlavor}`;
+
+    parts.push(playerHeader);
 
     // --- CHARACTER DETAILS ---
     // Enriched context from Background data to give the AI a sense of the character's "vibe"
@@ -45,10 +58,20 @@ export function generateGeneralActionContext({
       const bg = BACKGROUNDS[playerCharacter.background];
       if (bg) {
         let details = `Background: ${bg.name}\nArchetype: ${bg.description}`;
-        // If the character has a visual description (from creation), include it
+
+        // Add Background Feature for specific narrative leverage
+        if (bg.feature) {
+             details += `\nBackground Feature: "${bg.feature.name}" - ${bg.feature.description}`;
+        }
+
+        // Visual description logic
         if (playerCharacter.visualDescription) {
              details += `\nAppearance: ${playerCharacter.visualDescription}`;
+        } else if (playerCharacter.visuals) {
+            // Implicit fallback based on gender/race
+            details += `\nAppearance: A ${playerCharacter.visuals.gender} ${playerCharacter.race.name}.`;
         }
+
         parts.push(`## CHARACTER DETAILS\n${details}`);
       }
     }

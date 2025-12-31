@@ -19,3 +19,6 @@
 - Option B: Update both System Instruction and Prompt Structure to be explicit about 'QUEST RELEVANCE'.
 **Chosen:** Option B.
 **Rationale:** The context generator already provides 'QUEST RELEVANCE (CRITICAL)', but the AI wasn't explicitly told to look for it. Adding this instruction directly connects the data pipeline to the narrative output. Also strengthened the anti-hallucination guidelines.
+### 2025-12-30 - Deepening Character Context
+**Learning:** AI narration was generic ("The fighter attacks") because it lacked specific roleplay hooks (Background Feature, Age, Class Flavor).
+**Action:** Enriched `generateGeneralActionContext` to explicitly include the character's Age, specific Background Feature (with description), and Class Flavor text. Also added a fallback "Implicit Appearance" (Gender + Race) if the user didn't provide a custom visual description, ensuring the AI always has a visual anchor.
