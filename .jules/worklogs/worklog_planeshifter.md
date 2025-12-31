@@ -11,3 +11,7 @@
 **Learning:** When implementing planar environmental hazards like "Psychic Wind", it is crucial to decouple the mechanical outcome (Psychic Damage, Displacement) from the narrative description, so systems like `AstralMechanics.checkForPsychicWind` can return a structured result object. This allows the Game Loop to decide *how* to apply the effect (notification, direct damage, teleportation) without the physics engine being tightly coupled to the UI.
 
 **Action:** Ensure all future Planar Hazard systems return a `PlanarHazardResult` type object rather than mutating state directly or returning simple strings.
+
+### UNTRACKED FILES
+- `src/systems/planar/AbyssalMechanics.ts` - Mechanics for Abyssal Corruption (DC 15 Charisma save, random flaws).
+- `src/systems/planar/__tests__/AbyssalMechanics.test.ts` - Unit tests for Abyssal Corruption mechanics.
