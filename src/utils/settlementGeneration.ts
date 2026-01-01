@@ -3,7 +3,7 @@
  * Utilities for determining settlement characteristics based on race, background, and culture
  */
 
-import { VillagePersonality } from '../services/villageGenerator';
+import { VillagePersonality } from '../types/village';
 import { Location, GameState } from '../types';
 
 export interface SettlementType {

@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Spell } from '../../types/spells';
+import { Spell } from '../../../types/spells';
 import { validateEnchantmentConsistency } from '../spellConsistencyValidator';
 
 const SPELLS_DIR = 'public/data/spells/level-1';

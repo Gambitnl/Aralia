@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { TravelCalculator } from '../TravelCalculator';
-import { TravelParameters } from '../../types/travel';
+import { TravelParameters } from '../../../types/travel';
 
 describe('TravelCalculator', () => {
   const origin = { x: 0, y: 0 };
