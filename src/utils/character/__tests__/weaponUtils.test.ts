@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { isWeaponMartial, isWeaponProficient } from '../weaponUtils';
-import { createMockPlayerCharacter, createMockItem } from '../factories';
+import { createMockPlayerCharacter, createMockItem } from '../../core/factories';
 // TODO(lint-intent): 'Item' is unused in this test; use it in the assertion path or remove it.
 import { Item as _Item } from '@/types/items';
 

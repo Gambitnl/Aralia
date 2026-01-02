@@ -6,8 +6,8 @@ import {
   createMockMonster,
   createMockGameMessage
 } from '../factories';
-import { isSpell } from '@/types/spells';
-import { SpellValidator } from '../../systems/spells/validation/spellValidator';
+import { isSpell, SpellTargeting } from '@/types/spells';
+import { SpellValidator } from '../../../systems/spells/validation/spellValidator';
 import { ItemType , QuestStatus } from '@/types/index';
 
 
@@ -37,11 +37,11 @@ describe('Mimic Factories', () => {
 
     it('should handle nested overrides', () => {
       // Overriding targeting
-      const spell = createMockSpell({
-        targeting: {
-          type: "area",
-          range: 150,
-          areaOfEffect: { shape: "Sphere", size: 20, height: 20 },
+            const spell = createMockSpell({
+              targeting: {
+                type: "area",
+                range: 150,
+                areaOfEffect: { shape: "Sphere", size: 20, height: 20 },
           validTargets: ["creatures"],
           // Need to provide full object for valid SpellValidator, or update createMockSpell to merge deeply (it shallow merges)
           // createMockSpell uses ...overrides, so top level keys replace completely.
@@ -51,17 +51,16 @@ describe('Mimic Factories', () => {
           // But here we are just checking properties.
           maxTargets: 1,
           lineOfSight: true,
-          filter: {
-            creatureTypes: [],
-            excludeCreatureTypes: [],
-            sizes: [],
-            alignments: [],
-            hasCondition: [],
-            isNativeToPlane: false
-          }
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown // Cast to any to avoid strict typing needed for the test if the factory typing is strict
-      });
+                filter: {
+                  creatureTypes: [],
+                  excludeCreatureTypes: [],
+                  sizes: [],
+                  alignments: [],
+                  hasCondition: [],
+                  isNativeToPlane: false
+                }
+              } as SpellTargeting
+            });
 
       expect(spell.targeting.type).toBe("area");
 
@@ -95,12 +94,12 @@ describe('Mimic Factories', () => {
        // To force `createMockSpell` to fail, we need something else to throw inside it,
        // like checking if overrides spread throws (getter)
 
-       const badOverride = {
-         get name() { throw new Error('Explosive Getter'); return 'Boom'; }
-       };
+            const badOverride = {
+              // Intentionally throw on access to force fallback path
+              get name() { throw new Error('Explosive Getter'); return 'Boom'; }
+            } as unknown as Parameters<typeof createMockSpell>[0];
 
-        // @ts-expect-error Intentional: simulate a throwing getter to exercise fallback path
-        const spell = createMockSpell(badOverride);
+            const spell = createMockSpell(badOverride);
 
        expect(spell.id).toBe('error-spell');
        expect(spell.name).toBe('Error Spell');
@@ -139,18 +138,18 @@ describe('Mimic Factories', () => {
 
   describe('createMockMonster', () => {
     it('creates a default monster', () => {
-      const monster = createMockMonster();
-      expect(monster).toBeDefined();
-      expect(monster.name).toBe('Mock Monster');
-      expect(monster.hp).toBe(20);
-    });
+          const monster = createMockMonster();
+          expect(monster).toBeDefined();
+          expect(monster.name).toBe('Mock Monster');
+          expect(monster.quantity).toBeGreaterThanOrEqual(1);
+        });
 
-    it('accepts overrides', () => {
-      const monster = createMockMonster({ name: 'Dragon', hp: 200 });
-      expect(monster.name).toBe('Dragon');
-      expect(monster.hp).toBe(200);
-    });
-  });
+        it('accepts overrides', () => {
+          const monster = createMockMonster({ name: 'Dragon', quantity: 2 });
+          expect(monster.name).toBe('Dragon');
+          expect(monster.quantity).toBe(2);
+        });
+      });
 
   describe('createMockGameMessage', () => {
     it('creates a default message', () => {
@@ -160,10 +159,10 @@ describe('Mimic Factories', () => {
       expect(msg.sender).toBe('system');
     });
 
-    it('accepts overrides', () => {
-      const msg = createMockGameMessage({ text: 'Error!', sender: 'error' });
-      expect(msg.text).toBe('Error!');
-      expect(msg.sender).toBe('error');
+        it('accepts overrides', () => {
+          const msg = createMockGameMessage({ text: 'Updated!', sender: 'npc' });
+          expect(msg.text).toBe('Updated!');
+          expect(msg.sender).toBe('npc');
+        });
+      });
     });
-  });
-});

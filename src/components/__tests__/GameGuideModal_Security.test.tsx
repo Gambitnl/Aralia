@@ -13,6 +13,7 @@ import { t as _t } from '../../utils/i18n';
 vi.mock('../../services/geminiService', () => ({
   generateGuideResponse: vi.fn(),
 }));
+const mockGenerateGuideResponse = geminiService.generateGuideResponse as unknown as ReturnType<typeof vi.fn>;
 
 // Mock i18n
 vi.mock('../../utils/i18n', () => ({
@@ -51,7 +52,7 @@ describe('GameGuideModal Security Tests', () => {
       \`\`\`
     `; // Missing closing brace
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    (geminiService.generateGuideResponse as unknown).mockResolvedValue({
+    mockGenerateGuideResponse.mockResolvedValue({        
       data: { text: maliciousPayload }
     });
 
@@ -74,7 +75,7 @@ describe('GameGuideModal Security Tests', () => {
       \`\`\`
     `;
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    (geminiService.generateGuideResponse as unknown).mockResolvedValue({
+    mockGenerateGuideResponse.mockResolvedValue({        
       data: { text: nullConfigPayload }
     });
 

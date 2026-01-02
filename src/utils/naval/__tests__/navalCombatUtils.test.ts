@@ -8,9 +8,9 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { initializeNavalCombat, resolveManeuver } from '../navalCombatUtils';
-import { NAVAL_MANEUVERS } from '../../data/navalManeuvers';
+import { NAVAL_MANEUVERS } from '../../../data/navalManeuvers';
 import { createShip } from '../navalUtils';
-import { CrewMember } from '../../types/naval';
+import { CrewMember, Ship } from '../../../types/naval';
 
 describe('Naval Combat Utils', () => {
     let ship1 = createShip('Interceptor', 'Sloop');
@@ -18,7 +18,7 @@ describe('Naval Combat Utils', () => {
 
     // Helper to add dummy crew
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    const addDummyCrew = (ship: unknown, count: number) => {
+    const addDummyCrew = (ship: Ship, count: number) => {
         const newMembers: CrewMember[] = [];
         for (let i = 0; i < count; i++) {
             newMembers.push({

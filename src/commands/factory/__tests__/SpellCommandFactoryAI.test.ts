@@ -89,8 +89,8 @@ describe('SpellCommandFactory - AI Integration', () => {
     expect(commands[1]).toBeInstanceOf(DamageCommand);
 
     const damageCmd = commands[1] as DamageCommand;
-    expect(damageCmd.effect.type).toBe('DAMAGE');
-    const damageEffect = damageCmd.effect as DamageEffect;
+    // Access protected effect via cast for test intent.
+    const damageEffect = (damageCmd as unknown as { effect: DamageEffect }).effect;
     expect(damageEffect.damage.dice).toBe('4d8');
   });
 

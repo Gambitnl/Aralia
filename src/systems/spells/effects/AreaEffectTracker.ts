@@ -86,7 +86,7 @@ export class AreaEffectTracker {
             // Trigger if moving *within* the zone (start and end are both in)
             if (wasInZone && isNowInZone) {
                 const moveEffects = zone.effects.filter(effect =>
-                    effect.trigger?.type === 'on_move_in_area'
+                    (effect.trigger as any)?.type === 'on_move_in_area'
                 );
 
                 // Calculate Chebyshev distance (tiles moved)
@@ -97,7 +97,7 @@ export class AreaEffectTracker {
                 // Trigger once per tile (5 feet) moved
                 for (let i = 0; i < distanceInTiles; i++) {
                     for (const effect of moveEffects) {
-                        if (!shouldTriggerForFrequency(effect.trigger?.frequency, zone, character.id)) {
+                        if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
                             continue;
                         }
 
@@ -154,7 +154,7 @@ export class AreaEffectTracker {
                 );
 
                 for (const effect of entryEffects) {
-                    if (!shouldTriggerForFrequency(effect.trigger?.frequency, zone, character.id)) {
+                    if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
                         continue;
                     }
 
@@ -206,7 +206,7 @@ export class AreaEffectTracker {
                 );
 
                 for (const effect of exitEffects) {
-                    if (!shouldTriggerForFrequency(effect.trigger?.frequency, zone, character.id)) {
+                    if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
                         continue;
                     }
 
@@ -252,7 +252,7 @@ export class AreaEffectTracker {
                 );
 
                 for (const effect of endTurnEffects) {
-                    if (!shouldTriggerForFrequency(effect.trigger?.frequency, zone, character.id)) {
+                    if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
                         continue;
                     }
 

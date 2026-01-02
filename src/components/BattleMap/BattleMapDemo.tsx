@@ -61,6 +61,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
   const [characters, setCharacters] = useState<CombatCharacter[]>(initialSetup.positionedCharacters);
   const [sheetCharacter, setSheetCharacter] = useState<PlayerCharacter | null>(null);
   const [autoCharacters, setAutoCharacters] = useState<Set<string>>(new Set());
+  const [selectedCharacterId, setSelectedCharacterId] = useState<string | null>(null);
 
   const biomeRef = useRef(biome);
   useEffect(() => {
@@ -173,7 +174,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
     setSheetCharacter(null);
   };
   
-  const currentCharacter = turnManager.getCurrentCharacter();
+  const currentCharacter = turnManager.getCurrentCharacter() ?? null;
 
   return (
     <div className="bg-gray-900 text-white min-h-screen flex flex-col p-4">
@@ -270,8 +271,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
                     turnState: turnManager.turnState,
                     abilitySystem: abilitySystem,
                     isCharacterTurn: turnManager.isCharacterTurn,
-                    onCharacterUpdate: handleCharacterUpdate,
-                    setCharacters: setCharacters
+                    onCharacterUpdate: handleCharacterUpdate
                 }}
             />
             </ErrorBoundary>
@@ -290,10 +290,10 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
                  onExecuteAction={turnManager.executeAction}
                />
              )}
-             <AbilityPalette 
-                character={currentCharacter} 
-                onSelectAbility={(ability) => abilitySystem.startTargeting(ability, currentCharacter!)}
-                canAffordAction={(cost) => turnManager.canAffordAction(currentCharacter, cost)}
+             <AbilityPalette
+                character={currentCharacter}
+                onSelectAbility={(ability) => currentCharacter && abilitySystem.startTargeting(ability, currentCharacter)}
+                canAffordAction={(cost) => currentCharacter ? turnManager.canAffordAction(currentCharacter, cost) : false}
              />
              <CombatLog logEntries={combatLog} />
         </div>

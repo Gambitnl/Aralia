@@ -19,24 +19,29 @@ const mockCharacter: CombatCharacter = {
   maxHP: 10,
   stats: {
     strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10,
-    baseInitiative: 0, speed: 30, armorClass: 10
+    baseInitiative: 0, speed: 30, cr: '1/8'
   },
+  armorClass: 10,
+  initiative: 0,
+  level: 1 as any,
+  class: { id: 'fighter', name: 'Fighter', description: '', hitDie: 10, primaryAbility: ['Strength'], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] } as any,
   abilities: [], // No abilities, so it will end turn
   actionEconomy: {
-    action: { used: false, total: 1 },
-    bonusAction: { used: false, total: 1 },
+    action: { used: false, remaining: 1 },
+    bonusAction: { used: false, remaining: 1 },
     movement: { used: 0, total: 30 },
-    reaction: { used: false, total: 1 }
+    reaction: { used: false, remaining: 1 },
+    freeActions: 0
   },
   statusEffects: [],
   conditions: []
 };
 
 const mockMapData: BattleMapData = {
-  id: 'map1',
-  name: 'Test Map',
   dimensions: { width: 10, height: 10 },
-  tiles: new Map()
+  tiles: new Map(),
+  theme: 'forest',
+  seed: 1
 };
 
 // Populate a simple map
@@ -46,10 +51,13 @@ for (let x = 0; x < 10; x++) {
     mockMapData.tiles.set(id, {
       id,
       coordinates: { x, y },
-      type: 'floor',
+      terrain: 'floor',
+      elevation: 0,
       movementCost: 1,
       blocksMovement: false,
-      blocksVision: false
+      blocksLoS: false,
+      decoration: null,
+      effects: []
     });
   }
 }

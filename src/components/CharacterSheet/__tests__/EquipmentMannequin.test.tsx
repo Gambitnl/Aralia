@@ -3,13 +3,12 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect } from 'vitest';
 import EquipmentMannequin from '../EquipmentMannequin';
-// TODO(lint-intent): 'PlayerCharacter' is unused in this test; use it in the assertion path or remove it.
-import { PlayerCharacter as _PlayerCharacter, Item } from '../../../types';
+import { PlayerCharacter, Item } from '../../../types';
 import { createMockPlayerCharacter } from '../../../utils/factories';
 
 // Mock dependencies
 vi.mock('../../../utils/characterUtils', async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actual,
     getCharacterMaxArmorProficiency: () => 'Heavy',
@@ -19,11 +18,11 @@ vi.mock('../../../utils/characterUtils', async (importOriginal) => {
 });
 
 // Create a basic mock character
-const mockCharacter = createMockPlayerCharacter();
+const mockCharacter: PlayerCharacter = createMockPlayerCharacter();
 
 describe('EquipmentMannequin', () => {
   it('renders emoji icons correctly', () => {
-    const characterWithEmojiItem = {
+    const characterWithEmojiItem: PlayerCharacter = {
       ...mockCharacter,
       equippedItems: {
         MainHand: {
@@ -43,7 +42,7 @@ describe('EquipmentMannequin', () => {
   });
 
   it('renders image URL icons correctly', () => {
-    const characterWithImgItem = {
+    const characterWithImgItem: PlayerCharacter = {
       ...mockCharacter,
       equippedItems: {
         MainHand: {
@@ -65,7 +64,7 @@ describe('EquipmentMannequin', () => {
 
   it('renders data-URI icons correctly', () => {
     const dataUri = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjwvc3ZnPg==';
-    const characterWithDataItem = {
+    const characterWithDataItem: PlayerCharacter = {
       ...mockCharacter,
       equippedItems: {
         MainHand: {

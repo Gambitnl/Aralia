@@ -9,11 +9,23 @@ describe('useCombatEngine', () => {
     const mockCharacter: CombatCharacter = {
         id: 'char1',
         name: 'Hero',
+        team: 'player',
+        level: 1 as any,
+        class: { id: 'fighter', name: 'Fighter', description: '', hitDie: 10, primaryAbility: ['Strength'], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] } as any,
         currentHP: 20,
         maxHP: 20,
         position: { x: 0, y: 0 },
         statusEffects: [],
         damagedThisTurn: false,
+        initiative: 0,
+        abilities: [],
+        actionEconomy: {
+            action: { used: false, remaining: 1 },
+            bonusAction: { used: false, remaining: 1 },
+            reaction: { used: false, remaining: 1 },
+            movement: { used: 0, total: 30 },
+            freeActions: 1
+        },
         stats: {
              strength: 10,
              dexterity: 10,
@@ -26,7 +38,7 @@ describe('useCombatEngine', () => {
              cr: "0"
         }
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    } as unknown;
+    } as any;
 
     const mockProps = {
         characters: [mockCharacter],
@@ -69,7 +81,7 @@ describe('useCombatEngine', () => {
                 }
             }]
         // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown;
+        } as any;
 
         const { result } = renderHook(() => useCombatEngine(mockProps));
 
@@ -83,7 +95,7 @@ describe('useCombatEngine', () => {
     it('should manage spell zones', () => {
         const { result } = renderHook(() => useCombatEngine(mockProps));
         // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        const zone = { id: 'zone1' } as unknown;
+        const zone = { id: 'zone1' } as any;
 
         act(() => {
             result.current.addSpellZone(zone);

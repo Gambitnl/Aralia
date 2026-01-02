@@ -32,6 +32,7 @@ const DevMenu = lazy(() => import('../debug/DevMenu'));
 const PartyOverlay = lazy(() => import('../Party/PartyOverlay'));
 const PartyEditorModal = lazy(() => import('../Party/PartyEditorModal'));
 const GeminiLogViewer = lazy(() => import('../debug/GeminiLogViewer'));
+const OllamaLogViewer = lazy(() => import('../debug/OllamaLogViewer'));
 const NpcInteractionTestModal = lazy(() => import('../NpcInteractionTestModal'));
 const DossierPane = lazy(() => import('../DossierPane'));
 const DiscoveryLogPane = lazy(() => import('../DiscoveryLogPane'));
@@ -45,7 +46,7 @@ const TempleModal = lazy(() => import('../TempleModal'));
 // REVIEW: Verify that DialogueInterface is indeed a named export. If it is the default export, this lazy loading pattern .then(module => ({ default: module.DialogueInterface })) will fail. (Consistency check with Glossary import at line 35).
 const DialogueInterface = lazy(() => import('../Dialogue/DialogueInterface').then(module => ({ default: module.DialogueInterface })));
 const ThievesGuildInterface = lazy(() => import('../Crime/ThievesGuild/ThievesGuildInterface'));
-const ShipPane = lazy(() => import('../Naval/ShipPane'));
+const ShipPane = lazy(() => import('../Naval/ShipPane').then(module => ({ default: module.ShipPane })));
 
 interface GameModalsProps {
     gameState: GameState;
@@ -235,6 +236,19 @@ const GameModals: React.FC<GameModalsProps> = ({
                 </Suspense>
             )}
 
+            {/* Ollama Log Viewer (Dev Tool) */}
+            {gameState.isOllamaLogViewerVisible && canUseDevTools() && (
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Ollama Log Viewer.">
+                        <OllamaLogViewer
+                            isOpen={gameState.isOllamaLogViewerVisible}
+                            onClose={() => dispatch({ type: 'TOGGLE_OLLAMA_LOG_VIEWER' })}
+                            logEntries={gameState.ollamaInteractionLog}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
             {/* NPC AI Test Modal (Dev Tool) */}
             {gameState.isNpcTestModalVisible && canUseDevTools() && (
                 <Suspense fallback={<LoadingSpinner />}>
@@ -387,14 +401,6 @@ const GameModals: React.FC<GameModalsProps> = ({
                             playerCharacter={gameState.party[0]}
                             onClose={() => dispatch({ type: 'END_DIALOGUE_SESSION' })}
                             onUpdateSession={(newSession) => dispatch({ type: 'UPDATE_DIALOGUE_SESSION', payload: { session: newSession } })}
-                            // TODO: Verify if DialogueInterface relies on this callback. If state updates are required during dialogue (e.g. relationship changes), this empty implementation needs to be connected to the dispatch function.
-                            
-                            /* TODO(lint-intent): 'updates' is an unused parameter, which suggests a planned input for this flow.
-                            TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-                            TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
-                            */
-                            
-                            onUpdateGameState={(_updates) => { /* TODO: Implement partial updates if needed */ }}
                             onTopicOutcome={handleTopicOutcome}
                             onGenerateResponse={generateResponse}
                         />
@@ -414,11 +420,11 @@ const GameModals: React.FC<GameModalsProps> = ({
             )}
 
             {/* Naval Dashboard */}
-            {gameState.isNavalDashboardVisible && gameState.naval?.playerShips?.length ? (
+            {gameState.isNavalDashboardVisible && gameState.ship ? (
                 <Suspense fallback={<LoadingSpinner />}>
                     <ErrorBoundary fallbackMessage="Error in Captain's Dashboard.">
                         <ShipPane
-                            ship={gameState.naval.playerShips[0]}
+                            ship={gameState.ship}
                             onClose={() => dispatch({ type: 'TOGGLE_NAVAL_DASHBOARD' })}
                         />
                     </ErrorBoundary>

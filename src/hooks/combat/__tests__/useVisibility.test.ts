@@ -2,7 +2,7 @@
 import { describe, it, expect, vi as _vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useVisibility } from '../useVisibility';
-import { CombatState, BattleMapData, LightSource, CombatCharacter } from '../../types/combat';
+import { CombatState, BattleMapData, LightSource, CombatCharacter } from '../../../types/combat';
 
 // Mock VisibilitySystem to isolate hook logic (optional, but good for speed)
 // But since VisibilitySystem is pure logic, we can use the real one for integration testing the hook.

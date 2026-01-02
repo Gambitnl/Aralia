@@ -13,7 +13,7 @@ import type {
   Disguise,
   Secret,
   IntrigueCheckResult
-} from '../types/identity';
+} from '../../types/identity';
 import { v4 as uuidv4 } from 'uuid';
 
 // -----------------------------------------------------------------------------

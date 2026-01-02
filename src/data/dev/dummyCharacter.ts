@@ -105,92 +105,122 @@ export function getDummyParty(): PlayerCharacter[] {
         return MEMOIZED_DUMMY_PARTY;
     }
 
-    // --- Create Fighter ---
-    const dummyFighterRace = ALL_RACES_DATA[DUMMY_FIGHTER_RACE_ID];
-    const dummyFighterClass = CLASSES_DATA[DUMMY_FIGHTER_CLASS_ID];
+    // --- Use Kaelen Thorne (Data from companions.ts used as base) ---
+    const kaelenRace = ALL_RACES_DATA['tiefling']; // Matching Kaelen's race
+    const kaelenClass = CLASSES_DATA['rogue'];     // Matching Kaelen's class
 
-    if (!dummyFighterRace || !dummyFighterClass) {
+    if (!kaelenRace || !kaelenClass) {
         return [];
     }
 
-    const DUMMY_FIGHTER_BASE_SCORES: AbilityScores = {
-        Strength: 15, Dexterity: 13, Constitution: 14, Intelligence: 8, Wisdom: 12, Charisma: 10,
+    const KAELEN_BASE_SCORES: AbilityScores = {
+        Strength: 10, Dexterity: 16, Constitution: 14, Intelligence: 12, Wisdom: 10, Charisma: 14,
     };
-    const DUMMY_FIGHTER_FINAL_SCORES = calculateFixedRacialBonuses(DUMMY_FIGHTER_BASE_SCORES, dummyFighterRace);
-    const DUMMY_FIGHTER_SKILLS: Skill[] = [SKILLS_DATA['athletics'], SKILLS_DATA['intimidation'], SKILLS_DATA['perception']].filter(Boolean) as Skill[];
-    const DUMMY_FIGHTER_FIGHTING_STYLE = dummyFighterClass.fightingStyles?.find((style) => style.id === 'defense');
-    const DUMMY_FIGHTER_MAX_HP = dummyFighterClass.hitDie + getAbilityModifierValue(DUMMY_FIGHTER_FINAL_SCORES.Constitution);
-    const DUMMY_FIGHTER_LIMITED_USES: LimitedUses = {
-        'second_wind': { name: 'Second Wind', current: 1, max: 1, resetOn: 'short_rest' }
-    };
+    const KAELEN_FINAL_SCORES = calculateFixedRacialBonuses(KAELEN_BASE_SCORES, kaelenRace);
+    const KAELEN_SKILLS: Skill[] = [SKILLS_DATA['stealth'], SKILLS_DATA['sleight_of_hand'], SKILLS_DATA['deception'], SKILLS_DATA['perception']].filter(Boolean) as Skill[];
+    const KAELEN_MAX_HP = kaelenClass.hitDie + getAbilityModifierValue(KAELEN_FINAL_SCORES.Constitution);
 
-    const tempFighter: PlayerCharacter = {
-        id: 'dev_dummy_fighter',
-        name: "Dev Fighter",
-        age: 25,
+    const tempKaelen: PlayerCharacter = {
+        id: 'kaelen_thorne', // MATCHING COMPANION ID
+        name: "Kaelen Thorne",
+        age: 28,
         level: 1, proficiencyBonus: 2, xp: 0,
-        race: dummyFighterRace, class: dummyFighterClass,
-        abilityScores: DUMMY_FIGHTER_BASE_SCORES, finalAbilityScores: DUMMY_FIGHTER_FINAL_SCORES,
-        skills: DUMMY_FIGHTER_SKILLS, hp: DUMMY_FIGHTER_MAX_HP, maxHp: DUMMY_FIGHTER_MAX_HP,
+        race: kaelenRace, class: kaelenClass,
+        abilityScores: KAELEN_BASE_SCORES, finalAbilityScores: KAELEN_FINAL_SCORES,
+        skills: KAELEN_SKILLS, hp: KAELEN_MAX_HP, maxHp: KAELEN_MAX_HP,
         armorClass: 10,
-        speed: 30, darkvisionRange: 0,
+        speed: 30, darkvisionRange: 60,
         transportMode: 'foot',
-        racialSelections: {
-            human: { skillIds: ['perception'] } // Human's "Skillful" trait selection
+        racialSelections: {},
+        activeEffects: [],
+        statusEffects: [],
+        equippedItems: {},
+        limitedUses: {
+            'sneak_attack': { name: 'Sneak Attack', current: 1, max: 1, resetOn: 'combat' } // visual placeholder usage
         },
-        selectedFightingStyle: DUMMY_FIGHTER_FIGHTING_STYLE,
-        equippedItems: {}, limitedUses: DUMMY_FIGHTER_LIMITED_USES,
     };
-    tempFighter.armorClass = calculateArmorClass(tempFighter);
+    tempKaelen.armorClass = calculateArmorClass(tempKaelen);
 
-    // --- Create Cleric ---
-    const dummyClericRace = ALL_RACES_DATA[DUMMY_CLERIC_RACE_ID];
-    const dummyClericClass = CLASSES_DATA[DUMMY_CLERIC_CLASS_ID];
+    // --- Use Elara Vance (Data from companions.ts used as base) ---
+    const elaraRace = ALL_RACES_DATA['human'];
+    const elaraClass = CLASSES_DATA['cleric'];
 
-    if (!dummyClericRace || !dummyClericClass) {
-        MEMOIZED_DUMMY_PARTY = [tempFighter];
+    if (!elaraRace || !elaraClass) {
+        MEMOIZED_DUMMY_PARTY = [tempKaelen];
         return MEMOIZED_DUMMY_PARTY;
     }
 
-    const DUMMY_CLERIC_BASE_SCORES: AbilityScores = {
-        Strength: 14, Dexterity: 10, Constitution: 16, Intelligence: 8, Wisdom: 15, Charisma: 12
+    const ELARA_BASE_SCORES: AbilityScores = {
+        Strength: 12, Dexterity: 10, Constitution: 14, Intelligence: 10, Wisdom: 16, Charisma: 13
     };
-    const DUMMY_CLERIC_FINAL_SCORES = calculateFixedRacialBonuses(DUMMY_CLERIC_BASE_SCORES, dummyClericRace);
-    const DUMMY_CLERIC_MAX_HP = dummyClericClass.hitDie + getAbilityModifierValue(DUMMY_CLERIC_FINAL_SCORES.Constitution) + 1; // +1 for Dwarven Toughness
-    const DUMMY_CLERIC_SKILLS: Skill[] = [SKILLS_DATA['medicine'], SKILLS_DATA['religion']].filter(Boolean) as Skill[];
-    const clericSpellList = dummyClericClass.spellcasting?.spellList || [];
-    const DUMMY_CLERIC_SPELLBOOK: SpellbookData = {
-        cantrips: ['sacred-flame', 'light', 'guidance', 'thaumaturgy'], // Using kebab-case
-        knownSpells: clericSpellList,
-        preparedSpells: ['cure-wounds', 'bless'] // Using kebab-case
+    const ELARA_FINAL_SCORES = calculateFixedRacialBonuses(ELARA_BASE_SCORES, elaraRace);
+    const ELARA_MAX_HP = elaraClass.hitDie + getAbilityModifierValue(ELARA_FINAL_SCORES.Constitution);
+    const ELARA_SKILLS: Skill[] = [SKILLS_DATA['medicine'], SKILLS_DATA['religion'], SKILLS_DATA['insight']].filter(Boolean) as Skill[];
+
+    // Simple cleric setup
+    const elaraSpellbook: SpellbookData = {
+        cantrips: ['sacred-flame', 'light', 'guidance'],
+        knownSpells: [],
+        preparedSpells: ['cure-wounds', 'bless']
     };
-    const DUMMY_CLERIC_SPELL_SLOTS: SpellSlots = {
+    const elaraSlots: SpellSlots = {
         level_1: { current: 2, max: 2 }, level_2: { current: 0, max: 0 }, level_3: { current: 0, max: 0 },
         level_4: { current: 0, max: 0 }, level_5: { current: 0, max: 0 }, level_6: { current: 0, max: 0 },
         level_7: { current: 0, max: 0 }, level_8: { current: 0, max: 0 }, level_9: { current: 0, max: 0 },
     };
 
-    const tempCleric: PlayerCharacter = {
-        id: 'dev_dummy_cleric',
-        name: "Dev Cleric",
-        age: 55,
+    const tempElara: PlayerCharacter = {
+        id: 'elara_vance', // MATCHING COMPANION ID
+        name: "Elara Vance",
+        age: 24,
         level: 1, proficiencyBonus: 2, xp: 0,
-        race: dummyClericRace, class: dummyClericClass,
-        abilityScores: DUMMY_CLERIC_BASE_SCORES, finalAbilityScores: DUMMY_CLERIC_FINAL_SCORES,
-        skills: DUMMY_CLERIC_SKILLS, hp: DUMMY_CLERIC_MAX_HP, maxHp: DUMMY_CLERIC_MAX_HP,
-        armorClass: 10, // Placeholder
-        speed: 30, // My dwarf data has 30ft speed
-        darkvisionRange: 120,
+        race: elaraRace, class: elaraClass,
+        abilityScores: ELARA_BASE_SCORES, finalAbilityScores: ELARA_FINAL_SCORES,
+        skills: ELARA_SKILLS, hp: ELARA_MAX_HP, maxHp: ELARA_MAX_HP,
+        armorClass: 10,
+        speed: 30,
+        darkvisionRange: 0,
         transportMode: 'foot',
-        racialSelections: {}, // Dwarf has no level 1 choices
-        selectedDivineOrder: 'Thaumaturge', // Changed from Protector
-        spellcastingAbility: 'wisdom', spellbook: DUMMY_CLERIC_SPELLBOOK, spellSlots: DUMMY_CLERIC_SPELL_SLOTS,
+        racialSelections: { human: { skillIds: ['medicine'] } },
+        selectedDivineOrder: 'Protector',
+        spellcastingAbility: 'wisdom', spellbook: elaraSpellbook, spellSlots: elaraSlots,
         limitedUses: {}, equippedItems: {},
-        selectedFightingStyle: undefined, // ensure fighter-specific fields are undefined
+        activeEffects: [], statusEffects: [],
     };
-    tempCleric.armorClass = calculateArmorClass(tempCleric);
+    tempElara.armorClass = calculateArmorClass(tempElara);
 
-    MEMOIZED_DUMMY_PARTY = [tempFighter, tempCleric];
+    // --- Create DEv Player ---
+    const playerRace = ALL_RACES_DATA['human'];
+    const playerClass = CLASSES_DATA['fighter'];
+
+    const PLAYER_BASE_SCORES: AbilityScores = {
+        Strength: 16, Dexterity: 14, Constitution: 14, Intelligence: 10, Wisdom: 10, Charisma: 10,
+    };
+    const PLAYER_FINAL_SCORES = calculateFixedRacialBonuses(PLAYER_BASE_SCORES, playerRace);
+    const PLAYER_SKILLS: Skill[] = [SKILLS_DATA['athletics'], SKILLS_DATA['survival']].filter(Boolean) as Skill[];
+    const PLAYER_MAX_HP = playerClass.hitDie + getAbilityModifierValue(PLAYER_FINAL_SCORES.Constitution);
+
+    const tempPlayer: PlayerCharacter = {
+        id: 'player', // STANDARD PLAYER ID
+        name: "Dev Player",
+        age: 30,
+        level: 1, proficiencyBonus: 2, xp: 0,
+        race: playerRace, class: playerClass,
+        abilityScores: PLAYER_BASE_SCORES, finalAbilityScores: PLAYER_FINAL_SCORES,
+        skills: PLAYER_SKILLS, hp: PLAYER_MAX_HP, maxHp: PLAYER_MAX_HP,
+        armorClass: 10,
+        speed: 30, darkvisionRange: 0,
+        transportMode: 'foot',
+        racialSelections: { human: { skillIds: ['survival'] } },
+        activeEffects: [], statusEffects: [],
+        equippedItems: {},
+        limitedUses: {
+            'second_wind': { name: 'Second Wind', current: 1, max: 1, resetOn: 'short_rest' }
+        },
+    };
+    tempPlayer.armorClass = calculateArmorClass(tempPlayer);
+
+    MEMOIZED_DUMMY_PARTY = [tempPlayer, tempKaelen, tempElara];
     return MEMOIZED_DUMMY_PARTY;
 }
 

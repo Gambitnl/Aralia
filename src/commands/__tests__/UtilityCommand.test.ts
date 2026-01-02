@@ -3,33 +3,31 @@ import { UtilityCommand } from '../effects/UtilityCommand'
 import { UtilityEffect } from '@/types/spells'
 import { CombatCharacter, CombatState } from '@/types/combat'
 import { CommandContext } from '../base/SpellCommand'
-import { createMockGameState } from '@/utils/factories'
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '@/utils/factories'
 
 describe('UtilityCommand', () => {
     // --- Mock Data Setup ---
-    const mockCaster: CombatCharacter = {
+    const mockCaster: CombatCharacter = createMockCombatCharacter({
         id: 'caster-1',
         name: 'Wizard',
         position: { x: 5, y: 5 },
-        stats: { speed: 30 },
-        // Minimal required fields to satisfy type
-    } as CombatCharacter
+        stats: { ...createMockCombatCharacter().stats, speed: 30 },
+    })
 
-    const mockTarget: CombatCharacter = {
+    const mockTarget: CombatCharacter = createMockCombatCharacter({
         id: 'target-1',
         name: 'Goblin',
         position: { x: 7, y: 7 }, // 2 tiles away (approx 10-14ft)
-        stats: { speed: 30 },
+        stats: { ...createMockCombatCharacter().stats, speed: 30 },
         statusEffects: [],
-    } as CombatCharacter
+    })
 
-    const mockState: CombatState = {
-        isActive: true,
+    const mockState: CombatState = createMockCombatState({
         characters: [mockCaster, mockTarget],
-        activeLightSources: [],
-        turnState: { currentTurn: 1 },
+        turnState: { currentTurn: 1, turnOrder: [mockCaster.id, mockTarget.id], currentCharacterId: mockCaster.id, phase: 'action', actionsThisTurn: [] },
         combatLog: [],
-    } as unknown as CombatState
+        activeLightSources: [],
+    })
 
     const mockContext: CommandContext = {
         spellId: 'spell-1',

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { bresenhamLine, hasLineOfSight } from '../lineOfSight';
-import { BattleMapTile, BattleMapData } from '../../types/combat';
+import { BattleMapTile, BattleMapData } from '../../../types/combat';
 
 describe('lineOfSight', () => {
   describe('bresenhamLine', () => {

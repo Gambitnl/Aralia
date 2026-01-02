@@ -10,9 +10,21 @@
 // TODO(lint-intent): 'NPC' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { NPC as _NPC } from './index';
+import type { NPC as _NPC } from './world';
 
-export type RelationshipLevel = 'stranger' | 'acquaintance' | 'friend' | 'close' | 'devoted' | 'romance' | 'rival' | 'enemy';
+// 11 relationship levels with 100-point steps from -500 to +500
+export type RelationshipLevel =
+  | 'hated'       // -500 to -401
+  | 'enemy'       // -400 to -301
+  | 'rival'       // -300 to -201
+  | 'distrusted'  // -200 to -101
+  | 'wary'        // -100 to -1
+  | 'stranger'    // 0 to 99 (starting point)
+  | 'acquaintance'// 100 to 199
+  | 'friend'      // 200 to 299
+  | 'close'       // 300 to 399
+  | 'devoted'     // 400 to 499
+  | 'romance';    // 500 (special trigger)
 
 export interface PersonalityTraits {
   openness: number;      // 0-100: Prefer routine vs variety
@@ -83,6 +95,9 @@ export interface NPCIdentity {
   race: string;
   class: string;
   background: string;
+  sex: string;
+  age: number | string; // e.g., 25 or "Young Adult"
+  physicalDescription: string;
   avatarUrl?: string;
 }
 
@@ -124,6 +139,10 @@ export interface BanterDefinition {
     cooldown?: number; // Minutes
   };
   lines: BanterLine[];
+  generatedMemory?: { // Optional memory to commit after banter completes
+    text: string;
+    tags: string[];
+  };
 }
 
 /**
@@ -159,6 +178,15 @@ export interface CompanionReactionRule {
   priority?: number; // Higher overrides lower (default 0)
 }
 
+export interface CompanionMemory {
+  id: string;
+  type: 'banter' | 'event' | 'observation';
+  text: string;
+  tags: string[];
+  timestamp: number;
+  importance: number; // 1-10, for filtering relevance
+}
+
 export interface Companion {
   id: string;
   identity: NPCIdentity;
@@ -167,6 +195,7 @@ export interface Companion {
   relationships: Record<string, Relationship>; // Keyed by Character ID
   loyalty: number; // 0-100, determines chance of leaving/betrayal
   approvalHistory: ApprovalEvent[];
+  memories: CompanionMemory[]; // New memory system
   questline?: CompanionQuestline;
 
   // Progression: What can be unlocked

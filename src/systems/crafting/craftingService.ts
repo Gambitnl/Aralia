@@ -1,4 +1,4 @@
-import { Recipe, CraftResult, MaterialRequirement } from '../../types/crafting';
+import { Recipe, CraftingResult, MaterialRequirement } from './types';
 import { PlayerCharacter } from '../../types/character';
 import { InventoryEntry } from '../../types/items';
 import { getSkillModifierValue } from '../../utils/statUtils';
@@ -32,7 +32,7 @@ export const attemptCraft = (
   crafter: PlayerCharacter,
   recipe: Recipe,
   inventory: InventoryEntry[] // Passed in to verify, though consumption logic would be in a reducer
-): CraftResult => {
+): CraftingResult => {
 
   // 1. Validate Materials
   const { hasMaterials, missing } = checkMaterials(inventory, recipe.inputs);
@@ -41,14 +41,16 @@ export const attemptCraft = (
     return {
       success: false,
       quality: 'poor',
-      itemsCreated: [],
-      materialsConsumed: [],
+      outputs: [],
+      consumedMaterials: [],
+      materialsLost: false,
       message: `Missing materials: ${missing.join(', ')}`
     };
   }
 
-  let _quality: CraftResult['quality'] = 'common';
+  let _quality: CraftingResult['quality'] = 'standard';
   let isCrit = false;
+  let materialsLost = false;
 
   // 2. Skill Check
   if (recipe.skillCheck) {
@@ -56,23 +58,25 @@ export const attemptCraft = (
     const roll = rollDice('1d20');
     const total = roll + modifier;
 
-    if (total < recipe.skillCheck.difficultyClass) {
+    if (total < recipe.skillCheck.dc) { // difficultyClass -> dc
       // Failed check
+      materialsLost = true;
       return {
         success: false,
         quality: 'poor',
-        itemsCreated: [],
-        materialsConsumed: recipe.inputs
+        outputs: [],
+        consumedMaterials: recipe.inputs
           .filter(i => i.consumed)
           .map(i => ({ itemId: i.itemId, quantity: Math.ceil(i.quantity * 0.5) })), // Lost 50% on fail
-        message: `Crafting failed. Rolled ${total} vs DC ${recipe.skillCheck.difficultyClass}. Materials lost.`
+        materialsLost: true,
+        message: `Crafting failed. Rolled ${total} vs DC ${recipe.skillCheck.dc}. Materials lost.`
       };
     }
 
     // Check for Critical Success (Beat DC by 10 or more)
-    if (total >= recipe.skillCheck.difficultyClass + 10) {
+    if (total >= recipe.skillCheck.dc + 10) {
       isCrit = true;
-      _quality = 'rare'; // Boost quality on crit
+      _quality = 'masterwork'; // Boost quality on crit (rare -> masterwork)
     }
   }
 
@@ -95,8 +99,9 @@ export const attemptCraft = (
   return {
     success: true,
     quality: _quality, // Use the calculated quality
-    itemsCreated: createdItems,
-    materialsConsumed: consumedItems,
+    outputs: createdItems,
+    consumedMaterials: consumedItems,
+    materialsLost: false,
     experienceGained: recipe.timeMinutes * 10, // Placeholder XP formula
     message: isCrit ? 'Critical success! Created superior item.' : 'Crafting successful.'
   };

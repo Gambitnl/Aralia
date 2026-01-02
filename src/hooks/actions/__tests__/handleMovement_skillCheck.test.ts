@@ -1,5 +1,5 @@
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { handleMovement } from '../handleMovement';
 import { generateTravelEvent } from '../../../services/travelEventService';
 import { TravelEvent } from '../../../types/exploration';
@@ -35,8 +35,7 @@ const mockPlayer: PlayerCharacter = {
   finalAbilityScores: { strength: 14, dexterity: 12, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 },
   skills: [{ id: 'athletics', name: 'Athletics', bonus: 4 }], // Proficient in Athletics
   transportMode: 'foot'
-// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-} as unknown;
+} as unknown as PlayerCharacter;
 
 // Use a simplified map setup to ensure valid movement
 const mockGameState: GameState = {
@@ -59,8 +58,7 @@ const mockGameState: GameState = {
   activeRumors: [],
   factions: {},
   currentLocationActiveDynamicNpcIds: []
-// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-} as unknown;
+} as unknown as GameState;
 
 describe('handleMovement - Skill Check Events', () => {
   beforeEach(() => {
@@ -82,17 +80,16 @@ describe('handleMovement - Skill Check Events', () => {
       },
       effect: { type: 'delay', amount: 1, description: 'Default Delay' }
     };
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    (generateTravelEvent as unknown).mockReturnValue(skillEvent);
+    (generateTravelEvent as Mock).mockReturnValue(skillEvent);
 
     await handleMovement({
-      action: { type: 'MOVE', targetId: 'North', label: 'Move North' }, // Use 'North' (capitalized) to match DIRECTION_VECTORS keys
+      action: { type: 'move', targetId: 'North', label: 'Move North' }, // Use 'North' (capitalized) to match DIRECTION_VECTORS keys
       gameState: mockGameState,
-      dispatch: mockDispatch,
-      addMessage: mockAddMessage,
-      addGeminiLog: mockAddGeminiLog,
-      logDiscovery: mockLogDiscovery,
-      getTileTooltipText: mockGetTileTooltipText,
+      dispatch: mockDispatch as any,
+      addMessage: mockAddMessage as any,
+      addGeminiLog: mockAddGeminiLog as any,
+      logDiscovery: mockLogDiscovery as any,
+      getTileTooltipText: mockGetTileTooltipText as any,
       playerContext: '',
       playerCharacter: mockPlayer
     });
@@ -117,17 +114,16 @@ describe('handleMovement - Skill Check Events', () => {
       },
       effect: { type: 'delay', amount: 1 } // Fallback
     };
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    (generateTravelEvent as unknown).mockReturnValue(skillEvent);
+    (generateTravelEvent as Mock).mockReturnValue(skillEvent);
 
     await handleMovement({
-      action: { type: 'MOVE', targetId: 'North', label: 'Move North' }, // Use 'North'
+      action: { type: 'move', targetId: 'North', label: 'Move North' }, // Use 'North'
       gameState: mockGameState,
-      dispatch: mockDispatch,
-      addMessage: mockAddMessage,
-      addGeminiLog: mockAddGeminiLog,
-      logDiscovery: mockLogDiscovery,
-      getTileTooltipText: mockGetTileTooltipText,
+      dispatch: mockDispatch as any,
+      addMessage: mockAddMessage as any,
+      addGeminiLog: mockAddGeminiLog as any,
+      logDiscovery: mockLogDiscovery as any,
+      getTileTooltipText: mockGetTileTooltipText as any,
       playerContext: '',
       playerCharacter: mockPlayer
     });

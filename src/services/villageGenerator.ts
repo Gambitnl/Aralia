@@ -637,3 +637,4 @@ export const describeBuilding = (building: VillageBuildingFootprint, personality
 
   return `${typeName[building.type]} with ${cultureFlavor[personality.culture]}; the settlement feels ${wealthFlavor}.`;
 };
+

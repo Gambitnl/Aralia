@@ -12,6 +12,8 @@ interface SystemMenuProps {
   unreadDiscoveryCount: number;
   hasNewRateLimitError: boolean;
   isDevDummyActive: boolean; // Retained prop for completeness, though specific usage might be implicitly handled by permissions
+  isDevModeEnabled: boolean;
+  onOpenShip?: () => void;
 }
 
 export const SystemMenu: React.FC<SystemMenuProps> = ({
@@ -19,7 +21,9 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
   disabled,
   unreadDiscoveryCount,
   hasNewRateLimitError,
-  isDevDummyActive: _isDevDummyActive
+  isDevDummyActive: _isDevDummyActive,
+  isDevModeEnabled,
+  onOpenShip
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -45,14 +49,18 @@ export const SystemMenu: React.FC<SystemMenuProps> = ({
       { action: { type: 'TOGGLE_GAME_GUIDE', label: 'Game Guide' } },
       { action: { type: 'save_game', label: 'Save Game' } },
       { action: { type: 'go_to_main_menu', label: 'Main Menu' } },
+
+      // Developer Mode Toggle
       canUseDevTools()
+        ? { action: { type: 'SET_DEV_MODE_ENABLED', label: isDevModeEnabled ? 'Disable Dev Mode' : 'Enable Dev Mode', payload: { enabled: !isDevModeEnabled } } }
+        : null,
+
+      // Dev Feature Buttons
+      isDevModeEnabled
         ? { action: { type: 'toggle_dev_menu', label: 'Dev Menu' }, hasNotification: hasNewRateLimitError }
         : null,
-      canUseDevTools()
-        ? { action: { type: 'TOGGLE_NAVAL_DASHBOARD', label: 'Naval Dashboard' } }
-        : null,
     ].filter(Boolean) as { action: Action; badgeCount?: number; hasNotification?: boolean }[],
-    [unreadDiscoveryCount, hasNewRateLimitError],
+    [unreadDiscoveryCount, hasNewRateLimitError, isDevModeEnabled],
   );
 
   // Close menu when clicking outside

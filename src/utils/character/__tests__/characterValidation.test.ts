@@ -1,8 +1,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { validateCharacterChoices } from '../characterValidation';
-import { createMockPlayerCharacter } from '../factories';
-import { PlayerCharacter , Race, Class } from '../../types/index';
+import { createMockPlayerCharacter } from '../../core/factories';
+import { PlayerCharacter , Race, Class } from '../../../types/index';
 
 
 describe('validateCharacterChoices', () => {
@@ -64,7 +64,7 @@ describe('validateCharacterChoices', () => {
       const char = createTestChar('elf', 'wizard');
       // Mock elven lineages requirement by adding it to race definition
       // The validator checks race.elvenLineages existence
-      char.race.elvenLineages = [{ id: 'high_elf', name: 'High Elf', description: '' }];
+      char.race.elvenLineages = [{ id: 'high_elf', name: 'High Elf', description: '', benefits: [] }];
 
       const issues = validateCharacterChoices(char);
       expect(issues).toContainEqual(expect.objectContaining({
@@ -75,7 +75,7 @@ describe('validateCharacterChoices', () => {
 
     it('should report missing Gnome Subrace', () => {
       const char = createTestChar('gnome', 'wizard');
-      char.race.gnomeSubraces = [{ id: 'rock_gnome', name: 'Rock Gnome', description: '' }];
+      char.race.gnomeSubraces = [{ id: 'rock_gnome', name: 'Rock Gnome', description: '', traits: [] }];
 
       const issues = validateCharacterChoices(char);
       expect(issues).toContainEqual(expect.objectContaining({
@@ -86,7 +86,7 @@ describe('validateCharacterChoices', () => {
 
     it('should report missing Tiefling Legacy', () => {
       const char = createTestChar('tiefling', 'warlock');
-      char.race.fiendishLegacies = [{ id: 'infernal', name: 'Infernal', description: '' }];
+      char.race.fiendishLegacies = [{ id: 'infernal', name: 'Infernal', description: '', level1Benefit: '', level3SpellId: '', level5SpellId: '', resistance: { resistanceType: 'Fire', cantripId: 'fire_bolt' } }];
 
       const issues = validateCharacterChoices(char);
       expect(issues).toContainEqual(expect.objectContaining({
@@ -97,7 +97,7 @@ describe('validateCharacterChoices', () => {
 
     it('should report missing Goliath Ancestry', () => {
       const char = createTestChar('goliath', 'barbarian');
-      char.race.giantAncestryChoices = [{ id: 'stone', name: 'Stone Giant', description: '' }];
+      char.race.giantAncestryChoices = [{ id: 'Stone', name: 'Stone Giant', description: '', ancestry: 'Stone', benefit: 'Stone resilience' }];
 
       const issues = validateCharacterChoices(char);
       expect(issues).toContainEqual(expect.objectContaining({
@@ -198,7 +198,7 @@ describe('validateCharacterChoices', () => {
   describe('Class Validation', () => {
     it('should report missing Fighter Fighting Style', () => {
       const char = createTestChar('human', 'fighter');
-      char.class.fightingStyles = [{ id: 'archery', name: 'Archery', description: '' }];
+      char.class.fightingStyles = [{ id: 'archery', name: 'Archery', description: '', levelAvailable: 1 } as any];
 
       const issues = validateCharacterChoices(char);
       expect(issues).toContainEqual(expect.objectContaining({
@@ -209,7 +209,7 @@ describe('validateCharacterChoices', () => {
 
     it('should report missing Cleric Divine Order', () => {
       const char = createTestChar('human', 'cleric');
-      char.class.divineOrders = [{ id: 'thaumaturge', name: 'Thaumaturge', description: '' }];
+      char.class.divineOrders = [{ id: 'Thaumaturge', name: 'Thaumaturge', description: '' }];
 
       const issues = validateCharacterChoices(char);
       expect(issues).toContainEqual(expect.objectContaining({
@@ -220,7 +220,7 @@ describe('validateCharacterChoices', () => {
 
     it('should report missing Druid Primal Order', () => {
       const char = createTestChar('human', 'druid');
-      char.class.primalOrders = [{ id: 'magician', name: 'Magician', description: '' }];
+      char.class.primalOrders = [{ id: 'Magician', name: 'Magician', description: '' }];
 
       const issues = validateCharacterChoices(char);
       expect(issues).toContainEqual(expect.objectContaining({

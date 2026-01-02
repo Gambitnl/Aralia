@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { handleMovement } from '../handleMovement';
 import * as GeminiService from '../../../services/geminiService';
-// TODO(lint-intent): 'GameState' is unused in this test; use it in the assertion path or remove it.
-import { GameState as _GameState, Action, PlayerCharacter } from '../../../types';
+import { GameState, Action, PlayerCharacter } from '../../../types';
 import * as SeasonalSystem from '../../../systems/time/SeasonalSystem';
 import { Season } from '../../../utils/timeUtils';
+import { initialGameState } from '../../../state/appState';
 
 // Mocks
 vi.mock('../../../services/geminiService');
@@ -32,18 +32,12 @@ vi.mock('../../../utils/timeUtils', async (importOriginal) => {
 });
 
 describe('handleMovement - Seasonal Effects', () => {
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  let mockDispatch: unknown;
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  let mockAddMessage: unknown;
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  let mockAddGeminiLog: unknown;
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  let mockLogDiscovery: unknown;
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  let mockGetTileTooltipText: unknown;
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  let mockGameState: unknown;
+  let mockDispatch: ReturnType<typeof vi.fn>;
+  let mockAddMessage: ReturnType<typeof vi.fn>;
+  let mockAddGeminiLog: ReturnType<typeof vi.fn>;
+  let mockLogDiscovery: ReturnType<typeof vi.fn>;
+  let mockGetTileTooltipText: ReturnType<typeof vi.fn>;
+  let mockGameState: GameState;
   let mockAction: Action;
   let mockPlayerCharacter: PlayerCharacter;
 
@@ -58,25 +52,24 @@ describe('handleMovement - Seasonal Effects', () => {
       id: 'player1',
       name: 'Hero',
       transportMode: 'foot',
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    } as unknown;
+    } as PlayerCharacter;
 
     mockGameState = {
+      ...initialGameState,
       currentLocationId: 'coord_10_10',
       subMapCoordinates: { x: 5, y: 5 },
       gameTime: new Date(Date.UTC(351, 3, 15, 12, 0)),
-      worldSeed: 'test-seed',
+      worldSeed: 12345 as any,
       mapData: {
         gridSize: { rows: 20, cols: 20 },
         tiles: Array(20).fill(null).map(() => Array(20).fill({ biomeId: 'forest', discovered: true })),
       },
       questLog: [],
-      devModelOverride: false
+      devModelOverride: null
     };
 
     mockAction = {
-      id: 'move_North',
-      type: 'MOVE_PLAYER',
+      type: 'move',
       label: 'North',
       targetId: 'North',
     };
@@ -89,7 +82,7 @@ describe('handleMovement - Seasonal Effects', () => {
         rawResponse: 'response'
       }
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    } as unknown);
+    } as any);
 
     vi.mocked(SeasonalSystem.getSeasonalEffects).mockReturnValue({
       season: Season.Spring,
@@ -106,18 +99,18 @@ describe('handleMovement - Seasonal Effects', () => {
     await handleMovement({
       action: mockAction,
       gameState: mockGameState,
-      dispatch: mockDispatch,
-      addMessage: mockAddMessage,
-      addGeminiLog: mockAddGeminiLog,
-      logDiscovery: mockLogDiscovery,
-      getTileTooltipText: mockGetTileTooltipText,
+      dispatch: mockDispatch as unknown as React.Dispatch<any>,
+      addMessage: mockAddMessage as any,
+      addGeminiLog: mockAddGeminiLog as any,
+      logDiscovery: mockLogDiscovery as any,
+      getTileTooltipText: mockGetTileTooltipText as any,
       playerContext: 'context',
       playerCharacter: mockPlayerCharacter,
     });
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    const timeCall = mockDispatch.mock.calls.find((c: unknown) => c[0].type === 'ADVANCE_TIME');
+    const timeCall = (mockDispatch as unknown as { mock: { calls: any[] } }).mock.calls.find((c: any[]) => c[0].type === 'ADVANCE_TIME');
     expect(timeCall).toBeDefined();
-    expect(timeCall[0].payload.seconds).toBe(1800);
+    expect(timeCall?.[0].payload.seconds).toBe(1800);
   });
 
   it('increases travel time in Winter', async () => {
@@ -134,17 +127,17 @@ describe('handleMovement - Seasonal Effects', () => {
     await handleMovement({
       action: mockAction,
       gameState: mockGameState,
-      dispatch: mockDispatch,
-      addMessage: mockAddMessage,
-      addGeminiLog: mockAddGeminiLog,
-      logDiscovery: mockLogDiscovery,
-      getTileTooltipText: mockGetTileTooltipText,
+      dispatch: mockDispatch as unknown as React.Dispatch<any>,
+      addMessage: mockAddMessage as any,
+      addGeminiLog: mockAddGeminiLog as any,
+      logDiscovery: mockLogDiscovery as any,
+      getTileTooltipText: mockGetTileTooltipText as any,
       playerContext: 'context',
       playerCharacter: mockPlayerCharacter,
     });
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    const timeCall = mockDispatch.mock.calls.find((c: unknown) => c[0].type === 'ADVANCE_TIME');
+    const timeCall = (mockDispatch as unknown as { mock: { calls: any[] } }).mock.calls.find((c: any[]) => c[0].type === 'ADVANCE_TIME');
     expect(timeCall).toBeDefined();
-    expect(timeCall[0].payload.seconds).toBe(2700);
+    expect(timeCall?.[0].payload.seconds).toBe(2700);
   });
 });

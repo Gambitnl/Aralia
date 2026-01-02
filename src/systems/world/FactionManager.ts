@@ -40,15 +40,16 @@ export class FactionManager {
         const applyToFaction = (fId: string, amt: number, rsn: string, isRipple: boolean) => {
             if (!newStandings[fId]) {
                  // Initialize if missing (should exist from game start, but safe fallback)
-                 newStandings[fId] = {
-                     factionId: fId,
-                     publicStanding: 0,
-                     secretStanding: 0,
-                     rankId: 'outsider',
-                     favorsOwed: 0,
-                     renown: 0
-                 };
-            }
+                newStandings[fId] = {
+                    factionId: fId,
+                    publicStanding: 0,
+                    secretStanding: 0,
+                    rankId: 'outsider',
+                    favorsOwed: 0,
+                    renown: 0,
+                    history: []
+                };
+           }
 
             const current = newStandings[fId];
             const oldStanding = current.publicStanding;
@@ -58,7 +59,8 @@ export class FactionManager {
             newStandings[fId] = {
                 ...current,
                 publicStanding: newStanding,
-                secretStanding: calculateNewStanding(current.secretStanding, amt) // Assume secret moves with public for now
+                secretStanding: calculateNewStanding(current.secretStanding, amt), // Assume secret moves with public for now
+                history: current.history ?? []
             };
 
             // Log if visible change

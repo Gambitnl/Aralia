@@ -144,7 +144,11 @@ export async function handleHarvestResource({
 
     dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Harvesting..." } });
 
-    const lootResult = await GeminiService.generateHarvestLoot(harvestContext || 'local flora/fauna', biome, total, gameState.devModelOverride);
+    const lootResult = await GeminiService.generateHarvestLoot(
+      harvestContext || 'local flora/fauna',
+      `Biome: ${biome}; harvest check total=${total}`,
+      gameState.devModelOverride ?? null
+    );
     
     addGeminiLog('generateHarvestLoot', lootResult.data?.promptSent || lootResult.metadata?.promptSent || "", lootResult.data?.rawResponse || lootResult.metadata?.rawResponse || lootResult.error || "");
     

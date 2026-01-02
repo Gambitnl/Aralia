@@ -1,10 +1,10 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { generateGeneralActionContext } from '../contextUtils';
-import { GameState, PlayerCharacter, Location, GamePhase, WorldRumor, WeatherState } from '../../types';
+import { GameState, PlayerCharacter, Location, GamePhase, WorldRumor, WeatherState } from '../../../types';
 
 // Mock dependencies
-vi.mock('../../constants', () => ({
+vi.mock('../../../constants', () => ({
   BIOMES: {
     'biome_1': { name: 'Enchanted Forest' }
   },
@@ -22,7 +22,7 @@ vi.mock('../timeUtils', () => ({
   formatGameTime: () => '12:00 AM'
 }));
 
-vi.mock('../../data/backgrounds', () => ({
+vi.mock('../../../data/backgrounds', () => ({
   BACKGROUNDS: {}
 }));
 
@@ -31,6 +31,8 @@ describe('contextUtils (Enhanced)', () => {
     name: 'Hero',
     race: { name: 'Human', id: 'human', description: '', traits: [] },
     class: { name: 'Fighter', id: 'fighter', description: '', hitDie: 10, primaryAbility: [], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] },
+    armorClass: 10,
+    statusEffects: [],
     hp: 10,
     maxHp: 20,
     transportMode: 'foot',
@@ -65,14 +67,12 @@ describe('contextUtils (Enhanced)', () => {
 
   // Setup mock weather
   const mockEnvironment: WeatherState = {
-    currentCondition: { id: 'rain', name: 'Heavy Rain', description: 'Pouring rain.' },
-    temperature: 65,
-    windSpeed: 15,
-    isPrecipitating: true,
-    humidity: 0.8,
-    visibility: 0.5,
-    cloudCover: 1.0,
-    forecast: []
+    precipitation: 'heavy_rain',
+    temperature: 'temperate',
+    wind: { direction: 'north', speed: 'moderate' },
+    visibility: 'lightly_obscured',
+    baseTemperature: 'temperate',
+    baseVisibility: 'lightly_obscured'
   };
 
   const mockGameState: GameState = {

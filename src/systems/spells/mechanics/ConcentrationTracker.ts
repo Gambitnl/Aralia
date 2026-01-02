@@ -1,5 +1,5 @@
 import type { Spell } from '@/types/spells'
-import type { CombatCharacter, CombatState, ConcentrationState } from '@/types'
+import type { CombatCharacter, CombatState, ConcentrationState } from '@/types/combat'
 import { rollSavingThrow } from '@/utils/savingThrowUtils'
 
 /**

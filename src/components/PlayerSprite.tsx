@@ -36,11 +36,15 @@ const PlayerSprite: React.FC<PlayerSpriteProps> = ({
 
     // Map facing to base direction for rendering
     const baseFacing = shouldFlip
-        ? (facing === 'east' ? 'west' : facing === 'northeast' ? 'northwest' : 'southwest')
+        ? facing === 'east'
+            ? 'west'
+            : facing === 'northeast'
+                ? 'northwest'
+                : 'southwest'
         : facing;
 
     // Check if facing north (back view)
-    const isBackView = baseFacing === 'north' || baseFacing === 'northwest' || baseFacing === 'northeast';
+    const isBackView = baseFacing === 'north' || baseFacing === 'northwest';
     const isSideView = baseFacing === 'west';
 
     // Colors (matching AssetPainter)

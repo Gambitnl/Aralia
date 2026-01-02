@@ -38,6 +38,9 @@ const KAELEN_ID: NPCIdentity = {
   race: 'Tiefling',
   class: 'Rogue',
   background: 'Criminal',
+  sex: 'Male',
+  age: 'Late 20s',
+  physicalDescription: 'Lean and wiry with charcoal-grey skin and small, swept-back obsidian horns. He has a jagged scar across his jaw and intense amber eyes that never stop scanning. He wears dark, practical leathers that have seen better days.',
   avatarUrl: '/avatars/kaelen.png' // Placeholder
 };
 
@@ -211,6 +214,9 @@ const ELARA_ID: NPCIdentity = {
   race: 'Human',
   class: 'Cleric',
   background: 'Acolyte',
+  sex: 'Female',
+  age: 32,
+  physicalDescription: 'Tall and athletic with a posture that commands respect. She has silver-blonde hair kept in a strict braid and striking sea-blue eyes. She wears polished half-plate armor emblazoned with the sun-disk of her order, looking every bit the disciplined soldier of the faith.',
   avatarUrl: '/avatars/elara.png'
 };
 
@@ -366,6 +372,7 @@ export const COMPANIONS: Record<string, Companion> = {
     },
     loyalty: 50,
     approvalHistory: [],
+    memories: [],
     reactionRules: KAELEN_REACTIONS
   },
   [ELARA_ID.id]: {
@@ -379,6 +386,7 @@ export const COMPANIONS: Record<string, Companion> = {
     },
     loyalty: 80, // Starts higher due to duty
     approvalHistory: [],
+    memories: [],
     reactionRules: ELARA_REACTIONS
   }
 };

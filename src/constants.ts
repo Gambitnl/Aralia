@@ -109,7 +109,7 @@ import {
 // Import aggregated data from specialized modules
 import { ALL_RACES_DATA, RACE_DATA_BUNDLE } from './data/races/index.ts';
 import { BIOMES } from './data/biomes';
-import { ITEMS, WEAPONS_DATA } from './data/items';
+import { ALL_ITEMS, ITEMS as _BASE_ITEMS, WEAPONS_DATA } from './data/items';
 import { MASTERY_DATA } from './data/masteryData';
 import { CLASSES_DATA, AVAILABLE_CLASSES } from './data/classes';
 import { XP_THRESHOLDS_BY_LEVEL, XP_BY_CR, ABILITY_SCORE_NAMES, RELEVANT_SPELLCASTING_ABILITIES } from './data/dndData';
@@ -139,7 +139,7 @@ export {
   TIEFLING_LEGACIES,
   CLASSES_DATA,
   AVAILABLE_CLASSES,
-  ITEMS,
+  ALL_ITEMS as ITEMS,
   WEAPONS_DATA,
   MASTERY_DATA,
   BIOMES,

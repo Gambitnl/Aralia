@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { FactionManager } from '../FactionManager';
 // TODO(lint-intent): 'Faction' is unused in this test; use it in the assertion path or remove it.
-import { GameState, Faction as _Faction } from '../../../types';
+import { GameState, GamePhase, Faction as _Faction } from '../../../types';
 import { FACTIONS } from '../../../data/factions';
 
 const mockState: GameState = {
@@ -11,7 +11,7 @@ const mockState: GameState = {
     gameTime: new Date(),
     activeRumors: [],
     // ... minimal other state
-    phase: 'PLAYING',
+    phase: GamePhase.PLAYING,
     party: [],
     inventory: [],
     gold: 0,
@@ -58,8 +58,9 @@ const mockState: GameState = {
     economy: {
         activeEvents: [],
         marketFactors: { scarcity: [], surplus: [] },
+        // TODO(lint-intent): 'prices' is not part of EconomyState; kept as legacy stub for assertions.
         prices: {}
-    },
+    } as unknown as GameState['economy'],
     notoriety: { globalHeat: 0, localHeat: {}, knownCrimes: [], bounties: [] },
     questLog: [],
     isQuestLogVisible: false,
@@ -78,10 +79,10 @@ const mockState: GameState = {
         activeEffects: []
     },
     environment: {
-        currentWeather: 'clear',
-        temperature: 20,
+        currentWeather: 'clear' as any,
+        temperature: 20 as any,
         windSpeed: 0,
-        precipitation: 0,
+        precipitation: 0 as any,
         isDaytime: true,
         lastWeatherUpdate: 0
     },

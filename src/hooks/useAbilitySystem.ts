@@ -9,20 +9,9 @@
  *   Getters (isValidTarget) remain reactive to props for render correctness.
  */
 import { useCallback, useState, useRef, useEffect, useMemo } from 'react';
-import {
-  CombatCharacter,
-  Ability,
-  Position,
-  CombatAction,
-  BattleMapData,
-  CombatState,
-  CombatLogEntry,
-  ReactiveTrigger,
-  GameState
-} from '../types';
-import {
-  Spell
-} from '../types/spells';
+import { CombatCharacter, Position, CombatAction, BattleMapData, CombatState, CombatLogEntry, ReactiveTrigger } from '../types/combat';
+import { Ability, GameState } from '../types';
+import { Spell } from '../types/spells';
 import { SpellCommandFactory, AbilityCommandFactory, CommandExecutor } from '../commands'; // Import Command System
 import { BreakConcentrationCommand } from '../commands/effects/ConcentrationCommands'; // Import Break Concentration
 // TODO(lint-intent): 'getDistance' is imported but unused; it hints at a helper/type the module was meant to use.

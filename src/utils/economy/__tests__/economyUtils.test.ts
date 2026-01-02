@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { calculatePrice, parseCost } from '../economy/economyUtils';
-import { EconomyState, Item, MarketEventType } from '../../types';
+import { calculatePrice, parseCost } from '../economyUtils';
+import { EconomyState, Item, MarketEventType, ItemType } from '../../../types';
 
 // Mock the regional data to ensure tests are robust and independent of live data changes
 vi.mock('../../data/economy/regions', () => ({
@@ -49,7 +49,7 @@ describe('economyUtils', () => {
         id: 'torch',
         name: 'Torch',
         description: 'A simple torch.',
-        type: 'light_source',
+        type: ItemType.LightSource,
         cost: '1 cp',
         costInGp: 0.01,
         weight: 1,
@@ -63,7 +63,7 @@ describe('economyUtils', () => {
         id: 'tiny',
         name: 'Tiny',
         description: 'Almost free.',
-        type: 'consumable',
+        type: ItemType.Consumable,
         cost: '0.001 gp',
         costInGp: 0.001,
         weight: 1,
@@ -78,7 +78,7 @@ describe('economyUtils', () => {
         id: 'torch',
         name: 'Torch',
         description: 'A simple torch.',
-        type: 'light_source',
+        type: ItemType.LightSource,
         cost: '1 cp',
         costInGp: 0.01,
         weight: 1,
@@ -95,7 +95,7 @@ describe('economyUtils', () => {
         id: 'fish',
         name: 'Fresh Fish',
         description: 'Tasty.',
-        type: 'food',
+        type: ItemType.FoodDrink,
         costInGp: 10,
         weight: 1
       };
@@ -116,7 +116,7 @@ describe('economyUtils', () => {
         id: 'food',
         name: 'Imported Grain',
         description: 'Grain.',
-        type: 'food',
+        type: ItemType.FoodDrink,
         costInGp: 10,
         weight: 1
       };
@@ -135,7 +135,7 @@ describe('economyUtils', () => {
         id: 'generic',
         name: 'Generic',
         description: 'Generic item.',
-        type: 'misc',
+        type: ItemType.Treasure,
         costInGp: 10,
         weight: 1
       };
@@ -149,7 +149,7 @@ describe('economyUtils', () => {
         id: 'iron',
         name: 'Iron Ingot',
         description: 'Metal.',
-        type: 'material',
+        type: ItemType.CraftingMaterial,
         costInGp: 10,
         weight: 1
       };
@@ -177,7 +177,7 @@ describe('economyUtils', () => {
         id: 'wood',
         name: 'Wood Plank',
         description: 'Wood.',
-        type: 'material',
+        type: ItemType.CraftingMaterial,
         costInGp: 10,
         weight: 1
       };

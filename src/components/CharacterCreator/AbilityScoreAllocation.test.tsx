@@ -9,29 +9,22 @@ const mockRace: Race = {
   id: 'human',
   name: 'Human',
   description: 'Versatile and ambitious.',
-  abilityBonuses: [],
   traits: [],
-  speed: 30,
-  size: 'Medium',
-  languages: ['Common'],
-};
+} as Race;
 
 const mockClass: CharClass = {
   id: 'fighter',
   name: 'Fighter',
   description: 'A master of martial combat.',
   hitDie: 10,
-  primaryAbility: 'Strength',
-  savingThrows: ['Strength', 'Constitution'],
-  proficiencies: {
-    armor: [],
-    weapons: [],
-    tools: [],
-    skills: [],
-  },
-  equipment: [],
-  features: [],
-};
+  primaryAbility: ['Strength'],
+  savingThrowProficiencies: ['Strength', 'Constitution'],
+  skillProficienciesAvailable: [],
+  numberOfSkillProficiencies: 2,
+  armorProficiencies: [],
+  weaponProficiencies: [],
+  features: []
+} as CharClass;
 
 describe('AbilityScoreAllocation', () => {
   it('renders correctly', () => {

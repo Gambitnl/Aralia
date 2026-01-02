@@ -1,41 +1,40 @@
 
 import { describe, it, expect } from 'vitest';
 import { getPlanarSpellModifier, canActivatePortal, getCurrentPlane } from '../planarUtils';
-import { PLANES } from '../../data/planes';
-// TODO(lint-intent): 'MagicSchool' is unused in this test; use it in the assertion path or remove it.
-import { MagicSchool as _MagicSchool } from '../../types/spells';
-import { GameState, GamePhase, Location, Portal } from '../../types';
+import { PLANES } from '../../../data/planes';
+import { SpellSchool } from '../../../types/spells';
+import { GameState, GamePhase, Location, Portal, ItemType } from '../../../types';
 
 describe('Planar Utils', () => {
   describe('getPlanarSpellModifier', () => {
     it('should return +1 for empowered schools in Feywild', () => {
-      const modifier = getPlanarSpellModifier('Illusion', PLANES['feywild']);
+      const modifier = getPlanarSpellModifier(SpellSchool.Illusion, PLANES['feywild']);
       expect(modifier).toBe(1);
     });
 
     it('should return 0 for unaffected schools in Feywild', () => {
-      const modifier = getPlanarSpellModifier('Evocation', PLANES['feywild']);
+      const modifier = getPlanarSpellModifier(SpellSchool.Evocation, PLANES['feywild']);
       expect(modifier).toBe(0);
     });
 
     it('should return +1 for Necromancy in Shadowfell', () => {
-      const modifier = getPlanarSpellModifier('Necromancy', PLANES['shadowfell']);
-      expect(modifier).toBe(1);
-    });
+            const modifier = getPlanarSpellModifier(SpellSchool.Necromancy, PLANES['shadowfell']);
+            expect(modifier).toBe(1);
+          });
 
     it('should return -1 for Evocation (Light) in Shadowfell', () => {
       // Note: In our data, we just marked Evocation generally as impeded for simplicity in this test case logic,
       // or we need to check if the specific data entry matches.
       // Checking src/data/planes.ts:
       // affectsMagic: [{ school: 'Evocation', effect: 'impeded', description: 'Light spells are dimmed.' }]
-      const modifier = getPlanarSpellModifier('Evocation', PLANES['shadowfell']);
-      expect(modifier).toBe(-1);
-    });
+            const modifier = getPlanarSpellModifier(SpellSchool.Evocation, PLANES['shadowfell']);
+            expect(modifier).toBe(-1);
+          });
 
     it('should return 0 for Material Plane', () => {
-      const modifier = getPlanarSpellModifier('Evocation', PLANES['material']);
-      expect(modifier).toBe(0);
-    });
+            const modifier = getPlanarSpellModifier(SpellSchool.Evocation, PLANES['material']);
+            expect(modifier).toBe(0);
+          });
   });
 
   describe('getCurrentPlane', () => {
@@ -71,7 +70,7 @@ describe('Planar Utils', () => {
     const mockGameState: GameState = {
       phase: GamePhase.PLAYING,
       party: [],
-      inventory: [{ id: 'key1', name: 'Moonstone Key', type: 'key', description: 'A key' }],
+            inventory: [{ id: 'key1', name: 'Moonstone Key', type: ItemType.Key, description: 'A key' }],
       gold: 0,
       currentLocationId: 'loc1',
       subMapCoordinates: null,
@@ -115,13 +114,44 @@ describe('Planar Utils', () => {
       locationResidues: {},
       metNpcIds: [],
       merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
-      notoriety: { globalHeat: 0, localHeat: {}, knownCrimes: [] },
+           notoriety: { globalHeat: 0, localHeat: {}, knownCrimes: [], bounties: [] },
       questLog: [],
       factions: {},
       playerFactionStandings: {},
       companions: {},
-      tempParty: null
-    };
+      tempParty: null,
+      // TODO(lint-intent): Stubbed fields trimmed for test focus; expand to full GameState if portal logic grows.
+      isOllamaLogViewerVisible: false,
+      ollamaInteractionLog: [],
+      isDevModeEnabled: false,
+      economy: { marketEvents: [], tradeRoutes: [], globalInflation: 0, regionalWealth: {}, marketFactors: { scarcity: [], surplus: [] }, buyMultiplier: 1, sellMultiplier: 0.5, activeEvents: [] },
+      religion: { divineFavor: {}, discoveredDeities: [], activeBlessings: [] },
+      divineFavor: {},
+      temples: {},
+      fences: {},
+      dynamicLocations: {},
+      dynamicNPCs: {},
+      playerFactionStandings: {},
+      environment: { precipitation: 'none', temperature: 'temperate', wind: { direction: 'north', speed: 'calm' }, visibility: 'clear' },
+      isThievesGuildVisible: false,
+      isNavalDashboardVisible: false,
+      activeDialogueSession: null,
+      isDialogueInterfaceOpen: false,
+      banterCooldowns: {},
+      isQuestLogVisible: false,
+      townState: null,
+      townEntryDirection: null,
+      activeRumors: [],
+      worldHistory: undefined,
+      activeHeist: null,
+      activeContracts: [],
+      playerIdentity: undefined,
+      legacy: undefined,
+      strongholds: {},
+      activeRitual: null,
+      underdark: { currentDepth: 0, currentBiomeId: 'cavern', lightLevel: 'dim', activeLightSources: [], faerzressLevel: 0, wildMagicChance: 0, sanity: { current: 100, max: 100, madnessLevel: 0 } },
+      activeConversation: null
+    } as any;
 
     it('should return true if requirement is met (item)', () => {
       const portal: Portal = {

@@ -1,10 +1,7 @@
-import { calculateArmorClass } from "../../../../utils/statUtils";
-import { PlayerCharacter, Item } from "../../../../types";
-import { ActiveEffect } from "../../../../types/combat";
-// TODO(lint-intent): 'createMockCharacter' is unused in this test; use it in the assertion path or remove it.
-import { createMockCharacter as _createMockCharacter } from "../../../../commands/__tests__/testUtils"; // Assuming this exists or I'll stub it
-// TODO(lint-intent): 'createMockItem' is unused in this test; use it in the assertion path or remove it.
-import { createMockItem as _createMockItem } from "../../../../data/item_templates"; // Assuming usage
+import { describe, expect, test } from 'vitest';
+import { calculateArmorClass } from "../../../../utils/character/statUtils";
+import { PlayerCharacter, Item, ItemRarity } from "../../../../types";
+import { ActiveEffect } from "../../../../types/effects";
 
 // Simple mock if needed
 const mockCharacterWithDex = (dexScore: number): PlayerCharacter => {
@@ -35,7 +32,7 @@ const mockLeatherArmor: Item = {
     id: "leather",
     name: "Leather Armor",
     type: "armor",
-    rarity: "common",
+    rarity: ItemRarity.Common,
     armorCategory: "Light",
     baseArmorClass: 11,
     addsDexterityModifier: true,
@@ -48,7 +45,7 @@ const mockPlateArmor: Item = {
     id: "plate",
     name: "Plate Armor",
     type: "armor",
-    rarity: "rare",
+    rarity: ItemRarity.Rare,
     armorCategory: "Heavy",
     baseArmorClass: 18,
     addsDexterityModifier: false,

@@ -4,6 +4,7 @@ import { aiSpellArbitrator, ArbitrationRequest as _ArbitrationRequest } from '..
 import { Spell, SpellSchool } from '@/types/spells';
 import { CombatCharacter, CombatState } from '@/types/combat';
 import { GameState } from '@/types';
+import { StandardizedResult, GeminiTextData } from '@/services/geminiService';
 
 // Mock geminiService
 vi.mock('@/services/geminiService', () => ({
@@ -36,20 +37,20 @@ describe('AISpellArbitrator', () => {
     stats: { currentHP: 10, maxHP: 10 },
     team: 'player'
   // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  } as unknown;
+  } as unknown as CombatCharacter;
 
   const mockGameState: GameState = {
     currentLocation: 'forest_clearing',
     timeOfDay: 'day',
     weather: 'clear'
   // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  } as unknown;
+  } as unknown as GameState;
 
   const mockCombatState: CombatState = {
     turnState: { currentTurn: 1 },
     characters: [mockCaster]
   // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  } as unknown;
+  } as unknown as CombatState;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -76,9 +77,8 @@ describe('AISpellArbitrator', () => {
     };
 
     vi.mocked(generateText).mockResolvedValue({
-      data: { text: '{"valid": true, "reason": "Stone found", "flavorText": "You see stone."}' }
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    } as unknown);
+      data: { text: '{"valid": true, "reason": "Stone found", "flavorText": "You see stone."}' } as GeminiTextData
+    } as StandardizedResult<GeminiTextData>);
 
     const result = await aiSpellArbitrator.arbitrate({
       spell: tier2Spell,

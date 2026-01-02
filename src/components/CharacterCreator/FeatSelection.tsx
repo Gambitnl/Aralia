@@ -110,11 +110,13 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
   }, [onSelectFeat, selectedFeatId, onSetFeatChoice]);
 
   const selectedFeat = selectedFeatId ? availableFeats.find(f => f.id === selectedFeatId) : null;
-  const hasSelectableASI = selectedFeat?.benefits?.selectableAbilityScores && selectedFeat.benefits.selectableAbilityScores.length > 0;
+  const selectableASIs = selectedFeat?.benefits?.selectableAbilityScores ?? [];
+  const hasSelectableASI = selectableASIs.length > 0;
   const selectedASI = selectedFeatId ? featChoices[selectedFeatId]?.selectedAbilityScore : undefined;
 
   // Damage type selection (Elemental Adept)
-  const hasSelectableDamageType = selectedFeat?.benefits?.selectableDamageTypes && selectedFeat.benefits.selectableDamageTypes.length > 0;
+  const selectableDamageTypes = selectedFeat?.benefits?.selectableDamageTypes ?? [];
+  const hasSelectableDamageType = selectableDamageTypes.length > 0;
   const selectedDamageType = selectedFeatId ? featChoices[selectedFeatId]?.selectedDamageType : undefined;
 
   // Spell benefits
@@ -265,7 +267,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
                 Select Ability Score to Increase:
               </p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {selectedFeat.benefits.selectableAbilityScores!.map((ability) => (
+              {selectableASIs.map((ability) => (
                   <button
                     key={ability}
                     onClick={(e) => {
@@ -298,7 +300,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
                 Select Damage Type:
               </p>
               <div className="flex flex-wrap gap-2">
-                {selectedFeat.benefits.selectableDamageTypes!.map((damageType) => (
+              {selectableDamageTypes.map((damageType) => (
                   <button
                     key={damageType}
                     onClick={(e) => {

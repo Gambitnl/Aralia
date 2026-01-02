@@ -6,8 +6,8 @@
  * keyboard navigation using arrow keys and roving tabindex, and an icon glossary.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { MapData, MapTile as MapTileType, GlossaryDisplayItem, MapMarker } from '../types'; // Changed GlossaryItem to GlossaryDisplayItem
-import { BIOMES } from '../constants'; // To get biome details like color and icon
+import { MapData, MapTile as MapTileType, GlossaryDisplayItem, MapMarker, Biome } from '../types'; // Changed GlossaryItem to GlossaryDisplayItem
+import { BIOMES, LOCATIONS } from '../constants'; // To get biome details like color and icon
 // Icon legend for the world map lives under the Glossary folder
 import GlossaryDisplay from './Glossary/GlossaryDisplay';
 import { POIS } from '../data/world/pois';
@@ -186,7 +186,7 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
   // TODO(lint-intent): 'getTileStyle' is declared but unused, suggesting an unfinished state/behavior hook in this block.
   // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
   // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-  const _getTileStyle = (tile: MapTile): React.CSSProperties => {
+  const _getTileStyle = (tile: MapTileType): React.CSSProperties => {
     const biome: Biome | undefined = BIOMES[tile.biomeId];
     let backgroundColor = 'rgba(107, 114, 128, 0.7)'; // Default discovered fallback
     
@@ -207,7 +207,7 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
   // TODO(lint-intent): 'getTileTooltip' is declared but unused, suggesting an unfinished state/behavior hook in this block.
   // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
   // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-  const _getTileTooltip = (tile: MapTile): string => {
+  const _getTileTooltip = (tile: MapTileType): string => {
     const biome = BIOMES[tile.biomeId];
     if (!tile.discovered) {
       return `Undiscovered area (${tile.x}, ${tile.y}). Potential biome: ${biome?.name || 'Unknown'}.`;

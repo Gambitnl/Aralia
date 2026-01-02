@@ -13,7 +13,7 @@ import { DEFAULT_WEATHER } from '../systems/environment/EnvironmentSystem';
 // TODO(lint-intent): 'ITEMS' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { STARTING_LOCATION_ID, LOCATIONS, ITEMS as _ITEMS, CLASSES_DATA as _CLASSES_DATA, NPCS , COMPANIONS } from '../constants';
+import { STARTING_LOCATION_ID, LOCATIONS, ITEMS as _ITEMS, CLASSES_DATA as _CLASSES_DATA, NPCS, COMPANIONS } from '../constants';
 import { getDummyParty, initialInventoryForDummyCharacter } from '../data/dev/dummyCharacter';
 import { FACTIONS, INITIAL_FACTION_STANDINGS } from '../data/factions';
 import { getAllFactions } from '../utils/factionUtils';
@@ -46,7 +46,8 @@ import { crimeReducer } from './reducers/crimeReducer';
 import { companionReducer } from './reducers/companionReducer';
 import { identityReducer } from './reducers/identityReducer';
 import { dialogueReducer } from './reducers/dialogueReducer';
-
+import { craftingReducer } from './reducers/craftingReducer';
+import { conversationReducer } from './reducers/conversationReducer';
 
 
 // Helper function to create a date at 07:00 AM on an arbitrary fixed date
@@ -107,6 +108,7 @@ export const initialGameState: GameState = {
     geminiInteractionLog: [],
     hasNewRateLimitError: false,
     devModelOverride: null,
+    isDevModeEnabled: false,
 
     // Encounter Modal State
     isEncounterModalVisible: false,
@@ -487,7 +489,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 phase: GamePhase.LOAD_TRANSITION,
                 isLoading: false, loadingMessage: null, isImageLoading: false, error: null,
                 isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isPartyEditorVisible: false,
-                isPartyOverlayVisible: false, isGeminiLogViewerVisible: false, isDiscoveryLogVisible: false,
+                isPartyOverlayVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, isDiscoveryLogVisible: false,
                 isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isLogbookVisible: false,
                 isGameGuideVisible: false, isThievesGuildVisible: false,
                 geminiGeneratedActions: null,
@@ -498,6 +500,7 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 characterSheetModal: loadedState.characterSheetModal || { isOpen: false, character: null },
                 gameTime: gameTimeFromLoad,
                 geminiInteractionLog: loadedState.geminiInteractionLog || [],
+                ollamaInteractionLog: loadedState.ollamaInteractionLog || [],
                 inspectedTileDescriptions: loadedState.inspectedTileDescriptions || {},
                 discoveryLog: loadedState.discoveryLog || [],
                 unreadDiscoveryCount: loadedState.unreadDiscoveryCount || 0,
@@ -685,6 +688,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 ...companionReducer(state, action),
                 ...identityReducer(state, action),
                 ...dialogueReducer(state, action),
+                ...craftingReducer(state, action),
+                ...conversationReducer(state, action),
             };
 
             if (Object.keys(changes).length === 0) {

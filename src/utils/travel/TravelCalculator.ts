@@ -77,10 +77,13 @@ export class TravelCalculator {
 
     // TODO: Integrate with event generation system (see src/services/travelEventService.ts) to populate actual encounters based on encounterChecks.
 
+    const terrainUsed = params.terrain ?? 'open';
+
     return {
       distanceMiles,
       travelTimeHours,
       travelSpeedMph: finalSpeed,
+      usedTerrain: terrainUsed,
       encounterChecks
     };
   }

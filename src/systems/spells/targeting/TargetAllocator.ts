@@ -145,7 +145,9 @@ export class TargetAllocator {
 
   private static getResourceValue(character: CombatCharacter, resource: 'hp' | 'hit_dice'): number {
     if (resource === 'hp') {
-      return character.hp; // Current HP
+      // Some callers provide a loose combat stub with `hp`; fall back to `currentHP`.
+      // TODO(lint-intent): Normalize on `currentHP` across combat helpers.
+      return (character as unknown as { hp?: number }).hp ?? character.currentHP ?? 0;
     }
     // Fallback for hit_dice or other resources
     // TODO: Implement hit dice lookup if needed

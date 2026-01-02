@@ -192,3 +192,45 @@ export interface QuestDefinition {
   /** Region hint for UI grouping */
   regionId?: string;
 }
+
+/**
+ * Legacy/lightweight quest shape used by the current UI and reducers.
+ * TODO(QuestMigration): Replace with QuestDefinition once the richer quest system is wired through the app.
+ */
+export interface QuestObjectiveProgress {
+  id: string;
+  description: string;
+  /** Simple completion flag for flat objectives (legacy). */
+  isCompleted?: boolean;
+  /** Optional counts for fetch/kill style objectives. */
+  requiredCount?: number;
+  currentCount?: number;
+}
+
+export interface QuestRewards {
+  gold?: number;
+  xp?: number;
+  items?: string[];
+  reputation?: Array<{ factionId: string; change: number }>;
+}
+
+export interface Quest {
+  id: string;
+  title: string;
+  description: string;
+  giverId?: string;
+  status: QuestStatus;
+  objectives: QuestObjectiveProgress[];
+  rewards?: QuestRewards;
+  questType?: QuestType;
+  regionHint?: string;
+  /** Optional time-based failure trigger. */
+  deadline?: number;
+  dateStarted?: number;
+  dateCompleted?: number;
+}
+
+export type QuestTemplate = Omit<Quest, 'status' | 'objectives' | 'dateStarted' | 'dateCompleted'> & {
+  objectives: Array<Omit<QuestObjectiveProgress, 'isCompleted' | 'currentCount'>>;
+  status?: QuestStatus;
+};

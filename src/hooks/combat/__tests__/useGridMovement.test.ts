@@ -30,9 +30,10 @@ describe('useGridMovement', () => {
     ['char1', { characterId: 'char1', coordinates: { x: 0, y: 0 } }]
   ]);
 
-  const mockCharacter: CombatCharacter = {
+    const mockCharacter: CombatCharacter = {
     id: 'char1',
     name: 'Hero',
+    level: 1 as any,
     actionEconomy: {
         movement: { total: 30, used: 0 },
         action: { used: false, remaining: 1 },
@@ -41,16 +42,36 @@ describe('useGridMovement', () => {
         freeActions: 1
     },
     position: { x: 0, y: 0 },
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    stats: { speed: 30 } as unknown,
+    stats: {
+        strength: 10,
+        dexterity: 10,
+        constitution: 10,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 10,
+        baseInitiative: 0,
+        speed: 30,
+        cr: '1'
+    },
     abilities: [],
     team: 'player',
     currentHP: 10,
     maxHP: 10,
     initiative: 10,
     statusEffects: [],
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    class: { name: 'Fighter' } as unknown
+    class: {
+        id: 'fighter',
+        name: 'Fighter',
+        description: '',
+        hitDie: 10,
+        primaryAbility: ['Strength'],
+        savingThrowProficiencies: [],
+        skillProficienciesAvailable: [],
+        numberOfSkillProficiencies: 0,
+        armorProficiencies: [],
+        weaponProficiencies: [],
+        features: []
+    } as any
   };
 
   it('should initialize with empty state when no character selected', () => {

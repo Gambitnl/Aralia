@@ -232,7 +232,7 @@ export function processAreaEntryTriggers(
             );
 
             for (const effect of entryEffects) {
-                if (!shouldTriggerForFrequency(effect.trigger?.frequency, zone, character.id)) {
+                if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
                     continue;
                 }
 
@@ -321,7 +321,7 @@ export function processAreaExitTriggers(
             );
 
             for (const effect of exitEffects) {
-                if (!shouldTriggerForFrequency(effect.trigger?.frequency, zone, character.id)) {
+                if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
                     continue;
                 }
 
@@ -362,7 +362,7 @@ export function processAreaEndTurnTriggers(
         );
 
         for (const effect of endTurnEffects) {
-            if (!shouldTriggerForFrequency(effect.trigger?.frequency, zone, character.id)) {
+            if (!shouldTriggerForFrequency((effect.trigger as any)?.frequency, zone, character.id)) {
                 continue;
             }
 
@@ -462,12 +462,12 @@ export function createSpellZone(
         position,
         areaOfEffect,
         effects: effects.filter(e =>
-            e.trigger?.type === 'on_enter_area' ||
-            e.trigger?.type === 'on_exit_area' ||
-            e.trigger?.type === 'on_end_turn_in_area' ||
-            e.trigger?.type === 'on_move_in_area' ||
-            e.trigger?.type === 'turn_end' ||
-            e.trigger?.type === 'turn_start'
+            (e.trigger as any)?.type === 'on_enter_area' ||
+            (e.trigger as any)?.type === 'on_exit_area' ||
+            (e.trigger as any)?.type === 'on_end_turn_in_area' ||
+            (e.trigger as any)?.type === 'on_move_in_area' ||
+            (e.trigger as any)?.type === 'turn_end' ||
+            (e.trigger as any)?.type === 'turn_start'
         ),
         triggeredThisTurn: new Set(),
         triggeredEver: new Set(),

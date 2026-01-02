@@ -14,21 +14,21 @@
  * @see src/types/combat.ts - For core combat type definitions.
  * @see src/commands/base/SpellCommand.ts - For the Command pattern consuming these utilities.
  */
-import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect } from '../types/combat';
-import { PlayerCharacter, Monster, Item } from '../types';
+import { BattleMapData, CombatAction, CombatCharacter, Position, CharacterStats, Ability, DamageNumber, StatusEffect, AreaOfEffect, AbilityEffect } from '../../types/combat';
+import { PlayerCharacter, Monster, Item } from '../../types';
 // TODO(lint-intent): 'ConditionName' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Spell, DamageType, ConditionName as _ConditionName } from '../types/spells'; // Explicit import to avoid conflicts
-import { CLASSES_DATA } from '../data/classes';
-import { MONSTERS_DATA } from '../data/monsters';
-import { createAbilityFromSpell } from './spellAbilityFactory';
-import { isWeaponProficient } from './weaponUtils';
-import { generateId } from './idGenerator';
-import { getAbilityModifierValue } from './statUtils';
-import { ResistanceCalculator } from './combat/resistanceUtils';
+import { Spell, DamageType, ConditionName as _ConditionName } from '../../types/spells'; // Explicit import to avoid conflicts
+import { CLASSES_DATA } from '../../data/classes';
+import { MONSTERS_DATA } from '../../data/monsters';
+import { createAbilityFromSpell } from '../character/spellAbilityFactory';
+import { isWeaponProficient } from '../character/weaponUtils';
+import { generateId } from '../core/idGenerator';
+import { getAbilityModifierValue } from '../character/statUtils';
+import { ResistanceCalculator } from './resistanceUtils';
 
-import { bresenhamLine } from './lineOfSight';
+import { bresenhamLine } from '../spatial/lineOfSight';
 
 // Re-export for consumers
 export { createAbilityFromSpell, generateId, ResistanceCalculator };
@@ -97,7 +97,7 @@ export function calculateCover(origin: Position, target: Position, mapData: Batt
 
   for (let i = 1; i < line.length - 1; i++) {
     const point = line[i];
-    const tile = mapData.tiles.get(`${point.x}-${point.y}`);
+    const tile = mapData.tiles.get(`${point.x}-${point.y}`) as any;
 
     if (tile && tile.providesCover) {
       // Default to Half Cover (+2)
@@ -583,8 +583,8 @@ export function createPlayerCombatCharacter(player: PlayerCharacter, allSpells: 
     spellbook: player.spellbook,
     spellSlots: player.spellSlots,
     savingThrowProficiencies: player.savingThrowProficiencies,
-    feats: player.featChoices?.map(f => f.featId) || [], // Map player feats to combat character
-    resistances: player.race.resistance as unknown as import('../types').DamageType[], // Cast because Race uses string[], CombatCharacter uses DamageType[]
+    feats: (player.featChoices ? Object.values(player.featChoices).map((f: any) => f.featId) : []) as string[], // Map player feats to combat character
+    resistances: (player.race as any).resistance as import('../../types').DamageType[] | undefined, // TODO(lint-intent): Align Race.resistances shape with DamageType[]
   };
 
   // Basic Darkvision inference

@@ -39,7 +39,12 @@ export async function handleLookAround({
     }
   }
 
-  const lookDescResult = await GeminiService.generateActionOutcome('Player looks around the area.', generalActionContext, false, worldMapTileTooltipForGemini, gameState.devModelOverride);
+  const lookContext = `${generalActionContext}${worldMapTileTooltipForGemini ? ` | Tile: ${worldMapTileTooltipForGemini}` : ''}`;
+  const lookDescResult = await GeminiService.generateActionOutcome(
+    'Player looks around the area.',
+    lookContext,
+    gameState.devModelOverride
+  );
   
   addGeminiLog('generateActionOutcome (look_around)', lookDescResult.data?.promptSent || lookDescResult.metadata?.promptSent || "", lookDescResult.data?.rawResponse || lookDescResult.metadata?.rawResponse || lookDescResult.error || "");
   

@@ -20,7 +20,7 @@
  *    - -90° = North (-y)
  */
 
-import { Position } from '../types/combat';
+import { Position } from '../../types/combat';
 
 /**
  * Converts radians to degrees.

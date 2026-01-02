@@ -82,6 +82,10 @@ export class RegisterRiderCommand extends BaseEffectCommand {
         });
     }
 
+    get description(): string {
+        return `Register rider from ${this.context.spellName}`;
+    }
+
     /**
      * Determines if the rider is locked to a specific target.
      *

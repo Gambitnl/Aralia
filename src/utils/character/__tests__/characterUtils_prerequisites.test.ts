@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { evaluateFeatPrerequisites } from '../characterUtils';
 // TODO(lint-intent): 'AbilityScores' is unused in this test; use it in the assertion path or remove it.
-import { Feat, FeatPrerequisiteContext, AbilityScores as _AbilityScores } from '../../types';
+import { Feat, FeatPrerequisiteContext, AbilityScores as _AbilityScores } from '../../../types';
 
 describe('evaluateFeatPrerequisites', () => {
   const defaultContext: FeatPrerequisiteContext = {

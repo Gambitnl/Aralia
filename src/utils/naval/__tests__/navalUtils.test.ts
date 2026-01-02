@@ -1,8 +1,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { createShip, calculateShipStats, addCrewMember, calculateTravelTime, checkMutinyRisk, installModification } from '../navalUtils';
-import { CrewMember } from '../../types/naval';
-import { SHIP_MODIFICATIONS } from '../../data/shipModifications';
+import { CrewMember } from '../../../types/naval';
+import { SHIP_MODIFICATIONS } from '../../../data/shipModifications';
 
 describe('Naval Utils', () => {
   it('should create a ship with correct base stats', () => {

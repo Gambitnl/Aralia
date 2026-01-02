@@ -45,18 +45,18 @@ describe('planarTargeting', () => {
       const char = createMockCombatCharacter({
         id: 'c1',
         name: 'Blinking Char',
-        activeEffects: [{
-          id: 'e1',
-          spellId: 'blink',
-          casterId: 'c1',
-          sourceName: 'Blink',
-          type: 'buff',
-          duration: 10,
-          startTime: 0,
-          mechanics: {
-            planarPhase: ETHEREAL_PLANE.id
-          }
-        }]
+              activeEffects: [{
+                  id: 'ae-1',
+                  spellId: 'blink',
+                  casterId: 'c1',
+                  sourceName: 'Blink',
+                  type: 'buff',
+                  duration: { type: 'rounds', value: 10 },
+                  startTime: 0,
+                  mechanics: {
+                    planarPhase: ETHEREAL_PLANE.id
+                  }
+                }]
       });
       const state = createMockState([char]);
       expect(getCharacterPhase(char, state)).toBe(ETHEREAL_PLANE.id);
@@ -65,14 +65,20 @@ describe('planarTargeting', () => {
 
   describe('canSeeTarget', () => {
     const normal = createMockCombatCharacter({ id: 'normal', name: 'Normal' });
-    const ethereal = createMockCombatCharacter({
-      id: 'ethereal',
-      name: 'Ethereal',
-      activeEffects: [{
-        id: 'e1', spellId: 'blink', casterId: 'ethereal', sourceName: 'Blink', type: 'buff', duration: 10, startTime: 0,
-        mechanics: { planarPhase: ETHEREAL_PLANE.id, planarVision: [MATERIAL_PLANE.id] }
-      }]
-    });
+              const ethereal = createMockCombatCharacter({
+                id: 'ethereal',
+                name: 'Ethereal',
+                activeEffects: [{
+                  id: 'ae-2',
+                  spellId: 'blink',
+                  casterId: 'ethereal',
+                  sourceName: 'Blink',
+                  type: 'buff',
+                  duration: { type: 'rounds', value: 10 },
+                  startTime: 0,
+                  mechanics: { planarPhase: ETHEREAL_PLANE.id, planarVision: [MATERIAL_PLANE.id] }
+                }]
+              });
     const state = createMockState([normal, ethereal]);
 
     it('should allow vision on same plane', () => {
@@ -90,14 +96,20 @@ describe('planarTargeting', () => {
 
   describe('canInteract', () => {
     const normal = createMockCombatCharacter({ id: 'normal', name: 'Normal' });
-    const ethereal = createMockCombatCharacter({
-      id: 'ethereal',
-      name: 'Ethereal',
-      activeEffects: [{
-        id: 'e1', spellId: 'blink', casterId: 'ethereal', sourceName: 'Blink', type: 'buff', duration: 10, startTime: 0,
-        mechanics: { planarPhase: ETHEREAL_PLANE.id }
-      }]
-    });
+              const ethereal = createMockCombatCharacter({
+                id: 'ethereal',
+                name: 'Ethereal',
+                activeEffects: [{
+                  id: 'ae-3',
+                  spellId: 'blink',
+                  casterId: 'ethereal',
+                  sourceName: 'Blink',
+                  type: 'buff',
+                  duration: { type: 'rounds', value: 10 },
+                  startTime: 0,
+                  mechanics: { planarPhase: ETHEREAL_PLANE.id }
+                }]
+              });
     const state = createMockState([normal, ethereal]);
 
     it('should allow interaction on same plane', () => {

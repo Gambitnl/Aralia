@@ -2,20 +2,19 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useCompanionCommentary } from '../useCompanionCommentary';
 import { GameState } from '../../types';
+import { GamePhase } from '../../types/core';
 import { COMPANIONS } from '../../data/companions';
 import { CompanionReactionRule, Companion } from '../../types/companions';
 
 describe('useCompanionCommentary', () => {
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  let mockDispatch: unknown;
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  let mockState: unknown;
+  let mockDispatch: ReturnType<typeof vi.fn>;
+  let mockState: GameState;
 
   beforeEach(() => {
     mockDispatch = vi.fn();
 
     // Deep copy/modification of COMPANIONS to ensure predictable test data
-    const mockCompanions = JSON.parse(JSON.stringify(COMPANIONS));
+    const mockCompanions = JSON.parse(JSON.stringify(COMPANIONS)); Object.values(mockCompanions).forEach((c: any) => { if (!c.memories) c.memories = []; });
 
     // Ensure Kaelen has a cooldown on his loot reaction for the cooldown test
     if (mockCompanions['kaelen_thorne']) {
@@ -27,6 +26,10 @@ describe('useCompanionCommentary', () => {
     }
 
     mockState = {
+      phase: GamePhase.PLAYING,
+      party: [],
+      tempParty: null,
+      inventory: [],
       companions: mockCompanions,
       currentLocationId: 'loc_1',
       messages: [],
@@ -47,7 +50,7 @@ describe('useCompanionCommentary', () => {
   });
 
   it('should trigger a loot reaction when gold increases significantly', async () => {
-    const { rerender } = renderHook(({ state }) => useCompanionCommentary(state, mockDispatch), {
+    const { rerender } = renderHook(({ state }) => useCompanionCommentary(state, mockDispatch as any), {
       initialProps: { state: mockState }
     });
 
@@ -56,8 +59,8 @@ describe('useCompanionCommentary', () => {
     const newState = {
       ...mockState,
       gold: 100,
-      messages: [...mockState.messages, { text: "You found 100 gold." }]
-    };
+      messages: [...mockState.messages as any, { text: "You found 100 gold." } as any]
+    } as GameState;
 
     await act(async () => {
       rerender({ state: newState });
@@ -80,7 +83,7 @@ describe('useCompanionCommentary', () => {
   it('should respect cooldowns for loot reactions', async () => {
     vi.spyOn(Math, 'random').mockReturnValue(0);
 
-    const { rerender } = renderHook(({ state }) => useCompanionCommentary(state, mockDispatch), {
+    const { rerender } = renderHook(({ state }) => useCompanionCommentary(state, mockDispatch as any), {
       initialProps: { state: mockState }
     });
 
@@ -88,8 +91,8 @@ describe('useCompanionCommentary', () => {
     const newState = {
       ...mockState,
       gold: 100,
-      messages: [...mockState.messages, { text: "You found 100 gold." }]
-    };
+      messages: [...mockState.messages as any, { text: "You found 100 gold." } as any]
+    } as GameState;
 
     await act(async () => {
       rerender({ state: newState });
@@ -113,8 +116,8 @@ describe('useCompanionCommentary', () => {
     const newerState = {
       ...newState,
       gold: 200,
-      messages: [...newState.messages, { text: "You found another 100 gold." }]
-    };
+      messages: [...(newState as any).messages, { text: "You found another 100 gold." } as any]
+    } as GameState;
 
     await act(async () => {
       rerender({ state: newerState });
@@ -135,9 +138,19 @@ describe('useCompanionCommentary', () => {
   it('should trigger reaction when a crime is committed', async () => {
       const mockCompanion: Companion = {
           id: 'test_comp',
-          identity: { id: 'test_comp', name: 'TestComp', race: 'Human', class: 'Fighter', background: 'Soldier' },
+          identity: {
+              id: 'test_comp',
+              name: 'TestComp',
+              race: 'Human',
+              class: 'Fighter',
+              background: 'Soldier',
+              sex: 'Unknown',
+              age: 30,
+              physicalDescription: 'TBD'
+          },
           personality: { openness: 50, conscientiousness: 50, extraversion: 50, agreeableness: 50, neuroticism: 50, values: [], fears: [], quirks: [] },
           goals: [],
+          memories: [],
           relationships: { player: { targetId: 'player', level: 'acquaintance', approval: 0, history: [], unlocks: [] } },
           loyalty: 50,
           approvalHistory: [],
@@ -158,7 +171,7 @@ describe('useCompanionCommentary', () => {
       };
 
       const { rerender } = renderHook(
-          ({ state }) => useCompanionCommentary(state as GameState, mockDispatch),
+          ({ state }) => useCompanionCommentary(state as GameState, mockDispatch as any),
           { initialProps: { state: testState } }
       );
 
@@ -175,7 +188,7 @@ describe('useCompanionCommentary', () => {
                       locationId: 'loc_1',
                       timestamp: Date.now(),
                       witnessed: false
-                  }
+                  } as any
               ]
           }
       };
@@ -202,3 +215,10 @@ describe('useCompanionCommentary', () => {
       }));
   });
 });
+
+
+
+
+
+
+

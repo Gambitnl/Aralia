@@ -16,6 +16,7 @@ import * as SaveLoadService from '../services/saveLoadService';
 import { INITIAL_TRADE_ROUTES } from '../data/tradeRoutes';
 import { createEmptyHistory } from '../utils/historyUtils';
 import { NavalState } from '../types/naval';
+import type { DivineFavor } from '../types/religion';
 
 // Helper function to create a date at 07:00 AM on an arbitrary fixed date
 const createInitialGameTime = (): Date => {
@@ -43,6 +44,17 @@ const INITIAL_NAVAL_STATE: NavalState = {
     currentVoyage: null,
     knownPorts: [],
 };
+
+const INITIAL_DIVINE_FAVOR: Record<string, DivineFavor> = DEITIES.reduce((acc, deity) => {
+    acc[deity.id] = {
+        score: 0,
+        rank: 'Neutral',
+        consecutiveDaysPrayed: 0,
+        history: [],
+        blessings: [],
+    };
+    return acc;
+}, {} as Record<string, DivineFavor>);
 
 export const initialGameState: GameState = {
     phase: canUseDevTools() && getDummyParty() && getDummyParty().length > 0 && !SaveLoadService.hasSaveGame() ? GamePhase.PLAYING : GamePhase.MAIN_MENU,
@@ -80,8 +92,11 @@ export const initialGameState: GameState = {
     isPartyEditorVisible: false,
     isGeminiLogViewerVisible: false,
     geminiInteractionLog: [],
+    isOllamaLogViewerVisible: false,
+    ollamaInteractionLog: [],
     hasNewRateLimitError: false,
     devModelOverride: null,
+    isDevModeEnabled: false,
 
     // Encounter Modal State
     isEncounterModalVisible: false,
@@ -177,10 +192,13 @@ export const initialGameState: GameState = {
     companions: COMPANIONS,
 
     // Religion System
-    divineFavor: DEITIES.reduce((acc, deity) => {
-        acc[deity.id] = { deityId: deity.id, favor: 0, history: [] };
-        return acc;
-    }, {} as GameState['divineFavor']),
+    religion: {
+        divineFavor: { ...INITIAL_DIVINE_FAVOR },
+        discoveredDeities: [],
+        activeBlessings: [],
+    },
+    // Legacy: keep flat map for compatibility with older flows
+    divineFavor: { ...INITIAL_DIVINE_FAVOR },
     temples: TEMPLES.reduce((acc, temple) => {
         acc[temple.id] = temple;
         return acc;

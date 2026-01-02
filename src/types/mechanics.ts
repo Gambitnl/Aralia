@@ -1,4 +1,5 @@
-import { DamageType, StatusCondition, AbilityScoreName } from './index';
+import { AbilityScoreName } from './core';
+import { DamageType, StatusCondition } from './spells';
 
 // ==========================================
 // 🔓 LOCK SYSTEM

@@ -13,10 +13,8 @@ describe('TownCanvas panning', () => {
   beforeAll(() => {
     // JSDOM doesn't implement pointer capture APIs; TownCanvas uses them so dragging
     // continues even if the pointer leaves the element.
-    // @ts-expect-error - test polyfill
-    HTMLElement.prototype.setPointerCapture = () => { };
-    // @ts-expect-error - test polyfill
-    HTMLElement.prototype.releasePointerCapture = () => { };
+    (HTMLElement.prototype as unknown as { setPointerCapture?: () => void }).setPointerCapture = () => { };
+    (HTMLElement.prototype as unknown as { releasePointerCapture?: () => void }).releasePointerCapture = () => { };
   });
 
   it('does not pan until drag threshold is exceeded', () => {

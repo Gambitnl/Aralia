@@ -72,7 +72,7 @@ export function useGameActions({
   const processAction = useCallback(
     async (action: Action) => {
       // TODO: Derive this UI-toggle list from the action registry/shared enum to avoid drift; see docs/QOL_TODO.md (update that entry if this block is moved).
-      const isUiToggle = ['toggle_map', 'toggle_submap_visibility', 'toggle_dev_menu', 'toggle_gemini_log_viewer', 'TOGGLE_DISCOVERY_LOG', 'TOGGLE_GLOSSARY_VISIBILITY', 'HIDE_ENCOUNTER_MODAL', 'SHOW_ENCOUNTER_MODAL', 'toggle_party_editor', 'toggle_party_overlay', 'CLOSE_CHARACTER_SHEET', 'TOGGLE_NPC_TEST_MODAL', 'TOGGLE_LOGBOOK', 'CLOSE_MERCHANT', 'BUY_ITEM', 'SELL_ITEM', 'TOGGLE_GAME_GUIDE', 'TOGGLE_QUEST_LOG'].includes(action.type);
+      const isUiToggle = ['toggle_map', 'toggle_submap_visibility', 'toggle_dev_menu', 'toggle_gemini_log_viewer', 'TOGGLE_DISCOVERY_LOG', 'TOGGLE_GLOSSARY_VISIBILITY', 'HIDE_ENCOUNTER_MODAL', 'SHOW_ENCOUNTER_MODAL', 'toggle_party_editor', 'toggle_party_overlay', 'CLOSE_CHARACTER_SHEET', 'TOGGLE_NPC_TEST_MODAL', 'TOGGLE_LOGBOOK', 'CLOSE_MERCHANT', 'BUY_ITEM', 'SELL_ITEM', 'TOGGLE_GAME_GUIDE', 'TOGGLE_QUEST_LOG', 'SET_DEV_MODE_ENABLED'].includes(action.type);
       if (!isUiToggle) {
         dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Processing action..." } });
       }
@@ -138,9 +138,9 @@ export function useGameActions({
           dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
           dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
         }
-      // TODO(lint-intent): The any on 'err' hides the intended shape of this data.
-      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+        // TODO(lint-intent): The any on 'err' hides the intended shape of this data.
+        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
       } catch (err: unknown) {
         addMessage(`Error processing action: ${err.message}`, 'system');
         dispatch({ type: 'SET_ERROR', payload: err.message });

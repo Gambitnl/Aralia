@@ -41,4 +41,4 @@ Players need to know this happened.
 -   **Icons**: We will show small icons (like a foot for speed, or a crossed sword for disadvantage) on the enemy so the player can see the effect is active.
 
 ## Summary
-By connecting the **Character's Feats** to the **Combat Engine** and teaching the engine to recognize **Critical Hits**, we can automate these complex rules. The player won't have to remember to subtract speed or apply disadvantage—the game will handle it for them automatically.
+By connecting the **Character's Feats** to the **Combat Engine** and teaching the engine to recognize **Critical Hits**, we can automate these complex rules. The player won't have to remember to subtract speed or apply disadvantage-the game will handle it for them automatically.

@@ -47,27 +47,43 @@ export class StartConcentrationCommand extends BaseEffectCommand {
             // For now, simple iteration is fine given log size usually isn't massive within a turn
 
             if (!entry.data) continue;
+            const data = entry.data as Record<string, unknown>;
 
             // 1. Status Effects (StatusConditionCommand)
-            if (entry.data.statusId && entry.data.condition) {
-                if (entry.data.condition.source === spellId || entry.data.condition.source === this.context.spellName) {
-                    effectIds.push(entry.data.statusId);
+            const condition = data.condition;
+            const statusId = typeof data.statusId === 'string' ? data.statusId : null;
+            if (statusId && condition && typeof condition === 'object' && 'source' in condition) {
+                const source = (condition as { source?: string }).source;
+                // TODO: formalize combat log data shapes so we don't have to duck-type log entries here.
+                if (source === spellId || source === this.context.spellName) {
+                    effectIds.push(statusId);
                 }
             }
 
             // 2. Riders (RegisterRiderCommand)
-            if (entry.data.rider && entry.data.rider.spellId === spellId) {
-                effectIds.push(entry.data.rider.id);
+            const rider = data.rider;
+            if (rider && typeof rider === 'object' && 'spellId' in rider && (rider as { spellId?: string }).spellId === spellId) {
+                const riderId = (rider as { id?: string }).id;
+                if (riderId) {
+                    effectIds.push(riderId);
+                }
             }
 
             // 3. Light Sources (UtilityCommand)
-            if (entry.data.lightSource && entry.data.lightSource.sourceSpellId === spellId) {
-                effectIds.push(entry.data.lightSource.id);
+            const lightSource = data.lightSource;
+            if (lightSource && typeof lightSource === 'object' && 'sourceSpellId' in lightSource) {
+                if ((lightSource as { sourceSpellId?: string }).sourceSpellId === spellId) {
+                    const lightId = (lightSource as { id?: string }).id;
+                    if (lightId) {
+                        effectIds.push(lightId);
+                    }
+                }
             }
 
             // 4. Summons (SummoningCommand)
-            if (entry.data.summonedId && entry.data.spellId === spellId) {
-                effectIds.push(entry.data.summonedId);
+            const summonedId = typeof data.summonedId === 'string' ? data.summonedId : null;
+            if (summonedId && data.spellId === spellId) {
+                effectIds.push(summonedId);
             }
         }
 
@@ -79,7 +95,13 @@ export class StartConcentrationCommand extends BaseEffectCommand {
             startedTurn: state.turnState.currentTurn,
             effectIds: effectIds,
             canDropAsFreeAction: true,
-            sustainCost: this.spell.effects.find(e => e.trigger?.sustainCost)?.trigger.sustainCost,
+            sustainCost: (() => {
+                const sustain = this.spell.effects.find(e => e.trigger?.sustainCost)?.trigger.sustainCost;
+                if (typeof sustain === 'number') {
+                    return { actionType: 'action', optional: false };
+                }
+                return sustain;
+            })(),
             sustainedThisTurn: true // Initially sustained on cast turn
         }
 

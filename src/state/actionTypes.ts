@@ -35,6 +35,7 @@ export type AppAction =
   // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
   // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
   | { type: 'INSPECT_SUBMAP_TILE'; payload: unknown }
+  | { type: 'SET_DEV_MODE_ENABLED'; payload: boolean }
   | { type: 'TOGGLE_DEV_MENU' }
   | { type: 'TOGGLE_PARTY_EDITOR_MODAL' }
   | { type: 'TOGGLE_PARTY_OVERLAY' }
@@ -128,6 +129,8 @@ export type AppAction =
   | { type: 'ADD_MET_NPC'; payload: { npcId: string } }
   // Gemini Log
   | { type: 'ADD_GEMINI_LOG_ENTRY'; payload: GeminiLogEntry }
+  | { type: 'ADD_OLLAMA_LOG_ENTRY'; payload: import('../types').OllamaLogEntry }
+  | { type: 'TOGGLE_OLLAMA_LOG_VIEWER' }
   | { type: 'SET_RATE_LIMIT_ERROR_FLAG' }
   | { type: 'SET_DEV_MODEL_OVERRIDE'; payload: string | null }
   // World State Actions
@@ -154,6 +157,7 @@ export type AppAction =
   // Companion Actions
   | { type: 'UPDATE_COMPANION_APPROVAL'; payload: { companionId: string; change: number; reason: string; source?: string } }
   | { type: 'ADD_COMPANION_REACTION'; payload: { companionId: string; reaction: string } }
+  | { type: 'ADD_COMPANION_MEMORY'; payload: { companionId: string; memory: import('../types/companions').CompanionMemory } }
   | { type: 'UPDATE_BANTER_COOLDOWN'; payload: { banterId: string; timestamp: number } }
   // Notification Actions
   | { type: 'ADD_NOTIFICATION'; payload: { type: 'success' | 'error' | 'info' | 'warning'; message: string; duration?: number } }
@@ -215,4 +219,16 @@ export type AppAction =
   | { type: 'NAVAL_RECRUIT_CREW'; payload: { role: CrewRole } }
   | { type: 'NAVAL_REPAIR_SHIP'; payload: { amount: number; cost: number } }
   | { type: 'NAVAL_SET_ACTIVE_SHIP'; payload: { shipId: string } }
-  | { type: 'TOGGLE_NAVAL_DASHBOARD' };
+  | { type: 'TOGGLE_NAVAL_DASHBOARD' }
+  // Crafting Actions
+  | { type: 'INIT_CRAFTING_STATE'; payload: { toolProficiencies: string[] } }
+  | { type: 'LEARN_RECIPE'; payload: { recipeId: string } }
+  | { type: 'ADD_CRAFTING_XP'; payload: { amount: number } }
+  | { type: 'UPDATE_CRAFTING_STATS'; payload: { quality: string; category: string; isNat20: boolean } }
+  | { type: 'UNLOCK_ACHIEVEMENT'; payload: { achievementId: string } }
+  | { type: 'SET_CRAFTING_LOCATION'; payload: { locationId: string } }
+  // Interactive Conversation Actions
+  | { type: 'START_CONVERSATION'; payload: { companionIds: string[]; initialMessage: import('../types/conversation').ConversationMessage } }
+  | { type: 'ADD_CONVERSATION_MESSAGE'; payload: import('../types/conversation').ConversationMessage }
+  | { type: 'SET_CONVERSATION_PENDING'; payload: boolean }
+  | { type: 'END_CONVERSATION' };

@@ -1,5 +1,6 @@
 import { EquipmentSlotType, Item } from './items';
-import { Monster, Location, VillageActionContext, DiscoveryResidue, Quest } from './world';
+import { Monster, Location, VillageActionContext, DiscoveryResidue } from './world';
+import { Quest } from './quests';
 import { TempPartyMember, PlayerCharacter } from './character';
 import { Faction } from './factions';
 
@@ -78,7 +79,8 @@ export type ActionType =
   | 'REGISTER_DYNAMIC_ENTITY'
   | 'START_DIALOGUE_SESSION'
   | 'UPDATE_DIALOGUE_SESSION'
-  | 'END_DIALOGUE_SESSION';
+  | 'END_DIALOGUE_SESSION'
+  | 'SET_DEV_MODE_ENABLED';
 
 export interface InspectSubmapTilePayload {
   tileX: number;

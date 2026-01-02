@@ -90,7 +90,8 @@ const BattleMapOverlay: React.FC<BattleMapOverlayProps> = ({
 
       {/* Spell effect ripples */}
       {spellAnimations.map((anim) => {
-        const positions: { x: number; y: number }[] = anim.data?.targetPositions || (anim.data?.targetPosition ? [anim.data.targetPosition] : []);
+        const data: any = anim.data;
+        const positions: { x: number; y: number }[] = data?.targetPositions || (data?.targetPosition ? [data.targetPosition] : []);
         return positions.map((pos: { x: number; y: number }) => (
           <div
             key={`${anim.id}-${pos.x}-${pos.y}`}

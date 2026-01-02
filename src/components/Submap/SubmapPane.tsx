@@ -582,10 +582,11 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                                 itemsInLocation={itemsInLocation}
                                 onAction={onAction}
                                 disabled={disabled || isInspecting || isQuickTravelMode}
-                                geminiGeneratedActions={geminiGeneratedActions}
+                                geminiGeneratedActions={geminiGeneratedActions} 
                                 isDevDummyActive={isDevDummyActive}
-                                unreadDiscoveryCount={unreadDiscoveryCount}
-                                hasNewRateLimitError={hasNewRateLimitError}
+                                isDevModeEnabled={false}
+                                unreadDiscoveryCount={unreadDiscoveryCount}     
+                                hasNewRateLimitError={hasNewRateLimitError}     
                                 subMapCoordinates={playerSubmapCoords}
                                 worldSeed={worldSeed}
                             />

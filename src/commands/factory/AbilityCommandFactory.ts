@@ -1,6 +1,6 @@
 import { CombatCharacter, Ability, CombatState } from '@/types/combat';
 import { GameState } from '@/types';
-import { SpellCommand, CommandContext } from '../base/SpellCommand';
+import { SpellCommand, CommandContext, CommandMetadata } from '../base/SpellCommand';
 import { DamageCommand } from '../effects/DamageCommand';
 import { HealingCommand } from '../effects/HealingCommand';
 import { StatusConditionCommand } from '../effects/StatusConditionCommand';
@@ -17,10 +17,7 @@ import { AttackRiderSystem, AttackContext } from '@/systems/combat/AttackRiderSy
 export class WeaponAttackCommand implements SpellCommand {
   public readonly id = generateId();
   public readonly description: string;
-  // TODO(lint-intent): The any on 'metadata' hides the intended shape of this data.
-  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-  public readonly metadata: unknown;
+  public readonly metadata: CommandMetadata;
 
   private ability: Ability;
   private caster: CombatCharacter;
@@ -60,10 +57,12 @@ export class WeaponAttackCommand implements SpellCommand {
 
       // 2. Roll Attack
       // Check for Disadvantage from target's active effects
-      const hasDisadvantage = currentTarget.activeEffects?.some(e =>
-        e.type === 'disadvantage_on_attacks' &&
-        SpellCommandFactory.matchesFilter(this.caster, e.attackerFilter)
-      );
+      const hasDisadvantage = currentTarget.activeEffects?.some(e => {
+        const attackerFilter = (e as { attackerFilter?: unknown; mechanics?: { attackerFilter?: unknown } }).mechanics?.attackerFilter ?? (e as any).attackerFilter;
+        // TODO(lint-intent): Model disadvantage effects explicitly in ActiveEffect instead of duck-typing here.
+        return (e as any).type === 'disadvantage_on_attacks' &&
+          SpellCommandFactory.matchesFilter(this.caster, attackerFilter);
+      });
 
       let d20 = rollDice('1d20');
       let rollStr = `Rolled ${d20}`;

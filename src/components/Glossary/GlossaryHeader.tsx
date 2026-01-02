@@ -18,6 +18,8 @@ interface GlossaryHeaderProps {
     onResetLayout: () => void;
     /** Handler for closing the modal */
     onClose: () => void;
+    /** Handler for maximizing the modal */
+    onMaximize: () => void;
     /** Current search term */
     searchTerm: string;
     /** Handler for search term changes */
@@ -34,6 +36,7 @@ export const GlossaryHeader: React.FC<GlossaryHeaderProps> = ({
     isCheckingSpells,
     onResetLayout,
     onClose,
+    onMaximize,
     searchTerm,
     onSearchChange,
 }) => {
@@ -76,6 +79,19 @@ export const GlossaryHeader: React.FC<GlossaryHeaderProps> = ({
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         )}
+                    </button>
+
+                    {/* Maximize Button */}
+                    <button
+                        type="button"
+                        onClick={onMaximize}
+                        className="text-gray-500 hover:text-amber-400 p-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 transition-colors"
+                        aria-label="Maximize to window"
+                        title="Maximize to fit window"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                        </svg>
                     </button>
 
                     {/* Reset Layout Button */}

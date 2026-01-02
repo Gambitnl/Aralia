@@ -3,7 +3,7 @@
  * This file contains utility functions for social interactions,
  * like assessing the plausibility of a character's actions.
  */
-import { Action, PlayerCharacter, GameState, SuspicionLevel } from '../types';
+import { Action, PlayerCharacter, GameState, SuspicionLevel } from '../../types';
 
 /**
  * Assesses the plausibility of a deception-based action and returns a DC modifier.

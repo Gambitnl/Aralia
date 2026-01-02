@@ -1,7 +1,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ReactiveEffectCommand } from '../ReactiveEffectCommand';
-import { createMockCombatCharacter } from '../../../utils/factories';
+import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/factories';
 import { CombatCharacter, CombatState } from '../../../types/combat';
 
 // Mock logger
@@ -24,18 +24,19 @@ describe('ReactiveEffectCommand Security Check', () => {
         caster = createMockCombatCharacter({ id: 'caster-1', name: 'Wizard' });
         target = createMockCombatCharacter({ id: 'target-1', name: 'Goblin' });
 
-        mockState = {
+        mockState = createMockCombatState({
+            characters: [caster, target],
             turnState: {
                 currentTurn: 1,
                 turnOrder: [caster.id, target.id],
                 currentCharacterId: caster.id,
-                round: 1,
+                phase: 'action',
+                actionsThisTurn: [],
             },
-            characters: [caster, target],
-            activeEffects: [],
-            reactiveTriggers: [],
             combatLog: [],
-        } as unknown as CombatState;
+            reactiveTriggers: [],
+            activeLightSources: []
+        });
 
         vi.clearAllMocks();
     });
@@ -43,14 +44,17 @@ describe('ReactiveEffectCommand Security Check', () => {
     it('should log execution via logger instead of console.log', () => {
         const command = new ReactiveEffectCommand(
             {
-                type: 'reactive_trigger',
-                trigger: { type: 'on_target_move', movementType: 'leave_reach' }
+                type: 'REACTIVE',
+                trigger: { type: 'on_target_move', movementType: 'leave_reach' },
+                condition: { type: 'always' } as any
             },
             {
                 spellId: 'spell-1',
                 spellName: 'Opportunity Attack',
+                castAtLevel: 1,
                 caster: caster,
                 targets: [target],
+                gameState: createMockGameState(),
             }
         );
 

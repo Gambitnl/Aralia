@@ -8,7 +8,7 @@ import { useGameState } from '../../state/GameContext';
 import { generateVillageTemple } from '../../utils/templeUtils';
 import { VillageActionContext, VillagePersonality } from '../../types';
 
-type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple' | 'toggle_thieves_guild';
+type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'toggle_ollama_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple' | 'toggle_thieves_guild' | 'toggle_naval_dashboard';
 
 interface DevMenuProps {
   isOpen: boolean;
@@ -51,58 +51,80 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
   };
 
   const openTestTemple = () => {
-      // Force open a temple modal with a dummy temple
-      const testPersonality: VillagePersonality = {
-          wealth: 'rich',
-          culture: 'scholarly',
-          population: 'large',
-          primaryIndustry: 'magic',
-          architecturalStyle: 'magical',
-          biomeStyle: 'temperate',
-          governingBody: 'council',
-      };
-      // TODO(lint-intent): 'temple' is declared but unused, suggesting an unfinished state/behavior hook in this block.
-      // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
-      // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
-      const _temple = generateVillageTemple('dev_test', testPersonality, 12345);
+    // Force open a temple modal with a dummy temple
+    const testPersonality: VillagePersonality = {
+      wealth: 'rich',
+      culture: 'scholarly',
+      population: 'large',
+      primaryIndustry: 'magic',
+      architecturalStyle: 'magical',
+      biomeStyle: 'temperate',
+      governingBody: 'council',
+    };
+    // TODO(lint-intent): 'temple' is declared but unused, suggesting an unfinished state/behavior hook in this block.
+    // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
+    // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    const _temple = generateVillageTemple('dev_test', testPersonality, 12345);
 
-      const villageContext: VillageActionContext & { personality?: VillagePersonality } = {
-          worldX: 0,
-          worldY: 0,
-          biomeId: 'test',
-          buildingType: 'shop_temple',
-          description: 'Test Temple',
-          integrationProfileId: 'test',
-          integrationPrompt: '',
-          integrationTagline: '',
-          culturalSignature: '',
-          encounterHooks: [],
-          personality: testPersonality,
-      };
+    const villageContext: VillageActionContext & { personality?: VillagePersonality } = {
+      worldX: 0,
+      worldY: 0,
+      biomeId: 'test',
+      buildingType: 'shop_temple',
+      description: 'Test Temple',
+      integrationProfileId: 'test',
+      integrationPrompt: '',
+      integrationTagline: '',
+      culturalSignature: '',
+      encounterHooks: [],
+      personality: testPersonality,
+    };
 
-      // Dispatch the action to open it.
-      dispatch({
-          type: 'OPEN_TEMPLE',
-          payload: {
-              villageContext
-          }
-      });
-      onClose();
+    // Dispatch the action to open it.
+    dispatch({
+      type: 'OPEN_TEMPLE',
+      payload: {
+        villageContext
+      }
+    });
+    onClose();
   };
 
-  const devActionButtons: Array<{ label: string; action: DevMenuActionType; style?: string; onClick?: () => void }> = [
-    { label: 'Go to Main Menu', action: 'main_menu', style: 'bg-blue-600 hover:bg-blue-500' },
-    { label: 'Go to Character Creator', action: 'char_creator', style: 'bg-green-600 hover:bg-green-500' },
-    { label: 'Force Save Game', action: 'save', style: 'bg-yellow-500 hover:bg-yellow-400 text-gray-900' },
-    { label: 'Force Load Game', action: 'load', style: 'bg-teal-500 hover:bg-teal-400' },
-    { label: 'Battle Map Demo', action: 'battle_map_demo', style: 'bg-teal-600 hover:bg-teal-500' },
-    { label: 'Edit Encounter Party', action: 'toggle_party_editor', style: 'bg-indigo-600 hover:bg-indigo-500' },
-    { label: 'Generate Encounter', action: 'generate_encounter', style: 'bg-rose-600 hover:bg-rose-500' },
-    { label: 'View Gemini Prompt Log', action: 'toggle_log_viewer', style: 'bg-purple-600 hover:bg-purple-500' },
-    { label: 'NPC Interaction Test Plan', action: 'toggle_npc_test_plan', style: 'bg-cyan-600 hover:bg-cyan-500' },
-    { label: 'Inspect Noble Houses', action: 'inspect_noble_houses', style: 'bg-orange-600 hover:bg-orange-500' },
-    { label: 'Test Temple UI', action: 'test_temple', style: 'bg-amber-600 hover:bg-amber-500', onClick: openTestTemple },
-    { label: 'Access Criminal Underworld', action: 'toggle_thieves_guild', style: 'bg-purple-900 hover:bg-purple-800 border border-purple-600' },
+  const devActionGroups: Array<{ title: string; buttons: Array<{ label: string; action: DevMenuActionType; style?: string; onClick?: () => void }> }> = [
+    {
+      title: 'Game State & Navigation',
+      buttons: [
+        { label: 'Force Save Game', action: 'save', style: 'bg-yellow-500 hover:bg-yellow-400 text-gray-900' },
+        { label: 'Force Load Game', action: 'load', style: 'bg-teal-500 hover:bg-teal-400' },
+        { label: 'Go to Main Menu', action: 'main_menu', style: 'bg-blue-600 hover:bg-blue-500' },
+        { label: 'Go to Character Creator', action: 'char_creator', style: 'bg-green-600 hover:bg-green-500' },
+      ],
+    },
+    {
+      title: 'Combat & Encounters',
+      buttons: [
+        { label: 'Battle Map Demo', action: 'battle_map_demo', style: 'bg-teal-600 hover:bg-teal-500' },
+        { label: 'Edit Encounter Party', action: 'toggle_party_editor', style: 'bg-indigo-600 hover:bg-indigo-500' },
+        { label: 'Generate Encounter', action: 'generate_encounter', style: 'bg-rose-600 hover:bg-rose-500' },
+      ],
+    },
+    {
+      title: 'Debug & Inspection',
+      buttons: [
+        { label: 'View Gemini Prompt Log', action: 'toggle_log_viewer', style: 'bg-purple-600 hover:bg-purple-500' },
+        { label: 'View Ollama Prompt Log', action: 'toggle_ollama_log_viewer', style: 'bg-emerald-600 hover:bg-emerald-500' },
+        { label: 'NPC Interaction Test Plan', action: 'toggle_npc_test_plan', style: 'bg-cyan-600 hover:bg-cyan-500' },
+        { label: 'Inspect Noble Houses', action: 'inspect_noble_houses', style: 'bg-orange-600 hover:bg-orange-500' },
+      ],
+    },
+    {
+      title: 'Feature Testing',
+      buttons: [
+        { label: 'Test Temple UI', action: 'test_temple', style: 'bg-amber-600 hover:bg-amber-500', onClick: openTestTemple },
+        { label: 'Access Criminal Underworld', action: 'toggle_thieves_guild', style: 'bg-purple-900 hover:bg-purple-800 border border-purple-600' },
+        { label: 'Naval Dashboard', action: 'toggle_naval_dashboard', style: 'bg-slate-700 hover:bg-slate-600 border border-slate-500' },
+      ],
+    },
   ];
 
   return (
@@ -112,7 +134,7 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
       role="dialog"
       aria-labelledby="dev-menu-title"
     >
-      <div className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-md flex flex-col max-h-[90vh] overflow-y-auto">
+      <div className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-2xl flex flex-col max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 id="dev-menu-title" className="text-2xl font-bold text-amber-400 font-cinzel">
             Developer Menu
@@ -126,23 +148,33 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
           </button>
         </div>
 
-        <div className="space-y-3 mb-6">
-          {devActionButtons.map((btn, index) => {
-            const showBadge = btn.action === 'toggle_log_viewer' && hasNewRateLimitError;
-            return (
-              <button
-                key={btn.action}
-                ref={index === 0 ? firstFocusableElementRef : null}
-                onClick={btn.onClick || (() => onDevAction(btn.action))}
-                className={`relative w-full text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-colors text-lg ${btn.style || 'bg-gray-600 hover:bg-gray-500'}`}
-              >
-                {btn.label}
-                {showBadge && (
-                  <span className="absolute top-2 right-2 h-3.5 w-3.5 rounded-full bg-red-500 border-2 border-gray-800 animate-pulse"></span>
-                )}
-              </button>
-            );
-          })}
+        <div className="space-y-6 mb-6">
+          {devActionGroups.map((group, groupIndex) => (
+            <div key={group.title}>
+              <h3 className="text-sm uppercase tracking-wider text-gray-400 font-bold mb-3 border-b border-gray-700 pb-1">
+                {group.title}
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {group.buttons.map((btn, btnIndex) => {
+                  const showBadge = btn.action === 'toggle_log_viewer' && hasNewRateLimitError;
+                  const isFirstButton = groupIndex === 0 && btnIndex === 0;
+                  return (
+                    <button
+                      key={btn.action}
+                      ref={isFirstButton ? firstFocusableElementRef : null}
+                      onClick={btn.onClick || (() => onDevAction(btn.action))}
+                      className={`relative w-full text-white font-semibold py-2 px-3 rounded-lg shadow-md transition-colors text-sm ${btn.style || 'bg-gray-600 hover:bg-gray-500'}`}
+                    >
+                      {btn.label}
+                      {showBadge && (
+                        <span className="absolute top-2 right-2 h-3.5 w-3.5 rounded-full bg-red-500 border-2 border-gray-800 animate-pulse"></span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="mt-4 pt-4 border-t border-gray-600">

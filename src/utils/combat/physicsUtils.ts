@@ -7,8 +7,8 @@
  * Implements mechanics for movement, falling, and object interactions based on D&D 5e rules.
  */
 
-import { DiceRoll } from '../types/dice';
-import { Position } from '../types/combat';
+import { DiceRoll } from '../../types/dice';
+import { Position } from '../../types/combat';
 
 // TODO(Mechanist): Integrate object AC/HP rules into combat targeting system (attacking doors/walls).
 // TODO(Mechanist): Wire up suffocation/breath rules into `useTurnManager.ts` to apply StatusEffect.Choking when breath runs out.

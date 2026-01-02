@@ -89,6 +89,7 @@ export interface ActiveEffect {
   description?: string;
   savingThrows?: SavingThrowAbility[];  // For advantage_on_saves
   attackerFilter?: TargetConditionFilter; // Strict typing replacing 'any'
+  mechanics?: Record<string, unknown>;
 }
 
 /**

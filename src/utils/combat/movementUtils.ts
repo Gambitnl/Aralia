@@ -3,7 +3,7 @@
  * Utilities for calculating movement costs and distances using D&D 5e Variant rules (5-10-5).
  */
 
-import { Position } from '../types/combat';
+import { Position } from '../../types/combat';
 
 /**
  * Calculates the cost of a single step.

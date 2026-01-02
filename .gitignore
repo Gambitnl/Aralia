@@ -66,3 +66,11 @@ spell_gate_report.txt
 
 # Lock file (using npm, not pnpm)
 pnpm-lock.yaml
+
+# Design Preview Tool
+src/components/DesignPreview/
+src/design-preview.tsx
+design.html
+png_collection/
+playwright-report/
+playwright/

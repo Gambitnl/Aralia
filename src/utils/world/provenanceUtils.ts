@@ -7,9 +7,9 @@
  * "If they don't remember, it didn't happen." - Recorder
  */
 
-import { Item } from '../types/items';
-import { ItemProvenance, ProvenanceEventType } from '../types/provenance';
-import { GameDate } from '../types/memory';
+import { Item } from '../../types/items';
+import { ItemProvenance, ProvenanceEventType } from '../../types/provenance';
+import { GameDate } from '../../types/memory';
 
 /**
  * Creates an empty provenance record for a newly created item.

@@ -117,9 +117,10 @@ export function calculateEncumbrance(
   // Calculate total weight
   // Note: Coin weight is often ignored or calculated separately, standard 5e is 50 coins = 1 lb.
   // We'll focus on item weight for now.
-  const totalWeight = inventory.reduce((sum, item) => sum + (item.weight || 0) * (item.quantity || 1), 0);
+  // TODO(lint-intent): quantity is optional on Item; assume 1 when absent so encumbrance math remains conservative.
+  const totalWeight = inventory.reduce((sum, item) => sum + (item.weight || 0) * ((item as any).quantity ?? 1), 0);
 
-  const strScore = character.finalAbilityScores.strength || 10;
+  const strScore = (character.finalAbilityScores as any).Strength || 10;
 
   // Thresholds
   const encumberedThreshold = strScore * 5;

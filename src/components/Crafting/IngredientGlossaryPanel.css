@@ -1,0 +1,393 @@
+/**
+ * @file src/components/Crafting/IngredientGlossaryPanel.css
+ * Styles for the IngredientGlossaryPanel component.
+ */
+
+.glossary-panel {
+    background: linear-gradient(135deg, rgba(25, 35, 40, 0.95), rgba(15, 25, 30, 0.98));
+    border: 1px solid rgba(100, 150, 200, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    width: 700px;
+    max-width: 95vw;
+    max-height: 85vh;
+    color: #e0e0e8;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.glossary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(100, 150, 200, 0.2);
+}
+
+.glossary-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #88ccff;
+}
+
+.glossary-header .close-btn {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.glossary-header .close-btn:hover {
+    background: rgba(255, 100, 100, 0.2);
+    color: #ff6666;
+}
+
+/* Stats */
+.glossary-stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+.glossary-stats .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.glossary-stats .stat-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #88ccff;
+}
+
+.glossary-stats .stat.completion .stat-value {
+    color: #88ff88;
+}
+
+.glossary-stats .stat-label {
+    font-size: 0.65rem;
+    color: #888;
+    text-transform: uppercase;
+}
+
+/* Filters */
+.glossary-filters {
+    margin-bottom: 0.75rem;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(100, 150, 200, 0.2);
+    border-radius: 6px;
+    color: #ddd;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: rgba(100, 150, 200, 0.5);
+}
+
+.search-input::placeholder {
+    color: #666;
+}
+
+.filter-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.filter-group label {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.filter-group select {
+    padding: 0.35rem 0.5rem;
+    background: rgba(50, 60, 70, 0.8);
+    border: 1px solid rgba(100, 150, 200, 0.2);
+    border-radius: 4px;
+    color: #ddd;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.filter-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: #888;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+/* Content */
+.glossary-content {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 1rem;
+    flex: 1;
+    overflow: hidden;
+    min-height: 300px;
+}
+
+/* Ingredient List */
+.ingredient-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.ingredient-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.6rem;
+    background: rgba(40, 50, 60, 0.6);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    color: #ddd;
+    transition: all 0.2s;
+}
+
+.ingredient-item:hover {
+    background: rgba(50, 60, 70, 0.6);
+}
+
+.ingredient-item.selected {
+    background: rgba(100, 150, 200, 0.2);
+    border-color: rgba(100, 150, 200, 0.4);
+}
+
+.ingredient-item.owned {
+    border-left: 3px solid #4caf50;
+}
+
+.ingredient-item .ing-icon {
+    font-size: 1.2rem;
+}
+
+.ingredient-item .ing-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.ingredient-item .ing-name {
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ingredient-item .ing-source {
+    font-size: 0.65rem;
+    color: #888;
+}
+
+.ingredient-item .ing-rarity {
+    font-size: 0.7rem;
+    text-transform: capitalize;
+}
+
+.ingredient-item .ing-owned {
+    background: rgba(76, 175, 80, 0.3);
+    color: #88ff88;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.no-results {
+    padding: 2rem;
+    text-align: center;
+    color: #666;
+}
+
+/* Detail View */
+.ingredient-detail {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.detail-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.detail-icon {
+    font-size: 2rem;
+}
+
+.detail-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #88ccff;
+}
+
+.detail-rarity {
+    font-size: 0.75rem;
+    text-transform: capitalize;
+}
+
+.owned-badge {
+    margin-left: auto;
+    background: rgba(76, 175, 80, 0.3);
+    color: #88ff88;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.detail-description {
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    color: #aaa;
+    font-style: italic;
+    line-height: 1.4;
+}
+
+.detail-section {
+    margin-bottom: 0.75rem;
+}
+
+.detail-section h4 {
+    margin: 0 0 0.4rem 0;
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.detail-section p {
+    margin: 0.2rem 0;
+    font-size: 0.85rem;
+    color: #bbb;
+}
+
+.location-tags,
+.property-tags,
+.recipe-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.location-tag {
+    padding: 0.2rem 0.5rem;
+    background: rgba(100, 150, 200, 0.2);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: #88ccff;
+    text-transform: capitalize;
+}
+
+.property-tag {
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: white;
+    text-transform: capitalize;
+}
+
+.property-tag.curative {
+    background: #4caf50;
+}
+
+.property-tag.toxic {
+    background: #9c27b0;
+}
+
+.property-tag.reactive {
+    background: #ff5722;
+}
+
+.property-tag.psionic {
+    background: #3f51b5;
+}
+
+.property-tag.ethereal {
+    background: #00bcd4;
+}
+
+.property-tag.luminous {
+    background: #ffeb3b;
+    color: #333;
+}
+
+.property-tag.inert {
+    background: #9e9e9e;
+}
+
+.recipe-tag {
+    padding: 0.2rem 0.5rem;
+    background: rgba(150, 100, 200, 0.2);
+    border-radius: 4px;
+    font-size: 0.7rem;
+    color: #c8a0ff;
+    text-transform: capitalize;
+}
+
+.recipe-tag.more {
+    background: rgba(100, 100, 100, 0.3);
+    color: #888;
+}
+
+.no-selection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #666;
+}
+
+/* Scrollbars */
+.ingredient-list::-webkit-scrollbar,
+.ingredient-detail::-webkit-scrollbar {
+    width: 5px;
+}
+
+.ingredient-list::-webkit-scrollbar-track,
+.ingredient-detail::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.ingredient-list::-webkit-scrollbar-thumb,
+.ingredient-detail::-webkit-scrollbar-thumb {
+    background: rgba(100, 150, 200, 0.3);
+    border-radius: 3px;
+}

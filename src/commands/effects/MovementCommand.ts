@@ -239,7 +239,8 @@ export class MovementCommand extends BaseEffectCommand {
                 type: 'action',
                 message: `${target.name} teleports from (${origin.x}, ${origin.y}) to (${altDest.x}, ${altDest.y})`,
                 characterId: target.id,
-                data: { from: origin, to: altDest, maxDistance: effect.distance || null }
+                // TODO: capture teleport budget precisely (tiles vs feet) once effect.distance is normalized.
+                data: { from: origin, to: altDest, maxDistance: effect.distance ?? undefined }
             })
         }
 
@@ -249,7 +250,8 @@ export class MovementCommand extends BaseEffectCommand {
             type: 'action',
             message: `${target.name} teleports from (${origin.x}, ${origin.y}) to (${clampedDestination.x}, ${clampedDestination.y})`,
             characterId: target.id,
-            data: { from: origin, to: clampedDestination, maxDistance: effect.distance || null }
+            // TODO: expose whether the teleport consumed the full budget or was clamped by the map bounds.
+            data: { from: origin, to: clampedDestination, maxDistance: effect.distance ?? undefined }
         })
     }
 

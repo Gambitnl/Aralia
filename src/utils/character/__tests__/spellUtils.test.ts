@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { getCharacterSpells } from '../spellUtils';
-import { PlayerCharacter, Spell } from '../../types';
+import { PlayerCharacter, Spell } from '../../../types';
 
 // Mock dependencies
 // We can't easily mock the constants import directly in Vitest ESM without complex setup,
@@ -18,11 +18,11 @@ const createMockSpell = (id: string, name: string, level: number): Spell => ({
   id,
   name,
   level,
-  school: 'evocation',
-  castingTime: '1 action',
-  range: '60 feet',
-  components: ['V', 'S'],
-  duration: 'Instantaneous',
+  school: 'evocation' as any,
+  castingTime: { value: 1, unit: 'action' } as any,
+  range: { type: 'ranged', distance: 60 } as any,
+  components: { verbal: true, somatic: true, material: false } as any,
+  duration: { type: 'instantaneous', concentration: false } as any,
   description: 'A test spell.',
   classes: ['wizard'],
 });

@@ -1,5 +1,5 @@
-import { AbilityScores, Race, PlayerCharacter, Item, EquipmentSlotType } from '../types';
-import { ActiveEffect } from '../types/effects';
+import { AbilityScores, Race, PlayerCharacter, Item, EquipmentSlotType } from '../../types';
+import { ActiveEffect } from '../../types/effects';
 
 /**
  * Calculates the D&D ability score modifier as a number.

@@ -4,6 +4,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { useSummons } from '../../../../hooks/combat/useSummons';
 import { CombatCharacter } from '../../../../types/combat';
 import { Spell, SpellSchool } from '../../../../types/spells';
+import { Class } from '../../../../types/character';
+type SummonEffectInput = Parameters<ReturnType<typeof useSummons>['addSummon']>[2];
 
 // Mock dependencies
 const mockCaster: CombatCharacter = {
@@ -26,7 +28,7 @@ const mockCaster: CombatCharacter = {
     conditions: [],
     level: 5,
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    class: 'Wizard' as unknown,
+    class: 'Wizard' as unknown as Class,
     initiative: 12,
     actionEconomy: {
         action: { used: false, remaining: 1 },
@@ -52,7 +54,7 @@ const mockSpell: Spell = {
     targeting: { type: 'self', validTargets: [] }
 };
 
-const mockSummonEffect = {
+const mockSummonEffect: SummonEffectInput = {
     entityType: 'familiar',
     statBlock: {
         name: 'Owl Familiar',
@@ -72,15 +74,15 @@ const mockSummonEffect = {
             damage: { dice: '1d4', type: 'slashing' }
         }
     ],
-    duration: { type: 'special' }
-};
+    duration: { type: 'special' as const }
+} as SummonEffectInput;
 
 // New mock effect without explicit statBlock but with formOptions
-const mockVariableSummonEffect = {
+const mockVariableSummonEffect: SummonEffectInput = {
     entityType: 'familiar',
     formOptions: ['Cat', 'Frog', 'Owl'],
-    duration: { type: 'special' }
-};
+    duration: { type: 'special' as const }
+} as SummonEffectInput;
 
 describe('useSummons Hook', () => {
     it('should initialize with empty summons', () => {
@@ -194,7 +196,7 @@ describe('useSummons Hook', () => {
         const { result } = renderHook(() => useSummons());
         const consoleSpy = vi.spyOn(console, 'warn');
 
-        const invalidEffect = { entityType: 'unknown', duration: { type: 'special' } };
+        const invalidEffect: SummonEffectInput = { entityType: 'unknown', duration: { type: 'special' as const } };
 
         act(() => {
              result.current.addSummon(

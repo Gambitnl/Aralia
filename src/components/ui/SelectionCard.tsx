@@ -1,7 +1,7 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, HTMLMotionProps } from 'framer-motion';
 
-export interface SelectionCardProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface SelectionCardProps extends HTMLMotionProps<"div"> {
   title: string;
   selected?: boolean;
   onClick?: () => void;
@@ -10,6 +10,7 @@ export interface SelectionCardProps extends React.HTMLAttributes<HTMLDivElement>
    * If provided, the card body will have flex-grow to push footer to bottom.
    */
   footer?: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 /**
@@ -66,7 +67,7 @@ export const SelectionCard: React.FC<SelectionCardProps> = ({
             {title}
         </h3>
         <div className="text-sm text-gray-300">
-            {children}
+            {children as React.ReactNode}
         </div>
       </div>
       {footer && (

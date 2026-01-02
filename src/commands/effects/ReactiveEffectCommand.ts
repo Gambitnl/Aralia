@@ -146,11 +146,16 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
     private registerSustainRequirement(triggerId: string): void {
         if (!this.effect.trigger.sustainCost) return;
 
+        const sustainCost: { actionType: 'action' | 'bonus_action' | 'reaction'; optional: boolean } =
+          typeof this.effect.trigger.sustainCost === 'number'
+            ? { actionType: 'action', optional: false }
+            : this.effect.trigger.sustainCost;
+
         const sustainedSpell: SustainedSpell = {
             spellId: this.context.spellId,
             casterId: this.context.caster.id,
             targetIds: this.context.targets.map(t => t.id),
-            sustainCost: this.effect.trigger.sustainCost,
+            sustainCost,
             effectIds: [triggerId], // This effect needs sustaining
             sustainedThisTurn: false
         };

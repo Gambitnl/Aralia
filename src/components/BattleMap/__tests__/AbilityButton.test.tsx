@@ -29,7 +29,7 @@ describe('AbilityButton', () => {
             range: { type: 'ranged', distance: 120 },
             components: { verbal: true, somatic: true, material: true },
             duration: { type: 'instantaneous', concentration: false },
-            targeting: { type: 'area', range: 120, areaOfEffect: { shape: 'Sphere', size: 20 } },
+            targeting: { type: 'area', range: 120, areaOfEffect: { shape: 'Sphere', size: 20 }, validTargets: ['creatures'] },
             effects: []
         }
     };

@@ -61,6 +61,8 @@ export interface SubmapRendererPixiProps {
     quickTravelDestination?: PathPoint | null;
     isQuickTravelBlocked?: boolean;
     blockedTiles?: Set<string>;
+    paletteOverrides?: Partial<Record<string, number>>;
+    biomeTintColor?: number | null;
     onHoverTile?: (coords: { x: number; y: number } | null) => void;
     onClickTile?: (coords: { x: number; y: number }) => void;
     onRenderMetrics?: (metrics: { lastMs: number; fpsEstimate: number }) => void;

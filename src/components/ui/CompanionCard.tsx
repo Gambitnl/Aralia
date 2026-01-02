@@ -15,8 +15,11 @@ interface CompanionCardProps {
 }
 
 const LEVEL_COLORS: Record<RelationshipLevel, string> = {
+  hated: 'text-red-700',
   enemy: 'text-red-500',
   rival: 'text-orange-500',
+  distrusted: 'text-orange-300',
+  wary: 'text-yellow-300',
   stranger: 'text-gray-400',
   acquaintance: 'text-blue-300',
   friend: 'text-green-400',

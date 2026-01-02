@@ -71,6 +71,7 @@ describe('ActionPane', () => {
     disabled: false,
     geminiGeneratedActions: null as Action[] | null,
     isDevDummyActive: false,
+    isDevModeEnabled: false,
     unreadDiscoveryCount: 0,
     hasNewRateLimitError: false,
   };

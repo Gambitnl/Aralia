@@ -1,66 +1,89 @@
-import { SkillName } from './core';
-import { ItemType } from './items';
+/**
+ * @file src/types/crafting.ts
+ * Type definitions for the crafting system.
+ */
 
-export type CraftingStationType = 'forge' | 'alchemy_bench' | 'workbench' | 'campfire' | 'loom' | 'enchanters_table';
+export type CraftingQuality = 'ruined' | 'flawed' | 'standard' | 'masterwork' | 'legendary';
 
-export type ItemQuality = 'poor' | 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
-
-export interface MaterialRequirement {
-  itemId: string;
-  quantity: number;
-  consumed: boolean;
-  qualityMin?: ItemQuality;
-  /**
-   * If true, any item of the specified `itemType` (e.g., 'wood') can be used
-   * instead of a specific itemId.
-   */
-  matchByItemType?: ItemType;
+export interface CraftingStats {
+  totalCrafted: number;
+  successfulCrafts: number;
+  failedCrafts: number;
+  masterworkCrafts: number;
+  legendaryRolls: number;
+  ruinedMaterials: number;
+  nat20Count: number;
+  explosionsSurvived: number;
+  recipesDiscovered: number;
+  categoryCounts: Record<string, number>;
 }
 
-export interface SkillRequirement {
-  skill: SkillName;
-  difficultyClass: number; // The DC to beat for success
+export interface CraftingAchievementUnlock {
+  achievementId: string;
+  unlockedAt: number;
 }
 
-export interface CraftBonus {
-  attribute: 'damage' | 'durability' | 'value' | 'potency';
-  value: number;
-}
-
-export interface CraftingOutput {
-  itemId: string;
-  quantity: number;
-  qualityFromRoll: boolean; // If true, the result quality depends on the skill check
-  bonusOnCrit?: CraftBonus; // Applied if the check exceeds DC by 10+
+export interface CraftingState {
+  /** Current crafter level (1-10) */
+  level: number;
+  /** Current XP towards next level */
+  xp: number;
+  /** XP required for next level */
+  xpToNextLevel: number;
+  /** Bonus modifier to crafting rolls from progression */
+  bonusModifier: number;
+  /** IDs of recipes the player has discovered/learned (stored as array for serialization) */
+  knownRecipes: string[];
+  /** Tool proficiencies */
+  toolProficiencies: string[];
+  /** Crafting statistics */
+  stats: CraftingStats;
+  /** Unlocked achievements */
+  unlockedAchievements: string[];
+  /** Current crafting location */
+  currentLocation: string;
 }
 
 /**
- * A recipe for crafting items.
- * Includes requirements, outputs, and skill checks.
+ * Creates the default initial crafting state.
  */
-export interface Recipe {
-  id: string;
-  name: string;
-  description: string;
-  category: 'smithing' | 'alchemy' | 'woodworking' | 'weaving' | 'enchanting' | 'cooking' | 'tinkering';
-  inputs: MaterialRequirement[];
-  outputs: CraftingOutput[];
-  station?: CraftingStationType;
-  skillCheck?: SkillRequirement;
-  timeMinutes: number;
+export function createInitialCraftingState(toolProficiencies: string[] = []): CraftingState {
+  // Starting recipes based on tool proficiencies
+  const startingRecipes: string[] = [];
 
-  /**
-   * Required tools that are not consumed but must be present.
-   * e.g., 'hammer', 'mortar_pestle'
-   */
-  toolsRequired?: string[];
-}
+  for (const tool of toolProficiencies) {
+    const normalizedTool = tool.toLowerCase();
+    if (normalizedTool.includes('alchemist')) {
+      startingRecipes.push('alchemists_fire', 'smokebomb', 'vial_of_acid');
+    }
+    if (normalizedTool.includes('herbalism')) {
+      startingRecipes.push('healing_salve', 'antitoxin', 'potion_of_climbing');
+    }
+    if (normalizedTool.includes('poison')) {
+      startingRecipes.push('basic_poison', 'serpent_venom_poison', 'truth_serum');
+    }
+  }
 
-export interface CraftResult {
-  success: boolean;
-  quality: ItemQuality;
-  itemsCreated: Array<{ itemId: string; quantity: number }>;
-  materialsConsumed: Array<{ itemId: string; quantity: number }>;
-  experienceGained?: number;
-  message: string;
+  return {
+    level: 1,
+    xp: 0,
+    xpToNextLevel: 100,
+    bonusModifier: 0,
+    knownRecipes: [...new Set(startingRecipes)],
+    toolProficiencies,
+    stats: {
+      totalCrafted: 0,
+      successfulCrafts: 0,
+      failedCrafts: 0,
+      masterworkCrafts: 0,
+      legendaryRolls: 0,
+      ruinedMaterials: 0,
+      nat20Count: 0,
+      explosionsSurvived: 0,
+      recipesDiscovered: 0,
+      categoryCounts: {}
+    },
+    unlockedAchievements: [],
+    currentLocation: 'workshop'
+  };
 }

@@ -1,6 +1,6 @@
 
 import { describe, it, expect } from 'vitest';
-import { rollDice } from '../combatUtils';
+import { rollDice } from '../../combat/combatUtils';
 
 describe('combatUtils: rollDice', () => {
   it('returns 0 for empty or invalid input', () => {

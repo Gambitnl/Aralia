@@ -15,6 +15,7 @@ export interface ButtonProps extends HTMLMotionProps<"button"> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   isLoading?: boolean;
+  children?: React.ReactNode;
 }
 
 const VARIANT_MAP: Record<ButtonVariant, string> = {

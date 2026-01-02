@@ -3,7 +3,7 @@
  * Shared security utility functions for input sanitization and validation.
  */
 
-import { ENV } from '../config/env';
+import { ENV } from '../../config/env';
 
 /**
  * Sanitizes user input intended for AI prompts to prevent injection attacks and DoS.

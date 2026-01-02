@@ -43,9 +43,15 @@ export interface Spell {
   visual?: SpellVisualSpec;
 
   // --- AI & Advanced Systems ---
-  // --- AI & Advanced Systems ---
   arbitrationType?: ArbitrationType;
   aiContext?: AIContext;
+
+  // --- Legacy/Convenience Fields ---
+  // TODO(Taxonomist): Remove these once all spell data uses the new targeting/effects structure
+  /** @deprecated Use targeting.areaOfEffect instead */
+  areaOfEffect?: AreaOfEffect;
+  /** @deprecated Use effects[].damage.type instead */
+  damageType?: DamageType;
 }
 
 /**
@@ -177,7 +183,20 @@ export type SpellTargeting =
   | HybridTargeting;
 
 /** Specifies filters for what can be targeted by a spell. */
-export type TargetFilter = "creatures" | "objects" | "allies" | "enemies" | "self" | "point" | "humanoids"; // Added humanoids to support legacy validation
+export type TargetFilter = "creatures" | "objects" | "allies" | "enemies" | "self" | "point" | "humanoids"; // Added humanoids to support legacy validation     
+
+/** Defines how complex target selection (e.g., Sleep/Color Spray pools) is allocated. */
+export interface TargetAllocation {
+  type: 'all' | 'pool' | 'random' | 'choice';
+  pool?: {
+    resource: 'hp' | 'hit_dice';
+    dice: string;
+    sortOrder: 'ascending' | 'descending';
+    strictLimit?: boolean;
+    // TODO(lint-intent): Hook scaling formulas into dice resolution when the system is fully wired.
+    scaling?: ScalingFormula;
+  };
+}
 
 /** Defines the shape and size of an area of effect. */
 export interface AreaOfEffect {
@@ -703,6 +722,24 @@ export interface DefensiveEffect extends BaseEffect {
     noShield?: boolean;
     targetSelf?: boolean;
   };
+}
+
+/**
+ * Reactive triggers and sustain-style effects (e.g., Shield, Glyph of Warding).
+ * TODO(preserve-lint): Formalize trigger/movement vocab and costs once reactive spells are data-driven.
+ */
+export interface ReactiveEffect extends Omit<BaseEffect, 'trigger'> {
+  type: "REACTIVE";
+  trigger: {
+    type: 'on_target_move' | 'on_target_attack' | 'on_any_cast' | 'on_caster_action';
+    movementType?: string;
+    sustainCost?: number;
+  };
+  duration?: {
+    type?: 'rounds' | 'minutes' | 'hours' | 'special';
+    value?: number;
+  };
+  description?: string;
 }
 
 //==============================================================================

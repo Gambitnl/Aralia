@@ -1,8 +1,8 @@
 
 import { describe, it, expect } from 'vitest';
-import { findPath } from '../pathfinding';
+import { findBattlePath as findPath } from '../../spatial';
 import { calculateMovementCost, getTargetDistance } from '../movementUtils';
-import { BattleMapData, BattleMapTile } from '../../types/combat';
+import { BattleMapData, BattleMapTile } from '../../../types/combat';
 
 describe('movementUtils: 5-10-5 Rule', () => {
   it('calculates straight moves as 5ft', () => {
@@ -50,20 +50,21 @@ describe('pathfinding: findPath (5-10-5)', () => {
         tiles.set(id, {
           id,
           coordinates: { x, y },
-          terrainType: 'floor',
+          terrain: 'floor',
+          elevation: 0,
+          blocksLoS: false,
           blocksMovement: false,
           movementCost: 1,
-          isVisible: true
+          decoration: null,
+          effects: []
         });
       }
     }
     return {
-      id: 'test_map',
-      name: 'Test Map',
       dimensions: { width, height },
       tiles,
-      entities: [],
-      startPositions: []
+      theme: 'forest',
+      seed: 1
     };
   };
 

@@ -4,7 +4,7 @@
  * Defines types and interfaces for the religion system, including deities,
  * divine favor, and temple services.
  */
-import { AbilityScoreName } from './index';
+import { AbilityScoreName } from './core';
 import { MechanicalEffect } from './effects';
 
 /**
@@ -188,10 +188,10 @@ export interface ReligionState {
 
 // Action Types for Favor System
 export interface DeityAction {
-    id: string;
-    description: string;
-    domain?: string;
-    favorChange: number;
+  id: string;
+  description: string;
+  domain?: string;
+  favorChange: number;
 }
 
 // TODO(Taxonomist): Update codebase to use Alignment enum instead of string literals

@@ -44,7 +44,8 @@ export const SpellProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         const fetchSpell = async ([id, info]: [string, unknown]) => {
           try {
             // Ensure spell asset requests respect the configured base path
-            const normalizedPath = assetUrl(String(info.path || ''));
+            const pathValue = (info as { path?: string } | undefined)?.path;
+            const normalizedPath = assetUrl(String(pathValue || ''));
             // Explicitly request JSON to prevent Vite from returning the index.html fallback for SPAs
             const spellJson = await fetchWithTimeout<Spell>(normalizedPath, {
               headers: { 'Accept': 'application/json' },

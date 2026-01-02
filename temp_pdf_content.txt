@@ -1,0 +1,1649 @@
+Potion Crafting and Gathering
+A Supplementary Guide to DnD 5e for Expanded Features of the Alchemy, Herbology
+and Poison Kits
+1
+
+-- 1 of 24 --
+
+Recipes
+Using a Recipe
+An asterisk (*) next to a recipe means that the item is not
+an official item in D&D, and is considered playtest material
+and subject to change. The cost of a recipe includes any
+mundane ingredients and equipment, which are assumed
+to be included with the appropriate tool. Ingredients
+specifically listed are considered to be 1 unit (such as
+flowers, bunches, or vials) unless otherwise specified.
+Starting recipes
+When you gain a tool proficiency, you learn 3 Common
+recipes associated with the tool.
+Developing new Recipes
+When your proficiency bonus increases, you can add a
+new recipe to your recipes known. This recipe must be of
+an appropriate level or lower, as indicated by the
+Discovering Recipes Table below. If the player gets a
+higher proficiency bonus, they can instantly learn a new
+recipe without any cost.
+Proficiency Bonus 	Recipe Level
++2 	Common (3)
++3 	Uncommon
++4 	Uncommon
++5 	Rare
++6 	Very Rare
+Learning new Recipes
+When you come across a new recipe, you add it to your
+recipes known. Doing so requires time and money spent in
+experimentation, as indicated by the Learning Recipes
+Table below.
+Recipe Level 	Time 	Cost
+Common (3) 	1 workday 	50 gp
+Uncommon 	5 workdays 	250 gp
+Rare 	10 workdays 	500 gp
+Very Rare 	30 workdays 	1000 gp
+2
+
+-- 2 of 24 --
+
+Alchemist's Supplies
+Using Alchemist's Supplies
+Proficiency with alchemist's supplies allows you to produce
+useful concoctions, such as potions and oils.
+Contents
+Alchemist's supplies include two glass beakers, a metal
+frame to hold a beaker in place over an open flame, a
+glass stirring rod, a small mortar and pestle, and a pouch
+of common alchemical ingredients including salt, distilled
+alcohol, powdered iron, and purified water.
+Skill Checks
+If you have proficiency in alchemist's supplies, you can use
+your tool proficiency to give yourself advantage on certain
+skill checks.
+Arcana
+Proficiency with alchemist's supplies allows you to unlock
+more information on Arcana checks involving potions and
+similar materials.
+Investigation
+When you inspect an area for clues, proficiency with
+alchemist's supplies grants additional insight into any
+chemicals or other substances that might have been used
+in the area.
+Crafting Potions & Alchemical
+Concoctions
+Common Recipes (DC 10)
+Creation of these items costs 25 gp, in addition to the
+ingredients listed, and 1 workday of time.
+Alchemist's Fire
+This sticky, adhesive fluid ignites when exposed to air. As
+an action, you can throw this flask up to 20 feet, shattering
+it on impact. Make a ranged Attack against a creature or
+object, treating the alchemist's fire as an improvised
+weapon.
+On a hit, the target takes 1d4 fire damage at the start of
+each of its turns. A creature can end this damage by using
+its action to make a DC 10 Dexterity check to extinguish
+the flames.
+Ingredients: Fire Elemental Ember, Flask of Oil
+Smokebomb
+As an action, you can throw this smokebomb up to 30 feet
+away from you. On impact, smoke begins to billow from it,
+creating a heavily obscured area within a 10 foot radius
+and a lightly obscured area for a further 5 feet. This smoke
+dissipates after 1 minute, or until it is blown away by some
+external means.
+Ingredients: Air Elemental Whisp, ashblossom
+Ink
+Used in writing.
+Ingredients: Charcoal
+Blasting Powder
+This volatile alchemical powder comes in a small pouch.
+When ignited by an open flame or a fuse, the powder
+explodes. Each creature within 5 feet of the exploding
+pouch must make a DC 13 Dexterity saving throw, taking
+3d6 bludgeoning damage on a failed save, or half as much
+damage on a successful one.
+A character can bind multiple pouches of blasting
+powder together so they explode at the same time. Each
+additional pouch increases the damage by 1d6 (maximum
+of 10d6) and the blast radius by 5 feet (maximum of 20
+feet).
+Ingredients: Ashblossom, Charcoal
+Potion of Climbing
+When you drink this potion, you gain a climbing speed
+equal to your walking speed for 1 hour. During this time,
+you have advantage on Strength (Athletics) checks you
+make to climb. The potion is separated into brown, silver,
+and gray layers resembling bands of stone. Shaking the
+bottle fails to mix the colors.
+Ingredients: Giant Wolf Spider Hair, Earth Elemental
+Dust
+Potion of Swimming *
+When you drink this potion, you gain a swimming speed
+equal to your walking speed for 1 hour. During this time,
+you have advantage on Strength (Athletics) checks you
+make to swim. The potion is separated into teal, light blue,
+and indigo layers resembling a deep ocean. Shaking the
+bottle fails to mix the colors.
+Ingredients: Quipper Scale (x3), Water Elemental Droplet
+Soothsalts
+Soothsalts are derived from a naturally occurring
+crystalline. Soothsalts are consumed orally in lozenge-
+sized doses, and frequent users can be identified by the
+telltale crimson stain around their mouths. A creature
+subjected to a dose of soothsalts gains advantage on all
+Intelligence checks for 1d4 hours.
+For each dose of soothsalts consumed, the creature
+must succeed on a DC 15 Constitution saving throw or
+gain one level of exhaustion—an effect which is
+cumulative with multiple doses.
+Ingredients: Soothsalt Geode
+Vial of Acid
+As an action, you can splash the contents of this vial onto a
+creature within 5 feet of you or throw the vial up to 20
+feet, shattering it on impact. In either case, make a ranged
+Attack against a creature or object, treating the acid as an
+improvised weapon. On a hit, the target takes 2d6 acid
+damage.
+Ingredients: Gray Ooze Residue, Crawler Mucus
+3
+
+-- 3 of 24 --
+
+Uncommon Recipes (DC 15)
+Creation of these items costs 100 gp, in addition to the
+ingredients listed, and 3 workdays of time.
+Ink (Rare)
+Used in writing: Sufficient for Lvl. 1-5 spell writing.
+Ingredients: Charcoal, finely ground iron
+Oil of Slipperiness
+This sticky black unguent is thick and heavy in the
+container, but it flows quickly when poured. The oil can
+cover a Medium or smaller creature, along with the
+equipment it's wearing and carrying (one additional vial is
+required for each size category above Medium).
+Applying the oil takes 10 minutes. The affected creature
+then gains the effect of a freedom of movement spell for 8
+hours. Alternatively, the oil can be poured on the ground
+as an action, where it covers a 10-foot square, duplicating
+the effect of the grease spell in that area for 8 hours.
+Ingredients: Flask of Oil, Crawler mucus, Amphibian
+Saliva
+Potion of Animal Friendship
+When you drink this potion, you can cast the animal
+friendship spell (save DC 13) for 1 hour at will. Agitating
+this muddy liquid brings little bits into view: a fish scale, a
+hummingbird tongue, a cat claw, or a squirrel hair.
+Ingredients: Cat’s tongue, Quipper Scale
+Potion of Fire Breath
+After drinking this potion, you can use a bonus action to
+exhale fire at a target within 30 feet of you. The target
+must make a DC 13 Dexterity saving throw, taking 4d6 fire
+damage on a failed save, or half as much damage on a
+successful one. The effect ends after you exhale the fire
+three times or when 1 hour has passed. This potion's
+orange liquid flickers, and smoke fills the top of the
+container and wafts out whenever it is opened.
+Ingredients: Ashblossom, Remorhaz Ichor
+Potion of Growth
+When you drink this potion, you gain the "enlarge" effect
+of the enlarge/reduce spell for 1d4 hours (no
+concentration required). The red in the potion's liquid
+continuously expands from a tiny bead to color the clear
+liquid around it and then contracts. Shaking the bottle fails
+to interrupt this process.
+Ingredients: Sourgrass, Rowan berry, Giant Wolf Spider
+Hair
+Potion of Giant Strength
+When you drink this potion, your Strength score changes
+for 1 hour. The type of giant determines the score. The
+potion has no effect on you if your Strength is equal to or
+greater than that score. This potion's transparent liquid
+has floating in it a sliver of fingernail from a giant of the
+appropriate type.
+Ingredients: Frost Lichen, a sliver of fingernail from a
+corresponding giant
+Giant Type 	Strength Score
+Hill 	21
+Frost or Stone 	23
+Fire 	25
+Cloud 	27
+Storm 	29
+Potion of Resistance
+When you drink this potion, you gain resistance to one
+type of damage for 1 hour. The damage type depends on
+the special ingredient added.
+Ingredients: Hagfinger, plus a special ingredient
+Damage Type 	Ingredient
+Acid 	Crawler Mucus
+Cold 	Frost Lichen
+Fire 	Ashblossom
+Force 	Amphibian Saliva
+Lightning 	Lightning Moss
+Necrotic 	Nightshade
+Poison 	Rowanberry
+Psychic 	Mindflayer Stinkhorn
+Radiant 	Sourgrass
+Thunder 	Singing Nettle
+Potion of Waterbreathing
+You can breathe underwater for 1 hour after drinking this
+potion. Its cloudy green fluid smells of the sea and has a
+jellyfish-like bubble floating in it.
+Ingredients: Gillyweed, Hagfinger
+Rare Recipes (DC 20)
+Creation of these items costs 500 gp, in addition to the
+ingredients listed, and 10 workdays of time.
+Ink (Very Rare)
+Used in writing. Sufficient for Lvl. 6-8 spell writing.
+Ingredients: Charcoal, finely ground iron, Willowshade
+Fruit
+4
+
+-- 4 of 24 --
+
+Invisible Ink
+Ink that can only be made visible with spells, traits or items
+that see the invisible, or by applying a mild acid.
+Ingredients: Pixie's Parasol, Ink
+Midnight Oil*
+A small flask of inky black oil that resembles a night sky
+when viewed in a certain light. When the midnight oil is
+used to light a lantern, it emits bright light for 5 feet and
+dim light a further 5 feet for 8 hours. If a creature stays in
+the light emitted by this oil for the full 8 hours, they get all
+the benefits of a long rest without needing to sleep,
+provided they only engage in light activity such as reading,
+studying, talking, etc.
+Ingredients: Flask of Oil, Pixie's Parasol
+Oil of Dragon's Bane
+This oil can coat a single weapon for 3 uses, or up to 3
+pieces of ammunition can be dipped in the oil for 1 use
+each. A dragon that takes damage from a weapon or piece
+of ammunition covered in the oil takes an additional 6d6
+damage from the attack. The oil dries after 1 hour and
+becomes inert.
+Ingredients: Dragon's Blood, Wyvern Poison
+Potion of Gaseous Form
+When you drink this potion, you gain the effect of the
+gaseous form spell for 1 hour (no concentration required)
+or until you end the effect as a bonus action. This potion's
+container seems to hold fog that moves and pours like
+water.
+Ingredients: Ectoplasm, Singing Nettle
+Oil of Etherealness
+Beads of this cloudy gray oil form on the outside of its
+container and quickly evaporate. The oil can cover a
+Medium or smaller creature, along with the equipment it's
+wearing and carrying (one additional vial is required for
+each size category above Medium). Applying the oil takes
+10 minutes. The affected creature then gains the effect of
+the etherealness spell for 1 hour.
+Ingredients: Ectoplasm, Flask of Oil
+Potion of Clairvoyance
+When you drink this potion, you gain the effect of the
+clairvoyance spell. An eyeball bobs in this yellowish liquid
+but vanishes when the potion is opened.
+Ingredients: Morning Dew, Mandrake Root
+Potion of Diminution
+When you drink this potion, you gain the "reduce" effect of
+the enlarge/reduce spell for 1d4 hours (no concentration
+required). The red in the potion's liquid continuously
+contracts to a tiny bead and then expands to color the
+clear liquid around it. Shaking the bottle fails to interrupt
+this process.
+Ingredients: Pixie's Parasol, Moonstalker
+Potion of Heroism
+For 1 hour after drinking it, you gain 10 temporary hit
+points that last for 1 hour. For the same duration, you are
+under the effect of the bless spell (no concentration
+required). This blue potion bubbles and steams as if
+boiling.
+Ingredients: Hagfinger, Cat’s Tongue
+Potion of Invulnerability
+For 1 minute after you drink this potion, you have
+Resistance to all damage. The potion's syrupy liquid looks
+like liquefied iron.
+Ingredients: A piece of metal struck by lightning
+Potion of Mind Reading
+When you drink this potion, you gain the effect of the
+detect thoughts spell (save DC 13). The potion's dense,
+purple liquid has an ovoid cloud of pink floating in it.
+Ingredients: Mindflayer Stinkhorn, Moonstalker
+Very Rare Recipes (DC 25)
+Creation of these items costs 1,000 gp, in addition to the
+ingredients listed, and 30 workdays of time.
+Ink (Legendary)
+Used in writing. Sufficient for Lvl. 9 spell writing.
+Ingredients: Charcoal, finely ground iron, Willowshade
+Oil (3)
+Oil of Sharpness
+This clear, gelatinous oil sparkles with tiny, ultrathin silver
+shards. The oil can coat one slashing or piercing weapon
+or up to 5 pieces of slashing or piercing ammunition.
+Applying the oil takes 1 minute. For 1 hour, the coated
+item is magical and has a +3 bonus to attack and damage
+rolls.
+Ingredients: Ankheg Ichor, Silverthorn
+5
+
+-- 5 of 24 --
+
+Potion of Flying
+When you drink this potion, you gain a flying speed equal
+to your walking speed for 1 hour and can hover. If you're
+in the air when the potion wears off, you fall unless you
+have some other means of staying aloft. This potion's clear
+liquid floats at the top of its container and has cloudy
+white impurities drifting in it.
+Ingredients: Air Elemental Whisp, Singing Nettle
+Potion of Invisibility
+This potion's container looks empty but feels as though it
+holds liquid. When you drink it, you become invisible for 1
+hour. Anything you wear or carry is invisible with you. The
+effect ends early if you attack or cast a spell.
+Ingredients: Skulk fingernail, Fairy Stool
+Potion of Longevity
+When you drink this potion, your physical age is reduced
+by 1d6 + 6 years, to a minimum of 13 years. Each time you
+subsequently drink a potion of longevity, there is 10
+percent cumulative chance that you instead age by 1d6 + 6
+years. Suspended in this amber liquid are a scorpion's tail,
+an adder's fang, a dead spider, and a tiny heart that,
+against all reason, is still beating. These ingredients vanish
+when the potion is opened.
+Ingredients: Imp Heart, Red Amanita Mushroom
+Potion of Speed
+When you drink this potion, you gain the effect of the
+haste spell for 1 minute (no concentration required). The
+potion's yellow fluid is streaked with black and swirls on its
+own.
+Ingredients: Eagle’s claw (4), Lightning Moss, Sugar
+Potion of Truesight *
+When you drink this potion, you gain truesight for 1 hour.
+Ingredients: Fairy Stool, Nothic Tears
+6
+
+-- 6 of 24 --
+
+Herbalism Kit
+Using Herbalism Kits
+Proficiency with an herbalism kit allows you to identify
+both magical and nonmagical plants and safely collect
+their useful elements, and to create healing salves,
+potions, and tinctures.
+Contents
+An herbalism kit includes three pouches to store herbs,
+clippers and leather gloves for collecting plants, a mortar
+and pestle, and five glass jars.
+Skill Checks
+If you have proficiency in herbalism kits, you can use your
+tool proficiency to give yourself advantage on certain skill
+checks.
+Arcana
+Your knowledge of nature and uses of herbs can add
+insight to your magical studies that deal with plant
+creatures and your attempts to identify potions.
+Investigation
+When you inspect an area overgrown with plants, your
+proficiency bonus can help you pick out details and clues
+that others might miss.
+Medicine
+Your mastery of herbalism improves your ability to treat
+illnesses and wounds by augmenting your methods of care
+with medicinal plants.
+Nature and Survival
+You can identify most plants with a quick inspection of
+their appearance, smell, and their surrounding
+environment.
+Crafting Salves, Potions, & Tinctures
+To create any of the following items, an herbalism kit must
+be used. Proficiency in herbalism kits allows you to add
+your proficiency bonus to checks to their creation.
+Common Recipes (DC 10)
+Creation of these items costs 25 gp, in addition to the
+ingredients listed, and 1 workday of time.
+Antitoxin
+A creature that drinks this vial of liquid gains advantage on
+saving throws against poison for 1 hour. It confers no
+benefit to undead or constructs.
+Ingredients: Rowan Berries, Cat’s Tongue
+Potion of Healing
+You regain 2d4 + 2 hit points when you drink this potion.
+The potion's red liquid glimmers when agitated. It confers
+no benefit to undead or constructs.
+Ingredients: Red Amanita Mushroom
+Soothing Salve *
+A sticky, sour smelling salve that can be applied to
+wounds. When you expend hit dice to recover hit points
+while using this salve, you recover an additional 3 hit
+points for each hit die expended. This effect lasts for 1
+hour after applied.
+Ingredients: Sourgrass, Gillyweed
+Muroosa Balm
+This paste made from the muroosa bush is known to help
+prevent sunburn, but it is also a fire retardant. After
+spending 1 minute applying a quarter pint of muroosa
+balm to your skin, you gain resistance against fire damage
+for 1 hour.
+Ingredients: Flask of Oil, Muroosa twigs
+Willowshade Oil
+A dark blue oil can be extracted from the fruit of the
+Willowshade plant. A creature can use its action to apply
+the oil to another creature that has been petrified for less
+than 1 minute, causing the petrified condition on that
+creature to end at the start of what would be that
+creature’s next turn.
+Ingredients: Willowshade Fruit
+Uncommon Recipes (DC 15)
+Creation of these items costs 100 gp, in addition to the
+ingredients listed, and 3 workdays of time.
+Blight Ichor
+This bitter chartreuse concoction is distilled from a fungus
+native to the Blightshore badlands. The sickly green
+liqueur harbors potent psychedelic properties. Provided it
+is neither a construct nor undead, a creature subjected to
+a dose of blight ichor gains advantage on Intelligence and
+Wisdom checks, as well as vulnerability to psychic damage,
+for 1 hour.
+For each dose of blight ichor consumed, the creature
+must succeed on a DC 15 Constitution saving throw or
+become poisoned for 1d6 hours and suffer the effects of a
+confusion spell for 1 minute. An undead creature
+subjected to a dose of blight ichor gains advantage on all
+Dexterity checks and is immune to the frightened
+condition for 1 hour.
+Ingredients: Blight spores
+7
+
+-- 7 of 24 --
+
+Pomander of Warding *
+This ball of aromatic spices and perfumes fills an area with
+a 15 foot radius with a strong scent for 24 hours after
+being unwrapped. Undead creatures of CR 2 or lower that
+enter this area must make a Wisdom saving throw (DC 15)
+or be turned, as detailed in the Turn Undead cleric feature.
+Ingredients: Hagfinger
+Potion of Greater Healing
+You regain 4d4 + 4 hit points when you drink this potion.
+The potion's red liquid glimmers when agitated. It confers
+no benefit to undead or constructs.
+Ingredients: Red Amanita Mushroom (2)
+Tea of Refreshment *
+This warm drink removes one level of exhaustion from
+whoever drinks it.
+Ingredients: Morning Dew, Cat's Tongue
+Rare Recipes (DC 20)
+Creation of these items costs 500 gp, in addition to the
+ingredients listed, and 10 workdays of time.
+Elixir of Health
+When you drink this potion, it cures any disease afflicting
+you, and it removes the blinded, deafened, paralyzed, and
+poisoned conditions. The clear red liquid has tiny bubbles
+of light in it. It confers no benefit to undead or constructs.
+Ingredients: Fairy Stool, Gillyweed
+Potion of Superior Healing
+You regain 8d4 + 8 hit points when you drink this potion.
+The potion's red liquid glimmers when agitated. It confers
+no benefit to undead or constructs.
+Ingredients: Red Amanita Mushroom (3)
+Tincture of Werewolf's Bane *
+Any lycanthrope that drinks this tincture must make a
+Constitution saving throw. On a failed save, the
+lycanthrope takes 3d10 necrotic damage and must change
+to its humanoid form if it was not already in that form,
+after which the lycanthrope cannot change form for 24
+hours. On a success, the lycanthrope takes half that
+damage and is not under any additional effects.
+Ingredients: Wolfsbane, Silverthorn
+Very Rare Recipes (DC 25)
+Creation of these items costs 1,000 gp, in addition to the
+ingredients listed, and 30 workdays of time.
+Potion of Supreme Healing
+You regain 10d4 + 20 hit points when you drink this
+potion. The potion's red liquid glimmers when agitated. It
+confers no benefit to undead or constructs.
+Ingredients: Red Amanita Mushroom (4)
+Potion of Vitality
+When you drink this potion, it removes any exhaustion you
+are suffering and cures any disease or poison affecting
+you. For the next 24 hours, you regain the maximum
+number of hit points for any Hit Die you spend. The
+potion's crimson liquid regularly pulses with dull light,
+calling to mind a heartbeat.
+Ingredients: Morning Dew (2), Cat’s Tongue (2), Olisuba
+Leaf
+8
+
+-- 8 of 24 --
+
+Poisoner's Kit
+Using Poisoner's Kits
+Proficiency with a poisoner's kit allows you to create
+poisons from various materials and handle them without
+risking exposing yourself to their harmful effects.
+Contents
+A poisoner's kit includes 5 glass vials, a mortar and pestle,
+various common chemicals, and a glass stirring rod.
+Skill Checks
+If you have proficiency in poisoner's kits, you can use your
+tool proficiency to give yourself advantage on certain skill
+checks.
+History
+Your training in poisons can help you when you try to
+recall facts about infamous poisonings. Investigation and
+Perception Your knowledge of poisons has taught you to
+handle those substances carefully, giving an edge when
+you inspect poisoned objects or try to extract clues from
+events that involve poisons.
+Medicine
+When you treat the victim of a poison, your knowledge
+grants you insight into how to provide the best care to
+your patient.
+Nature and Survival
+Working with poisons enables you to acquire lore about
+which plants and animals are poisonous.
+Crafting Poisons
+Common Recipes (DC 10)
+Creation of these items costs 25 gp, in addition to the
+ingredients listed, and 1 workday of time.
+Basic Poison
+You can use the poison in this vial to coat one slashing or
+piercing weapon or up to three pieces of ammunition.
+Applying the poison takes an action. A creature hit by the
+Poisoned weapon or ammunition must make a DC 10
+Constitution saving throw or take 1d4 poison damage.
+Once applied, the poison retains potency for 1 minute
+before drying.
+Type: Injury
+Ingredients: Nightshade
+Liquid Paranoia *
+A creature who ingests this poison is inflicted with the
+frightened condition, with the source of fear being the
+next humanoid it sees within 5 minutes of ingestion. This
+fear lasts for 1 hour on a failed Wisdom saving throw (DC
+15) or half as long on a success.
+Type: Ingested
+Ingredients: Moonstalker
+Uncommon Recipes (DC 15)
+Creation of these items costs 100 gp, in addition to the
+ingredients listed, and 3 workdays of time.
+Assassin’s Blood
+A creature subjected to this poison must make a DC 10
+Constitution saving throw. On a failed save, it takes 6
+(1d12) poison damage and is Poisoned for 24 hours. On a
+successful save, the creature takes half damage and isn’t
+Poisoned.
+Type: Ingested
+Ingredients: Basic Poison, Moonshade
+Black Paste
+This poison was specifically designed to resemble leather
+or boot polish. If a piece of clothing is treated with this
+poison, it shines like new and forces creatures that wears
+it for 12 hours or more to make a DC 15 constitution
+saving throw. Upon a failed save, the creature receives 1d8
+poison damage. Unless the poisoned piece of clothing is
+removed, the creature will have to repeat making the
+saving throw every 12 hours for the next 3 months.
+Type: Contact via clothing
+Ingredients: Black Cap Mushroom, Black Sap
+9
+
+-- 9 of 24 --
+
+Malice
+A creature subjected to this poison must succeed on a DC
+15 Constitution saving throw or become poisoned for 1
+hour. The poisoned creature is blinded.
+These poisons are powders or gases that take effect
+when inhaled. Blowing the powder or releasing the gas
+subjects creatures in a 5-foot cube to its effect. The
+resulting cloud dissipates immediately afterward. Holding
+one's breath is ineffective against inhaled poisons, as they
+affect nasal membranes, tear ducts, and other parts of the
+body.
+Type: Inhaled
+Ingredients: Morning Dew, Black Sap
+Pale Tincture
+A creature subjected to this poison must succeed on a DC
+16 Constitution saving throw or take 3 (1d6) poison
+damage and become poisoned. The poisoned creature
+must repeat the saving throw every 24 hours, taking 3
+(1d6) poison damage on a failed save. Until this poison
+ends, the damage the poison deals can't be healed by any
+means. After seven successful saving throws, the effect
+ends and the creature can heal normally.
+Type: Ingested
+Ingredients: Black Sap, Death Cap
+Philter of Love
+The next time you see a creature within 10 minutes after
+drinking this philter, you become charmed by that
+creature for 1 hour. If the creature is of a species and
+gender you are normally attracted to, you regard it as your
+true love while you are charmed. This potion's rose-hued,
+effervescent liquid contains one easy-to-miss bubble
+shaped like a heart.
+Type: Ingested
+Ingredients: Fairy Stool, Serpent’s Venom
+Potion of Poison
+This concoction looks, smells, and tastes like a Potion of
+Healing or other beneficial potion. However, it is actually
+poison masked by illusion magic. An identify spell reveals
+its true nature. If you drink it, you take 3d6 poison
+damage, and you must succeed on a DC 13 Constitution
+saving throw or be poisoned. At the start of each of your
+turns while you are poisoned in this way, you take 3d6
+poison damage. At the end of each of your turns, you can
+repeat the saving throw. On a successful save, the poison
+damage you take on your subsequent turns decreases by
+1d6. The poison ends when the damage decreases to 0.
+Type: Ingested
+Ingredients: Potion of Healing, Dreamlilly
+Truth Serum
+A creature subjected to this poison must succeed on a DC
+11 Constitution saving throw or become poisoned for 1
+hour. The poisoned creature can’t knowingly speak a lie, as
+if under the effect of a zone of truth spell.
+Type: Ingested
+Ingredients: Fairy Stool, Mindflayer Stinkhorn
+Rare Recipes (DC 20)
+Creation of these items costs 500 gp, in addition to the
+ingredients listed, and 10 workdays of time.
+Burnt Othur Fumes
+A creature subjected to this poison must succeed on a DC
+13 Constitution saving throw or take 10 (3d6) poison
+damage, and must repeat the saving throw at the start of
+each of its turns. On each successive failed save, the
+character takes 3 (1d6) poison damage. After three
+successful saves, the poison ends.
+Type: Inhaled
+Ingredients: Ashblossom, Moonshade
+Drow Poison
+This poison is typically made only by the drow, and only in
+a place far removed from sunlight. A creature subjected to
+this poison must succeed on a DC 13 Constitution saving
+throw or be Poisoned for 1 hour. If the saving throw fails
+by 5 or more, the creature is also Unconscious while
+Poisoned in this way. The creature wakes up if it takes
+damage or if another creature takes an action to shake it
+awake.
+Type: Injury
+Ingredients: Drider Venom, Mandrake Root
+Essence of Ether
+A creature subjected to this poison must succeed on a DC
+15 Constitution saving throw or become poisoned for 8
+hours. The poisoned creature is unconscious. The creature
+wakes up if it takes damage or if another creature takes an
+action to shake it awake.
+Type: Inhaled
+Ingredients: Nightshade, Mandrake Root
+Oil of Taggit
+A creature subjected to this poison must succeed on a DC
+13 Constitution saving throw or become Poisoned for 24
+hours. The Poisoned creature is Unconscious. The creature
+wakes up if it takes damage.
+Type: Contact
+Ingredients: Flask of Oil, Wolfsbane
+Torpor
+A creature subjected to this poison must succeed on a DC
+15 Constitution saving throw or become poisoned for 4d6
+hours. The poisoned creature is incapacitated.
+Type: Ingested
+Ingredients: Mandrake Root, Lightning Moss
+10
+
+-- 10 of 24 --
+
+Very Rare Recipes (DC 25)
+Creation of these items costs 1,000 gp, in addition to the
+ingredients listed, and 30 workdays of time.
+Midnight Tears
+A creature that ingests this poison suffers no effect until
+the stroke of midnight. If the poison has not been
+neutralized before then, the creature must succeed on a
+DC 17 Constitution saving throw, taking 31 (9d6) poison
+damage on a failed save, or half as much damage on a
+successful one.
+Type: Ingested
+Ingredients: Death Cap, Ankheg ichor
+Deathsleep *
+A creature that Ingests this poison must succeed at DC 19
+Constitution saving throw or become poisoned for 24
+hours. The poisoned creature appears to be dead, and
+only a successful Medicine check (DC 20) can determine
+otherwise.
+Type: Ingested
+Ingredients: Tea of Refreshment, Purple Worm Poison
+Water of Death
+This liquid looks, smells and tastes like water. Even the
+majority of alchemic and magical tests on this liquid
+cannot distinguish it from water. Only the spell Identify
+cast as a level 7 or higher or detailed alchemic test, lasting
+24 hours and costing 300 gp, will reveal that this liquid is
+actually one of the deadliest poisons in existence.
+Made from rare mushrooms, herbs and poisons, any
+contact with this poison forces the subjected creature to
+make a DC 20 Constitution saving throw. On a failed save,
+the creature suffers blindness and deafness for 48 hours
+and becomes too riddled with pain to move for 24 hours.
+The creature’s maximum hitpoints is permanently reduced
+by 2d12 and receives 7d10 poison damage after 12 hours.
+On a successful save, the creature’s maximum hitpoints is
+reduced by 2d12 hitpoints and has blurred vision and
+muffled hearing for 24 hours.
+The lost maximum hitpoints can only be restored by
+healing after ingesting a Potion of Vitality or by a Greater
+Restoration or a Regenerate spell cast at level 8 or higher.
+Type: Injury, Ingestion
+Ingredients: Black Cap Mushroom, Wyvern poison,
+Dreamlilly, Hagfinger
+11
+
+-- 11 of 24 --
+
+Gathering & Harvesting
+Rules for Gathering
+Certain areas CAN contain certain harvestable plants, fungi
+or, rarely, animals. To determine what good can be found
+in areas, make a nature check. If the check is:
+≥10 all common plants and fungi bound to that
+environment are identified
+≥15 all common and uncommon plants and fungi
+bound to that environment are identified
+≥20 all common, uncommon and rare plants and fungi
+bound to that environment are identified
+The DM can decide to be more or less lenient depending
+on the area, a lush jungle may contain more interesting
+herbs and fungi than a windswept dessert, after all.
+Inspecting an area to make the nature check takes 30
+minutes. If the DM allows it, a +3 can be added to the
+check for each additional 30 minutes spent on
+investigating the area to a maximum of +6. The player can
+repeatedly search an area without repercussions on the
+amount of ingredients obtained from an area.
+Rules for Harvesting
+Once a herb or fungi is identified and the player is
+proficient with the herbalism kit, they can throw a d20 and
+add their proficiency bonus and their Potion Making Level
+modifier (See final page) to that throw to determine if they
+can harvest the ingredient. Harvesting an ingredient takes
+30 minutes. If the DM allows it, a +3 can be added to the
+check for each additional 30 minutes spent on
+investigating the area to a maximum of +6. The player
+must decide beforehand how long they want to spent on
+harvesting the ingredient.
+If the player fails to harvest an ingredient, a d4 is
+thrown. On a:
+1: the ingredient is destroyed
+2: the quantity of the ingredient is reduced by half
+3: the quantity of the ingredient is reduced by a quarter
+4: the ingredient is unaffected
+Obtaining animal based ingredients doesn’t require
+proficiency with the associated kit, but must have access to
+the kit, though doing so provides the player with a -3
+modifier instead of the proficiency modifier when the
+player is proficient with the kit. If the DM allows it, a +3 can
+be added to the check for each additional 30 minutes
+spent on harvesting the ingredient to a maximum of +6. A
+player is always proficient with a knife.
+Attempting to harvest the ingredients can be done only
+once, failure results in the destruction of all harvestable
+ingredients.
+Potion Crafting
+When the player has gathered all required potion
+ingredients, tools and recipes and decides to make a
+certain potion or other product with one of their kits, the
+player must spend the required amount of gold (See
+below), as well as the number of workdays working on
+their project. The workdays don’t have to be subsequent
+and can be broken down further into single hours of work,
+with each workday is lasting 8 hours.
+After the player has spent the required time working on
+the potion, they roll a d20, add their proficiency and their
+Potion Making Level modifier (See final page) to the total. If
+the player makes the check, the product is successfully
+completed. If the player fails the check, they are allowed to
+recover the ingredients, though lose the gold invested.
+Pricing Guide
+The total cost of a potion is predetermined. The price of an
+ingredient is subtracted from that total depending on the
+rarity of that ingredient. All additional costs in gp are
+subtracted once potion making is commenced.
+If a potion making Check is failed, the original
+ingredients are returned, though gold spent is lost.
+Ingredient Rarity 	Cost
+Common 	5gp
+Uncommon 	10gp
+Rare 	50gp
+Very Rare 	150gp
+Legendary 	500gp
+12
+
+-- 12 of 24 --
+
+Gatherable Plants & Fungi
+Noted below are all fungi and plants that can be collected
+Ashblossom
+This tiny flower is bright red with a yellow centre, and is
+found growing only in hot environments. It deals 1d4 fire
+damage when ingested, but it can be used to brew many
+fire-related potions by a knowledgeable alchemist.
+Rarity: Rare (DC 20)
+Gathering: Herbalism Kit (DC 15)
+Quantity: 1d6 blossoms
+Location: Deserts, Volcanos
+Uses (4): Smokebomb, Potion of Fire Breath, Potion of
+Resistance (Fire), Burnt Othur Fumes
+Black Cup Mushroom
+This beautiful, blue-ish black, cup-shaped mushroom with
+an extremely poisonous bite is hard to miss against the
+green background of its surroundings, though best left
+alone. Touching this fungus without gloves or other
+protective gear forces the creature touching it to make a
+DC 16 Constitution saving throw. On a failed save, the
+creature take 1d10 poison damage.
+Rarity: Rare (DC 20)
+Gathering: Herbalism kit (DC 20)
+Quantity: 1d4 stalks
+Location: Forests, Marshes
+Uses (2): Water of Death, Black Paste
+Black Sap
+This tarry substance harvested from the dark boughs of
+the death’s head willow is a powerful intoxicant. It can be
+smoked as a concentrate or injected directly into the
+bloodstream. A creature subjected to a dose of black sap
+cannot be charmed or frightened for 1d6 hours.
+For each dose of black sap consumed, a creature must
+succeed on a DC 15 Constitution saving throw or become
+poisoned for 2d4 hours—an effect that is cumulative with
+multiple doses.
+Rarity: Rare (DC 20)
+Gathering: Herbalism Kit (DC 15)
+Quantity: 1d6 doses
+Location: Sites of frequent or large scale death
+Uses (2): Malice, Pale Tincture
+Blight Spores
+Bright red spores from Blightshrooms, growing exclusively
+in caves on the Blightshore and the Eastern side of the
+Penumbra Range. A creature exposed to a large dose of
+the spores must succeed a DC 16 Constitution saving
+throw or be Poisoned for 3d6 hours. While the creature is
+poisoned, it experiences the same effects as if it were
+under the Confusion spell. A restoration spell or a dose of
+antitoxin can remove the effect.
+Rarity: Rare (DC 20)
+Gathering: Herbalism Kit (DC 15)
+Quantity: 1d6 doses
+Location: Blightshore Caves
+Uses (1): Blight Ichor
+Cat's Tongue
+This mid-sized herbaceous plant has bundles of small, 5
+bladed, purple/white flowers that quickly turn and ripen
+into fig sized pods. The pods have a slightly toxic outer
+shell revealing an inner fruit that has a tard taste and great
+nutritional properties.
+Rarity: Common (DC 10)
+Gathering: Herbalism Kit (DC 10)
+Quantity: 2d4 pods
+Location: Grassland, Forests
+Uses (5): Potion of Animal Friendship, Potion of Heroism,
+Antitoxin, Tea of Refreshment, Potion of Vitality
+Death Cap
+Though unassuming looking with a slender, white stalk
+and white to lightly brown and on rare occasions greenish
+head, death cap is anything but harmless. 12 hours after
+ingesting the mushroom or an extract of it, a creature
+must make a DC 17 constitution saving throw or be
+poisoned. Once a creature is poisoned, it takes 2d8 poison
+damage and suffers severe stomach aches and cramps
+lasting 24 hours. If antidote is not taken during this period,
+the creature’s liver starts being degraded resulting in
+jaundice and takes 1d10 poison damage at midday until a
+Greater Restoration or Regenerate is performed or an
+elixir of health is consumed.
+Rarity: Rare (DC 20)
+Gathering: Herbalism Kit (DC 20)
+Quantity: 1d4 heads
+Location: Forests, dry areas of Swamps
+Uses (2): Midnight Tears, Pale Tincture
+Dreamlilly
+A white, slightly silvery 5 pointed flower with an
+intoxicating smell. It can be soaked in warm water to
+create a psychoactive liquid that smells and tastes like
+your favorite beverage. A creature under the effects of
+dreamlily is poisoned for 1 hour. While poisoned in this
+way, the creature is immune to fear, and the first time it
+drops to 0 hit points without being killed outright, it drops
+to 1 hit point instead
+Rarity: Common (DC 10)
+Gathering: Herbalism Kit (DC 10)
+Quantity: 2d6 flowers
+Location: Grasslands, Coasts
+Uses (1): Potion of Poison
+Fairy Stool
+This small pink mushroom is most often found in fairy
+rings. Ingesting it causes blindness for 1 minute on a failed
+Constitution saving throw (DC 20), along with vivid
+hallucinations.
+Rarity: Rare (DC 20)
+Gathering: Herbalism Kit (DC 15)
+Quantity: 1d4 stalks
+Location: Feywild, Forests
+Uses (5): Potion of Invisibility, Potion of Truesight, Elixer
+of Health, Philter of Love, Truth Serum
+13
+
+-- 13 of 24 --
+
+Frost Lichen
+An eyeblindingly white lichen that grows on rocks in
+regions of year long freezing temperatures.
+Rarity: Uncommon (DC 15)
+Gathering: Herbalism Kit (DC 15)
+Quantity: 1d6 bunches
+Location: Arctic
+Uses (2): Potion of Giant's Strength, Potion of Resistance
+(Cold)
+Gillyweed
+This emerald green kelp is found underwater and is always
+covered in tiny air bubbles, which makes it easy to spot by
+a trained herbalist.
+Rarity: Common (DC 10)
+Gathering: Herbalism Kit (DC 10)
+Quantity: 2d4 leaves
+Location: Coasts, Swamps
+Uses (3): Potion of Waterbreathing, Soothing Salve, Elixer
+of Health
+Hagfinger
+These small tubers are a pale, sickly green and resemble
+long fingers. When dried and ground up into a powder, it
+gives off a strong aroma and can be used as an herbalism
+and potion ingredient.
+Rarity: Rare (DC 20)
+Gathering: Herbalism Kit (DC 15)
+Quantity: 1d4 dried fingers
+Location: Forests, Swamps
+Uses (4): Potion of Resistance, Potion of Waterbreathing,
+Potion of Heroism, Pomander of Warding
+Lightning Moss
+This light blue moss grows only where lightning has struck
+and gives off a faint static electric shock when touched. If
+rubbed on the bottom of a creature's feet or pair of shoes,
+the creature's speed increases by 5 feet for 1 hour.
+Rarity: Uncommon (DC 15)
+Gathering: Herbalism Kit (DC 15)
+Quantity: 1d6 clumps
+Location: Coasts, Mountains
+Uses (3): Potion of Resistance (Lightning), Torpor, Potion
+of Speed
+Mandrake Root
+This twisted pale root resembles a gnarled humanoid
+infant. It inflicts the poisoned condition for 1 hour when
+ingested.
+Rarity: Uncommon (DC 15)
+Gathering: Herbalism Kit (DC 15)
+Quantity: 1d4 roots
+Location: Underground
+Uses (4): Potion of Clairvoyance, Drow Posion, Ether of
+Essence, Torpor
+Mindflayer Stinkhorn
+This purple fungus has slimy, tentacle-looking stalks and
+smells of rotting flesh. A creature who eats this fungus
+must make a Constitution saving throw (DC10). On a
+success, the creature can cast detect thoughts at will for 1
+hour, requiring no material components. On a failure, the
+creature takes 1d6 psychic damage.
+Rarity: Uncommon (DC 15)
+Gathering: Herbalism Kit (DC 10)
+Quantity: 1d4 stalks
+Location: Underground
+Uses (3): Potion of Resistance (Psychic), Potion of Mind
+Reading, Truth Serum
+Moonstalker
+This pale blue flower grows in pairs and blooms only
+during the nighttime, and has an ethereal glow. The flower
+sheds dim light for 5 feet when blooming, and is often
+mistaken for glowing eyes from a distance.
+Rarity: Rare (DC 20)
+Gathering: Herbalism Kit (DC 10)
+Quantity: 1d4 x2 flowers
+Location: Coasts, Swamps
+Uses (3): Potion of Diminution, Potion of Mind Reading,
+Liquid Paranoia
+Morning Dew
+This plant grows into either a large shrub or small tree and
+seems to reproduce via root systems since it has no
+flowers of any kind. The long, narrow leaves of this plant
+are used in teas and medicine.
+Rarity: Common (DC 10)
+Gathering: Herbalism Kit (DC 10)
+Quantity: 2d6 leaves
+Location: Forests, Savannahs
+Uses (3): Potion of Clairvoyance, Tea of Refreshment,
+Potion of Vitality, Malice
+Muroosa bush
+Growing in arid areas in Savannahs and deserts, this bush
+seems to be utterly unaffected by heat and the sun no
+matter the intensity
+Rarity: Uncommon (DC 15)
+Gathering: Herbalism Kit (DC 15)
+Quantity: 1d6 twigs
+Location: Deserts, Savannahs
+Uses (1): Muroosa Balm
+Nightshade
+An inky black flower with purple stalk. It deals 1d4 poison
+damage when ingested and, on a failed Constitution
+saving throw, inflicts the poisoned condition for 2d4 hours.
+Rarity: Uncommon (DC 15)
+Gathering: Herbalism Kit (DC 20)
+Quantity: 1d6 flowers
+Location: Forests
+Uses (3): Potion of Resistance (Necrotic), Basic Posion,
+Essence of Ether
+14
+
+-- 14 of 24 --
+
+Olisuba Leaf
+These dried leaves of the Olisuba tree, when steeped to
+make a tea, can help a body recover from strenuous
+activity. If you drink a dose of Olisuba tea during a long
+rest, your exhaustion level is reduced by 2 instead of 1 at
+the end of that long rest.
+Rarity: Uncommon (DC 15)
+Gathering: Herbalism Kit (DC 10)
+Quantity: 2d6 leaves
+Location: Forests, Grasslands
+Uses (1): Potion of Vitality
+Pixie's Parasol
+A tiny mushroom, though with it’s bright blue cap and
+white stalk and gills but one hard to miss. At night, they
+are downright easy to find due to their bioluminescence.
+They are key ingredients in many potions and inks.
+Harvesting them may be a hassle, though, since pixies
+often defend them from those who wish to take them.
+Rarity: Rare (DC 20), Common (DC10) in Feywild
+Gathering: Herbalism Kit (DC 15)
+Quantity: 1d12 stalks
+Location: fallen logs in non-dry climates
+Uses (3): Invisible Ink, Potion of Diminution, Midnight Oil
+Red Amanita Mushroom
+This red-capped mushroom can grow to the size of a small
+dish. It deals 1d4 poison damage when ingested, but can
+be used to brew healing potions by a careful herbalist.
+Rarity: Common (DC 10)
+Gathering: Herbalism Kit (DC 10)
+Quantity: 2d4 stalks
+Location: Swamps, Forests
+Uses (5): Potion of Longevity, Potion of Healing, Potion of
+Greater Healing, Potion of Superior Healing, Potion of
+Supreme Healing
+Rowan Berries
+These small clusters of red berries grow on the rowan, a
+tree highly revered by druids. They are known for their
+purifying properties.
+Rarity: Common (DC 10)
+Gathering: Herbalism Kit (DC 5)
+Quantity: 3d6 clusters
+Location: Grasslands, Forests
+Uses (3): Potion of Growth, Potion of Resistance (Poison),
+Antitoxin
+Silverthorn
+This thorny vine is a pale silver color, and is hard as metal.
+Patches of silverthorn create difficult terrain, and deal 1d6
+piercing damage if moved through at normal speed.
+Rarity: Rare (DC 20)
+Gathering: Herbalism Kit (DC 15)
+Quantity: 1d6 thorns
+Location: Arctic, Mountains
+Uses (3): Tincture of Werewolf's Bane, Oil of Sharpness,
+Potion of Vitality
+Singing Nettle
+This vine has sharp, stinging hairs covering it. A creature
+who touches these hairs must make a Wisdom saving
+throw (DC 15) or be overwhelmed by the urge to bellow a
+song at the top of their lungs.
+Rarity: Uncommon (DC 15)
+Gathering: Herbalism Kit (DC 15)
+Quantity: 2d4 leaves
+Location: Swamps, Mountains, Forests
+Uses (3): Potion of Resistance (Thunder), Potion of
+Gaseous Form, Potion of Flying
+Sourgrass
+This green, long-bladed grass has a pungent smell and
+flavor. Humanoids who come within 5 feet of uncut
+sourgrass must make a successful Constitution saving
+throw (DC 10) or become overwhelmed with nausea and
+inflicted with the poisoned condition for 30 seconds.
+Rarity: Uncommon (DC 15)
+Gathering: Herbalism Kit (DC 5)
+Quantity: 2d4 clumps
+Location: Grasslands, Mountains
+Uses (3): Soothing Salve, Potion of Growth, Potion of
+Resistance (Radiant)
+Theki Root
+This thick root tastes bitter but is thought to aid digestive
+health. When you use an action to consume a dose, you
+gain advantage on saving throws against the effects of
+poisonous or toxic substances for 8 hours.
+Rarity: Uncommon (DC 15)
+Gathering: Herbalism Kit (DC 15)
+Quantity: 1d6 Roots
+Location: Marshes
+Uses (1):
+15
+
+-- 15 of 24 --
+
+Willowshade Fruit
+A pepper shaped fruit with great digestive aiding
+properties.
+Rarity: Uncommon (DC 15)
+Gathering: Herbalism Kit (DC 15)
+Quantity: 1d8 fruit
+Location: Marshes, Coasts, Riversides
+Uses (1): Willowshade Oil
+Wolfsbane
+This white-grey flower blooms only on a full moon and in
+high altitudes. Canines who come within 10 feet of
+wolfsbane must make a Wisdom save (DC 15) or be forced
+to move as far as they can away from the plant.
+Rarity: Rare (DC 20)
+Gathering: Herbalism Kit (DC 15)
+Quantity: 1d4 flowers
+Location: Mountains
+Uses (2): Tincture of Werewolf's Bane, Oil of Taggit
+Inorganic materials
+Lightning Struck Metal
+A piece of metal struck by metal weighing at least 0,5
+Ounces. Coinage struck by lightning is excluded.
+Rarity: Rare (DC 20)
+Gathering: -------
+Quantity: -------
+Location: -------
+Uses (1): Potion of Invulnerability
+Soothsalt Geode
+A geode covered in a crystalline substance that can be
+extracted into soothsalts.
+Rarity: Rare (DC 20), Common (DC 10, only in the
+Miskath pit)
+Gathering: Pickaxe or Crowbar (DC 10) (no modifier)
+Quantity: 1d4 Geodes
+Location: Blightshore
+Uses (1): Soothsalts
+16
+
+-- 16 of 24 --
+
+Harvestable Creature Parts
+Noted below are all animals that can be killed to harvest
+ingredients
+Ankheg
+Large monstrosity, unaligned (CR 2)
+location: nests beneath fields and forests
+Ingredients:
+Ankheg Ichor: A creature that comes in contact with this
+mucus must succeed on a DC 13 Constitution saving
+throw or be Poisoned for 1 minute. The Poisoned
+creature is Paralyzed. The creature can repeat the
+saving throw at the end of each of its turns, ending the
+effect on itself on a success.
+Rarity: Uncommon (DC15)
+Harvesting: Poisoner's Kit (DC 15)
+Quantity: 1d4 vials
+Creature Condition: Dead or Incapacitated
+Uses (2): Oil of Sharpness, Midnight Tears
+Carrion Crawler
+Large monstrosity, unaligned (CR 2)
+Location: Caves, sewers, dungeons, forested marshes,
+battlefields and cemeteries (anywhere with carrion and
+where other carrion eaters cannot move freely)
+Ingredients:
+Crawler Mucus: A creature that comes in contact with
+this mucus must succeed on a DC 13 Constitution
+saving throw or be Poisoned for 1 minute. The
+Poisoned creature is Paralyzed. The creature can repeat
+the saving throw at the end of each of its turns, ending
+the effect on itself on a success.
+Rarity: Uncommon (DC 15)
+Harvesting: Poisoner's Kit (DC 20)
+Quantity: 1d4 vials
+Creature Condition: Dead or Incapacitated
+Uses (3): Potion of resistance (Acid), Vial of Acid, Oil of
+Slipperiness
+Drider
+Large Monstrosity, Chaotic Evil (CR 6)
+Location: Underdark
+Ingredient:
+Drider Posion
+Rarity: Rare (DC 20)
+Harvesting: Poisoner’s Kit (DC 15)
+Quantity: 1d6
+Creature condition: Dead or Incapacitated
+Uses: Drow Poison
+Eagle
+Small Beast, unaligned (CR 0)
+Location: Coastal, Grassland, Hill, Mountain
+Ingredient:
+Eagle Claw
+Rarity: Uncommon (DC 15)
+Harvesting: a Knife (DC 10)
+Quantity: 1d8
+Creature condition: Dead or Incapacitated
+Uses: Potion of Speed
+Elementals
+Large elemental, unaligned (CR 5)
+Location: Desert and Mountain (Air), Underdark (Earth),
+Desert (Fire), Coastal, Swamp and Underwater (Water)
+Ingredient:
+Respective elemental essence
+Rarity: Rare (DC 20)
+Harvesting: Alchemist’s Kit (DC 15)
+Quantity: 1d6
+Creature condition: Trade or Dead or Incapacitated
+Uses (2/1/1/1): (Air) Smokebomb, Potion of Flying, (Earth)
+Potion of Climbing, (Fire) Alchemist’s Fire, (Water) Potion of
+Swimming
+Ghost
+Medium undead, unaligned (CR 4)
+Location: Underdark, Urban
+Ingredient:
+Ectoplasm
+Rarity: Uncommon (DC 15)
+Harvesting: Alchemist’s kit (DC 15)
+Quantity: 1d4 flasks
+Creature Condition: Unrelated
+Uses (2): Potion of Gaseous Form, Oil of Etherealness
+Giants
+Huge Giants, Varies (CR Varies)
+Location: Hills and Forests (Hill), Artic (Frost), Caves
+(Stone), Volcanoes and Rocky Mountains (Fire), High
+Altitude Mountains (Cloud), Extreme Altitude Mountains
+(Storm)
+Ingredient:
+Giant’s fingernail
+Rarity: Rare (DC 20)
+Harvesting: a knife (DC 10)
+Quantity: 7
+Creature Condition: Dead or Incapacitated, or trade
+Uses (1): Potion of Giant’s Strength
+17
+
+-- 17 of 24 --
+
+Giant Poisonous Snake
+Medium beast, unaligned (CR 1/4)
+Location: desert, forest, grassland, swamp, underdark,
+urban
+Ingredients:
+Serpent’s venom: A creature hit with an attack by a
+weapon coated in this venom must succeed on a DC 11
+Constitution saving throw, taking 10 (3d6) poison
+damage on a failed save, or half as much damage on a
+successful one.
+Rarity: Common (DC 10)
+Harvesting: Poisoner's Kit (DC 10)
+Quantity: 1d3 vials
+Creature Condition: Dead or Incapacitated
+Uses (1): Philter of Love
+Giant Toad
+Large beast, unaligned (CR 1)
+Location: coastal, desert, forest, swamp and underdark
+Ingredients:
+Amphibian Saliva
+Rarity: Uncommon (DC 15)
+Harvesting: Poisoner's Kit (DC 15)
+Quantity: 1d4 vials
+Creature Condition: Dead or Incapacitated
+Uses (2): Potion of Resistance (Force), Oil of slipperiness
+Giant Wolf Spider
+Medium Beast, unaligned (CR 1/4)
+Location: coastal, desert, forest, grassland, Hill
+Ingredients
+Giant Wolf Spider Hair
+Rarity: Common (DC 10)
+Harvesting. A knife
+Quantity. 1d8
+Creature Condition. Dead or Incapacitated
+Uses (1). Potion of Climbing
+Gray Ooze
+Medium Beast, unaligned (CR 1/2)
+Location: Underdark
+Ingredients
+Grey Ooze Residue
+Rarity: Uncommon (DC 15)
+Harvesting: Alchemist’s Kit (DC 15)
+Quantity: 1d4
+Creature Condition: Dead
+Uses (1): Vial of Acid
+Imp
+Tiny Fiend (Devil), Lawful evil (CR 1)
+Location: Varies
+Ingredients
+Imp Heart
+Rarity: Rare (DC 20)
+Harvesting: A Knife (DC 15)
+Quantity: 1
+Creature Condition: Dead
+Uses (1): Potion of Longevity
+Nothic
+Medium Aberration, Neutral Evil (CR 2)
+Location: Locations of Magical Learning, Underdark
+Ingredients
+Nothic Tears: When used as eyedrops provide 1d4
+hours of darksight
+Rarity: Uncommon (DC 15)
+Harvesting: nothing
+Quantity: 1d4 vials
+Creature Condition: Dead or incapacitated, or trade
+Uses (1): Potion of Truesight
+Purple Worm
+Gargantuan monstrosity, unaligned (CR 15)
+Location: desert and Underdark
+Ingredients:
+Purple Worm Poison: A creature hit with an attack by a
+weapon coated in this poison must make a DC 19
+Constitution saving throw, taking 42 (12d6) poison
+damage on a failed save, or half as much damage on a
+successful one.
+Rarity: Very Rare (DC 20)
+Harvesting: Poisoner's Kit (DC 20)
+Quantity: 1d8 vials
+Creature Condition: Dead or Incapacitated
+Uses (1): Deathsleep
+18
+
+-- 18 of 24 --
+
+Quipper
+Tiny Beast, Unaligned (CR 0)
+Location: Underwater
+Ingredients:
+Quipper scale
+Rarity: Common (DC 10)
+Harvesting: a knife (DC 5)
+Quantity: 1d4
+Creature condition: Dead or incapacitated
+Uses (2): Potion of Animal Friendship, Potion of
+Swimming
+Remorhaz
+Large/Huge monstrosity, Unaligned (CR 5/11)
+Location: Artic
+Ingredients:
+Remorhaz Ichor
+Rarity: Rare (DC 20)
+Harvesting: Alchemist’s Kit (DC 20)
+Quantity: 1d6, 3d6
+Creature condition: Dead or incapacitated
+Uses (1): Potion of Firebreath
+Skulk
+Medium Humanoid, Chaotic Neutral (CR 1/2)
+Location: Coastal, Forest, Swamp, Underdark, Urban
+Ingredients:
+Skulk Claw
+Rarity: Uncommon (DC 15)
+Harvesting: a knife (DC 10)
+Quantity: 1d10
+Creature condition: Dead
+Uses (1): Potion of Invisibility
+True Dragons
+Varying Dragon, Varying Alignment (CR Varies)
+Location: Varies
+Ingredients:
+Dragon’s blood
+Rarity: Rare (DC 20)
+Harvesting: a knife (DC 10) (1/4 of normal Exp.)
+Quantity: Xd8 (X depends on size of the dragon) when
+Dead or Incapacitated, 1d4 when trading
+Creature condition: Dead or Incapacitated, or Trade
+Uses (1): Oil of Dragon’s Bane
+Wyvern
+Gargantuan monstrosity, unaligned (CR 15)
+Location: Hills and Mountains
+Ingredients:
+Wyvern Poison: A creature hit with an attack by a
+weapon coated in this poison must make a DC 15
+Constitution saving throw, taking 24 (7d6) poison
+damage on a failed save, or half as much damage on a
+successful one.
+Rarity: Rare (DC 18)
+Harvesting: Poisoner's Kit (DC 15)
+Quantity: 1d8 vials
+Creature Condition: Dead or Incapacitated
+Uses (1): Oil of Dragon’s Bane
+19
+
+-- 19 of 24 --
+
+Environments
+A convenient list with all available resources sorted based
+on environments
+Artic
+Frost Lichen (DC 15)
+Silverthorn (DC 20)
+Remorhaz (DC 20)
+Blightshore
+Blightshrooms (DC 20)
+Coast
+Gillyweed (DC 10)
+Dreamlilly (DC 10)
+Lightning Moss (DC 15)
+Willowshade Bush (DC 15)
+Moonstalker (DC 20)
+Water Elemental (DC 20)
+Eagle (DC 15)
+Giant Toad (DC 10)
+Giant Wolf Spider (DC 10)
+Skulk (DC 15)
+Desert
+Muroosa Bush (DC 15)
+Giant Toad (DC 15)
+Air Elemental (DC 20)
+Purple Worm (DC 20)
+Feywild
+Pixie's Parasol (DC 10)
+Fairy Stool (DC 20)
+Forests
+Cat's Tongue (DC 10)
+Red Amanita Mushroom (DC 10)
+Rowan Berry (DC 10)
+Morning Dew (DC 10)
+Nightshade (DC 15)
+Olisuba Bush (DC 15)
+Singing Nettle (DC 15)
+Death Cap (DC 20)
+Fairy Stool (DC 20)
+Pixie's Parasol (DC 20)
+Hagfinger (DC 20)
+Giant Poisonous Snake (DC 10)
+Giant Wolf Spider (DC 10)
+Skulk (DC 15)
+Giant Toad (DC 15)
+Ankheg (DC 15)
+Hill Giant (DC 20)
+Grasslands
+Cat's Tongue (DC 10)
+Dreamlilly (DC 10)
+Morning Dew (DC 10)
+Olisuba Bush (DC 15)
+Pixie's Parasol (DC 20)
+Rowan Berry (DC 10)
+Sourgrass (DC 15)
+Giant Poisonous Snake (DC 10)
+Giant Wolf Spider (DC 10)
+Ankheg (DC 15)
+Eagle (DC 15)
+Hill
+Pixie's Parasol (DC 20)
+Eagle (DC 15)
+Wyvern (DC 18)
+Hill Giant (DC 20)
+Mountains
+Singing Nettle (DC 15)
+Sourgrass (DC 15)
+Lightning Moss (DC 15)
+Pixie's Parasol (DC 20)
+Silverthorn (DC 20)
+Wolfsbane (DC 20)
+Eagle (DC 15)
+Wyvern (DC 18)
+Air Elemental (DC 20)
+Cloud Giant (DC 20)
+Fire Giant (DC 20)
+Storm Giant (DC 20)
+Savannahs
+Morning Dew (DC 10)
+Muroosa Bush (DC 15)
+Pixie's Parasol (DC 20)
+20
+
+-- 20 of 24 --
+
+Swamp
+Red Amanita Mushroom (DC 10)
+Gillyweed (DC 10)
+Singing Nettle (DC 15)
+Theki Root (DC 15)
+Willowshade Bush (DC 15)
+Death Cap (DC 20)
+Hagfinger (DC 20)
+Moonstalker (DC 20)
+Pixie's Parasol (DC 20)
+Giant Poisonous Snake (DC 10)
+Carrion Crawler (DC 15)
+Giant Toad (DC 15)
+Skulk (DC 15)
+Water Elemental (DC 20)
+Urban areas
+Carrion Crawler (DC 15)
+Ghost (DC 15)
+Giant Poisonous Snake (DC 10)
+Nothic (DC 15)
+Skulk (DC 15)
+Pixie's Parasol (DC 20)
+Underdark
+Ghost (DC 15)
+Giant Poisonous Snake (DC 10)
+Giant Toad (DC 15)
+Gray Ooze (DC 15)
+Nothic (DC 15)
+Purple Worm (DC 20)
+Skulk (DC 15)
+Underground
+Mandrake Root (DC 15)
+Mindflayer Stinkhorn (DC 15)
+Stone Giant (DC 20)
+Underwater
+Water Elemental (DC 20)
+Quipper (DC 10)
+Varies
+Elementals (DC 20)
+Giants (DC 20)
+Imp (DC 20)
+True Dragons (DC varies)
+Volcanos
+Ashblossom (DC 20)
+Fire Giants (DC 20)
+21
+
+-- 21 of 24 --
+
+Potion Making Level System
+(Playtest)
+If both the player and the DM want to, this Potion Leveling
+system can be implemented to allow the player to make
+their character progressively better at making potions.
+Each time a player identifies or successfully gathers an
+ingredient, learns a new recipe or successfully completes a
+product a certain amount of Potion Making Exp. is
+awarded according to rarity and quantity. The values of
+those are depicted in the table below.
+EXP. 	Identify Gather Produced Recipe learned
+Common 5 	2 	100 	200
+Uncommon 10 	8 	300 	1000
+Rare 	20 	12 	1000 	2000
+Very Rare 	20 	3000 	6000
+Legendary 	40
+When a player investigates an area, they get a reward
+for each herb ingredient Identified, based on rarity. No
+Exp. reward is obtained from identifying animals. A player
+can only receive Exp. once for identifying an herb in an
+area. Subsequent investigation can be performed to find
+rarer ingredients, awarding Exp. to the player only for
+newly identified ingredients. So, if the player identifies
+Gillyweed, Red Aminata Mushrooms and Singing Nettles
+during the same investigation, they receive 5 + 5 + 10 = 20
+Exp. If the player investigates the area again, rolls higher
+and finds Gillyweed, Red Aminata Mushrooms, Singing
+nettles, Hagfinger and Moonstalker, the player receives 20
++ 20 = 40 Exp.
+Once a player has identified ingredients and successfully
+collects them, they get a reward for each unit of that
+ingredient acquired, based on rarity. So, if a player
+successfully harvests 4 vials of Purple Worm Poison, they
+receive 4 * 40 = 160 Exp. The player can also obtained
+rewards for learning new recipes and producing potions or
+other products, depending on rarity. Recipes can only be
+learned once (the recipe learning process is described on
+page 1). No Exp. Is awarded to recipes learned via
+character leveling.
+An Excel spreadsheet with all ingredient rarities is also
+available:
+(https://drive.google.com/file/d/14KB0KTRPMHxkBGut_D4Mu8OqQBhrIe5V/view?
+usp=sharing). This spreadsheet can also be used to
+automatically record the players Exp., ingredient stock,
+product stock and Potion Making Level. The file is
+nonfunctional in Drive, but can be downloaded as a .xlsx
+file and works well that way.
+Potion making modifier
+Once the player has reached a certain Exp. value, they
+level up their potion making abilities to a maximum of
+level 10. Each level above level 1 provides a cumulative +1
+to check made to determine if a potion was made
+successfully.
+Level 	EXP 	Bonus
+Lvl. 1 	0 	0
+Lvl. 2 	150 	+1
+Lvl. 3 	450 	+2
+Lvl. 4 	900 	+3
+Lvl. 5 	1500 	+4
+Lvl. 6 	2250 	+5
+Lvl. 7 	3150 	+6
+Lvl. 8 	4200 	+7
+Lvl. 9 	5400 	+8
+Lvl. 10 	6750 	+9
+22
+
+-- 22 of 24 --
+
+Credits
+This guide is based on a work-in-progress guide written on
+GMbinder by Lyydia. I've added some systems, filled in a
+lot of empty spaces and added more items to make as well
+as catalogues to make the guide easier to use.
+Artwork
+Cover: "Alchemist's Satchel" by Tibor Sulyok
+Page 2: "Potions" by Unknown
+Page 3: "Magical Items" by Unknown
+Page 5: "Scrolls" by Unknown
+Page 6: "Imp" by Wizards of the Coast
+Page 8: "Noctas Monoculas" by Emma Lazauski
+Page 9: "Poison Bottle" by Blue Crystal Atelier
+Page 11: "Xebiopoda Forciporia" by Emma Lazauski
+Page 12: "Gloomflower" by Kobald Press
+Page 15: "Violet Fungus" by Wizards of the Coast
+Page 16: "Ghor Veles" by Wizards of the Coast
+Page 18: "Eagle" by Wizards of the Coast
+Page 19: "Pseudodragon" by Wizards of the Coast
+Page 20: "Remorhaz" by Wizards of the Coast
+Page 21: "Fire Snake" by Wizards of the Coast
+Page 23: "Female Human Progenitor Druid" by Wizards
+of the Coast
+
+-- 23 of 24 --
+
+This document was lovingly created
+using GM Binder.
+If you would like to support the GM Binder developers,
+consider joining our Patreon community.	WWW.GMBINDER.COM
+
+-- 24 of 24 --
+

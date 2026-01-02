@@ -113,9 +113,9 @@ const MerchantModal: React.FC<MerchantModalProps> = ({
                                     <>
                                         {economy.activeEvents && economy.activeEvents.length > 0 ? (
                                             <div className="flex flex-col gap-1 mb-1">
-                                                {economy.activeEvents.map(event => (
-                                                    <div key={event.id} className="text-amber-200 flex items-center gap-2">
-                                                        <span>📢 {event.name}: {event.description}</span>
+                                                {economy.activeEvents.map((marketEvent: any) => (
+                                                    <div key={marketEvent.id} className="text-amber-200 flex items-center gap-2">
+                                                        <span>📢 {marketEvent.name}: {marketEvent.description}</span>
                                                     </div>
                                                 ))}
                                             </div>

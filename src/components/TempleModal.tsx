@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { Action, Item as _Item } from '../types';
-import { Temple, TempleService } from '../types/deity';
+import { Temple, TempleService } from '../types/religion';
 import { useGameState } from '../state/GameContext';
 import { formatGpAsCoins } from '../utils/coinPurseUtils';
 import { useFocusTrap } from '../hooks/useFocusTrap';
@@ -35,11 +35,21 @@ const TempleModal: React.FC<TempleModalProps> = ({
     const [lastActionMessage, setLastActionMessage] = useState<string | null>(null);
 
     const deity = useMemo(() => DEITIES.find(d => d.id === temple.deityId), [temple.deityId]);
-    const divineFavor = state.divineFavor[temple.deityId] || { favor: 0, blessings: [], transgressions: [], history: [], deityId: temple.deityId };
-    const standing = getDivineStanding(divineFavor.favor);
+    const divineFavor = state.religion?.divineFavor?.[temple.deityId] || state.divineFavor?.[temple.deityId];
+    const favorScore = divineFavor?.score ?? (divineFavor as any)?.favor ?? 0;
+    const standing = getDivineStanding(favorScore);
+    const templeServices = useMemo(
+        () => temple.services.filter((s): s is TempleService => typeof s !== 'string'),
+        [temple.services]
+    ); // TODO(lint-intent): Resolve string service IDs to concrete objects once the data hook is available.
 
     const handleService = (service: TempleService) => {
-        if (playerGold >= service.costGp) {
+        const cost = service.costGp ?? 0;
+        if (playerGold >= cost) {
+            const effectDescription = typeof service.effect === 'string'
+                ? service.effect
+                : (service.effect.description || service.effect.type);
+
             onAction({
                 type: 'USE_TEMPLE_SERVICE',
                 label: `Purchase ${service.name}`,
@@ -47,8 +57,8 @@ const TempleModal: React.FC<TempleModalProps> = ({
                     templeId: temple.id,
                     deityId: temple.deityId, // Explicitly pass deityId to reducer
                     serviceId: service.id,
-                    cost: service.costGp,
-                    effect: service.mechanicalEffect
+                    cost,
+                    effect: effectDescription,
                 }
             });
             setLastActionMessage(`Purchased ${service.name}`);
@@ -124,9 +134,10 @@ const TempleModal: React.FC<TempleModalProps> = ({
                         )}
 
                         <div className="grid grid-cols-1 gap-3">
-                            {temple.services.map((service) => {
-                                const canAfford = playerGold >= service.costGp;
-                                const favorReqMet = (service.minFavor || -100) <= divineFavor.favor;
+                            {templeServices.map((service) => {
+                                const cost = service.costGp ?? 0;
+                                const canAfford = playerGold >= cost;
+                                const favorReqMet = (service.minFavor || -100) <= favorScore;
                                 const isLocked = !favorReqMet;
 
                                 return (
@@ -155,7 +166,7 @@ const TempleModal: React.FC<TempleModalProps> = ({
 
                                             <div className="flex flex-col items-end gap-2">
                                                 <span className={`font-cinzel font-bold ${canAfford ? 'text-amber-400' : 'text-red-400'}`}>
-                                                    {formatGpAsCoins(service.costGp)}
+                                                    {formatGpAsCoins(cost)}
                                                 </span>
                                                 <button
                                                     onClick={() => handleService(service)}
@@ -183,12 +194,12 @@ const TempleModal: React.FC<TempleModalProps> = ({
                          <div className="mb-8">
                             <h3 className="text-sm uppercase tracking-widest text-gray-500 font-bold mb-3">Your Standing</h3>
                             <div className="bg-gray-900 p-4 rounded-lg border border-gray-800 text-center">
-                                <div className="text-4xl font-cinzel text-amber-100 mb-1">{divineFavor.favor}</div>
+                                <div className="text-4xl font-cinzel text-amber-100 mb-1">{favorScore}</div>
                                 <div className="text-amber-500 font-serif italic">{standing}</div>
                                 <div className="w-full bg-gray-800 h-1.5 rounded-full mt-3 overflow-hidden">
                                     <div
                                         className="bg-amber-600 h-full transition-all duration-500"
-                                        style={{ width: `${Math.min(100, Math.max(0, (divineFavor.favor + 100) / 2))}%` }}
+                                        style={{ width: `${Math.min(100, Math.max(0, (favorScore + 100) / 2))}%` }}
                                     ></div>
                                 </div>
                             </div>

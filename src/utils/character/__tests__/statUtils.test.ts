@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { calculateArmorClass, calculateFinalAbilityScores, calculatePassiveScore } from '../statUtils';
-import { createMockPlayerCharacter } from '../factories';
+import { createMockPlayerCharacter } from '../../core/factories';
 import { ActiveEffect } from '@/types/combat';
 import { Item } from '@/types';
 
@@ -14,8 +14,8 @@ describe('statUtils', () => {
                     Intelligence: 10, Wisdom: 10, Charisma: 10
                 },
                 equippedItems: {
-                    Torso: null,
-                    OffHand: null
+                    Torso: undefined,
+                    OffHand: undefined
                 }
             });
             // 10 + 2 (Dex) = 12
@@ -33,11 +33,12 @@ describe('statUtils', () => {
                         id: 'leather_armor',
                         name: 'Leather Armor',
                         type: 'armor',
+                        description: '',
                         armorCategory: 'Light',
                         baseArmorClass: 11,
                         addsDexterityModifier: true
                     },
-                    OffHand: null
+                    OffHand: undefined
                 }
             });
             // 11 + 2 (Dex) = 13
@@ -55,12 +56,13 @@ describe('statUtils', () => {
                         id: 'scale_mail',
                         name: 'Scale Mail',
                         type: 'armor',
+                        description: '',
                         armorCategory: 'Medium',
                         baseArmorClass: 14,
                         addsDexterityModifier: true,
                         maxDexterityBonus: 2
                     },
-                    OffHand: null
+                    OffHand: undefined
                 }
             });
             // 14 + min(4, 2) = 16
@@ -74,11 +76,12 @@ describe('statUtils', () => {
                     Intelligence: 10, Wisdom: 10, Charisma: 10
                 },
                 equippedItems: {
-                    Torso: null,
+                    Torso: undefined,
                     OffHand: {
                         id: 'shield',
                         name: 'Shield',
                         type: 'armor',
+                        description: '',
                         armorCategory: 'Shield',
                         armorClassBonus: 2
                     }
@@ -90,13 +93,13 @@ describe('statUtils', () => {
 
         it('calculates Barbarian Unarmored Defense (10 + Dex + Con)', () => {
             const char = createMockPlayerCharacter({
-                class: { id: 'barbarian', name: 'Barbarian' },
+                class: { id: 'barbarian', name: 'Barbarian', description: '', hitDie: 12, primaryAbility: ['Strength'], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] } as any,
                 finalAbilityScores: {
                     Strength: 10, Dexterity: 14, // +2
                     Constitution: 16, // +3
                     Intelligence: 10, Wisdom: 10, Charisma: 10
                 },
-                equippedItems: { Torso: null, OffHand: null }
+                equippedItems: { Torso: undefined, OffHand: undefined }
             });
             // 10 + 2 (Dex) + 3 (Con) = 15
             expect(calculateArmorClass(char)).toBe(15);
@@ -104,18 +107,19 @@ describe('statUtils', () => {
 
         it('Barbarian Unarmored Defense works with Shield', () => {
             const char = createMockPlayerCharacter({
-                class: { id: 'barbarian', name: 'Barbarian' },
+                class: { id: 'barbarian', name: 'Barbarian', description: '', hitDie: 12, primaryAbility: ['Strength'], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] } as any,
                 finalAbilityScores: {
                     Strength: 10, Dexterity: 14, // +2
                     Constitution: 16, // +3
                     Intelligence: 10, Wisdom: 10, Charisma: 10
                 },
                 equippedItems: {
-                    Torso: null,
+                    Torso: undefined,
                     OffHand: {
                         id: 'shield',
                         name: 'Shield',
                         type: 'armor',
+                        description: '',
                         armorCategory: 'Shield',
                         armorClassBonus: 2
                     }
@@ -127,7 +131,7 @@ describe('statUtils', () => {
 
         it('calculates Monk Unarmored Defense (10 + Dex + Wis)', () => {
             const char = createMockPlayerCharacter({
-                class: { id: 'monk', name: 'Monk' },
+                class: { id: 'monk', name: 'Monk', description: '', hitDie: 8, primaryAbility: ['Dexterity', 'Wisdom'], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] } as any,
                 finalAbilityScores: {
                     Strength: 10, Dexterity: 14, // +2
                     Constitution: 10,
@@ -135,7 +139,7 @@ describe('statUtils', () => {
                     Wisdom: 16, // +3
                     Charisma: 10
                 },
-                equippedItems: { Torso: null, OffHand: null }
+                equippedItems: { Torso: undefined, OffHand: undefined }
             });
             // 10 + 2 (Dex) + 3 (Wis) = 15
             expect(calculateArmorClass(char)).toBe(15);
@@ -143,7 +147,7 @@ describe('statUtils', () => {
 
         it('Monk Unarmored Defense fails with Shield', () => {
             const char = createMockPlayerCharacter({
-                class: { id: 'monk', name: 'Monk' },
+                class: { id: 'monk', name: 'Monk', description: '', hitDie: 8, primaryAbility: ['Dexterity', 'Wisdom'], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] } as any,
                 finalAbilityScores: {
                     Strength: 10, Dexterity: 14, // +2
                     Constitution: 10,
@@ -152,11 +156,12 @@ describe('statUtils', () => {
                     Charisma: 10
                 },
                 equippedItems: {
-                    Torso: null,
+                    Torso: undefined,
                     OffHand: {
                         id: 'shield',
                         name: 'Shield',
                         type: 'armor',
+                        description: '',
                         armorCategory: 'Shield',
                         armorClassBonus: 2
                     }
@@ -173,7 +178,7 @@ describe('statUtils', () => {
             // Mage Armor: 13 + Dex(+3) = 16. Same.
             // Let's make Wis +4 (AC 17) vs Mage Armor (AC 16)
             const monkBetter = createMockPlayerCharacter({
-                class: { id: 'monk', name: 'Monk' },
+                class: { id: 'monk', name: 'Monk', description: '', hitDie: 8, primaryAbility: ['Dexterity', 'Wisdom'], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] } as any,
                 finalAbilityScores: {
                     Strength: 10,
                     Dexterity: 16, // +3
@@ -182,16 +187,21 @@ describe('statUtils', () => {
                     Wisdom: 18, // +4
                     Charisma: 10
                 },
-                equippedItems: { Torso: null, OffHand: null }
+                equippedItems: { Torso: undefined, OffHand: undefined }
             });
 
             const mageArmorEffect: ActiveEffect = {
                 id: 'mage_armor',
                 name: 'Mage Armor',
-                type: 'set_base_ac',
-                value: 13,
-                duration: 28800,
-                startTime: Date.now()
+                spellId: 'mage_armor',
+                casterId: 'tester',
+                source: 'spell',
+                appliedTurn: 0,
+                sourceName: 'Mage Armor',
+                type: 'buff',
+                duration: { type: 'minutes', value: 480 },
+                startTime: Date.now(),
+                mechanics: { acBonus: 3 }
             };
 
             // Monk Unarmored: 10 + 3 + 4 = 17
@@ -204,7 +214,7 @@ describe('statUtils', () => {
             // Monk: Dex +3, Wis +1. AC = 10+3+1 = 14.
             // Mage Armor: 13 + 3 = 16.
             const mageArmorBetter = createMockPlayerCharacter({
-                class: { id: 'monk', name: 'Monk' },
+                class: { id: 'monk', name: 'Monk', description: '', hitDie: 8, primaryAbility: ['Dexterity', 'Wisdom'], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] } as any,
                 finalAbilityScores: {
                     Strength: 10,
                     Dexterity: 16, // +3
@@ -213,7 +223,7 @@ describe('statUtils', () => {
                     Wisdom: 12, // +1
                     Charisma: 10
                 },
-                equippedItems: { Torso: null, OffHand: null }
+                equippedItems: { Torso: undefined, OffHand: undefined }
             });
 
             // Monk Unarmored: 10 + 3 + 1 = 14
@@ -230,20 +240,32 @@ describe('statUtils', () => {
                 },
                 equippedItems: {
                     Torso: {
-                        id: 'leather', type: 'armor', armorCategory: 'Light',
-                        baseArmorClass: 11, addsDexterityModifier: true
+                        id: 'leather',
+                        name: 'Leather Armor',
+                        description: '',
+                        type: 'armor',
+                        armorCategory: 'Light',
+                        baseArmorClass: 11,
+                        addsDexterityModifier: true
                     },
-                    OffHand: null
+                    OffHand: undefined
                 }
             });
 
             const mageArmorEffect: ActiveEffect = {
                 id: 'mage_armor',
                 name: 'Mage Armor',
-                type: 'set_base_ac',
-                value: 13,
-                duration: 28800,
-                startTime: Date.now()
+                spellId: 'mage_armor',
+                casterId: 'tester',
+                source: 'spell',
+                appliedTurn: 0,
+                sourceName: 'Mage Armor',
+                type: 'buff',
+                duration: { type: 'minutes', value: 480 },
+                startTime: Date.now(),
+                mechanics: {
+                    acBonus: 3 // simplified; base 13 vs default 10
+                }
             };
 
             // Wearing Armor: 11 + 2 = 13.

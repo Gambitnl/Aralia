@@ -24,6 +24,7 @@ interface ActionPaneProps {
   disabled: boolean;
   geminiGeneratedActions: Action[] | null;
   isDevDummyActive: boolean;
+  isDevModeEnabled: boolean;
   unreadDiscoveryCount: number;
 
   hasNewRateLimitError: boolean;
@@ -39,6 +40,7 @@ const ActionPane: React.FC<ActionPaneProps> = ({
   disabled,
   geminiGeneratedActions,
   isDevDummyActive,
+  isDevModeEnabled,
   unreadDiscoveryCount,
 
   hasNewRateLimitError,
@@ -155,17 +157,15 @@ const ActionPane: React.FC<ActionPaneProps> = ({
         unreadDiscoveryCount={unreadDiscoveryCount}
         hasNewRateLimitError={hasNewRateLimitError}
         isDevDummyActive={isDevDummyActive}
+        isDevModeEnabled={isDevModeEnabled}
         onOpenShip={() => setShowShipPane(true)}
       />
 
       {/* Naval Pane Modal */}
       <AnimatePresence>
-        {showShipPane && shipState && (
-          <ShipPane
-            ship={shipState}
-            onClose={() => setShowShipPane(false)}
-          />
-        )}
+        {showShipPane && shipState ? (
+          <ShipPane ship={shipState} onClose={() => setShowShipPane(false)} />
+        ) : null}
       </AnimatePresence>
 
     </div>

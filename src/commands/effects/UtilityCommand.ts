@@ -90,20 +90,21 @@ export class UtilityCommand extends BaseEffectCommand {
         }
 
         // Apply control options metadata for downstream enforcement.
-        if (effect.controlOptions && effect.controlOptions.length > 0) {
+        const controlOptions = effect.controlOptions ?? [];
+        if (controlOptions.length > 0) {        
             newState = this.addLogEntry(newState, {
                 type: 'status',
-                message: `${this.context.caster.name} issues a command with options: ${effect.controlOptions.map(o => o.name).join(', ')}`,
+                message: `${this.context.caster.name} issues a command with options: ${controlOptions.map(o => o.name).join(', ')}`,
                 characterId: this.context.caster.id,
-                data: { controlOptions: effect.controlOptions }
+                data: { controlOptions }
             })
 
             // TODO: Accept a selected control option from UI/AI instead of always auto-picking the first.
-            // Execute a basic fallback: pick the first option provided.
-            const chosen = effect.controlOptions[0]
+            // Execute a basic fallback: pick the first option provided.        
+            const chosen = controlOptions[0]
             const targets = this.getTargets(newState)
             for (const target of targets) {
-                newState = this.applyControlOption(newState, target, chosen)
+                newState = this.applyControlOption(newState, target, chosen)    
             }
         }
 
@@ -123,7 +124,11 @@ export class UtilityCommand extends BaseEffectCommand {
         return `${this.context.caster.name} uses ${effect.utilityType} utility`
     }
 
-    private applyControlOption(state: CombatState, target: CombatCharacter, option: UtilityEffect['controlOptions'][number]): CombatState {
+    private applyControlOption(
+        state: CombatState,
+        target: CombatCharacter,
+        option: NonNullable<UtilityEffect['controlOptions']>[number]
+    ): CombatState {
         switch (option.effect) {
             case 'approach':
                 return this.moveRelative(state, target, 'toward', 'approach')

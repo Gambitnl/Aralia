@@ -112,7 +112,7 @@ export async function handleGossipEvent(
     // Cross-Location Gossip Propagation (omitted for brevity, but would follow same pattern using rephraseResult.data?.text)
 
     if (Object.keys(gossipUpdatePayload).length > 0) {
-        dispatch({ type: 'PROCESS_Gossip_UPDATES', payload: gossipUpdatePayload });
+        dispatch({ type: 'PROCESS_GOSSIP_UPDATES', payload: gossipUpdatePayload });
     }
 }
 
@@ -213,7 +213,7 @@ export async function handleImmediateGossip(
   }
 
   if (Object.keys(gossipUpdatePayload).length > 0) {
-    dispatch({ type: 'PROCESS_Gossip_UPDATES', payload: gossipUpdatePayload });
+    dispatch({ type: 'PROCESS_GOSSIP_UPDATES', payload: gossipUpdatePayload });
   }
 }
 
@@ -245,3 +245,4 @@ export function handleLongRestWorldEvents(gameState: GameState): GameState['npcM
     }
     return newNpcMemory;
 }
+

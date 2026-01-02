@@ -18,7 +18,7 @@ import { AnimatePresence } from 'framer-motion';
 
 // Core TypeScript types/interfaces used throughout the application
 // These define the structure of locations, messages, NPCs, items, characters, game phases, etc.
-import { Location, GameMessage, NPC, MapTile, Item, PlayerCharacter, GamePhase } from './types';
+import { Location, GameMessage, NPC, MapTile, Item, PlayerCharacter, GamePhase, Notification } from './types';
 // State management - appReducer handles all state updates via actions, initialGameState provides defaults
 import { appReducer, initialGameState } from './state/appState';
 // Custom hooks - encapsulate reusable logic for audio, game actions, and initialization
@@ -56,6 +56,7 @@ import MainMenu from './components/MainMenu';
 import ErrorBoundary from './components/ErrorBoundary';
 import * as SaveLoadService from './services/saveLoadService';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
+import { ConversationPanel } from './components/ConversationPanel';
 
 // Lazy load large components to reduce initial bundle size
 const TownCanvas = lazy(() => import('./components/Town/TownCanvas'));
@@ -417,14 +418,14 @@ const App: React.FC = () => {
     dispatch({ type: 'TOGGLE_PARTY_OVERLAY' });
   }, [dispatch]);
 
-  const handleDevMenuAction = useCallback((actionType: 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses') => {
+  const handleDevMenuAction = useCallback((actionType: string) => {
     const actionsThatNeedMenuToggle = ['save', 'battle_map_demo', 'generate_encounter'];
 
     if (actionsThatNeedMenuToggle.includes(actionType)) {
       dispatch({ type: 'TOGGLE_DEV_MENU' });
     }
 
-    switch (actionType) {
+    switch (actionType as typeof actionsThatNeedMenuToggle[number] | 'main_menu' | 'char_creator' | 'toggle_log_viewer' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'load') {
       case 'main_menu':
         dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU });
         break;
@@ -440,6 +441,9 @@ const App: React.FC = () => {
       case 'toggle_log_viewer':
         dispatch({ type: 'TOGGLE_GEMINI_LOG_VIEWER' });
         break;
+      case 'toggle_ollama_log_viewer':
+        dispatch({ type: 'TOGGLE_OLLAMA_LOG_VIEWER' });
+        break;
       case 'battle_map_demo':
         handleBattleMapDemo();
         break;
@@ -454,6 +458,9 @@ const App: React.FC = () => {
         break;
       case 'inspect_noble_houses':
         dispatch({ type: 'TOGGLE_NOBLE_HOUSE_LIST' });
+        break;
+      case 'toggle_naval_dashboard':
+        dispatch({ type: 'TOGGLE_NAVAL_DASHBOARD' });
         break;
     }
   }, [dispatch, handleNewGame, processAction, handleLoadGameFlow, handleBattleMapDemo]);
@@ -523,8 +530,9 @@ const App: React.FC = () => {
 
 
   const handleGoBackFromMainMenu = useCallback(() => {
-    if (gameState.previousPhase && gameState.previousPhase !== GamePhase.MAIN_MENU) {
-      dispatch({ type: 'SET_GAME_PHASE', payload: gameState.previousPhase });
+    const prevPhase: GamePhase | undefined = gameState.previousPhase;
+    if (prevPhase !== undefined && prevPhase !== GamePhase.MAIN_MENU) {
+      dispatch({ type: 'SET_GAME_PHASE', payload: prevPhase });
     }
   }, [gameState.previousPhase, dispatch]);
 
@@ -532,7 +540,8 @@ const App: React.FC = () => {
 
   if (gameState.phase === GamePhase.MAIN_MENU) {
     // Render the Main Menu: New Game, Load Game, etc.
-    const canGoBack = !!gameState.previousPhase && gameState.previousPhase !== GamePhase.MAIN_MENU;
+    const prevPhase: GamePhase | undefined = gameState.previousPhase;
+    const canGoBack = prevPhase !== undefined && prevPhase !== GamePhase.MAIN_MENU;
     mainContent = (
       <ErrorBoundary fallbackMessage="An error occurred in the Main Menu.">
         <MainMenu
@@ -572,11 +581,9 @@ const App: React.FC = () => {
     );
   } else if (gameState.phase === GamePhase.COMBAT) {
     // Render the full Combat View
-    const combatBiome = (currentLocationData.biomeId && ['forest', 'cave', 'dungeon', 'desert', 'swamp'].includes(currentLocationData.biomeId))
-      // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-      ? (currentLocationData.biomeId as unknown)
+    const allowedBiomes: Array<'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp'> = ['forest', 'cave', 'dungeon', 'desert', 'swamp'];
+    const combatBiome: 'forest' | 'cave' | 'dungeon' | 'desert' | 'swamp' = (currentLocationData.biomeId && allowedBiomes.includes(currentLocationData.biomeId as typeof allowedBiomes[number]))
+      ? (currentLocationData.biomeId as typeof allowedBiomes[number])
       : 'forest';
 
     mainContent = (
@@ -656,6 +663,7 @@ const App: React.FC = () => {
           hasNewRateLimitError={gameState.hasNewRateLimitError}
           worldSeed={gameState.worldSeed}
           isDevDummyActive={canUseDevTools()}
+          isDevModeEnabled={gameState.isDevModeEnabled ?? false}
           disabled={!isUIInteractive}
           onAction={processAction}
           companions={gameState.companions}
@@ -684,6 +692,8 @@ const App: React.FC = () => {
     );
   }
 
+  const notifications = (gameState.notifications as Notification[]) || [];
+
   // --- Root Render ---
   // Wraps the application in <AppProviders> for context access.
   // Renders global notifications, the computed 'mainContent', and the manager for <GameModals>.
@@ -691,7 +701,7 @@ const App: React.FC = () => {
     <AppProviders>
       <GameProvider state={gameState} dispatch={dispatch}>
         <div className="App min-h-screen bg-gray-900">
-          <NotificationSystem notifications={gameState.notifications} dispatch={dispatch} />
+          <NotificationSystem notifications={notifications} dispatch={dispatch} />
 
           {/* Global Loading Spinner */}
           <AnimatePresence>
@@ -710,6 +720,11 @@ const App: React.FC = () => {
           <Suspense fallback={<LoadingSpinner />}>
             {mainContent}
           </Suspense>
+
+          {/* Interactive Companion Conversation Panel */}
+          {gameState.phase === GamePhase.PLAYING && gameState.activeConversation && (
+            <ConversationPanel gameState={gameState} dispatch={dispatch} />
+          )}
 
           {/* Modal Manager: Handles all overlays (Inventory, Map, Logs, etc.) */}
           <GameModals

@@ -37,7 +37,8 @@ export async function handleTalk({
     addMessage("Invalid talk target.", "system");
     return;
   }
-  const npc = NPCS[action.targetId];
+  const targetId = action.targetId as string;
+  const npc = NPCS[targetId];
   if (npc) {
     // Add NPC to met list on first successful interaction
     if (!gameState.metNpcIds.includes(npc.id)) {
@@ -89,11 +90,12 @@ export async function handleTalk({
     fullPrompt += `\n\nYour EXTREMELY BRIEF response (1-2 sentences MAX):`;
 
     // 3. Call the refactored geminiService function
+    const npcMemoryContext = JSON.stringify(memory);
     const npcResponseResult = await GeminiService.generateNPCResponse(
-      npc.initialPersonalityPrompt,
+      npc.name,
       fullPrompt,
-      gameState.devModelOverride,
-      memory
+      npcMemoryContext,
+      gameState.devModelOverride ?? null
     );
     
     const promptSent = npcResponseResult.data?.promptSent || npcResponseResult.metadata?.promptSent || 'Unknown prompt';
@@ -138,7 +140,7 @@ export async function handleTalk({
       dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
     }
   } else {
-    addMessage(`There is no one named ${action.targetId} to talk to here.`, 'system');
+    addMessage(`There is no one named ${targetId} to talk to here.`, 'system');
     dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
   }
   dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });

@@ -111,7 +111,7 @@ export async function saveGame(
       isLoading: false,
       isImageLoading: false,
       error: null,
-      isMapVisible: false, 
+      isMapVisible: false,
       isSubmapVisible: false,
       geminiGeneratedActions: null,
       isDiscoveryLogVisible: false, // Ensure journal is closed in saved state
@@ -235,7 +235,7 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
       notify?.({ message: failure.message, type: 'warning' });
       return failure;
     }
-    
+
     // Ensure transient states are reset for the loaded game
     loadedState.isLoading = false;
     loadedState.isImageLoading = false;
@@ -245,6 +245,7 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     loadedState.isDiscoveryLogVisible = false; // Ensure journal is closed on load
     loadedState.isDevMenuVisible = false;
     loadedState.isGeminiLogViewerVisible = false;
+    loadedState.isOllamaLogViewerVisible = false;
     loadedState.geminiGeneratedActions = null;
     loadedState.phase = GamePhase.PLAYING; // Ensure game phase is set to playing
     loadedState.characterSheetModal = loadedState.characterSheetModal || { isOpen: false, character: null }; // Ensure it exists
@@ -252,6 +253,7 @@ export async function loadGame(slotName: string = DEFAULT_SAVE_SLOT, notify?: No
     // Initialize new fields if loading an older save that might not have them
     loadedState.discoveryLog = loadedState.discoveryLog || [];
     loadedState.unreadDiscoveryCount = loadedState.unreadDiscoveryCount || 0;
+    loadedState.ollamaInteractionLog = loadedState.ollamaInteractionLog || [];
     loadedState.notifications = []; // Reset notifications
 
     normalizeLoadedDates(loadedState);

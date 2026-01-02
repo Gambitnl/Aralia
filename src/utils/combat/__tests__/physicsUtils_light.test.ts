@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { calculateLightLevel, getCombinedLightLevel, calculateChebyshevDistance } from '../physicsUtils';
-import { Position } from '../../types/combat';
+import { Position } from '../../../types/combat';
 
 describe('physicsUtils - Light Mechanics', () => {
   describe('calculateChebyshevDistance', () => {

@@ -3,7 +3,7 @@
  * Simple internationalization utility for retrieving localized strings.
  * Supports dot-notation for nested keys and variable interpolation.
  */
-import en from '../locales/en.json';
+import en from '../../locales/en.json';
 
 type LocaleData = Record<string, unknown>;
 

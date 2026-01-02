@@ -1,0 +1,342 @@
+/**
+ * @file src/components/Crafting/ExperimentPanel.css
+ * Styles for the ExperimentPanel component.
+ */
+
+.experiment-panel {
+    background: linear-gradient(135deg, rgba(40, 25, 30, 0.95), rgba(25, 15, 20, 0.98));
+    border: 1px solid rgba(200, 100, 100, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    width: 650px;
+    max-width: 95vw;
+    max-height: 85vh;
+    color: #e0e0e8;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.experiment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(200, 100, 100, 0.2);
+}
+
+.experiment-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #ff9966;
+}
+
+.experiment-header .close-btn {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.experiment-header .close-btn:hover {
+    background: rgba(255, 100, 100, 0.2);
+    color: #ff6666;
+}
+
+.experiment-intro {
+    color: #aaa;
+    font-size: 0.9rem;
+    font-style: italic;
+    margin: 0 0 1rem 0;
+}
+
+.experiment-content {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 1rem;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Ingredient Selection */
+.ingredient-selection h3,
+.mixing-area h3 {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.95rem;
+    color: #ff9966;
+}
+
+.ingredient-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.ingredient-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(60, 40, 50, 0.6);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: left;
+    color: #ddd;
+    transition: all 0.2s;
+}
+
+.ingredient-btn:hover:not(:disabled) {
+    background: rgba(80, 50, 60, 0.6);
+    border-color: rgba(200, 100, 100, 0.3);
+}
+
+.ingredient-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ingredient-btn .ing-name {
+    flex: 1;
+    font-size: 0.85rem;
+}
+
+.ingredient-btn .ing-count {
+    font-size: 0.75rem;
+    color: #888;
+}
+
+.ingredient-btn .ing-props {
+    display: flex;
+    gap: 3px;
+}
+
+.prop-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+/* Mixing Area */
+.mixing-area {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.cauldron {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.cauldron-slot {
+    height: 60px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.cauldron-slot.empty {
+    background: rgba(100, 50, 50, 0.2);
+    border: 2px dashed rgba(200, 100, 100, 0.3);
+}
+
+.cauldron-slot.filled {
+    background: linear-gradient(135deg, rgba(100, 50, 50, 0.4), rgba(80, 40, 40, 0.5));
+    border: 2px solid rgba(200, 100, 100, 0.4);
+}
+
+.slot-content {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    color: #ddd;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0.75rem;
+}
+
+.slot-content:hover {
+    background: rgba(255, 100, 100, 0.1);
+}
+
+.slot-name {
+    font-size: 0.8rem;
+}
+
+.slot-remove {
+    color: #ff6666;
+    font-size: 1.2rem;
+}
+
+.slot-empty {
+    color: #666;
+    font-size: 0.8rem;
+}
+
+/* Property Preview */
+.property-preview {
+    margin-bottom: 0.75rem;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+}
+
+.preview-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #888;
+    margin-bottom: 0.35rem;
+}
+
+.preview-props {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.prop-tag {
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    color: white;
+    text-transform: capitalize;
+}
+
+/* Hint */
+.experiment-hint {
+    padding: 0.5rem;
+    background: rgba(100, 150, 200, 0.1);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    text-align: center;
+    margin-bottom: 0.75rem;
+    color: #88ccff;
+}
+
+.experiment-hint.warning {
+    background: rgba(200, 100, 50, 0.2);
+    color: #ffaa66;
+}
+
+/* Experiment Button */
+.experiment-btn {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #8a4a3a, #6a3a2a);
+    color: #ffcc99;
+    border: 1px solid rgba(200, 100, 50, 0.4);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.experiment-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #9a5a4a, #7a4a3a);
+    box-shadow: 0 4px 12px rgba(200, 100, 50, 0.3);
+}
+
+.experiment-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Result Display */
+.experiment-result {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    text-align: center;
+    background: rgba(100, 100, 100, 0.2);
+    animation: fadeIn 0.3s ease;
+}
+
+.experiment-result.success {
+    background: rgba(50, 150, 50, 0.2);
+    color: #88ff88;
+    border: 1px solid rgba(50, 150, 50, 0.3);
+}
+
+.experiment-result.danger {
+    background: rgba(200, 50, 50, 0.2);
+    color: #ff8888;
+    border: 1px solid rgba(200, 50, 50, 0.3);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Experiment Log */
+.experiment-log {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+.experiment-log h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.experiment-log ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.experiment-log li {
+    padding: 0.25rem 0;
+    font-size: 0.75rem;
+    color: #aaa;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Scrollbar */
+.ingredient-grid::-webkit-scrollbar,
+.experiment-log::-webkit-scrollbar {
+    width: 5px;
+}
+
+.ingredient-grid::-webkit-scrollbar-track,
+.experiment-log::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.ingredient-grid::-webkit-scrollbar-thumb,
+.experiment-log::-webkit-scrollbar-thumb {
+    background: rgba(200, 100, 100, 0.3);
+    border-radius: 3px;
+}

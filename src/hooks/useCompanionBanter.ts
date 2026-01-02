@@ -3,105 +3,205 @@
  * Licensed under the MIT License
  *
  * @file src/hooks/useCompanionBanter.ts
- * Hook to trigger and manage companion banter.
+ * Hook to trigger and manage companion banter with turn-by-turn AI generation.
  */
-// TODO(lint-intent): 'useState' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { useCallback, useEffect, useRef, useState as _useState } from 'react';
-import { GameState } from '../types';
-import { BanterManager } from '../systems/companions/BanterManager';
-import { BanterDefinition } from '../types/companions';
+import { useCallback, useEffect, useRef } from 'react';
+import { GameState, GamePhase } from '../types';
+import { isPlayerFocused, isNpcOccupied } from '../utils/world';
+import { AppAction } from '../state/actionTypes';
+import { OllamaService, BanterContext } from '../services/OllamaService';
+import { Companion } from '../types/companions';
+
+interface BanterHistoryLine {
+  speakerId: string;
+  speakerName: string;
+  text: string;
+}
 
 export const useCompanionBanter = (
   gameState: GameState,
-  // TODO(lint-intent): The any on this value hides the intended shape of this data.
-  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-  dispatch: React.Dispatch<unknown>
+  dispatch: React.Dispatch<AppAction>
 ) => {
-  // We don't return state, just manage the flow.
-  // We use refs to track active banter to avoid re-renders just for logic updates.
-  const activeBanterRef = useRef<{ definition: BanterDefinition; lineIndex: number } | null>(null);
+  const isGeneratingRef = useRef(false);
+  const banterHistoryRef = useRef<BanterHistoryLine[]>([]);
+  const participantsRef = useRef<Companion[]>([]);
+  const contextRef = useRef<BanterContext | null>(null);
+  const turnRef = useRef(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const gameStateRef = useRef(gameState);
-  const playNextLineRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     gameStateRef.current = gameState;
   }, [gameState]);
 
-  // Helper to play the next line of the active banter
-  const playNextLine = useCallback(() => {
-    const active = activeBanterRef.current;
-    if (!active) return;
-
-    if (active.lineIndex >= active.definition.lines.length) {
-      // Banter finished
-      activeBanterRef.current = null;
+  /**
+   * Generate and play the next line of banter.
+   */
+  const generateNextLine = useCallback(async () => {
+    if (!contextRef.current || participantsRef.current.length < 2) {
+      isGeneratingRef.current = false;
       return;
     }
 
-    const line = active.definition.lines[active.lineIndex];
-    active.lineIndex++;
+    turnRef.current++;
 
-    // Dispatch message
+    // Check max turns
+    if (turnRef.current > 5) {
+      isGeneratingRef.current = false;
+      banterHistoryRef.current = [];
+      turnRef.current = 0;
+      return;
+    }
+
+    const participants = participantsRef.current.map(c => ({
+      id: c.id,
+      name: c.identity.name,
+      race: c.identity.race,
+      class: c.identity.class,
+      sex: c.identity.sex,
+      age: c.identity.age,
+      physicalDescription: c.identity.physicalDescription,
+      personality: `${c.personality.values.join(', ')}. Quirks: ${c.personality.quirks.join(', ')}`
+    }));
+
+    const result = await OllamaService.generateBanterLine(
+      participants,
+      banterHistoryRef.current,
+      contextRef.current,
+      turnRef.current
+    );
+
+    // Log the AI interaction
+    if (result.metadata) {
+      dispatch({
+        type: 'ADD_OLLAMA_LOG_ENTRY',
+        payload: {
+          timestamp: new Date(),
+          model: result.metadata.model,
+          prompt: result.metadata.prompt,
+          response: result.metadata.response,
+          context: contextRef.current
+        }
+      });
+    }
+
+    if (!result.data) {
+      // AI failed, end banter
+      isGeneratingRef.current = false;
+      banterHistoryRef.current = [];
+      turnRef.current = 0;
+      return;
+    }
+
+    const { speakerId, text, isConcluding } = result.data;
+
+    // Find speaker name
+    const speaker = participantsRef.current.find(p => p.id === speakerId);
+    const speakerName = speaker?.identity.name || speakerId;
+
+    // Add to history
+    banterHistoryRef.current.push({
+      speakerId,
+      speakerName,
+      text
+    });
+
+    // Display the line
     dispatch({
       type: 'ADD_MESSAGE',
       payload: {
         id: crypto.randomUUID(),
-        text: `: "${line.text}"`,
+        text: `: "${text}"`,
         sender: 'npc',
         timestamp: Date.now(),
         metadata: {
-          companionId: line.speakerId,
+          companionId: speakerId,
           type: 'banter'
         }
       }
     });
 
-    // Schedule next line
+    // Check if banter should conclude
+    if (isConcluding || turnRef.current >= 5) {
+      // End banter
+      isGeneratingRef.current = false;
+      banterHistoryRef.current = [];
+      turnRef.current = 0;
+      return;
+    }
+
+    // Wait and generate next line
     timeoutRef.current = setTimeout(() => {
-      playNextLineRef.current();
-    }, line.delay || 4000);
+      generateNextLine();
+    }, 3500);
   }, [dispatch]);
 
-  useEffect(() => {
-    playNextLineRef.current = playNextLine;
-  }, [playNextLine]);
+  /**
+   * Start a new banter session.
+   */
+  const startBanter = useCallback(async () => {
+    const state = gameStateRef.current;
+    if (isGeneratingRef.current) return;
+    if (state.phase !== GamePhase.PLAYING) return;
+    if (isPlayerFocused(state)) return;
 
-  // Trigger Logic
-  useEffect(() => {
-    const checkBanter = () => {
-      // Don't start if already talking
-      if (activeBanterRef.current) return;
+    const globalCooldown = state.banterCooldowns['GLOBAL'] || 0;
+    const now = Date.now();
+    if (now - globalCooldown < 120000) return;
 
-      // 10% chance every 10s to TRY finding a banter
-      // The BanterManager.selectBanter has its own internal probability check too
-      if (Math.random() < 0.1) {
-        const banter = BanterManager.selectBanter(gameStateRef.current);
-        if (banter) {
-          // Update cooldown in state via dispatch instead of static method
-          dispatch({
-            type: 'UPDATE_BANTER_COOLDOWN',
-            payload: { banterId: banter.id, timestamp: Date.now() }
-          });
-          activeBanterRef.current = { definition: banter, lineIndex: 0 };
-          playNextLine();
-        }
-      }
+    // 10% chance to trigger
+    if (Math.random() >= 0.1) return;
+
+    const isAvailable = await OllamaService.isAvailable();
+    if (!isAvailable) return;
+
+    const availableCompanions = state.party
+      .map(p => p.id ? state.companions[p.id] : undefined)
+      .filter((c): c is Companion => !!c && !isNpcOccupied(state, c.id));
+
+    if (availableCompanions.length < 2) return;
+
+    // Set up banter context
+    const locId = state.currentLocationId;
+    const locName = state.dynamicLocations?.[locId]?.name || locId;
+    const weather = state.environment?.currentWeather || 'Clear';
+    const hour = new Date(state.gameTime).getHours();
+    const timeOfDay = hour < 6 ? 'Night' : hour < 12 ? 'Morning' : hour < 18 ? 'Afternoon' : 'Evening';
+    const activeQuest = state.questLog.find(q => q.status === 'active');
+
+    contextRef.current = {
+      locationName: locName,
+      weather,
+      timeOfDay,
+      currentTask: activeQuest?.title
     };
 
-    const interval = setInterval(checkBanter, 10000);
+    participantsRef.current = availableCompanions;
+    banterHistoryRef.current = [];
+    turnRef.current = 0;
+    isGeneratingRef.current = true;
+
+    // Update cooldown
+    dispatch({
+      type: 'UPDATE_BANTER_COOLDOWN',
+      payload: { banterId: 'GLOBAL', timestamp: now }
+    });
+
+    // Start generating
+    generateNextLine();
+  }, [dispatch, generateNextLine]);
+
+  // Check for banter periodically
+  useEffect(() => {
+    const interval = setInterval(startBanter, 10000);
     return () => clearInterval(interval);
-  // TODO(lint-intent): If banter timing should reset on location/party changes, add those fields to the deps.
-  }, [dispatch, playNextLine]);
+  }, [startBanter]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      activeBanterRef.current = null; // Reset state on unmount
+      isGeneratingRef.current = false;
     };
   }, []);
 };

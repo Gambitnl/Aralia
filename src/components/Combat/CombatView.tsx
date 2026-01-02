@@ -33,6 +33,8 @@ import { Spell } from '../../types/spells';
 import { ReactionPrompt } from './ReactionPrompt';
 import { Plane } from '../../types/planes';
 import { useCombatOutcome } from '../../hooks/combat/useCombatOutcome';
+import { CreatureHarvestPanel } from '../Crafting/CreatureHarvestPanel';
+import { HARVESTABLE_CREATURES } from '../../systems/crafting/creatureHarvestData';
 
 interface CombatViewProps {
   party: PlayerCharacter[];
@@ -90,6 +92,29 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
   const [inputModalSpell, setInputModalSpell] = useState<Spell | null>(null);
   // Callback to resume execution once input is confirmed
   const [inputModalCallback, setInputModalCallback] = useState<((input: string) => void) | null>(null);
+
+  // Creature Harvesting State
+  const [isHarvestPanelOpen, setIsHarvestPanelOpen] = useState(false);
+  const [selectedHarvestCreature, setSelectedHarvestCreature] = useState<string | null>(null);
+
+  // Determine which defeated enemies can be harvested
+  // Match enemy names (normalized) against HARVESTABLE_CREATURES
+  const harvestableEnemies = React.useMemo(() => {
+    const harvestableIds = HARVESTABLE_CREATURES.map(c => c.id);
+    return enemies
+      .filter(enemy => {
+        const normalizedName = enemy.name.toLowerCase().replace(/\s+/g, '_').replace(/_\d+$/, ''); // Remove trailing numbers like "Ankheg 1" -> "ankheg"
+        return harvestableIds.includes(normalizedName);
+      })
+      .map(enemy => enemy.name.toLowerCase().replace(/\s+/g, '_').replace(/_\d+$/, ''));
+  }, [enemies]);
+
+  // When harvest panel opens, select the first harvestable creature
+  React.useEffect(() => {
+    if (isHarvestPanelOpen && harvestableEnemies.length > 0 && !selectedHarvestCreature) {
+      setSelectedHarvestCreature(harvestableEnemies[0]);
+    }
+  }, [isHarvestPanelOpen, harvestableEnemies, selectedHarvestCreature]);
 
   const handleCharacterUpdate = useCallback((updatedChar: CombatCharacter) => {
     setCharacters(prev => prev.map(c => c.id === updatedChar.id ? updatedChar : c));
@@ -235,6 +260,16 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
               </div>
             )}
 
+            {/* Harvest Button - Only show if there are harvestable enemies */}
+            {battleState === 'victory' && harvestableEnemies.length > 0 && !isHarvestPanelOpen && (
+              <button
+                onClick={() => setIsHarvestPanelOpen(true)}
+                className="w-full py-3 mb-3 bg-red-700 hover:bg-red-600 text-white font-bold rounded-lg shadow-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <span>🦴</span> Harvest Creature Parts ({harvestableEnemies.length})
+              </button>
+            )}
+
             <button
               onClick={() => onBattleEnd(battleState, rewards || undefined)}
               className="w-full py-3 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg shadow-lg transition-colors"
@@ -242,6 +277,32 @@ const CombatView: React.FC<CombatViewProps> = ({ party, enemies, biome, onBattle
               {battleState === 'victory' ? 'Collect & Continue' : 'Return to Title'}
             </button>
           </motion.div>
+        </div>
+      )}
+
+      {/* Creature Harvest Panel Modal */}
+      {isHarvestPanelOpen && selectedHarvestCreature && (
+        <div className="absolute inset-0 bg-black/80 z-[60] flex items-center justify-center">
+          <div className="relative">
+            <CreatureHarvestPanel
+              creatureId={selectedHarvestCreature}
+              onClose={() => {
+                // Move to next harvestable creature or close
+                const currentIdx = harvestableEnemies.indexOf(selectedHarvestCreature);
+                if (currentIdx < harvestableEnemies.length - 1) {
+                  setSelectedHarvestCreature(harvestableEnemies[currentIdx + 1]);
+                } else {
+                  setIsHarvestPanelOpen(false);
+                  setSelectedHarvestCreature(null);
+                }
+              }}
+            />
+            {harvestableEnemies.length > 1 && (
+              <div className="mt-2 text-center text-gray-400 text-sm">
+                Creature {harvestableEnemies.indexOf(selectedHarvestCreature) + 1} of {harvestableEnemies.length}
+              </div>
+            )}
+          </div>
         </div>
       )}
 

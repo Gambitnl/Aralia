@@ -25,13 +25,18 @@ describe('useActionExecutor', () => {
         name: 'Hero',
         level: 1,
         class: {
+            id: 'fighter',
             name: 'Fighter',
-            hitDie: 'd10',
-            primaryAbility: 'strength',
-            savingThrows: ['strength', 'constitution'],
-            proficiencyBonuses: [2],
-            subclasses: []
-        },
+            description: '',
+            hitDie: 10,
+            primaryAbility: ['Strength'],
+            savingThrowProficiencies: [],
+            skillProficienciesAvailable: [],
+            numberOfSkillProficiencies: 0,
+            armorProficiencies: [],
+            weaponProficiencies: [],
+            features: []
+        } as any,
         stats: {
             strength: 16,
             dexterity: 14,

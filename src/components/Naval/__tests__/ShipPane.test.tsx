@@ -1,7 +1,7 @@
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ShipPane } from '../ShipPane';
 import { Ship } from '../../../types/naval';
-import { vi } from 'vitest';
 
 const mockShip: Ship = {
   id: 'test-ship',

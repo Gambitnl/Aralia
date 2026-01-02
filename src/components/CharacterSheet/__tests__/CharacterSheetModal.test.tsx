@@ -99,6 +99,7 @@ describe('CharacterSheetModal', () => {
     },
     skills: [{ id: 'athletics', name: 'Athletics', ability: 'Strength' }],
     feats: [],
+    statusEffects: [],
     hp: 10,
     maxHp: 12,
     armorClass: 15,

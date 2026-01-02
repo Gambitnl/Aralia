@@ -6,10 +6,7 @@
  * UI component for the "Rumor Mill" - the intrigue interface within Taverns.
  * Allows players to buy gossip, secrets, and leads.
  */
-// TODO(lint-intent): 'useState' is imported but unused; it hints at a helper/type the module was meant to use.
-// TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
-// TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import React, { useState as _useState } from 'react';
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 // TODO(lint-intent): 'GameState' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
@@ -58,9 +55,8 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
         const serviceItem: Item = {
             id: `rumor_${rumor.id}`, // Unique ID linking back to the rumor
             name: rumor.type === 'secret' ? 'Secret Info' : rumor.type === 'lead' ? 'Lead' : 'Rumor',
-            type: 'service', // or 'document' / 'note' if we want it to be more physical
-            cost: 0, // Resell value is 0 (info degrades)
-            costInGp: 0,
+            type: 'note', // TODO(Intriguer): Promote to a dedicated "service" item type once taxonomy expands.
+            cost: '0', // Resell value is 0 (info degrades)
             description: `Purchased from ${merchantName}: "${rumor.content}"`, // Store content here!
             weight: 0,
             icon: '📜'
@@ -69,6 +65,7 @@ export const RumorMill: React.FC<RumorMillProps> = ({ merchantName, playerGold, 
         // Dispatch BUY_ITEM to deduct gold and add the item to inventory
         onAction({
             type: 'BUY_ITEM',
+            label: `Buy ${serviceItem.name}`,
             payload: { item: serviceItem, cost: rumor.cost }
         });
 

@@ -140,7 +140,7 @@ export class SummoningCommand extends BaseEffectCommand {
             team: caster.team, // Summons join the caster's team
             currentHP: maxHP,
             maxHP: maxHP,
-            initiative: caster.initiative, // Act on caster's initiative? Or 0?
+            initiative: caster.initiative, // Act on caster's initiative? Or 0? 
             statusEffects: [],
             actionEconomy: {
                 action: { used: false, remaining: 1 },
@@ -150,13 +150,7 @@ export class SummoningCommand extends BaseEffectCommand {
                 freeActions: 1,
             },
             // Tag it as a summon so AI or UI knows
-            activeEffects: [{
-                type: 'other',
-                name: 'Summoned',
-                source: caster.id,
-                appliedTurn: 0,
-                duration: { type: 'permanent' } // Until killed or duration ends
-            }]
+            activeEffects: []
         }
     }
 

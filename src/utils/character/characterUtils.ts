@@ -17,17 +17,17 @@ import {
   AbilityScoreName,
   MagicInitiateSource,
   FeatChoice,
-} from '../types';
-import { ALL_RACES_DATA as RACES_DATA, RACE_DATA_BUNDLE } from '../data/races';
-import { CLASSES_DATA } from '../data/classes';
-import { SKILLS_DATA } from '../data/skills';
+} from '../../types';
+import { ALL_RACES_DATA as RACES_DATA, RACE_DATA_BUNDLE } from '../../data/races';
+import { CLASSES_DATA } from '../../data/classes';
+import { SKILLS_DATA } from '../../data/skills';
 
 const {
   dragonbornAncestries: DRAGONBORN_ANCESTRIES,
   goliathGiantAncestries: GIANT_ANCESTRIES,
   tieflingLegacies: TIEFLING_LEGACIES,
 } = RACE_DATA_BUNDLE;
-import { FEATS_DATA } from '../data/feats/featsData';
+import { FEATS_DATA } from '../../data/feats/featsData';
 
 /**
  * Calculates the D&D ability score modifier as a number.
@@ -227,6 +227,7 @@ export const createPlayerCharacterFromTemp = (tempMember: TempPartyMember): Play
     abilityScores: baseAbilityScores,
     finalAbilityScores,
     skills: [],
+    statusEffects: [],
     hp: maxHp,
     maxHp: maxHp,
     armorClass: 10 + getAbilityModifierValue(finalAbilityScores.Dexterity),

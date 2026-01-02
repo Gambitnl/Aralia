@@ -4,8 +4,8 @@
  * Extracts pure logic from useAbilitySystem hooks to keep components focused.
  */
 
-import { Position, AreaOfEffect, CombatCharacter } from '../types/combat';
-import { AoEShape, AoEParams } from './aoeCalculations';
+import { Position, AreaOfEffect, CombatCharacter } from '../../types/combat';
+import { AoEShape, AoEParams } from '../combat/aoeCalculations';
 import { getAngleBetweenPositions, facingToDegrees as geometryFacingToDegrees } from './geometry';
 
 /**
@@ -38,7 +38,7 @@ export const mapShapeToStandard = (shape: string): AoEShape => {
  * @returns The angle in degrees.
  * @deprecated Use `src/utils/geometry.ts` instead.
  */
-export const facingToDegrees = geometryFacingToDegrees;
+const facingToDegrees = geometryFacingToDegrees;
 
 /**
  * Calculates the dynamic parameters for an Area of Effect based on caster position and target.

@@ -1,4 +1,4 @@
-import { CombatCharacter } from '../types/combat'
+import { CombatCharacter } from '../../types/combat'
 import { rollSavingThrow } from './savingThrowUtils'
 
 /**

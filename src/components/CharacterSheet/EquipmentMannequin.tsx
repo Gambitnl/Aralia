@@ -38,7 +38,7 @@ interface EquipmentMannequinProps {
 interface SlotDisplayInfo {
   id: EquipmentSlotType;
   label: string;
-  defaultIcon: React.ReactElement;
+  defaultIcon: React.ReactElement<{ className?: string }>;
   gridArea: string;
   isArmorSlot?: boolean;
   isShieldSlot?: boolean;

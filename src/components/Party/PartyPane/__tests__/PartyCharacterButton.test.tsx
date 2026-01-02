@@ -24,24 +24,24 @@ vi.mock('../../../Tooltip', () => ({
 }));
 
 describe('PartyCharacterButton', () => {
-  const mockCharacter: PlayerCharacter = {
+        const mockCharacter: PlayerCharacter = {
     id: 'char1',
-    name: 'Test Character',
-    race: { name: 'Human', id: 'human' },
-    class: { name: 'Fighter', id: 'fighter' },
-    hp: 10,
+          name: 'Test Character',
+          race: { name: 'Human', id: 'human', description: '', traits: [] },
+          class: { name: 'Fighter', id: 'fighter', description: '', hitDie: 10, primaryAbility: ['Strength'], savingThrowProficiencies: ['Strength'], skillProficienciesAvailable: [], numberOfSkillProficiencies: 2, armorProficiencies: [], weaponProficiencies: [], features: [] },
+          hp: 10,
     maxHp: 20,
-    armorClass: 15,
-    stats: {
-      strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10
-    },
-    inventory: [],
-    level: 1,
-    experience: 0,
-    proficiencyBonus: 2,
-    skills: {},
-    savingThrows: {},
-    isCaster: false
+          armorClass: 15,
+          abilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+          finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+          proficiencyBonus: 2,
+    skills: [],
+          savingThrowProficiencies: ['Strength'],
+          speed: 30,
+          darkvisionRange: 0,
+          transportMode: 'foot',
+          equippedItems: {},
+          statusEffects: [],
   };
 
   const mockProps = {

@@ -1,8 +1,8 @@
 
 import { describe, it, expect } from 'vitest';
-import { calculateDamage } from '../combatUtils';
-import { CombatCharacter } from '../../types/combat';
-import { DamageType } from '../../types/spells';
+import { calculateDamage } from '../../combat/combatUtils';
+import { CombatCharacter } from '../../../types/combat';
+import { DamageType } from '../../../types/spells';
 
 describe('calculateDamage', () => {
     // Helper to create a dummy character with specific resistance/vulnerability
@@ -15,7 +15,7 @@ describe('calculateDamage', () => {
         id: name,
         name,
         level: 1,
-        class: { id: 'test', name: 'Test', hitDie: 'd8', primaryAbility: 'Strength', saves: [] },
+        class: { id: 'test', name: 'Test', description: '', hitDie: 8, primaryAbility: ['Strength'], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] } as any,
         position: { x: 0, y: 0 },
         stats: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, baseInitiative: 0, speed: 30, cr: '1' },
         abilities: [],

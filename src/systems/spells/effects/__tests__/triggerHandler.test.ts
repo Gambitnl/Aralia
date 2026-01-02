@@ -43,7 +43,7 @@ const makeCharacter = (position: Position): CombatCharacter => ({
   initiative: 0,
   statusEffects: [],
   actionEconomy: { ...baseEconomy }
-})
+} as unknown as CombatCharacter)
 
 const makeZone = (effects: SpellEffect[]): ActiveSpellZone => ({
   id: 'zone-1',
@@ -64,7 +64,7 @@ describe('processAreaEndTurnTriggers', () => {
       condition: { type: 'always' },
       damage: { dice: '1d6', type: 'Fire' }
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    } as unknown
+    } as unknown as SpellEffect
 
     const zone = makeZone([effect])
     const occupant = makeCharacter({ x: 0, y: 0 })
@@ -88,7 +88,7 @@ describe('processAreaExitTriggers', () => {
       condition: { type: 'always' },
       damage: { dice: '1d4', type: 'Fire' }
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    } as unknown
+    } as unknown as SpellEffect
 
     const zone = makeZone([effect])
     const mover = makeCharacter({ x: 0, y: 0 })
@@ -106,7 +106,7 @@ describe('processAreaExitTriggers', () => {
       condition: { type: 'always' },
       damage: { dice: '1d4', type: 'Fire' }
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    } as unknown
+    } as unknown as SpellEffect
 
     const zone = makeZone([effect])
     const moverA = makeCharacter({ x: 0, y: 0 })
@@ -132,7 +132,7 @@ describe('processAreaExitTriggers', () => {
       condition: { type: 'always' },
       damage: { dice: '1d4', type: 'Fire' }
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    } as unknown
+    } as unknown as SpellEffect
 
     const zone = makeZone([effect])
     const moverA = makeCharacter({ x: 0, y: 0 })

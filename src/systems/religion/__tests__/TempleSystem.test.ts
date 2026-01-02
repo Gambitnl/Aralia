@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { TempleSystem } from '../TempleSystem';
 // TODO(lint-intent): 'DivineFavor' is unused in this test; use it in the assertion path or remove it.
-import { GameState, TempleService, DivineFavor as _DivineFavor } from '../../types';
+import { GameState, TempleService, DivineFavor as _DivineFavor } from '../../../types';
 
 describe('TempleSystem', () => {
     // Mock State
@@ -22,7 +22,9 @@ describe('TempleSystem', () => {
         party: [{ id: 'char1', hp: 10, maxHp: 30 }],
         divineFavor: {
             [mockDeityId]: {
-                favor: 20,
+                score: 20,
+                rank: 'Neutral',
+                consecutiveDaysPrayed: 0,
                 history: [],
                 blessings: []
             }

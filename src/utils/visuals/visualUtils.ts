@@ -4,8 +4,8 @@
  * Implements the "Pipeline" part of the Asset Requirement Standards.
  */
 
-import { NPC, Race, Item } from '../types';
-import { NPCVisualSpec, VisualAsset, ItemVisualSpec } from '../types/visuals';
+import { NPC, Race, Item } from '../../types';
+import { NPCVisualSpec, VisualAsset, ItemVisualSpec } from '../../types/visuals';
 
 /**
  * Resolves the visual representation for an NPC, handling fallbacks.

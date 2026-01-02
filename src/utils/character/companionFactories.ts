@@ -6,7 +6,7 @@
  * Factory functions for creating companions and related data.
  */
 
-import { Companion, CompanionGoal, PersonalityTraits } from '../types/companions';
+import { Companion, CompanionGoal, PersonalityTraits } from '../../types/companions';
 
 export const createDefaultPersonality = (): PersonalityTraits => ({
   openness: 50,
@@ -28,13 +28,18 @@ export const createMockCompanion = (overrides: Partial<Companion> = {}): Compani
       race: 'Human',
       class: 'Fighter',
       background: 'Soldier',
+      sex: 'Unknown',
+      age: 25,
+      physicalDescription: 'Placeholder companion',
     },
     personality: overrides.personality || createDefaultPersonality(),
+    memories: overrides.memories || [],
     goals: overrides.goals || [],
     relationships: overrides.relationships || {},
     loyalty: overrides.loyalty ?? 50,
     approvalHistory: overrides.approvalHistory || [],
     questline: overrides.questline,
+    reactionRules: overrides.reactionRules || [],
   };
 };
 

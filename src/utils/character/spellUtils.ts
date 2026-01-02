@@ -3,8 +3,8 @@
  * @file src/utils/spellUtils.ts
  * This file contains utility functions related to player character spellcasting.
  */
-import { PlayerCharacter, Spell } from '../types';
-import { RACES_DATA, TIEFLING_LEGACIES } from '../constants';
+import { PlayerCharacter, Spell } from '../../types';
+import { RACES_DATA, TIEFLING_LEGACIES } from '../../constants';
 
 interface CharacterSpells {
   cantrips: Spell[];

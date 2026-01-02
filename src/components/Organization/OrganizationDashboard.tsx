@@ -32,55 +32,47 @@ const OrganizationDashboard: React.FC<OrganizationDashboardProps> = ({ initialOr
     setError(null);
   };
 
-  const handleRecruit = (name: string, className: string) => {
-    try {
-        const updated = recruitMember(organization, name, className, 1);
-        handleUpdate(updated);
-    // TODO(lint-intent): The any on 'e' hides the intended shape of this data.
-    // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-    // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-    } catch (e: unknown) {
-        setError(e.message);
-    }
-  };
+        const handleRecruit = (name: string, className: string) => {
+          try {
+              const updated = recruitMember(organization, name, className, 1);
+              handleUpdate(updated);
+          } catch (e: unknown) {
+              const message = e instanceof Error ? e.message : 'Recruitment failed';
+              setError(message);
+          }
+        };
 
-  const handlePromote = (memberId: string) => {
-      try {
-          const updated = promoteMember(organization, memberId);
-          handleUpdate(updated);
-      // TODO(lint-intent): The any on 'e' hides the intended shape of this data.
-      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-      } catch (e: unknown) {
-          setError(e.message);
-      }
-  };
+        const handlePromote = (memberId: string) => {
+            try {
+                const updated = promoteMember(organization, memberId);
+                handleUpdate(updated);
+            } catch (e: unknown) {
+                const message = e instanceof Error ? e.message : 'Promotion failed';
+                setError(message);
+            }
+        };
 
   const handlePurchase = (upgradeId: string) => {
-      try {
-          const updated = purchaseOrgUpgrade(organization, upgradeId);
-          handleUpdate(updated);
-      // TODO(lint-intent): The any on 'e' hides the intended shape of this data.
-      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-      } catch (e: unknown) {
-          setError(e.message);
-      }
-  };
+            try {
+                const updated = purchaseOrgUpgrade(organization, upgradeId);
+                handleUpdate(updated);
+            } catch (e: unknown) {
+                const message = e instanceof Error ? e.message : 'Upgrade failed';
+                setError(message);
+            }
+        };
 
   const handleStartMission = (desc: string, diff: number, members: string[]) => {
-      try {
-          // Simple rewards logic for now
-          const rewards = { gold: diff * 10, influence: 5 };
-          const updated = startMission(organization, desc, diff, members, rewards);
-          handleUpdate(updated);
-      // TODO(lint-intent): The any on 'e' hides the intended shape of this data.
-      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-      } catch (e: unknown) {
-          setError(e.message);
-      }
-  };
+            try {
+                // Simple rewards logic for now
+                const rewards = { gold: diff * 10, influence: 5 };
+                const updated = startMission(organization, desc, diff, members, rewards);
+                handleUpdate(updated);
+            } catch (e: unknown) {
+                const message = e instanceof Error ? e.message : 'Mission start failed';
+                setError(message);
+            }
+        };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">

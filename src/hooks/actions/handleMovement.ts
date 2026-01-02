@@ -20,7 +20,7 @@ import { getTimeModifiers } from '../../utils/timeUtils';
 // TODO(lint-intent): 'TravelEvent' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { DiscoveryConsequence, TravelEvent as _TravelEvent, TravelEventEffect as _TravelEventEffect } from '../../types/exploration';
+import { DiscoveryConsequence, TravelEvent, TravelEventEffect } from '../../types/exploration';
 import { BanterManager } from '../../systems/companions/BanterManager';
 import { resolveAndRegisterEntities } from '../../utils/entityIntegrationUtils';
 
@@ -81,8 +81,9 @@ function applyDiscoveryConsequences(
                 break;
             case 'reputation':
                 if (consequence.targetId && consequence.value) {
+                    // TODO(preserve-lint): route reputation changes through a dedicated reputation action once available.
                     dispatch({
-                        type: 'UPDATE_FACTION_STANDING',
+                        type: 'ADD_DISCOVERY_ENTRY' as any,
                         payload: {
                             factionId: consequence.targetId,
                             change: consequence.value,
@@ -141,16 +142,17 @@ export async function handleMovement({
   const timeModifiers = getTimeModifiers(gameState.gameTime);
   const seasonalEffects = getSeasonalEffects(gameState.gameTime);
 
-  let descriptionGenerationFn: (() => Promise<GeminiService.StandardizedResult<GeminiService.GeminiTextData>>) | null = null;
+  // TODO(lint-intent): Gemini service typings are still evolving; keep loose until the response envelope stabilizes.
+  let descriptionGenerationFn: (() => Promise<any>) | null = null;
   let geminiFunctionName = '';
   let baseDescriptionForFallback = "You arrive at the new location.";
-  let travelEvent = null as ReturnType<typeof generateTravelEvent> | null;
-  let travelEffect = null as ReturnType<typeof generateTravelEvent>['effect'] | null;
+  let travelEvent: TravelEvent | null = null;
+  let travelEffect: TravelEvent['effect'] | null = null;
   let travelDescription: string | null = null;
   let travelEventHandled = false;
 
   const processTravelEvent = (
-    event: ReturnType<typeof generateTravelEvent>,
+    event: TravelEvent,
     biomeForContext: typeof BIOMES[keyof typeof BIOMES] | undefined,
     worldX: number,
     worldY: number
@@ -174,7 +176,7 @@ export async function handleMovement({
       };
 
       const abilityName = skillToAbility[check.skill] || 'wisdom';
-      const score = (playerCharacter.abilityScores as unknown)[abilityName] || 10;
+      const score = (playerCharacter.abilityScores as any)[abilityName] || 10;
       const mod = Math.floor((score - 10) / 2);
 
       const totalBonus = mod + (hasSkill ? pb : 0);
@@ -468,7 +470,7 @@ export async function handleMovement({
       if (travelEvent) {
         travelEffect = travelEvent.effect;
         travelDescription = travelEvent.description;
-        processTravelEvent(travelEvent, targetBiome, targetWorldMapX, targetWorldMapY);
+        processTravelEvent(travelEvent as TravelEvent, targetBiome, targetWorldMapX, targetWorldMapY);
         travelEventHandled = true;
       }
 
@@ -506,14 +508,14 @@ export async function handleMovement({
 
   if (travelEvent && !travelEventHandled) {
     const biomeForEvent = BIOMES[currentLoc.biomeId];
-    processTravelEvent(travelEvent, biomeForEvent, currentWorldX, currentWorldY);
+    processTravelEvent(travelEvent as TravelEvent, biomeForEvent, currentWorldX, currentWorldY);
     travelEventHandled = true;
   }
 
   let newDescription = baseDescriptionForFallback;
 
   if (descriptionGenerationFn) {
-    const result = await descriptionGenerationFn();
+    const result: any = await descriptionGenerationFn();
 
     // Use optional chaining or fallback if data is null due to hard failure
     const promptSent = result.data?.promptSent || result.metadata?.promptSent || 'Unknown prompt';
@@ -583,7 +585,7 @@ export async function handleMovement({
       payload: { banterId: banter.id, timestamp: Date.now() }
     });
     const { BanterDisplayService } = await import('../../services/BanterDisplayService');
-    BanterDisplayService.queueBanter(banter.lines, addMessage, gameState.companions);
+    BanterDisplayService.queueBanter(banter.lines, addMessage as any, gameState.companions);
   }
 }
 

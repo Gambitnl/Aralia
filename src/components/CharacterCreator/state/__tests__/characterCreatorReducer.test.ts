@@ -19,7 +19,17 @@ import {
 } from '../characterCreatorState';
 import { ALL_RACES_DATA } from '../../../../data/races';
 import { CLASSES_DATA } from '../../../../data/classes';
-import { AbilityScores, Skill, Race } from '../../../../types';
+import {
+    AbilityScoreName,
+    AbilityScores,
+    Skill,
+    Race,
+    DraconicAncestorType,
+    ElvenLineageType,
+    GnomeSubraceType,
+    GiantAncestryType,
+    FiendishLegacyType,
+} from '../../../../types';
 
 // --- Test Fixtures ---
 
@@ -47,11 +57,11 @@ function walkCompleteFlow(
     raceId: string,
     classId: string,
     options?: {
-        dragonbornAncestry?: string;
-        elvenLineage?: { lineageId: string; spellAbility: 'Intelligence' | 'Wisdom' | 'Charisma' };
-        gnomeSubrace?: { subraceId: string; spellAbility: 'Intelligence' | 'Wisdom' | 'Charisma' };
-        giantAncestry?: string;
-        tieflingLegacy?: { legacyId: string; spellAbility: 'Intelligence' | 'Wisdom' | 'Charisma' };
+        dragonbornAncestry?: DraconicAncestorType;
+        elvenLineage?: { lineageId: ElvenLineageType; spellAbility: AbilityScoreName };
+        gnomeSubrace?: { subraceId: GnomeSubraceType; spellAbility: AbilityScoreName };
+        giantAncestry?: GiantAncestryType;
+        tieflingLegacy?: { legacyId: FiendishLegacyType; spellAbility: AbilityScoreName };
         centaurSkill?: string;
         changelingSkills?: string[];
         humanSkill?: string;
@@ -72,7 +82,7 @@ function walkCompleteFlow(
         case 'dragonborn':
             state = characterCreatorReducer(state, {
                 type: 'SELECT_DRAGONBORN_ANCESTRY',
-                payload: options?.dragonbornAncestry || 'black',
+                payload: options?.dragonbornAncestry || 'Black',
             });
             break;
         case 'elf':
@@ -90,7 +100,7 @@ function walkCompleteFlow(
         case 'goliath':
             state = characterCreatorReducer(state, {
                 type: 'SELECT_GIANT_ANCESTRY',
-                payload: options?.giantAncestry || 'cloud',
+                payload: options?.giantAncestry || 'Cloud',
             });
             break;
         case 'tiefling':

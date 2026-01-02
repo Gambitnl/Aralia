@@ -20,7 +20,7 @@ describe('Spell System Type-Level Tests', () => {
 
     if (effect.type === 'HEALING') {
       expectType<HealingEffect>(effect);
-      expectError(effect.damage); // Should not have damage property
+      expectError(() => (effect as any).damage); // Should not have damage property
     }
 
     if (effect.type === 'STATUS_CONDITION') {
@@ -50,10 +50,11 @@ describe('Spell System Type-Level Tests', () => {
         description: 'A bright streak flashes from your pointing finger...',
     };
     expectType<Spell>(validSpell);
-    // TODO(lint-intent): Confirm the ts-expect-error is still needed or tighten the Spell type for invalid fixtures.
-    // @ts-expect-error - invalid spell shape for type coverage
-    // TODO(lint-intent): 'invalidSpell' is unused in this test; use it in the assertion path or remove it.
-    const _invalidSpell: Spell = { id: 'missing_fields' };
+    // TODO(lint-intent): Keep invalid shape check to remind us to tighten Spell typing.
+    expectError(() => {
+      const invalidSpell: Spell = { id: 'missing_fields' } as any;
+      return invalidSpell;
+    });
   });
 
   it('should ensure damage type is a valid DamageType', () => {

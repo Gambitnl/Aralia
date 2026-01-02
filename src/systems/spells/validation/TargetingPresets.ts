@@ -65,22 +65,22 @@ export function matchTargetFilter(description: string): TargetConditionFilter | 
   const lowerDesc = description.toLowerCase();
 
   if (lowerDesc.includes('no effect on undead or constructs')) {
-    return TARGET_FILTERS.HEALING_STANDARD as TargetConditionFilter;
+    return TARGET_FILTERS.HEALING_STANDARD as unknown as TargetConditionFilter;
   }
 
   // Weak heuristic: Spells targeting "humanoids" usually mention the word explicitly.
   if (lowerDesc.includes('humanoid')) {
-    return TARGET_FILTERS.HUMANOID_ONLY as TargetConditionFilter;
+    return TARGET_FILTERS.HUMANOID_ONLY as unknown as TargetConditionFilter;
   }
 
   // Weak heuristic: Spells targeting "beasts" usually mention the word explicitly.
   if (lowerDesc.includes('beast') && !lowerDesc.includes('beast shape')) {
-    return TARGET_FILTERS.BEAST_ONLY as TargetConditionFilter;
+    return TARGET_FILTERS.BEAST_ONLY as unknown as TargetConditionFilter;
   }
 
   // Common phrasing for spells like Sleep
   if (lowerDesc.includes('undead') && lowerDesc.includes('aren\'t affected')) {
-    return TARGET_FILTERS.NO_UNDEAD as TargetConditionFilter;
+    return TARGET_FILTERS.NO_UNDEAD as unknown as TargetConditionFilter;
   }
 
   return null;

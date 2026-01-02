@@ -3,7 +3,7 @@
  * Utilities for managing NPC memories, including formation, retrieval, and forgetting (decay).
  */
 
-import { NPCMemory, Interaction, Fact, MemoryImportance, GameDate } from '../types/memory';
+import { NPCMemory, Interaction, Fact, MemoryImportance, GameDate } from '../../types/memory';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -117,7 +117,7 @@ export const formatMemoryForAI = (memory: NPCMemory, contextKeywords: string[] =
        // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-       const description = (fact as unknown).text || fact.id;
+       const description = (fact as any)?.text || fact.id;
        return `${sourceText}: "${description}"`;
     });
 

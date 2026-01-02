@@ -53,10 +53,10 @@ export async function handleOpenDynamicMerchant({
     (typeof (villageContext as VillageActionContext)?.buildingId === 'string' ? (villageContext as VillageActionContext).buildingId : undefined);
 
   const inventoryResult = await GeminiService.generateMerchantInventory(
-    contextForPrompt,
     merchantType,
-    generalActionContext, // Pass the global context (Time, Weather, Player)
-    gameState.devModelOverride,
+    contextForPrompt?.integrationTagline || generalActionContext,
+    gameState.economy || { activeEvents: [] } as any,
+    gameState.devModelOverride ?? null,
     resolvedSeedKey
   );
   

@@ -2,7 +2,7 @@
  * @file weaponUtils.ts
  * Utility functions for weapon proficiency and weapon-related calculations.
  */
-import { PlayerCharacter, Item } from '../types';
+import { PlayerCharacter, Item } from '../../types';
 
 /**
  * Determines if a weapon is Martial (vs Simple).

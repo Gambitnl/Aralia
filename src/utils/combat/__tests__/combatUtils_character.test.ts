@@ -1,10 +1,10 @@
 
 import { describe, it, expect } from 'vitest';
-import { createPlayerCombatCharacter } from '../combatUtils';
+import { createPlayerCombatCharacter } from '../../combat/combatUtils';
 // TODO(lint-intent): 'PlayerCharacter' is unused in this test; use it in the assertion path or remove it.
-import { PlayerCharacter as _PlayerCharacter, Item } from '../../types';
-import { Spell, SpellSchool } from '../../types/spells';
-import { createMockPlayerCharacter, createMockSpell } from '../factories';
+import { PlayerCharacter as _PlayerCharacter, Item } from '../../../types';
+import { Spell, SpellSchool } from '../../../types/spells';
+import { createMockPlayerCharacter, createMockSpell } from '../../core/factories';
 
 // Mocks
 const mockAllSpells: Record<string, Spell> = {
@@ -16,7 +16,7 @@ const mockAllSpells: Record<string, Spell> = {
     castingTime: { value: 1, unit: 'action' },
     range: { type: 'ranged', distance: 150 },
     effects: [{
-        type: 'damage',
+        type: 'DAMAGE',
         trigger: { type: 'immediate' },
         condition: { type: 'hit' },
         damage: { dice: '8d6', type: 'fire' }
@@ -153,9 +153,8 @@ describe('combatUtils: createPlayerCombatCharacter', () => {
          spellbook: {
              preparedSpells: ['fireball'],
              cantrips: [],
-             knownSpells: [],
-             slots: { 1: { total: 2, used: 0 } }
-         }
+             knownSpells: []
+         } as any
      });
 
      const combatChar = createPlayerCombatCharacter(player, mockAllSpells);

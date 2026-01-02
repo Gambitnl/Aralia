@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { X, Activity } from 'lucide-react';
-import { useGameState } from '../../state/useGameState';
+import { useGameState } from '../../state/GameContext';
 import { DEITIES } from '../../data/deities';
 
 interface DivineFavorPanelProps {
@@ -53,7 +53,8 @@ export const DivineFavorPanel: React.FC<DivineFavorPanelProps> = ({ isOpen, onCl
       const favor = state.religion?.divineFavor[id];
       return { def, favor };
     })
-    .filter((item): item is { def: import('../../types/religion').Deity, favor: import('../../types/religion').DivineFavor | undefined } => item.def !== undefined);
+    // TODO: tighten these types once deity discovery/favor flows are modeled; right now we allow partial data to still render.
+    .filter((item) => item.def) as { def: import('../../types/religion').Deity; favor: import('../../types/religion').DivineFavor | undefined }[];
 
   if (!isOpen) return null;
 

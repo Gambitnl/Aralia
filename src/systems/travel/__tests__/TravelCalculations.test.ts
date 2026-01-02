@@ -8,7 +8,7 @@ import {
   PACE_MODIFIERS as _PACE_MODIFIERS
 } from '../TravelCalculations';
 import { Item } from '../../../types/items';
-import { PlayerCharacter } from '../../../types/character';
+import { PlayerCharacter, AbilityScores, AbilityScoreName } from '../../../types/character';
 // TODO(lint-intent): 'TravelVehicle' is unused in this test; use it in the assertion path or remove it.
 import { TravelVehicle as _TravelVehicle, STANDARD_VEHICLES } from '../../../types/travel';
 
@@ -17,8 +17,8 @@ const mockChar = (id: string, strength: number, speed: number = 30): PlayerChara
   id,
   name: `Char_${id}`,
   // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  finalAbilityScores: { strength, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 } as unknown,
-  abilityScores: { strength, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 },
+  finalAbilityScores: { Strength: strength, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 } as AbilityScores,
+  abilityScores: { Strength: strength, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 } as AbilityScores,
   speed,
   race: { id: 'human', name: 'Human', description: '', traits: [] },
   class: { id: 'fighter', name: 'Fighter', description: '', hitDie: 10, primaryAbility: ['strength'], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 2, armorProficiencies: [], weaponProficiencies: [], features: [] },
@@ -36,6 +36,8 @@ const mockItem = (weight: number): Item => ({
   description: 'It is heavy.',
   type: 'treasure',
   weight,
+  // TODO(lint-intent): quantity is added to satisfy encumbrance math; replace with richer inventory mock if available.
+  quantity: 1,
 });
 
 describe('TravelCalculations', () => {

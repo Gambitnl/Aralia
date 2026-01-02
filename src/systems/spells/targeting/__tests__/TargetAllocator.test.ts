@@ -15,10 +15,10 @@ describe('TargetAllocator', () => {
       // Mock dice roll to return 25
       vi.spyOn(combatUtils, 'rollDice').mockReturnValue(25);
 
-      const c1 = createMockCombatCharacter({ id: 'c1', name: 'Goblin Weak', hp: 7 });
-      const c2 = createMockCombatCharacter({ id: 'c2', name: 'Goblin Avg', hp: 10 });
-      const c3 = createMockCombatCharacter({ id: 'c3', name: 'Goblin Strong', hp: 15 });
-      const c4 = createMockCombatCharacter({ id: 'c4', name: 'Orc', hp: 30 });
+      const c1 = createMockCombatCharacter({ id: 'c1', name: 'Goblin Weak', currentHP: 7 });
+      const c2 = createMockCombatCharacter({ id: 'c2', name: 'Goblin Avg', currentHP: 10 });
+      const c3 = createMockCombatCharacter({ id: 'c3', name: 'Goblin Strong', currentHP: 15 });
+      const c4 = createMockCombatCharacter({ id: 'c4', name: 'Orc', currentHP: 30 });  
 
       // Input order shouldn't matter as it sorts them
       const candidates = [c4, c2, c1, c3];
@@ -52,7 +52,7 @@ describe('TargetAllocator', () => {
 
     it('should handle strictLimit=false (partial application)', () => {
       vi.spyOn(combatUtils, 'rollDice').mockReturnValue(10);
-      const c1 = createMockCombatCharacter({ id: 'c1', hp: 15 });
+      const c1 = createMockCombatCharacter({ id: 'c1', currentHP: 15 });
 
       const allocation: TargetAllocation = {
         type: 'pool',

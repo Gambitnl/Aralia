@@ -6,8 +6,8 @@
  * Logic for ship mechanics, crew management, and naval calculations.
  */
 
-import { Ship, ShipStats, CrewMember, ShipModification, ShipSize } from '../types/naval';
-import { SHIP_TEMPLATES } from '../data/ships';
+import { Ship, ShipStats, CrewMember, ShipModification, ShipSize } from '../../types/naval';
+import { SHIP_TEMPLATES } from '../../data/ships';
 
 /**
  * Gets the numeric rank of a ship size for comparison (Tiny=1 to Gargantuan=6).

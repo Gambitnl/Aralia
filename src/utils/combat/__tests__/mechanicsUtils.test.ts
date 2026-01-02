@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { attemptLockpick, attemptForceLock, resolveTrapEffect } from '../mechanicsUtils';
-import { Lock, Trap } from '../../types/mechanics';
-import * as combatUtils from '../combatUtils';
+import { Lock, Trap } from '../../../types/mechanics';
+import * as combatUtils from '../../combat/combatUtils';
 
 // Mock rollDice to control outcomes
 vi.mock('../combatUtils', () => ({
@@ -81,7 +81,7 @@ describe('Trap Mechanics', () => {
       damage: '1d4',
       damageType: 'poison',
       saveDC: 12,
-      saveAbility: 'CON',
+      saveAbility: 'Constitution',
     },
   };
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { calculateAffectedTiles } from '../aoeCalculations'
-import { Position } from '../../types/combat'
+import { Position } from '../../../types/combat'
 
 describe('calculateAffectedTiles', () => {
   describe('Sphere', () => {

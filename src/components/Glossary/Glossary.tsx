@@ -66,6 +66,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
     handleDragStart,
     handleColumnResizeStart,
     handleResetLayout,
+    handleMaximize,
   } = useGlossaryModal(isOpen, modalRef);
 
   const {
@@ -314,6 +315,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
           onRecheckSpells={recheckSpells}
           isCheckingSpells={isCheckingSpells}
           onResetLayout={handleResetLayout}
+          onMaximize={() => handleMaximize(40)} // 40px spacer from edge
           onClose={onClose}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}

@@ -13,13 +13,13 @@ import {
   SpellSlots,
   LimitedUses,
   Item,
-} from '../../../types';
-import { SKILLS_DATA } from '../../../data/skills';
-import { WEAPONS_DATA } from '../../../data/items';
-import { ALL_RACES_DATA as RACES_DATA, TIEFLING_LEGACIES_DATA as TIEFLING_LEGACIES } from '../../../data/races';
-import { CharacterCreationState } from '../state/characterCreatorState'; 
-import { getAbilityModifierValue, applyFeatToCharacter } from '../../../utils/characterUtils';
-import { FEATS_DATA } from '../../../data/feats/featsData';
+} from '../types';
+import { SKILLS_DATA } from '../data/skills';
+import { WEAPONS_DATA } from '../data/items';
+import { ALL_RACES_DATA as RACES_DATA, TIEFLING_LEGACIES_DATA as TIEFLING_LEGACIES } from '../data/races';
+import { CharacterCreationState } from '../components/CharacterCreator/state/characterCreatorState'; 
+import { getAbilityModifierValue, applyFeatToCharacter } from '../utils/characterUtils';
+import { FEATS_DATA } from '../data/feats/featsData';
 
 // --- Helper Functions for Character Assembly ---
 function validateAllSelectionsMade(state: CharacterCreationState): boolean {

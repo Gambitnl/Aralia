@@ -2,6 +2,7 @@
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { Plane, PlanarTrait, PlanarHazard as _PlanarHazard, PlanarEffect as _PlanarEffect } from '../types/planes';
+import { SpellSchool } from '../types';
 
 // -----------------------------------------------------------------------------
 // Common Planar Traits
@@ -100,12 +101,12 @@ export const FEYWILD: Plane = {
     onPlaneExit: 'DC 15 Wisdom save upon leaving. Failure wipes memories of the visit.',
     affectsMagic: [
       {
-        school: 'Illusion',
+        school: SpellSchool.Illusion,
         effect: 'empowered',
         description: 'Illusion spells last twice as long.'
       },
       {
-        school: 'Enchantment',
+        school: SpellSchool.Enchantment,
         effect: 'empowered',
         description: 'Enchantment spells are cast with Advantage on the attack or Disadvantage on the save.'
       }
@@ -144,12 +145,12 @@ export const SHADOWFELL: Plane = {
     },
     affectsMagic: [
       {
-        school: 'Necromancy',
+        school: SpellSchool.Necromancy,
         effect: 'empowered',
         description: 'Necromancy spells roll damage dice twice and take the higher total.'
       },
       {
-        school: 'Evocation',
+        school: SpellSchool.Evocation,
         effect: 'impeded',
         description: 'Spells that create light have their radius halved.'
       }
@@ -269,7 +270,7 @@ export const ABYSS: Plane = {
     },
     affectsMagic: [
       {
-        school: 'Divination',
+        school: SpellSchool.Divination,
         effect: 'impeded',
         description: 'Divination spells return lies or maddening visions unless a DC 15 Wis check is passed.'
       }
@@ -338,3 +339,4 @@ export const PLANES: Record<string, Plane> = {
 export const getPlane = (id: string): Plane | undefined => PLANES[id];
 
 export const getAllPlanes = (): Plane[] => Object.values(PLANES);
+

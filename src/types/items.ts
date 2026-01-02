@@ -1,5 +1,6 @@
 import type { AbilityScoreName, AbilityScores } from './core';
 import type { MagicItemProperties } from './magicItems';
+import type { ItemProvenance } from './provenance';
 import type { ItemVisualSpec } from './visuals';
 
 /**
@@ -214,8 +215,8 @@ export const ItemTypeDefinitions: Record<ItemType, ItemTypeTraits> = {
 
 export type ItemEffect =
   | { type: 'heal'; value: number; dice?: string }
-  | { type: 'buff'; stat: AbilityScoreName; value: number; duration?: number }
-  | { type: 'damage'; damageType: string; dice: string }
+  | { type: 'buff'; stat?: AbilityScoreName; value: number; duration?: number }  // TODO(lint-intent): make stat required once all data provides it
+  | { type: 'damage'; damageType: string; dice: string; value?: number } // TODO(lint-intent): prefer dice over raw value; keep value for legacy data
   | { type: 'restore_resource'; resource: string; amount: number }
   | { type: 'utility'; description: string }
   | string; // Legacy compatibility while migration completes
@@ -224,6 +225,8 @@ export interface Item {
   id: string;
   name: string;
   description: string;
+  /** Legacy price field used by some data sources. Prefer cost for new items. */
+  value?: number | string;
   /**
    * The classification of the item.
    * Prefer using ItemType enum values.
@@ -249,6 +252,7 @@ export interface Item {
     | 'scroll'
     | 'key'
     | 'spell_component'
+    | 'reagent' // TODO(lint-intent): Legacy alchemy/herbalism items still use this magic string; migrate to ItemType once taxonomy stabilizes.
     | 'crafting_material'
     | 'treasure';
 
@@ -324,6 +328,9 @@ export interface Item {
    */
   // TODO(Schemer): Populate this field in item generation logic.
   magicProperties?: MagicItemProperties;
+
+  /** Optional history and origin tracking for the item. */
+  provenance?: ItemProvenance;
 }
 
 /**

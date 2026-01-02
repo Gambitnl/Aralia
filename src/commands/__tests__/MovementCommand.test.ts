@@ -176,7 +176,8 @@ describe('TerrainCommand', () => {
     const result = cmd.execute(state)
 
     const terrainLog = result.combatLog.at(-1)
-    expect(terrainLog?.data?.affectedPositions?.length).toBeGreaterThan(0)
+    const affected = (terrainLog?.data as { affectedPositions?: Position[] } | undefined)?.affectedPositions;
+    expect((affected?.length ?? 0)).toBeGreaterThan(0)
   })
 
   it('handles excavate manipulation with deposit distance', () => {
@@ -204,7 +205,8 @@ describe('TerrainCommand', () => {
     const terrainLog = result.combatLog.at(-1)
     expect(terrainLog?.message).toContain('excavates')
     expect(terrainLog?.message).toContain('deposits it up to 5 feet away')
-    expect(terrainLog?.data?.manipulation?.type).toBe('excavate')
+    const manipulation = (terrainLog?.data as { manipulation?: { type?: string } } | undefined)?.manipulation;
+    expect(manipulation?.type).toBe('excavate')
   })
 
   it('handles difficult terrain manipulation', () => {
@@ -230,6 +232,7 @@ describe('TerrainCommand', () => {
 
     const terrainLog = result.combatLog.at(-1)
     expect(terrainLog?.message).toContain('turns terrain into difficult terrain')
-    expect(terrainLog?.data?.manipulation?.type).toBe('difficult')
+    const manipulation = (terrainLog?.data as { manipulation?: { type?: string } } | undefined)?.manipulation;
+    expect(manipulation?.type).toBe('difficult')
   })
 })

@@ -87,7 +87,7 @@ export function validateEnchantmentConsistency(spell: Spell): ValidationIssue[] 
            }
          }
          // Also check repeatSave for advantageOnDamage (Tasha's)
-         if (effect.type === 'STATUS_CONDITION' && effect.statusCondition.repeatSave?.modifiers?.advantageOnDamage) {
+         if (effect.type === 'STATUS_CONDITION' && (effect.statusCondition as any).repeatSave?.modifiers?.advantageOnDamage) {
             // This is "save on damage", not "break on damage", but close enough for Tasha's
             hasBreakLogic = true;
          }

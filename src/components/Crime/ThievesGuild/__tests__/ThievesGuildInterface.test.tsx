@@ -6,6 +6,8 @@ import ThievesGuildInterface from '../ThievesGuildInterface';
 import { GameProvider } from '../../../../state/GameContext';
 import { initialGameState } from '../../../../state/appState';
 import { GuildJob, GuildJobType } from '../../../../types/crime';
+import { GuildMembership } from '../../../../types';
+import { createMockPlayerCharacter } from '../../../../utils/factories';
 
 // Mock the system to control random generation
 vi.mock('../../../../systems/crime/ThievesGuildSystem', () => ({
@@ -43,16 +45,29 @@ describe('ThievesGuildInterface', () => {
     const mockDispatch = vi.fn();
     const mockOnClose = vi.fn();
 
-    const renderWithState = (customState: Partial<typeof initialGameState> = {}) => {
+    const partyMember = createMockPlayerCharacter({ id: 'p1', name: 'Player' });
+    const baseGuildMembership: GuildMembership = {
+        memberId: partyMember.id || 'p1',
+        guildId: 'shadow_hands',
+        rank: 0,
+        reputation: 0,
+        activeJobs: [],
+        availableJobs: [],
+        completedJobs: [],
+        servicesUnlocked: [],
+    };
+
+    const renderWithState = (customState: Partial<typeof initialGameState> & { thievesGuild?: Partial<GuildMembership> } = {}) => {
+        const { thievesGuild: customGuild, ...rest } = customState;
         const state = {
             ...initialGameState,
-            ...customState,
+            ...rest,
             thievesGuild: {
-                ...initialGameState.thievesGuild,
-                ...customState.thievesGuild
+                ...baseGuildMembership,
+                ...customGuild,
             },
             // Ensure permissions allow showing dev/debug items if needed
-            party: [{ id: 'p1', name: 'Player' }]
+            party: [partyMember]
         };
 
         return render(
@@ -67,14 +82,14 @@ describe('ThievesGuildInterface', () => {
     });
 
     it('renders the recruitment screen when rank is 0', () => {
-        renderWithState({ thievesGuild: { rank: 0 } });
+        renderWithState({ thievesGuild: { rank: 0, reputation: 0, activeJobs: [], availableJobs: [], completedJobs: [], servicesUnlocked: [], memberId: baseGuildMembership.memberId, guildId: baseGuildMembership.guildId } });
 
         expect(screen.getByText('The Shadows Watch')).toBeInTheDocument();
         expect(screen.getByText('Seek Membership')).toBeInTheDocument();
     });
 
     it('dispatches JOIN_GUILD when clicking Seek Membership', () => {
-        renderWithState({ thievesGuild: { rank: 0 } });
+        renderWithState({ thievesGuild: { rank: 0, reputation: 0, activeJobs: [], availableJobs: [], completedJobs: [], servicesUnlocked: [], memberId: baseGuildMembership.memberId, guildId: baseGuildMembership.guildId } });
 
         fireEvent.click(screen.getByText('Seek Membership'));
 
@@ -85,7 +100,7 @@ describe('ThievesGuildInterface', () => {
     });
 
     it('renders the main interface when rank > 0', () => {
-        renderWithState({ thievesGuild: { rank: 1, reputation: 50, activeJobs: [] } });
+        renderWithState({ thievesGuild: { ...baseGuildMembership, rank: 1, reputation: 50, activeJobs: [] } });
 
         expect(screen.getByText('Shadow Hands Guild')).toBeInTheDocument();
         expect(screen.getByText(/Rank:/)).toBeInTheDocument();
@@ -93,7 +108,7 @@ describe('ThievesGuildInterface', () => {
     });
 
     it('displays available jobs and accepts them', () => {
-        renderWithState({ thievesGuild: { rank: 1, reputation: 50, activeJobs: [] } });
+        renderWithState({ thievesGuild: { ...baseGuildMembership, rank: 1, reputation: 50, activeJobs: [] } });
 
         // Check job list (mocked above)
         expect(screen.getByText('Test Job')).toBeInTheDocument();
@@ -126,9 +141,13 @@ describe('ThievesGuildInterface', () => {
 
         renderWithState({
             thievesGuild: {
+                ...baseGuildMembership,
                 rank: 1,
                 reputation: 50,
-                activeJobs: [activeJob]
+                activeJobs: [activeJob],
+                availableJobs: [],
+                completedJobs: [],
+                servicesUnlocked: []
             }
         });
 

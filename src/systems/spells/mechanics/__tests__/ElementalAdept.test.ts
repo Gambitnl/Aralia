@@ -14,14 +14,14 @@ describe('Elemental Adept Mechanics', () => {
       }
     }
   // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  } as unknown;
+  } as unknown as CombatCharacter;
 
   const attackerWithoutFeat: CombatCharacter = {
     id: 'attacker-2',
     name: 'Novice',
     featChoices: {}
   // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  } as unknown;
+  } as unknown as CombatCharacter;
 
   const resistantTarget: CombatCharacter = {
     id: 'target-1',
@@ -29,7 +29,7 @@ describe('Elemental Adept Mechanics', () => {
     resistances: ['Fire', 'Cold'],
     immunities: ['Poison']
   // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  } as unknown;
+  } as unknown as CombatCharacter;
   // TODO(lint-intent): 'normalTarget' is unused in this test; use it in the assertion path or remove it.
   const _normalTarget: CombatCharacter = {
     id: 'target-2',
@@ -37,7 +37,7 @@ describe('Elemental Adept Mechanics', () => {
     resistances: [],
     immunities: []
   // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  } as unknown;
+  } as unknown as CombatCharacter;
 
   describe('ResistanceCalculator', () => {
     it('should halve damage for resistant target normally', () => {
@@ -78,7 +78,7 @@ describe('Elemental Adept Mechanics', () => {
           'elemental_adept': { selectedDamageType: 'Poison' }
         }
       // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-      } as unknown;
+      } as unknown as CombatCharacter;
 
       const damage = ResistanceCalculator.applyResistances(
         20,

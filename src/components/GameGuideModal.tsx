@@ -10,7 +10,7 @@ import React, { useState, useRef, useEffect, useContext as _useContext } from 'r
 import { motion, AnimatePresence, MotionProps } from 'framer-motion';
 import { generateGuideResponse } from '../services/geminiService';
 import { generateCharacterFromConfig, CharacterGenerationConfig } from '../services/characterGenerator';
-import { PlayerCharacter } from '../types';
+import { PlayerCharacter, NPCMemory, GoalStatus } from '../types';
 import { AppAction } from '../state/actionTypes';
 import { RACES_DATA, AVAILABLE_CLASSES } from '../constants';
 import { t } from '../utils/i18n';
@@ -39,6 +39,19 @@ const generatedCharacterMotion: MotionProps = {
     initial: { opacity: 0, scale: 0.9 },
     animate: { opacity: 1, scale: 1 },
 };
+
+type GuideToolData = {
+    tool?: string;
+    config?: unknown;
+};
+
+const buildGuideMemory = (): NPCMemory => ({
+    interactions: [],
+    knownFacts: [],
+    attitude: 0,
+    lastInteractionDate: Date.now(),
+    discussedTopics: {},
+});
 
 const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameContext, devModelOverride, onAction }) => {
     const [query, setQuery] = useState('');
@@ -71,7 +84,13 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
         setGeneratedCharacter(null);
 
         try {
-            const result = await generateGuideResponse(userQuery, gameContext, devModelOverride);
+            const playerPromptContext = `${gameContext}\nPlayer request: ${userQuery}`;
+            const result = await generateGuideResponse(
+                buildGuideMemory(),
+                GoalStatus.Active,
+                playerPromptContext,
+                devModelOverride
+            );
 
             if (result.data?.text) {
                 const responseText = result.data.text;
@@ -90,7 +109,7 @@ const GameGuideModal: React.FC<GameGuideModalProps> = ({ isOpen, onClose, gameCo
                     // TODO(lint-intent): The any on this value hides the intended shape of this data.
                     // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
                     // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-                    const toolData = safeJSONParse<unknown>(cleanedJson);
+                    const toolData = safeJSONParse<GuideToolData | null>(cleanedJson);
 
                     if (toolData && toolData.tool === 'create_character' && toolData.config) {
                         const character = generateCharacterFromConfig(toolData.config as CharacterGenerationConfig);

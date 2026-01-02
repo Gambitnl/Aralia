@@ -1,5 +1,5 @@
 import { MarketEvent, MarketEventType } from '../../types/economy';
-import { SeededRandom } from '../seededRandom';
+import { SeededRandom } from '../random/seededRandom';
 
 export const MARKET_EVENT_TEMPLATES = [
   {
@@ -90,7 +90,7 @@ export function generateMarketEvents(gameTime: number): EnrichedMarketEvent[] {
     const rng = new SeededRandom(checkDay);
 
     // 20% chance of an event starting on any given day
-    if (rng.nextFloat() < 0.2) {
+    if (rng.next() < 0.2) {
       const template = rng.pick(MARKET_EVENT_TEMPLATES);
 
       // Check if it's still active
@@ -113,10 +113,7 @@ export function generateMarketEvents(gameTime: number): EnrichedMarketEvent[] {
           // We might need to handle that. But for now let's assume Enriched is used internally.
           name: template.name,
           description: template.description
-        // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-        } as unknown);
+        } as EnrichedMarketEvent);
       }
     }
   }

@@ -3,6 +3,8 @@ import { DefensiveCommand } from '../effects/DefensiveCommand';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState, Position } from '@/types/combat';
 import type { DefensiveEffect } from '@/types/spells';
+import type { Class, GameState } from '@/types';
+import { createMockGameState, createMockPlayerCharacter } from '../../utils/factories';
 
 const baseStats = {
   strength: 10,
@@ -24,12 +26,25 @@ const baseEconomy = {
   freeActions: 0
 };
 
+const mockClass: Class = {
+  id: 'wizard',
+  name: 'Wizard',
+  description: 'A prepared arcane caster.',
+  hitDie: 6,
+  primaryAbility: ['Intelligence'],
+  savingThrowProficiencies: ['Intelligence', 'Wisdom'],
+  skillProficienciesAvailable: [],
+  numberOfSkillProficiencies: 2,
+  armorProficiencies: [],
+  weaponProficiencies: [],
+  features: []
+};
+
 const makeCharacter = (id: string, position: Position): CombatCharacter => ({
   id,
   name: id,
   level: 5,
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  class: 'Wizard' as unknown,
+  class: mockClass,
   position,
   stats: { ...baseStats },
   abilities: [],
@@ -71,8 +86,18 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
   castAtLevel: 1,
   caster,
   targets,
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  gameState: {} as unknown
+  // TODO(lint-intent): Preserve stub until command context consumes more of GameState; supply minimal shape to keep intent visible.
+  gameState: createMockGameState({
+    party: [createMockPlayerCharacter({
+      id: caster.id,
+      name: caster.name,
+      // TODO: merge combat + overworld actor models so defensive buffs persist across modes.
+    })],
+    currentEnemies: targets,
+    currentLocationId: 'arena',
+    subMapCoordinates: { x: 0, y: 0 },
+    mapData: null
+  }) as GameState
 });
 
 describe('DefensiveCommand', () => {

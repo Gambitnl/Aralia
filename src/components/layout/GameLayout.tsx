@@ -49,6 +49,8 @@ interface GameLayoutProps {
     worldSeed: number;
     /** Debug flag indicating if the developer dummy character is active. */
     isDevDummyActive: boolean;
+    /** Flag indicating if developer mode logic (menus, cheats) is enabled. */
+    isDevModeEnabled: boolean;
     /** If true, disables all interactive elements (buttons, inputs) in the layout. */
     disabled: boolean;
     /** Central handler for dispatching user actions (movement, interaction, etc.). */
@@ -58,7 +60,7 @@ interface GameLayoutProps {
     // TODO(lint-intent): The any on this value hides the intended shape of this data.
     // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
     // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-    companions?: Record<string, unknown>; // Using any to avoid importing the type if not strictly needed, or import Companion
+    companions?: Record<string, import('../../types').Companion>;
 }
 
 /**
@@ -78,6 +80,7 @@ const GameLayout: React.FC<GameLayoutProps> = ({
     hasNewRateLimitError,
     worldSeed,
     isDevDummyActive,
+    isDevModeEnabled,
     disabled,
     onAction,
     companions,
@@ -87,7 +90,7 @@ const GameLayout: React.FC<GameLayoutProps> = ({
             <VersionDisplay position="game-screen" />
 
             <CompanionReaction
-                companions={companions || COMPANIONS}
+                companions={companions || (COMPANIONS as Record<string, import('../../types').Companion>)}
                 latestMessage={messages[messages.length - 1]}
             />
 
@@ -96,7 +99,7 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                 <ErrorBoundary fallbackMessage="Error in Compass Pane.">
                     <CompassPane
                         currentLocation={currentLocation}
-                        currentSubMapCoordinates={subMapCoordinates}
+                        currentSubMapCoordinates={subMapCoordinates ?? null}
                         worldMapCoords={currentLocation.mapCoordinates}
                         subMapCoords={subMapCoordinates}
                         onAction={onAction}
@@ -114,9 +117,10 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                         disabled={disabled}
                         geminiGeneratedActions={geminiGeneratedActions || []}
                         isDevDummyActive={isDevDummyActive}
+                        isDevModeEnabled={isDevModeEnabled}
                         unreadDiscoveryCount={unreadDiscoveryCount}
                         hasNewRateLimitError={hasNewRateLimitError}
-                        subMapCoordinates={subMapCoordinates}
+                        subMapCoordinates={subMapCoordinates ?? undefined}
                         worldSeed={worldSeed}
                     />
                 </ErrorBoundary>
@@ -130,7 +134,7 @@ const GameLayout: React.FC<GameLayoutProps> = ({
                 <Minimap
                     mapData={mapData}
                     currentLocationCoords={currentLocation.mapCoordinates}
-                    submapCoords={subMapCoordinates}
+                    submapCoords={subMapCoordinates ?? null}
                     visible={true} // Always visible in this layout
                     toggleMap={() => onAction({ type: 'toggle_map', label: 'Open Map' })}
                 />

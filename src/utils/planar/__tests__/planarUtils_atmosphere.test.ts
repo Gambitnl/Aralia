@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { getPlanarAtmosphere } from '../planarUtils';
-import { PLANES } from '../../data/planes';
+import { PLANES } from '../../../data/planes';
 
 describe('planarUtils Atmosphere', () => {
     it('should return correct atmosphere for Material Plane', () => {

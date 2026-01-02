@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { heuristic } from '../pathfinding';
-import { BattleMapTile } from '../../types/combat';
+import { BattleMapTile } from '../../../types/combat';
 
 describe('Pathfinding Heuristic (Chebyshev Distance)', () => {
   // Helper to create minimal tiles for testing

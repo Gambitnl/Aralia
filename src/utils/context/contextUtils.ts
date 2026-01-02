@@ -3,13 +3,14 @@
  * @file src/utils/contextUtils.ts
  * Utility functions for generating rich narrative context for AI processing.
  */
-import { GameState, PlayerCharacter, NPC, Location } from '../types';
-import { BIOMES, ITEMS } from '../constants';
-import { getSubmapTileInfo } from './submapUtils';
-import { SUBMAP_DIMENSIONS } from '../config/mapConfig';
-import { getTimeModifiers, formatGameTime } from './timeUtils';
-import { BACKGROUNDS } from '../data/backgrounds';
-import { CLASSES_DATA } from '../data/classes';
+import { GameState, PlayerCharacter, NPC, Location } from '../../types';
+import { QuestObjective } from '../../types/quests';
+import { BIOMES, ITEMS } from '../../constants';
+import { getSubmapTileInfo } from '../spatial/submapUtils';
+import { SUBMAP_DIMENSIONS } from '../../config/mapConfig';
+import { getTimeModifiers, formatGameTime } from '../core/timeUtils';
+import { BACKGROUNDS } from '../../data/backgrounds';
+import { CLASSES_DATA } from '../../data/classes';
 
 interface ContextGenerationParams {
   gameState: GameState;
@@ -33,7 +34,7 @@ export function generateGeneralActionContext({
   // --- PLAYER ---
   if (playerCharacter) {
     // Defensive: playerCharacter.conditions can be undefined in some entry points; default to empty array.
-    const conditionsList = Array.isArray(playerCharacter.conditions) ? playerCharacter.conditions : [];
+    const conditionsList = Array.isArray((playerCharacter as any).conditions) ? (playerCharacter as any).conditions : [];
     const conditions = conditionsList.length > 0
       ? conditionsList.join(', ')
       : 'None';
@@ -86,11 +87,15 @@ export function generateGeneralActionContext({
   const timeModifiers = getTimeModifiers(gameState.gameTime);
   let atmosphereDetails = `Time: ${timeDesc}`;
 
-  if (gameState.environment && gameState.environment.currentCondition) {
+  const environment = (gameState as any).environment;
+  if (environment && environment.currentCondition) {        
      // If rich weather state exists
-     atmosphereDetails += ` | Weather: ${gameState.environment.currentCondition.name} (Temp: ${gameState.environment.temperature}°F, Wind: ${gameState.environment.windSpeed} mph)`;
-     if (gameState.environment.currentCondition.description) {
-         atmosphereDetails += `\nLook/Feel: ${gameState.environment.currentCondition.description}`;
+     atmosphereDetails += ` | Weather: ${environment.currentCondition.name} (Temp: ${environment.temperature ?? 'n/a'}°F)`;
+     if (environment.windSpeed !== undefined) {
+        atmosphereDetails += `, Wind: ${environment.windSpeed} mph`;
+     }
+     if (environment.currentCondition.description) {
+         atmosphereDetails += `\nLook/Feel: ${environment.currentCondition.description}`;
      }
   } else {
      // Fallback to simple description
@@ -109,8 +114,9 @@ export function generateGeneralActionContext({
     const submapTileInfo = getSubmapTileInfo(gameState.worldSeed, currentLocation.mapCoordinates, currentLocation.biomeId, SUBMAP_DIMENSIONS, gameState.subMapCoordinates);
     if (submapTileInfo) {
       locationDetails += `\nImmediate Terrain: ${submapTileInfo.effectiveTerrainType}`;
-      if (submapTileInfo.activeFeatureConfig) {
-         locationDetails += ` | Feature: ${submapTileInfo.activeFeatureConfig.name}`;
+      const activeFeatureConfig = (submapTileInfo as any).activeFeatureConfig;
+      if (activeFeatureConfig) {
+         locationDetails += ` | Feature: ${activeFeatureConfig.name}`;
       }
     }
   }
@@ -211,10 +217,11 @@ export function generateGeneralActionContext({
   if (activeQuests.length > 0) {
     const questLines = activeQuests.map(q => {
         let line = `- **${q.title}**: ${q.description}`;
-        const activeObjectives = (q.objectives || []).filter(o => !o.isCompleted);
+        const objectives: QuestObjective[] = (q as any).objectives || [];
+        const activeObjectives = objectives.filter((objective: QuestObjective) => !objective.isCompleted);
 
         if (activeObjectives.length > 0) {
-            const objectiveList = activeObjectives.map(o => `  - [ ] ${o.description}`).join('\n');
+            const objectiveList = activeObjectives.map((objective: QuestObjective) => `  - [ ] ${objective.description}`).join('\n');
             line += `\n  *Current Objectives:*\n${objectiveList}`;
         }
         return line;
@@ -224,17 +231,19 @@ export function generateGeneralActionContext({
     // --- QUEST RELEVANCE ---
     // Highlight if the current location or NPCs are relevant to any active quests
     const relevantNotes: string[] = [];
-    activeQuests.forEach(q => {
-      // Check Objectives for location name match
-      const relevantObjectives = (q.objectives || []).filter(o =>
-        !o.isCompleted && (
-          o.description.toLowerCase().includes(currentLocation.name.toLowerCase()) ||
-          npcsInLocation.some(npc => o.description.toLowerCase().includes(npc.name.toLowerCase()))
-        )
-      );
+        activeQuests.forEach(q => {
+          // Check Objectives for location name match
+          const objectives = (q.objectives || []) as any[];
+          const relevantObjectives = objectives.filter((objective: any) => {
+            const desc = (objective.description || '').toLowerCase();
+            return !objective.isCompleted && (
+              desc.includes(currentLocation.name.toLowerCase()) ||
+              npcsInLocation.some(npc => desc.includes(npc.name.toLowerCase()))
+            );
+      });
 
       if (relevantObjectives.length > 0) {
-        relevantNotes.push(`- Quest "${q.title}" is relevant here: ${relevantObjectives.map(o => o.description).join('; ')}`);
+        relevantNotes.push(`- Quest "${q.title}" is relevant here: ${relevantObjectives.map((objective) => objective.description).join('; ')}`);
       }
     });
 

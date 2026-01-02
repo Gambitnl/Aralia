@@ -7,13 +7,13 @@ import {
     TempleService,
     Blessing,
     FavorRank
-} from '../types/religion';
-import { DEITIES } from '../data/deities';
+} from '../../types/religion';
+import { DEITIES } from '../../data/deities';
 // TODO(lint-intent): 'BLESSING_EFFECTS' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { BLESSING_EFFECTS as _BLESSING_EFFECTS, getBlessingEffect, getBlessingDefinition, BlessingDefinition } from '../data/religion/blessings';
-import { StatusEffect } from '../types/combat';
+import { BLESSING_EFFECTS as _BLESSING_EFFECTS, getBlessingEffect, getBlessingDefinition, BlessingDefinition } from '../../data/religion/blessings';
+import { StatusEffect } from '../../types/combat';
 
 /**
  * Calculates the new favor level based on an action.
@@ -98,13 +98,13 @@ export const evaluateAction = (
     // Check approvals
     const approval = deity.approves.find(d => d.trigger === actionTrigger);
     if (approval) {
-        return { description: approval.description, favorChange: approval.favorChange };
+        return { id: `${deityId}_approve_${actionTrigger}`, description: approval.description, favorChange: approval.favorChange };
     }
 
     // Check forbiddances
     const forbiddance = deity.forbids.find(d => d.trigger === actionTrigger);
     if (forbiddance) {
-        return { description: forbiddance.description, favorChange: forbiddance.favorChange };
+        return { id: `${deityId}_forbid_${actionTrigger}`, description: forbiddance.description, favorChange: forbiddance.favorChange };
     }
 
     return null;

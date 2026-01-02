@@ -7,6 +7,7 @@
     "/data/glossary/index/magic_items.json",
     "/data/glossary/index/rules_glossary.json",
     "/data/glossary/index/spellcasting_mechanics.json",
-    "/data/glossary/index/spells.json"
+    "/data/glossary/index/spells.json",
+    "/data/glossary/index/crafting_glossary.json"
   ]
 }

@@ -37,8 +37,9 @@ const DAILY_EVENT_CHANCE = 0.2;
  */
 const handleFactionSkirmish = (state: GameState, rng: SeededRandom): WorldEventResult => {
   // Weather Check: Armies don't march in storms
-  if (state.weather) {
-     const p = state.weather.precipitation;
+  const weather = (state as any).weather;
+  if (weather) {
+     const p = weather.precipitation;
      if (p === 'storm' || p === 'blizzard') {
          // 90% chance to cancel event due to weather
          if (rng.next() > 0.1) {
@@ -251,16 +252,19 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
     // TODO(lint-intent): This binding never reassigns, so the intended mutability is unclear.
     // TODO(lint-intent): If it should stay stable, switch to const and treat it as immutable.
     // TODO(lint-intent): If mutation was intended, add the missing update logic to reflect that intent.
-    const events: Array<{ text: string; event: MarketEvent, weight?: number }> = [
+    const events: Array<{ text: string; event: MarketEvent & { affectedTags?: string[]; effect?: string; duration: number }, weight?: number }> = [
         {
-            text: "A surplus of iron from the mines has lowered weapon prices.",
+            text: "A surplus of iron from the mines has lowered weapon prices.",        
             event: {
                 id: 'surplus_iron',
                 name: 'Iron Surplus',
                 description: 'Weapons and heavy armor are cheaper.',
                 affectedTags: ['weapon', 'armor'],
                 effect: 'surplus',
-                duration: 5
+                duration: 5,
+                type: 'market',
+                intensity: 1,
+                startTime: Date.now()
             },
             weight: 1
         },
@@ -272,7 +276,10 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 description: 'Food items are expensive.',
                 affectedTags: ['consumable', 'food'],
                 effect: 'scarcity',
-                duration: 7
+                duration: 7,
+                type: 'market',
+                intensity: 1,
+                startTime: Date.now()
             },
             weight: 1
         },
@@ -284,7 +291,10 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 description: 'Luxury goods prices have spiked.',
                 affectedTags: ['valuable', 'cloth'],
                 effect: 'scarcity',
-                duration: 10
+                duration: 10,
+                type: 'market',
+                intensity: 1,
+                startTime: Date.now()
             },
             weight: 1
         },
@@ -296,16 +306,20 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 description: 'Exotic goods are cheaper.',
                 affectedTags: ['valuable', 'spice'],
                 effect: 'surplus',
-                duration: 5
+                duration: 5,
+                type: 'market',
+                intensity: 1,
+                startTime: Date.now()
             },
             weight: 1
         }
     ];
 
     // Modify weights based on weather
-    if (state.weather) {
-        const p = state.weather.precipitation;
-        const t = state.weather.temperature;
+    const weather = (state as any).weather;
+    if (weather) {
+        const p = weather.precipitation;
+        const t = weather.temperature;
 
         if (t === 'extreme_heat' || t === 'hot') {
             // Drought makes food scarce
@@ -329,7 +343,10 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                     description: 'Food is plentiful and cheap.',
                     affectedTags: ['consumable', 'food'],
                     effect: 'surplus',
-                    duration: 7
+                    duration: 7,
+                    type: 'market',
+                    intensity: 1,
+                    startTime: Date.now()
                  },
                  weight: 4
              });
@@ -542,9 +559,9 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
   // Clean up expired market events
   if (currentState.economy && currentState.economy.activeEvents) {
      let eventsChanged = false;
-     const newActiveEvents = currentState.economy.activeEvents
+     const newActiveEvents = (currentState.economy.activeEvents as any[])
         .map(e => ({...e, duration: e.duration - 1}))
-        .filter(e => e.duration > 0);
+        .filter((e: any) => e.duration > 0);
 
      if (newActiveEvents.length !== currentState.economy.activeEvents.length) {
          eventsChanged = true;
@@ -554,11 +571,12 @@ export const processWorldEvents = (state: GameState, daysPassed: number): WorldE
         const newScarcity = new Set<string>();
         const newSurplus = new Set<string>();
 
-        newActiveEvents.forEach(e => {
+        newActiveEvents.forEach((e: any) => {
+            if (!Array.isArray(e.affectedTags)) return;
             if (e.effect === 'scarcity') {
-                e.affectedTags.forEach(tag => newScarcity.add(tag));
+                e.affectedTags.forEach((tag: string) => newScarcity.add(tag));
             } else {
-                e.affectedTags.forEach(tag => newSurplus.add(tag));
+                e.affectedTags.forEach((tag: string) => newSurplus.add(tag));
             }
         });
 

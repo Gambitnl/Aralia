@@ -71,7 +71,7 @@ export const useCombatEngine = ({
         const savePenaltySystem = new SavePenaltySystem();
 
         updatedCharacter.statusEffects.forEach(effect => {
-            const repeat = effect.repeatSave;
+            const repeat = (effect as any).repeatSave;
             if (!repeat) return;
             if (timing === 'on_action' && effect.id !== actionEffectId) return;
             if (repeat.timing !== timing) return;
@@ -94,14 +94,14 @@ export const useCombatEngine = ({
             // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
             const saveType = repeat.saveType as unknown;
             const savePenalties = savePenaltySystem.getActivePenalties(character);
-            const roll = rollSavingThrow(character, saveType, dc, savePenalties);
+            const roll = rollSavingThrow(character, saveType as any, dc, savePenalties);
 
             let finalSuccess = roll.success;
             if (hasAdvantage) {
-                const roll2 = rollSavingThrow(character, saveType, dc, savePenalties);
+                const roll2 = rollSavingThrow(character, saveType as any, dc, savePenalties);
                 finalSuccess = roll.success || roll2.success;
             } else if (hasDisadvantage) {
-                const roll2 = rollSavingThrow(character, saveType, dc, savePenalties);
+                const roll2 = rollSavingThrow(character, saveType as any, dc, savePenalties);
                 finalSuccess = roll.success && roll2.success;
             }
 
@@ -201,10 +201,11 @@ export const useCombatEngine = ({
 
         const tileKey = `${tilePos.x}-${tilePos.y}`;
         const tile = mapData.tiles.get(tileKey);
-        if (!tile || !tile.environmentalEffect) return character;
+        const envEffect = tile ? (tile as any).environmentalEffect : null;
+        if (!tile || !envEffect) return character;
 
         let updatedChar = { ...character };
-        const env = tile.environmentalEffect;
+        const env = envEffect;
 
         if (env.effect.effect.type === 'damage_per_turn') {
             const damage = env.effect.effect.value || 0;
@@ -266,6 +267,9 @@ export const useCombatEngine = ({
         }
 
         updatedCharacter.statusEffects.forEach(effect => {
+            if (!effect.effect) {
+                return;
+            }
             switch (effect.effect.type) {
                 case 'damage_per_turn': {
                     // TODO(lint-intent): Consider centralizing per-turn damage tick logic for status effects.
@@ -338,21 +342,22 @@ export const useCombatEngine = ({
             const newTiles = new Map(mapData.tiles);
 
             for (const [key, tile] of newTiles) {
-                if (tile.environmentalEffect) {
-                    const newDuration = tile.environmentalEffect.duration - 1;
+                const environmentalEffect = (tile as any).environmentalEffect;
+                if (environmentalEffect) {
+                    const newDuration = environmentalEffect.duration - 1;
 
                     if (newDuration <= 0) {
                         const newTile = { ...tile };
-                        newTile.environmentalEffect = undefined;
-                        if (tile.environmentalEffect.type === 'difficult_terrain') {
-                            newTile.movementCost = 1; // Assuming default 1
+                        (newTile as any).environmentalEffect = undefined;
+                        if (environmentalEffect.type === 'difficult_terrain') {
+                            newTile.movementCost = 1; // Assuming default 1     
                         }
                         newTiles.set(key, newTile);
                         mapModified = true;
                     } else {
                         const newTile = { ...tile };
-                        newTile.environmentalEffect = {
-                            ...tile.environmentalEffect,
+                        (newTile as any).environmentalEffect = {
+                            ...environmentalEffect,
                             duration: newDuration
                         };
                         newTiles.set(key, newTile);

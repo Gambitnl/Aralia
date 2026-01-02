@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createProvenance, addProvenanceEvent, generateLegendaryHistory } from '../provenanceUtils';
-import { Item, ItemType, ItemRarity } from '../../types/items';
+import { Item, ItemType, ItemRarity } from '../../../types/items';
 
 describe('provenanceUtils', () => {
   const mockItem: Item = {

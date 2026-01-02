@@ -2,7 +2,7 @@
  * @file lineOfSight.ts
  * Utility for calculating line of sight on a grid.
  */
-import { BattleMapTile, BattleMapData } from '../types/combat';
+import { BattleMapTile, BattleMapData } from '../../types/combat';
 
 /**
  * Implements Bresenham's line algorithm to find all tiles on a line between two points.

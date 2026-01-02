@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { DamageCommand } from '../DamageCommand'
 import { CombatState, CombatCharacter } from '../../../types/combat'
 import { SpellEffect } from '../../../types/spells'
-import { CommandContext } from '../base/SpellCommand'
+import { CommandContext } from '../../base/SpellCommand'
 import { createMockCombatCharacter, createMockCombatState, createMockGameState } from '../../../utils/factories'
 
 describe('DamageCommand', () => {

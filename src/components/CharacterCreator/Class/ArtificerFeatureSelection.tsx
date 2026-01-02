@@ -59,7 +59,6 @@ const ArtificerFeatureSelection: React.FC<ArtificerFeatureSelectionProps> = ({
   const isButtonDisabled = selectedCantripIds.size !== spellcastingInfo.knownCantrips || selectedSpellL1Ids.size !== numPreparedSpells;
 
   const motionProps: MotionProps = {
-    key: "artificerFeatures",
     initial: { x: 300, opacity: 0 },
     animate: { x: 0, opacity: 1 },
     exit: { x: -300, opacity: 0 },

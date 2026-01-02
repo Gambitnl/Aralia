@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { UtilityCommand } from '../effects/UtilityCommand';
-import { createMockCombatState } from '../../utils/factories';
+import { createMockGameState, createMockPlayerCharacter } from '../../utils/factories';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState, Position } from '@/types/combat';
 import type { UtilityEffect } from '@/types/spells';
@@ -83,7 +83,10 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
     castAtLevel: 0,
     caster,
     targets,
-    gameState: createMockCombatState({ characters: [caster, ...targets] })
+    gameState: createMockGameState({
+        // TODO: keep combat + overworld actors aligned; using player stubs to satisfy GameState.
+        party: [caster, ...targets].map(character => createMockPlayerCharacter({ id: character.id, name: character.name }))
+    })
 });
 
 describe('LightMechanics', () => {

@@ -3,6 +3,8 @@ import { HealingCommand } from '../effects/HealingCommand';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState, Position } from '@/types/combat';
 import type { HealingEffect } from '@/types/spells';
+import type { Class, GameState } from '@/types';
+import { createMockGameState, createMockPlayerCharacter } from '../../utils/factories';
 
 const baseStats = {
   strength: 10,
@@ -24,12 +26,25 @@ const baseEconomy = {
   freeActions: 0
 };
 
+const mockClass: Class = {
+  id: 'cleric',
+  name: 'Cleric',
+  description: 'A divine healer.',
+  hitDie: 8,
+  primaryAbility: ['Wisdom'],
+  savingThrowProficiencies: ['Wisdom', 'Charisma'],
+  skillProficienciesAvailable: [],
+  numberOfSkillProficiencies: 2,
+  armorProficiencies: [],
+  weaponProficiencies: [],
+  features: []
+};
+
 const makeCharacter = (id: string, position: Position): CombatCharacter => ({
   id,
   name: id,
   level: 2,
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  class: 'Cleric' as unknown,
+  class: mockClass,
   position,
   stats: { ...baseStats },
   abilities: [],
@@ -57,7 +72,9 @@ const makeState = (characters: CombatCharacter[]): CombatState => ({
   actionMode: 'select',
   validTargets: [],
   validMoves: [],
-  combatLog: []
+  combatLog: [],
+  reactiveTriggers: [],
+  activeLightSources: []
 });
 
 const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): CommandContext => ({
@@ -66,8 +83,17 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
   castAtLevel: 1,
   caster,
   targets,
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  gameState: {} as unknown
+  // TODO(lint-intent): Provide minimal game state for now; future healing effects may need richer context.
+  gameState: createMockGameState({
+    party: [caster, ...targets].map(targetAsCompanion => createMockPlayerCharacter({
+      id: targetAsCompanion.id,
+      name: targetAsCompanion.name,
+      // TODO: when combat + overworld models merge, carry HP state through a shared shape instead of casting.
+    })),
+    currentLocationId: 'arena',
+    subMapCoordinates: { x: 0, y: 0 },
+    mapData: null
+  }) as GameState
 });
 
 describe('HealingCommand', () => {

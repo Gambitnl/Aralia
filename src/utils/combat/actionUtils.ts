@@ -4,9 +4,9 @@
  * such as generating diegetic messages for the game log.
  */
 
-import { Action, NPC, Location, PlayerCharacter } from '../types';
-import { ITEMS } from '../constants';
-import { DIRECTION_VECTORS } from '../config/mapConfig';
+import { Action, NPC, Location, PlayerCharacter } from '../../types';
+import { ITEMS } from '../../constants';
+import { DIRECTION_VECTORS } from '../../config/mapConfig';
 
 /**
  * Converts a raw game Action object into a diegetic (narrative) string suitable for the game log.

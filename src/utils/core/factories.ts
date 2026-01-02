@@ -15,7 +15,6 @@ import {
   CombatCharacter,
   Item,
   GameMessage,
-  Quest,
   Monster,
   AbilityScores,
   Race,
@@ -26,6 +25,7 @@ import {
   ItemType,
   Faction
 } from '@/types/index';
+import type { QuestDefinition } from '@/types/quests';
 
 import {
   TurnState
@@ -60,8 +60,7 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
       type: "DAMAGE",
       trigger: { type: "immediate" },
       condition: { type: "hit" },
-      damage: { dice: "1d8", type: DamageType.Fire },
-      description: "Deals 1d8 fire damage."
+      damage: { dice: "1d8", type: DamageType.Fire }
     };
 
     return {
@@ -72,8 +71,6 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
       school: "Evocation" as SpellSchool,
       classes: ["Wizard"],
       description: "A mock spell for testing.",
-      source: "PHB",
-      legacy: false,
       ritual: false,
       rarity: "common" as SpellRarity,
       attackType: "ranged" as SpellAttackType,
@@ -115,21 +112,14 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
       targeting: {
         type: "single",
         range: 60,
-        maxTargets: 1,
         validTargets: ["creatures"],
         lineOfSight: true,
-        areaOfEffect: {
-          shape: "Sphere",
-          size: 0,
-          height: 0
-        },
         filter: {
           creatureTypes: [],
           excludeCreatureTypes: [],
           sizes: [],
           alignments: [],
-          hasCondition: [],
-          isNativeToPlane: false
+          hasCondition: []
         }
       },
 
@@ -155,16 +145,14 @@ export function createMockSpell(overrides: Partial<Spell> = {}): Spell {
       school: "Universal" as SpellSchool,
       classes: [],
       description: "Failed to create spell.",
-      source: "System",
-      legacy: false,
       ritual: false,
       rarity: "common",
       attackType: "ranged",
       castingTime: { value: 1, unit: "action" },
       range: { type: "ranged", distance: 0 },
       components: { verbal: false, somatic: false, material: false },
-      duration: { type: "instantaneous" },
-      targeting: { type: "self" },
+      duration: { type: "instantaneous", concentration: false },
+      targeting: { type: "self", validTargets: ["self"] },
       effects: [],
       arbitrationType: "mechanical",
       aiContext: { prompt: "", playerInputRequired: false }
@@ -203,6 +191,9 @@ export function createMockFaction(overrides: Partial<Faction> = {}): Faction {
       type: "NOBLE_HOUSE",
       colors: { primary: "#000", secondary: "#fff" },
       ranks: [],
+      allies: [],
+      enemies: [],
+      rivals: [],
       relationships: {},
       values: [],
       hates: [],
@@ -372,8 +363,11 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isPartyEditorVisible: false,
       isGeminiLogViewerVisible: false,
       geminiInteractionLog: [],
+      isOllamaLogViewerVisible: false,
+      ollamaInteractionLog: [],
       hasNewRateLimitError: false,
       devModelOverride: null,
+      isDevModeEnabled: overrides.isDevModeEnabled ?? false,
 
       isEncounterModalVisible: false,
       generatedEncounter: null,
@@ -425,6 +419,10 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
 
       // Economy System
       economy: {
+        marketEvents: [],
+        tradeRoutes: [],
+        globalInflation: 0,
+        regionalWealth: {},
         marketFactors: {
           scarcity: [],
           surplus: []
@@ -437,8 +435,37 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       questLog: [],
       notifications: [],
 
+      religion: {
+        divineFavor: {},
+        discoveredDeities: [],
+        activeBlessings: []
+      },
+
+      dynamicLocations: {},
+      dynamicNPCs: {},
+      environment: {
+        precipitation: 'none',
+        temperature: 'temperate',
+        wind: { direction: 'north', speed: 'calm' },
+        visibility: 'clear'
+      },
+      isThievesGuildVisible: false,
+      isNavalDashboardVisible: false,
+      activeDialogueSession: null,
+      isDialogueInterfaceOpen: false,
+      activeRumors: [],
+      worldHistory: undefined,
+      activeHeist: null,
+      activeContracts: [],
+      playerIdentity: undefined,
+      legacy: undefined,
+      strongholds: {},
+      activeRitual: null,
+      banterCooldowns: {},
+
       underdark: {
         currentDepth: 0,
+        currentBiomeId: 'cavern_standard',
         lightLevel: 'bright',
         activeLightSources: [],
         faerzressLevel: 0,
@@ -489,9 +516,12 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isDevMenuVisible: true, // Allow dev menu to potentially fix
       isPartyEditorVisible: false,
       isGeminiLogViewerVisible: false,
+      isOllamaLogViewerVisible: false,
       geminiInteractionLog: [],
+      ollamaInteractionLog: [],
       hasNewRateLimitError: false,
       devModelOverride: null,
+      isDevModeEnabled: false,
       isEncounterModalVisible: false,
       generatedEncounter: null,
       encounterSources: null,
@@ -515,10 +545,41 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       divineFavor: {},
       temples: {},
       notoriety: { globalHeat: 0, localHeat: {}, knownCrimes: [], bounties: [] },
-      economy: { marketFactors: { scarcity: [], surplus: [] }, buyMultiplier: 1, sellMultiplier: 0.5, activeEvents: [] },
+      economy: {
+        marketEvents: [],
+        tradeRoutes: [],
+        globalInflation: 0,
+        regionalWealth: {},
+        marketFactors: { scarcity: [], surplus: [] },
+        buyMultiplier: 1,
+        sellMultiplier: 0.5,
+        activeEvents: []
+      },
       questLog: [],
       notifications: [],
-      underdark: { currentDepth: 0, lightLevel: 'dim', activeLightSources: [], faerzressLevel: 0, wildMagicChance: 0, sanity: { current: 100, max: 100, madnessLevel: 0 } },
+      religion: { divineFavor: {}, discoveredDeities: [], activeBlessings: [] },
+      dynamicLocations: {},
+      dynamicNPCs: {},
+      environment: {
+        precipitation: 'none',
+        temperature: 'temperate',
+        wind: { direction: 'north', speed: 'calm' },
+        visibility: 'clear'
+      },
+      isThievesGuildVisible: false,
+      isNavalDashboardVisible: false,
+      activeDialogueSession: null,
+      isDialogueInterfaceOpen: false,
+      activeRumors: [],
+      worldHistory: undefined,
+      activeHeist: null,
+      activeContracts: [],
+      playerIdentity: undefined,
+      legacy: undefined,
+      strongholds: {},
+      activeRitual: null,
+      banterCooldowns: {},
+      underdark: { currentDepth: 0, currentBiomeId: 'cavern_standard', lightLevel: 'dim', activeLightSources: [], faerzressLevel: 0, wildMagicChance: 0, sanity: { current: 100, max: 100, madnessLevel: 0 } },
       isQuestLogVisible: false,
       townState: null,
       townEntryDirection: null
@@ -581,7 +642,6 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
       activeEffects: [],
       riders: [],
       savePenaltyRiders: [],
-      additionalSavingThrowProficiencies: [],
       resistances: [],
       immunities: [],
       vulnerabilities: [],
@@ -606,7 +666,20 @@ export function createMockCombatCharacter(overrides: Partial<CombatCharacter> = 
         movement: { used: 0, total: 0 },
         freeActions: 0
       },
-      conditions: [], activeEffects: [], riders: [], savePenaltyRiders: [], additionalSavingThrowProficiencies: [], resistances: [], immunities: [], vulnerabilities: [], damageDealt: [], healingDone: []
+      class: {
+        id: "fallback",
+        name: "Fallback",
+        description: "",
+        hitDie: 6,
+        primaryAbility: [],
+        savingThrowProficiencies: [],
+        skillProficienciesAvailable: [],
+        numberOfSkillProficiencies: 0,
+        armorProficiencies: [],
+        weaponProficiencies: [],
+        features: []
+      },
+      conditions: [], activeEffects: [], riders: [], savePenaltyRiders: [], resistances: [], immunities: [], vulnerabilities: [], damageDealt: [], healingDone: []
     } as CombatCharacter;
   }
 }
@@ -680,21 +753,44 @@ export function createMockItem(overrides: Partial<Item> = {}): Item {
 /**
  * Creates a mock Quest object.
  */
-export function createMockQuest(overrides: Partial<Quest> = {}): Quest {
+export function createMockQuest(overrides: Partial<QuestDefinition> = {}): QuestDefinition {
   try {
-    return {
+    const defaultStageId = 'start';
+    const defaults: QuestDefinition = {
       id: `quest-${safeUuid()}`,
       title: "Mock Quest",
       description: "A quest to test the quest system.",
-      status: QuestStatus.Active,
-      objectives: [],
       giverId: "npc-1",
-      dateStarted: 0,
-      ...overrides
+      type: 'Side',
+      status: QuestStatus.Active,
+      stages: {
+        [defaultStageId]: {
+          id: defaultStageId,
+          journalEntry: "Begin the mock adventure.",
+          objectives: [],
+          nextStageIds: []
+        }
+      },
+      currentStageId: defaultStageId,
+      dateStarted: Date.now()
     };
+    return { ...defaults, ...overrides };
   } catch (error) {
     console.error("Warden: createMockQuest failed", error);
-    return { id: 'error-quest', title: 'Error Quest', description: 'Error', status: QuestStatus.Active, objectives: [], giverId: '', dateStarted: 0 } as Quest;
+    const fallbackStage: QuestDefinition['stages'] = {
+      fallback: { id: 'fallback', journalEntry: 'Quest factory failed', objectives: [], nextStageIds: [] }
+    };
+    return {
+      id: 'error-quest',
+      title: 'Error Quest',
+      description: 'Error',
+      giverId: 'system',
+      type: 'Side',
+      status: QuestStatus.Active,
+      stages: fallbackStage,
+      currentStageId: 'fallback',
+      dateStarted: Date.now()
+    };
   }
 }
 
@@ -703,37 +799,24 @@ export function createMockQuest(overrides: Partial<Quest> = {}): Quest {
  */
 export function createMockMonster(overrides: Partial<Monster> = {}): Monster {
   try {
-    // @ts-expect-error - Partial implementation for tests
-    return {
-      id: `monster-${safeUuid()}`,
+    const defaults: Monster = {
       name: "Mock Monster",
-      type: "beast",
-      cr: "1",
-      hp: 20,
-      ac: 12,
-      stats: {
-        strength: 14,
-        dexterity: 12,
-        constitution: 12,
-        intelligence: 6,
-        wisdom: 10,
-        charisma: 6
-      },
-      actions: [],
       quantity: 1,
-      description: "A scary monster",
-      ...overrides
+      cr: "1",
+      description: "A scary monster"
     };
+    return { ...defaults, ...overrides };
   } catch (error) {
     console.error("Warden: createMockMonster failed", error);
-    // @ts-expect-error - Partial implementation for fallback
     return {
-      id: 'error-monster', name: 'Error Monster', type: 'beast', cr: "0", hp: 1, ac: 10,
-      stats: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10 },
-      actions: [], quantity: 1, description: "Error"
+      name: 'Error Monster',
+      quantity: 1,
+      cr: "0",
+      description: "Error creating monster"
     };
   }
 }
+
 
 /**
  * Creates a mock GameMessage object.

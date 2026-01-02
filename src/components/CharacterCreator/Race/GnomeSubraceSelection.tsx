@@ -33,10 +33,11 @@ const GnomeSubraceSelection: React.FC<GnomeSubraceSelectionProps> = ({
   const selectedSubraceDetails = selectedSubraceId
     ? subraces.find((sr) => sr.id === selectedSubraceId)
     : null;
-  const needsSpellcastingAbilityChoice =
+  const needsSpellcastingAbilityChoice = !!(
     selectedSubraceDetails &&
     (selectedSubraceDetails.grantedCantrip ||
-      selectedSubraceDetails.grantedSpell);
+      selectedSubraceDetails.grantedSpell)
+  );
 
   const handleSubmit = () => {
     if (selectedSubraceId) {

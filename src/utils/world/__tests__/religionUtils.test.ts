@@ -4,12 +4,10 @@ import {
     calculateFavorChange,
     getDivineStanding,
     canAffordService,
-    // TODO(lint-intent): 'getDeity' is unused in this test; use it in the assertion path or remove it.
-    getDeity as _getDeity,
     evaluateAction,
     grantBlessing
 } from '../religionUtils';
-import { DivineFavor, DeityAction, TempleService, Blessing } from '../../types';
+import { DivineFavor, DeityAction, TempleService, Blessing } from '../../../types';
 
 // Mock the DEITIES data to prevent dependency on actual data file changes
 vi.mock('../../data/deities', () => ({
@@ -18,10 +16,10 @@ vi.mock('../../data/deities', () => ({
             id: 'test_god',
             name: 'Test God',
             approves: [
-                { trigger: 'GOOD_ACT', description: 'Did good', favorChange: 5 }
+                { trigger: 'GOOD_ACT', description: 'Did good', favorChange: 5, id: 'GOOD_ACT' }
             ],
             forbids: [
-                { trigger: 'BAD_ACT', description: 'Did bad', favorChange: -5 }
+                { trigger: 'BAD_ACT', description: 'Did bad', favorChange: -5, id: 'BAD_ACT' }
             ]
         }
     ]
@@ -30,48 +28,48 @@ vi.mock('../../data/deities', () => ({
 describe('religionUtils', () => {
     describe('calculateFavorChange', () => {
         const baseFavor: DivineFavor = {
-            deityId: 'test_god',
-            favor: 0,
+            score: 0,
+            rank: 'Neutral',
+            consecutiveDaysPrayed: 0,
             history: [],
-            blessings: [],
-            transgressions: []
+            blessings: []
         };
 
         it('should add favor correctly', () => {
-            const action: DeityAction = { description: 'Good deed', favorChange: 10 };
+            const action: DeityAction = { id: 'act-1', description: 'Good deed', favorChange: 10 };
             const result = calculateFavorChange(baseFavor, action);
-            expect(result.favor).toBe(10);
+            expect(result.score).toBe(10);
             expect(result.history).toHaveLength(1);
         });
 
         it('should subtract favor correctly', () => {
-            const action: DeityAction = { description: 'Bad deed', favorChange: -10 };
+            const action: DeityAction = { id: 'act-2', description: 'Bad deed', favorChange: -10 };
             const result = calculateFavorChange(baseFavor, action);
-            expect(result.favor).toBe(-10);
+            expect(result.score).toBe(-10);
         });
 
         it('should clamp favor at 100', () => {
-            const highFavor = { ...baseFavor, favor: 95 };
-            const action: DeityAction = { description: 'Great deed', favorChange: 10 };
+            const highFavor = { ...baseFavor, score: 95 };
+            const action: DeityAction = { id: 'act-3', description: 'Great deed', favorChange: 10 };
             const result = calculateFavorChange(highFavor, action);
-            expect(result.favor).toBe(100);
+            expect(result.score).toBe(100);
         });
 
         it('should clamp favor at -100', () => {
-            const lowFavor = { ...baseFavor, favor: -95 };
-            const action: DeityAction = { description: 'Terrible deed', favorChange: -10 };
+            const lowFavor = { ...baseFavor, score: -95 };
+            const action: DeityAction = { id: 'act-4', description: 'Terrible deed', favorChange: -10 };
             const result = calculateFavorChange(lowFavor, action);
-            expect(result.favor).toBe(-100);
+            expect(result.score).toBe(-100);
         });
     });
 
     describe('grantBlessing', () => {
         const baseFavor: DivineFavor = {
-            deityId: 'test_god',
-            favor: 50,
+            score: 50,
+            rank: 'Devotee',
+            consecutiveDaysPrayed: 5,
             history: [],
-            blessings: [],
-            transgressions: []
+            blessings: []
         };
 
         it('should add a blessing', () => {
@@ -79,7 +77,7 @@ describe('religionUtils', () => {
                 id: 'b1',
                 name: 'Blessing 1',
                 description: 'A blessing',
-                effectType: 'buff'
+                effect: { type: 'stat_bonus', stat: 'Strength', value: 1 }
             };
             const result = grantBlessing(baseFavor, blessing);
             expect(result.blessings).toHaveLength(1);
@@ -91,6 +89,7 @@ describe('religionUtils', () => {
         it('should return correct action for approved trigger', () => {
             const result = evaluateAction('test_god', 'GOOD_ACT');
             expect(result).toEqual({
+                id: 'GOOD_ACT',
                 description: 'Did good',
                 favorChange: 5
             });
@@ -99,6 +98,7 @@ describe('religionUtils', () => {
         it('should return correct action for forbidden trigger', () => {
             const result = evaluateAction('test_god', 'BAD_ACT');
             expect(result).toEqual({
+                id: 'BAD_ACT',
                 description: 'Did bad',
                 favorChange: -5
             });
@@ -134,7 +134,7 @@ describe('religionUtils', () => {
             description: 'Heals HP',
             costGp: 50,
             minFavor: 10,
-            mechanicalEffect: 'heal_hp'
+            effect: { type: 'heal', value: 50 }
         };
 
         it('should return true if affordable and favor met', () => {

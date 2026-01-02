@@ -3,7 +3,7 @@
  * This file contains utility functions related to game locations,
  * such as determining dynamic NPCs.
  */
-import { Location, MapData, MapMarker, MapTile, PointOfInterest } from '../types';
+import { Location, MapData, MapMarker, MapTile, PointOfInterest } from '../../types';
 
 /**
  * Determines active dynamic NPCs for a given location based on its configuration.

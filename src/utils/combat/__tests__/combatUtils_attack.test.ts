@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveAttack } from '../combatUtils';
+import { resolveAttack } from '../../combat/combatUtils';
 
 describe('combatUtils: resolveAttack', () => {
   it('detects a standard hit', () => {

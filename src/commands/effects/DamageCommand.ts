@@ -139,7 +139,7 @@ export class DamageCommand extends BaseEffectCommand {
             trigger: { type: 'immediate' },
             condition: { type: 'hit' },
             statusCondition: {
-              name: slasherSlow.name,
+              name: 'Slowed' as any, // TODO(preserve-lint): Map Slasher feat slow to a dedicated condition type.
               duration: { type: 'rounds', value: 1 },
               // Now strictly typed in StatusCondition
               effect: slasherSlow.effect

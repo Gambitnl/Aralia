@@ -56,7 +56,7 @@ const shieldSpell: Spell = {
         reactionTrigger: { event: 'when_hit' }
     }]
 // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-} as unknown;
+} as Spell;
 
 const attacker: CombatCharacter = {
     id: 'attacker',
@@ -71,7 +71,7 @@ const attacker: CombatCharacter = {
     statusEffects: [],
     level: 1
 // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-} as unknown;
+} as unknown as CombatCharacter;
 
 const defender: CombatCharacter = {
     id: 'defender',
@@ -88,7 +88,7 @@ const defender: CombatCharacter = {
     statusEffects: [],
     level: 1
 // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-} as unknown;
+} as unknown as CombatCharacter;
 
 const swordItem: Item = {
     id: 'sword',
@@ -106,6 +106,7 @@ const swordItem: Item = {
 const basicAttack: Ability = {
     id: 'attack',
     name: 'Attack',
+    description: 'Basic attack',
     type: 'attack',
     range: 5,
     targeting: 'single_enemy',
@@ -114,7 +115,7 @@ const basicAttack: Ability = {
     isProficient: true,
     weapon: swordItem
 // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-} as unknown;
+} as Ability;
 
 describe('useAbilitySystem - Reactions', () => {
     const mockExecuteAction = vi.fn(() => true);
@@ -155,7 +156,14 @@ describe('useAbilitySystem - Reactions', () => {
          const { result } = renderHook(() => useAbilitySystem({
             characters: [attacker, defender],
             // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-            mapData: { tiles: new Map([['0-0', {}], ['1-0', {}]]), dimensions: { width: 10, height: 10 } } as unknown,
+            // TODO(lint-intent): Map tiles simplified; keep shape explicit for future combat map refinements.
+            mapData: {
+                tiles: new Map([
+                    ['0-0', { id: '0-0', coordinates: { x: 0, y: 0 }, terrain: 'plain', decoration: null, blocksMovement: false, blocksVision: false, movementCost: 1, elevation: 0 }],
+                    ['1-0', { id: '1-0', coordinates: { x: 1, y: 0 }, terrain: 'plain', decoration: null, blocksMovement: false, blocksVision: false, movementCost: 1, elevation: 0 }]
+                ]),
+                dimensions: { width: 10, height: 10 }
+            } as any,
             onExecuteAction: mockExecuteAction,
             onCharacterUpdate: mockCharacterUpdate,
             onLogEntry: mockLogEntry,
@@ -164,7 +172,7 @@ describe('useAbilitySystem - Reactions', () => {
 
         await act(async () => {
             // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-            (result.current.executeAbility as unknown)(
+            (result.current.executeAbility as any)(
                 basicAttack,
                 attacker,
                 defender.position,

@@ -14,16 +14,17 @@ import { DIRECTION_VECTORS, SUBMAP_DIMENSIONS } from '../../config/mapConfig';
 import { TimeWidget } from '../ui/TimeWidget';
 import Tooltip from '../Tooltip'; // Import Tooltip
 import PassTimeModal from '../PassTimeModal'; // Import the new modal
+import { GatheringPanel, AlchemyBenchPanel } from '../Crafting';
 
 interface CompassPaneProps {
   currentLocation: Location;
   currentSubMapCoordinates: { x: number; y: number } | null;
-  worldMapCoords: { x: number; y: number }; 
-  subMapCoords: { x: number; y: number } | null;   
+  worldMapCoords: { x: number; y: number };
+  subMapCoords: { x: number; y: number } | null;
   onAction: (action: Action) => void;
   disabled: boolean;
   mapData: MapData | null;
-  gameTime: Date; 
+  gameTime: Date;
   isSubmapContext?: boolean; // New prop
 }
 
@@ -37,13 +38,13 @@ type CompassPoint = {
 
 const compassLayout: CompassPoint[] = [
   { label: 'NW', actionType: 'move', directionKey: 'NorthWest', gridPosition: 'row-start-1 col-start-1', ariaLabel: 'Move North-West' },
-  { label: 'N',  actionType: 'move', directionKey: 'North',     gridPosition: 'row-start-1 col-start-2', ariaLabel: 'Move North'    },
+  { label: 'N', actionType: 'move', directionKey: 'North', gridPosition: 'row-start-1 col-start-2', ariaLabel: 'Move North' },
   { label: 'NE', actionType: 'move', directionKey: 'NorthEast', gridPosition: 'row-start-1 col-start-3', ariaLabel: 'Move North-East' },
-  { label: 'W',  actionType: 'move', directionKey: 'West',      gridPosition: 'row-start-2 col-start-1', ariaLabel: 'Move West'     },
-  { label: '◎',  actionType: 'look_around',                     gridPosition: 'row-start-2 col-start-2', ariaLabel: 'Look Around' },
-  { label: 'E',  actionType: 'move', directionKey: 'East',      gridPosition: 'row-start-2 col-start-3', ariaLabel: 'Move East'     },
+  { label: 'W', actionType: 'move', directionKey: 'West', gridPosition: 'row-start-2 col-start-1', ariaLabel: 'Move West' },
+  { label: '◎', actionType: 'look_around', gridPosition: 'row-start-2 col-start-2', ariaLabel: 'Look Around' },
+  { label: 'E', actionType: 'move', directionKey: 'East', gridPosition: 'row-start-2 col-start-3', ariaLabel: 'Move East' },
   { label: 'SW', actionType: 'move', directionKey: 'SouthWest', gridPosition: 'row-start-3 col-start-1', ariaLabel: 'Move South-West' },
-  { label: 'S',  actionType: 'move', directionKey: 'South',     gridPosition: 'row-start-3 col-start-2', ariaLabel: 'Move South'    },
+  { label: 'S', actionType: 'move', directionKey: 'South', gridPosition: 'row-start-3 col-start-2', ariaLabel: 'Move South' },
   { label: 'SE', actionType: 'move', directionKey: 'SouthEast', gridPosition: 'row-start-3 col-start-3', ariaLabel: 'Move South-East' },
 ];
 
@@ -55,41 +56,43 @@ const CompassPane: React.FC<CompassPaneProps> = ({
   onAction,
   disabled,
   mapData,
-  gameTime, 
+  gameTime,
   isSubmapContext = false, // Default to false
 }) => {
   const [isPassTimeModalOpen, setIsPassTimeModalOpen] = useState(false); // State for the modal
+  const [isGatheringPanelOpen, setIsGatheringPanelOpen] = useState(false); // State for gathering panel
+  const [isAlchemyBenchOpen, setIsAlchemyBenchOpen] = useState(false); // State for alchemy bench
 
   const isCompassActionDisabled = (point: CompassPoint): boolean => {
-    if (disabled) return true; 
+    if (disabled) return true;
     if (point.actionType === 'look_around') return false;
 
     if (point.actionType === 'move' && point.directionKey && currentSubMapCoordinates && mapData) {
-        const { dx, dy } = DIRECTION_VECTORS[point.directionKey];
-        const nextSubMapX = currentSubMapCoordinates.x + dx;
-        const nextSubMapY = currentSubMapCoordinates.y + dy;
+      const { dx, dy } = DIRECTION_VECTORS[point.directionKey];
+      const nextSubMapX = currentSubMapCoordinates.x + dx;
+      const nextSubMapY = currentSubMapCoordinates.y + dy;
 
-        if (nextSubMapX >= 0 && nextSubMapX < SUBMAP_DIMENSIONS.cols &&
-            nextSubMapY >= 0 && nextSubMapY < SUBMAP_DIMENSIONS.rows) {
-            return false; 
-        } else {
-            const currentWorldMapX = currentLocation.mapCoordinates.x;
-            const currentWorldMapY = currentLocation.mapCoordinates.y;
-            
-            const targetWorldMapX = currentWorldMapX + dx;
-            const targetWorldMapY = currentWorldMapY + dy;
+      if (nextSubMapX >= 0 && nextSubMapX < SUBMAP_DIMENSIONS.cols &&
+        nextSubMapY >= 0 && nextSubMapY < SUBMAP_DIMENSIONS.rows) {
+        return false;
+      } else {
+        const currentWorldMapX = currentLocation.mapCoordinates.x;
+        const currentWorldMapY = currentLocation.mapCoordinates.y;
 
-            if (targetWorldMapY < 0 || targetWorldMapY >= mapData.gridSize.rows ||
-                targetWorldMapX < 0 || targetWorldMapX >= mapData.gridSize.cols) {
-                return true; 
-            }
+        const targetWorldMapX = currentWorldMapX + dx;
+        const targetWorldMapY = currentWorldMapY + dy;
 
-            const targetWorldTile = mapData.tiles[targetWorldMapY]?.[targetWorldMapX];
-            if (!targetWorldTile) return true; 
-
-            const targetBiome = BIOMES[targetWorldTile.biomeId];
-            return !targetBiome?.passable; 
+        if (targetWorldMapY < 0 || targetWorldMapY >= mapData.gridSize.rows ||
+          targetWorldMapX < 0 || targetWorldMapX >= mapData.gridSize.cols) {
+          return true;
         }
+
+        const targetWorldTile = mapData.tiles[targetWorldMapY]?.[targetWorldMapX];
+        if (!targetWorldTile) return true;
+
+        const targetBiome = BIOMES[targetWorldTile.biomeId];
+        return !targetBiome?.passable;
+      }
     }
     return true;
   };
@@ -106,6 +109,21 @@ const CompassPane: React.FC<CompassPaneProps> = ({
         onConfirm={handlePassTimeConfirm}
         currentTime={gameTime}
       />
+
+      {/* Gathering Panel Modal Overlay */}
+      {isGatheringPanelOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <GatheringPanel onClose={() => setIsGatheringPanelOpen(false)} />
+        </div>
+      )}
+
+      {/* Alchemy Bench Modal Overlay */}
+      {isAlchemyBenchOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <AlchemyBenchPanel onClose={() => setIsAlchemyBenchOpen(false)} />
+        </div>
+      )}
+
       <div className="flex flex-col gap-2">
         {/* Time Widget */}
         <TimeWidget
@@ -127,8 +145,8 @@ const CompassPane: React.FC<CompassPaneProps> = ({
             {compassLayout.map((point) => {
               const actionToPerform: Action | null =
                 point.actionType === 'look_around' ? { type: 'look_around', label: 'Look Around' } :
-                point.actionType === 'move' && point.directionKey ? { type: 'move', label: `Move ${point.directionKey}`, targetId: point.directionKey } :
-                null;
+                  point.actionType === 'move' && point.directionKey ? { type: 'move', label: `Move ${point.directionKey}`, targetId: point.directionKey } :
+                    null;
 
               const isDisabledBySystem = isCompassActionDisabled(point);
 
@@ -163,7 +181,7 @@ const CompassPane: React.FC<CompassPaneProps> = ({
           <div className="mt-3 flex justify-center items-center gap-3">
             <Tooltip content="Open World Map">
               <motion.button
-                onClick={() => onAction({ type: 'toggle_map', label: 'Toggle World Map'})}
+                onClick={() => onAction({ type: 'toggle_map', label: 'Toggle World Map' })}
                 disabled={disabled}
                 whileTap={!disabled ? { scale: 0.9 } : undefined}
                 whileHover={!disabled ? { scale: 1.1 } : undefined}
@@ -176,7 +194,7 @@ const CompassPane: React.FC<CompassPaneProps> = ({
             {!isSubmapContext && (
               <Tooltip content="Open Local Submap">
                 <motion.button
-                  onClick={() => onAction({ type: 'toggle_submap_visibility', label: 'Toggle Submap'})}
+                  onClick={() => onAction({ type: 'toggle_submap_visibility', label: 'Toggle Submap' })}
                   disabled={disabled}
                   whileTap={!disabled ? { scale: 0.9 } : undefined}
                   whileHover={!disabled ? { scale: 1.1 } : undefined}
@@ -187,6 +205,30 @@ const CompassPane: React.FC<CompassPaneProps> = ({
                 </motion.button>
               </Tooltip>
             )}
+            <Tooltip content="Gather Herbs & Resources">
+              <motion.button
+                onClick={() => setIsGatheringPanelOpen(true)}
+                disabled={disabled}
+                whileTap={!disabled ? { scale: 0.9 } : undefined}
+                whileHover={!disabled ? { scale: 1.1 } : undefined}
+                className="p-2 rounded-full bg-green-600 hover:bg-green-500 text-white disabled:bg-gray-600 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors text-xl"
+                aria-label="Gather Resources"
+              >
+                🌿
+              </motion.button>
+            </Tooltip>
+            <Tooltip content="Alchemy & Crafting Bench">
+              <motion.button
+                onClick={() => setIsAlchemyBenchOpen(true)}
+                disabled={disabled}
+                whileTap={!disabled ? { scale: 0.9 } : undefined}
+                whileHover={!disabled ? { scale: 1.1 } : undefined}
+                className="p-2 rounded-full bg-purple-600 hover:bg-purple-500 text-white disabled:bg-gray-600 disabled:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-400 transition-colors text-xl"
+                aria-label="Alchemy Bench"
+              >
+                ⚗️
+              </motion.button>
+            </Tooltip>
           </div>
         </div>
       </div>
@@ -195,3 +237,4 @@ const CompassPane: React.FC<CompassPaneProps> = ({
 };
 
 export default CompassPane;
+

@@ -59,8 +59,7 @@ describe('useHistorySync', () => {
 
         // Try to delete first to handle JSDOM constraints
         try {
-            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-            delete (window as unknown).location;
+            delete (window as any).location;
         } catch {
             // Ignore error if location can't be deleted
         }
@@ -118,7 +117,10 @@ describe('useHistorySync', () => {
 
     it('should dispatch SET_GAME_PHASE on popstate event', () => {
         renderHook(() => useHistorySync(gameState, dispatch));
-        const popStateCallback = addEventListenerMock.mock.calls.find(call => call[0] === 'popstate')[1];
+        const popStateCallback = addEventListenerMock.mock.calls.find(call => call[0] === 'popstate')?.[1];
+        if (!popStateCallback) {
+            throw new Error('popstate listener not registered');
+        }
 
         // When popstate happens, the URL is already changed by the browser
         mockLocation.search = '?phase=character_creation';
@@ -239,8 +241,7 @@ describe('useHistorySync', () => {
 
     it('should dispatch MOVE_PLAYER on initial mount if coords present in URL', () => {
         mockLocation.search = '?phase=playing&x=5&y=5&loc=loc_1';
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        gameState.party = [{ id: 'p1', name: 'Test', class: { name: 'Fighter' } } as unknown];
+        gameState.party = [{ id: 'p1', name: 'Test', class: { name: 'Fighter' } } as any];
 
         renderHook(() => useHistorySync(gameState, dispatch));
 

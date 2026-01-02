@@ -5,7 +5,7 @@ import React from 'react';
 
 // Mock GamePhase
 vi.mock('../../types', async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actual,
     GamePhase: {
@@ -57,11 +57,14 @@ vi.mock('../providers/AppProviders', () => ({
 
 // Mock appState to set initial phase to PLAYING
 vi.mock('../../state/appState', async () => {
-  const actual = await vi.importActual('../../state/appState');
+  const actual = (await vi.importActual('../../state/appState')) as {
+    initialGameState?: Record<string, unknown>;
+  };
+  const baseState: Record<string, unknown> = actual.initialGameState ?? {};
   return {
     ...actual,
     initialGameState: {
-      ...actual.initialGameState,
+      ...baseState,
       phase: 2, // GamePhase.PLAYING
       party: [{ name: 'Test', id: 'p1' }],
       subMapCoordinates: { x: 5, y: 5 },

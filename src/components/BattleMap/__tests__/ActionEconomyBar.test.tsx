@@ -4,31 +4,24 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import ActionEconomyBar from '../ActionEconomyBar';
 import { CombatCharacter } from '../../../types/combat';
+import { createMockCombatCharacter } from '@/utils/factories';
 
 describe('ActionEconomyBar', () => {
     const mockOnExecuteAction = vi.fn();
 
-    const mockCharacter: CombatCharacter = {
+    const mockCharacter: CombatCharacter = createMockCombatCharacter({
         id: 'char1',
         name: 'Hero',
-        level: 1,
         team: 'player',
-        currentHP: 10,
-        maxHP: 10,
-        stats: { strength: 10, dexterity: 10, constitution: 10, intelligence: 10, wisdom: 10, charisma: 10, speed: 30 },
-        abilities: [],
-        position: { x: 0, y: 0 },
         initiative: 10,
-        statusEffects: [],
         actionEconomy: {
             action: { used: false, remaining: 1 },
             bonusAction: { used: false, remaining: 1 },
             reaction: { used: false, remaining: 1 },
             movement: { used: 0, total: 30 },
             freeActions: 1
-        },
-        class: { id: 'fighter', name: 'Fighter', hitDie: 'd10', primaryAbility: 'strength', proficiencyBonuses: [], features: [] }
-    };
+        }
+    });
 
     it('renders indicators for action, bonus, and reaction', () => {
         render(<ActionEconomyBar character={mockCharacter} onExecuteAction={mockOnExecuteAction} />);

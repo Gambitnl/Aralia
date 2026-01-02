@@ -73,7 +73,8 @@ export const ITEMS: Record<string, Item> = {
 
   // --- Light Sources ---
   'torch': { id: 'torch', name: 'Torch', icon: '🔥', description: 'A wooden torch wrapped in cloth and pitch. Burns for 1 hour, providing bright light for 20 feet and dim light for another 20 feet.', type: 'consumable', weight: 1, cost: '1 CP' },
-  'hooded_lantern': { id: 'hooded_lantern', name: 'Hooded Lantern', icon: '🏮', description: 'A metal lantern with shutters. Burns oil for 6 hours. Can be shuttered to reduce light.', type: 'misc', weight: 2, cost: '5 GP' },
+  // TODO(preserve-lint): confirm whether lanterns should be consumable (fuel) or a dedicated light_source type.
+  'hooded_lantern': { id: 'hooded_lantern', name: 'Hooded Lantern', icon: '🏮', description: 'A metal lantern with shutters. Burns oil for 6 hours. Can be shuttered to reduce light.', type: 'light_source', weight: 2, cost: '5 GP' },
   'oil_flask': { id: 'oil_flask', name: 'Oil (flask)', icon: '🍶', description: 'A flask of oil. Can be used to fuel a lantern or as a weapon.', type: 'consumable', weight: 1, cost: '1 SP' },
 
   // --- Coins ---
@@ -147,4 +148,14 @@ export const ITEMS: Record<string, Item> = {
   'splint_armor': { id: 'splint_armor', name: 'Splint Armor', icon: '🛡️', description: 'Vertical metal strips.', type: 'armor', slot: 'Torso', armorCategory: 'Heavy', baseArmorClass: 17, addsDexterityModifier: false, strengthRequirement: 15, stealthDisadvantage: true, weight: 60, cost: '200 GP' },
   'plate_armor': { id: 'plate_armor', name: 'Plate Armor', icon: '🛡️', description: 'Full interlocking metal plates.', type: 'armor', slot: 'Torso', armorCategory: 'Heavy', baseArmorClass: 18, addsDexterityModifier: false, strengthRequirement: 15, stealthDisadvantage: true, weight: 65, cost: '1,500 GP' },
   'shield_std': { id: 'shield_std', name: 'Shield', icon: '🛡️', description: 'A standard shield.', type: 'armor', slot: 'OffHand', armorCategory: 'Shield', armorClassBonus: 2, weight: 6, cost: '10 GP' },
+};
+
+// Import gatherable items and merge them
+import { GATHERABLE_ITEMS } from '../gatherableItems';
+
+// Combined ITEMS export including all gatherable ingredients
+export const ALL_ITEMS: Record<string, Item> = {
+  ...ITEMS,
+  ...WEAPONS_DATA,
+  ...GATHERABLE_ITEMS
 };

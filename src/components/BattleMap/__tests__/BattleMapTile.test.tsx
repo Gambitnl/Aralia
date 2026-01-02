@@ -16,8 +16,9 @@ describe('BattleMapTile', () => {
     movementCost: 1,
     blocksMovement: false,
     blocksLoS: false,
-    decoration: undefined,
-    environmentalEffects: []
+    decoration: null,
+    environmentalEffects: [],
+    effects: []
   };
 
   it('renders correctly', () => {

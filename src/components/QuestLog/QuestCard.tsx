@@ -3,15 +3,21 @@ import { Quest, QuestStatus } from '../../types';
 import { formatQuestDate } from './questUtils';
 
 const statusBadgeStyles: Record<QuestStatus, string> = {
+  [QuestStatus.Unknown]: 'bg-gray-800 text-gray-200 border-gray-700',
+  [QuestStatus.Available]: 'bg-sky-900/40 text-sky-200 border-sky-500',
   [QuestStatus.Active]: 'bg-amber-900/40 text-amber-200 border-amber-500',
   [QuestStatus.Completed]: 'bg-green-900/40 text-green-200 border-green-500',
   [QuestStatus.Failed]: 'bg-red-900/40 text-red-200 border-red-500',
+  [QuestStatus.Abandoned]: 'bg-stone-800/60 text-stone-200 border-stone-500',
 };
 
 const statusText: Record<QuestStatus, string> = {
+  [QuestStatus.Unknown]: 'Unknown',
+  [QuestStatus.Available]: 'Available',
   [QuestStatus.Active]: 'Active',
   [QuestStatus.Completed]: 'Completed',
   [QuestStatus.Failed]: 'Failed',
+  [QuestStatus.Abandoned]: 'Abandoned',
 };
 
 const calculateProgress = (quest: Quest): number => {

@@ -7,7 +7,7 @@
  * Used by "Knowledge & Secrets" and "Emergent Narrative" pillars.
  */
 
-import { GameDate } from './core';
+import { GameDate } from './memory';
 
 /**
  * A cryptic prediction about the future.

@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { AreaEffectTracker } from '../AreaEffectTracker'
 import { combatEvents } from '../../../events/CombatEvents'
 import type { CombatCharacter, Position } from '@/types/combat'
+import type { Class } from '@/types/character'
 import type { ActiveSpellZone } from '@/systems/spells/effects/triggerHandler'
 import type { SpellEffect } from '@/types/spells'
 
@@ -31,7 +32,7 @@ const makeCharacter = (position: Position): CombatCharacter => ({
     name: 'Target',
     level: 1,
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    class: 'Wizard' as unknown,
+    class: 'Wizard' as unknown as Class,
     position,
     stats: { ...baseStats },
     abilities: [],
@@ -41,7 +42,7 @@ const makeCharacter = (position: Position): CombatCharacter => ({
     initiative: 0,
     statusEffects: [],
     actionEconomy: { ...baseEconomy }
-})
+} as unknown as CombatCharacter)
 
 const makeZone = (effects: SpellEffect[], position: Position = { x: 0, y: 0 }): ActiveSpellZone => ({
     id: 'zone-1',
@@ -79,7 +80,7 @@ describe('AreaEffectTracker', () => {
             condition: { type: 'always' },
             damage: { dice: '1d6', type: 'Fire' }
         // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown
+        } as unknown as SpellEffect
 
         const tracker = new AreaEffectTracker([makeZone([effect])])
         const character = makeCharacter({ x: 0, y: 0 })
@@ -95,11 +96,11 @@ describe('AreaEffectTracker', () => {
     it('handles first_per_turn frequency on entry', () => {
         const effect: SpellEffect = {
             type: 'DAMAGE',
-            trigger: { type: 'on_enter_area', frequency: 'first_per_turn' },
+            trigger: { type: 'on_enter_area', frequency: 'first_per_turn' },    
             condition: { type: 'always' },
             damage: { dice: '1d6', type: 'Fire' }
         // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown
+        } as unknown as SpellEffect
 
         const zone = makeZone([effect])
         const tracker = new AreaEffectTracker([zone])
@@ -141,7 +142,7 @@ describe('AreaEffectTracker', () => {
             condition: { type: 'always' },
             damage: { dice: '1d6', type: 'Fire' }
         // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown
+        } as unknown as SpellEffect
 
         const tracker = new AreaEffectTracker([makeZone([effect])])
         const character = makeCharacter({ x: 0, y: 0 })
@@ -161,7 +162,7 @@ describe('AreaEffectTracker', () => {
             condition: { type: 'always' },
             damage: { dice: '1d6', type: 'Fire' }
         // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown
+        } as unknown as SpellEffect
 
         const tracker = new AreaEffectTracker([makeZone([effect])])
         const character = makeCharacter({ x: 0, y: 0 })

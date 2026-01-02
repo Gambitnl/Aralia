@@ -9,14 +9,17 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GameState } from '../types';
+import { isPlayerFocused } from '../utils/world';
 import { Companion, ReactionTriggerType, CompanionReactionRule } from '../types/companions';
+import { OllamaService, BanterContext } from '../services/OllamaService';
 
 // Cooldown tracking: companionId -> triggerType -> timestamp
 type CooldownMap = Record<string, Record<string, number>>;
 
 type CompanionAction =
   | { type: 'ADD_COMPANION_REACTION'; payload: { companionId: string; reaction: string } }
-  | { type: 'UPDATE_COMPANION_APPROVAL'; payload: { companionId: string; change: number; reason: string; source: string } };
+  | { type: 'UPDATE_COMPANION_APPROVAL'; payload: { companionId: string; change: number; reason: string; source: string } }
+  | { type: 'ADD_OLLAMA_LOG_ENTRY'; payload: { timestamp: Date; model: string; prompt: string; response: string; context?: any } };
 
 export const useCompanionCommentary = (
   gameState: GameState,
@@ -50,14 +53,20 @@ export const useCompanionCommentary = (
   }, []);
 
   // Main evaluation logic
-  const evaluateReaction = useCallback((triggerType: ReactionTriggerType, tags: string[] = []) => {
+  const evaluateReaction = useCallback(async (triggerType: ReactionTriggerType, tags: string[] = [], eventDescription?: string) => {
     if (!gameState.companions) {
+      return;
+    }
+
+    // Don't trigger reactions if the player is busy focusing on something else
+    if (isPlayerFocused(gameState)) {
       return;
     }
 
     // Find all valid reactions from all companions
     const candidates: {
       companionId: string;
+      companion: Companion;
       rule: CompanionReactionRule;
       score: number
     }[] = [];
@@ -88,6 +97,7 @@ export const useCompanionCommentary = (
         const priority = rule.priority || 0;
         candidates.push({
           companionId: companion.id,
+          companion,
           rule,
           score: priority * 10 + Math.random()
         });
@@ -97,7 +107,60 @@ export const useCompanionCommentary = (
     if (candidates.length > 0) {
       candidates.sort((a, b) => b.score - a.score);
       const winner = candidates[0];
-      const dialogue = winner.rule.dialoguePool[Math.floor(Math.random() * winner.rule.dialoguePool.length)];
+
+      // Build context for AI
+      const locId = gameState.currentLocationId;
+      const locName = gameState.dynamicLocations?.[locId]?.name || locId;
+      const context: BanterContext = {
+        locationName: locName,
+        weather: gameState.environment?.currentWeather,
+        timeOfDay: new Date(gameState.gameTime).getHours() < 12 ? 'Morning' : 'Afternoon',
+        currentTask: gameState.questLog.find(q => q.status === 'active')?.title,
+      };
+
+      let dialogue = winner.rule.dialoguePool[Math.floor(Math.random() * winner.rule.dialoguePool.length)];
+      let approvalChange = winner.rule.approvalChange;
+
+      // Try AI-generated reaction if eventDescription is provided
+      if (eventDescription) {
+        const isAvailable = await OllamaService.isAvailable();
+        if (isAvailable) {
+          const result = await OllamaService.generateReaction(
+            {
+              id: winner.companion.id,
+              name: winner.companion.identity.name,
+              race: winner.companion.identity.race,
+              class: winner.companion.identity.class,
+              sex: winner.companion.identity.sex,
+              personality: `Values: ${winner.companion.personality.values.join(', ')}. Quirks: ${winner.companion.personality.quirks.join(', ')}.`
+            },
+            {
+              type: triggerType,
+              description: eventDescription,
+              tags
+            },
+            context
+          );
+
+          if (result.metadata) {
+            dispatch({
+              type: 'ADD_OLLAMA_LOG_ENTRY',
+              payload: {
+                timestamp: new Date(),
+                model: result.metadata.model,
+                prompt: result.metadata.prompt,
+                response: result.metadata.response,
+                context
+              }
+            });
+          }
+
+          if (result.data) {
+            dialogue = result.data.text;
+            approvalChange = result.data.approvalChange;
+          }
+        }
+      }
 
       dispatch({
         type: 'ADD_COMPANION_REACTION',
@@ -107,12 +170,12 @@ export const useCompanionCommentary = (
         }
       });
 
-      if (winner.rule.approvalChange !== 0) {
+      if (approvalChange !== 0) {
         dispatch({
           type: 'UPDATE_COMPANION_APPROVAL',
           payload: {
             companionId: winner.companionId,
-            change: winner.rule.approvalChange,
+            change: approvalChange,
             reason: `Reaction to ${triggerType}`,
             source: 'system'
           }
@@ -123,7 +186,7 @@ export const useCompanionCommentary = (
         setCooldown(winner.companionId, `${triggerType}_${winner.rule.triggerTags.join('_')}`);
       }
     }
-  }, [gameState.companions, gameState.currentLocationId, isOnCooldown, setCooldown, dispatch]);
+  }, [gameState, isOnCooldown, setCooldown, dispatch]);
 
   // --- EVENT LISTENERS (State Diffing) ---
 
@@ -147,7 +210,7 @@ export const useCompanionCommentary = (
       const goldDiff = gameState.gold - prevGoldRef.current;
       if (goldDiff > 50) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        evaluateReaction('loot', ['gold']);
+        evaluateReaction('loot', ['gold'], `The party found ${goldDiff} gold coins.`);
       }
       prevGoldRef.current = gameState.gold;
 
@@ -155,12 +218,15 @@ export const useCompanionCommentary = (
       // "You picked up X"
       newMessages.forEach(msg => {
         if (msg.text.includes("picked up") || msg.text.includes("received")) {
+          const itemDescription = msg.text.replace(/You (picked up|received)/gi, 'The party acquired').trim();
           if (msg.text.toLowerCase().includes("gem") || msg.text.toLowerCase().includes("artifact")) {
-            evaluateReaction('loot', ['valuable']);
+            evaluateReaction('loot', ['valuable'], itemDescription);
+          } else {
+            evaluateReaction('loot', ['item'], itemDescription);
           }
         }
         if (msg.text.includes("Victory!")) {
-          evaluateReaction('combat_end', ['victory']);
+          evaluateReaction('combat_end', ['victory'], 'The party won a combat encounter.');
         }
       });
     }
@@ -173,8 +239,8 @@ export const useCompanionCommentary = (
 
     // Reset ref if knownCrimes shrunk (e.g. load game or clear history)
     if (gameState.notoriety.knownCrimes.length < prevKnownCrimesRef.current) {
-        prevKnownCrimesRef.current = gameState.notoriety.knownCrimes.length;
-        return;
+      prevKnownCrimesRef.current = gameState.notoriety.knownCrimes.length;
+      return;
     }
 
     if (gameState.notoriety.knownCrimes.length > prevKnownCrimesRef.current) {
@@ -187,7 +253,8 @@ export const useCompanionCommentary = (
         if (crime.severity > 50) tags.push('severe');
         if (crime.witnessed) tags.push('witnessed');
 
-        evaluateReaction('crime_committed', tags);
+        const crimeDescription = `The player committed ${crime.type}${crime.witnessed ? ' and was witnessed' : ''}.`;
+        evaluateReaction('crime_committed', tags, crimeDescription);
       });
     }
   }, [gameState.notoriety?.knownCrimes, evaluateReaction]);

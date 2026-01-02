@@ -4,13 +4,14 @@ import { SummoningEffect } from '@/types/spells'
 import { CombatState, CombatCharacter } from '@/types/combat'
 import { CommandContext } from '../base/SpellCommand'
 import { CLASSES_DATA } from '@/constants'
+import { createMockGameState, createMockPlayerCharacter } from '../../utils/factories'
 
 // Mock dependencies
 vi.mock('@/constants', async (importOriginal) => {
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    const actual = await importOriginal() as unknown
+    const actual = await importOriginal()
+    // TODO: keep the mock data aligned with the real constants when summon payloads expand.
     return {
-        ...actual,
+        ...(actual as Record<string, unknown>),
         MONSTERS_DATA: {
             'goblin': {
                 id: 'goblin',
@@ -22,7 +23,19 @@ vi.mock('@/constants', async (importOriginal) => {
             }
         },
         CLASSES_DATA: {
-            'fighter': { id: 'fighter', name: 'Fighter', hitDie: 10, primaryAbility: 'Strength', savingThrows: ['Strength', 'Constitution'], features: [] }
+            'fighter': {
+                id: 'fighter',
+                name: 'Fighter',
+                description: 'A martial combatant',
+                hitDie: 10,
+                primaryAbility: ['Strength'],
+                savingThrowProficiencies: ['Strength', 'Constitution'],
+                skillProficienciesAvailable: [],
+                numberOfSkillProficiencies: 2,
+                armorProficiencies: [],
+                weaponProficiencies: [],
+                features: []
+            }
         }
     }
 })
@@ -31,6 +44,7 @@ describe('SummoningCommand', () => {
     const mockCaster: CombatCharacter = {
         id: 'caster-1',
         name: 'Wizard',
+        level: 1,
         class: CLASSES_DATA['fighter'], // Placeholder
         position: { x: 5, y: 5 },
         stats: { strength: 10, dexterity: 10, constitution: 10, intelligence: 16, wisdom: 10, charisma: 10, baseInitiative: 0, speed: 30, cr: '1' },
@@ -40,29 +54,51 @@ describe('SummoningCommand', () => {
         maxHP: 20,
         initiative: 10,
         statusEffects: [],
-        actionEconomy: { action: { used: false, remaining: 1 }, bonusAction: { used: false, remaining: 1 }, reaction: { used: false, remaining: 1 }, movement: { used: 0, total: 30 }, freeActions: 1 }
+        conditions: [],
+        actionEconomy: { action: { used: false, remaining: 1 }, bonusAction: { used: false, remaining: 1 }, reaction: { used: false, remaining: 1 }, movement: { used: 0, total: 30 }, freeActions: 1 },
+        activeEffects: [],
+        riders: [],
+        savePenaltyRiders: [],
+        resistances: [],
+        immunities: [],
+        vulnerabilities: [],
+        damageDealt: [],
+        healingDone: []
     }
 
+    const mockCasterAsPlayer = createMockPlayerCharacter({
+        id: mockCaster.id,
+        name: mockCaster.name,
+        // TODO: ensure summoned allies respect player-side permissions when we merge combat + narrative models.
+    })
+
     const mockContext: CommandContext = {
+        spellId: 'summon-test',
+        spellName: 'Summon Test',
+        castAtLevel: 1,
         caster: mockCaster,
         targets: [],
-        spellLevel: 1,
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        gameState: {} as unknown
+        gameState: createMockGameState({ party: [mockCasterAsPlayer], currentLocationId: 'arena', subMapCoordinates: { x: 5, y: 5 }, mapData: null })
     }
 
     const initialState: CombatState = {
         isActive: true,
         characters: [mockCaster],
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        turnState: {} as unknown,
+        turnState: {
+            currentTurn: 1,
+            turnOrder: ['caster-1'],
+            currentCharacterId: 'caster-1',
+            phase: 'action',
+            actionsThisTurn: []
+        },
         selectedCharacterId: null,
         selectedAbilityId: null,
         actionMode: 'select',
         validTargets: [],
         validMoves: [],
         combatLog: [],
-        reactiveTriggers: []
+        reactiveTriggers: [],
+        activeLightSources: []
     }
 
     it('should summon a creature from MONSTERS_DATA', () => {
@@ -71,7 +107,9 @@ describe('SummoningCommand', () => {
             summonType: 'creature',
             creatureId: 'goblin',
             count: 1,
-            duration: { type: 'minutes', value: 1 }
+            duration: { type: 'minutes', value: 1 },
+            trigger: { type: 'immediate' },
+            condition: { type: 'always' }
         }
 
         const command = new SummoningCommand(effect, mockContext)
@@ -98,7 +136,9 @@ describe('SummoningCommand', () => {
             summonType: 'creature',
             creatureId: 'goblin',
             count: 2,
-            duration: { type: 'minutes', value: 1 }
+            duration: { type: 'minutes', value: 1 },
+            trigger: { type: 'immediate' },
+            condition: { type: 'always' }
         }
 
         const command = new SummoningCommand(effect, mockContext)
@@ -116,7 +156,9 @@ describe('SummoningCommand', () => {
             summonType: 'creature',
             creatureId: 'unknown_beast',
             count: 1,
-            duration: { type: 'minutes', value: 1 }
+            duration: { type: 'minutes', value: 1 },
+            trigger: { type: 'immediate' },
+            condition: { type: 'always' }
         }
 
         const command = new SummoningCommand(effect, mockContext)
@@ -130,7 +172,6 @@ describe('SummoningCommand', () => {
 
     describe('SummoningCommand - Boundary Checks', () => {
         // Reuse mockCaster and helper functions adjusted for the existing describe block context if needed
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
         const createMockContext = (mapData: unknown): CommandContext => ({
             spellId: 'spell-1',
             spellName: 'Summon Spell',
@@ -138,16 +179,20 @@ describe('SummoningCommand', () => {
             caster: mockCaster,
             targets: [],
             gameState: {
-                mapData: mapData
-            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-            } as unknown
+                ...createMockGameState({ currentLocationId: 'arena', subMapCoordinates: { x: 5, y: 5 }, mapData: mapData as any }),
+                mapData: mapData as any
+            }
         })
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
         const createMockState = (characters: CombatCharacter[] = [mockCaster], mapData?: unknown): CombatState => ({
             isActive: true,
             characters,
-            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-            turnState: {} as unknown,
+            turnState: {
+                currentTurn: 1,
+                turnOrder: characters.map(c => c.id),
+                currentCharacterId: characters[0]?.id ?? null,
+                phase: 'action',
+                actionsThisTurn: []
+            },
             selectedCharacterId: null,
             selectedAbilityId: null,
             actionMode: 'select',
@@ -156,15 +201,16 @@ describe('SummoningCommand', () => {
             combatLog: [],
             reactiveTriggers: [],
             activeLightSources: [],
-            mapData: mapData
+            mapData: mapData as any
         })
 
         const mockEffect: SummoningEffect = {
             type: 'SUMMONING',
-            summonType: 'Creature',
+            summonType: 'creature',
             count: 1,
             duration: { type: 'rounds', value: 10 },
-            trigger: { type: 'on_cast' }
+            trigger: { type: 'immediate' },
+            condition: { type: 'always' }
         }
 
         it('should summon within map boundaries', () => {

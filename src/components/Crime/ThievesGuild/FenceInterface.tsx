@@ -50,8 +50,10 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
         dispatch({
             type: 'ADD_MESSAGE',
             payload: {
+                id: Date.now(),
                 text: `Sold ${selectedItem.name} to the fence for ${price} gp.`,
-                sender: 'system'
+                sender: 'system',
+                timestamp: new Date()
             }
         });
 
@@ -60,7 +62,8 @@ const FenceInterface: React.FC<FenceInterfaceProps> = ({ service, onClose }) => 
 
     // Filter items
     const inventory = state.inventory.filter(item => {
-        if (item.isEquippable && filter === 'treasures') return false;
+        const isEquippable = (item as { isEquippable?: boolean }).isEquippable;
+        if (isEquippable && filter === 'treasures') return false;
         if (item.type !== 'weapon' && filter === 'weapons') return false;
         // Don't show currently equipped items?
         // Checking against party equipment would be complex here, assuming unequipped inventory list

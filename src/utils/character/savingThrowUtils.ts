@@ -4,13 +4,13 @@
  */
 import {
     CombatCharacter,
-} from '../types/combat';
-import { rollDice } from './combatUtils';
+} from '../../types/combat';
+import { rollDice } from '../combat/combatUtils';
 import { getAbilityModifierValue } from './statUtils';
 import {
     SavingThrowAbility,
     // StatusConditionEffect // Not used yet but good for future
-} from '../types/spells';
+} from '../../types/spells';
 
 export interface SavingThrowResult {
     success: boolean;
@@ -73,7 +73,8 @@ export function rollSavingThrow(
     const roll = rollDice('1d20');
 
     // Get ability modifier
-    const score = (target.stats[ability.toLowerCase() as keyof typeof target.stats] || 10) as number;
+    const abilityKey = ability.toString().toLowerCase() as keyof typeof target.stats;
+    const score = (target.stats[abilityKey] ?? 10) as number;
     let mod = getAbilityModifierValue(score);
 
     // Add proficiency if applicable
@@ -81,11 +82,11 @@ export function rollSavingThrow(
     // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
     // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
     // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-    const classHasProficiency = target.class?.savingThrowProficiencies?.includes(ability.slice(0, 3) as unknown) || target.class?.savingThrowProficiencies?.includes(ability);
+    const classHasProficiency = target.class?.savingThrowProficiencies?.includes(ability as any) || target.class?.savingThrowProficiencies?.includes(ability as any);
     // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
     // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
     // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-    const charHasProficiency = target.savingThrowProficiencies?.includes(ability.slice(0, 3) as unknown) || target.savingThrowProficiencies?.includes(ability);
+    const charHasProficiency = target.savingThrowProficiencies?.includes(ability as any) || target.savingThrowProficiencies?.includes(ability as any);
 
     // Note: SavingThrowAbility is "Strength", "Dexterity", etc.
     // Class.savingThrowProficiencies and target.savingThrowProficiencies are AbilityScoreName ("Strength", etc.)

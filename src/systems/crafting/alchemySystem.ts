@@ -25,6 +25,9 @@ export type ReagentProperty =
   | 'concentrated'// Boosts potency
   | 'inert';      // Filler
 
+// Extended property type used by experimental alchemy for discovery combinations
+export type AlchemicalProperty = ReagentProperty | 'psionic' | 'ethereal' | 'luminous';
+
 export interface AlchemyReagent {
   itemId: string;
   properties: ReagentProperty[];
@@ -39,50 +42,81 @@ export interface AlchemyResult extends CraftingResult {
 }
 
 export interface AlchemyRecipe {
-    /** Minimum counts of properties required */
-    requirements: Partial<Record<ReagentProperty, number>>;
-    /** Output item ID */
-    outputItemId: string;
-    /** Base success message */
-    successMessage: string;
-    /** If true, presence of 'reactive' property makes result volatile */
-    reactivityMakesVolatile?: boolean;
+  /** Minimum counts of properties required */
+  requirements: Partial<Record<ReagentProperty, number>>;
+  /** Output item ID */
+  outputItemId: string;
+  /** Base success message */
+  successMessage: string;
+  /** If true, presence of 'reactive' property makes result volatile */
+  reactivityMakesVolatile?: boolean;
 }
 
 // --- Data ---
 
-const REAGENT_DATABASE: Record<string, ReagentProperty[]> = {
-  'herb_red_root': ['curative', 'binding'],
-  'herb_blue_leaf': ['reactive', 'concentrated'],
-  'mushroom_spotted': ['toxic', 'reactive'],
+export const REAGENT_DATABASE: Record<string, ReagentProperty[]> = {
+  // Common
+  'cats_tongue': ['curative', 'binding'],
+  'dreamlilly': ['toxic', 'inert'], // Intoxicating
+  'gillyweed': ['binding', 'inert'], // Waterbreathing
+  'morning_dew': ['curative', 'concentrated'],
+  'red_amanita': ['curative', 'toxic'], // Healing but toxic if raw
+  'rowan_berry': ['curative', 'binding'],
+
+  // Uncommon
+  'frost_lichen': ['inert', 'binding'],
+  'lightning_moss': ['reactive', 'concentrated'],
+  'mandrake_root': ['toxic', 'binding'],
+  'mindflayer_stinkhorn': ['toxic', 'concentrated'], // Psychic
+  'muroosa_twig': ['inert', 'binding'],
+  'nightshade': ['toxic', 'reactive'],
+  'olisuba_leaf': ['curative', 'concentrated'],
+  'singing_nettle': ['reactive', 'binding'],
+  'sourgrass': ['curative', 'inert'],
+  'theki_root': ['curative', 'binding'],
+  'willowshade_fruit': ['curative', 'binding'],
+
+  // Rare
+  'ashblossom': ['reactive', 'toxic'], // Fire
+  'black_cap': ['toxic', 'concentrated'],
+  'black_sap': ['toxic', 'binding'],
+  'blight_spores': ['toxic', 'reactive'],
+  'death_cap': ['toxic', 'concentrated'],
+  'fairy_stool': ['reactive', 'concentrated'], // Magical/Hallucinogenic
+  'hagfinger': ['binding', 'inert'],
+  'moonstalker': ['reactive', 'binding'],
+  'pixies_parasol': ['reactive', 'concentrated'],
+  'silverthorn': ['reactive', 'binding'],
+  'wolfsbane': ['toxic', 'reactive'],
+
+  // Base
   'water_purified': ['inert', 'binding'],
-  'dust_glow': ['reactive', 'concentrated'],
-  'vial_glass': ['inert'] // Container
+  'vial_glass': ['inert']
 };
 
 const ALCHEMY_RECIPES: AlchemyRecipe[] = [
-    {
-        requirements: { curative: 2 },
-        outputItemId: 'potion_healing',
-        successMessage: 'The mixture turns a vibrant red.',
-        reactivityMakesVolatile: true
-    },
-    {
-        requirements: { toxic: 2 },
-        outputItemId: 'poison_vial',
-        successMessage: 'A dark, fuming liquid forms.'
-    },
-    {
-        requirements: { reactive: 2, concentrated: 1 },
-        outputItemId: 'bomb_fire',
-        successMessage: 'The solution glows with dangerous heat.'
-    }
+  {
+    requirements: { curative: 2 },
+    outputItemId: 'potion_healing',
+    successMessage: 'The mixture turns a vibrant red.',
+    reactivityMakesVolatile: true
+  },
+  {
+    requirements: { toxic: 2 },
+    outputItemId: 'poison_vial',
+    successMessage: 'A dark, fuming liquid forms.'
+  },
+  {
+    requirements: { reactive: 2, concentrated: 1 },
+    outputItemId: 'bomb_fire',
+    successMessage: 'The solution glows with dangerous heat.'
+  }
 ];
 
 // --- Type Guards ---
 
 function isReagentProperty(value: string): value is ReagentProperty {
-    return ['curative', 'reactive', 'toxic', 'binding', 'concentrated', 'inert'].includes(value);
+  return ['curative', 'reactive', 'toxic', 'binding', 'concentrated', 'inert'].includes(value);
 }
 
 /**
@@ -98,9 +132,9 @@ export function getReagentProperties(item: Item): ReagentProperty[] {
   if (item.properties) {
     const props: ReagentProperty[] = [];
     for (const p of item.properties) {
-        if (isReagentProperty(p)) {
-            props.push(p);
-        }
+      if (isReagentProperty(p)) {
+        props.push(p);
+      }
     }
     if (props.length > 0) return props;
   }
@@ -162,31 +196,31 @@ export function attemptAlchemy(crafter: Crafter, reagents: Item[]): AlchemyResul
 
   // Simple matching: First match wins (could be improved to 'best match' later)
   for (const recipe of ALCHEMY_RECIPES) {
-      let match = true;
-      for (const [prop, minCount] of Object.entries(recipe.requirements)) {
-          if ((counts[prop as ReagentProperty] || 0) < minCount!) {
-              match = false;
-              break;
-          }
+    let match = true;
+    for (const [prop, minCount] of Object.entries(recipe.requirements)) {
+      if ((counts[prop as ReagentProperty] || 0) < minCount!) {
+        match = false;
+        break;
       }
-      if (match) {
-          matchedRecipe = recipe;
-          break;
-      }
+    }
+    if (match) {
+      matchedRecipe = recipe;
+      break;
+    }
   }
 
   if (matchedRecipe) {
-      outputItemId = matchedRecipe.outputItemId;
-      outcomeType = 'success';
-      message = matchedRecipe.successMessage;
+    outputItemId = matchedRecipe.outputItemId;
+    outcomeType = 'success';
+    message = matchedRecipe.successMessage;
 
-      if (matchedRecipe.reactivityMakesVolatile && counts['reactive']) {
-          outcomeType = 'volatile';
-          message = 'The mixture bubbles violently! Unstable healing potion created.';
-      }
+    if (matchedRecipe.reactivityMakesVolatile && counts['reactive']) {
+      outcomeType = 'volatile';
+      message = 'The mixture bubbles violently! Unstable healing potion created.';
+    }
   } else {
-      outcomeType = 'sludge';
-      message = 'The mixture turns into a foul-smelling gray sludge.';
+    outcomeType = 'sludge';
+    message = 'The mixture turns into a foul-smelling gray sludge.';
   }
 
   // 5. Apply Skill Results

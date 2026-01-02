@@ -7,7 +7,7 @@
  * Provides the functional interface for the World History memory system.
  */
 
-import { WorldHistory, WorldHistoryEvent } from '../types/history';
+import { WorldHistory, WorldHistoryEvent } from '../../types/history';
 
 /**
  * Initializes an empty WorldHistory if one doesn't exist.

@@ -6,12 +6,12 @@
  * Utility functions for managing faction reputation and standing.
  */
 
-import { GameState, GameMessage } from '../types';
-import { PlayerFactionStanding, Faction, ReputationEvent } from '../types/factions';
-import { FACTIONS } from '../data/factions';
+import { GameState, GameMessage } from '../../types';
+import { PlayerFactionStanding, Faction, ReputationEvent } from '../../types/factions';
+import { FACTIONS } from '../../data/factions';
 import { generateRegionalPolitics } from './nobleHouseGenerator';
 import { v4 as uuidv4 } from 'uuid';
-import { getGameDay } from './timeUtils';
+import { getGameDay } from '../core/timeUtils';
 
 export type ReputationTier = 'NEMESIS' | 'HOSTILE' | 'UNFRIENDLY' | 'NEUTRAL' | 'FRIENDLY' | 'HONORED' | 'REVERED';
 

@@ -1,12 +1,12 @@
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { calculateProficiencyBonus, calculateSpellDC, rollSavingThrow, SavingThrowModifier } from '../savingThrowUtils';
-import { createMockCombatCharacter } from '../factories';
-import * as combatUtils from '../combatUtils';
+import { createMockCombatCharacter } from '../../core/factories';
+import * as combatUtils from '../../combat/combatUtils';
 
 // Mock rollDice
 // We need to spy on it to change return values per test
-vi.mock('../combatUtils', async (importOriginal) => {
+vi.mock('../../combat/combatUtils', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../combatUtils')>();
   return {
     ...actual,
@@ -44,9 +44,19 @@ describe('savingThrowUtils', () => {
       const wizard = createMockCombatCharacter({
         level: 5,
         class: {
-            id: 'wizard', name: 'Wizard', spellcasting: { ability: 'Intelligence' }
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown,
+            id: 'wizard',
+            name: 'Wizard',
+            description: '',
+            hitDie: 6,
+            primaryAbility: ['Intelligence'],
+            savingThrowProficiencies: [],
+            skillProficienciesAvailable: [],
+            numberOfSkillProficiencies: 0,
+            armorProficiencies: [],
+            weaponProficiencies: [],
+            features: [],
+            spellcasting: { ability: 'Intelligence' }
+        } as any,
         stats: {
           strength: 10, dexterity: 10, constitution: 10,
           intelligence: 18, // +4 Mod
@@ -62,7 +72,7 @@ describe('savingThrowUtils', () => {
       const fighter = createMockCombatCharacter({
         level: 1,
         // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        class: { id: 'fighter', name: 'Fighter' } as unknown, // No spellcasting prop
+        class: { id: 'fighter', name: 'Fighter', description: '', hitDie: 10, primaryAbility: ['Strength'], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] } as any, // No spellcasting prop
         stats: {
             strength: 16, dexterity: 10, constitution: 10,
             intelligence: 10, // +0 Mod

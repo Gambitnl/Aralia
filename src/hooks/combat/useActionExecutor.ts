@@ -319,7 +319,7 @@ export const useActionExecutor = ({
                   const caster = updatedCharacter.team === 'player' ? updatedCharacter : updatedCharacter;
 
                   const dc = calculateSpellDC(caster);
-                  const saveResult = rollSavingThrow(updatedCharacter, effect.saveType, dc);
+                  const saveResult = rollSavingThrow(updatedCharacter, effect.saveType as any, dc);
 
                   onLogEntry({
                     id: generateId(),
@@ -366,7 +366,7 @@ export const useActionExecutor = ({
                   const caster = updatedCharacter.team === 'player' ? updatedCharacter : updatedCharacter;
 
                   const dc = calculateSpellDC(caster);
-                  const saveResult = rollSavingThrow(updatedCharacter, effect.saveType, dc);
+                  const saveResult = rollSavingThrow(updatedCharacter, effect.saveType as any, dc);
 
                   onLogEntry({
                     id: generateId(),
@@ -445,7 +445,7 @@ export const useActionExecutor = ({
       type: 'action',
       message: getActionMessage(action, updatedCharacter),
       characterId: updatedCharacter.id,
-      data: action
+      data: action as any
     });
 
     if (action.type === 'ability' && action.abilityId) {

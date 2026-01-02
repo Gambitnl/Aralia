@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { TargetResolver } from '../TargetResolver'
 // TODO(lint-intent): 'Position' is unused in this test; use it in the assertion path or remove it.
-import type { SpellTargeting, BattleMapTile , CombatCharacter, CombatState, Position as _Position } from '@/types'
+import type { SpellTargeting } from '@/types/spells'
+import type { BattleMapTile , CombatCharacter, CombatState, Position as _Position, BattleMapData, TurnState } from '@/types/combat'
 
 
 // Mock Character
@@ -22,7 +23,7 @@ const createMockChar = (id: string, team: 'player' | 'enemy', x: number, y: numb
   statusEffects: [],
   // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
   actionEconomy: {} as unknown
-})
+} as unknown as CombatCharacter)
 
 const createMockTile = (x: number, y: number, blocksLoS: boolean = false): BattleMapTile => ({
   id: `${x}-${y}`,
@@ -43,7 +44,7 @@ describe('TargetResolver', () => {
   let enemyFar: CombatCharacter
   let mockGameState: CombatState
   // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  let mockMapData: unknown
+  let mockMapData: BattleMapData
 
   beforeEach(() => {
     caster = createMockChar('hero', 'player', 10, 10)
@@ -69,7 +70,7 @@ describe('TargetResolver', () => {
       characters: [caster, ally, enemyClose, enemyFar],
       isActive: true,
       // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-      turnState: {} as unknown,
+      turnState: {} as unknown as TurnState,
       selectedCharacterId: null,
       selectedAbilityId: null,
       actionMode: 'select',

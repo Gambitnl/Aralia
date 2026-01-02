@@ -139,13 +139,11 @@ export class StatusConditionCommand extends BaseEffectCommand {
         return val;
       case 'minutes':
         return val * 10;
-      case 'hours':
-        return val * 600;
       case 'special':
-      case 'instantaneous':
         return val;
       default:
-        return 1;
+        // TODO(lint-intent): Legacy durations like 'hours'/'instantaneous' should be normalized before calling this command.
+        return val;
     }
   }
 

@@ -1,12 +1,12 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { generateGeneralActionContext } from '../contextUtils';
-import { GameState, PlayerCharacter, NPC, Location, GamePhase } from '../../types';
+import { GameState, PlayerCharacter, NPC, Location, GamePhase } from '../../../types';
 // TODO(lint-intent): 'BIOMES' is unused in this test; use it in the assertion path or remove it.
-import { BIOMES as _BIOMES, ITEMS as _ITEMS } from '../../constants';
+import { BIOMES as _BIOMES, ITEMS as _ITEMS } from '../../../constants';
 
 // Mock constants
-vi.mock('../../constants', () => ({
+vi.mock('../../../constants', () => ({
   BIOMES: {
     'biome_1': { name: 'Enchanted Forest' }
   },
@@ -26,7 +26,7 @@ vi.mock('../timeUtils', () => ({
 }));
 
 // Mock Backgrounds
-vi.mock('../../data/backgrounds', () => ({
+vi.mock('../../../data/backgrounds', () => ({
   BACKGROUNDS: {
     'soldier': {
       id: 'soldier',
@@ -38,7 +38,7 @@ vi.mock('../../data/backgrounds', () => ({
 }));
 
 // Mock Classes
-vi.mock('../../data/classes', () => ({
+vi.mock('../../../data/classes', () => ({
   CLASSES_DATA: {
     'fighter': {
       id: 'fighter',
@@ -55,6 +55,8 @@ describe('contextUtils', () => {
     age: 30,
     race: { name: 'Human', id: 'human', description: '', traits: [] },
     class: { name: 'Fighter', id: 'fighter', description: '', hitDie: 10, primaryAbility: [], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] },
+    armorClass: 10,
+    statusEffects: [],
     hp: 10,
     maxHp: 20,
     transportMode: 'foot',

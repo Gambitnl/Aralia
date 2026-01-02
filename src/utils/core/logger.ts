@@ -26,13 +26,13 @@ class Logger {
     const prefix = `[${timestamp}] [${level.toUpperCase()}]`;
 
     let safeMessage = message;
-    let safeContext = context;
+    let safeContext: LogContext | undefined = context;
 
     try {
         // Redact sensitive data automatically
         // We cast to string because we know if we pass a string, we get a string (or redacted string) back
         safeMessage = redactSensitiveData(message) as string;
-        safeContext = context ? redactSensitiveData(context) : undefined;
+        safeContext = context ? (redactSensitiveData(context) as LogContext) : undefined;       
     } catch {
         // Fallback if redaction fails (e.g., circular dependency in context object, though JSON.stringify usually catches that in securityUtils)
         // We do NOT want to log the original message/context if redaction failed, as it might contain the secret that caused the failure (unlikely but possible)

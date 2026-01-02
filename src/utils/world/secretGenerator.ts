@@ -7,8 +7,8 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { Secret } from '../types/identity';
-import { SeededRandom } from './seededRandom';
+import { Secret } from '../../types/identity';
+import { SeededRandom } from '../random/seededRandom';
 
 // -----------------------------------------------------------------------------
 // Data Tables

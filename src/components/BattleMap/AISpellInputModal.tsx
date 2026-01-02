@@ -61,7 +61,7 @@ const AISpellInputModal: React.FC<AISpellInputModalProps> = ({ spell, onSubmit, 
                 <h2 className="text-2xl font-cinzel text-amber-500 mb-4">Cast {spell.name}</h2>
 
                 <p className="text-gray-300 mb-4 italic">
-                    {spell.aiContext?.inputPrompt || "Describe the specific effect or command for this spell:"}
+                    {spell.aiContext?.prompt || "Describe the specific effect or command for this spell:"}
                 </p>
 
                 <div className="relative mb-6">

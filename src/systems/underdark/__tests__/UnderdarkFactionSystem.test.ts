@@ -75,7 +75,9 @@ describe('UnderdarkFactionSystem', () => {
             faerzressLevel: 0,
             wildMagicChance: 0,
             sanity: { current: 100, max: 100, madnessLevel: 0 },
-            currentTerritoryFactionId: 'illithid_colony'
+            currentTerritoryFactionId: 'illithid_colony',
+            // TODO(lint-intent): Biome affects spawning; using default to satisfy shape.
+            currentBiomeId: 'cavern_standard'
         };
 
         it('should apply psionic static sanity drain', () => {

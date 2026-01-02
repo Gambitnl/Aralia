@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { findGlossaryEntryAndPath } from '../glossaryUtils';
-import { GlossaryEntry } from '../../types';
+import { GlossaryEntry } from '../../../types';
 
 describe('findGlossaryEntryAndPath', () => {
   const tree: GlossaryEntry[] = [

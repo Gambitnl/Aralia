@@ -4,10 +4,10 @@
  * Integrates with Deity and Religion systems.
  */
 
-import { DEITIES } from '../data/deities';
-import { Temple, TempleService } from '../types/religion';
-import { VillagePersonality } from '../types';
-import { createSeededRandom } from './seededRandom';
+import { DEITIES } from '../../data/deities';
+import { Temple, TempleService } from '../../types/religion';
+import { VillagePersonality } from '../../types';
+import { createSeededRandom } from '../random/seededRandom';
 
 /**
  * Procedurally generates a Temple object for a village.

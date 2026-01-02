@@ -2,7 +2,7 @@
  * @file src/utils/glossaryUtils.ts
  * This file contains utility functions related to the glossary system.
  */
-import { GlossaryEntry } from '../types';
+import { GlossaryEntry } from '../../types';
 
 /**
  * Recursively searches an array of glossary entries (including sub-entries) for a specific term ID.

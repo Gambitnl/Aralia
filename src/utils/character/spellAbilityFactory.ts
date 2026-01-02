@@ -11,10 +11,10 @@
  * This allows us to define a spell ONCE in the JSON data, and have it automatically
  * work in the BattleMap without writing manual code for every single spell.
  */
-import { Spell, AbilityScoreName, PlayerCharacter } from '../types';
-import { Ability, AbilityCost, AbilityEffect, AreaOfEffect, TargetingType, ActionCostType } from '../types/combat';
+import { Spell, AbilityScoreName, PlayerCharacter } from '../../types';
+import { Ability, AbilityCost, AbilityEffect, AreaOfEffect, TargetingType, ActionCostType } from '../../types/combat';
 import { getAbilityModifierValue } from './characterUtils';
-import { logger } from './logger';
+import { logger } from '../core/logger';
 
 // TODO(FEATURES): Expand spell-to-ability translation coverage (conditions, multi-step effects, unique spell riders) so more spells execute without bespoke handlers (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
 // NOTE: UTILITY effects with custom fields (savePenalty, light sources, terrain manipulation) are not yet handled in the effects loop below.
@@ -36,12 +36,12 @@ const inferTargeting = (spell: Spell): TargetingType => {
          return 'single_enemy'; // Default fallback
     }
 
-    const desc = spell.description.toLowerCase();
+    const desc = (spell.description ?? '').toString().toLowerCase();
     let range = '';
 
-    const spellRange = spell.range;
-    if (spellRange && typeof spellRange === 'object' && 'type' in spellRange) {
-        range = spellRange.type.toLowerCase();
+    const spellRange = spell.range as any;
+    if (spellRange && typeof spellRange === 'object' && 'type' in spellRange) { 
+        range = String(spellRange.type).toLowerCase();
     } else if (typeof spellRange === 'string') {
         range = spellRange.toLowerCase();
     }
@@ -54,7 +54,7 @@ const inferTargeting = (spell: Spell): TargetingType => {
     }
 
     // Heals usually target allies
-    if (spell.tags && Array.isArray(spell.tags) && (spell.tags.includes('HEALING') || spell.tags.includes('BUFF'))) {
+    if ((spell as any).tags && Array.isArray((spell as any).tags) && ((spell as any).tags.includes('HEALING') || (spell as any).tags.includes('BUFF'))) {
         return 'single_ally';
     }
 
@@ -71,13 +71,13 @@ const inferTargeting = (spell: Spell): TargetingType => {
  * @returns The shape and size in tiles, or undefined if no AoE detected.
  */
 const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
-    const desc = spell.description ? spell.description.toLowerCase() : '';
+    const desc = spell.description ? spell.description.toLowerCase() : '';      
 
     // Check JSON effects first if they exist
     if (Array.isArray(spell.effects)) {
         // Safe find with null check
-        const aoeEffect = spell.effects.find(e => e && typeof e === 'object' && e.areaOfEffect);
-        if (aoeEffect && aoeEffect.areaOfEffect) {
+    const aoeEffect = spell.effects.find(e => e && typeof e === 'object' && (e as any).areaOfEffect);
+    if (aoeEffect && (aoeEffect as any).areaOfEffect) {
             // Map JSON AoE shape to Combat AoE shape
             const shapeMap: Record<string, 'circle' | 'cone' | 'line' | 'square'> = {
                 'Sphere': 'circle',
@@ -86,10 +86,10 @@ const inferAoE = (spell: Spell): AreaOfEffect | undefined => {
                 'Cube': 'square',
                 'Cylinder': 'circle' // Best approximation for 2D grid
             };
-            const shapeKey = aoeEffect.areaOfEffect.shape;
+            const shapeKey = (aoeEffect as any).areaOfEffect.shape;
             return {
                 shape: shapeMap[shapeKey] || 'circle',
-                size: (aoeEffect.areaOfEffect.size || 0) / 5, // Convert feet to tiles (5ft = 1 tile)
+                size: ((aoeEffect as any).areaOfEffect.size || 0) / 5, // Convert feet to tiles (5ft = 1 tile)
             };
         }
     }
@@ -162,16 +162,16 @@ const inferEffectsFromDescription = (description: string, modifier: number): Abi
     const effects: AbilityEffect[] = [];
     if (!description) return effects;
 
-    const lowerDesc = description.toLowerCase();
+    const lowerDesc = description ? description.toLowerCase() : '';
 
     // 1. Damage Detection
     // Regex looks for patterns like "3d6 fire damage" or "1d10 piercing damage"
-    const damageRegex = /(\d+)d(\d+)\s+(acid|bludgeoning|cold|fire|force|lightning|necrotic|piercing|poison|psychic|radiant|slashing|thunder)\s+damage/i;
+    const damageRegex = /(\d+)d(\d+)\s+(acid|bludgeoning|cold|fire|force|lightning|necrotic|piercing|poison|psychic|radiant|slashing|thunder)\s+damage/i;       
     const damageMatch = description.match(damageRegex);
 
     if (damageMatch) {
         const diceString = `${damageMatch[1]}d${damageMatch[2]}`;
-        const type = damageMatch[3].toLowerCase();
+        const type = (damageMatch[3] || '').toString().toLowerCase();
         effects.push({
             type: 'damage',
             value: calculateAverageDamage(diceString, 0), // Don't add mod to base spell damage usually
@@ -252,11 +252,13 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
         let costType = 'action';
         const castingTime = spell.castingTime;
         if (castingTime && typeof castingTime === 'object' && 'unit' in castingTime) {
-            costType = castingTime.unit.toLowerCase().includes('bonus') ? 'bonus' :
-                castingTime.unit.toLowerCase().includes('reaction') ? 'reaction' : 'action';
+            const ctUnit = String((castingTime as { unit?: string }).unit ?? '').toLowerCase();
+            costType = ctUnit.includes('bonus') ? 'bonus' :
+                ctUnit.includes('reaction') ? 'reaction' : 'action';
         } else if (typeof castingTime === 'string') {
-            costType = castingTime.toLowerCase().includes('bonus') ? 'bonus' :
-                castingTime.toLowerCase().includes('reaction') ? 'reaction' : 'action';
+            const ct = String(castingTime).toLowerCase();
+            costType = ct.includes('bonus') ? 'bonus' :
+                ct.includes('reaction') ? 'reaction' : 'action';
         }
 
         const cost: AbilityCost = {
@@ -268,15 +270,17 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
         let rangeTiles = 1;
         const spellRange = spell.range;
         if (spellRange && typeof spellRange === 'object' && 'type' in spellRange) {
-            if (spellRange.type === 'Feet' && spellRange.distance) {
-                rangeTiles = Math.floor(spellRange.distance / 5);
-            } else if (spellRange.type === 'Touch') {
+            const rangeType = String((spellRange as { type?: string }).type ?? '').toLowerCase();
+            const distance = (spellRange as { distance?: number }).distance ?? 0;
+            if (rangeType === 'feet' && distance) {
+                rangeTiles = Math.floor(distance / 5);
+            } else if (rangeType === 'touch') {
                 rangeTiles = 1;
-            } else if (spellRange.type === 'Self') {
+            } else if (rangeType === 'self') {
                 rangeTiles = 0;
             }
         } else if (typeof spellRange === 'string') {
-            const r = spellRange.toLowerCase();
+            const r = String(spellRange).toLowerCase();
             if (r.includes('touch')) {
                 rangeTiles = 1;
             } else if (r.includes('self')) {
@@ -304,7 +308,7 @@ export function createAbilityFromSpell(spell: Spell, caster: PlayerCharacter): A
                     effects.push({
                         type: 'damage',
                         value: avgDmg,
-                        damageType: jsonEffect.damage.type ? (jsonEffect.damage.type.toLowerCase() as AbilityEffect['damageType']) : 'force'
+                        damageType: jsonEffect.damage.type ? (String(jsonEffect.damage.type).toLowerCase() as AbilityEffect['damageType']) : 'force'
                     });
                 } else if (jsonEffect.type === 'HEALING') {
                     // HealingEffect has a properly typed healing.dice field

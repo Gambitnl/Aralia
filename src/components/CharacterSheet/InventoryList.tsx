@@ -57,6 +57,16 @@ const getItemTooltipContent = (item: Item, warning?: string): React.ReactNode =>
     if (item.shelfLife) details += `\nShelf Life: ${item.shelfLife}`;
     if (item.nutritionValue) details += ` | Nutrition: ${item.nutritionValue}/10`;
     if (item.perishable) details += ` | Perishable`;
+  } else if (item.type === 'reagent') {
+    // Display detailed reagent info for herbalism/alchemy
+    if ((item as any).rarity) {
+      const r = (item as any).rarity;
+      details += `\nRarity: ${r.charAt(0).toUpperCase() + r.slice(1)}`;
+    }
+    if (item.properties?.length) {
+      const props = item.properties.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(', ');
+      details += `\nProperties: ${props}`;
+    }
   }
 
   if (item.statBonuses) {

@@ -1,16 +1,16 @@
 import React from 'react';
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { vi } from 'vitest';
 import OrganizationDashboard from '../OrganizationDashboard';
 import { createOrganization, recruitMember } from '../../../services/organizationService';
 import { Organization } from '../../../types/organizations';
 
 // Mock the service functions
 vi.mock('../../../services/organizationService', async () => {
-    const actual = await vi.importActual('../../../services/organizationService');
+    const actual = (await vi.importActual('../../../services/organizationService')) as Record<string, unknown>;
     return {
         // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        ...actual as unknown,
+        ...actual,
         recruitMember: vi.fn((org, name, cls) => ({
             ...org,
             members: [...org.members, { id: 'new-mem', name, class: cls, rank: 'initiate', level: 1, loyalty: 50 }],
@@ -97,7 +97,7 @@ describe('OrganizationDashboard', () => {
 
          // Mock the implementation for this test to throw
          // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-         (recruitMember as unknown).mockImplementationOnce(() => { throw new Error('Not enough gold'); });
+        (recruitMember as unknown as Mock).mockImplementationOnce(() => { throw new Error('Not enough gold'); });
 
          fireEvent.click(screen.getByText(/Confirm/i));
 

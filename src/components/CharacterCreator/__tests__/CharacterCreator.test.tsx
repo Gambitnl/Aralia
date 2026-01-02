@@ -19,7 +19,7 @@ const mockSpells = {
   getByLevel: vi.fn(() => []),
   getByIds: vi.fn(() => []),
   getBySchool: vi.fn(() => []),
-};
+} as any;
 
 // We need to wrap the component in a test provider to supply the context
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (

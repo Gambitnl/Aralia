@@ -485,8 +485,9 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       transportMode: 'foot',
       selectedWeaponMasteries: currentState.selectedWeaponMasteries || [],
       feats: currentState.selectedFeat ? [currentState.selectedFeat] : [],
-      featChoices: currentState.featChoices || {},
+      featChoices: (currentState.featChoices as unknown as Record<string, import('../../../types/character').FeatChoice>) || {},
       equippedItems: {},
+      statusEffects: [],
       ...castingProperties,
       selectedFightingStyle: currentState.selectedFightingStyle || undefined,
       selectedDivineOrder: currentState.selectedDivineOrder || undefined,
@@ -530,7 +531,11 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
 
     // Apply feat benefits after the baseline character is assembled so derived stats update.
     if (assembledCharacter.feats && assembledCharacter.feats.length > 0) {
-      assembledCharacter = applyAllFeats(assembledCharacter, assembledCharacter.feats, currentState.featChoices);
+      assembledCharacter = applyAllFeats(
+        assembledCharacter,
+        assembledCharacter.feats,
+        (currentState.featChoices as unknown as Record<string, import('../../../types/character').FeatChoice>) || {}
+      );
     }
 
     return assembledCharacter;

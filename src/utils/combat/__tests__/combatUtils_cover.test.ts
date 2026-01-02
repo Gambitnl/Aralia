@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
-import { calculateCover } from '../combatUtils';
-import { BattleMapData, BattleMapTile } from '../../types/combat';
+import { calculateCover } from '../../combat/combatUtils';
+import { BattleMapData, BattleMapTile } from '../../../types/combat';
 
 describe('calculateCover', () => {
   const createMap = (tiles: Partial<BattleMapTile>[]): BattleMapData => {

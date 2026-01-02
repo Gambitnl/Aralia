@@ -3,20 +3,23 @@ import { Item } from './items';
 import { PlayerCharacter, TempPartyMember } from './character';
 import { Faction, PlayerFactionStanding } from './factions';
 import { Companion } from './companions';
-import { DivineFavor, Temple, ReligionState } from './deity';
+import { DivineFavor, Temple, ReligionState } from './religion';
 import { Fence, GuildMembership, HeistPlan, Crime, Bounty } from './crime';
 import { UnderdarkState } from './underdark';
 import { EconomyState } from './economy';
 import { Action, GroundingChunk } from './actions';
-import { GameMessage, MapData, NpcMemory, DiscoveryResidue, Location, WorldRumor, Quest, NPC } from './world';
+import { GameMessage, MapData, NpcMemory, DiscoveryResidue, Location, WorldRumor, NPC } from './world';
+import { Quest } from './quests';
 import { RitualState } from './rituals';
 import { WorldHistory } from './history';
 import { PlayerLegacy } from './legacy';
 import { Stronghold } from './stronghold';
+import { Ship } from './naval';
+import { CraftingState } from './crafting';
 // TODO(lint-intent): 'Notification' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Notification as _Notification } from './ui';
+import { Notification } from './ui';
 import { PlayerIdentityState } from './identity';
 
 // -----------------------------------------------------------------------------
@@ -85,6 +88,14 @@ export interface GeminiLogEntry {
   response: string;
 }
 
+export interface OllamaLogEntry {
+  timestamp: Date;
+  model: string;
+  prompt: string;
+  response: string;
+  context?: any;
+}
+
 // -----------------------------------------------------------------------------
 // Game State
 // -----------------------------------------------------------------------------
@@ -124,8 +135,11 @@ export interface GameState {
   isPartyEditorVisible: boolean;
   isGeminiLogViewerVisible: boolean;
   geminiInteractionLog: GeminiLogEntry[];
+  isOllamaLogViewerVisible: boolean;
+  ollamaInteractionLog: OllamaLogEntry[];
   hasNewRateLimitError: boolean;
   devModelOverride: string | null;
+  isDevModeEnabled: boolean;
 
   isEncounterModalVisible: boolean;
   generatedEncounter: import('./world').Monster[] | null;
@@ -178,7 +192,7 @@ export interface GameState {
   // TODO(lint-intent): The any on 'notifications' hides the intended shape of this data.
   // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
   // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-  notifications: unknown[]; // Temporary until UI types are split
+  notifications: Notification[];
 
   factions: Record<string, Faction>;
   playerFactionStandings: Record<string, PlayerFactionStanding>;
@@ -207,7 +221,7 @@ export interface GameState {
 
   underdark: UnderdarkState;
 
-  environment: import('./environment').WeatherState;
+  environment?: import('./environment').WeatherState;
 
   isThievesGuildVisible: boolean;
   isNavalDashboardVisible: boolean;
@@ -222,4 +236,12 @@ export interface GameState {
   isDialogueInterfaceOpen: boolean;
 
   banterCooldowns: Record<string, number>;
+  // TODO(lint-intent): naval ship state is optional and currently typed loosely; define Ship shape and wire it here.
+  ship?: Ship;
+
+  // Crafting system state
+  crafting?: CraftingState;
+
+  // Interactive companion conversation state
+  activeConversation?: import('./conversation').ActiveConversation | null;
 }

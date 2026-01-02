@@ -2,13 +2,23 @@
 import React, { useState, useEffect } from 'react';
 import { useGameState } from '../../../state/GameContext';
 import { ThievesGuildSystem } from '../../../systems/crime/ThievesGuildSystem';
-import { GuildJob, GuildService } from '../../../types/crime';
+import { GuildJob, GuildMembership, GuildService } from '../../../types/crime';
 import { LOCATIONS } from '../../../constants';
 import FenceInterface from './FenceInterface';
 
 const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const { state, dispatch } = useGameState();
-    const { thievesGuild } = state;
+    const baseGuild: GuildMembership = {
+        memberId: state.party[0]?.id ?? 'player-1',
+        guildId: 'shadow_hands',
+        rank: 0,
+        reputation: 0,
+        activeJobs: [],
+        availableJobs: [],
+        completedJobs: [],
+        servicesUnlocked: [],
+    };
+    const guild = state.thievesGuild ?? baseGuild;
     const [availableJobs, setAvailableJobs] = useState<GuildJob[]>([]);
     const [activeTab, setActiveTab] = useState<'jobs' | 'active' | 'services'>('jobs');
     const [availableServices, setAvailableServices] = useState<GuildService[]>([]);
@@ -16,12 +26,12 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
 
     useEffect(() => {
         // Use stored available jobs if they exist for this "session" or day, otherwise generate
-        let jobs = thievesGuild.availableJobs;
+        let jobs = guild.availableJobs;
 
         if (!jobs || jobs.length === 0) {
              jobs = ThievesGuildSystem.generateJobs(
-                thievesGuild.guildId,
-                thievesGuild.rank,
+                guild.guildId,
+                guild.rank,
                 Object.values(LOCATIONS),
                 state.worldSeed + state.gameTime.getDate()
             );
@@ -31,12 +41,12 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
         }
 
         // Filter out jobs already taken
-        const takenIds = thievesGuild.activeJobs.map(j => j.id);
+        const takenIds = guild.activeJobs.map(j => j.id);
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setAvailableJobs(jobs.filter(j => !takenIds.includes(j.id)));
 
-        setAvailableServices(ThievesGuildSystem.getAvailableServices(thievesGuild.rank));
-    }, [thievesGuild.rank, state.gameTime, thievesGuild.activeJobs, thievesGuild.guildId, state.worldSeed, thievesGuild.availableJobs, dispatch]);
+        setAvailableServices(ThievesGuildSystem.getAvailableServices(guild.rank));
+    }, [guild.rank, state.gameTime, guild.activeJobs, guild.guildId, state.worldSeed, guild.availableJobs, dispatch]);
 
     const handleUseService = (service: GuildService) => {
         if (service.type === 'Fence') {
@@ -82,7 +92,7 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
         // Future services (Forgery, etc) could go here
     }
 
-    if (thievesGuild.rank === 0) {
+    if (guild.rank === 0) {
         return (
             <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
                 <div className="bg-gray-900 border border-purple-900 p-6 rounded-lg max-w-md w-full shadow-2xl">
@@ -117,8 +127,8 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
                     <div>
                         <h2 className="text-2xl font-bold text-purple-400">Shadow Hands Guild</h2>
                         <div className="flex gap-4 text-sm text-gray-400 mt-1">
-                            <span>Rank: <span className="text-white">{getRankName(thievesGuild.rank)}</span></span>
-                            <span>Reputation: <span className="text-white">{thievesGuild.reputation}</span></span>
+                            <span>Rank: <span className="text-white">{getRankName(guild.rank)}</span></span>
+                            <span>Reputation: <span className="text-white">{guild.reputation}</span></span>
                         </div>
                     </div>
                     <button onClick={onClose} className="text-gray-400 hover:text-white text-xl">&times;</button>
@@ -136,7 +146,7 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
                         className={`flex-1 py-3 text-center transition-colors ${activeTab === 'active' ? 'bg-purple-900/30 text-purple-300 border-b-2 border-purple-500' : 'text-gray-400 hover:bg-gray-800'}`}
                         onClick={() => setActiveTab('active')}
                     >
-                        Active Jobs ({thievesGuild.activeJobs.length})
+                        Active Jobs ({guild.activeJobs.length})
                     </button>
                     <button
                         className={`flex-1 py-3 text-center transition-colors ${activeTab === 'services' ? 'bg-purple-900/30 text-purple-300 border-b-2 border-purple-500' : 'text-gray-400 hover:bg-gray-800'}`}
@@ -162,7 +172,7 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
                                         <p className="text-gray-400 text-sm mb-3">{job.description}</p>
                                         <div className="flex justify-between items-center text-sm">
                                             <span className="text-yellow-500">Reward: {job.rewardGold} gp</span>
-                                            {thievesGuild.rank >= job.requiredRank ? (
+                                            {guild.rank >= job.requiredRank ? (
                                                 <button
                                                     onClick={() => handleAcceptJob(job)}
                                                     className="px-3 py-1 bg-purple-700 hover:bg-purple-600 text-white rounded text-sm transition-colors"
@@ -181,10 +191,10 @@ const ThievesGuildInterface: React.FC<{ onClose: () => void }> = ({ onClose }) =
 
                     {activeTab === 'active' && (
                         <div className="space-y-4">
-                             {thievesGuild.activeJobs.length === 0 ? (
+                             {guild.activeJobs.length === 0 ? (
                                 <p className="text-gray-500 text-center italic">You have no active jobs.</p>
                             ) : (
-                                thievesGuild.activeJobs.map(job => (
+                                guild.activeJobs.map(job => (
                                     <div key={job.id} className="bg-gray-800 border border-purple-500/50 p-4 rounded">
                                         <div className="flex justify-between items-start mb-2">
                                             <h3 className="text-lg font-bold text-purple-300">{job.title}</h3>

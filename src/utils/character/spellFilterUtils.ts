@@ -3,9 +3,9 @@
  * Artisanal utilities for filtering and displaying spells in feat selection.
  * Provides school-aware filtering, attack spell detection, and visual helpers.
  */
-import { Spell, SpellSchool, FeatSpellRequirement } from '../types';
-import { SpellDataRecord } from '../context/SpellContext';
-import { CLASSES_DATA } from '../constants';
+import { Spell, SpellSchool, FeatSpellRequirement } from '../../types';
+import { SpellDataRecord } from '../../context/SpellContext';
+import { CLASSES_DATA } from '../../constants';
 
 // ============================================================================
 // SPELL FILTERING
@@ -49,7 +49,9 @@ export function filterSpellsForRequirement(
   requirement: FeatSpellRequirement,
   selectedSpellSource?: string
 ): Spell[] {
-  const spellsArray = Object.values(allSpells);
+  // SpellContext stores values as unknown, so cast to Spell for filtering while keeping the shape intact.
+  // TODO: Firm up SpellDataRecord typing so this cast is no longer necessary.
+  const spellsArray = Object.values(allSpells) as Spell[];
 
   return spellsArray
     .filter((spell) => {

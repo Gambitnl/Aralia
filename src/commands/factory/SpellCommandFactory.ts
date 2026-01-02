@@ -165,8 +165,9 @@ export class SpellCommandFactory {
 
       let filteredTargets = context.targets;
 
-      if (effect.condition?.targetFilter) {
-        filteredTargets = context.targets.filter(t => this.matchesFilter(t, effect.condition.targetFilter));
+      const targetFilter = effect.condition?.targetFilter;
+      if (targetFilter) {
+        filteredTargets = context.targets.filter(t => this.matchesFilter(t, targetFilter));
 
         if (filteredTargets.length === 0 && context.targets.length > 0) {
           // All targets filtered out

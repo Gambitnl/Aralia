@@ -21,7 +21,7 @@ describe('useMissingChoice', () => {
   it('should open modal when handleFixMissingChoice is called', () => {
     const { result } = renderHook(() => useMissingChoice(mockDispatch, mockAddMessage));
     const mockCharacter = { id: 'char1', name: 'Test Char' } as PlayerCharacter;
-    const mockMissingChoice = { id: 'missing1', label: 'Missing Trait', options: [] } as MissingChoice;
+    const mockMissingChoice: MissingChoice = { id: 'missing1', label: 'Missing Trait', description: 'stub', type: 'race', options: [] };
 
     act(() => {
       result.current.handleFixMissingChoice(mockCharacter, mockMissingChoice);
@@ -37,7 +37,7 @@ describe('useMissingChoice', () => {
   it('should dispatch action and add message on confirm', () => {
     const { result } = renderHook(() => useMissingChoice(mockDispatch, mockAddMessage));
     const mockCharacter = { id: 'char1', name: 'Test Char' } as PlayerCharacter;
-    const mockMissingChoice = { id: 'missing1', label: 'Missing Trait', options: [] } as MissingChoice;
+    const mockMissingChoice: MissingChoice = { id: 'missing1', label: 'Missing Trait', description: 'stub', type: 'race', options: [] };
 
     act(() => {
       result.current.handleFixMissingChoice(mockCharacter, mockMissingChoice);

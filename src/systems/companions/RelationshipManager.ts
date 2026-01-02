@@ -17,15 +17,20 @@ import { Companion, RelationshipLevel, ApprovalEvent, RelationshipEvent as _Rela
 import { GameState as _GameState } from '../../types';
 
 export class RelationshipManager {
+  // Approval scale: -500 to +500 with 100-point step changes
+  // Each relationship level spans exactly 100 points for clean progression
   private static readonly APPROVAL_THRESHOLDS: Record<RelationshipLevel, [number, number]> = {
-    enemy: [-100, -70],
-    rival: [-69, -30],
-    stranger: [-29, 9],
-    acquaintance: [10, 29],
-    friend: [30, 59],
-    close: [60, 89],
-    devoted: [90, 100],
-    romance: [90, 100], // Romance is a special state, shares range with devoted but implies different flags
+    hated: [-500, -401],      // Actively despised
+    enemy: [-400, -301],      // Hostile
+    rival: [-300, -201],      // Antagonistic
+    distrusted: [-200, -101], // Suspicious
+    wary: [-100, -1],         // Cautious
+    stranger: [0, 99],        // Neutral (starting point)
+    acquaintance: [100, 199], // Getting to know
+    friend: [200, 299],       // Friendly
+    close: [300, 399],        // Close bond
+    devoted: [400, 499],      // Deep loyalty
+    romance: [500, 500],      // Special state (requires explicit trigger at max devotion)
   };
 
   /**
@@ -45,7 +50,7 @@ export class RelationshipManager {
       unlocks: [],
     };
 
-    const newApproval = Math.max(-100, Math.min(100, currentRelationship.approval + change));
+    const newApproval = Math.max(-500, Math.min(500, currentRelationship.approval + change));
 
     // Determine new level based on approval
     // Note: We don't automatically switch to 'romance', that requires explicit triggers.
@@ -53,12 +58,12 @@ export class RelationshipManager {
     let newLevel: RelationshipLevel = currentRelationship.level;
 
     if (newLevel !== 'romance') {
-       for (const [level, [min, max]] of Object.entries(this.APPROVAL_THRESHOLDS)) {
-         if (newApproval >= min && newApproval <= max) {
-           newLevel = level as RelationshipLevel;
-           break;
-         }
-       }
+      for (const [level, [min, max]] of Object.entries(this.APPROVAL_THRESHOLDS)) {
+        if (newApproval >= min && newApproval <= max) {
+          newLevel = level as RelationshipLevel;
+          break;
+        }
+      }
     }
 
     // Process Unlocks
@@ -73,34 +78,35 @@ export class RelationshipManager {
     // To do "at or above", we need a numeric weight for levels.
 
     const levelWeight: Record<RelationshipLevel, number> = {
-        enemy: -2, rival: -1, stranger: 0, acquaintance: 1, friend: 2, close: 3, devoted: 4, romance: 4
+      hated: -5, enemy: -4, rival: -3, distrusted: -2, wary: -1,
+      stranger: 0, acquaintance: 1, friend: 2, close: 3, devoted: 4, romance: 5
     };
 
     if (companion.progression) {
-        companion.progression.forEach(item => {
-            // Check if already unlocked
-            if (currentUnlocks.some(u => u.id === item.id)) return;
+      companion.progression.forEach(item => {
+        // Check if already unlocked
+        if (currentUnlocks.some(u => u.id === item.id)) return;
 
-            let requirementsMet = true;
+        let requirementsMet = true;
 
-            // Check level requirement
-            if (item.requiredLevel) {
-                const currentWeight = levelWeight[newLevel];
-                const requiredWeight = levelWeight[item.requiredLevel];
-                if (currentWeight < requiredWeight) {
-                    requirementsMet = false;
-                }
-            }
+        // Check level requirement
+        if (item.requiredLevel) {
+          const currentWeight = levelWeight[newLevel];
+          const requiredWeight = levelWeight[item.requiredLevel];
+          if (currentWeight < requiredWeight) {
+            requirementsMet = false;
+          }
+        }
 
-            // Check approval requirement
-            if (item.requiredApproval !== undefined && newApproval < item.requiredApproval) {
-                requirementsMet = false;
-            }
+        // Check approval requirement
+        if (item.requiredApproval !== undefined && newApproval < item.requiredApproval) {
+          requirementsMet = false;
+        }
 
-            if (requirementsMet) {
-                newUnlocks.push({ ...item, isUnlocked: true });
-            }
-        });
+        if (requirementsMet) {
+          newUnlocks.push({ ...item, isUnlocked: true });
+        }
+      });
     }
 
     // Create event record
@@ -125,12 +131,12 @@ export class RelationshipManager {
 
     // Add unlock events to history
     newUnlocks.forEach(unlock => {
-        history.push({
-            id: crypto.randomUUID(),
-            timestamp: Date.now(),
-            description: `Unlocked: ${unlock.description}`,
-            type: 'gift' // or milestone
-        });
+      history.push({
+        id: crypto.randomUUID(),
+        timestamp: Date.now(),
+        description: `Unlocked: ${unlock.description}`,
+        type: 'gift' // or milestone
+      });
     });
 
     return {

@@ -3,6 +3,8 @@ import { StatusConditionCommand } from '../effects/StatusConditionCommand';
 import type { CommandContext } from '../base/SpellCommand';
 import type { CombatCharacter, CombatState, Position } from '@/types/combat';
 import type { StatusConditionEffect } from '@/types/spells';
+import type { Class, GameState } from '@/types';
+import { createMockGameState, createMockPlayerCharacter } from '../../utils/factories';
 
 const baseStats = {
   strength: 10,
@@ -24,12 +26,25 @@ const baseEconomy = {
   freeActions: 0
 };
 
+const mockClass: Class = {
+  id: 'fighter',
+  name: 'Fighter',
+  description: 'A martial combatant.',
+  hitDie: 10,
+  primaryAbility: ['Strength'],
+  savingThrowProficiencies: ['Strength', 'Constitution'],
+  skillProficienciesAvailable: [],
+  numberOfSkillProficiencies: 2,
+  armorProficiencies: [],
+  weaponProficiencies: [],
+  features: []
+};
+
 const makeCharacter = (id: string, position: Position): CombatCharacter => ({
   id,
   name: id,
   level: 3,
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  class: { savingThrowProficiencies: [] } as unknown,
+  class: mockClass,
   position,
   stats: { ...baseStats },
   abilities: [],
@@ -57,7 +72,9 @@ const makeState = (characters: CombatCharacter[]): CombatState => ({
   actionMode: 'select',
   validTargets: [],
   validMoves: [],
-  combatLog: []
+  combatLog: [],
+  reactiveTriggers: [],
+  activeLightSources: []
 });
 
 const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): CommandContext => ({
@@ -66,8 +83,16 @@ const makeContext = (caster: CombatCharacter, targets: CombatCharacter[]): Comma
   castAtLevel: 1,
   caster,
   targets,
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  gameState: {} as unknown
+  // TODO(lint-intent): Provide minimal game state; expand when condition effects need richer world data.
+  gameState: createMockGameState({
+    party: [caster, ...targets].map(character => ({
+      ...createMockPlayerCharacter({ id: character.id, name: character.name }),
+      // TODO: sync condition mirrors between player + combat actors when state shapes converge.
+    })),
+    currentLocationId: 'arena',
+    subMapCoordinates: { x: 0, y: 0 },
+    mapData: null
+  }) as GameState
 });
 
 describe('StatusConditionCommand', () => {

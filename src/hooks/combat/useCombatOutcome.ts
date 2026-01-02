@@ -49,6 +49,7 @@ export const useCombatOutcome = ({ characters, initialEnemies }: UseCombatOutcom
       type: (e.creatureTypes?.[0] || 'Unknown'),
       ac: e.baseAC || 10,
       hp: e.maxHP,
+      quantity: 1,
       actions: [], // Not needed for loot
       xp: 0 // Will be calculated
     }));

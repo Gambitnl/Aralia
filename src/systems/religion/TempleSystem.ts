@@ -1,9 +1,10 @@
 
+import { Dispatch } from 'react';
 import {
   TempleService,
-  GameState,
-  AppAction
+  GameState
 } from '../../types';
+import { AppAction } from '../../state/actionTypes';
 import { canAffordService, getDivineStanding } from '../../utils/religionUtils';
 import { logger } from '../../utils/logger';
 
@@ -29,7 +30,7 @@ export class TempleSystem {
   ): { allowed: boolean; reason?: string } {
 
     // 1. Check Gold & Favor (using utility)
-    const currentFavor = gameState.divineFavor[deityId]?.favor || 0;
+    const currentFavor = gameState.divineFavor[deityId]?.score || 0;
     const affordability = canAffordService(service, gameState.gold, currentFavor);
 
     if (!affordability.allowed) {
@@ -49,7 +50,8 @@ export class TempleSystem {
        // Item cost check
        if (service.requirement.itemCost) {
            const { itemId, count } = service.requirement.itemCost;
-           const hasItem = gameState.inventory.some(i => i.id === itemId && (i.quantity || 1) >= count);
+           const ownedCount = gameState.inventory.filter(i => i.id === itemId).length;
+           const hasItem = ownedCount >= count;
            if (!hasItem) return { allowed: false, reason: `Missing required item offering.` };
        }
        // Quest requirement check would go here
@@ -65,7 +67,7 @@ export class TempleSystem {
     service: TempleService,
     gameState: GameState,
     deityId: string,
-    dispatch: React.Dispatch<AppAction>
+    dispatch: Dispatch<AppAction>
   ): ServiceResult {
     // Re-validate just in case
     const validation = this.validateServiceRequest(service, gameState, deityId);
@@ -110,7 +112,7 @@ export class TempleSystem {
     service: TempleService,
     gameState: GameState,
     deityId: string,
-    dispatch: React.Dispatch<AppAction>
+    dispatch: Dispatch<AppAction>
   ): { message: string } {
     const effect = service.effect;
 

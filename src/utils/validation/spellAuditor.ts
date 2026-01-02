@@ -43,9 +43,11 @@ export function auditSpell(spellData: unknown): AuditResult {
     // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
     // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
     // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-    const unsafeData = spellData as unknown;
-    result.spellId = unsafeData.id || 'unknown';
-    result.spellName = unsafeData.name || 'Unknown';
+    if (spellData && typeof spellData === 'object') {
+      const unsafeData = spellData as { id?: string; name?: string };
+      result.spellId = unsafeData.id || 'unknown';
+      result.spellName = unsafeData.name || 'Unknown';
+    }
 
     return result;
   }
@@ -59,7 +61,7 @@ export function auditSpell(spellData: unknown): AuditResult {
 
   // Check if ANY effect has functional scaling
   const hasScalingLogic = spell.effects.some(effect => {
-    const scaling = effect.scaling;
+    const scaling = effect.scaling as any;
     if (!scaling) return false;
 
     // Check for standard bonusPerLevel (dice or flat number)
@@ -69,7 +71,7 @@ export function auditSpell(spellData: unknown): AuditResult {
     const hasCustom = !!scaling.customFormula && scaling.customFormula.trim().length > 0;
 
     // Check for explicit tiers (cantrips)
-    const hasTiers = !!scaling.scalingTiers && Object.keys(scaling.scalingTiers).length > 0;
+    const hasTiers = !!(scaling as any).scalingTiers && Object.keys((scaling as any).scalingTiers).length > 0;
 
     return hasBonus || hasCustom || hasTiers;
   });
@@ -106,6 +108,6 @@ export function auditSpell(spellData: unknown): AuditResult {
 
 function formatZodError(error: ZodError): string {
   // Check if error and error.errors exist to avoid runtime crashes
-  if (!error || !error.errors) return JSON.stringify(error);
-  return error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+  if (!error || !error.issues) return JSON.stringify(error);
+  return error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
 }

@@ -24,7 +24,7 @@ describe('redactSensitiveData', () => {
     // Let's assume we want it to return a safe structure (likely string for logging purposes or same type).
     // For Sentinel task "under 50 lines", string replacement on JSON is easiest/safest.
     const input = { message: 'error', apiKey: FAKE_KEY };
-    const output = redactSensitiveData(input, FAKE_KEY);
+    const output: any = redactSensitiveData(input, FAKE_KEY);
     // If output is string
     if (typeof output === 'string') {
         expect(output).toContain('[REDACTED]');

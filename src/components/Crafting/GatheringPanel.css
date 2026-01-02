@@ -1,0 +1,256 @@
+/**
+ * @file src/components/Crafting/GatheringPanel.css
+ * Styles for the GatheringPanel component.
+ */
+
+.gathering-panel {
+  background: linear-gradient(135deg, rgba(25, 35, 25, 0.95), rgba(15, 25, 15, 0.98));
+  border: 1px solid rgba(100, 180, 100, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 500px;
+  color: #e0e8e0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(100, 180, 100, 0.1);
+}
+
+.gathering-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(100, 180, 100, 0.2);
+}
+
+.gathering-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #8fdf8f;
+  text-shadow: 0 0 10px rgba(100, 200, 100, 0.3);
+}
+
+.gathering-header .close-btn {
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.gathering-header .close-btn:hover {
+  background: rgba(255, 100, 100, 0.2);
+  color: #ff6666;
+}
+
+.gathering-info {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.biome-indicator,
+.time-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.biome-indicator .label,
+.time-selector .label {
+  color: #8a9a8a;
+  font-size: 0.9rem;
+}
+
+.biome-indicator .value {
+  background: rgba(100, 180, 100, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  color: #8fdf8f;
+  font-weight: 600;
+}
+
+.time-selector select {
+  background: rgba(40, 50, 40, 0.8);
+  border: 1px solid rgba(100, 180, 100, 0.3);
+  color: #e0e8e0;
+  padding: 0.35rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.time-selector select:focus {
+  outline: none;
+  border-color: rgba(100, 180, 100, 0.6);
+}
+
+.gathering-actions {
+  margin-bottom: 1rem;
+}
+
+.identify-btn,
+.harvest-btn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.identify-btn {
+  background: linear-gradient(135deg, #2a5a3a, #1a4a2a);
+  color: #8fdf8f;
+  border: 1px solid rgba(100, 180, 100, 0.4);
+}
+
+.identify-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #3a6a4a, #2a5a3a);
+  box-shadow: 0 4px 12px rgba(100, 180, 100, 0.3);
+}
+
+.harvest-btn {
+  background: linear-gradient(135deg, #5a4a2a, #4a3a1a);
+  color: #dfcf8f;
+  border: 1px solid rgba(180, 150, 100, 0.4);
+  margin-top: 0.75rem;
+}
+
+.harvest-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6a5a3a, #5a4a2a);
+  box-shadow: 0 4px 12px rgba(180, 150, 100, 0.3);
+}
+
+.identify-btn:disabled,
+.harvest-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.identification-result {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.identification-result.success {
+  border-left: 3px solid #4caf50;
+}
+
+.identification-result.failure {
+  border-left: 3px solid #f44336;
+}
+
+.result-message {
+  margin: 0 0 0.75rem 0;
+  font-style: italic;
+  color: #aaa;
+}
+
+.identified-resources h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: #8fdf8f;
+}
+
+.resource-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.resource-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: rgba(40, 50, 40, 0.6);
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.resource-item:hover {
+  background: rgba(60, 80, 60, 0.6);
+}
+
+.resource-item.selected {
+  background: rgba(80, 120, 80, 0.4);
+}
+
+.resource-name {
+  font-weight: 500;
+  flex: 1;
+}
+
+.resource-rarity {
+  font-size: 0.8rem;
+  text-transform: capitalize;
+  margin: 0 0.75rem;
+}
+
+.resource-dc {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.harvest-section {
+  background: rgba(60, 50, 30, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(180, 150, 100, 0.2);
+}
+
+.selected-resource-info h3 {
+  margin: 0 0 0.5rem 0;
+  color: #dfcf8f;
+}
+
+.selected-resource-info p {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+.harvest-results {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 1rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.harvest-results h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: #8fdf8f;
+}
+
+.harvest-results ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.harvest-results li {
+  padding: 0.35rem 0;
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.harvest-results li.success {
+  color: #8fdf8f;
+}
+
+.harvest-results li.failure {
+  color: #df8f8f;
+}

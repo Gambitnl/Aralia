@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { createAbilityFromSpell } from '../spellAbilityFactory';
 import { Spell } from '@/types/spells';
 import { PlayerCharacter } from '@/types/index';
-import { createMockPlayerCharacter } from '../factories';
+import { createMockPlayerCharacter } from '../../core/factories';
 
 describe('spellAbilityFactory', () => {
     describe('createAbilityFromSpell', () => {

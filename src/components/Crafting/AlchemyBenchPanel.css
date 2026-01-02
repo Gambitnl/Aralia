@@ -1,0 +1,757 @@
+/**
+ * @file src/components/Crafting/AlchemyBenchPanel.css
+ * Styles for the AlchemyBenchPanel component with progression and quality tiers.
+ */
+
+.alchemy-bench-panel {
+    background: linear-gradient(135deg, rgba(30, 25, 40, 0.95), rgba(20, 15, 30, 0.98));
+    border: 1px solid rgba(150, 100, 200, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    width: 750px;
+    max-width: 95vw;
+    max-height: 90vh;
+    color: #e0e0e8;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(150, 100, 200, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.alchemy-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(150, 100, 200, 0.2);
+}
+
+.alchemy-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: #c8a0ff;
+    text-shadow: 0 0 10px rgba(150, 100, 200, 0.4);
+}
+
+.alchemy-header .close-btn {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.alchemy-header .close-btn:hover {
+    background: rgba(255, 100, 100, 0.2);
+    color: #ff6666;
+}
+
+/* Progression Bar */
+.progression-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: linear-gradient(90deg, rgba(100, 50, 150, 0.2), rgba(50, 25, 75, 0.3));
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    border: 1px solid rgba(150, 100, 200, 0.2);
+}
+
+.level-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px;
+}
+
+.level-num {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #c8a0ff;
+}
+
+.level-title {
+    font-size: 0.7rem;
+    color: #888;
+    text-transform: uppercase;
+}
+
+.xp-bar-container {
+    flex: 1;
+    height: 20px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.xp-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6a3aaa, #c8a0ff);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+
+.xp-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.bonus-badge {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+/* Stats Bar */
+.crafting-stats {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+.crafting-stats .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.crafting-stats .stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #c8a0ff;
+}
+
+.crafting-stats .stat.gold .stat-value {
+    color: #ffd700;
+}
+
+.crafting-stats .stat-label {
+    font-size: 0.65rem;
+    color: #888;
+    text-transform: uppercase;
+}
+
+/* Filters */
+.crafting-filters {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.tool-tabs {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.tool-tabs button {
+    padding: 0.4rem 0.6rem;
+    background: rgba(60, 50, 80, 0.5);
+    border: 1px solid rgba(150, 100, 200, 0.2);
+    color: #aaa;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.tool-tabs button:hover {
+    background: rgba(80, 60, 100, 0.6);
+    color: #c8a0ff;
+}
+
+.tool-tabs button.active {
+    background: rgba(150, 100, 200, 0.3);
+    border-color: rgba(150, 100, 200, 0.5);
+    color: #c8a0ff;
+}
+
+.filter-toggles {
+    display: flex;
+    gap: 1rem;
+}
+
+.filter-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: #888;
+    cursor: pointer;
+}
+
+.filter-toggle input {
+    cursor: pointer;
+}
+
+/* Content Area */
+.crafting-content {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 1rem;
+    flex: 1;
+    overflow: hidden;
+    min-height: 280px;
+}
+
+/* Recipe List */
+.recipe-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    max-height: 350px;
+}
+
+.recipe-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.6rem;
+    background: rgba(40, 35, 55, 0.6);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.recipe-item:hover {
+    background: rgba(60, 50, 80, 0.6);
+}
+
+.recipe-item.selected {
+    background: rgba(150, 100, 200, 0.2);
+    border-color: rgba(150, 100, 200, 0.5);
+}
+
+.recipe-item.locked {
+    opacity: 0.6;
+}
+
+.recipe-item.unknown {
+    opacity: 0.5;
+    border-left: 3px solid #666;
+}
+
+.recipe-item.craftable {
+    border-left: 3px solid #4caf50;
+}
+
+.recipe-icon {
+    font-size: 1.1rem;
+}
+
+.recipe-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.recipe-name {
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.recipe-rarity {
+    font-size: 0.65rem;
+    text-transform: capitalize;
+}
+
+.recipe-tool {
+    font-size: 0.85rem;
+}
+
+.recipe-status {
+    font-size: 0.85rem;
+}
+
+.recipe-status.ready {
+    color: #4caf50;
+}
+
+.recipe-status.missing {
+    color: #f44336;
+}
+
+.recipe-status.locked {
+    color: #666;
+}
+
+.no-recipes {
+    padding: 2rem;
+    text-align: center;
+    color: #666;
+}
+
+/* Recipe Details */
+.recipe-details {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.detail-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.detail-icon {
+    font-size: 1.8rem;
+}
+
+.detail-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #c8a0ff;
+}
+
+.detail-rarity {
+    font-size: 0.75rem;
+    text-transform: capitalize;
+}
+
+.detail-description {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.85rem;
+    color: #aaa;
+    font-style: italic;
+    line-height: 1.4;
+}
+
+.detail-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+    padding: 0.6rem;
+    background: rgba(40, 35, 55, 0.5);
+    border-radius: 6px;
+}
+
+.detail-stat {
+    display: flex;
+    justify-content: space-between;
+}
+
+.detail-stat .label {
+    color: #888;
+    font-size: 0.8rem;
+}
+
+.detail-stat .value {
+    color: #c8a0ff;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.detail-stat .value.missing {
+    color: #f44336;
+}
+
+.ingredients-section {
+    margin-bottom: 0.75rem;
+}
+
+.ingredients-section h4 {
+    margin: 0 0 0.4rem 0;
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.ingredient-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.ingredient-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.8rem;
+}
+
+.ingredient-list li.satisfied {
+    color: #8fdf8f;
+}
+
+.ingredient-list li.missing {
+    color: #df8f8f;
+}
+
+.ing-count {
+    font-weight: 600;
+}
+
+/* Quality Preview */
+.quality-preview {
+    margin-bottom: 0.75rem;
+    padding: 0.5rem;
+    background: rgba(40, 35, 55, 0.3);
+    border-radius: 6px;
+}
+
+.quality-preview h4 {
+    margin: 0 0 0.4rem 0;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.quality-tiers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.7rem;
+}
+
+.quality-tiers span {
+    padding: 0.2rem 0.4rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+}
+
+/* Buttons */
+.craft-button,
+.research-button {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    background: linear-gradient(135deg, #5a3a8a, #4a2a7a);
+    color: #c8a0ff;
+    border: 1px solid rgba(150, 100, 200, 0.4);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.craft-button:hover:not(:disabled),
+.research-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #6a4a9a, #5a3a8a);
+    box-shadow: 0 4px 12px rgba(150, 100, 200, 0.3);
+}
+
+.craft-button:disabled,
+.research-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.research-button {
+    background: linear-gradient(135deg, #3a5a8a, #2a4a7a);
+    color: #a0c8ff;
+    border-color: rgba(100, 150, 200, 0.4);
+}
+
+.research-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4a6a9a, #3a5a8a);
+    box-shadow: 0 4px 12px rgba(100, 150, 200, 0.3);
+}
+
+.craft-warning {
+    margin-top: 0.5rem;
+    padding: 0.4rem;
+    background: rgba(244, 67, 54, 0.1);
+    border-radius: 6px;
+}
+
+.craft-warning p {
+    margin: 0.2rem 0;
+    font-size: 0.75rem;
+    color: #f44336;
+}
+
+/* Unknown Recipe */
+.unknown-recipe {
+    text-align: center;
+    padding: 1rem;
+}
+
+.unknown-recipe p {
+    margin: 0.5rem 0;
+    color: #888;
+}
+
+.research-info {
+    margin-top: 1rem !important;
+}
+
+.research-cost {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 0.75rem 0;
+    font-size: 1rem;
+}
+
+.research-cost span {
+    color: #c8a0ff;
+    font-weight: 600;
+}
+
+/* No Selection */
+.no-selection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #666;
+}
+
+.stats-summary {
+    margin-top: 1rem;
+    text-align: left;
+    font-size: 0.85rem;
+}
+
+.stats-summary ul {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0 0;
+}
+
+.stats-summary li {
+    padding: 0.2rem 0;
+    color: #888;
+}
+
+/* Crafting Log */
+.crafting-log {
+    margin-top: 0.75rem;
+    padding: 0.6rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+.crafting-log h4 {
+    margin: 0 0 0.4rem 0;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.crafting-log ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.crafting-log li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+    font-size: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.log-quality {
+    flex-shrink: 0;
+}
+
+.log-message {
+    flex: 1;
+    color: #aaa;
+}
+
+.log-xp {
+    color: #c8a0ff;
+    font-weight: 600;
+    font-size: 0.7rem;
+}
+
+/* Scrollbar styling */
+.recipe-list::-webkit-scrollbar,
+.recipe-details::-webkit-scrollbar,
+.crafting-log::-webkit-scrollbar {
+    width: 5px;
+}
+
+.recipe-list::-webkit-scrollbar-track,
+.recipe-details::-webkit-scrollbar-track,
+.crafting-log::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.recipe-list::-webkit-scrollbar-thumb,
+.recipe-details::-webkit-scrollbar-thumb,
+.crafting-log::-webkit-scrollbar-thumb {
+    background: rgba(150, 100, 200, 0.3);
+    border-radius: 3px;
+}
+
+.recipe-list::-webkit-scrollbar-thumb:hover,
+.recipe-details::-webkit-scrollbar-thumb:hover,
+.crafting-log::-webkit-scrollbar-thumb:hover {
+    background: rgba(150, 100, 200, 0.5);
+}
+
+/* Tab Navigation */
+.tab-navigation {
+    display: flex;
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
+    padding: 0.35rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    border: 1px solid transparent;
+    color: #888;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.tab-btn:hover {
+    background: rgba(150, 100, 200, 0.1);
+    color: #bbb;
+}
+
+.tab-btn.active {
+    background: rgba(150, 100, 200, 0.25);
+    border-color: rgba(150, 100, 200, 0.4);
+    color: #c8a0ff;
+}
+
+/* Tab Content Container */
+.tab-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Location Selector */
+.location-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(50, 40, 70, 0.4);
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+.location-selector label {
+    color: #888;
+}
+
+.location-selector select {
+    flex: 1;
+    padding: 0.35rem 0.5rem;
+    background: rgba(40, 30, 60, 0.8);
+    border: 1px solid rgba(150, 100, 200, 0.2);
+    border-radius: 4px;
+    color: #ddd;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.location-selector select:focus {
+    outline: none;
+    border-color: rgba(150, 100, 200, 0.5);
+}
+
+.location-info {
+    font-size: 0.75rem;
+    color: #888;
+    padding: 0.2rem 0.5rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+}
+
+/* Batch Selector */
+.batch-selector {
+    margin-bottom: 0.75rem;
+    padding: 0.5rem;
+    background: rgba(40, 35, 55, 0.3);
+    border-radius: 6px;
+}
+
+.batch-selector h4 {
+    margin: 0 0 0.4rem 0;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.batch-buttons {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.batch-btn {
+    flex: 1;
+    padding: 0.4rem 0.5rem;
+    background: rgba(60, 50, 80, 0.5);
+    border: 1px solid rgba(150, 100, 200, 0.2);
+    color: #aaa;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.batch-btn:hover:not(.disabled) {
+    background: rgba(80, 60, 100, 0.6);
+    color: #c8a0ff;
+}
+
+.batch-btn.active {
+    background: rgba(150, 100, 200, 0.4);
+    border-color: rgba(150, 100, 200, 0.6);
+    color: #fff;
+}
+
+.batch-btn.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.batch-info {
+    margin: 0.4rem 0 0 0;
+    font-size: 0.7rem;
+    color: #888;
+    text-align: center;
+}

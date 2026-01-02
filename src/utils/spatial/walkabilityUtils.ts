@@ -3,8 +3,8 @@
  * Utilities for determining tile walkability and pathfinding in towns.
  */
 
-import { TownMap, TileType } from '../types/realmsmith';
-import { TownPosition, WALKABLE_TILE_TYPES, BLOCKING_TILE_TYPES } from '../types/town';
+import { TownMap, TileType } from '../../types/realmsmith';
+import { TownPosition, WALKABLE_TILE_TYPES, BLOCKING_TILE_TYPES } from '../../types/town';
 
 /**
  * Check if a specific tile type is walkable

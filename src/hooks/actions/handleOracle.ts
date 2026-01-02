@@ -36,12 +36,12 @@ export async function handleOracle({
 
     // The Oracle's response can now also trigger goal updates if the information
     // it provides is directly relevant to an NPC's objective.
+    // TODO(lint-intent): Oracle responses should use a dedicated generator; for now reuse social outcome with a generic prompt.
     const oracleResponseResult = await GeminiService.generateSocialCheckOutcome(
-        'divination', // Using a generic skill type for the Oracle interaction
-        'The Oracle',
-        true, // Assume the Oracle always provides a "successful" (i.e., useful) response
-        generalActionContext, // This context includes NPC goals
-        gameState.devModelOverride,
+        null,
+        null,
+        `oracle response: ${playerQuery} | context: ${generalActionContext}`,
+        gameState.devModelOverride ?? null,
     );
 
     addGeminiLog('generateSocialCheckOutcome (oracle)', oracleResponseResult.data?.promptSent || oracleResponseResult.metadata?.promptSent || "", oracleResponseResult.data?.rawResponse || oracleResponseResult.metadata?.rawResponse || oracleResponseResult.error || "");

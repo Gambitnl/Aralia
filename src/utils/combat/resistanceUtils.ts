@@ -57,8 +57,8 @@ export class ResistanceCalculator {
          elementalAdeptChoice = feat?.selection?.selectedDamageType;
       } else {
          // Legacy structure: Record<string, any>
-         // @ts-expect-error - Handling legacy type safely
-         elementalAdeptChoice = source.featChoices['elemental_adept']?.selectedDamageType;
+         const legacy = (source.featChoices as Record<string, any>)['elemental_adept'];
+         elementalAdeptChoice = legacy?.selectedDamageType;
       }
     }
 

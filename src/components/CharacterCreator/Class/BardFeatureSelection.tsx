@@ -54,7 +54,6 @@ const BardFeatureSelection: React.FC<BardFeatureSelectionProps> = ({
   const isSubmitDisabled = selectedCantripIds.size !== knownCantrips || selectedSpellL1Ids.size !== knownSpellsL1;
 
   const motionProps: MotionProps = {
-    key: "bardFeatures",
     initial: { x: 300, opacity: 0 },
     animate: { x: 0, opacity: 1 },
     exit: { x: -300, opacity: 0 },

@@ -15,7 +15,7 @@ interface VillageSceneProps {
 
 const TILE_SIZE = 16;
 
-const baseTileFill: Record<VillageTileType, string> = {
+const baseTileFill: Partial<Record<VillageTileType, string>> = {
   grass: '#14532d',
   path: villageBuildingVisuals.path.colors[0],
   plaza: villageBuildingVisuals.plaza.colors[0],
@@ -28,7 +28,41 @@ const baseTileFill: Record<VillageTileType, string> = {
   shop_blacksmith: villageBuildingVisuals.shop_blacksmith.colors[0],
   shop_general: villageBuildingVisuals.shop_general.colors[0],
   shop_tavern: villageBuildingVisuals.shop_tavern.colors[0],
-  shop_temple: villageBuildingVisuals.shop_temple.colors[0]
+  shop_temple: villageBuildingVisuals.shop_temple.colors[0],
+  water: '#0ea5e9',
+  trading_post: villageBuildingVisuals.market.colors[0],
+  stone: '#94a3b8',
+  shipwright: '#334155',
+  fountain: '#38bdf8',
+  statue: '#f97316',
+  dock: '#0f172a',
+  inn: '#4b5563',
+  bank: '#334155',
+  guildhall: '#1f2937',
+  stable: '#6b7280',
+  apartment: '#475569',
+  manor: '#6b7280',
+  estate: '#6b7280',
+  watchtower: '#94a3b8',
+  gatehouse: '#eab308',
+  lighthouse: '#cbd5e1',
+  fish_market: villageBuildingVisuals.market.colors[0],
+  magic_academy: '#7c3aed',
+  arcane_tower: '#5b21b6',
+  healers_hut: '#16a34a',
+  alchemist_shop: '#f59e0b',
+  treehouse_small: '#166534',
+  treehouse_large: '#14532d',
+  ancient_circle: '#a3a3a3',
+  weaver_hall: '#6d28d9',
+  stone_hall_small: '#64748b',
+  stone_hall_large: '#475569',
+  forge_temple: '#ef4444',
+  underground_entrance: '#111827',
+  hide_tent: '#92400e',
+  longhouse: '#78350f',
+  totem_pole: '#b45309',
+  war_memorial: '#475569'
 };
 
 // Keep merchant type lookup at module scope so clicks do not recreate the map
@@ -41,7 +75,7 @@ const shopMerchantTypeMap: Partial<Record<VillageTileType, string>> = {
   shop_temple: 'Temple'
 };
 
-const interactionLabels: Record<VillageTileType, string> = {
+const interactionLabels: Partial<Record<VillageTileType, string>> = {
   grass: 'Wander the Green',
   path: 'Stroll the Lane',
   plaza: 'Visit Central Plaza',

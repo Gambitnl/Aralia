@@ -32,7 +32,7 @@ export class NarrativeCommand implements SpellCommand {
                 {
                     id: generateId(),
                     timestamp: Date.now(),
-                    type: 'info',
+                    type: 'status',
                     message: `[DM]: ${this.narrative}`,
                     characterId: this.context.caster.id
                 }

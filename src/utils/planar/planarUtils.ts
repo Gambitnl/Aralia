@@ -1,7 +1,7 @@
 
-import { Plane, Portal, PortalRequirement } from '../types/planes';
-import { PLANES } from '../data/planes';
-import { Location, GameState, MagicSchool } from '../types/index';
+import { Plane, Portal, PortalRequirement } from '../../types/planes';
+import { PLANES } from '../../data/planes';
+import { Location, GameState, MagicSchool } from '../../types/index';
 
 /**
  * Retrieves the plane object by its ID.

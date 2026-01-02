@@ -1,16 +1,26 @@
 {
   "meta": {
-    "generatedAt": "2025-12-22T15:30:45.543Z",
+    "generatedAt": "2026-01-02T09:40:15.886Z",
     "totalCodeFiles": 1610,
     "totalTestFiles": 209,
-    "claimedFiles": 1610,
-    "orphanedFiles": 0,
+    "claimedFiles": 1602,
+    "orphanedFiles": 8,
     "missingFiles": 0,
     "ambiguousFiles": 0,
-    "coveragePercent": 100
+    "coveragePercent": 99.5
   },
-  "orphaned": [],
-  "orphanedTests": [],
+  "orphaned": [
+    "src/components/LoadGameModal.tsx",
+    "src/components/LoadGameTransition.tsx",
+    "src/components/PartyEditorModal.tsx",
+    "src/components/PartyOverlay.tsx",
+    "src/components/PartyPane.tsx",
+    "src/systems/naval/voyage/VoyageManager.ts",
+    "src/systems/spells/mechanics/ResistanceCalculator.ts"
+  ],
+  "orphanedTests": [
+    "src/systems/spells/mechanics/__tests__/ResistanceCalculator.test.ts"
+  ],
   "missing": [],
   "ambiguous": [],
   "byDomain": {
@@ -21,22 +31,22 @@
       "testFiles": 4
     },
     "character-creator": {
-      "claimedFiles": 75,
+      "claimedFiles": 78,
       "validFiles": 73,
       "missingFiles": 0,
       "testFiles": 6
     },
     "character-sheet": {
-      "claimedFiles": 20,
-      "validFiles": 20,
+      "claimedFiles": 21,
+      "validFiles": 17,
       "missingFiles": 0,
-      "testFiles": 1
+      "testFiles": 3
     },
     "combat": {
-      "claimedFiles": 85,
+      "claimedFiles": 100,
       "validFiles": 82,
       "missingFiles": 0,
-      "testFiles": 24
+      "testFiles": 27
     },
     "commands": {
       "claimedFiles": 30,
@@ -45,19 +55,25 @@
       "testFiles": 13
     },
     "core-systems": {
-      "claimedFiles": 151,
-      "validFiles": 145,
+      "claimedFiles": 150,
+      "validFiles": 143,
       "missingFiles": 0,
       "testFiles": 32
     },
     "crafting-economy": {
-      "claimedFiles": 17,
+      "claimedFiles": 34,
       "validFiles": 15,
       "missingFiles": 0,
-      "testFiles": 5
+      "testFiles": 8
+    },
+    "creature-taxonomy": {
+      "claimedFiles": 1,
+      "validFiles": 0,
+      "missingFiles": 0,
+      "testFiles": 0
     },
     "data-pipelines": {
-      "claimedFiles": 39,
+      "claimedFiles": 41,
       "validFiles": 39,
       "missingFiles": 0,
       "testFiles": 6
@@ -69,32 +85,38 @@
       "testFiles": 7
     },
     "glossary-data": {
-      "claimedFiles": 348,
+      "claimedFiles": 352,
       "validFiles": 343,
       "missingFiles": 0,
       "testFiles": 1
     },
     "glossary": {
-      "claimedFiles": 18,
+      "claimedFiles": 23,
       "validFiles": 16,
       "missingFiles": 0,
       "testFiles": 5
     },
     "intrigue-crime": {
-      "claimedFiles": 33,
+      "claimedFiles": 38,
       "validFiles": 31,
       "missingFiles": 0,
-      "testFiles": 11
+      "testFiles": 12
+    },
+    "intrigue": {
+      "claimedFiles": 0,
+      "validFiles": 0,
+      "missingFiles": 0,
+      "testFiles": 0
     },
     "items-trade-inventory": {
-      "claimedFiles": 20,
+      "claimedFiles": 29,
       "validFiles": 18,
       "missingFiles": 0,
-      "testFiles": 5
+      "testFiles": 6
     },
     "naval-underdark": {
-      "claimedFiles": 29,
-      "validFiles": 27,
+      "claimedFiles": 31,
+      "validFiles": 26,
       "missingFiles": 0,
       "testFiles": 9
     },
@@ -105,20 +127,20 @@
       "testFiles": 11
     },
     "planes-travel": {
-      "claimedFiles": 36,
+      "claimedFiles": 41,
       "validFiles": 34,
       "missingFiles": 0,
       "testFiles": 17
     },
     "puzzles-quests-rituals": {
-      "claimedFiles": 28,
+      "claimedFiles": 31,
       "validFiles": 25,
       "missingFiles": 0,
       "testFiles": 10
     },
     "spells": {
-      "claimedFiles": 528,
-      "validFiles": 525,
+      "claimedFiles": 529,
+      "validFiles": 523,
       "missingFiles": 0,
       "testFiles": 21
     },
@@ -149,6 +171,9 @@
   },
   "testCoverage": {
     "domainsWithTests": 22,
-    "domainsWithoutTests": []
+    "domainsWithoutTests": [
+      "creature-taxonomy",
+      "intrigue"
+    ]
   }
 }

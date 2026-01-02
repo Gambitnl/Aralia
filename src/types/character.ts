@@ -298,7 +298,7 @@ export interface FeatChoice {
   selectedSpells?: string[];
   selectedCantrips?: string[];        // Cantrips chosen for spell-granting feats
   selectedLeveledSpells?: string[];   // Leveled spells chosen for spell-granting feats
-  selectedSpellSource?: MagicInitiateSource; // Class source for Magic Initiate
+  selectedSpellSource?: MagicInitiateSource | string; // Class source for Magic Initiate (allow string until UI restricts)
   selectedSkills?: string[];
   selectedWeapons?: string[];
   selectedTools?: string[];
@@ -386,6 +386,7 @@ export interface PlayerCharacter {
   limitedUses?: LimitedUses;
   activeEffects?: ActiveEffect[]; // For temporary spell effects (e.g. Shield, Mage Armor)
   statusEffects: StatusEffect[]; // Required for status effects
+  conditions?: string[]; // TODO(lint-intent): replace with richer condition model once defined
   selectedFightingStyle?: FightingStyle;
   selectedDivineOrder?: 'Protector' | 'Thaumaturge';
   selectedDruidOrder?: 'Magician' | 'Warden';

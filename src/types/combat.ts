@@ -5,7 +5,7 @@
  * used throughout the Aralia RPG application's battle map feature.
  */
 import type { AbilityScoreName, CharacterStats } from './core';
-import type { Class, SpellbookData, SpellSlots } from './character';
+import type { Class, SpellbookData, SpellSlots, FeatChoice } from './character';
 import type { Item } from './items';
 // TODO(lint-intent): 'SavingThrowAbility' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
@@ -37,11 +37,17 @@ export interface TargetConditionFilter {
 export interface StatusEffect {
   id: string;
   name: ConditionName | string;
-  type: 'buff' | 'debuff' | 'neutral';
-  description: string;
+  type: 'buff' | 'debuff' | 'neutral' | 'dot' | 'hot';
+  description?: string;
   duration: number; // in rounds
   source?: string; // Ability or spell name
   icon?: string;
+  // Simple effect structure (for spellAbilityFactory compatibility)
+  effect?: {
+    type: 'stat_modifier' | 'damage_per_turn' | 'heal_per_turn' | 'skip_turn' | 'condition';
+    value?: number;
+    stat?: string;
+  };
   // Mechanical effects
   modifiers?: {
     stat?: AbilityScoreName;
@@ -164,6 +170,8 @@ export interface CombatCharacter {
    * Used for conditional logic in commands (e.g., Slasher slows on hit).
    */
   feats?: string[];
+  // TODO(lint-intent): Track feat choice selections until combat + narrative actors share a single model.
+  featChoices?: Record<string, FeatChoice>;
 
   /** Elemental states (Wet, Frozen, etc.) affecting the character */
   stateTags?: StateTag[];
@@ -188,6 +196,11 @@ export interface CombatCharacter {
   riders?: ActiveRider[];   // Active damage riders (smites, hex, etc)
   damagedThisTurn?: boolean; // Track if character took damage this turn (for concentration/repeat saves)
   savePenaltyRiders?: SavePenaltyRider[]; // Save penalties from Mind Sliver etc.
+  // Optional bookkeeping for analytics/logs; these were used in factories/tests.
+  damageDealt?: unknown[];
+  healingDone?: unknown[];
+  // Some mocks still pass extra save proficiencies; keep optional until model is unified.
+  additionalSavingThrowProficiencies?: AbilityScoreName[];
 }
 
 export type AbilityType = 'attack' | 'spell' | 'skill' | 'movement' | 'utility';

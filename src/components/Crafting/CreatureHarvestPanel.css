@@ -1,0 +1,193 @@
+/**
+ * @file src/components/Crafting/CreatureHarvestPanel.css
+ * Styles for the CreatureHarvestPanel component.
+ */
+
+.creature-harvest-panel {
+    background: linear-gradient(135deg, rgba(35, 25, 25, 0.95), rgba(25, 15, 15, 0.98));
+    border: 1px solid rgba(180, 100, 100, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    max-width: 500px;
+    color: #e8e0e0;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(180, 100, 100, 0.1);
+}
+
+.creature-harvest-panel.error {
+    border-color: #f44336;
+    text-align: center;
+}
+
+.harvest-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(180, 100, 100, 0.2);
+}
+
+.harvest-header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #df8f8f;
+    text-shadow: 0 0 10px rgba(200, 100, 100, 0.3);
+}
+
+.harvest-header .close-btn {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.harvest-header .close-btn:hover {
+    background: rgba(255, 100, 100, 0.2);
+    color: #ff6666;
+}
+
+.creature-info {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    align-items: center;
+}
+
+.cr-badge {
+    background: rgba(180, 100, 100, 0.3);
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    color: #df8f8f;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.locations {
+    color: #888;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.parts-list {
+    margin-bottom: 1rem;
+}
+
+.parts-list h3 {
+    margin: 0 0 0.75rem 0;
+    font-size: 1rem;
+    color: #df8f8f;
+}
+
+.part-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: rgba(40, 30, 30, 0.6);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    border: 1px solid rgba(180, 100, 100, 0.15);
+    transition: all 0.2s;
+}
+
+.part-item:hover:not(.harvested) {
+    background: rgba(60, 40, 40, 0.6);
+}
+
+.part-item.harvested {
+    opacity: 0.5;
+}
+
+.part-info {
+    flex: 1;
+}
+
+.part-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.tool-icon {
+    font-size: 1.1rem;
+}
+
+.part-name {
+    font-weight: 600;
+    color: #e8e0e0;
+}
+
+.part-rarity {
+    font-size: 0.8rem;
+    text-transform: capitalize;
+    margin-left: auto;
+}
+
+.part-description {
+    margin: 0.25rem 0 0.5rem 0;
+    font-size: 0.85rem;
+    color: #999;
+    font-style: italic;
+}
+
+.part-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.part-item .harvest-btn {
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #5a2a2a, #4a1a1a);
+    color: #df8f8f;
+    border: 1px solid rgba(180, 100, 100, 0.4);
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.part-item .harvest-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #6a3a3a, #5a2a2a);
+    box-shadow: 0 4px 12px rgba(180, 100, 100, 0.3);
+}
+
+.part-item .harvest-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.harvest-log {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.harvest-log h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    color: #df8f8f;
+}
+
+.harvest-log ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.harvest-log li {
+    padding: 0.35rem 0;
+    font-size: 0.85rem;
+    color: #aaa;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}

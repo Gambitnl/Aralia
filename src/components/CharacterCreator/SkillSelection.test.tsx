@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import SkillSelection from './SkillSelection';
 // TODO(lint-intent): 'Skill' is unused in this test; use it in the assertion path or remove it.
 import { Skill as _Skill, AbilityScores, Class, Race, RacialSelectionData } from '../../types';

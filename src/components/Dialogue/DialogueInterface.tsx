@@ -1,8 +1,8 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { DialogueSession, ConversationTopic, ProcessTopicResult } from '../../types/dialogue';
+import { DialogueSession, ConversationTopic } from '../../types/dialogue';
 import { GameState, NPC, PlayerCharacter } from '../../types';
-import { getAvailableTopics, processTopicSelection } from '../../services/dialogueService';
+import { getAvailableTopics, processTopicSelection, ProcessTopicResult } from '../../services/dialogueService';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface DialogueInterfaceProps {
@@ -28,8 +28,7 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
     onTopicOutcome,
     onGenerateResponse
 }) => {
-    const modalRef = useRef<HTMLDivElement>(null);
-    useFocusTrap(modalRef, isOpen);
+    const modalRef = useFocusTrap<HTMLDivElement>(isOpen, onClose);
 
     const [currentResponse, setCurrentResponse] = useState<string | null>(gameState.lastNpcResponse || `"${npc.name} greets you."`);
     const [isThinking, setIsThinking] = useState(false);
@@ -53,7 +52,11 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
             // Simplified: Use raw ability score or proficiency logic if available
             // For now, assuming raw score modifier: (Score - 10) / 2
             // TODO: Use real skill system accessor
-            skillMod = Math.floor(((playerCharacter.stats.charisma || 10) - 10) / 2);
+            const charismaScore =
+                playerCharacter.abilityScores?.Charisma ??
+                playerCharacter.finalAbilityScores?.Charisma ??
+                10;
+            skillMod = Math.floor((charismaScore - 10) / 2);
         }
 
         const result = processTopicSelection(topic.id, gameState, session, skillMod, npc);
@@ -152,7 +155,10 @@ export const DialogueInterface: React.FC<DialogueInterfaceProps> = ({
                                         </span>
                                         {topic.skillCheck && (
                                             <span className="text-xs px-2 py-1 rounded bg-stone-800 text-stone-500 border border-stone-700">
-                                                {topic.skillCheck.skill} (DC {topic.skillCheck.dc})
+                                                {typeof topic.skillCheck.skill === 'string'
+                                                    ? topic.skillCheck.skill
+                                                    : topic.skillCheck.skill.name}{' '}
+                                                (DC {topic.skillCheck.dc})
                                             </span>
                                         )}
                                     </button>

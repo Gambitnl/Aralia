@@ -41,7 +41,8 @@ export async function handleGeminiCustom({
   const targetNpcIdForGossip = payload?.targetNpcId || null;
   
   // Check if it's a social skill check
-  if (payload?.check && payload.targetNpcId) {
+  const checkSkill = payload?.check;
+  if (checkSkill && payload.targetNpcId) {
     const player = gameState.party[0];
     const npc = NPCS[payload.targetNpcId];
     if (!player || !npc) {
@@ -49,7 +50,7 @@ export async function handleGeminiCustom({
       return;
     }
     
-    const skillId = Object.keys(SKILLS_DATA).find(key => SKILLS_DATA[key].name.toLowerCase() === payload.check.toLowerCase());
+    const skillId = Object.keys(SKILLS_DATA).find(key => SKILLS_DATA[key].name.toLowerCase() === checkSkill.toLowerCase());
     const skill = skillId ? SKILLS_DATA[skillId] : null;
 
     if (!skill) {
@@ -81,11 +82,10 @@ export async function handleGeminiCustom({
     addMessage(`(DC ${finalDc}) You attempt to ${skill.name}... Rolled ${totalRoll} (${d20Roll} + ${abilityModifier} + ${proficiencyBonus})`, "system");
 
     const outcomeResult = await GeminiService.generateSocialCheckOutcome(
-      skill.name,
-      npc.name,
-      wasSuccess,
-      generalActionContext,
-      gameState.devModelOverride,
+      npcMemory as any, // TODO(preserve-lint): reconcile NpcMemory vs NPCMemory shape
+      null, // TODO(preserve-lint): thread real village context if available
+      wasSuccess ? `${skill.name} success` : `${skill.name} fail`,
+      gameState.devModelOverride ?? null,
     );
     
     addGeminiLog('generateSocialCheckOutcome', outcomeResult.data?.promptSent || outcomeResult.metadata?.promptSent || "", outcomeResult.data?.rawResponse || outcomeResult.metadata?.rawResponse || outcomeResult.error || "");
@@ -95,11 +95,10 @@ export async function handleGeminiCustom({
     }
 
     if (outcomeResult.data) {
-        if (outcomeResult.data.text) {
-            addMessage(outcomeResult.data.text, "system");
-            // [Linker] Ensure entities mentioned in social outcomes exist
-            await resolveAndRegisterEntities(outcomeResult.data.text, gameState, dispatch, addGeminiLog);
-        }
+        const outcomeText = outcomeResult.data.text || 'The NPC reacts subtly.';
+        addMessage(outcomeText, "system");
+        // [Linker] Ensure entities mentioned in social outcomes exist
+        await resolveAndRegisterEntities(outcomeText, gameState, dispatch, addGeminiLog);
         dispatch({ type: 'UPDATE_NPC_DISPOSITION', payload: { npcId: npc.id, amount: outcomeResult.data.dispositionChange } });
         
         outcomeFact = {
@@ -138,7 +137,11 @@ export async function handleGeminiCustom({
     }
 
   } else if (payload?.geminiPrompt) {
-    const outcomeResult = await GeminiService.generateActionOutcome(payload.geminiPrompt as string, generalActionContext, true, undefined, gameState.devModelOverride);
+    const outcomeResult = await GeminiService.generateActionOutcome(
+      payload.geminiPrompt as string,
+      generalActionContext,
+      gameState.devModelOverride ?? null
+    );
     
     addGeminiLog('generateActionOutcome (custom)', outcomeResult.data?.promptSent || outcomeResult.metadata?.promptSent || "", outcomeResult.data?.rawResponse || outcomeResult.metadata?.rawResponse || outcomeResult.error || "");
     
@@ -175,7 +178,8 @@ export async function handleGeminiCustom({
   }
   
   if (payload?.eventResidue) {
-      const { text, discoveryDc } = payload.eventResidue;
+      const residue = payload.eventResidue as { text?: string; discoveryDc?: number };
+      const { text, discoveryDc } = residue;
       const location = getCurrentLocation();
       const residentNpcId = location.npcIds?.[0];
 

@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { createEmptyMemory, addInteraction, decayMemories, getRelevantMemories, learnFact } from '../memoryUtils';
-import { MemoryImportance, Interaction, Fact } from '../../types/memory';
+import { MemoryImportance, Interaction, Fact } from '../../../types/memory';
 
 describe('memoryUtils', () => {
     it('creates an empty memory', () => {

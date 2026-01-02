@@ -6,11 +6,11 @@
  * Procedural generation for Noble Houses, including names, mottos, relationships, members, and secrets.
  */
 
-import { FactionRank } from '../types/factions';
-import { NobleHouse, NobleMember, NobleRole } from '../types/noble';
-import { Secret } from '../types/identity';
-import { SeededRandom } from './seededRandom';
-import { SecretGenerator } from '../systems/intrigue/SecretGenerator';
+import { Faction, FactionRank } from '../../types/factions';
+import { NobleHouse, NobleMember, NobleRole } from '../../types/noble';
+import { Secret } from '../../types/identity';
+import { SeededRandom } from '../random/seededRandom';
+import { SecretGenerator } from '../../systems/intrigue/SecretGenerator';
 
 // -----------------------------------------------------------------------------
 // Data Tables
@@ -260,7 +260,7 @@ export function generateNobleHouse(options: NobleHouseGenerationOptions): NobleH
       // TODO(lint-intent): The any on 'mockFaction' hides the intended shape of this data.
       // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
       // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-      const mockFaction: unknown = { id: houseId, name: fullName };
+      const mockFaction = { id: houseId, name: fullName } as Faction;
       const secret = secretGen.generateFactionSecret(mockFaction, []);
       secret.tags.push('political');
       houseSecrets.push(secret);

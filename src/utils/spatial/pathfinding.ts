@@ -3,9 +3,9 @@
  * Implements the A* pathfinding algorithm for grid-based movement.
  * Updated to support D&D 5e Variant 5-10-5 diagonal movement.
  */
-import { BattleMapTile, BattleMapData } from '../types/combat';
-import { calculateMovementCost } from './movementUtils';
-import { applyMovementCostModifiers, MovementConfig } from './physicsUtils';
+import { BattleMapTile, BattleMapData } from '../../types/combat';
+import { calculateMovementCost } from '../combat/movementUtils';
+import { applyMovementCostModifiers, MovementConfig } from '../combat/physicsUtils';
 
 interface PathNode {
   tile: BattleMapTile;

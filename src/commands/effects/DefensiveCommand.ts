@@ -44,6 +44,7 @@ export class DefensiveCommand implements SpellCommand {
       const currentCharacter = newState.characters[targetIndex];
       const updatedCharacter = { ...currentCharacter };
       let logMessage = '';
+      const effectValue = this.effect.value ?? 0;
 
       switch (this.effect.defenseType) {
         case 'ac_bonus': {
@@ -51,27 +52,27 @@ export class DefensiveCommand implements SpellCommand {
           const activeEffect = this.createActiveEffect(
             updatedCharacter.id,
             this.effect.defenseType,
-            this.effect.value,
+            effectValue,
             state.turnState.currentTurn
           );
           updatedCharacter.activeEffects = [...(updatedCharacter.activeEffects || []), activeEffect];
 
           // Mechanically update AC (simplified, real system might re-calc from effects)
-          updatedCharacter.armorClass = (updatedCharacter.armorClass || 10) + this.effect.value;
-          logMessage = `${this.context.spellName} increases AC by ${this.effect.value}`;
+          updatedCharacter.armorClass = (updatedCharacter.armorClass || 10) + effectValue;
+          logMessage = `${this.context.spellName} increases AC by ${effectValue}`;
           break;
         }
 
         case 'set_base_ac': {
           // Set Base AC (e.g. Mage Armor: 13 + Dex)
           // Calculation: Base Value + Dex Modifier
-          const dexMod = getAbilityModifierValue(updatedCharacter.stats.dexterity);  
-          const newAC = this.effect.value + dexMod;
+          const dexMod = getAbilityModifierValue(updatedCharacter.stats.dexterity);
+          const newAC = effectValue + dexMod;
 
           const activeEffect = this.createActiveEffect(
             updatedCharacter.id,
             this.effect.defenseType,
-            this.effect.value,
+            effectValue,
             state.turnState.currentTurn
           );
           updatedCharacter.activeEffects = [...(updatedCharacter.activeEffects || []), activeEffect];
@@ -84,7 +85,7 @@ export class DefensiveCommand implements SpellCommand {
         case 'temporary_hp': {
           // Temporary HP rules: Do not stack. Keep the higher value.
           const currentTemp = updatedCharacter.tempHP || 0;
-          const newTemp = this.effect.value;
+          const newTemp = effectValue;
 
           if (newTemp > currentTemp) {
             updatedCharacter.tempHP = newTemp;
@@ -107,8 +108,8 @@ export class DefensiveCommand implements SpellCommand {
             id: uuidv4(),
             timestamp: Date.now(),
             message: logMessage,
-            type: 'info',
-            sourceId: this.context.caster.id
+            type: 'status',
+            characterId: this.context.caster.id
           }
         ];
       }
@@ -123,7 +124,7 @@ export class DefensiveCommand implements SpellCommand {
       spellId: this.context.spellId,
       casterId: this.context.caster.id,
       sourceName: this.context.spellName,
-      type: type, // 'ac_bonus' or 'set_base_ac'
+      type: 'buff', // Defensive buffs are positive; switch to debuff when implementing curses.
       duration: this.effect.duration || { type: 'rounds', value: 1 },
       startTime: currentTurn,
       mechanics: {

@@ -340,6 +340,22 @@ export function useGlossaryModal(
         }
     }, []);
 
+    const handleMaximize = useCallback((spacer: number = 20) => {
+        const width = window.innerWidth - (spacer * 2);
+        const height = window.innerHeight - (spacer * 2);
+
+        setModalSize({ width, height });
+        setModalPosition({ left: spacer, top: spacer });
+
+        // Also reset columns to avoid weird ratios
+        const listElement = document.querySelector('.glossary-list-container') as HTMLElement;
+        const entryElement = document.querySelector('.glossary-entry-container') as HTMLElement;
+        if (listElement && entryElement) {
+            listElement.style.width = '';
+            entryElement.style.width = '';
+        }
+    }, []);
+
     // Initialize column widths when modal opens
     useEffect(() => {
         if (isOpen) {
@@ -363,5 +379,6 @@ export function useGlossaryModal(
         handleDragStart,
         handleColumnResizeStart,
         handleResetLayout,
+        handleMaximize,
     };
 }

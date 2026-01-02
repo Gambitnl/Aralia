@@ -7,7 +7,7 @@ import { motion, MotionProps } from 'framer-motion';
 // TODO(lint-intent): 'GameState' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { PlayerCharacter, MissingChoice, GameState as _GameState } from '../../types';
+import { PlayerCharacter, MissingChoice, GameState as _GameState, Companion } from '../../types';
 import PartyPane from './PartyPane';
 import { RelationshipsPane } from './RelationshipsPane';
 import { COMPANIONS } from '../../constants'; // Fallback
@@ -22,10 +22,7 @@ interface PartyOverlayProps {
   party: PlayerCharacter[];
   onViewCharacterSheet: (character: PlayerCharacter) => void;
   onFixMissingChoice: (character: PlayerCharacter, missing: MissingChoice) => void;
-  // TODO(lint-intent): The any on this value hides the intended shape of this data.
-  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-  companions?: Record<string, unknown>; // Optional for now
+      companions?: Record<string, Companion>; // Optional for now
 }
 
 type Tab = 'party' | 'relationships';
@@ -47,7 +44,7 @@ const PartyOverlay: React.FC<PartyOverlayProps> = ({ isOpen, onClose, party, onV
   const [activeTab, setActiveTab] = useState<Tab>('party');
   
   // Use passed companions or fallback to static data if not provided (e.g. from tests/legacy)
-  const activeCompanions = companions || COMPANIONS;
+      const activeCompanions = companions || (COMPANIONS as Record<string, Companion>);
 
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {

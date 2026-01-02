@@ -4,9 +4,9 @@
  * Utilities for validating character data and detecting missing choices
  * that may result from AI generation or legacy saves.
  */
-import { PlayerCharacter, MissingChoice } from '../types';
-import { RACE_DATA_BUNDLE } from '../data/races/index';
-import { RELEVANT_SPELLCASTING_ABILITIES } from '../data/dndData';
+import { PlayerCharacter, MissingChoice } from '../../types';
+import { RACE_DATA_BUNDLE } from '../../data/races/index';
+import { RELEVANT_SPELLCASTING_ABILITIES } from '../../data/dndData';
 
 export const validateCharacterChoices = (character: PlayerCharacter): MissingChoice[] => {
   const missingChoices: MissingChoice[] = [];

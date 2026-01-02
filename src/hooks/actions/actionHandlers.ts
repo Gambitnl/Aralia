@@ -218,14 +218,15 @@ export function buildActionHandlers({
     },
     SHORT_REST: () => {
       handleShortRest({ dispatch, addMessage });
-    },
-    wait: (action) => {
-      if (action.payload?.seconds && action.payload.seconds > 0) {
-        const durationString = formatDuration(action.payload.seconds);
+  },
+  wait: (action) => {
+      const seconds = Number((action.payload as { seconds?: number } | undefined)?.seconds ?? 0);
+      if (seconds > 0) {
+        const durationString = formatDuration(seconds);
         addMessage(`You wait for ${durationString}. Time passes.`, 'system');
-        dispatch({ type: 'ADVANCE_TIME', payload: { seconds: action.payload.seconds } });
+        dispatch({ type: 'ADVANCE_TIME', payload: { seconds } });
       }
-    },
+  },
 
     // System/UI actions (handleSystemAndUi.ts) and persistence (handleSaveGame/handleGoToMainMenu).
     save_game: async () => {
@@ -266,6 +267,9 @@ export function buildActionHandlers({
     },
     TOGGLE_QUEST_LOG: () => {
       handleToggleQuestLog(dispatch);
+    },
+    SET_DEV_MODE_ENABLED: (action) => {
+      dispatch({ type: 'SET_DEV_MODE_ENABLED', payload: action.payload?.enabled as boolean });
     },
 
     // Merchant actions are inline because they only dispatch local UI state updates.
