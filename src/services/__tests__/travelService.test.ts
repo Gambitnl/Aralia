@@ -9,17 +9,28 @@ import { Item } from '../../types/items';
 const mockChar = (id: string, speed: number = 30): PlayerCharacter => ({
   id,
   name: `Char_${id}`,
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  finalAbilityScores: { strength: 10 } as unknown,
+  race: { id: 'human', name: 'Human', description: '', traits: [] },
+  class: { id: 'fighter', name: 'Fighter', description: '', hitDie: 10, primaryAbility: ['Strength'], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] },
+  abilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+  finalAbilityScores: { Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 },
+  skills: [],
+  hp: 10,
+  maxHp: 10,
+  armorClass: 10,
   speed,
-// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-} as unknown);
+  darkvisionRange: 0,
+  transportMode: 'foot',
+  equippedItems: {},
+  statusEffects: [],
+});
 
 const mockItem = (weight: number): Item => ({
   id: 'item',
+  name: 'Item',
+  description: '',
   weight,
-// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-} as unknown);
+  type: 'treasure',
+});
 
 describe('TravelService', () => {
   describe('calculateTravel', () => {
@@ -96,12 +107,13 @@ describe('TravelService', () => {
 
   describe('generateTravelSummary', () => {
     it('formats message correctly', () => {
+      // TODO(2026-01-03 Codex-CLI): Keep this aligned with TravelResult shape when summary formatting expands.
       const result = {
         distanceMiles: 10.5,
         travelTimeHours: 3.5,
         travelSpeedMph: 3,
         encounterChecks: 1,
-        usedTerrain: 'open'
+        usedTerrain: 'open' as const
       };
 
       const summary = TravelService.generateTravelSummary(result, 'normal');

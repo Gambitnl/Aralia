@@ -173,6 +173,8 @@ export const initialGameState: GameState = {
         globalHeat: 0,
         localHeat: {},
         knownCrimes: [],
+        // TODO(2026-01-03 pass 4 Codex-CLI): bounties stubbed to satisfy NotorietyState; feed from crime system when available.
+        bounties: [],
     },
 
     worldHistory: createEmptyHistory(),
@@ -233,6 +235,14 @@ export const initialGameState: GameState = {
     // Dialogist: Dialogue System
     activeDialogueSession: null,
     isDialogueInterfaceOpen: false,
+
+    // Lockpicking Modal State
+    isLockpickingModalVisible: false,
+    activeLock: null,
+
+    // Dice Roller Modal State
+    isDiceRollerVisible: false,
+    visualDiceEnabled: true, // Default to enabled for immersive experience
 
     banterCooldowns: {},
 

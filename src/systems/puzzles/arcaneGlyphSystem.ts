@@ -11,13 +11,24 @@ import { rollDice } from '../../utils/combatUtils';
 import { getAbilityModifierValue } from '../../utils/statUtils';
 import { Trap, TrapDetectionResult, TrapDisarmResult } from './types';
 
+const getLegacyStats = (character: PlayerCharacter) => ({
+  strength: character.stats?.strength ?? character.finalAbilityScores?.Strength ?? character.abilityScores.Strength,
+  dexterity: character.stats?.dexterity ?? character.finalAbilityScores?.Dexterity ?? character.abilityScores.Dexterity,
+  constitution: character.stats?.constitution ?? character.finalAbilityScores?.Constitution ?? character.abilityScores.Constitution,
+  intelligence: character.stats?.intelligence ?? character.finalAbilityScores?.Intelligence ?? character.abilityScores.Intelligence,
+  wisdom: character.stats?.wisdom ?? character.finalAbilityScores?.Wisdom ?? character.abilityScores.Wisdom,
+  charisma: character.stats?.charisma ?? character.finalAbilityScores?.Charisma ?? character.abilityScores.Charisma,
+});
+
+const getClasses = (character: PlayerCharacter) => character.classes ?? (character.class ? [character.class] : []);
+
 /**
  * Checks if a character has proficiency with Arcana.
  * @param character The character to check.
  */
 function hasArcanaProficiency(character: PlayerCharacter): boolean {
   // Logic simplified for MVP: Classes with access to magical knowledge.
-  return character.classes.some(c =>
+  return getClasses(character).some(c =>
     ['Wizard', 'Sorcerer', 'Warlock', 'Bard', 'Druid', 'Cleric'].includes(c.name)
   );
 }
@@ -42,14 +53,15 @@ export function detectGlyph(
      return { success: false, margin: 0, trapDetected: false };
   }
 
-  const intMod = getAbilityModifierValue(character.stats.intelligence); // Arcana is Int-based
-  const wisMod = getAbilityModifierValue(character.stats.wisdom); // Perception to notice shimmering air
+  const stats = getLegacyStats(character);
+  const intMod = getAbilityModifierValue(stats.intelligence); // Arcana is Int-based
+  const wisMod = getAbilityModifierValue(stats.wisdom); // Perception to notice shimmering air
 
   // Arcana is usually the primary skill for magical detection via "Detect Magic" or studying runes.
   // Perception can spot the visual distortion.
 
   const isProficient = hasArcanaProficiency(character);
-  const profBonus = isProficient ? character.proficiencyBonus : 0;
+  const profBonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;
 
   // We use the better of Arcana (Int) or Perception (Wis) to NOTICE it.
   // But identifying it as a glyph usually requires Arcana.
@@ -84,9 +96,10 @@ export function disarmGlyph(
    }
 
    // Thieves tools don't help. This is pure magical theory.
-   const intMod = getAbilityModifierValue(character.stats.intelligence);
+   const stats = getLegacyStats(character);
+   const intMod = getAbilityModifierValue(stats.intelligence);
    const isProficient = hasArcanaProficiency(character);
-   const profBonus = isProficient ? character.proficiencyBonus : 0;
+   const profBonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;
 
    // Non-proficient characters might have Disadvantage or be unable to attempt?
    // For MVP, we allow attempt but they lack the bonus.
@@ -118,9 +131,10 @@ export function identifyGlyphSchool(
 ): string | null {
     if (!glyph.effect) return null;
 
-    const intMod = getAbilityModifierValue(character.stats.intelligence);
+    const stats = getLegacyStats(character);
+    const intMod = getAbilityModifierValue(stats.intelligence);
     const isProficient = hasArcanaProficiency(character);
-    const profBonus = isProficient ? character.proficiencyBonus : 0;
+    const profBonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;
 
     // DC is usually lower than Disarm but higher than Detect?
     // Let's assume DC = detectionDC + 2

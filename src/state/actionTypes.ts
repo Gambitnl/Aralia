@@ -3,7 +3,9 @@
  * Defines the main AppAction type for the application's state management.
  */
 import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality } from '../types';
-import { RitualState, RitualEvent } from '../types/rituals';
+import { RitualState } from '../types/rituals';
+// TODO(2026-01-03 pass 3 Codex-CLI): RitualEvent type not exported; using unknown stub until rituals schema is surfaced.
+type RitualEvent = unknown;
 import { CreateAliasPayload, EquipDisguisePayload, LearnSecretPayload } from './payloads/identityPayloads';
 import { DialogueSession } from '../types/dialogue';
 import { WorldHistoryEvent } from '../types/history';
@@ -160,8 +162,12 @@ export type AppAction =
   | { type: 'ADD_COMPANION_MEMORY'; payload: { companionId: string; memory: import('../types/companions').CompanionMemory } }
   | { type: 'UPDATE_BANTER_COOLDOWN'; payload: { banterId: string; timestamp: number } }
   // Notification Actions
-  | { type: 'ADD_NOTIFICATION'; payload: { type: 'success' | 'error' | 'info' | 'warning'; message: string; duration?: number } }
+  | { type: 'ADD_NOTIFICATION'; payload: { id?: string; type: 'success' | 'error' | 'info' | 'warning'; message: string; duration?: number } }
   | { type: 'REMOVE_NOTIFICATION'; payload: { id: string } }
+  // Temple/Religion Actions (legacy scaffolding until temple flow is fully typed)
+  | { type: 'USE_TEMPLE_SERVICE'; payload: { templeId: string; deityId: string; cost: number; effect: unknown } }
+  | { type: 'REMOVE_GOLD'; payload: number }
+  | { type: 'HEAL_CHARACTER'; payload: { characterId?: string; amount: number } }
   // Quest UI Actions
   | { type: 'TOGGLE_QUEST_LOG' }
   // Town Navigation Actions
@@ -231,4 +237,12 @@ export type AppAction =
   | { type: 'START_CONVERSATION'; payload: { companionIds: string[]; initialMessage: import('../types/conversation').ConversationMessage } }
   | { type: 'ADD_CONVERSATION_MESSAGE'; payload: import('../types/conversation').ConversationMessage }
   | { type: 'SET_CONVERSATION_PENDING'; payload: boolean }
-  | { type: 'END_CONVERSATION' };
+  | { type: 'END_CONVERSATION' }
+  // Lockpicking Modal Actions
+  | { type: 'TOGGLE_LOCKPICKING_MODAL' }
+  | { type: 'OPEN_LOCKPICKING_MODAL'; payload: import('../systems/puzzles/types').Lock }
+  | { type: 'CLOSE_LOCKPICKING_MODAL' }
+  // Dice Roller Actions
+  | { type: 'TOGGLE_DICE_ROLLER' }
+  | { type: 'SET_VISUAL_DICE_ENABLED'; payload: boolean };
+

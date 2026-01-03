@@ -26,6 +26,8 @@ export function generateLoot(monsters: Monster[]): LootResult {
 
     monsters.forEach(monster => {
       if (!monster) return;
+      const monsterId = (monster as any).id ?? 'unknown_monster';
+      // TODO(2026-01-03 Codex-CLI): Monster typings lack stable IDs; synthesize for logging until data/model carries identifiers.
 
       // 1. Gold generation based on CR
       let baseGold = 0;
@@ -42,7 +44,7 @@ export function generateLoot(monsters: Monster[]): LootResult {
       // TODO(lint-intent): Capture and log the parsing error if we need richer loot diagnostics.
       // TODO(lint-intent): Consider validating CR upstream to avoid runtime fallbacks here.
       } catch {
-        logger.warn("Error parsing monster CR for gold", { cr: monster.cr, id: monster.id });
+        logger.warn("Error parsing monster CR for gold", { cr: monster.cr, id: monsterId });
         baseGold = 0;
       }
       
@@ -80,7 +82,7 @@ export function generateLoot(monsters: Monster[]): LootResult {
           }
         }
       } catch (itemError) {
-        logger.warn("Error generating item drop for monster", { id: monster.id, error: itemError });
+        logger.warn("Error generating item drop for monster", { id: monsterId, error: itemError });
       }
     });
 

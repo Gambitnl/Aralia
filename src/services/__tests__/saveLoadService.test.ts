@@ -63,7 +63,7 @@ const mockGameState: GameState = {
     questLog: [],
     isQuestLogVisible: false,
     notifications: []
-};
+} as unknown as GameState;
 
 describe('SaveLoadService', () => {
     beforeEach(() => {

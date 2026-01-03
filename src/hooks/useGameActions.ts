@@ -134,7 +134,7 @@ export function useGameActions({
           // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
           // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
           // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-          addMessage(`Action type ${(action as unknown).type} not recognized.`, 'system');
+          addMessage(`Action type ${action.type} not recognized.`, 'system');
           dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
           dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
         }
@@ -142,8 +142,9 @@ export function useGameActions({
         // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
         // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
       } catch (err: unknown) {
-        addMessage(`Error processing action: ${err.message}`, 'system');
-        dispatch({ type: 'SET_ERROR', payload: err.message });
+        const msg = err instanceof Error ? err.message : String(err);
+        addMessage(`Error processing action: ${msg}`, 'system');        
+        dispatch({ type: 'SET_ERROR', payload: msg });
         dispatch({ type: 'SET_GEMINI_ACTIONS', payload: null });
         dispatch({ type: 'RESET_NPC_INTERACTION_CONTEXT' });
       } finally {

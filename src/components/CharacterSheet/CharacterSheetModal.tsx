@@ -14,12 +14,15 @@ import InventoryList from './InventoryList';
 import SkillDetailDisplay from './SkillDetailDisplay';
 import SpellbookOverlay from './SpellbookOverlay'; // Import the new SpellbookOverlay component
 import CharacterOverview from './CharacterOverview'; // Import the extracted component
+import CharacterDetailsTab from './CharacterDetailsTab';
+import { Companion } from '../../types/companions';
 // Glossary modal is nested under the Glossary folder to keep related UI together
 
 
 interface CharacterSheetModalProps {
   isOpen: boolean;
   character: PlayerCharacter | null;
+  companion?: Companion | null;
   inventory: Item[];
   gold: number;
   onClose: () => void;
@@ -27,7 +30,7 @@ interface CharacterSheetModalProps {
   onNavigateToGlossary?: (termId: string) => void; // For glossary navigation
 }
 
-type SheetTab = 'overview'; // Spellbook is now an overlay, not a tab view
+type SheetTab = 'overview' | 'details';
 
 const overlayMotion: MotionProps = {
   initial: { opacity: 0 },
@@ -46,6 +49,7 @@ const sheetMotion: MotionProps = {
 const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
   isOpen,
   character,
+  companion,
   inventory,
   gold,
   onClose,
@@ -125,6 +129,14 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
                 >
                   Overview
                 </button>
+                <button
+                  onClick={() => setActiveTab('details')}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'details' ? 'border-b-2 border-amber-400 text-amber-300' : 'text-gray-400 hover:text-white'}`}
+                  role="tab"
+                  aria-selected={activeTab === 'details'}
+                >
+                  Details
+                </button>
                 {hasSpells && (
                   <button
                     onClick={() => setIsSpellbookOpen(true)}
@@ -184,6 +196,9 @@ const CharacterSheetModal: React.FC<CharacterSheetModalProps> = ({
                   />
                 </div>
               </div>
+            )}
+            {activeTab === 'details' && (
+              <CharacterDetailsTab character={character} companion={companion} />
             )}
           </div>
         </motion.div>

@@ -2,8 +2,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { pollForPortrait } from '../PortraitService';
 
+type FetchMock = ReturnType<typeof vi.fn>;
+
 // Mock the global fetch
-global.fetch = vi.fn();
+global.fetch = vi.fn() as unknown as typeof fetch;
 
 describe('PortraitService', () => {
     beforeEach(() => {
@@ -14,8 +16,9 @@ describe('PortraitService', () => {
         const mockResponse = [
             { agent: 'Gemini', message: '#portrait_ready { "name": "Hero", "url": "http://example.com/img.png" }' }
         ];
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        (global.fetch as unknown).mockResolvedValue({
+        const fetchMock = global.fetch as unknown as FetchMock;
+        // TODO(2026-01-03 Codex-CLI): Replace loose fetch mock with typed helper once PortraitService stabilizes.
+        fetchMock.mockResolvedValue({
             json: async () => mockResponse
         });
 
@@ -27,8 +30,9 @@ describe('PortraitService', () => {
         const mockResponse = [
             { agent: 'Gemini', message: '#portrait_ready { "name": "Hero", "url": "http:// ... BROKEN JSON ... ' }
         ];
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        (global.fetch as unknown).mockResolvedValue({
+        const fetchMock = global.fetch as unknown as FetchMock;
+        // TODO(2026-01-03 Codex-CLI): Replace loose fetch mock with typed helper once PortraitService stabilizes.
+        fetchMock.mockResolvedValue({
             json: async () => mockResponse
         });
 

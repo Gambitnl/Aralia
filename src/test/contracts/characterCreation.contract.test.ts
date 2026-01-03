@@ -1,5 +1,5 @@
 import { describe, it, expect, expectTypeOf } from 'vitest';
-import { Class, FightingStyle, GiantAncestryBenefit, TieflingLegacyResistance } from '@/types/character';
+import { Class, FightingStyle, GiantAncestryBenefit, FiendishLegacy, FiendishLegacyType } from '@/types/character';
 
 describe('contract: character creation shapes', () => {
   it('Class requires core progress fields', () => {
@@ -30,15 +30,20 @@ describe('contract: character creation shapes', () => {
   });
 
   it('Ancestry/legacy helpers capture required fields', () => {
-    const resistance: TieflingLegacyResistance = { resistanceType: 'fire', cantripId: 'thaumaturgy' };
     const ancestry: GiantAncestryBenefit = {
-      id: 'cloud',
+      id: 'Cloud',
       name: 'Cloud',
-      description: 'Storm lineage',
-      ancestry: 'cloud',
-      benefit: 'Tempest',
+      description: 'Storm lineage'
     };
-    expectTypeOf(resistance).toMatchTypeOf<TieflingLegacyResistance>();
+    const legacy: FiendishLegacy = {
+      id: 'abyssal' as FiendishLegacyType,
+      name: 'Abyssal',
+      description: 'Legacy',
+      level1Benefit: { resistanceType: 'fire', cantripId: 'fire-bolt' },
+      level3SpellId: 'darkness',
+      level5SpellId: 'fear',
+    };
     expectTypeOf(ancestry).toMatchTypeOf<GiantAncestryBenefit>();
+    expectTypeOf(legacy).toMatchTypeOf<FiendishLegacy>();
   });
 });

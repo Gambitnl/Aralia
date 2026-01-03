@@ -77,7 +77,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
         case 'TRIGGER_DEITY_ACTION': {
             const { trigger } = action.payload;
             const updates: Record<string, import('../../types').DivineFavor> = {};
-            const messages: unknown[] = [];
+            const messages: GameState['messages'] = [];
             const timestamp = Date.now();
 
             // Iterate over all deities to see if they care about this action
@@ -132,7 +132,8 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
         }
 
         case 'USE_TEMPLE_SERVICE': {
-            const { templeId: _templeId, deityId, cost, effect } = action.payload;
+            const { templeId: _templeId, deityId, cost, effect } = action.payload as { templeId: string; deityId?: string; cost: number; effect: unknown };
+            const effectId = String(effect);
 
             // Deduct gold
             if (state.gold < cost) return {}; // Should be checked by UI but safety first
@@ -145,11 +146,11 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             const favorUpdates = { ...religionState.divineFavor };
 
             // Apply Effects
-            if (effect === 'restore_hp_full') {
+            if (effectId === 'restore_hp_full') {
                 party = party.map(char => ({
                     ...char,
                     hp: char.maxHp,
-                    statusEffects: char.statusEffects.filter(e => e.type !== 'wounded')
+                    statusEffects: char.statusEffects.filter(e => (e.type as string) !== 'wounded')
                 }));
                 messages.push({
                     id: timestamp,
@@ -157,7 +158,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     sender: 'system',
                     timestamp: new Date(timestamp)
                 });
-            } else if (effect === 'heal_20_hp') {
+            } else if (effectId === 'heal_20_hp') {
                 party = party.map(char => ({
                     ...char,
                     hp: Math.min(char.maxHp, char.hp + 20)
@@ -168,10 +169,13 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     sender: 'system',
                     timestamp: new Date(timestamp)
                 });
-            } else if (effect === 'remove_condition_poisoned') {
+            } else if (effectId === 'remove_condition_poisoned') {
                 party = party.map(char => ({
                     ...char,
-                    statusEffects: char.statusEffects.filter(e => e.type !== 'poisoned' && e.type !== 'diseased')
+                    statusEffects: char.statusEffects.filter(e => {
+                        const typeStr = e.type as string;
+                        return typeStr !== 'poisoned' && typeStr !== 'diseased';
+                    })
                 }));
                 messages.push({
                     id: timestamp,
@@ -179,10 +183,10 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     sender: 'system',
                     timestamp: new Date(timestamp)
                 });
-            } else if (effect === 'remove_curse') {
+            } else if (effectId === 'remove_curse') {
                  party = party.map(char => ({
                     ...char,
-                    statusEffects: char.statusEffects.filter(e => e.type !== 'cursed')
+                    statusEffects: char.statusEffects.filter(e => (e.type as string) !== 'cursed')
                 }));
                 messages.push({
                     id: timestamp,
@@ -190,7 +194,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     sender: 'system',
                     timestamp: new Date(timestamp)
                 });
-            } else if (effect === 'grant_favor_small' && deityId) {
+            } else if (effectId === 'grant_favor_small' && deityId) {
                  const existing = favorUpdates[deityId] || { score: 0, rank: 'Neutral', consecutiveDaysPrayed: 0, history: [], blessings: [] };
                  favorUpdates[deityId] = calculateFavorChange(existing, { id: 'donate_small', description: 'Temple Donation', favorChange: 5 });
                  messages.push({
@@ -199,7 +203,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     sender: 'system',
                     timestamp: new Date(timestamp)
                 });
-            } else if (effect === 'grant_favor_large' && deityId) {
+            } else if (effectId === 'grant_favor_large' && deityId) {
                  const existing = favorUpdates[deityId] || { score: 0, rank: 'Neutral', consecutiveDaysPrayed: 0, history: [], blessings: [] };
                  favorUpdates[deityId] = calculateFavorChange(existing, { id: 'donate_large', description: 'Major Temple Donation', favorChange: 15 });
                  messages.push({
@@ -208,8 +212,8 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     sender: 'system',
                     timestamp: new Date(timestamp)
                 });
-            } else if (effect.startsWith('grant_blessing_') && deityId) {
-                const blessingIdFragment = effect.slice(15); // 'grant_blessing_'.length === 15
+            } else if (effectId.startsWith('grant_blessing_') && deityId) {
+                const blessingIdFragment = effectId.slice(15); // 'grant_blessing_'.length === 15
                 const blessingId = `blessing_${blessingIdFragment}`;
 
                 const definition = resolveBlessingDefinition(blessingId);

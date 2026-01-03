@@ -3,6 +3,22 @@ import { GameState, Crime } from '../../types';
 import { AppAction } from '../actionTypes';
 import { CrimeSystem } from '../../systems/crime/CrimeSystem';
 import { HeistManager } from '../../systems/crime/HeistManager';
+import type { Location, HeistAction, GuildMembership } from '../../types';
+
+const getGuildMembershipOrDefault = (guild: GameState['thievesGuild'] | undefined): GuildMembership => {
+    if (guild) return guild;
+    // TODO(2026-01-03 pass 4 Codex-CLI): placeholder guild membership to satisfy type expectations; replace once thieves guild state is guaranteed before these actions.
+    return {
+        memberId: 'player',
+        guildId: 'shadow_hands',
+        rank: 0,
+        reputation: 0,
+        activeJobs: [],
+        availableJobs: [],
+        completedJobs: [],
+        servicesUnlocked: [],
+    };
+};
 
 /**
  * Handles crime and notoriety related actions.
@@ -20,7 +36,7 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
             // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
             // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-            const targetLocation = { id: targetLocationId } as unknown;
+            const targetLocation = { id: targetLocationId } as Location;
             let plan = HeistManager.startPlanning(targetLocation, leaderId);
 
             if (guildJobId) {
@@ -90,7 +106,14 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             } else {
                 // Use a default message if no skill check string provided
                 // Use the calculated chance just for display if needed, but success is pre-determined
-                const chance = HeistManager.calculateActionSuccessChance(state.activeHeist, actionDifficulty);
+                const heistAction: HeistAction = {
+                    type: 'PickLock',
+                    description,
+                    difficulty: actionDifficulty,
+                    risk: 0,
+                    noise: 0,
+                };
+                const chance = HeistManager.calculateActionSuccessChance(state.activeHeist, heistAction);
                 outcomeMessage = success
                     ? `${description} - Success! (Risk: ${100 - chance}%)`
                     : `${description} - Failed! (Risk: ${100 - chance}%)`;
@@ -232,13 +255,14 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
 
         case 'JOIN_GUILD': {
             const { guildId } = action.payload;
+            const guild = getGuildMembershipOrDefault(state.thievesGuild);
             return {
                 thievesGuild: {
-                    ...state.thievesGuild,
+                    ...guild,
                     guildId,
                     rank: 1,
                     reputation: 0,
-                    memberId: state.party[0]?.id || 'player'
+                    memberId: state.party[0]?.id || guild.memberId
                 },
                 messages: [
                     ...state.messages,
@@ -254,11 +278,12 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
 
         case 'ACCEPT_GUILD_JOB': {
             const { job } = action.payload;
+            const guild = getGuildMembershipOrDefault(state.thievesGuild);
             // Add to active jobs
             return {
                 thievesGuild: {
-                    ...state.thievesGuild,
-                    activeJobs: [...state.thievesGuild.activeJobs, job],
+                    ...guild,
+                    activeJobs: [...guild.activeJobs, job],
                     // Remove from available if we were tracking that separately?
                     // For now, assuming available jobs are transient or managed by UI
                 },
@@ -276,15 +301,16 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
 
         case 'COMPLETE_GUILD_JOB': {
             const { jobId, success, rewardGold, rewardRep } = action.payload;
-            const job = state.thievesGuild.activeJobs.find(j => j.id === jobId);
+            const guild = getGuildMembershipOrDefault(state.thievesGuild);
+            const job = guild.activeJobs.find(j => j.id === jobId);
             if (!job) return {};
 
-            const newActiveJobs = state.thievesGuild.activeJobs.filter(j => j.id !== jobId);
-            const newCompletedJobs = [...state.thievesGuild.completedJobs, jobId];
-            const newRep = state.thievesGuild.reputation + rewardRep;
+            const newActiveJobs = guild.activeJobs.filter(j => j.id !== jobId);
+            const newCompletedJobs = [...guild.completedJobs, jobId];
+            const newRep = guild.reputation + rewardRep;
 
             // Rank up logic? (Simple threshold for now)
-            let newRank = state.thievesGuild.rank;
+            let newRank = guild.rank;
             let rankUpMsg = '';
             if (newRep >= 100 && newRank < 2) { newRank = 2; rankUpMsg = 'You have been promoted to Footpad!'; }
             else if (newRep >= 300 && newRank < 3) { newRank = 3; rankUpMsg = 'You have been promoted to Prowler!'; }
@@ -315,7 +341,7 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             return {
                 gold: state.gold + rewardGold,
                 thievesGuild: {
-                    ...state.thievesGuild,
+                    ...guild,
                     activeJobs: newActiveJobs,
                     completedJobs: newCompletedJobs,
                     reputation: newRep,
@@ -327,10 +353,11 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
 
         case 'ABANDON_GUILD_JOB': {
             const { jobId } = action.payload;
-            const newActiveJobs = state.thievesGuild.activeJobs.filter(j => j.id !== jobId);
+            const guild = getGuildMembershipOrDefault(state.thievesGuild);
+            const newActiveJobs = guild.activeJobs.filter(j => j.id !== jobId);
             return {
                 thievesGuild: {
-                    ...state.thievesGuild,
+                    ...guild,
                     activeJobs: newActiveJobs
                 },
                 messages: [
@@ -347,6 +374,7 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
 
         case 'USE_GUILD_SERVICE': {
             const { serviceId, cost, description } = action.payload;
+            const guild = getGuildMembershipOrDefault(state.thievesGuild);
 
             if (state.gold < cost) {
                 return {
@@ -379,8 +407,8 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
             return {
                 gold: state.gold - cost,
                 thievesGuild: {
-                    ...state.thievesGuild,
-                    servicesUnlocked: [...state.thievesGuild.servicesUnlocked, serviceId] // Track usage?
+                    ...guild,
+                    servicesUnlocked: [...guild.servicesUnlocked, serviceId] // Track usage?
                 },
                 notoriety: newNotoriety,
                 messages: [

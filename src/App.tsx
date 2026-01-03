@@ -48,6 +48,7 @@ import { getDummyParty } from './data/dev/dummyCharacter';
 import { SUBMAP_DIMENSIONS } from './config/mapConfig';
 import { canUseDevTools } from './utils/permissions';
 import { validateEnv } from './config/env';
+import { DiceOverlay } from './components/dice/DiceOverlay';
 
 import { NotificationSystem } from './components/NotificationSystem';
 import { GameProvider } from './state/GameContext';
@@ -462,6 +463,34 @@ const App: React.FC = () => {
       case 'toggle_naval_dashboard':
         dispatch({ type: 'TOGGLE_NAVAL_DASHBOARD' });
         break;
+      case 'test_lockpicking':
+        // Open lockpicking modal with a sample test lock
+        dispatch({
+          type: 'OPEN_LOCKPICKING_MODAL',
+          payload: {
+            id: 'test-lock-1',
+            dc: 15,
+            breakDC: 20,
+            isLocked: true,
+            isBroken: false,
+            isTrapped: true,
+            trap: {
+              id: 'test-trap-1',
+              name: 'Poison Needle Trap',
+              detectionDC: 12,
+              disarmDC: 14,
+              triggerCondition: 'touch',
+              effect: { damage: { count: 1, sides: 4, bonus: 0 }, damageType: 'poison' },
+              resetable: false,
+              isDisarmed: false,
+              isTriggered: false,
+            },
+          },
+        });
+        break;
+      case 'test_dice_roller':
+        dispatch({ type: 'TOGGLE_DICE_ROLLER' });
+        break;
     }
   }, [dispatch, handleNewGame, processAction, handleLoadGameFlow, handleBattleMapDemo]);
 
@@ -749,6 +778,9 @@ const App: React.FC = () => {
             handleOpenGlossary={handleOpenGlossary}
             handleOpenCharacterSheet={handleOpenCharacterSheet}
           />
+
+          {/* Global Dice Roller Overlay */}
+          <DiceOverlay />
         </div>
       </GameProvider>
     </AppProviders>

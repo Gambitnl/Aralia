@@ -20,6 +20,8 @@ import {
   TransportOption
 } from '../../types/travel';
 
+export { PACE_MODIFIERS };
+
 // --- Types ---
 
 export type EncumbranceLevel = 'unencumbered' | 'encumbered' | 'heavily_encumbered';

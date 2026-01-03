@@ -1,11 +1,36 @@
 {
   "id": "scribing_spell_scrolls",
   "title": "Scribing Spell Scrolls",
-  "category": "Rules Glossary",
-  "tags": [],
-  "excerpt": "Rules for a spellcaster to transfer a spell to a scroll.",
-  "aliases": [],
-  "seeAlso": [],
+  "category": "Magic Items",
+  "tags": [
+    "crafting",
+    "magic item",
+    "spell",
+    "scroll"
+  ],
+  "excerpt": "Rules for a spellcaster to transfer a spell to a scroll and create a Spell Scroll.",
+  "aliases": [
+    "scribing_prerequisites",
+    "scribing_time_and_cost",
+    "spell_scroll_costs",
+    "scribing_cantrips"
+  ],
+  "seeAlso": [
+    "spell_scroll",
+    "arcana",
+    "calligraphers_supplies"
+  ],
   "filePath": "/data/glossary/entries/rules/equipment/crafting/scribing_spell_scrolls.json",
-  "markdown": "# Scribing Spell Scrolls\r\nA spellcaster can transfer a spell to a scroll and create a Spell Scroll, using the rules below."
+  "markdown": "# Scribing Spell Scrolls\nA spellcaster can transfer a spell to a scroll and create a Spell Scroll, using the rules below.\n\n## Prerequisites for the Scribe\nTo scribe a scroll, you must have proficiency in the Arcana skill or with Calligrapher's Supplies and have the spell prepared on each day of the inscription. You must also have at hand any Material components required by the spell; if the spell consumes its Material components, they are consumed only when you complete the scroll. The scroll's spell uses your spell save DC and spell attack bonus.\n\n## Time and Cost\nScribing a scroll takes an amount of time and money based on the level of the spell, as shown in the Spell Scroll Costs table below. For each day of inscription, you must work for 8 hours. If a scroll requires multiple days, those days needn't be consecutive.\n\n| Spell Level | Time | Cost |\n|:---|:---|:---|
+| Cantrip | 1 day | 15 GP |
+| 1 | 1 day | 25 GP |
+| 2 | 3 days | 100 GP |
+| 3 | 5 days | 150 GP |
+| 4 | 10 days | 1,000 GP |
+| 5 | 25 days | 1,500 GP |
+| 6 | 40 days | 10,000 GP |
+| 7 | 50 days | 12,500 GP |
+| 8 | 60 days | 15,000 GP |
+| 9 | 120 days | 50,000 GP |
+\n## Cantrips\nIf the scribed spell is a cantrip, the version on the scroll works as if the caster were your level."
 }

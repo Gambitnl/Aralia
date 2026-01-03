@@ -65,6 +65,12 @@ export const ai = new Proxy({} as GoogleGenAI, {
     if (aiInstance) {
       return Reflect.get(aiInstance, prop);
     }
+    if (prop === 'getGenerativeModel') {
+      // TODO(lint-preserve): When the real client is absent in tests, expose a stubbed method so callers can be validated without crashing.
+      return () => {
+        throw new Error("Gemini API Client accessed but not initialized. Check API_KEY.");
+      };
+    }
     // Allow checking constructor/prototype without throwing, sometimes used by testing/frameworks
     if (prop === 'constructor' || prop === 'prototype') {
       return Reflect.get(target, prop);

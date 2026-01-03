@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "src/services/**/*",
+    "src/utils/entityIntegrationUtils.ts",
+    "src/hooks/actions/handleGeminiCustom.ts",
+    "src/hooks/actions/handleObservation.ts",
+    "src/hooks/actions/handleOracle.ts",
+    "src/hooks/useGameActions.ts"
+  ]
+}

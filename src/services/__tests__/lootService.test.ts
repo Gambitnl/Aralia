@@ -23,7 +23,8 @@ describe('generateLoot', () => {
       id: 'bad-mon',
       name: 'Glitch',
       cr: 'Unknown',
-      description: 'A glitches monster'
+      description: 'A glitches monster',
+      quantity: 1,
     } as Monster;
 
     const result = generateLoot([badMonster]);
@@ -39,6 +40,7 @@ describe('generateLoot', () => {
       id: 'no-desc',
       name: 'Silent One',
       cr: '1',
+      quantity: 1,
       // description missing
     } as unknown as Monster;
 
@@ -60,6 +62,7 @@ describe('generateLoot', () => {
         id: 'undefined-desc',
         name: 'Void',
         cr: '1',
+        quantity: 1,
         description: undefined
       } as unknown as Monster;
 

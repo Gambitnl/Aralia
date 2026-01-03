@@ -1,0 +1,10 @@
+{
+    "name": "aralia",
+    "foreground": "#1a1a2e",
+    "background": "#f59e0b",
+    "outline": "#78350f",
+    "texture": "none",
+    "material": "glass",
+    "font": "Arial",
+    "fontScale": 1
+}

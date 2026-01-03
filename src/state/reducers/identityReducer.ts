@@ -28,8 +28,11 @@ export function identityReducer(state: GameState, action: AppAction): Partial<Ga
     switch (action.type) {
         case 'CREATE_ALIAS': {
             const currentIdentity = ensureIdentityState(state);
-            const { name, history, region } = action.payload;
-            const newIdentityState = IdentityManager.createAlias(currentIdentity, name, history, region);
+            const { alias } = action.payload as import('../payloads/identityPayloads').CreateAliasPayload;
+            // TODO(2026-01-03 pass 4 Codex-CLI): Replace placeholder alias defaults once history/region are guaranteed from the caller.
+            const aliasHistory = alias.history ?? 'Unknown';
+            const aliasRegion = alias.region ?? 'Unknown';
+            const newIdentityState = IdentityManager.createAlias(currentIdentity, alias.name, aliasHistory, aliasRegion);
 
             return {
                 playerIdentity: newIdentityState,
@@ -37,7 +40,7 @@ export function identityReducer(state: GameState, action: AppAction): Partial<Ga
                     ...state.messages,
                     {
                         id: Date.now(),
-                        text: `You have established a new alias: "${name}".`,
+                        text: `You have established a new alias: "${alias.name}".`,
                         sender: 'system',
                         timestamp: new Date()
                     }

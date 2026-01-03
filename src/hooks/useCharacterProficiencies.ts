@@ -24,17 +24,27 @@ export const useCharacterProficiencies = (character: PlayerCharacter | null): Ch
 
     // 1. Background Proficiencies
     if (character.background && BACKGROUNDS[character.background]) {
-      const bg = BACKGROUNDS[character.background];
-      bg.toolProficiencies?.forEach(t => toolProfs.add(t.replace(/_/g, ' ')));
-      bg.languages?.forEach(l => langProfs.add(l));
+      const bg = BACKGROUNDS[character.background] as { toolProficiencies?: unknown; languages?: unknown };
+      const bgTools: string[] = Array.isArray(bg.toolProficiencies) ? bg.toolProficiencies : [];
+      // TODO(2026-01-03 Codex-CLI): BACKGROUNDS data typing is loose; normalize to string[] until schemas are strict.
+      const bgLangs: string[] = Array.isArray(bg.languages) ? (bg.languages as string[]) : [];
+      bgTools.forEach((t: string) => toolProfs.add(t.replace(/_/g, ' ')));
+      (bgLangs ?? []).forEach((lang: string) => langProfs.add(lang));
     }
 
     // 2. Feat Proficiencies
     character.feats?.forEach(featId => {
       const choices = character.featChoices?.[featId];
       if (choices) {
-        choices.selectedTools?.forEach(t => toolProfs.add(t));
-        choices.selectedLanguages?.forEach(l => langProfs.add(l));
+        const selectedTools: string[] = Array.isArray(choices.selectedTools)
+          ? choices.selectedTools
+          : Object.values(choices.selectedTools ?? {}) as string[];
+        const selectedLanguages: string[] = Array.isArray(choices.selectedLanguages)
+          ? choices.selectedLanguages
+          : Object.values(choices.selectedLanguages ?? {}) as string[];
+        // TODO(2026-01-03 Codex-CLI): featChoices shape is uneven across feats; normalize to arrays in data layer.
+        selectedTools.forEach((t: string) => toolProfs.add(t));
+        selectedLanguages.forEach((l: string) => langProfs.add(l));
       }
       
       // Fixed benefits from feats (not choices)

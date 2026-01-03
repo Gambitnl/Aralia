@@ -230,6 +230,7 @@ export class EntityResolverService {
       allies: [],
       enemies: [],
       rivals: [],
+      relationships: {},
       values: [],
       hates: [],
       power: 50,

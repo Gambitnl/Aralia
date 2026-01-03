@@ -8,6 +8,8 @@ import type { VillagePersonality } from '../types';
 
 export interface VillageIntegrationProfile {
   id: string;
+  name?: string;
+  description?: string;
   tagline: string;
   aiPrompt: string;
   culturalSignature: string;

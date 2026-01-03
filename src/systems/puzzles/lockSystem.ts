@@ -12,6 +12,17 @@ import { rollDice } from '../../utils/combatUtils';
 import { Lock, Trap, LockpickResult, BreakResult, TrapDetectionResult, TrapDisarmResult } from './types';
 import { getAbilityModifierValue } from '../../utils/statUtils';
 
+const getLegacyStats = (character: PlayerCharacter) => ({
+  strength: character.stats?.strength ?? character.finalAbilityScores?.Strength ?? character.abilityScores.Strength,
+  dexterity: character.stats?.dexterity ?? character.finalAbilityScores?.Dexterity ?? character.abilityScores.Dexterity,
+  constitution: character.stats?.constitution ?? character.finalAbilityScores?.Constitution ?? character.abilityScores.Constitution,
+  intelligence: character.stats?.intelligence ?? character.finalAbilityScores?.Intelligence ?? character.abilityScores.Intelligence,
+  wisdom: character.stats?.wisdom ?? character.finalAbilityScores?.Wisdom ?? character.abilityScores.Wisdom,
+  charisma: character.stats?.charisma ?? character.finalAbilityScores?.Charisma ?? character.abilityScores.Charisma,
+});
+
+const getClasses = (character: PlayerCharacter) => character.classes ?? (character.class ? [character.class] : []);
+
 /**
  * Checks if a character has proficiency with a specific tool.
  * @param character The character to check.
@@ -24,14 +35,14 @@ import { getAbilityModifierValue } from '../../utils/statUtils';
 export function hasToolProficiency(character: PlayerCharacter, _toolId: string): boolean {
   // Logic simplified for MVP: Rogue class implies proficiency with Thieves' Tools.
   // Future iteration should check the character's explicit proficiency list.
-  const isRogue = character.classes.some(c => c.name === 'Rogue');
+  const isRogue = getClasses(character).some(c => c.name === 'Rogue');
   return isRogue;
 }
 
 /**
  * Checks if character has the required tool in their inventory.
  */
-export function hasTool(character: PlayerCharacter, toolId: string, inventory: Item[]): boolean {
+export function hasTool(character: PlayerCharacter, toolId: string, inventory: Array<Pick<Item, 'id'>>): boolean {
   return inventory.some(item => item.id === toolId);
 }
 
@@ -54,9 +65,10 @@ export function attemptLockpick(
     return { success: false, margin: -10, triggeredTrap: false };
   }
 
-  const dexMod = getAbilityModifierValue(character.stats.dexterity);
+  const stats = getLegacyStats(character);
+  const dexMod = getAbilityModifierValue(stats.dexterity);
   const isProficient = hasToolProficiency(character, 'thieves-tools');
-  const profBonus = isProficient ? character.proficiencyBonus : 0;
+  const profBonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;
 
   const d20 = rollDice('1d20');
   const total = d20 + dexMod + profBonus;
@@ -66,10 +78,8 @@ export function attemptLockpick(
 
   // Trap triggers on failure by MORE than 5 (margin < -5).
   // E.g., DC 15. Roll 10 -> margin -5 -> Safe. Roll 9 -> margin -6 -> Trap.
-  const triggeredTrap = lock.isTrapped &&
-                        !lock.trap?.isDisarmed &&
-                        !success &&
-                        margin < -5;
+  const isTrapped = Boolean(lock.isTrapped && !lock.trap?.isDisarmed);
+  const triggeredTrap = isTrapped && !success && margin < -5;
 
   return {
     success,
@@ -95,7 +105,8 @@ export function attemptBreak(
     return { success: false, margin: 0, isBroken: false };
   }
 
-  const strMod = getAbilityModifierValue(character.stats.strength);
+  const stats = getLegacyStats(character);
+  const strMod = getAbilityModifierValue(stats.strength);
   const d20 = rollDice('1d20');
 
   // If breakDC is defined, it's a single check
@@ -123,17 +134,18 @@ export function detectTrap(
     return { success: true, margin: 0, trapDetected: true };
   }
 
-  const wisMod = getAbilityModifierValue(character.stats.wisdom); // Perception
-  const intMod = getAbilityModifierValue(character.stats.intelligence); // Investigation
+  const stats = getLegacyStats(character);
+  const wisMod = getAbilityModifierValue(stats.wisdom); // Perception
+  const intMod = getAbilityModifierValue(stats.intelligence); // Investigation
 
   // Use the higher of Perception or Investigation logic
   const bestMod = Math.max(wisMod, intMod);
 
   // Simplified proficiency check for MVP
-  const isProficient = character.classes.some(c =>
+  const isProficient = getClasses(character).some(c =>
     c.name === 'Rogue' || c.name === 'Ranger' || c.name === 'Bard' || c.name === 'Wizard'
   );
-  const profBonus = isProficient ? character.proficiencyBonus : 0;
+  const profBonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;
 
   const d20 = rollDice('1d20');
   const total = d20 + bestMod + profBonus;
@@ -164,9 +176,10 @@ export function disarmTrap(
      return { success: false, margin: -10, triggeredTrap: false };
    }
 
-   const dexMod = getAbilityModifierValue(character.stats.dexterity);
+   const stats = getLegacyStats(character);
+   const dexMod = getAbilityModifierValue(stats.dexterity);
    const isProficient = hasToolProficiency(character, 'thieves-tools');
-   const profBonus = isProficient ? character.proficiencyBonus : 0;
+   const profBonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;
 
    const d20 = rollDice('1d20');
    const total = d20 + dexMod + profBonus;

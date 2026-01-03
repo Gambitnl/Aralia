@@ -1,8 +1,10 @@
 import type { SpellSchool } from './spells';
 import type { ActiveEffect, StatusEffect } from './effects';
-import type { AbilityScoreName, AbilityScores, Skill } from './core';
+import type { AbilityScoreName, AbilityScores, CharacterStats, Skill } from './core';
 import type { EquipmentSlotType, Item } from './items';
 import type { RaceVisualSpec } from './visuals';
+
+export type { AbilityScores, AbilityScoreName } from './core';
 
 // -----------------------------------------------------------------------------
 // Racial data
@@ -367,8 +369,18 @@ export interface PlayerCharacter {
   proficiencyBonus?: number;
   race: Race;
   class: Class;
+  /**
+   * Legacy multiclass/backup class list used by older systems (puzzles/skill checks).
+   * TODO(lint-preserve): Migrate those systems to the primary `class` field and remove this fallback.
+   */
+  classes?: Class[];
   abilityScores: AbilityScores;
   finalAbilityScores: AbilityScores;
+  /**
+   * Legacy statline kept for puzzle/lock/plate systems that still rely on lowercase ability keys.
+   * TODO(lint-preserve): Consolidate callers onto `finalAbilityScores` and drop this shim once migrated.
+   */
+  stats?: CharacterStats;
   skills: Skill[];
   savingThrowProficiencies?: AbilityScoreName[];
   feats?: string[]; // IDs of selected feats

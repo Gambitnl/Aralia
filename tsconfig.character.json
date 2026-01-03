@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "src/utils/character/**/*",
+    "src/hooks/useCharacter*",
+    "src/hooks/utils/**/*",
+    "src/data/feats/**/*",
+    "src/data/races/**/*",
+    "src/data/classes/**/*",
+    "src/data/companions/**/*"
+  ]
+}

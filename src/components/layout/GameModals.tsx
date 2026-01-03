@@ -47,6 +47,8 @@ const TempleModal = lazy(() => import('../TempleModal'));
 const DialogueInterface = lazy(() => import('../Dialogue/DialogueInterface').then(module => ({ default: module.DialogueInterface })));
 const ThievesGuildInterface = lazy(() => import('../Crime/ThievesGuild/ThievesGuildInterface'));
 const ShipPane = lazy(() => import('../Naval/ShipPane').then(module => ({ default: module.ShipPane })));
+const LockpickingModal = lazy(() => import('../puzzles/LockpickingModal'));
+const DiceRollerModal = lazy(() => import('../dice/DiceRollerModal'));
 
 interface GameModalsProps {
     gameState: GameState;
@@ -167,6 +169,7 @@ const GameModals: React.FC<GameModalsProps> = ({
                         <CharacterSheetModal
                             isOpen={gameState.characterSheetModal.isOpen}
                             character={gameState.characterSheetModal.character}
+                            companion={gameState.characterSheetModal.character?.id ? gameState.companions[gameState.characterSheetModal.character.id] : null}
                             inventory={gameState.inventory}
                             gold={gameState.gold}
                             onClose={handleCloseCharacterSheet}
@@ -430,6 +433,33 @@ const GameModals: React.FC<GameModalsProps> = ({
                     </ErrorBoundary>
                 </Suspense>
             ) : null}
+
+            {/* Lockpicking Modal (Dev Tool / Puzzle System) */}
+            {gameState.isLockpickingModalVisible && gameState.activeLock && gameState.party[0] && (
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Lockpicking Interface.">
+                        <LockpickingModal
+                            isOpen={gameState.isLockpickingModalVisible}
+                            onClose={() => dispatch({ type: 'CLOSE_LOCKPICKING_MODAL' })}
+                            lock={gameState.activeLock}
+                            character={gameState.party[0]}
+                            inventory={gameState.inventory}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* 3D Dice Roller Modal */}
+            {gameState.isDiceRollerVisible && (
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Dice Roller.">
+                        <DiceRollerModal
+                            isOpen={gameState.isDiceRollerVisible}
+                            onClose={() => dispatch({ type: 'TOGGLE_DICE_ROLLER' })}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
         </AnimatePresence>
     );
 };

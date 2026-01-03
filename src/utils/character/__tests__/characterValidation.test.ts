@@ -33,9 +33,8 @@ describe('validateCharacterChoices', () => {
       spellbook: {
         knownSpells: [],
         preparedSpells: [],
-        cantrips: [],
-        slots: { 1: 0 }
-      }
+        cantrips: []
+      } as any
     });
   };
 
@@ -122,14 +121,14 @@ describe('validateCharacterChoices', () => {
       }));
     });
 
-    it('should NOT report missing racial spell ability when selected', () => {
+    it('should NOT report missing racial spell ability when selected', () => {  
       const char = createTestChar('tiefling', 'warlock');
       char.race.racialSpellChoice = {
         traitName: 'Infernal Legacy',
         traitDescription: 'Cast spells using...'
       };
       char.racialSelections = {
-        tiefling: { spellAbility: 'Charisma' }
+        tiefling: { spellAbility: 'Charisma', resistance: { resistanceType: 'Fire', cantripId: 'thaumaturgy' } }
       };
 
       const issues = validateCharacterChoices(char);
@@ -231,7 +230,7 @@ describe('validateCharacterChoices', () => {
 
     it('should NOT report class choices if selected', () => {
       const char = createTestChar('human', 'fighter');
-      char.class.fightingStyles = [{ id: 'archery', name: 'Archery', description: '' }];
+      char.class.fightingStyles = [{ id: 'archery', name: 'Archery', description: '', levelAvailable: 1 }];
       char.selectedFightingStyle = 'archery';
 
       const issues = validateCharacterChoices(char);

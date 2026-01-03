@@ -322,26 +322,6 @@
     "filePath": "/data/glossary/entries/rules/attack_roll.json"
   },
   {
-    "id": "attune_during_short_rest",
-    "title": "Attune during a Short Rest",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/attune_during_short_rest.json"
-  },
-  {
-    "id": "attunement",
-    "title": "Attunement",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "Rules for forming a bond with a magic item.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/attunement.json"
-  },
-  {
     "id": "barding",
     "title": "Barding",
     "category": "Rules Glossary",
@@ -859,16 +839,6 @@
     "filePath": "/data/glossary/entries/rules/duration_condition.json"
   },
   {
-    "id": "ending_attunement",
-    "title": "Ending Attunement",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/ending_attunement.json"
-  },
-  {
     "id": "equipment",
     "title": "Equipment",
     "category": "Rules Glossary",
@@ -1142,16 +1112,6 @@
     "filePath": "/data/glossary/entries/rules/hit_points.json"
   },
   {
-    "id": "identifying_magic_item",
-    "title": "Identifying a Magic Item",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/identifying_magic_item.json"
-  },
-  {
     "id": "incapacitated_condition",
     "title": "Incapacitated",
     "category": "Rules Glossary",
@@ -1334,16 +1294,6 @@
     "filePath": "/data/glossary/entries/rules/long_rest.json"
   },
   {
-    "id": "magic_items_overview",
-    "title": "Magic Items",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "General rules for using magic items.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items.json"
-  },
-  {
     "id": "masons_tools",
     "title": "Mason’s Tools",
     "category": "Rules Glossary",
@@ -1404,16 +1354,6 @@
     "filePath": "/data/glossary/entries/rules/equipment/mounts_and_vehicles.json"
   },
   {
-    "id": "multiple_items_of_same_kind",
-    "title": "Multiple Items of the Same Kind",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/multiple_items_of_same_kind.json"
-  },
-  {
     "id": "musical_instrument",
     "title": "Musical Instrument (Varies)",
     "category": "Rules Glossary",
@@ -1442,16 +1382,6 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/weapons/mastery_properties/nick.json"
-  },
-  {
-    "id": "no_more_than_three_items",
-    "title": "No More Than Three Items",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/no_more_than_three_items.json"
   },
   {
     "id": "obscured_areas",
@@ -1511,16 +1441,6 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/tools/painters_supplies.json"
-  },
-  {
-    "id": "paired_items",
-    "title": "Paired Items",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/paired_items.json"
   },
   {
     "id": "paralyzed_condition",
@@ -1907,16 +1827,6 @@
     "filePath": "/data/glossary/entries/rules/saving_throw.json"
   },
   {
-    "id": "scribing_spell_scrolls",
-    "title": "Scribing Spell Scrolls",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "Rules for a spellcaster to transfer a spell to a scroll.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/scribing_spell_scrolls.json"
-  },
-  {
     "id": "services",
     "title": "Services",
     "category": "Rules Glossary",
@@ -2095,16 +2005,6 @@
     "filePath": "/data/glossary/entries/rules/equipment/vehicles/speed.json"
   },
   {
-    "id": "spell_scroll_costs",
-    "title": "Spell Scroll Costs",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/spell_scroll_costs.json"
-  },
-  {
     "id": "spellcasting_services_overview",
     "title": "Spellcasting",
     "category": "Rules Glossary",
@@ -2123,36 +2023,6 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/services/spellcasting_services.json"
-  },
-  {
-    "id": "spells_chapter",
-    "title": "Spells (Chapter Overview)",
-    "category": "Rules Glossary",
-    "tags": [
-      "rules",
-      "magic",
-      "spellcasting",
-      "core mechanic"
-    ],
-    "excerpt": "A general introduction to how spells function in the game, covering fundamental concepts. Detailed rules are found in sub-entries under 'Spellcasting Mechanics'.",
-    "aliases": [
-      "spell rules",
-      "magic rules",
-      "spellcasting overview"
-    ],
-    "seeAlso": [
-      "gaining_spells",
-      "spell_level_slots",
-      "school_of_magic",
-      "casting_time_rules",
-      "spell_range_rules",
-      "spell_components_rules",
-      "spell_duration_rules",
-      "spell_effects_rules",
-      "spell_scroll",
-      "magic_action"
-    ],
-    "filePath": "/data/glossary/entries/rules/spells_chapter.json"
   },
   {
     "id": "squalid_lifestyle",
@@ -2486,16 +2356,6 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/weapons.json"
-  },
-  {
-    "id": "wearing_wielding_items",
-    "title": "Wearing and Wielding Items",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "Rules for how magic items are worn and used.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/magic_items/wearing_wielding_items.json"
   },
   {
     "id": "weavers_tools",

@@ -228,6 +228,7 @@ export function generateCharacterFromConfig(config: CharacterGenerationConfig): 
         speed,
         darkvisionRange,
         transportMode: 'foot',
+        statusEffects: [],
         equippedItems,
         spellbook,
         spellSlots,

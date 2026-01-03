@@ -7,7 +7,7 @@ import { formatMemoryForAI } from "../../utils/memoryUtils";
 import { InventoryResponseSchema, ItemSchema } from "../geminiSchemas";
 import { generateText } from "./core";
 import { GeminiHarvestData, GeminiInventoryData, GeminiTextData, StandardizedResult } from "./types";
-import { EconomyState, GoalStatus, Item, ItemType, NPCMemory } from "../../types";
+import { EconomyState, GoalStatus, Item, ItemRarity, ItemType, NPCMemory } from "../../types";
 
 /**
  * Returns a basic inventory based on the shop type to be used as a fallback
@@ -91,6 +91,37 @@ function getFallbackInventory(shopType: string | undefined, seedKey?: string): I
   return defaults;
 }
 
+const normalizeEconomyState = (incoming: Partial<EconomyState> | undefined, fallback: EconomyState): EconomyState => ({
+  marketEvents: incoming?.marketEvents ?? fallback.marketEvents ?? [],
+  tradeRoutes: incoming?.tradeRoutes ?? fallback.tradeRoutes ?? [],
+  globalInflation: incoming?.globalInflation ?? fallback.globalInflation ?? 0,
+  regionalWealth: incoming?.regionalWealth ?? fallback.regionalWealth ?? {},
+  marketFactors: incoming?.marketFactors ?? fallback.marketFactors ?? { scarcity: [], surplus: [] },
+  buyMultiplier: incoming?.buyMultiplier ?? fallback.buyMultiplier ?? 1,
+  sellMultiplier: incoming?.sellMultiplier ?? fallback.sellMultiplier ?? 0.5,
+  activeEvents: incoming?.activeEvents ?? fallback.activeEvents ?? [],
+});
+
+const normalizeItemType = (raw: unknown): Item['type'] => {
+  const candidate = raw as ItemType;
+  // TODO(2026-01-03 Codex-CLI): Harden Gemini item typing so we don't have to coerce to ItemType; this keeps AI outputs usable meanwhile.
+  return Object.values(ItemType).includes(candidate) ? candidate : ItemType.Consumable;
+};
+
+const normalizeItemRarity = (raw: unknown): Item['rarity'] => {
+  if (!raw) return undefined;
+  const normalized = String(raw).toLowerCase();
+  const map: Record<string, ItemRarity> = {
+    common: ItemRarity.Common,
+    uncommon: ItemRarity.Uncommon,
+    rare: ItemRarity.Rare,
+    very_rare: ItemRarity.VeryRare,
+    legendary: ItemRarity.Legendary,
+  };
+  // TODO(2026-01-03 pass 1 Codex-CLI): Only map known rarity strings; drop unknowns to keep ItemRarity strict.
+  return map[normalized];
+};
+
 export async function generateMerchantInventory(
   shopType: string,
   context: string,
@@ -127,10 +158,30 @@ Economy State: ${JSON.stringify(economyState)}`;
     if (!parsed) throw new Error("Parsed JSON is null");
     const validated = InventoryResponseSchema.parse(parsed);
 
+    const normalizedInventory: Item[] = (validated.inventory ?? []).map(item => {
+      const source = item as unknown as Partial<Item>;
+      const normalizedCost = typeof source.cost === 'number' ? String(source.cost) : source.cost;
+      // TODO(2026-01-03 pass 1 Codex-CLI): Shape AI items fully once schema stabilizes; coercing to Item keeps flows working now.
+      const normalized = {
+        id: source.id ?? uuidv4(),
+        name: source.name ?? 'Unknown item',
+        description: source.description ?? '',
+        cost: normalizedCost as string,
+        type: normalizeItemType(source.type),
+        rarity: normalizeItemRarity(source.rarity) ?? ItemRarity.Common,
+        weight: source.weight ?? 1,
+        // TODO(2026-01-03 pass 3 Codex-CLI): AI items sometimes return singular `effect` instead of effects array; preserve as-is until schema aligns.
+        effect: (source as any).effect,
+        value: source.value,
+        quantity: source.quantity,
+      } as unknown as Item;
+      return normalized as Item;
+    });
+
     return {
       data: {
-        inventory: validated.inventory,
-        economy: validated.economy || economyState,
+        inventory: normalizedInventory,
+        economy: normalizeEconomyState(validated.economy as Partial<EconomyState> | undefined, economyState),
         promptSent: result.data.promptSent,
         rawResponse: result.data.rawResponse,
         rateLimitHit: result.data.rateLimitHit
@@ -184,9 +235,28 @@ Return a concise loot list.`;
     const parsed = safeJSONParse(jsonString);
     if (!parsed) throw new Error("Parsed JSON is null");
     const validated = ItemSchema.array().parse(parsed);
+    const normalizedItems: Item[] = validated.map(item => {
+      const source = item as unknown as Partial<Item>;
+      const normalizedCost = typeof source.cost === 'number' ? String(source.cost) : source.cost;
+      // TODO(2026-01-03 pass 1 Codex-CLI): AI loot lacks strict typing; coerce to Item while preserving fields for future expansion.
+      const normalized = {
+        id: source.id ?? uuidv4(),
+        name: source.name ?? 'Unknown item',
+        description: source.description ?? '',
+        cost: normalizedCost as string,
+        type: normalizeItemType(source.type),
+        rarity: normalizeItemRarity(source.rarity) ?? ItemRarity.Common,
+        weight: source.weight ?? 1,
+        // TODO(2026-01-03 pass 3 Codex-CLI): AI loot may omit full effects; carry through any `effect` field for now.
+        effect: (source as any).effect,
+        value: source.value,
+        quantity: source.quantity,
+      } as unknown as Item;
+      return normalized as Item;
+    });
     return {
       data: {
-        items: validated,
+        items: normalizedItems,
         promptSent: result.data.promptSent,
         rawResponse: result.data.rawResponse,
         rateLimitHit: result.data.rateLimitHit

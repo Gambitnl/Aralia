@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as GeminiService from '../geminiService';
 import { ai } from '../aiClient';
+import { TempPartyMember } from '../../types';
 // TODO(lint-intent): 'getFallbackEncounter' is unused in this test; use it in the assertion path or remove it.
 import { getFallbackEncounter as _getFallbackEncounter } from '../geminiServiceFallback';
 import { MONSTERS_DATA } from '../../constants';
@@ -27,7 +28,14 @@ vi.mock('../../utils/logger', () => ({
 }));
 
 describe('GeminiService - generateEncounter Fallback', () => {
-  const mockParty = [{ id: '1', level: 1, classId: 'fighter' }];
+  // TODO(2026-01-03 pass 1 Codex-CLI): TempPartyMember minimal stub; expand with HP/equipment if encounter generation starts using them.
+  const mockParty: TempPartyMember[] = [{
+    id: '1',
+    level: 1,
+    classId: 'fighter',
+  }];
+
+  const mockGenerateContent = ai.models.generateContent as unknown as ReturnType<typeof vi.fn>;
   const xpBudget = 100;
   const themeTags = ['goblinoid'];
 
@@ -35,12 +43,11 @@ describe('GeminiService - generateEncounter Fallback', () => {
     vi.clearAllMocks();
   });
 
-  it('should use fallback encounter when AI generation fails', async () => {
+  it('should use fallback encounter when AI generation fails', async () => {    
     // Mock AI failure
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    (ai.models.generateContent as unknown).mockRejectedValue(new Error('AI Service Down'));
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    const result = await GeminiService.generateEncounter(xpBudget, themeTags, mockParty as unknown);
+    // TODO(2026-01-03 pass 2 Codex-CLI): Replace broad mocks with typed StandardizedResult once helpers exist.
+    mockGenerateContent.mockRejectedValue(new Error('AI Service Down'));        
+    const result = await GeminiService.generateEncounter(xpBudget, themeTags, mockParty);
 
     // Verify fallback mechanism was used
     expect(result.error).toBeNull();
@@ -63,21 +70,23 @@ describe('GeminiService - generateEncounter Fallback', () => {
     expect(isKnownGoblinoid).toBe(true);
 
     // Check metadata indicates fallback
-    expect(result.metadata?.rawResponse).toContain('Fallback used');
+    const meta = result.metadata as { rawResponse?: string } | undefined;
+    // TODO(2026-01-03 pass 2 Codex-CLI): StandardizedResult metadata is typed loosely; cast until a shared test helper shapes it.
+    expect(meta?.rawResponse).toContain('Fallback used');
   });
 
   it('should use fallback encounter when AI returns malformed JSON', async () => {
     // Mock AI returning bad JSON
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    (ai.models.generateContent as unknown).mockResolvedValue({
+    // TODO(2026-01-03 pass 2 Codex-CLI): Replace any with the minimal test shape so the behavior stays explicit.
+    mockGenerateContent.mockResolvedValue({
       text: 'This is not JSON',
     });
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    const result = await GeminiService.generateEncounter(xpBudget, themeTags, mockParty as unknown);
+    const result = await GeminiService.generateEncounter(xpBudget, themeTags, mockParty);
 
     expect(result.error).toBeNull();
     expect(result.data?.encounter).toBeDefined();
     expect(result.data?.encounter.length).toBeGreaterThan(0);
-    expect(result.metadata?.rawResponse).toContain('Fallback used');
+    const meta = result.metadata as { rawResponse?: string } | undefined;
+    expect(meta?.rawResponse).toContain('Fallback used');
   });
 });

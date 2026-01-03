@@ -8,6 +8,7 @@
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { GameState, GamePhase, PlayerCharacter, Item as _Item, MapData as _MapData, TempPartyMember as _TempPartyMember, StartGameSuccessPayload as _StartGameSuccessPayload, SuspicionLevel, KnownFact, QuestStatus as _QuestStatus, UnderdarkState } from '../types';
+import type { DivineFavor, NavalState } from '../types';
 import { AppAction } from './actionTypes';
 import { DEFAULT_WEATHER } from '../systems/environment/EnvironmentSystem';
 // TODO(lint-intent): 'ITEMS' is imported but unused; it hints at a helper/type the module was meant to use.
@@ -70,6 +71,24 @@ const INITIAL_UNDERDARK_STATE: UnderdarkState = {
     }
 };
 
+const INITIAL_NAVAL_STATE: NavalState = {
+    playerShips: [],
+    activeShipId: null,
+    currentVoyage: null,
+    knownPorts: [],
+};
+
+const INITIAL_DIVINE_FAVOR: Record<string, DivineFavor> = DEITIES.reduce((acc, deity) => {
+    acc[deity.id] = {
+        score: 0,
+        rank: 'Neutral',
+        consecutiveDaysPrayed: 0,
+        history: [],
+        blessings: []
+    };
+    return acc;
+}, {} as Record<string, DivineFavor>);
+
 export const initialGameState: GameState = {
     phase: canUseDevTools() && getDummyParty() && getDummyParty().length > 0 && !SaveLoadService.hasSaveGame() ? GamePhase.PLAYING : GamePhase.MAIN_MENU,
     party: canUseDevTools() && !SaveLoadService.hasSaveGame() ? getDummyParty() : [],
@@ -106,6 +125,8 @@ export const initialGameState: GameState = {
     isPartyEditorVisible: false,
     isGeminiLogViewerVisible: false,
     geminiInteractionLog: [],
+    isOllamaLogViewerVisible: false,
+    ollamaInteractionLog: [],
     hasNewRateLimitError: false,
     devModelOverride: null,
     isDevModeEnabled: false,
@@ -185,6 +206,8 @@ export const initialGameState: GameState = {
         globalHeat: 0,
         localHeat: {},
         knownCrimes: [],
+        // TODO(2026-01-03 pass 4 Codex-CLI): bounties placeholder keeps NotorietyState satisfied; populate from crime system when available.
+        bounties: [],
     },
 
     worldHistory: createEmptyHistory(),
@@ -218,7 +241,8 @@ export const initialGameState: GameState = {
         }, {} as Record<string, import('../types').DivineFavor>),
         activeBlessings: []
     },
-    // divineFavor: Deprecated, removed from init
+    // Legacy: keep flat map for compatibility with flows expecting root-level favor
+    divineFavor: { ...INITIAL_DIVINE_FAVOR },
     temples: TEMPLES.reduce((acc, temple) => {
         acc[temple.id] = temple;
         return acc;
@@ -253,6 +277,20 @@ export const initialGameState: GameState = {
     // Dialogist: Dialogue System
     activeDialogueSession: null,
     isDialogueInterfaceOpen: false,
+
+    // Lockpicking Modal State
+    isLockpickingModalVisible: false,
+    activeLock: null,
+
+    // Dice Roller Modal State
+    isDiceRollerVisible: false,
+
+    // User Preferences
+    visualDiceEnabled: true,
+
+    // Naval System
+    naval: INITIAL_NAVAL_STATE,
+    isNavalDashboardVisible: false,
 
     banterCooldowns: {}
 };
@@ -326,7 +364,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                         secretStanding: 0,
                         rankId: 'outsider',
                         favorsOwed: 0,
-                        renown: 0
+                        renown: 0,
+                        // TODO(2026-01-03 pass 4 Codex-CLI): history stubbed to satisfy PlayerFactionStanding; populate with real events when factions log changes.
+                        history: [],
                     };
                 }
             });
@@ -367,7 +407,9 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                         secretStanding: 0,
                         rankId: 'outsider',
                         favorsOwed: 0,
-                        renown: 0
+                        renown: 0,
+                        // TODO(2026-01-03 pass 4 Codex-CLI): history stubbed to satisfy PlayerFactionStanding; populate with real events when factions log changes.
+                        history: [],
                     };
                 }
             });
@@ -446,12 +488,16 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 BanterDisplayService.cancelActiveBanter();
             });
 
-            const loadedState = action.payload;
+            const loadedState = action.payload as GameState & { playerCharacter?: PlayerCharacter };
             const gameTimeFromLoad = typeof loadedState.gameTime === 'string' ? new Date(loadedState.gameTime) : loadedState.gameTime;
             // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
             // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
             // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-            const partyFromLoad = (loadedState.party && loadedState.party.length > 0) ? loadedState.party : (((loadedState as unknown).playerCharacter) ? [(loadedState as unknown).playerCharacter] : []);
+            const partyFromLoad = (loadedState.party && loadedState.party.length > 0)
+                ? loadedState.party
+                : loadedState.playerCharacter
+                    ? [loadedState.playerCharacter]
+                    : [];
 
             for (const npcId in loadedState.npcMemory) {
                 const memory = loadedState.npcMemory[npcId];
@@ -492,6 +538,11 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 isPartyOverlayVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, isDiscoveryLogVisible: false,
                 isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isLogbookVisible: false,
                 isGameGuideVisible: false, isThievesGuildVisible: false,
+                isNavalDashboardVisible: loadedState.isNavalDashboardVisible ?? false,
+                isLockpickingModalVisible: loadedState.isLockpickingModalVisible ?? false,
+                activeLock: loadedState.activeLock ?? null,
+                isDiceRollerVisible: loadedState.isDiceRollerVisible ?? false,
+                visualDiceEnabled: loadedState.visualDiceEnabled ?? true,
                 geminiGeneratedActions: null,
                 party: partyFromLoad.map(p => ({ ...(p as PlayerCharacter), equippedItems: (p as PlayerCharacter).equippedItems || {} })),
                 inventory: migratedInventory,
@@ -509,12 +560,14 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
                 questLog: loadedState.questLog || [],
                 isQuestLogVisible: false,
+                divineFavor: loadedState.divineFavor || INITIAL_DIVINE_FAVOR,
                 notoriety: loadedState.notoriety || { globalHeat: 0, localHeat: {}, knownCrimes: [] },
                 notifications: [],
                 // Use loaded or fallback
                 factions: loadedFactions,
                 playerFactionStandings: loadedStandings,
                 underdark: loadedState.underdark || INITIAL_UNDERDARK_STATE,
+                naval: loadedState.naval || { ...INITIAL_NAVAL_STATE },
                 dynamicLocations: loadedState.dynamicLocations || {},
                 activeDialogueSession: null,
                 isDialogueInterfaceOpen: false,
@@ -596,7 +649,8 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             // TODO(lint-intent): 'monsterIndex' is an unused parameter, which suggests a planned input for this flow.
             // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
             // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
-            const combatants = action.payload.monsters.flatMap((monster, _monsterIndex) =>
+            const encounterPayload = action.payload as import('../types').StartBattleMapEncounterPayload;
+            const combatants = encounterPayload.monsters.flatMap((monster, _monsterIndex) =>
                 Array.from({ length: monster.quantity }, (_, i) => createEnemyFromMonster(monster, i))
             );
             return {
@@ -623,42 +677,56 @@ export function appReducer(state: GameState, action: AppAction): GameState {
                 );
 
                 // Capture celebratory messages for characters who leveled up.
-                const levelUpMessages = updatedParty
-                    .filter((member, index) => member.level > (state.party[index]?.level || 0))
-                    .map((member, index) => ({
-                        id: Date.now() + index + 1,
-                        text: `${member.name} reached level ${member.level}!`,
-                        sender: 'system',
-                        timestamp: new Date()
-                    }));
+                const levelUpMessages: GameState['messages'] = updatedParty
+                    .filter((member, index) => {
+                        const previousLevel = state.party[index]?.level ?? 0;
+                        const nextLevel = member.level ?? previousLevel;
+                        return nextLevel > previousLevel;
+                    })
+                    .map((member, index): GameState['messages'][number] => {
+                        const safeLevel = member.level ?? state.party[index]?.level ?? 0;
+                        return {
+                            id: Date.now() + index + 1,
+                            text: `${member.name} reached level ${safeLevel}!`,
+                            sender: 'system',
+                            timestamp: new Date()
+                        };
+                    });
 
-                const itemsFoundMessage = rewards.items.length > 0
-                    ? `You found: ${rewards.items.map(i => i.name).join(', ')}.`
+                const rewardItems = rewards.items ?? [];
+                const itemsFoundMessage = rewardItems.length > 0
+                    ? `You found: ${rewardItems.map(i => i.name).join(', ')}.`
                     : 'You found no items.';
+
+                const victoryMessage: GameState['messages'][number] = {
+                    id: Date.now(),
+                    text: `Victory! The party gained ${rewards.xp} XP and ${rewards.gold || 0} gold. ${itemsFoundMessage}`,
+                    sender: 'system',
+                    timestamp: new Date()
+                };
 
                 newState = {
                     ...newState,
                     party: updatedParty,
                     gold: newState.gold + (rewards.gold || 0),
-                    inventory: [...newState.inventory, ...(rewards.items || [])],
+                    inventory: [...newState.inventory, ...rewardItems],
                     messages: [
                         ...newState.messages,
-                        {
-                            id: Date.now(),
-                            text: `Victory! The party gained ${rewards.xp} XP and ${rewards.gold || 0} gold. ${itemsFoundMessage}`,
-                            sender: 'system',
-                            timestamp: new Date()
-                        },
+                        victoryMessage,
                         ...levelUpMessages,
                     ]
                 };
             } else {
-                newState.messages.push({
+                const endMessage: GameState['messages'][number] = {
                     id: Date.now(),
                     text: `The battle ends.`,
                     sender: 'system',
                     timestamp: new Date()
-                });
+                };
+                newState = {
+                    ...newState,
+                    messages: [...newState.messages, endMessage],
+                };
             }
             return newState;
         }

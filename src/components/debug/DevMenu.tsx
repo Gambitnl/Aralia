@@ -8,7 +8,7 @@ import { useGameState } from '../../state/GameContext';
 import { generateVillageTemple } from '../../utils/templeUtils';
 import { VillageActionContext, VillagePersonality } from '../../types';
 
-type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'toggle_ollama_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple' | 'toggle_thieves_guild' | 'toggle_naval_dashboard';
+type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'toggle_ollama_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple' | 'test_lockpicking' | 'test_dice_roller' | 'toggle_thieves_guild' | 'toggle_naval_dashboard';
 
 interface DevMenuProps {
   isOpen: boolean;
@@ -121,6 +121,8 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
       title: 'Feature Testing',
       buttons: [
         { label: 'Test Temple UI', action: 'test_temple', style: 'bg-amber-600 hover:bg-amber-500', onClick: openTestTemple },
+        { label: 'Test Lockpicking UI', action: 'test_lockpicking', style: 'bg-yellow-700 hover:bg-yellow-600 border border-yellow-500' },
+        { label: '3D Dice Roller', action: 'test_dice_roller', style: 'bg-indigo-700 hover:bg-indigo-600 border border-indigo-500' },
         { label: 'Access Criminal Underworld', action: 'toggle_thieves_guild', style: 'bg-purple-900 hover:bg-purple-800 border border-purple-600' },
         { label: 'Naval Dashboard', action: 'toggle_naval_dashboard', style: 'bg-slate-700 hover:bg-slate-600 border border-slate-500' },
       ],

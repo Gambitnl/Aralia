@@ -55,7 +55,7 @@ const mockSkillTopic: ConversationTopic = {
   category: 'rumor',
   playerPrompt: 'Let me pass.',
   skillCheck: {
-    skill: 'Persuasion',
+    skill: { id: 'persuasion', name: 'Persuasion', ability: 'Charisma' },
     dc: 15,
     successUnlocks: ['unlocked_area'],
     xpReward: 100,
@@ -76,7 +76,7 @@ const mockGlobalTopic: ConversationTopic = {
 };
 
 // Helper to create mock items
-const createMockItem = (id: string, extraProps: unknown = {}): Item => ({
+const createMockItem = (id: string, extraProps: Record<string, unknown> = {}): Item => ({
   id,
   name: id,
   description: 'test item',
@@ -113,7 +113,7 @@ const mockExpiredRumor: WorldRumor = {
     virality: 0.9 // High virality shouldn't save it
 };
 
-const mockGameState = {
+const mockGameState: GameState = {
   npcMemory: {
     'npc_1': {
       disposition: 60,

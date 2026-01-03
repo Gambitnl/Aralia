@@ -179,7 +179,8 @@ const VillageScene: React.FC<VillageSceneProps> = ({ worldSeed, worldX, worldY, 
       // NPC greetings, etc.) can reuse the same cultural tone without
       // re-resolving the personality profile.
       integrationProfileId: layout.integrationProfile.id,
-      integrationPrompt: layout.integrationProfile.aiPrompt,
+      // TODO(2026-01-03 Codex-CLI): aiPrompt can be absent in legacy profiles; fall back to tagline/empty string to preserve flow.
+      integrationPrompt: layout.integrationProfile.aiPrompt ?? layout.integrationProfile.tagline ?? '',
       integrationTagline: layout.integrationProfile.tagline,
       culturalSignature: layout.integrationProfile.culturalSignature,
       encounterHooks: layout.integrationProfile.encounterHooks

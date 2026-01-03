@@ -3,7 +3,7 @@
  * Main character creation component wrapped in a resizable window frame.
  */
 import React, { useReducer, useCallback, useContext, useMemo, useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   PlayerCharacter,
   AbilityScores,

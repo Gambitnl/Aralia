@@ -191,7 +191,7 @@ function convertRumorToTopic(rumor: WorldRumor): ConversationTopic {
     label: `Hear anything about ${rumor.text.substring(0, 20)}...?`, // Shorten for label
     category: 'rumor',
     playerPrompt: `I heard whispers about ${rumor.text}. What do you know?`,
-    responsePrompt: rumor.text, // The NPC confirms the rumor by repeating it or elaborating (future AI hook)
+    // TODO(lint-preserve): If we want NPCs to parrot/expand the rumor automatically, thread this through an NPC response prompt.
     isGlobal: false, // It's generated specifically for this context
     isOneTime: false,
   };
@@ -414,7 +414,7 @@ export function processTopicSelection(
   const unlocks = topic.unlocksTopics || [];
   return {
     status: 'neutral',
-    responsePrompt: topic.responsePrompt || topic.playerPrompt,
+    responsePrompt: topic.playerPrompt,
     unlocks,
     deductions
   };

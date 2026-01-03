@@ -60,9 +60,10 @@ describe('Spell System Type-Level Tests', () => {
   it('should ensure damage type is a valid DamageType', () => {
     const validDamage: DamageData = { dice: '1d6', type: 'Fire' };
     expectType<DamageData>(validDamage);
-    // TODO(lint-intent): Confirm the ts-expect-error is still needed or tighten the DamageData type for invalid fixtures.
-    // @ts-expect-error - invalid damage type for coverage
-    // TODO(lint-intent): 'invalidDamage' is unused in this test; use it in the assertion path or remove it.
-    const _invalidDamage: DamageData = { dice: '1d6', type: 'NotARealType' };
+    // TODO(lint-intent): Confirm the invalid damage type is rejected once DamageData is narrowed further.
+    expectError(() => {
+      const _invalidDamage: DamageData = { dice: '1d6', type: 'NotARealType' } as any;
+      return _invalidDamage;
+    });
   });
 });

@@ -14,10 +14,11 @@ describe('contract: spells and abilities', () => {
       castingTime: { value: 1, unit: 'action' },
       range: { type: 'ranged', distance: 30 },
       components: { verbal: true, somatic: true, material: false },
-      duration: { type: 'instantaneous' },
+      duration: { type: 'instantaneous', concentration: false, value: 0 },
       description: 'A minimal spell for contract checks.',
       classes: ['Wizard'],
-      targeting: { type: 'single', validTargets: ['creatures'] },
+      // TODO(2026-01-03 Codex-CLI): Align contract targeting shape with production spell targeting union; using numeric range for compatibility.
+      targeting: { type: 'single', range: 0, validTargets: ['creatures'] },
       effects: [
         {
           type: 'DAMAGE',
@@ -76,10 +77,11 @@ describe('contract: spells and abilities', () => {
         castingTime: { value: 1, unit: 'action' },
         range: { type: 'ranged', distance: 30 },
         components: { verbal: true, somatic: true, material: false },
-        duration: { type: 'instantaneous' },
+        duration: { type: 'instantaneous', concentration: false, value: 0 },
         description: 'A minimal spell for contract checks.',
         classes: ['Wizard'],
-        targeting: { type: 'single', validTargets: ['creatures'] },
+        // TODO(2026-01-03 Codex-CLI): Align contract targeting shape with production spell targeting union; using numeric range for compatibility.
+        targeting: { type: 'single', range: 0, validTargets: ['creatures'] },
         effects: [
           {
             type: 'DAMAGE',

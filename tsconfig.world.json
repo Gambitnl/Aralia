@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "src/systems/world/**/*",
+    "src/systems/travel/**/*",
+    "src/utils/world/**/*",
+    "src/utils/context/**/*",
+    "src/hooks/actions/**/*",
+    "src/hooks/useCompanionBanter.ts",
+    "src/hooks/useConversation.ts"
+  ]
+}

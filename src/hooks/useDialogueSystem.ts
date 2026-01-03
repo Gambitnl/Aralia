@@ -34,13 +34,15 @@ export const useDialogueSystem = (
         const npc = NPCS[session.npcId];
         if (!npc) return "...";
 
-        const systemPrompt = npc.initialPersonalityPrompt;
+        const systemPrompt = npc.initialPersonalityPrompt ?? '';
+        if (!systemPrompt) return "...";
 
         try {
             const result = await GeminiService.generateNPCResponse(
+                npc.name,
+                prompt ?? "",
                 systemPrompt,
-                prompt,
-                gameState.devModelOverride
+                gameState.devModelOverride ?? null
             );
 
             if (result.data?.text) {
@@ -64,15 +66,17 @@ export const useDialogueSystem = (
     const handleTopicOutcome = useCallback((result: ProcessTopicResult, topicId: string) => {
         const session = gameState.activeDialogueSession;
         if (!session) return;
+        const currentGameTime = Number(gameState?.gameTime ?? Date.now());
 
         // 0. Persist Topic Memory
-        // Ensure this topic is remembered in the NPC's long-term memory
+        // Ensure this topic is remembered in the NPC's long-term memory        
         dispatch({
             type: 'DISCUSS_TOPIC',
             payload: {
                 topicId,
                 npcId: session.npcId,
-                date: gameState.gameTime // Use current game time
+        // TODO(2026-01-03 pass 2 Codex-CLI): State shape mixes Date/number for timestamps; store number for reducers, migrate to Date once state shape is unified.
+        date: currentGameTime
             }
         });
 
@@ -97,10 +101,11 @@ export const useDialogueSystem = (
             dispatch({
                 type: 'ADD_MESSAGE',
                 payload: {
-                    id: crypto.randomUUID(),
+                    id: Date.now(),
                     text: `${NPCS[session.npcId]?.name || 'NPC'} ${direction} of your words.`,
-                    type: 'SYSTEM',
-                    timestamp: Date.now()
+                    sender: 'system',
+        // TODO(2026-01-03 Codex-CLI): Normalize GameMessage timestamp typing; reducers currently expect number in some flows.
+        timestamp: new Date(currentGameTime) as unknown as Date
                 }
             });
         }

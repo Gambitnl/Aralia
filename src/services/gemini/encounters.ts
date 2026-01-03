@@ -8,7 +8,7 @@ import { GEMINI_TEXT_MODEL_FALLBACK_CHAIN, COMPLEX_MODEL, FAST_MODEL } from "../
 import { MonsterSchema, CustomActionSchema, SocialOutcomeSchema } from "../geminiSchemas";
 import { chooseModelForComplexity, generateText } from "./core";
 import { ExtendedGenerationConfig, GeminiCustomActionData, GeminiEncounterData, GeminiMetadata, GeminiSocialCheckData, GeminiTextData, StandardizedResult } from "./types";
-import { Action, GroundingChunk, InspectSubmapTilePayload, Monster, NPCMemory, TempPartyMember, VillageActionContext } from "../../types";
+import { Action, GoalStatus, GroundingChunk, InspectSubmapTilePayload, Monster, NPCMemory, TempPartyMember, VillageActionContext } from "../../types";
 import { SUBMAP_ICON_MEANINGS } from "../../data/glossaryData";
 
 export async function generateOracleResponse(
@@ -305,7 +305,7 @@ export async function generateSocialCheckOutcome(
   3) A memory fact the NPC records (1 sentence).
   4) An optional goal update (if relevant).`;
 
-  const npcFacts = npcMemory?.facts ?? [];
+  const npcFacts = (npcMemory as any)?.facts ?? [];
   const npcContext = npcFacts.length ? `NPC Memory: ${npcFacts.join('; ')}` : "NPC Memory: (none)";
   const villageContextStr = villageContext ? `Village Context: ${JSON.stringify(villageContext)}` : "Village Context: (none)";
 
@@ -337,6 +337,16 @@ ${villageContextStr}`;
     const parsed = safeJSONParse(jsonString);
     if (!parsed) throw new Error("Parsed JSON is null");
     const validated = SocialOutcomeSchema.parse(parsed);
+    const safeGoalUpdate = validated.goalUpdate
+      ? {
+          npcId: validated.goalUpdate.npcId ?? 'npc:unknown',
+          goalId: validated.goalUpdate.goalId ?? 'goal:unknown',
+          // TODO(2026-01-03 Codex-CLI): Confirm Gemini output matches GoalStatus enum; mapping Unknown by default preserves future intent.
+          newStatus:
+            GoalStatus[(validated.goalUpdate.newStatus as keyof typeof GoalStatus)] ??
+            GoalStatus.Unknown,
+        }
+      : null;
 
     return {
       data: {
@@ -344,10 +354,10 @@ ${villageContextStr}`;
         promptSent: result.data.promptSent,
         rawResponse: result.data.rawResponse,
         rateLimitHit: result.data.rateLimitHit,
-        outcomeText: validated.outcomeText,
-        dispositionChange: validated.dispositionChange,
-        memoryFactText: validated.memoryFactText,
-        goalUpdate: validated.goalUpdate || null
+        outcomeText: validated.outcomeText ?? "Outcome unavailable",
+        dispositionChange: validated.dispositionChange ?? 0,
+        memoryFactText: validated.memoryFactText ?? "",
+        goalUpdate: safeGoalUpdate
       },
       error: null
     };

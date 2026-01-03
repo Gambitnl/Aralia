@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import { checkPressurePlate, detectPressurePlate, jamPressurePlate } from '../pressurePlateSystem';
 import { PressurePlate, Trap } from '../types';
-import { PlayerCharacter } from '../../types/character';
+import { PlayerCharacter } from '../../../types/character';
 
 // Mock character factory
 const createMockCharacter = (overrides: Partial<PlayerCharacter> = {}): PlayerCharacter => ({
@@ -31,7 +31,7 @@ const createMockCharacter = (overrides: Partial<PlayerCharacter> = {}): PlayerCh
   equippedItems: {},
   ...overrides
 // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-} as unknown);
+} as PlayerCharacter);
 
 describe('Pressure Plate System', () => {
   const plate: PressurePlate = {

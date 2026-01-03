@@ -7,6 +7,7 @@
  */
 
 import { PlayerCharacter } from '../../types/character';
+import type { Item } from '../../types/items';
 import { rollDice } from '../../utils/combatUtils';
 import { getAbilityModifierValue } from '../../utils/statUtils';
 // TODO(lint-intent): 'TrapEffect' is imported but unused; it hints at a helper/type the module was meant to use.
@@ -14,6 +15,15 @@ import { getAbilityModifierValue } from '../../utils/statUtils';
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { PressurePlate, PressurePlateResult, PressurePlateJamResult, SizeCategory, Trap, TrapEffect as _TrapEffect } from './types';
 import { hasTool, hasToolProficiency } from './lockSystem';
+
+const getLegacyStats = (character: PlayerCharacter) => ({
+  strength: character.stats?.strength ?? character.finalAbilityScores?.Strength ?? character.abilityScores.Strength,
+  dexterity: character.stats?.dexterity ?? character.finalAbilityScores?.Dexterity ?? character.abilityScores.Dexterity,
+  constitution: character.stats?.constitution ?? character.finalAbilityScores?.Constitution ?? character.abilityScores.Constitution,
+  intelligence: character.stats?.intelligence ?? character.finalAbilityScores?.Intelligence ?? character.abilityScores.Intelligence,
+  wisdom: character.stats?.wisdom ?? character.finalAbilityScores?.Wisdom ?? character.abilityScores.Wisdom,
+  charisma: character.stats?.charisma ?? character.finalAbilityScores?.Charisma ?? character.abilityScores.Charisma,
+});
 
 const SIZE_VALUES: Record<SizeCategory, number> = {
   'Tiny': 0,
@@ -111,7 +121,8 @@ export function detectPressurePlate(
       return { detected: true, message: 'The pressure plate is plainly visible.' };
   }
 
-  const wisMod = getAbilityModifierValue(character.stats.wisdom); // Perception
+  const stats = getLegacyStats(character);
+  const wisMod = getAbilityModifierValue(stats.wisdom); // Perception
   const d20 = rollDice('1d20');
   const total = d20 + wisMod; // Add proficiency if we had skill lists accessible easily
 
@@ -132,7 +143,7 @@ export function jamPressurePlate(
   // TODO(lint-intent): The any on 'inventory' hides the intended shape of this data.
   // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
   // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-  inventory: unknown[] // Item[]
+  inventory: Array<Pick<Item, 'id'>>
 ): PressurePlateJamResult {
   if (plate.isJammed) {
       return { success: true, triggered: false, message: 'It is already jammed.' };
@@ -146,8 +157,9 @@ export function jamPressurePlate(
   const hasThievesTools = hasTool(character, 'thieves-tools', inventory);
 
   // Roll logic
-  const dexMod = getAbilityModifierValue(character.stats.dexterity);
-  const intMod = getAbilityModifierValue(character.stats.intelligence);
+  const stats = getLegacyStats(character);
+  const dexMod = getAbilityModifierValue(stats.dexterity);
+  const intMod = getAbilityModifierValue(stats.intelligence);
 
   const roll = rollDice('1d20');
   let bonus = 0;
@@ -155,7 +167,8 @@ export function jamPressurePlate(
   if (hasThievesTools) {
       // Use Dex + PB (if proficient)
       const isProficient = hasToolProficiency(character, 'thieves-tools');
-      bonus = dexMod + (isProficient ? (character.proficiencyBonus || 2) : 0);
+      const profBonus = character.proficiencyBonus ?? 0;
+      bonus = dexMod + (isProficient ? profBonus : 0);
   } else {
       // Improvising with Int (Investigation) to wedge a stone
       bonus = intMod;

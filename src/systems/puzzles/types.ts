@@ -37,6 +37,11 @@ export interface TrapEffect {
   condition?: StatusCondition;
   saveDC?: number;
   saveType?: AbilityScoreName;
+  /**
+   * Legacy discriminator carried by earlier trap implementations (e.g., teleport/condition/restrain).
+   * TODO(lint-preserve): Replace this loose string with a refined union once trap effects are standardized.
+   */
+  type?: string;
 }
 
 export type TriggerCondition = 'touch' | 'proximity' | 'interaction' | 'timer' | 'magic' | 'glyph';

@@ -1,5 +1,8 @@
 import type { NPCVisualSpec } from './visuals';
 import type { NPCKnowledgeProfile } from './dialogue';
+import type { Position as CombatPosition } from './combat';
+
+export type Position = CombatPosition;
 
 // -----------------------------------------------------------------------------
 // World and NPC types
@@ -103,7 +106,17 @@ export interface NpcMemory {
   knownFacts: KnownFact[];
   suspicion: SuspicionLevel;
   goals: Goal[];
+  /** Optional lightweight fact list used by AI helpers (distinct from structured KnownFacts). */
+  facts?: string[];
   lastInteractionTimestamp?: number;
+  // TODO(2026-01-03 pass 4 Codex-CLI): interactions placeholder until NPC interaction history is fully typed.
+  interactions?: unknown[];
+  // TODO(2026-01-03 pass 4 Codex-CLI): attitude placeholder for future relationship modeling.
+  attitude?: string;
+  // TODO(2026-01-03 pass 4 Codex-CLI): discussedTopics placeholder until conversation logging is formalized.
+  discussedTopics?: Record<string, unknown>;
+  // TODO(2026-01-03 pass 4 Codex-CLI): lastInteractionDate placeholder until timestamps are standardized across NPC memory.
+  lastInteractionDate?: string | number | Date | null;
 }
 
 export interface GossipUpdatePayload {

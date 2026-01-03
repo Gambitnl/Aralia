@@ -16,9 +16,12 @@ export interface VillagePersonality {
 
 export interface VillageIntegrationProfile {
   id: string;
-  name: string;
-  description: string;
+  name?: string;
+  description?: string;
   tagline: string;
   culturalSignature: string;
   encounterHooks: string[];
+  // TODO(2026-01-03 Codex-CLI): AI-driven village flows reference richer prompts; surface optional fields until data schema is finalized.
+  aiPrompt?: string;
+  integrationPrompt?: string;
 }

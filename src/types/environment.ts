@@ -31,6 +31,7 @@ export interface WeatherState {
   temperature: Temperature;
   wind: WindCondition;
   visibility: VisibilityLevel;
+  currentWeather?: string; // legacy field used by some hooks; mirrors precipitation/summary
   // Base values before time-of-day modifications (prevents drift)
   baseTemperature?: Temperature;
   baseVisibility?: VisibilityLevel;

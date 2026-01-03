@@ -110,10 +110,10 @@ export const useCompanionBanter = (
     dispatch({
       type: 'ADD_MESSAGE',
       payload: {
-        id: crypto.randomUUID(),
+        id: Date.now(),
         text: `: "${text}"`,
         sender: 'npc',
-        timestamp: Date.now(),
+        timestamp: new Date(),
         metadata: {
           companionId: speakerId,
           type: 'banter'
@@ -167,7 +167,7 @@ export const useCompanionBanter = (
     const weather = state.environment?.currentWeather || 'Clear';
     const hour = new Date(state.gameTime).getHours();
     const timeOfDay = hour < 6 ? 'Night' : hour < 12 ? 'Morning' : hour < 18 ? 'Afternoon' : 'Evening';
-    const activeQuest = state.questLog.find(q => q.status === 'active');
+    const activeQuest = state.questLog.find(q => q.status === 'Active' || (q.status as any) === 'active');
 
     contextRef.current = {
       locationName: locName,

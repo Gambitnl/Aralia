@@ -21,13 +21,15 @@ const mockChar = (id: string, strength: number, speed: number = 30): PlayerChara
   abilityScores: { Strength: strength, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10 } as AbilityScores,
   speed,
   race: { id: 'human', name: 'Human', description: '', traits: [] },
-  class: { id: 'fighter', name: 'Fighter', description: '', hitDie: 10, primaryAbility: ['strength'], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 2, armorProficiencies: [], weaponProficiencies: [], features: [] },
+  class: { id: 'fighter', name: 'Fighter', description: '', hitDie: 10, primaryAbility: ['Strength'], savingThrowProficiencies: [], skillProficienciesAvailable: [], numberOfSkillProficiencies: 2, armorProficiencies: [], weaponProficiencies: [], features: [] },
   skills: [],
   transportMode: 'foot',
   hp: 10,
   maxHp: 10,
   armorClass: 10,
   darkvisionRange: 0,
+  statusEffects: [],
+  equippedItems: {}
 });
 
 const mockItem = (weight: number): Item => ({

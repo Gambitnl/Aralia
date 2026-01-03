@@ -30,7 +30,7 @@ export function useLocalStorage<T>(
     const item = SafeStorage.getItem(key);
     if (item) {
       try {
-        const parsed = safeJSONParse(item);
+        const parsed = safeJSONParse(item) as unknown as T | null;
         if (parsed === null) {
           console.warn(`Error parsing localStorage key "${key}": JSON invalid`);
           if (onError) onError(new Error("JSON invalid"));

@@ -115,7 +115,7 @@ export const useCompanionCommentary = (
         locationName: locName,
         weather: gameState.environment?.currentWeather,
         timeOfDay: new Date(gameState.gameTime).getHours() < 12 ? 'Morning' : 'Afternoon',
-        currentTask: gameState.questLog.find(q => q.status === 'active')?.title,
+        currentTask: gameState.questLog.find(q => q.status === 'Active' || (q.status as any) === 'active')?.title,
       };
 
       let dialogue = winner.rule.dialoguePool[Math.floor(Math.random() * winner.rule.dialoguePool.length)];

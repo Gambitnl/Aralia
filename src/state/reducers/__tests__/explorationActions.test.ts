@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { characterReducer } from '../characterReducer';
 import { GameState, Item } from '../../../types';
 import { AppAction } from '../../actionTypes';
+import { createMockGameState, createMockPlayerCharacter } from '../../../utils/factories';
 
 // Mock ITEMS manually
 // TODO(lint-intent): 'ITEMS' is unused in this test; use it in the assertion path or remove it.
@@ -12,17 +13,14 @@ const _ITEMS = {
 
 // We need a minimal GameState
 const mockState: GameState = {
+    ...createMockGameState(),
     party: [
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        { id: 'c1', name: 'Char1', hp: 10, maxHp: 20 } as unknown,
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        { id: 'c2', name: 'Char2', hp: 5, maxHp: 20 } as unknown,
+        createMockPlayerCharacter({ id: 'c1', name: 'Char1', hp: 10, maxHp: 20 }),
+        createMockPlayerCharacter({ id: 'c2', name: 'Char2', hp: 5, maxHp: 20 }),
     ],
     inventory: [],
     gold: 0,
-    // ... other fields irrelevant for this test
-// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-} as unknown;
+};
 
 describe('Character Reducer - New Exploration Actions', () => {
     it('should add item to inventory', () => {

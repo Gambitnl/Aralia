@@ -11,6 +11,17 @@ import { rollDice } from '../../utils/combatUtils';
 import { getAbilityModifierValue } from '../../utils/statUtils';
 import { SecretDoor, SecretDoorResult } from './types';
 
+const getLegacyStats = (character: PlayerCharacter) => ({
+  strength: character.stats?.strength ?? character.finalAbilityScores?.Strength ?? character.abilityScores.Strength,
+  dexterity: character.stats?.dexterity ?? character.finalAbilityScores?.Dexterity ?? character.abilityScores.Dexterity,
+  constitution: character.stats?.constitution ?? character.finalAbilityScores?.Constitution ?? character.abilityScores.Constitution,
+  intelligence: character.stats?.intelligence ?? character.finalAbilityScores?.Intelligence ?? character.abilityScores.Intelligence,
+  wisdom: character.stats?.wisdom ?? character.finalAbilityScores?.Wisdom ?? character.abilityScores.Wisdom,
+  charisma: character.stats?.charisma ?? character.finalAbilityScores?.Charisma ?? character.abilityScores.Charisma,
+});
+
+const getClasses = (character: PlayerCharacter) => character.classes ?? (character.class ? [character.class] : []);
+
 /**
  * Attempts to detect a secret door in the vicinity.
  * Typically called when a character actively searches (Action: Search)
@@ -28,14 +39,15 @@ export function searchForSecretDoor(
     };
   }
 
-  const wisMod = getAbilityModifierValue(character.stats.wisdom); // Perception
+  const stats = getLegacyStats(character);
+  const wisMod = getAbilityModifierValue(stats.wisdom); // Perception
 
   // Proficiency Check (Simplified)
   // In a full system, we'd check 'perception' skill proficiency explicitly.
-  const isProficient = character.classes.some(c =>
+  const isProficient = getClasses(character).some(c =>
     c.name === 'Rogue' || c.name === 'Ranger' || c.name === 'Bard' || c.name === 'Druid'
   );
-  const profBonus = isProficient ? character.proficiencyBonus : 0;
+  const profBonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;
 
   const d20 = rollDice('1d20');
   const total = d20 + wisMod + profBonus;
@@ -85,13 +97,14 @@ export function investigateMechanism(
   // If the mechanism is "obvious" (DC 0 or very low), auto-succeed?
   // Or maybe this function is only called if the player tries to *use* it.
 
-  const intMod = getAbilityModifierValue(character.stats.intelligence); // Investigation
+  const stats = getLegacyStats(character);
+  const intMod = getAbilityModifierValue(stats.intelligence); // Investigation
 
   // Proficiency Check (Simplified)
-  const isProficient = character.classes.some(c =>
+  const isProficient = getClasses(character).some(c =>
     c.name === 'Rogue' || c.name === 'Wizard' || c.name === 'Artificer' || c.name === 'Bard'
   );
-  const profBonus = isProficient ? character.proficiencyBonus : 0;
+  const profBonus = isProficient ? (character.proficiencyBonus ?? 0) : 0;
 
   const d20 = rollDice('1d20');
   const total = d20 + intMod + profBonus;

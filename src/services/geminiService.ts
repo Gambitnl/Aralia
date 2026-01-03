@@ -2,7 +2,9 @@ import { FAST_MODEL } from '../config/geminiConfig';
 export { generateText } from './gemini/core';
 import { generateText } from './gemini/core';
 import { GeminiHarvestData, GeminiInventoryData, GeminiTextData, StandardizedResult } from './gemini/types';
-import { generateCharacterName, generateCustomActions, generateEncounter, generateOracleResponse, generateSocialCheckOutcome, generateTileInspectionDetails } from './gemini/encounters';
+
+export type { StandardizedResult, GeminiTextData };
+import { generateCharacterName as implGenerateCharacterName, generateCustomActions as implGenerateCustomActions, generateEncounter as implGenerateEncounter, generateOracleResponse as implGenerateOracleResponse, generateSocialCheckOutcome as implGenerateSocialCheckOutcome, generateTileInspectionDetails as implGenerateTileInspectionDetails } from './gemini/encounters';
 import { generateGuideResponse as implGenerateGuideResponse, generateHarvestLoot as implGenerateHarvestLoot, generateMerchantInventory as implGenerateMerchantInventory } from './gemini/items';
 import { GoalStatus, NPCMemory, EconomyState } from '../types';
 
@@ -166,4 +168,3 @@ import {
   generateCustomActions as generateCustomActionsFacade,
   generateSocialCheckOutcome as generateSocialCheckOutcomeFacade,
 } from './gemini/encounters';
-import { NPCMemory } from '../types';

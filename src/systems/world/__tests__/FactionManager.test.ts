@@ -74,8 +74,8 @@ const mockState: GameState = {
         currentDepth: 0,
         isDarkvisionActive: false,
         lightSources: [],
-        sanity: 100,
-        madnessLevel: 0,
+        // TODO(2026-01-03 Codex-CLI): Align test UnderdarkState with domain model once stabilized.
+        sanity: { current: 100, max: 100, madnessLevel: 0 },
         activeEffects: []
     },
     environment: {

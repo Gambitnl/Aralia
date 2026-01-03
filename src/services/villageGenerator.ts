@@ -1,6 +1,7 @@
-import { resolveVillageIntegrationProfile, VillageIntegrationProfile } from '../data/villagePersonalityProfiles';
+import { resolveVillageIntegrationProfile } from '../data/villagePersonalityProfiles';
 import { villageBuildingVisuals } from '../config/submapVisualsConfig';
 import { createSeededRandom } from '../utils/submapUtils';
+export type { VillagePersonality, VillageIntegrationProfile };
 
 /**
  * Deterministic village generation pipeline.
@@ -442,6 +443,12 @@ export const generateVillageLayout = ({
   // Keep a ready-made integration profile so UI layers and AI hooks can share
   // the same narrative cues without recomputing or duplicating logic.
   const integrationProfile = resolveVillageIntegrationProfile(personality);
+  const normalizedIntegrationProfile: VillageIntegrationProfile = {
+    // TODO(2026-01-03 pass 1 Codex-CLI): Village profiles lack name/description in some paths; default to id/tagline to keep UI stable.
+    name: (integrationProfile as any).name ?? integrationProfile.id ?? 'Village Profile',
+    description: (integrationProfile as any).description ?? integrationProfile.tagline ?? '',
+    ...integrationProfile,
+  };
 
   const tiles = createGrid(width, height, 'grass');
   const buildings: VillageBuildingFootprint[] = [];
@@ -580,7 +587,7 @@ export const generateVillageLayout = ({
     tiles,
     buildings,
     personality,
-    integrationProfile
+    integrationProfile: normalizedIntegrationProfile
   };
 };
 
@@ -617,24 +624,61 @@ export const describeBuilding = (building: VillageBuildingFootprint, personality
     martial: 'reinforced shutters and watchful eyes'
   };
 
-  const typeName: Record<VillageTileType, string> = {
+  const typeName: Partial<Record<VillageTileType, string>> = {
     grass: 'Open Ground',
     path: 'Path',
+    stone: 'Stone Path',
+    dirt: 'Dirt Path',
+    water: 'Waterway',
     plaza: 'Central Plaza',
     market: 'Market Square',
     well: 'Village Well',
     guard_post: 'Guard Post',
-    house_small: 'Small House',
-    house_medium: 'Family Home',
-    house_large: 'Estate House',
+    watchtower: 'Watchtower',
+    fountain: 'Fountain',
     shop_blacksmith: 'Blacksmith',
     shop_general: 'General Store',
     shop_tavern: 'Tavern',
-    shop_temple: 'Temple'
+    shop_temple: 'Temple',
+    inn: 'Inn',
+    bank: 'Bank',
+    guildhall: 'Guildhall',
+    stable: 'Stable',
+    house_small: 'Small House',
+    house_medium: 'Family Home',
+    house_large: 'Estate House',
+    apartment: 'Apartments',
+    manor: 'Manor',
+    estate: 'Estate',
+    treehouse_small: 'Treehouse',
+    treehouse_large: 'Great Treehouse',
+    ancient_circle: 'Ancient Circle',
+    weaver_hall: 'Weaver Hall',
+    stone_hall_small: 'Stone Hall',
+    stone_hall_large: 'Great Stone Hall',
+    forge_temple: 'Forge Temple',
+    underground_entrance: 'Underground Entrance',
+    hide_tent: 'Hide Tent',
+    longhouse: 'Longhouse',
+    totem_pole: 'Totem Pole',
+    war_memorial: 'War Memorial',
+    dock: 'Dock',
+    lighthouse: 'Lighthouse',
+    shipwright: 'Shipwright',
+    fish_market: 'Fish Market',
+    magic_academy: 'Magic Academy',
+    arcane_tower: 'Arcane Tower',
+    healers_hut: "Healer's Hut",
+    alchemist_shop: 'Alchemist',
+    caravan_stop: 'Caravan Stop',
+    trading_post: 'Trading Post',
+    nomad_yurt: 'Nomad Yurt',
+    shrine: 'Shrine',
+    gatehouse: 'Gatehouse',
   };
 
   const wealthFlavor = personality.wealth === 'rich' ? 'well-kept and prosperous' : personality.wealth === 'comfortable' ? 'orderly and welcoming' : 'weathered but lively';
 
-  return `${typeName[building.type]} with ${cultureFlavor[personality.culture]}; the settlement feels ${wealthFlavor}.`;
+  return `${typeName[building.type] ?? 'Structure'} with ${cultureFlavor[personality.culture]}; the settlement feels ${wealthFlavor}.`;
 };
 

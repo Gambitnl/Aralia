@@ -1,7 +1,7 @@
 /**
  * @file SubmapPane.tsx
  * This component displays the visual submap for the player's current
- * world map tile location, showing their precise position within a 25x25 grid.
+ * world map tile location, showing their precise position within a configurable grid (default 20×30).
  * It now features more varied tile visuals, including feature clumping and paths,
  * an icon glossary accessible via a modal, and tooltips with contextual hints.
  * It uses the useSubmapProceduralData hook for data generation and has a decomposed getTileVisuals function.
@@ -18,6 +18,7 @@ import { biomeVisualsConfig, defaultBiomeVisuals } from '../../config/submapVisu
 import SubmapTile from './SubmapTile';
 import { CaTileType } from '../../services/cellularAutomataService';
 import SubmapRendererPixi from './SubmapRendererPixi';
+import { WindowFrame } from '../ui/WindowFrame';
 
 // Modularized imports
 import {
@@ -378,28 +379,13 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
 
 
     return (
-        <div
-            className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-2 md:p-4"
-            aria-modal="true"
-            role="dialog"
-            aria-labelledby="submap-pane-title"
+        <WindowFrame
+            title={`Local Area Scan - ${currentLocation.name}`}
+            onClose={onClose}
+            storageKey="submap-window"
+            initialMaximized={true}
         >
-            <div className="bg-gray-800 p-3 md:p-4 rounded-xl shadow-2xl border border-gray-700 w-full max-w-7xl max-h-[90vh] flex flex-col">
-                {/* Header */}
-                <div className="flex justify-between items-center mb-3">
-                    <h2 id="submap-pane-title" className="text-xl md:text-2xl font-bold text-amber-400 font-cinzel">
-                        Local Area Scan - {currentLocation.name}
-                    </h2>
-                    <button
-                        ref={firstFocusableElementRef}
-                        onClick={onClose}
-                        className="text-gray-400 hover:text-gray-200 text-2xl p-1 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-400"
-                        aria-label="Close submap"
-                    >
-                        &times;
-                    </button>
-                </div>
-
+            <div className="flex flex-col h-full w-full bg-gray-800 p-1 md:p-2">
                 {isInspecting && inspectionMessage && (
                     <p className="text-center text-sm text-yellow-300 mb-2 italic">{inspectionMessage}</p>
                 )}
@@ -411,8 +397,8 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                 */}
                 <div className="flex-grow flex flex-col md:flex-row gap-4 overflow-hidden min-h-0"> {/* Use overflow-hidden on parent */}
                     {/* Submap Grid Container */}
-                    
-                    
+
+
                     <div
                         className="p-1 bg-gray-900/30 rounded-md shadow-inner flex-grow overflow-auto scrollable-content relative"
                         onMouseLeave={() => setHoveredTile(null)}
@@ -533,7 +519,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
 
 
                     {/* Controls Column */}
-                    <div className="flex flex-col gap-3 md:w-auto md:max-w-sm flex-shrink-0 overflow-hidden">
+                    <div className="flex flex-col gap-3 md:w-72 flex-shrink-0 overflow-hidden">
                         <div className="flex-shrink-0">
                             <CompassPane
                                 currentLocation={currentLocation}
@@ -547,32 +533,32 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                                 isSubmapContext={true}
                             />
                         </div>
-                        <div className="flex flex-col items-stretch gap-2 p-3 bg-gray-700/50 rounded-lg border border-gray-600/70 shadow-md flex-shrink-0">
+                        <div className="flex flex-wrap items-center gap-2 p-2 bg-gray-700/50 rounded-lg border border-gray-600/70 shadow-md flex-shrink-0">
                             <button
                                 onClick={handleQuickTravelClick}
                                 disabled={disabled}
-                                className={`px-3 py-2 text-sm font-semibold rounded-md shadow-sm transition-colors w-full
+                                className={`px-2 py-1.5 text-xs font-semibold rounded-md shadow-sm transition-colors
                                 ${isQuickTravelMode ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-green-600 hover:bg-green-500 text-white'}
                                 disabled:bg-gray-500 disabled:cursor-not-allowed`}
                             >
-                                {isQuickTravelMode ? 'Cancel Travel' : 'Quick Travel'}
+                                {isQuickTravelMode ? 'Cancel' : 'Travel'}
                             </button>
                             <button
                                 onClick={handleInspectClick}
                                 disabled={disabled}
-                                className={`px-3 py-2 text-sm font-semibold rounded-md shadow-sm transition-colors w-full
+                                className={`px-2 py-1.5 text-xs font-semibold rounded-md shadow-sm transition-colors
                                 ${isInspecting ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-yellow-500 hover:bg-yellow-400 text-gray-900'}
                                 disabled:bg-gray-500 disabled:cursor-not-allowed`}
                             >
-                                {isInspecting ? 'Cancel Inspect' : 'Inspect Tile'}
+                                {isInspecting ? 'Cancel' : 'Inspect'}
                             </button>
                             <button
                                 onClick={toggleGlossary}
                                 disabled={disabled}
-                                className="px-3 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-md shadow-sm transition-colors w-full disabled:bg-gray-500 disabled:cursor-not-allowed"
+                                className="px-2 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-md shadow-sm transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed"
                                 aria-label="Toggle submap legend"
                             >
-                                {isGlossaryOpen ? 'Hide Legend' : 'Show Legend'}
+                                Legend
                             </button>
                         </div>
                         <div className="mt-2 flex-grow overflow-y-auto scrollable-content border-t border-gray-700 pt-2">
@@ -582,11 +568,11 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                                 itemsInLocation={itemsInLocation}
                                 onAction={onAction}
                                 disabled={disabled || isInspecting || isQuickTravelMode}
-                                geminiGeneratedActions={geminiGeneratedActions} 
+                                geminiGeneratedActions={geminiGeneratedActions}
                                 isDevDummyActive={isDevDummyActive}
                                 isDevModeEnabled={false}
-                                unreadDiscoveryCount={unreadDiscoveryCount}     
-                                hasNewRateLimitError={hasNewRateLimitError}     
+                                unreadDiscoveryCount={unreadDiscoveryCount}
+                                hasNewRateLimitError={hasNewRateLimitError}
                                 subMapCoordinates={playerSubmapCoords}
                                 worldSeed={worldSeed}
                             />
@@ -595,8 +581,8 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                 </div>
 
                 {isGlossaryOpen && (
-                    
-                    
+
+
                     /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
                     TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
                     TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
@@ -614,8 +600,8 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                         tabIndex={0}
                         aria-label="Close submap legend"
                     >
-                        
-                        
+
+
                         <div className="bg-gray-800 p-4 rounded-lg shadow-xl max-w-md w-full max-h-[70vh] overflow-y-auto scrollable-content border border-gray-600">
                             <div className="flex justify-between items-center mb-3">
                                 <h3 className="text-lg font-semibold text-amber-400">Submap Legend</h3>
@@ -639,7 +625,7 @@ const SubmapPane: React.FC<SubmapPaneProps> = ({
                     </div>
                 )}
             </div>
-        </div>
+        </WindowFrame>
     );
 };
 export default SubmapPane;

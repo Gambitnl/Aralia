@@ -1,5 +1,6 @@
 
 import { Monster } from '../types';
+import type { MonsterData } from '../types/ui';
 import { MONSTERS_DATA, XP_BY_CR } from '../constants';
 import { logger } from '../utils/logger';
 
@@ -16,7 +17,7 @@ export function getFallbackEncounter(xpBudget: number, themeTags: string[]): Mon
   let currentXp = 0;
 
   // 1. Filter available monsters based on themes if possible
-  const availableMonsters = Object.values(MONSTERS_DATA);
+  const availableMonsters: MonsterData[] = Object.values(MONSTERS_DATA);
   let candidates = availableMonsters.filter(m =>
     themeTags.some(tag => m.tags?.some(t => t.toLowerCase() === tag.toLowerCase()))
   );
@@ -34,10 +35,8 @@ export function getFallbackEncounter(xpBudget: number, themeTags: string[]): Mon
 
   // 2. Sort candidates by XP (descending) to try and fill budget efficiently
   // We need to look up XP by CR.
-  // TODO(lint-intent): The any on 'm' hides the intended shape of this data.
-  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-  const getXp = (m: unknown) => XP_BY_CR[m.baseStats.cr] || 0;
+  // TODO(2026-01-03 Codex-CLI): Define a slimmer Monster-like type for fallback encounters; using permissive accessors until data is refit.
+  const getXp = (m: MonsterData) => XP_BY_CR[(m?.baseStats as any)?.cr as keyof typeof XP_BY_CR] || 0;
 
   // Sort by XP descending, but filter out monsters that are too strong (XP > budget)
   const validCandidates = candidates

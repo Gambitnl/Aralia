@@ -16,10 +16,12 @@ import {
 } from '../types';
 import { SKILLS_DATA } from '../data/skills';
 import { WEAPONS_DATA } from '../data/items';
-import { ALL_RACES_DATA as RACES_DATA, TIEFLING_LEGACIES_DATA as TIEFLING_LEGACIES } from '../data/races';
+import { ALL_RACES_DATA as RACES_DATA } from '../data/races';
+import { TIEFLING_LEGACIES } from '../constants';
 import { CharacterCreationState } from '../components/CharacterCreator/state/characterCreatorState'; 
 import { getAbilityModifierValue, applyFeatToCharacter } from '../utils/characterUtils';
 import { FEATS_DATA } from '../data/feats/featsData';
+import type { FiendishLegacy, FeatChoice, MagicInitiateSource } from '../types/character';
 
 // --- Helper Functions for Character Assembly ---
 function validateAllSelectionsMade(state: CharacterCreationState): boolean {
@@ -137,7 +139,7 @@ function assembleCastingProperties(state: CharacterCreationState): {
     }
     const fiendishLegacyId = racialSelections?.['tiefling']?.choiceId;
     if (selectedRace.id === 'tiefling' && fiendishLegacyId) {
-        const legacy = TIEFLING_LEGACIES.find(fl => fl.id === fiendishLegacyId);
+        const legacy = TIEFLING_LEGACIES.find((fl: FiendishLegacy) => fl.id === fiendishLegacyId);
         if(legacy) {
             cantripIds.add(legacy.level1Benefit.cantripId);
             cantripIds.add('thaumaturgy');
@@ -242,17 +244,15 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       darkvisionRange: calculateCharacterDarkvision(selectedRace, racialSelections['elf']?.choiceId as 'drow' | 'high_elf' | 'wood_elf' | undefined),
       transportMode: 'foot',
       selectedWeaponMasteries: currentState.selectedWeaponMasteries || [],
-      equippedItems: {}, 
+      equippedItems: {},
+      statusEffects: [],
       ...castingProperties,
       selectedFightingStyle: currentState.selectedFightingStyle || undefined,
       selectedDivineOrder: currentState.selectedDivineOrder || undefined,
       selectedDruidOrder: currentState.selectedDruidOrder || undefined,
       selectedWarlockPatron: currentState.selectedWarlockPatron || undefined,
       racialSelections: currentState.racialSelections,
-      // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-      featChoices: currentState.featChoices as unknown,
+      featChoices: currentState.featChoices ? (currentState.featChoices as Record<string, FeatChoice>) : undefined,
       visuals: {
         gender: currentState.visuals.gender === 'Male' ? 'Male' : 'Female',
         skinColor: currentState.visuals.skinColor,
@@ -266,11 +266,15 @@ export function useCharacterAssembly({ onCharacterCreate }: UseCharacterAssembly
       const feat = FEATS_DATA.find(f => f.id === currentState.selectedFeat);
       if (feat) {
         const choices = currentState.featChoices?.[currentState.selectedFeat];
+        const selectedSpellSource = choices?.selectedSpellSource;
+        const typedSpellSource = (selectedSpellSource && typeof selectedSpellSource === 'string')
+          ? (selectedSpellSource as MagicInitiateSource)
+          : undefined;
         assembledCharacter = applyFeatToCharacter(assembledCharacter, feat, {
           selectedAbilityScore: choices?.selectedAbilityScore,
           selectedCantrips: choices?.selectedCantrips,
           selectedLeveledSpells: choices?.selectedLeveledSpells,
-          selectedSpellSource: choices?.selectedSpellSource,
+          selectedSpellSource: typedSpellSource,
         });
       }
     }

@@ -19,7 +19,7 @@ export function encounterReducer(state: GameState, action: AppAction): Partial<G
       };
 
     case 'SHOW_ENCOUNTER_MODAL': {
-      const { encounterData } = action.payload;
+      const { encounterData } = action.payload as { encounterData?: import('../../types').ShowEncounterModalPayload };
       return {
         isLoading: false,
         loadingMessage: null,

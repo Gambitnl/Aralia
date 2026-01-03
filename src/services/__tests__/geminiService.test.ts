@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as geminiService from '../geminiService';
 import { ai, isAiEnabled } from '../aiClient';
+import { EconomyState, SuspicionLevel, VillageActionContext } from '../../types';
+import type { NPCMemory } from '../../types/memory';
 
 // Mock the AI client
 vi.mock('../aiClient', () => ({
@@ -31,17 +33,54 @@ vi.mock('../../config/geminiConfig', () => ({
   COMPLEX_MODEL: 'gemini-test-model',
 }));
 
+// TODO(2026-01-03 Codex-CLI): Centralize AI client mocks to a helper once more service tests are added.
+type VitestMock = ReturnType<typeof vi.fn>;
+const mockGenerateContent = ai.models.generateContent as unknown as VitestMock; 
+
+const stubEconomy: EconomyState = {
+  marketEvents: [],
+  tradeRoutes: [],
+  globalInflation: 0,
+  regionalWealth: {},
+  marketFactors: { scarcity: [], surplus: [] },
+  buyMultiplier: 1,
+  sellMultiplier: 1,
+  activeEvents: [],
+};
+
+const stubNpcMemory: NPCMemory = {
+  // TODO(2026-01-03 pass 2 Codex-CLI): NPCMemory is richer in runtime; minimal stub with cast keeps social checks testable.
+  interactions: [],
+  knownFacts: [],
+  attitude: 'neutral' as any,
+  discussedTopics: [],
+  goals: [],
+  lastInteractionDate: null as any,
+  facts: [],
+} as unknown as NPCMemory;
+
+const stubVillageContext: VillageActionContext = {
+  worldX: 0,
+  worldY: 0,
+  biomeId: 'plains',
+  buildingType: 'house_small',
+  description: 'Test village context',
+  integrationProfileId: 'profile-test',
+  integrationPrompt: '',
+  integrationTagline: '',
+  culturalSignature: '',
+  encounterHooks: [],
+};
+
 // We need to mock withRetry to avoid its own timer logic interfering with the timeout test.
 // We want to test the timeout in `generateText` in isolation from the retry logic.
-vi.mock('../../utils/networkUtils', async (importOriginal) => {
-  const mod = await importOriginal();
+vi.mock('../../utils/networkUtils', async () => {
+  const mod = await vi.importActual<typeof import('../../utils/networkUtils')>('../../utils/networkUtils');
   return {
     // Keep original exports
     ...mod,
-    // Override withRetry to simply execute the function without retrying.
-    withRetry: vi.fn().mockImplementation((fn, _options) => {
-      return fn();
-    }),
+    // TODO(2026-01-03 pass 1 Codex-CLI): withRetry is overridden to drop timer logic for deterministic tests; restore real retry semantics once test harness can await them.
+    withRetry: vi.fn().mockImplementation((fn, _options) => fn()),
   };
 });
 
@@ -60,13 +99,12 @@ describe('geminiService', () => {
     const mockContext = "World is at peace.";
 
     it('should return fallback inventory when JSON parsing fails', async () => {
-      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-      const mockGenerateContent = ai.models.generateContent as unknown;
+      // TODO(2026-01-03 Codex-CLI): Replace any with typed StandardizedResult once gemini client mocks are formalized.
       mockGenerateContent.mockResolvedValue({
         text: 'This is not JSON',
       });
 
-      const result = await geminiService.generateMerchantInventory(undefined, 'General Store', mockContext);
+    const result = await geminiService.generateMerchantInventory('general', 'General Store', stubEconomy, mockContext);
 
       expect(result.data).not.toBeNull();
       expect(result.data?.inventory.length).toBeGreaterThan(0);
@@ -74,14 +112,13 @@ describe('geminiService', () => {
     });
 
     it('varies fallback inventory when a seed key is provided', async () => {
-      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-      const mockGenerateContent = ai.models.generateContent as unknown;
+      // TODO(2026-01-03 Codex-CLI): Replace any with typed StandardizedResult once gemini client mocks are formalized.
       mockGenerateContent.mockResolvedValue({
         text: 'This is not JSON',
       });
 
-      const a = await geminiService.generateMerchantInventory(undefined, 'HOUSE_SMALL', mockContext, null, 'seed-a');
-      const b = await geminiService.generateMerchantInventory(undefined, 'HOUSE_SMALL', mockContext, null, 'seed-b');
+      const a = await geminiService.generateMerchantInventory('general', 'HOUSE_SMALL', stubEconomy, mockContext, 'seed-a');
+      const b = await geminiService.generateMerchantInventory('general', 'HOUSE_SMALL', stubEconomy, mockContext, 'seed-b');
 
       const namesA = (a.data?.inventory ?? []).map(i => i.name);
       const namesB = (b.data?.inventory ?? []).map(i => i.name);
@@ -94,13 +131,12 @@ describe('geminiService', () => {
 
   describe('generateSocialCheckOutcome', () => {
     it('should return fallback outcome when JSON parsing fails', async () => {
-      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-      const mockGenerateContent = ai.models.generateContent as unknown;
+      // TODO(2026-01-03 Codex-CLI): Replace any with typed StandardizedResult once gemini client mocks are formalized.
       mockGenerateContent.mockResolvedValue({
         text: 'Invalid JSON',
       });
 
-      const result = await geminiService.generateSocialCheckOutcome('Persuasion', 'Guard', true, 'Context');
+      const result = await geminiService.generateSocialCheckOutcome(stubNpcMemory, stubVillageContext, 'Guard', 'Context');
 
       expect(result.data).not.toBeNull();
       expect(result.data?.outcomeText).toBeDefined();
@@ -111,8 +147,7 @@ describe('geminiService', () => {
 
     describe('generateCustomActions', () => {
     it('should return fallback actions when JSON parsing fails', async () => {
-      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-      const mockGenerateContent = ai.models.generateContent as unknown;
+      // TODO(2026-01-03 Codex-CLI): Replace any with typed StandardizedResult once gemini client mocks are formalized.
       mockGenerateContent.mockResolvedValue({
         text: 'Invalid JSON',
       });
@@ -128,13 +163,12 @@ describe('geminiService', () => {
 
     describe('generateHarvestLoot', () => {
     it('should return empty/fallback loot when JSON parsing fails', async () => {
-      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-      const mockGenerateContent = ai.models.generateContent as unknown;
+      // TODO(2026-01-03 Codex-CLI): Replace any with typed StandardizedResult once gemini client mocks are formalized.
       mockGenerateContent.mockResolvedValue({
         text: 'Invalid JSON',
       });
 
-      const result = await geminiService.generateHarvestLoot('Bush', 'Forest', 15);
+      const result = await geminiService.generateHarvestLoot('Bush', 'Forest');
 
       expect(result.data).not.toBeNull();
       expect(result.data?.items).toBeDefined();
@@ -146,7 +180,7 @@ describe('geminiService', () => {
     it('should return error gracefully when AI is disabled', async () => {
       vi.mocked(isAiEnabled).mockReturnValue(false);
 
-      const result = await geminiService.generateText('test');
+      const result = await geminiService.generateText('test', undefined, false, 'test-disabled');
 
       expect(result.data).toBeNull();
       expect(result.error).toContain('Gemini API disabled');
@@ -158,8 +192,7 @@ describe('geminiService', () => {
   describe('Timeout Handling', () => {
     it('should time out if the API call takes too long', async () => {
         vi.useFakeTimers();
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        const mockGenerateContent = ai.models.generateContent as unknown;
+        // TODO(2026-01-03 Codex-CLI): Replace any with the minimal test shape so the behavior stays explicit.
 
         // Mock implementation that never resolves (hangs)
         mockGenerateContent.mockImplementation(() => new Promise(() => {}));

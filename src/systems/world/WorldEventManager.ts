@@ -7,6 +7,7 @@
  */
 
 import { GameState, GameMessage, WorldRumor, MarketEvent, EconomyState } from '../../types';
+import { MarketEventType } from '../../types/economy';
 import { modifyFactionRelationship } from '../../utils/factionUtils';
 import { getGameDay } from '../../utils/timeUtils';
 import { SeededRandom } from '../../utils/seededRandom';
@@ -262,7 +263,7 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 affectedTags: ['weapon', 'armor'],
                 effect: 'surplus',
                 duration: 5,
-                type: 'market',
+                type: MarketEventType.SURPLUS,
                 intensity: 1,
                 startTime: Date.now()
             },
@@ -277,7 +278,7 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 affectedTags: ['consumable', 'food'],
                 effect: 'scarcity',
                 duration: 7,
-                type: 'market',
+                type: MarketEventType.SHORTAGE,
                 intensity: 1,
                 startTime: Date.now()
             },
@@ -292,7 +293,7 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 affectedTags: ['valuable', 'cloth'],
                 effect: 'scarcity',
                 duration: 10,
-                type: 'market',
+                type: MarketEventType.SHORTAGE,
                 intensity: 1,
                 startTime: Date.now()
             },
@@ -307,7 +308,7 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                 affectedTags: ['valuable', 'spice'],
                 effect: 'surplus',
                 duration: 5,
-                type: 'market',
+                type: MarketEventType.SURPLUS,
                 intensity: 1,
                 startTime: Date.now()
             },
@@ -344,7 +345,7 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
                     affectedTags: ['consumable', 'food'],
                     effect: 'surplus',
                     duration: 7,
-                    type: 'market',
+                    type: MarketEventType.SURPLUS,
                     intensity: 1,
                     startTime: Date.now()
                  },
@@ -380,6 +381,7 @@ const handleMarketShift = (state: GameState, rng: SeededRandom): WorldEventResul
     const rumor: WorldRumor = {
         id: `market-${gameDay}-${rng.next().toString(36).substr(2, 5)}`,
         text: selection.text,
+        // TODO(2026-01-03 Codex-CLI): Carry specific MarketEventType through rumor taxonomy; using generic 'market' for now to satisfy union.
         type: 'market',
         timestamp: gameDay,
         expiration: gameDay + selection.event.duration,

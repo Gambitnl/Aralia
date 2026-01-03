@@ -4,6 +4,7 @@ import { crimeReducer } from '../crimeReducer';
 import { GameState } from '../../../types';
 import { createMockGameState } from '../../../utils/factories';
 import { HeistPhase } from '../../../types/crime';
+import { AppAction } from '../../actionTypes';
 
 describe('crimeReducer - Heist Logic', () => {
     let initialState: GameState;
@@ -37,7 +38,7 @@ describe('crimeReducer - Heist Logic', () => {
             type: 'START_HEIST_PLANNING',
             payload: { targetLocationId: 'loc_1', leaderId: 'p1' }
         // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown);
+        } as AppAction);
 
         const intel = {
             id: 'intel_1',
@@ -66,7 +67,7 @@ describe('crimeReducer - Heist Logic', () => {
             type: 'START_HEIST_PLANNING',
             payload: { targetLocationId: 'loc_1', leaderId: 'p1' }
         // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown) };
+        } as AppAction) };
 
         expect(currentState.activeHeist?.phase).toBe(HeistPhase.Recon);
 
@@ -83,7 +84,7 @@ describe('crimeReducer - Heist Logic', () => {
             type: 'START_HEIST_PLANNING',
             payload: { targetLocationId: 'loc_1', leaderId: 'p1' }
         // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown) };
+        } as AppAction) };
 
         // Pass success/failure explicitly in payload
         const action = {
@@ -110,7 +111,7 @@ describe('crimeReducer - Heist Logic', () => {
             type: 'START_HEIST_PLANNING',
             payload: { targetLocationId: 'loc_1', leaderId: 'p1' }
         // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown) };
+        } as AppAction) };
 
         expect(currentState.activeHeist).toBeDefined();
 

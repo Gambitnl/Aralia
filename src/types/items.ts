@@ -227,6 +227,8 @@ export interface Item {
   description: string;
   /** Legacy price field used by some data sources. Prefer cost for new items. */
   value?: number | string;
+  /** Optional stack size for legacy inventory math; kept flexible for encumbrance tests. */
+  quantity?: number;
   /**
    * The classification of the item.
    * Prefer using ItemType enum values.

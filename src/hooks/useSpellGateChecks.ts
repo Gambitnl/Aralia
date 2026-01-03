@@ -151,7 +151,7 @@ export const useSpellGateChecks = () => {
               const parsed = SpellValidator.safeParse(spell);
               if (parsed.success) {
                 checklist.spellJsonValid = true;
-                if (spell?.legacy === true) {
+                if ((spell as any)?.legacy === true) {
                   checklist.noKnownGaps = false;
                   reasons.push("Marked as legacy spell");
                 }

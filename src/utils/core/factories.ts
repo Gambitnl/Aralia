@@ -449,6 +449,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
         wind: { direction: 'north', speed: 'calm' },
         visibility: 'clear'
       },
+      naval: { playerShips: [], activeShipId: null, currentVoyage: null, knownPorts: [] },
       isThievesGuildVisible: false,
       isNavalDashboardVisible: false,
       activeDialogueSession: null,
@@ -462,6 +463,10 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       strongholds: {},
       activeRitual: null,
       banterCooldowns: {},
+      isLockpickingModalVisible: false,
+      activeLock: null,
+      isDiceRollerVisible: false,
+      visualDiceEnabled: true,
 
       underdark: {
         currentDepth: 0,
@@ -566,6 +571,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
         wind: { direction: 'north', speed: 'calm' },
         visibility: 'clear'
       },
+      naval: { playerShips: [], activeShipId: null, currentVoyage: null, knownPorts: [] },
       isThievesGuildVisible: false,
       isNavalDashboardVisible: false,
       activeDialogueSession: null,
@@ -579,6 +585,10 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       strongholds: {},
       activeRitual: null,
       banterCooldowns: {},
+      isLockpickingModalVisible: false,
+      activeLock: null,
+      isDiceRollerVisible: false,
+      visualDiceEnabled: true,
       underdark: { currentDepth: 0, currentBiomeId: 'cavern_standard', lightLevel: 'dim', activeLightSources: [], faerzressLevel: 0, wildMagicChance: 0, sanity: { current: 100, max: 100, madnessLevel: 0 } },
       isQuestLogVisible: false,
       townState: null,

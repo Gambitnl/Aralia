@@ -41,8 +41,11 @@ const MIN_HEIGHT = 400;
 
 export function useResizableWindow(
     windowRef: RefObject<HTMLDivElement | null>,
-    storageKey: string = 'generic-window-size'
+    storageKey: string = 'generic-window-size',
+    options: { initialMaximized?: boolean } = {}
 ) {
+    const { initialMaximized = false } = options;
+
     // Window size - persisted
     const [size, setSize] = useState<WindowSize>(() => {
         const saved = SafeStorage.getItem(storageKey);
@@ -52,11 +55,24 @@ export function useResizableWindow(
                 return { width: parsed.width || DEFAULT_SIZE.width, height: parsed.height || DEFAULT_SIZE.height };
             }
         }
+        
+        if (initialMaximized) {
+            return {
+                width: window.innerWidth - 40,
+                height: window.innerHeight - 40
+            };
+        }
+
         return DEFAULT_SIZE;
     });
 
     // Window position
-    const [position, setPosition] = useState<WindowPosition | null>(null);
+    const [position, setPosition] = useState<WindowPosition | null>(() => {
+        if (initialMaximized && !SafeStorage.getItem(storageKey)) {
+            return { left: 20, top: 20 };
+        }
+        return null;
+    });
 
     // Resize state
     const [resizeState, setResizeState] = useState<ResizeState>({

@@ -21,10 +21,17 @@ export function logReducer(state: GameState, action: AppAction): Partial<GameSta
       };
 
     case 'ADD_DISCOVERY_ENTRY': {
+      const payload = (action.payload as Partial<DiscoveryEntry>) || {};
       const newEntryData: DiscoveryEntry = {
-        ...action.payload,
-        id: action.payload.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        ...payload,
+        id: payload.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         timestamp: Date.now(),
+        // TODO(2026-01-03 pass 4 Codex-CLI): placeholder gameTime/source/title/content/flags defaults to satisfy DiscoveryEntry; replace when caller guarantees full shape.
+        gameTime: payload.gameTime || new Date().toISOString(),
+        title: payload.title || 'Discovery',
+        content: payload.content || '',
+        source: payload.source || { type: 'SYSTEM' },
+        flags: payload.flags || [],
         isRead: false,
       };
       if (newEntryData.type === DiscoveryType.LOCATION_DISCOVERY) {

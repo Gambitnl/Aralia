@@ -9,10 +9,15 @@ const mockPersonality: VillagePersonality = {
   culture: 'stoic',
   biomeStyle: 'temperate',
   population: 'medium',
+  architecturalStyle: 'medieval',
+  governingBody: 'council',
+  primaryIndustry: 'trade',
 };
 
 const mockIntegrationProfile: VillageIntegrationProfile = {
   id: 'stoic_comfortable_temperate',
+  name: 'Mock Village Profile',
+  description: 'Placeholder description for mock village profile.',
   tagline: 'A mock village.',
   aiPrompt: 'A mock prompt.',
   culturalSignature: 'Mock signature.',
@@ -33,7 +38,7 @@ describe('findBuildingAt', () => {
     id: 'house',
     type: 'house_small',
     footprint: { x: 2, y: 2, width: 3, height: 3 },
-    color: 'red',
+    fill: 'red',
     accent: 'darkred',
   };
 
@@ -41,7 +46,7 @@ describe('findBuildingAt', () => {
     id: 'market',
     type: 'market', // Higher priority than house_small
     footprint: { x: 3, y: 3, width: 3, height: 3 },
-    color: 'blue',
+    fill: 'blue',
     accent: 'darkblue',
   };
 

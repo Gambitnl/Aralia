@@ -14,6 +14,7 @@ import { POIS } from '../data/world/pois';
 import { buildPoiMarkers } from '../utils/locationUtils';
 import MapTile from './MapTile';
 import oldPaperBg from '../assets/images/old-paper.svg';
+import { WindowFrame } from './ui/WindowFrame';
 
 interface MapPaneProps {
   mapData: MapData;
@@ -270,40 +271,17 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
   }, [poiMarkers]);
 
 
-  return (
-    
-    
-    /* TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
-    TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
-    TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
-    */
-    <div 
-        className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-40 p-4"
-        aria-modal="true"
-        role="dialog"
-        aria-labelledby="map-pane-title"
-    >
-      {/*
-        TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
-        TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
-        TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
-      */}
-      <div 
-        className="bg-gray-800 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-3xl max-h-[90vh] flex flex-col"
-        style={{ backgroundImage: `url(${oldPaperBg})`, backgroundSize: 'cover' }}
+    return (
+      <WindowFrame
+        title="World Map"
+        onClose={onClose}
+        storageKey="world-map-window"
+        initialMaximized={true}
       >
-        <div className="flex justify-between items-center mb-4">
-          <h2 id="map-pane-title" className="text-3xl font-bold text-amber-600 font-cinzel">World Map</h2>
-          <button
-            ref={closeButtonRef}
-            onClick={onClose}
-            className="text-gray-700 hover:text-amber-600 text-2xl font-bold py-1 px-3 rounded bg-amber-400 hover:bg-amber-500 transition-colors focus:ring-2 focus:ring-amber-300 focus:outline-none"
-            aria-label="Close map"
-          >
-            &times;
-          </button>
-        </div>
-
+        <div
+          className="bg-gray-800 p-4 md:p-6 flex flex-col h-full w-full"
+          style={{ backgroundImage: `url(${oldPaperBg})`, backgroundSize: 'cover' }}
+        >
         
         
         <div
@@ -354,7 +332,7 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
         <GlossaryDisplay items={mapGlossaryItems} title="Map Legend" />
         <p className="text-xs text-center mt-2 text-gray-700">Use Tab to focus the grid, Arrow Keys to navigate, +/- to zoom, drag to pan. Esc to close.</p>
       </div>
-    </div>
+    </WindowFrame>
   );
 };
 

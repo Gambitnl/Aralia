@@ -43,7 +43,7 @@ describe('aiClient', () => {
 
     expect(aiClient.isAiEnabled()).toBe(false);
     expect(() => aiClient.getAiClient()).toThrow("AI client is not initialized");
-    expect(() => aiClient.ai.getGenerativeModel).toThrow(/Gemini API Client accessed but not initialized/);
+    expect(() => (aiClient.ai as unknown as { getGenerativeModel: () => void }).getGenerativeModel()).toThrow(/Gemini API Client accessed but not initialized/);
 
     consoleSpy.mockRestore();
   });

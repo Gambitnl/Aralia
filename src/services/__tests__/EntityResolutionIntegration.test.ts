@@ -23,21 +23,24 @@ describe('Linker Gap Verification: Entity Resolution Integration', () => {
     devModelOverride: null,
   } as unknown as GameState;
 
+  type VitestMock = ReturnType<typeof vi.fn>;
+  const mockedResolveEntities = EntityResolverService.resolveEntitiesInText as unknown as VitestMock;
+  const mockedEnsureEntity = EntityResolverService.ensureEntityExists as unknown as VitestMock;
+  const mockedGenerateOutcome = GeminiService.generateActionOutcome as unknown as VitestMock;
+
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Setup default mock behaviors
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    (EntityResolverService.resolveEntitiesInText as unknown).mockReturnValue([]);
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    (EntityResolverService.ensureEntityExists as unknown).mockResolvedValue({ created: false, entity: null });
+    // TODO(2026-01-03 Codex-CLI): Replace broad mocks with typed fixtures once entity resolution inputs are formalized.
+    mockedResolveEntities.mockReturnValue([]);
+    mockedEnsureEntity.mockResolvedValue({ created: false, entity: null });
   });
 
   it('verifies that handleGeminiCustom NOW resolves entities from AI text', async () => {
     // 1. Mock AI output mentioning a new location
     const aiText = "You travel to the city of Silverdale.";
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    (GeminiService.generateActionOutcome as unknown).mockResolvedValue({
+    // TODO(2026-01-03 Codex-CLI): Use typed StandardizedResult once Gemini service test helpers are formalized.
+    mockedGenerateOutcome.mockResolvedValue({
       data: { text: aiText },
       error: null
     });
@@ -45,10 +48,9 @@ describe('Linker Gap Verification: Entity Resolution Integration', () => {
     // 2. Mock Entity Resolver to find it
     const mockReference = { type: 'location', normalizedName: 'Silverdale', exists: false };
     const mockCreationResult = { entity: { id: 'silverdale', name: 'Silverdale' }, created: true, type: 'location' };
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    (EntityResolverService.resolveEntitiesInText as unknown).mockReturnValue([mockReference]);
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    (EntityResolverService.ensureEntityExists as unknown).mockResolvedValue(mockCreationResult);
+    // TODO(2026-01-03 Codex-CLI): Narrow these to real EntityReference/creation results once types are exported to tests.
+    mockedResolveEntities.mockReturnValue([mockReference]);
+    mockedEnsureEntity.mockResolvedValue(mockCreationResult);
 
     // 3. Execute the action
     await handleGeminiCustom({

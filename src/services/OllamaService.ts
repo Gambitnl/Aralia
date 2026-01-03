@@ -47,7 +47,7 @@ export class OllamaService {
 
             const data = await res.json() as { models: OllamaModel[] };
             // Prefer smaller models for speed and 'banter' nature
-            const preferred = ['gemma3:1b', 'llama3', 'mistral', 'gemma:2b', 'phi'];
+            const preferred = ['gpt-oss:20b', 'llama3', 'mistral', 'gemma3:1b', 'gemma:2b', 'phi'];
 
             for (const p of preferred) {
                 const found = data.models.find(m => m.name.includes(p));
@@ -203,7 +203,7 @@ Requirements:
         // Format conversation history
         const historyText = conversationHistory.length > 0
             ? `\nConversation so far:\n${conversationHistory.map(h => `${h.speakerName}: "${h.text}"`).join('\n')}\n`
-            : '\nThis is the START of a new banter. Begin with something natural.\n';
+            : '';
 
         // Determine who should speak next (alternate between participants, avoid repeating last speaker)
         const lastSpeaker = conversationHistory[conversationHistory.length - 1]?.speakerId;
@@ -212,24 +212,48 @@ Requirements:
             ? availableSpeakers[Math.floor(Math.random() * availableSpeakers.length)]
             : participants[0];
 
+        // Random topic starters for variety
+        const topicStarters = [
+            'a recent fight or danger',
+            'their personal history or backstory',
+            'teasing another party member',
+            'complaining about something',
+            'a funny observation',
+            'a past heist or adventure',
+            'food or drink preferences',
+            'questioning the party\'s current plan',
+            'their views on magic or religion',
+            'a rumor they heard in a tavern',
+            'their opinion on a party member\'s habits',
+            'something shiny they want to steal',
+        ];
+        const suggestedTopic = topicStarters[Math.floor(Math.random() * topicStarters.length)];
+
+        // Build the other party members for reference
+        const otherMembers = participants.filter(p => p.id !== nextSpeaker.id)
+            .map(p => `${p.name} (${p.race} ${p.class})`).join(', ');
+
         const prompt = `You are ${nextSpeaker.name}, a ${nextSpeaker.sex} ${nextSpeaker.race} ${nextSpeaker.class} (Age: ${nextSpeaker.age}).
 Physical: ${nextSpeaker.physicalDescription}
 Personality: ${nextSpeaker.personality}
 
+You are traveling with: ${otherMembers}
+
 ${contextDescription}
 ${historyText}
-You are having a casual banter with your party members. This is turn ${turnNumber} of the conversation.
+${conversationHistory.length === 0 ? `START a new conversation. Topic suggestion: ${suggestedTopic}. DO NOT talk about the weather or the morning light.` : 'Continue the conversation. React to what was just said or change the topic.'}
 
-Generate your NEXT LINE of dialogue. Keep it short (1-2 sentences max). Stay in character.
-Also decide if this banter should CONCLUDE after your line (natural stopping point, topic exhausted, or you've had enough).
-${turnNumber >= 3 ? 'Consider wrapping up the conversation naturally.' : ''}
-${turnNumber >= 5 ? 'The conversation has gone on long enough. Find a natural conclusion.' : ''}
+RULES:
+- Stay 100% in character. Use your personality traits and quirks.
+- Keep it SHORT (1-2 sentences max).
+- Be SPECIFIC - reference actual things, people, places, not generic observations.
+- NEVER say "lovely morning", "lovely weather", or comment on how nice the light is.
+- This is turn ${turnNumber}. ${turnNumber < 3 ? 'The conversation is just starting - set isConcluding to FALSE.' : turnNumber >= 4 ? 'You may wrap up if natural.' : 'Keep the conversation going.'}
 
 Reply ONLY with JSON:
-{"speakerId": "${nextSpeaker.id}", "text": "Your dialogue line", "emotion": "neutral", "isConcluding": false}
+{"speakerId": "${nextSpeaker.id}", "text": "Your dialogue line", "emotion": "neutral", "isConcluding": ${turnNumber < 3 ? 'false' : 'true/false'}}
 
-Allowed emotions: "happy", "sad", "angry", "surprised", "neutral"
-Set isConcluding to true if this should be the last line.`;
+Allowed emotions: "happy", "sad", "angry", "surprised", "neutral"`;
 
         try {
             const res = await fetch(`${this.API_BASE}/generate`, {

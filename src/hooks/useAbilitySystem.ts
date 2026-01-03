@@ -9,8 +9,8 @@
  *   Getters (isValidTarget) remain reactive to props for render correctness.
  */
 import { useCallback, useState, useRef, useEffect, useMemo } from 'react';
-import { CombatCharacter, Position, CombatAction, BattleMapData, CombatState, CombatLogEntry, ReactiveTrigger } from '../types/combat';
-import { Ability, GameState } from '../types';
+import { CombatCharacter, Position, CombatAction, BattleMapData, CombatState, CombatLogEntry, ReactiveTrigger, Ability } from '../types/combat';
+import { GameState } from '../types';
 import { Spell } from '../types/spells';
 import { SpellCommandFactory, AbilityCommandFactory, CommandExecutor } from '../commands'; // Import Command System
 import { BreakConcentrationCommand } from '../commands/effects/ConcentrationCommands'; // Import Break Concentration
@@ -72,7 +72,7 @@ export const useAbilitySystem = ({
     startTargeting: baseStartTargeting,
     cancelTargeting,
     previewAoE
-  } = useTargeting({ mapData, characters });
+  } = useTargeting({ mapData: mapData ?? null, characters });
 
   // Delegate Validation Logic to specialized hook
   const {
@@ -152,7 +152,7 @@ export const useAbilitySystem = ({
         reactiveTriggers: currentTriggers || [], // Pass current triggers
         activeLightSources: [],
         currentPlane: activePlane,
-        mapData: currentMapData // Add mapData to context if needed by commands
+        mapData: currentMapData ?? undefined // Add mapData to context if needed by commands
       };
 
       const mockGameState = {} as unknown as GameState;
@@ -285,7 +285,7 @@ export const useAbilitySystem = ({
       reactiveTriggers: currentTriggers || [],
       activeLightSources: [],
       currentPlane: activePlane,
-      mapData: mapDataRef.current
+      mapData: mapDataRef.current ?? undefined
     };
 
     const mockGameState = {} as unknown as GameState;

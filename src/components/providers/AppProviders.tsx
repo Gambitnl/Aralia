@@ -6,10 +6,12 @@
  * 
  * Included Providers:
  * - SpellProvider: Manages the state and logic for magic spells and abilities.
+ * - DiceProvider: Manages dice rolling functionality with optional 3D visualization.
  */
 import React from 'react';
 import { GlossaryProvider } from '../../context/GlossaryContext';
 import { SpellProvider } from '../../context/SpellContext';
+import { DiceProvider } from '../../contexts/DiceContext';
 
 interface AppProvidersProps {
     /** The child components that will have access to the providers. */
@@ -23,7 +25,9 @@ export const AppProviders: React.FC<AppProvidersProps> = ({ children }) => {
     return (
         <GlossaryProvider>
             <SpellProvider>
-                {children}
+                <DiceProvider>
+                    {children}
+                </DiceProvider>
             </SpellProvider>
         </GlossaryProvider>
     );

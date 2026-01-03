@@ -71,8 +71,9 @@ describe('EntityResolverService', () => {
       expect(result.entity?.name).toBe('Castle Ravenloft');
       expect(result.entity?.id).toContain('castle_ravenloft');
       // Check default props
-      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-      expect((result.entity as unknown).mapCoordinates).toEqual({ x: -1, y: -1 });
+      const createdLocation = result.entity as { mapCoordinates?: { x: number; y: number } };
+      // TODO(2026-01-03 pass 1 Codex-CLI): Stubbed location shape; align ensureEntityExists return type with Location once resolver schema is formalized.
+      expect(createdLocation?.mapCoordinates).toEqual({ x: -1, y: -1 });
     });
 
     it('should check dynamic locations in state', async () => {

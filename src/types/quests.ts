@@ -226,6 +226,16 @@ export interface Quest {
   regionHint?: string;
   /** Optional time-based failure trigger. */
   deadline?: number;
+  /**
+   * Optional consequence when a deadline is missed.
+   * TODO(lint-preserve): Replace this lightweight shape with a richer consequence model once quest scripting is formalized.
+   */
+  deadlineConsequence?: {
+    action: 'fail_quest' | 'fail_with_note' | 'log_only';
+    message: string;
+  };
+  /** Notes appended as the quest progresses (legacy free-form log). */
+  notes?: string;
   dateStarted?: number;
   dateCompleted?: number;
 }

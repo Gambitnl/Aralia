@@ -13,27 +13,69 @@ import {
   operateSecretDoor
 } from '../secretDoorSystem';
 import { SecretDoor } from '../types';
+import { PlayerCharacter } from '../../../types/character';
 import * as combatUtils from '../../../utils/combatUtils';
 
 // Mock the dice roller
 vi.mock('../../../utils/combatUtils', () => ({
   rollDice: vi.fn()
 }));
-// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-const mockCharacter: unknown = {
+// TODO(lint-intent): Keep this stub aligned with the PlayerCharacter contract once puzzle flows migrate off the legacy stats field.
+const mockCharacter: PlayerCharacter = {
   id: 'char-1',
   name: 'Test Rogue',
+  race: { id: 'human', name: 'Human', description: '', traits: [] },
+  class: {
+    id: 'rogue',
+    name: 'Rogue',
+    description: '',
+    hitDie: 8,
+    primaryAbility: ['Dexterity'],
+    savingThrowProficiencies: ['Dexterity', 'Intelligence'],
+    skillProficienciesAvailable: [],
+    numberOfSkillProficiencies: 0,
+    armorProficiencies: [],
+    weaponProficiencies: [],
+    features: []
+  },
+  abilityScores: {
+    Strength: 10,
+    Dexterity: 16,
+    Constitution: 14,
+    Intelligence: 14,
+    Wisdom: 16,
+    Charisma: 10
+  },
+  finalAbilityScores: {
+    Strength: 10,
+    Dexterity: 16,
+    Constitution: 14,
+    Intelligence: 14,
+    Wisdom: 16,
+    Charisma: 10
+  },
+  skills: [],
   stats: {
     strength: 10,
     dexterity: 16,
     constitution: 14,
     intelligence: 14, // +2
     wisdom: 16, // +3
-    charisma: 10
+    charisma: 10,
+    baseInitiative: 0,
+    speed: 30,
+    cr: '0'
   },
-  classes: [{ name: 'Rogue', level: 1 }],
+  classes: [{ id: 'rogue', name: 'Rogue', description: '', hitDie: 8, primaryAbility: ['Dexterity'], savingThrowProficiencies: ['Dexterity'], skillProficienciesAvailable: [], numberOfSkillProficiencies: 0, armorProficiencies: [], weaponProficiencies: [], features: [] }],
   proficiencyBonus: 2,
-  inventory: []
+  statusEffects: [],
+  transportMode: 'foot',
+  hp: 10,
+  maxHp: 10,
+  armorClass: 10,
+  speed: 30,
+  darkvisionRange: 0,
+  equippedItems: {}
 };
 
 describe('SecretDoor System', () => {

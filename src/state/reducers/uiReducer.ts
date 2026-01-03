@@ -127,6 +127,34 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
         characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGlossaryVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isGameGuideVisible: false, isThievesGuildVisible: false
       };
 
+    case 'TOGGLE_LOCKPICKING_MODAL':
+      return {
+        isLockpickingModalVisible: !state.isLockpickingModalVisible,
+        activeLock: state.isLockpickingModalVisible ? null : state.activeLock,
+      };
+
+    case 'OPEN_LOCKPICKING_MODAL':
+      return {
+        isLockpickingModalVisible: true,
+        activeLock: action.payload,
+        isDevMenuVisible: false,
+      };
+
+    case 'CLOSE_LOCKPICKING_MODAL':
+      return {
+        isLockpickingModalVisible: false,
+        activeLock: null,
+      };
+
+    case 'TOGGLE_DICE_ROLLER':
+      return {
+        isDiceRollerVisible: !state.isDiceRollerVisible,
+        isDevMenuVisible: false,
+      };
+
+    case 'SET_VISUAL_DICE_ENABLED':
+      return { visualDiceEnabled: action.payload };
+
     case 'SET_GLOSSARY_TERM_FOR_MODAL':
       return { selectedGlossaryTermForModal: action.payload };
 
