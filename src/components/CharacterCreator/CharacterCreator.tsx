@@ -143,7 +143,7 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
   const handleWarlockFeaturesSelect = useCallback((cantripsSpells: Spell[], spellsL1Spells: Spell[]) => dispatch({ type: 'SELECT_WARLOCK_FEATURES', payload: { cantrips: cantripsSpells, spellsL1: spellsL1Spells } }), [dispatch]);
   const handleWeaponMasteriesSelect = useCallback((weaponIds: string[]) => dispatch({ type: 'SELECT_WEAPON_MASTERIES', payload: weaponIds }), [dispatch]);
   const handleFeatSelect = useCallback((featId: string) => dispatch({ type: 'SELECT_FEAT', payload: featId }), [dispatch]);
-  
+
   const handleFeatConfirm = useCallback(() => {
     const chosenFeat = state.selectedFeat ? featOptions.find(f => f.id === state.selectedFeat) : null;
     const shouldClear = chosenFeat && !chosenFeat.isEligible;
@@ -235,7 +235,10 @@ const CharacterCreator: React.FC<CharacterCreatorProps> = ({ onCharacterCreate, 
         if (!selectedClass) { dispatch({ type: 'SET_STEP', payload: CreationStep.Class }); return null; }
         return <WeaponMasterySelection charClass={selectedClass} onMasteriesSelect={handleWeaponMasteriesSelect} onBack={goBack} />
       case CreationStep.FeatSelection:
-        return <FeatSelection availableFeats={featOptions} selectedFeatId={state.selectedFeat || undefined} featChoices={state.featChoices} onSelectFeat={handleFeatSelect} onSetFeatChoice={(featId, choiceType, value) => { dispatch({ type: 'SET_FEAT_CHOICE', payload: { featId, choiceType, value } }); }} onConfirm={handleFeatConfirm} onBack={goBack} hasEligibleFeats={hasEligibleFeats} dispatch={appDispatch} />;
+        // Calculate known skills so we can disable them in the Skilled feat picker
+        const previewForFeat = generatePreviewCharacter(state, state.characterName);
+        const knownSkills = previewForFeat?.skills.map(s => s.id) || [];
+        return <FeatSelection availableFeats={featOptions} selectedFeatId={state.selectedFeat || undefined} featChoices={state.featChoices} onSelectFeat={handleFeatSelect} onSetFeatChoice={(featId, choiceType, value) => { dispatch({ type: 'SET_FEAT_CHOICE', payload: { featId, choiceType, value } }); }} onConfirm={handleFeatConfirm} onBack={goBack} hasEligibleFeats={hasEligibleFeats} dispatch={appDispatch} knownSkillIds={knownSkills} />;
       case CreationStep.NameAndReview:
         {
           const characterToPreview: PlayerCharacter | null = generatePreviewCharacter(state, state.characterName);

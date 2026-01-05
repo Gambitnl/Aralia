@@ -9,11 +9,17 @@ import SpellContext from '../../context/SpellContext';
 import FeatSpellPicker from './FeatSpellPicker';
 import SpellSourceSelector from './SpellSourceSelector';
 import { getSchoolIcon } from '../../utils/spellFilterUtils';
+import SpellContext from '../../context/SpellContext';
+import FeatSpellPicker from './FeatSpellPicker';
+import SpellSourceSelector from './SpellSourceSelector';
+import { getSchoolIcon } from '../../utils/spellFilterUtils';
 
 interface FeatOption extends Feat {
   isEligible: boolean;
   unmet: string[];
 }
+
+import { SKILLS_DATA } from '../../data/skills';
 
 interface FeatSelectionProps {
   availableFeats: FeatOption[];
@@ -25,6 +31,7 @@ interface FeatSelectionProps {
   onBack?: () => void;
   hasEligibleFeats: boolean;
   dispatch: React.Dispatch<AppAction>;
+  knownSkillIds?: string[];
 }
 
 /**
@@ -91,7 +98,8 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
   onConfirm,
   onBack,
   hasEligibleFeats,
-  dispatch
+  dispatch,
+  knownSkillIds = []
 }) => {
   // We allow deselection so the feat step behaves like a voluntary choice rather than a hard blocker.
   const handleToggle = useCallback((featId: string, isDisabled: boolean) => {
@@ -99,11 +107,12 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
 
     const newFeatId = selectedFeatId === featId ? '' : featId;
 
-    // Clear spell choices when feat changes
+    // Clear spell and skill choices when feat changes
     if (selectedFeatId && selectedFeatId !== newFeatId) {
       onSetFeatChoice(selectedFeatId, 'selectedCantrips', []);
       onSetFeatChoice(selectedFeatId, 'selectedLeveledSpells', []);
       onSetFeatChoice(selectedFeatId, 'selectedSpellSource', undefined);
+      onSetFeatChoice(selectedFeatId, 'selectedSkills', []);
     }
 
     onSelectFeat(newFeatId);
@@ -118,6 +127,12 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
   const selectableDamageTypes = selectedFeat?.benefits?.selectableDamageTypes ?? [];
   const hasSelectableDamageType = selectableDamageTypes.length > 0;
   const selectedDamageType = selectedFeatId ? featChoices[selectedFeatId]?.selectedDamageType : undefined;
+
+  // Skill Selection (Skilled, etc.)
+  const selectableSkillCount = selectedFeat?.benefits?.selectableSkillCount ?? 0;
+  const hasSelectableSkills = selectableSkillCount > 0;
+  const selectedSkills = (selectedFeatId ? featChoices[selectedFeatId]?.selectedSkills : []) || [];
+  const areSkillChoicesComplete = selectedSkills.length === selectableSkillCount;
 
   // Spell benefits
   const spellBenefits = selectedFeat?.benefits?.spellBenefits;
@@ -157,6 +172,23 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
     }
     onSetFeatChoice(selectedFeatId, 'selectedSpellSource', source);
   }, [selectedFeatId, selectedSpellSource, onSetFeatChoice]);
+
+  // Handle Skill Toggle
+  const handleSkillToggle = useCallback((skillId: string) => {
+    if (!selectedFeatId) return;
+
+    const currentList = (featChoices[selectedFeatId]?.selectedSkills as string[]) || [];
+    let newList: string[];
+
+    if (currentList.includes(skillId)) {
+      newList = currentList.filter(id => id !== skillId);
+    } else {
+      if (currentList.length >= selectableSkillCount) return; // Limit reached
+      newList = [...currentList, skillId];
+    }
+    onSetFeatChoice(selectedFeatId, 'selectedSkills', newList);
+
+  }, [selectedFeatId, featChoices, selectableSkillCount, onSetFeatChoice]);
 
   return (
     <div className="flex flex-col h-full">
@@ -198,39 +230,42 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
             >
               <div className="flex justify-between items-start mb-2">
                 <h3 className={`font-cinzel font-bold text-lg ${isSelected ? 'text-amber-400' : 'text-gray-200'}`}>
-                 {feat.name}
+                  {feat.name}
                 </h3>
               </div>
 
               <p className="text-sm text-gray-400 mb-2">{feat.description}</p>
 
-              {/* TODO(FEATURES): Add selectableSkillCount UI/validation so feats like Skilled enforce choosing the required skills (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path). */}
+              {/* Feature Benefit Summary */}
               {feat.benefits && (
-                  <div className="text-xs text-gray-500 mt-2">
-                      <strong className="text-gray-400">Benefits:</strong>
-                      <ul className="list-disc list-inside mt-1">
-                          {feat.benefits.selectableAbilityScores && feat.benefits.selectableAbilityScores.length > 0 && (
-                            <li>
-                              Ability Score Increase: Choose one ({feat.benefits.selectableAbilityScores.join(', ')}) +1
-                            </li>
-                          )}
-                          {feat.benefits.abilityScoreIncrease && Object.entries(feat.benefits.abilityScoreIncrease)
+                <div className="text-xs text-gray-500 mt-2">
+                  <strong className="text-gray-400">Benefits:</strong>
+                  <ul className="list-disc list-inside mt-1">
+                    {feat.benefits.selectableAbilityScores && feat.benefits.selectableAbilityScores.length > 0 && (
+                      <li>
+                        Ability Score Increase: Choose one ({feat.benefits.selectableAbilityScores.join(', ')}) +1
+                      </li>
+                    )}
+                    {feat.benefits.abilityScoreIncrease && Object.entries(feat.benefits.abilityScoreIncrease)
+                      .filter(([, value]) => (value || 0) > 0)
+                      .length > 0 && !feat.benefits.selectableAbilityScores && (
+                        <li>
+                          Ability Score Increase: {Object.entries(feat.benefits.abilityScoreIncrease)
                             .filter(([, value]) => (value || 0) > 0)
-                            .length > 0 && !feat.benefits.selectableAbilityScores && (
-                              <li>
-                                Ability Score Increase: {Object.entries(feat.benefits.abilityScoreIncrease)
-                                  .filter(([, value]) => (value || 0) > 0)
-                                  .map(([k, v]) => `${k} +${v}`).join(', ')}
-                              </li>
-                          )}
-                          {feat.benefits.speedIncrease && <li>Speed +{feat.benefits.speedIncrease} ft</li>}
-                          {feat.benefits.initiativeBonus && <li>Initiative +{feat.benefits.initiativeBonus}</li>}
-                          {feat.benefits.hpMaxIncreasePerLevel && <li>Hit Point Maximum +{feat.benefits.hpMaxIncreasePerLevel} per level</li>}
-                          {feat.benefits.resistance && <li>Resistance: {feat.benefits.resistance.join(', ')}</li>}
-                          {feat.benefits.skillProficiencies && <li>Skills: {feat.benefits.skillProficiencies.join(', ')}</li>}
-                          {feat.benefits.savingThrowProficiencies && <li>Saving Throws: {feat.benefits.savingThrowProficiencies.join(', ')}</li>}
-                      </ul>
-                  </div>
+                            .map(([k, v]) => `${k} +${v}`).join(', ')}
+                        </li>
+                      )}
+                    {feat.benefits.selectableSkillCount !== undefined && feat.benefits.selectableSkillCount > 0 && (
+                      <li>Gain proficiency in {feat.benefits.selectableSkillCount} skill{feat.benefits.selectableSkillCount > 1 ? 's' : ''} of your choice.</li>
+                    )}
+                    {feat.benefits.speedIncrease && <li>Speed +{feat.benefits.speedIncrease} ft</li>}
+                    {feat.benefits.initiativeBonus && <li>Initiative +{feat.benefits.initiativeBonus}</li>}
+                    {feat.benefits.hpMaxIncreasePerLevel && <li>Hit Point Maximum +{feat.benefits.hpMaxIncreasePerLevel} per level</li>}
+                    {feat.benefits.resistance && <li>Resistance: {feat.benefits.resistance.join(', ')}</li>}
+                    {feat.benefits.skillProficiencies && <li>Skills: {feat.benefits.skillProficiencies.join(', ')}</li>}
+                    {feat.benefits.savingThrowProficiencies && <li>Saving Throws: {feat.benefits.savingThrowProficiencies.join(', ')}</li>}
+                  </ul>
+                </div>
               )}
 
               {!feat.isEligible && (
@@ -267,7 +302,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
                 Select Ability Score to Increase:
               </p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {selectableASIs.map((ability) => (
+                {selectableASIs.map((ability) => (
                   <button
                     key={ability}
                     onClick={(e) => {
@@ -300,7 +335,7 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
                 Select Damage Type:
               </p>
               <div className="flex flex-wrap gap-2">
-              {selectableDamageTypes.map((damageType) => (
+                {selectableDamageTypes.map((damageType) => (
                   <button
                     key={damageType}
                     onClick={(e) => {
@@ -324,6 +359,48 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
                   Please select a damage type.
                 </p>
               )}
+            </div>
+          )}
+
+          {/* Skill Selection Section */}
+          {hasSelectableSkills && (
+            <div className="mt-3">
+              <p className="block text-sm text-gray-300 mb-2">
+                Select {selectableSkillCount} Skills:
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-1 border border-gray-700/50 rounded">
+                {Object.values(SKILLS_DATA).map((skill) => {
+                  const isKnown = knownSkillIds.includes(skill.id);
+                  const isSelected = selectedSkills.includes(skill.id);
+                  const isMaxed = selectedSkills.length >= selectableSkillCount;
+
+                  return (
+                    <button
+                      key={skill.id}
+                      disabled={isKnown || (!isSelected && isMaxed)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSkillToggle(skill.id);
+                      }}
+                      className={`
+                            px-2 py-1.5 rounded text-xs transition-colors border text-left
+                            ${isKnown
+                          ? 'bg-gray-900/50 border-gray-800 text-gray-600 cursor-not-allowed opacity-60'
+                          : isSelected
+                            ? 'bg-amber-700 border-amber-500 text-white'
+                            : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
+                        }
+                        `}
+                      title={isKnown ? "Already proficient" : skill.name}
+                    >
+                      {skill.name} {isKnown && '✓'}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-amber-300 mt-2">
+                Selected {selectedSkills.length}/{selectableSkillCount}
+              </p>
             </div>
           )}
 
@@ -418,7 +495,8 @@ const FeatSelection: React.FC<FeatSelectionProps> = ({
               (!!selectedFeatId && !availableFeats.find(f => f.id === selectedFeatId)?.isEligible) ||
               (hasSelectableASI && !selectedASI) ||
               (hasSelectableDamageType && !selectedDamageType) ||
-              (hasSpellBenefits && !areSpellChoicesComplete)
+              (hasSpellBenefits && !areSpellChoicesComplete) ||
+              (hasSelectableSkills && !areSkillChoicesComplete)
             }
           >
             Continue

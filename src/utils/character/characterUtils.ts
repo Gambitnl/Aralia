@@ -62,7 +62,7 @@ export function getCharacterRaceDisplayString(character: PlayerCharacter): strin
     const found = data.find(item => item.id === id);
     const value = found ? found[nameKey] : null;
     if (typeof value === 'string') {
-        return value.replace(suffixToRemove, '').trim();
+      return value.replace(suffixToRemove, '').trim();
     }
     return null;
   }
@@ -463,6 +463,7 @@ export const applyFeatToCharacter = (
     selectedCantrips?: string[];
     selectedLeveledSpells?: string[];
     selectedSpellSource?: MagicInitiateSource;
+    selectedSkills?: string[];
   }
 ): PlayerCharacter => {
   let updated: PlayerCharacter = { ...character };
@@ -497,9 +498,20 @@ export const applyFeatToCharacter = (
     updated.abilityScores = nextBase;
   }
 
+  // Handle fixed skill proficiencies
   if (benefit?.skillProficiencies) {
     const newSkills = new Map(updated.skills.map(s => [s.id, s]));
     benefit.skillProficiencies.forEach(skillId => {
+      const skill = SKILLS_DATA[skillId];
+      if (skill) newSkills.set(skillId, skill);
+    });
+    updated.skills = Array.from(newSkills.values());
+  }
+
+  // Handle selected skill proficiencies (e.g. Skilled feat)
+  if (benefit?.selectableSkillCount && benefit.selectableSkillCount > 0 && options?.selectedSkills) {
+    const newSkills = new Map(updated.skills.map(s => [s.id, s]));
+    options.selectedSkills.forEach(skillId => {
       const skill = SKILLS_DATA[skillId];
       if (skill) newSkills.set(skillId, skill);
     });
@@ -521,11 +533,11 @@ export const applyFeatToCharacter = (
       updated.savingThrowProficiencies = [...currentProfs, options.selectedAbilityScore];
     }
   } else if (benefit?.savingThrowProficiencies) {
-     const currentProfs = updated.savingThrowProficiencies || [];
-     const newProfs = benefit.savingThrowProficiencies.filter(p => !currentProfs.includes(p));
-     if (newProfs.length > 0) {
-        updated.savingThrowProficiencies = [...currentProfs, ...newProfs];
-     }
+    const currentProfs = updated.savingThrowProficiencies || [];
+    const newProfs = benefit.savingThrowProficiencies.filter(p => !currentProfs.includes(p));
+    if (newProfs.length > 0) {
+      updated.savingThrowProficiencies = [...currentProfs, ...newProfs];
+    }
   }
 
   if (benefit?.hpMaxIncreasePerLevel && applyHpBonus) {
@@ -569,6 +581,7 @@ export const applyAllFeats = (
       selectedCantrips: choices?.selectedCantrips as string[] | undefined,
       selectedLeveledSpells: choices?.selectedLeveledSpells as string[] | undefined,
       selectedSpellSource: choices?.selectedSpellSource as MagicInitiateSource | undefined,
+      selectedSkills: choices?.selectedSkills as string[] | undefined,
     });
   }, { ...character });
 };
