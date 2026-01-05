@@ -11,6 +11,7 @@
 import type { Dispatch } from 'react';
 import type {
   Action,
+  ActionType,
   EquipItemPayload,
   UnequipItemPayload,
   DropItemPayload,
@@ -21,6 +22,8 @@ import type {
   PlayerCharacter,
   Item,
   VillageActionContext,
+  Quest,
+  GoalStatus,
 } from '../../types';
 import { GamePhase } from '../../types';
 import type { AppAction } from '../../state/actionTypes';
@@ -52,7 +55,7 @@ import { handleGenerateEncounter, handleShowEncounterModal, handleHideEncounterM
 // Resource and spell handlers are implemented in src/hooks/actions/handleResourceActions.ts.
 import { handleCastSpell, handleUseLimitedAbility, handleTogglePreparedSpell, handleLongRest, handleShortRest } from './handleResourceActions';
 // Merchant handlers are implemented in src/hooks/actions/handleMerchantInteraction.ts.
-import { handleOpenDynamicMerchant } from './handleMerchantInteraction';
+import { handleOpenDynamicMerchant, validateMerchantTransaction } from './handleMerchantInteraction';
 // System/UI handlers are implemented in src/hooks/actions/handleSystemAndUi.ts.
 import {
   handleSaveGame,
@@ -89,7 +92,10 @@ export interface ActionHandlerContext {
   generalActionContext: string;
 }
 
-// Builds a handler registry so useGameActions can route by action.type.
+/**
+ * Builds a handler registry so useGameActions can route by action.type.
+ * The registry is strictly typed against ActionType to ensure all actions are handled.
+ */
 export function buildActionHandlers({
   gameState,
   dispatch,
@@ -103,9 +109,9 @@ export function buildActionHandlers({
   playerCharacter,
   playerContext,
   generalActionContext,
-}: ActionHandlerContext): Record<string, ActionHandler> {
-  // TODO: Type this map against Action['type'] with an exhaustive check to catch missing/renamed actions; see docs/QOL_TODO.md (if this registry moves, update that entry).
-  const handlers: Record<string, ActionHandler> = {
+}: ActionHandlerContext): Record<ActionType, ActionHandler> {
+  
+  const handlers: Record<ActionType, ActionHandler> = {
     // Movement and settlement flow (handleMovement.ts).
     move: async (action) => {
       if (!playerCharacter) return;
@@ -115,7 +121,6 @@ export function buildActionHandlers({
       await handleQuickTravel({ action, gameState, dispatch, addMessage });
     },
     ENTER_VILLAGE: (action) => {
-      // Store the entry direction for spawn positioning in TownCanvas
       const entryDirection = action.payload?.entryDirection as 'north' | 'east' | 'south' | 'west' | undefined;
       if (entryDirection) {
         dispatch({ type: 'SET_TOWN_ENTRY_DIRECTION', payload: { direction: entryDirection } });
@@ -136,15 +141,9 @@ export function buildActionHandlers({
     },
 
     // Observation and situational analysis (handleObservation.ts).
-    // TODO(lint-intent): 'action' is an unused parameter, which suggests a planned input for this flow.
-    // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-    // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
     look_around: async (_action) => {
       await handleLookAround({ gameState, dispatch, addMessage, addGeminiLog, generalActionContext, getTileTooltipText });
     },
-    // TODO(lint-intent): 'action' is an unused parameter, which suggests a planned input for this flow.
-    // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
-    // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
     ANALYZE_SITUATION: async (_action) => {
       await handleAnalyzeSituation({ gameState, dispatch, addMessage, addGeminiLog, generalActionContext });
     },
@@ -218,15 +217,15 @@ export function buildActionHandlers({
     },
     SHORT_REST: () => {
       handleShortRest({ dispatch, addMessage });
-  },
-  wait: (action) => {
+    },
+    wait: (action) => {
       const seconds = Number((action.payload as { seconds?: number } | undefined)?.seconds ?? 0);
       if (seconds > 0) {
         const durationString = formatDuration(seconds);
         addMessage(`You wait for ${durationString}. Time passes.`, 'system');
         dispatch({ type: 'ADVANCE_TIME', payload: { seconds } });
       }
-  },
+    },
 
     // System/UI actions (handleSystemAndUi.ts) and persistence (handleSaveGame/handleGoToMainMenu).
     save_game: async () => {
@@ -272,22 +271,18 @@ export function buildActionHandlers({
       dispatch({ type: 'SET_DEV_MODE_ENABLED', payload: action.payload?.enabled as boolean });
     },
 
-    // Merchant actions are inline because they only dispatch local UI state updates.
-    // TODO: Validate merchant payload shapes (item/cost/value) before dispatch to guard against malformed actions; see docs/QOL_TODO.md (update that entry if this block moves).
+    // Merchant actions.
     OPEN_MERCHANT: (action) => {
       dispatch({ type: 'OPEN_MERCHANT', payload: action.payload as { merchantName: string; inventory: Item[] } });
     },
     CLOSE_MERCHANT: () => {
       dispatch({ type: 'CLOSE_MERCHANT' });
     },
-
     OPEN_DYNAMIC_MERCHANT: async (action) => {
       await handleOpenDynamicMerchant({ action, gameState, dispatch, addMessage, addGeminiLog, generalActionContext });
     },
     BUY_ITEM: (action) => {
-      const { validateMerchantTransaction } = require('./handleMerchantInteraction');
       const validation = validateMerchantTransaction('buy', action.payload || {}, gameState);
-      
       if (validation.valid) {
         dispatch({ type: 'BUY_ITEM', payload: action.payload as { item: Item; cost: number } });
       } else {
@@ -295,9 +290,7 @@ export function buildActionHandlers({
       }
     },
     SELL_ITEM: (action) => {
-      const { validateMerchantTransaction } = require('./handleMerchantInteraction');
       const validation = validateMerchantTransaction('sell', action.payload || {}, gameState);
-      
       if (validation.valid) {
         dispatch({ type: 'SELL_ITEM', payload: action.payload as { itemId: string; value: number } });
       } else {
@@ -305,11 +298,9 @@ export function buildActionHandlers({
       }
     },
 
-    // Legacy custom actions remain inline because they depend on local constants.
-    // TODO: Replace label-string branching with explicit action types/config data to decouple behavior from UI copy; see docs/QOL_TODO.md (update that entry if this block moves).
+    // Custom and narrative actions.
     custom: (action) => {
       if (action.payload?.villageContext) {
-        // Keeps village narrative integration co-located with the data structure in src/types.
         const villageContext = action.payload.villageContext as VillageActionContext;
         const detailText = villageContext.description || `You take in the details of the ${villageContext.buildingType ?? 'building'}.`;
         addMessage(detailText, 'system');
@@ -322,28 +313,87 @@ export function buildActionHandlers({
         dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.PLAYING });
         addMessage('You leave the village and return to your journey.', 'system');
       } else if (action.label === 'Visit General Store') {
-        // Legacy fallback keeps the inventory data in src/constants.
         const inventory: Item[] = [ITEMS['healing_potion'], ITEMS['rope_item'], ITEMS['torch_item']].filter(Boolean);
         dispatch({ type: 'OPEN_MERCHANT', payload: { merchantName: "General Store (Legacy)", inventory } });
         addMessage('You enter the General Store.', 'system');
       } else if (action.label === 'Visit Blacksmith') {
-        // Legacy fallback keeps the inventory data in src/constants.
         const inventory: Item[] = [WEAPONS_DATA['dagger'], ITEMS['shield_std']].filter(Boolean);
         dispatch({ type: 'OPEN_MERCHANT', payload: { merchantName: "The Anvil (Legacy)", inventory } });
         addMessage('You step into the sweltering heat of the Blacksmith.', 'system');
       } else if (action.label?.includes('Visit') || action.label?.includes('Examine') || action.label?.includes('Browse') || action.label?.includes('Speak')) {
-        // Flavor-only custom actions stay here to avoid creating new handler files.
         addMessage(`You interact with: ${action.label}`, 'system');
       } else {
         addMessage(`Custom action: ${action.label}`, 'system');
       }
     },
 
-    // Minimal inline dispatch so we do not add a tiny handler module just for this case.
+    // Minimal inline dispatches.
     ADD_MET_NPC: (action) => {
       if (action.payload?.npcId) {
         dispatch({ type: 'ADD_MET_NPC', payload: { npcId: action.payload.npcId } });
       }
+    },
+    UPDATE_INSPECTED_TILE_DESCRIPTION: (action) => {
+      dispatch({ type: 'UPDATE_INSPECTED_TILE_DESCRIPTION', payload: action.payload as any });
+    },
+    ADD_LOCATION_RESIDUE: (action) => {
+      dispatch({ type: 'ADD_LOCATION_RESIDUE', payload: action.payload as any });
+    },
+    REMOVE_LOCATION_RESIDUE: (action) => {
+      dispatch({ type: 'REMOVE_LOCATION_RESIDUE', payload: action.payload as any });
+    },
+    UPDATE_NPC_GOAL_STATUS: (action) => {
+      const payload = action.payload as { npcId: string; goalId: string; status: GoalStatus };
+      dispatch({ type: 'UPDATE_NPC_GOAL_STATUS', payload: { npcId: payload.npcId, goalId: payload.goalId, newStatus: payload.status } });
+    },
+    PROCESS_GOSSIP_UPDATES: (action) => {
+      dispatch({ type: 'PROCESS_GOSSIP_UPDATES', payload: action.payload as any });
+    },
+    OPEN_TEMPLE: (action) => {
+      dispatch({ type: 'OPEN_TEMPLE', payload: action.payload as any });
+    },
+    CLOSE_TEMPLE: () => {
+      dispatch({ type: 'CLOSE_TEMPLE' });
+    },
+    USE_TEMPLE_SERVICE: (action) => {
+      const payload = action.payload as { templeId: string; deityId: string; cost: number; effect: unknown };
+      dispatch({ type: 'USE_TEMPLE_SERVICE', payload });
+    },
+    UPDATE_CHARACTER_CHOICE: (action) => {
+      dispatch({ type: 'UPDATE_CHARACTER_CHOICE', payload: action.payload as any });
+    },
+    ACCEPT_QUEST: (action) => {
+      dispatch({ type: 'ACCEPT_QUEST', payload: action.payload as any });
+    },
+    UPDATE_QUEST_OBJECTIVE: (action) => {
+      dispatch({ type: 'UPDATE_QUEST_OBJECTIVE', payload: action.payload as any });
+    },
+    COMPLETE_QUEST: (action) => {
+      dispatch({ type: 'COMPLETE_QUEST', payload: action.payload as any });
+    },
+    PRAY: (action) => {
+      dispatch({ type: 'PRAY', payload: action.payload as any });
+    },
+    TOGGLE_THIEVES_GUILD: () => {
+      dispatch({ type: 'TOGGLE_THIEVES_GUILD' });
+    },
+    REGISTER_DYNAMIC_ENTITY: (action) => {
+      dispatch({ type: 'REGISTER_DYNAMIC_ENTITY', payload: action.payload as any });
+    },
+    START_DIALOGUE_SESSION: (action) => {
+      dispatch({ type: 'START_DIALOGUE_SESSION', payload: action.payload as any });
+    },
+    UPDATE_DIALOGUE_SESSION: (action) => {
+      dispatch({ type: 'UPDATE_DIALOGUE_SESSION', payload: action.payload as any });
+    },
+    END_DIALOGUE_SESSION: () => {
+      dispatch({ type: 'END_DIALOGUE_SESSION' });
+    },
+    toggle_gemini_log_viewer: () => {
+      dispatch({ type: 'TOGGLE_GEMINI_LOG_VIEWER' });
+    },
+    SET_LOADING: (action) => {
+      dispatch({ type: 'SET_LOADING', payload: action.payload as { isLoading: boolean; message?: string | null } });
     },
   };
 
