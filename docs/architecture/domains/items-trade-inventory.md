@@ -66,6 +66,7 @@ This domain manages the item system including inventory management, equipment, m
 - [ ] Document item stacking rules
 - [ ] Clarify magic item attunement system
 - [ ] Map crafting integration (if any)
+- [x] Validate merchant action payloads (item/cost/value) before dispatch. [DONE]
 
 ### Claimed Tests (Auto-generated)
 
@@ -77,3 +78,4 @@ This domain manages the item system including inventory management, equipment, m
 | `src/utils/__tests__/coinPurseUtils.test.ts` | Coin purse utility tests |
 | `src/utils/__tests__/economyUtils.test.ts` | Economy utility tests |
 | `src/utils/__tests__/entityIntegrationUtils.test.ts` | Entity integration utility tests |
+| `src/hooks/actions/__tests__/handleMerchantInteraction.test.ts` | Merchant transaction validation tests |
