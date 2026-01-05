@@ -17,7 +17,7 @@ import {
   RacialSelectionData,
 } from '../../types'; // Path relative to src/components/CharacterCreator/
 import { SKILLS_DATA } from '../../data/skills';
-import Tooltip from '../Tooltip'; // Import Tooltip component
+import Tooltip from '../ui/Tooltip'; // Build failed due to '../Tooltip' being unresolved; point to the ui/Tooltip path.
 
 interface SkillSelectionProps {
   charClass: CharClass;

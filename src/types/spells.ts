@@ -436,7 +436,7 @@ export type ConditionName =
   | "Grappled" | "Incapacitated" | "Invisible" | "Paralyzed" | "Petrified"
   | "Poisoned" | "Prone" | "Restrained" | "Stunned" | "Unconscious" | "Ignited"
   // Custom conditions for game mechanics (e.g., feat effects)
-  | "Slowed";
+  | "Slowed" | "Slasher Slow";
 
 /** Modifiers that adjust how a saving throw is made. */
 export interface SaveModifier {

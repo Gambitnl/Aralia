@@ -12,7 +12,7 @@ import { getCharacterSpells } from '../../utils/spellUtils';
 import { getAbilityModifierString, getCharacterRaceDisplayString } from '../../utils/characterUtils';
 import { validateCharacterName } from '../../utils/securityUtils';
 import SpellContext from '../../context/SpellContext'; // Import the new context
-import Tooltip from '../Tooltip';
+import Tooltip from '../ui/Tooltip'; // Build failed because '../Tooltip' breaks on case-sensitive bundlers; use the ui folder path instead.
 
 interface NameAndReviewProps {
   characterPreview: PlayerCharacter; // A temporary PlayerCharacter object with all selections made so far

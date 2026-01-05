@@ -136,7 +136,7 @@ describe('Slasher Feat', () => {
 
       // Check that speed reduction status effect was applied
       const updatedTarget = result.characters.find(c => c.id === 'target');
-      const slasherSlowEffect = updatedTarget?.statusEffects.find(e => e.name === 'Slowed');
+      const slasherSlowEffect = updatedTarget?.statusEffects.find(e => e.name === 'Slasher Slow');
       expect(slasherSlowEffect).toBeDefined();
       expect(slasherSlowEffect?.effect?.type).toBe('stat_modifier');
       expect(slasherSlowEffect?.effect?.stat).toBe('speed');
@@ -158,7 +158,7 @@ describe('Slasher Feat', () => {
 
       // Should NOT have Slasher slow effect
       const updatedTarget = result.characters.find(c => c.id === 'target');
-      const slasherSlowEffect = updatedTarget?.statusEffects.find(e => e.name === 'Slowed');
+      const slasherSlowEffect = updatedTarget?.statusEffects.find(e => e.name === 'Slasher Slow');
       expect(slasherSlowEffect).toBeUndefined();
 
       // No Slasher log entry
@@ -177,7 +177,7 @@ describe('Slasher Feat', () => {
 
       // Should NOT have Slasher slow effect
       const updatedTarget = result.characters.find(c => c.id === 'target');
-      const slasherSlowEffect = updatedTarget?.statusEffects.find(e => e.name === 'Slowed');
+      const slasherSlowEffect = updatedTarget?.statusEffects.find(e => e.name === 'Slasher Slow');
       expect(slasherSlowEffect).toBeUndefined();
     });
 
@@ -195,7 +195,7 @@ describe('Slasher Feat', () => {
 
       // Verify target1 got slowed
       const target1AfterFirst = result1.characters.find(c => c.id === 'target1');
-      expect(target1AfterFirst?.statusEffects.find(e => e.name === 'Slowed')).toBeDefined();
+      expect(target1AfterFirst?.statusEffects.find(e => e.name === 'Slasher Slow')).toBeDefined();
 
       // Verify attacker now has featUsageThisTurn marked
       const attackerAfterFirst = result1.characters.find(c => c.id === 'attacker');
@@ -207,7 +207,7 @@ describe('Slasher Feat', () => {
 
       // target2 should NOT have Slowed effect (once per turn limit)
       const target2AfterSecond = result2.characters.find(c => c.id === 'target2');
-      expect(target2AfterSecond?.statusEffects.find(e => e.name === 'Slowed')).toBeUndefined();
+      expect(target2AfterSecond?.statusEffects.find(e => e.name === 'Slasher Slow')).toBeUndefined();
 
       // Only one Slasher slow log entry should exist
       const slowLogEntries = result2.combatLog.filter(e => e.message.includes('Slasher feat slows'));
@@ -253,7 +253,7 @@ describe('Slasher Feat', () => {
 
       // Should have speed reduction but NOT disadvantage
       const updatedTarget = result.characters.find(c => c.id === 'target');
-      expect(updatedTarget?.statusEffects.find(e => e.name === 'Slowed')).toBeDefined();
+      expect(updatedTarget?.statusEffects.find(e => e.name === 'Slasher Slow')).toBeDefined();
       expect(updatedTarget?.activeEffects?.find(e => e.mechanics?.disadvantageOnAttacks === true)).toBeUndefined();
     });
 
@@ -269,7 +269,7 @@ describe('Slasher Feat', () => {
 
       // Should NOT have any Slasher effects
       const updatedTarget = result.characters.find(c => c.id === 'target');
-      expect(updatedTarget?.statusEffects.find(e => e.name === 'Slowed')).toBeUndefined();
+      expect(updatedTarget?.statusEffects.find(e => e.name === 'Slasher Slow')).toBeUndefined();
       expect(updatedTarget?.activeEffects?.find(e => e.mechanics?.disadvantageOnAttacks === true)).toBeUndefined();
     });
 
@@ -299,8 +299,8 @@ describe('Slasher Feat', () => {
       expect(target2Final?.activeEffects?.find(e => e.mechanics?.disadvantageOnAttacks === true)).toBeDefined();
 
       // But only target1 should have speed reduction (once per turn)
-      expect(target1Final?.statusEffects.find(e => e.name === 'Slowed')).toBeDefined();
-      expect(target2Final?.statusEffects.find(e => e.name === 'Slowed')).toBeUndefined();
+      expect(target1Final?.statusEffects.find(e => e.name === 'Slasher Slow')).toBeDefined();
+      expect(target2Final?.statusEffects.find(e => e.name === 'Slasher Slow')).toBeUndefined();
     });
   });
 
@@ -318,7 +318,7 @@ describe('Slasher Feat', () => {
       const updatedTarget = result.characters.find(c => c.id === 'target');
 
       // Should have BOTH effects
-      expect(updatedTarget?.statusEffects.find(e => e.name === 'Slowed')).toBeDefined();
+      expect(updatedTarget?.statusEffects.find(e => e.name === 'Slasher Slow')).toBeDefined();
       expect(updatedTarget?.activeEffects?.find(e => e.mechanics?.disadvantageOnAttacks === true)).toBeDefined();
 
       // Should have both log entries

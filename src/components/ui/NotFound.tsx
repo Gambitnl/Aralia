@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from './ui/Button';
+import { Button } from './Button'; // Build failed because the old './ui/Button' path only works in runtime alias; correct relative path for the bundler.
 
 interface NotFoundProps {
   onReturnToMainMenu: () => void;

@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -33,7 +34,10 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         input: {
           main: path.resolve(__dirname, 'index.html'),
-          design: path.resolve(__dirname, 'design.html'),
+          // TODO(2026-01-03 pass 5 Codex-CLI): design.html is local-only and ignored, so guard its entry to keep CI builds green.
+          ...(fs.existsSync(path.resolve(__dirname, 'design.html'))
+            ? { design: path.resolve(__dirname, 'design.html') }
+            : {})
         },
         output: {
           manualChunks: {
