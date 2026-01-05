@@ -23,6 +23,53 @@ export class OllamaService {
     private static API_BASE = '/api/ollama';
 
     /**
+     * Attempts to extract and parse JSON from a potentially messy string.
+     */
+    private static parseJsonRobustly(text: string): any {
+        if (!text) return null;
+        
+        // 1. Try direct parse
+        try {
+            return JSON.parse(text.trim());
+        } catch (e) {
+            // Continue to fallback
+        }
+
+        // 2. Try to find JSON block in markdown
+        const mdMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (mdMatch && mdMatch[1]) {
+            try {
+                return JSON.parse(mdMatch[1].trim());
+            } catch (e) {
+                // Continue
+            }
+        }
+
+        // 3. Try to find anything between { and }
+        const braceMatch = text.match(/(\{[\s\S]*\})/);
+        if (braceMatch && braceMatch[1]) {
+            try {
+                // If it ends with extra chars like " }", try cleaning it
+                let potentialJson = braceMatch[1].trim();
+                return JSON.parse(potentialJson);
+            } catch (e) {
+                // Try one more aggressive cleanup: find the LAST }
+                const lastIndex = text.lastIndexOf('}');
+                const firstIndex = text.indexOf('{');
+                if (firstIndex !== -1 && lastIndex > firstIndex) {
+                    try {
+                        return JSON.parse(text.substring(firstIndex, lastIndex + 1));
+                    } catch (e2) {
+                        // Fail
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Checks if the Ollama service is reachable.
      */
     static async isAvailable(): Promise<boolean> {
@@ -46,8 +93,8 @@ export class OllamaService {
             if (!res.ok) return null;
 
             const data = await res.json() as { models: OllamaModel[] };
-            // Prefer smaller models for speed and 'banter' nature
-            const preferred = ['gpt-oss:20b', 'llama3', 'mistral', 'gemma3:1b', 'gemma:2b', 'phi'];
+            // Prefer larger models for quality, smaller for speed
+            const preferred = ['gpt-oss:20b', 'llama3.1', 'llama3', 'mistral', 'gemma3:1b', 'gemma:2b', 'phi'];
 
             for (const p of preferred) {
                 const found = data.models.find(m => m.name.includes(p));
@@ -147,13 +194,8 @@ Requirements:
             const data = await res.json() as OllamaResponse;
             const metadata = { prompt: systemPrompt, response: data.response, model };
 
-            let jsonStr = data.response;
-            if (jsonStr.includes('```json')) {
-                jsonStr = jsonStr.replace(/```json/g, '').replace(/```/g, '');
-            }
-
-            const parsed = JSON.parse(jsonStr);
-            if (!parsed.lines || !Array.isArray(parsed.lines)) return { data: null, metadata };
+            const parsed = this.parseJsonRobustly(data.response);
+            if (!parsed || !parsed.lines || !Array.isArray(parsed.lines)) return { data: null, metadata };
 
             return {
                 data: {
@@ -233,27 +275,33 @@ Requirements:
         const otherMembers = participants.filter(p => p.id !== nextSpeaker.id)
             .map(p => `${p.name} (${p.race} ${p.class})`).join(', ');
 
-        const prompt = `You are ${nextSpeaker.name}, a ${nextSpeaker.sex} ${nextSpeaker.race} ${nextSpeaker.class} (Age: ${nextSpeaker.age}).
-Physical: ${nextSpeaker.physicalDescription}
+        const prompt = `[Character Data]
+Name: ${nextSpeaker.name}
+Role: ${nextSpeaker.sex} ${nextSpeaker.race} ${nextSpeaker.class}
 Personality: ${nextSpeaker.personality}
+Travelers: ${otherMembers}
 
-You are traveling with: ${otherMembers}
-
-${contextDescription}
+[Context]
+Location: ${contextData.locationName}
+Weather: ${contextData.weather || 'Clear'}
+Time: ${contextData.timeOfDay}
 ${historyText}
-${conversationHistory.length === 0 ? `START a new conversation. Topic suggestion: ${suggestedTopic}. DO NOT talk about the weather or the morning light.` : 'Continue the conversation. React to what was just said or change the topic.'}
 
-RULES:
-- Stay 100% in character. Use your personality traits and quirks.
-- Keep it SHORT (1-2 sentences max).
-- Be SPECIFIC - reference actual things, people, places, not generic observations.
-- NEVER say "lovely morning", "lovely weather", or comment on how nice the light is.
-- This is turn ${turnNumber}. ${turnNumber < 3 ? 'The conversation is just starting - set isConcluding to FALSE.' : turnNumber >= 4 ? 'You may wrap up if natural.' : 'Keep the conversation going.'}
+[Task]
+${conversationHistory.length === 0 ? `Start a new conversation about ${suggestedTopic}.` : 'Continue the conversation. Respond to the last speaker.'}
 
-Reply ONLY with JSON:
-{"speakerId": "${nextSpeaker.id}", "text": "Your dialogue line", "emotion": "neutral", "isConcluding": ${turnNumber < 3 ? 'false' : 'true/false'}}
+[Requirements]
+- Stay in character. Use your traits and quirks.
+- 1-2 sentences max.
+- Be specific (places, people, items).
+- NEVER mention weather or light.
+- isConcluding: ${turnNumber >= 4 ? 'true' : 'false'}
 
-Allowed emotions: "happy", "sad", "angry", "surprised", "neutral"`;
+[Output Format]
+Output ONLY a JSON object:
+{"speakerId": "${nextSpeaker.id}", "text": "speech", "emotion": "neutral", "isConcluding": false}
+
+JSON:`;
 
         try {
             const res = await fetch(`${this.API_BASE}/generate`, {
@@ -262,9 +310,8 @@ Allowed emotions: "happy", "sad", "angry", "surprised", "neutral"`;
                 body: JSON.stringify({
                     model,
                     prompt,
-                    format: 'json',
                     stream: false,
-                    options: { temperature: 0.8, num_predict: 150 }
+                    options: { temperature: 0.7, num_predict: 256 }
                 })
             });
 
@@ -273,13 +320,8 @@ Allowed emotions: "happy", "sad", "angry", "surprised", "neutral"`;
             const data = await res.json() as OllamaResponse;
             const metadata = { prompt, response: data.response, model };
 
-            let jsonStr = data.response;
-            if (jsonStr.includes('```json')) {
-                jsonStr = jsonStr.replace(/```json/g, '').replace(/```/g, '');
-            }
-
-            const parsed = JSON.parse(jsonStr);
-            if (!parsed.text) return { data: null, metadata };
+            const parsed = this.parseJsonRobustly(data.response);
+            if (!parsed || !parsed.text) return { data: null, metadata };
 
             return {
                 data: {
@@ -326,17 +368,27 @@ Allowed emotions: "happy", "sad", "angry", "surprised", "neutral"`;
             ? participants[0]
             : participants.find(p => p.id !== lastSpeaker) || participants[0];
 
-        const prompt = `You are ${respondingCompanion.name}, a character in a fantasy RPG.
+        const prompt = `[Character Data]
+Name: ${respondingCompanion.name}
 Personality: ${respondingCompanion.personality}
 
-Context: ${contextDescription}
-
-Conversation so far:
+[Context]
+Location: ${contextData.locationName}
+Weather: ${contextData.weather || 'Clear'}
+Time: ${contextData.timeOfDay}
 ${historyText}
 
-Continue the conversation with ONE short response (1-2 sentences) as ${respondingCompanion.name}.
-Output ONLY valid JSON: { "text": "your response", "emotion": "neutral" }
-Allowed emotions: "happy", "sad", "angry", "surprised", "neutral"`;
+[Task]
+Respond to the last message as ${respondingCompanion.name}.
+
+[Requirements]
+- 1-2 sentences max.
+- Stay in character.
+
+[Output Format]
+Output ONLY JSON: {"text": "your response", "emotion": "neutral"}
+
+JSON:`;
 
         try {
             const res = await fetch(`${this.API_BASE}/generate`, {
@@ -345,7 +397,6 @@ Allowed emotions: "happy", "sad", "angry", "surprised", "neutral"`;
                 body: JSON.stringify({
                     model,
                     prompt,
-                    format: 'json',
                     stream: false,
                     options: { temperature: 0.7, num_predict: 256 }
                 })
@@ -356,13 +407,8 @@ Allowed emotions: "happy", "sad", "angry", "surprised", "neutral"`;
             const data = await res.json() as OllamaResponse;
             const metadata = { prompt, response: data.response, model };
 
-            let jsonStr = data.response;
-            if (jsonStr.includes('```json')) {
-                jsonStr = jsonStr.replace(/```json/g, '').replace(/```/g, '');
-            }
-
-            const parsed = JSON.parse(jsonStr);
-            if (!parsed.text) return { data: null, metadata };
+            const parsed = this.parseJsonRobustly(data.response);
+            if (!parsed || !parsed.text) return { data: null, metadata };
 
             return {
                 data: {
@@ -495,18 +541,30 @@ Tags: "personal", "quest", "humor", "conflict", "location", "past", "future", "b
         if (contextData.timeOfDay) contextDescription += ` Time: ${contextData.timeOfDay}.`;
         if (contextData.currentTask) contextDescription += ` Current Goal: ${contextData.currentTask}.`;
 
-        const prompt = `You are ${companion.name}, a ${companion.sex} ${companion.race} ${companion.class}.
-Your personality: ${companion.personality}
+        const prompt = `[Character Data]
+Name: ${companion.name}
+Role: ${companion.sex} ${companion.race} ${companion.class}
+Personality: ${companion.personality}
 
-${contextDescription}
+[Context]
+Location: ${contextData.locationName}
+Weather: ${contextData.weather || 'Clear'}
+Time: ${contextData.timeOfDay}
 
-EVENT: ${event.description}
+[Event]
+${event.description}
 
-Respond with a VERY SHORT (1 sentence max) in-character reaction to this event. It should reflect your personality.
-Also decide how this event affects your approval of the player: positive actions you like = +1 to +3, neutral = 0, things you dislike = -1 to -3.
+[Task]
+React to this event in character.
 
-Reply ONLY with JSON:
-{"text": "Your one-sentence reaction in quotes", "approvalChange": 0}`;
+[Requirements]
+- VERY SHORT (1 sentence max).
+- Determine approval change (-3 to +3).
+
+[Output Format]
+Output ONLY JSON: {"text": "your reaction", "approvalChange": 0}
+
+JSON:`;
 
         try {
             const res = await fetch(`${this.API_BASE}/generate`, {
@@ -515,9 +573,8 @@ Reply ONLY with JSON:
                 body: JSON.stringify({
                     model,
                     prompt,
-                    format: 'json',
                     stream: false,
-                    options: { temperature: 0.7, num_predict: 100 }
+                    options: { temperature: 0.7, num_predict: 150 }
                 })
             });
 
@@ -526,13 +583,8 @@ Reply ONLY with JSON:
             const data = await res.json() as OllamaResponse;
             const metadata = { prompt, response: data.response, model };
 
-            let jsonStr = data.response;
-            if (jsonStr.includes('```json')) {
-                jsonStr = jsonStr.replace(/```json/g, '').replace(/```/g, '');
-            }
-
-            const parsed = JSON.parse(jsonStr);
-            if (!parsed.text) return { data: null, metadata };
+            const parsed = this.parseJsonRobustly(data.response);
+            if (!parsed || !parsed.text) return { data: null, metadata };
 
             const rawApproval = typeof parsed.approvalChange === 'number' ? parsed.approvalChange : 0;
             const approvalChange = Math.max(-3, Math.min(3, Math.round(rawApproval)));
@@ -545,6 +597,7 @@ Reply ONLY with JSON:
                 metadata
             };
         } catch (e) {
+            // TODO(2026-01-03 pass 4 Codex-CLI): relax error handling once Ollama service contract is formalized.
             console.warn('Failed to generate reaction:', e);
             return { data: null };
         }

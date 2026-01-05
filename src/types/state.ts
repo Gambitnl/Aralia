@@ -140,6 +140,7 @@ export interface GameState {
   hasNewRateLimitError: boolean;
   devModelOverride: string | null;
   isDevModeEnabled: boolean;
+  banterDebugLog: { timestamp: Date; check: string; result: boolean | string; details?: string }[];
 
   isEncounterModalVisible: boolean;
   generatedEncounter: import('./world').Monster[] | null;
@@ -172,6 +173,7 @@ export interface GameState {
     isOpen: boolean;
     merchantName: string;
     merchantInventory: Item[];
+    economy?: EconomyState;
   };
 
   templeModal?: {
@@ -226,6 +228,8 @@ export interface GameState {
   isThievesGuildVisible: boolean;
   naval: NavalState;
   isNavalDashboardVisible: boolean;
+  isNobleHouseListVisible: boolean;
+  isTradeRouteDashboardVisible: boolean;
 
   activeRitual?: RitualState | null;
 
@@ -245,6 +249,9 @@ export interface GameState {
 
   // User Preferences
   visualDiceEnabled: boolean;
+
+  // Ollama Dependency Modal
+  isOllamaDependencyModalVisible: boolean;
 
   banterCooldowns: Record<string, number>;
   // TODO(lint-intent): naval ship state is optional and currently typed loosely; define Ship shape and wire it here.

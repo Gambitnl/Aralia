@@ -29,7 +29,7 @@ describe('spellAbilityFactory', () => {
         } as unknown as Spell;
 
         const baseCaster = createMockPlayerCharacter({
-            spellcastingAbility: 'Intelligence',
+            spellcastingAbility: 'intelligence',
             finalAbilityScores: {
                 Strength: 10,
                 Dexterity: 10,

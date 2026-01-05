@@ -1,7 +1,6 @@
 
 import { describe, it, expect } from 'vitest';
 import { Crafter } from '../craftingSystem';
-import { Recipe } from '../types';
 import { processRefiningBatch, calculateBatchTime, BatchRefineRequest } from '../RefiningSystem';
 
 describe('RefiningSystem', () => {
@@ -15,7 +14,7 @@ describe('RefiningSystem', () => {
     rollSkill: () => 15 // Always successful
   };
 
-  const refiningRecipe: Recipe = {
+  const refiningRecipe: BatchRefineRequest['recipe'] = {
     id: 'refine_iron',
     name: 'Smelt Iron Ingot',
     description: 'Turn ore into ingot.',

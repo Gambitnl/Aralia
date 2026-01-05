@@ -98,10 +98,8 @@ export function canStartRitual(
   // If spell has no specific requirements property (yet), we assume it's valid.
   // In a real implementation, we'd check `spell.ritualRequirements`.
   // Since `Spell` type might not have `ritualRequirements` yet, this is future-proofing.
-  // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-  // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-  // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-  const requirements: RitualRequirement[] = (spell as unknown).ritualRequirements || [];
+  // TODO(2026-01-03 pass 4 Codex-CLI): ritualRequirements cast placeholder until spells carry explicit ritual requirement schema.
+  const requirements: RitualRequirement[] = ((spell as unknown as { ritualRequirements?: RitualRequirement[] }).ritualRequirements) || [];
 
   if (requirements.length === 0) {
     return { valid: true };

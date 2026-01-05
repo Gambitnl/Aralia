@@ -16,30 +16,30 @@ import { addHistoryEvent, createEmptyHistory } from '../../utils/historyUtils';
 export function worldReducer(state: GameState, action: AppAction): Partial<GameState> {
   switch (action.type) {
     case 'SET_MAP_DATA': {
-      const minimapFocus = action.payload
-        // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-        ? { x: Math.floor((action.payload as unknown).width / 2) || 0, y: Math.floor((action.payload as unknown).height / 2) || 0 }
-        // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-        // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-        // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-        : (state as unknown).minimapFocus;
-      return { mapData: action.payload, minimapFocus } as Partial<GameState>;
+      const mapDataPayload = (action as Extract<AppAction, { type: 'SET_MAP_DATA' }>).payload;
+      const mapPayload = mapDataPayload as { width?: number; height?: number } | null;
+      // TODO(2026-01-03 pass 4 Codex-CLI): minimapFocus computed from width/height placeholder; replace when map payload is typed.
+      const minimapFocus = mapPayload
+        ? { x: Math.floor((mapPayload.width || 0) / 2), y: Math.floor((mapPayload.height || 0) / 2) }
+        : (state as unknown as { minimapFocus?: unknown }).minimapFocus;
+      return { mapData: mapDataPayload, minimapFocus } as Partial<GameState>;
     }
 
-    case 'UPDATE_INSPECTED_TILE_DESCRIPTION':
+    case 'UPDATE_INSPECTED_TILE_DESCRIPTION': {
+      const tilePayload = (action as Extract<AppAction, { type: 'UPDATE_INSPECTED_TILE_DESCRIPTION' }>).payload as { tileKey?: string; description?: string };
       return {
         inspectedTileDescriptions: {
           ...state.inspectedTileDescriptions,
-          [action.payload.tileKey]: action.payload.description,
+          // TODO(2026-01-03 pass 4 Codex-CLI): tile description payload typing placeholder until action payload is formalized.
+          [tilePayload.tileKey ?? 'unknown_tile']: tilePayload.description ?? '',
         },
       };
+    }
 
     case 'SET_LAST_NPC_INTERACTION':
       return {
-        lastInteractedNpcId: action.payload.npcId,
-        lastNpcResponse: action.payload.response,
+        lastInteractedNpcId: (action.payload as { npcId: string | null }).npcId,
+        lastNpcResponse: (action.payload as { response: string | null }).response,
       };
 
     case 'RESET_NPC_INTERACTION_CONTEXT':
@@ -49,7 +49,7 @@ export function worldReducer(state: GameState, action: AppAction): Partial<GameS
       };
 
     case 'SET_GEMINI_ACTIONS':
-      return { geminiGeneratedActions: action.payload };
+      return { geminiGeneratedActions: action.payload as GameState['geminiGeneratedActions'] };
 
     case 'ADVANCE_TIME': {
       const oldTime = state.gameTime;

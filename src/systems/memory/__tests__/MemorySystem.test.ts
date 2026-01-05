@@ -1,41 +1,28 @@
 import { describe, it, expect } from 'vitest';
 import { MemorySystem } from '../MemorySystem';
-import { NPC, CreatureSize, Alignment } from '../../../types/creatures';
-import { MemoryInteractionType, MemoryImportance } from '../../../types/memory';
+import { NPC } from '../../../types';
+import { MemoryInteractionType, MemoryImportance, NPCMemory } from '../../../types/memory'; // Added NPCMemory for typed helper.
 
 describe('MemorySystem', () => {
-  const mockNPC: NPC = {
+  // TODO(2026-01-03 pass 4 Codex-CLI): NPC memory remains out-of-band; cast until NPCs carry memory directly.
+  const mockNPC = {
     id: 'npc-123',
     name: 'Test NPC',
-    type: 'Humanoid',
-    size: 'Medium' as CreatureSize,
-    alignment: 'N' as Alignment,
-    challengeRating: 0,
-    xpValue: 0,
-    description: 'A test NPC',
-    languages: [],
-    senses: [],
-    role: 'Villager',
-    isQuestGiver: false,
-    isEssential: false,
-    memory: MemorySystem.createEmptyMemory(1000),
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    stats: {} as unknown, // Minimal mock
-    currentHp: 10,
-    maxHp: 10,
-    armorClass: 10,
-    speed: 30,
-    initiativeBonus: 0,
-    proficiencyBonus: 2,
-    passivePerception: 10,
-    conditions: [],
-    inventory: [],
-    equipped: {}
+    baseDescription: 'A test NPC',
+    initialPersonalityPrompt: 'A friendly villager.',
+    role: 'civilian',
+    memory: MemorySystem.createEmptyMemory(1000)
+  } as unknown as NPC;
+
+  // Was reading npc.memory directly; helper asserts and returns a typed NPCMemory.
+  const expectMemory = (npc: NPC): NPCMemory => {
+    expect(npc.memory).toBeDefined();
+    return npc.memory as NPCMemory;
   };
 
   it('should record an interaction and update attitude', () => {
     const interaction = {
-      type: 'magical_manipulation' as MemoryInteractionType,
+      type: 'dialogue' as MemoryInteractionType,
       summary: 'Charmed by player',
       attitudeChange: -20,
       significance: MemoryImportance.Major
@@ -43,10 +30,12 @@ describe('MemorySystem', () => {
 
     const updatedNPC = MemorySystem.recordInteraction(mockNPC, interaction, 1001);
 
-    expect(updatedNPC.memory.interactions).toHaveLength(1);
-    expect(updatedNPC.memory.interactions[0].type).toBe('magical_manipulation');
-    expect(updatedNPC.memory.interactions[0].date).toBe(1001);
-    expect(updatedNPC.memory.attitude).toBe(-20);
+    // Was accessing updatedNPC.memory directly; use helper to assert defined.
+    const memory = expectMemory(updatedNPC);
+    expect(memory.interactions).toHaveLength(1);
+    expect(memory.interactions[0].type).toBe('dialogue');
+    expect(memory.interactions[0].date).toBe(1001);
+    expect(memory.attitude).toBe(-20);
   });
 
   it('should clamp attitude between -100 and 100', () => {
@@ -57,7 +46,9 @@ describe('MemorySystem', () => {
       significance: 10
     }, 1000);
 
-    expect(npc.memory.attitude).toBe(100);
+    // Was accessing npc.memory directly; use helper to assert defined.
+    let memory = expectMemory(npc);
+    expect(memory.attitude).toBe(100);
 
     npc = MemorySystem.recordInteraction(npc, {
       type: 'insult',
@@ -66,7 +57,8 @@ describe('MemorySystem', () => {
       significance: 10
     }, 1001);
 
-    expect(npc.memory.attitude).toBe(-100);
+    memory = expectMemory(npc);
+    expect(memory.attitude).toBe(-100);
   });
 
   it('should learn a new fact', () => {
@@ -79,8 +71,10 @@ describe('MemorySystem', () => {
 
     const updatedNPC = MemorySystem.learnFact(mockNPC, fact, 1005);
 
-    expect(updatedNPC.memory.knownFacts).toHaveLength(1);
-    expect(updatedNPC.memory.knownFacts[0].id).toBe('player_is_mage');
+    // Was accessing updatedNPC.memory directly; use helper to assert defined.
+    const memory = expectMemory(updatedNPC);
+    expect(memory.knownFacts).toHaveLength(1);
+    expect(memory.knownFacts[0].id).toBe('player_is_mage');
   });
 
   it('should update an existing fact if confidence is higher', () => {
@@ -98,9 +92,11 @@ describe('MemorySystem', () => {
       source: 'witnessed'
     }, 1001);
 
-    expect(npc.memory.knownFacts).toHaveLength(1);
-    expect(npc.memory.knownFacts[0].confidence).toBe(0.9);
-    expect(npc.memory.knownFacts[0].source).toBe('witnessed');
+    // Was accessing npc.memory directly; use helper to assert defined.
+    const memory = expectMemory(npc);
+    expect(memory.knownFacts).toHaveLength(1);
+    expect(memory.knownFacts[0].confidence).toBe(0.9);
+    expect(memory.knownFacts[0].source).toBe('witnessed');
   });
 
   it('should not update fact if confidence is lower', () => {
@@ -118,6 +114,8 @@ describe('MemorySystem', () => {
       source: 'gossip'
     }, 1001);
 
-    expect(npc.memory.knownFacts[0].confidence).toBe(0.9);
+    // Was accessing npc.memory directly; use helper to assert defined.
+    const memory = expectMemory(npc);
+    expect(memory.knownFacts[0].confidence).toBe(0.9);
   });
 });

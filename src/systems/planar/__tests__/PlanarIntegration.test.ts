@@ -21,13 +21,22 @@ describe('Planar Mechanics Integration', () => {
     school: SpellSchool.Evocation,
     castingTime: { unit: 'action', value: 1 },
     range: { type: 'ranged', distance: 150 },
-    duration: { type: 'instantaneous' },
+    // Was missing required concentration flag; set explicitly for instantaneous spells.
+    duration: { type: 'instantaneous', concentration: false },
+    // Was missing required targeting block; add a basic area targeting for fireball.
+    targeting: {
+      type: 'area',
+      range: 150,
+      areaOfEffect: { shape: 'Sphere', size: 20 },
+      validTargets: ['creatures']
+    },
     components: { verbal: true, somatic: true, material: true, materialDescription: 'bat guano' },
     effects: [
       {
         type: 'DAMAGE',
         damage: { type: 'fire', dice: '8d6' },
-        trigger: { type: 'on_cast' },
+        // Was using unsupported on_cast trigger; switch to immediate to match EffectTrigger.
+        trigger: { type: 'immediate' },
         condition: { type: 'save', saveType: 'Dexterity', saveEffect: 'half' }
       }
     ],
@@ -73,8 +82,14 @@ describe('Planar Mechanics Integration', () => {
     const state: CombatState = {
         isActive: true,
         characters: [mockCaster, mockTarget],
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        turnState: {} as unknown,
+        // Was an unknown cast; now uses a minimal TurnState shape.
+        turnState: {
+            currentTurn: 1,
+            turnOrder: [mockCaster.id, mockTarget.id],
+            currentCharacterId: mockCaster.id,
+            phase: 'action',
+            actionsThisTurn: []
+        },
         selectedCharacterId: null,
         selectedAbilityId: null,
         actionMode: 'select',

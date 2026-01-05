@@ -18,11 +18,6 @@ import CompassPane from '../CompassPane';
 import ActionPane from '../ActionPane';
 import WorldPane from '../WorldPane';
 import Minimap from '../Minimap';
-import { CompanionReaction } from '../ui/CompanionReaction';
-import { COMPANIONS } from '../../constants';
-
-// TODO: Remove these comments. App.tsx is now correctly passing companions={gameState.companions}, so this context note is outdated and the fallback logic is active.
-// We need to access the full companion state if possible, but GameLayout receives specific props.
 
 interface GameLayoutProps {
     /** The current location data object, including name, description, and biome. */
@@ -55,12 +50,6 @@ interface GameLayoutProps {
     disabled: boolean;
     /** Central handler for dispatching user actions (movement, interaction, etc.). */
     onAction: (action: Action) => void;
-    /** Current state of companions. */
-    // TODO: Replace any with the specific Companion type (imported from ../../types or ../../constants) to ensure type safety for the companions prop.
-    // TODO(lint-intent): The any on this value hides the intended shape of this data.
-    // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-    // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-    companions?: Record<string, import('../../types').Companion>;
 }
 
 /**
@@ -83,16 +72,10 @@ const GameLayout: React.FC<GameLayoutProps> = ({
     isDevModeEnabled,
     disabled,
     onAction,
-    companions,
 }) => {
     return (
         <div className="flex flex-col md:flex-row h-screen p-2 sm:p-4 gap-2 sm:gap-4 bg-gray-900 text-gray-200">
             <VersionDisplay position="game-screen" />
-
-            <CompanionReaction
-                companions={companions || (COMPANIONS as Record<string, import('../../types').Companion>)}
-                latestMessage={messages[messages.length - 1]}
-            />
 
             {/* Left Column: Navigation and Actions */}
             <div className="md:w-2/5 lg:w-1/3 flex flex-col gap-2 sm:gap-4 min-h-0">

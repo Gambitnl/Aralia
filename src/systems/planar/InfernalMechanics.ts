@@ -101,9 +101,11 @@ export class InfernalMechanics {
    * Checks for breached contracts in the game state.
    */
   static checkBreach(gameState: GameState): void {
-    if (!gameState.activeContracts) return;
+    // TODO(2026-01-03 pass 4 Codex-CLI): activeContracts remains unknown[] in GameState; narrow once contract types are exported.
+    const activeContracts = gameState.activeContracts as InfernalContract[] | undefined;
+    if (!activeContracts) return;
 
-    for (const contract of gameState.activeContracts) {
+    for (const contract of activeContracts) {
         if (contract.status === 'active') {
             const breach = this.detectBreach(contract, gameState);
             if (breach) {

@@ -2,8 +2,8 @@
 import { describe, it, expect } from 'vitest';
 // TODO(lint-intent): 'TERRAIN_RULES' is unused in this test; use it in the assertion path or remove it.
 import { getWeatherModifiers, getTerrainMovementCost, TERRAIN_RULES as _TERRAIN_RULES } from '../EnvironmentSystem';
-import { WeatherState } from '../../types/environment';
-import { Spell } from '../../types/spells';
+import { WeatherState } from '../../../types/environment';
+import { Spell } from '../../../types/spells';
 
 describe('EnvironmentSystem', () => {
   describe('getWeatherModifiers', () => {
@@ -11,7 +11,8 @@ describe('EnvironmentSystem', () => {
       id: 'fire-bolt',
       name: 'Fire Bolt',
       level: 0,
-      school: 'Evocation',
+      // TODO(2026-01-03 pass 4 Codex-CLI): cast spell school to enum until test helpers supply real enum value.
+      school: 'Evocation' as unknown as Spell['school'],
       classes: ['Wizard'],
       description: 'Hurls a mote of fire.',
       castingTime: { value: 1, unit: 'action' },

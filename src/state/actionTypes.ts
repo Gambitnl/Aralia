@@ -24,6 +24,7 @@ export type AppAction =
   | { type: 'MOVE_PLAYER'; payload: { newLocationId: string; newSubMapCoordinates: { x: number; y: number }; mapData?: MapData; activeDynamicNpcIds: string[] | null } }
   | { type: 'APPLY_TAKE_ITEM_UPDATE'; payload: { item: Item; locationId: string; discoveryEntry: DiscoveryEntry } }
   | { type: 'TOGGLE_MAP_VISIBILITY' }
+  | { type: 'TOGGLE_MINIMAP_VISIBILITY' }
   | { type: 'TOGGLE_SUBMAP_VISIBILITY' }
   | { type: 'SET_MAP_DATA'; payload: MapData }
   | { type: 'INITIALIZE_DUMMY_PLAYER_STATE'; payload: { mapData: MapData; dynamicLocationItemIds: Record<string, string[]>; initialLocationDescription: string; initialSubMapCoordinates: { x: number; y: number }, initialActiveDynamicNpcIds: string[] | null } }
@@ -133,6 +134,8 @@ export type AppAction =
   | { type: 'ADD_GEMINI_LOG_ENTRY'; payload: GeminiLogEntry }
   | { type: 'ADD_OLLAMA_LOG_ENTRY'; payload: import('../types').OllamaLogEntry }
   | { type: 'TOGGLE_OLLAMA_LOG_VIEWER' }
+  | { type: 'ADD_BANTER_DEBUG_LOG'; payload: { timestamp: Date; check: string; result: boolean | string; details?: string } }
+  | { type: 'CLEAR_BANTER_DEBUG_LOG' }
   | { type: 'SET_RATE_LIMIT_ERROR_FLAG' }
   | { type: 'SET_DEV_MODEL_OVERRIDE'; payload: string | null }
   // World State Actions
@@ -147,6 +150,9 @@ export type AppAction =
   | { type: 'HARVEST_RESOURCE' }
   // Game Guide
   | { type: 'TOGGLE_GAME_GUIDE' }
+  // Ollama Dependency Modal
+  | { type: 'SHOW_OLLAMA_DEPENDENCY_MODAL' }
+  | { type: 'HIDE_OLLAMA_DEPENDENCY_MODAL' }
   // Character Update Actions
   // TODO(lint-intent): The any on this value hides the intended shape of this data.
   // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
@@ -226,6 +232,7 @@ export type AppAction =
   | { type: 'NAVAL_REPAIR_SHIP'; payload: { amount: number; cost: number } }
   | { type: 'NAVAL_SET_ACTIVE_SHIP'; payload: { shipId: string } }
   | { type: 'TOGGLE_NAVAL_DASHBOARD' }
+  | { type: 'TOGGLE_TRADE_ROUTE_DASHBOARD' }
   // Crafting Actions
   | { type: 'INIT_CRAFTING_STATE'; payload: { toolProficiencies: string[] } }
   | { type: 'LEARN_RECIPE'; payload: { recipeId: string } }

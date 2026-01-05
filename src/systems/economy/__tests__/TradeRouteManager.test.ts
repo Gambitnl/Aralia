@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { processDailyRoutes, initializeTradeRoutes } from '../TradeRouteManager';
-import { GameState, TradeRoute } from '../../types';
+import { GameState } from '../../../types';
+import { TradeRoute } from '../../../types/economy';
 import { SeededRandom } from '../../../utils/seededRandom';
 
 describe('TradeRouteManager', () => {
@@ -69,7 +70,7 @@ describe('TradeRouteManager', () => {
       const result = processDailyRoutes(mockState, 1, rng);
       const newRoute = result.state.economy.tradeRoutes[0];
 
-      expect(newRoute.status).toBe('blocked');
+      expect(newRoute.status).toBe('blockaded');
       // Should generate a blockade event (stored in marketEvents)
       expect(result.state.economy.marketEvents.length).toBe(1);
       expect(result.state.economy.marketFactors.scarcity).toContain('Iron');
@@ -85,7 +86,7 @@ describe('TradeRouteManager', () => {
         originId: 'A',
         destinationId: 'B',
         goods: ['Iron'],
-        status: 'blocked',
+        status: 'blockaded',
         riskLevel: 0.1,
         profitability: 0.5,
         daysInStatus: 10

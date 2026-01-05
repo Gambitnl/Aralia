@@ -10,7 +10,9 @@ import { Secret } from '../../types/identity';
 import { Faction } from '../../types/factions';
 import { SeededRandom } from '../../utils/seededRandom';
 
-const SECRET_TEMPLATES = [
+type SecretTag = Secret['tags'][number];
+
+const SECRET_TEMPLATES: Array<{ template: string; type: SecretTag; valueBase: number }> = [
     { template: "{subject} is secretly funding {target}.", type: 'political', valueBase: 5 },
     { template: "{subject} murdered {target}.", type: 'criminal', valueBase: 9 },
     { template: "{subject} is having an affair with {target}.", type: 'personal', valueBase: 4 },
@@ -74,10 +76,7 @@ export class SecretGenerator {
             verified: this.rng.next() > 0.3, // 70% chance to be verified initially, else rumor
             value: value,
             knownBy: [],
-            // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-            tags: [template.type as unknown]
+            tags: [template.type]
         };
     }
 
@@ -103,10 +102,7 @@ export class SecretGenerator {
             verified: this.rng.next() > 0.3,
             value: value,
             knownBy: [],
-            // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-            tags: [template.type as unknown]
+            tags: [template.type]
         };
     }
 

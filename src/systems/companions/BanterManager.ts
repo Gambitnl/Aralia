@@ -15,6 +15,9 @@ import { BANTER_DEFINITIONS } from '../../data/banter';
 
 const LEVEL_WEIGHTS: Record<RelationshipLevel, number> = {
   enemy: -2,
+  hated: -2,
+  distrusted: -1,
+  wary: -1,
   rival: -1,
   stranger: 0,
   acquaintance: 1,

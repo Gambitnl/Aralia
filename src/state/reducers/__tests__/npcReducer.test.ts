@@ -6,6 +6,7 @@ import { AppAction } from '../../actionTypes';
 
 describe('npcReducer', () => {
     const initialState: Partial<GameState> = {
+        // TODO(2026-01-03 pass 4 Codex-CLI): Casted npcMemory stub to satisfy NpcMemory shape until interaction history is fully typed.
         npcMemory: {
             'npc-1': {
                 interactions: [],
@@ -13,11 +14,12 @@ describe('npcReducer', () => {
                 attitude: 0,
                 disposition: 0,
                 suspicion: 0,
+                goals: [],
                 lastInteractionTimestamp: 0,
                 lastInteractionDate: 0,
                 discussedTopics: {}
             }
-        },
+        } as unknown as GameState['npcMemory'],
         activeDialogueSession: {
             npcId: 'npc-1',
             availableTopicIds: [],
@@ -44,7 +46,8 @@ describe('npcReducer', () => {
 
         // Check Memory Update
         expect(newState.npcMemory).toBeDefined();
-        expect(newState.npcMemory?.['npc-1'].discussedTopics['topic-1']).toBe(12345);
+        const memory = (newState.npcMemory || {})['npc-1'] as GameState['npcMemory'][string];
+        expect(memory?.discussedTopics?.['topic-1']).toBe(12345);
     });
 
     it('should not duplicate topic in session but update date in memory', () => {
@@ -82,7 +85,8 @@ describe('npcReducer', () => {
         expect(newState.activeDialogueSession?.discussedTopicIds).toContain('topic-1');
 
         // Memory should update timestamp
-        expect(newState.npcMemory?.['npc-1'].discussedTopics['topic-1']).toBe(12345);
+        const memory = (newState.npcMemory || {})['npc-1'] as GameState['npcMemory'][string];
+        expect(memory?.discussedTopics?.['topic-1']).toBe(12345);
     });
 
     it('should handle DISCUSS_TOPIC even if active session is null (e.g. background check)', () => {
@@ -103,7 +107,8 @@ describe('npcReducer', () => {
         const newState = npcReducer(stateNoSession as GameState, action);
 
         // Memory should still update
-        expect(newState.npcMemory?.['npc-1'].discussedTopics['topic-1']).toBe(12345);
+        const memory = (newState.npcMemory || {})['npc-1'] as GameState['npcMemory'][string];
+        expect(memory?.discussedTopics?.['topic-1']).toBe(12345);
         // Session should remain null
         expect(newState.activeDialogueSession).toBeNull();
     });

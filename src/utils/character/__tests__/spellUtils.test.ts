@@ -25,6 +25,9 @@ const createMockSpell = (id: string, name: string, level: number): Spell => ({
   duration: { type: 'instantaneous', concentration: false } as any,
   description: 'A test spell.',
   classes: ['wizard'],
+  targeting: { type: 'single' } as any,
+  // TODO(2026-01-03 pass 4 Codex-CLI): effects placeholder for spell utils tests.
+  effects: [] as any,
 });
 
 const MOCK_SPELLS_DB: Record<string, Spell> = {

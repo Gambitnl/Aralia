@@ -50,10 +50,10 @@ export function buildIngredientGlossary(): IngredientEntry[] {
 
         glossary.push({
             id: resource.id,
-            name: resource.name,
+            name: resource.name || resource.id,
             source: 'flora',
-            description: resource.description,
-            rarity: resource.rarity,
+            description: resource.description || '',
+            rarity: resource.rarity || 'common',
             locations: resource.locations,
             harvestDC: resource.harvestDC,
             toolRequired: 'Herbalism Kit',
@@ -66,22 +66,24 @@ export function buildIngredientGlossary(): IngredientEntry[] {
     // Add creature parts
     for (const creature of HARVESTABLE_CREATURES) {
         for (const part of creature.parts) {
-            const usedIn = findRecipesUsingIngredient(part.itemId);
+            const partId = (part as Partial<CreaturePart> & { itemId?: string }).itemId ?? part.name;
+            const usedIn = findRecipesUsingIngredient(partId);
 
             glossary.push({
-                id: part.itemId,
+                id: partId,
                 name: part.name,
                 source: 'creature',
                 description: `Harvested from ${creature.name}. ${part.description || ''}`.trim(),
-                rarity: creature.challengeRating >= 10 ? 'very_rare' :
-                    creature.challengeRating >= 5 ? 'rare' :
-                        creature.challengeRating >= 2 ? 'uncommon' : 'common',
+                // TODO(2026-01-03 pass 4 Codex-CLI): challengeRating fallback to 0 until creature data guarantees presence.
+                rarity: (creature.challengeRating ?? 0) >= 10 ? 'very_rare' :
+                    (creature.challengeRating ?? 0) >= 5 ? 'rare' :
+                        (creature.challengeRating ?? 0) >= 2 ? 'uncommon' : 'common',
                 locations: creature.locations,
                 harvestDC: part.harvestDC,
-                toolRequired: part.toolRequired,
+                toolRequired: (part as Partial<CreaturePart> & { toolRequired?: string }).toolRequired ?? 'Harvesting Tools',
                 usedInRecipes: usedIn,
                 properties: part.properties || ['inert'],
-                icon: getIngredientIcon(part.itemId, 'creature')
+                icon: getIngredientIcon(partId, 'creature')
             });
         }
     }

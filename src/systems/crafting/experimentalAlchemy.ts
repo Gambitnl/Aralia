@@ -69,8 +69,12 @@ const FAILURE_EFFECTS: { properties: AlchemicalProperty[]; outcome: ExperimentOu
  */
 export function getIngredientProperties(itemId: string): AlchemicalProperty[] {
     const reagent = REAGENT_DATABASE[itemId];
-    if (reagent) {
-        return reagent.properties;
+    // TODO(2026-01-03 pass 4 Codex-CLI): normalize reagent typing; current data mixes arrays and objects.
+    if (Array.isArray(reagent)) {
+        return reagent as AlchemicalProperty[];
+    }
+    if (reagent && (reagent as { properties?: AlchemicalProperty[] }).properties) {
+        return (reagent as { properties: AlchemicalProperty[] }).properties;
     }
     // Default properties for unknown ingredients
     return ['inert'];

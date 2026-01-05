@@ -31,6 +31,7 @@ import {
 import { ExperimentPanel } from './ExperimentPanel';
 import { IngredientGlossaryPanel } from './IngredientGlossaryPanel';
 import { createInitialCraftingState, CraftingState } from '../../types/crafting';
+import { WindowFrame } from '../ui/WindowFrame';
 import './AlchemyBenchPanel.css';
 
 interface AlchemyBenchPanelProps {
@@ -597,107 +598,109 @@ export const AlchemyBenchPanel: React.FC<AlchemyBenchPanelProps> = ({ onClose })
     );
 
     return (
-        <div className="alchemy-bench-panel">
-            <div className="alchemy-header">
-                <h2>⚗️ Alchemy & Crafting Bench</h2>
-                {onClose && <button className="close-btn" onClick={onClose}>×</button>}
-            </div>
+        <WindowFrame
+            title="⚗️ Alchemy & Crafting Bench"
+            onClose={onClose}
+            storageKey="alchemy-bench-panel"
+        >
+            <div className="alchemy-bench-panel">
 
-            {/* Tab Navigation */}
-            <div className="tab-navigation">
-                <button
-                    className={`tab-btn ${activeTab === 'recipes' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('recipes')}
-                >
-                    📜 Recipes
-                </button>
-                <button
-                    className={`tab-btn ${activeTab === 'experiment' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('experiment')}
-                >
-                    🔬 Experiment
-                </button>
-                <button
-                    className={`tab-btn ${activeTab === 'glossary' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('glossary')}
-                >
-                    📖 Glossary
-                </button>
-            </div>
-
-            {/* Crafter Progression Bar (only on recipes tab) */}
-            {activeTab === 'recipes' && (
-                <div className="progression-bar">
-                    <div className="level-badge">
-                        <span className="level-num">Lv {craftingState.level}</span>
-                        <span className="level-title">
-                            {craftingState.level >= 10 ? 'Master Alchemist' :
-                                craftingState.level >= 7 ? 'Expert' :
-                                    craftingState.level >= 4 ? 'Journeyman' : 'Apprentice'}
-                        </span>
-                    </div>
-                    <div className="xp-bar-container">
-                        <div
-                            className="xp-bar-fill"
-                            style={{ width: craftingState.level >= 10 ? '100%' : `${(craftingState.xp / craftingState.xpToNextLevel) * 100}%` }}
-                        />
-                        <span className="xp-text">
-                            {craftingState.level >= 10 ? 'MAX' : `${craftingState.xp} / ${craftingState.xpToNextLevel} XP`}
-                        </span>
-                    </div>
-                    {craftingState.bonusModifier > 0 && (
-                        <span className="bonus-badge">+{craftingState.bonusModifier}</span>
-                    )}
+                {/* Tab Navigation */}
+                <div className="tab-navigation">
+                    <button
+                        className={`tab-btn ${activeTab === 'recipes' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('recipes')}
+                    >
+                        📜 Recipes
+                    </button>
+                    <button
+                        className={`tab-btn ${activeTab === 'experiment' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('experiment')}
+                    >
+                        🔬 Experiment
+                    </button>
+                    <button
+                        className={`tab-btn ${activeTab === 'glossary' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('glossary')}
+                    >
+                        📖 Glossary
+                    </button>
                 </div>
-            )}
 
-            {/* Stats Bar (only on recipes tab) */}
-            {activeTab === 'recipes' && (
-                <div className="crafting-stats">
-                    <div className="stat">
-                        <span className="stat-value">{summary.craftable}</span>
-                        <span className="stat-label">Craftable</span>
+                {/* Crafter Progression Bar (only on recipes tab) */}
+                {activeTab === 'recipes' && (
+                    <div className="progression-bar">
+                        <div className="level-badge">
+                            <span className="level-num">Lv {craftingState.level}</span>
+                            <span className="level-title">
+                                {craftingState.level >= 10 ? 'Master Alchemist' :
+                                    craftingState.level >= 7 ? 'Expert' :
+                                        craftingState.level >= 4 ? 'Journeyman' : 'Apprentice'}
+                            </span>
+                        </div>
+                        <div className="xp-bar-container">
+                            <div
+                                className="xp-bar-fill"
+                                style={{ width: craftingState.level >= 10 ? '100%' : `${(craftingState.xp / craftingState.xpToNextLevel) * 100}%` }}
+                            />
+                            <span className="xp-text">
+                                {craftingState.level >= 10 ? 'MAX' : `${craftingState.xp} / ${craftingState.xpToNextLevel} XP`}
+                            </span>
+                        </div>
+                        {craftingState.bonusModifier > 0 && (
+                            <span className="bonus-badge">+{craftingState.bonusModifier}</span>
+                        )}
                     </div>
-                    <div className="stat">
-                        <span className="stat-value">{summary.known}</span>
-                        <span className="stat-label">Known</span>
+                )}
+
+                {/* Stats Bar (only on recipes tab) */}
+                {activeTab === 'recipes' && (
+                    <div className="crafting-stats">
+                        <div className="stat">
+                            <span className="stat-value">{summary.craftable}</span>
+                            <span className="stat-label">Craftable</span>
+                        </div>
+                        <div className="stat">
+                            <span className="stat-value">{summary.known}</span>
+                            <span className="stat-label">Known</span>
+                        </div>
+                        <div className="stat">
+                            <span className="stat-value">{summary.total}</span>
+                            <span className="stat-label">Total</span>
+                        </div>
+                        <div className="stat gold">
+                            <span className="stat-value">{state.gold.toFixed(0)}</span>
+                            <span className="stat-label">Gold</span>
+                        </div>
                     </div>
-                    <div className="stat">
-                        <span className="stat-value">{summary.total}</span>
-                        <span className="stat-label">Total</span>
-                    </div>
-                    <div className="stat gold">
-                        <span className="stat-value">{state.gold.toFixed(0)}</span>
-                        <span className="stat-label">Gold</span>
-                    </div>
+                )}
+
+                {/* Tab Content */}
+                <div className="tab-content">
+                    {renderTabContent()}
                 </div>
-            )}
 
-            {/* Tab Content */}
-            <div className="tab-content">
-                {renderTabContent()}
+                {/* Crafting Log (only on recipes tab) */}
+                {activeTab === 'recipes' && craftingLog.length > 0 && (
+                    <div className="crafting-log">
+                        <h4>Recent Activity:</h4>
+                        <ul>
+                            {craftingLog.map((log, i) => (
+                                <li key={i} className={`quality-${log.quality}`}>
+                                    <span className="log-quality" style={{ color: getQualityColor(log.quality) }}>
+                                        {getQualityIcon(log.quality)}
+                                    </span>
+                                    <span className="log-message">{log.message}</span>
+                                    {log.xpGained > 0 && (
+                                        <span className="log-xp">+{log.xpGained} XP</span>
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </div>
-
-            {/* Crafting Log (only on recipes tab) */}
-            {activeTab === 'recipes' && craftingLog.length > 0 && (
-                <div className="crafting-log">
-                    <h4>Recent Activity:</h4>
-                    <ul>
-                        {craftingLog.map((log, i) => (
-                            <li key={i} className={`quality-${log.quality}`}>
-                                <span className="log-quality" style={{ color: getQualityColor(log.quality) }}>
-                                    {getQualityIcon(log.quality)}
-                                </span>
-                                <span className="log-message">{log.message}</span>
-                                {log.xpGained > 0 && (
-                                    <span className="log-xp">+{log.xpGained} XP</span>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
-        </div>
+        </WindowFrame>
     );
 };
 

@@ -49,6 +49,9 @@ const ThievesGuildInterface = lazy(() => import('../Crime/ThievesGuild/ThievesGu
 const ShipPane = lazy(() => import('../Naval/ShipPane').then(module => ({ default: module.ShipPane })));
 const LockpickingModal = lazy(() => import('../puzzles/LockpickingModal'));
 const DiceRollerModal = lazy(() => import('../dice/DiceRollerModal'));
+const OllamaDependencyModal = lazy(() => import('../OllamaDependencyModal').then(module => ({ default: module.OllamaDependencyModal })));
+const TradeRouteDashboard = lazy(() => import('../Trade/TradeRouteDashboard'));
+const NobleHouseList = lazy(() => import('../debug/NobleHouseList'));
 
 interface GameModalsProps {
     gameState: GameState;
@@ -75,6 +78,9 @@ interface GameModalsProps {
     handleNavigateToGlossaryFromTooltip: (termId: string) => void;
     handleOpenGlossary: (initialTermId?: string) => void;
     handleOpenCharacterSheet: (character: PlayerCharacter) => void;
+    onOllamaDontShowAgain?: (value: boolean) => void;
+    isBanterPaused?: boolean;
+    toggleBanterPause?: () => void;
 }
 
 const GameModals: React.FC<GameModalsProps> = ({
@@ -101,6 +107,9 @@ const GameModals: React.FC<GameModalsProps> = ({
     handleNavigateToGlossaryFromTooltip,
     handleOpenGlossary,
     handleOpenCharacterSheet,
+    onOllamaDontShowAgain,
+    isBanterPaused,
+    toggleBanterPause
 }) => {
 
     const { generateResponse, handleTopicOutcome } = useDialogueSystem(gameState, dispatch);
@@ -247,6 +256,8 @@ const GameModals: React.FC<GameModalsProps> = ({
                             isOpen={gameState.isOllamaLogViewerVisible}
                             onClose={() => dispatch({ type: 'TOGGLE_OLLAMA_LOG_VIEWER' })}
                             logEntries={gameState.ollamaInteractionLog}
+                            isBanterPaused={isBanterPaused}
+                            onToggleBanterPause={toggleBanterPause}
                         />
                     </ErrorBoundary>
                 </Suspense>
@@ -456,6 +467,44 @@ const GameModals: React.FC<GameModalsProps> = ({
                         <DiceRollerModal
                             isOpen={gameState.isDiceRollerVisible}
                             onClose={() => dispatch({ type: 'TOGGLE_DICE_ROLLER' })}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Ollama Dependency Modal */}
+            {gameState.isOllamaDependencyModalVisible && (
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Ollama Dependency Modal.">
+                        <OllamaDependencyModal
+                            isOpen={gameState.isOllamaDependencyModalVisible}
+                            onClose={() => dispatch({ type: 'HIDE_OLLAMA_DEPENDENCY_MODAL' })}
+                            onDontShowAgain={onOllamaDontShowAgain || (() => { })}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Trade Route Dashboard */}
+            {gameState.isTradeRouteDashboardVisible && (
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error in Trade Route Dashboard.">
+                        <TradeRouteDashboard
+                            tradeRoutes={gameState.economy.tradeRoutes}
+                            marketEvents={gameState.economy.marketEvents}
+                            onClose={() => dispatch({ type: 'TOGGLE_TRADE_ROUTE_DASHBOARD' })}
+                        />
+                    </ErrorBoundary>
+                </Suspense>
+            )}
+
+            {/* Noble House List (Dev Tool) */}
+            {gameState.isNobleHouseListVisible && (
+                <Suspense fallback={<LoadingSpinner />}>
+                    <ErrorBoundary fallbackMessage="Error displaying Noble Houses.">
+                        <NobleHouseList
+                            worldSeed={gameState.worldSeed}
+                            onClose={() => dispatch({ type: 'TOGGLE_NOBLE_HOUSE_LIST' })}
                         />
                     </ErrorBoundary>
                 </Suspense>

@@ -69,6 +69,13 @@ export const getCategoryIcon = (category: string): React.ReactNode => {
           <path d="M2 9h20M12 22V9M6 3l6 6 6-6" />
         </svg>
       );
+    case 'crafting':
+      // Hammer icon for crafting
+      return (
+        <svg className={iconClass} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+        </svg>
+      );
     case 'spellcasting mechanics':
       // Scroll icon for spellcasting mechanics
       return (
@@ -222,6 +229,8 @@ export const getCategoryColor = (category: string): string => {
       return 'text-cyan-400';
     case 'magic items':
       return 'text-pink-400';
+    case 'crafting':
+      return 'text-amber-500';
     default:
       return 'text-sky-300';
   }

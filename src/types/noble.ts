@@ -9,6 +9,13 @@
 import { Faction } from './factions';
 import { Secret } from './identity';
 
+export interface Heraldry {
+  fieldColor: string;
+  chargeColor: string;
+  sigil: 'wolf' | 'lion' | 'tower' | 'sword' | 'shield' | 'dragon' | 'ship' | 'tree' | 'sun' | 'moon' | 'star' | 'skull';
+  pattern: 'solid' | 'party_per_pale' | 'party_per_fess' | 'quarterly' | 'chevron' | 'bend' | 'saltire';
+}
+
 export type NobleRole = 'head' | 'heir' | 'spouse' | 'scion' | 'advisor' | 'bastard';
 
 export interface NobleMember {
@@ -46,6 +53,26 @@ export interface NobleHouse extends Faction {
    * The family name (e.g. "Stark" for "House Stark")
    */
   familyName: string;
+
+  /**
+   * Visual representation of the house.
+   */
+  heraldry: Heraldry;
+
+  /**
+   * The name of their ancestral home/castle.
+   */
+  seat: string;
+
+  /**
+   * Brief flavorful origin story.
+   */
+  origin: string;
+
+  /**
+   * Their primary source of wealth/influence (e.g. "Mining", "Trade").
+   */
+  specialty: string;
 
   /**
    * The house motto (e.g., "Winter is Coming").

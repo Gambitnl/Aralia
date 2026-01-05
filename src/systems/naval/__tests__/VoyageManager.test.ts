@@ -6,13 +6,8 @@ import { CrewManager } from '../CrewManager';
 
 describe('VoyageManager', () => {
     // Mock Ship
-    const createMockShip = (): Ship => ({
-        id: 'ship-1',
-        name: 'The Sea Spray',
-        type: 'Sloop',
-        size: 'Small',
-        description: 'A fast sloop.',
-        stats: {
+    const createMockShip = (): Ship => {
+        const baseStats: Ship['stats'] = {
             speed: 40, // 40ft/round -> 4 mph -> 96 miles/day
             maneuverability: 2,
             hullPoints: 100,
@@ -21,27 +16,40 @@ describe('VoyageManager', () => {
             cargoCapacity: 50,
             crewMin: 5,
             crewMax: 20
-        },
+        };
+        const baseCargo: Ship['cargo'] = {
+            items: [],
+            totalWeight: 0,
+            capacityUsed: 0,
+            supplies: { food: 100, water: 200 }
+        };
+
+        return ({
+        id: 'ship-1',
+        name: 'The Sea Spray',
+        type: 'Sloop',
+        size: 'Small',
+        description: 'A fast sloop.',
+        stats: baseStats,
         crew: CrewManager.recruitCrew({
             id: 'mock',
             name: 'Mock',
             type: 'Sloop',
             size: 'Small',
             description: '',
-            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-            stats: {} as unknown,
+            stats: baseStats,
             crew: { members: [], averageMorale: 80, unrest: 0, quality: 'Average' },
-            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-            cargo: {} as unknown,
+            cargo: baseCargo,
             modifications: [],
             weapons: [],
             flags: {}
         }, 'Captain', 1).crew,
-        cargo: { items: [], totalWeight: 0, capacityUsed: 0, supplies: { food: 100, water: 200 } },
+        cargo: baseCargo,
         modifications: [],
         weapons: [],
         flags: {}
     });
+    };
 
     it('should initialize a voyage correctly', () => {
         const ship = createMockShip();

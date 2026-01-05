@@ -95,8 +95,10 @@ export const initialGameState: GameState = {
     isOllamaLogViewerVisible: false,
     ollamaInteractionLog: [],
     hasNewRateLimitError: false,
+    isOllamaDependencyModalVisible: false,
     devModelOverride: null,
     isDevModeEnabled: false,
+    banterDebugLog: [],
 
     // Encounter Modal State
     isEncounterModalVisible: false,
@@ -132,6 +134,11 @@ export const initialGameState: GameState = {
             knownFacts: [],
             suspicion: SuspicionLevel.Unaware,
             goals: npcData?.goals ? [...npcData.goals] : [],
+            // TODO(2026-01-03 pass 4 Codex-CLI): npcMemory interactions/attitude/discussedTopics placeholders until NPC logging is formalized.
+            interactions: [],
+            attitude: 0,
+            discussedTopics: {},
+            lastInteractionDate: null,
         };
         return acc;
     }, {} as GameState['npcMemory']),
@@ -242,7 +249,7 @@ export const initialGameState: GameState = {
 
     // Dice Roller Modal State
     isDiceRollerVisible: false,
-    visualDiceEnabled: true, // Default to enabled for immersive experience
+    visualDiceEnabled: true, // Default to enabled for immersive experience     
 
     banterCooldowns: {},
 
@@ -251,4 +258,6 @@ export const initialGameState: GameState = {
 
     // UI
     isNavalDashboardVisible: false,
+    isNobleHouseListVisible: false,
+    isTradeRouteDashboardVisible: false,
 };

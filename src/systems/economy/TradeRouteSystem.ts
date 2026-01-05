@@ -1,13 +1,13 @@
 // TODO(lint-intent): 'Location' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Location as _Location } from '../../types/locations';
-import { GameState } from '../../state/gameReducer';
+import { Location as _Location } from '../../types/world';
+import { GameState } from '../../types';
 import { logger } from '../../utils/logger';
 import { generateId } from '../../utils/idGenerator';
-import { TradeRoute, MarketEventType } from '../../types/economy';
+import { TradeRoute, MarketEventType, MarketEvent } from '../../types/economy';
 import { REGIONAL_ECONOMIES } from '../../data/economy/regions';
-import { getEventPriceModifier, MarketEvent } from '../../utils/economy/marketEvents';
+import { getEventPriceModifier } from '../../utils/economy/marketEvents';
 
 /**
  * System for managing trade routes between locations
@@ -106,8 +106,9 @@ export class TradeRouteSystem {
    * Generates a new trade route between two regions
    */
   static createRoute(originId: string, destinationId: string, goods: string[], baseRisk: number = 0.2): TradeRoute {
+    const routeId = (generateId as unknown as (prefix?: string) => string)('route');
     return {
-      id: generateId('route'),
+      id: routeId,
       name: `Trade Route ${originId}-${destinationId}`,
       originId,
       destinationId,

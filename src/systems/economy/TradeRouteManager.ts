@@ -47,12 +47,14 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
   const logs: GameMessage[] = [];
   const currentRoutes = economy.tradeRoutes || [];
   const newRoutes: TradeRoute[] = [];
-  const timestamp = state.gameTime || new Date().getTime();
+  const timestampNumber = typeof state.gameTime === 'number' ? state.gameTime : Number((state.gameTime as unknown as Date)?.getTime?.() ?? Date.now());
+  const timestampDate = new Date(timestampNumber);
 
   // Iterate through routes and simulate changes
   for (const route of currentRoutes) {
-    let newStatus = route.status;
-    let daysInStatus = route.daysInStatus + daysPassed;
+    const routeStatus = route.status as unknown as string;
+    let newStatus: TradeRoute['status'] | 'booming' = routeStatus as TradeRoute['status'];
+    let daysInStatus = (route.daysInStatus ?? 0) + daysPassed;
     let statusChanged = false;
 
     // Simulate risk/recovery over the passed days
@@ -61,7 +63,7 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
 
     // Recovery Chance Calculation
     // Base 20% + 5% per day waiting
-    const dailyRecoveryBase = 0.2 + (route.daysInStatus * 0.05);
+    const dailyRecoveryBase = 0.2 + ((route.daysInStatus ?? 0) * 0.05);
     // Capped at 90%
     const dailyRecovery = Math.min(0.9, dailyRecoveryBase);
     const recoveryChance = 1 - Math.pow(1 - dailyRecovery, daysPassed);
@@ -82,15 +84,15 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
 
     const roll = rng.next();
 
-    if (route.status === 'active') {
+    if (routeStatus === 'active') {
       if (roll < blockChance) {
-        newStatus = 'blocked';
+        newStatus = 'blockaded';
         statusChanged = true;
         logs.push({
           id: Date.now() + Math.floor(rng.next() * 10000), // Ensure unique numeric ID
           text: `Trade News: ${route.name} has been blocked by hazards! ${route.goods.join(', ')} prices may rise.`,
           sender: 'system',
-          timestamp
+          timestamp: timestampDate
         });
       } else if (roll > 1.0 - boomChance) {
         newStatus = 'booming';
@@ -99,10 +101,10 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
             id: Date.now() + Math.floor(rng.next() * 10000),
             text: `Trade News: Trade is flourishing on ${route.name}. Expect cheap ${route.goods.join(', ')}.`,
             sender: 'system',
-            timestamp
+            timestamp: timestampDate
           });
       }
-    } else if (route.status === 'blocked') {
+    } else if (routeStatus === 'blockaded') {
       if (roll < recoveryChance) {
         newStatus = 'active';
         statusChanged = true;
@@ -110,10 +112,10 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
             id: Date.now() + Math.floor(rng.next() * 10000),
             text: `Trade News: ${route.name} is clear again. Trade resumes.`,
             sender: 'system',
-            timestamp
+            timestamp: timestampDate
           });
       }
-    } else if (route.status === 'booming') {
+    } else if (routeStatus === 'booming') {
       if (roll < normalizeChance) {
         newStatus = 'active';
         statusChanged = true;
@@ -126,7 +128,8 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
 
     newRoutes.push({
       ...route,
-      status: newStatus,
+      // TODO(2026-01-03 pass 4 Codex-CLI): 'booming' status cast until TradeRoute supports richer states.
+      status: newStatus as TradeRoute['status'],
       daysInStatus
     });
   }
@@ -139,7 +142,8 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
   const newEvents: MarketEvent[] = [...existingEvents];
 
   newRoutes.forEach(route => {
-    if (route.status === 'blocked') {
+    const routeStatus = route.status as unknown as string;
+    if (routeStatus === 'blockaded') {
       // Create separate shortage events for each good category
       route.goods.forEach(good => {
         const eventId = `${routeEventPrefix}${route.id}_${good}_scarcity`;
@@ -151,12 +155,12 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
           type: MarketEventType.SHORTAGE,
           name: `${route.name} Blockade: ${good}`,
           description: `Trade route blocked: ${route.name} causing shortage of ${good}`,
-          startTime: existing ? existing.startTime : timestamp,
+          startTime: Number(existing?.startTime ?? timestampNumber),
           duration: 1, // Managed by the route system, refreshed daily
           intensity: 0.5 + (route.riskLevel * 0.5) // Higher risk routes cause worse shortages
         });
       });
-    } else if (route.status === 'booming') {
+    } else if (routeStatus === 'booming') {
       route.goods.forEach(good => {
         const eventId = `${routeEventPrefix}${route.id}_${good}_surplus`;
         const existing = economy.marketEvents?.find(e => e.id === eventId);
@@ -166,7 +170,7 @@ export const processDailyRoutes = (state: GameState, daysPassed: number, rng: Se
           type: MarketEventType.SURPLUS,
           name: `${route.name} Boom: ${good}`,
           description: `High trade volume on ${route.name} bringing surplus of ${good}`,
-          startTime: existing ? existing.startTime : timestamp,
+          startTime: Number(existing?.startTime ?? timestampNumber),
           duration: 1,
           intensity: 0.3 + (route.profitability * 0.3) // Higher profit routes cause bigger surpluses
         });

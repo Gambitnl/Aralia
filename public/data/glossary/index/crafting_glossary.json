@@ -1,64 +1,124 @@
 [
-    {
-        "id": "alchemy_crafting",
-        "title": "Alchemy Crafting",
-        "category": "Rules Glossary",
-        "tags": [
-            "crafting",
-            "alchemy",
-            "consumable",
-            "potions"
-        ],
-        "excerpt": "Rules for creating magical potions, oils, and other alchemical substances using Alchemist's Supplies.",
-        "aliases": [
-            "potion brewing"
-        ],
-        "seeAlso": [
-            "crafting_equipment",
-            "herbalism_gathering"
-        ],
-        "filePath": "/data/glossary/entries/rules/crafting/alchemy_crafting.json"
-    },
-    {
-        "id": "herbalism_gathering",
-        "title": "Herbalism & Gathering",
-        "category": "Rules Glossary",
-        "tags": [
-            "crafting",
-            "herbalism",
-            "gathering",
-            "nature"
-        ],
-        "excerpt": "Rules for finding and harvesting natural ingredients from the environment using an Herbalism Kit.",
-        "aliases": [
-            "foraging",
-            "harvesting"
-        ],
-        "seeAlso": [
-            "alchemy_crafting",
-            "poison_crafting"
-        ],
-        "filePath": "/data/glossary/entries/rules/crafting/herbalism_gathering.json"
-    },
-    {
-        "id": "poison_crafting",
-        "title": "Poison Crafting",
-        "category": "Rules Glossary",
-        "tags": [
-            "crafting",
-            "poison",
-            "toxin",
-            "injury",
-            "ingested"
-        ],
-        "excerpt": "Rules for creating dangerous toxins and poisons using a Poisoner's Kit.",
-        "aliases": [
-            "poison making"
-        ],
-        "seeAlso": [
-            "alchemy_crafting",
-            "herbalism_gathering"
-        ],
-        "filePath": "/data/glossary/entries/rules/crafting/poison_crafting.json"
-    }
+  {
+    "id": "alchemy_crafting",
+    "title": "Alchemy Crafting",
+    "category": "Rules Glossary",
+    "tags": [
+      "crafting",
+      "alchemy",
+      "consumable",
+      "potions"
+    ],
+    "excerpt": "Rules for creating magical potions, oils, and other alchemical substances using Alchemist's Supplies.",
+    "aliases": [
+      "potion brewing"
+    ],
+    "seeAlso": [
+      "crafting_equipment",
+      "herbalism_gathering"
+    ],
+    "filePath": "/data/glossary/entries/rules/crafting/alchemy_crafting.json"
+  },
+  {
+    "id": "brewing_potions_of_healing",
+    "title": "Brewing Potions of Healing",
+    "category": "Crafting",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/brewing_potions_of_healing.json"
+  },
+  {
+    "id": "crafting_equipment",
+    "title": "Crafting Equipment",
+    "category": "Crafting",
+    "tags": [],
+    "excerpt": "Rules for making nonmagical items, potions, and scrolls.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/crafting_equipment.json"
+  },
+  {
+    "id": "crafting_nonmagical_items",
+    "title": "Crafting Nonmagical Items",
+    "category": "Crafting",
+    "tags": [],
+    "excerpt": "Rules for crafting nonmagical items, requiring tools, raw materials, and time.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/crafting_nonmagical_items.json"
+  },
+  {
+    "id": "herbalism_gathering",
+    "title": "Herbalism & Gathering",
+    "category": "Rules Glossary",
+    "tags": [
+      "crafting",
+      "herbalism",
+      "gathering",
+      "nature"
+    ],
+    "excerpt": "Rules for finding and harvesting natural ingredients from the environment using an Herbalism Kit.",
+    "aliases": [
+      "foraging",
+      "harvesting"
+    ],
+    "seeAlso": [
+      "alchemy_crafting",
+      "poison_crafting"
+    ],
+    "filePath": "/data/glossary/entries/rules/crafting/herbalism_gathering.json"
+  },
+  {
+    "id": "poison_crafting",
+    "title": "Poison Crafting",
+    "category": "Rules Glossary",
+    "tags": [
+      "crafting",
+      "poison",
+      "toxin",
+      "injury",
+      "ingested"
+    ],
+    "excerpt": "Rules for creating dangerous toxins and poisons using a Poisoner's Kit.",
+    "aliases": [
+      "poison making"
+    ],
+    "seeAlso": [
+      "alchemy_crafting",
+      "herbalism_gathering"
+    ],
+    "filePath": "/data/glossary/entries/rules/crafting/poison_crafting.json"
+  },
+  {
+    "id": "crafting_raw_materials",
+    "title": "Raw Materials",
+    "category": "Crafting",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/raw_materials.json"
+  },
+  {
+    "id": "crafting_time",
+    "title": "Time",
+    "category": "Crafting",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/time.json"
+  },
+  {
+    "id": "crafting_tools",
+    "title": "Tools",
+    "category": "Crafting",
+    "tags": [],
+    "excerpt": "No excerpt available.",
+    "aliases": [],
+    "seeAlso": [],
+    "filePath": "/data/glossary/entries/rules/equipment/crafting/tools.json"
+  }
 ]

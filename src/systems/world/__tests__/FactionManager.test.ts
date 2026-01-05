@@ -4,93 +4,43 @@ import { FactionManager } from '../FactionManager';
 // TODO(lint-intent): 'Faction' is unused in this test; use it in the assertion path or remove it.
 import { GameState, GamePhase, Faction as _Faction } from '../../../types';
 import { FACTIONS } from '../../../data/factions';
+import { createMockGameState } from '../../../utils/core/factories';
 
-const mockState: GameState = {
+const mockState: GameState = createMockGameState({
     factions: JSON.parse(JSON.stringify(FACTIONS)),
     playerFactionStandings: {},
     gameTime: new Date(),
     activeRumors: [],
-    // ... minimal other state
     phase: GamePhase.PLAYING,
-    party: [],
-    inventory: [],
-    gold: 0,
-    currentLocationId: 'loc1',
-    messages: [],
-    isLoading: false,
-    loadingMessage: null,
-    isImageLoading: false,
-    error: null,
-    worldSeed: 123,
-    mapData: null,
-    isMapVisible: false,
-    isSubmapVisible: false,
-    isPartyOverlayVisible: false,
-    isNpcTestModalVisible: false,
-    isLogbookVisible: false,
-    isGameGuideVisible: false,
-    dynamicLocationItemIds: {},
-    currentLocationActiveDynamicNpcIds: null,
-    geminiGeneratedActions: null,
-    characterSheetModal: { isOpen: false, character: null },
-    isDevMenuVisible: false,
-    isPartyEditorVisible: false,
-    isGeminiLogViewerVisible: false,
-    geminiInteractionLog: [],
-    hasNewRateLimitError: false,
-    devModelOverride: null,
-    isEncounterModalVisible: false,
-    generatedEncounter: null,
-    encounterSources: null,
-    encounterError: null,
-    currentEnemies: null,
-    lastInteractedNpcId: null,
-    lastNpcResponse: null,
-    inspectedTileDescriptions: {},
-    discoveryLog: [],
-    unreadDiscoveryCount: 0,
-    isDiscoveryLogVisible: false,
-    isGlossaryVisible: false,
-    npcMemory: {},
-    locationResidues: {},
-    metNpcIds: [],
-    merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
     economy: {
         activeEvents: [],
         marketFactors: { scarcity: [], surplus: [] },
-        // TODO(lint-intent): 'prices' is not part of EconomyState; kept as legacy stub for assertions.
-        prices: {}
+        // TODO(2026-01-03 pass 4 Codex-CLI): prices stubbed for legacy assertions until economy typing expands.
+        prices: {} as unknown as GameState['economy']['regionalWealth'],
+        tradeRoutes: [],
+        marketEvents: [],
+        globalInflation: 0,
+        regionalWealth: {},
+        buyMultiplier: 1,
+        sellMultiplier: 0.5,
     } as unknown as GameState['economy'],
     notoriety: { globalHeat: 0, localHeat: {}, knownCrimes: [], bounties: [] },
-    questLog: [],
-    isQuestLogVisible: false,
-    notifications: [],
-    companions: {},
-    divineFavor: {},
-    temples: {},
-    fences: {},
-    dynamicLocations: {},
     underdark: {
         currentDepth: 0,
-        isDarkvisionActive: false,
-        lightSources: [],
-        // TODO(2026-01-03 Codex-CLI): Align test UnderdarkState with domain model once stabilized.
+        currentBiomeId: 'cavern_standard',
+        lightLevel: 'bright',
+        activeLightSources: [],
+        faerzressLevel: 0,
+        wildMagicChance: 0,
         sanity: { current: 100, max: 100, madnessLevel: 0 },
-        activeEffects: []
     },
     environment: {
-        currentWeather: 'clear' as any,
-        temperature: 20 as any,
-        windSpeed: 0,
-        precipitation: 0 as any,
-        isDaytime: true,
-        lastWeatherUpdate: 0
+        precipitation: 'none',
+        temperature: 'temperate',
+        wind: { direction: 'north', speed: 'calm' },
+        visibility: 'clear'
     },
-    townState: null,
-    townEntryDirection: null,
-    tempParty: null,
-    subMapCoordinates: null
-};
+});
 
 // Setup relationships for testing
 // Iron Ledger <-> House Vane (Allies)

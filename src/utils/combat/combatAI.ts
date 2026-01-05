@@ -662,13 +662,22 @@ function planMovement(
     }
   });
 
-  if (bestTile && bestTile.id !== startTile.id) {
+  // If no reachable tile improves position, do not issue a move.
+  if (!bestTile) {
+    // No reachable improvement; stay put.
+    return null;
+  }
+
+  // TODO(2026-01-03 pass 4 Codex-CLI): Restore direct narrowing once reachableTiles typing no longer collapses.
+  // Previously used bestTile.id directly; cast once to avoid the never narrowing error.
+  const targetTile = bestTile as BattleMapTile;
+  if (targetTile.id !== startTile.id) {
     return {
       id: generateId(),
       characterId: character.id,
       type: 'move',
       cost: { type: 'movement-only', movementCost: bestCost },
-      targetPosition: bestTile.coordinates,
+      targetPosition: targetTile.coordinates,
       timestamp: Date.now(),
     };
   }
@@ -807,9 +816,10 @@ function evaluateRetreatPlan(
   });
 
   if (safestTile && bestScore > 0) {
+    const retreatTile = safestTile as BattleMapTile;
     return {
       actionType: 'move',
-      targetPosition: safestTile.coordinates,
+      targetPosition: retreatTile.coordinates,
       score: bestScore + WEIGHTS.SELF_PRESERVATION,
       description: `Retreat to safety from ${closestEnemy.name}`,
     };

@@ -7,31 +7,55 @@ import { describe, it, expect } from 'vitest';
 import { checkPressurePlate, detectPressurePlate, jamPressurePlate } from '../pressurePlateSystem';
 import { PressurePlate, Trap } from '../types';
 import { PlayerCharacter } from '../../../types/character';
+import { CharacterStats } from '../../../types/core'; // Added to type the stats helper explicitly.
+import { createMockPlayerCharacter } from '../../../utils/factories';
 
 // Mock character factory
-const createMockCharacter = (overrides: Partial<PlayerCharacter> = {}): PlayerCharacter => ({
-  id: 'char1',
-  name: 'Test Char',
-  level: 1,
-  proficiencyBonus: 2,
-  race: { id: 'human', name: 'Human', description: '', traits: [] },
-  class: {
-    id: 'rogue', name: 'Rogue', description: '', hitDie: 8,
-    primaryAbility: ['dexterity'], savingThrowProficiencies: ['dexterity', 'intelligence'],
-    skillProficienciesAvailable: [], numberOfSkillProficiencies: 4,
-    armorProficiencies: [], weaponProficiencies: [], features: []
-  },
-  classes: [{ name: 'Rogue' }], // Helper for proficiency check in lockSystem
-  abilityScores: { strength: 10, dexterity: 16, constitution: 10, intelligence: 14, wisdom: 10, charisma: 10 },
-  finalAbilityScores: { strength: 10, dexterity: 16, constitution: 10, intelligence: 14, wisdom: 10, charisma: 10 },
-  stats: { strength: 10, dexterity: 16, constitution: 10, intelligence: 14, wisdom: 10, charisma: 10, baseInitiative: 0, speed: 30, cr: '1/4' },
-  skills: [],
-  hp: 10, maxHp: 10, armorClass: 14, speed: 30, darkvisionRange: 0,
-  transportMode: 'foot',
-  equippedItems: {},
-  ...overrides
-// TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-} as PlayerCharacter);
+// Was an inline stats literal per character; extracted to ensure required fields are always present.
+const baseStats: CharacterStats = {
+  strength: 10,
+  dexterity: 16,
+  constitution: 10,
+  intelligence: 14,
+  wisdom: 10,
+  charisma: 10,
+  baseInitiative: 0,
+  speed: 30,
+  cr: '1/4'
+};
+
+const createMockCharacter = (overrides: Partial<PlayerCharacter> = {}): PlayerCharacter & { stats: CharacterStats } => {
+  const baseCharacter = createMockPlayerCharacter();
+  const rogueClass = {
+    ...baseCharacter.class,
+    id: 'rogue',
+    name: 'Rogue',
+    hitDie: 8,
+    primaryAbility: ['Dexterity'],
+    savingThrowProficiencies: ['Dexterity', 'Intelligence'],
+  };
+
+  const { stats: statsOverride, ...restOverrides } = overrides;
+
+  return ({
+    ...baseCharacter,
+    id: 'char1',
+    name: 'Test Char',
+    level: 1,
+    proficiencyBonus: 2,
+    class: rogueClass,
+    classes: [rogueClass], // Helper for proficiency check in lockSystem
+    abilityScores: { Strength: 10, Dexterity: 16, Constitution: 10, Intelligence: 14, Wisdom: 10, Charisma: 10 },
+    finalAbilityScores: { Strength: 10, Dexterity: 16, Constitution: 10, Intelligence: 14, Wisdom: 10, Charisma: 10 },
+    // Was spreading overrides directly onto stats; now merges over a full base to avoid undefined fields.
+    stats: { ...baseStats, ...(statsOverride ?? {}) },
+    skills: [],
+    hp: 10, maxHp: 10, armorClass: 14, speed: 30, darkvisionRange: 0,
+    transportMode: 'foot',
+    equippedItems: {},
+    ...restOverrides
+  } as PlayerCharacter & { stats: CharacterStats });
+};
 
 describe('Pressure Plate System', () => {
   const plate: PressurePlate = {
@@ -103,7 +127,6 @@ describe('Pressure Plate System', () => {
   describe('jamPressurePlate', () => {
     it('jams successfully with high roll', () => {
         const char = createMockCharacter({
-            classes: [{ name: 'Rogue' }],
             stats: { ...createMockCharacter().stats, dexterity: 20 } // +5 mod
         });
         const thievesTools = { id: 'thieves-tools', name: 'Thieves Tools', type: 'tool' };

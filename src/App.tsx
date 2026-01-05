@@ -12,7 +12,7 @@
 
 // React hooks - useReducer for complex state management, useCallback for memoized functions,
 // useEffect for side effects
-import React, { useReducer, useCallback, useEffect, lazy, Suspense } from 'react';
+import React, { useReducer, useCallback, useEffect, lazy, Suspense, useState } from 'react';
 // Framer Motion - provides animation components like AnimatePresence for smooth UI transitions
 import { AnimatePresence } from 'framer-motion';
 
@@ -29,6 +29,7 @@ import { useHistorySync } from './hooks/useHistorySync';
 import { useCompanionCommentary } from './hooks/useCompanionCommentary';
 import { useCompanionBanter } from './hooks/useCompanionBanter';
 import { useMissingChoice } from './hooks/useMissingChoice';
+import { useOllamaCheck } from './hooks/useOllamaCheck';
 import { determineSettlementInfo } from './utils/settlementGeneration';
 import { t } from './utils/i18n';
 
@@ -52,12 +53,15 @@ import { DiceOverlay } from './components/dice/DiceOverlay';
 
 import { NotificationSystem } from './components/NotificationSystem';
 import { GameProvider } from './state/GameContext';
+import { CompanionReaction } from './components/ui/CompanionReaction';
 import GameModals from './components/layout/GameModals';
 import MainMenu from './components/MainMenu';
 import ErrorBoundary from './components/ErrorBoundary';
 import * as SaveLoadService from './services/saveLoadService';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { ConversationPanel } from './components/ConversationPanel';
+import { BanterDebugLogViewer } from './components/debug/BanterDebugLogViewer';
+import { BanterInterruptUI } from './components/ui/BanterInterruptUI';
 
 // Lazy load large components to reduce initial bundle size
 const TownCanvas = lazy(() => import('./components/Town/TownCanvas'));
@@ -85,7 +89,19 @@ const App: React.FC = () => {
   // 💕 Heartkeeper: Companion Commentary (Reactions 2.0)
   useCompanionCommentary(gameState, dispatch);
   // Companion Banter
-  useCompanionBanter(gameState, dispatch);
+  const [isBanterPaused, setIsBanterPaused] = useState(false);
+  const {
+    forceBanter,
+    isBanterActive,
+    isWaitingForNextLine,
+    secondsUntilNextLine,
+    playerInterrupt,
+    endBanter
+  } = useCompanionBanter(gameState, dispatch, isBanterPaused);
+  // Ollama Dependency Check
+  const { ollamaWarningDismissed, setOllamaWarningDismissed } = useOllamaCheck(dispatch);
+  // Banter Debug Log Viewer
+  const [isBanterDebugLogVisible, setIsBanterDebugLogVisible] = useState(false);
 
   const addMessage = useCallback(
     (text: string, sender: 'system' | 'player' | 'npc' = 'system') => {
@@ -426,7 +442,7 @@ const App: React.FC = () => {
       dispatch({ type: 'TOGGLE_DEV_MENU' });
     }
 
-    switch (actionType as typeof actionsThatNeedMenuToggle[number] | 'main_menu' | 'char_creator' | 'toggle_log_viewer' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'load') {
+    switch (actionType as typeof actionsThatNeedMenuToggle[number] | 'main_menu' | 'char_creator' | 'toggle_log_viewer' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'load' | 'toggle_navel_dashboard' | 'toggle_trade_route_dashboard') {
       case 'main_menu':
         dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU });
         break;
@@ -445,6 +461,9 @@ const App: React.FC = () => {
       case 'toggle_ollama_log_viewer':
         dispatch({ type: 'TOGGLE_OLLAMA_LOG_VIEWER' });
         break;
+      case 'toggle_banter_debug_log':
+        setIsBanterDebugLogVisible(prev => !prev);
+        break;
       case 'battle_map_demo':
         handleBattleMapDemo();
         break;
@@ -462,6 +481,9 @@ const App: React.FC = () => {
         break;
       case 'toggle_naval_dashboard':
         dispatch({ type: 'TOGGLE_NAVAL_DASHBOARD' });
+        break;
+      case 'toggle_trade_route_dashboard':
+        dispatch({ type: 'TOGGLE_TRADE_ROUTE_DASHBOARD' });
         break;
       case 'test_lockpicking':
         // Open lockpicking modal with a sample test lock
@@ -695,7 +717,6 @@ const App: React.FC = () => {
           isDevModeEnabled={gameState.isDevModeEnabled ?? false}
           disabled={!isUIInteractive}
           onAction={processAction}
-          companions={gameState.companions}
         />
       </ErrorBoundary>
     );
@@ -777,10 +798,41 @@ const App: React.FC = () => {
             handleNavigateToGlossaryFromTooltip={handleNavigateToGlossaryFromTooltip}
             handleOpenGlossary={handleOpenGlossary}
             handleOpenCharacterSheet={handleOpenCharacterSheet}
+            onOllamaDontShowAgain={setOllamaWarningDismissed}
+            isBanterPaused={isBanterPaused}
+            toggleBanterPause={() => setIsBanterPaused(prev => !prev)}
+          />
+
+          {/* Global Companion Reactions (hidden in the main exploration interface where log is visible) */}
+          {(gameState.phase !== GamePhase.PLAYING || !isUIInteractive) && (
+            <CompanionReaction
+              companions={gameState.companions}
+              latestMessage={gameState.messages[gameState.messages.length - 1]}
+            />
+          )}
+
+          {/* Banter Interrupt UI - appears during active banter */}
+          <BanterInterruptUI
+            isActive={isBanterActive}
+            isWaiting={isWaitingForNextLine}
+            secondsRemaining={secondsUntilNextLine}
+            onInterrupt={playerInterrupt}
+            onEndBanter={endBanter}
           />
 
           {/* Global Dice Roller Overlay */}
           <DiceOverlay />
+
+          {/* Banter Debug Log Viewer */}
+          {isBanterDebugLogVisible && (
+            <BanterDebugLogViewer
+              isOpen={isBanterDebugLogVisible}
+              onClose={() => setIsBanterDebugLogVisible(false)}
+              logs={gameState.banterDebugLog || []}
+              onClear={() => dispatch({ type: 'CLEAR_BANTER_DEBUG_LOG' })}
+              onForceTrigger={forceBanter}
+            />
+          )}
         </div>
       </GameProvider>
     </AppProviders>

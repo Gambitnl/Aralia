@@ -1,0 +1,61 @@
+{
+    "id": "lockpicking",
+    "title": "Lockpicking",
+    "category": "Rules Glossary",
+    "tags": [
+        "skills",
+        "dexterity",
+        "rogue",
+        "exploration"
+    ],
+    "content": [
+        {
+            "type": "paragraph",
+            "text": "Lockpicking is the art of opening locks without the original key. This requires Thieves' Tools and is typically performed using a Dexterity (Sleight of Hand) check or a straight Dexterity check, depending on the DM."
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "text": "Making the Attempt"
+        },
+        {
+            "type": "list",
+            "items": [
+                "**Check:** Dexterity + Proficiency Bonus (if proficient with Thieves' Tools)",
+                "**DC:** Set by the lock's quality (typically 10-25)",
+                "**Time:** Usually 1 minute; can attempt as an action with disadvantage"
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "text": "Outcomes"
+        },
+        {
+            "type": "list",
+            "items": [
+                "**Success:** The lock opens",
+                "**Failure:** The lock remains closed; you may try again",
+                "**Critical Failure (5+ below DC):** If trapped, the trap triggers"
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "text": "Alternative: Forcing the Lock"
+        },
+        {
+            "type": "paragraph",
+            "text": "Locks can also be broken using a Strength check against the lock's Break DC. This is louder and may damage the lock permanently, but doesn't require Thieves' Tools."
+        }
+    ],
+    "aliases": [
+        "picking locks",
+        "pick lock"
+    ],
+    "seeAlso": [
+        "thieves_tools",
+        "traps",
+        "ability_check"
+    ]
+}

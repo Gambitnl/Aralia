@@ -10,9 +10,11 @@ import { describe, it, expect, vi } from 'vitest';
 import { attemptLockpick, attemptBreak, detectTrap, disarmTrap } from '../lockSystem';
 import { Lock, Trap } from '../types';
 import { PlayerCharacter } from '../../../types/character';
-import { Item } from '../../../types/items';
+import { CharacterStats } from '../../../types/core'; // Added to type the stats helper explicitly.
+import { Item, ItemType } from '../../../types/items';
 import * as combatUtils from '../../../utils/combatUtils';
 import * as statUtils from '../../../utils/statUtils';
+import { createMockPlayerCharacter } from '../../../utils/factories';
 
 // Mock dependencies
 vi.mock('../../../utils/combatUtils', () => ({
@@ -24,23 +26,36 @@ vi.mock('../../../utils/statUtils', () => ({
 }));
 
 // Helper to create a dummy character
-const createDummyCharacter = (overrides?: Partial<PlayerCharacter>): PlayerCharacter => ({
-  id: 'char-1',
-  name: 'Test Character',
-  stats: {
-    strength: 10,
-    dexterity: 10,
-    constitution: 10,
-    intelligence: 10,
-    wisdom: 10,
-    charisma: 10,
-  },
-  proficiencyBonus: 2,
-  classes: [], // Not a rogue by default
-  ...overrides,
-} as PlayerCharacter);
+// Was an inline stats literal per character; extracted to ensure required fields are always present.
+const baseStats: CharacterStats = {
+  strength: 10,
+  dexterity: 10,
+  constitution: 10,
+  intelligence: 10,
+  wisdom: 10,
+  charisma: 10,
+  baseInitiative: 0,
+  speed: 30,
+  cr: '0',
+};
 
-const thievesTools: Item = { id: 'thieves-tools', name: 'Thieves Tools', type: 'gear', weight: 1, value: 25, description: 'Tools' };
+const createDummyCharacter = (overrides?: Partial<PlayerCharacter>): PlayerCharacter & { stats: CharacterStats } => {
+  const { stats: statsOverride, ...restOverrides } = overrides ?? {};
+
+  return ({
+    ...createMockPlayerCharacter(),
+    id: 'char-1',
+    name: 'Test Character',
+    // Was spreading overrides directly onto stats; now merges over a full base to avoid undefined fields.
+    stats: { ...baseStats, ...(statsOverride ?? {}) },
+    proficiencyBonus: 2,
+    classes: [], // Not a rogue by default
+    ...restOverrides,
+  } as PlayerCharacter & { stats: CharacterStats });
+};
+
+const thievesTools: Item = { id: 'thieves-tools', name: 'Thieves Tools', type: ItemType.Tool, weight: 1, value: 25, description: 'Tools' };
+const rogueClass = { ...createMockPlayerCharacter().class, id: 'rogue', name: 'Rogue', hitDie: 8 };
 
 describe('Lock System', () => {
   describe('attemptLockpick', () => {
@@ -56,7 +71,7 @@ describe('Lock System', () => {
     it('succeeds if roll + dex + prof >= DC', () => {
       const char = createDummyCharacter({
         stats: { ...createDummyCharacter().stats, dexterity: 14 }, // +2 Dex
-        classes: [{ name: 'Rogue', level: 1, hitDie: 8 }] // Proficient (+2)
+        classes: [rogueClass] // Proficient (+2)
       });
 
       // Mock stats: Dex 14 -> +2

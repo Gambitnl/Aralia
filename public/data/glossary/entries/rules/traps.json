@@ -1,0 +1,85 @@
+{
+    "id": "traps",
+    "title": "Traps",
+    "category": "Rules Glossary",
+    "tags": [
+        "hazards",
+        "exploration",
+        "dungeon"
+    ],
+    "content": [
+        {
+            "type": "paragraph",
+            "text": "Traps are hidden dangers designed to harm or hinder intruders. They range from simple pit traps to complex magical wards. Adventurers may encounter traps on locked chests, doors, hallways, or any location where someone wants to protect their secrets."
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "text": "Detecting Traps"
+        },
+        {
+            "type": "list",
+            "items": [
+                "**Passive Detection:** Some traps can be noticed passively if your Passive Perception meets or exceeds the trap's Detection DC",
+                "**Active Search:** Use an action to search for traps with a Wisdom (Perception) or Intelligence (Investigation) check",
+                "**Magical Traps:** May require Arcana checks or the Detect Magic spell to notice"
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "text": "Disarming Traps"
+        },
+        {
+            "type": "list",
+            "items": [
+                "**Mechanical Traps:** Dexterity check using Thieves' Tools against the trap's Disarm DC",
+                "**Magical Traps:** Intelligence (Arcana) check, or may require Dispel Magic",
+                "**Failure:** Failing by 5 or more may trigger the trap"
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "text": "Common Trap Types"
+        },
+        {
+            "type": "table",
+            "headers": [
+                "Type",
+                "Effect"
+            ],
+            "rows": [
+                [
+                    "Poison Needle",
+                    "Piercing + poison damage"
+                ],
+                [
+                    "Pit Trap",
+                    "Falling damage"
+                ],
+                [
+                    "Alarm",
+                    "Alerts nearby creatures"
+                ],
+                [
+                    "Glyph of Warding",
+                    "Magical damage (fire, cold, etc.)"
+                ],
+                [
+                    "Gas Trap",
+                    "Sleep, poison, or nausea effect"
+                ]
+            ]
+        }
+    ],
+    "aliases": [
+        "trap",
+        "hazard"
+    ],
+    "seeAlso": [
+        "thieves_tools",
+        "lockpicking",
+        "ability_check"
+    ]
+}

@@ -7,8 +7,9 @@
  */
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Dice6, X, RefreshCcw } from 'lucide-react';
+import { Dice6, RefreshCcw } from 'lucide-react';
 import { useDiceBox } from '../../hooks/useDiceBox';
+import { WindowFrame } from '../ui/WindowFrame';
 
 interface DiceRollerModalProps {
     isOpen: boolean;
@@ -37,9 +38,21 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
     const [notation, setNotation] = useState(initialNotation);
     const [modifier, setModifier] = useState(0);
 
-    const { isReady, isRolling, lastResult, error, roll, clear } = useDiceBox({
+    const { isReady, isRolling, lastResult, error, roll, clear, resize } = useDiceBox({
         containerId: '#dice-roller-canvas',
     });
+
+    // Handle container resizing
+    useEffect(() => {
+        if (!containerRef.current || !isReady) return;
+
+        const observer = new ResizeObserver(() => {
+            resize();
+        });
+
+        observer.observe(containerRef.current);
+        return () => observer.disconnect();
+    }, [isReady, resize]);
 
     // Update notation when initialNotation prop changes
     useEffect(() => {
@@ -79,45 +92,23 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
 
     return (
         <AnimatePresence>
-            <div
-                className="fixed inset-0 bg-black/80 flex items-center justify-center z-[80] p-4"
-                onKeyDown={handleKeyDown}
-                tabIndex={-1}
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="dice-roller-title"
+            <WindowFrame
+                title="Dice Roller"
+                onClose={onClose}
+                storageKey="dice-roller-window"
+                headerActions={<Dice6 className="w-5 h-5 text-amber-400" />}
             >
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.2 }}
-                    className="bg-gray-900 rounded-xl shadow-2xl border border-gray-700 w-full max-w-2xl overflow-hidden"
+                <div 
+                    className="flex flex-col h-full bg-gray-900"
+                    onKeyDown={handleKeyDown}
+                    tabIndex={-1}
                 >
-                    {/* Header */}
-                    <div className="flex justify-between items-center p-4 border-b border-gray-700 bg-gray-800">
-                        <div className="flex items-center gap-3">
-                            <Dice6 className="w-6 h-6 text-amber-400" />
-                            <h2 id="dice-roller-title" className="text-xl font-bold text-amber-400 font-cinzel">
-                                Dice Roller
-                            </h2>
-                        </div>
-                        <button
-                            onClick={onClose}
-                            className="text-gray-400 hover:text-gray-200 text-3xl leading-none p-1"
-                            aria-label="Close dice roller"
-                        >
-                            <X className="w-6 h-6" />
-                        </button>
-                    </div>
-
                     {/* Dice Canvas */}
-                    <div className="relative">
+                    <div className="relative flex-grow min-h-0">
                         <div
                             id="dice-roller-canvas"
                             ref={containerRef}
-                            className="w-full h-64 bg-gradient-to-b from-gray-800 to-gray-900"
-                            style={{ minHeight: '256px' }}
+                            className="w-full h-full bg-gradient-to-b from-gray-800 to-gray-900"
                         />
                         {error && (
                             <div className="absolute inset-0 flex items-center justify-center bg-gray-900/90">
@@ -132,7 +123,7 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                     </div>
 
                     {/* Result Display */}
-                    <div className="p-4 border-t border-gray-700 bg-gray-800/50">
+                    <div className="p-4 border-t border-gray-700 bg-gray-800/50 flex-shrink-0">
                         {lastResult ? (
                             <div className="text-center">
                                 <p className="text-sm text-gray-400 mb-1">{lastResult.notation}</p>
@@ -154,15 +145,15 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                             </div>
                         ) : (
                             <div className="text-center">
-                                <p className="text-gray-500">
-                                    {isRolling ? 'Rolling...' : 'Click a die or Roll to start'}
+                                <p className="text-gray-500 text-lg">
+                                    {isRolling ? 'Rolling...' : 'Select notation or custom and Roll!'}
                                 </p>
                             </div>
                         )}
                     </div>
 
                     {/* Controls */}
-                    <div className="p-4 border-t border-gray-700 space-y-4">
+                    <div className="p-4 border-t border-gray-700 space-y-4 bg-gray-800/80 flex-shrink-0">
                         {/* Quick Roll Buttons */}
                         <div className="flex flex-wrap justify-center gap-2">
                             {PRESET_ROLLS.map(({ label, notation: presetNotation }) => (
@@ -170,7 +161,7 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
                                     key={presetNotation}
                                     onClick={() => handleQuickRoll(presetNotation)}
                                     disabled={!isReady || isRolling}
-                                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-gray-200 font-semibold rounded-lg transition-colors"
+                                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-gray-200 font-semibold rounded-lg transition-colors border border-gray-600"
                                 >
                                     {label}
                                 </button>
@@ -179,45 +170,50 @@ export const DiceRollerModal: React.FC<DiceRollerModalProps> = ({
 
                         {/* Custom Notation Input */}
                         <div className="flex gap-2">
-                            <input
-                                type="text"
-                                value={notation}
-                                onChange={(e) => setNotation(e.target.value)}
-                                placeholder="e.g., 2d6+3"
-                                className="flex-1 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
-                            />
-                            <input
-                                type="number"
-                                value={modifier}
-                                onChange={(e) => setModifier(parseInt(e.target.value) || 0)}
-                                placeholder="+/-"
-                                className="w-20 px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white text-center focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                title="Modifier"
-                            />
+                            <div className="relative flex-1">
+                                <input
+                                    type="text"
+                                    value={notation}
+                                    onChange={(e) => setNotation(e.target.value)}
+                                    placeholder="e.g., 2d6+3"
+                                    className="w-full px-4 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                />
+                                <span className="absolute right-3 top-2 text-xs text-gray-500 uppercase font-bold">Notation</span>
+                            </div>
+                            <div className="relative w-24">
+                                <input
+                                    type="number"
+                                    value={modifier}
+                                    onChange={(e) => setModifier(parseInt(e.target.value) || 0)}
+                                    placeholder="+/-"
+                                    className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white text-center focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                />
+                                <span className="absolute -top-2 left-2 bg-gray-800 px-1 text-[10px] text-gray-400 uppercase font-bold">Mod</span>
+                            </div>
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 pt-2">
                             <button
                                 onClick={handleRoll}
                                 disabled={!isReady || isRolling}
-                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-amber-600 hover:bg-amber-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors"
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-4 bg-amber-600 hover:bg-amber-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold text-xl rounded-lg shadow-lg transition-all active:scale-95"
                             >
-                                <Dice6 className="w-5 h-5" />
-                                {isRolling ? 'Rolling...' : 'Roll!'}
+                                <Dice6 className="w-6 h-6" />
+                                {isRolling ? 'Rolling...' : 'Roll Dice'}
                             </button>
                             <button
                                 onClick={clear}
                                 disabled={!isReady}
-                                className="px-4 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-gray-200 rounded-lg transition-colors"
+                                className="px-6 py-4 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-gray-200 rounded-lg transition-colors border border-gray-600"
                                 title="Clear dice"
                             >
-                                <RefreshCcw className="w-5 h-5" />
+                                <RefreshCcw className="w-6 h-6" />
                             </button>
                         </div>
                     </div>
-                </motion.div>
-            </div>
+                </div>
+            </WindowFrame>
         </AnimatePresence>
     );
 };

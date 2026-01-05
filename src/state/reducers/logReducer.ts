@@ -20,12 +20,21 @@ export function logReducer(state: GameState, action: AppAction): Partial<GameSta
         ollamaInteractionLog: [action.payload, ...(state.ollamaInteractionLog || [])].slice(0, 100),
       };
 
+    case 'ADD_BANTER_DEBUG_LOG':
+      return {
+        banterDebugLog: [action.payload, ...(state.banterDebugLog || [])].slice(0, 50),
+      };
+
+    case 'CLEAR_BANTER_DEBUG_LOG':
+      return { banterDebugLog: [] };
+
     case 'ADD_DISCOVERY_ENTRY': {
       const payload = (action.payload as Partial<DiscoveryEntry>) || {};
       const newEntryData: DiscoveryEntry = {
         ...payload,
         id: payload.id || `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         timestamp: Date.now(),
+        type: payload.type || DiscoveryType.MISC_EVENT,
         // TODO(2026-01-03 pass 4 Codex-CLI): placeholder gameTime/source/title/content/flags defaults to satisfy DiscoveryEntry; replace when caller guarantees full shape.
         gameTime: payload.gameTime || new Date().toISOString(),
         title: payload.title || 'Discovery',

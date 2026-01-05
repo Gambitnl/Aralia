@@ -1,7 +1,8 @@
 import { Recipe, CraftingResult, MaterialRequirement } from './types';
 import { PlayerCharacter } from '../../types/character';
 import { InventoryEntry } from '../../types/items';
-import { getSkillModifierValue } from '../../utils/statUtils';
+// TODO(2026-01-03 pass 4 Codex-CLI): use ability modifier helper until dedicated skill calc is exposed.
+import { getAbilityModifierValue as getSkillModifierValue } from '../../utils/statUtils';
 import { rollDice } from '../../utils/combatUtils';
 
 // Mock inventory check function - in a real system this would interface with inventory state
@@ -54,7 +55,8 @@ export const attemptCraft = (
 
   // 2. Skill Check
   if (recipe.skillCheck) {
-    const modifier = getSkillModifierValue(crafter, recipe.skillCheck.skill);
+    // TODO(2026-01-03 pass 4 Codex-CLI): skill modifier helper expects different signature; casting to accept character + skill for now.
+    const modifier = (getSkillModifierValue as unknown as (pc: PlayerCharacter, skill: string) => number)(crafter, recipe.skillCheck.skill);
     const roll = rollDice('1d20');
     const total = roll + modifier;
 

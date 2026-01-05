@@ -3,10 +3,11 @@
  * This component displays the game's message log, showing system messages,
  * player actions, and NPC dialogue. It automatically scrolls to the latest message.
  */
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useContext } from 'react';
 import { GameMessage } from '../types'; // Path relative to src/components/
 import { formatGameTime } from '@/utils/timeUtils';
 import Tooltip from './Tooltip'; // Import the new Tooltip component
+import GlossaryContext from '../context/GlossaryContext';
 
 interface WorldPaneProps {
   messages: GameMessage[];
@@ -21,6 +22,7 @@ interface WorldPaneProps {
  */
 const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const glossaryIndex = useContext(GlossaryContext);
 
   /**
    * Scrolls the message container to the bottom.
@@ -80,13 +82,6 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
             key={`${part}-${index}-tooltip`}
             content={tooltipKeywords[matchedKeyword]}
           >
-            
-            
-            {/*
-              TODO(lint-intent): This element is being used as an interactive control, but its semantics are incomplete.
-              TODO(lint-intent): Prefer a semantic element (button/label) or add role, tabIndex, and keyboard handlers.
-              TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
-            */}
             <button
               type="button"
               className="text-sky-400 underline decoration-sky-500/70 decoration-dotted cursor-help bg-transparent border-0 p-0"
@@ -109,24 +104,57 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
         Log
       </h2>
       <div className="space-y-3 text-lg leading-relaxed">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`p-2 rounded ${
-              msg.sender === 'player' ? 'text-right' : ''
-            }`}
-          >
-            <p className={`${getMessageStyle(msg.sender)}`}>
-              {processMessageText(msg.text)}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              {formatGameTime(new Date(msg.timestamp), {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </p>
-          </div>
-        ))}
+        {messages.map((msg) => {
+          const isBanter = msg.metadata?.type === 'banter';
+          
+          if (isBanter) {
+            // Extract name and text if possible (format: Name: "Text")
+            const match = msg.text.match(/^([^:]+): "(.*)"$/);
+            const speakerName = match ? match[1] : '';
+            const dialogue = match ? match[2] : msg.text;
+
+            return (
+              <div
+                key={msg.id}
+                className="p-4 rounded-xl bg-gray-900/60 border border-amber-900/30 my-2 shadow-sm"
+              >
+                {speakerName && (
+                  <h4 className="text-amber-500 text-xs font-bold uppercase tracking-wider mb-1">
+                    {speakerName}
+                  </h4>
+                )}
+                <p className="text-amber-100 italic text-base leading-relaxed">
+                  &quot;{processMessageText(dialogue)}&quot;
+                </p>
+                <p className="text-[10px] text-gray-600 mt-2 text-right">
+                  {formatGameTime(new Date(msg.timestamp), {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </p>
+              </div>
+            );
+          }
+
+          return (
+            <div
+              key={msg.id}
+              className={`p-2 rounded ${
+                msg.sender === 'player' ? 'text-right' : ''
+              }`}
+            >
+              <p className={`${getMessageStyle(msg.sender)}`}>
+                {processMessageText(msg.text)}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {formatGameTime(new Date(msg.timestamp), {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </p>
+            </div>
+          );
+        })}
         <div ref={messagesEndRef} /> {/* Anchor for scrolling to bottom */}
       </div>
     </div>

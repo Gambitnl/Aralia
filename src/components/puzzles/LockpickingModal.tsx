@@ -8,9 +8,10 @@
  */
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Key, Hammer, AlertTriangle, CheckCircle, XCircle, Eye } from 'lucide-react';
-import { Lock as LockType, LockpickResult, BreakResult, TrapDetectionResult } from '../../systems/puzzles/types';
-import { attemptLockpick, attemptBreak, hasTool, hasToolProficiency, detectTrap } from '../../systems/puzzles/lockSystem';
+import { Lock, Key, Hammer, AlertTriangle, CheckCircle, XCircle, Eye, Shield } from 'lucide-react';
+import { Lock as LockType, LockpickResult, BreakResult, TrapDetectionResult, TrapDisarmResult } from '../../systems/puzzles/types';
+import { attemptLockpick, attemptBreak, hasTool, hasToolProficiency, detectTrap, disarmTrap } from '../../systems/puzzles/lockSystem';
+import { disarmGlyph } from '../../systems/puzzles/arcaneGlyphSystem';
 import { PlayerCharacter } from '../../types/character';
 import { Item } from '../../types/items';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
@@ -27,11 +28,12 @@ interface LockpickingModalProps {
 }
 
 type ActionResult = {
-    type: 'pick' | 'break' | 'detect';
+    type: 'pick' | 'break' | 'detect' | 'disarm';
     success: boolean;
     message: string;
     details?: string;
     trapTriggered?: boolean;
+    trapDisarmed?: boolean;
 };
 
 /**
@@ -58,6 +60,7 @@ export const LockpickingModal: React.FC<LockpickingModalProps> = ({
     const [trapDetected, setTrapDetected] = useState<boolean | null>(null);
     const [lockState, setLockState] = useState<LockType>(lock);
     const [isRolling, setIsRolling] = useState(false);
+    const [trapDisarmed, setTrapDisarmed] = useState(false);
 
     // Dice context for visual rolling
     const { visualRoll } = useDice();
@@ -95,6 +98,9 @@ export const LockpickingModal: React.FC<LockpickingModalProps> = ({
     const hasThievesTools = hasTool(character, 'thieves-tools', inventory);
     const isProficient = hasToolProficiency(character, 'thieves-tools');
     const difficulty = getDifficultyInfo(lockState.dc);
+
+    // Determine if trap is magical (uses Arcana) or mechanical (uses Thieves' Tools)
+    const isMagicalTrap = lockState.trap?.type === 'magical';
 
     const handleDetectTrap = useCallback(() => {
         if (!lockState.isTrapped || !lockState.trap) {
@@ -186,6 +192,51 @@ export const LockpickingModal: React.FC<LockpickingModalProps> = ({
 
         onBreakResult?.(breakResult);
     }, [character, lockState, onBreakResult, visualRoll]);
+
+    const handleDisarmTrap = useCallback(async () => {
+        if (!lockState.trap || trapDisarmed) return;
+
+        setIsRolling(true);
+
+        // Show visual dice roll first
+        await visualRoll('1d20');
+
+        // Route to appropriate disarm function based on trap type
+        const disarmResult: TrapDisarmResult = lockState.trap.type === 'magical'
+            ? disarmGlyph(character, lockState.trap)
+            : disarmTrap(character, lockState.trap, inventory);
+        setIsRolling(false);
+
+        if (disarmResult.success) {
+            setTrapDisarmed(true);
+            setLockState(prev => ({
+                ...prev,
+                trap: prev.trap ? { ...prev.trap, isDisarmed: true } : undefined
+            }));
+            setResult({
+                type: 'disarm',
+                success: true,
+                message: 'Trap disarmed!',
+                details: `You carefully disarm the ${lockState.trap.name}. The lock is now safe.`,
+                trapDisarmed: true,
+            });
+        } else if (disarmResult.triggeredTrap) {
+            setResult({
+                type: 'disarm',
+                success: false,
+                message: 'Failed and triggered the trap!',
+                details: disarmResult.trapEffect?.type || 'The trap springs!',
+                trapTriggered: true,
+            });
+        } else {
+            setResult({
+                type: 'disarm',
+                success: false,
+                message: 'Disarm failed',
+                details: `Missed by ${Math.abs(disarmResult.margin)}. You can try again.`,
+            });
+        }
+    }, [character, lockState, inventory, trapDisarmed, visualRoll]);
 
     if (!isOpen) return null;
 
@@ -317,6 +368,7 @@ export const LockpickingModal: React.FC<LockpickingModalProps> = ({
                                     ref={firstFocusableRef}
                                     onClick={handleDetectTrap}
                                     disabled={trapDetected !== null}
+                                    title={trapDetected !== null ? 'You have already searched for traps' : undefined}
                                     className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-purple-700 hover:bg-purple-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
                                     aria-describedby="detect-trap-hint"
                                 >
@@ -327,10 +379,40 @@ export const LockpickingModal: React.FC<LockpickingModalProps> = ({
                                     Uses Wisdom or Intelligence to detect hidden traps on the lock
                                 </p>
 
+                                {/* Disarm Trap Button - only shows after trap detected */}
+                                {trapDetected && !trapDisarmed && lockState.trap && (
+                                    <>
+                                        <button
+                                            onClick={handleDisarmTrap}
+                                            disabled={isRolling || (!isMagicalTrap && !hasThievesTools)}
+                                            title={
+                                                isRolling ? 'Rolling dice...'
+                                                    : isMagicalTrap ? undefined
+                                                        : !hasThievesTools ? "Requires Thieves' Tools in your inventory"
+                                                            : undefined
+                                            }
+                                            className={`w-full flex items-center justify-center gap-2 px-4 py-3 ${isMagicalTrap
+                                                    ? 'bg-indigo-700 hover:bg-indigo-600'
+                                                    : 'bg-cyan-700 hover:bg-cyan-600'
+                                                } disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors`}
+                                            aria-describedby="disarm-trap-hint"
+                                        >
+                                            <Shield className="w-5 h-5" />
+                                            {isRolling ? 'Rolling...' : isMagicalTrap ? 'Dispel Glyph (Arcana)' : 'Disarm Trap'}
+                                        </button>
+                                        <p id="disarm-trap-hint" className="sr-only">
+                                            {isMagicalTrap
+                                                ? 'Attempt to dispel the magical ward using Intelligence (Arcana)'
+                                                : "Attempt to disarm the trap using Dexterity and Thieves' Tools"}
+                                        </p>
+                                    </>
+                                )}
+
                                 {/* Pick Lock Button */}
                                 <button
                                     onClick={handlePickLock}
                                     disabled={!canPickLock || isRolling}
+                                    title={!hasThievesTools ? "Requires Thieves' Tools in your inventory" : isRolling ? 'Rolling dice...' : !lockState.isLocked ? 'Lock is already open' : lockState.isBroken ? 'Lock is broken' : undefined}
                                     className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-amber-600 hover:bg-amber-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
                                     aria-describedby="pick-lock-hint"
                                 >

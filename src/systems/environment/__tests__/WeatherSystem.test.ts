@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 // TODO(lint-intent): 'CLIMATES' is unused in this test; use it in the assertion path or remove it.
 import { updateWeather, getClimateForBiome, CLIMATES as _CLIMATES } from '../WeatherSystem';
 // TODO(lint-intent): 'Temperature' is unused in this test; use it in the assertion path or remove it.
-import { WeatherState, Temperature as _Temperature, VisibilityLevel as _VisibilityLevel } from '../../types/environment';
+import { WeatherState, Temperature as _Temperature, VisibilityLevel as _VisibilityLevel } from '../../../types/environment';
 import { TimeOfDay } from '../../../utils/timeUtils';
 
 describe('WeatherSystem', () => {

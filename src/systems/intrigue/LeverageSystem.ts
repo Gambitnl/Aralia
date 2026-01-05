@@ -130,10 +130,11 @@ export class LeverageSystem {
     }
 
     private generateRewards(goal: LeverageGoal, secret: Secret, target: { name: string }): LeverageResult {
+        const rewards: NonNullable<LeverageResult['rewards']> = {};
         const result: LeverageResult = {
             outcome: 'success',
             message: `You successfully leveraged the secret against ${target.name}.`,
-            rewards: {},
+            rewards,
             consequences: {
                 secretBurned: true // Usually, using a secret "spends" it (they pay you to destroy proof)
             }
@@ -144,16 +145,16 @@ export class LeverageSystem {
 
         switch (goal) {
             case 'blackmail': // Gold
-                result.rewards.gold = Math.floor(baseReward * valueMultiplier);
-                result.message += ` They paid ${result.rewards.gold} gold for your silence.`;
+                rewards.gold = Math.floor(baseReward * valueMultiplier);
+                result.message += ` They paid ${rewards.gold} gold for your silence.`;
                 break;
             case 'favor': // Reputation
-                result.rewards.favor = secret.value * 2 * valueMultiplier;
-                result.message += ` They owe you a significant debt. Standing increased by ${result.rewards.favor}.`;
+                rewards.favor = secret.value * 2 * valueMultiplier;
+                result.message += ` They owe you a significant debt. Standing increased by ${rewards.favor}.`;
                 result.consequences!.secretBurned = true;
                 break;
             case 'information':
-                result.rewards.intel = `New Lead: The ${target.name} has a vulnerability in the West Wing.`; // Placeholder
+                rewards.intel = `New Lead: The ${target.name} has a vulnerability in the West Wing.`; // Placeholder
                 result.message += ` They provided key information.`;
                 break;
             case 'safe_passage':

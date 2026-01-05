@@ -4,15 +4,10 @@
  */
 
 .glossary-panel {
-    background: linear-gradient(135deg, rgba(25, 35, 40, 0.95), rgba(15, 25, 30, 0.98));
-    border: 1px solid rgba(100, 150, 200, 0.3);
-    border-radius: 12px;
-    padding: 1.5rem;
-    width: 700px;
-    max-width: 95vw;
-    max-height: 85vh;
+    background: transparent;
+    padding: 1rem;
+    height: 100%;
     color: #e0e0e8;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -151,7 +146,6 @@
     gap: 1rem;
     flex: 1;
     overflow: hidden;
-    min-height: 300px;
 }
 
 /* Ingredient List */

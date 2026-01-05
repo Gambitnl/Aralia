@@ -86,12 +86,14 @@ class DiceServiceClass {
                 throw new Error(`Dice container ${containerId} not found`);
             }
 
-            this.diceBox = new DiceBox(containerId, {
-                assetPath: '/assets/dice-box',
-                theme: 'aralia', // Custom Aralia theme (amber/gold)
-                scale: 6,
-                gravity: 2,
-                throwForce: 6,
+            // v1.1.0 API: single config object with container property
+            this.diceBox = new DiceBox({
+                container: containerId,
+                assetPath: `${import.meta.env.BASE_URL}assets/dice-box/`, // Trailing slash required for path concatenation
+                theme: 'default', // Use built-in theme (custom themes need specific setup)
+                scale: 24,
+                gravity: 4,
+                throwForce: 14,
                 offscreen: true,
                 onRollComplete: (results: any) => {
                     if (results.length > 0 && this.pendingResolve) {

@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { PortalSystem } from '../PortalSystem';
 import { Portal } from '../../../types/planes';
+import { ItemType } from '../../../types/items'; // Added to replace legacy string item type.
 // TODO(lint-intent): 'GamePhase' is unused in this test; use it in the assertion path or remove it.
 import { GameState, GamePhase as _GamePhase } from '../../../types/index';
 import { createMockGameState } from '../../../utils/factories';
@@ -47,7 +48,8 @@ describe('PortalSystem', () => {
         };
         const stateWithItem = {
             ...mockGameState,
-            inventory: [{ id: '1', name: 'Moon Key', description: 'A glowing key', quantity: 1, type: 'misc', weight: 0, value: 0 }]
+            // Was using type: 'misc'; replaced with ItemType.Key to satisfy Item typing.
+            inventory: [{ id: '1', name: 'Moon Key', description: 'A glowing key', quantity: 1, type: ItemType.Key, weight: 0, value: 0 }]
         } as GameState;
 
         const result = PortalSystem.activate(itemPortal, stateWithItem);

@@ -27,7 +27,7 @@ const createMockCharacter = (id: string, name: string): PlayerCharacter => ({
   race: { name: 'Human', id: 'human', traits: [], description: 'Test Human' },
   class: {
     name: 'Fighter', id: 'fighter', hitDie: 10,
-    proficiencies: [], savingThrowProficiencies: [], features: [],
+    savingThrowProficiencies: [], features: [],
     primaryAbility: ['Strength'], description: 'Test Fighter',
     skillProficienciesAvailable: [], numberOfSkillProficiencies: 2,
     armorProficiencies: [], weaponProficiencies: []
@@ -39,7 +39,7 @@ const createMockCharacter = (id: string, name: string): PlayerCharacter => ({
   hp: 10,
   maxHp: 10,
   conditions: [],
-  experience: 0,
+  xp: 0,
   background: 'soldier',
   skills: [],
   speed: 30,

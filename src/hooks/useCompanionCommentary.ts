@@ -24,7 +24,6 @@ type CompanionAction =
 export const useCompanionCommentary = (
   gameState: GameState,
   dispatch: React.Dispatch<CompanionAction>,
-  // lastAction is removed from props as we rely on state diffing
 ) => {
   const [cooldowns, setCooldowns] = useState<CooldownMap>({});
 
@@ -32,7 +31,11 @@ export const useCompanionCommentary = (
   const prevLocationRef = useRef(gameState.currentLocationId);
   const prevMessagesLengthRef = useRef(gameState.messages.length);
   const prevGoldRef = useRef(gameState.gold);
-  const prevKnownCrimesRef = useRef(gameState.notoriety.knownCrimes.length);
+  const prevKnownCrimesRef = useRef(gameState.notoriety?.knownCrimes?.length || 0);
+
+  // Startup timestamp - suppress reactions for first 5 seconds to prevent false triggers during initialization
+  const startupTimestampRef = useRef(Date.now());
+  const STARTUP_DELAY_MS = 5000;
 
   // Helper to check cooldowns
   const isOnCooldown = useCallback((companionId: string, triggerType: string, cooldownMinutes: number = 1): boolean => {
@@ -54,6 +57,11 @@ export const useCompanionCommentary = (
 
   // Main evaluation logic
   const evaluateReaction = useCallback(async (triggerType: ReactionTriggerType, tags: string[] = [], eventDescription?: string) => {
+    // Skip reactions during startup period
+    if (Date.now() - startupTimestampRef.current < STARTUP_DELAY_MS) {
+      return;
+    }
+
     if (!gameState.companions) {
       return;
     }
@@ -85,7 +93,7 @@ export const useCompanionCommentary = (
           return;
         }
 
-        // 4. Check Chance
+        // Check Chance
         if (rule.chance !== undefined && Math.random() > rule.chance) {
           return;
         }
@@ -194,10 +202,9 @@ export const useCompanionCommentary = (
   useEffect(() => {
     if (gameState.currentLocationId !== prevLocationRef.current) {
       prevLocationRef.current = gameState.currentLocationId;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      evaluateReaction('location'); // Tag could be biome or region derived from location
+      evaluateReaction('location');
     }
-  }, [gameState.currentLocationId, evaluateReaction]); // Re-run when location changes
+  }, [gameState.currentLocationId, evaluateReaction]);
 
   // 2. Loot / Messages
   useEffect(() => {
@@ -205,17 +212,14 @@ export const useCompanionCommentary = (
       const newMessages = gameState.messages.slice(prevMessagesLengthRef.current);
       prevMessagesLengthRef.current = gameState.messages.length;
 
-      // Check if any message indicates valuable loot
-      // Or if Gold amount increased significantly
+      // Check if Gold amount increased significantly
       const goldDiff = gameState.gold - prevGoldRef.current;
       if (goldDiff > 50) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         evaluateReaction('loot', ['gold'], `The party found ${goldDiff} gold coins.`);
       }
       prevGoldRef.current = gameState.gold;
 
-      // Check messages for item pickups (if log text is consistent)
-      // "You picked up X"
+      // Check messages for item pickups
       newMessages.forEach(msg => {
         if (msg.text.includes("picked up") || msg.text.includes("received")) {
           const itemDescription = msg.text.replace(/You (picked up|received)/gi, 'The party acquired').trim();
@@ -234,7 +238,7 @@ export const useCompanionCommentary = (
 
   // 3. Crimes
   useEffect(() => {
-    // Handle case where notoriety might be undefined (e.g. init)
+    // Handle case where notoriety might be undefined
     if (!gameState.notoriety?.knownCrimes) return;
 
     // Reset ref if knownCrimes shrunk (e.g. load game or clear history)
@@ -248,7 +252,6 @@ export const useCompanionCommentary = (
       prevKnownCrimesRef.current = gameState.notoriety.knownCrimes.length;
 
       newCrimes.forEach(crime => {
-        // Tag based on crime type (e.g., 'theft', 'assault', 'murder')
         const tags = [crime.type.toLowerCase()];
         if (crime.severity > 50) tags.push('severe');
         if (crime.witnessed) tags.push('witnessed');
@@ -259,4 +262,6 @@ export const useCompanionCommentary = (
     }
   }, [gameState.notoriety?.knownCrimes, evaluateReaction]);
 
+  // TODO(2026-01-03 pass 4 Codex-CLI): hook currently has side effects only; return value reserved for future manual triggers/cleanup.
+  return null;
 };

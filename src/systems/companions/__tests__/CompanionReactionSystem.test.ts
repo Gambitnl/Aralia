@@ -8,12 +8,23 @@
 
 import { describe, it, expect } from 'vitest';
 import { CompanionReactionSystem } from '../CompanionReactionSystem';
-import { Companion, DecisionContext, CompanionReactionRule } from '../../types/companions';
+import { Companion, DecisionContext, CompanionReactionRule } from '../../../types/companions';
 
 // Mock Companion Factory
 const createMockCompanion = (id: string, rules: CompanionReactionRule[]): Companion => ({
   id,
-  identity: { id, name: 'Mock Companion', race: 'Human', class: 'Fighter', background: 'Soldier' },
+  identity: {
+      id,
+      name: 'Mock Companion',
+      race: 'Human',
+      class: 'Fighter',
+      background: 'Soldier',
+      // TODO(2026-01-03 pass 4 Codex-CLI): identity placeholders for tests; fill from companion data when available.
+      sex: 'unknown',
+      age: 0,
+      physicalDescription: 'Test identity'
+  },
+  memories: [],
   personality: {
       openness: 50, conscientiousness: 50, extraversion: 50,
       agreeableness: 50, neuroticism: 50, values: [], fears: [], quirks: []

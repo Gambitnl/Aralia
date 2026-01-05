@@ -4,67 +4,16 @@ import { companionReducer } from '../../../state/reducers/companionReducer';
 import { GameState, GamePhase } from '../../../types';
 import { COMPANIONS } from '../../../constants';
 import { AppAction } from '../../../state/actionTypes';
+import { createMockGameState } from '../../../utils/core/factories';
 
 describe('CompanionSystem', () => {
     // Create a minimal mock state
-    const mockState: GameState = {
+    const mockState: GameState = createMockGameState({
         phase: GamePhase.PLAYING,
         companions: COMPANIONS,
         messages: [],
-        // ... minimal other fields required by GameState, handled by casting for brevity in test
-        party: [],
-        inventory: [],
-        gold: 0,
-        currentLocationId: 'test_loc',
-        subMapCoordinates: { x: 0, y: 0 },
-        isLoading: false,
-        loadingMessage: null,
-        isImageLoading: false,
-        error: null,
-        worldSeed: 123,
-        mapData: null,
-        isMapVisible: false,
-        isSubmapVisible: false,
-        isPartyOverlayVisible: false,
-        isNpcTestModalVisible: false,
-        isLogbookVisible: false,
-        isGameGuideVisible: false,
-        dynamicLocationItemIds: {},
-        currentLocationActiveDynamicNpcIds: [],
-        geminiGeneratedActions: [],
-        characterSheetModal: { isOpen: false, character: null },
-        gameTime: new Date(),
-        isDevMenuVisible: false,
-        isPartyEditorVisible: false,
-        isGeminiLogViewerVisible: false,
-        geminiInteractionLog: [],
-        hasNewRateLimitError: false,
-        devModelOverride: null,
-        isEncounterModalVisible: false,
-        generatedEncounter: null,
-        encounterSources: null,
-        encounterError: null,
-        currentEnemies: null,
-        inspectedTileDescriptions: {},
-        discoveryLog: [],
-        unreadDiscoveryCount: 0,
-        isDiscoveryLogVisible: false,
-        isGlossaryVisible: false,
-        npcMemory: {},
-        locationResidues: {},
-        metNpcIds: [],
-        merchantModal: { isOpen: false, merchantName: '', merchantInventory: [] },
-        notoriety: { globalHeat: 0, localHeat: {}, knownCrimes: [] },
-        questLog: [],
-        isQuestLogVisible: false,
-        notifications: [],
-        factions: {},
-        playerFactionStandings: {},
-        divineFavor: {},
-        temples: {},
-        townState: null,
-        tempParty: null,
-    };
+        notoriety: { globalHeat: 0, localHeat: {}, knownCrimes: [], bounties: [] },
+    });
 
     it('should add a reaction message with metadata when ADD_COMPANION_REACTION is dispatched', () => {
         const companionId = Object.keys(COMPANIONS)[0];

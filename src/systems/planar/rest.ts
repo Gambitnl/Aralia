@@ -1,14 +1,15 @@
 // TODO(lint-intent): 'PlayerCharacter' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { GameState, PlayerCharacter as _PlayerCharacter } from '../../types';
+import { GameState, Location, PlayerCharacter as _PlayerCharacter } from '../../types';
 import { getCurrentPlane } from '../../utils/planarUtils';
 import { rollSavingThrow } from '../../utils/savingThrowUtils';
 // TODO(lint-intent): 'logger' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { logger as _logger } from '../../utils/logger';
-import { CombatCharacter } from '../../types/combat';
+import { createPlayerCombatCharacter } from '../../utils/combatUtils';
+import { LOCATIONS } from '../../constants';
 
 export interface RestOutcome {
   deniedCharacterIds: string[];
@@ -20,7 +21,19 @@ export interface RestOutcome {
  * are denied benefits or suffer consequences.
  */
 export function checkPlanarRestRules(gameState: GameState): RestOutcome {
-  const plane = getCurrentPlane(gameState.currentLocation);
+  const resolvedLocation =
+    gameState.dynamicLocations?.[gameState.currentLocationId] ??
+    LOCATIONS[gameState.currentLocationId];
+  const fallbackLocation: Location = {
+    id: gameState.currentLocationId,
+    name: 'Unknown Location',
+    baseDescription: '',
+    exits: {},
+    mapCoordinates: { x: 0, y: 0 },
+    biomeId: 'unknown',
+    planeId: 'material'
+  };
+  const plane = getCurrentPlane(resolvedLocation ?? fallbackLocation);
   const outcome: RestOutcome = {
     deniedCharacterIds: [],
     messages: []
@@ -36,7 +49,9 @@ export function checkPlanarRestRules(gameState: GameState): RestOutcome {
   // Check if Long Rest is allowed at all
   if (!restRules.longRestAllowed) {
     outcome.messages.push(`Long rests are not possible in ${plane.name}.`);
-    outcome.deniedCharacterIds = gameState.party.map(c => c.id);
+    // TODO(2026-01-03 pass 4 Codex-CLI): Require PlayerCharacter ids before rest checks run.
+    // Previously mapped c.id directly; now default to a placeholder to satisfy optional id.
+    outcome.deniedCharacterIds = gameState.party.map(c => c.id ?? 'unknown-character');
     return outcome;
   }
 
@@ -47,40 +62,7 @@ export function checkPlanarRestRules(gameState: GameState): RestOutcome {
      outcome.messages.push(`The despair of the ${plane.name} weighs heavy...`);
 
      gameState.party.forEach(character => {
-        // Convert PlayerCharacter to CombatCharacter structure expected by rollSavingThrow
-        // We ensure strict typing here
-        const combatCharLike: CombatCharacter = {
-            id: character.id,
-            name: character.name,
-            hp: character.hp,
-            maxHp: character.maxHp,
-            ac: character.armorClass,
-            stats: {
-                strength: character.finalAbilityScores.Strength,
-                dexterity: character.finalAbilityScores.Dexterity,
-                constitution: character.finalAbilityScores.Constitution,
-                intelligence: character.finalAbilityScores.Intelligence,
-                wisdom: character.finalAbilityScores.Wisdom,
-                charisma: character.finalAbilityScores.Charisma
-            },
-            class: character.class,
-            level: character.level || 1,
-            // Assuming default if missing, or we should map from character data if available
-            // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-            // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-            // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-            savingThrowProficiencies: (character.class?.savingThrowProficiencies || []) as unknown,
-            initiativeBonus: 0,
-            speed: 30,
-            conditions: [],
-            resistances: [],
-            immunities: [],
-            vulnerabilities: [],
-            senses: { darkvision: 0 }, // Minimal dummy values for CombatCharacter required fields
-            actions: [],
-            bonusActions: [],
-            reactions: []
-        };
+        const combatCharLike = createPlayerCombatCharacter(character);
 
         // Disadvantage due to ShadowfellDespairTrait
         const save1 = rollSavingThrow(combatCharLike, 'Wisdom', 15);
@@ -92,7 +74,10 @@ export function checkPlanarRestRules(gameState: GameState): RestOutcome {
         const usedTotal = save1.total < save2.total ? save1.total : save2.total;
 
         if (!passed) {
-            outcome.deniedCharacterIds.push(character.id);
+            // TODO(2026-01-03 pass 4 Codex-CLI): Require PlayerCharacter ids before rest checks run.
+            // Previously pushed character.id directly; now default to a placeholder to satisfy optional id.
+            const characterId = character.id ?? 'unknown-character';
+            outcome.deniedCharacterIds.push(characterId);
             outcome.messages.push(`${character.name} succumbs to despair (Rolled ${usedTotal} vs DC 15) and finds no rest.`);
         } else {
             outcome.messages.push(`${character.name} resists the gloom.`);

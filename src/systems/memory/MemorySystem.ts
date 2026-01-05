@@ -8,7 +8,7 @@
 
 // TODO(Vector): Wire up Spell/Combat systems to call MemorySystem.recordInteraction when spells like Charm Person end.
 
-import { NPC } from '../../types/creatures';
+import type { NPC } from '../../types';
 import {
   Interaction,
   Fact,
@@ -27,6 +27,12 @@ import {
  */
 export class MemorySystem {
 
+  // TODO(2026-01-03 pass 4 Codex-CLI): NPC doesn't yet carry memory fields; use a local bridge type until the model is unified.
+  private static readonly _memoryNpcTag = Symbol('memory-npc');
+  private static asMemoryNpc(npc: NPC): NPC & { memory?: NPCMemory } {
+    return npc as NPC & { memory?: NPCMemory };
+  }
+
   /**
    * Records a new interaction in the NPC's memory and updates their attitude.
    *
@@ -40,7 +46,8 @@ export class MemorySystem {
     interaction: Partial<Interaction> & { type: MemoryInteractionType, summary: string, attitudeChange: number, significance: number },
     currentDate: GameDate
   ): NPC {
-    const memory = npc.memory || MemorySystem.createEmptyMemory(currentDate);
+    const memoryNpc = MemorySystem.asMemoryNpc(npc);
+    const memory = memoryNpc.memory || MemorySystem.createEmptyMemory(currentDate);
 
     const newInteraction: Interaction = {
       id: interaction.id || crypto.randomUUID(),
@@ -84,10 +91,11 @@ export class MemorySystem {
     fact: Partial<Fact> & { id: string, confidence: number, significance: number, source: Fact['source'] },
     currentDate: GameDate
   ): NPC {
-    const memory = npc.memory || MemorySystem.createEmptyMemory(currentDate);
+    const memoryNpc = MemorySystem.asMemoryNpc(npc);
+    const memory = memoryNpc.memory || MemorySystem.createEmptyMemory(currentDate);
 
     // Check if fact is already known
-    const existingFactIndex = memory.knownFacts.findIndex(f => f.id === fact.id);
+    const existingFactIndex = memory.knownFacts.findIndex((f: Fact) => f.id === fact.id);
     // TODO(lint-intent): This binding never reassigns, so the intended mutability is unclear.
     // TODO(lint-intent): If it should stay stable, switch to const and treat it as immutable.
     // TODO(lint-intent): If mutation was intended, add the missing update logic to reflect that intent.
@@ -128,15 +136,17 @@ export class MemorySystem {
     type: MemoryInteractionType,
     sinceDate: GameDate
   ): boolean {
-    if (!npc.memory) return false;
-    return npc.memory.interactions.some(i => i.type === type && i.date >= sinceDate);
+    const memoryNpc = MemorySystem.asMemoryNpc(npc);
+    if (!memoryNpc.memory) return false;
+    return memoryNpc.memory.interactions.some((i: Interaction) => i.type === type && i.date >= sinceDate);
   }
 
   /**
    * Gets the NPC's current attitude towards the player.
    */
   static getAttitude(npc: NPC): number {
-    return npc.memory ? npc.memory.attitude : 0;
+    const memoryNpc = MemorySystem.asMemoryNpc(npc);
+    return memoryNpc.memory ? memoryNpc.memory.attitude : 0;
   }
 
   /**

@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { AstralMechanics, PsychicWindResult } from '../AstralMechanics';
 import { GameState } from '../../../types/index';
 import * as combatUtils from '../../../utils/combatUtils';
+import { createMockGameState } from '../../../utils/factories';
 
 // Mock rollDice to control randomness
 vi.mock('../../../utils/combatUtils', () => ({
@@ -68,18 +69,7 @@ describe('AstralMechanics', () => {
 
   describe('processPsychicWind', () => {
     it('should add a notification to game state if encounter occurred', () => {
-      const mockState: GameState = {
-        notifications: [],
-        // Stub other required fields
-        party: [],
-        inventory: [],
-        gameTime: new Date(),
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        currentLocation: { id: 'test', name: 'test', type: 'city' } as unknown,
-        quests: [],
-        activeContracts: []
-      // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-      } as unknown;
+      const mockState: GameState = createMockGameState({ notifications: [] });
 
       const result: PsychicWindResult = {
         encountered: true,
@@ -97,8 +87,7 @@ describe('AstralMechanics', () => {
     });
 
     it('should do nothing if no encounter occurred', () => {
-       // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-       const mockState: GameState = { notifications: [] } as unknown;
+       const mockState: GameState = createMockGameState({ notifications: [] });
        const result: PsychicWindResult = {
         encountered: false,
         roll: 10,

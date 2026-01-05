@@ -3,7 +3,7 @@ import { ConcentrationTracker } from '../ConcentrationTracker'
 // DiceRoller is no longer used directly by ConcentrationTracker, but savingThrowUtils uses combatUtils which uses Math.random
 // We need to mock combatUtils to control the roll
 import * as combatUtils from '@/utils/combatUtils'
-import type { CombatCharacter, CombatState } from '@/types/combat'
+import type { CombatCharacter, CombatState, ConcentrationState } from '@/types/combat'
 import type { Spell } from '@/types/spells'
 
 const mockCharacter: CombatCharacter = {

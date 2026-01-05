@@ -71,7 +71,7 @@ export class ConditionEvaluator {
   }
 
   private static evaluateStatus(condition: import('../../types/logic').StatusCondition, character: CombatCharacter): boolean {
-    const hasStatus = character.statusEffects.some(s => s.statusCondition.name.toLowerCase() === condition.statusId.toLowerCase());
+    const hasStatus = character.statusEffects.some(s => s.name.toLowerCase() === condition.statusId.toLowerCase());
     return condition.negate ? !hasStatus : hasStatus;
   }
 
@@ -100,11 +100,11 @@ export class ConditionEvaluator {
 
   private static getAttributeValue(character: CombatCharacter, attribute: string): number {
     switch (attribute.toLowerCase()) {
-      case 'hp': return character.hp;
-      case 'maxhp': return character.maxHp;
-      case 'ac': return character.stats.armorClass;
-      case 'movement': return character.stats.movementSpeed;
-      case 'initiative': return character.stats.initiativeBonus;
+      case 'hp': return character.currentHP;
+      case 'maxhp': return character.maxHP;
+      case 'ac': return character.armorClass ?? 0;
+      case 'movement': return character.stats.speed;
+      case 'initiative': return character.initiative;
       default: return 0;
     }
   }
@@ -115,8 +115,10 @@ export class ConditionEvaluator {
       const key = stat.toLowerCase();
       // Assuming stats are flattened or accessible via abilities
       // CombatCharacter has 'abilities' { strength: 10... }
-      const abilities = character.abilities as Record<string, number>;
-      return abilities[key] || 0;
+      // TODO(2026-01-03 pass 4 Codex-CLI): Replace loose stat lookup with an explicit key map once ConditionAttributes are typed.
+      // Was a direct CharacterStats->Record cast; now cast through unknown to satisfy TS index-signature mismatch.
+      const stats = character.stats as unknown as Record<string, number>;
+      return typeof stats[key] === 'number' ? stats[key] : 0;
   }
 
   private static compare(actual: number, op: import('../../types/logic').ComparisonOperator, target: number): boolean {

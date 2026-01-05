@@ -14,7 +14,7 @@ describe('crimeReducer - Heist Logic', () => {
     });
 
     it('should start planning a heist', () => {
-        const action = {
+        const action: AppAction = {
             type: 'START_HEIST_PLANNING',
             payload: {
                 targetLocationId: 'bank_vault',
@@ -48,10 +48,10 @@ describe('crimeReducer - Heist Logic', () => {
             accuracy: 1
         };
 
-        const action = {
+        const action: AppAction = {
             type: 'ADD_HEIST_INTEL',
             payload: { intel }
-        } as const;
+        };
 
         // Cast to any because the previous reducer call returns Partial<GameState>
         const newState = crimeReducer({ ...initialState, ...stateWithHeist } as GameState, action);
@@ -72,7 +72,7 @@ describe('crimeReducer - Heist Logic', () => {
         expect(currentState.activeHeist?.phase).toBe(HeistPhase.Recon);
 
         // Advance
-        const newState = crimeReducer(currentState, { type: 'ADVANCE_HEIST_PHASE' });
+        const newState = crimeReducer(currentState, { type: 'ADVANCE_HEIST_PHASE' } as AppAction);
 
         expect(newState.activeHeist?.phase).toBe(HeistPhase.Planning);
     });
@@ -87,7 +87,7 @@ describe('crimeReducer - Heist Logic', () => {
         } as AppAction) };
 
         // Pass success/failure explicitly in payload
-        const action = {
+        const action: AppAction = {
             type: 'PERFORM_HEIST_ACTION',
             payload: {
                 actionDifficulty: 10,
@@ -95,7 +95,7 @@ describe('crimeReducer - Heist Logic', () => {
                 success: false,
                 alertChange: 15
             }
-        } as const;
+        };
 
         const newState = crimeReducer(currentState, action);
 
@@ -115,7 +115,7 @@ describe('crimeReducer - Heist Logic', () => {
 
         expect(currentState.activeHeist).toBeDefined();
 
-        const newState = crimeReducer(currentState, { type: 'ABORT_HEIST' });
+        const newState = crimeReducer(currentState, { type: 'ABORT_HEIST' } as AppAction);
 
         expect(newState.activeHeist).toBeNull();
         expect(newState.messages?.[newState.messages.length - 1].text).toBe('Heist aborted.');

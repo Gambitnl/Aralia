@@ -32,12 +32,13 @@ describe('ShadowfellMechanics', () => {
     describe('checkDespair', () => {
         it('should return no despair if save is passed', () => {
             // Mock rollSavingThrow to succeed
-            vi.spyOn(SavingThrowUtils, 'rollSavingThrow').mockReturnValue({
+            vi.spyOn(SavingThrowUtils, 'rollSavingThrow').mockReturnValue({     
                 success: true,
                 total: 20,
-                dieRoll: 20,
-                modifiers: 0,
-                breakdown: '20'
+                roll: 20,
+                dc: 15,
+                natural20: true,
+                natural1: false
             });
 
             const result = ShadowfellMechanics.checkDespair(character);
@@ -49,12 +50,13 @@ describe('ShadowfellMechanics', () => {
 
         it('should return despair if save is failed', () => {
              // Mock rollSavingThrow to fail
-            vi.spyOn(SavingThrowUtils, 'rollSavingThrow').mockReturnValue({
+            vi.spyOn(SavingThrowUtils, 'rollSavingThrow').mockReturnValue({     
                 success: false,
                 total: 5,
-                dieRoll: 5,
-                modifiers: 0,
-                breakdown: '5'
+                roll: 5,
+                dc: 15,
+                natural20: false,
+                natural1: false
             });
 
             // Mock Math.random to deterministic value

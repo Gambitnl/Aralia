@@ -15,9 +15,9 @@ describe('NobleHouseGenerator', () => {
     const house = generateNobleHouse();
 
     expect(house).toBeDefined();
-    expect(house.type).toBe('political');
+    expect(house.type).toBe('NOBLE_HOUSE');
     expect(house.members.length).toBeGreaterThanOrEqual(2); // Head + Spouse
-    expect(house.heraldry).toBeDefined();
+    expect(house.colors).toBeDefined();
     expect(house.name).toContain('House');
   });
 

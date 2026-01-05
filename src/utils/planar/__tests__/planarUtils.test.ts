@@ -130,7 +130,6 @@ describe('Planar Utils', () => {
       fences: {},
       dynamicLocations: {},
       dynamicNPCs: {},
-      playerFactionStandings: {},
       environment: { precipitation: 'none', temperature: 'temperate', wind: { direction: 'north', speed: 'calm' }, visibility: 'clear' },
       isThievesGuildVisible: false,
       isNavalDashboardVisible: false,

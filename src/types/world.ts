@@ -1,6 +1,7 @@
 import type { NPCVisualSpec } from './visuals';
 import type { NPCKnowledgeProfile } from './dialogue';
 import type { Position as CombatPosition } from './combat';
+import type { NPCMemory } from './memory'; // Added because NPC now carries optional memory.
 
 export type Position = CombatPosition;
 
@@ -112,7 +113,7 @@ export interface NpcMemory {
   // TODO(2026-01-03 pass 4 Codex-CLI): interactions placeholder until NPC interaction history is fully typed.
   interactions?: unknown[];
   // TODO(2026-01-03 pass 4 Codex-CLI): attitude placeholder for future relationship modeling.
-  attitude?: string;
+  attitude?: string | number;
   // TODO(2026-01-03 pass 4 Codex-CLI): discussedTopics placeholder until conversation logging is formalized.
   discussedTopics?: Record<string, unknown>;
   // TODO(2026-01-03 pass 4 Codex-CLI): lastInteractionDate placeholder until timestamps are standardized across NPC memory.
@@ -138,6 +139,8 @@ export interface NPC {
   goals?: Goal[];
   knowledgeProfile?: NPCKnowledgeProfile;
   visual?: NPCVisualSpec;
+  // Was missing from NPC; added to allow MemorySystem/tests to attach NPCMemory without type errors.
+  memory?: NPCMemory;
 }
 
 export interface Biome {

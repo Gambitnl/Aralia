@@ -107,7 +107,7 @@ export const TERRAIN_RULES: Record<string, TerrainRule> = {
     cover: 'none',
     stealthAdvantage: false
   }
-};
+} as unknown as Record<string, TerrainRule>;
 
 /**
  * Gets the movement cost for a specific terrain type.

@@ -36,6 +36,7 @@ interface UseDiceBoxReturn {
     error: string | null;
     roll: (notation: string) => Promise<DiceResult | null>;
     clear: () => void;
+    resize: () => void;
 }
 
 /**
@@ -44,11 +45,11 @@ interface UseDiceBoxReturn {
 export function useDiceBox(options: UseDiceBoxOptions): UseDiceBoxReturn {
     const {
         containerId,
-        assetPath = '/assets/dice-box',
+        assetPath = `${import.meta.env.BASE_URL}assets/dice-box/`,
         theme = 'default',
-        scale = 6,
-        gravity = 2,
-        throwForce = 6,
+        scale = 24,
+        gravity = 4,
+        throwForce = 14,
     } = options;
 
     const diceBoxRef = useRef<any>(null);
@@ -74,12 +75,15 @@ export function useDiceBox(options: UseDiceBoxOptions): UseDiceBoxReturn {
                     throw new Error(`Container ${containerId} not found`);
                 }
 
-                const diceBox = new DiceBox(containerId, {
+                const diceBox = new DiceBox({
+                    container: containerId,
                     assetPath,
                     theme,
                     scale,
                     gravity,
                     throwForce,
+                    width: container.clientWidth,
+                    height: container.clientHeight,
                     offscreen: true, // Use offscreen canvas for performance
                     onRollComplete: (results: any) => {
                         if (mounted && results.length > 0) {
@@ -151,6 +155,12 @@ export function useDiceBox(options: UseDiceBoxOptions): UseDiceBoxReturn {
         }
     }, []);
 
+    const resize = useCallback(() => {
+        if (diceBoxRef.current && typeof diceBoxRef.current.resizeWorld === 'function') {
+            diceBoxRef.current.resizeWorld();
+        }
+    }, []);
+
     return {
         isReady,
         isRolling,
@@ -158,6 +168,7 @@ export function useDiceBox(options: UseDiceBoxOptions): UseDiceBoxReturn {
         error,
         roll,
         clear,
+        resize,
     };
 }
 

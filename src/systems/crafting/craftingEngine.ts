@@ -235,7 +235,7 @@ export function attemptCrafting(
     message += `Roll: ${totalRoll} (${rawRoll}+${crafterModifier + progressionBonus}) vs DC ${recipe.craftingDC}. `;
     message += qualityResult.description;
 
-    if (quality !== 'ruined' && quality !== 'flawed') {
+    if (quality !== 'ruined') {
         message += ` Created ${finalQuantity}x ${recipe.name}.`;
         if (quality === 'flawed') {
             message += ' (50% effectiveness)';

@@ -45,7 +45,11 @@ describe('SmugglingSystem', () => {
             constitution: 10,
             intelligence: 10,
             wisdom: 10,
-            charisma: 14 // +2 mod
+            charisma: 14, // +2 mod
+            // TODO(2026-01-03 pass 4 Codex-CLI): stats baseline stubbed for smuggling tests.
+            baseInitiative: 0,
+            speed: 30,
+            cr: '1/4'
         }
     });
 

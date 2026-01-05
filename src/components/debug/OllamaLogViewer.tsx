@@ -9,11 +9,13 @@ interface OllamaLogViewerProps {
     isOpen: boolean;
     onClose: () => void;
     logEntries: OllamaLogEntry[];
+    isBanterPaused?: boolean;
+    onToggleBanterPause?: () => void;
 }
 
-const OllamaLogViewer: React.FC<OllamaLogViewerProps> = ({ isOpen, onClose, logEntries }) => {
+const OllamaLogViewer: React.FC<OllamaLogViewerProps> = ({ isOpen, onClose, logEntries, isBanterPaused, onToggleBanterPause }) => {
     const firstFocusableElementRef = useRef<HTMLButtonElement>(null);
-    const logEndRef = useRef<HTMLDivElement>(null);
+    const logContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleEsc = (event: KeyboardEvent) => {
@@ -24,18 +26,13 @@ const OllamaLogViewer: React.FC<OllamaLogViewerProps> = ({ isOpen, onClose, logE
         if (isOpen) {
             window.addEventListener('keydown', handleEsc);
             firstFocusableElementRef.current?.focus();
-            logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            // Scroll to top when opened
+            logContainerRef.current?.scrollTo(0, 0);
         }
         return () => {
             window.removeEventListener('keydown', handleEsc);
         };
     }, [isOpen, onClose]);
-
-    useEffect(() => {
-        if (isOpen) {
-            logEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        }
-    }, [isOpen, logEntries]);
 
 
     if (!isOpen) {
@@ -51,9 +48,22 @@ const OllamaLogViewer: React.FC<OllamaLogViewerProps> = ({ isOpen, onClose, logE
         >
             <div className="bg-gray-900 p-6 rounded-xl shadow-2xl border border-gray-700 w-full max-w-3xl max-h-[90vh] flex flex-col">
                 <div className="flex justify-between items-center mb-4">
-                    <h2 id="ollama-log-viewer-title" className="text-2xl font-bold text-emerald-400 font-cinzel">
-                        Ollama Llama Interaction Log
-                    </h2>
+                    <div className="flex items-center gap-4">
+                        <h2 id="ollama-log-viewer-title" className="text-2xl font-bold text-emerald-400 font-cinzel">
+                            Ollama Llama Interaction Log
+                        </h2>
+                        {onToggleBanterPause && (
+                            <button
+                                onClick={onToggleBanterPause}
+                                className={`px-3 py-1 rounded text-xs font-semibold uppercase tracking-wider transition-colors ${isBanterPaused
+                                        ? 'bg-red-900/50 text-red-200 border border-red-500 hover:bg-red-800/50'
+                                        : 'bg-emerald-900/50 text-emerald-200 border border-emerald-500 hover:bg-emerald-800/50'
+                                    }`}
+                            >
+                                {isBanterPaused ? 'Banter Paused' : 'Pause Banter Triggers'}
+                            </button>
+                        )}
+                    </div>
                     <button
                         ref={firstFocusableElementRef}
                         onClick={onClose}
@@ -64,7 +74,10 @@ const OllamaLogViewer: React.FC<OllamaLogViewerProps> = ({ isOpen, onClose, logE
                     </button>
                 </div>
 
-                <div className="overflow-y-auto scrollable-content flex-grow bg-black/30 p-3 rounded-md border border-gray-700">
+                <div
+                    ref={logContainerRef}
+                    className="overflow-y-auto scrollable-content flex-grow bg-black/30 p-3 rounded-md border border-gray-700"
+                >
                     {(!logEntries || logEntries.length === 0) ? (
                         <p className="text-gray-500 text-center italic py-10">No Ollama interactions logged yet.</p>
                     ) : (
@@ -90,7 +103,6 @@ const OllamaLogViewer: React.FC<OllamaLogViewerProps> = ({ isOpen, onClose, logE
                             </div>
                         ))
                     )}
-                    <div ref={logEndRef} />
                 </div>
 
                 <button

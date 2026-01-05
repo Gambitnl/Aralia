@@ -14,7 +14,9 @@ import { GameState, NotorietyState } from '../../types';
 // TODO(lint-intent): 'Position' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { CombatCharacter, CharacterStats, ActionEconomyState, Position as _Position, AbilityScoreName as _AbilityScoreName, Class } from '../../types/combat';
+import { CombatCharacter, CharacterStats, ActionEconomyState, Position as _Position } from '../../types/combat';
+import { AbilityScoreName as _AbilityScoreName } from '../../types/core';
+import { Class } from '../../types/character';
 import { SeededRandom } from '../../utils/seededRandom';
 import { HunterProfile, HunterTier, AmbushEvent } from '../../types/crime';
 
@@ -227,9 +229,14 @@ export class BountyHunterSystem {
         const mockClass: Class = {
             id: profile.className.toLowerCase(),
             name: profile.className,
-            hitDie: 'd8',
-            savingThrowProficiencies: ['dexterity', 'strength'],
-            primaryAbility: 'dexterity',
+            description: '',
+            hitDie: 8,
+            savingThrowProficiencies: ['Dexterity', 'Strength'],
+            primaryAbility: ['Dexterity'],
+            skillProficienciesAvailable: [],
+            numberOfSkillProficiencies: 0,
+            armorProficiencies: [],
+            weaponProficiencies: [],
             features: []
         };
 
@@ -283,9 +290,14 @@ export class BountyHunterSystem {
         const mockClass: Class = {
             id: 'thug',
             name: 'Thug',
-            hitDie: 'd8',
-            savingThrowProficiencies: ['strength'],
-            primaryAbility: 'strength',
+            description: '',
+            hitDie: 8,
+            savingThrowProficiencies: ['Strength'],
+            primaryAbility: ['Strength'],
+            skillProficienciesAvailable: [],
+            numberOfSkillProficiencies: 0,
+            armorProficiencies: [],
+            weaponProficiencies: [],
             features: []
         };
 

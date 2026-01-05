@@ -3,6 +3,7 @@ import { describe, it, expect, vi as _vi } from 'vitest';
 import { characterReducer } from '../characterReducer';
 // TODO(lint-intent): 'PlayerCharacter' is unused in this test; use it in the assertion path or remove it.
 import { GameState, PlayerCharacter as _PlayerCharacter } from '../../../types';
+import { AppAction } from '../../actionTypes';
 import { createMockPlayerCharacter } from '../../../utils/factories';
 
 describe('characterReducer', () => {
@@ -21,17 +22,17 @@ describe('characterReducer', () => {
     } as unknown as GameState;
 
     it('should handle MODIFY_GOLD', () => {
-        const action = { type: 'MODIFY_GOLD', payload: { amount: 50.5 } } as const;
+        const action: AppAction = { type: 'MODIFY_GOLD', payload: { amount: 50.5 } };
         const newState = characterReducer(initialState, action);
         expect(newState.gold).toBe(150.5);
 
-        const action2 = { type: 'MODIFY_GOLD', payload: { amount: -200 } } as const;
+        const action2: AppAction = { type: 'MODIFY_GOLD', payload: { amount: -200 } };
         const newState2 = characterReducer(initialState, action2);
         expect(newState2.gold).toBe(0); // Should clamp to 0
     });
 
     it('should handle GRANT_EXPERIENCE', () => {
-        const action = { type: 'GRANT_EXPERIENCE', payload: { amount: 300 } } as const;
+        const action: AppAction = { type: 'GRANT_EXPERIENCE', payload: { amount: 300 } };
         const newState = characterReducer(initialState, action);
 
         // At level 1, 300 XP is enough to reach level 2 (cumulative: 1->0, 2->300)

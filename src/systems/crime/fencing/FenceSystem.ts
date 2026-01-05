@@ -1,6 +1,7 @@
 
 import { StolenItem, Fence } from '../../../types/crime';
 import { PlayerCharacter } from '../../../types/character';
+import { Item } from '../../../types';
 // TODO(lint-intent): 'GameState' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
@@ -44,11 +45,12 @@ export class FenceSystem {
     fence: Fence,
     player: PlayerCharacter
   ): number | null {
+    const itemTags = (item as StolenItem & { tags?: string[] }).tags ?? [];
     // 1. Check if item category is accepted
-    const isAccepted = item.tags.some(tag => fence.acceptedCategories.includes(tag));
+    const isAccepted = itemTags.some(tag => fence.acceptedCategories.includes(tag));
 
     // Allow "valuable" or "art" tags as wildcards for fences
-    const isUniversallyAccepted = item.tags.includes('valuable') || item.tags.includes('art');
+    const isUniversallyAccepted = itemTags.includes('valuable') || itemTags.includes('art');
 
     if (!isAccepted && !isUniversallyAccepted) {
       return null;
@@ -136,12 +138,17 @@ export class FenceSystem {
     }
 
     // Clone objects to avoid mutation
-    const updatedPlayer = { ...player };
+    // TODO(2026-01-03 pass 4 Codex-CLI): PlayerCharacter doesn't own inventory; keep an ad-hoc inventory bridge until state flow is refactored.
+    const updatedPlayer: PlayerCharacter & { gold: number; inventory: Item[] } = {
+      ...player,
+      gold: (player as PlayerCharacter & { gold?: number }).gold ?? 0,
+      inventory: [...((player as PlayerCharacter & { inventory?: Item[] }).inventory ?? [])]
+    };
     const updatedFence = { ...fence };
 
     // Update Player: Add Gold, Remove Item
     updatedPlayer.gold += result.goldEarned;
-    updatedPlayer.inventory = updatedPlayer.inventory.filter(i => i.id !== item.id);
+    updatedPlayer.inventory = updatedPlayer.inventory.filter((i) => i.id !== item.id);
 
     // Update Fence: Remove Gold
     updatedFence.gold -= result.goldEarned;
@@ -153,9 +160,10 @@ export class FenceSystem {
     };
   }
 
-  private static calculateSocialBonus(player: PlayerCharacter): number {
+  private static calculateSocialBonus(player: PlayerCharacter): number {        
     // Simple bonus: +2% per +1 CHA mod, max +20%
-    const charisma = player.stats.charisma;
+    // TODO(2026-01-03 pass 4 Codex-CLI): fallback charisma until player stats are guaranteed.
+    const charisma = player.stats?.charisma ?? 10;
     const mod = Math.floor((charisma - 10) / 2);
     const bonus = Math.max(0, mod * 0.02);
     return Math.min(0.2, bonus);

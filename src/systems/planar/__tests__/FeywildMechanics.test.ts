@@ -25,6 +25,15 @@ vi.mock('../../../utils/savingThrowUtils', () => ({
 }));
 
 describe('FeywildMechanics', () => {
+  // Was using inline partial save results; helper now supplies the full SavingThrowResult shape.
+  const makeSaveResult = (success: boolean, total: number) => ({
+    success,
+    total,
+    roll: total,
+    dc: 15,
+    natural20: false,
+    natural1: false
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -33,12 +42,12 @@ describe('FeywildMechanics', () => {
   describe('checkMemoryLoss', () => {
     it('should result in memory loss on failed save', () => {
       // Mock save failure
-      vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({ success: false, total: 5, rolls: [5] });
+      // Previously returned { success, total, roll }; now uses helper to include missing fields.
+      vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue(makeSaveResult(false, 5));
 
-      const char = createMockPlayerCharacter({
-          class: { name: 'Fighter', id: 'fighter', hitDie: 'd10', savingThrowProficiencies: [] },
-          race: { name: 'Human', id: 'human', speed: 30, size: 'Medium' }
-      });
+      const char = createMockPlayerCharacter();
+      char.class = { ...char.class, id: 'fighter', name: 'Fighter', hitDie: 10, savingThrowProficiencies: [] };
+      char.race = { ...char.race, id: 'human', name: 'Human' };
       char.abilityScores.Wisdom = 10;
 
       const result = FeywildMechanics.checkMemoryLoss(char);
@@ -48,7 +57,8 @@ describe('FeywildMechanics', () => {
 
     it('should result in retained memory on success', () => {
        // Mock save success
-       vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue({ success: true, total: 16, rolls: [16] });
+       // Previously returned { success, total, roll }; now uses helper to include missing fields.
+       vi.mocked(savingThrowUtils.rollSavingThrow).mockReturnValue(makeSaveResult(true, 16));
 
        const char = createMockPlayerCharacter();
        char.abilityScores.Wisdom = 10;
@@ -61,12 +71,12 @@ describe('FeywildMechanics', () => {
     it('should apply advantage for Elves (Native)', () => {
         // Mock sequence: Fail then Success
         vi.mocked(savingThrowUtils.rollSavingThrow)
-          .mockReturnValueOnce({ success: false, total: 5, rolls: [5] })
-          .mockReturnValueOnce({ success: true, total: 20, rolls: [20] });
+          // Previously returned { success, total, roll }; now uses helper to include missing fields.
+          .mockReturnValueOnce(makeSaveResult(false, 5))
+          .mockReturnValueOnce(makeSaveResult(true, 20));
 
-        const char = createMockPlayerCharacter({
-            race: { name: 'High Elf', id: 'elf', speed: 30, size: 'Medium' }
-        });
+        const char = createMockPlayerCharacter();
+        char.race = { ...char.race, id: 'elf', name: 'High Elf' };
         char.abilityScores.Wisdom = 10;
 
         const result = FeywildMechanics.checkMemoryLoss(char);

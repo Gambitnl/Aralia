@@ -39,8 +39,9 @@ export class SmugglingSystem {
             risk -= 10;
         }
 
-        // Skill modifiers (Sleight of Hand / Deception implied via stats)
-        const dexMod = Math.floor((player.stats.dexterity - 10) / 2);
+        // Skill modifiers (Sleight of Hand / Deception implied via stats)      
+        // TODO(2026-01-03 pass 4 Codex-CLI): stats fallback until PlayerCharacter guarantees smuggling-relevant fields.
+        const dexMod = Math.floor((((player.stats?.dexterity ?? 10) - 10) / 2));
         risk -= dexMod * 2;
 
         return Math.min(95, Math.max(5, risk));
@@ -113,10 +114,11 @@ export class SmugglingSystem {
                 };
             }
 
-            if (player.gold < event.bribeCost) {
+            const playerGold = (player as PlayerCharacter & { gold?: number }).gold ?? 0;
+            if (playerGold < event.bribeCost) {
                  return {
                     result: InspectionResult.BribeFailure,
-                    message: "You don't have enough gold to satisfy them.",
+                    message: "You don't have enough gold to satisfy them.",     
                     itemsLost: [],
                     goldCost: 0
                 };
@@ -132,7 +134,7 @@ export class SmugglingSystem {
 
         if (playerAction === 'bluff') {
             // Deception check
-            const chaMod = Math.floor((player.stats.charisma - 10) / 2);
+            const chaMod = Math.floor((((player.stats?.charisma ?? 10) - 10) / 2));
             // Add proficiency if we had skill access, assuming simplified model for now
             const roll = rng.nextInt(1, 20) + chaMod;
 
@@ -156,7 +158,7 @@ export class SmugglingSystem {
          if (playerAction === 'flee') {
              // Athletics/Vehicle check vs Patrol speed
              // Simplified: 50/50 modified by dexterity
-             const dexMod = Math.floor((player.stats.dexterity - 10) / 2);
+             const dexMod = Math.floor((((player.stats?.dexterity ?? 10) - 10) / 2));
              const roll = rng.nextInt(1, 20) + dexMod;
 
              if (roll >= event.difficulty + 5) { // Fleeing is harder

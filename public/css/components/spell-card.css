@@ -183,3 +183,12 @@
   border: 1px solid #4b5563;
   /* gray-600 */
 }
+
+/* 3D Dice Canvas Global Fixes */
+.dice-box-canvas, 
+#dice-roller-canvas canvas, 
+#dice-overlay-canvas canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}

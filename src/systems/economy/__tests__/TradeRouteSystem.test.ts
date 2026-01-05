@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { TradeRouteSystem } from '../TradeRouteSystem';
-import { TradeRoute , MarketEventType } from '../../../types/economy';
+import { TradeRoute, MarketEventType, MarketEvent } from '../../../types/economy';
 
 
 describe('TradeRouteSystem', () => {
@@ -51,7 +51,7 @@ describe('TradeRouteSystem', () => {
 
     const profitNormal = TradeRouteSystem.calculateProfitability(mockRoute, []);
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    const profitWar = TradeRouteSystem.calculateProfitability(mockRoute, [warEvent as unknown]);
+    const profitWar = TradeRouteSystem.calculateProfitability(mockRoute, [warEvent as unknown as MarketEvent]);
 
     expect(profitWar).toBeGreaterThan(profitNormal);
   });
@@ -71,7 +71,7 @@ describe('TradeRouteSystem', () => {
 
     const riskNormal = TradeRouteSystem.calculateRisk(mockRoute, []);
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    const riskBandits = TradeRouteSystem.calculateRisk(mockRoute, [banditEvent as unknown]);
+    const riskBandits = TradeRouteSystem.calculateRisk(mockRoute, [banditEvent as unknown as MarketEvent]);
 
     expect(riskBandits).toBeGreaterThan(riskNormal);
   });

@@ -1,6 +1,6 @@
 
 import { describe, it, expect } from 'vitest';
-import { ActiveEffect } from '../../types/combat';
+import { ActiveEffect } from '../../../types/combat';
 
 // A minimal test to verify that the ActiveEffect type is correct and usable.
 describe('Defender Filter', () => {

@@ -150,7 +150,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                 party = party.map(char => ({
                     ...char,
                     hp: char.maxHp,
-                    statusEffects: char.statusEffects.filter(e => (e.type as string) !== 'wounded')
+                    statusEffects: char.statusEffects.filter(e => (e.type as string) !== 'wounded') as import('../../types').StatusEffect[]
                 }));
                 messages.push({
                     id: timestamp,
@@ -175,7 +175,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                     statusEffects: char.statusEffects.filter(e => {
                         const typeStr = e.type as string;
                         return typeStr !== 'poisoned' && typeStr !== 'diseased';
-                    })
+                    }) as import('../../types').StatusEffect[]
                 }));
                 messages.push({
                     id: timestamp,
@@ -186,8 +186,8 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
             } else if (effectId === 'remove_curse') {
                  party = party.map(char => ({
                     ...char,
-                    statusEffects: char.statusEffects.filter(e => (e.type as string) !== 'cursed')
-                }));
+                    statusEffects: char.statusEffects.filter(e => (e.type as string) !== 'cursed') as import('../../types').StatusEffect[]
+                 }));
                 messages.push({
                     id: timestamp,
                     text: 'A heavy weight lifts as the curse is broken.',
@@ -228,7 +228,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                             ...statusEffect,
                             // Ensure unique IDs for instances
                             id: `${statusEffect.id}_${char.id}_${timestamp}`
-                        }]
+                        }] as import('../../types').StatusEffect[]
                     }));
 
                     // 2. Add Blessing to Favor Record
@@ -238,7 +238,7 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                         name: name,
                         description: description,
                         effect: statusEffect
-                    };
+                    } as unknown as import('../../types').Blessing; // TODO(2026-01-03 pass 4 Codex-CLI): cast blessing until MechanicalEffect wiring is in place.
 
                     favorUpdates[deityId] = grantBlessing(existing, blessingRecord);
 
@@ -251,9 +251,11 @@ export function religionReducer(state: GameState, action: AppAction): Partial<Ga
                 }
             }
 
+            const partyWithEffects = party as GameState['party']; // TODO(2026-01-03 pass 4 Codex-CLI): cast party after effect application until status effect typing is unified.
+
             return {
                 gold: newGold,
-                party,
+                party: partyWithEffects,
                 messages,
                 religion: {
                     ...religionState,

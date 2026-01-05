@@ -404,16 +404,6 @@
     "filePath": "/data/glossary/entries/rules/equipment/tools/brewers_supplies.json"
   },
   {
-    "id": "brewing_potions_of_healing",
-    "title": "Brewing Potions of Healing",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/brewing_potions_of_healing.json"
-  },
-  {
     "id": "bright_light",
     "title": "Bright Light",
     "category": "Rules Glossary",
@@ -633,26 +623,6 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/tools/cooks_utensils.json"
-  },
-  {
-    "id": "crafting_equipment",
-    "title": "Crafting Equipment",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "Rules for making nonmagical items, potions, and scrolls.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting_equipment.json"
-  },
-  {
-    "id": "crafting_nonmagical_items",
-    "title": "Crafting Nonmagical Items",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "Rules for crafting nonmagical items, requiring tools, raw materials, and time.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/crafting_nonmagical_items.json"
   },
   {
     "id": "crawling",
@@ -1670,16 +1640,6 @@
     "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/range.json"
   },
   {
-    "id": "crafting_raw_materials",
-    "title": "Raw Materials",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/raw_materials.json"
-  },
-  {
     "id": "reach_property",
     "title": "Reach",
     "category": "Rules Glossary",
@@ -2150,16 +2110,6 @@
     "filePath": "/data/glossary/entries/rules/equipment/weapons/properties/thrown.json"
   },
   {
-    "id": "crafting_time",
-    "title": "Time",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/time.json"
-  },
-  {
     "id": "scribing_time_and_cost",
     "title": "Time and Cost",
     "category": "Rules Glossary",
@@ -2208,16 +2158,6 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/tools.json"
-  },
-  {
-    "id": "crafting_tools",
-    "title": "Tools",
-    "category": "Rules Glossary",
-    "tags": [],
-    "excerpt": "No excerpt available.",
-    "aliases": [],
-    "seeAlso": [],
-    "filePath": "/data/glossary/entries/rules/equipment/crafting/tools.json"
   },
   {
     "id": "topple_mastery_property",
@@ -2400,5 +2340,69 @@
     "aliases": [],
     "seeAlso": [],
     "filePath": "/data/glossary/entries/rules/equipment/services/lifestyles/wretched_lifestyle.json"
+  },
+  {
+    "id": "thieves_tools",
+    "title": "Thieves' Tools",
+    "category": "Rules Glossary",
+    "tags": [
+      "equipment",
+      "tools",
+      "rogue",
+      "lockpicking"
+    ],
+    "excerpt": "A set of specialized tools used for picking locks, disarming traps, and other clandestine activities. Proficiency allows adding your proficiency bonus to checks made with them.",
+    "aliases": [
+      "thieves tools",
+      "lockpicks"
+    ],
+    "seeAlso": [
+      "lockpicking",
+      "traps"
+    ],
+    "filePath": "/data/glossary/entries/rules/equipment/tools/thieves_tools.json"
+  },
+  {
+    "id": "lockpicking",
+    "title": "Lockpicking",
+    "category": "Rules Glossary",
+    "tags": [
+      "skills",
+      "dexterity",
+      "rogue",
+      "exploration"
+    ],
+    "excerpt": "The art of opening locks without a key using Thieves' Tools. Requires a Dexterity check against the lock's DC, with proficiency bonus if proficient with Thieves' Tools.",
+    "aliases": [
+      "picking locks",
+      "pick lock"
+    ],
+    "seeAlso": [
+      "thieves_tools",
+      "traps",
+      "ability_check"
+    ],
+    "filePath": "/data/glossary/entries/rules/lockpicking.json"
+  },
+  {
+    "id": "traps",
+    "title": "Traps",
+    "category": "Rules Glossary",
+    "tags": [
+      "hazards",
+      "exploration",
+      "dungeon"
+    ],
+    "excerpt": "Hidden dangers designed to harm or hinder intruders. Traps can be detected with Wisdom (Perception) or Intelligence (Investigation) checks, and disarmed with Dexterity checks using Thieves' Tools.",
+    "aliases": [
+      "trap",
+      "hazard"
+    ],
+    "seeAlso": [
+      "thieves_tools",
+      "lockpicking",
+      "ability_check"
+    ],
+    "filePath": "/data/glossary/entries/rules/traps.json"
   }
 ]

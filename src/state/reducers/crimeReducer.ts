@@ -1,14 +1,12 @@
 
-import { GameState, Crime } from '../../types';
+import { GameState, Crime, HeistActionType } from '../../types';
 import { AppAction } from '../actionTypes';
 import { CrimeSystem } from '../../systems/crime/CrimeSystem';
 import { HeistManager } from '../../systems/crime/HeistManager';
 import type { Location, HeistAction, GuildMembership } from '../../types';
 
 const getGuildMembershipOrDefault = (guild: GameState['thievesGuild'] | undefined): GuildMembership => {
-    if (guild) return guild;
-    // TODO(2026-01-03 pass 4 Codex-CLI): placeholder guild membership to satisfy type expectations; replace once thieves guild state is guaranteed before these actions.
-    return {
+    const fallback: GuildMembership = {
         memberId: 'player',
         guildId: 'shadow_hands',
         rank: 0,
@@ -17,6 +15,15 @@ const getGuildMembershipOrDefault = (guild: GameState['thievesGuild'] | undefine
         availableJobs: [],
         completedJobs: [],
         servicesUnlocked: [],
+    };
+    if (!guild) {
+        // TODO(2026-01-03 pass 4 Codex-CLI): placeholder guild membership to satisfy type expectations; replace once thieves guild state is guaranteed before these actions.
+        return fallback;
+    }
+    return {
+        ...fallback,
+        ...guild,
+        memberId: guild.memberId ?? fallback.memberId,
     };
 };
 
@@ -107,7 +114,7 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
                 // Use a default message if no skill check string provided
                 // Use the calculated chance just for display if needed, but success is pre-determined
                 const heistAction: HeistAction = {
-                    type: 'PickLock',
+                    type: HeistActionType.PickLock,
                     description,
                     difficulty: actionDifficulty,
                     risk: 0,
@@ -420,9 +427,10 @@ export const crimeReducer = (state: GameState, action: AppAction): Partial<GameS
 
         case 'SET_AVAILABLE_GUILD_JOBS': {
             const { jobs } = action.payload;
+            const guild = getGuildMembershipOrDefault(state.thievesGuild);
             return {
                 thievesGuild: {
-                    ...state.thievesGuild,
+                    ...guild,
                     availableJobs: jobs
                 }
             };

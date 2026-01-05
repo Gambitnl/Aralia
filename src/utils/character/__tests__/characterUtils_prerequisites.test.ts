@@ -25,11 +25,11 @@ describe('evaluateFeatPrerequisites', () => {
     id: 'test-feat',
     name: 'Test Feat',
     description: 'A test feat',
-    source: 'PHB',
     prerequisites: {},
     benefits: {},
+    // TODO(2026-01-03 pass 4 Codex-CLI): feat source cast until type includes source metadata.
     ...overrides,
-  });
+  } as unknown as Feat);
 
   it('should be eligible when no prerequisites exist', () => {
     const feat = createFeat();

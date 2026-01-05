@@ -2,11 +2,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 // TODO(lint-intent): 'HazardOutcome' is unused in this test; use it in the assertion path or remove it.
 import { PlanarHazardSystem, HazardOutcome as _HazardOutcome } from '../PlanarHazardSystem';
-import { GameState, PlayerCharacter, Location } from '../../../types';
+import { CombatCharacter, GameState, Location, PlayerCharacter } from '../../../types';
+import { Plane } from '../../../types/planes';
 import { getCurrentPlane } from '../../../utils/planarUtils';
 // TODO(lint-intent): 'createPlayerCombatCharacter' is unused in this test; use it in the assertion path or remove it.
 import { createPlayerCombatCharacter as _createPlayerCombatCharacter } from '../../../utils/combatUtils';
 import { rollSavingThrow } from '../../../utils/savingThrowUtils';
+import { createMockGameState, createMockPlayerCharacter } from '../../../utils/factories';
 
 // Mock dependencies
 vi.mock('../../../utils/planarUtils', () => ({
@@ -14,14 +16,15 @@ vi.mock('../../../utils/planarUtils', () => ({
 }));
 
 vi.mock('../../../utils/combatUtils', async (importOriginal) => {
-    const actual = await importOriginal();
+    const actual = await importOriginal() as typeof import('../../../utils/combatUtils');
     return {
         ...actual,
         rollDice: vi.fn().mockReturnValue(3), // Fixed roll for predictability
+        // TODO(2026-01-03 pass 4 Codex-CLI): Mocked combat character is partial; tighten once hazards require more fields.
         createPlayerCombatCharacter: vi.fn().mockReturnValue({
             id: 'p1',
             stats: { wisdom: 10, constitution: 10 }
-        })
+        } as unknown as CombatCharacter)
     };
 });
 
@@ -34,52 +37,52 @@ describe('PlanarHazardSystem', () => {
   const mockLocation: Location = {
     id: 'loc1',
     name: 'Test Loc',
-    description: 'Test',
-    type: 'wilderness',
+    baseDescription: 'Test',
     planeId: 'abyss',
-    coordinates: { x: 0, y: 0 },
-    exits: {}
+    mapCoordinates: { x: 0, y: 0 },
+    exits: {},
+    biomeId: 'test_biome'
   };
 
-  const mockCharacter: PlayerCharacter = {
-    id: 'char1',
-    name: 'Hero',
-    hp: 20,
-    maxHp: 20,
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    race: { id: 'human', name: 'Human' } as unknown,
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    class: { id: 'fighter', name: 'Fighter' } as unknown,
-    level: 1,
-    finalAbilityScores: {
-      Strength: 10, Dexterity: 10, Constitution: 10, Intelligence: 10, Wisdom: 10, Charisma: 10
-    }
-  // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-  } as unknown;
+  const mockCharacter: PlayerCharacter = createMockPlayerCharacter({ id: 'char1', name: 'Hero', hp: 20, maxHp: 20 });
+  const basePlane: Plane = {
+    id: 'material',
+    name: 'Material Plane',
+    description: 'Default plane',
+    traits: [],
+    natives: [],
+    hazards: [],
+    emotionalValence: 'neutral',
+    timeFlow: 'normal',
+    atmosphereDescription: 'Calm and familiar.',
+    effects: {}
+  };
+  const makeSaveResult = (success: boolean, total: number) => ({
+    success,
+    total,
+    roll: total,
+    dc: 15,
+    natural20: false,
+    natural1: false
+  });
 
   beforeEach(() => {
-    mockGameState = {
-      currentLocation: mockLocation,
+    mockGameState = createMockGameState({
+      currentLocationId: mockLocation.id,
+      dynamicLocations: { [mockLocation.id]: mockLocation },
       party: [mockCharacter],
-      gameTime: { day: 1, timeOfDay: 'Day' },
-      inventory: [],
-      quests: [],
       notifications: []
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    } as unknown;
+    });
 
     vi.clearAllMocks();
   });
 
   it('should return empty outcome if plane has no hazards', () => {
     vi.mocked(getCurrentPlane).mockReturnValue({
+      ...basePlane,
       id: 'material',
-      name: 'Material Plane',
-      hazards: [],
-      traits: [],
-      effects: {},
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    } as unknown);
+      name: 'Material Plane'
+    });
 
     const result = PlanarHazardSystem.processPeriodicHazards(mockGameState, 10);
     expect(result.events).toHaveLength(0);
@@ -88,13 +91,11 @@ describe('PlanarHazardSystem', () => {
 
   it('should apply psychic damage from plane effects', () => {
     vi.mocked(getCurrentPlane).mockReturnValue({
+      ...basePlane,
       id: 'abyss',
       name: 'The Abyss',
-      hazards: [],
-      traits: [],
-      effects: { psychicDamagePerMinute: 2 },
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    } as unknown);
+      effects: { psychicDamagePerMinute: 2 }
+    });
 
     const result = PlanarHazardSystem.processPeriodicHazards(mockGameState, 5); // 5 minutes
 
@@ -107,6 +108,7 @@ describe('PlanarHazardSystem', () => {
 
   it('should process hazards with saves', () => {
     vi.mocked(getCurrentPlane).mockReturnValue({
+      ...basePlane,
       id: 'abyss',
       name: 'The Abyss',
       hazards: [{
@@ -115,14 +117,12 @@ describe('PlanarHazardSystem', () => {
         saveDC: 15,
         damage: '1d6 psychic'
       }],
-      traits: [],
-      effects: {},
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    } as unknown);
+      effects: {}
+    });
 
     // Mock failed save
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    vi.mocked(rollSavingThrow).mockReturnValue({ success: false, total: 10 } as unknown);
+    vi.mocked(rollSavingThrow).mockReturnValue(makeSaveResult(false, 10));
 
     const result = PlanarHazardSystem.processPeriodicHazards(mockGameState, 1);
 
@@ -136,6 +136,7 @@ describe('PlanarHazardSystem', () => {
 
   it('should not apply hazard effects on successful save', () => {
     vi.mocked(getCurrentPlane).mockReturnValue({
+      ...basePlane,
       id: 'abyss',
       name: 'The Abyss',
       hazards: [{
@@ -144,14 +145,12 @@ describe('PlanarHazardSystem', () => {
         saveDC: 15,
         damage: '1d6 psychic'
       }],
-      traits: [],
-      effects: {},
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    } as unknown);
+      effects: {}
+    });
 
     // Mock successful save
     // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    vi.mocked(rollSavingThrow).mockReturnValue({ success: true, total: 20 } as unknown);
+    vi.mocked(rollSavingThrow).mockReturnValue(makeSaveResult(true, 20));
 
     const result = PlanarHazardSystem.processPeriodicHazards(mockGameState, 1);
 

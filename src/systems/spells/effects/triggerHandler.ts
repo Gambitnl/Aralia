@@ -82,13 +82,15 @@ export function matchesTargetFilter(
     target: CombatCharacter
 ): boolean {
     if (!filter) return true; // No filter means effect applies to all
+    // TODO(2026-01-03 pass 4 Codex-CLI): target details cast until CombatCharacter exposes creatureType/size/alignment.
+    const targetDetails = target as Partial<CombatCharacter> & { creatureType?: string; size?: string; alignment?: string };
 
     // Check creature type
     if (filter.creatureType && filter.creatureType.length > 0) {
         // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
         // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
         // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-        const targetType = (target as unknown).creatureType || 'Humanoid';
+        const targetType = targetDetails.creatureType || 'Humanoid';
         if (!filter.creatureType.includes(targetType)) {
             return false;
         }
@@ -99,7 +101,7 @@ export function matchesTargetFilter(
         // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
         // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
         // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-        const targetSize = (target as unknown).size || 'Medium';
+        const targetSize = targetDetails.size || 'Medium';
         if (!filter.size.includes(targetSize)) {
             return false;
         }
@@ -110,8 +112,8 @@ export function matchesTargetFilter(
         // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
         // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
         // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-        const targetAlignment = (target as unknown).alignment;
-        if (targetAlignment && !filter.alignment.includes(targetAlignment)) {
+        const targetAlignment = targetDetails.alignment;
+        if (targetAlignment && !filter.alignment.includes(targetAlignment)) {   
             return false;
         }
     }
@@ -385,6 +387,12 @@ export function processAreaEndTurnTriggers(
  */
 export function convertSpellEffectToProcessed(effect: SpellEffect): ProcessedEffect[] {
     const processed: ProcessedEffect[] = [];
+    // TODO(2026-01-03 pass 4 Codex-CLI): SpellEffect detail casting until spell data schema is formalized.
+    const effectDetails = effect as unknown as {
+        damage?: { dice?: string; type?: string };
+        healing?: { dice?: string };
+        condition?: { type?: string; saveType?: string; saveEffect?: string };
+    };
 
     // TODO: Include source metadata (spellId, casterId, optional saveDC) on ProcessedEffect 
     // to avoid downstream guesswork in handlers. Currently, handlers must re-lookup the 
@@ -396,14 +404,14 @@ export function convertSpellEffectToProcessed(effect: SpellEffect): ProcessedEff
                 // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
                 // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
                 // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-                dice: (effect as unknown).damage?.dice,
+                dice: effectDetails.damage?.dice,
                 // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
                 // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
                 // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-                damageType: (effect as unknown).damage?.type,
-                requiresSave: effect.condition?.type === 'save',
-                saveType: effect.condition?.saveType,
-                saveEffect: effect.condition?.saveEffect
+                damageType: effectDetails.damage?.type,
+                requiresSave: effectDetails.condition?.type === 'save',
+                saveType: effectDetails.condition?.saveType,
+                saveEffect: effectDetails.condition?.saveEffect
             });
             break;
 
@@ -413,20 +421,25 @@ export function convertSpellEffectToProcessed(effect: SpellEffect): ProcessedEff
                 // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
                 // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
                 // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-                dice: (effect as unknown).healing?.dice
+                dice: effectDetails.healing?.dice
             });
             break;
 
         case 'STATUS_CONDITION':
+            // TODO(2026-01-03 pass 4 Codex-CLI): SpellEffect.statusCondition typing is loose; casting for now.
+            const statusEffect = effect as unknown as {
+                statusCondition?: { name?: string };
+                condition?: { type?: string; saveType?: string; saveEffect?: string };
+            };
             processed.push({
                 type: 'status_condition',
                 // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
                 // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
                 // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-                statusName: (effect as unknown).statusCondition?.name,
-                requiresSave: effect.condition?.type === 'save',
-                saveType: effect.condition?.saveType,
-                saveEffect: effect.condition?.saveEffect
+                statusName: statusEffect.statusCondition?.name,
+                requiresSave: statusEffect.condition?.type === 'save',
+                saveType: statusEffect.condition?.saveType,
+                saveEffect: statusEffect.condition?.saveEffect
             });
             break;
     }

@@ -92,6 +92,8 @@ export function getDummyInitialInventory(allItems: Record<string, Item>): Item[]
         allItems['silver_ring'], allItems['gold_ring'], allItems['ring_of_protection'],
         // Consumables
         allItems['healing_potion'],
+        // Tools
+        allItems['thieves-tools'],
     ].filter(Boolean) as Item[];
 }
 

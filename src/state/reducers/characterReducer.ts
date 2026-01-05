@@ -141,6 +141,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'EQUIP_ITEM': {
+            // TODO(2026-01-03 pass 4 Codex-CLI): Equip payload is still loosely typed; tighten once action payloads are formalized.
             const payload = action.payload as { itemId?: string; characterId?: string };
             const itemId = payload.itemId;
             const characterId = payload.characterId;
@@ -199,6 +200,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'UNEQUIP_ITEM': {
+            // TODO(2026-01-03 pass 4 Codex-CLI): Unequip payload is still loosely typed; tighten once action payloads are formalized.
             const payload = action.payload as { slot?: EquipmentSlotType; characterId?: string };
             const { slot, characterId } = payload;
             if (!slot || !characterId) return {};
@@ -249,6 +251,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
             // TODO(lint-intent): 'characterId' is declared but unused, suggesting an unfinished state/behavior hook in this block.
             // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
             // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+            // TODO(2026-01-03 pass 4 Codex-CLI): Drop payload is still loosely typed; tighten once action payloads are formalized.
             const { itemId, characterId: _characterId } = action.payload as { itemId?: string; characterId?: string };
             if (!itemId) return {};
             const itemToDrop = state.inventory.find(item => item.id === itemId);
@@ -266,6 +269,7 @@ export function characterReducer(state: GameState, action: AppAction): Partial<G
         }
 
         case 'USE_ITEM': {
+            // TODO(2026-01-03 pass 4 Codex-CLI): Use-item payload is still loosely typed; tighten once action payloads are formalized.
             const { itemId, characterId } = action.payload as { itemId?: string; characterId?: string };
             if (!itemId || !characterId) return {};
             const charIndex = state.party.findIndex(c => c.id === characterId);

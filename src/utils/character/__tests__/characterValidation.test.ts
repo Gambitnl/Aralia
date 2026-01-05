@@ -85,7 +85,7 @@ describe('validateCharacterChoices', () => {
 
     it('should report missing Tiefling Legacy', () => {
       const char = createTestChar('tiefling', 'warlock');
-      char.race.fiendishLegacies = [{ id: 'infernal', name: 'Infernal', description: '', level1Benefit: '', level3SpellId: '', level5SpellId: '', resistance: { resistanceType: 'Fire', cantripId: 'fire_bolt' } }];
+      char.race.fiendishLegacies = [{ id: 'infernal', name: 'Infernal', description: '', level1Benefit: '', level3SpellId: '', level5SpellId: '', resistance: { resistanceType: 'Fire', cantripId: 'fire_bolt' } }] as unknown as typeof char.race.fiendishLegacies;
 
       const issues = validateCharacterChoices(char);
       expect(issues).toContainEqual(expect.objectContaining({
@@ -96,7 +96,7 @@ describe('validateCharacterChoices', () => {
 
     it('should report missing Goliath Ancestry', () => {
       const char = createTestChar('goliath', 'barbarian');
-      char.race.giantAncestryChoices = [{ id: 'Stone', name: 'Stone Giant', description: '', ancestry: 'Stone', benefit: 'Stone resilience' }];
+      char.race.giantAncestryChoices = [{ id: 'Stone', name: 'Stone Giant', description: '', ancestry: 'Stone', benefit: 'Stone resilience' }] as unknown as typeof char.race.giantAncestryChoices;
 
       const issues = validateCharacterChoices(char);
       expect(issues).toContainEqual(expect.objectContaining({
@@ -129,7 +129,7 @@ describe('validateCharacterChoices', () => {
       };
       char.racialSelections = {
         tiefling: { spellAbility: 'Charisma', resistance: { resistanceType: 'Fire', cantripId: 'thaumaturgy' } }
-      };
+      } as unknown as typeof char.racialSelections;
 
       const issues = validateCharacterChoices(char);
       expect(issues).not.toContainEqual(expect.objectContaining({
@@ -231,7 +231,8 @@ describe('validateCharacterChoices', () => {
     it('should NOT report class choices if selected', () => {
       const char = createTestChar('human', 'fighter');
       char.class.fightingStyles = [{ id: 'archery', name: 'Archery', description: '', levelAvailable: 1 }];
-      char.selectedFightingStyle = 'archery';
+      // TODO(2026-01-03 pass 4 Codex-CLI): fighting style selection cast until union includes string ids.
+      char.selectedFightingStyle = 'archery' as unknown as typeof char.selectedFightingStyle;
 
       const issues = validateCharacterChoices(char);
       expect(issues).not.toContainEqual(expect.objectContaining({

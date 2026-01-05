@@ -50,14 +50,9 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
       return { isMapVisible: !state.isMapVisible, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGameGuideVisible: false, merchantModal: { ...state.merchantModal, isOpen: false } };
 
     case 'TOGGLE_MINIMAP_VISIBILITY': {
-      // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-      const nextVisibility = !(state as unknown).isMinimapVisible;
-      // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
-      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-      return { ...(state as unknown), isMinimapVisible: nextVisibility } as Partial<GameState>;
+      // TODO(2026-01-03 pass 4 Codex-CLI): Minimap visibility is not part of GameState; casting placeholder until UI state is extended.
+      const nextVisibility = !(state as unknown as { isMinimapVisible?: boolean }).isMinimapVisible;
+      return { isMinimapVisible: nextVisibility } as Partial<GameState>;
     }
 
     case 'TOGGLE_SUBMAP_VISIBILITY':
@@ -113,6 +108,12 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
         characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGlossaryVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isThievesGuildVisible: false
       };
 
+    case 'SHOW_OLLAMA_DEPENDENCY_MODAL':
+      return { isOllamaDependencyModalVisible: true };
+
+    case 'HIDE_OLLAMA_DEPENDENCY_MODAL':
+      return { isOllamaDependencyModalVisible: false };
+
     case 'TOGGLE_THIEVES_GUILD':
       return {
         isThievesGuildVisible: !state.isThievesGuildVisible,
@@ -125,6 +126,20 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
         isNavalDashboardVisible: !state.isNavalDashboardVisible,
         isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false,
         characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGlossaryVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isGameGuideVisible: false, isThievesGuildVisible: false
+      };
+
+    case 'TOGGLE_NOBLE_HOUSE_LIST':
+      return {
+        isNobleHouseListVisible: !state.isNobleHouseListVisible,
+        isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false,
+        characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGlossaryVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isGameGuideVisible: false, isThievesGuildVisible: false, isNavalDashboardVisible: false
+      };
+
+    case 'TOGGLE_TRADE_ROUTE_DASHBOARD':
+      return {
+        isTradeRouteDashboardVisible: !state.isTradeRouteDashboardVisible,
+        isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false,
+        characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGlossaryVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isGameGuideVisible: false, isThievesGuildVisible: false, isNavalDashboardVisible: false
       };
 
     case 'TOGGLE_LOCKPICKING_MODAL':
@@ -171,8 +186,11 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
           isOpen: true,
           merchantName: action.payload.merchantName,
           merchantInventory: action.payload.inventory,
-          economy: action.payload.economy // Persist economy state
+          // TODO(2026-01-03 pass 4 Codex-CLI): economy stored on merchant modal as placeholder; align modal typing when UI supports it.
+          economy: (action.payload as { economy?: GameState['economy'] }).economy // Persist economy state
         },
+        // TODO(2026-01-03 pass 4 Codex-CLI): carry economy separately from modal to satisfy GameState typing until modal includes it.
+        economy: (action.payload as { economy?: GameState['economy'] }).economy || state.economy,
         // Close other potentially conflicting UIs
         isMapVisible: false, isSubmapVisible: false, isDevMenuVisible: false, isGeminiLogViewerVisible: false, isOllamaLogViewerVisible: false, characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isGlossaryVisible: false, selectedGlossaryTermForModal: undefined, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGameGuideVisible: false
       };
@@ -183,8 +201,10 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
           isOpen: false,
           merchantName: '',
           merchantInventory: [],
+          // TODO(2026-01-03 pass 4 Codex-CLI): economy cleared placeholder; real modal typing should handle this.
           economy: undefined
-        }
+        },
+        economy: state.economy,
       };
 
     default:

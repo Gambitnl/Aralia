@@ -150,6 +150,17 @@ const ActionPane: React.FC<ActionPaneProps> = ({
         ))}
       </div>
 
+      {/* Dev Menu Button (when enabled) */}
+      {isDevModeEnabled && (
+        <div className="mb-4">
+          <ActionButton
+            action={{ type: 'toggle_dev_menu', label: 'Dev Menu' }}
+            onClick={onAction}
+            disabled={disabled}
+          />
+        </div>
+      )}
+
       {/* System/Menu Actions */}
       <SystemMenu
         onAction={onAction}

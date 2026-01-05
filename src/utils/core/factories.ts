@@ -366,6 +366,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isOllamaLogViewerVisible: false,
       ollamaInteractionLog: [],
       hasNewRateLimitError: false,
+      isOllamaDependencyModalVisible: false,
       devModelOverride: null,
       isDevModeEnabled: overrides.isDevModeEnabled ?? false,
 
@@ -452,6 +453,8 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       naval: { playerShips: [], activeShipId: null, currentVoyage: null, knownPorts: [] },
       isThievesGuildVisible: false,
       isNavalDashboardVisible: false,
+      isNobleHouseListVisible: false,
+      isTradeRouteDashboardVisible: false,
       activeDialogueSession: null,
       isDialogueInterfaceOpen: false,
       activeRumors: [],
@@ -463,6 +466,8 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       strongholds: {},
       activeRitual: null,
       banterCooldowns: {},
+      // TODO(2026-01-03 pass 4 Codex-CLI): banter debug log placeholder; surface real logs when conversational banter system wires through state.
+      banterDebugLog: [],
       isLockpickingModalVisible: false,
       activeLock: null,
       isDiceRollerVisible: false,
@@ -525,6 +530,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       geminiInteractionLog: [],
       ollamaInteractionLog: [],
       hasNewRateLimitError: false,
+      isOllamaDependencyModalVisible: false,
       devModelOverride: null,
       isDevModeEnabled: false,
       isEncounterModalVisible: false,
@@ -574,6 +580,8 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       naval: { playerShips: [], activeShipId: null, currentVoyage: null, knownPorts: [] },
       isThievesGuildVisible: false,
       isNavalDashboardVisible: false,
+      isNobleHouseListVisible: false,
+      isTradeRouteDashboardVisible: false,
       activeDialogueSession: null,
       isDialogueInterfaceOpen: false,
       activeRumors: [],
@@ -593,6 +601,8 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isQuestLogVisible: false,
       townState: null,
       townEntryDirection: null
+      // TODO(2026-01-03 pass 4 Codex-CLI): banter debug log placeholder in fallback factory.
+      ,banterDebugLog: []
     };
   }
 }

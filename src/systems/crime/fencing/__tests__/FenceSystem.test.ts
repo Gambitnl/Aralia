@@ -8,6 +8,7 @@ import { PlayerCharacter as _PlayerCharacter } from '../../../../types/character
 // TODO(lint-intent): 'GameState' is unused in this test; use it in the assertion path or remove it.
 import { GameState as _GameState } from '../../../../types';
 import { createMockPlayerCharacter, createMockGameState } from '../../../../utils/factories';
+import { ItemType, ItemRarity } from '../../../../types/items';
 
 describe('FenceSystem', () => {
   const mockPlayer = createMockPlayerCharacter({
@@ -18,9 +19,13 @@ describe('FenceSystem', () => {
       constitution: 10,
       intelligence: 10,
       wisdom: 10,
-      charisma: 16 // +3 Mod -> +6% bonus
+      charisma: 16, // +3 Mod -> +6% bonus
+      // TODO(2026-01-03 pass 4 Codex-CLI): stats baseline stubbed for fencing tests.
+      baseInitiative: 0,
+      speed: 30,
+      cr: '1/4'
     }
-  });
+  } as unknown as Partial<_PlayerCharacter>);
 
   const mockFence: Fence = {
     id: 'fence-1',
@@ -34,8 +39,8 @@ describe('FenceSystem', () => {
   const mockItem: StolenItem = {
     id: 'item-1',
     name: 'Golden Chalice',
-    type: 'gear',
-    rarity: 'common',
+    type: ItemType.Accessory,
+    rarity: ItemRarity.Common,
     weight: 1,
     value: 100,
     tags: ['art'],
@@ -45,7 +50,7 @@ describe('FenceSystem', () => {
     quantity: 1,
     description: 'A shiny cup',
     isEquipped: false
-  };
+  } as unknown as StolenItem;
   // TODO(lint-intent): 'mockGameState' is unused in this test; use it in the assertion path or remove it.
   const _mockGameState = createMockGameState();
 
@@ -105,8 +110,12 @@ describe('FenceSystem', () => {
 
   it('processTransaction updates player gold, inventory, and fence gold', () => {
     // Ensure player has the item
-    const playerWithItem = { ...mockPlayer, inventory: [mockItem] };
-    const { updatedPlayer, updatedFence, result } = FenceSystem.processTransaction(mockItem, mockFence, playerWithItem);
+    const playerWithItem = { ...mockPlayer, inventory: [mockItem] } as unknown as _PlayerCharacter;
+    const { updatedPlayer, updatedFence, result } = FenceSystem.processTransaction(mockItem, mockFence, playerWithItem) as unknown as {
+      updatedPlayer: _PlayerCharacter & { gold: number; inventory: unknown[] };
+      updatedFence: Fence;
+      result: ReturnType<typeof FenceSystem.processTransaction>['result'];
+    };
 
     expect(result.success).toBe(true);
     expect(updatedPlayer.gold).toBe(100 + 74); // 100 start + 74 earned

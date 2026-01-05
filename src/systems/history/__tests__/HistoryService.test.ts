@@ -9,8 +9,38 @@ describe('HistoryService', () => {
 
   // Setup minimal faction data for tests
   mockState.factions = {
-    'faction_a': { id: 'faction_a', name: 'The Red Hand', type: 'military', power: 10, wealth: 10, cohesion: 10, territory: [], relations: {} },
-    'faction_b': { id: 'faction_b', name: 'The Blue Shield', type: 'religious', power: 10, wealth: 10, cohesion: 10, territory: [], relations: {} }
+    'faction_a': {
+      id: 'faction_a',
+      name: 'The Red Hand',
+      description: 'Test military faction',
+      type: 'MILITARY',
+      colors: { primary: '#aa0000', secondary: '#550000' },
+      ranks: [],
+      allies: [],
+      enemies: [],
+      rivals: [],
+      relationships: {},
+      values: [],
+      hates: [],
+      power: 10,
+      assets: []
+    },
+    'faction_b': {
+      id: 'faction_b',
+      name: 'The Blue Shield',
+      description: 'Test religious faction',
+      type: 'RELIGIOUS_ORDER',
+      colors: { primary: '#0044aa', secondary: '#002255' },
+      ranks: [],
+      allies: [],
+      enemies: [],
+      rivals: [],
+      relationships: {},
+      values: [],
+      hates: [],
+      power: 10,
+      assets: []
+    }
   };
   mockState.gameTime = new Date('2024-01-01T12:00:00Z');
 

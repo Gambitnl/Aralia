@@ -109,18 +109,20 @@ export function getWeatherModifiers(
   // 1. Precipitation Effects on Fire/Cold/Lightning
   if (spell.effects.some(e => e.type === 'DAMAGE')) {
      const damageEffects = spell.effects.filter(e => e.type === 'DAMAGE');
+     // TODO(2026-01-03 pass 4 Codex-CLI): damage effect casting placeholder until spell schema is formalized.
+     const damageEntries = damageEffects as unknown as { damage?: { type?: string } }[];
      // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-     const hasFire = damageEffects.some(e => (e as unknown).damage.type === 'Fire');
+     const hasFire = damageEntries.some(e => e.damage?.type === 'Fire');
      // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-     const hasCold = damageEffects.some(e => (e as unknown).damage.type === 'Cold');
+     const hasCold = damageEntries.some(e => e.damage?.type === 'Cold');
      // TODO(lint-intent): The any on 'this value' hides the intended shape of this data.
      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-     const hasLightning = damageEffects.some(e => (e as unknown).damage.type === 'Lightning');
+     const hasLightning = damageEntries.some(e => e.damage?.type === 'Lightning');
 
      if (hasFire && (weather.precipitation === 'heavy_rain' || weather.precipitation === 'storm')) {
        modifiers.push({

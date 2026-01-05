@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { Mock } from 'vitest';
 import { useTurnManager } from '../../../hooks/combat/useTurnManager';
 import { renderHook, act } from '@testing-library/react';
 import { CombatCharacter, StatusEffect } from '../../../types/combat';
 import { rollSavingThrow } from '../../../utils/savingThrowUtils';
+import { createMockCombatCharacter } from '../../../utils/factories';
 
 // Mock dependencies
 vi.mock('../../../utils/savingThrowUtils', () => ({
@@ -31,36 +33,26 @@ vi.mock('../../../hooks/combat/useCombatAI', () => ({
 
 describe('TurnManager Repeat Saves', () => {
     let character: CombatCharacter;
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    let mockOnCharacterUpdate: unknown;
-    // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-    let mockOnLogEntry: unknown;
+    // Was using tuple-style Mock generics; updated to function signatures to match vitest Mock type.
+    let mockOnCharacterUpdate: Mock<(character: CombatCharacter) => void>;
+    let mockOnLogEntry: Mock<(entry: unknown) => void>;
+    const makeSaveResult = (success: boolean, total: number) => ({
+        success,
+        roll: total,
+        total,
+        dc: 15,
+        natural20: false,
+        natural1: false
+    });
 
     beforeEach(() => {
         mockOnCharacterUpdate = vi.fn();
         mockOnLogEntry = vi.fn();
-        character = {
+        character = createMockCombatCharacter({
             id: 'char-1',
             name: 'Test Char',
-            currentHP: 20,
-            maxHP: 20,
-            level: 5,
-            class: 'Fighter',
-            statusEffects: [],
-            conditions: [],
-            stats: { wisdom: 10, dexterity: 10, constitution: 10, strength: 10, intelligence: 10, charisma: 10, baseInitiative: 0, speed: 30, cr: '1' },
-            abilities: [],
-            team: 'player',
-            position: { x: 0, y: 0 },
-            initiative: 10,
-            actionEconomy: {
-                action: { used: false, remaining: 1 },
-                bonusAction: { used: false, remaining: 1 },
-                reaction: { used: false, remaining: 1 },
-                movement: { used: 0, total: 30 },
-                freeActions: 1
-            }
-        } as unknown as CombatCharacter;
+            team: 'player'
+        });
     });
 
     it('should trigger repeat save at end of turn', () => {
@@ -77,12 +69,12 @@ describe('TurnManager Repeat Saves', () => {
                 dc: 15,
                 successEnds: true
             }
-        };
+        } as unknown as StatusEffect;
         character.statusEffects = [effect];
 
         // Mock successful save BEFORE rendering hook
         // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        (rollSavingThrow as unknown).mockReturnValue({ success: true, total: 16 });
+        vi.mocked(rollSavingThrow).mockReturnValue(makeSaveResult(true, 16));
 
         const { result } = renderHook(() => useTurnManager({
             characters: [character],
@@ -125,7 +117,7 @@ describe('TurnManager Repeat Saves', () => {
                 dc: 15,
                 successEnds: true
             }
-        };
+        } as unknown as StatusEffect;
         character.statusEffects = [effect];
 
         const { result } = renderHook(() => useTurnManager({
@@ -141,7 +133,7 @@ describe('TurnManager Repeat Saves', () => {
 
         // Mock failed save
         // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        (rollSavingThrow as unknown).mockReturnValue({ success: false, total: 10 });
+        vi.mocked(rollSavingThrow).mockReturnValue(makeSaveResult(false, 10));
 
         act(() => {
             result.current.endTurn();

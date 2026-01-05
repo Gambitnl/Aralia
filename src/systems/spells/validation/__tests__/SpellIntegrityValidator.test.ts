@@ -26,7 +26,7 @@ describe('SpellIntegrityValidator', () => {
         duration: { concentration: true },
         tags: ['damage']
       // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-      } as unknown;
+      } as unknown as Spell;
 
       const errors = SpellIntegrityValidator.validate(badSpell);
       expect(errors).toContain('Concentration Mismatch: duration.concentration is true but \'tags\' is missing "concentration"');
@@ -38,7 +38,7 @@ describe('SpellIntegrityValidator', () => {
         duration: { concentration: true },
         tags: ['damage', 'concentration']
       // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-      } as unknown;
+      } as unknown as Spell;
 
       expect(SpellIntegrityValidator.validate(goodSpell)).toHaveLength(0);
     });

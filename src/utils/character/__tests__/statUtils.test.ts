@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { calculateArmorClass, calculateFinalAbilityScores, calculatePassiveScore } from '../statUtils';
 import { createMockPlayerCharacter } from '../../core/factories';
-import { ActiveEffect } from '@/types/combat';
+import { ActiveEffect } from '@/types/effects';
 import { Item } from '@/types';
 
 describe('statUtils', () => {
@@ -192,17 +192,15 @@ describe('statUtils', () => {
 
             const mageArmorEffect: ActiveEffect = {
                 id: 'mage_armor',
-                name: 'Mage Armor',
                 spellId: 'mage_armor',
                 casterId: 'tester',
-                source: 'spell',
-                appliedTurn: 0,
                 sourceName: 'Mage Armor',
+                appliedTurn: 0,
                 type: 'buff',
                 duration: { type: 'minutes', value: 480 },
                 startTime: Date.now(),
                 mechanics: { acBonus: 3 }
-            };
+            } as unknown as ActiveEffect;
 
             // Monk Unarmored: 10 + 3 + 4 = 17
             // Mage Armor: 13 + 3 = 16
@@ -254,19 +252,17 @@ describe('statUtils', () => {
 
             const mageArmorEffect: ActiveEffect = {
                 id: 'mage_armor',
-                name: 'Mage Armor',
                 spellId: 'mage_armor',
                 casterId: 'tester',
-                source: 'spell',
-                appliedTurn: 0,
                 sourceName: 'Mage Armor',
+                appliedTurn: 0,
                 type: 'buff',
                 duration: { type: 'minutes', value: 480 },
                 startTime: Date.now(),
                 mechanics: {
-                    acBonus: 3 // simplified; base 13 vs default 10
+                    acBonus: 3 // simplified; base 13 vs default 10        
                 }
-            };
+            } as unknown as ActiveEffect;
 
             // Wearing Armor: 11 + 2 = 13.
             // Mage Armor (if allowed): 13 + 2 = 15.

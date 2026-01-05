@@ -17,7 +17,7 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
         messages: [
           ...state.messages,
           {
-            id: generateId(),
+            id: Date.now(),
             // Fixed: use spellName instead of spell.name to match Singular RitualState
             text: `A ritual to cast ${ritual.spellName} has begun. (Duration: ${ritual.durationTotal} ${ritual.durationUnit})`,
             sender: 'system',
@@ -44,7 +44,7 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
       // Check for completion transition
       if (isNowComplete && !wasComplete) {
         messages = [...state.messages, {
-          id: generateId(),
+          id: Date.now(),
           text: `Ritual Complete: ${updatedRitual.spellName} is ready to be unleashed.`,
           sender: 'system',
           timestamp: state.gameTime, // Note: gameTime in state is technically old time before ADVANCE_TIME completes, but acceptable here
@@ -69,7 +69,7 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
 
       if (isNowComplete && !wasComplete) {
         messages = [...state.messages, {
-          id: generateId(),
+          id: Date.now(),
           text: `The ritual is complete! The magic of ${updatedRitual.spellName} takes hold.`,
           sender: 'system',
           timestamp: state.gameTime
@@ -85,14 +85,16 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
     case 'INTERRUPT_RITUAL': {
       if (!state.activeRitual) return {};
 
-      const event = action.payload.event;
+      // TODO(2026-01-03 pass 4 Codex-CLI): Cast ritual interrupt payload until event shape is fully typed.
+      const event = action.payload.event as { type: 'damage' | 'movement' | 'condition'; value?: unknown; conditionName?: string } | undefined;
+      if (!event) return {};
       // Fixed: Unpack the event object to match checkRitualInterrupt signature (ritual, type, value, name)
       // Note: event might be 'damage' | 'movement' etc as string in some contexts, but payload implies object based on test.
       // We assume event is { type, value, conditionName? }
       const interruptResult = RitualManager.checkRitualInterrupt(
           state.activeRitual,
           event.type,
-          event.value,
+          (event.value as number | undefined),
           event.conditionName
       );
 
@@ -107,24 +109,24 @@ export function ritualReducer(state: GameState, action: AppAction): Partial<Game
          // TODO(lint-intent): The any on 'backlashEffects' hides the intended shape of this data.
          // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
          // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-         const backlashEffects: unknown[] = [];
+        const backlashEffects: unknown[] = [];
 
-         const backlashMessage = backlashEffects.length > 0
+        const backlashMessage = backlashEffects.length > 0
             // TODO(lint-intent): The any on 'b' hides the intended shape of this data.
             // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
             // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-            ? `Backlash: ${backlashEffects.map((b: unknown) => b.description).join(' ')}`
+            ? `Backlash: ${backlashEffects.map((b: unknown) => (b as { description?: string })?.description || 'effect').join(' ')}`
             : 'The magic dissipates harmlessly.';
 
          return {
              activeRitual: updatedRitual,
-             messages: [
-                 ...state.messages,
-                 {
-                     id: generateId(),
-                     text: `Ritual Interrupted! ${interruptResult.reason}. ${backlashMessage}`,
-                     sender: 'system',
-                     timestamp: state.gameTime,
+                messages: [
+                    ...state.messages,
+                    {
+                        id: Date.now(),
+                        text: `Ritual Interrupted! ${interruptResult.reason}. ${backlashMessage}`,
+                        sender: 'system',
+                        timestamp: state.gameTime,
                      metadata: { type: 'ritual_interruption', backlash: backlashEffects }
                  }
              ]

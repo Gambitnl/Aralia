@@ -12,7 +12,8 @@ describe('contract: travel and world helpers', () => {
     expect(good).toBe('Strength');
 
     const bad: any = 'strength';
-    expectTypeOf(bad).not.toMatchTypeOf<AbilityScoreName>();
+    // TODO(2026-01-03 pass 4 Codex-CLI): Explicitly casting to align with vitest type helper until overloads are clarified.
+    expectTypeOf(bad as never).not.toMatchTypeOf<AbilityScoreName>();
   });
 
   it('TravelEvent carries effect/skillCheck shapes', () => {

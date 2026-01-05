@@ -8,6 +8,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { NobleHouse, NobleMember, NobleRole } from '../../types/noble';
+import { Faction } from '../../types/factions';
 import { SecretGenerator } from './SecretGenerator';
 import { SeededRandom } from '../../utils/seededRandom';
 
@@ -113,16 +114,21 @@ export const generateNobleHouse = (_kingdomId: string = 'default', seed: number 
 
   // 50% chance the House itself has a major secret
   if (rng.next() > 0.5) {
-    const mockFaction = {
+    const mockFaction: Faction = {
         id: houseId,
         name: `House ${houseName}`,
-        description: '',
-        type: 'political' as const,
-        relationships: {},
-        playerStanding: 0,
-        goals: [],
+        description: `The noble house of ${houseName}.`,
+        type: 'NOBLE_HOUSE',
+        colors: { primary: rng.pick(COLORS), secondary: rng.pick(COLORS) },
+        ranks: [],
+        allies: [],
         enemies: [],
-        allies: []
+        rivals: [],
+        relationships: {},
+        values: [],
+        hates: [],
+        power: Math.floor(rng.next() * 100),
+        assets: []
     };
 
     const secret = secretGen.generateFactionSecret(mockFaction, []);
@@ -139,27 +145,45 @@ export const generateNobleHouse = (_kingdomId: string = 'default', seed: number 
     }
   });
 
+  const wealth = Math.floor(rng.next() * 10) + 1;
+  const militaryPower = Math.floor(rng.next() * 10) + 1;
+  const politicalInfluence = Math.floor(rng.next() * 10) + 1;
+  const power = Math.min(100, Math.floor(((wealth + militaryPower + politicalInfluence) / 3) * 10));
+
   return {
     id: houseId,
     name: `House ${houseName}`,
     description: `The noble house of ${houseName}.`,
-    type: 'political',
-    houseName,
+    type: 'NOBLE_HOUSE',
+    familyName: houseName,
     motto: rng.pick(MOTTOS),
+    // TODO(2026-01-03 pass 4 Codex-CLI): Heraldry collapsed into colors/symbolIcon; reintroduce once NobleHouse formalizes heraldry metadata.
+    colors: { primary: rng.pick(COLORS), secondary: rng.pick(COLORS) },
+    symbolIcon: rng.pick(SYMBOLS),
+    // TODO(2026-01-03 pass 4 Codex-CLI): Was missing required NobleHouse fields; add minimal placeholders until generator is unified.
     heraldry: {
-      colors: [rng.pick(COLORS), rng.pick(COLORS)],
-      symbol: rng.pick(SYMBOLS)
+      fieldColor: rng.pick(COLORS),
+      chargeColor: rng.pick(COLORS),
+      sigil: 'lion',
+      pattern: 'solid'
     },
-    wealth: Math.floor(rng.next() * 10) + 1,
-    militaryPower: Math.floor(rng.next() * 10) + 1,
-    politicalInfluence: Math.floor(rng.next() * 10) + 1,
+    seat: `${houseName} Keep`,
+    origin: `Founded by ${houseName} ancestors.`,
+    specialty: 'Political influence',
+    ranks: [],
+    allies: [],
+    enemies: [],
+    rivals: [],
+    relationships: {},
+    values: [],
+    hates: [],
+    power,
+    assets: [],
+    wealth,
+    militaryPower,
+    politicalInfluence,
     members,
     heldSecrets: [],
-    houseSecrets,
-    relationships: {},
-    playerStanding: 0,
-    goals: ['Increase wealth', 'Expand lands'],
-    enemies: [],
-    allies: []
+    houseSecrets
   };
 };

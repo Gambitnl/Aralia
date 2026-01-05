@@ -130,6 +130,7 @@ export const initialGameState: GameState = {
     hasNewRateLimitError: false,
     devModelOverride: null,
     isDevModeEnabled: false,
+    banterDebugLog: [],
 
     // Encounter Modal State
     isEncounterModalVisible: false,
@@ -288,9 +289,14 @@ export const initialGameState: GameState = {
     // User Preferences
     visualDiceEnabled: true,
 
+    // Ollama Dependency Modal
+    isOllamaDependencyModalVisible: false,
+
     // Naval System
     naval: INITIAL_NAVAL_STATE,
     isNavalDashboardVisible: false,
+    isNobleHouseListVisible: false,
+    isTradeRouteDashboardVisible: false,
 
     banterCooldowns: {}
 };

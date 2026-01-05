@@ -1,7 +1,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { ThievesGuildSystem } from '../ThievesGuildSystem';
-import { GuildJobType, HeistPlan } from '../../../types/crime';
+import { GuildJob, GuildJobType, HeistPhase, HeistPlan } from '../../../types/crime';
 import { Location } from '../../../types';
 
 describe('ThievesGuildSystem', () => {
@@ -58,25 +58,44 @@ describe('ThievesGuildSystem', () => {
     });
 
     describe('completeJob', () => {
-        const mockJob = {
+        const mockJob: GuildJob = {
             id: 'job_1',
             guildId: 'guild_1',
             type: GuildJobType.Burglary,
             targetLocationId: 'loc_market',
             rewardGold: 100,
             rewardReputation: 10,
-            status: 'Active'
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-        } as unknown; // Cast as any to avoid full mock
+            status: 'Active',
+            title: 'Test Job',
+            description: 'Test description',
+            requiredRank: 1,
+            difficulty: 1,
+            targetId: undefined,
+            deadline: undefined,
+            rewardItem: undefined,
+            assignedTo: undefined,
+        };
+        const basePlan: HeistPlan = {
+            id: 'plan_1',
+            targetLocationId: 'loc_market',
+            phase: HeistPhase.Planning,
+            leaderId: 'player',
+            crew: [],
+            collectedIntel: [],
+            lootSecured: [],
+            alertLevel: 0,
+            turnsElapsed: 0,
+            maxAlertLevel: 100,
+        };
 
         it('should fail if location does not match', () => {
             const plan: HeistPlan = {
+                ...basePlan,
                 targetLocationId: 'loc_wrong',
-                // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-                lootSecured: [{ id: 'item_1', value: 50 } as unknown],
+                // TODO(2026-01-03 pass 4 Codex-CLI): lootSecured cast until stolen item typing is shared with tests.
+                lootSecured: [{ id: 'item_1', value: 50 } as unknown as HeistPlan['lootSecured'][number]],
                 alertLevel: 0
-            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-            } as unknown;
+            };
 
             const result = ThievesGuildSystem.completeJob(mockJob, plan);
             expect(result.success).toBe(false);
@@ -85,11 +104,10 @@ describe('ThievesGuildSystem', () => {
 
         it('should fail burglary if no loot secured', () => {
             const plan: HeistPlan = {
-                targetLocationId: 'loc_market',
+                ...basePlan,
                 lootSecured: [],
                 alertLevel: 0
-            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-            } as unknown;
+            };
 
             const result = ThievesGuildSystem.completeJob(mockJob, plan);
             expect(result.success).toBe(false);
@@ -98,12 +116,11 @@ describe('ThievesGuildSystem', () => {
 
         it('should succeed with loot and reduce reward based on alert', () => {
             const plan: HeistPlan = {
-                targetLocationId: 'loc_market',
-                // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-                lootSecured: [{ id: 'item_1', value: 50 } as unknown],
+                ...basePlan,
+                // TODO(2026-01-03 pass 4 Codex-CLI): lootSecured cast until stolen item typing is shared with tests.
+                lootSecured: [{ id: 'item_1', value: 50 } as unknown as HeistPlan['lootSecured'][number]],
                 alertLevel: 20 // Should trigger penalty
-            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
-            } as unknown;
+            };
 
             const result = ThievesGuildSystem.completeJob(mockJob, plan);
             expect(result.success).toBe(true);

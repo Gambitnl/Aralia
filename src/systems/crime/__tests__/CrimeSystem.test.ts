@@ -10,7 +10,9 @@ describe('CrimeSystem', () => {
         const mockNotoriety: NotorietyState = {
             globalHeat: 0,
             localHeat: {},
-            knownCrimes: []
+            knownCrimes: [],
+            // TODO(2026-01-03 pass 4 Codex-CLI): notoriety bounties stub for test coverage.
+            bounties: []
         };
 
         // Theft (20) + 0 heat factors
@@ -22,7 +24,9 @@ describe('CrimeSystem', () => {
         const mockNotoriety: NotorietyState = {
             globalHeat: 0,
             localHeat: { 'loc_1': 50 }, // 50 heat * 0.5 = +25 risk
-            knownCrimes: []
+            knownCrimes: [],
+            // TODO(2026-01-03 pass 4 Codex-CLI): notoriety bounties stub for test coverage.
+            bounties: []
         };
 
         // Theft (20) + 25 = 45

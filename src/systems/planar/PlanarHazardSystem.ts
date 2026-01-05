@@ -1,11 +1,12 @@
 // TODO(lint-intent): 'PlayerCharacter' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { GameState, PlayerCharacter as _PlayerCharacter } from '../../types';
+import { GameState, Location, PlayerCharacter as _PlayerCharacter } from '../../types';
 // TODO(lint-intent): 'Plane' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import { PlanarHazard, Plane as _Plane } from '../../types/planes';
+import { LOCATIONS } from '../../constants';
 import { getCurrentPlane } from '../../utils/planarUtils';
 import { rollDice , createPlayerCombatCharacter } from '../../utils/combatUtils';
 import { rollSavingThrow } from '../../utils/savingThrowUtils';
@@ -41,7 +42,19 @@ export class PlanarHazardSystem {
    * @param minutesPassed Number of minutes passed since last check.
    */
   static processPeriodicHazards(gameState: GameState, minutesPassed: number): HazardOutcome {
-    const plane = getCurrentPlane(gameState.currentLocation);
+    const resolvedLocation =
+      gameState.dynamicLocations?.[gameState.currentLocationId] ??
+      LOCATIONS[gameState.currentLocationId];
+    const fallbackLocation: Location = {
+      id: gameState.currentLocationId,
+      name: 'Unknown Location',
+      baseDescription: '',
+      exits: {},
+      mapCoordinates: { x: 0, y: 0 },
+      biomeId: 'unknown',
+      planeId: 'material'
+    };
+    const plane = getCurrentPlane(resolvedLocation ?? fallbackLocation);
     const outcome: HazardOutcome = {
       events: [],
       globalMessages: []
@@ -58,8 +71,11 @@ export class PlanarHazardSystem {
       if (damage > 0) {
         outcome.globalMessages.push(`The intense pressure of ${plane.name} assaults your mind.`);
         gameState.party.forEach(char => {
+            // TODO(2026-01-03 pass 4 Codex-CLI): Enforce PlayerCharacter ids so hazard events never need fallbacks.
+            // Previously used char.id directly; now default to a placeholder to satisfy optional id.
+            const characterId = char.id ?? 'unknown-character';
             outcome.events.push({
-                characterId: char.id,
+                characterId,
                 hazardName: 'Planar Pressure',
                 damage: damage,
                 damageType: 'psychic',
@@ -95,6 +111,9 @@ export class PlanarHazardSystem {
     // If hazard has a Save DC, we roll for each character
     if (hazard.saveDC > 0) {
         gameState.party.forEach(char => {
+            // TODO(2026-01-03 pass 4 Codex-CLI): Enforce PlayerCharacter ids so hazard events never need fallbacks.
+            // Previously used char.id directly; now default to a placeholder to satisfy optional id.
+            const characterId = char.id ?? 'unknown-character';
             let failures = 0;
             let totalDamage = 0;
             let damageType = 'physical';
@@ -116,7 +135,7 @@ export class PlanarHazardSystem {
                     if (hazard.damage) {
                         const parts = hazard.damage.split(' ');
                         const dice = parts[0];
-                        damageType = parts.length > 1 ? parts[1] : 'physical';
+                        damageType = parts[1] ?? 'physical';
                         totalDamage += rollDice(dice);
                     }
                 }
@@ -124,7 +143,7 @@ export class PlanarHazardSystem {
 
             if (failures > 0) {
                  outcome.events.push({
-                    characterId: char.id,
+                    characterId,
                     hazardName: hazard.name,
                     damage: totalDamage > 0 ? totalDamage : undefined,
                     damageType: totalDamage > 0 ? damageType : undefined,
@@ -137,18 +156,21 @@ export class PlanarHazardSystem {
         // No save, automatic effect (e.g. constant damage or environment change)
         if (hazard.damage) {
              gameState.party.forEach(char => {
+                // TODO(2026-01-03 pass 4 Codex-CLI): Enforce PlayerCharacter ids so hazard events never need fallbacks.
+                // Previously used char.id directly; now default to a placeholder to satisfy optional id.
+                const characterId = char.id ?? 'unknown-character';
                 let totalDamage = 0;
                 let damageType = 'physical';
                 const parts = hazard.damage!.split(' ');
                 const dice = parts[0];
-                damageType = parts.length > 1 ? parts[1] : 'physical';
+                damageType = parts[1] ?? 'physical';
 
                 for (let i = 0; i < triggers; i++) {
                     totalDamage += rollDice(dice);
                 }
 
                 outcome.events.push({
-                    characterId: char.id,
+                    characterId,
                     hazardName: hazard.name,
                     damage: totalDamage,
                     damageType: damageType,

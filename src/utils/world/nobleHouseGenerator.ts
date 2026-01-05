@@ -106,11 +106,35 @@ const VALUES = [
   'family', 'purity', 'order', 'chaos', 'nature', 'technology'
 ];
 
+// Was a stray literal array (syntax error) after VALUES; restored as HATES to match downstream usage.
 const HATES = [
-  'cowardice', 'treachery', 'weakness', 'poverty', 'heresy', 'ignorance',
-  'disloyalty', 'fear', 'injustice', 'tyranny', 'laziness', 'submission',
   'betrayal', 'corruption', 'chaos', 'order', 'industry', 'magic'
 ];
+
+const SEAT_PREFIXES = ['High', 'Iron', 'Storm', 'Winter', 'Summer', 'Shadow', 'Bright', 'Dark', 'Cloud', 'River', 'Sea', 'Gold', 'Silver', 'Raven', 'Wolf', 'Dragon', 'Lion'];
+const SEAT_SUFFIXES = ['keep', 'hold', 'fast', 'guard', 'watch', 'hall', 'spire', 'tower', 'rock', 'mount', 'dale', 'port', 'gate', 'star'];
+
+const ORIGINS = [
+  'Founded by a hero of the Last War.',
+  'Descended from an ancient line of kings.',
+  'Rose to power through shrewd mercantile deals.',
+  'Awarded lands for service to the Crown.',
+  'Conquered their rivals to claim this territory.',
+  'Formerly bandits who legitimized their rule.',
+  'A splinter branch of an even older house.',
+  'Gained prominence through magical prowess.',
+  'Survivors of a catastrophic fall from grace.',
+  'Guardians of an ancient, forgotten secret.'
+];
+
+const SPECIALTIES = [
+  'Maritime Trade', 'Silver Mining', 'Iron Mining', 'Agriculture', 'Horse Breeding',
+  'Textile Manufacturing', 'Mercenary Work', 'Wine Production', 'Shipbuilding',
+  'Arcane Research', 'Banking', 'Livestock', 'Fishing', 'Logging', 'Smithing'
+];
+
+const SIGILS = ['wolf', 'lion', 'tower', 'sword', 'shield', 'dragon', 'ship', 'tree', 'sun', 'moon', 'star', 'skull'];
+const PATTERNS = ['solid', 'party_per_pale', 'party_per_fess', 'quarterly', 'chevron', 'bend', 'saltire'];
 
 // -----------------------------------------------------------------------------
 // Generator Logic
@@ -168,13 +192,46 @@ export function generateMotto(rng: SeededRandom): string {
   return `${part1} ${part2}`;
 }
 
-export function generateColors(rng: SeededRandom): { primary: string, secondary: string } {
+// Was a dangling return without a function wrapper; restore generateColors so heraldry and house colors are valid.
+function generateColors(rng: SeededRandom): { primary: string; secondary: string } {
   const primary = rng.pick(COLORS);
   let secondary = rng.pick(COLORS);
-  while (secondary === primary) {
+  let attempts = 0;
+  while (secondary === primary && attempts < 5) {
     secondary = rng.pick(COLORS);
+    attempts += 1;
   }
   return { primary, secondary };
+}
+
+export function generateHeraldry(rng: SeededRandom): import('../../types/noble').Heraldry {
+  const { primary, secondary } = generateColors(rng);
+  // Ensure contrast? The seeded random naturally picks distinct ones in generateColors, but let's be safe visually.
+  return {
+    fieldColor: primary,
+    chargeColor: secondary,
+    sigil: rng.pick(SIGILS) as any,
+    pattern: rng.pick(PATTERNS) as any
+  };
+}
+
+export function generateSeat(rng: SeededRandom, familyName: string): string {
+  // 50% chance of being based on family name (e.g. "Starkhold")
+  if (rng.next() > 0.5) {
+    const suffix = rng.pick(SEAT_SUFFIXES);
+    return `${familyName}${suffix}`;
+  }
+  const prefix = rng.pick(SEAT_PREFIXES);
+  const suffix = rng.pick(SEAT_SUFFIXES);
+  return `${prefix}${suffix}`;
+}
+
+export function generateOrigin(rng: SeededRandom): string {
+  return rng.pick(ORIGINS);
+}
+
+export function generateSpecialty(rng: SeededRandom): string {
+  return rng.pick(SPECIALTIES);
 }
 
 function generateStats(rng: SeededRandom) {
@@ -188,7 +245,7 @@ function generateStats(rng: SeededRandom) {
 
 // Poor man's deterministic ID
 function generateId(rng: SeededRandom): string {
-    return `mem_${Math.floor(rng.next() * 1000000000)}`;
+  return `mem_${Math.floor(rng.next() * 1000000000)}`;
 }
 
 function generateMember(rng: SeededRandom, familyName: string, role: NobleRole, minAge: number, maxAge: number): NobleMember {
@@ -197,8 +254,8 @@ function generateMember(rng: SeededRandom, familyName: string, role: NobleRole, 
 
   const numTraits = Math.floor(rng.next() * 2) + 1; // 1-2 traits
   const traits: string[] = [];
-  for(let i=0; i<numTraits; i++) {
-      traits.push(rng.pick(TRAITS));
+  for (let i = 0; i < numTraits; i++) {
+    traits.push(rng.pick(TRAITS));
   }
 
   return {
@@ -232,7 +289,7 @@ export function generateNobleHouse(options: NobleHouseGenerationOptions): NobleH
   while (hates.size < numHates) {
     const hate = rng.pick(HATES);
     if (!values.has(hate)) { // Don't hate what you value
-        hates.add(hate);
+      hates.add(hate);
     }
   }
 
@@ -256,14 +313,14 @@ export function generateNobleHouse(options: NobleHouseGenerationOptions): NobleH
 
   // 50% chance of a major house secret
   if (rng.next() > 0.5) {
-      // Mock faction for secret generation (since we are creating it)
-      // TODO(lint-intent): The any on 'mockFaction' hides the intended shape of this data.
-      // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
-      // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
-      const mockFaction = { id: houseId, name: fullName } as Faction;
-      const secret = secretGen.generateFactionSecret(mockFaction, []);
-      secret.tags.push('political');
-      houseSecrets.push(secret);
+    // Mock faction for secret generation (since we are creating it)
+    // TODO(lint-intent): The any on 'mockFaction' hides the intended shape of this data.
+    // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
+    // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
+    const mockFaction = { id: houseId, name: fullName } as Faction;
+    const secret = secretGen.generateFactionSecret(mockFaction, []);
+    secret.tags.push('political');
+    houseSecrets.push(secret);
   }
 
   // Generate Personal Secrets
@@ -271,12 +328,12 @@ export function generateNobleHouse(options: NobleHouseGenerationOptions): NobleH
   // TODO(lint-intent): If the contract should consume it, thread it into the decision/transform path or document why it exists.
   // TODO(lint-intent): Otherwise rename it with a leading underscore or remove it if the signature can change.
   members.forEach((member, _idx) => {
-      // 30% chance of a personal secret
-      if (rng.next() > 0.7) {
-          const secret = secretGen.generateMemberSecret(member.id, `${member.firstName} ${member.lastName}`);
-          member.personalSecretIds.push(secret.id);
-          houseSecrets.push(secret);
-      }
+    // 30% chance of a personal secret
+    if (rng.next() > 0.7) {
+      const secret = secretGen.generateMemberSecret(member.id, `${member.firstName} ${member.lastName}`);
+      member.personalSecretIds.push(secret.id);
+      houseSecrets.push(secret);
+    }
   });
 
   const power = Math.floor(rng.next() * 100);
@@ -303,6 +360,11 @@ export function generateNobleHouse(options: NobleHouseGenerationOptions): NobleH
     assets: [], // Default empty assets
 
     // NobleHouse specific
+    heraldry: generateHeraldry(rng),
+    seat: generateSeat(rng, familyName),
+    origin: generateOrigin(rng),
+    specialty: generateSpecialty(rng),
+
     wealth: Math.floor(wealthLevel * 10) + 1,
     militaryPower: Math.floor(rng.next() * 10) + 1,
     politicalInfluence: Math.floor(rng.next() * 10) + 1,
@@ -336,28 +398,28 @@ export function generateRegionalPolitics(
     const numConnections = Math.floor(rng.next() * 2) + 1;
 
     for (let i = 0; i < numConnections; i++) {
-        const target = rng.pick(otherHouses);
-        const relType = rng.next();
+      const target = rng.pick(otherHouses);
+      const relType = rng.next();
 
-        if (relType < 0.3) {
-            // Ally
-            if (!house.allies.includes(target.id) && !house.enemies.includes(target.id) && !house.rivals.includes(target.id)) {
-                house.allies.push(target.id);
-                target.allies.push(house.id); // Reciprocal
-            }
-        } else if (relType < 0.6) {
-            // Enemy
-            if (!house.allies.includes(target.id) && !house.enemies.includes(target.id) && !house.rivals.includes(target.id)) {
-                house.enemies.push(target.id);
-                target.enemies.push(house.id); // Reciprocal
-            }
-        } else {
-             // Rival
-             if (!house.allies.includes(target.id) && !house.enemies.includes(target.id) && !house.rivals.includes(target.id)) {
-                house.rivals.push(target.id);
-                target.rivals.push(house.id); // Reciprocal
-            }
+      if (relType < 0.3) {
+        // Ally
+        if (!house.allies.includes(target.id) && !house.enemies.includes(target.id) && !house.rivals.includes(target.id)) {
+          house.allies.push(target.id);
+          target.allies.push(house.id); // Reciprocal
         }
+      } else if (relType < 0.6) {
+        // Enemy
+        if (!house.allies.includes(target.id) && !house.enemies.includes(target.id) && !house.rivals.includes(target.id)) {
+          house.enemies.push(target.id);
+          target.enemies.push(house.id); // Reciprocal
+        }
+      } else {
+        // Rival
+        if (!house.allies.includes(target.id) && !house.enemies.includes(target.id) && !house.rivals.includes(target.id)) {
+          house.rivals.push(target.id);
+          target.rivals.push(house.id); // Reciprocal
+        }
+      }
     }
   });
 
