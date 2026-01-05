@@ -8,13 +8,13 @@
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
 import React, { useState, useRef, useEffect, useContext as _useContext } from 'react';
 import { motion, AnimatePresence, MotionProps } from 'framer-motion';
-import { generateGuideResponse } from '../services/geminiService';
-import { generateCharacterFromConfig, CharacterGenerationConfig } from '../services/characterGenerator';
-import { PlayerCharacter, NPCMemory, GoalStatus } from '../types';
-import { AppAction } from '../state/actionTypes';
-import { RACES_DATA, AVAILABLE_CLASSES } from '../constants';
-import { t } from '../utils/i18n';
-import { cleanAIJSON, safeJSONParse } from '../utils/securityUtils';
+import { generateGuideResponse } from '../../services/geminiService'; // Build failed because '../services' resolves from components/ui; ascend to src/services.
+import { generateCharacterFromConfig, CharacterGenerationConfig } from '../../services/characterGenerator';
+import { PlayerCharacter, NPCMemory, GoalStatus } from '../../types';
+import { AppAction } from '../../state/actionTypes';
+import { RACES_DATA, AVAILABLE_CLASSES } from '../../constants';
+import { t } from '../../utils/i18n';
+import { cleanAIJSON, safeJSONParse } from '../../utils/securityUtils';
 
 interface GameGuideModalProps {
     isOpen: boolean;

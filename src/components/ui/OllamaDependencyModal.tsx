@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
-import { Button } from './ui/Button';
+import { Button } from './Button'; // Build failed because bundler can't resolve './ui/Button' from within the ui folder; keep the relative path local.
 
 interface OllamaDependencyModalProps {
   isOpen: boolean;
