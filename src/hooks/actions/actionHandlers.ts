@@ -280,14 +280,29 @@ export function buildActionHandlers({
     CLOSE_MERCHANT: () => {
       dispatch({ type: 'CLOSE_MERCHANT' });
     },
-    BUY_ITEM: (action) => {
-      dispatch({ type: 'BUY_ITEM', payload: action.payload as { item: Item; cost: number } });
-    },
-    SELL_ITEM: (action) => {
-      dispatch({ type: 'SELL_ITEM', payload: action.payload as { itemId: string; value: number } });
-    },
+
     OPEN_DYNAMIC_MERCHANT: async (action) => {
       await handleOpenDynamicMerchant({ action, gameState, dispatch, addMessage, addGeminiLog, generalActionContext });
+    },
+    BUY_ITEM: (action) => {
+      const { validateMerchantTransaction } = require('./handleMerchantInteraction');
+      const validation = validateMerchantTransaction('buy', action.payload || {}, gameState);
+      
+      if (validation.valid) {
+        dispatch({ type: 'BUY_ITEM', payload: action.payload as { item: Item; cost: number } });
+      } else {
+        addMessage(validation.error || "Purchase failed.", "system");
+      }
+    },
+    SELL_ITEM: (action) => {
+      const { validateMerchantTransaction } = require('./handleMerchantInteraction');
+      const validation = validateMerchantTransaction('sell', action.payload || {}, gameState);
+      
+      if (validation.valid) {
+        dispatch({ type: 'SELL_ITEM', payload: action.payload as { itemId: string; value: number } });
+      } else {
+        addMessage(validation.error || "Sale failed.", "system");
+      }
     },
 
     // Legacy custom actions remain inline because they depend on local constants.

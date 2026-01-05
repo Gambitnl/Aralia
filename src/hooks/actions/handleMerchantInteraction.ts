@@ -10,6 +10,40 @@ import * as GeminiService from '../../services/geminiService';
 import { AddMessageFn, AddGeminiLogFn } from './actionHandlerTypes';
 import { calculatePrice } from '../../utils/economy/economyUtils';
 
+/**
+ * Validates a merchant transaction (buy/sell) before dispatching to the reducer.
+ * Ensures the player has enough gold for purchases and the item exists for sales.
+ * 
+ * @param type 'buy' or 'sell'
+ * @param payload The transaction payload containing item and cost/value
+ * @param gameState Current game state for gold and inventory checks
+ * @returns { valid: boolean; error?: string }
+ */
+export function validateMerchantTransaction(
+  type: 'buy' | 'sell',
+  payload: { item?: any; cost?: number; itemId?: string; value?: number },
+  gameState: GameState
+): { valid: boolean; error?: string } {
+  if (type === 'buy') {
+    const { item, cost } = payload;
+    if (!item) return { valid: false, error: "No item specified for purchase." };
+    if (typeof cost !== 'number' || cost < 0) return { valid: false, error: "Invalid purchase cost." };
+    if (gameState.gold < cost) {
+      return { valid: false, error: `Insufficient gold. Need ${cost} GP, but you only have ${gameState.gold} GP.` };
+    }
+  } else if (type === 'sell') {
+    const { itemId, value } = payload;
+    if (!itemId) return { valid: false, error: "No item specified for sale." };
+    if (typeof value !== 'number' || value < 0) return { valid: false, error: "Invalid sale value." };
+    
+    const hasItem = gameState.inventory.some(i => i.id === itemId);
+    if (!hasItem) {
+      return { valid: false, error: "Item not found in inventory." };
+    }
+  }
+  return { valid: true };
+}
+
 interface HandleMerchantInteractionProps {
   action: Action;
   gameState: GameState;
