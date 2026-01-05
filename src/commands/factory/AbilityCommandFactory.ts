@@ -56,12 +56,13 @@ export class WeaponAttackCommand implements SpellCommand {
       let currentTarget = newState.characters.find(c => c.id === target.id) || target;
 
       // 2. Roll Attack
-      // Check for Disadvantage from target's active effects
+      // Check for Disadvantage from target's active effects (e.g., Slasher Grievous Wound)
       const hasDisadvantage = currentTarget.activeEffects?.some(e => {
-        const attackerFilter = (e as { attackerFilter?: unknown; mechanics?: { attackerFilter?: unknown } }).mechanics?.attackerFilter ?? (e as any).attackerFilter;
-        // TODO(lint-intent): Model disadvantage effects explicitly in ActiveEffect instead of duck-typing here.
-        return (e as any).type === 'disadvantage_on_attacks' &&
-          SpellCommandFactory.matchesFilter(this.caster, attackerFilter);
+        // Check if this effect imposes disadvantage on attacks
+        if (e.mechanics?.disadvantageOnAttacks !== true) return false;
+        // If there's an attacker filter, check if it matches
+        const attackerFilter = e.mechanics?.attackerFilter;
+        return !attackerFilter || SpellCommandFactory.matchesFilter(this.caster, attackerFilter);
       });
 
       let d20 = rollDice('1d20');

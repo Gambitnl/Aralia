@@ -10,7 +10,7 @@ import React, { useState, useMemo, useEffect, useCallback, useRef, useContext } 
 import BattleMap from './BattleMap';
 import { PlayerCharacter } from '../../types';
 import { BattleMapData, CombatCharacter, CombatLogEntry } from '../../types/combat';
-import ErrorBoundary from '../ErrorBoundary';
+import ErrorBoundary from '../ui/ErrorBoundary';
 import { useTurnManager } from '../../hooks/combat/useTurnManager';
 import { useAbilitySystem } from '../../hooks/useAbilitySystem';
 import { generateBattleSetup } from '../../hooks/useBattleMapGeneration';
@@ -69,15 +69,15 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
   }, [biome]);
 
   const handleCharacterUpdate = useCallback((updatedChar: CombatCharacter) => {
-      setCharacters(prev => {
-        const exists = prev.some(c => c.id === updatedChar.id);
-        if (!exists) return [...prev, updatedChar];
-        return prev.map(c => c.id === updatedChar.id ? updatedChar : c);
-      });
+    setCharacters(prev => {
+      const exists = prev.some(c => c.id === updatedChar.id);
+      if (!exists) return [...prev, updatedChar];
+      return prev.map(c => c.id === updatedChar.id ? updatedChar : c);
+    });
   }, []);
 
   const handleLogEntry = useCallback((entry: CombatLogEntry) => {
-      setCombatLog(prev => [...prev, entry]);
+    setCombatLog(prev => [...prev, entry]);
   }, []);
 
   const turnManager = useTurnManager({
@@ -121,7 +121,7 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
     initializeCombat(setup.positionedCharacters);
   }, [getBaseCombatants, initialCharacters, initializeCombat]);
   /* eslint-enable react-hooks/set-state-in-effect */
-  
+
   const abilitySystem = useAbilitySystem({
     characters,
     mapData,
@@ -159,27 +159,27 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
     turnManager.initializeCombat(setup.positionedCharacters);
   };
 
-  const handleCharacterSelect = useCallback(() => {}, []);
+  const handleCharacterSelect = useCallback(() => { }, []);
 
   const handleSheetOpen = (charId: string) => {
     const playerToShow = party.find(p => p.id === charId);
     if (playerToShow) {
-        setSheetCharacter(playerToShow);
+      setSheetCharacter(playerToShow);
     } else {
-        console.warn(`Could not find full character data for ID: ${charId} in the provided party prop.`);
+      console.warn(`Could not find full character data for ID: ${charId} in the provided party prop.`);
     }
   };
 
   const handleSheetClose = () => {
     setSheetCharacter(null);
   };
-  
+
   const currentCharacter = turnManager.getCurrentCharacter() ?? null;
 
   return (
     <div className="bg-gray-900 text-white min-h-screen flex flex-col p-4">
-       {sheetCharacter && (
-        <CharacterSheetModal 
+      {sheetCharacter && (
+        <CharacterSheetModal
           isOpen={!!sheetCharacter}
           character={sheetCharacter}
           inventory={[]} // No inventory management in demo
@@ -239,63 +239,63 @@ const BattleMapDemo: React.FC<BattleMapDemoProps> = ({ onExit, initialCharacters
         >
           New Map
         </button>
-         <button
-            onClick={turnManager.endTurn}
-            disabled={!turnManager.isCharacterTurn(currentCharacter?.id || '')}
-            className="self-end px-5 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg shadow disabled:bg-gray-500"
-          >
-            End Turn
-          </button>
+        <button
+          onClick={turnManager.endTurn}
+          disabled={!turnManager.isCharacterTurn(currentCharacter?.id || '')}
+          className="self-end px-5 py-2 bg-orange-600 hover:bg-orange-500 rounded-lg shadow disabled:bg-gray-500"
+        >
+          End Turn
+        </button>
       </div>
 
       <div className="flex-grow grid grid-cols-1 xl:grid-cols-5 gap-4 overflow-hidden">
         {/* Left Pane */}
         <div className="xl:col-span-1 flex flex-col gap-4 overflow-y-auto scrollable-content p-1">
-            <PartyDisplay 
-                characters={characters}
-                onCharacterSelect={handleCharacterSelect}
-                currentTurnCharacterId={turnManager.turnState.currentCharacterId}
-                autoCharacters={autoCharacters}
-                onToggleAuto={handleToggleAuto}
-            />
+          <PartyDisplay
+            characters={characters}
+            onCharacterSelect={handleCharacterSelect}
+            currentTurnCharacterId={turnManager.turnState.currentCharacterId}
+            autoCharacters={autoCharacters}
+            onToggleAuto={handleToggleAuto}
+          />
         </div>
-        
+
         {/* Center Pane */}
         <div className="xl:col-span-3 flex items-center justify-center overflow-auto p-2">
-            <ErrorBoundary fallbackMessage="An error occurred in the Battle Map.">
+          <ErrorBoundary fallbackMessage="An error occurred in the Battle Map.">
             <BattleMap
-                mapData={mapData}
-                characters={characters}
-                combatState={{
-                    turnManager: turnManager,
-                    turnState: turnManager.turnState,
-                    abilitySystem: abilitySystem,
-                    isCharacterTurn: turnManager.isCharacterTurn,
-                    onCharacterUpdate: handleCharacterUpdate
-                }}
+              mapData={mapData}
+              characters={characters}
+              combatState={{
+                turnManager: turnManager,
+                turnState: turnManager.turnState,
+                abilitySystem: abilitySystem,
+                isCharacterTurn: turnManager.isCharacterTurn,
+                onCharacterUpdate: handleCharacterUpdate
+              }}
             />
-            </ErrorBoundary>
+          </ErrorBoundary>
         </div>
 
         {/* Right Pane */}
         <div className="xl:col-span-1 flex flex-col gap-4 overflow-y-auto scrollable-content p-1">
-             <InitiativeTracker 
-                characters={characters} 
-                turnState={turnManager.turnState}
-                onCharacterSelect={handleSheetOpen} 
-             />
-             {currentCharacter && (
-               <ActionEconomyBar
-                 character={currentCharacter}
-                 onExecuteAction={turnManager.executeAction}
-               />
-             )}
-             <AbilityPalette
-                character={currentCharacter}
-                onSelectAbility={(ability) => currentCharacter && abilitySystem.startTargeting(ability, currentCharacter)}
-                canAffordAction={(cost) => currentCharacter ? turnManager.canAffordAction(currentCharacter, cost) : false}
-             />
-             <CombatLog logEntries={combatLog} />
+          <InitiativeTracker
+            characters={characters}
+            turnState={turnManager.turnState}
+            onCharacterSelect={handleSheetOpen}
+          />
+          {currentCharacter && (
+            <ActionEconomyBar
+              character={currentCharacter}
+              onExecuteAction={turnManager.executeAction}
+            />
+          )}
+          <AbilityPalette
+            character={currentCharacter}
+            onSelectAbility={(ability) => currentCharacter && abilitySystem.startTargeting(ability, currentCharacter)}
+            canAffordAction={(cost) => currentCharacter ? turnManager.canAffordAction(currentCharacter, cost) : false}
+          />
+          <CombatLog logEntries={combatLog} />
         </div>
       </div>
     </div>

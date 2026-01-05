@@ -48,7 +48,7 @@ TODOs remain in this file when:
 - [ ] Implement Skilled skill selection UI. (`src/data/feats/featsData.ts:127`)
 - [ ] Implement Tavern Brawler selection and unarmed/improvised mechanics. (`src/data/feats/featsData.ts:190`)
 - [ ] Implement Elemental Adept damage type selection and resistance rules. (`src/data/feats/featsData.ts:229`)
-- [ ] Implement Slasher selection and speed/crit mechanics. (`src/data/feats/featsData.ts:473`)
+- [x] ~~Implement Slasher selection and speed/crit mechanics.~~ [DONE - Combat mechanics complete: once-per-turn speed reduction, crit disadvantage via ActiveEffect]
 - [ ] Implement feat skill selection UI contracts in types. (`src/types/character.ts:261`)
 - [ ] Implement feat damage type selection UI contracts in types. (`src/types/character.ts:269`)
 - [ ] Route dice rolls through secure or server-validated RNG. (`src/utils/combatUtils.ts:70`)

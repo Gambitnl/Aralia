@@ -430,11 +430,13 @@ export const DamageTypeDefinitions: Record<DamageType, DamageTypeTraits> = {
   [DamageType.Thunder]: { description: "A concussive burst of sound, such as from a thunderwave spell." },
 };
 
-/** The fourteen status conditions in D&D 5e. */
+/** The fourteen status conditions in D&D 5e plus custom game conditions. */
 export type ConditionName =
   | "Blinded" | "Charmed" | "Deafened" | "Exhaustion" | "Frightened"
   | "Grappled" | "Incapacitated" | "Invisible" | "Paralyzed" | "Petrified"
-  | "Poisoned" | "Prone" | "Restrained" | "Stunned" | "Unconscious" | "Ignited";
+  | "Poisoned" | "Prone" | "Restrained" | "Stunned" | "Unconscious" | "Ignited"
+  // Custom conditions for game mechanics (e.g., feat effects)
+  | "Slowed";
 
 /** Modifiers that adjust how a saving throw is made. */
 export interface SaveModifier {

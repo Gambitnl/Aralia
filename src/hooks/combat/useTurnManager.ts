@@ -106,7 +106,9 @@ export const useTurnManager = ({
         ...character.concentratingOn,
         sustainedThisTurn: false
       } : undefined,
-      riders: character.riders?.map(r => ({ ...r, usedThisTurn: false }))
+      riders: character.riders?.map(r => ({ ...r, usedThisTurn: false })),
+      // Reset per-turn feat usage tracking (e.g., Slasher's once-per-turn speed reduction)
+      featUsageThisTurn: []
     };
     onCharacterUpdate(updatedChar);
 

@@ -104,6 +104,12 @@ export interface ActiveEffect {
     // Planar Mechanics
     planarPhase?: string; // The ID of the plane the character is shifted to (e.g., 'ethereal')
     planarVision?: string[]; // IDs of planes the character can see into while in this state
+
+    // Combat Modifiers (e.g., from Slasher feat)
+    /** When true, this effect imposes disadvantage on attack rolls */
+    disadvantageOnAttacks?: boolean;
+    /** When true, this effect grants advantage on attack rolls */
+    advantageOnAttacks?: boolean;
   };
 }
 
@@ -196,6 +202,8 @@ export interface CombatCharacter {
   riders?: ActiveRider[];   // Active damage riders (smites, hex, etc)
   damagedThisTurn?: boolean; // Track if character took damage this turn (for concentration/repeat saves)
   savePenaltyRiders?: SavePenaltyRider[]; // Save penalties from Mind Sliver etc.
+  /** Tracks which feat effects have been used this turn (e.g., 'slasher_slow' for once-per-turn limit) */
+  featUsageThisTurn?: string[];
   // Optional bookkeeping for analytics/logs; these were used in factories/tests.
   damageDealt?: unknown[];
   healingDone?: unknown[];

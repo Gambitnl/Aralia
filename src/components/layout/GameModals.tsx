@@ -21,7 +21,7 @@ import { LoadingSpinner } from '../ui/LoadingSpinner';
 import * as _GeminiService from '../../services/geminiService';
 import { useDialogueSystem } from '../../hooks/useDialogueSystem';
 
-import ErrorBoundary from '../ErrorBoundary';
+import ErrorBoundary from '../ui/ErrorBoundary';
 
 // Lazy load heavy/conditional components to improve initial bundle size
 const MapPane = lazy(() => import('../MapPane'));
@@ -33,23 +33,23 @@ const PartyOverlay = lazy(() => import('../Party/PartyOverlay'));
 const PartyEditorModal = lazy(() => import('../Party/PartyEditorModal'));
 const GeminiLogViewer = lazy(() => import('../debug/GeminiLogViewer'));
 const OllamaLogViewer = lazy(() => import('../debug/OllamaLogViewer'));
-const NpcInteractionTestModal = lazy(() => import('../NpcInteractionTestModal'));
-const DossierPane = lazy(() => import('../DossierPane'));
-const DiscoveryLogPane = lazy(() => import('../DiscoveryLogPane'));
+const NpcInteractionTestModal = lazy(() => import('../debug/NpcInteractionTestModal'));
+const DossierPane = lazy(() => import('../Glossary/DossierPane'));
+const DiscoveryLogPane = lazy(() => import('../Glossary/DiscoveryLogPane'));
 // Glossary exports a named component from its index barrel
 const Glossary = lazy(() => import('../Glossary').then(module => ({ default: module.Glossary })));
-const EncounterModal = lazy(() => import('../EncounterModal'));
+const EncounterModal = lazy(() => import('../Combat/EncounterModal'));
 const MerchantModal = lazy(() => import('../Trade/MerchantModal'));
-const GameGuideModal = lazy(() => import('../GameGuideModal'));
-const MissingChoiceModal = lazy(() => import('../MissingChoiceModal'));
-const TempleModal = lazy(() => import('../TempleModal'));
+const GameGuideModal = lazy(() => import('../ui/GameGuideModal'));
+const MissingChoiceModal = lazy(() => import('../ui/MissingChoiceModal'));
+const TempleModal = lazy(() => import('../Religion/TempleModal'));
 // REVIEW: Verify that DialogueInterface is indeed a named export. If it is the default export, this lazy loading pattern .then(module => ({ default: module.DialogueInterface })) will fail. (Consistency check with Glossary import at line 35).
 const DialogueInterface = lazy(() => import('../Dialogue/DialogueInterface').then(module => ({ default: module.DialogueInterface })));
 const ThievesGuildInterface = lazy(() => import('../Crime/ThievesGuild/ThievesGuildInterface'));
 const ShipPane = lazy(() => import('../Naval/ShipPane').then(module => ({ default: module.ShipPane })));
 const LockpickingModal = lazy(() => import('../puzzles/LockpickingModal'));
 const DiceRollerModal = lazy(() => import('../dice/DiceRollerModal'));
-const OllamaDependencyModal = lazy(() => import('../OllamaDependencyModal').then(module => ({ default: module.OllamaDependencyModal })));
+const OllamaDependencyModal = lazy(() => import('../ui/OllamaDependencyModal').then(module => ({ default: module.OllamaDependencyModal })));
 const TradeRouteDashboard = lazy(() => import('../Trade/TradeRouteDashboard'));
 const NobleHouseList = lazy(() => import('../debug/NobleHouseList'));
 

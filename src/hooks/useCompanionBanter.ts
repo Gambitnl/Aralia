@@ -32,6 +32,7 @@ export const useCompanionBanter = (
   const participantsRef = useRef<Companion[]>([]);
   const contextRef = useRef<BanterContext | null>(null);
   const turnRef = useRef(0);
+  const failureCountRef = useRef(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const gameStateRef = useRef(gameState);
 
@@ -72,6 +73,7 @@ export const useCompanionBanter = (
     isGeneratingRef.current = false;
     banterHistoryRef.current = [];
     turnRef.current = 0;
+    failureCountRef.current = 0;
     setIsBanterActive(false);
     setIsWaitingForNextLine(false);
     setSecondsUntilNextLine(0);
@@ -130,6 +132,24 @@ export const useCompanionBanter = (
     if (!result.data) {
       // AI failed - don't end immediately, wait and try again
       console.debug('Banter line generation failed, will retry...');
+      failureCountRef.current += 1;
+      dispatch({
+        type: 'ADD_BANTER_DEBUG_LOG',
+        payload: {
+          timestamp: new Date(),
+          check: 'Generation',
+          result: false,
+          details: result.metadata?.response
+            ? `No parseable JSON (${result.metadata.response.slice(0, 180)}...)`
+            : 'No response from Ollama'
+        }
+      });
+
+      if (failureCountRef.current >= 3) {
+        endBanter();
+        return;
+      }
+
       setIsWaitingForNextLine(true);
       setSecondsUntilNextLine(10); // Shorter retry delay
       timeoutRef.current = setTimeout(() => {
@@ -137,6 +157,8 @@ export const useCompanionBanter = (
       }, 10000);
       return;
     }
+
+    failureCountRef.current = 0;
 
     const { speakerId, text, isConcluding } = result.data;
 
@@ -313,6 +335,7 @@ export const useCompanionBanter = (
     participantsRef.current = availableCompanions;
     banterHistoryRef.current = [];
     turnRef.current = 0;
+    failureCountRef.current = 0;
     isGeneratingRef.current = true;
     setIsBanterActive(true);
 
@@ -381,6 +404,7 @@ export const useCompanionBanter = (
     participantsRef.current = availableCompanions;
     banterHistoryRef.current = [];
     turnRef.current = 0;
+    failureCountRef.current = 0;
     isGeneratingRef.current = true;
     setIsBanterActive(true);
 

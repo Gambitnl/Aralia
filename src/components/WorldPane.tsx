@@ -6,7 +6,7 @@
 import React, { useEffect, useRef, useContext } from 'react';
 import { GameMessage } from '../types'; // Path relative to src/components/
 import { formatGameTime } from '@/utils/timeUtils';
-import Tooltip from './Tooltip'; // Import the new Tooltip component
+import Tooltip from './ui/Tooltip'; // Import the new Tooltip component
 import GlossaryContext from '../context/GlossaryContext';
 
 interface WorldPaneProps {
@@ -69,7 +69,7 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
     };
 
     const regex = new RegExp(`\\b(${Object.keys(tooltipKeywords).join('|')})\\b`, 'gi');
-    
+
     const parts = text.split(regex);
 
     return parts.map((part, index) => {
@@ -106,7 +106,7 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
       <div className="space-y-3 text-lg leading-relaxed">
         {messages.map((msg) => {
           const isBanter = msg.metadata?.type === 'banter';
-          
+
           if (isBanter) {
             // Extract name and text if possible (format: Name: "Text")
             const match = msg.text.match(/^([^:]+): "(.*)"$/);
@@ -139,9 +139,8 @@ const WorldPane: React.FC<WorldPaneProps> = ({ messages }) => {
           return (
             <div
               key={msg.id}
-              className={`p-2 rounded ${
-                msg.sender === 'player' ? 'text-right' : ''
-              }`}
+              className={`p-2 rounded ${msg.sender === 'player' ? 'text-right' : ''
+                }`}
             >
               <p className={`${getMessageStyle(msg.sender)}`}>
                 {processMessageText(msg.text)}

@@ -8,7 +8,7 @@ import React, { useState, useEffect, useCallback, useContext } from 'react';
 import BattleMap from '../BattleMap/BattleMap';
 import { PlayerCharacter, Item } from '../../types';
 import { BattleMapData, CombatCharacter, CombatLogEntry } from '../../types/combat';
-import ErrorBoundary from '../ErrorBoundary';
+import ErrorBoundary from '../ui/ErrorBoundary';
 import { useTurnManager } from '../../hooks/combat/useTurnManager';
 import { useCombatLog } from '../../hooks/combat/useCombatLog';
 import { useAbilitySystem } from '../../hooks/useAbilitySystem';

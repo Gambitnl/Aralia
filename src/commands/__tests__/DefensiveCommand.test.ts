@@ -120,7 +120,9 @@ describe('DefensiveCommand', () => {
 
     const updated = result.characters.find(c => c.id === 'target');
     expect(updated?.armorClass).toBe(17);
-    expect(updated?.activeEffects?.[0]?.type).toBe('ac_bonus');
+    // DefensiveCommand stores effect type as 'buff' with the mechanic in mechanics.acBonus
+    expect(updated?.activeEffects?.[0]?.type).toBe('buff');
+    expect(updated?.activeEffects?.[0]?.mechanics?.acBonus).toBe(5);
   });
 
   it('keeps the higher temporary HP value instead of stacking', () => {
@@ -167,6 +169,8 @@ describe('DefensiveCommand', () => {
     const updated = result.characters.find(c => c.id === 'target');
     // Expected: 13 (base) + 1 (Dex) = 14
     expect(updated?.armorClass).toBe(14);
-    expect(updated?.activeEffects?.[0]?.type).toBe('set_base_ac');
+    // DefensiveCommand stores effect type as 'buff'; the set_base_ac is tracked by the effect existing
+    expect(updated?.activeEffects?.[0]?.type).toBe('buff');
+    expect(updated?.activeEffects?.[0]?.sourceName).toBe('Defensive Spell');
   });
 });

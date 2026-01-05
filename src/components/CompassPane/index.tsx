@@ -12,8 +12,8 @@ import { Action, Location, MapData } from '../../types';
 import { BIOMES } from '../../constants'; // To get biome details like color
 import { DIRECTION_VECTORS, SUBMAP_DIMENSIONS } from '../../config/mapConfig';
 import { TimeWidget } from '../ui/TimeWidget';
-import Tooltip from '../Tooltip'; // Import Tooltip
-import PassTimeModal from '../PassTimeModal'; // Import the new modal
+import Tooltip from '../ui/Tooltip'; // Import Tooltip
+import PassTimeModal from '../Town/PassTimeModal'; // Import the new modal
 import { GatheringPanel, AlchemyBenchPanel } from '../Crafting';
 
 interface CompassPaneProps {

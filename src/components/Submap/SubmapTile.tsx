@@ -7,8 +7,8 @@
  * - ./SubmapPane.tsx
  */
 import React from 'react';
-import Tooltip from '../Tooltip';
-import PlayerSprite from '../PlayerSprite';
+import Tooltip from '../ui/Tooltip';
+import PlayerSprite from '../BattleMap/PlayerSprite';
 import { SeededFeatureConfig } from '../../types';
 
 // Define the structure for the visuals object passed from the parent
@@ -60,7 +60,7 @@ const SubmapTile: React.FC<SubmapTileProps> = React.memo(({
   onClick,
   isDisabled
 }) => {
-  
+
   const handleClick = () => {
     if (!isDisabled) {
       onClick(c, r, visuals.effectiveTerrainType, visuals.activeSeededFeatureConfigForTile);
@@ -73,7 +73,7 @@ const SubmapTile: React.FC<SubmapTileProps> = React.memo(({
 
   // Determine dynamic classes
   let dynamicClasses = visuals.animationClass;
-  
+
   if (isHighlightedForInspection) {
     dynamicClasses += ' cursor-pointer ring-2 ring-yellow-400 ring-inset hover:bg-yellow-500/20';
   } else if (isDisabled) {
@@ -84,31 +84,31 @@ const SubmapTile: React.FC<SubmapTileProps> = React.memo(({
 
   // Inspection mode styling (if not highlighted/inspectable is handled by parent passing props or checking isDisabled logic contextually, 
   // but here we mostly render what we are told). 
-  
+
   if (isInteractiveResource) {
-      // Optimized: replaced ring with box-shadow or brightness filter to avoid layout shifts if possible,
-      // but ring is usually okay. Removed 'transition-all' from base class to avoid heavy paints on hover.
-      dynamicClasses += ' hover:brightness-125 cursor-pointer';
+    // Optimized: replaced ring with box-shadow or brightness filter to avoid layout shifts if possible,
+    // but ring is usually okay. Removed 'transition-all' from base class to avoid heavy paints on hover.
+    dynamicClasses += ' hover:brightness-125 cursor-pointer';
   }
-  
+
   if (isInQuickTravelPath) {
-      dynamicClasses += ' bg-yellow-500/50';
+    dynamicClasses += ' bg-yellow-500/50';
   }
-  
+
   if (isQuickTravelMode) {
-      if (isBlockedForTravel) {
-          dynamicClasses += ' cursor-not-allowed bg-red-800/30';
-      } else {
-          dynamicClasses += ' cursor-pointer hover:bg-white/10'; // Lighter hover effect
-      }
+    if (isBlockedForTravel) {
+      dynamicClasses += ' cursor-not-allowed bg-red-800/30';
+    } else {
+      dynamicClasses += ' cursor-pointer hover:bg-white/10'; // Lighter hover effect
+    }
   }
-  
+
   if (isDestination) {
-      if (!isQuickTravelBlocked) {
-          dynamicClasses += ' ring-2 ring-green-400 ring-inset';
-      } else {
-          dynamicClasses += ' ring-2 ring-red-500 ring-inset';
-      }
+    if (!isQuickTravelBlocked) {
+      dynamicClasses += ' ring-2 ring-green-400 ring-inset';
+    } else {
+      dynamicClasses += ' ring-2 ring-red-500 ring-inset';
+    }
   }
 
   return (
@@ -117,8 +117,8 @@ const SubmapTile: React.FC<SubmapTileProps> = React.memo(({
     TODO(lint-intent): If the element is purely decorative, remove the handlers to keep intent clear.
     */
     <Tooltip content={tooltipContent}>
-      
-      
+
+
       <div
         role="gridcell"
         aria-label={`Tile at ${c},${r}. ${typeof tooltipContent === 'string' ? tooltipContent : 'Visual detail.'}`}
@@ -138,17 +138,17 @@ const SubmapTile: React.FC<SubmapTileProps> = React.memo(({
         <span className="pointer-events-none" style={{ textShadow: '0 0 2px black, 0 0 2px black, 0 0 1px black' }}>
           {visuals.content}
         </span>
-        
+
         {isPlayerPos && (
-            <div className="absolute inset-0 flex items-center justify-center z-[100]">
-                <PlayerSprite facing="south" size={20} />
-            </div>
+          <div className="absolute inset-0 flex items-center justify-center z-[100]">
+            <PlayerSprite facing="south" size={20} />
+          </div>
         )}
 
         {isHighlightedForInspection && (
-            <div className="absolute inset-0 border-2 border-yellow-400 pointer-events-none animate-pulseInspectHighlight"></div>
+          <div className="absolute inset-0 border-2 border-yellow-400 pointer-events-none animate-pulseInspectHighlight"></div>
         )}
-        
+
         {isInQuickTravelPath && !isPlayerPos && (
           <div className="absolute w-1.5 h-1.5 bg-white/80 rounded-full pointer-events-none"></div>
         )}
@@ -156,21 +156,21 @@ const SubmapTile: React.FC<SubmapTileProps> = React.memo(({
     </Tooltip>
   );
 }, (prev, next) => {
-    // Custom comparison to ensure performance
-    // We only return false (re-render) if specific props change
-    return (
-        prev.visuals === next.visuals && // Relies on stable object from parent useMemo
-        prev.tooltipContent === next.tooltipContent &&
-        prev.isPlayerPos === next.isPlayerPos &&
-        prev.isHighlightedForInspection === next.isHighlightedForInspection &&
-        prev.isInteractiveResource === next.isInteractiveResource &&
-        prev.isInQuickTravelPath === next.isInQuickTravelPath &&
-        prev.isQuickTravelMode === next.isQuickTravelMode &&
-        prev.isBlockedForTravel === next.isBlockedForTravel &&
-        prev.isDestination === next.isDestination &&
-        prev.isQuickTravelBlocked === next.isQuickTravelBlocked &&
-        prev.isDisabled === next.isDisabled
-        // Callbacks (onClick, onMouseEnter) are assumed stable via useCallback in parent
+  // Custom comparison to ensure performance
+  // We only return false (re-render) if specific props change
+  return (
+    prev.visuals === next.visuals && // Relies on stable object from parent useMemo
+    prev.tooltipContent === next.tooltipContent &&
+    prev.isPlayerPos === next.isPlayerPos &&
+    prev.isHighlightedForInspection === next.isHighlightedForInspection &&
+    prev.isInteractiveResource === next.isInteractiveResource &&
+    prev.isInQuickTravelPath === next.isInQuickTravelPath &&
+    prev.isQuickTravelMode === next.isQuickTravelMode &&
+    prev.isBlockedForTravel === next.isBlockedForTravel &&
+    prev.isDestination === next.isDestination &&
+    prev.isQuickTravelBlocked === next.isQuickTravelBlocked &&
+    prev.isDisabled === next.isDisabled
+    // Callbacks (onClick, onMouseEnter) are assumed stable via useCallback in parent
   );
 });
 

@@ -310,6 +310,7 @@ JSON:`;
                 body: JSON.stringify({
                     model,
                     prompt,
+                    format: 'json',
                     stream: false,
                     options: { temperature: 0.7, num_predict: 256 }
                 })
@@ -321,14 +322,31 @@ JSON:`;
             const metadata = { prompt, response: data.response, model };
 
             const parsed = this.parseJsonRobustly(data.response);
-            if (!parsed || !parsed.text) return { data: null, metadata };
+            if (!parsed) return { data: null, metadata };
+
+            // Support both single-line and legacy multi-line JSON formats
+            const extractedText = parsed.text
+                || parsed.line
+                || (Array.isArray((parsed as any).lines) ? (parsed as any).lines[0]?.text : undefined);
+            const extractedSpeakerId = parsed.speakerId
+                || parsed.speaker
+                || (Array.isArray((parsed as any).lines) ? (parsed as any).lines[0]?.speakerId : undefined)
+                || nextSpeaker.id;
+            const extractedEmotion = parsed.emotion
+                || (Array.isArray((parsed as any).lines) ? (parsed as any).lines[0]?.emotion : undefined)
+                || 'neutral';
+            const extractedIsConcluding = parsed.isConcluding === true
+                || (Array.isArray((parsed as any).lines) ? (parsed as any).lines[0]?.isConcluding === true : false)
+                || turnNumber >= 5;
+
+            if (!extractedText) return { data: null, metadata };
 
             return {
                 data: {
-                    speakerId: parsed.speakerId || nextSpeaker.id,
-                    text: parsed.text,
-                    emotion: parsed.emotion || 'neutral',
-                    isConcluding: parsed.isConcluding === true || turnNumber >= 5
+                    speakerId: extractedSpeakerId,
+                    text: extractedText,
+                    emotion: extractedEmotion,
+                    isConcluding: extractedIsConcluding
                 },
                 metadata
             };

@@ -12,8 +12,8 @@
  */
 import React from 'react';
 import { Location, MapData, GameMessage, Action, NPC, Item } from '../../types';
-import ErrorBoundary from '../ErrorBoundary';
-import { VersionDisplay } from '../VersionDisplay';
+import ErrorBoundary from '../ui/ErrorBoundary';
+import { VersionDisplay } from '../ui/VersionDisplay';
 import CompassPane from '../CompassPane';
 import ActionPane from '../ActionPane';
 import WorldPane from '../WorldPane';

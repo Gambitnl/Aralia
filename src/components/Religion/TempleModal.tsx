@@ -3,17 +3,17 @@ import { motion } from 'framer-motion';
 // TODO(lint-intent): 'Item' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { Action, Item as _Item } from '../types';
-import { Temple, TempleService } from '../types/religion';
-import { useGameState } from '../state/GameContext';
-import { formatGpAsCoins } from '../utils/coinPurseUtils';
-import { useFocusTrap } from '../hooks/useFocusTrap';
+import { Action, Item as _Item } from '../../types';
+import { Temple, TempleService } from '../../types/religion';
+import { useGameState } from '../../state/GameContext';
+import { formatGpAsCoins } from '../../utils/coinPurseUtils';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 // TODO(lint-intent): 'Tooltip' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import _Tooltip from './Tooltip';
-import { DEITIES } from '../data/deities';
-import { getDivineStanding } from '../utils/religionUtils';
+import _Tooltip from '../ui/Tooltip';
+import { DEITIES } from '../../data/deities';
+import { getDivineStanding } from '../../utils/religionUtils';
 
 interface TempleModalProps {
     isOpen: boolean;
@@ -90,7 +90,7 @@ const TempleModal: React.FC<TempleModalProps> = ({
                 {/* Header */}
                 <div className="relative p-6 bg-gradient-to-b from-gray-800 to-gray-900 border-b border-amber-800">
                     <div className="absolute top-0 right-0 p-4">
-                         <button
+                        <button
                             onClick={onClose}
                             className="text-gray-400 hover:text-white text-3xl transition-colors"
                             aria-label="Close temple"
@@ -191,7 +191,7 @@ const TempleModal: React.FC<TempleModalProps> = ({
 
                     {/* Right Column: Information & Favor */}
                     <div className="w-1/3 bg-gray-950/50 p-6 overflow-y-auto">
-                         <div className="mb-8">
+                        <div className="mb-8">
                             <h3 className="text-sm uppercase tracking-widest text-gray-500 font-bold mb-3">Your Standing</h3>
                             <div className="bg-gray-900 p-4 rounded-lg border border-gray-800 text-center">
                                 <div className="text-4xl font-cinzel text-amber-100 mb-1">{favorScore}</div>
@@ -209,8 +209,8 @@ const TempleModal: React.FC<TempleModalProps> = ({
                             <h3 className="text-sm uppercase tracking-widest text-gray-500 font-bold mb-3">Tenets</h3>
                             <ul className="space-y-3">
                                 {deity.commandments.map((c, i) => (
-                                    
-                                    
+
+
                                     /* TODO(lint-intent): This text includes raw quotes/special characters that were likely meant as prose.
                                     TODO(lint-intent): Decide whether to escape them, move text to a copy/localization layer, or pre-format it.
                                     TODO(lint-intent): If the text is dynamic, consider formatting/escaping before render to preserve intent.
@@ -248,7 +248,7 @@ const TempleModal: React.FC<TempleModalProps> = ({
 
                 {/* Footer */}
                 <div className="p-4 bg-gray-900 border-t border-gray-800 flex justify-between items-center text-xs text-gray-500">
-                     <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                         <span>Your Coin Purse:</span>
                         <span className="text-amber-200 font-bold text-base">{formatGpAsCoins(playerGold)}</span>
                     </div>

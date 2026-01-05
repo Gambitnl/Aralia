@@ -8,7 +8,7 @@ import { OllamaService } from '../../services/OllamaService';
 vi.mock('../../services/OllamaService', () => ({
     OllamaService: {
         isAvailable: vi.fn(),
-        generateBanter: vi.fn()
+        generateBanterLine: vi.fn()
     }
 }));
 
@@ -77,7 +77,7 @@ describe('useCompanionBanter', () => {
             await vi.advanceTimersByTimeAsync(10000);
         });
 
-        expect(OllamaService.generateBanter).not.toHaveBeenCalled();
+        expect(OllamaService.generateBanterLine).not.toHaveBeenCalled();
     });
 
     it('should not check for banter if dialogue is open', async () => {
@@ -88,19 +88,20 @@ describe('useCompanionBanter', () => {
             await vi.advanceTimersByTimeAsync(10000);
         });
 
-        expect(OllamaService.generateBanter).not.toHaveBeenCalled();
+        expect(OllamaService.generateBanterLine).not.toHaveBeenCalled();
     });
 
-    it('should call OllamaService.generateBanter if conditions are met', async () => {
-        vi.mocked(OllamaService.generateBanter).mockResolvedValue({
+    it('should call OllamaService.generateBanterLine if conditions are met', async () => {
+        vi.mocked(OllamaService.generateBanterLine).mockResolvedValue({
             data: {
-                id: 'ai_123',
-                participants: ['kaelen_thorne', 'elara_vance'],
-                lines: [{ speakerId: 'kaelen_thorne', text: 'Hello', delay: 1000 }]
+                speakerId: 'kaelen_thorne',
+                text: 'Hello',
+                emotion: 'neutral',
+                isConcluding: false
             },
             metadata: {
                 prompt: 'test prompt',
-                response: 'test response',
+                response: '{"speakerId":"kaelen_thorne","text":"Hello","emotion":"neutral"}',
                 model: 'test-model'
             }
         } as any);
@@ -111,7 +112,7 @@ describe('useCompanionBanter', () => {
             await vi.advanceTimersByTimeAsync(10000);
         });
 
-        expect(OllamaService.generateBanter).toHaveBeenCalled();
+        expect(OllamaService.generateBanterLine).toHaveBeenCalled();
         expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
             type: 'ADD_OLLAMA_LOG_ENTRY'
         }));
@@ -120,14 +121,14 @@ describe('useCompanionBanter', () => {
         }));
     });
 
-    it('should include deep persona data in OllamaService.generateBanter call', async () => {
+    it('should include deep persona data in OllamaService.generateBanterLine call', async () => {
         renderHook(() => useCompanionBanter(baseGameState, mockDispatch));
 
         await act(async () => {
             await vi.advanceTimersByTimeAsync(10000);
         });
 
-        const call = vi.mocked(OllamaService.generateBanter).mock.calls[0];
+        const call = vi.mocked(OllamaService.generateBanterLine).mock.calls[0];
         const participants = call[0];
 
         expect(participants[0]).toMatchObject({
@@ -148,7 +149,7 @@ describe('useCompanionBanter', () => {
             await vi.advanceTimersByTimeAsync(10000);
         });
 
-        expect(OllamaService.generateBanter).not.toHaveBeenCalled();
+        expect(OllamaService.generateBanterLine).not.toHaveBeenCalled();
     });
 
     it('should handle missing ollamaInteractionLog in state gracefully', async () => {
@@ -156,11 +157,12 @@ describe('useCompanionBanter', () => {
         const stateWithoutLog = { ...baseGameState };
         delete (stateWithoutLog as any).ollamaInteractionLog;
 
-        vi.mocked(OllamaService.generateBanter).mockResolvedValue({
+        vi.mocked(OllamaService.generateBanterLine).mockResolvedValue({
             data: {
-                id: 'ai_123',
-                participants: ['kaelen_thorne'],
-                lines: [{ speakerId: 'kaelen_thorne', text: 'Hello', delay: 1000 }]
+                speakerId: 'kaelen_thorne',
+                text: 'Hello',
+                emotion: 'neutral',
+                isConcluding: false
             },
             metadata: { prompt: 'p', response: 'r', model: 'm' }
         } as any);

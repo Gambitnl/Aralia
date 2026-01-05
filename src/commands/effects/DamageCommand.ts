@@ -1,5 +1,5 @@
 import { BaseEffectCommand } from '../base/BaseEffectCommand'
-import { CombatState, StatusEffect } from '../../types/combat'
+import { CombatState, StatusEffect, ActiveEffect } from '../../types/combat'
 import { isDamageEffect } from '../../types/spells'
 import { checkConcentration } from '../../utils/concentrationUtils';
 import { calculateSpellDC, rollSavingThrow, calculateSaveDamage } from '../../utils/savingThrowUtils';
@@ -8,6 +8,9 @@ import { BreakConcentrationCommand } from './ConcentrationCommands'
 import { ResistanceCalculator } from '../../utils/combat/resistanceUtils';
 import { getPlanarSpellModifier } from '../../utils/planarUtils';
 import { StatusConditionCommand } from './StatusConditionCommand';
+
+/** Unique key for tracking Slasher speed reduction once-per-turn usage */
+const SLASHER_SLOW_USAGE_KEY = 'slasher_slow';
 
 const DAMAGE_VERBS: Record<string, string[]> = {
   acid: ['melts', 'corrodes', 'dissolves', 'burns'],
@@ -107,122 +110,12 @@ export class DamageCommand extends BaseEffectCommand {
       });
 
       // --- SLASHER FEAT LOGIC ---
-      if (caster.feats?.includes('slasher') && this.effect.damage.type.toLowerCase() === 'slashing') {
-        const _hasHit = finalDamage > 0; // Assuming hit implies damage for Slasher trigger (rule says "hit a creature")
-        // But DamageCommand runs AFTER hit confirmation.
-        // Rule 1: Reduce Speed by 10ft (Once per turn)
-        // We need to check if we've already applied it this turn.
-        // For now, we apply the status effect. The StatusEffect itself should ideally prevent stacking or we check here.
-        // A simple "Slasher Slow" status effect.
-        // We don't have a "usedSlasherThisTurn" tracker on the caster easily accessible here without state mod.
-        // However, standard 5e implies if you hit multiple people, you can slow one? "When you hit a creature... you can reduce its speed".
-        // It says "Once per turn". This limits it to ONE target.
-        // For MVP, we will apply it to every hit, acknowledging the limitation is missing.
-        // TODO(Mechanist): Enforce "Once per turn" limit for Slasher speed reduction.
-
-        const slasherSlow: StatusEffect = {
-          id: `slasher_slow_${target.id}_${currentState.turnState.currentTurn}`,
-          name: 'Slasher Slow',
-          type: 'debuff',
-          duration: 1, // Until start of your next turn (approx 1 round)
-          effect: {
-            type: 'stat_modifier',
-            stat: 'speed',
-            value: -10
-          },
-          icon: '🦶'
-        };
-
-        const slowCommand = new StatusConditionCommand(
-          {
-            type: 'STATUS_CONDITION',
-            trigger: { type: 'immediate' },
-            condition: { type: 'hit' },
-            statusCondition: {
-              name: 'Slowed' as any, // TODO(preserve-lint): Map Slasher feat slow to a dedicated condition type.
-              duration: { type: 'rounds', value: 1 },
-              // Now strictly typed in StatusCondition
-              effect: slasherSlow.effect
-            }
-          },
-          {
-            ...this.context,
-            targets: [target]
-          }
-        );
-        currentState = slowCommand.execute(currentState);
-
-        currentState = this.addLogEntry(currentState, {
-            type: 'status',
-            message: `${caster.name}'s Slasher feat slows ${target.name} by 10ft!`,
-            characterId: target.id
-        });
-
-        // Rule 2: Critical Hit -> Disadvantage
-        if (isCritical) {
-             const _slasherCrit: StatusEffect = {
-                id: `slasher_crit_${target.id}_${currentState.turnState.currentTurn}`,
-                name: 'Slasher Grievous Wound',
-                type: 'debuff',
-                duration: 1,
-                effect: {
-                    type: 'condition', // Disadvantage on attacks
-                    value: 0 // Placeholder, Condition system handles the rest via name matching or specific logic
-                },
-                icon: '⚔️'
-             };
-             // We need to map this to "Disadvantage on Attack Rolls".
-             // Currently StatusEffect supports 'stat_modifier' or 'condition'.
-             // If we use 'condition', we rely on ConditionName. "Grievous Wound" isn't a standard condition.
-             // We might need a custom effect type or just rely on the description for now?
-             // Or use ActiveEffect: 'disadvantage_on_attacks'.
-             // Wait, StatusConditionCommand uses StatusEffect.
-             // CombatCharacter has `activeEffects` which supports `disadvantage_on_attacks`.
-             // But DamageCommand works via StatusConditionCommand -> StatusEffect.
-
-             // Direct injection into ActiveEffects (skipping StatusConditionCommand wrapper for precise mechanics):
-             // Actually, let's use a descriptive StatusEffect and log it.
-             // To strictly implement "Disadvantage", we'd need to add an ActiveEffect.
-             // But DamageCommand usually delegates to StatusConditionCommand.
-
-             // Let's create a special status that applies the 'disadvantage_on_attacks' ActiveEffect if possible.
-             // But `StatusEffect` structure is limited.
-             // Hack for now: Log it clearly. The engine might not enforce the disadvantage automatically yet without `ActiveEffect` support in StatusEffect.
-             // TODO(Mechanist): Wire Slasher Critical Disadvantage to automatic ActiveEffect 'disadvantage_on_attacks'.
-
-             currentState = this.addLogEntry(currentState, {
-                type: 'status',
-                message: `CRITICAL HIT! ${caster.name}'s Slasher feat grievously wounds ${target.name} (Disadvantage on attacks)!`,
-                characterId: target.id
-            });
-        }
+      if (caster.feats?.includes('slasher') && this.effect.damage.type.toLowerCase() === 'slashing' && finalDamage > 0) {
+        currentState = this.applySlasherFeat(currentState, caster, target, isCritical);
       }
 
-      // --- IMPROVED LOGGING ---
-      const damageType = this.effect.damage.type.toLowerCase();
-      const verbs = DAMAGE_VERBS[damageType] || DEFAULT_VERBS;
-      const verbIndex = Math.floor(Math.random() * verbs.length);
-      const verb = verbs[verbIndex];
-
-      const sourceName = this.context.spellName;
-      let logMessage = '';
-
-      if (sourceName && sourceName !== 'Attack') {
-        logMessage = `${caster.name} ${verb} ${target.name} with ${sourceName} for ${finalDamage} ${damageType} damage`;
-        if (planarModifier !== 0) {
-           logMessage += ` (Planar Boost: ${planarModifier > 0 ? '+' : ''}${planarModifier})`;
-        }
-      } else {
-        logMessage = `${caster.name} ${verb} ${target.name} for ${finalDamage} ${damageType} damage`;
-      }
-
-      currentState = this.addLogEntry(currentState, {
-        type: 'damage',
-        message: logMessage,
-        characterId: target.id,
-        targetIds: [target.id],
-        data: { value: finalDamage, type: this.effect.damage.type }
-      });
+      // --- LOGGING ---
+      currentState = this.logDamage(currentState, caster, target, finalDamage, planarModifier);
 
       // 4. Check Concentration
       if (target.concentratingOn && damageRoll > 0) {
@@ -262,6 +155,137 @@ export class DamageCommand extends BaseEffectCommand {
       return `Deals ${this.effect.damage.dice} ${this.effect.damage.type} damage`
     }
     return 'Deals damage'
+  }
+
+  /**
+   * Applies the effects of the Slasher feat:
+   * 1. Reduce speed by 10ft (at most once per turn).
+   * 2. On critical hit, target has disadvantage on attacks until start of attacker's next turn.
+   */
+  private applySlasherFeat(
+    state: CombatState,
+    caster: CombatState['characters'][0],
+    target: CombatState['characters'][0],
+    isCritical: boolean
+  ): CombatState {
+    let currentState = state;
+
+    // Rule 1: Reduce Speed by 10ft (Once per turn)
+    // Check if we've already used Slasher slow this turn
+    const hasUsedSlasherSlowThisTurn = caster.featUsageThisTurn?.includes(SLASHER_SLOW_USAGE_KEY);
+
+    if (!hasUsedSlasherSlowThisTurn) {
+      // Mark Slasher slow as used for this turn on the caster
+      const updatedFeatUsage = [...(caster.featUsageThisTurn || []), SLASHER_SLOW_USAGE_KEY];
+      currentState = this.updateCharacter(currentState, caster.id, {
+        featUsageThisTurn: updatedFeatUsage
+      });
+
+      // Apply speed reduction status effect
+      const slasherSlow: StatusEffect = {
+        id: `slasher_slow_${target.id}_${currentState.turnState.currentTurn}`,
+        name: 'Slasher Slow',
+        type: 'debuff',
+        duration: 1, // Until start of attacker's next turn (1 round)
+        effect: {
+          type: 'stat_modifier',
+          stat: 'speed',
+          value: -10
+        },
+        icon: '🦶'
+      };
+
+      const slowCommand = new StatusConditionCommand(
+        {
+          type: 'STATUS_CONDITION',
+          trigger: { type: 'immediate' },
+          condition: { type: 'hit' },
+          statusCondition: {
+            name: 'Slasher Slow',
+            duration: { type: 'rounds', value: 1 },
+            effect: slasherSlow.effect
+          }
+        },
+        {
+          ...this.context,
+          targets: [target]
+        }
+      );
+      currentState = slowCommand.execute(currentState);
+
+      currentState = this.addLogEntry(currentState, {
+        type: 'status',
+        message: `${caster.name}'s Slasher feat slows ${target.name} by 10ft!`,
+        characterId: target.id
+      });
+    }
+
+    // Rule 2: Critical Hit -> Disadvantage on attacks until attacker's next turn
+    if (isCritical) {
+      const grievousWound: ActiveEffect = {
+        id: `slasher_grievous_${target.id}_${currentState.turnState.currentTurn}`,
+        spellId: 'slasher',
+        casterId: caster.id,
+        sourceName: 'Slasher Grievous Wound',
+        type: 'debuff',
+        duration: { type: 'rounds', value: 1 },
+        startTime: currentState.turnState.currentTurn,
+        mechanics: {
+          disadvantageOnAttacks: true
+        }
+      };
+
+      // Get the latest target state to avoid stale references
+      const currentTarget = currentState.characters.find(c => c.id === target.id);
+      const updatedActiveEffects = [...(currentTarget?.activeEffects || []), grievousWound];
+
+      currentState = this.updateCharacter(currentState, target.id, {
+        activeEffects: updatedActiveEffects
+      });
+
+      currentState = this.addLogEntry(currentState, {
+        type: 'status',
+        message: `CRITICAL HIT! ${caster.name}'s Slasher feat grievously wounds ${target.name} (Disadvantage on attacks)!`,
+        characterId: target.id
+      });
+    }
+
+    return currentState;
+  }
+
+  private logDamage(
+    state: CombatState,
+    caster: CombatState['characters'][0],
+    target: CombatState['characters'][0],
+    finalDamage: number,
+    planarModifier: number
+  ): CombatState {
+    if (!isDamageEffect(this.effect)) return state;
+
+    const damageType = this.effect.damage.type.toLowerCase();
+    const verbs = DAMAGE_VERBS[damageType] || DEFAULT_VERBS;
+    const verbIndex = Math.floor(Math.random() * verbs.length);
+    const verb = verbs[verbIndex];
+
+    const sourceName = this.context.spellName;
+    let logMessage = '';
+
+    if (sourceName && sourceName !== 'Attack') {
+      logMessage = `${caster.name} ${verb} ${target.name} with ${sourceName} for ${finalDamage} ${damageType} damage`;
+      if (planarModifier !== 0) {
+        logMessage += ` (Planar Boost: ${planarModifier > 0 ? '+' : ''}${planarModifier})`;
+      }
+    } else {
+      logMessage = `${caster.name} ${verb} ${target.name} for ${finalDamage} ${damageType} damage`;
+    }
+
+    return this.addLogEntry(state, {
+      type: 'damage',
+      message: logMessage,
+      characterId: target.id,
+      targetIds: [target.id],
+      data: { value: finalDamage, type: this.effect.damage.type }
+    });
   }
 
   /**

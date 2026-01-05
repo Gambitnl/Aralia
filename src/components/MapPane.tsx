@@ -82,36 +82,36 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
 
   // Handle mouse wheel for zooming
   const handleWheel = (e: React.WheelEvent) => {
-      e.preventDefault();
-      const zoomSensitivity = 0.1;
-      const delta = -Math.sign(e.deltaY) * zoomSensitivity;
-      const newScale = Math.min(Math.max(0.5, scale + delta), 3); // Limit zoom between 0.5x and 3x
-      setScale(newScale);
+    e.preventDefault();
+    const zoomSensitivity = 0.1;
+    const delta = -Math.sign(e.deltaY) * zoomSensitivity;
+    const newScale = Math.min(Math.max(0.5, scale + delta), 3); // Limit zoom between 0.5x and 3x
+    setScale(newScale);
   };
 
   // Handle mouse down for panning
   const handleMouseDown = (e: React.MouseEvent) => {
-      setIsDragging(true);
-      setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
   };
 
   // Handle mouse move for panning
   const handleMouseMove = (e: React.MouseEvent) => {
-      if (!isDragging) return;
-      setOffset({
-          x: e.clientX - dragStart.x,
-          y: e.clientY - dragStart.y
-      });
+    if (!isDragging) return;
+    setOffset({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y
+    });
   };
 
   // Handle mouse up to stop panning
   const handleMouseUp = () => {
-      setIsDragging(false);
+    setIsDragging(false);
   };
 
   const handleRecenter = () => {
-      setOffset({ x: 0, y: 0 });
-      setScale(1);
+    setOffset({ x: 0, y: 0 });
+    setScale(1);
   };
 
 
@@ -172,7 +172,7 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
     }
 
     if (handled) {
-        event.preventDefault();
+      event.preventDefault();
     }
 
     if (newX !== x || newY !== y) {
@@ -190,19 +190,19 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
   const _getTileStyle = (tile: MapTileType): React.CSSProperties => {
     const biome: Biome | undefined = BIOMES[tile.biomeId];
     let backgroundColor = 'rgba(107, 114, 128, 0.7)'; // Default discovered fallback
-    
+
     if (tile.discovered) {
       if (biome && biome.rgbaColor) {
         backgroundColor = biome.rgbaColor;
-      } 
+      }
     } else {
-        backgroundColor = 'rgba(55, 65, 81, 0.7)'; // Undiscovered fog
+      backgroundColor = 'rgba(55, 65, 81, 0.7)'; // Undiscovered fog
     }
 
     return {
       backgroundColor,
-      border: tile.isPlayerCurrent ? '2px solid #FBBF24' : '1px solid rgba(75, 85, 99, 0.5)', 
-      aspectRatio: '1 / 1', 
+      border: tile.isPlayerCurrent ? '2px solid #FBBF24' : '1px solid rgba(75, 85, 99, 0.5)',
+      aspectRatio: '1 / 1',
     };
   };
   // TODO(lint-intent): 'getTileTooltip' is declared but unused, suggesting an unfinished state/behavior hook in this block.
@@ -223,7 +223,7 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
     }
 
     if (biome?.description) {
-        tooltip += ` ${biome.description}`;
+      tooltip += ` ${biome.description}`;
     }
 
     if (tile.isPlayerCurrent) {
@@ -247,8 +247,8 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
         category: 'Biome'
       }));
 
-    items.push({ icon: '📍', meaning: 'Your Current World Map Area', category: 'Player'});
-    items.push({ icon: '?', meaning: 'Undiscovered Area', category: 'Map State'});
+    items.push({ icon: '📍', meaning: 'Your Current World Map Area', category: 'Player' });
+    items.push({ icon: '?', meaning: 'Undiscovered Area', category: 'Map State' });
 
     // Surface each unique POI category in the legend using the first icon we encounter for that class of marker.
     const poiCategoryToIcon = new Map<string, string>();
@@ -271,39 +271,39 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
   }, [poiMarkers]);
 
 
-    return (
-      <WindowFrame
-        title="World Map"
-        onClose={onClose}
-        storageKey="world-map-window"
-        initialMaximized={true}
+  return (
+    <WindowFrame
+      title="World Map"
+      onClose={onClose}
+      storageKey="world-map-window"
+      initialMaximized={true}
+    >
+      <div
+        className="bg-gray-800 p-4 md:p-6 flex flex-col h-full w-full"
+        style={{ backgroundImage: `url(${oldPaperBg})`, backgroundSize: 'cover' }}
       >
+
+
         <div
-          className="bg-gray-800 p-4 md:p-6 flex flex-col h-full w-full"
-          style={{ backgroundImage: `url(${oldPaperBg})`, backgroundSize: 'cover' }}
+          className="overflow-hidden flex-grow p-2 bg-black bg-opacity-10 rounded relative cursor-grab active:cursor-grabbing"
+          ref={containerRef}
+          onWheel={handleWheel}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          role="button"
+          tabIndex={0}
+          aria-label="World map viewport"
         >
-        
-        
-        <div
-            className="overflow-hidden flex-grow p-2 bg-black bg-opacity-10 rounded relative cursor-grab active:cursor-grabbing"
-            ref={containerRef}
-            onWheel={handleWheel}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            role="button"
-            tabIndex={0}
-            aria-label="World map viewport"
-        >
-          <div 
+          <div
             className="grid gap-0.5 transition-transform duration-75 ease-out origin-center"
-            style={{ 
+            style={{
               gridTemplateColumns: `repeat(${gridSize.cols}, minmax(0, 1fr))`,
               gridTemplateRows: `repeat(${gridSize.rows}, minmax(0, 1fr))`,
               transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
             }}
-            role="grid" 
+            role="grid"
             ref={gridRef}
           >
             {flattenedTiles.map((tile, index) => {
@@ -324,9 +324,9 @@ const MapPane: React.FC<MapPaneProps> = ({ mapData, onTileClick, onClose }) => {
 
           {/* Controls Overlay */}
           <div className="absolute bottom-4 right-4 flex flex-col gap-2">
-              <button onClick={() => setScale(s => Math.min(3, s + 0.2))} className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded shadow" aria-label="Zoom In">+</button>
-              <button onClick={handleRecenter} className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded shadow" aria-label="Reset View">⟲</button>
-              <button onClick={() => setScale(s => Math.max(0.5, s - 0.2))} className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded shadow" aria-label="Zoom Out">-</button>
+            <button onClick={() => setScale(s => Math.min(3, s + 0.2))} className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded shadow" aria-label="Zoom In">+</button>
+            <button onClick={handleRecenter} className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded shadow" aria-label="Reset View">⟲</button>
+            <button onClick={() => setScale(s => Math.max(0.5, s - 0.2))} className="bg-gray-700 hover:bg-gray-600 text-white p-2 rounded shadow" aria-label="Zoom Out">-</button>
           </div>
         </div>
         <GlossaryDisplay items={mapGlossaryItems} title="Map Legend" />

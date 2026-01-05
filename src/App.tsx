@@ -51,12 +51,12 @@ import { canUseDevTools } from './utils/permissions';
 import { validateEnv } from './config/env';
 import { DiceOverlay } from './components/dice/DiceOverlay';
 
-import { NotificationSystem } from './components/NotificationSystem';
+import { NotificationSystem } from './components/ui/NotificationSystem';
 import { GameProvider } from './state/GameContext';
 import { CompanionReaction } from './components/ui/CompanionReaction';
 import GameModals from './components/layout/GameModals';
-import MainMenu from './components/MainMenu';
-import ErrorBoundary from './components/ErrorBoundary';
+import MainMenu from './components/layout/MainMenu';
+import ErrorBoundary from './components/ui/ErrorBoundary';
 import * as SaveLoadService from './services/saveLoadService';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { ConversationPanel } from './components/ConversationPanel';
@@ -70,7 +70,7 @@ const CombatView = lazy(() => import('./components/Combat').then(module => ({ de
 const CharacterCreator = lazy(() => import('./components/CharacterCreator/CharacterCreator'));
 const GameLayout = lazy(() => import('./components/layout/GameLayout'));
 const LoadGameTransition = lazy(() => import('./components/SaveLoad').then(module => ({ default: module.LoadGameTransition })));
-const NotFound = lazy(() => import('./components/NotFound'));
+const NotFound = lazy(() => import('./components/ui/NotFound'));
 
 
 // TODO: Add React.memo and useMemo to prevent unnecessary re-renders in performance-critical components like GameLayout, CombatView, and TownCanvas

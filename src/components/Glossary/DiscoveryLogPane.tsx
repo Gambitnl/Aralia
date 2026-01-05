@@ -4,9 +4,9 @@
  * It allows browsing, filtering, and searching of discovered entries.
  */
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { GameState, DiscoveryEntry, DiscoveryType, NPC, KnownFact } from '../types';
+import { GameState, DiscoveryEntry, DiscoveryType, NPC, KnownFact } from '../../types';
 import { formatGameDate, formatGameDateTime } from '@/utils/timeUtils';
-import Tooltip from './Tooltip';
+import Tooltip from '../ui/Tooltip';
 
 interface DiscoveryLogPaneProps {
   isOpen: boolean;
@@ -79,15 +79,15 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
       firstFocusableElementRef.current?.focus();
       // If opening and an entry was previously selected, try to re-select it or select first
       if (selectedEntry && !entries.find(e => e.id === selectedEntry.id)) {
-         setSelectedEntry(filteredAndSortedEntries.length > 0 ? filteredAndSortedEntries[0] : null);
+        setSelectedEntry(filteredAndSortedEntries.length > 0 ? filteredAndSortedEntries[0] : null);
       } else if (!selectedEntry && filteredAndSortedEntries.length > 0) {
-         setSelectedEntry(filteredAndSortedEntries[0]);
-         if(filteredAndSortedEntries[0] && !filteredAndSortedEntries[0].isRead) {
-           onMarkRead(filteredAndSortedEntries[0].id);
-         }
+        setSelectedEntry(filteredAndSortedEntries[0]);
+        if (filteredAndSortedEntries[0] && !filteredAndSortedEntries[0].isRead) {
+          onMarkRead(filteredAndSortedEntries[0].id);
+        }
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const handleEntrySelect = (entry: DiscoveryEntry) => {
@@ -127,7 +127,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
       window.removeEventListener('keydown', handleEsc);
     };
   }, [isOpen, onClose]);
-  
+
   const consequences = useMemo(() => {
     if (!selectedEntry || !npcMemory) return [];
 
@@ -204,7 +204,7 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
               ))}
             </select>
           </div>
-           <div>
+          <div>
             <label htmlFor="journalSortOrder" className="block text-sm font-medium text-sky-300 mb-1">Sort by</label>
             <select
               id="journalSortOrder"
@@ -226,29 +226,29 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
           {/* Left Pane: Entry List */}
           <div ref={listContainerRef} className="md:w-1/3 border border-gray-700 rounded-lg bg-gray-800/50 p-2 overflow-y-auto scrollable-content flex-shrink-0">
             {filteredAndSortedEntries.length === 0 ? (
-                 <p className="text-gray-500 italic text-center py-4">No entries match your criteria.</p>
+              <p className="text-gray-500 italic text-center py-4">No entries match your criteria.</p>
             ) : (
-                <ul className="space-y-1">
+              <ul className="space-y-1">
                 {filteredAndSortedEntries.map(entry => (
-                    <li key={entry.id}>
+                  <li key={entry.id}>
                     <button
-                        onClick={() => handleEntrySelect(entry)}
-                        className={`w-full text-left p-2.5 rounded-md transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-sky-400
+                      onClick={() => handleEntrySelect(entry)}
+                      className={`w-full text-left p-2.5 rounded-md transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-sky-400
                                     ${selectedEntry?.id === entry.id ? 'bg-sky-700 text-white shadow-md' : 'bg-gray-700 hover:bg-gray-600/70 text-gray-300'}`}
                     >
-                        <div className="flex items-center">
+                      <div className="flex items-center">
                         {!entry.isRead && (
-                            <Tooltip content="Unread">
-                                <span className="w-2 h-2 bg-amber-400 rounded-full mr-2 flex-shrink-0" aria-label="Unread entry"></span>
-                            </Tooltip>
+                          <Tooltip content="Unread">
+                            <span className="w-2 h-2 bg-amber-400 rounded-full mr-2 flex-shrink-0" aria-label="Unread entry"></span>
+                          </Tooltip>
                         )}
                         <span className={`flex-grow truncate ${!entry.isRead ? 'font-semibold' : ''}`}>{entry.title}</span>
-                        </div>
-                        <span className="text-xs text-gray-500 block mt-0.5">{entry.type} - {formatGameDate(new Date(entry.timestamp))}</span>
+                      </div>
+                      <span className="text-xs text-gray-500 block mt-0.5">{entry.type} - {formatGameDate(new Date(entry.timestamp))}</span>
                     </button>
-                    </li>
+                  </li>
                 ))}
-                </ul>
+              </ul>
             )}
           </div>
 
@@ -263,47 +263,47 @@ const DiscoveryLogPane: React.FC<DiscoveryLogPaneProps> = ({
                   <span><strong className="text-gray-400">In-Game Time:</strong> {selectedEntry.gameTime}</span>
                 </div>
                 {selectedEntry.source && (
-                    <p className="text-xs text-gray-500 mb-3">
-                        <strong className="text-gray-400">Source:</strong> {selectedEntry.source.type}
-                        {selectedEntry.source.name && ` - ${selectedEntry.source.name}`}
-                        {selectedEntry.source.id && ` (ID: ${selectedEntry.source.id})`}
-                    </p>
+                  <p className="text-xs text-gray-500 mb-3">
+                    <strong className="text-gray-400">Source:</strong> {selectedEntry.source.type}
+                    {selectedEntry.source.name && ` - ${selectedEntry.source.name}`}
+                    {selectedEntry.source.id && ` (ID: ${selectedEntry.source.id})`}
+                  </p>
                 )}
                 {selectedEntry.flags && selectedEntry.flags.length > 0 && (
-                    <div className="mb-3 text-xs">
-                        <strong className="text-gray-400">Tags:</strong>
-                        {selectedEntry.flags.map(flag => (
-                            <span key={`${flag.key}-${flag.value}`} className="ml-1.5 inline-block bg-sky-800 text-sky-200 px-1.5 py-0.5 rounded-full text-[10px]">
-                                {flag.label || `${flag.key}: ${flag.value}`}
-                            </span>
-                        ))}
-                    </div>
+                  <div className="mb-3 text-xs">
+                    <strong className="text-gray-400">Tags:</strong>
+                    {selectedEntry.flags.map(flag => (
+                      <span key={`${flag.key}-${flag.value}`} className="ml-1.5 inline-block bg-sky-800 text-sky-200 px-1.5 py-0.5 rounded-full text-[10px]">
+                        {flag.label || `${flag.key}: ${flag.value}`}
+                      </span>
+                    ))}
+                  </div>
                 )}
-                 {selectedEntry.isQuestRelated && (
-                    <p className="text-xs text-yellow-400 italic mb-3">
-                        Related to Quest: {selectedEntry.questId || 'Unknown Quest'} (Status: {selectedEntry.questStatus || 'N/A'})
-                    </p>
+                {selectedEntry.isQuestRelated && (
+                  <p className="text-xs text-yellow-400 italic mb-3">
+                    Related to Quest: {selectedEntry.questId || 'Unknown Quest'} (Status: {selectedEntry.questStatus || 'N/A'})
+                  </p>
                 )}
 
 
                 <div className="prose prose-sm prose-invert max-w-none text-gray-300 whitespace-pre-wrap leading-relaxed">
                   {selectedEntry.content}
                 </div>
-                
+
                 {consequences.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-gray-600">
-                        <h4 className="text-lg font-semibold text-sky-300 mb-2">Consequences</h4>
-                        <ul className="list-disc list-inside space-y-2 text-sm text-gray-300">
-                        {consequences.map(({ npc, fact }) => (
-                            <li key={fact.id}>
-                            <strong>{npc.name}</strong> learned that: <em>&quot;{fact.text}&quot;</em>
-                            <span className="text-xs text-gray-500 ml-2">
-                                ({fact.source === 'gossip' ? `Heard from ${allNpcs[fact.sourceNpcId!]?.name || 'a traveler'}` : 'Learned directly'})
-                            </span>
-                            </li>
-                        ))}
-                        </ul>
-                    </div>
+                  <div className="mt-4 pt-4 border-t border-gray-600">
+                    <h4 className="text-lg font-semibold text-sky-300 mb-2">Consequences</h4>
+                    <ul className="list-disc list-inside space-y-2 text-sm text-gray-300">
+                      {consequences.map(({ npc, fact }) => (
+                        <li key={fact.id}>
+                          <strong>{npc.name}</strong> learned that: <em>&quot;{fact.text}&quot;</em>
+                          <span className="text-xs text-gray-500 ml-2">
+                            ({fact.source === 'gossip' ? `Heard from ${allNpcs[fact.sourceNpcId!]?.name || 'a traveler'}` : 'Learned directly'})
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </article>
             ) : (

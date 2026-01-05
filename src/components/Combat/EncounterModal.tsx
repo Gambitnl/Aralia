@@ -4,9 +4,9 @@
  * This is now a display-only component. Generation logic is handled before it's shown.
  */
 import React, { useEffect, useRef } from 'react';
-import { Monster, GroundingChunk, Action, TempPartyMember } from '../types';
-import { CLASSES_DATA } from '../constants'; // To get class names
-import { t } from '../utils/i18n';
+import { Monster, GroundingChunk, Action, TempPartyMember } from '../../types';
+import { CLASSES_DATA } from '../../constants'; // To get class names
+import { t } from '../../utils/i18n';
 
 interface EncounterModalProps {
   isOpen: boolean;
@@ -52,13 +52,13 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
   if (!isOpen) {
     return null;
   }
-  
+
   const handleSimulateBattle = () => {
     if (encounter) {
-      onAction({ 
-        type: 'START_BATTLE_MAP_ENCOUNTER', 
-        label: 'Simulate Battle', 
-        payload: { startBattleMapEncounterData: { monsters: encounter } } 
+      onAction({
+        type: 'START_BATTLE_MAP_ENCOUNTER',
+        label: 'Simulate Battle',
+        payload: { startBattleMapEncounterData: { monsters: encounter } }
       });
       // The modal will be closed by the state update in the reducer
     }
@@ -68,8 +68,8 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
     if (isLoading) {
       return (
         <div className="text-center p-8">
-            <p className="text-xl text-amber-300">{t('encounter_modal.loading')}</p>
-            <p className="text-sm text-gray-400 mt-2">{t('encounter_modal.loading_flavor')}</p>
+          <p className="text-xl text-amber-300">{t('encounter_modal.loading')}</p>
+          <p className="text-sm text-gray-400 mt-2">{t('encounter_modal.loading_flavor')}</p>
         </div>
       );
     }
@@ -148,23 +148,23 @@ const EncounterModal: React.FC<EncounterModalProps> = ({
         </div>
 
         <div className="overflow-y-auto scrollable-content flex-grow p-1 pr-2">
-            {renderContent()}
+          {renderContent()}
         </div>
 
         <div className="mt-6 pt-4 border-t border-gray-700 flex justify-between items-center">
-            <button
-              onClick={handleSimulateBattle}
-              disabled={!canSimulate}
-              className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg shadow disabled:bg-gray-500 disabled:cursor-not-allowed"
-            >
-                {t('encounter_modal.simulate')}
-            </button>
-            <button
-              onClick={onClose}
-              className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow"
-            >
-                {t('encounter_modal.close')}
-            </button>
+          <button
+            onClick={handleSimulateBattle}
+            disabled={!canSimulate}
+            className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg shadow disabled:bg-gray-500 disabled:cursor-not-allowed"
+          >
+            {t('encounter_modal.simulate')}
+          </button>
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-lg shadow"
+          >
+            {t('encounter_modal.close')}
+          </button>
         </div>
       </div>
     </div>

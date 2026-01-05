@@ -471,7 +471,8 @@ export const FEATS_DATA: Feat[] = [
     },
   },
   // Updated 2025-12-11: Changed from giving both STR+1 and DEX+1 to selecting one
-  // TODO(FEATURES): Implement UI for ability selection; also needs combat mechanics for speed reduction and crit effect (see docs/FEATURES_TODO.md; if this block is moved/refactored/modularized, update the FEATURES_TODO entry path).
+  // Combat mechanics implemented 2026-01-05: Speed reduction (once per turn) and crit disadvantage via ActiveEffect
+  // TODO(FEATURES): Implement UI for ability selection (STR or DEX) during feat selection.
   {
     id: 'slasher',
     name: 'Slasher',

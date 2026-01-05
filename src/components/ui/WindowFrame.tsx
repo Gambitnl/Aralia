@@ -4,6 +4,7 @@
  */
 import React, { useRef } from 'react';
 import { useResizableWindow } from '../../hooks/useResizableWindow';
+import Tooltip from './Tooltip';
 import { ResizeHandles } from './ResizeHandles';
 
 interface WindowFrameProps {
@@ -37,11 +38,11 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
 
     // If position isn't calculated yet, don't render or render hidden to avoid jump
     const style: React.CSSProperties = {
-        width: `${size.width}px`,
-        height: `${size.height}px`,
+        width: `${size.width} px`,
+        height: `${size.height} px`,
         position: 'fixed',
-        left: position ? `${position.left}px` : '50%',
-        top: position ? `${position.top}px` : '50%',
+        left: position ? `${position.left} px` : '50%',
+        top: position ? `${position.top} px` : '50%',
         transform: position ? 'none' : 'translate(-50%, -50%)',
         margin: position ? '0' : undefined,
         zIndex: 100,
@@ -61,15 +62,15 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
                 {/* Header (Draggable) */}
                 <div
                     className={`
-                        flex items-center justify-between px-4 py-3 bg-gray-800 border-b border-gray-700
+                        flex items - center justify - between px - 4 py - 3 bg - gray - 800 border - b border - gray - 700
                         ${dragState.isDragging ? 'cursor-grabbing' : 'cursor-grab'}
-                    `}
+`}
                     onMouseDown={handleDragStart}
                 >
                     <h2 className="text-xl font-cinzel font-bold text-amber-400 select-none pointer-events-none">
                         {title}
                     </h2>
-                    
+
                     <div className="flex items-center gap-3" onMouseDown={e => e.stopPropagation()}>
                         {headerActions}
 
