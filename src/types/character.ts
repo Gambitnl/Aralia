@@ -361,6 +361,7 @@ export type TransportMode = 'foot' | 'mounted';
 export interface PlayerCharacter {
   id?: string;
   name: string;
+  soul?: any; // CompanionSoul; - defined as any to avoid circular deps
   age?: number;
   ageSizeOverride?: 'Tiny' | 'Small' | 'Medium' | 'Large' | 'Huge' | 'Gargantuan';
   background?: string; // Background ID

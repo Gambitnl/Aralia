@@ -400,6 +400,36 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             };
         }
 
+        case 'RESTART_WITH_PROCEDURAL_PARTY': {
+            const newParty = action.payload;
+            if (!newParty || newParty.length === 0) {
+                return { ...state, error: "Failed to generate procedural party." };
+            }
+            // This case is very similar to START_GAME_FOR_DUMMY, but uses the provided party
+            // and resets the state from an existing game.
+            const initialLocation = LOCATIONS[STARTING_LOCATION_ID];
+            return {
+                ...initialGameState,
+                phase: GamePhase.PLAYING,
+                worldSeed: state.worldSeed, // Keep the same world seed
+                party: newParty,
+                tempParty: newParty.map(p => ({ id: p.id || crypto.randomUUID(), level: p.level || 1, classId: p.class.id })),
+                inventory: [], // Start with a fresh inventory
+                gold: 50,      // Give them some starting gold
+                currentLocationId: STARTING_LOCATION_ID,
+                subMapCoordinates: { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) },
+                messages: [
+                    { id: Date.now(), text: `A new party of adventurers emerges!`, sender: 'system', timestamp: new Date() },
+                    { id: Date.now() + 1, text: initialLocation.baseDescription, sender: 'system', timestamp: new Date() }
+                ],
+                mapData: state.mapData, // Keep the existing map data
+                dynamicLocationItemIds: state.dynamicLocationItemIds,
+                currentLocationActiveDynamicNpcIds: determineActiveDynamicNpcsForLocation(STARTING_LOCATION_ID, LOCATIONS),
+                isLoading: false,
+                loadingMessage: null,
+            };
+        }
+
         case 'START_GAME_FOR_DUMMY': {
             const { mapData, dynamicLocationItemIds, generatedParty, worldSeed } = action.payload;
             if (!generatedParty || generatedParty.length === 0) return { ...state, error: "Dummy character data not available.", phase: GamePhase.MAIN_MENU, isLoading: false, loadingMessage: null };
