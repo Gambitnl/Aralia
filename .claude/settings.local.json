@@ -71,7 +71,8 @@
       "Bash(C:Usersgambi.cargobin)",
       "Bash(\"C:\\\\Users\\\\gambi\\\\.cargo\\\\bin\\\\cargo.exe\" build --release)",
       "Bash(\"C:\\\\Users\\\\gambi\\\\Documents\\\\Git\\\\codexbar-windows\\\\src-tauri\\\\target\\\\release\\\\codexbar-cli.exe\" --help)",
-      "Bash(\"C:\\\\Users\\\\gambi\\\\Documents\\\\Git\\\\codexbar-windows\\\\src-tauri\\\\target\\\\release\\\\codexbar-cli.exe\" list)"
+      "Bash(\"C:\\\\Users\\\\gambi\\\\Documents\\\\Git\\\\codexbar-windows\\\\src-tauri\\\\target\\\\release\\\\codexbar-cli.exe\" list)",
+      "Bash(\"C:\\\\Users\\\\gambi\\\\Documents\\\\Git\\\\codexbar-windows\\\\src-tauri\\\\target\\\\release\\\\codexbar-cli.exe\" config)"
     ],
     "deny": [],
     "ask": []
