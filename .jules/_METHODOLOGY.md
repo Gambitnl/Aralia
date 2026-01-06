@@ -22,7 +22,7 @@ Process guidelines for all personas. Start here, dive into guides as needed.
 When implementing anything:
 1. **Don't stub.** If you write a function signature, implement it fully.
 2. **Don't mock when you can build.** Mocks in tests are fine. Mocking production functionality is not.
-3. **Don't leave TODOs in your own work.** If you know something needs to be done, do it now.
+3. **Don't leave TODOs unless they are intentional handoffs.** If you know something needs to be done and it's in-scope, do it now. TODOs are allowed only when they are explicitly part of the persona mission or must be handed off to another persona.
 4. **Don't underestimate scope.** If a feature needs 500 lines, write 500 lines. Don't cram it into 50.
 5. **Don't optimize for "small PRs".** Optimize for *complete* PRs.
    - **Hard cap:** Keep each PR to **10 files or fewer**. If work exceeds 10 files, split into multiple PRs or ask the Coordinator to approve an exception.
@@ -60,6 +60,17 @@ function calculateDamage(attack: Attack): number {
   return Math.max(0, Math.floor(total));
 }
 ```
+
+### Intentional TODOs (Allowed)
+
+TODOs are allowed when they are **intentional handoffs** (persona instructions or cross-domain routing). Rules:
+
+1. **No stubs**: TODOs must not replace real implementations.
+2. **Always tagged**: Include persona + date.
+   - `// TODO(Persona) [YYYY-MM-DD]: ...`
+3. **Local scope only**: Place TODOs near the relevant code or doc (avoid centralized backlog files that create conflicts).
+4. **Actionable**: State the exact next step, not a vague idea.
+5. **Ownership hint**: If the TODO is for another persona, name them explicitly.
 
 **The litmus test:** If another developer opened your PR, would they see working code or placeholders?
 
@@ -180,6 +191,14 @@ Example: `.jules/worklogs/worklog_analyst.md`
 - ✅ CORRECT: Adding new entries at the end of the file
 
 If your worklog doesn't exist, create it. If it exists, append new entries at the end using whatever method your environment supports.
+
+### Change Context Preservation (Required for Replacements)
+
+When replacing or removing significant logic, add a short entry to your worklog:
+- **Replaced Behavior:** 1-2 sentence summary of what the old code did.
+- **New Behavior:** 1-2 sentence summary of what the new code does.
+- **Rationale:** Why the change was necessary.
+- **Follow-up TODOs:** Only if required by persona scope.
 
 ### Date Discovery (Required)
 

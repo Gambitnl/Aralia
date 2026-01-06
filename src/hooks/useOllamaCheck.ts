@@ -5,7 +5,7 @@
 
 import { useEffect } from 'react';
 import { useLocalStorage } from './useLocalStorage';
-import { OllamaService } from '../services/OllamaService';
+import { OllamaService } from '../services/ollama';
 import { AppAction } from '../state/actionTypes';
 
 export function useOllamaCheck(dispatch: React.Dispatch<AppAction>) {

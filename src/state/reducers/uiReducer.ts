@@ -121,6 +121,14 @@ export function uiReducer(state: GameState, action: AppAction): Partial<GameStat
         characterSheetModal: { isOpen: false, character: null }, isDiscoveryLogVisible: false, isPartyOverlayVisible: false, isNpcTestModalVisible: false, isLogbookVisible: false, isGlossaryVisible: false, merchantModal: { ...state.merchantModal, isOpen: false }, isGameGuideVisible: false
       };
 
+    case 'TOGGLE_UNIFIED_LOG_VIEWER':
+      return {
+        isUnifiedLogViewerVisible: !state.isUnifiedLogViewerVisible,
+        isDevMenuVisible: false,
+        isGeminiLogViewerVisible: false,
+        isOllamaLogViewerVisible: false
+      };
+
     case 'TOGGLE_NAVAL_DASHBOARD':
       return {
         isNavalDashboardVisible: !state.isNavalDashboardVisible,

@@ -133,7 +133,8 @@ export type AppAction =
   // Gemini Log
   | { type: 'ADD_GEMINI_LOG_ENTRY'; payload: GeminiLogEntry }
   | { type: 'ADD_OLLAMA_LOG_ENTRY'; payload: import('../types').OllamaLogEntry }
-  | { type: 'TOGGLE_OLLAMA_LOG_VIEWER' }
+  | { type: 'UPDATE_OLLAMA_LOG_ENTRY'; payload: { id: string; response: string; model?: string } }
+  | { type: 'TOGGLE_OLLAMA_LOG_VIEWER' } | { type: 'TOGGLE_UNIFIED_LOG_VIEWER' }
   | { type: 'ADD_BANTER_DEBUG_LOG'; payload: { timestamp: Date; check: string; result: boolean | string; details?: string } }
   | { type: 'CLEAR_BANTER_DEBUG_LOG' }
   | { type: 'SET_RATE_LIMIT_ERROR_FLAG' }
@@ -166,6 +167,8 @@ export type AppAction =
   | { type: 'UPDATE_COMPANION_APPROVAL'; payload: { companionId: string; change: number; reason: string; source?: string } }
   | { type: 'ADD_COMPANION_REACTION'; payload: { companionId: string; reaction: string } }
   | { type: 'ADD_COMPANION_MEMORY'; payload: { companionId: string; memory: import('../types/companions').CompanionMemory } }
+  | { type: 'ADD_DISCOVERED_FACT'; payload: { companionId: string; fact: import('../types/companions').DiscoveredFact } }
+  | { type: 'ARCHIVE_BANTER'; payload: import('../types/companions').BanterMoment }
   | { type: 'UPDATE_BANTER_COOLDOWN'; payload: { banterId: string; timestamp: number } }
   // Notification Actions
   | { type: 'ADD_NOTIFICATION'; payload: { id?: string; type: 'success' | 'error' | 'info' | 'warning'; message: string; duration?: number } }

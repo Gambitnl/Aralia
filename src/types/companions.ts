@@ -124,6 +124,7 @@ export interface ReactionResult {
 
 export interface BanterLine {
   speakerId: string;
+  speakerName?: string;
   text: string;
   emotion?: string; // Optional emotion/anim
   delay?: number; // Time before next line
@@ -143,6 +144,14 @@ export interface BanterDefinition {
     text: string;
     tags: string[];
   };
+}
+
+export interface BanterMoment {
+  id: string;
+  timestamp: number;
+  locationId: string;
+  participants: string[];
+  lines: BanterLine[];
 }
 
 /**
@@ -187,6 +196,18 @@ export interface CompanionMemory {
   importance: number; // 1-10, for filtering relevance
 }
 
+/**
+ * A fact discovered about a companion through conversation or events.
+ * These expand the player's knowledge of the character over time.
+ */
+export interface DiscoveredFact {
+  id: string;
+  category: 'backstory' | 'family' | 'occupation' | 'belief' | 'relationship' | 'preference' | 'other';
+  fact: string; // e.g., "Used to be a blacksmith's apprentice"
+  discoveredAt: number; // Timestamp
+  source: 'banter' | 'quest' | 'conversation';
+}
+
 export interface Companion {
   id: string;
   identity: NPCIdentity;
@@ -195,7 +216,8 @@ export interface Companion {
   relationships: Record<string, Relationship>; // Keyed by Character ID
   loyalty: number; // 0-100, determines chance of leaving/betrayal
   approvalHistory: ApprovalEvent[];
-  memories: CompanionMemory[]; // New memory system
+  memories: CompanionMemory[]; // Memory system for conversation recall
+  discoveredFacts: DiscoveredFact[]; // Facts learned about this character through interaction
   questline?: CompanionQuestline;
 
   // Progression: What can be unlocked

@@ -364,6 +364,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isGeminiLogViewerVisible: false,
       geminiInteractionLog: [],
       isOllamaLogViewerVisible: false,
+      isUnifiedLogViewerVisible: overrides.isUnifiedLogViewerVisible ?? false,
       ollamaInteractionLog: [],
       hasNewRateLimitError: false,
       isOllamaDependencyModalVisible: false,
@@ -527,6 +528,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       isPartyEditorVisible: false,
       isGeminiLogViewerVisible: false,
       isOllamaLogViewerVisible: false,
+      isUnifiedLogViewerVisible: false,
       geminiInteractionLog: [],
       ollamaInteractionLog: [],
       hasNewRateLimitError: false,
@@ -602,7 +604,7 @@ export function createMockGameState(overrides: Partial<GameState> = {}): GameSta
       townState: null,
       townEntryDirection: null
       // TODO(2026-01-03 pass 4 Codex-CLI): banter debug log placeholder in fallback factory.
-      ,banterDebugLog: []
+      , banterDebugLog: []
     };
   }
 }

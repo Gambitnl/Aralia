@@ -59,7 +59,15 @@
       "Bash(python:*)",
       "Bash(rev:*)",
       "Bash(findstr:*)",
-      "Bash(tasklist:*)"
+      "Bash(tasklist:*)",
+      "Bash(where:*)",
+      "Bash(set:*)",
+      "Bash(C:Usersgambi.cargobincargo --version)",
+      "Bash(\"C:\\\\Users\\\\gambi\\\\.cargo\\\\bin\\\\cargo.exe\" --version)",
+      "Bash(\"C:\\\\Users\\\\gambi\\\\.cargo\\\\bin\\\\cargo.exe\" install create-tauri-app)",
+      "Bash(\"C:\\\\Users\\\\gambi\\\\.cargo\\\\bin\\\\cargo.exe\" check)",
+      "Bash(npm run tauri:*)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

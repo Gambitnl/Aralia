@@ -32,7 +32,7 @@ const DevMenu = lazy(() => import('../debug/DevMenu'));
 const PartyOverlay = lazy(() => import('../Party/PartyOverlay'));
 const PartyEditorModal = lazy(() => import('../Party/PartyEditorModal'));
 const GeminiLogViewer = lazy(() => import('../debug/GeminiLogViewer'));
-const OllamaLogViewer = lazy(() => import('../debug/OllamaLogViewer'));
+const UnifiedDebugLogViewer = lazy(() => import('../debug/UnifiedDebugLogViewer').then(module => ({ default: module.UnifiedDebugLogViewer })));
 const NpcInteractionTestModal = lazy(() => import('../debug/NpcInteractionTestModal'));
 const DossierPane = lazy(() => import('../Glossary/DossierPane'));
 const DiscoveryLogPane = lazy(() => import('../Glossary/DiscoveryLogPane'));
@@ -81,6 +81,8 @@ interface GameModalsProps {
     onOllamaDontShowAgain?: (value: boolean) => void;
     isBanterPaused?: boolean;
     toggleBanterPause?: () => void;
+    onForceBanterTrigger?: () => void;
+    onClearBanterLogs?: () => void;
 }
 
 const GameModals: React.FC<GameModalsProps> = ({
@@ -109,7 +111,9 @@ const GameModals: React.FC<GameModalsProps> = ({
     handleOpenCharacterSheet,
     onOllamaDontShowAgain,
     isBanterPaused,
-    toggleBanterPause
+    toggleBanterPause,
+    onClearBanterLogs,
+    onForceBanterTrigger
 }) => {
 
     const { generateResponse, handleTopicOutcome } = useDialogueSystem(gameState, dispatch);
@@ -248,14 +252,17 @@ const GameModals: React.FC<GameModalsProps> = ({
                 </Suspense>
             )}
 
-            {/* Ollama Log Viewer (Dev Tool) */}
-            {gameState.isOllamaLogViewerVisible && canUseDevTools() && (
+            {/* Unified Debug Log Viewer (Dev Tool) */}
+            {gameState.isUnifiedLogViewerVisible && canUseDevTools() && (
                 <Suspense fallback={<LoadingSpinner />}>
-                    <ErrorBoundary fallbackMessage="Error in Ollama Log Viewer.">
-                        <OllamaLogViewer
-                            isOpen={gameState.isOllamaLogViewerVisible}
-                            onClose={() => dispatch({ type: 'TOGGLE_OLLAMA_LOG_VIEWER' })}
-                            logEntries={gameState.ollamaInteractionLog}
+                    <ErrorBoundary fallbackMessage="Error in Unified Log Viewer.">
+                        <UnifiedDebugLogViewer
+                            isOpen={gameState.isUnifiedLogViewerVisible}
+                            onClose={() => dispatch({ type: 'TOGGLE_UNIFIED_LOG_VIEWER' })}
+                            banterLogs={gameState.banterDebugLog || []}
+                            onClearBanterLogs={onClearBanterLogs || (() => dispatch({ type: 'CLEAR_BANTER_DEBUG_LOG' }))}
+                            onForceBanterTrigger={onForceBanterTrigger}
+                            ollamaLogs={gameState.ollamaInteractionLog}
                             isBanterPaused={isBanterPaused}
                             onToggleBanterPause={toggleBanterPause}
                         />

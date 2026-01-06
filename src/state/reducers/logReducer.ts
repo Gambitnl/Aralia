@@ -20,6 +20,17 @@ export function logReducer(state: GameState, action: AppAction): Partial<GameSta
         ollamaInteractionLog: [action.payload, ...(state.ollamaInteractionLog || [])].slice(0, 100),
       };
 
+    case 'UPDATE_OLLAMA_LOG_ENTRY': {
+      const { id, response, model } = action.payload;
+      return {
+        ollamaInteractionLog: (state.ollamaInteractionLog || []).map(entry =>
+          entry.id === id
+            ? { ...entry, response, model: model || entry.model, isPending: false }
+            : entry
+        ),
+      };
+    }
+
     case 'ADD_BANTER_DEBUG_LOG':
       return {
         banterDebugLog: [action.payload, ...(state.banterDebugLog || [])].slice(0, 50),

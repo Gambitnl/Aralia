@@ -2,13 +2,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useCompanionBanter } from '../useCompanionBanter';
 import { GamePhase } from '../../types/core';
-import { OllamaService } from '../../services/OllamaService';
+import { OllamaService } from '../../services/ollama';
 
 // Mock OllamaService
-vi.mock('../../services/OllamaService', () => ({
+vi.mock('../../services/ollama', () => ({
     OllamaService: {
         isAvailable: vi.fn(),
-        generateBanterLine: vi.fn()
+        generateBanterLine: vi.fn(),
+        summarizeConversation: vi.fn()
     }
 }));
 
@@ -28,6 +29,7 @@ describe('useCompanionBanter', () => {
     let baseGameState: any;
 
     beforeEach(() => {
+        vi.setConfig({ testTimeout: 20000 });
         vi.useFakeTimers();
         mockDispatch = vi.fn();
         baseGameState = {
@@ -69,7 +71,7 @@ describe('useCompanionBanter', () => {
         vi.clearAllMocks();
     });
 
-    it('should not check for banter if not in PLAYING phase', async () => {     
+    it('should not check for banter if not in PLAYING phase', async () => {
         const gameState = { ...baseGameState, phase: GamePhase.LOAD_TRANSITION };
         renderHook(() => useCompanionBanter(gameState, mockDispatch));
 
@@ -92,19 +94,26 @@ describe('useCompanionBanter', () => {
     });
 
     it('should call OllamaService.generateBanterLine if conditions are met', async () => {
-        vi.mocked(OllamaService.generateBanterLine).mockResolvedValue({
-            data: {
-                speakerId: 'kaelen_thorne',
-                text: 'Hello',
-                emotion: 'neutral',
-                isConcluding: false
-            },
-            metadata: {
-                prompt: 'test prompt',
-                response: '{"speakerId":"kaelen_thorne","text":"Hello","emotion":"neutral"}',
-                model: 'test-model'
+        vi.mocked(OllamaService.generateBanterLine).mockImplementation(async (participants, history, context, turn, onLog) => {
+            if (onLog) {
+                onLog('test-id', 'test prompt', 'test-model');
             }
-        } as any);
+            return {
+                success: true,
+                data: {
+                    speakerId: 'kaelen_thorne',
+                    text: 'Hello',
+                    emotion: 'neutral',
+                    isConcluding: false
+                },
+                metadata: {
+                    id: 'test-id',
+                    prompt: 'test prompt',
+                    response: '{"speakerId":"kaelen_thorne","text":"Hello","emotion":"neutral"}',
+                    model: 'test-model'
+                }
+            } as any;
+        });
 
         renderHook(() => useCompanionBanter(baseGameState, mockDispatch));
 
@@ -157,15 +166,21 @@ describe('useCompanionBanter', () => {
         const stateWithoutLog = { ...baseGameState };
         delete (stateWithoutLog as any).ollamaInteractionLog;
 
-        vi.mocked(OllamaService.generateBanterLine).mockResolvedValue({
-            data: {
-                speakerId: 'kaelen_thorne',
-                text: 'Hello',
-                emotion: 'neutral',
-                isConcluding: false
-            },
-            metadata: { prompt: 'p', response: 'r', model: 'm' }
-        } as any);
+        vi.mocked(OllamaService.generateBanterLine).mockImplementation(async (participants, history, context, turn, onLog) => {
+            if (onLog) {
+                onLog('test-id', 'test prompt', 'test-model');
+            }
+            return {
+                success: true,
+                data: {
+                    speakerId: 'kaelen_thorne',
+                    text: 'Hello',
+                    emotion: 'neutral',
+                    isConcluding: false
+                },
+                metadata: { id: 'test-id', prompt: 'p', response: 'r', model: 'm' }
+            } as any;
+        });
 
         renderHook(() => useCompanionBanter(stateWithoutLog, mockDispatch));
 
@@ -176,6 +191,57 @@ describe('useCompanionBanter', () => {
         // If it didn't crash, it passed the iterability check
         expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
             type: 'ADD_OLLAMA_LOG_ENTRY'
+        }));
+
+
+    });
+
+    it('should summarize conversation and add memories when banter ends with sufficient history', async () => {
+        vi.mocked(OllamaService.summarizeConversation).mockResolvedValue({
+            success: true,
+            data: { text: 'A great conversation about cheese.', tags: ['food', 'fun'], approvalChange: 0 },
+            metadata: { prompt: 'p', response: 'r', model: 'm', id: 'id' }
+        });
+
+        // Mock generation to quickly build history
+        vi.mocked(OllamaService.generateBanterLine).mockResolvedValue({
+            success: true,
+            data: { speakerId: 'kaelen_thorne', text: 'Talk 1', emotion: 'neutral', isConcluding: false },
+            metadata: { prompt: 'p', response: 'r', model: 'm', id: 'id' }
+        });
+
+        const { result } = renderHook(() => useCompanionBanter(baseGameState, mockDispatch));
+
+        // Start banter
+        await act(async () => {
+            await result.current.forceBanter();
+        });
+
+        // Simulate a few turns (advancing timers to trigger next lines)
+        for (let i = 0; i < 3; i++) {
+            await act(async () => {
+                await vi.advanceTimersByTimeAsync(30000); // BANTER_DELAY_MS
+            });
+        }
+
+        // End banter
+        await act(async () => {
+            result.current.endBanter();
+        });
+
+        // Wait for async promise chain (summarizeConversation is a promise that runs detached)
+        // We need to wait a tick for the promise to resolve
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(OllamaService.summarizeConversation).toHaveBeenCalled();
+        expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
+            type: 'ADD_COMPANION_MEMORY',
+            payload: expect.objectContaining({
+                memory: expect.objectContaining({
+                    text: 'A great conversation about cheese.',
+                    tags: ['food', 'fun']
+                })
+            })
         }));
     });
 });

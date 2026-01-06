@@ -4,8 +4,8 @@
  */
 import React, { useEffect, useCallback } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Notification } from '../types';
-import type { AppAction } from '../state/actionTypes';
+import { Notification } from '../../types';
+import type { AppAction } from '../../state/actionTypes';
 
 interface NotificationSystemProps {
   notifications: Notification[];

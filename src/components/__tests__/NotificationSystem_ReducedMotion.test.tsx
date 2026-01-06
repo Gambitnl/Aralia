@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { NotificationSystem } from '../NotificationSystem';
+import { NotificationSystem } from '../ui/NotificationSystem';
 import { Notification } from '../../types';
 
 // We need to control the return value of useReducedMotion

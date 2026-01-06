@@ -57,7 +57,7 @@ const CastingTime = z.object({
   value: z.number(),
   unit: z.enum(["action", "bonus_action", "reaction", "minute", "hour", "special"]),
   combatCost: z.object({
-    type: z.enum(["action", "bonus_action", "reaction"]),
+    type: z.enum(["action", "bonus_action", "reaction"]), // Validation Rule: Must strictly match castingTime.unit if applicable
     condition: z.string(),
   }),
   explorationCost: z.object({
@@ -539,7 +539,7 @@ export const SpellValidator = z.object({
   source: z.string(),
   legacy: z.boolean(),
   classes: z.array(ClassNameEnum),
-  ritual: z.boolean(),
+  ritual: z.boolean(), // Validation Rule: Must be false for Level 0 (enforce via .refine or subclass)
   rarity: SpellRarity,
   attackType: z.string(),
   castingTime: CastingTime,

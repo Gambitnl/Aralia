@@ -373,6 +373,8 @@ export const COMPANIONS: Record<string, Companion> = {
     loyalty: 50,
     approvalHistory: [],
     memories: [],
+    // TODO(2026-01-03 pass 6 Codex-CLI): Keep discoveredFacts as a placeholder until companion lore tracking is fully typed.
+    discoveredFacts: [],
     reactionRules: KAELEN_REACTIONS
   },
   [ELARA_ID.id]: {
@@ -387,6 +389,8 @@ export const COMPANIONS: Record<string, Companion> = {
     loyalty: 80, // Starts higher due to duty
     approvalHistory: [],
     memories: [],
+    // TODO(2026-01-03 pass 6 Codex-CLI): Keep discoveredFacts as a placeholder until companion lore tracking is fully typed.
+    discoveredFacts: [],
     reactionRules: ELARA_REACTIONS
   }
 };

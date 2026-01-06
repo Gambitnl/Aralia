@@ -50,6 +50,8 @@ export const useTurnManager = ({
     // TODO(lint-intent): 'setCurrentCharacter' is declared but unused, suggesting an unfinished state/behavior hook in this block.
     // TODO(lint-intent): If the intent is still active, connect it to the nearby render/dispatch/condition so it matters.
     // TODO(lint-intent): Otherwise remove it or prefix with an underscore to record intentional unused state.
+    // TODO(Cleanup): Remove unused `setCurrentCharacter`
+    // This function is returned by `useTurnOrder` but never used. If it's not part of the public API needed by the UI, remove it to reduce clutter.
     setCurrentCharacter: _setCurrentCharacter,
     recordAction
   } = useTurnOrder({ characters });
@@ -119,7 +121,7 @@ export const useTurnManager = ({
       message: `${character.name}'s turn.`,
       characterId: character.id
     });
-  // TODO(lint-intent): If resetEconomy becomes runtime-injected, add it to the dependency array.
+    // TODO(lint-intent): If resetEconomy becomes runtime-injected, add it to the dependency array.
   }, [onCharacterUpdate, onLogEntry]);
 
   const initializeCombat = useCallback((initialCharacters: CombatCharacter[]) => {
@@ -152,7 +154,7 @@ export const useTurnManager = ({
       message: `Combat begins! Turn order: ${sorted.map(c => c.name).join(' → ')}`,
       data: { turnOrder: sorted.map(c => c.id), initiatives: sorted.map(c => ({ id: c.id, initiative: c.initiative })) }
     });
-  // TODO(lint-intent): If resetEconomy becomes runtime-injected, add it to the dependency array.
+    // TODO(lint-intent): If resetEconomy becomes runtime-injected, add it to the dependency array.
   }, [onCharacterUpdate, onLogEntry, rollInitiative, startTurnFor, initializeTurnOrder]);
 
   const joinCombat = useCallback((character: CombatCharacter, options: { initiative?: number } = {}) => {
@@ -172,7 +174,7 @@ export const useTurnManager = ({
       characterId: readyChar.id,
       data: { initiative }
     });
-  // TODO(lint-intent): If resetEconomy becomes runtime-injected, add it to the dependency array.
+    // TODO(lint-intent): If resetEconomy becomes runtime-injected, add it to the dependency array.
   }, [onCharacterUpdate, onLogEntry, rollInitiative, joinTurnOrder]);
 
 
@@ -206,10 +208,17 @@ export const useTurnManager = ({
 
       // Fix for stale closure: If the next character is the one we just processed (e.g. solo combat),
       // use the updated state returned from processEndOfTurnEffects instead of the stale one from 'characters'.
-      // FIXME: This workaround is fragile. A cleaner solution would be to have processEndOfTurnEffects
+      // TODO(Stability): Refactor this Stale Closure Workaround.
+      // Instead of patching `nextCharacter` with `processedChar` based on ID match,
+      // `processEndOfTurnEffects` should return the definitive state or `useTurnOrder` 
+      // should manage the "active" character reference more robustly to avoid race conditions.
+      // Original FIXME: This workaround is fragile. A cleaner solution would be to have processEndOfTurnEffects
       // return the updated character ID alongside the updated character, or use a ref to track the latest
       // character state. This workaround will break if processEndOfTurnEffects ever returns a different
       // character (e.g., summoned creature).
+      // TODO(Stability): Fix Stale Closure Workaround
+      // This block patches `nextCharacter` with `processedChar` to handle cases where `processEndOfTurnEffects` updates state that `characters` array doesn't reflect yet.
+      // This is fragile. `processEndOfTurnEffects` should ideally return a comprehensive state update or we should ensure `characters` is fresh using a ref or correct dependency flow.
       if (nextCharacter && processedChar && nextCharacter.id === processedChar.id) {
         nextCharacter = processedChar;
       }
@@ -263,6 +272,9 @@ export const useTurnManager = ({
     turnState,
     initializeCombat,
     joinCombat,
+    // TODO(Refactor): Extract Reactive Trigger Processing
+    // The logic for filtering and executing `reactiveTriggers` is duplicated/inlined across 'sustain', 'move', and 'attack'.
+    // Create a dedicated helper `processReactiveTriggers(type, context, state)` to centralize this logic, ensuring consistent logging, damage application, and error handling.
     executeAction,
     endTurn,
     getCurrentCharacter,

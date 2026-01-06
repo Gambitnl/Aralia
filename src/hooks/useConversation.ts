@@ -8,7 +8,7 @@
 import { useCallback, useRef } from 'react';
 import { GameState } from '../types';
 import { AppAction } from '../state/actionTypes';
-import { OllamaService, BanterContext } from '../services/OllamaService';
+import { OllamaService, BanterContext } from '../services/ollama';
 import { ConversationMessage } from '../types/conversation';
 
 export interface UseConversationResult {
@@ -94,20 +94,21 @@ export function useConversation(
             context
         );
 
-        const response = result.data;
-
         if (result.metadata) {
             dispatch({
                 type: 'ADD_OLLAMA_LOG_ENTRY',
                 payload: {
+                    id: result.metadata.id || crypto.randomUUID(),
                     timestamp: new Date(),
                     model: result.metadata.model,
                     prompt: result.metadata.prompt,
-                    response: result.metadata.response,
+                    response: result.metadata.response || '',
                     context
                 }
             });
         }
+
+        const response = result.success ? result.data : null;
 
         if (response) {
             const initialMessage: ConversationMessage = {
@@ -195,20 +196,22 @@ export function useConversation(
         }));
 
         const result = await OllamaService.continueConversation(participants, history, context);
-        const response = result.data;
 
         if (result.metadata) {
             dispatch({
                 type: 'ADD_OLLAMA_LOG_ENTRY',
                 payload: {
+                    id: result.metadata.id || crypto.randomUUID(),
                     timestamp: new Date(),
                     model: result.metadata.model,
                     prompt: result.metadata.prompt,
-                    response: result.metadata.response,
+                    response: result.metadata.response || '',
                     context
                 }
             });
         }
+
+        const response = result.success ? result.data : null;
 
         if (response) {
             const aiMessage: ConversationMessage = {
@@ -247,20 +250,22 @@ export function useConversation(
             }));
 
             const result = await OllamaService.summarizeConversation(participants, history, context);
-            const summary = result.data;
 
             if (result.metadata) {
                 dispatch({
                     type: 'ADD_OLLAMA_LOG_ENTRY',
                     payload: {
+                        id: result.metadata.id || crypto.randomUUID(),
                         timestamp: new Date(),
                         model: result.metadata.model,
                         prompt: result.metadata.prompt,
-                        response: result.metadata.response,
+                        response: result.metadata.response || '',
                         context
                     }
                 });
             }
+
+            const summary = result.success ? result.data : null;
 
             if (summary) {
                 // Add memory to all participants

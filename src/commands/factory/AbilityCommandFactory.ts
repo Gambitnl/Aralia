@@ -142,53 +142,65 @@ export class WeaponAttackCommand implements SpellCommand {
         const weaponType = (this.ability.range || 5) <= 5 ? 'melee' : 'ranged'; // Simple heuristic
 
         const attackContext: AttackContext = {
-            attackerId: this.caster.id,
-            targetId: currentTarget.id,
-            attackType: 'weapon',
-            weaponType: weaponType,
-            isHit: true
+          attackerId: this.caster.id,
+          targetId: currentTarget.id,
+          attackType: 'weapon',
+          weaponType: weaponType,
+          isHit: true
         };
 
         const matchingRiders = riderSystem.getMatchingRiders(newState, attackContext);
 
         if (matchingRiders.length > 0) {
-            matchingRiders.forEach(rider => {
-                // Determine effect type
-                if (isDamageEffect(rider.effect)) {
-                    // Create Damage Command for Rider
-                    const dmgContext: CommandContext = {
-                         ...this.context,
-                         targets: [currentTarget],
-                         isCritical
-                    };
-                    const dmgCommand = new DamageCommand(rider.effect, dmgContext);
-                    newState = dmgCommand.execute(newState);
-                    currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
+          matchingRiders.forEach(rider => {
+            // TODO(FIXME): Critical Gap - This loop ignores MOVEMENT, UTILITY, and other effect types.
+            // Thunderous Smite's "Push" (MOVEMENT) is currently dropped.
+            // Refactor to use a generic command creation factory (like SpellCommandFactory.createCommand)
+            // to handle ALL effect types dynamically.
 
-                    // Rider specific logging if not handled by DamageCommand (DamageCommand handles log)
-                     newState.combatLog.push({
-                        id: generateId(),
-                        timestamp: Date.now(),
-                        type: 'damage',
-                        message: `${this.caster.name}'s ${rider.sourceName} triggers: ${rider.effect.damage.dice} ${rider.effect.damage.type} damage.`,
-                        characterId: this.caster.id,
-                        targetIds: [currentTarget.id]
-                    });
+            // TODO(Refactor): Duplicate Logic.
+            // Instead of manually switching on effect type here (and missing types), 
+            // expose and use `SpellCommandFactory.createSingleCommand(effect, context)` 
+            // to ensure consistent handling of all effect types (Damage, Status, Movement, etc.).
 
-                } else if (isStatusConditionEffect(rider.effect)) {
-                    const statusContext: CommandContext = {
-                         ...this.context,
-                         targets: [currentTarget],
-                         isCritical
-                    };
-                    const statusCommand = new StatusConditionCommand(rider.effect, statusContext);
-                    newState = statusCommand.execute(newState);
-                    currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
-                }
-            });
+            // Determine effect type
+            if (isDamageEffect(rider.effect)) {
+              // Create Damage Command for Rider
+              const dmgContext: CommandContext = {
+                ...this.context,
+                targets: [currentTarget],
+                isCritical
+              };
+              const dmgCommand = new DamageCommand(rider.effect, dmgContext);
+              newState = dmgCommand.execute(newState);
+              currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
 
-            // Handle Consumption
-            newState = riderSystem.consumeRiders(newState, this.caster.id, matchingRiders);
+              // TODO(Cleanup): Redundant Log.
+              // DamageCommand already generates a combat log entry. 
+              // This manual push creates double logs for every smite hit. Remove this block.
+              newState.combatLog.push({
+                id: generateId(),
+                timestamp: Date.now(),
+                type: 'damage',
+                message: `${this.caster.name}'s ${rider.sourceName} triggers: ${rider.effect.damage.dice} ${rider.effect.damage.type} damage.`,
+                characterId: this.caster.id,
+                targetIds: [currentTarget.id]
+              });
+
+            } else if (isStatusConditionEffect(rider.effect)) {
+              const statusContext: CommandContext = {
+                ...this.context,
+                targets: [currentTarget],
+                isCritical
+              };
+              const statusCommand = new StatusConditionCommand(rider.effect, statusContext);
+              newState = statusCommand.execute(newState);
+              currentTarget = newState.characters.find(c => c.id === target.id) || currentTarget;
+            }
+          });
+
+          // Handle Consumption
+          newState = riderSystem.consumeRiders(newState, this.caster.id, matchingRiders);
         }
       }
     });

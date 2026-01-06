@@ -14,24 +14,25 @@ import { Companion, DecisionContext, CompanionReactionRule } from '../../../type
 const createMockCompanion = (id: string, rules: CompanionReactionRule[]): Companion => ({
   id,
   identity: {
-      id,
-      name: 'Mock Companion',
-      race: 'Human',
-      class: 'Fighter',
-      background: 'Soldier',
-      // TODO(2026-01-03 pass 4 Codex-CLI): identity placeholders for tests; fill from companion data when available.
-      sex: 'unknown',
-      age: 0,
-      physicalDescription: 'Test identity'
+    id,
+    name: 'Mock Companion',
+    race: 'Human',
+    class: 'Fighter',
+    background: 'Soldier',
+    // TODO(2026-01-03 pass 4 Codex-CLI): identity placeholders for tests; fill from companion data when available.
+    sex: 'unknown',
+    age: 0,
+    physicalDescription: 'Test identity'
   },
   memories: [],
+  discoveredFacts: [],
   personality: {
-      openness: 50, conscientiousness: 50, extraversion: 50,
-      agreeableness: 50, neuroticism: 50, values: [], fears: [], quirks: []
+    openness: 50, conscientiousness: 50, extraversion: 50,
+    agreeableness: 50, neuroticism: 50, values: [], fears: [], quirks: []
   },
   goals: [],
   relationships: {
-      player: { targetId: 'player', level: 'stranger', approval: 0, history: [], unlocks: [] }
+    player: { targetId: 'player', level: 'stranger', approval: 0, history: [], unlocks: [] }
   },
   loyalty: 50,
   approvalHistory: [],
@@ -92,7 +93,7 @@ describe('CompanionReactionSystem', () => {
   });
 
   it('should handle multiple matching tags and aggregate approval', () => {
-     const companion = createMockCompanion('c1', [
+    const companion = createMockCompanion('c1', [
       { triggerTags: ['smart'], approvalChange: 5, dialoguePool: ['Smart.'] },
       { triggerTags: ['risky'], approvalChange: -2, dialoguePool: ['Careful.'] }
     ]);

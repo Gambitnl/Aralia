@@ -3,7 +3,7 @@ import React from 'react';
 // TODO(lint-intent): 'fireEvent' is unused in this test; use it in the assertion path or remove it.
 import { render, screen, fireEvent as _fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import EncounterModal from '../EncounterModal';
+import EncounterModal from '../Combat/EncounterModal';
 // TODO(lint-intent): 't' is unused in this test; use it in the assertion path or remove it.
 import { t as _t } from '../../utils/i18n';
 

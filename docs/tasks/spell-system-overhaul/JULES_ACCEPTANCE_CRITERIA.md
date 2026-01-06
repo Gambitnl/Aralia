@@ -21,6 +21,7 @@ You are NOT done with a spell until **ALL** of the following are true.
   - `public/data/spells/level-2/web.json` and `public/data/glossary/entries/spells/level-2/web.md`
   - `public/data/spells/level-2/moonbeam.json` and `public/data/glossary/entries/spells/level-2/moonbeam.md`
   - `public/data/spells/level-1/thunderwave.json` and `public/data/glossary/entries/spells/level-1/thunderwave.md`
+  - **Gold Standard Level 0**: `public/data/spells/level-0/guidance.json` (Clone this for structure!)
 
 ### B. Deliverables
 <!-- TODO: Make `source` and `legacy` fields part of Deliverables to enforce 2024 PHB alignment and legacy tagging. -->

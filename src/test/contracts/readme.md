@@ -1,4 +1,5 @@
 ﻿# Contract Tests (Shape Guards)
+<!-- TODO: Fix mojibake (“â€””, “â€œ”) by normalizing this file to UTF-8/ASCII so contract docs render cleanly. -->
 
 Purpose: lightweight, type-driven checks that fail fast when core shapes change. Each file focuses on a recurring breakage area.
 

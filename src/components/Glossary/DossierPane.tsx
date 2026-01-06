@@ -6,7 +6,7 @@
  */
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, MotionProps } from 'framer-motion';
-import { GameState, NPC, SuspicionLevel, GoalStatus } from '../types';
+import { GameState, NPC, SuspicionLevel, GoalStatus } from '../../types';
 
 interface DossierPaneProps {
   isOpen: boolean;

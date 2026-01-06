@@ -8,10 +8,11 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { GameState } from '../types';
+import { GameState, OllamaLogEntry } from '../types';
 import { isPlayerFocused } from '../utils/world';
 import { Companion, ReactionTriggerType, CompanionReactionRule } from '../types/companions';
-import { OllamaService, BanterContext } from '../services/OllamaService';
+import { OllamaService, BanterContext } from '../services/ollama';
+import { createOllamaLogEntry } from '../utils/createOllamaLogEntry';
 
 // Cooldown tracking: companionId -> triggerType -> timestamp
 type CooldownMap = Record<string, Record<string, number>>;
@@ -19,7 +20,7 @@ type CooldownMap = Record<string, Record<string, number>>;
 type CompanionAction =
   | { type: 'ADD_COMPANION_REACTION'; payload: { companionId: string; reaction: string } }
   | { type: 'UPDATE_COMPANION_APPROVAL'; payload: { companionId: string; change: number; reason: string; source: string } }
-  | { type: 'ADD_OLLAMA_LOG_ENTRY'; payload: { timestamp: Date; model: string; prompt: string; response: string; context?: any } };
+  | { type: 'ADD_OLLAMA_LOG_ENTRY'; payload: OllamaLogEntry };
 
 export const useCompanionCommentary = (
   gameState: GameState,
@@ -153,17 +154,17 @@ export const useCompanionCommentary = (
           if (result.metadata) {
             dispatch({
               type: 'ADD_OLLAMA_LOG_ENTRY',
-              payload: {
+              payload: createOllamaLogEntry({
                 timestamp: new Date(),
                 model: result.metadata.model,
                 prompt: result.metadata.prompt,
-                response: result.metadata.response,
+                response: result.metadata.response || '',
                 context
-              }
+              })
             });
           }
 
-          if (result.data) {
+          if (result.success) {
             dialogue = result.data.text;
             approvalChange = result.data.approvalChange;
           }

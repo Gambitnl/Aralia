@@ -9,10 +9,6 @@ import SpellContext from '../../context/SpellContext';
 import FeatSpellPicker from './FeatSpellPicker';
 import SpellSourceSelector from './SpellSourceSelector';
 import { getSchoolIcon } from '../../utils/spellFilterUtils';
-import SpellContext from '../../context/SpellContext';
-import FeatSpellPicker from './FeatSpellPicker';
-import SpellSourceSelector from './SpellSourceSelector';
-import { getSchoolIcon } from '../../utils/spellFilterUtils';
 
 interface FeatOption extends Feat {
   isEligible: boolean;

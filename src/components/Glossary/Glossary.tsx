@@ -22,6 +22,7 @@ import { useSpellGateChecks } from '../../hooks/useSpellGateChecks';
 import { SpellData } from './SpellCardTemplate';
 import { fetchWithTimeout } from '../../utils/networkUtils';
 import { assetUrl } from '../../config/env';
+import { WindowFrame } from '../ui/WindowFrame';
 
 // Sub-components
 import { GlossaryHeader } from './GlossaryHeader';
@@ -279,44 +280,42 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
     );
   }
 
-  return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-80 z-50 p-4 overflow-visible"
-      aria-modal="true"
-      role="dialog"
-      aria-labelledby="glossary-title"
+  // Header actions for the WindowFrame
+  const headerActions = (
+    <button
+      type="button"
+      onClick={recheckSpells}
+      disabled={isCheckingSpells}
+      className={`p-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-colors ${isCheckingSpells
+        ? 'text-emerald-400 animate-pulse cursor-wait'
+        : 'text-gray-500 hover:text-emerald-400'
+        }`}
+      aria-label="Re-check spells"
+      title={isCheckingSpells ? "Checking spells..." : "Re-run spell validation checks"}
     >
-      <div
-        ref={modalRef}
-        className="bg-gray-900 text-gray-200 p-6 rounded-xl shadow-2xl border border-gray-700 flex flex-col relative overflow-visible"
-        style={{
-          width: `${modalSize.width}px`,
-          height: `${modalSize.height}px`,
-          minWidth: '600px',
-          minHeight: '400px',
-          maxWidth: 'calc(100vw - 40px)',
-          maxHeight: 'calc(100vh - 40px)',
-          position: 'fixed',
-          left: modalPosition ? `${modalPosition.left}px` : '50%',
-          top: modalPosition ? `${modalPosition.top}px` : '50%',
-          transform: modalPosition ? 'none' : 'translate(-50%, -50%)',
-          margin: modalPosition ? '0' : undefined,
-          userSelect: resizeState.isResizing || dragState.isDragging ? 'none' : undefined,
-          cursor: dragState.isDragging ? 'grabbing' : undefined,
-        }}
-      >
-        {/* Resize handles */}
-        <GlossaryResizeHandles onResizeStart={handleResizeStart} />
+      {isCheckingSpells ? (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      ) : (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )}
+    </button>
+  );
 
-        {/* Header with title, search, and action buttons */}
+  return (
+    <WindowFrame
+      title="Game Glossary"
+      onClose={onClose}
+      headerActions={headerActions}
+      storageKey="glossary-modal-size"
+      initialMaximized={false}
+    >
+      <div className="flex flex-col h-full p-6 bg-gray-900 text-gray-200">
+        {/* Header with search bar */}
         <GlossaryHeader
-          firstFocusableElementRef={firstFocusableElementRef}
-          onDragStart={handleDragStart}
-          onRecheckSpells={recheckSpells}
-          isCheckingSpells={isCheckingSpells}
-          onResetLayout={handleResetLayout}
-          onMaximize={() => handleMaximize(40)} // 40px spacer from edge
-          onClose={onClose}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
         />
@@ -368,7 +367,7 @@ const Glossary: React.FC<GlossaryProps> = ({ isOpen, onClose, initialTermId }) =
         {/* Footer with timestamp and keyboard hints */}
         <GlossaryFooter lastGenerated={lastGenerated} onClose={onClose} />
       </div>
-    </div>
+    </WindowFrame>
   );
 };
 

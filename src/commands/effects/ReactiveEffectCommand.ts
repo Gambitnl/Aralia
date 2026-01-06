@@ -29,20 +29,12 @@ type DurationLike = { type?: string; unit?: string; value?: number };
 export class ReactiveEffectCommand extends BaseEffectCommand {
     private registeredListeners: (() => void)[] = []; // Store cleanup functions
 
-    /**
-     * Executes the command by registering the appropriate triggers in the combat state
-     * and setting up event listeners for the reactive effect.
-     *
-     * @param state - The current combat state.
-     * @returns The updated combat state with new reactive triggers.
-     */
     execute(state: CombatState): CombatState {
-        const trigger = this.effect.trigger;
-        const newTriggers = [...(state.reactiveTriggers || [])];
+        // TODO(2026-01-03 pass 6 Codex-CLI): Reactive triggers currently log only; implement effect execution when the reactive system is wired.
+        return state;
+    }
 
-        const durationRounds = this.getDurationInRounds();
-
-        // Create a new trigger entry
+    /**
         const triggerId = generateId();
         newTriggers.push({
             id: triggerId,
@@ -147,9 +139,9 @@ export class ReactiveEffectCommand extends BaseEffectCommand {
         if (!this.effect.trigger.sustainCost) return;
 
         const sustainCost: { actionType: 'action' | 'bonus_action' | 'reaction'; optional: boolean } =
-          typeof this.effect.trigger.sustainCost === 'number'
-            ? { actionType: 'action', optional: false }
-            : this.effect.trigger.sustainCost;
+            typeof this.effect.trigger.sustainCost === 'number'
+                ? { actionType: 'action', optional: false }
+                : this.effect.trigger.sustainCost;
 
         const sustainedSpell: SustainedSpell = {
             spellId: this.context.spellId,

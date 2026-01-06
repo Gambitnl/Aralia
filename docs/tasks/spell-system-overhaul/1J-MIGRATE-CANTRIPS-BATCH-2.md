@@ -38,11 +38,11 @@
 
 ## Log
 
-- **guidance**: Created `guidance.json` and `guidance.md`.
-- **fire-bolt**: Verified and updated `fire-bolt.json` to new format.
-- **eldritch-blast**: Verified and updated `eldritch-blast.json` to new format.
-- **dancing-lights**: Verified and updated `dancing-lights.json` to new format.
-- **druidcraft**: Verified and updated `druidcraft.json` to new format.
+- **guidance**: Created `guidance.json` and `guidance.md` (Verified New Format ✅).
+- **fire-bolt**: Verified and updated `fire-bolt.json` to new format (Verified New Format ✅).
+- **eldritch-blast**: Verified and updated `eldritch-blast.json` to new format (Verified New Format ✅).
+- **dancing-lights**: Verified and updated `dancing-lights.json` to new format (Verified New Format ✅).
+- **druidcraft**: Verified and updated `druidcraft.json` to new format (Verified New Format ✅).
 - All spells passed the data layer portion of the integration checklist.
 
 ---

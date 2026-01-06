@@ -183,7 +183,7 @@ export type SpellTargeting =
   | HybridTargeting;
 
 /** Specifies filters for what can be targeted by a spell. */
-export type TargetFilter = "creatures" | "objects" | "allies" | "enemies" | "self" | "point" | "humanoids"; // Added humanoids to support legacy validation     
+export type TargetFilter = "creatures" | "objects" | "allies" | "enemies" | "self" | "point" | "ground";
 
 /** Defines how complex target selection (e.g., Sleep/Color Spray pools) is allocated. */
 export interface TargetAllocation {

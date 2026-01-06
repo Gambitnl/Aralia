@@ -34,6 +34,7 @@ export const createMockCompanion = (overrides: Partial<Companion> = {}): Compani
     },
     personality: overrides.personality || createDefaultPersonality(),
     memories: overrides.memories || [],
+    discoveredFacts: overrides.discoveredFacts || [],
     goals: overrides.goals || [],
     relationships: overrides.relationships || {},
     loyalty: overrides.loyalty ?? 50,

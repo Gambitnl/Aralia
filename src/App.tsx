@@ -60,8 +60,8 @@ import ErrorBoundary from './components/ui/ErrorBoundary';
 import * as SaveLoadService from './services/saveLoadService';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { ConversationPanel } from './components/ConversationPanel';
-import { BanterDebugLogViewer } from './components/debug/BanterDebugLogViewer';
-import { BanterInterruptUI } from './components/ui/BanterInterruptUI';
+
+import { CollapsibleBanterPanel } from './components/ui/CollapsibleBanterPanel';
 
 // Lazy load large components to reduce initial bundle size
 const TownCanvas = lazy(() => import('./components/Town/TownCanvas'));
@@ -96,12 +96,12 @@ const App: React.FC = () => {
     isWaitingForNextLine,
     secondsUntilNextLine,
     playerInterrupt,
-    endBanter
+    endBanter,
+    banterHistory
   } = useCompanionBanter(gameState, dispatch, isBanterPaused);
   // Ollama Dependency Check
   const { ollamaWarningDismissed, setOllamaWarningDismissed } = useOllamaCheck(dispatch);
-  // Banter Debug Log Viewer
-  const [isBanterDebugLogVisible, setIsBanterDebugLogVisible] = useState(false);
+
 
   const addMessage = useCallback(
     (text: string, sender: 'system' | 'player' | 'npc' = 'system') => {
@@ -458,11 +458,8 @@ const App: React.FC = () => {
       case 'toggle_log_viewer':
         dispatch({ type: 'TOGGLE_GEMINI_LOG_VIEWER' });
         break;
-      case 'toggle_ollama_log_viewer':
-        dispatch({ type: 'TOGGLE_OLLAMA_LOG_VIEWER' });
-        break;
-      case 'toggle_banter_debug_log':
-        setIsBanterDebugLogVisible(prev => !prev);
+      case 'toggle_unified_log_viewer':
+        dispatch({ type: 'TOGGLE_UNIFIED_LOG_VIEWER' });
         break;
       case 'battle_map_demo':
         handleBattleMapDemo();
@@ -798,7 +795,9 @@ const App: React.FC = () => {
             handleNavigateToGlossaryFromTooltip={handleNavigateToGlossaryFromTooltip}
             handleOpenGlossary={handleOpenGlossary}
             handleOpenCharacterSheet={handleOpenCharacterSheet}
-            onOllamaDontShowAgain={setOllamaWarningDismissed}
+
+            onForceBanterTrigger={forceBanter}
+            onClearBanterLogs={() => dispatch({ type: 'CLEAR_BANTER_DEBUG_LOG' })}
             isBanterPaused={isBanterPaused}
             toggleBanterPause={() => setIsBanterPaused(prev => !prev)}
           />
@@ -811,28 +810,20 @@ const App: React.FC = () => {
             />
           )}
 
-          {/* Banter Interrupt UI - appears during active banter */}
-          <BanterInterruptUI
+          {/* Banter Panel */}
+          <CollapsibleBanterPanel
             isActive={isBanterActive}
             isWaiting={isWaitingForNextLine}
             secondsRemaining={secondsUntilNextLine}
+            history={banterHistory}
+            archivedBanters={gameState.archivedBanters}
+            companions={gameState.companions}
             onInterrupt={playerInterrupt}
             onEndBanter={endBanter}
           />
 
           {/* Global Dice Roller Overlay */}
           <DiceOverlay />
-
-          {/* Banter Debug Log Viewer */}
-          {isBanterDebugLogVisible && (
-            <BanterDebugLogViewer
-              isOpen={isBanterDebugLogVisible}
-              onClose={() => setIsBanterDebugLogVisible(false)}
-              logs={gameState.banterDebugLog || []}
-              onClear={() => dispatch({ type: 'CLEAR_BANTER_DEBUG_LOG' })}
-              onForceTrigger={forceBanter}
-            />
-          )}
         </div>
       </GameProvider>
     </AppProviders>

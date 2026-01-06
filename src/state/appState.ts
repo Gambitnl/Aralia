@@ -126,11 +126,14 @@ export const initialGameState: GameState = {
     isGeminiLogViewerVisible: false,
     geminiInteractionLog: [],
     isOllamaLogViewerVisible: false,
+    isUnifiedLogViewerVisible: false,
     ollamaInteractionLog: [],
     hasNewRateLimitError: false,
     devModelOverride: null,
     isDevModeEnabled: false,
     banterDebugLog: [],
+    // TODO(2026-01-03 pass 5 Codex-CLI): archived banters placeholder until companion log persistence is aligned with UI.
+    archivedBanters: [],
 
     // Encounter Modal State
     isEncounterModalVisible: false,

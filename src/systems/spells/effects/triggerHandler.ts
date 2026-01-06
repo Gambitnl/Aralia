@@ -53,6 +53,9 @@ interface _TriggerContext {
     previousPosition?: Position;
 }
 
+// TODO: `_TriggerContext` and the unused `_round` parameters in `processAreaEntryTriggers`/`processAreaEndTurnTriggers` suggest abandoned or future-planned logic.
+// Either fully implement the context passing to support complex triggers (e.g. time-sensitive scaling) or remove these artifacts to reduce noise.
+
 /**
  * Result of processing a trigger
  */
@@ -82,6 +85,9 @@ export function matchesTargetFilter(
     target: CombatCharacter
 ): boolean {
     if (!filter) return true; // No filter means effect applies to all
+
+    // TODO: The `target` is currently cast to `any` or a partial shape because `CombatCharacter` lacks `creatureType`, `size`, and `alignment`.
+    // This makes target filtering fragile. Update the `CombatCharacter` interface in `src/types/combat.ts` to explicitly include these properties.
     // TODO(2026-01-03 pass 4 Codex-CLI): target details cast until CombatCharacter exposes creatureType/size/alignment.
     const targetDetails = target as Partial<CombatCharacter> & { creatureType?: string; size?: string; alignment?: string };
 
@@ -113,7 +119,7 @@ export function matchesTargetFilter(
         // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
         // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
         const targetAlignment = targetDetails.alignment;
-        if (targetAlignment && !filter.alignment.includes(targetAlignment)) {   
+        if (targetAlignment && !filter.alignment.includes(targetAlignment)) {
             return false;
         }
     }
@@ -175,6 +181,9 @@ export function isPositionInArea(
     zonePosition: Position,
     areaOfEffect: { shape: string; size: number }
 ): boolean {
+    // TODO: The current Line and Cone checks are direction-agnostic (checking distance only).
+    // This is incorrect for directional spells. Integrate distinct `direction` logic (e.g. from `src/utils/aoeCalculations.ts` if it exists, or implementing vector math) to correctly validate geometry for Cones and Lines.
+
     // TODO(SPELL-OVERHAUL): Replace simplified line/cone checks with direction-aware AoE math (see docs/tasks/spell-system-overhaul/TODO.md; if this block is moved/refactored/modularized, update the TODO entry path).
     const dx = Math.abs(position.x - zonePosition.x);
     const dy = Math.abs(position.y - zonePosition.y);
@@ -387,6 +396,10 @@ export function processAreaEndTurnTriggers(
  */
 export function convertSpellEffectToProcessed(effect: SpellEffect): ProcessedEffect[] {
     const processed: ProcessedEffect[] = [];
+
+    // TODO: The function relies on double-casting `effect as unknown as ...` which bypasses type safety.
+    // Use TypeScript type guards (e.g., `isDamageEffect(effect)`) to safely narrow the `SpellEffect` union before accessing specific properties like `damage.dice`.
+
     // TODO(2026-01-03 pass 4 Codex-CLI): SpellEffect detail casting until spell data schema is formalized.
     const effectDetails = effect as unknown as {
         damage?: { dice?: string; type?: string };
@@ -397,6 +410,11 @@ export function convertSpellEffectToProcessed(effect: SpellEffect): ProcessedEff
     // TODO: Include source metadata (spellId, casterId, optional saveDC) on ProcessedEffect 
     // to avoid downstream guesswork in handlers. Currently, handlers must re-lookup the 
     // caster to calculate spell DC, which is fragile if the caster has left combat.
+
+    // TODO: `ProcessedEffect` currently lacks `sourceSpellId` and `casterId`. 
+    // This forces downstream systems to guess or look up values for Save DC calculations.
+    // 1. Extend `ProcessedEffect` to include `context: { spellId: string; casterId: string; saveDC?: number }`.
+    // 2. Populate this from the `ActiveSpellZone` or `MovementTriggerDebuff` when converting.
     switch (effect.type) {
         case 'DAMAGE':
             processed.push({

@@ -4,7 +4,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor as _waitFor } from '@testing-library/react';
 // TODO(lint-intent): 'expect' is unused in this test; use it in the assertion path or remove it.
 import { vi, describe, it, expect as _expect } from 'vitest';
-import GameGuideModal from '../GameGuideModal';
+import GameGuideModal from '../ui/GameGuideModal';
 import * as geminiService from '../../services/geminiService';
 // TODO(lint-intent): 't' is unused in this test; use it in the assertion path or remove it.
 import { t as _t } from '../../utils/i18n';

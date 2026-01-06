@@ -89,11 +89,13 @@ export interface GeminiLogEntry {
 }
 
 export interface OllamaLogEntry {
+  id: string;
   timestamp: Date;
   model: string;
   prompt: string;
   response: string;
   context?: any;
+  isPending?: boolean;
 }
 
 // -----------------------------------------------------------------------------
@@ -136,6 +138,7 @@ export interface GameState {
   isGeminiLogViewerVisible: boolean;
   geminiInteractionLog: GeminiLogEntry[];
   isOllamaLogViewerVisible: boolean;
+  isUnifiedLogViewerVisible: boolean;
   ollamaInteractionLog: OllamaLogEntry[];
   hasNewRateLimitError: boolean;
   devModelOverride: string | null;
@@ -262,4 +265,7 @@ export interface GameState {
 
   // Interactive companion conversation state
   activeConversation?: import('./conversation').ActiveConversation | null;
+
+  // Archive of completed banter moments
+  archivedBanters: import('./companions').BanterMoment[];
 }

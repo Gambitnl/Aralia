@@ -1,4 +1,4 @@
-import { Spell, SpellEffect, TargetConditionFilter , isDamageEffect, isHealingEffect } from '@/types/spells'
+import { Spell, SpellEffect, TargetConditionFilter, isDamageEffect, isHealingEffect } from '@/types/spells'
 import { CombatCharacter } from '@/types/combat'
 
 import { SpellCommand, CommandContext } from '../base/SpellCommand'
@@ -144,6 +144,7 @@ export class SpellCommandFactory {
   /**
    * Check if a target matches the filter
    * @deprecated Use TargetValidationUtils.matchesFilter instead
+   * TODO(Cleanup): Remove this deprecated wrapper. Call `TargetValidationUtils.matchesFilter(target, filter)` directly.
    */
   public static matchesFilter(target: CombatCharacter, filter: TargetConditionFilter): boolean {
     return TargetValidationUtils.matchesFilter(target, filter)
@@ -176,6 +177,9 @@ export class SpellCommandFactory {
       }
 
       // Create a new context with filtered targets if they changed
+      // TODO(BugRisk/Performance): We are creating a shallow copy of context here. Ensure this logic remains safe
+      // if deeply nested mutable properties are ever added to CommandContext.
+      // Consider passing `targets` explicitly to constructors instead of relying on mutable context if this complexity grows.
       if (filteredTargets.length !== context.targets.length) {
         context = { ...context, targets: filteredTargets };
       }
@@ -189,6 +193,9 @@ export class SpellCommandFactory {
       return new RegisterRiderCommand(effect, context)
     }
 
+    // TODO(Refactor): Area triggers (on_enter_area, on_end_turn_in_area) should NOT fall through
+    // to immediate commands like DamageCommand. They must be registered as persistent hazards.
+    // Potential fix: Handle registered hazard logic here or via TerrainCommand.
     switch (effect.type) {
       case 'DAMAGE':
         return new DamageCommand(effect, context)
@@ -218,6 +225,8 @@ export class SpellCommandFactory {
 
   /**
    * Apply scaling formulas to effect
+   * TODO(TechDebt): This manual scaling logic duplicates `resolveScalableNumber` from `src/types/spells.ts`.
+   * We should refactor this to use the shared utility, especially for resolving numeric values.
    */
   private static applyScaling(
     effect: SpellEffect,
@@ -319,6 +328,12 @@ export class SpellCommandFactory {
 
   /**
    * Helper: Add dice notation
+   * TODO(Refactor): Move to `src/utils/diceUtils.ts`.
+   * This dice notation parsing and addition logic is generic and should be reusable
+   * across the system (e.g. for item scaling or rider damage calculation) 
+   * instead of being private to this Factory.
+   * Original TODO: Move this dice string manipulation to `src/utils/diceUtils.ts`.
+   * It is generic logic that shouldn't be private to the factory.
    */
   private static addDice(base: string, bonus: string, multiplier: number): string {
     const parseMatch = (s: string) => {

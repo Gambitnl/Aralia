@@ -8,7 +8,7 @@
  * - Can be reused in other HTML-based game views
  */
 import React from 'react';
-import { TownDirection } from '../types/town';
+import { TownDirection } from '../../types/town'; // Fixed missing town path for bundler/tsc resolution.
 
 interface PlayerSpriteProps {
     /** Direction the player is facing */

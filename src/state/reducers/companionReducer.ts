@@ -125,6 +125,45 @@ export function companionReducer(state: GameState, action: AppAction): Partial<G
       };
     }
 
+    case 'ADD_DISCOVERED_FACT': {
+      const { companionId, fact } = action.payload;
+      const companion = state.companions[companionId];
+      if (!companion) return {};
+
+      // Check for duplicate facts (case-insensitive comparison)
+      const existingFacts = companion.discoveredFacts || [];
+      const isDuplicate = existingFacts.some(
+        existing => existing.fact.toLowerCase().trim() === fact.fact.toLowerCase().trim()
+      );
+
+      if (isDuplicate) {
+        console.debug(`Skipping duplicate fact for ${companionId}: "${fact.fact}"`);
+        return {};
+      }
+
+      const updatedCompanion = {
+        ...companion,
+        discoveredFacts: [...existingFacts, fact]
+      };
+
+      return {
+        companions: {
+          ...state.companions,
+          [companionId]: updatedCompanion
+        }
+      };
+    }
+
+    case 'ARCHIVE_BANTER': {
+      // Add the new banter moment to the archive
+      // We prepend it so the newest are first (or append if preferred, but usually history is newest-first)
+      // Actually, standard arrays are usually push, and UI sorts. Let's prepend for easy "recent" access.
+      const moment = action.payload;
+      return {
+        archivedBanters: [moment, ...(state.archivedBanters || [])]
+      };
+    }
+
     default:
       return {};
   }

@@ -69,7 +69,7 @@ describe('useCompanionCommentary', () => {
 
     // Wait for microtasks
     await act(async () => {
-        await Promise.resolve();
+      await Promise.resolve();
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
@@ -99,9 +99,9 @@ describe('useCompanionCommentary', () => {
       vi.runAllTimers();
     });
 
-     // Wait for microtasks
-     await act(async () => {
-        await Promise.resolve();
+    // Wait for microtasks
+    await act(async () => {
+      await Promise.resolve();
     });
 
     expect(mockDispatch).toHaveBeenCalledTimes(1);
@@ -124,9 +124,20 @@ describe('useCompanionCommentary', () => {
       vi.runAllTimers();
     });
 
-     // Wait for microtasks
-     await act(async () => {
-        await Promise.resolve();
+    // Wait for microtasks
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+
+    await act(async () => {
+      rerender({ state: newerState });
+      vi.runAllTimers();
+    });
+
+    // Wait for microtasks
+    await act(async () => {
+      await Promise.resolve();
     });
 
     // Should be blocked by cooldown
@@ -136,83 +147,84 @@ describe('useCompanionCommentary', () => {
   // --- NEW CRIME TESTS ---
 
   it('should trigger reaction when a crime is committed', async () => {
-      const mockCompanion: Companion = {
-          id: 'test_comp',
-          identity: {
-              id: 'test_comp',
-              name: 'TestComp',
-              race: 'Human',
-              class: 'Fighter',
-              background: 'Soldier',
-              sex: 'Unknown',
-              age: 30,
-              physicalDescription: 'TBD'
-          },
-          personality: { openness: 50, conscientiousness: 50, extraversion: 50, agreeableness: 50, neuroticism: 50, values: [], fears: [], quirks: [] },
-          goals: [],
-          memories: [],
-          relationships: { player: { targetId: 'player', level: 'acquaintance', approval: 0, history: [], unlocks: [] } },
-          loyalty: 50,
-          approvalHistory: [],
-          reactionRules: [
-              {
-                  triggerType: 'crime_committed',
-                  triggerTags: ['theft'],
-                  approvalChange: 5,
-                  dialoguePool: ['Nice theft!'],
-                  chance: 1
-              }
-          ]
-      };
+    const mockCompanion: Companion = {
+      id: 'test_comp',
+      identity: {
+        id: 'test_comp',
+        name: 'TestComp',
+        race: 'Human',
+        class: 'Fighter',
+        background: 'Soldier',
+        sex: 'Unknown',
+        age: 30,
+        physicalDescription: 'TBD'
+      },
+      personality: { openness: 50, conscientiousness: 50, extraversion: 50, agreeableness: 50, neuroticism: 50, values: [], fears: [], quirks: [] },
+      goals: [],
+      memories: [],
+      discoveredFacts: [],
+      relationships: { player: { targetId: 'player', level: 'acquaintance', approval: 0, history: [], unlocks: [] } },
+      loyalty: 50,
+      approvalHistory: [],
+      reactionRules: [
+        {
+          triggerType: 'crime_committed',
+          triggerTags: ['theft'],
+          approvalChange: 5,
+          dialoguePool: ['Nice theft!'],
+          chance: 1
+        }
+      ]
+    };
 
-      const testState = {
-          ...mockState,
-          companions: { test_comp: mockCompanion }
-      };
+    const testState = {
+      ...mockState,
+      companions: { test_comp: mockCompanion }
+    };
 
-      const { rerender } = renderHook(
-          ({ state }) => useCompanionCommentary(state as GameState, mockDispatch as any),
-          { initialProps: { state: testState } }
-      );
+    const { rerender } = renderHook(
+      ({ state }) => useCompanionCommentary(state as GameState, mockDispatch as any),
+      { initialProps: { state: testState } }
+    );
 
-      // Simulate crime committed
-      const updatedState = {
-          ...testState,
-          notoriety: {
-              ...testState.notoriety!,
-              knownCrimes: [
-                  {
-                      id: 'crime_1',
-                      type: 'Theft',
-                      severity: 10,
-                      locationId: 'loc_1',
-                      timestamp: Date.now(),
-                      witnessed: false
-                  } as any
-              ]
-          }
-      };
+    // Simulate crime committed
+    const updatedState = {
+      ...testState,
+      notoriety: {
+        ...testState.notoriety!,
+        knownCrimes: [
+          {
+            id: 'crime_1',
+            type: 'Theft',
+            severity: 10,
+            locationId: 'loc_1',
+            timestamp: Date.now(),
+            witnessed: false
+          } as any
+        ]
+      }
+    };
 
-      await act(async () => {
-        rerender({ state: updatedState });
-      });
+    await act(async () => {
+      rerender({ state: updatedState });
+    });
 
-      expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
-          type: 'ADD_COMPANION_REACTION',
-          payload: expect.objectContaining({
-              companionId: 'test_comp',
-              reaction: 'Nice theft!'
-          })
-      }));
+    expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'ADD_COMPANION_REACTION',
+      payload: expect.objectContaining({
+        companionId: 'test_comp',
+        reaction: 'Nice theft!'
+      })
+    }));
 
-      expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
-          type: 'UPDATE_COMPANION_APPROVAL',
-          payload: expect.objectContaining({
-              companionId: 'test_comp',
-              change: 5,
-              reason: 'Reaction to crime_committed'
-          })
-      }));
+    expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'UPDATE_COMPANION_APPROVAL',
+      payload: expect.objectContaining({
+        companionId: 'test_comp',
+        change: 5,
+        reason: 'Reaction to crime_committed'
+      })
+    }));
   });
 });
 

@@ -10,7 +10,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { GameState, GamePhase } from '../types';
 import { isPlayerFocused, isNpcOccupied } from '../utils/world';
 import { AppAction } from '../state/actionTypes';
-import { OllamaService, BanterContext } from '../services/OllamaService';
+import { OllamaService, BanterContext, extractDiscoveredFacts } from '../services/ollama';
+import { createOllamaLogEntry } from '../utils/createOllamaLogEntry';
 import { Companion } from '../types/companions';
 
 interface BanterHistoryLine {
@@ -21,6 +22,7 @@ interface BanterHistoryLine {
 
 // How long to wait between NPC banter lines (30 seconds)
 const BANTER_DELAY_MS = 30000;
+
 
 export const useCompanionBanter = (
   gameState: GameState,
@@ -40,6 +42,7 @@ export const useCompanionBanter = (
   const [isBanterActive, setIsBanterActive] = useState(false);
   const [isWaitingForNextLine, setIsWaitingForNextLine] = useState(false);
   const [secondsUntilNextLine, setSecondsUntilNextLine] = useState(0);
+  const [banterHistory, setBanterHistory] = useState<BanterHistoryLine[]>([]);
 
   useEffect(() => {
     gameStateRef.current = gameState;
@@ -70,14 +73,101 @@ export const useCompanionBanter = (
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
+
+    // Archive the banter if it had any meaningful content
+    if (banterHistoryRef.current.length > 0) {
+      const moment: import('../types/companions').BanterMoment = {
+        id: crypto.randomUUID(),
+        timestamp: Date.now(),
+        locationId: gameStateRef.current.currentLocationId,
+        participants: participantsRef.current.map(p => p.id),
+        lines: banterHistoryRef.current.map(line => ({
+          speakerId: line.speakerId,
+          speakerName: line.speakerName,
+          text: line.text
+        }))
+      };
+
+      dispatch({
+        type: 'ARCHIVE_BANTER',
+        payload: moment
+      });
+    }
+
+    // Generate memory/backstory from this conversation if it was substantial
+    if (banterHistoryRef.current.length >= 3 && contextRef.current) {
+      const historyForSummary = [...banterHistoryRef.current];
+      const participantsForSummary = participantsRef.current.map(p => ({
+        id: p.id,
+        name: p.identity.name,
+        personality: p.personality.values.join(', ')
+      }));
+      const contextForSummary = { ...contextRef.current };
+
+      // Get existing discovered facts for each companion to avoid duplicates
+      const participantsForFactExtraction = participantsRef.current.map(p => ({
+        id: p.id,
+        name: p.identity.name,
+        knownFacts: (p.discoveredFacts || []).map(f => f.fact)
+      }));
+
+      // Async processing (fire and forget) - Summarize conversation into memory
+      OllamaService.summarizeConversation(
+        participantsForSummary,
+        historyForSummary,
+        contextForSummary
+      ).then(result => {
+        if (result.success) {
+          const { text, tags } = result.data;
+          // Add memory to all participants
+          participantsForSummary.forEach(p => {
+            dispatch({
+              type: 'ADD_COMPANION_MEMORY',
+              payload: {
+                companionId: p.id,
+                memory: {
+                  id: crypto.randomUUID(),
+                  type: 'banter',
+                  text,
+                  tags,
+                  timestamp: Date.now(),
+                  importance: 5
+                }
+              }
+            });
+          });
+        } else {
+          console.warn('Failed to summarize banter:', result.error);
+        }
+      }).catch(err => console.error('Failed to summarize banter (unexpected):', err));
+
+      // Async processing (fire and forget) - Extract new character facts
+      extractDiscoveredFacts(historyForSummary, participantsForFactExtraction)
+        .then(factsResult => {
+          if (factsResult.success && factsResult.data.length > 0) {
+            console.debug(`Extracted ${factsResult.data.length} new character facts from banter`);
+            factsResult.data.forEach(factWithId => {
+              // The fact already includes companionId from the LLM response
+              const { companionId, ...fact } = factWithId as { companionId: string } & typeof factWithId;
+              dispatch({
+                type: 'ADD_DISCOVERED_FACT',
+                payload: { companionId, fact }
+              });
+            });
+          }
+        })
+        .catch(err => console.error('Failed to extract character facts:', err));
+    }
+
     isGeneratingRef.current = false;
     banterHistoryRef.current = [];
+    setBanterHistory([]);
     turnRef.current = 0;
     failureCountRef.current = 0;
     setIsBanterActive(false);
     setIsWaitingForNextLine(false);
     setSecondsUntilNextLine(0);
-  }, []);
+  }, [dispatch]);
 
   /**
    * Generate and play the next line of banter.
@@ -105,46 +195,71 @@ export const useCompanionBanter = (
       sex: c.identity.sex,
       age: c.identity.age,
       physicalDescription: c.identity.physicalDescription,
-      personality: `${c.personality.values.join(', ')}. Quirks: ${c.personality.quirks.join(', ')}`
+      personality: `${c.personality.values.join(', ')}. Quirks: ${c.personality.quirks.join(', ')}`,
+      memories: c.memories?.map(m => m.text) || []
     }));
 
     const result = await OllamaService.generateBanterLine(
       participants,
       banterHistoryRef.current,
       contextRef.current,
-      turnRef.current
+      turnRef.current,
+      (id, prompt, model) => {
+        dispatch({
+          type: 'ADD_OLLAMA_LOG_ENTRY',
+          payload: {
+            id,
+            timestamp: new Date(),
+            model,
+            prompt,
+            response: 'Waiting for response...',
+            context: contextRef.current,
+            isPending: true
+          }
+        });
+      }
     );
 
-    // Log the AI interaction
+    // Update the log with the response
     if (result.metadata) {
       dispatch({
-        type: 'ADD_OLLAMA_LOG_ENTRY',
+        type: 'UPDATE_OLLAMA_LOG_ENTRY',
         payload: {
-          timestamp: new Date(),
-          model: result.metadata.model,
-          prompt: result.metadata.prompt,
-          response: result.metadata.response,
-          context: contextRef.current
+          id: result.metadata.id || '',
+          response: result.metadata.response || '',
+          model: result.metadata.model
         }
       });
     }
 
-    if (!result.data) {
+    if (!result.success) {
       // AI failed - don't end immediately, wait and try again
-      console.debug('Banter line generation failed, will retry...');
+      console.debug('Banter line generation failed, will retry...', result.error);
       failureCountRef.current += 1;
+
+      let details = 'Unknown error';
+      if (result.error) {
+        if (result.error.type === 'PARSE_ERROR') {
+          details = `JSON Parse Error: ${result.error.message}`;
+        } else if (result.error.type === 'TIMEOUT') {
+          details = `Timeout: ${result.error.message}`;
+        } else {
+          details = `${result.error.type}: ${result.error.message}`;
+        }
+      }
+
       dispatch({
         type: 'ADD_BANTER_DEBUG_LOG',
         payload: {
           timestamp: new Date(),
           check: 'Generation',
           result: false,
-          details: result.metadata?.response
-            ? `No parseable JSON (${result.metadata.response.slice(0, 180)}...)`
-            : 'No response from Ollama'
+          details
         }
       });
 
+      // TODO: Refactor retry logic (max 3 attempts, 10s delay) into configurable constants to avoid magic numbers and allow tuning of "AI stubbornness".
+      // TODO: When failing 3x, capture last prompt/metadata into the debug log for postmortems instead of silently ending the banter loop.
       if (failureCountRef.current >= 3) {
         endBanter();
         return;
@@ -167,11 +282,13 @@ export const useCompanionBanter = (
     const speakerName = speaker?.identity.name || speakerId;
 
     // Add to history
-    banterHistoryRef.current.push({
+    const newHistoryItem = {
       speakerId,
       speakerName,
       text
-    });
+    };
+    banterHistoryRef.current.push(newHistoryItem);
+    setBanterHistory(prev => [...prev, newHistoryItem]);
 
     // Display the line
     dispatch({
@@ -221,11 +338,13 @@ export const useCompanionBanter = (
     const playerId = gameStateRef.current.party[0]?.id || 'player';
 
     // Add player's message to history
-    banterHistoryRef.current.push({
+    const newPlayerItem = {
       speakerId: playerId,
       speakerName: playerName,
       text: playerMessage
-    });
+    };
+    banterHistoryRef.current.push(newPlayerItem);
+    setBanterHistory(prev => [...prev, newPlayerItem]);
 
     // Display player's message
     dispatch({
@@ -300,6 +419,7 @@ export const useCompanionBanter = (
     }
     logEntry('Roll', true, `${(roll * 100).toFixed(0)}% - TRIGGER!`);
 
+    // TODO: Add exponential backoff/single-flight caching for OllamaService.isAvailable() to avoid hammering /tags after a failure; reflect availability state in the debug log/UI.
     const isAvailable = await OllamaService.isAvailable();
     if (!isAvailable) {
       logEntry('Ollama', false, 'Not reachable');
@@ -440,6 +560,7 @@ export const useCompanionBanter = (
     isWaitingForNextLine,
     secondsUntilNextLine,
     playerInterrupt,
-    endBanter
+    endBanter,
+    banterHistory
   };
 };
