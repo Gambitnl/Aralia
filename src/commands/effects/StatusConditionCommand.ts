@@ -4,6 +4,7 @@ import { isStatusConditionEffect, EffectDuration } from '../../types/spells';
 import { calculateSpellDC, rollSavingThrow } from '../../utils/savingThrowUtils';
 import { generateId } from '../../utils/combatUtils';
 import { STATUS_ICONS, DEFAULT_STATUS_ICON } from '@/config/statusIcons';
+import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 
 export class StatusConditionCommand extends BaseEffectCommand {
   execute(state: CombatState): CombatState {
@@ -18,11 +19,25 @@ export class StatusConditionCommand extends BaseEffectCommand {
       if (this.effect.condition.type === 'save' && this.effect.condition.saveType) {
         const caster = this.getCaster(currentState);
         const dc = calculateSpellDC(caster);
-        const saveResult = rollSavingThrow(target, this.effect.condition.saveType, dc);
+
+        const savePenaltySystem = new SavePenaltySystem();
+        const saveModifiers = savePenaltySystem.getActivePenalties(target);
+
+        const saveResult = rollSavingThrow(target, this.effect.condition.saveType, dc, saveModifiers);
+
+        // Consume next_save penalties
+        currentState = savePenaltySystem.consumeNextSavePenalties(currentState, target.id);
+
+        let saveLogMessage = `${target.name} ${saveResult.success ? 'succeeds' : 'fails'} ${this.effect.condition.saveType} save (${saveResult.total} vs DC ${dc})`;
+
+        if (saveResult.modifiersApplied && saveResult.modifiersApplied.length > 0) {
+          const modDetails = saveResult.modifiersApplied.map(m => `${m.value >= 0 ? '+' : ''}${m.value} [${m.source}]`).join(', ');
+          saveLogMessage += ` (Mods: ${modDetails})`;
+        }
 
         currentState = this.addLogEntry(currentState, {
           type: 'status',
-          message: `${target.name} ${saveResult.success ? 'succeeds' : 'fails'} ${this.effect.condition.saveType} save (${saveResult.total} vs DC ${dc})`,
+          message: saveLogMessage,
           characterId: target.id
         });
 
@@ -109,9 +124,9 @@ export class StatusConditionCommand extends BaseEffectCommand {
     // We check if the input command had specific data in the effect definition.
     // StatusConditionCommand's 'effect' property is the SpellEffect input.
     if (isStatusConditionEffect(this.effect) && this.effect.statusCondition.effect) {
-         // Pass through the mechanical effect if defined in the statusCondition object
-         // The Slasher logic in DamageCommand injected `effect: { ... }` into the statusCondition object.
-         mechanicalEffect = this.effect.statusCondition.effect as StatusEffect['effect'];
+      // Pass through the mechanical effect if defined in the statusCondition object
+      // The Slasher logic in DamageCommand injected `effect: { ... }` into the statusCondition object.
+      mechanicalEffect = this.effect.statusCondition.effect as StatusEffect['effect'];
     }
 
     const appliedStatus: StatusEffect = {

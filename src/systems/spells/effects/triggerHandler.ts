@@ -66,6 +66,15 @@ export interface TriggerResult {
     triggerType?: 'on_enter_area' | 'on_exit_area' | 'on_end_turn_in_area' | 'on_move_in_area' | 'on_target_move';
 }
 
+// TODO(GAP-3 Follow-up): `ProcessedEffect` lacks `sourceContext` (spellId, casterId, saveDC).
+// This forces downstream handlers (in `useCombatEngine` or `useActionExecutor`) to re-lookup
+// the caster to calculate Spell Save DC, which is fragile if the caster has left combat or
+// their spellcasting stat has changed. Extend interface:
+// export interface ProcessedEffect {
+//   ...existing fields...
+//   sourceContext?: { spellId: string; casterId: string; saveDC?: number };
+// }
+// Populate this from `ActiveSpellZone` or `MovementTriggerDebuff` in `convertSpellEffectToProcessed`.
 export interface ProcessedEffect {
     type: 'damage' | 'heal' | 'status_condition';
     value?: number;
@@ -218,6 +227,9 @@ export function isPositionInArea(
  * @param round - Current combat round
  * @returns Array of trigger results for effects that should fire
  */
+// TODO: `processAreaEntryTriggers`/`processAreaExitTriggers`/`processAreaEndTurnTriggers` in this file
+// are **duplicated** by logic in `AreaEffectTracker.ts`. This violates DRY and risks drift.
+// Recommend deprecating these standalone functions in favor of `AreaEffectTracker` for cleaner architecture.
 export function processAreaEntryTriggers(
     zones: ActiveSpellZone[],
     character: CombatCharacter,

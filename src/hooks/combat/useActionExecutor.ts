@@ -44,13 +44,13 @@ export interface UseActionExecutorProps {
   recordAction: (action: CombatAction) => void;
 
   // Visuals
-  addDamageNumber: (val: number, pos: {x: number, y: number}, type: 'damage' | 'heal' | 'miss') => void;
+  addDamageNumber: (val: number, pos: { x: number, y: number }, type: 'damage' | 'heal' | 'miss') => void;
   queueAnimation: (anim: Animation) => void;
 
   // Engine Mechanics
   handleDamage: (c: CombatCharacter, amt: number, src: string, type?: string) => CombatCharacter;
   processRepeatSaves: (c: CombatCharacter, timing: 'turn_end' | 'turn_start' | 'on_damage' | 'on_action', effectId?: string) => CombatCharacter;
-  processTileEffects: (c: CombatCharacter, pos: {x: number, y: number}) => CombatCharacter;
+  processTileEffects: (c: CombatCharacter, pos: { x: number, y: number }) => CombatCharacter;
 
   // Engine State
   spellZones: ActiveSpellZone[];
@@ -188,101 +188,101 @@ export const useActionExecutor = ({
       // potentially stopping the move if Sentinel feat existed (not yet implemented).
       const oaSystem = new OpportunityAttackSystem();
       const oaResults = oaSystem.checkOpportunityAttacks(
-          updatedCharacter,
-          previousPosition,
-          action.targetPosition,
-          characters,
-          mapData
+        updatedCharacter,
+        previousPosition,
+        action.targetPosition,
+        characters,
+        mapData
       );
 
       for (const result of oaResults) {
-          if (result.canAttack) {
-              // Get attacker
-              const attacker = characters.find(c => c.id === result.attackerId);
-              if (attacker) {
-                  // Resolve Attack
-                  // For now, we assume a basic melee attack using the first available melee weapon ability.
-                  // TODO(Warlord): Allow selecting which weapon to use for OA if multiple exist.
-                  // 1. Select Weapon
-                  // Logic: Must be a melee weapon (range 1) or reach weapon (range 2).
-                  // Exclude ranged weapons (range >= 5 without specific reach property).
-                  // Fallback to Unarmed Strike.
-                  const weaponAbility = attacker.abilities.find(a =>
-                      a.type === 'attack' &&
-                      a.weapon &&
-                      (a.range <= 2) // Fix: Explicitly allow range 1 (5ft) and 2 (10ft) but filter out bows
-                  ) || attacker.abilities.find(a => a.id === 'unarmed_strike') || attacker.abilities[0];
+        if (result.canAttack) {
+          // Get attacker
+          const attacker = characters.find(c => c.id === result.attackerId);
+          if (attacker) {
+            // Resolve Attack
+            // For now, we assume a basic melee attack using the first available melee weapon ability.
+            // TODO(Warlord): Allow selecting which weapon to use for OA if multiple exist.
+            // 1. Select Weapon
+            // Logic: Must be a melee weapon (range 1) or reach weapon (range 2).
+            // Exclude ranged weapons (range >= 5 without specific reach property).
+            // Fallback to Unarmed Strike.
+            const weaponAbility = attacker.abilities.find(a =>
+              a.type === 'attack' &&
+              a.weapon &&
+              (a.range <= 2) // Fix: Explicitly allow range 1 (5ft) and 2 (10ft) but filter out bows
+            ) || attacker.abilities.find(a => a.id === 'unarmed_strike') || attacker.abilities[0];
 
-                  if (weaponAbility) {
-                      // Mark Reaction Used
-                      const updatedAttacker = {
-                          ...attacker,
-                          actionEconomy: {
-                              ...attacker.actionEconomy,
-                              reaction: { ...attacker.actionEconomy.reaction, used: true }
-                          }
-                      };
-                      onCharacterUpdate(updatedAttacker);
+            if (weaponAbility) {
+              // Mark Reaction Used
+              const updatedAttacker = {
+                ...attacker,
+                actionEconomy: {
+                  ...attacker.actionEconomy,
+                  reaction: { ...attacker.actionEconomy.reaction, used: true }
+                }
+              };
+              onCharacterUpdate(updatedAttacker);
 
-                      // Roll Attack
-                      const d20 = rollDice('1d20');
+              // Roll Attack
+              const d20 = rollDice('1d20');
 
-                      // 2. Calculate Modifiers
-                      // Dynamic calculation based on weapon type (Finesse -> Dex, otherwise Str)
-                      let abilityScore = attacker.stats.strength;
-                      if (weaponAbility.weapon?.properties?.includes('finesse')) {
-                          abilityScore = Math.max(attacker.stats.strength, attacker.stats.dexterity);
-                      } else if (weaponAbility.weapon?.properties?.some(p => p.includes('range') || p === 'finesse')) {
-                          // Ranged weapons use Dex (though they shouldn't trigger OAs usually, barring feats)
-                          abilityScore = attacker.stats.dexterity;
-                      }
-
-                      const abilityMod = getAbilityModifierValue(abilityScore);
-                      const profBonus = weaponAbility.isProficient ? Math.ceil(attacker.level / 4) + 1 : 0;
-                      const attackBonus = abilityMod + profBonus;
-
-                      const targetAC = updatedCharacter.armorClass || updatedCharacter.baseAC || 10;
-                      const totalRoll = d20 + attackBonus;
-                      const isHit = d20 === 20 || (d20 !== 1 && totalRoll >= targetAC);
-
-                      if (isHit) {
-                          onLogEntry({
-                              id: generateId(),
-                              timestamp: Date.now(),
-                              type: 'action',
-                              message: `${attacker.name} hits ${updatedCharacter.name} with Opportunity Attack! (${d20}+${attackBonus}=${totalRoll} vs AC ${targetAC})`,
-                              characterId: attacker.id,
-                              targetIds: [updatedCharacter.id]
-                          });
-
-                          const damageEffect = weaponAbility.effects.find(e => e.type === 'damage');
-                          if (damageEffect && damageEffect.dice) {
-                              // Crit check
-                              const isCrit = d20 === 20;
-                              let damage = rollDice(damageEffect.dice);
-                              if (isCrit) damage += rollDice(damageEffect.dice);
-
-                              updatedCharacter = handleDamage(
-                                  updatedCharacter,
-                                  damage,
-                                  `${attacker.name} (Opportunity Attack)`,
-                                  damageEffect.damageType
-                              );
-                          }
-                      } else {
-                          onLogEntry({
-                              id: generateId(),
-                              timestamp: Date.now(),
-                              type: 'action',
-                              message: `${attacker.name} misses Opportunity Attack against ${updatedCharacter.name}. (${d20}+${attackBonus}=${totalRoll} vs AC ${targetAC})`,
-                              characterId: attacker.id,
-                              targetIds: [updatedCharacter.id]
-                          });
-                          addDamageNumber(0, updatedCharacter.position, 'miss');
-                      }
-                  }
+              // 2. Calculate Modifiers
+              // Dynamic calculation based on weapon type (Finesse -> Dex, otherwise Str)
+              let abilityScore = attacker.stats.strength;
+              if (weaponAbility.weapon?.properties?.includes('finesse')) {
+                abilityScore = Math.max(attacker.stats.strength, attacker.stats.dexterity);
+              } else if (weaponAbility.weapon?.properties?.some(p => p.includes('range') || p === 'finesse')) {
+                // Ranged weapons use Dex (though they shouldn't trigger OAs usually, barring feats)
+                abilityScore = attacker.stats.dexterity;
               }
+
+              const abilityMod = getAbilityModifierValue(abilityScore);
+              const profBonus = weaponAbility.isProficient ? Math.ceil(attacker.level / 4) + 1 : 0;
+              const attackBonus = abilityMod + profBonus;
+
+              const targetAC = updatedCharacter.armorClass || updatedCharacter.baseAC || 10;
+              const totalRoll = d20 + attackBonus;
+              const isHit = d20 === 20 || (d20 !== 1 && totalRoll >= targetAC);
+
+              if (isHit) {
+                onLogEntry({
+                  id: generateId(),
+                  timestamp: Date.now(),
+                  type: 'action',
+                  message: `${attacker.name} hits ${updatedCharacter.name} with Opportunity Attack! (${d20}+${attackBonus}=${totalRoll} vs AC ${targetAC})`,
+                  characterId: attacker.id,
+                  targetIds: [updatedCharacter.id]
+                });
+
+                const damageEffect = weaponAbility.effects.find(e => e.type === 'damage');
+                if (damageEffect && damageEffect.dice) {
+                  // Crit check
+                  const isCrit = d20 === 20;
+                  let damage = rollDice(damageEffect.dice);
+                  if (isCrit) damage += rollDice(damageEffect.dice);
+
+                  updatedCharacter = handleDamage(
+                    updatedCharacter,
+                    damage,
+                    `${attacker.name} (Opportunity Attack)`,
+                    damageEffect.damageType
+                  );
+                }
+              } else {
+                onLogEntry({
+                  id: generateId(),
+                  timestamp: Date.now(),
+                  type: 'action',
+                  message: `${attacker.name} misses Opportunity Attack against ${updatedCharacter.name}. (${d20}+${attackBonus}=${totalRoll} vs AC ${targetAC})`,
+                  characterId: attacker.id,
+                  targetIds: [updatedCharacter.id]
+                });
+                addDamageNumber(0, updatedCharacter.position, 'miss');
+              }
+            }
           }
+        }
       }
 
       const moveTriggerResults = processMovementTriggers(movementDebuffs, updatedCharacter, turnState.currentTurn);
@@ -299,6 +299,11 @@ export const useActionExecutor = ({
         }
       }
 
+      // TODO: `AreaEffectTracker` is instantiated fresh for each movement action (`new AreaEffectTracker(spellZones)`).
+      // This is inefficient and loses any stateful tracking (though current impl doesn't hold state beyond zones).
+      // If we add stateful behavior (e.g., caching position lookups), consider:
+      // 1. Lifting `AreaEffectTracker` to a ref or context-level singleton.
+      // 2. Passing the zones array at method call time instead of constructor time.
       const tracker = new AreaEffectTracker(spellZones);
       const areaTriggerResults = tracker.handleMovement(
         updatedCharacter,
@@ -494,9 +499,9 @@ export const useActionExecutor = ({
               // But here we need to find the target.
               const currentTarget = characters.find(c => c.id === targetId);
               if (currentTarget) {
-                 const updatedTarget = handleDamage(currentTarget, damage, 'reactive effect', effect.damage.type);
-                 onCharacterUpdate(updatedTarget);
-                 addDamageNumber(damage, currentTarget.position, 'damage');
+                const updatedTarget = handleDamage(currentTarget, damage, 'reactive effect', effect.damage.type);
+                onCharacterUpdate(updatedTarget);
+                addDamageNumber(damage, currentTarget.position, 'damage');
               }
             }
 
@@ -520,7 +525,7 @@ export const useActionExecutor = ({
     }
 
     return true;
-  // TODO(lint-intent): If map data can churn frequently, wrap executeAction with a map snapshot to reduce recalculations.
+    // TODO(lint-intent): If map data can churn frequently, wrap executeAction with a map snapshot to reduce recalculations.
   }, [
     characters,
     turnState,

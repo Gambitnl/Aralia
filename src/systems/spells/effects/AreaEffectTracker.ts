@@ -5,6 +5,13 @@
  * Manages entry, exit, and end-of-turn triggers for area effects.
  * Emits combat events for zone interactions.
  */
+// TODO: `processEntry`/`processExit`/`processEndTurn` in this class **duplicate** the logic
+// found in `processAreaEntryTriggers`/`processAreaExitTriggers`/`processAreaEndTurnTriggers`
+// in `triggerHandler.ts`. This violates DRY and risks drift.
+// Options:
+// 1. Have `AreaEffectTracker` delegate to the standalone functions in `triggerHandler.ts`.
+// 2. Deprecate the standalone functions and make `AreaEffectTracker` the single source of truth.
+// Recommend Option 2 for cleaner architecture.
 
 import { combatEvents } from '../../events/CombatEvents';
 import {

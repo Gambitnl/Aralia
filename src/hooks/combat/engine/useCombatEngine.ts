@@ -93,16 +93,25 @@ export const useCombatEngine = ({
             // TODO(lint-intent): Define a real interface/union (even partial) and push it through callers so behavior is explicit.
             // TODO(lint-intent): If the shape is still unknown, document the source schema and tighten types incrementally.
             const saveType = repeat.saveType as unknown;
-            const savePenalties = savePenaltySystem.getActivePenalties(character);
-            const roll = rollSavingThrow(character, saveType as any, dc, savePenalties);
+            const saveModifiers = savePenaltySystem.getActivePenalties(updatedCharacter);
+            const roll = rollSavingThrow(updatedCharacter, saveType as any, dc, saveModifiers);
 
             let finalSuccess = roll.success;
+            // ...advantage/disadvantage logic uses saveModifiers...
             if (hasAdvantage) {
-                const roll2 = rollSavingThrow(character, saveType as any, dc, savePenalties);
+                const roll2 = rollSavingThrow(updatedCharacter, saveType as any, dc, saveModifiers);
                 finalSuccess = roll.success || roll2.success;
             } else if (hasDisadvantage) {
-                const roll2 = rollSavingThrow(character, saveType as any, dc, savePenalties);
+                const roll2 = rollSavingThrow(updatedCharacter, saveType as any, dc, saveModifiers);
                 finalSuccess = roll.success && roll2.success;
+            }
+
+            // Immediately consume 'next_save' penalties if this roll was made
+            if (updatedCharacter.savePenaltyRiders?.some(r => r.applies === 'next_save')) {
+                updatedCharacter = {
+                    ...updatedCharacter,
+                    savePenaltyRiders: updatedCharacter.savePenaltyRiders.filter(r => r.applies !== 'next_save')
+                };
             }
 
             if (roll.modifiersApplied && roll.modifiersApplied.length > 0) {
@@ -140,13 +149,6 @@ export const useCombatEngine = ({
 
         if (savedEffectIds.length > 0) {
             updatedCharacter.statusEffects = updatedCharacter.statusEffects.filter(e => !savedEffectIds.includes(e.id));
-        }
-
-        if (updatedCharacter.savePenaltyRiders && updatedCharacter.savePenaltyRiders.length > 0) {
-            updatedCharacter = {
-                ...updatedCharacter,
-                savePenaltyRiders: updatedCharacter.savePenaltyRiders.filter(r => r.applies !== 'next_save')
-            };
         }
 
         return updatedCharacter;
@@ -246,6 +248,11 @@ export const useCombatEngine = ({
 
         updatedCharacter = processTileEffects(updatedCharacter, updatedCharacter.position);
 
+        // TODO: `AreaEffectTracker` is instantiated fresh for each movement action (`new AreaEffectTracker(spellZones)`).
+        // This is inefficient and loses any stateful tracking (though current impl doesn't hold state beyond zones).
+        // If we add stateful behavior (e.g., caching position lookups), consider:
+        // 1. Lifting `AreaEffectTracker` to a ref or context-level singleton.
+        // 2. Passing the zones array at method call time instead of constructor time.
         const tracker = new AreaEffectTracker(spellZones);
         const zoneResults = tracker.processEndTurn(updatedCharacter, currentTurnNumber);
         for (const result of zoneResults) {
@@ -401,6 +408,21 @@ export const useCombatEngine = ({
         processRepeatSaves,
         processTileEffects,
         processEndOfTurnEffects,
-        updateRoundBasedEffects
+        updateRoundBasedEffects,
+        expireSavePenaltiesForCaster: useCallback((allCharacters: CombatCharacter[], casterId: string, currentTurn: number) => {
+            const savePenaltySystem = new SavePenaltySystem();
+            const mockState = {
+                characters: allCharacters,
+                turnState: { currentTurn }
+            } as any;
+
+            const newState = savePenaltySystem.expirePenalties(mockState, casterId);
+
+            newState.characters.forEach((updated: CombatCharacter, index: number) => {
+                if (updated !== allCharacters[index]) {
+                    onCharacterUpdate(updated);
+                }
+            });
+        }, [onCharacterUpdate])
     };
 };

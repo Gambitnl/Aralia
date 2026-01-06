@@ -29,7 +29,7 @@ export const DEFAULT_OLLAMA_CONFIG: OllamaConfig = {
     apiBase: '/api/ollama',
     timeoutMs: 90000,
     retryAttempts: 0,
-    preferredModels: ['leeplenty/ellaria', 'gpt-oss:20b', 'llama3.1', 'llama3', 'mistral', 'gemma3:1b', 'gemma:2b', 'phi']
+    preferredModels: ['leeplenty/ellaria', 'phi4-mini:3.8b', 'gpt-oss:20b', 'llama3.1', 'llama3', 'mistral', 'gemma3:1b', 'gemma:2b', 'phi']
 };
 
 // ============================================================================

@@ -30,6 +30,9 @@ export const isStepCompleted = (step: CreationStep, state: CharacterCreationStat
       return state.characterAge > 0 && state.selectedRace !== null;
     case CreationStep.BackgroundSelection:
       return state.selectedBackground !== null;
+    case CreationStep.Visuals:
+      return true; // Visuals are always "complete" as they have defaults, or we could check if user interacts
+
     case CreationStep.DragonbornAncestry:
       return !!state.racialSelections['dragonborn']?.choiceId;
     case CreationStep.ElvenLineage:
@@ -186,6 +189,13 @@ export const SIDEBAR_STEPS: SidebarStepConfig[] = [
       if (!state.selectedBackground) return null;
       return state.selectedBackground.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     },
+    isVisible: () => true,
+  },
+  {
+    step: CreationStep.Visuals,
+    label: 'Appearance',
+    group: 'origin',
+    getSelectionSummary: (state) => `${state.visuals.gender} ${state.visuals.hairColor} ${state.visuals.hairStyle}`,
     isVisible: () => true,
   },
 

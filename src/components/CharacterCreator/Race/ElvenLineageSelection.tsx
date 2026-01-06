@@ -5,8 +5,8 @@
  * and the spellcasting ability for spells granted by that lineage.
  */
 import React, { useState } from 'react';
-import { ElvenLineage, ElvenLineageType, AbilityScoreName } from '../../../types'; // Path relative to src/components/CharacterCreator/Elf/
-import { RELEVANT_SPELLCASTING_ABILITIES } from '../../../constants'; // Path relative to src/components/CharacterCreator/Elf/
+import { ElvenLineage, ElvenLineageType, AbilityScoreName } from '../../../types';
+import { RELEVANT_SPELLCASTING_ABILITIES } from '../../../constants';
 
 interface ElvenLineageSelectionProps {
   lineages: ElvenLineage[];
@@ -14,28 +14,46 @@ interface ElvenLineageSelectionProps {
     lineageId: ElvenLineageType,
     spellcastingAbility: AbilityScoreName,
   ) => void;
-  onBack: () => void; // Function to go back to Race selection
+  onBack: () => void;
 }
 
-/**
- * ElvenLineageSelection component.
- * Displays a list of Elven Lineages and spellcasting ability choices.
- * @param {ElvenLineageSelectionProps} props - Props for the component.
- * @returns {React.FC} The rendered ElvenLineageSelection component.
- */
+const LINEAGE_INFO: Record<ElvenLineageType, {
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  accentColor: string;
+  tagline: string;
+}> = {
+  drow: {
+    color: 'text-purple-400',
+    bgColor: 'bg-indigo-900/30',
+    borderColor: 'border-indigo-500/50',
+    accentColor: 'bg-indigo-500/20',
+    tagline: 'Dwellers of the Underdark with innate magical darkness',
+  },
+  high_elf: {
+    color: 'text-sky-400',
+    bgColor: 'bg-sky-900/30',
+    borderColor: 'border-sky-500/50',
+    accentColor: 'bg-sky-500/20',
+    tagline: 'Scholarly aristocrats with a focus on arcane study',
+  },
+  wood_elf: {
+    color: 'text-emerald-400',
+    bgColor: 'bg-emerald-900/30',
+    borderColor: 'border-emerald-500/50',
+    accentColor: 'bg-emerald-500/20',
+    tagline: 'Keen-eyed guardians of the deep forests',
+  },
+};
+
 const ElvenLineageSelection: React.FC<ElvenLineageSelectionProps> = ({
   lineages,
   onLineageSelect,
   onBack,
 }) => {
-  const [selectedLineageId, setSelectedLineageId] =
-    useState<ElvenLineageType | null>(null);
-  const [selectedSpellcastingAbility, setSelectedSpellcastingAbility] =
-    useState<AbilityScoreName | null>(null);
-
-  const selectedLineageDetails = selectedLineageId
-    ? lineages.find((l) => l.id === selectedLineageId)
-    : null;
+  const [selectedLineageId, setSelectedLineageId] = useState<ElvenLineageType | null>(null);
+  const [selectedSpellcastingAbility, setSelectedSpellcastingAbility] = useState<AbilityScoreName | null>(null);
 
   const handleSubmit = () => {
     if (selectedLineageId && selectedSpellcastingAbility) {
@@ -44,74 +62,90 @@ const ElvenLineageSelection: React.FC<ElvenLineageSelectionProps> = ({
   };
 
   return (
-    <div>
-      <h2 className="text-2xl text-sky-300 mb-6 text-center">
+    <div className="max-w-4xl mx-auto py-4 px-2 h-full overflow-y-auto">
+      <h2 className="text-2xl text-sky-300 mb-2 text-center">
         Choose Your Elven Lineage
       </h2>
+      <p className="text-gray-400 text-sm text-center mb-8">
+        Your lineage reflects your ancestry and grants specific magical traits
+      </p>
 
       {/* Lineage Selection */}
-      <div className="mb-6">
-        <h3 className="text-xl text-amber-300 mb-3">Select Lineage:</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {lineages.map((lineage) => (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {lineages.map((lineage) => {
+          const info = LINEAGE_INFO[lineage.id as ElvenLineageType];
+          const isSelected = selectedLineageId === lineage.id;
+
+          return (
             <button
               key={lineage.id}
-              onClick={() => setSelectedLineageId(lineage.id)}
-              className={`w-full text-left p-4 rounded-lg transition-colors border-2 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-opacity-75 ${
-                selectedLineageId === lineage.id
-                  ? 'bg-sky-700 border-sky-500 ring-sky-500'
-                  : 'bg-gray-700 hover:bg-gray-600 border-gray-600 hover:border-sky-600 ring-transparent'
-              }`}
-              aria-pressed={selectedLineageId === lineage.id}
-              aria-label={`Select ${lineage.name} lineage`}
+              type="button"
+              onClick={() => setSelectedLineageId(lineage.id as ElvenLineageType)}
+              className={`w-full text-left p-5 rounded-xl transition-all border-2 shadow-lg flex flex-col h-full ${isSelected
+                  ? `bg-sky-800/40 border-sky-400 ring-2 ring-sky-500 ring-opacity-50 scale-[1.02]`
+                  : `bg-gray-800/60 hover:bg-gray-700/80 border-gray-700 hover:border-gray-500`
+                }`}
+              aria-pressed={isSelected ? 'true' : 'false'}
             >
-              <h4 className="font-semibold text-amber-400 text-lg">
+              <h4 className={`font-bold text-xl mb-1 ${isSelected ? 'text-white' : info.color}`}>
                 {lineage.name}
               </h4>
-              <p className="text-sm text-gray-300 mt-1">
+              <p className="text-xs text-amber-400/80 mb-3 font-medium uppercase tracking-wider">
+                {info.tagline}
+              </p>
+
+              <p className="text-sm text-gray-300 mb-4 line-clamp-3">
                 {lineage.description}
               </p>
-              {lineage.benefits
-                .filter((b) => b.level === 1)
-                .map((benefit) => (
-                  <p
-                    key={`${lineage.id}-${
-                      benefit.description ||
-                      benefit.cantripId ||
-                      benefit.speedIncrease
-                    }`}
-                    className="text-xs text-sky-200 mt-1"
-                  >
-                    {benefit.description}
-                    {benefit.cantripId &&
-                      ` (Cantrip: ${benefit.cantripId
-                        .replace(/_/g, ' ')
-                        .replace(/\b\w/g, (l) => l.toUpperCase())})`}
-                  </p>
-                ))}
+
+              <div className="mt-auto space-y-2">
+                {lineage.benefits
+                  .filter((b) => b.level === 1)
+                  .map((benefit, idx) => (
+                    <div
+                      key={idx}
+                      className={`text-xs px-2 py-1.5 rounded border ${isSelected
+                          ? 'bg-sky-500/20 border-sky-400/30 text-sky-100'
+                          : `${info.accentColor} ${info.borderColor.replace('/50', '/30')} text-gray-200`
+                        }`}
+                    >
+                      {benefit.description}
+                      {benefit.cantripId && (
+                        <span className="block mt-1 font-semibold text-amber-300">
+                          ✦ {benefit.cantripId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+              </div>
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
       {/* Spellcasting Ability Selection */}
       {selectedLineageId && (
-        <div className="mb-6">
-          <h3 className="text-xl text-amber-300 mb-3">
-            Select Spellcasting Ability for Lineage Spells:
+        <div className="mb-8 p-6 bg-gray-800/40 border border-gray-700 rounded-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <h3 className="text-lg font-semibold text-amber-300 mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            Spellcasting Ability
           </h3>
-          <div className="flex flex-wrap gap-2">
+          <p className="text-sm text-gray-400 mb-4">
+            Select the ability score you will use for your lineage's innate magic:
+          </p>
+          <div className="flex flex-wrap gap-3">
             {RELEVANT_SPELLCASTING_ABILITIES.map((ability) => (
               <button
                 key={ability}
+                type="button"
                 onClick={() => setSelectedSpellcastingAbility(ability)}
-                className={`px-4 py-2 rounded-md transition-colors border ${
-                  selectedSpellcastingAbility === ability
-                    ? 'bg-green-600 border-green-500 text-white'
-                    : 'bg-gray-600 hover:bg-gray-500 border-gray-500 text-gray-300'
-                }`}
-                aria-pressed={selectedSpellcastingAbility === ability}
-                aria-label={`Select ${ability} as spellcasting ability`}
+                className={`px-6 py-2.5 rounded-lg font-medium transition-all border-2 ${selectedSpellcastingAbility === ability
+                    ? 'bg-sky-600 border-sky-400 text-white shadow-lg shadow-sky-900/40'
+                    : 'bg-gray-700 hover:bg-gray-600 border-gray-600 text-gray-300 active:scale-95'
+                  }`}
+                aria-pressed={selectedSpellcastingAbility === ability ? 'true' : 'false'}
               >
                 {ability}
               </button>
@@ -120,52 +154,19 @@ const ElvenLineageSelection: React.FC<ElvenLineageSelectionProps> = ({
         </div>
       )}
 
-      {/* Display selected lineage benefits for level 1 */}
-      {selectedLineageDetails && (
-        <div className="my-4 p-3 bg-gray-700/50 rounded-md border border-gray-600">
-          <h4 className="text-md font-semibold text-sky-200 mb-1">
-            Level 1 Benefits for {selectedLineageDetails.name}:
-          </h4>
-          <ul className="list-disc list-inside text-sm text-gray-300">
-            {selectedLineageDetails.benefits
-              .filter((b) => b.level === 1)
-              .map((benefit) => {
-                let text = benefit.description || '';
-                if (benefit.cantripId)
-                  text += ` You learn the ${benefit.cantripId
-                    .replace(/_/g, ' ')
-                    .replace(/\b\w/g, (l) => l.toUpperCase())} cantrip.`;
-                if (benefit.speedIncrease)
-                  text += ` Your speed increases by ${benefit.speedIncrease}ft.`;
-                if (benefit.darkvisionRange)
-                  text = `Your Darkvision range becomes ${benefit.darkvisionRange}ft.`;
-                return (
-                  <li
-                    key={`${selectedLineageDetails.id}-${benefit.level}-${
-                      benefit.cantripId || benefit.description
-                    }`}
-                  >
-                    {text}
-                  </li>
-                );
-              })}
-          </ul>
-        </div>
-      )}
-
-      <div className="flex gap-4 mt-8">
+      <div className="flex gap-4 max-w-md mx-auto mb-4">
         <button
+          type="button"
           onClick={onBack}
-          className="w-1/2 bg-gray-600 hover:bg-gray-500 text-white font-semibold py-3 px-4 rounded-lg shadow transition-colors"
-          aria-label="Go back to race selection"
+          className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-200 font-bold py-3 px-6 rounded-xl border border-gray-600 transition-colors"
         >
           Back
         </button>
         <button
+          type="button"
           onClick={handleSubmit}
           disabled={!selectedLineageId || !selectedSpellcastingAbility}
-          className="w-1/2 bg-green-600 hover:bg-green-500 disabled:bg-gray-500 text-white font-semibold py-3 px-4 rounded-lg shadow transition-colors"
-          aria-label="Confirm selected elven lineage and ability"
+          className="flex-1 bg-sky-600 hover:bg-sky-500 disabled:bg-gray-800 disabled:text-gray-600 disabled:border-gray-800 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg active:scale-95"
         >
           Confirm Lineage
         </button>

@@ -73,6 +73,8 @@ const getNextStep = (state: CharacterCreationState): CreationStep => {
     case CreationStep.AgeSelection:
       return CreationStep.BackgroundSelection;
     case CreationStep.BackgroundSelection:
+      return CreationStep.Visuals;
+    case CreationStep.Visuals:
       return CreationStep.Class;
     default:
       return CreationStep.Class; // fallback

@@ -23,6 +23,38 @@ const CHANGELING_INSTINCTS_SKILL_CHOICES_IDS: string[] = [
 
 const MAX_SKILLS_TO_SELECT = 2;
 
+const SKILL_INFO: Record<string, {
+  color: string;
+  tagline: string;
+  icon: string;
+}> = {
+  deception: {
+    color: 'text-purple-400',
+    tagline: 'Masking your intentions with effortless lies',
+    icon: '🎭',
+  },
+  insight: {
+    color: 'text-sky-400',
+    tagline: 'Seeing through the masks and lies of others',
+    icon: '👁️',
+  },
+  intimidation: {
+    color: 'text-red-500',
+    tagline: 'Commanding presence that bends others to your will',
+    icon: '👹',
+  },
+  performance: {
+    color: 'text-amber-400',
+    tagline: 'Captivating an audience with your fey charm',
+    icon: '🎻',
+  },
+  persuasion: {
+    color: 'text-blue-400',
+    tagline: 'Influencing others with grace and diplomacy',
+    icon: '🤝',
+  },
+};
+
 const ChangelingInstinctsSelection: React.FC<ChangelingInstinctsSelectionProps> = ({ onSkillsSelect, onBack }) => {
   const [selectedSkillIds, setSelectedSkillIds] = useState<Set<string>>(new Set());
 
@@ -51,59 +83,94 @@ const ChangelingInstinctsSelection: React.FC<ChangelingInstinctsSelectionProps> 
   const isSubmitDisabled = selectedSkillIds.size !== MAX_SKILLS_TO_SELECT;
 
   return (
-    <div>
-      <h2 className="text-2xl text-sky-300 mb-4 text-center">Changeling Trait: Changeling Instincts</h2>
-      <p className="text-sm text-gray-400 mb-6 text-center">
-        Thanks to your connection to the fey realm, you gain proficiency with <span className="font-bold">two</span> of the following skills of your choice:
+    <div className="max-w-4xl mx-auto py-4 px-2 h-full overflow-y-auto">
+      <h2 className="text-2xl text-sky-300 mb-2 text-center">Changeling Instincts</h2>
+      <p className="text-gray-400 text-sm text-center mb-8">
+        Thanks to your fey heritage, you have an intuitive grasp of the social arts. Select <span className="font-bold text-sky-300">two</span> skill proficiencies.
       </p>
-      
-      <div className="mb-6">
-        <h3 className="text-xl text-amber-300 mb-3">Select Two Skill Proficiencies:</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {skillOptions.map((skill) => (
-            <label
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        {skillOptions.map((skill) => {
+          const info = SKILL_INFO[skill.id];
+          const isSelected = selectedSkillIds.has(skill.id);
+          const isMaxReached = selectedSkillIds.size >= MAX_SKILLS_TO_SELECT;
+          const isDisabled = !isSelected && isMaxReached;
+
+          return (
+            <button
               key={skill.id}
-              className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors ${
-                selectedSkillIds.has(skill.id)
-                  ? 'bg-sky-600 ring-2 ring-sky-400'
-                  : (!selectedSkillIds.has(skill.id) && selectedSkillIds.size >= MAX_SKILLS_TO_SELECT)
-                  ? 'bg-gray-600 opacity-70 cursor-not-allowed'
-                  : 'bg-gray-700 hover:bg-gray-600'
-              }`}
+              type="button"
+              onClick={() => handleSkillToggle(skill.id)}
+              disabled={isDisabled}
+              className={`w-full text-left p-5 rounded-xl transition-all border-2 shadow-lg flex items-center gap-4 ${isSelected
+                  ? 'bg-sky-800/40 border-sky-400 ring-2 ring-sky-500 ring-opacity-50 scale-[1.02]'
+                  : isDisabled
+                    ? 'bg-gray-800/30 border-gray-800 opacity-50 cursor-not-allowed'
+                    : 'bg-gray-800/60 hover:bg-gray-700/80 border-gray-700 hover:border-gray-500'
+                }`}
             >
-              <input
-                type="checkbox"
-                checked={selectedSkillIds.has(skill.id)}
-                onChange={() => handleSkillToggle(skill.id)}
-                disabled={!selectedSkillIds.has(skill.id) && selectedSkillIds.size >= MAX_SKILLS_TO_SELECT}
-                className="form-checkbox h-5 w-5 text-sky-500 bg-gray-800 border-gray-600 rounded focus:ring-sky-500 mr-3 disabled:opacity-50"
-                aria-label={`Select skill ${skill.name}`}
-              />
-              <span className="text-gray-200">
-                {skill.name}
-                <span className="text-xs text-gray-400 ml-1">({skill.ability.substring(0,3)})</span>
-              </span>
-            </label>
-          ))}
-        </div>
-        <p className="text-sm text-gray-400 mt-4 text-center">
-          Selected: {selectedSkillIds.size} / {MAX_SKILLS_TO_SELECT}
-        </p>
+              <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl aspect-square ${isSelected ? 'bg-sky-400/20 shadow-inner' : 'bg-gray-700/50'
+                }`}>
+                {info?.icon || '📜'}
+              </div>
+
+              <div className="flex-grow">
+                <div className="flex items-center justify-between">
+                  <h4 className={`font-bold text-lg ${isSelected ? 'text-white' : info?.color || 'text-amber-400'}`}>
+                    {skill.name}
+                  </h4>
+                  {isSelected && (
+                    <span className="text-sky-400 animate-in zoom-in duration-200">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {info?.tagline}
+                </p>
+              </div>
+
+              <div className="text-[10px] bg-gray-900/50 px-1.5 py-0.5 rounded border border-gray-700/50 text-gray-400 uppercase font-mono">
+                {skill.ability.substring(0, 3)}
+              </div>
+            </button>
+          );
+        })}
       </div>
-      
-      <div className="flex gap-4 mt-8">
+
+      <div className="text-center mb-10">
+        <div className="inline-flex items-center gap-3 bg-gray-900/60 px-6 py-2 rounded-full border border-gray-700">
+          <span className="text-sm text-gray-400">Selections Remaining:</span>
+          <span className={`text-lg font-bold ${selectedSkillIds.size === MAX_SKILLS_TO_SELECT ? 'text-green-400' : 'text-amber-400'}`}>
+            {MAX_SKILLS_TO_SELECT - selectedSkillIds.size}
+          </span>
+          <div className="flex gap-1 ml-2">
+            {[...Array(MAX_SKILLS_TO_SELECT)].map((_, i) => (
+              <div
+                key={i}
+                className={`w-2.5 h-2.5 rounded-full border transition-colors ${i < selectedSkillIds.size ? 'bg-sky-400 border-sky-300' : 'bg-gray-800 border-gray-600'
+                  }`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-4 max-w-md mx-auto mb-4">
         <button
+          type="button"
           onClick={onBack}
-          className="w-1/2 bg-gray-600 hover:bg-gray-500 text-white font-semibold py-3 px-4 rounded-lg shadow transition-colors"
-          aria-label="Go back to race selection"
+          className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-200 font-bold py-3 px-6 rounded-xl border border-gray-600 transition-colors"
         >
-          Back to Race
+          Back
         </button>
         <button
+          type="button"
           onClick={handleSubmit}
           disabled={isSubmitDisabled}
-          className="w-1/2 bg-green-600 hover:bg-green-500 disabled:bg-gray-500 text-white font-semibold py-3 px-4 rounded-lg shadow transition-colors"
-          aria-label="Confirm Changeling Instincts skills"
+          className="flex-1 bg-sky-600 hover:bg-sky-500 disabled:bg-gray-800 disabled:text-gray-600 disabled:border-gray-800 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg active:scale-95"
         >
           Confirm Skills
         </button>

@@ -173,6 +173,10 @@ const EscapeCheck = z.object({
   actionCost: z.enum(["action", "bonus_action"]),
 });
 
+// TODO: The trigger type 'on_move_in_area' is implemented in `AreaEffectTracker.processMovementWithin`
+// but is NOT listed in the `EffectTrigger.type` schema enum. This causes validation to reject
+// spells using this trigger (e.g., Spike Growth). Add 'on_move_in_area' to the enum:
+// type: z.enum([..., "on_move_in_area"])
 const EffectTrigger = z.object({
   type: z.enum([
     "immediate",

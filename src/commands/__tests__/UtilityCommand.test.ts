@@ -117,13 +117,13 @@ describe('UtilityCommand', () => {
         })
 
         it('should apply "flee" command (movement)', () => {
-             // Mock target close to caster
-             const closeState = {
-                 ...mockState,
-                 characters: [mockCaster, { ...mockTarget, position: { x: 6, y: 5 } }] // adjacent
-             } as CombatState
+            // Mock target close to caster
+            const closeState = {
+                ...mockState,
+                characters: [mockCaster, { ...mockTarget, position: { x: 6, y: 5 } }] // adjacent
+            } as CombatState
 
-             const effect: UtilityEffect = {
+            const effect: UtilityEffect = {
                 type: 'UTILITY',
                 utilityType: 'control',
                 description: 'Run away!',
@@ -168,4 +168,32 @@ describe('UtilityCommand', () => {
             expect(logEntry).toBeDefined()
         })
     });
-})
+
+    describe('Save Penalty Registration (Mind Sliver)', () => {
+        it('should register a save penalty rider on the target', () => {
+            const effect: UtilityEffect = {
+                type: 'UTILITY',
+                utilityType: 'other',
+                description: 'Subtract 1d4 from next save',
+                savePenalty: {
+                    dice: '1d4',
+                    applies: 'next_save',
+                    duration: { type: 'rounds', value: 1 }
+                },
+                trigger: { type: 'immediate' },
+                condition: { type: 'always' }
+            }
+
+            const command = new UtilityCommand(effect, mockContext)
+            const newState = command.execute(mockState)
+
+            const targetInState = newState.characters.find(c => c.id === mockTarget.id)
+            expect(targetInState?.savePenaltyRiders).toHaveLength(1)
+            expect(targetInState?.savePenaltyRiders?.[0]).toMatchObject({
+                dice: '1d4',
+                applies: 'next_save',
+                sourceName: mockContext.spellName
+            })
+        })
+    });
+});

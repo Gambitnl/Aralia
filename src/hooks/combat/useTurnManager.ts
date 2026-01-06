@@ -73,7 +73,8 @@ export const useTurnManager = ({
     processRepeatSaves,
     processTileEffects,
     processEndOfTurnEffects,
-    updateRoundBasedEffects
+    updateRoundBasedEffects,
+    expireSavePenaltiesForCaster
   } = useCombatEngine({
     characters,
     mapData,
@@ -186,7 +187,10 @@ export const useTurnManager = ({
     // 1. Apply end-of-turn effects to the current character (Delegated to Engine)
     const processedChar = processEndOfTurnEffects(currentCharacter, turnState.currentTurn);
 
-    // 2. Advance the turn order
+    // 2. Expire save penalties originating from this character
+    expireSavePenaltiesForCaster(characters, currentCharacter.id, turnState.currentTurn);
+
+    // 3. Advance the turn order
     const { isNewRound, nextCharacterId } = advanceTurnOrder();
 
     // 3. Handle New Round Events

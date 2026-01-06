@@ -48,6 +48,11 @@
 
 ## Provenance
 <!-- Record how this batch was completed for audit trail -->
+<!-- TODO: Fill in Provenance section. This batch appears complete per the checklist but lacks:
+- Completion Method: (Was it Jules PR #57? Manual? Hybrid?)
+- Date: (Completion date)
+- PR Link: (Link to merged PR if applicable)
+This is critical for audit trail and future debugging. -->
 - **Completion Method**: Manual / Jules PR (specify which)
 - **Date**: _(fill in)_
 - **PR Link**: _(if applicable)_

@@ -9,6 +9,8 @@
 
 The project is broken down into 9 batches (approx. 5 spells each).
 
+<!-- TODO: Update batch status table. Batch 2 and 3 show outdated info (e.g., Batch 2 shows `guidance` missing, but PR #56 added it; Batch 3 shows "Pending" but per-spell checklist in 1K is marked complete). Sync this table with actual batch file completions. -->
+
 | Batch | Status | Spells | Notes |
 | :--- | :--- | :--- | :--- |
 | **Batch 1** | ✅ Complete | `acid-splash`, `blade-ward`, `booming-blade`, `chill-touch`, `create-bonfire` | Gaps identified (see below). |

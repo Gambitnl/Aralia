@@ -212,7 +212,6 @@ describe('DamageCommand', () => {
             // Verify first application
             let updatedCaster = newState.characters.find(c => c.id === mockCaster.id);
             expect(updatedCaster?.featUsageThisTurn).toContain('slasher_slow');
-
             // Reset logs for clarity, keep state
             newState = { ...newState, combatLog: [] };
 
@@ -230,5 +229,49 @@ describe('DamageCommand', () => {
             const slowLog = finalState.combatLog.find(l => l.message.includes('Slasher feat slows'));
             expect(slowLog).toBeUndefined();
         });
+    });
+
+    it('applies and consumes save penalties during saving throws', () => {
+        const effect: SpellEffect = {
+            type: "DAMAGE",
+            damage: { dice: '2d6', type: 'Psychic' },
+            trigger: { type: 'immediate' },
+            condition: {
+                type: 'save',
+                saveType: 'Intelligence',
+                saveEffect: 'half'
+            }
+        };
+
+        // Pre-apply a save penalty to the target
+        const targetWithPenalty = {
+            ...mockTarget,
+            savePenaltyRiders: [{
+                spellId: 'mind-sliver-1',
+                casterId: 'hero-1',
+                sourceName: 'Mind Sliver',
+                dice: '1d4',
+                applies: 'next_save',
+                duration: { type: 'rounds', value: 1 },
+                appliedTurn: 0
+            }]
+        };
+        const stateWithPenalty = {
+            ...mockState,
+            characters: [mockCaster, targetWithPenalty]
+        };
+
+        const command = new DamageCommand(effect, mockContext);
+        const newState = command.execute(stateWithPenalty);
+
+        // Check logs for modifier application
+        const saveLog = newState.combatLog.find(l => l.message.includes('save') && l.message.includes('Mods:'));
+        expect(saveLog).toBeDefined();
+        expect(saveLog?.message).toContain('[Mind Sliver]');
+
+        // Verify penalty was consumed
+        const finalTarget = newState.characters.find(c => c.id === mockTarget.id);
+        const nextSaveRider = finalTarget?.savePenaltyRiders?.find(r => r.applies === 'next_save');
+        expect(nextSaveRider).toBeUndefined();
     });
 });

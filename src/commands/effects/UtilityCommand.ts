@@ -3,6 +3,8 @@ import { CommandContext } from '../base/SpellCommand'
 import { UtilityEffect } from '@/types/spells'
 import { CombatState, CombatCharacter, StatusEffect, LightSource } from '@/types/combat'
 import { generateId } from '../../utils/idGenerator'
+import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem'
+
 
 export class UtilityCommand extends BaseEffectCommand {
     constructor(
@@ -91,7 +93,7 @@ export class UtilityCommand extends BaseEffectCommand {
 
         // Apply control options metadata for downstream enforcement.
         const controlOptions = effect.controlOptions ?? [];
-        if (controlOptions.length > 0) {        
+        if (controlOptions.length > 0) {
             newState = this.addLogEntry(newState, {
                 type: 'status',
                 message: `${this.context.caster.name} issues a command with options: ${controlOptions.map(o => o.name).join(', ')}`,
@@ -104,7 +106,7 @@ export class UtilityCommand extends BaseEffectCommand {
             const chosen = controlOptions[0]
             const targets = this.getTargets(newState)
             for (const target of targets) {
-                newState = this.applyControlOption(newState, target, chosen)    
+                newState = this.applyControlOption(newState, target, chosen)
             }
         }
 
@@ -113,6 +115,22 @@ export class UtilityCommand extends BaseEffectCommand {
             const targets = this.getTargets(newState)
             for (const target of targets) {
                 newState = this.applyTaunt(newState, target, effect)
+            }
+        }
+
+        // Register structured save penalties (e.g., from Mind Sliver)
+        if (effect.savePenalty) {
+            const savePenaltySystem = new SavePenaltySystem();
+            const targets = this.getTargets(newState);
+            for (const target of targets) {
+                newState = savePenaltySystem.registerPenalty(
+                    newState,
+                    target.id,
+                    this.context.caster.id,
+                    this.context.spellName || this.context.spellId || 'Source',
+                    effect.savePenalty,
+                    this.context.spellId
+                );
             }
         }
 

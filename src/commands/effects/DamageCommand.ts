@@ -8,6 +8,7 @@ import { BreakConcentrationCommand } from './ConcentrationCommands'
 import { ResistanceCalculator } from '../../utils/combat/resistanceUtils';
 import { getPlanarSpellModifier } from '../../utils/planarUtils';
 import { StatusConditionCommand } from './StatusConditionCommand';
+import { SavePenaltySystem } from '../../systems/combat/SavePenaltySystem';
 
 /** Unique key for tracking Slasher speed reduction once-per-turn usage */
 const SLASHER_SLOW_USAGE_KEY = 'slasher_slow';
@@ -79,7 +80,10 @@ export class DamageCommand extends BaseEffectCommand {
           dc += planarModifier;
         }
 
-        const saveResult = rollSavingThrow(target, this.effect.condition.saveType, dc);
+        const savePenaltySystem = new SavePenaltySystem();
+        const saveModifiers = savePenaltySystem.getActivePenalties(target);
+
+        const saveResult = rollSavingThrow(target, this.effect.condition.saveType, dc, saveModifiers);
 
         // Adjust damage based on save result
         damageRoll = calculateSaveDamage(
@@ -88,10 +92,20 @@ export class DamageCommand extends BaseEffectCommand {
           this.effect.condition.saveEffect || 'half'
         );
 
+        // Consume next_save penalties
+        currentState = savePenaltySystem.consumeNextSavePenalties(currentState, target.id);
+
         // Log save outcome
+        let saveLogMessage = `${target.name} ${saveResult.success ? 'succeeds' : 'fails'} ${this.effect.condition.saveType} save (${saveResult.total} vs DC ${dc})`;
+
+        if (saveResult.modifiersApplied && saveResult.modifiersApplied.length > 0) {
+          const modDetails = saveResult.modifiersApplied.map(m => `${m.value >= 0 ? '+' : ''}${m.value} [${m.source}]`).join(', ');
+          saveLogMessage += ` (Mods: ${modDetails})`;
+        }
+
         currentState = this.addLogEntry(currentState, {
           type: 'status',
-          message: `${target.name} ${saveResult.success ? 'succeeds' : 'fails'} ${this.effect.condition.saveType} save (${saveResult.total} vs DC ${dc})`,
+          message: saveLogMessage,
           characterId: target.id
         });
       }

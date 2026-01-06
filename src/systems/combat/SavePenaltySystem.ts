@@ -20,16 +20,37 @@ export class SavePenaltySystem {
      * Register a save penalty rider on a target character.
      * @param state Current combat state
      * @param targetId ID of the target character receiving the penalty
-     * @param penalty The save penalty rider to register
+     * @param casterId ID of the character who cast the spell
+     * @param sourceName Name of the spell or source
+     * @param data Raw penalty data from the spell effect
+     * @param spellId Optional spell ID for tracking
      * @returns Updated combat state
      */
-    registerPenalty(state: CombatState, targetId: string, penalty: SavePenaltyRider): CombatState {
+    registerPenalty(
+        state: CombatState,
+        targetId: string,
+        casterId: string,
+        sourceName: string,
+        data: any,
+        spellId?: string
+    ): CombatState {
         const target = state.characters.find(c => c.id === targetId);
         if (!target) return state;
 
+        const rider: SavePenaltyRider = {
+            spellId: spellId || sourceName,
+            casterId: casterId,
+            sourceName: sourceName,
+            dice: data.dice,
+            flat: data.flat,
+            applies: data.applies,
+            duration: data.duration,
+            appliedTurn: state.turnState.currentTurn
+        };
+
         const updatedTarget: CombatCharacter = {
             ...target,
-            savePenaltyRiders: [...(target.savePenaltyRiders || []), penalty]
+            savePenaltyRiders: [...(target.savePenaltyRiders || []), rider]
         };
 
         return {
@@ -129,12 +150,13 @@ export class SavePenaltySystem {
     }
 
     /**
-     * Expire duration-based save penalties at end of round.
+     * Expire duration-based save penalties when a character's turn ends.
+     * Supports caster-turn-relative durations (e.g. "until the end of your next turn").
      * @param state Current combat state
-     * @param currentTurn Current turn number for expiration check
+     * @param endingCharacterId The ID of the character whose turn is ending
      * @returns Updated combat state with expired riders removed
      */
-    expirePenalties(state: CombatState, currentTurn: number): CombatState {
+    expirePenalties(state: CombatState, endingCharacterId: string): CombatState {
         let updatedState = state;
 
         for (const character of state.characters) {
@@ -143,16 +165,18 @@ export class SavePenaltySystem {
             }
 
             const remainingRiders = character.savePenaltyRiders.filter(rider => {
-                // next_save riders are consumed, not expired by duration
+                // next_save riders are consumed, not expired by duration (though they might have a fallback)
                 if (rider.applies === 'next_save') return true;
 
-                // Check duration expiration for all_saves riders
-                if (rider.duration.type === 'rounds' && rider.duration.value !== undefined) {
-                    const turnsElapsed = currentTurn - rider.appliedTurn;
-                    return turnsElapsed < rider.duration.value;
+                // If this rider depends on the caster's turn cycle
+                if (rider.casterId === endingCharacterId && rider.duration.type === 'rounds') {
+                    const currentTurn = state.turnState.currentTurn;
+                    const turnsElapsed = Math.floor((currentTurn - rider.appliedTurn) / state.characters.length);
+                    // For "next turn" (value 1), it expires when turnsElapsed reaches 1 (cycle completed)
+                    return turnsElapsed < (rider.duration.value || 0);
                 }
 
-                // special duration - keep forever (manual cleanup)
+                // special duration or other caster - keep for now
                 return true;
             });
 

@@ -79,7 +79,7 @@ describe('AreaEffectTracker', () => {
             trigger: { type: 'on_enter_area' },
             condition: { type: 'always' },
             damage: { dice: '1d6', type: 'Fire' }
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
         } as unknown as SpellEffect
 
         const tracker = new AreaEffectTracker([makeZone([effect])])
@@ -96,10 +96,10 @@ describe('AreaEffectTracker', () => {
     it('handles first_per_turn frequency on entry', () => {
         const effect: SpellEffect = {
             type: 'DAMAGE',
-            trigger: { type: 'on_enter_area', frequency: 'first_per_turn' },    
+            trigger: { type: 'on_enter_area', frequency: 'first_per_turn' },
             condition: { type: 'always' },
             damage: { dice: '1d6', type: 'Fire' }
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
         } as unknown as SpellEffect
 
         const zone = makeZone([effect])
@@ -141,7 +141,7 @@ describe('AreaEffectTracker', () => {
             trigger: { type: 'on_exit_area' },
             condition: { type: 'always' },
             damage: { dice: '1d6', type: 'Fire' }
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
         } as unknown as SpellEffect
 
         const tracker = new AreaEffectTracker([makeZone([effect])])
@@ -161,7 +161,7 @@ describe('AreaEffectTracker', () => {
             trigger: { type: 'on_end_turn_in_area' },
             condition: { type: 'always' },
             damage: { dice: '1d6', type: 'Fire' }
-        // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
+            // TODO(lint-intent): Replace any with the minimal test shape so the behavior stays explicit.
         } as unknown as SpellEffect
 
         const tracker = new AreaEffectTracker([makeZone([effect])])
@@ -172,3 +172,10 @@ describe('AreaEffectTracker', () => {
         expect(results[0].triggerType).toBe('on_end_turn_in_area')
     })
 })
+
+// TODO: Add unit tests for `processMovementWithin` (Spike Growth pattern).
+// Test cases:
+// 1. Character moves 3 tiles within a zone → should trigger effect 3 times.
+// 2. Character moves diagonally (Chebyshev distance) → verify distance calculation.
+// 3. Character enters and exits in same move → should NOT trigger `on_move_in_area`.
+// 4. Frequency 'first_per_turn' → only triggers once regardless of distance moved.
