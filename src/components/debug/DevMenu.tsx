@@ -8,7 +8,7 @@ import { useGameState } from '../../state/GameContext';
 import { generateVillageTemple } from '../../utils/templeUtils';
 import { VillageActionContext, VillagePersonality } from '../../types';
 
-type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'toggle_unified_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple' | 'test_lockpicking' | 'test_dice_roller' | 'toggle_thieves_guild' | 'toggle_naval_dashboard' | 'toggle_trade_route_dashboard';
+type DevMenuActionType = 'main_menu' | 'char_creator' | 'save' | 'load' | 'toggle_log_viewer' | 'toggle_unified_log_viewer' | 'battle_map_demo' | 'generate_encounter' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'test_temple' | 'test_lockpicking' | 'test_dice_roller' | 'toggle_thieves_guild' | 'toggle_naval_dashboard' | 'toggle_trade_route_dashboard' | 'restart_dynamic_party';
 
 interface DevMenuProps {
   isOpen: boolean;
@@ -98,6 +98,7 @@ const DevMenu: React.FC<DevMenuProps> = ({ isOpen, onClose, onDevAction, hasNewR
         { label: 'Force Load Game', action: 'load', style: 'bg-teal-500 hover:bg-teal-400' },
         { label: 'Go to Main Menu', action: 'main_menu', style: 'bg-blue-600 hover:bg-blue-500' },
         { label: 'Go to Character Creator', action: 'char_creator', style: 'bg-green-600 hover:bg-green-500' },
+        { label: '⚡ Restart with Dynamic Party', action: 'restart_dynamic_party', style: 'bg-purple-900/50 hover:bg-purple-800/50 border border-purple-500/30 text-purple-200' },
       ],
     },
     {
