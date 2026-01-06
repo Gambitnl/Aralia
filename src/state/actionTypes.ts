@@ -2,7 +2,7 @@
  * @file src/state/actionTypes.ts
  * Defines the main AppAction type for the application's state management.
  */
-import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality } from '../types';
+import { GameState, GamePhase, GameMessage, PlayerCharacter, Item, MapData, TempPartyMember, StartGameSuccessPayload, Action, SuspicionLevel, GeminiLogEntry, GoalStatus, KnownFact, GossipUpdatePayload, AddLocationResiduePayload, RemoveLocationResiduePayload, EconomyState, Quest, DiscoveryEntry, CrimeType, StrongholdType, GuildJob, HeistIntel, NPC, Faction, Location, VillageActionContext, VillagePersonality, PlayerCharacter } from '../types';
 import { RitualState } from '../types/rituals';
 // TODO(2026-01-03 pass 3 Codex-CLI): RitualEvent type not exported; using unknown stub until rituals schema is surfaced.
 type RitualEvent = unknown;
@@ -254,5 +254,6 @@ export type AppAction =
   | { type: 'CLOSE_LOCKPICKING_MODAL' }
   // Dice Roller Actions
   | { type: 'TOGGLE_DICE_ROLLER' }
-  | { type: 'SET_VISUAL_DICE_ENABLED'; payload: boolean };
+  | { type: 'SET_VISUAL_DICE_ENABLED'; payload: boolean }
+  | { type: 'RESTART_WITH_PROCEDURAL_PARTY'; payload: PlayerCharacter[] };
 

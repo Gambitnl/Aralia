@@ -32,6 +32,7 @@ import { useMissingChoice } from './hooks/useMissingChoice';
 import { useOllamaCheck } from './hooks/useOllamaCheck';
 import { determineSettlementInfo } from './utils/settlementGeneration';
 import { t } from './utils/i18n';
+import { generateCompanion } from './services/CompanionGenerator';
 
 // Utility functions
 import { determineActiveDynamicNpcsForLocation } from './utils/locationUtils';
@@ -435,14 +436,45 @@ const App: React.FC = () => {
     dispatch({ type: 'TOGGLE_PARTY_OVERLAY' });
   }, [dispatch]);
 
-  const handleDevMenuAction = useCallback((actionType: string) => {
-    const actionsThatNeedMenuToggle = ['save', 'battle_map_demo', 'generate_encounter'];
+  const handleDevMenuAction = useCallback(async (actionType: string) => {
+    const actionsThatNeedMenuToggle = ['save', 'battle_map_demo', 'generate_encounter', 'restart_dynamic_party'];
 
     if (actionsThatNeedMenuToggle.includes(actionType)) {
       dispatch({ type: 'TOGGLE_DEV_MENU' });
     }
 
     switch (actionType as typeof actionsThatNeedMenuToggle[number] | 'main_menu' | 'char_creator' | 'toggle_log_viewer' | 'toggle_party_editor' | 'toggle_npc_test_plan' | 'inspect_noble_houses' | 'load' | 'toggle_navel_dashboard' | 'toggle_trade_route_dashboard') {
+      case 'restart_dynamic_party':
+        dispatch({ type: 'SET_LOADING', payload: { isLoading: true, message: "Generating new party..." } });
+        try {
+          const newParty: PlayerCharacter[] = [];
+          // Generate a party of 3 for now
+          const configs = [
+            { level: 1, classId: 'fighter', raceId: 'human' },
+            { level: 1, classId: 'rogue', raceId: 'tiefling' },
+            { level: 1, classId: 'wizard', raceId: 'elf' },
+          ];
+
+          for (const config of configs) {
+            const companion = await generateCompanion(config);
+            if (companion) {
+              newParty.push(companion);
+            }
+          }
+
+          if (newParty.length === configs.length) {
+            dispatch({ type: 'RESTART_WITH_PROCEDURAL_PARTY', payload: newParty });
+          } else {
+            throw new Error("Failed to generate one or more companions.");
+          }
+
+        } catch (error) {
+          console.error("Failed to restart with procedural party:", error);
+          dispatch({ type: 'SET_ERROR', payload: "Failed to generate a new party. Check the console for details." });
+        } finally {
+          dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });
+        }
+        break;
       case 'main_menu':
         dispatch({ type: 'SET_GAME_PHASE', payload: GamePhase.MAIN_MENU });
         break;
