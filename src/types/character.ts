@@ -119,6 +119,10 @@ export interface Race {
   description: string;
   abilityBonuses?: RacialAbilityBonus[];
   traits: string[];
+  /** The parent race group this race belongs to (e.g., 'dwarf' for Hill Dwarf, Mountain Dwarf, etc.) */
+  baseRace?: string;
+  /** Whether this race can be selected directly without choosing a subrace. Defaults to true if omitted. */
+  isSelectableAsBase?: boolean;
   elvenLineages?: ElvenLineage[];
   gnomeSubraces?: GnomeSubrace[];
   giantAncestryChoices?: GiantAncestryBenefit[];
@@ -134,6 +138,7 @@ export interface Race {
   knownSpells?: RacialSpell[];
   // TODO(Taxonomist): Add languages: Language[] to Race interface once usage is confirmed
 }
+
 
 // -----------------------------------------------------------------------------
 // Class and feature data

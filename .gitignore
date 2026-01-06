@@ -74,3 +74,6 @@ design.html
 png_collection/
 playwright-report/
 playwright/
+src/services/testCodestral.ts
+tsconfig.tsbuildinfo
+vitest-results.json

@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { AbilityScores, Race, AbilityScoreName, Class as CharClass } from '../../types'; // Path relative to src/components/CharacterCreator/
 import { ABILITY_SCORE_NAMES } from '../../constants'; // Path relative to src/components/CharacterCreator/
 import { POINT_BUY_TOTAL_POINTS, POINT_BUY_MIN_SCORE, POINT_BUY_MAX_SCORE, ABILITY_SCORE_COST } from '../../config/characterCreationConfig';
+import { Sparkles } from 'lucide-react';
 
 interface AbilityScoreAllocationProps {
   race: Race;
@@ -250,13 +251,20 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
           const finalScore = currentBaseScore + racialBonus;
           const costToIncrement = currentBaseScore < POINT_BUY_MAX_SCORE ? (ABILITY_SCORE_COST[currentBaseScore + 1] - ABILITY_SCORE_COST[currentBaseScore]) : Infinity;
           const isFeedbackTarget = feedback?.targetAbility === abilityName;
+          
+          const isSpellcastingAbility = selectedClass?.spellcasting?.ability === abilityName;
 
           return (
             <div
               key={abilityName}
               className={`p-3 bg-gray-700 rounded-lg shadow-md flex flex-col items-center text-center ${isFeedbackTarget ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-gray-800' : ''}`}
             >
-              <h4 className="text-lg font-semibold text-amber-400 mb-1.5">{abilityName}</h4>
+              <h4 className={`text-lg font-semibold mb-1.5 flex items-center gap-1 ${isSpellcastingAbility ? 'text-purple-300' : 'text-amber-400'}`}>
+                {abilityName}
+                {isSpellcastingAbility && (
+                  <Sparkles size={16} className="text-purple-400" aria-label="Spellcasting Ability" title="Spellcasting Ability" />
+                )}
+              </h4>
               
               <div className="flex items-center justify-center space-x-2 my-1">
                 <button

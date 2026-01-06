@@ -8,6 +8,7 @@ import { Race } from '../../types';
 import { HUMAN_DATA } from './human';
 import { ELF_DATA } from './elf';
 import { DWARF_DATA } from './dwarf';
+import { HILL_DWARF_DATA } from './hill_dwarf';
 import { HALFLING_DATA } from './halfling';
 import { DRAGONBORN_DATA, DRAGONBORN_ANCESTRIES_DATA } from './dragonborn';
 import { GNOME_DATA } from './gnome';
@@ -40,6 +41,7 @@ export const ALL_RACES_DATA: Record<string, Race> = {
   human: HUMAN_DATA,
   elf: ELF_DATA,
   dwarf: DWARF_DATA,
+  hill_dwarf: HILL_DWARF_DATA,
   halfling: HALFLING_DATA,
   dragonborn: DRAGONBORN_DATA,
   gnome: GNOME_DATA,

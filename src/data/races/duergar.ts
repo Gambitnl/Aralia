@@ -7,10 +7,12 @@ import { Race } from '../../types'; // Path relative to src/data/races/
 
 export const DUERGAR_DATA: Race = {
   id: 'duergar',
-  name: 'Duergar',
+  name: 'Gray Dwarf (Duergar)',
+  baseRace: 'dwarf',
   description:
     'Duergar are dwarves whose ancestors were transformed by centuries living in the deepest places of the Underdark. That chthonic realm is saturated with strange magical energy, and over generations, early duergar absorbed traces of it. They were further altered when mind flayers and other Aberrations invaded and performed horrific experiments on them. Fueled by Underdark magic, those experiments left early duergar with psionic powers, which have been passed down to their descendants. In time, they liberated themselves from their aberrant tyrants and forged a new life for themselves in the Underdark and beyond. Duergar typically have a life span of 350 years.',
   abilityBonuses: [], // Flexible ASIs are handled by the Point Buy system.
+
   traits: [
     'Creature Type: Humanoid. You are also considered a dwarf for any prerequisite or effect that requires you to be a dwarf.',
     'Size: Medium',

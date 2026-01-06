@@ -13,32 +13,35 @@ This is the most critical part, ensuring the race works mechanically.
 ### Step 1: Define Race Game Data
 
 *   **File Location**: `src/data/races/`
-*   **Action**: Create a new TypeScript file named `[race_id].ts` (e.g., `orc.ts`).
+*   **Action**: Create a new TypeScript file named `[race_id].ts` (e.g., `hill_dwarf.ts`).
 *   **Content**: Inside this file, define and export a `Race` object.
 
-    **Example (`src/data/races/orc.ts`):**
+    **Example (`src/data/races/hill_dwarf.ts`):**
     ```typescript
     import { Race } from '../../types';
 
-    export const ORC_DATA: Race = {
-      id: 'orc',
-      name: 'Orc',
-      description: 'Orcs are known for their formidable strength and resilience...',
+    export const HILL_DWARF_DATA: Race = {
+      id: 'hill_dwarf',
+      name: 'Hill Dwarf',
+      baseRace: 'dwarf', // REQUIRED for accordion grouping - use parent race id
+      // isSelectableAsBase: false, // Optional - set to false if this race cannot be selected without further choices
+      description: 'Hill dwarves are known for their wisdom and endurance...',
       abilityBonuses: [], // Leave empty for flexible ASIs handled by Point Buy.
       traits: [
         'Creature Type: Humanoid',
-        'Size: Medium (about 6-7 feet tall)',
-        'Speed: 30 feet',
-        'Darkvision (120ft)',
-        'Relentless Endurance: ...',
+        'Size: Medium (about 4-5 feet tall)',
+        'Speed: 25 feet',
+        'Darkvision: You have Darkvision with a range of 60 feet.',
+        'Dwarven Resilience: You have Resistance to Poison damage...',
+        'Dwarven Toughness: Your Hit Point maximum increases by 1...',
         // Add all other racial traits as descriptive strings.
       ],
-      // Optional: Add an image URL for the RaceSelection modal.
-      imageUrl: '/assets/images/races/orc.png', 
-      // Optional: If the race has unique choices, define them here.
-      // e.g., fiendishLegacies: FIENDISH_LEGACIES_DATA (for Tieflings)
+      imageUrl: '/assets/images/races/hill_dwarf.png', 
     };
     ```
+
+    > **Note on `baseRace`**: This property groups races in the selection UI. All races with the same `baseRace` will appear under an expandable accordion (e.g., "Dwarf (3)"). If a race has no subraces, omit this property or set it to the race's own `id`.
+
 
 ### Step 2: Register the Race
 

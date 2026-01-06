@@ -843,16 +843,18 @@ const App: React.FC = () => {
           )}
 
           {/* Banter Panel */}
-          <CollapsibleBanterPanel
-            isActive={isBanterActive}
-            isWaiting={isWaitingForNextLine}
-            secondsRemaining={secondsUntilNextLine}
-            history={banterHistory}
-            archivedBanters={gameState.archivedBanters}
-            companions={gameState.companions}
-            onInterrupt={playerInterrupt}
-            onEndBanter={endBanter}
-          />
+          {gameState.phase === GamePhase.PLAYING && (
+            <CollapsibleBanterPanel
+              isActive={isBanterActive}
+              isWaiting={isWaitingForNextLine}
+              secondsRemaining={secondsUntilNextLine}
+              history={banterHistory}
+              archivedBanters={gameState.archivedBanters}
+              companions={gameState.companions}
+              onInterrupt={playerInterrupt}
+              onEndBanter={endBanter}
+            />
+          )}
 
           {/* Global Dice Roller Overlay */}
           <DiceOverlay />
