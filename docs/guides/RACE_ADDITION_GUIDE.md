@@ -42,6 +42,38 @@ This is the most critical part, ensuring the race works mechanically.
 
     > **Note on `baseRace`**: This property groups races in the selection UI. All races with the same `baseRace` will appear under an expandable accordion (e.g., "Dwarf (3)"). If a race has no subraces, omit this property or set it to the race's own `id`.
 
+#### Writing the Description
+
+Race descriptions must be **setting-agnostic** since Aralia uses procedurally generated world lore. Follow these guidelines:
+
+1.  **Research Online**: Look up the race on D&D Beyond, wikis, or other sources to understand their core characteristics.
+2.  **Remove Setting-Specific References**: Strip out any mentions of specific settings (Faerûn, Krynn, Eberron), named locations (Menzoberranzan, Waterdeep), or named deities (Moradin, Corellon).
+3.  **Focus on Generic Traits**: Describe physical appearance, cultural tendencies, and typical behaviors without tying them to a specific world.
+4.  **Emphasize Mechanics-Relevant Flavor**: Include details that hint at their mechanical traits (e.g., "known for their resilience" for poison resistance).
+
+**Bad Example** (setting-specific):
+> "The gold dwarves of Faerûn in their mighty southern kingdom are hill dwarves..."
+
+**Good Example** (generic):
+> "Hill dwarves possess keen senses, deep intuition, and remarkable resilience. More connected to the surface world than their subterranean kin, they often build settlements into hillsides and rolling highlands."
+
+#### Creating the Race Image
+
+Each race requires a custom illustration saved to `public/assets/images/races/[race_id].png`. Use the image generator or source appropriate artwork following these guidelines:
+
+1.  **Show Both Genders**: Include a male and female of the race, shown as separate individuals (not a couple).
+2.  **Everyday Attire**: Depict them in common, practical clothing appropriate for their culture - not armor or adventuring gear.
+3.  **Typical Environment**: Place them in a setting that matches their typical dwelling:
+    - Hill Dwarves → Hillside settlements
+    - Mountain Dwarves → Underground forges
+    - Wood Elves → Forest clearings
+    - High Elves → Elegant towers
+    - Halflings → Pastoral villages
+4.  **Different Activities/Tools**: Give each individual distinct tools or activities to show cultural variety (e.g., blacksmith + brewer, farmer + weaver).
+5.  **Fantasy RPG Style**: Use warm, detailed fantasy illustration style suitable for a character selection screen.
+
+**Example Prompt**:
+> "Two Hill Dwarf individuals, a male and a female, shown side by side but as separate individuals. The male wears a blacksmith's leather apron holding a hammer. The female wears a brewer's outfit holding a wooden mug. They stand in a hillside dwarven village with stone-and-turf buildings built into green hills. Fantasy RPG character illustration, warm earthy tones, detailed."
 
 ### Step 2: Register the Race
 

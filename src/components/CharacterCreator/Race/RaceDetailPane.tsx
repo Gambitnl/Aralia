@@ -7,6 +7,16 @@ import ImageModal from '../../ImageModal';
 import SingleGlossaryEntryModal from '../../Glossary/SingleGlossaryEntryModal';
 import { BTN_PRIMARY } from '../../../styles/buttonStyles';
 
+// Helper to resolve image URLs - prepends BASE_URL for local assets
+const resolveImageUrl = (url: string | undefined): string | undefined => {
+    if (!url) return undefined;
+    // If already absolute URL, use as-is
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    // For local asset paths, prepend the Vite base URL
+    const baseUrl = import.meta.env.BASE_URL || '/';
+    return `${baseUrl}${url}`;
+};
+
 export interface RaceDetailData {
     id: string;
     name: string;
@@ -220,7 +230,7 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps> = ({ race, onSelect }
                                 aria-label={`Expand ${race.name} image`}
                             >
                                 <img
-                                    src={race.image}
+                                    src={resolveImageUrl(race.image)}
                                     alt={`${race.name} illustration`}
                                     className="w-full h-auto rounded-lg shadow-lg border border-gray-600 group-hover:border-sky-500 transition-colors"
                                 />
@@ -284,7 +294,7 @@ export const RaceDetailPane: React.FC<RaceDetailPaneProps> = ({ race, onSelect }
 
             {/* Modals */}
             {isImageExpanded && race.image && (
-                <ImageModal src={race.image} alt={`${race.name} illustration`} onClose={() => setIsImageExpanded(false)} />
+                <ImageModal src={resolveImageUrl(race.image)!} alt={`${race.name} illustration`} onClose={() => setIsImageExpanded(false)} />
             )}
             <SingleGlossaryEntryModal
                 isOpen={!!infoSpellId}

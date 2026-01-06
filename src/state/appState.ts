@@ -7,7 +7,8 @@
 // TODO(lint-intent): 'Item' is imported but unused; it hints at a helper/type the module was meant to use.
 // TODO(lint-intent): If the planned feature is still relevant, wire it into the data flow or typing in this file.
 // TODO(lint-intent): Otherwise drop the import to keep the module surface intentional.
-import { GameState, GamePhase, PlayerCharacter, Item as _Item, MapData as _MapData, TempPartyMember as _TempPartyMember, StartGameSuccessPayload as _StartGameSuccessPayload, SuspicionLevel, KnownFact, QuestStatus as _QuestStatus, UnderdarkState } from '../types';
+import { GameState, GamePhase, PlayerCharacter, Item as _Item, MapData as _MapData, TempPartyMember as _TempPartyMember, StartGameSuccessPayload as _StartGameSuccessPayload, SuspicionLevel, KnownFact, QuestStatus as _QuestStatus, UnderdarkState, Companion, CompanionReactionRule, Relationship } from '../types';
+import { CompanionSoul } from '../types/companion';
 import type { DivineFavor, NavalState } from '../types';
 import { AppAction } from './actionTypes';
 import { DEFAULT_WEATHER } from '../systems/environment/EnvironmentSystem';
@@ -405,28 +406,152 @@ export function appReducer(state: GameState, action: AppAction): GameState {
             if (!newParty || newParty.length === 0) {
                 return { ...state, error: "Failed to generate procedural party." };
             }
-            // This case is very similar to START_GAME_FOR_DUMMY, but uses the provided party
-            // and resets the state from an existing game.
+
+            // Helper to generate reactions based on style
+            const getReactionRulesForStyle = (style: string): CompanionReactionRule[] => {
+                // Basic templates for now - can be expanded
+                const baseRules: CompanionReactionRule[] = [
+                    {
+                        triggerType: 'combat_end',
+                        triggerTags: ['victory'],
+                        approvalChange: 1,
+                        dialoguePool: ["We survive another day.", "Good fight.", "Victory is ours."]
+                    }
+                ];
+
+                if (style === 'cynical') {
+                    baseRules.push({
+                        triggerType: 'decision',
+                        triggerTags: ['charity'],
+                        approvalChange: -1,
+                        dialoguePool: ["Wasting resources...", "They won't thank you."]
+                    });
+                    baseRules.push({
+                        triggerType: 'loot',
+                        triggerTags: ['gold'],
+                        approvalChange: 1,
+                        dialoguePool: ["Now that's what I'm talking about.", "Shiny."]
+                    });
+                } else if (style === 'hopeful' || style === 'idealistic') {
+                    baseRules.push({
+                        triggerType: 'decision',
+                        triggerTags: ['charity', 'kindness'],
+                        approvalChange: 2,
+                        dialoguePool: ["That was kind of you.", "The world needs more of that."]
+                    });
+                } else if (style === 'aggressive') {
+                    baseRules.push({
+                        triggerType: 'combat_hit',
+                        triggerTags: ['crit'],
+                        approvalChange: 1,
+                        dialoguePool: ["Crushed them!", "Stay down!"]
+                    });
+                }
+
+                return baseRules;
+            };
+
+            const createInitialRelationship = (targetId: string = 'player'): Relationship => ({
+                targetId,
+                level: 'stranger',
+                approval: 0,
+                history: [],
+                unlocks: [],
+            });
+
+            // Convert PlayerCharacters with Souls into Companions
+            const newCompanions: Record<string, Companion> = {};
+            
+            newParty.forEach(pc => {
+                if (pc.soul && pc.id) {
+                    const soul = pc.soul as CompanionSoul;
+                    newCompanions[pc.id] = {
+                        id: pc.id,
+                        identity: {
+                            id: pc.id,
+                            name: pc.name,
+                            race: pc.race.name,
+                            class: pc.class.name,
+                            background: pc.background || 'Unknown',
+                            sex: pc.visuals?.gender || 'Unknown',
+                            age: pc.age || 'Unknown',
+                            physicalDescription: soul.physicalDescription,
+                            avatarUrl: pc.portraitUrl 
+                        },
+                        personality: {
+                            openness: 50, // Default mid-values for Big 5 if not in soul
+                            conscientiousness: 50,
+                            extraversion: 50,
+                            agreeableness: 50,
+                            neuroticism: 50,
+                            values: soul.personality.values,
+                            fears: soul.personality.fears,
+                            quirks: soul.personality.quirks
+                        },
+                        goals: soul.goals.map((g, idx) => ({
+                            id: `goal_${pc.id}_${idx}`,
+                            description: g.description,
+                            isSecret: g.isSecret,
+                            status: 'active',
+                            progress: 0
+                        })),
+                        relationships: {
+                            player: createInitialRelationship()
+                        },
+                        loyalty: 50,
+                        approvalHistory: [],
+                        memories: [],
+                        discoveredFacts: [],
+                        reactionRules: getReactionRulesForStyle(soul.reactionStyle),
+                        progression: [] 
+                    };
+                }
+            });
+
+            // If we generated valid companions, use them. Otherwise fallback to existing (shouldn't happen with valid soul)
+            const finalCompanions = Object.keys(newCompanions).length > 0 ? newCompanions : state.companions;
+
             const initialLocation = LOCATIONS[STARTING_LOCATION_ID];
+            
+            // Reset NPC memory for a fresh start
+            const freshNpcMemory = Object.keys(NPCS).reduce((acc, npcId) => {
+                const npcData = NPCS[npcId];
+                acc[npcId] = {
+                    disposition: 0,
+                    knownFacts: [],
+                    suspicion: SuspicionLevel.Unaware,
+                    goals: npcData?.goals ? [...npcData.goals] : [],
+                };
+                return acc;
+            }, {} as GameState['npcMemory']);
+
             return {
                 ...initialGameState,
                 phase: GamePhase.PLAYING,
-                worldSeed: state.worldSeed, // Keep the same world seed
+                worldSeed: state.worldSeed, 
                 party: newParty,
                 tempParty: newParty.map(p => ({ id: p.id || crypto.randomUUID(), level: p.level || 1, classId: p.class.id })),
-                inventory: [], // Start with a fresh inventory
-                gold: 50,      // Give them some starting gold
+                inventory: [], 
+                gold: 50,      
                 currentLocationId: STARTING_LOCATION_ID,
                 subMapCoordinates: { x: Math.floor(SUBMAP_DIMENSIONS.cols / 2), y: Math.floor(SUBMAP_DIMENSIONS.rows / 2) },
                 messages: [
                     { id: Date.now(), text: `A new party of adventurers emerges!`, sender: 'system', timestamp: new Date() },
                     { id: Date.now() + 1, text: initialLocation.baseDescription, sender: 'system', timestamp: new Date() }
                 ],
-                mapData: state.mapData, // Keep the existing map data
+                mapData: state.mapData, 
                 dynamicLocationItemIds: state.dynamicLocationItemIds,
                 currentLocationActiveDynamicNpcIds: determineActiveDynamicNpcsForLocation(STARTING_LOCATION_ID, LOCATIONS),
                 isLoading: false,
                 loadingMessage: null,
+                // CRITICAL: Update companions state
+                companions: finalCompanions,
+                // Reset history
+                banterDebugLog: [],
+                archivedBanters: [],
+                npcMemory: freshNpcMemory,
+                // Reset cooldowns
+                banterCooldowns: {}
             };
         }
 

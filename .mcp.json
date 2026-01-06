@@ -1,8 +1,12 @@
 {
   "mcpServers": {
     "chrome-devtools": {
-      "command": "npx",
+      "command": "npx.cmd",
       "args": ["chrome-devtools-mcp@latest", "--browserUrl", "http://127.0.0.1:9222"]
+    },
+    "my-image-gen": {
+      "command": "npx.cmd",
+      "args": ["tsx", "C:/Users/gambi/Documents/Git/AraliaV4/Aralia/scripts/gemini-image-mcp.ts"]
     }
   }
 }

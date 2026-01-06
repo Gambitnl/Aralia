@@ -10,7 +10,7 @@ export const HILL_DWARF_DATA: Race = {
     name: 'Hill Dwarf',
     baseRace: 'dwarf',
     description:
-        'As a hill dwarf, you have keen senses, deep intuition, and remarkable resilience. The gold dwarves of Faerûn in their mighty southern kingdom are hill dwarves, as are the exiled Neidar and the debased Klar of Krynn in the Dragonlance setting.',
+        'Hill dwarves possess keen senses, deep intuition, and remarkable resilience. More connected to the surface world than their subterranean kin, they often build settlements into hillsides and rolling highlands. Their culture emphasizes wisdom and endurance, and they are known for their adaptability when interacting with other races. Like all dwarves, they take great pride in their craftsmanship and ancestral traditions.',
     abilityBonuses: [], // Flexible ASIs handled by Point Buy.
     traits: [
         'Creature Type: Humanoid',
@@ -23,5 +23,5 @@ export const HILL_DWARF_DATA: Race = {
         'Stonecunning: Whenever you make an Intelligence (History) check related to the origin of stonework, you are considered proficient in the History skill and add double your proficiency bonus to the check.',
         'Dwarven Toughness: Your hit point maximum increases by 1, and it increases by 1 every time you gain a level.',
     ],
-    imageUrl: 'https://i.ibb.co/4n5pV7k2/Dwarf.png', // Reuse dwarf image for now
+    imageUrl: 'assets/images/races/hill_dwarf.png',
 };

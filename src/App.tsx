@@ -470,6 +470,7 @@ const App: React.FC = () => {
 
         } catch (error) {
           console.error("Failed to restart with procedural party:", error);
+          window.alert(`Failed to restart with procedural party: ${error}`);
           dispatch({ type: 'SET_ERROR', payload: "Failed to generate a new party. Check the console for details." });
         } finally {
           dispatch({ type: 'SET_LOADING', payload: { isLoading: false } });

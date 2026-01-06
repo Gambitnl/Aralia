@@ -262,7 +262,9 @@ const AbilityScoreAllocation: React.FC<AbilityScoreAllocationProps> = ({
               <h4 className={`text-lg font-semibold mb-1.5 flex items-center gap-1 ${isSpellcastingAbility ? 'text-purple-300' : 'text-amber-400'}`}>
                 {abilityName}
                 {isSpellcastingAbility && (
-                  <Sparkles size={16} className="text-purple-400" aria-label="Spellcasting Ability" title="Spellcasting Ability" />
+                  <span title="Spellcasting Ability">
+                    <Sparkles size={16} className="text-purple-400" aria-label="Spellcasting Ability" />
+                  </span>
                 )}
               </h4>
               

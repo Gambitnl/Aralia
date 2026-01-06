@@ -12,7 +12,7 @@ export const DWARF_DATA: Race = {
   baseRace: 'dwarf',
   isSelectableAsBase: true,
   description:
-    'Dwarves were raised from the earth in the elder days by a deity of the forge. Called by various names on different worlds—Moradin, Reorx, and others—that god gave dwarves an affinity for stone and metal and for living underground. The god also made them resilient like the mountains, with a life span of about 350 years.\n\nSquat and often bearded, the original dwarves carved cities and strongholds into mountainsides and under the earth. Their oldest legends tell of conflicts with the monsters of mountaintops and the Underdark, whether those monsters were towering giants or subterranean horrors. Inspired by those tales, dwarves of any culture often sing of valorous deeds—especially of the little overcoming the mighty.\n\nOn some worlds in the multiverse, the first settlements of dwarves were built in hills or mountains, and the families who trace their ancestry to those settlements call themselves hill dwarves or mountain dwarves, respectively. The Greyhawk and Dragonlance settings have such communities.',
+    'Dwarves are a stout and resilient people, forged in the depths of mountains and tempered by centuries of toil. Legend says they were raised from the earth itself by a deity of the forge, granting them an innate affinity for stone and metal. Squat and often bearded, dwarves carved their first cities and strongholds into mountainsides and under the earth. Their oldest tales speak of valorous battles against giants and subterranean horrors, inspiring a culture that celebrates the little overcoming the mighty. With a life span of about 350 years, dwarves are known for their craftsmanship, their stubbornness, and their unyielding loyalty to clan and kin.',
   abilityBonuses: [], // ASIs are handled flexibly during character creation.
   traits: [
     'Creature Type: Humanoid',
@@ -23,5 +23,5 @@ export const DWARF_DATA: Race = {
     'Dwarven Toughness: Your Hit Point maximum increases by 1, and it increases by 1 again whenever you gain a level.',
     'Stonecunning: As a Bonus Action, you gain Tremorsense with a range of 60 feet for 10 minutes. You must be on a stone surface or touching a stone surface to use this Tremorsense. The stone can be natural or worked. You can use this Bonus Action a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.',
   ],
-  imageUrl: 'https://i.ibb.co/4n5pV7k2/Dwarf.png',
+  imageUrl: 'assets/images/races/dwarf.png',
 };

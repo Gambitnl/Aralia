@@ -104,14 +104,25 @@ export async function generateSoul(skeleton: PlayerCharacter): Promise<Companion
     });
 
     if (result.ok) {
+      console.log(`[CompanionGenerator] Attempt ${i + 1} Raw Output:`, result.data.response);
       const parsed = parseJsonRobustly<CompanionSoul>(result.data.response);
-      if (parsed) {
+      
+      if (!parsed) {
+        console.error(`[CompanionGenerator] Attempt ${i + 1} JSON Parsing Failed.`);
+        window.alert(`Generation Attempt ${i + 1} Failed: JSON Parsing`);
+      } else {
         const validation = CompanionSoulSchema.safeParse(parsed);
         if (validation.success) {
           soulCache.set(cacheKey, validation.data);
           return validation.data;
+        } else {
+          console.error(`[CompanionGenerator] Attempt ${i + 1} Validation Failed:`, validation.error);
+          window.alert(`Generation Attempt ${i + 1} Failed: Validation\n${JSON.stringify(validation.error.format(), null, 2)}`);
         }
       }
+    } else {
+      console.error(`[CompanionGenerator] Attempt ${i + 1} Ollama Error:`, result.error);
+      window.alert(`Generation Attempt ${i + 1} Failed: API Error\n${JSON.stringify(result.error)}`);
     }
   }
 

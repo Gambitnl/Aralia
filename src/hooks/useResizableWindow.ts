@@ -46,6 +46,9 @@ export function useResizableWindow(
 ) {
     const { initialMaximized = false } = options;
 
+    // Track whether window is currently maximized (for toggle behavior)
+    const [isMaximized, setIsMaximized] = useState<boolean>(initialMaximized);
+
     // Window size - persisted
     const [size, setSize] = useState<WindowSize>(() => {
         const saved = SafeStorage.getItem(storageKey);
@@ -55,7 +58,7 @@ export function useResizableWindow(
                 return { width: parsed.width || DEFAULT_SIZE.width, height: parsed.height || DEFAULT_SIZE.height };
             }
         }
-        
+
         if (initialMaximized) {
             return {
                 width: window.innerWidth - 40,
@@ -102,6 +105,23 @@ export function useResizableWindow(
         const top = (window.innerHeight - size.height) / 2;
         setPosition({ left, top });
     }, []); // Run once on mount (or if position is explicitly nullified)
+
+    // Respond to window/monitor resize when maximized
+    useEffect(() => {
+        if (!isMaximized) return;
+
+        const handleWindowResize = () => {
+            const spacer = 20;
+            const width = window.innerWidth - (spacer * 2);
+            const height = window.innerHeight - (spacer * 2);
+            setSize({ width, height });
+            setPosition({ left: spacer, top: spacer });
+        };
+
+        window.addEventListener('resize', handleWindowResize);
+        return () => window.removeEventListener('resize', handleWindowResize);
+    }, [isMaximized]);
+
 
     // Handle Resize Start
     const handleResizeStart = useCallback((e: React.MouseEvent, handle: string) => {
@@ -184,7 +204,7 @@ export function useResizableWindow(
         if (target.closest('button, input, textarea, select, [role="button"], a')) return;
 
         e.preventDefault();
-        
+
         const rect = windowRef.current.getBoundingClientRect();
         setDragState({
             isDragging: true,
@@ -229,12 +249,23 @@ export function useResizableWindow(
     }, [dragState, windowRef]);
 
     const handleMaximize = useCallback(() => {
-        const spacer = 20;
-        const width = window.innerWidth - (spacer * 2);
-        const height = window.innerHeight - (spacer * 2);
-        setSize({ width, height });
-        setPosition({ left: spacer, top: spacer });
-    }, []);
+        if (isMaximized) {
+            // Toggle to smaller default size
+            setSize(DEFAULT_SIZE);
+            const left = (window.innerWidth - DEFAULT_SIZE.width) / 2;
+            const top = (window.innerHeight - DEFAULT_SIZE.height) / 2;
+            setPosition({ left, top });
+            setIsMaximized(false);
+        } else {
+            // Toggle to maximized
+            const spacer = 20;
+            const width = window.innerWidth - (spacer * 2);
+            const height = window.innerHeight - (spacer * 2);
+            setSize({ width, height });
+            setPosition({ left: spacer, top: spacer });
+            setIsMaximized(true);
+        }
+    }, [isMaximized]);
 
     const handleReset = useCallback(() => {
         setSize(DEFAULT_SIZE);
@@ -249,6 +280,7 @@ export function useResizableWindow(
         position,
         resizeState,
         dragState,
+        isMaximized,
         handleResizeStart,
         handleDragStart,
         handleMaximize,

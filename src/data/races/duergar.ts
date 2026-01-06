@@ -10,7 +10,7 @@ export const DUERGAR_DATA: Race = {
   name: 'Gray Dwarf (Duergar)',
   baseRace: 'dwarf',
   description:
-    'Duergar are dwarves whose ancestors were transformed by centuries living in the deepest places of the Underdark. That chthonic realm is saturated with strange magical energy, and over generations, early duergar absorbed traces of it. They were further altered when mind flayers and other Aberrations invaded and performed horrific experiments on them. Fueled by Underdark magic, those experiments left early duergar with psionic powers, which have been passed down to their descendants. In time, they liberated themselves from their aberrant tyrants and forged a new life for themselves in the Underdark and beyond. Duergar typically have a life span of 350 years.',
+    'Gray dwarves, or duergar, are a grim and ashen-skinned people who dwell in the deepest caverns far from sunlight. Their ancestors were transformed by centuries of exposure to strange subterranean energies and horrific experiments by aberrant creatures. These ordeals left them with innate psionic powers and an unshakable mental fortitude. Though they eventually won their freedom, their spirits were forever darkened. Duergar value toil, discipline, and obedience above all else, disdaining emotions other than grim determination. Their craftsmanship is impeccable but purely utilitarian, lacking any aesthetic flourish.',
   abilityBonuses: [], // Flexible ASIs are handled by the Point Buy system.
 
   traits: [
@@ -22,7 +22,7 @@ export const DUERGAR_DATA: Race = {
     'Dwarven Resilience: You have advantage on saving throws you make to avoid or end the poisoned condition on yourself. You also have resistance to poison damage.',
     'Psionic Fortitude: You have advantage on saving throws you make to avoid or end the charmed or stunned condition on yourself.',
   ],
-  imageUrl: 'https://i.ibb.co/pcJsvJd/Duergar.png',
+  imageUrl: 'assets/images/races/duergar.png',
   racialSpellChoice: {
     traitName: 'Duergar Magic',
     traitDescription: 'Choose your spellcasting ability for Duergar Magic (Enlarge/Reduce, Invisibility).',

@@ -30,6 +30,7 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
         position,
         resizeState,
         dragState,
+        isMaximized,
         handleResizeStart,
         handleDragStart,
         handleMaximize,
@@ -90,12 +91,20 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
                             type="button"
                             onClick={handleMaximize}
                             className="text-gray-500 hover:text-amber-400 p-1.5 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 transition-colors"
-                            aria-label="Maximize to window"
-                            title="Maximize to fit window"
+                            aria-label={isMaximized ? 'Restore window' : 'Maximize window'}
+                            title={isMaximized ? 'Restore to default size' : 'Maximize to fit window'}
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                            </svg>
+                            {isMaximized ? (
+                                // Restore icon (overlapping squares)
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                            ) : (
+                                // Maximize icon (expand arrows)
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                </svg>
+                            )}
                         </button>
 
                         {onClose && (
