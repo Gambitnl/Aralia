@@ -54,12 +54,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           type: "object",
           properties: {
             prompt: { type: "string", description: "Image prompt" },
-            model: {
-              type: "string",
-              enum: ["gemini-2.5-flash-image", "gemini-3-pro-image-preview"],
-              default: "gemini-3-pro-image-preview"
-            },
-            outputPath: { type: "string", description: "Path to save file" }
+                        model: { 
+                          type: "string", 
+                          enum: ["gemini-2.5-flash-image", "gemini-2.5-flash-image-preview", "imagen-3.0-generate-002", "imagen-4.0-generate-001"],
+                          default: "gemini-2.5-flash-image"
+                        },            outputPath: { type: "string", description: "Path to save file" }
           },
           required: ["prompt", "outputPath"]
         }

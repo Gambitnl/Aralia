@@ -77,3 +77,6 @@ playwright/
 src/services/testCodestral.ts
 tsconfig.tsbuildinfo
 vitest-results.json
+
+.gemini/
+gha-creds-*.json
